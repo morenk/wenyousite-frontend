@@ -273,4 +273,4 @@ POST /threads 创建草稿
 - [x] 同步更新文档
 - [x] lint / typecheck / build 通过
 - [x] vitest 单元测试通过：Zod schema / API hooks / 工具函数 / 组件
-- [ ] Playwright E2E 测试通过：完整创建流程 / 子贴管理 / 楼层管理 / 发布（待补）
+- [x] Playwright E2E 测试通过：登录→创建完整流程 / 子贴与楼层管理 / 顶栏工具栏 / 发布校验 / 放弃
