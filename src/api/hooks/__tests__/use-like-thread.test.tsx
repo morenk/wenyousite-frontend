@@ -1,7 +1,7 @@
 /** useLikeThread hook 测试 */
 
 import { describe, test, expect, vi } from "vitest";
-import { renderHook, act } from "@testing-library/react";
+import { renderHook, act, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useLikeThread } from "@/api/hooks/use-like-thread";
 import React from "react";
@@ -97,6 +97,6 @@ describe("useLikeThread", () => {
       }
     });
 
-    expect(result.current.like.isError).toBe(true);
+    await waitFor(() => expect(result.current.like.isError).toBe(true));
   });
 });
