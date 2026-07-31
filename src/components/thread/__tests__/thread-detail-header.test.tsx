@@ -2,6 +2,7 @@
 
 import { describe, test, expect, vi, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThreadDetailHeader } from "@/components/thread/thread-detail-header";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
@@ -144,6 +145,50 @@ describe("ThreadDetailHeader", () => {
     // OWNER 不应该看到加入/退出按钮
     expect(screen.queryByText("加入")).toBeNull();
     expect(screen.queryByText("退出")).toBeNull();
+  });
+
+  test("OWNER 看到管理按钮", () => {
+    mockUseAuth.mockReturnValue({
+      user: { id: "owner-1", username: "帖主" },
+      isInitialized: true,
+    });
+    mockPOST.mockResolvedValue({ error: undefined });
+    renderWithQC(
+      <ThreadDetailHeader thread={baseThread} isMember={true} />,
+    );
+    expect(screen.getByText("管理")).toBeInTheDocument();
+  });
+
+  test("非 OWNER 看不到管理按钮", () => {
+    mockUseAuth.mockReturnValue({
+      user: { id: "other-user", username: "别人" },
+      isInitialized: true,
+    });
+    mockPOST.mockResolvedValue({ error: undefined });
+    renderWithQC(
+      <ThreadDetailHeader thread={baseThread} isMember={false} />,
+    );
+    expect(screen.queryByText("管理")).toBeNull();
+  });
+
+  test("点击管理按钮调用 onManage", async () => {
+    const user = userEvent.setup();
+    const onManage = vi.fn();
+    mockUseAuth.mockReturnValue({
+      user: { id: "owner-1", username: "帖主" },
+      isInitialized: true,
+    });
+    mockPOST.mockResolvedValue({ error: undefined });
+    renderWithQC(
+      <ThreadDetailHeader
+        thread={baseThread}
+        isMember={true}
+        onManage={onManage}
+      />,
+    );
+
+    await user.click(screen.getByText("管理"));
+    expect(onManage).toHaveBeenCalledTimes(1);
   });
 
   test("非 OWNER 看到加入按钮", () => {

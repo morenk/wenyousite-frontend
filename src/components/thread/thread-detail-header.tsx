@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Heart, LogIn, LogOut, Edit3, Loader2 } from "lucide-react";
+import { Heart, LogIn, LogOut, Edit3, Settings, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
@@ -42,9 +42,14 @@ const statusColor: Record<string, string> = {
 interface ThreadDetailHeaderProps {
   thread: ThreadDetail;
   isMember: boolean;
+  onManage?: () => void;
 }
 
-export function ThreadDetailHeader({ thread, isMember }: ThreadDetailHeaderProps) {
+export function ThreadDetailHeader({
+  thread,
+  isMember,
+  onManage,
+}: ThreadDetailHeaderProps) {
   const { user } = useAuth();
   const router = useRouter();
   const { like, unlike } = useLikeThread(thread.id);
@@ -213,14 +218,24 @@ export function ThreadDetailHeader({ thread, isMember }: ThreadDetailHeaderProps
               )}
 
               {isOwner && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => router.push(`/threads/${thread.id}/edit`)}
-                >
-                  <Edit3 className="mr-1 h-4 w-4" />
-                  编辑
-                </Button>
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onManage}
+                  >
+                    <Settings className="mr-1 h-4 w-4" />
+                    管理
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => router.push(`/threads/${thread.id}/edit`)}
+                  >
+                    <Edit3 className="mr-1 h-4 w-4" />
+                    编辑
+                  </Button>
+                </>
               )}
             </>
           ) : (

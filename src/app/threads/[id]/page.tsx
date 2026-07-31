@@ -14,6 +14,7 @@ import { ThreadDetailHeader } from "@/components/thread/thread-detail-header";
 import { SubthreadTabs } from "@/components/thread/subthread-tabs";
 import { FloorList } from "@/components/thread/floor-list";
 import { FloorForm } from "@/components/thread/floor-form";
+import { ManagementPanel } from "@/components/thread/management-panel";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -33,6 +34,7 @@ export default function ThreadDetailPage() {
   const { data: members = [] } = useThreadMembers(threadId);
 
   const [selectedSubthreadId, setSelectedSubthreadId] = useState<string>();
+  const [isManaging, setIsManaging] = useState(false);
 
   const effectiveSubthreadId =
     selectedSubthreadId ?? thread?.defaultSubthreadId;
@@ -101,10 +103,27 @@ export default function ThreadDetailPage() {
 
   if (!thread) return null;
 
+  // 管理面板（帖主全页覆盖）
+  if (isManaging) {
+    return (
+      <div className="mx-auto h-[calc(100vh-3.5rem)] max-w-6xl px-4 py-4">
+        <ManagementPanel
+          thread={thread}
+          onExit={() => setIsManaging(false)}
+          onRefetch={refetch}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
       {/* 头部 */}
-      <ThreadDetailHeader thread={thread} isMember={isMember} />
+      <ThreadDetailHeader
+        thread={thread}
+        isMember={isMember}
+        onManage={isOwner ? () => setIsManaging(true) : undefined}
+      />
 
       <div className="mt-5 space-y-4">
         {/* 子贴 Tabs */}
