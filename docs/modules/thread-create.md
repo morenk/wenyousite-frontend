@@ -7,7 +7,7 @@
 **本次迭代范围（Phase 4）：**
 - 创建主题帖页面 `/threads/create`
 - 进入页面即自动创建沙盒草稿（方案 A）
-- 表单编辑：标题、分区、可见性、主题帖标签、默认子贴标题、首楼正文
+- 表单编辑：标题、分区、可见性、主题帖标签、首楼正文（默认子贴标题自动跟随主题帖标题，不显示输入框）
 - Milkdown Crepe WYSIWYG 编辑器（可见工具栏 + 所见即所得渲染 + 字数统计）
 - 保存草稿（`PATCH /threads/:id`）
 - 发布主题帖（`PATCH /threads/:id { published: true }`）
@@ -65,8 +65,8 @@
 | 组件 | 路径 | 说明 |
 |------|------|------|
 | CreateThreadPage | `src/app/threads/create/page.tsx` | 创建页主逻辑 |
-| ThreadCreateForm | `src/components/forms/thread-create-form.tsx` | 主题帖创建表单 |
-| MilkdownEditor | `src/components/editor/milkdown-editor.tsx` | @milkdown/crepe WYSIWYG，含工具栏/块手柄/斜杠菜单/字数统计/图片上传 |
+| ThreadCreateForm | `src/components/forms/thread-create-form.tsx` | 主题帖创建表单，默认子贴标题自动跟随主题帖标题（不显示输入框），保存/发布时自动填充 |
+| MilkdownEditor | `src/components/editor/milkdown-editor.tsx` | @milkdown/crepe WYSIWYG，含工具栏/字数统计/图片上传，BlockEdit 已禁用，内边距 20px/32px，顶栏按钮悬浮 tooltip 中文本地化 |
 | TagInput | `src/components/forms/tag-input.tsx` | 主题帖标签输入（支持自动补全） |
 | useCreateThread | `src/api/hooks/use-create-thread.ts` | 创建草稿 hook |
 | useThreadDetail | `src/api/hooks/use-thread-detail.ts` | 获取详情 hook |
@@ -81,9 +81,9 @@
 
 | Feature | 状态 | 说明 |
 |---------|------|------|
-| TopBar | ✅ | 顶部固定工具栏：标题选择器、粗体/斜体/删除线/行内代码/链接/图片/表格/代码块/引用/分隔线/列表（全部中文标签） |
+| TopBar | ✅ | 顶部固定工具栏：标题选择器、粗体/斜体/删除线/行内代码/链接/图片/表格/代码块/引用/分隔线/列表（全部中文标签），按钮悬浮带中文 tooltip |
 | Toolbar | ✅ | 选区浮动工具栏：粗体/斜体/删除线/行内代码/链接 |
-| BlockEdit | ✅ | 块手柄 + 斜杠菜单 `/`：文本/标题1-6/引用/分隔线 + 列表/任务列表 + 图片/代码块/表格/公式（全部中文标签） |
+| BlockEdit | ❌ | 禁用（以间接编辑为主，移除左侧 +/拖拽按钮） |
 | LinkTooltip | ✅ | 链接悬停编辑弹窗，输入框占位符"粘贴链接…" |
 | ImageBlock | ✅ | 图片上传，按钮/占位符全中文化（上传/上传文件/确认/输入图片说明/或粘贴链接） |
 | CodeMirror | ✅ | 代码块语法高亮，UI 字符串中文化（搜索语言/复制/无结果/编辑/隐藏） |
@@ -99,6 +99,10 @@ Milkdown Crepe v7 不支持 i18n 插件，所有文本通过各 feature 的 conf
 **中文字体：** `globals.css` 中覆盖 Milkdown Crepe 的 CSS 自定义属性 `--crepe-font-default`、`--crepe-font-title`、`--crepe-font-code`，插入 Noto Sans SC / M PLUS Rounded 1c / JetBrains Mono。
 
 字数统计：底部实时显示 `{已输入}/10000`，70% 黄色警告，90% 红色警告。
+
+编辑区内边距通过 `globals.css` 覆盖 `.milkdown .ProseMirror { padding: 20px 32px }`（Nord 主题默认 60px 120px 过宽）。
+
+顶栏按钮 tooltip：Milkdown Crepe v7 TopBar 不支持 tooltip 配置，通过 `injectToolbarTooltips()` 函数在 DOM 就绪后给 `.top-bar-item` 和 `.top-bar-heading-button` 注入 `title` 属性，利用浏览器原生 tooltip 实现中文本地化悬浮提示。
 
 ## 6. 表单与校验
 
@@ -201,6 +205,8 @@ POST /threads 创建草稿
 - [x] 放弃创建可删除草稿
 - [x] 所有错误状态有 toast 提示
 - [x] 提交按钮显示 loading 状态
+- [x] 编辑区已调整内边距（从 60px/120px 收紧到 20px/32px）
+- [x] 顶栏按钮悬浮提示（粗体/斜体/删除线/行内代码/链接/图片/无序列表/有序列表/任务列表/代码块/引用/分隔线 + 标题级别选择器，通过 JS `title` 属性注入中文本地化 tooltip）
 - [x] `pnpm lint && pnpm typecheck && pnpm build` 全部通过
 
 ## 11. 子任务

@@ -32,6 +32,7 @@ export function useUpdateThread() {
           title: body.title,
           category: body.category,
           visibility: body.visibility,
+          subthreadTitle: body.subthreadTitle,
           published: body.published,
           version: body.version,
         },

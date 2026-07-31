@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -71,7 +71,12 @@ export function ThreadCreateForm({
   const category = useWatch({ control: form.control, name: "category" });
   const visibility = useWatch({ control: form.control, name: "visibility" });
   const tagNames = useWatch({ control: form.control, name: "tagNames" });
+  const title = useWatch({ control: form.control, name: "title" });
   const content = useWatch({ control: form.control, name: "content" });
+
+  useEffect(() => {
+    form.setValue("subthreadTitle", title ?? "");
+  }, [title, form]);
 
   async function saveBodyContent(values: ThreadCreateFormData) {
     const content = values.content?.trim() ?? "";
@@ -97,6 +102,7 @@ export function ThreadCreateForm({
     const values = form.getValues();
     const body: ThreadCreateFormData & { version: number } = {
       ...values,
+      subthreadTitle: values.title,
       version: thread.version,
     };
     if (!body.title || body.title.trim() === "") {
@@ -161,6 +167,7 @@ export function ThreadCreateForm({
           title: values.title,
           category: values.category,
           visibility: values.visibility,
+          subthreadTitle: values.title,
           published: true,
           version: latestThread.version,
         },
@@ -255,15 +262,6 @@ export function ThreadCreateForm({
             value={tagNames ?? []}
             onChange={(tags) => form.setValue("tagNames", tags)}
             disabled={isSaving || isPublishing}
-          />
-        </div>
-
-        <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="subthreadTitle">默认子贴标题</Label>
-          <Input
-            id="subthreadTitle"
-            placeholder="主帖 / 设定区 / 剧情区"
-            {...form.register("subthreadTitle")}
           />
         </div>
 

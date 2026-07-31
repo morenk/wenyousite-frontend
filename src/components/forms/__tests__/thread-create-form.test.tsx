@@ -139,20 +139,6 @@ describe("ThreadCreateForm", () => {
     expect(screen.getByPlaceholderText("给你的主题帖起个名字")).toBeInTheDocument();
   });
 
-  test("渲染默认子贴标题输入框", () => {
-    render(
-      <ThreadCreateForm
-        thread={mockThread}
-        onCancel={vi.fn()}
-        onPublished={vi.fn()}
-        onRefetch={vi.fn().mockResolvedValue({ data: mockThread })}
-      />,
-      { wrapper: createWrapper() },
-    );
-
-    expect(screen.getByDisplayValue("主帖")).toBeInTheDocument();
-  });
-
   test("渲染编辑器（mock textarea）", () => {
     render(
       <ThreadCreateForm
