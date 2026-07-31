@@ -1,5 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "@milkdown/crepe/theme/nord.css";
+@import "@milkdown/crepe/theme/common/style.css";
 
 :root {
   /* Misskey-inspired pastel palette */
@@ -84,4 +86,9 @@ body {
   --crepe-font-default: var(--font-noto-sans), "Noto Sans SC", ui-sans-serif, system-ui, sans-serif;
   --crepe-font-title: var(--font-m-plus-rounded), "Noto Sans SC", ui-sans-serif, system-ui, serif;
   --crepe-font-code: var(--font-jetbrains-mono), ui-monospace, monospace;
+}
+
+/* Milkdown 编辑器内容区内边距覆盖 */
+.milkdown .ProseMirror {
+  padding: 20px 32px;
 }

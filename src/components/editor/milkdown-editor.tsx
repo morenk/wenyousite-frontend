@@ -7,10 +7,40 @@ import { Milkdown, MilkdownProvider, useEditor, useInstance } from "@milkdown/re
 import { Crepe, CrepeFeature } from "@milkdown/crepe";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import "@milkdown/crepe/theme/nord.css";
-import "@milkdown/crepe/theme/common/style.css";
 
 const MAX_CHARS = 10000;
+
+const TOOLBAR_TOOLTIPS: Record<number, string> = {
+  0: "粗体",
+  1: "斜体",
+  2: "删除线",
+  3: "行内代码",
+  4: "无序列表",
+  5: "有序列表",
+  6: "任务列表",
+  7: "链接",
+  8: "图片",
+  9: "代码块",
+  10: "引用",
+  11: "分隔线",
+};
+
+function injectToolbarTooltips() {
+  const topBar = document.querySelector(".milkdown-top-bar");
+  if (!topBar) return;
+
+  const headingBtn = topBar.querySelector<HTMLButtonElement>(".top-bar-heading-button");
+  if (headingBtn && !headingBtn.hasAttribute("title")) {
+    headingBtn.title = "切换标题级别";
+  }
+
+  const buttons = topBar.querySelectorAll<HTMLButtonElement>(".top-bar-item");
+  buttons.forEach((btn, index) => {
+    if (TOOLBAR_TOOLTIPS[index] && !btn.hasAttribute("title")) {
+      btn.title = TOOLBAR_TOOLTIPS[index]!;
+    }
+  });
+}
 
 interface MilkdownEditorProps {
   defaultValue?: string;
@@ -64,6 +94,7 @@ function EditorCore({
           [CrepeFeature.Table]: false,
           [CrepeFeature.Latex]: false,
           [CrepeFeature.AI]: false,
+          [CrepeFeature.BlockEdit]: false,
           [CrepeFeature.TopBar]: true,
         },
         featureConfigs: {
@@ -82,33 +113,6 @@ function EditorCore({
             noResultText: "无结果",
             previewToggleText: (previewOnlyMode: boolean) =>
               previewOnlyMode ? "隐藏" : "编辑",
-          },
-          [CrepeFeature.BlockEdit]: {
-            textGroup: {
-              label: "文本",
-              text: { label: "文本" },
-              h1: { label: "标题 1" },
-              h2: { label: "标题 2" },
-              h3: { label: "标题 3" },
-              h4: { label: "标题 4" },
-              h5: { label: "标题 5" },
-              h6: { label: "标题 6" },
-              quote: { label: "引用" },
-              divider: { label: "分隔线" },
-            },
-            listGroup: {
-              label: "列表",
-              bulletList: { label: "无序列表" },
-              orderedList: { label: "有序列表" },
-              taskList: { label: "任务列表" },
-            },
-            advancedGroup: {
-              label: "高级",
-              image: { label: "图片" },
-              codeBlock: { label: "代码块" },
-              table: { label: "表格" },
-              math: { label: "公式" },
-            },
           },
           ...(onUploadImage ? getImageBlockConfig(onUploadImage) : {}),
         },
@@ -133,6 +137,31 @@ function EditorCore({
   useEffect(() => {
     crepeRef.current?.setReadonly(disabled ?? false);
   }, [disabled]);
+
+  useEffect(() => {
+    const topBar = document.querySelector(".milkdown-top-bar");
+    if (topBar) {
+      injectToolbarTooltips();
+      return;
+    }
+
+    let attempts = 0;
+    const maxAttempts = 50;
+    const interval = setInterval(() => {
+      attempts++;
+      const tb = document.querySelector(".milkdown-top-bar");
+      if (tb) {
+        injectToolbarTooltips();
+        clearInterval(interval);
+        return;
+      }
+      if (attempts >= maxAttempts) {
+        clearInterval(interval);
+      }
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const charWarning =
     charCount > MAX_CHARS * 0.9
