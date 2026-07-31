@@ -19,6 +19,7 @@ import {
   validatePublishable,
 } from "@/lib/validations/thread-create";
 import { useUpdateThread } from "@/api/hooks/use-update-thread";
+import { useUpdateSubthread } from "@/api/hooks/use-update-subthread";
 import { useCreatePost } from "@/api/hooks/use-create-post";
 import { useUpdatePost } from "@/api/hooks/use-update-post";
 import { useUploadImage } from "@/api/hooks/use-upload-image";
@@ -52,6 +53,7 @@ export function ThreadCreateForm({
   const [isPublishing, setIsPublishing] = useState(false);
 
   const updateThread = useUpdateThread();
+  const updateSubthread = useUpdateSubthread();
   const createPost = useCreatePost();
   const updatePost = useUpdatePost();
   const uploadImage = useUploadImage();
@@ -92,6 +94,20 @@ export function ThreadCreateForm({
     }
   }
 
+  /** 默认子贴标题跟随主题帖标题（仅当标题有值且与当前子贴标题不同时更新） */
+  async function syncDefaultSubthreadTitle(values: ThreadCreateFormData) {
+    const title = values.title?.trim();
+    const defaultSub = thread.defaultSubthread;
+    if (!title || defaultSub.title === title) return;
+    await updateSubthread.mutateAsync({
+      subthreadId: defaultSub.id,
+      body: {
+        title,
+        version: defaultSub.version,
+      },
+    });
+  }
+
   async function handleSaveDraft() {
     const values = form.getValues();
     const body: ThreadCreateFormData & { version: number } = {
@@ -109,6 +125,7 @@ export function ThreadCreateForm({
         body,
       });
       await saveBodyContent(values);
+      await syncDefaultSubthreadTitle(values);
       await onRefetch();
       toast.success("草稿已保存");
     } catch (error: unknown) {
@@ -150,6 +167,7 @@ export function ThreadCreateForm({
           version: latestThread.defaultSubthread.bodyPost.version,
         });
       }
+      await syncDefaultSubthreadTitle(values);
 
       await updateThread.mutateAsync({
         threadId: latestThread.id,

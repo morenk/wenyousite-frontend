@@ -19,12 +19,14 @@ vi.mock("@/components/editor/milkdown-editor", () => ({
 
 const {
   mockUpdateThreadMutate,
+  mockUpdateSubthreadMutate,
   mockCreatePostMutate,
   mockUpdatePostMutate,
   mockUploadImageMutate,
 } =
   vi.hoisted(() => ({
     mockUpdateThreadMutate: vi.fn(),
+    mockUpdateSubthreadMutate: vi.fn(),
     mockCreatePostMutate: vi.fn(),
     mockUpdatePostMutate: vi.fn(),
     mockUploadImageMutate: vi.fn(),
@@ -33,6 +35,13 @@ const {
 vi.mock("@/api/hooks/use-update-thread", () => ({
   useUpdateThread: () => ({
     mutateAsync: mockUpdateThreadMutate,
+    isLoading: false,
+  }),
+}));
+
+vi.mock("@/api/hooks/use-update-subthread", () => ({
+  useUpdateSubthread: () => ({
+    mutateAsync: mockUpdateSubthreadMutate,
     isLoading: false,
   }),
 }));
@@ -222,5 +231,55 @@ describe("ThreadCreateForm", () => {
         }),
       );
     });
+  });
+
+  test("标题变更后保存草稿同步默认子贴标题", async () => {
+    const user = userEvent.setup();
+    mockUpdateThreadMutate.mockResolvedValueOnce({ data: mockThread });
+    mockUpdateSubthreadMutate.mockResolvedValueOnce({});
+
+    renderForm();
+
+    await user.type(
+      screen.getByPlaceholderText("给你的主题帖起个名字"),
+      "新标题",
+    );
+    await user.click(screen.getByText("保存草稿"));
+
+    await vi.waitFor(() => {
+      expect(mockUpdateSubthreadMutate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          subthreadId: "s1",
+          body: expect.objectContaining({
+            title: "新标题",
+            version: 1,
+          }),
+        }),
+      );
+    });
+  });
+
+  test("标题为空时保存草稿不调用同步子贴标题", async () => {
+    const user = userEvent.setup();
+    mockUpdateThreadMutate.mockResolvedValueOnce({ data: mockThread });
+
+    renderForm();
+
+    await user.click(screen.getByText("保存草稿"));
+
+    expect(mockUpdateSubthreadMutate).not.toHaveBeenCalled();
+  });
+
+  test("标题与默认子贴标题相同时不调用同步", async () => {
+    const user = userEvent.setup();
+    // 默认子贴标题为"主帖"，将帖子标题也设为"主帖"
+    const titledThread = { ...mockThread, title: "主帖" };
+    mockUpdateThreadMutate.mockResolvedValueOnce({ data: titledThread });
+
+    renderForm(titledThread);
+
+    await user.click(screen.getByText("保存草稿"));
+
+    expect(mockUpdateSubthreadMutate).not.toHaveBeenCalled();
   });
 });
