@@ -2,22 +2,23 @@
 
 ## 1. 目标与范围
 
-实现用户创建并发布主题帖的完整前端流程：进入创建页自动创建沙盒草稿，编辑标题/分区/可见性/标签，管理多个子贴及其楼层，保存草稿，最终发布。
+实现用户创建并发布主题帖的完整前端流程：进入创建页自动创建沙盒草稿，编辑标题/分区/可见性/标签与默认子贴正文，保存草稿，最终发布。
 
-**本次迭代范围（Phase 4 + 楼层管理）：**
+**本次迭代范围（Phase 4）：**
 - 创建主题帖页面 `/threads/create`
 - 进入页面即自动创建沙盒草稿（方案 A）
-- 表单编辑：标题、分区、可见性、主题帖标签
-- 子贴管理：添加/编辑/删除子贴（默认子贴标题自动跟随主题帖标题，不显示输入框）
-- 楼层管理：每个子贴下可添加/编辑/删除楼层（单例 Milkdown 编辑器上下文切换）
+- 表单编辑：标题、分区、可见性、主题帖标签、默认子贴正文
 - Milkdown Crepe WYSIWYG 编辑器（可见工具栏 + 所见即所得渲染 + 字数统计）
 - 保存草稿（`PATCH /threads/:id`）
 - 发布主题帖（`PATCH /threads/:id { published: true }`）
 - 发布后跳转详情页 `/threads/[id]`
 - 放弃创建时删除草稿（`DELETE /threads/:id`）
 
+**设计决策（与沙盒版对比）：**
+- 创建页**仅管理默认子贴正文**，不做多子贴 / 楼层管理（保持简洁）
+- 多子贴创建与管理移至**详情页管理面板**（见 `docs/modules/thread-detail.md`）：左子贴目录树 + 右单例编辑器 + 拖拽排序
+
 **后续迭代：**
-- 子贴拖拽排序（hook `useReorderSubthreads` 已就绪，UI 待接）
 - 楼中楼回复（`parentPostId` / `replyToPostId`，详情页实现）
 - 默认子贴标题的单独管理
 - 更复杂的标签颜色选择
@@ -37,18 +38,14 @@
 | GET | `/threads/:id` | AuthRead | 获取草稿最新数据（含 subthreads[].bodyPost: {id,content,version} 首楼信息，供编辑器回填和乐观锁编辑） |
 | PATCH | `/threads/:id` | Auth | 修改草稿元数据 / 发布 |
 | DELETE | `/threads/:id` | Auth | 放弃创建，删除草稿 |
-| POST | `/threads/:threadId/subthreads` | Auth | 添加子贴（title + postingPolicy） |
-| PATCH | `/subthreads/:id` | Auth | 编辑子贴（title / postingPolicy / version） |
-| DELETE | `/subthreads/:id` | Auth | 删除子贴 |
-| PUT | `/threads/:threadId/subthreads/reorder` | Auth | 子贴排序（待接 UI） |
-| GET | `/subthreads/:subthreadId/posts` | Public | 子贴楼层列表（cursor 分页，沙盒内 limit=20 一次拉取） |
-| POST | `/subthreads/:subthreadId/posts` | Auth | 添加楼层 |
-| PATCH | `/posts/:id` | Auth | 编辑楼层（作者 + version 乐观锁） |
-| DELETE | `/posts/:id` | Auth | 删除楼层（首楼不可删） |
+| POST | `/subthreads/:subthreadId/posts` | Auth | 创建默认子贴正文（首楼） |
+| PATCH | `/posts/:id` | Auth | 编辑默认子贴正文（作者 + version 乐观锁） |
 | GET | `/tags?q=` | Public | 标签自动补全 |
 | POST | `/media/upload-url` | Auth | 获取 S3 预签名 URL |
 | POST | `/media/upload-done` | Auth | 确认上传完成 |
 | GET | `/media/:id` | Auth | 轮询图片处理状态 |
+
+> 子贴增删改 / 排序 / 子贴正文管理相关端点（`/subthreads`、`/threads/:id/subthreads/reorder` 等）由详情页管理面板使用，见 `docs/modules/thread-detail.md`。
 
 **响应数据类型说明（与真实 API 对齐）：**
 - `ThreadDetail` 的 `_count` 字段为 `{ members, posts }`（非 `{ subthreads, posts }`）。
@@ -76,26 +73,19 @@
 | 组件 | 路径 | 说明 |
 |------|------|------|
 | CreateThreadPage | `src/app/threads/create/page.tsx` | 创建页主逻辑 |
-| ThreadCreateForm | `src/components/forms/thread-create-form.tsx` | 主题帖创建表单：基础信息 + 子贴管理 + 楼层编辑（单例编辑器上下文切换） |
-| SubthreadList | `src/components/thread/subthread-list.tsx` | 子贴列表容器（添加/编辑/删除 + 渲染楼层内容） |
-| SubthreadCard | `src/components/thread/subthread-card.tsx` | 子贴折叠卡片（标题/权限/楼层数/操作按钮） |
-| SubthreadForm | `src/components/forms/subthread-form.tsx` | 子贴创建/编辑弹窗（title + postingPolicy + Zod 校验） |
-| SubthreadFloors | `src/components/thread/subthread-floors.tsx` | 子贴楼层列表（useFloors 拉取全部楼层 + 编辑/删除/添加按钮） |
-| MilkdownEditor | `src/components/editor/milkdown-editor.tsx` | @milkdown/crepe WYSIWYG 单例编辑器（工具栏/字数统计/图片上传/中文本地化） |
+| ThreadCreateForm | `src/components/forms/thread-create-form.tsx` | 主题帖创建表单：基础信息 + 默认子贴正文（简洁模式） |
+| MilkdownEditor | `src/components/editor/milkdown-editor.tsx` | @milkdown/crepe WYSIWYG 编辑器（工具栏/字数统计/图片上传/中文本地化） |
 | TagInput | `src/components/forms/tag-input.tsx` | 主题帖标签输入（支持自动补全） |
 | useCreateThread | `src/api/hooks/use-create-thread.ts` | 创建草稿 hook |
 | useThreadDetail | `src/api/hooks/use-thread-detail.ts` | 获取详情 hook |
 | useUpdateThread | `src/api/hooks/use-update-thread.ts` | 更新草稿 / 发布 hook |
 | useDeleteThread | `src/api/hooks/use-delete-thread.ts` | 删除草稿 hook |
-| useCreateSubthread | `src/api/hooks/use-create-subthread.ts` | 添加子贴 hook |
-| useUpdateSubthread | `src/api/hooks/use-update-subthread.ts` | 编辑子贴 hook |
-| useDeleteSubthread | `src/api/hooks/use-delete-subthread.ts` | 删除子贴 hook |
-| useReorderSubthreads | `src/api/hooks/use-reorder-subthreads.ts` | 子贴排序 hook（待接 UI） |
-| useCreatePost | `src/api/hooks/use-create-post.ts` | 添加楼层 hook |
-| useUpdatePost | `src/api/hooks/use-update-post.ts` | 编辑楼层 hook |
-| useDeletePost | `src/api/hooks/use-delete-post.ts` | 删除楼层 hook |
+| useCreatePost | `src/api/hooks/use-create-post.ts` | 创建默认子贴正文 hook |
+| useUpdatePost | `src/api/hooks/use-update-post.ts` | 编辑默认子贴正文 hook |
 | useUploadImage | `src/api/hooks/use-upload-image.ts` | 图片上传 hook |
 | uploadImage | `src/lib/upload-image.ts` | 图片上传流程工具函数 |
+
+> 子贴管理相关组件/hooks（`SubthreadTree`、`ManagementPanel`、`SubthreadCard/List/Form`、`useCreateSubthread` 等）在详情页管理面板中使用，见 `docs/modules/thread-detail.md`。
 
 **编辑器实现说明：**
 
@@ -125,19 +115,6 @@ Milkdown Crepe v7 不支持 i18n 插件，所有文本通过各 feature 的 conf
 编辑区内边距通过 `globals.css` 覆盖 `.milkdown .ProseMirror { padding: 20px 32px }`（Nord 主题默认 60px 120px 过宽）。
 
 顶栏按钮 tooltip：Milkdown Crepe v7 TopBar 不支持 tooltip 配置，通过 `injectToolbarTooltips()` 函数在 DOM 就绪后给 `.top-bar-item` 和 `.top-bar-heading-button` 注入 `title` 属性，利用浏览器原生 tooltip 实现中文本地化悬浮提示。
-
-**单例编辑器 + 上下文切换（楼层管理核心）：**
-
-全局只维持 **1 个** MilkdownEditor 实例，通过 `editingTarget: { subthreadId, postId?, version? }` 决定它绑定到哪个楼层：
-
-- `postId` 有值 = 编辑既有楼层（`PATCH /posts/:id`）
-- `postId` 无值 = 创建新楼层（`POST /subthreads/:id/posts`）
-- 默认锚定默认子贴首楼（无正文则进入创建模式）
-- 切换目标时用 `key` 强制重挂载编辑器，`defaultValue` 从表单 `content` 字段回填
-- 保存后 `invalidateQueries(["floors"])` + `onRefetch()` 刷新楼层与帖子计数
-- 发布校验改为检查默认子贴正文（`validatePublishable(values, defaultContent)`），不再依赖表单 `content` 字段（它现在表示当前编辑楼层）
-
-楼层列表由 `SubthreadFloors` 渲染（useFloors 一次拉取 limit=20），首楼（floor#1 + 无父帖）隐藏删除按钮。
 
 ## 6. 表单与校验
 
@@ -212,34 +189,24 @@ const threadCreateSchema = z.object({
   ↓ 已登录且已验证
 POST /threads 创建草稿
   ↓ 成功
-显示表单（标题/分区/可见性/标签 + 子贴管理面板）
-  ↓ 子贴管理
-[添加子贴] → SubthreadForm 弹窗 → POST /threads/:id/subthreads
-[编辑子贴] → SubthreadForm 弹窗 → PATCH /subthreads/:id
-[删除子贴] → confirm → DELETE /subthreads/:id
-  ↓ 楼层管理（每个子贴）
-展开子贴 → SubthreadFloors 楼层列表
-[添加楼层] → 单例编辑器接管 → 输入 → POST /subthreads/:id/posts
-[编辑楼层] → 编辑器回填该楼层 → 保存 → PATCH /posts/:id
-[删除楼层] → confirm → DELETE /posts/:id（首楼不可删）
-  ↓
-点击"保存草稿" → PATCH /threads/:id { 当前字段, version } + 保存当前编辑楼层
+显示表单（标题/分区/可见性/标签 + 默认子贴正文编辑器）
+  ↓ 用户编辑
+点击"保存草稿" → PATCH /threads/:id { 当前字段, version } + 保存默认子贴正文
   ↓ 成功 toast "草稿已保存"
-点击"发布" → 校验默认子贴正文 → 保存当前编辑楼层 → PATCH { published: true, version }
+点击"发布" → 校验默认子贴正文 → 保存正文 → PATCH { published: true, version }
   ↓ 成功 toast "发布成功" 跳转 /threads/:id
   ↓ 失败 按错误码提示
 点击"放弃" → 确认弹窗 → DELETE /threads/:id → 跳转 /
 ```
+> 多子贴创建/管理入口在发布后的详情页「管理」面板（见 thread-detail.md）
 
 ## 10. 验收标准
 
 - [x] 进入 `/threads/create` 自动创建草稿并显示表单
 - [x] 未登录用户跳转登录页
 - [x] 未验证邮箱用户收到提示并跳转验证页
-- [x] 表单可编辑标题、分区、可见性、标签
-- [x] 子贴管理：添加/编辑/删除子贴（SubthreadCard + SubthreadForm）
-- [x] 楼层管理：每个子贴下添加/编辑/删除楼层（单例编辑器上下文切换）
-- [x] 楼层列表展示：楼层号 + Markdown 渲染，首楼保护不显示删除按钮
+- [x] 表单可编辑标题、分区、可见性、标签、默认子贴正文
+- [x] 创建页保持简洁：不承载多子贴/楼层管理（移至详情页管理面板）
 - [x] 标签输入支持自动补全和新建
 - [x] 编辑器支持 WYSIWYG 渲染与可见工具栏
 - [x] 编辑器功能：粗体/斜体/删除线/行内代码/链接/标题/列表/引用/代码块
@@ -263,14 +230,12 @@ POST /threads 创建草稿
 - [x] 实现 Milkdown Crepe WYSIWYG 编辑器 `src/components/editor/milkdown-editor.tsx`
 - [x] 实现图片上传工具 `src/lib/upload-image.ts`
 - [x] 实现 `useCreateThread` / `useThreadDetail` / `useUpdateThread` / `useDeleteThread` hooks
-- [x] 实现 `useUploadImage` hook
-- [x] 实现 `useCreateSubthread` / `useUpdateSubthread` / `useDeleteSubthread` / `useReorderSubthreads` hooks
-- [x] 实现 `useDeletePost` hook
+- [x] 实现 `useCreatePost` / `useUpdatePost` / `useUploadImage` hooks
 - [x] 实现 `TagInput` 标签输入组件
-- [x] 实现 `SubthreadCard` / `SubthreadList` / `SubthreadForm` / `SubthreadFloors` 组件
-- [x] 实现 `ThreadCreateForm` 表单组件（多子贴 + 楼层管理 + 单例编辑器上下文切换）
+- [x] 实现 `ThreadCreateForm` 表单组件（简洁模式）
 - [x] 实现 `/threads/create` 页面
+- [x] 沙盒版多子贴/楼层管理已移除（组件/逻辑回退，相关 hooks 保留供详情页管理面板复用）
 - [x] 同步更新文档
 - [x] lint / typecheck / build 通过
 - [x] vitest 单元测试通过：Zod schema / API hooks / 工具函数 / 组件
-- [x] Playwright E2E 测试通过：登录→创建完整流程 / 子贴与楼层管理 / 顶栏工具栏 / 发布校验 / 放弃
+- [x] Playwright E2E 测试通过：登录→创建完整流程 / 顶栏工具栏 / 发布校验 / 放弃
