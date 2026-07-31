@@ -41,10 +41,17 @@ export function SubthreadCard({
         isDefault && "ring-1 ring-primary/20",
       )}
     >
-      <button
-        type="button"
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => setExpanded((v) => !v)}
-        className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-muted/50 transition-colors"
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setExpanded((v) => !v);
+          }
+        }}
+        className="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left hover:bg-muted/50 transition-colors"
       >
         <ChevronDown
           className={cn(
@@ -103,7 +110,7 @@ export function SubthreadCard({
             )}
           </div>
         )}
-      </button>
+      </div>
       {expanded && children && (
         <div className="border-t border-border px-4 py-3">{children}</div>
       )}
