@@ -112,8 +112,8 @@ test.describe("主题帖管理面板", () => {
     const reorderRes = await reorderResponse;
     expect(reorderRes.status()).toBe(200);
 
-    // 树中仍保留所有子贴
-    await expect(aside.getByText("未命名草稿")).toBeVisible();
+    // 树中仍保留所有子贴（默认子贴标题已跟随帖子标题，用默认徽章断言）
+    await expect(aside.getByText("默认")).toBeVisible();
     await expect(aside.getByText("设定区")).toBeVisible();
     await expect(aside.getByText("剧情区")).toBeVisible();
   });
