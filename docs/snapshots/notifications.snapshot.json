@@ -1,0 +1,35 @@
+{
+  "module": "notifications",
+  "generatedAt": "2026-07-30T17:07:26.710Z",
+  "description": "通知端点快照",
+  "endpoints": {
+    "GET /notifications?limit=5": {
+      "label": "GET /notifications?limit=5",
+      "request": {
+        "limit": 5
+      },
+      "response": {
+        "code": 0,
+        "message": "ok",
+        "data": [],
+        "meta": {
+          "cursor": null,
+          "hasMore": false
+        }
+      },
+      "httpStatus": 200
+    },
+    "GET /notifications/unread": {
+      "label": "GET /notifications/unread",
+      "request": null,
+      "response": {
+        "code": 0,
+        "message": "ok",
+        "data": {
+          "unreadCount": 0
+        }
+      },
+      "httpStatus": 200
+    }
+  }
+}

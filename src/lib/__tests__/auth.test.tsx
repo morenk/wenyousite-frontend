@@ -1,0 +1,125 @@
+/** AuthProvider 认证上下文测试 */
+
+import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, act, renderHook, cleanup } from "@testing-library/react";
+import { AuthProvider, useAuth, type AuthUser } from "@/lib/auth";
+
+const mockUser: AuthUser = {
+  id: "user-1",
+  email: "test@example.com",
+  username: "testuser",
+  avatar: null,
+  role: "USER",
+  emailVerified: true,
+};
+
+beforeEach(() => {
+  localStorage.clear();
+});
+
+afterEach(() => cleanup());
+
+function TestComponent() {
+  const { user, isInitialized, setAuth, logout } = useAuth();
+  return (
+    <div>
+      <span data-testid="initialized">{isInitialized ? "yes" : "no"}</span>
+      <span data-testid="username">{user?.username ?? "null"}</span>
+      <button
+        data-testid="login-btn"
+        onClick={() => setAuth(mockUser, "test-token")}
+      >
+        login
+      </button>
+      <button data-testid="logout-btn" onClick={logout}>
+        logout
+      </button>
+    </div>
+  );
+}
+
+describe("AuthProvider", () => {
+  test("初始状态 user 为 null", async () => {
+    render(
+      <AuthProvider>
+        <TestComponent />
+      </AuthProvider>,
+    );
+
+    await vi.waitFor(() => {
+      expect(screen.getByTestId("initialized").textContent).toBe("yes");
+    });
+
+    expect(screen.getByTestId("username").textContent).toBe("null");
+  });
+
+  test("setAuth 后 user 可读", async () => {
+    render(
+      <AuthProvider>
+        <TestComponent />
+      </AuthProvider>,
+    );
+
+    await vi.waitFor(() => {
+      expect(screen.getByTestId("initialized").textContent).toBe("yes");
+    });
+
+    act(() => {
+      screen.getByTestId("login-btn").click();
+    });
+
+    await vi.waitFor(() => {
+      expect(screen.getByTestId("username").textContent).toBe("testuser");
+    });
+  });
+
+  test("logout 清除 user", async () => {
+    render(
+      <AuthProvider>
+        <TestComponent />
+      </AuthProvider>,
+    );
+
+    await vi.waitFor(() => {
+      expect(screen.getByTestId("initialized").textContent).toBe("yes");
+    });
+
+    act(() => {
+      screen.getByTestId("login-btn").click();
+    });
+
+    await vi.waitFor(() => {
+      expect(screen.getByTestId("username").textContent).toBe("testuser");
+    });
+
+    act(() => {
+      screen.getByTestId("logout-btn").click();
+    });
+
+    await vi.waitFor(() => {
+      expect(screen.getByTestId("username").textContent).toBe("null");
+    });
+  });
+
+  test("accessToken 为 null 时 user 为 null", async () => {
+    localStorage.setItem("user", JSON.stringify(mockUser));
+
+    render(
+      <AuthProvider>
+        <TestComponent />
+      </AuthProvider>,
+    );
+
+    await vi.waitFor(() => {
+      expect(screen.getByTestId("initialized").textContent).toBe("yes");
+    });
+
+    expect(screen.getByTestId("username").textContent).toBe("null");
+  });
+
+  test("useAuth 在 Provider 外抛出错误", () => {
+    expect(() => {
+      renderHook(() => useAuth());
+    }).toThrow("useAuth must be used within AuthProvider");
+  });
+});

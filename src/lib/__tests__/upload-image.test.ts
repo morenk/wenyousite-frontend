@@ -1,0 +1,95 @@
+/** uploadImage 工具函数测试 */
+
+import { describe, test, expect } from "vitest";
+import { validateImageFile, getImageUrlBySize } from "@/lib/upload-image";
+
+describe("validateImageFile", () => {
+  test("合法 jpeg 文件通过", () => {
+    const file = new File(["dummy"], "photo.jpg", { type: "image/jpeg" });
+    expect(validateImageFile(file)).toBeNull();
+  });
+
+  test("合法 png 文件通过", () => {
+    const file = new File(["dummy"], "photo.png", { type: "image/png" });
+    expect(validateImageFile(file)).toBeNull();
+  });
+
+  test("合法 webp 文件通过", () => {
+    const file = new File(["dummy"], "photo.webp", { type: "image/webp" });
+    expect(validateImageFile(file)).toBeNull();
+  });
+
+  test("合法 avif 文件通过", () => {
+    const file = new File(["dummy"], "photo.avif", { type: "image/avif" });
+    expect(validateImageFile(file)).toBeNull();
+  });
+
+  test("合法 svg 文件通过", () => {
+    const file = new File(["dummy"], "icon.svg", { type: "image/svg+xml" });
+    expect(validateImageFile(file)).toBeNull();
+  });
+
+  test("合法 gif 文件通过", () => {
+    const file = new File(["dummy"], "anime.gif", { type: "image/gif" });
+    expect(validateImageFile(file)).toBeNull();
+  });
+
+  test("不支持的文件类型返回错误信息", () => {
+    const file = new File(["dummy"], "doc.pdf", { type: "application/pdf" });
+    expect(validateImageFile(file)).toMatch(/仅支持/);
+  });
+
+  test("超大文件返回错误信息", () => {
+    const largeFile = new File(["x".repeat(11 * 1024 * 1024)], "big.jpg", {
+      type: "image/jpeg",
+    });
+    const error = validateImageFile(largeFile);
+    expect(error).toMatch(/不能超过 10MB/);
+  });
+
+  test("刚好 10MB 文件通过", () => {
+    const size = 10 * 1024 * 1024;
+    const content = new Uint8Array(size);
+    const file = new File([content], "exact.jpg", { type: "image/jpeg" });
+    expect(validateImageFile(file)).toBeNull();
+  });
+
+  test("空文件通过（size=0 也在合法范围）", () => {
+    const file = new File([], "empty.png", { type: "image/png" });
+    expect(validateImageFile(file)).toBeNull();
+  });
+});
+
+describe("getImageUrlBySize", () => {
+  const baseUrl = "https://example.com/uploads/image.png";
+
+  test("md 尺寸返回 _md.webp 后缀", () => {
+    expect(getImageUrlBySize(baseUrl, "md")).toBe(
+      "https://example.com/uploads/image_md.webp",
+    );
+  });
+
+  test("thumb 尺寸返回 _thumb.webp 后缀", () => {
+    expect(getImageUrlBySize(baseUrl, "thumb")).toBe(
+      "https://example.com/uploads/image_thumb.webp",
+    );
+  });
+
+  test("svg 文件不添加后缀（保持原 URL）", () => {
+    const svgUrl = "https://example.com/uploads/icon.svg";
+    expect(getImageUrlBySize(svgUrl, "md")).toBe(svgUrl);
+    expect(getImageUrlBySize(svgUrl, "thumb")).toBe(svgUrl);
+  });
+
+  test("无扩展名的 URL 按 lastIndexOf '.' 处理", () => {
+    const result = getImageUrlBySize("https://example.com/uploads/img", "md");
+    expect(result).toContain("_md.webp");
+  });
+
+  test("多级路径的图片正确替换", () => {
+    const url = "https://cdn.example.com/a/b/c/photo.jpeg";
+    expect(getImageUrlBySize(url, "thumb")).toBe(
+      "https://cdn.example.com/a/b/c/photo_thumb.webp",
+    );
+  });
+});

@@ -1,0 +1,108 @@
+# 首页模块
+
+## 1. 目标与范围
+
+实现主题帖列表首页，展示公开的已发布主题帖，支持分页加载和分类/标签筛选。
+
+**本次迭代范围（Phase 3）：**
+- 主题帖列表（分页）
+- ThreadCard 卡片组件
+- 分类筛选 Tab
+- 响应式布局
+- 登录状态下的快捷入口（创建帖、草稿箱）
+
+**后续迭代：**
+- 搜索栏集成
+- 多条件排序
+- 置顶帖特殊展示
+
+## 2. 页面与路由
+
+| 路由 | 页面说明 | 权限 |
+|------|----------|------|
+| `/` | 首页主题帖列表 | 公开 |
+
+## 3. 涉及 API
+
+| Method | Path | Guard | 用途 |
+|--------|------|-------|------|
+| GET | `/threads` | Public | 获取公开已发布主题帖列表（含预览摘要） |
+| GET | `/tags` | Public | 获取平台标签列表（可选，分类筛选用） |
+
+## 4. 状态管理
+
+| 状态 | 来源 | 管理方式 |
+|------|------|----------|
+| 帖子列表 | `GET /threads` | TanStack Query `useInfiniteQuery` |
+| 当前分类 | 用户选择 | useState |
+| 分页 cursor | 后端返回 | react-query 自动管理 |
+| 用户信息 | AuthContext | 用于显示"创建"、"草稿箱"等入口 |
+
+## 5. 组件清单
+
+| 组件 | 路径 | 说明 |
+|------|------|------|
+| HomePage | `src/app/page.tsx` | 首页主逻辑 |
+| ThreadList | `src/components/thread/thread-list.tsx` | 列表容器 |
+| ThreadCard | `src/components/thread/thread-card.tsx` | 主题帖卡片 |
+| CategoryTabs | `src/components/thread/category-tabs.tsx` | 分类筛选 Tab |
+| EmptyState | `src/components/shared/empty-state.tsx` | 空状态提示 |
+
+## 6. ThreadCard 卡片信息
+
+每张卡片展示：
+
+| 字段 | 来源 | 格式 |
+|------|------|------|
+| 标题 | thread.title | 文本 |
+| 分类 | thread.category | 枚举 → 中文（演绎/国策/RPG） |
+| 正文预览 | 默认子贴首楼正文 | Markdown 纯文本截断（~120 字） |
+| 标签 | thread.topicTags[] | 标签徽章 |
+| 状态 | thread.status | 招募中/已关闭/已完结 |
+| 成员数 | thread._count.members | 数字 |
+| 楼层数 | thread._count.posts | 数字 |
+| 最后活跃 | thread.updatedAt | date-fns 相对时间 |
+
+## 7. 分页策略
+
+- 使用 cursor-based 分页。
+- 每次请求 20 条。
+- 滚动到底部自动加载下一页（`IntersectionObserver`）。
+- 加载更多时显示 spinner。
+
+## 8. 错误处理
+
+| 错误码 | 场景 | UI 行为 |
+|--------|------|---------|
+| 网络错误 | fetch 失败 | 显示错误提示 + 重试按钮 |
+| 空列表 | 无数据 | 显示 EmptyState "还没有主题帖" |
+
+## 9. 权限与访问控制
+
+| 场景 | 处理 |
+|------|------|
+| 未登录 | 正常浏览列表，隐藏"创建"入口 |
+| 已登录 | 显示顶部"创建主题帖"和"草稿箱"入口 |
+
+## 10. 验收标准
+
+- [x] 首页加载并显示主题帖列表
+- [x] 卡片正确显示标题、分类、正文摘要、标签
+- [x] 分类筛选 Tab 可切换列表
+- [x] 滚动到底部自动加载更多
+- [x] 空列表显示空状态
+- [x] 网络错误显示重试
+- [x] 登录/未登录显示不同入口
+- [x] `pnpm lint && pnpm typecheck && pnpm build` 通过
+
+## 11. 子任务
+
+- [x] 编写模块设计文档 `docs/modules/home.md`
+- [x] 实现 ThreadCard 组件
+- [x] 实现 ThreadList 组件（含无限滚动）
+- [x] 实现 CategoryTabs 组件
+- [x] 实现 EmptyState 组件
+- [x] 集成 TanStack Query `useInfiniteQuery`
+- [x] 更新首页 page.tsx
+- [x] 同步更新文档
+- [x] lint / typecheck / build 通过

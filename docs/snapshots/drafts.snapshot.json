@@ -1,0 +1,31 @@
+{
+  "module": "drafts",
+  "generatedAt": "2026-07-30T17:07:26.073Z",
+  "description": "全局草稿池端点快照（5槽位）",
+  "endpoints": {
+    "GET /drafts/slots": {
+      "label": "GET /drafts/slots",
+      "request": null,
+      "response": {
+        "code": 0,
+        "message": "ok",
+        "data": {
+          "usedSlots": 0,
+          "maxSlots": 5,
+          "slots": []
+        }
+      },
+      "httpStatus": 200
+    },
+    "GET /threads/draft": {
+      "label": "GET /threads/draft",
+      "request": null,
+      "response": {
+        "code": 0,
+        "message": "ok",
+        "data": []
+      },
+      "httpStatus": 200
+    }
+  }
+}

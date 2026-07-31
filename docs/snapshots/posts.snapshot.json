@@ -1,0 +1,63 @@
+{
+  "module": "posts",
+  "generatedAt": "2026-07-30T17:20:07.579Z",
+  "description": "楼层/帖子端点快照",
+  "endpoints": {
+    "GET /subthreads/cms7plnem00cu7q6lpbmq2b1o/posts?limit=5": {
+      "label": "GET /subthreads/cms7plnem00cu7q6lpbmq2b1o/posts?limit=5",
+      "request": {
+        "limit": 5
+      },
+      "response": {
+        "code": 0,
+        "message": "ok",
+        "data": [
+          {
+            "id": "cms7pq32u00cy7q6l84j84hjj",
+            "threadId": "cms7plneh00cq7q6lrmlwwpad",
+            "subthreadId": "cms7plnem00cu7q6lpbmq2b1o",
+            "authorId": "cms7gly7n00017q6lbkla7ojh",
+            "floorNumber": 1,
+            "parentPostId": null,
+            "replyToPostId": null,
+            "content": "sadasdasfasfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffa",
+            "version": 1,
+            "createdAt": "2026-07-30T16:13:06.198Z",
+            "updatedAt": "2026-07-30T16:13:06.198Z",
+            "deletedAt": null,
+            "author": {
+              "id": "cms7gly7n00017q6lbkla7ojh",
+              "username": "morenk",
+              "avatar": null
+            },
+            "_count": {
+              "replies": 0
+            },
+            "replies": []
+          }
+        ],
+        "meta": {
+          "cursor": "cms7pq32u00cy7q6l84j84hjj",
+          "hasMore": false
+        }
+      },
+      "httpStatus": 200
+    },
+    "GET /posts/cms7pq32u00cy7q6l84j84hjj/replies?limit=3": {
+      "label": "GET /posts/cms7pq32u00cy7q6l84j84hjj/replies?limit=3",
+      "request": {
+        "limit": 3
+      },
+      "response": {
+        "code": 0,
+        "message": "ok",
+        "data": [],
+        "meta": {
+          "cursor": null,
+          "hasMore": false
+        }
+      },
+      "httpStatus": 200
+    }
+  }
+}
