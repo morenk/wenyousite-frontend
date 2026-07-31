@@ -30,7 +30,10 @@ export const threadCreateSchema = z.object({
 
 export type ThreadCreateFormData = z.infer<typeof threadCreateSchema>;
 
-export function validatePublishable(values: ThreadCreateFormData): string | null {
+export function validatePublishable(
+  values: ThreadCreateFormData,
+  defaultContent?: string,
+): string | null {
   if (!values.title || values.title.trim() === "") {
     return "请填写主题帖标题后再发布";
   }
@@ -40,8 +43,9 @@ export function validatePublishable(values: ThreadCreateFormData): string | null
   if (!values.category) {
     return "请选择分区后再发布";
   }
-  if (!values.content || values.content.trim() === "") {
-    return "请将子贴至少填写正文后再发布";
+  const effectiveContent = (defaultContent ?? values.content)?.trim() ?? "";
+  if (!effectiveContent) {
+    return "请为默认子贴填写正文后再发布";
   }
   return null;
 }

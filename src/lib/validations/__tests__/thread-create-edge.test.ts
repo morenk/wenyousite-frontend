@@ -181,4 +181,21 @@ describe("validatePublishable 边界", () => {
   test("所有字段有效时通过", () => {
     expect(validatePublishable(base)).toBeNull();
   });
+
+  test("defaultContent 显式传入时优先于 values.content", () => {
+    const values = { ...base, content: "   " };
+    expect(validatePublishable(values, "默认子贴正文")).toBeNull();
+  });
+
+  test("defaultContent 为空时校验失败", () => {
+    expect(validatePublishable(base, "")).toMatch(/默认子贴/);
+  });
+
+  test("defaultContent 为纯空格时校验失败", () => {
+    expect(validatePublishable(base, "   ")).toMatch(/默认子贴/);
+  });
+
+  test("defaultContent 未传时回退到 values.content", () => {
+    expect(validatePublishable({ ...base, content: "" })).toMatch(/正文/);
+  });
 });

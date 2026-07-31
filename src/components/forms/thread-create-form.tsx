@@ -1,14 +1,13 @@
-/** 主题帖创建/编辑表单 — 支持多子贴管理 + 编辑器上下文切换 */
+/** 主题帖创建/编辑表单 — 多子贴管理 + 任意楼层编辑（单例编辑器上下文切换） */
 
 "use client";
 
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2, Send, Save, Trash2 } from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { MilkdownEditor } from "@/components/editor/milkdown-editor";
 import { TagInput } from "@/components/forms/tag-input";
 import { SubthreadList } from "@/components/thread/subthread-list";
+import { SubthreadFloors } from "@/components/thread/subthread-floors";
 import type { SubthreadFormData } from "@/components/forms/subthread-form";
 import {
   threadCreateSchema,
@@ -28,7 +28,9 @@ import { useUpdatePost } from "@/api/hooks/use-update-post";
 import { useCreateSubthread } from "@/api/hooks/use-create-subthread";
 import { useUpdateSubthread } from "@/api/hooks/use-update-subthread";
 import { useDeleteSubthread } from "@/api/hooks/use-delete-subthread";
+import { useDeletePost } from "@/api/hooks/use-delete-post";
 import { useUploadImage } from "@/api/hooks/use-upload-image";
+import type { PostData } from "@/api/hooks/use-floors";
 import type { ThreadDetail, SubthreadDetail } from "@/api/hooks/use-thread-detail";
 
 interface ThreadCreateFormProps {
@@ -49,6 +51,13 @@ const VISIBILITY_OPTIONS = [
   { value: "PRIVATE", label: "私密" },
 ];
 
+interface EditingTarget {
+  subthreadId: string;
+  /** 有值 = 编辑既有楼层；无值 = 创建新楼层 */
+  postId?: string;
+  version?: number;
+}
+
 export function ThreadCreateForm({
   thread,
   onCancel,
@@ -57,16 +66,22 @@ export function ThreadCreateForm({
 }: ThreadCreateFormProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
-  const [activeSubthreadId, setActiveSubthreadId] = useState(
-    thread.defaultSubthreadId,
-  );
 
+  const defaultBodyPost = thread.defaultSubthread.bodyPost;
+  const [editingTarget, setEditingTarget] = useState<EditingTarget | null>({
+    subthreadId: thread.defaultSubthreadId,
+    postId: defaultBodyPost?.id,
+    version: defaultBodyPost?.version,
+  });
+
+  const queryClient = useQueryClient();
   const updateThread = useUpdateThread();
   const createPost = useCreatePost();
   const updatePost = useUpdatePost();
   const createSubthread = useCreateSubthread();
   const updateSubthread = useUpdateSubthread();
   const deleteSubthread = useDeleteSubthread();
+  const deletePost = useDeletePost();
   const uploadImage = useUploadImage();
 
   const form = useForm<ThreadCreateFormData>({
@@ -85,40 +100,85 @@ export function ThreadCreateForm({
   const visibility = useWatch({ control: form.control, name: "visibility" });
   const tagNames = useWatch({ control: form.control, name: "tagNames" });
 
-  async function saveBodyContent(
-    values: ThreadCreateFormData,
-    targetThread?: ThreadDetail,
-  ) {
-    const content = values.content?.trim() ?? "";
-    const t = targetThread ?? thread;
-    const sub = t.subthreads.find(
-      (s: SubthreadDetail) => s.id === activeSubthreadId,
-    );
-    if (!sub) return;
-
-    const bodyPost = sub.bodyPost;
-
-    if (content) {
-      if (bodyPost) {
-        await updatePost.mutateAsync({
-          postId: bodyPost.id,
-          content,
-          version: bodyPost.version,
-        });
-      } else {
-        await createPost.mutateAsync({
-          subthreadId: activeSubthreadId,
-          content,
-        });
-      }
+  async function saveEditingContent(target: EditingTarget, content: string) {
+    if (!content.trim()) return;
+    if (target.postId) {
+      await updatePost.mutateAsync({
+        postId: target.postId,
+        content,
+        version: target.version ?? 1,
+      });
+    } else {
+      await createPost.mutateAsync({
+        subthreadId: target.subthreadId,
+        content,
+      });
     }
   }
 
-  function handleSwitchSubthread(subthreadId: string) {
-    if (subthreadId === activeSubthreadId) return;
-    setActiveSubthreadId(subthreadId);
-    const sub = thread.subthreads.find((s) => s.id === subthreadId);
-    form.setValue("content", sub?.bodyPost?.content ?? "");
+  function startEditFloor(floor: PostData) {
+    setEditingTarget({
+      subthreadId: floor.subthreadId,
+      postId: floor.id,
+      version: floor.version,
+    });
+    form.setValue("content", floor.content);
+  }
+
+  function startAddFloor(subthreadId: string) {
+    setEditingTarget({ subthreadId });
+    form.setValue("content", "");
+  }
+
+  function cancelEditing() {
+    setEditingTarget(null);
+  }
+
+  function getDefaultSubthreadContent(): string {
+    if (editingTarget?.subthreadId === thread.defaultSubthreadId) {
+      return form.getValues("content") ?? "";
+    }
+    return thread.defaultSubthread.bodyPost?.content ?? "";
+  }
+
+  async function handleSaveFloor() {
+    const content = form.getValues("content")?.trim() ?? "";
+    if (!content) {
+      toast.error("请输入楼层内容");
+      return;
+    }
+    const target = editingTarget;
+    if (!target) return;
+    const wasUpdate = !!target.postId;
+
+    try {
+      setIsSaving(true);
+      await saveEditingContent(target, content);
+      queryClient.invalidateQueries({ queryKey: ["floors"] });
+      await onRefetch();
+      setEditingTarget(null);
+      toast.success(wasUpdate ? "楼层已更新" : "楼层已添加");
+    } catch (error) {
+      handleError(error);
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function handleDeleteFloor(floor: PostData) {
+    if (!confirm("确定要删除该楼层吗？")) return;
+
+    try {
+      setIsSaving(true);
+      await deletePost.mutateAsync(floor.id);
+      queryClient.invalidateQueries({ queryKey: ["floors"] });
+      await onRefetch();
+      toast.success("楼层已删除");
+    } catch (error) {
+      handleError(error);
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   async function handleSaveDraft() {
@@ -137,7 +197,10 @@ export function ThreadCreateForm({
         threadId: thread.id,
         body,
       });
-      await saveBodyContent(values);
+      if (editingTarget) {
+        await saveEditingContent(editingTarget, values.content ?? "");
+      }
+      queryClient.invalidateQueries({ queryKey: ["floors"] });
       await onRefetch();
       toast.success("草稿已保存");
     } catch (error: unknown) {
@@ -149,7 +212,8 @@ export function ThreadCreateForm({
 
   async function handlePublish() {
     const values = form.getValues();
-    const validationError = validatePublishable(values);
+    const defaultContent = getDefaultSubthreadContent();
+    const validationError = validatePublishable(values, defaultContent);
     if (validationError) {
       toast.error(validationError);
       return;
@@ -158,6 +222,11 @@ export function ThreadCreateForm({
     try {
       setIsPublishing(true);
 
+      if (editingTarget) {
+        await saveEditingContent(editingTarget, values.content ?? "");
+      }
+      queryClient.invalidateQueries({ queryKey: ["floors"] });
+
       const refetchResult = await onRefetch();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const latestThread = (refetchResult as any)?.data as ThreadDetail | undefined;
@@ -165,8 +234,6 @@ export function ThreadCreateForm({
         toast.error("获取草稿信息失败，请重试");
         return;
       }
-
-      await saveBodyContent(values, latestThread);
 
       await updateThread.mutateAsync({
         threadId: latestThread.id,
@@ -257,51 +324,54 @@ export function ThreadCreateForm({
   }
 
   function renderFloors(subthread: SubthreadDetail) {
-    if (subthread.id === activeSubthreadId) {
+    if (editingTarget?.subthreadId === subthread.id) {
       return (
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground">
-            正在编辑：{subthread.title} 的正文
+            正在编辑：{subthread.title}
+            {editingTarget.postId ? "" : " 的新楼层"}
           </p>
           <MilkdownEditor
-            defaultValue={subthread.bodyPost?.content ?? ""}
+            key={`${editingTarget.subthreadId}-${editingTarget.postId ?? "new"}`}
+            defaultValue={form.getValues("content")}
             onChange={(v) => form.setValue("content", v)}
             onUploadImage={handleUploadImage}
             disabled={isSaving || isPublishing}
           />
-        </div>
-      );
-    }
-
-    if (subthread.bodyPost?.content) {
-      return (
-        <div className="space-y-2">
-          <div className="prose prose-sm max-w-none rounded-lg border border-border bg-muted/30 p-3">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {subthread.bodyPost.content}
-            </ReactMarkdown>
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={cancelEditing}
+              disabled={isSaving || isPublishing}
+            >
+              取消
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleSaveFloor}
+              disabled={isSaving || isPublishing}
+            >
+              {isSaving && (
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+              )}
+              {editingTarget.postId ? "保存修改" : "添加楼层"}
+            </Button>
           </div>
-          <button
-            type="button"
-            className="text-xs text-primary hover:underline"
-            onClick={() => handleSwitchSubthread(subthread.id)}
-            disabled={isSaving || isPublishing}
-          >
-            点击编辑正文
-          </button>
         </div>
       );
     }
 
     return (
-      <button
-        type="button"
-        className="w-full rounded-lg border border-dashed border-border bg-muted/30 py-4 text-sm text-muted-foreground hover:bg-muted/50 transition-colors"
-        onClick={() => handleSwitchSubthread(subthread.id)}
-        disabled={isSaving || isPublishing}
-      >
-        添加正文（点击开始编辑）
-      </button>
+      <SubthreadFloors
+        subthreadId={subthread.id}
+        canManage
+        onEditFloor={startEditFloor}
+        onDeleteFloor={handleDeleteFloor}
+        onAddFloor={() => startAddFloor(subthread.id)}
+      />
     );
   }
 
