@@ -55,7 +55,7 @@ src/
 ### 3. 命令
 
 ```bash
-pnpm dev          # 开发服务器，端口 3001
+pnpm dev          # 开发服务器，端口 3001（dev 脚本已设 NODE_OPTIONS V8 堆上限 3GB）
 pnpm build        # 生产构建
 pnpm start        # 生产运行（端口 3001）
 pnpm lint         # ESLint
@@ -65,6 +65,8 @@ pnpm test:watch   # vitest watch 模式
 pnpm test:e2e     # Playwright E2E 测试
 pnpm generate:api # 需要后端已启动
 ```
+
+**dev server 内存说明：** Next 16 dev 用 Turbopack，会把访问过的路由（尤其 `/threads/create`、`/threads/[id]` 的 Milkdown+Vue 编辑器模块图）编译结果常驻内存，RSS 随访问路由累积（可到 4GB+）。这是 dev-only 的编译缓存，**生产 standalone 构建不会这样**。缓解：`dev` 脚本已加 `NODE_OPTIONS=--max-old-space-size=3072`；若 RSS 仍接近 3GB 或测试/build 因内存不足挂起，**重启 `pnpm dev`** 即可释放（首访会重新编译几秒）。若改动后 dev 首次编译 OOM，可调低/移除该 NODE_OPTIONS。
 
 ### 4. API 请求
 
