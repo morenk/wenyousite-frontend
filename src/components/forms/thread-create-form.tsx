@@ -1,4 +1,4 @@
-/** 主题帖创建/编辑表单 — 支持多子贴管理 */
+/** 主题帖创建/编辑表单 — 支持多子贴管理 + 编辑器上下文切换 */
 
 "use client";
 
@@ -7,6 +7,8 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Loader2, Send, Save, Trash2 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,6 +57,9 @@ export function ThreadCreateForm({
 }: ThreadCreateFormProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [activeSubthreadId, setActiveSubthreadId] = useState(
+    thread.defaultSubthreadId,
+  );
 
   const updateThread = useUpdateThread();
   const createPost = useCreatePost();
@@ -80,9 +85,18 @@ export function ThreadCreateForm({
   const visibility = useWatch({ control: form.control, name: "visibility" });
   const tagNames = useWatch({ control: form.control, name: "tagNames" });
 
-  async function saveBodyContent(values: ThreadCreateFormData) {
+  async function saveBodyContent(
+    values: ThreadCreateFormData,
+    targetThread?: ThreadDetail,
+  ) {
     const content = values.content?.trim() ?? "";
-    const bodyPost = thread.defaultSubthread.bodyPost;
+    const t = targetThread ?? thread;
+    const sub = t.subthreads.find(
+      (s: SubthreadDetail) => s.id === activeSubthreadId,
+    );
+    if (!sub) return;
+
+    const bodyPost = sub.bodyPost;
 
     if (content) {
       if (bodyPost) {
@@ -93,11 +107,18 @@ export function ThreadCreateForm({
         });
       } else {
         await createPost.mutateAsync({
-          subthreadId: thread.defaultSubthreadId,
+          subthreadId: activeSubthreadId,
           content,
         });
       }
     }
+  }
+
+  function handleSwitchSubthread(subthreadId: string) {
+    if (subthreadId === activeSubthreadId) return;
+    setActiveSubthreadId(subthreadId);
+    const sub = thread.subthreads.find((s) => s.id === subthreadId);
+    form.setValue("content", sub?.bodyPost?.content ?? "");
   }
 
   async function handleSaveDraft() {
@@ -145,19 +166,7 @@ export function ThreadCreateForm({
         return;
       }
 
-      const content = values.content?.trim() ?? "";
-      if (content && !latestThread.defaultSubthread.bodyPost) {
-        await createPost.mutateAsync({
-          subthreadId: latestThread.defaultSubthreadId,
-          content,
-        });
-      } else if (content && latestThread.defaultSubthread.bodyPost) {
-        await updatePost.mutateAsync({
-          postId: latestThread.defaultSubthread.bodyPost.id,
-          content,
-          version: latestThread.defaultSubthread.bodyPost.version,
-        });
-      }
+      await saveBodyContent(values, latestThread);
 
       await updateThread.mutateAsync({
         threadId: latestThread.id,
@@ -218,7 +227,9 @@ export function ThreadCreateForm({
     data: SubthreadFormData,
   ) {
     try {
-      const sub = thread.subthreads.find((s) => s.id === subthreadId);
+    const sub = thread.subthreads.find(
+      (s: SubthreadDetail) => s.id === subthreadId,
+    );
       if (!sub) return;
       await updateSubthread.mutateAsync({
         subthreadId,
@@ -246,18 +257,51 @@ export function ThreadCreateForm({
   }
 
   function renderFloors(subthread: SubthreadDetail) {
-    if (subthread.id === thread.defaultSubthreadId) {
-      return <MilkdownEditor
-        defaultValue={subthread.bodyPost?.content ?? ""}
-        onChange={(v) => form.setValue("content", v)}
-        onUploadImage={handleUploadImage}
-        disabled={isSaving || isPublishing}
-      />;
+    if (subthread.id === activeSubthreadId) {
+      return (
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground">
+            正在编辑：{subthread.title} 的正文
+          </p>
+          <MilkdownEditor
+            defaultValue={subthread.bodyPost?.content ?? ""}
+            onChange={(v) => form.setValue("content", v)}
+            onUploadImage={handleUploadImage}
+            disabled={isSaving || isPublishing}
+          />
+        </div>
+      );
     }
+
+    if (subthread.bodyPost?.content) {
+      return (
+        <div className="space-y-2">
+          <div className="prose prose-sm max-w-none rounded-lg border border-border bg-muted/30 p-3">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {subthread.bodyPost.content}
+            </ReactMarkdown>
+          </div>
+          <button
+            type="button"
+            className="text-xs text-primary hover:underline"
+            onClick={() => handleSwitchSubthread(subthread.id)}
+            disabled={isSaving || isPublishing}
+          >
+            点击编辑正文
+          </button>
+        </div>
+      );
+    }
+
     return (
-      <p className="text-sm text-muted-foreground py-4">
-        该子贴暂无正文。发布后可在此子贴下添加楼层。
-      </p>
+      <button
+        type="button"
+        className="w-full rounded-lg border border-dashed border-border bg-muted/30 py-4 text-sm text-muted-foreground hover:bg-muted/50 transition-colors"
+        onClick={() => handleSwitchSubthread(subthread.id)}
+        disabled={isSaving || isPublishing}
+      >
+        添加正文（点击开始编辑）
+      </button>
     );
   }
 
