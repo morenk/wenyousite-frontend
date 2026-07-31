@@ -1,4 +1,4 @@
-/** 主题帖创建/编辑表单 */
+/** 主题帖创建/编辑表单 — 支持多子贴管理 */
 
 "use client";
 
@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MilkdownEditor } from "@/components/editor/milkdown-editor";
 import { TagInput } from "@/components/forms/tag-input";
+import { SubthreadList } from "@/components/thread/subthread-list";
+import type { SubthreadFormData } from "@/components/forms/subthread-form";
 import {
   threadCreateSchema,
   type ThreadCreateFormData,
@@ -21,8 +23,11 @@ import {
 import { useUpdateThread } from "@/api/hooks/use-update-thread";
 import { useCreatePost } from "@/api/hooks/use-create-post";
 import { useUpdatePost } from "@/api/hooks/use-update-post";
+import { useCreateSubthread } from "@/api/hooks/use-create-subthread";
+import { useUpdateSubthread } from "@/api/hooks/use-update-subthread";
+import { useDeleteSubthread } from "@/api/hooks/use-delete-subthread";
 import { useUploadImage } from "@/api/hooks/use-upload-image";
-import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
+import type { ThreadDetail, SubthreadDetail } from "@/api/hooks/use-thread-detail";
 
 interface ThreadCreateFormProps {
   thread: ThreadDetail;
@@ -54,6 +59,9 @@ export function ThreadCreateForm({
   const updateThread = useUpdateThread();
   const createPost = useCreatePost();
   const updatePost = useUpdatePost();
+  const createSubthread = useCreateSubthread();
+  const updateSubthread = useUpdateSubthread();
+  const deleteSubthread = useDeleteSubthread();
   const uploadImage = useUploadImage();
 
   const form = useForm<ThreadCreateFormData>({
@@ -71,7 +79,6 @@ export function ThreadCreateForm({
   const category = useWatch({ control: form.control, name: "category" });
   const visibility = useWatch({ control: form.control, name: "visibility" });
   const tagNames = useWatch({ control: form.control, name: "tagNames" });
-  const content = useWatch({ control: form.control, name: "content" });
 
   async function saveBodyContent(values: ThreadCreateFormData) {
     const content = values.content?.trim() ?? "";
@@ -130,7 +137,6 @@ export function ThreadCreateForm({
     try {
       setIsPublishing(true);
 
-      // 获取最新 version 和 bodyPost
       const refetchResult = await onRefetch();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const latestThread = (refetchResult as any)?.data as ThreadDetail | undefined;
@@ -139,7 +145,6 @@ export function ThreadCreateForm({
         return;
       }
 
-      // 确保默认子贴有首楼正文
       const content = values.content?.trim() ?? "";
       if (content && !latestThread.defaultSubthread.bodyPost) {
         await createPost.mutateAsync({
@@ -154,7 +159,6 @@ export function ThreadCreateForm({
         });
       }
 
-      // 发布
       await updateThread.mutateAsync({
         threadId: latestThread.id,
         body: {
@@ -191,6 +195,70 @@ export function ThreadCreateForm({
   async function handleUploadImage(file: File) {
     const url = await uploadImage.mutateAsync(file);
     return url;
+  }
+
+  async function handleCreateSubthread(data: SubthreadFormData) {
+    try {
+      await createSubthread.mutateAsync({
+        threadId: thread.id,
+        body: {
+          title: data.title,
+          postingPolicy: data.postingPolicy,
+        },
+      });
+      await onRefetch();
+      toast.success("子贴已创建");
+    } catch {
+      toast.error("创建子贴失败");
+    }
+  }
+
+  async function handleUpdateSubthread(
+    subthreadId: string,
+    data: SubthreadFormData,
+  ) {
+    try {
+      const sub = thread.subthreads.find((s) => s.id === subthreadId);
+      if (!sub) return;
+      await updateSubthread.mutateAsync({
+        subthreadId,
+        body: {
+          title: data.title,
+          postingPolicy: data.postingPolicy,
+          version: sub.version,
+        },
+      });
+      await onRefetch();
+      toast.success("子贴已更新");
+    } catch {
+      toast.error("更新子贴失败");
+    }
+  }
+
+  async function handleDeleteSubthread(subthreadId: string) {
+    try {
+      await deleteSubthread.mutateAsync(subthreadId);
+      await onRefetch();
+      toast.success("子贴已删除");
+    } catch {
+      toast.error("删除子贴失败");
+    }
+  }
+
+  function renderFloors(subthread: SubthreadDetail) {
+    if (subthread.id === thread.defaultSubthreadId) {
+      return <MilkdownEditor
+        defaultValue={subthread.bodyPost?.content ?? ""}
+        onChange={(v) => form.setValue("content", v)}
+        onUploadImage={handleUploadImage}
+        disabled={isSaving || isPublishing}
+      />;
+    }
+    return (
+      <p className="text-sm text-muted-foreground py-4">
+        该子贴暂无正文。发布后可在此子贴下添加楼层。
+      </p>
+    );
   }
 
   return (
@@ -259,12 +327,16 @@ export function ThreadCreateForm({
         </div>
 
         <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="content">正文</Label>
-          <MilkdownEditor
-            defaultValue={content}
-            onChange={(v) => form.setValue("content", v)}
-            onUploadImage={handleUploadImage}
-            disabled={isSaving || isPublishing}
+          <Label>子贴管理</Label>
+          <SubthreadList
+            subthreads={thread.subthreads}
+            defaultSubthreadId={thread.defaultSubthreadId}
+            showActions
+            isSubmitting={isSaving || isPublishing}
+            onCreate={handleCreateSubthread}
+            onUpdate={handleUpdateSubthread}
+            onDelete={handleDeleteSubthread}
+            renderFloors={renderFloors}
           />
         </div>
       </div>

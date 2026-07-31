@@ -17,12 +17,23 @@ vi.mock("@/components/editor/milkdown-editor", () => ({
   ),
 }));
 
-const { mockUpdateThreadMutate, mockCreatePostMutate, mockUpdatePostMutate, mockUploadImageMutate } =
+const {
+  mockUpdateThreadMutate,
+  mockCreatePostMutate,
+  mockUpdatePostMutate,
+  mockUploadImageMutate,
+  mockCreateSubthreadMutate,
+  mockUpdateSubthreadMutate,
+  mockDeleteSubthreadMutate,
+} =
   vi.hoisted(() => ({
     mockUpdateThreadMutate: vi.fn(),
     mockCreatePostMutate: vi.fn(),
     mockUpdatePostMutate: vi.fn(),
     mockUploadImageMutate: vi.fn(),
+    mockCreateSubthreadMutate: vi.fn(),
+    mockUpdateSubthreadMutate: vi.fn(),
+    mockDeleteSubthreadMutate: vi.fn(),
   }));
 
 vi.mock("@/api/hooks/use-update-thread", () => ({
@@ -49,6 +60,27 @@ vi.mock("@/api/hooks/use-update-post", () => ({
 vi.mock("@/api/hooks/use-upload-image", () => ({
   useUploadImage: () => ({
     mutateAsync: mockUploadImageMutate,
+    isLoading: false,
+  }),
+}));
+
+vi.mock("@/api/hooks/use-create-subthread", () => ({
+  useCreateSubthread: () => ({
+    mutateAsync: mockCreateSubthreadMutate,
+    isLoading: false,
+  }),
+}));
+
+vi.mock("@/api/hooks/use-update-subthread", () => ({
+  useUpdateSubthread: () => ({
+    mutateAsync: mockUpdateSubthreadMutate,
+    isLoading: false,
+  }),
+}));
+
+vi.mock("@/api/hooks/use-delete-subthread", () => ({
+  useDeleteSubthread: () => ({
+    mutateAsync: mockDeleteSubthreadMutate,
     isLoading: false,
   }),
 }));
@@ -139,7 +171,21 @@ describe("ThreadCreateForm", () => {
     expect(screen.getByPlaceholderText("给你的主题帖起个名字")).toBeInTheDocument();
   });
 
-  test("渲染编辑器（mock textarea）", () => {
+  test("渲染子贴管理区域", () => {
+    render(
+      <ThreadCreateForm
+        thread={mockThread}
+        onCancel={vi.fn()}
+        onPublished={vi.fn()}
+        onRefetch={vi.fn().mockResolvedValue({ data: mockThread })}
+      />,
+      { wrapper: createWrapper() },
+    );
+
+    expect(screen.getByText("子贴管理")).toBeInTheDocument();
+  });
+
+  test("默认子贴展开时渲染编辑器", () => {
     render(
       <ThreadCreateForm
         thread={mockThread}
