@@ -1,0 +1,220 @@
+# 创建主题帖模块
+
+## 1. 目标与范围
+
+实现用户创建并发布主题帖的完整前端流程：进入创建页自动创建沙盒草稿，编辑标题/分区/可见性/标签/默认子贴正文，保存草稿，最终发布。
+
+**本次迭代范围（Phase 4）：**
+- 创建主题帖页面 `/threads/create`
+- 进入页面即自动创建沙盒草稿（方案 A）
+- 表单编辑：标题、分区、可见性、主题帖标签、默认子贴标题、首楼正文
+- Milkdown Crepe WYSIWYG 编辑器（可见工具栏 + 所见即所得渲染 + 字数统计）
+- 保存草稿（`PATCH /threads/:id`）
+- 发布主题帖（`PATCH /threads/:id { published: true }`）
+- 发布后跳转详情页 `/threads/[id]`
+- 放弃创建时删除草稿（`DELETE /threads/:id`）
+
+**后续迭代：**
+- 多子贴创建与管理（Phase 5 主题帖详情）
+- 默认子贴标题的单独管理
+- 更复杂的标签颜色选择
+- 编辑器 @提及插件
+
+## 2. 页面与路由
+
+| 路由 | 页面说明 | 权限 |
+|------|----------|------|
+| `/threads/create` | 创建主题帖页 | 需登录且邮箱已验证 |
+
+## 3. 涉及 API
+
+| Method | Path | Guard | 用途 |
+|--------|------|-------|------|
+| POST | `/threads` | Auth | 创建沙盒草稿（事务创建 Thread + OWNER + 默认子贴） |
+| GET | `/threads/:id` | AuthRead | 获取草稿最新数据（含 bodyPost: {id,content,version} 首楼信息，供编辑器回填和乐观锁编辑） |
+| PATCH | `/threads/:id` | Auth | 修改草稿元数据 / 发布 |
+| DELETE | `/threads/:id` | Auth | 放弃创建，删除草稿 |
+| GET | `/tags?q=` | Public | 标签自动补全 |
+| POST | `/media/upload-url` | Auth | 获取 S3 预签名 URL |
+| POST | `/media/upload-done` | Auth | 确认上传完成 |
+| GET | `/media/:id` | Auth | 轮询图片处理状态 |
+
+**响应数据类型说明（与真实 API 对齐）：**
+- `ThreadDetail` 的 `_count` 字段为 `{ members, posts }`（非 `{ subthreads, posts }`）。
+- 子贴对象通过 `normalizeThreadDetail()` 处理：后端返回 `subthreads` 数组 + `defaultSubthreadId`，前端按 ID 匹配出 `defaultSubthread` 字段。
+- 后端 `includeSubthreads` 已带 `bodyPost: { id, content, version }`，首次创建草稿无正文时 `bodyPost` 为 `null`，有正文后其中含 `id`（postId）和 `version` 用于乐观锁编辑。
+
+## 4. 状态管理
+
+| 状态 | 来源 | 管理方式 |
+|------|------|----------|
+| 草稿 Thread | `POST /threads` | 页面本地 state，创建后持久化 threadId |
+| 表单字段 | 用户输入 | react-hook-form |
+| 标签候选 | `GET /tags?q=` | TanStack Query + 本地 debounce |
+| 发布 loading | 提交中 | useState |
+| 编辑器 Markdown | Milkdown listener | 受控于表单字段 |
+
+**草稿生命周期：**
+- 进入页面即 `POST /threads`（可传空对象，前端不发送空 `title`，避免触发后端 `@MinLength(1)` 校验），拿到 `threadId` + `defaultSubthreadId` + `version`。
+- 用户每次修改后通过提交按钮保存，或最终发布时一次性提交。
+- 离开页面时如果未发布且未保存，草稿保留在 `GET /threads/draft` 中，用户可在草稿箱继续编辑。
+- 点击"放弃"调用 `DELETE /threads/:id` 硬删除。
+
+## 5. 组件清单
+
+| 组件 | 路径 | 说明 |
+|------|------|------|
+| CreateThreadPage | `src/app/threads/create/page.tsx` | 创建页主逻辑 |
+| ThreadCreateForm | `src/components/forms/thread-create-form.tsx` | 主题帖创建表单 |
+| MilkdownEditor | `src/components/editor/milkdown-editor.tsx` | @milkdown/crepe WYSIWYG，含工具栏/块手柄/斜杠菜单/字数统计/图片上传 |
+| TagInput | `src/components/forms/tag-input.tsx` | 主题帖标签输入（支持自动补全） |
+| useCreateThread | `src/api/hooks/use-create-thread.ts` | 创建草稿 hook |
+| useThreadDetail | `src/api/hooks/use-thread-detail.ts` | 获取详情 hook |
+| useUpdateThread | `src/api/hooks/use-update-thread.ts` | 更新草稿 / 发布 hook |
+| useDeleteThread | `src/api/hooks/use-delete-thread.ts` | 删除草稿 hook |
+| useUploadImage | `src/api/hooks/use-upload-image.ts` | 图片上传 hook |
+| uploadImage | `src/lib/upload-image.ts` | 图片上传流程工具函数 |
+
+**编辑器实现说明：**
+
+使用 `@milkdown/crepe`（Milkdown 官方 WYSIWYG 方案），通过 `CrepeFeature` 精确控制功能：
+
+| Feature | 状态 | 说明 |
+|---------|------|------|
+| TopBar | ✅ | 顶部固定工具栏：标题选择器、粗体/斜体/删除线/行内代码/链接/图片/表格/代码块/引用/分隔线/列表（全部中文标签） |
+| Toolbar | ✅ | 选区浮动工具栏：粗体/斜体/删除线/行内代码/链接 |
+| BlockEdit | ✅ | 块手柄 + 斜杠菜单 `/`：文本/标题1-6/引用/分隔线 + 列表/任务列表 + 图片/代码块/表格/公式（全部中文标签） |
+| LinkTooltip | ✅ | 链接悬停编辑弹窗，输入框占位符"粘贴链接…" |
+| ImageBlock | ✅ | 图片上传，按钮/占位符全中文化（上传/上传文件/确认/输入图片说明/或粘贴链接） |
+| CodeMirror | ✅ | 代码块语法高亮，UI 字符串中文化（搜索语言/复制/无结果/编辑/隐藏） |
+| ListItem | ✅ | 有序/无序列表 |
+| Placeholder | ✅ | "开始输入…"（可通过 props 自定义） |
+| Table | ❌ | 禁用 |
+| Latex | ❌ | 禁用 |
+| AI | ❌ | 禁用 |
+
+**中文本地化策略：** 通过 `Crepe` 构造函数的 `featureConfigs` 覆盖所有英文 UI 字符串。
+Milkdown Crepe v7 不支持 i18n 插件，所有文本通过各 feature 的 config 对象逐项覆盖。
+
+**中文字体：** `globals.css` 中覆盖 Milkdown Crepe 的 CSS 自定义属性 `--crepe-font-default`、`--crepe-font-title`、`--crepe-font-code`，插入 Noto Sans SC / M PLUS Rounded 1c / JetBrains Mono。
+
+字数统计：底部实时显示 `{已输入}/10000`，70% 黄色警告，90% 红色警告。
+
+## 6. 表单与校验
+
+校验 schema 放在 `src/lib/validations/thread-create.ts`。
+
+### 创建/编辑主题帖
+
+```ts
+const threadCreateSchema = z.object({
+  title: z
+    .string()
+    .max(100, "标题最多 100 个字符")
+    .optional(),
+  category: z.enum(["DEDUCTION", "NATION", "RPG"], {
+    message: "请选择分区",
+  }),
+  visibility: z.enum(["PUBLIC", "PRIVATE"], {
+    message: "请选择可见性",
+  }),
+  tagNames: z
+    .array(z.string().min(1).max(20))
+    .max(5, "最多 5 个标签")
+    .optional(),
+  subthreadTitle: z
+    .string()
+    .min(1, "请输入子贴标题")
+    .max(100, "子贴标题最多 100 个字符")
+    .optional(),
+  content: z
+    .string()
+    .max(10000, "正文最多 10000 个字符")
+    .optional(),
+});
+```
+
+**发布前预校验（前端）：**
+- 标题非空且不是 `"未命名草稿"`
+- category 已选择
+- 正文非空
+
+后端在 `PATCH { published: true }` 时做最终校验，前端以 toast 展示后端 message。
+
+## 7. 错误处理
+
+| 错误码 | 场景 | UI 行为 |
+|--------|------|---------|
+| 40100 | 未登录 / token 失效 | 自动跳转 `/login`（apiClient 拦截器） |
+| 40300 | 邮箱未验证 | toast "请先验证邮箱后再发布" 并跳转 `/verify-email` |
+| 40000 | 字段长度/格式校验失败 | 按字段显示 inline error |
+| 40001 | 发布校验失败（缺标题/分区/正文） | toast 后端 message |
+| 40900 | 乐观锁冲突 | toast "内容已被修改，请刷新后重试" 并重新获取详情 |
+| 42900 | 限流 | toast "操作太频繁，请稍后再试" |
+| 网络错误 | fetch 失败 | toast "网络连接失败，请检查网络后重试" |
+
+## 8. 权限与访问控制
+
+| 场景 | 处理 |
+|------|------|
+| 未登录用户访问 `/threads/create` | 等 `isInitialized` 为 true 后跳转 `/login`（避免 hydration 误判） |
+| 已登录但邮箱未验证 | 等 `isInitialized` 后提示"请先验证邮箱"并跳转 `/verify-email` |
+| 创建草稿失败（网络等） | 显示错误提示，提供重试按钮 |
+| 发布时并发冲突 | 重新获取详情刷新 version，用户手动再次发布 |
+
+## 9. 用户流程
+
+### 创建并发布
+
+```
+进入 /threads/create
+  ↓ 未登录 → /login
+  ↓ 未验证邮箱 → /verify-email
+  ↓ 已登录且已验证
+POST /threads 创建草稿
+  ↓ 成功
+显示表单（标题/分区/可见性/标签/子贴标题/正文）
+  ↓ 用户编辑
+点击"保存草稿" → PATCH /threads/:id { 当前字段（空 title 会被剔除）, version }
+  ↓ 成功 toast "草稿已保存"
+点击"发布" → GET /threads/:id 刷新 version → PATCH { 当前字段, published: true, version }
+  ↓ 成功 toast "发布成功" 跳转 /threads/:id
+  ↓ 失败 按错误码提示
+点击"放弃" → 确认弹窗 → DELETE /threads/:id → 跳转 /
+```
+
+## 10. 验收标准
+
+- [x] 进入 `/threads/create` 自动创建草稿并显示表单
+- [x] 未登录用户跳转登录页
+- [x] 未验证邮箱用户收到提示并跳转验证页
+- [x] 表单可编辑标题、分区、可见性、标签、默认子贴标题、正文
+- [x] 标签输入支持自动补全和新建
+- [x] 编辑器支持 WYSIWYG 渲染与可见工具栏
+- [x] 编辑器功能：粗体/斜体/删除线/行内代码/链接/标题/列表/引用/代码块
+- [x] 编辑器支持图片上传并插入 Markdown
+- [x] 编辑器支持字数统计（70% 黄色 / 90% 红色阈值提示）
+- [x] 编辑器禁用表格功能
+- [x] 保存草稿成功更新 Thread 元数据
+- [x] 发布前校验不满足时提示具体缺项
+- [x] 发布成功跳转详情页
+- [x] 放弃创建可删除草稿
+- [x] 所有错误状态有 toast 提示
+- [x] 提交按钮显示 loading 状态
+- [x] `pnpm lint && pnpm typecheck && pnpm build` 全部通过
+
+## 11. 子任务
+
+- [x] 编写模块设计文档 `docs/modules/thread-create.md`
+- [x] 创建 Zod schema `src/lib/validations/thread-create.ts`
+- [x] 实现 Milkdown Crepe WYSIWYG 编辑器 `src/components/editor/milkdown-editor.tsx`
+- [x] 实现图片上传工具 `src/lib/upload-image.ts`
+- [x] 实现 `useCreateThread` / `useThreadDetail` / `useUpdateThread` / `useDeleteThread` hooks
+- [x] 实现 `useUploadImage` hook
+- [x] 实现 `TagInput` 标签输入组件
+- [x] 实现 `ThreadCreateForm` 表单组件
+- [x] 实现 `/threads/create` 页面
+- [x] 同步更新文档
+- [x] lint / typecheck / build 通过
+- [x] vitest 单元测试通过：Zod schema / API hooks / 工具函数 / 组件
+- [x] Playwright E2E 测试通过：完整创建流程 / 工具栏 / 校验 / 放弃

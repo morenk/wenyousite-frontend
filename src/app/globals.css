@@ -1,0 +1,87 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+:root {
+  /* Misskey-inspired pastel palette */
+  --background: #f8f9fb;
+  --foreground: #334155;
+
+  --card: #ffffff;
+  --card-foreground: #334155;
+
+  --popover: #ffffff;
+  --popover-foreground: #334155;
+
+  --primary: #f09fb0;
+  --primary-foreground: #ffffff;
+
+  --secondary: #e0e7ff;
+  --secondary-foreground: #334155;
+
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+
+  --accent: #bbf7d0;
+  --accent-foreground: #334155;
+
+  --destructive: #f87171;
+  --destructive-foreground: #ffffff;
+
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #f09fb0;
+
+  --radius: 0.75rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --font-sans: var(--font-noto-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-rounded: var(--font-m-plus-rounded), var(--font-noto-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background-color: color-mix(in srgb, var(--primary) 30%, transparent);
+}
+
+/* Milkdown Crepe 中文字体覆盖 */
+.milkdown {
+  --crepe-font-default: var(--font-noto-sans), "Noto Sans SC", ui-sans-serif, system-ui, sans-serif;
+  --crepe-font-title: var(--font-m-plus-rounded), "Noto Sans SC", ui-sans-serif, system-ui, serif;
+  --crepe-font-code: var(--font-jetbrains-mono), ui-monospace, monospace;
+}
