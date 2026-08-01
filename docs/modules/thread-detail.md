@@ -170,9 +170,9 @@
 | ThreadDetailHeader | `src/components/thread/thread-detail-header.tsx` | 页面顶层独立标题区（非卡片）：徽章/主题帖标题/作者/标签/操作按钮 |
 | SubthreadTabs | `src/components/thread/subthread-tabs.tsx` | 子贴 Tab 切换导航 |
 | SubthreadBody | `src/components/thread/subthread-body.tsx` | 子贴卡（唯一卡片）：子贴标题 + 默认徽章 + 正文（kind=BODY）同容器（正文不进入楼层列表） |
-| FloorCard | `src/components/thread/floor-card.tsx` | 单条楼层卡片（Markdown 渲染；作者本人可编辑/删除，楼层均可删） |
+| FloorCard | `src/components/thread/floor-card.tsx` | 单条楼层卡片（Markdown 渲染；作者本人可编辑/删除，楼层均可删；编辑态用 MilkdownEditor + 图片上传） |
 | FloorList | `src/components/thread/floor-list.tsx` | 楼层列表（仅 kind=FLOOR，无限滚动，cursor 分页） |
-| FloorForm | `src/components/thread/floor-form.tsx` | 新楼层发布表单 |
+| FloorForm | `src/components/thread/floor-form.tsx` | 新楼层发布表单（MilkdownEditor + 图片上传，发布后重挂载清空） |
 | ManagementPanel | `src/components/thread/management-panel.tsx` | 帖主管理面板：左子贴目录树 + 右单例编辑器 |
 | SubthreadTree | `src/components/thread/subthread-tree.tsx` | 管理面板左栏子贴目录树（@dnd-kit 拖拽排序） |
 | SubthreadForm | `src/components/forms/subthread-form.tsx` | 子贴创建/编辑弹窗（title + postingPolicy + Zod 校验） |
@@ -221,12 +221,14 @@
 **页面布局：** 主题帖标题区为页面顶层独立标题区（非卡片，`ThreadDetailHeader`，含徽章/标题/作者/标签/操作按钮）→ 子贴 Tab → 子贴卡（`SubthreadBody`：子贴标题 + 正文同卡）→ 楼层列表 → 发布表单。
 
 ```
-用户在 FloorForm 输入内容
+用户在 FloorForm 的 MilkdownEditor 输入内容（支持 Markdown + 图片上传）
   → 未登录：跳转 /login
   → 已登录：调用 POST /subthreads/:id/posts { content }（发帖自动成为参与人=候选池）
-    → 成功：清空输入框 + invalidation 刷新楼层列表
+    → 成功：重置编辑器（key 重挂载清空）+ invalidation 刷新楼层列表
     → 失败：按错误码提示（40302 协作者 / 40303 玩家，或后端 message）
 ```
+
+> **楼层编辑**：作者点击 FloorCard 的编辑按钮进入编辑态，用 MilkdownEditor 回填 `floor.content`，保存调用 `useUpdatePost`（乐观锁 version）；编辑内容通过 `markdownUpdated` 异步写入 `editContent` state，保存前需等编辑器 markdown 更新完成。
 
 ## 8. 错误处理
 
