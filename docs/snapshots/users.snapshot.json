@@ -1,0 +1,492 @@
+{
+  "module": "users",
+  "generatedAt": "2026-08-01T19:05:59.228Z",
+  "description": "用户资料/关注/拉黑端点快照",
+  "endpoints": {
+    "GET /users/me": {
+      "label": "GET /users/me",
+      "request": null,
+      "response": {
+        "code": 0,
+        "message": "ok",
+        "data": {
+          "id": "cms7kpgnb00067q6lg4u0tyuu",
+          "email": "test_thread2@example.com",
+          "username": "testthread2",
+          "avatar": null,
+          "bio": null,
+          "role": "USER",
+          "showRecentReplies": true,
+          "showPlayerBadges": true,
+          "showBookmarks": true,
+          "emailVerified": true,
+          "deletedAt": null,
+          "createdAt": "2026-07-30T13:52:39.048Z",
+          "updatedAt": "2026-07-30T13:52:39.048Z",
+          "_count": {
+            "following": 0,
+            "followers": 0
+          }
+        }
+      },
+      "httpStatus": 200
+    },
+    "GET /users/search?q=testuser": {
+      "label": "GET /users/search?q=testuser",
+      "request": {
+        "q": "testuser"
+      },
+      "response": {
+        "code": 0,
+        "message": "ok",
+        "data": [
+          {
+            "id": "cms5zycb900017q0azar1nag2",
+            "username": "testuser",
+            "avatar": null
+          }
+        ]
+      },
+      "httpStatus": 200
+    },
+    "GET /users/cms5zycb900017q0azar1nag2 (logged in)": {
+      "label": "GET /users/cms5zycb900017q0azar1nag2 (logged in)",
+      "request": null,
+      "response": {
+        "code": 0,
+        "message": "ok",
+        "data": {
+          "id": "cms5zycb900017q0azar1nag2",
+          "username": "testuser",
+          "avatar": null,
+          "bio": null,
+          "role": "USER",
+          "showRecentReplies": true,
+          "showPlayerBadges": true,
+          "showBookmarks": true,
+          "createdAt": "2026-07-29T11:23:55.222Z",
+          "_count": {
+            "following": 0,
+            "followers": 0
+          },
+          "isFollowing": false,
+          "isFollowedBy": false,
+          "isBlocked": false,
+          "isBlockedBy": false
+        }
+      },
+      "httpStatus": 200
+    },
+    "GET /users/cms5zycb900017q0azar1nag2/recent-replies": {
+      "label": "GET /users/cms5zycb900017q0azar1nag2/recent-replies",
+      "request": null,
+      "response": {
+        "code": 0,
+        "message": "ok",
+        "data": [
+          {
+            "id": "cmsapbpui00577q31p0c1vfxx",
+            "createdAt": "2026-08-01T18:25:14.395Z",
+            "floorNumber": null,
+            "parentPostId": "cmsapbowx00517q313y47bmtj",
+            "content": "楼中楼回复内容",
+            "threadId": "cmsapbna4004n7q31w8dvc0ln",
+            "thread": {
+              "title": "管理面板测试帖 1785608711288"
+            },
+            "subthreadId": "cmsapbna8004r7q319m86krin",
+            "subthread": {
+              "title": "管理面板测试帖 1785608711288"
+            },
+            "preview": "楼中楼回复内容"
+          },
+          {
+            "id": "cmsapbowx00517q313y47bmtj",
+            "createdAt": "2026-08-01T18:25:13.185Z",
+            "floorNumber": 1,
+            "parentPostId": null,
+            "content": "主楼正文",
+            "threadId": "cmsapbna4004n7q31w8dvc0ln",
+            "thread": {
+              "title": "管理面板测试帖 1785608711288"
+            },
+            "subthreadId": "cmsapbna8004r7q319m86krin",
+            "subthread": {
+              "title": "管理面板测试帖 1785608711288"
+            },
+            "preview": "主楼正文"
+          },
+          {
+            "id": "cmsapbo2d004t7q31kr95y2xd",
+            "createdAt": "2026-08-01T18:25:12.086Z",
+            "floorNumber": null,
+            "parentPostId": null,
+            "content": "这是管理面板测试正文。",
+            "threadId": "cmsapbna4004n7q31w8dvc0ln",
+            "thread": {
+              "title": "管理面板测试帖 1785608711288"
+            },
+            "subthreadId": "cmsapbna8004r7q319m86krin",
+            "subthread": {
+              "title": "管理面板测试帖 1785608711288"
+            },
+            "preview": "这是管理面板测试正文。"
+          },
+          {
+            "id": "cmsapbjqe00497q31doelyutk",
+            "createdAt": "2026-08-01T18:25:06.471Z",
+            "floorNumber": null,
+            "parentPostId": null,
+            "content": "这是管理面板测试正文。",
+            "threadId": "cmsapbiuy00437q3165ivr3dm",
+            "thread": {
+              "title": "管理面板测试帖 1785608705618"
+            },
+            "subthreadId": "cmsapbiv800477q31ohu9hc3x",
+            "subthread": {
+              "title": "管理面板测试帖 1785608705618"
+            },
+            "preview": "这是管理面板测试正文。"
+          },
+          {
+            "id": "cmsapbfm4003x7q31bjk7jnc8",
+            "createdAt": "2026-08-01T18:25:01.132Z",
+            "floorNumber": 1,
+            "parentPostId": null,
+            "content": "编辑后的楼层正文",
+            "threadId": "cmsapbdug003j7q31jyg0hbdd",
+            "thread": {
+              "title": "管理面板测试帖 1785608699109"
+            },
+            "subthreadId": "cmsapbduy003n7q31tly4td0z",
+            "subthread": {
+              "title": "管理面板测试帖 1785608699109"
+            },
+            "preview": "编辑后的楼层正文"
+          },
+          {
+            "id": "cmsapbeni003p7q31jn6mi3m7",
+            "createdAt": "2026-08-01T18:24:59.886Z",
+            "floorNumber": null,
+            "parentPostId": null,
+            "content": "这是管理面板测试正文。",
+            "threadId": "cmsapbdug003j7q31jyg0hbdd",
+            "thread": {
+              "title": "管理面板测试帖 1785608699109"
+            },
+            "subthreadId": "cmsapbduy003n7q31tly4td0z",
+            "subthread": {
+              "title": "管理面板测试帖 1785608699109"
+            },
+            "preview": "这是管理面板测试正文。"
+          },
+          {
+            "id": "cmsapbb6y003b7q319mcpp59t",
+            "createdAt": "2026-08-01T18:24:55.402Z",
+            "floorNumber": null,
+            "parentPostId": null,
+            "content": "这是管理面板测试正文。",
+            "threadId": "cmsapbaaw00357q31hjr9bzz1",
+            "thread": {
+              "title": "管理面板测试帖 1785608694606"
+            },
+            "subthreadId": "cmsapbab700397q31xxvne7by",
+            "subthread": {
+              "title": "管理面板测试帖 1785608694606"
+            },
+            "preview": "这是管理面板测试正文。"
+          },
+          {
+            "id": "cmsapb7tm002v7q31b5ok20nr",
+            "createdAt": "2026-08-01T18:24:51.034Z",
+            "floorNumber": null,
+            "parentPostId": null,
+            "content": "这是管理面板测试正文。",
+            "threadId": "cmsapb738002p7q31jbt8vy1x",
+            "thread": {
+              "title": "已编辑标题 1785608691756"
+            },
+            "subthreadId": "cmsapb73d002t7q31a6a3r90a",
+            "subthread": {
+              "title": "已编辑标题 1785608691756"
+            },
+            "preview": "这是管理面板测试正文。"
+          },
+          {
+            "id": "cmsapb3px002d7q31mqt5m06s",
+            "createdAt": "2026-08-01T18:24:45.718Z",
+            "floorNumber": null,
+            "parentPostId": null,
+            "content": "这是管理面板测试正文。",
+            "threadId": "cmsapb2yk00277q31qt2mod4p",
+            "thread": {
+              "title": "管理面板测试帖 1785608684947"
+            },
+            "subthreadId": "cmsapb2yv002b7q310f9dfaa2",
+            "subthread": {
+              "title": "管理面板测试帖 1785608684947"
+            },
+            "preview": "这是管理面板测试正文。"
+          },
+          {
+            "id": "cmsapb00z001p7q31addbzmip",
+            "createdAt": "2026-08-01T18:24:40.931Z",
+            "floorNumber": null,
+            "parentPostId": null,
+            "content": "这是管理面板测试正文。",
+            "threadId": "cmsapaz08001h7q31a090bj9s",
+            "thread": {
+              "title": "管理面板测试帖 1785608679949"
+            },
+            "subthreadId": "cmsapaz0c001l7q31aawwba58",
+            "subthread": {
+              "title": "管理面板测试帖 1785608679949"
+            },
+            "preview": "这是管理面板测试正文。"
+          }
+        ]
+      },
+      "httpStatus": 200
+    },
+    "GET /users/cms5zycb900017q0azar1nag2/played-threads?limit=3": {
+      "label": "GET /users/cms5zycb900017q0azar1nag2/played-threads?limit=3",
+      "request": {
+        "limit": 3
+      },
+      "response": {
+        "code": 0,
+        "message": "ok",
+        "data": [
+          {
+            "id": "cmsapbna4004n7q31w8dvc0ln",
+            "title": "管理面板测试帖 1785608711288",
+            "ownerId": "cms5zycb900017q0azar1nag2",
+            "category": "DEDUCTION",
+            "status": "RECRUITING",
+            "visibility": "PUBLIC",
+            "published": true,
+            "publishedAt": "2026-08-01T18:25:12.134Z",
+            "pinned": false,
+            "pinnedAt": null,
+            "viewCount": 1,
+            "version": 2,
+            "likeCount": 0,
+            "defaultSubthreadId": "cmsapbna8004r7q319m86krin",
+            "createdAt": "2026-08-01T18:25:11.069Z",
+            "updatedAt": "2026-08-01T18:25:12.180Z",
+            "deletedAt": null,
+            "owner": {
+              "id": "cms5zycb900017q0azar1nag2",
+              "username": "testuser",
+              "avatar": null
+            },
+            "defaultSubthread": {
+              "id": "cmsapbna8004r7q319m86krin",
+              "title": "管理面板测试帖 1785608711288",
+              "lastPostAt": "2026-08-01T18:25:14.397Z"
+            },
+            "topicTags": [],
+            "_count": {
+              "members": 1,
+              "posts": 2,
+              "players": 1
+            }
+          },
+          {
+            "id": "cmsapbiuy00437q3165ivr3dm",
+            "title": "管理面板测试帖 1785608705618",
+            "ownerId": "cms5zycb900017q0azar1nag2",
+            "category": "DEDUCTION",
+            "status": "RECRUITING",
+            "visibility": "PUBLIC",
+            "published": true,
+            "publishedAt": "2026-08-01T18:25:06.522Z",
+            "pinned": false,
+            "pinnedAt": null,
+            "viewCount": 1,
+            "version": 2,
+            "likeCount": 0,
+            "defaultSubthreadId": "cmsapbiv800477q31ohu9hc3x",
+            "createdAt": "2026-08-01T18:25:05.338Z",
+            "updatedAt": "2026-08-01T18:25:06.572Z",
+            "deletedAt": null,
+            "owner": {
+              "id": "cms5zycb900017q0azar1nag2",
+              "username": "testuser",
+              "avatar": null
+            },
+            "defaultSubthread": {
+              "id": "cmsapbiv800477q31ohu9hc3x",
+              "title": "管理面板测试帖 1785608705618",
+              "lastPostAt": "2026-08-01T18:25:07.692Z"
+            },
+            "topicTags": [],
+            "_count": {
+              "members": 1,
+              "posts": 1,
+              "players": 1
+            }
+          },
+          {
+            "id": "cmsapbdug003j7q31jyg0hbdd",
+            "title": "管理面板测试帖 1785608699109",
+            "ownerId": "cms5zycb900017q0azar1nag2",
+            "category": "DEDUCTION",
+            "status": "RECRUITING",
+            "visibility": "PUBLIC",
+            "published": true,
+            "publishedAt": "2026-08-01T18:24:59.935Z",
+            "pinned": false,
+            "pinnedAt": null,
+            "viewCount": 1,
+            "version": 2,
+            "likeCount": 0,
+            "defaultSubthreadId": "cmsapbduy003n7q31tly4td0z",
+            "createdAt": "2026-08-01T18:24:58.840Z",
+            "updatedAt": "2026-08-01T18:24:59.989Z",
+            "deletedAt": null,
+            "owner": {
+              "id": "cms5zycb900017q0azar1nag2",
+              "username": "testuser",
+              "avatar": null
+            },
+            "defaultSubthread": {
+              "id": "cmsapbduy003n7q31tly4td0z",
+              "title": "管理面板测试帖 1785608699109",
+              "lastPostAt": "2026-08-01T18:25:01.139Z"
+            },
+            "topicTags": [],
+            "_count": {
+              "members": 1,
+              "posts": 1,
+              "players": 1
+            }
+          }
+        ],
+        "meta": {
+          "cursor": "cmsapbduo003l7q31t0u4j6th",
+          "hasMore": true
+        }
+      },
+      "httpStatus": 200
+    },
+    "GET /users/cms5zycb900017q0azar1nag2/bookmarks?limit=3": {
+      "label": "GET /users/cms5zycb900017q0azar1nag2/bookmarks?limit=3",
+      "request": {
+        "limit": 3
+      },
+      "response": {
+        "code": 0,
+        "message": "ok",
+        "data": [],
+        "meta": {
+          "cursor": null,
+          "hasMore": false
+        }
+      },
+      "httpStatus": 200
+    },
+    "POST /users/follow/cms5zycb900017q0azar1nag2": {
+      "label": "POST /users/follow/cms5zycb900017q0azar1nag2",
+      "request": null,
+      "response": {
+        "code": 0,
+        "message": "ok",
+        "data": {
+          "message": "已关注"
+        }
+      },
+      "httpStatus": 201
+    },
+    "GET /users/following": {
+      "label": "GET /users/following",
+      "request": null,
+      "response": {
+        "code": 0,
+        "message": "ok",
+        "data": [
+          {
+            "id": "cmsaqs4d400167q9b2d8ehnv3",
+            "followerId": "cms7kpgnb00067q6lg4u0tyuu",
+            "followingId": "cms5zycb900017q0azar1nag2",
+            "createdAt": "2026-08-01T19:05:59.320Z",
+            "following": {
+              "id": "cms5zycb900017q0azar1nag2",
+              "username": "testuser",
+              "avatar": null
+            }
+          }
+        ]
+      },
+      "httpStatus": 200
+    },
+    "GET /users/followers": {
+      "label": "GET /users/followers",
+      "request": null,
+      "response": {
+        "code": 0,
+        "message": "ok",
+        "data": []
+      },
+      "httpStatus": 200
+    },
+    "DELETE /users/follow/cms5zycb900017q0azar1nag2": {
+      "label": "DELETE /users/follow/cms5zycb900017q0azar1nag2",
+      "request": null,
+      "response": {
+        "code": 0,
+        "message": "ok",
+        "data": {
+          "message": "已取消关注"
+        }
+      },
+      "httpStatus": 200
+    },
+    "POST /users/me/block/cms5zycb900017q0azar1nag2": {
+      "label": "POST /users/me/block/cms5zycb900017q0azar1nag2",
+      "request": null,
+      "response": {
+        "code": 0,
+        "message": "ok",
+        "data": {
+          "message": "已拉黑"
+        }
+      },
+      "httpStatus": 201
+    },
+    "GET /users/me/blocks": {
+      "label": "GET /users/me/blocks",
+      "request": null,
+      "response": {
+        "code": 0,
+        "message": "ok",
+        "data": [
+          {
+            "id": "cmsaqs4en00187q9bni3vpq5u",
+            "blockerId": "cms7kpgnb00067q6lg4u0tyuu",
+            "blockedId": "cms5zycb900017q0azar1nag2",
+            "createdAt": "2026-08-01T19:05:59.376Z",
+            "blocked": {
+              "id": "cms5zycb900017q0azar1nag2",
+              "username": "testuser",
+              "avatar": null
+            }
+          }
+        ]
+      },
+      "httpStatus": 200
+    },
+    "DELETE /users/me/block/cms5zycb900017q0azar1nag2": {
+      "label": "DELETE /users/me/block/cms5zycb900017q0azar1nag2",
+      "request": null,
+      "response": {
+        "code": 0,
+        "message": "ok",
+        "data": {
+          "message": "已取消拉黑"
+        }
+      },
+      "httpStatus": 200
+    }
+  }
+}

@@ -330,6 +330,57 @@ async function captureSearch(): Promise<void> {
   save(s);
 }
 
+async function captureUsers(): Promise<void> {
+  const s = snap("users", "用户资料/关注/拉黑端点快照");
+
+  // 本人资料
+  const { body: me, status: ms } = await api("GET", "/api/v1/users/me");
+  record(s, "GET /users/me", null, me, ms);
+
+  // 搜索用户，找他人做关注/拉黑目标
+  const { body: searchBody } = await api("GET", "/api/v1/users/search?q=testuser");
+  record(s, "GET /users/search?q=testuser", { q: "testuser" }, searchBody, (searchBody as any)?.code === 0 ? 200 : 500);
+  const matches = (searchBody as any)?.data ?? [];
+  const target = matches.find((u: any) => u.id !== USER_ID) ?? matches[0];
+  const targetId = target?.id;
+
+  // 本人公开资料（登录态，含关系字段）
+  if (targetId) {
+    const { body: pub, status: ps } = await api("GET", `/api/v1/users/${targetId}`);
+    record(s, `GET /users/${targetId} (logged in)`, null, pub, ps);
+    const { body: replies, status: rs } = await api("GET", `/api/v1/users/${targetId}/recent-replies`);
+    record(s, `GET /users/${targetId}/recent-replies`, null, replies, rs);
+    const { body: played, status: pts } = await api("GET", `/api/v1/users/${targetId}/played-threads?limit=3`);
+    record(s, `GET /users/${targetId}/played-threads?limit=3`, { limit: 3 }, played, pts);
+    const { body: bm, status: bms } = await api("GET", `/api/v1/users/${targetId}/bookmarks?limit=3`);
+    record(s, `GET /users/${targetId}/bookmarks?limit=3`, { limit: 3 }, bm, bms);
+  }
+
+  // 关注 → 记录 → 取消（保持状态干净）
+  if (targetId) {
+    const { body: follow, status: fs } = await api("POST", `/api/v1/users/follow/${targetId}`, {});
+    record(s, `POST /users/follow/${targetId}`, null, follow, fs);
+    const { body: following, status: fgs } = await api("GET", "/api/v1/users/following");
+    record(s, "GET /users/following", null, following, fgs);
+    const { body: followers, status: fls } = await api("GET", "/api/v1/users/followers");
+    record(s, "GET /users/followers", null, followers, fls);
+    const { body: unfollow, status: ufs } = await api("DELETE", `/api/v1/users/follow/${targetId}`, {});
+    record(s, `DELETE /users/follow/${targetId}`, null, unfollow, ufs);
+  }
+
+  // 拉黑 → 记录 → 取消
+  if (targetId) {
+    const { body: block, status: bs } = await api("POST", `/api/v1/users/me/block/${targetId}`, {});
+    record(s, `POST /users/me/block/${targetId}`, null, block, bs);
+    const { body: blocks, status: bks } = await api("GET", "/api/v1/users/me/blocks");
+    record(s, "GET /users/me/blocks", null, blocks, bks);
+    const { body: unblock, status: ubs } = await api("DELETE", `/api/v1/users/me/block/${targetId}`, {});
+    record(s, `DELETE /users/me/block/${targetId}`, null, unblock, ubs);
+  }
+
+  save(s);
+}
+
 /** ── main ── */
 
 async function main() {
@@ -367,6 +418,10 @@ async function main() {
   if (mod === "all" || mod === "search") {
     console.log("[search]");
     await captureSearch();
+  }
+  if (mod === "all" || mod === "users") {
+    console.log("[users]");
+    await captureUsers();
   }
 
   // 登出
