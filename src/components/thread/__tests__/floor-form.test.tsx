@@ -19,6 +19,29 @@ vi.mock("@/api/hooks/use-create-post", () => ({
   useCreatePost: () => mockCreatePost(),
 }));
 
+vi.mock("@/api/hooks/use-upload-image", () => ({
+  useUploadImage: () => ({ mutateAsync: vi.fn() }),
+}));
+
+vi.mock("@/components/editor/milkdown-editor", () => ({
+  MilkdownEditor: ({
+    defaultValue,
+    onChange,
+    placeholder,
+  }: {
+    defaultValue?: string;
+    onChange?: (v: string) => void;
+    placeholder?: string;
+  }) => (
+    <textarea
+      data-testid="milkdown-editor"
+      defaultValue={defaultValue}
+      placeholder={placeholder}
+      onChange={(e) => onChange?.(e.target.value)}
+    />
+  ),
+}));
+
 vi.mock("@tanstack/react-query", async () => {
   const actual = await vi.importActual("@tanstack/react-query");
   return { ...actual, useQueryClient: () => ({ invalidateQueries: vi.fn().mockResolvedValue(undefined) }) };
@@ -59,7 +82,7 @@ describe("FloorForm", () => {
     expect(screen.getByText("登录")).toBeInTheDocument();
   });
 
-  test("已登录即显示输入框（无需手动加入，发帖自动入候选池）", () => {
+  test("已登录即显示编辑器（无需手动加入，发帖自动入候选池）", () => {
     mockUseAuth.mockReturnValue({
       user: loggedInUser,
       isInitialized: true,
@@ -91,7 +114,7 @@ describe("FloorForm", () => {
     mockUseAuth.mockReturnValue({ user: loggedInUser, isInitialized: true });
     renderWithQC(<FloorForm subthreadId="s1" />);
 
-    const textarea = screen.getByPlaceholderText("输入正文内容（支持 Markdown）...");
+    const textarea = screen.getByTestId("milkdown-editor");
     await user.type(textarea, "新的回复内容");
     await user.click(screen.getByText("发布"));
 
@@ -111,7 +134,7 @@ describe("FloorForm", () => {
     });
     renderWithQC(<FloorForm subthreadId="s1" />);
 
-    await user.type(screen.getByPlaceholderText("输入正文内容（支持 Markdown）..."), "内容");
+    await user.type(screen.getByTestId("milkdown-editor"), "内容");
     await user.click(screen.getByText("发布"));
 
     expect(toast.error).toHaveBeenCalledWith("该子贴仅限玩家发帖");
@@ -126,7 +149,7 @@ describe("FloorForm", () => {
     });
     renderWithQC(<FloorForm subthreadId="s1" />);
 
-    await user.type(screen.getByPlaceholderText("输入正文内容（支持 Markdown）..."), "内容");
+    await user.type(screen.getByTestId("milkdown-editor"), "内容");
     await user.click(screen.getByText("发布"));
 
     expect(toast.error).toHaveBeenCalledWith("该子贴仅限协作者发帖");
@@ -138,7 +161,7 @@ describe("FloorForm", () => {
     mockMutateAsync.mockRejectedValueOnce({ code: 40001, message: "内容不能为空" });
     renderWithQC(<FloorForm subthreadId="s1" />);
 
-    await user.type(screen.getByPlaceholderText("输入正文内容（支持 Markdown）..."), "内容");
+    await user.type(screen.getByTestId("milkdown-editor"), "内容");
     await user.click(screen.getByText("发布"));
 
     expect(toast.error).toHaveBeenCalledWith("内容不能为空");

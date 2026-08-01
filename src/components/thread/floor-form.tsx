@@ -1,4 +1,4 @@
-/** 楼层发布表单组件 */
+/** 楼层发布表单组件：MilkdownEditor + 图片上传 */
 
 "use client";
 
@@ -8,7 +8,9 @@ import { Send, Loader2, LogIn } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { useCreatePost } from "@/api/hooks/use-create-post";
+import { useUploadImage } from "@/api/hooks/use-upload-image";
 import { useQueryClient } from "@tanstack/react-query";
+import { MilkdownEditor } from "@/components/editor/milkdown-editor";
 import { Button } from "@/components/ui/button";
 
 interface FloorFormProps {
@@ -19,7 +21,9 @@ export function FloorForm({ subthreadId }: FloorFormProps) {
   const { user } = useAuth();
   const router = useRouter();
   const [content, setContent] = useState("");
+  const [resetKey, setResetKey] = useState(0);
   const createPost = useCreatePost();
+  const uploadImage = useUploadImage();
   const queryClient = useQueryClient();
 
   const handleSubmit = async () => {
@@ -30,6 +34,7 @@ export function FloorForm({ subthreadId }: FloorFormProps) {
         content: content.trim(),
       });
       setContent("");
+      setResetKey((k) => k + 1);
       await queryClient.invalidateQueries({
         queryKey: ["floors", subthreadId],
       });
@@ -66,12 +71,13 @@ export function FloorForm({ subthreadId }: FloorFormProps) {
 
   return (
     <div className="rounded-xl border border-border bg-card p-4">
-      <textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
+      <MilkdownEditor
+        key={`floor-form-${resetKey}`}
+        defaultValue={content}
+        onChange={setContent}
+        onUploadImage={async (file) => uploadImage.mutateAsync(file)}
         placeholder="输入正文内容（支持 Markdown）..."
-        rows={4}
-        className="w-full resize-y rounded-lg border border-border bg-background p-3 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        disabled={createPost.isPending}
       />
       <div className="mt-3 flex items-center justify-end">
         <Button
