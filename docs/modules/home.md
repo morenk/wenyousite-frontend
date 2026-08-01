@@ -56,7 +56,7 @@
 |------|------|------|
 | 标题 | thread.title | 文本 |
 | 分类 | thread.category | 枚举 → 中文（演绎/国策/RPG） |
-| 正文预览 | 默认子贴首楼正文 | Markdown 纯文本截断（~120 字） |
+| 正文预览 | 默认子贴正文（kind=BODY） | Markdown 纯文本截断（~120 字） |
 | 标签 | thread.topicTags[] | 标签徽章 |
 | 状态 | thread.status | 招募中/已关闭/已完结 |
 | 玩家数 | thread._count.players | 数字（被楼主授予玩家身份者） |
