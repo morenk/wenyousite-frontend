@@ -3,12 +3,11 @@
 "use client";
 
 import Link from "next/link";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MarkdownContent } from "@/components/thread/markdown-content";
 import type { PostData } from "@/api/hooks/use-floors";
 
 interface FloorCardProps {
@@ -48,11 +47,7 @@ export function FloorCard({ floor, isEven }: FloorCardProps) {
       </div>
 
       {/* 楼层正文 */}
-      <div className="prose prose-sm max-w-none dark:prose-invert">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-          {floor.content}
-        </ReactMarkdown>
-      </div>
+      <MarkdownContent content={floor.content} />
 
       {/* 回复数 */}
       {floor._count.replies > 0 && (

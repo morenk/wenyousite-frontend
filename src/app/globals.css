@@ -92,3 +92,9 @@ body {
 .milkdown .ProseMirror {
   padding: 20px 32px;
 }
+
+/* 正文图片兜底：任何 markdown 内容图片都不超出容器宽度 */
+.prose img {
+  max-width: 100%;
+  height: auto;
+}

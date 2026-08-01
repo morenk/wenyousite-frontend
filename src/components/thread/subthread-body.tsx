@@ -2,8 +2,7 @@
 
 "use client";
 
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { MarkdownContent } from "@/components/thread/markdown-content";
 import type { SubthreadDetail } from "@/api/hooks/use-thread-detail";
 
 interface SubthreadBodyProps {
@@ -26,10 +25,8 @@ export function SubthreadBody({ subthread, isDefault = false }: SubthreadBodyPro
       </div>
 
       {content ? (
-        <div className="mt-3 border-t border-border pt-3 prose prose-sm max-w-none dark:prose-invert">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {content}
-          </ReactMarkdown>
+        <div className="mt-3 border-t border-border pt-3">
+          <MarkdownContent content={content} />
         </div>
       ) : (
         <p className="mt-3 border-t border-border pt-3 text-sm text-muted-foreground">
