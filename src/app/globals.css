@@ -93,6 +93,16 @@ body {
   padding: 20px 32px;
 }
 
+/* Milkdown 编辑器内容区高度与滚动：
+   - min-height 撑开可视区，空白处点击可落位（ProseMirror 原生 clamp 到文档末尾）
+   - max-height 上限，超过后内容区出现滚动条（工具栏 fixed 不滚动）
+   - 数值由组件通过 --editor-min-height / --editor-max-height 传入 */
+.milkdown-editor .ProseMirror {
+  min-height: var(--editor-min-height, 280px);
+  max-height: var(--editor-max-height, 400px);
+  overflow-y: auto;
+}
+
 /* 正文图片兜底：任何 markdown 内容图片都不超出容器宽度 */
 .prose img {
   max-width: 100%;

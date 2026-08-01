@@ -48,6 +48,10 @@ interface MilkdownEditorProps {
   onUploadImage?: (file: File) => Promise<string>;
   placeholder?: string;
   disabled?: boolean;
+  /** 内容区最大高度（px），超过后内容区出现滚动条；默认 400 */
+  maxHeight?: number;
+  /** 内容区最小高度（px），保证空白区可点击落位；默认 280 */
+  minHeight?: number;
 }
 
 const CN_HEADING_OPTIONS = [
@@ -80,6 +84,8 @@ function EditorCore({
   onUploadImage,
   placeholder,
   disabled,
+  maxHeight = 400,
+  minHeight = 280,
 }: MilkdownEditorProps) {
   const [loading] = useInstance();
   const [charCount, setCharCount] = useState(defaultValue?.length ?? 0);
@@ -176,8 +182,14 @@ function EditorCore({
         "rounded-lg border border-border bg-background overflow-hidden",
         disabled && "opacity-60 pointer-events-none",
       )}
+      style={
+        {
+          "--editor-min-height": `${minHeight}px`,
+          "--editor-max-height": `${maxHeight}px`,
+        } as React.CSSProperties
+      }
     >
-      <div className="min-h-[280px] milkdown-editor">
+      <div className="milkdown-editor">
         <Milkdown />
         {loading && (
           <div className="flex items-center justify-center py-12 text-muted-foreground">

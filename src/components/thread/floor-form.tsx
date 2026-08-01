@@ -78,6 +78,7 @@ export function FloorForm({ subthreadId }: FloorFormProps) {
         onUploadImage={async (file) => uploadImage.mutateAsync(file)}
         placeholder="输入正文内容（支持 Markdown）..."
         disabled={createPost.isPending}
+        maxHeight={300}
       />
       <div className="mt-3 flex items-center justify-end">
         <Button

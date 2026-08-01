@@ -145,6 +145,7 @@ export function FloorCard({ floor, isEven }: FloorCardProps) {
             onChange={setEditContent}
             onUploadImage={async (file) => uploadImage.mutateAsync(file)}
             disabled={updatePost.isPending}
+            maxHeight={300}
           />
           <div className="flex items-center justify-end gap-2">
             <Button
