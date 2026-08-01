@@ -185,6 +185,8 @@
 | useCreatePost | `src/api/hooks/use-create-post.ts` | 楼层回复发布（FloorForm） |
 | useUpdatePost | `src/api/hooks/use-update-post.ts` | 编辑楼层正文（乐观锁 version） |
 | useDeletePost | `src/api/hooks/use-delete-post.ts` | 删除楼层（作者本人，不能删首楼） |
+| useSyncThreadTags | `src/api/hooks/use-sync-thread-tags.ts` | 编辑帖时同步主题帖标签（diff 后添加/移除） |
+| ThreadEditForm | `src/components/forms/thread-edit-form.tsx` | 已发布帖编辑表单（标题/分区/可见性/标签/正文） |
 
 ## 6.1 帖主管理面板
 
@@ -242,7 +244,7 @@
 | 私密帖 + 非成员 | 后端返回 404（设计决策：避免枚举私密帖） |
 | 未登录发帖 | apiClient 拦截器自动跳转 /login |
 | 发帖 | 登录即可发帖，发帖自动入候选池；子贴发帖策略（协作者/玩家）由后端拦截并映射错误码 |
-| 已发布帖 OWNER | 显示 "编辑" 按钮（跳 /threads/[id]/edit，后续实现） |
+| 已发布帖 OWNER | 显示 "编辑" 按钮（跳 `/threads/[id]/edit`，编辑表单 ThreadEditForm） |
 
 ## 10. 验收标准
 
