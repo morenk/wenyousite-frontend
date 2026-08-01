@@ -166,4 +166,27 @@ describe("ThreadList", () => {
     expect(screen.getByText("帖2")).toBeInTheDocument();
     expect(screen.getByText("帖3")).toBeInTheDocument();
   });
+
+  test("重复 id 兜底去重：同一帖只渲染一次", () => {
+    const threads = [
+      { ...sampleThread, id: "t1", title: "重复帖" },
+      { ...sampleThread, id: "t1", title: "重复帖" },
+      { ...sampleThread, id: "t2", title: "正常帖" },
+    ];
+    const { container } = render(
+      <ThreadList
+        threads={threads}
+        hasNextPage={false}
+        isFetchingNextPage={false}
+        isLoading={false}
+        error={null}
+        onLoadMore={() => {}}
+        onRetry={() => {}}
+      />,
+    );
+    // 同一 id 只渲染一次（按标题出现次数断言）
+    expect(screen.getAllByText("重复帖").length).toBe(1);
+    expect(screen.getAllByText("正常帖").length).toBe(1);
+    expect(container.querySelectorAll("a[href*='/threads/t1']").length).toBe(1);
+  });
 });

@@ -73,9 +73,14 @@ export function ThreadList({
     return <EmptyState title="还没有主题帖" description="成为第一个创建主题帖的人吧" />;
   }
 
+  // 兜底去重：分页数据可能因后端游标错位出现重复 id，按 id 去重避免同一帖渲染多次
+  const uniqueThreads = Array.from(
+    new Map(threads.map((t) => [t.id, t])).values(),
+  );
+
   return (
     <div className="flex flex-col gap-4">
-      {threads.map((thread) => (
+      {uniqueThreads.map((thread) => (
         <ThreadCard key={thread.id} thread={thread} />
       ))}
 
