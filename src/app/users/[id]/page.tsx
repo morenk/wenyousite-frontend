@@ -1,4 +1,4 @@
-/** 用户主页：资料卡 + 最近动态 + 参与的帖子 */
+/** 用户主页：资料卡 + 最近动态 + 创建的帖子 + 参与的帖子 */
 
 "use client";
 
@@ -8,6 +8,7 @@ import { useUserProfile } from "@/api/hooks/use-user-profile";
 import { useUserRecentReplies } from "@/api/hooks/use-user-recent-replies";
 import { UserProfileCard } from "@/components/user/user-profile-card";
 import { UserRecentReplies } from "@/components/user/user-recent-replies";
+import { UserCreatedThreads } from "@/components/user/user-created-threads";
 import { UserPlayedThreads } from "@/components/user/user-played-threads";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -94,6 +95,15 @@ export default function UserProfilePage() {
               isLoading={repliesLoading}
               error={repliesError}
             />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">创建的帖子</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <UserCreatedThreads userId={userId} />
           </CardContent>
         </Card>
 

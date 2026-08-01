@@ -1,15 +1,15 @@
-/** UserPlayedThreads 组件测试：加载/空/列表渲染 */
+/** UserCreatedThreads 组件测试：加载/空/列表渲染 */
 
 import { describe, test, expect, vi, beforeAll, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-const { mockUseUserPlayedThreads } = vi.hoisted(() => ({
-  mockUseUserPlayedThreads: vi.fn(),
+const { mockUseUserCreatedThreads } = vi.hoisted(() => ({
+  mockUseUserCreatedThreads: vi.fn(),
 }));
 
-vi.mock("@/api/hooks/use-user-played-threads", () => ({
-  useUserPlayedThreads: () => mockUseUserPlayedThreads(),
+vi.mock("@/api/hooks/use-user-created-threads", () => ({
+  useUserCreatedThreads: () => mockUseUserCreatedThreads(),
 }));
 
 vi.mock("next/link", () => ({
@@ -18,7 +18,7 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-import { UserPlayedThreads } from "@/components/user/user-played-threads";
+import { UserCreatedThreads } from "@/components/user/user-created-threads";
 
 beforeAll(() => {
   vi.stubGlobal("IntersectionObserver", class {
@@ -42,7 +42,7 @@ function createWrapper() {
 
 const sampleThread = {
   id: "t1",
-  title: "测试帖",
+  title: "我创建的帖",
   ownerId: "u1",
   category: "RPG",
   status: "RECRUITING",
@@ -53,15 +53,15 @@ const sampleThread = {
   updatedAt: "2026-01-01T00:00:00Z",
   deletedAt: null,
   owner: { id: "u1", username: "testuser", avatar: null },
-  defaultSubthread: { id: "s1", title: "测试帖" },
+  defaultSubthread: { id: "s1", title: "我创建的帖" },
   topicTags: [],
   _count: { members: 1, players: 1, posts: 2 },
   preview: "预览",
 };
 
-describe("UserPlayedThreads", () => {
+describe("UserCreatedThreads", () => {
   test("加载中显示加载提示", () => {
-    mockUseUserPlayedThreads.mockReturnValue({
+    mockUseUserCreatedThreads.mockReturnValue({
       data: undefined,
       fetchNextPage: vi.fn(),
       hasNextPage: false,
@@ -70,12 +70,12 @@ describe("UserPlayedThreads", () => {
       isError: false,
       error: undefined,
     });
-    render(<UserPlayedThreads userId="u1" />, { wrapper: createWrapper() });
+    render(<UserCreatedThreads userId="u1" />, { wrapper: createWrapper() });
     expect(screen.getByText("加载中…")).toBeInTheDocument();
   });
 
   test("空列表显示空状态", () => {
-    mockUseUserPlayedThreads.mockReturnValue({
+    mockUseUserCreatedThreads.mockReturnValue({
       data: { pages: [] },
       fetchNextPage: vi.fn(),
       hasNextPage: false,
@@ -84,26 +84,12 @@ describe("UserPlayedThreads", () => {
       isError: false,
       error: undefined,
     });
-    render(<UserPlayedThreads userId="u1" />, { wrapper: createWrapper() });
-    expect(screen.getByText("还没有参与过帖子")).toBeInTheDocument();
+    render(<UserCreatedThreads userId="u1" />, { wrapper: createWrapper() });
+    expect(screen.getByText("还没有创建过帖子")).toBeInTheDocument();
   });
 
-  test("错误显示未公开占位", () => {
-    mockUseUserPlayedThreads.mockReturnValue({
-      data: undefined,
-      fetchNextPage: vi.fn(),
-      hasNextPage: false,
-      isFetchingNextPage: false,
-      isLoading: false,
-      isError: true,
-      error: new Error("404"),
-    });
-    render(<UserPlayedThreads userId="u1" />, { wrapper: createWrapper() });
-    expect(screen.getByText("该用户未公开参与的帖子")).toBeInTheDocument();
-  });
-
-  test("渲染参与的帖子", () => {
-    mockUseUserPlayedThreads.mockReturnValue({
+  test("渲染创建的帖子", () => {
+    mockUseUserCreatedThreads.mockReturnValue({
       data: { pages: [{ data: [sampleThread], meta: { cursor: null, hasMore: false } }] },
       fetchNextPage: vi.fn(),
       hasNextPage: false,
@@ -112,8 +98,8 @@ describe("UserPlayedThreads", () => {
       isError: false,
       error: undefined,
     });
-    render(<UserPlayedThreads userId="u1" />, { wrapper: createWrapper() });
-    expect(screen.getByRole("link", { name: /测试帖/ })).toBeInTheDocument();
+    render(<UserCreatedThreads userId="u1" />, { wrapper: createWrapper() });
+    expect(screen.getByRole("link", { name: /我创建的帖/ })).toBeInTheDocument();
     expect(screen.getByText("RPG")).toBeInTheDocument();
     expect(screen.getByText("招募中")).toBeInTheDocument();
   });

@@ -1,6 +1,6 @@
 {
   "module": "users",
-  "generatedAt": "2026-08-01T19:05:59.228Z",
+  "generatedAt": "2026-08-01T20:11:47.114Z",
   "description": "用户资料/关注/拉黑端点快照",
   "endpoints": {
     "GET /users/me": {
@@ -256,6 +256,22 @@
       "response": {
         "code": 0,
         "message": "ok",
+        "data": [],
+        "meta": {
+          "cursor": null,
+          "hasMore": false
+        }
+      },
+      "httpStatus": 200
+    },
+    "GET /users/cms5zycb900017q0azar1nag2/created-threads?limit=3": {
+      "label": "GET /users/cms5zycb900017q0azar1nag2/created-threads?limit=3",
+      "request": {
+        "limit": 3
+      },
+      "response": {
+        "code": 0,
+        "message": "ok",
         "data": [
           {
             "id": "cmsapbna4004n7q31w8dvc0ln",
@@ -364,7 +380,7 @@
           }
         ],
         "meta": {
-          "cursor": "cmsapbduo003l7q31t0u4j6th",
+          "cursor": "cmsapbdug003j7q31jyg0hbdd",
           "hasMore": true
         }
       },
@@ -406,10 +422,10 @@
         "message": "ok",
         "data": [
           {
-            "id": "cmsaqs4d400167q9b2d8ehnv3",
+            "id": "cmsat4qmf00057q1zd1thloek",
             "followerId": "cms7kpgnb00067q6lg4u0tyuu",
             "followingId": "cms5zycb900017q0azar1nag2",
-            "createdAt": "2026-08-01T19:05:59.320Z",
+            "createdAt": "2026-08-01T20:11:47.272Z",
             "following": {
               "id": "cms5zycb900017q0azar1nag2",
               "username": "testuser",
@@ -462,10 +478,10 @@
         "message": "ok",
         "data": [
           {
-            "id": "cmsaqs4en00187q9bni3vpq5u",
+            "id": "cmsat4qvj00077q1zoxazumxq",
             "blockerId": "cms7kpgnb00067q6lg4u0tyuu",
             "blockedId": "cms5zycb900017q0azar1nag2",
-            "createdAt": "2026-08-01T19:05:59.376Z",
+            "createdAt": "2026-08-01T20:11:47.600Z",
             "blocked": {
               "id": "cms5zycb900017q0azar1nag2",
               "username": "testuser",

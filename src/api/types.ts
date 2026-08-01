@@ -346,6 +346,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/users/{id}/created-threads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 查看用户创建的主题帖（本人可见全部含私密帖，他人仅见 PUBLIC 已发布帖） */
+        get: operations["UsersController_getUserCreatedThreads"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/users/{id}/recent-replies": {
         parameters: {
             query?: never;
@@ -2563,6 +2580,38 @@ export interface operations {
                 content?: never;
             };
             /** @description 用户不存在或未公开参与的帖子 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UsersController_getUserCreatedThreads: {
+        parameters: {
+            query?: {
+                /** @description 每页条数（默认 20，最大 50） */
+                limit?: unknown;
+                /** @description 分页游标（上一页最后一条记录 ID） */
+                cursor?: unknown;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 用户创建的主题帖列表（cursor 分页） */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 用户不存在 */
             404: {
                 headers: {
                     [name: string]: unknown;

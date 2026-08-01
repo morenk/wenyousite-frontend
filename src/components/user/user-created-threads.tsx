@@ -1,15 +1,15 @@
-/** 用户参与的帖子列表（薄包装：useUserPlayedThreads + UserThreadList） */
+/** 用户创建的帖子列表（薄包装：useUserCreatedThreads + UserThreadList） */
 
 "use client";
 
-import { useUserPlayedThreads } from "@/api/hooks/use-user-played-threads";
+import { useUserCreatedThreads } from "@/api/hooks/use-user-created-threads";
 import { UserThreadList } from "@/components/user/user-thread-list";
 
-interface UserPlayedThreadsProps {
+interface UserCreatedThreadsProps {
   userId: string;
 }
 
-export function UserPlayedThreads({ userId }: UserPlayedThreadsProps) {
+export function UserCreatedThreads({ userId }: UserCreatedThreadsProps) {
   const {
     data,
     fetchNextPage,
@@ -17,7 +17,7 @@ export function UserPlayedThreads({ userId }: UserPlayedThreadsProps) {
     isFetchingNextPage,
     isLoading,
     isError,
-  } = useUserPlayedThreads(userId);
+  } = useUserCreatedThreads(userId);
 
   const threads = data?.pages.flatMap((page) => page?.data ?? []) ?? [];
 
@@ -29,8 +29,8 @@ export function UserPlayedThreads({ userId }: UserPlayedThreadsProps) {
       hasNextPage={hasNextPage}
       isFetchingNextPage={isFetchingNextPage}
       fetchNextPage={fetchNextPage}
-      emptyTitle="还没有参与过帖子"
-      errorTitle="该用户未公开参与的帖子"
+      emptyTitle="还没有创建过帖子"
+      errorTitle="该用户未公开创建的帖子"
     />
   );
 }

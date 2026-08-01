@@ -5,10 +5,11 @@
 实现用户主页、关注/拉黑、草稿箱三个子功能，补齐全站所有 `Link href="/users/{id}"` 的死链落点。
 
 **本次迭代范围（Phase 6 MVP）：**
-- `/users/[id]` 用户主页：资料卡（头像/用户名/Bio/注册时间/关注粉丝数）+ 关注/拉黑按钮 + 最近动态（recent-replies）+ 参与的帖子（played-threads）
+- `/users/[id]` 用户主页：资料卡（头像/用户名/Bio/注册时间/关注粉丝数）+ 关注/拉黑按钮 + 最近动态（recent-replies）+ 创建的帖子（created-threads）+ 参与的帖子（played-threads）
 - 关注/取消关注、拉黑/取消拉黑（仅登录，用户主页操作）
 - `/drafts` 草稿箱：我的未发布帖列表，可跳转继续编辑或删除
-- `/me` 我的资料：编辑用户名/Bio、隐私开关、退出后重登生效
+- `/me` 我的资料：编辑 Bio/隐私开关（用户名需显式进入编辑，默认不修改）
+- 参与列表排除自建帖：`played-threads` 只返回被其他楼主标记为玩家的帖，自建帖归入「创建的帖子」（后端 `4ed5449` 同步）
 
 **后续迭代：**
 - 头像上传（需 media 上传组件，`PATCH /users/me/avatar`）
@@ -31,7 +32,8 @@
 | PATCH | `/users/me` | Auth | 修改资料（username/bio/隐私开关），5次/分钟限流，需邮箱已验证 |
 | GET | `/users/:id` | OptionalAuth | 用户公开资料；登录态额外返回 isFollowing/isFollowedBy/isBlocked/isBlockedBy |
 | GET | `/users/:id/recent-replies` | OptionalAuth | 最近 10 条回复（仅 PUBLIC 帖），不分页，受 showRecentReplies 控制 |
-| GET | `/users/:id/played-threads` | OptionalAuth | 参与的帖子（玩家标记），按加入时间倒序，Cursor 分页，受 showPlayerBadges 控制 |
+| GET | `/users/:id/created-threads` | OptionalAuth | 创建的帖子（本人可见全部含私密帖，他人仅 PUBLIC），按创建时间倒序，Cursor 分页 |
+| GET | `/users/:id/played-threads` | OptionalAuth | 参与的帖子（被其他楼主标记为玩家，**排除自建帖**），按加入时间倒序，Cursor 分页，受 showPlayerBadges 控制 |
 | POST | `/users/follow/:id` | Auth | 关注（幂等，首次关注发通知） |
 | DELETE | `/users/follow/:id` | Auth | 取消关注 |
 | POST | `/users/me/block/:id` | Auth | 拉黑（幂等 upsert） |
@@ -165,6 +167,7 @@
 |------|------|----------|
 | 用户资料 | `GET /users/:id` | TanStack Query `useQuery`（queryKey `["user", id]`） |
 | 最近动态 | `GET /users/:id/recent-replies` | TanStack Query `useQuery` |
+| 创建的帖子 | `GET /users/:id/created-threads` | `useInfiniteQuery`（cursor 分页） |
 | 参与的帖子 | `GET /users/:id/played-threads` | `useInfiniteQuery`（cursor 分页） |
 | 我的资料 | `GET /users/me` | TanStack Query `useQuery` |
 | 草稿列表 | `GET /threads/draft` | TanStack Query `useQuery`（queryKey `["drafts"]`） |
@@ -178,11 +181,14 @@
 | FollowButton | `src/components/user/follow-button.tsx` | 关注/取消关注切换（未登录跳 /login） |
 | BlockButton | `src/components/user/block-button.tsx` | 拉黑/取消拉黑切换（confirm 二次确认） |
 | UserRecentReplies | `src/components/user/user-recent-replies.tsx` | 最近动态列表（含楼层/楼中楼标识、帖子标题链接、preview） |
-| UserPlayedThreads | `src/components/user/user-played-threads.tsx` | 参与的帖子列表（标题 + 分类/状态徽章 + 无限滚动） |
+| UserThreadList | `src/components/user/user-thread-list.tsx` | 用户帖子列表通用展示组件（徽章/标题/无限滚动，empty/error 文案 props） |
+| UserCreatedThreads | `src/components/user/user-created-threads.tsx` | 创建的帖子列表（薄包装：useUserCreatedThreads + UserThreadList） |
+| UserPlayedThreads | `src/components/user/user-played-threads.tsx` | 参与的帖子列表（薄包装：useUserPlayedThreads + UserThreadList） |
 | DraftList | `src/components/user/draft-list.tsx` | 草稿箱列表（标题/分类/更新时间/继续编辑/删除） |
 | UsernameEdit | `src/components/user/username-edit.tsx` | 独立用户名修改（默认只读，点「修改用户名」才进入编辑态，未改动不提交） |
 | useUserProfile | `src/api/hooks/use-user-profile.ts` | 用户公开资料 hook |
 | useUserRecentReplies | `src/api/hooks/use-user-recent-replies.ts` | 最近动态 hook |
+| useUserCreatedThreads | `src/api/hooks/use-user-created-threads.ts` | 创建的帖子 hook（cursor 分页） |
 | useUserPlayedThreads | `src/api/hooks/use-user-played-threads.ts` | 参与帖子 hook（cursor 分页） |
 | useFollowActions | `src/api/hooks/use-follow-actions.ts` | 关注/取消关注 mutation |
 | useBlockActions | `src/api/hooks/use-block-actions.ts` | 拉黑/取消拉黑 mutation |
@@ -243,7 +249,8 @@ showRecentReplies / showPlayerBadges / showBookmarks: boolean
 - [x] 未登录不显示关注/拉黑按钮；点击其他需登录操作跳 /login
 - [x] 关注/拉黑自己不显示按钮
 - [x] 最近动态列表渲染（楼层/楼中楼标识 + 帖子链接 + preview），为空/未公开有占位
-- [x] 参与的帖子列表渲染（标题 + 分类/状态徽章），cursor 分页加载
+- [x] 创建的帖子列表渲染（标题 + 分类/状态徽章），cursor 分页加载
+- [x] 参与的帖子列表渲染（标题 + 分类/状态徽章），cursor 分页加载，不含自建帖
 - [x] 已注销用户显示"已注销用户"占位
 - [x] 全站 `/users/{id}` 链接可正常跳转
 - [x] `/drafts` 草稿箱列出我的未发布帖，可跳转编辑、可删除
@@ -262,4 +269,5 @@ showRecentReplies / showPlayerBadges / showBookmarks: boolean
 - [x] 切片6：`/users/[id]` 用户主页
 - [x] 切片7：`useDrafts` hook + `DraftList` 组件 + `/drafts` 草稿箱
 - [x] 切片8：`useMe` / `useUpdateProfile` hooks + `/me` 我的资料
+- [x] 同步后端 `created-threads`：useUserCreatedThreads hook + UserThreadList 共享组件 + /users/[id] 创建列表
 - [ ] 质量检查 + 文档同步 + 提交推送
