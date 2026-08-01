@@ -2509,7 +2509,12 @@ export interface operations {
     };
     UsersController_getUserBookmarks: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description 每页条数（默认 20，最大 50） */
+                limit?: unknown;
+                /** @description 分页游标（上一页最后一条记录 ID） */
+                cursor?: unknown;
+            };
             header?: never;
             path: {
                 id: string;
@@ -2536,7 +2541,12 @@ export interface operations {
     };
     UsersController_getUserPlayedThreads: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description 每页条数（默认 20，最大 50） */
+                limit?: unknown;
+                /** @description 分页游标（上一页最后一条记录 ID） */
+                cursor?: unknown;
+            };
             header?: never;
             path: {
                 id: string;
