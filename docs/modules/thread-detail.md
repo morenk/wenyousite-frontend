@@ -183,6 +183,8 @@
 | useReorderSubthreads | `src/api/hooks/use-reorder-subthreads.ts` | 管理面板：拖拽排序 |
 | useUpsertBody | `src/api/hooks/use-upsert-body.ts` | 管理面板：写入子贴正文（upsert：无正文创建、有正文乐观锁更新） |
 | useCreatePost | `src/api/hooks/use-create-post.ts` | 楼层回复发布（FloorForm） |
+| useUpdatePost | `src/api/hooks/use-update-post.ts` | 编辑楼层正文（乐观锁 version） |
+| useDeletePost | `src/api/hooks/use-delete-post.ts` | 删除楼层（作者本人，不能删首楼） |
 
 ## 6.1 帖主管理面板
 
