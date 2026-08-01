@@ -4,13 +4,19 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Heart, Edit3, Settings, Loader2 } from "lucide-react";
+import { Heart, Edit3, Settings, Loader2, Bell, BellOff } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { useLikeThread } from "@/api/hooks/use-like-thread";
+import { useSubscriptions } from "@/api/hooks/use-subscriptions";
+import {
+  useCreateSubscription,
+  useDeleteSubscription,
+} from "@/api/hooks/use-subscription-mutations";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
 
@@ -49,8 +55,14 @@ export function ThreadDetailHeader({
 }: ThreadDetailHeaderProps) {
   const { user } = useAuth();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { like, unlike } = useLikeThread(thread.id);
+  const { data: subscriptions } = useSubscriptions(!!user);
+  const createSubscription = useCreateSubscription();
+  const deleteSubscription = useDeleteSubscription();
   const isOwner = user?.id === thread.ownerId;
+
+  const mySubscription = subscriptions?.find((s) => s.threadId === thread.id);
 
   const handleLike = async () => {
     try {
@@ -61,6 +73,22 @@ export function ThreadDetailHeader({
       }
     } catch {
       toast.error("操作失败，请稍后重试");
+    }
+  };
+
+  const handleToggleSubscribe = async () => {
+    try {
+      if (mySubscription) {
+        await deleteSubscription.mutateAsync(mySubscription.id);
+        toast.success("已取消订阅");
+      } else {
+        await createSubscription.mutateAsync({ threadId: thread.id, type: "THREAD" });
+        toast.success("已订阅，帖子更新将通知你");
+      }
+      await queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
+    } catch (error: unknown) {
+      const err = error as { message?: string };
+      toast.error(err.message || "操作失败，请稍后重试");
     }
   };
 
@@ -159,6 +187,23 @@ export function ThreadDetailHeader({
                   />
                 )}
                 {thread.likeCount > 0 ? thread.likeCount : "点赞"}
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleToggleSubscribe}
+                disabled={createSubscription.isPending || deleteSubscription.isPending}
+                title={mySubscription ? "取消订阅" : "订阅帖子更新"}
+              >
+                {createSubscription.isPending || deleteSubscription.isPending ? (
+                  <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                ) : mySubscription ? (
+                  <BellOff className="mr-1 h-4 w-4" />
+                ) : (
+                  <Bell className="mr-1 h-4 w-4" />
+                )}
+                {mySubscription ? "已订阅" : "订阅"}
               </Button>
 
               {isOwner && (

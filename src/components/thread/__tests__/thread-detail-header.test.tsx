@@ -1,6 +1,6 @@
 /** ThreadDetailHeader 组件测试 */
 
-import { describe, test, expect, vi, afterEach } from "vitest";
+import { describe, test, expect, vi, afterEach, beforeEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -13,14 +13,31 @@ vi.mock("@/lib/auth", () => ({
   useAuth: () => mockUseAuth(),
 }));
 
-const { mockPOST, mockDELETE } = vi.hoisted(() => ({
+const { mockPOST, mockDELETE, mockGET } = vi.hoisted(() => ({
   mockPOST: vi.fn(),
   mockDELETE: vi.fn(),
+  mockGET: vi.fn(),
 }));
 
 vi.mock("@/api/client", () => ({
-  apiClient: { POST: mockPOST, DELETE: mockDELETE },
+  apiClient: { POST: mockPOST, DELETE: mockDELETE, GET: mockGET },
 }));
+
+const mockCreateMutate = vi.fn().mockResolvedValue({});
+const mockDeleteMutate = vi.fn().mockResolvedValue({});
+const mockUseSubscriptions = vi.fn(() => ({ data: [], isLoading: false }));
+vi.mock("@/api/hooks/use-subscriptions", () => ({
+  useSubscriptions: () => mockUseSubscriptions(),
+}));
+vi.mock("@/api/hooks/use-subscription-mutations", () => ({
+  useCreateSubscription: () => ({ mutateAsync: mockCreateMutate, isPending: false }),
+  useDeleteSubscription: () => ({ mutateAsync: mockDeleteMutate, isPending: false }),
+}));
+
+vi.mock("@tanstack/react-query", async () => {
+  const actual = await vi.importActual("@tanstack/react-query");
+  return { ...actual, useQueryClient: () => ({ invalidateQueries: vi.fn().mockResolvedValue(undefined) }) };
+});
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -33,6 +50,10 @@ vi.mock("next/link", () => ({
 }));
 
 afterEach(() => cleanup());
+
+beforeEach(() => {
+  mockUseSubscriptions.mockReturnValue({ data: [], isLoading: false });
+});
 
 function renderWithQC(ui: React.ReactElement) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -230,5 +251,60 @@ describe("ThreadDetailHeader", () => {
     const noLikes = { ...baseThread, likeCount: 0 };
     renderWithQC(<ThreadDetailHeader thread={noLikes} />);
     expect(screen.getByText("点赞")).toBeInTheDocument();
+  });
+
+  test("登录用户显示订阅按钮，点击后订阅", async () => {
+    const user = userEvent.setup();
+    mockUseAuth.mockReturnValue({
+      user: { id: "other-user", username: "别人" },
+      isInitialized: true,
+    });
+    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
+
+    expect(screen.getByText("订阅")).toBeInTheDocument();
+
+    await user.click(screen.getByText("订阅"));
+
+    expect(mockCreateMutate).toHaveBeenCalledWith({
+      threadId: "thread-1",
+      type: "THREAD",
+    });
+  });
+
+  test("已订阅显示'已订阅'，点击取消订阅", async () => {
+    const user = userEvent.setup();
+    mockUseAuth.mockReturnValue({
+      user: { id: "other-user", username: "别人" },
+      isInitialized: true,
+    });
+    vi.mocked(mockUseSubscriptions).mockReturnValue({
+      data: [
+        {
+          id: "sub1",
+          userId: "other-user",
+          threadId: "thread-1",
+          type: "THREAD",
+          targetUserId: null,
+          createdAt: "2026-01-01T00:00:00Z",
+          thread: { id: "thread-1", title: "测试主题帖" },
+        },
+      ],
+      isLoading: false,
+    } as never);
+
+    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
+
+    expect(screen.getByText("已订阅")).toBeInTheDocument();
+
+    await user.click(screen.getByText("已订阅"));
+
+    expect(mockDeleteMutate).toHaveBeenCalledWith("sub1");
+  });
+
+  test("未登录不显示订阅按钮", () => {
+    mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
+    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
+    expect(screen.queryByText("订阅")).toBeNull();
+    expect(screen.queryByText("已订阅")).toBeNull();
   });
 });
