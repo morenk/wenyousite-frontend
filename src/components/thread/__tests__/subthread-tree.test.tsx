@@ -34,7 +34,7 @@ function makeSub(
 }
 
 const subthreads = [
-  makeSub("s1", "主帖"),
+  makeSub("s1", "公告"),
   makeSub("s2", "设定区", "COLLABORATORS"),
   makeSub("s3", "剧情区", "PLAYERS"),
 ];
@@ -52,14 +52,14 @@ const baseProps = {
 describe("SubthreadTree", () => {
   test("渲染所有子贴标题", () => {
     render(<SubthreadTree {...baseProps} />);
-    expect(screen.getByText("主帖")).toBeInTheDocument();
+    expect(screen.getByText("公告")).toBeInTheDocument();
     expect(screen.getByText("设定区")).toBeInTheDocument();
     expect(screen.getByText("剧情区")).toBeInTheDocument();
   });
 
-  test("默认子贴显示'默认'徽章", () => {
+  test("默认子贴显示'主帖'徽章", () => {
     render(<SubthreadTree {...baseProps} />);
-    expect(screen.getByText("默认")).toBeInTheDocument();
+    expect(screen.getByText("主帖")).toBeInTheDocument();
   });
 
   test("渲染发帖权限标签", () => {

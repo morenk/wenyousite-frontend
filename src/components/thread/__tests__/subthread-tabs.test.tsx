@@ -2,10 +2,11 @@
 
 import { describe, test, expect, vi, afterEach } from "vitest";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
-import { SubthreadTabs } from "@/components/thread/subthread-tabs";
+import {
+  SubthreadTabs,
+  hasOverflow,
+} from "@/components/thread/subthread-tabs";
 import type { SubthreadDetail } from "@/api/hooks/use-thread-detail";
-
-afterEach(() => cleanup());
 
 function makeSub(overrides: Partial<SubthreadDetail> = {}): SubthreadDetail {
   return {
@@ -25,6 +26,36 @@ function makeSub(overrides: Partial<SubthreadDetail> = {}): SubthreadDetail {
     ...overrides,
   };
 }
+
+const origScrollIntoView = Element.prototype.scrollIntoView;
+
+const proto = HTMLElement.prototype as unknown as Record<string, unknown>;
+
+afterEach(() => {
+  cleanup();
+  delete proto.scrollWidth;
+  delete proto.clientWidth;
+  delete proto.scrollLeft;
+  Element.prototype.scrollIntoView = origScrollIntoView;
+});
+
+describe("hasOverflow", () => {
+  test("内容未溢出时两侧都不可滚动", () => {
+    expect(hasOverflow(300, 300, 0)).toEqual({ left: false, right: false });
+  });
+
+  test("内容溢出且未滚动时仅右侧可滚动", () => {
+    expect(hasOverflow(1000, 300, 0)).toEqual({ left: false, right: true });
+  });
+
+  test("内容溢出且已滚动到末尾时仅左侧可滚动", () => {
+    expect(hasOverflow(1000, 300, 700)).toEqual({ left: true, right: false });
+  });
+
+  test("内容溢出且滚动在中间时两侧都可滚动", () => {
+    expect(hasOverflow(1000, 300, 300)).toEqual({ left: true, right: true });
+  });
+});
 
 describe("SubthreadTabs", () => {
   test("单子贴时不渲染 Tab", () => {
@@ -114,5 +145,87 @@ describe("SubthreadTabs", () => {
       />,
     );
     expect(screen.queryByText("0")).toBeNull();
+  });
+
+  test("内容溢出时显示滚动箭头", () => {
+    Object.defineProperty(HTMLElement.prototype, "scrollWidth", {
+      configurable: true,
+      value: 1000,
+    });
+    Object.defineProperty(HTMLElement.prototype, "clientWidth", {
+      configurable: true,
+      value: 300,
+    });
+    Object.defineProperty(HTMLElement.prototype, "scrollLeft", {
+      configurable: true,
+      value: 0,
+    });
+    render(
+      <SubthreadTabs
+        subthreads={[
+          makeSub({ id: "s1", title: "主帖" }),
+          makeSub({ id: "s2", title: "设定区" }),
+        ]}
+        selectedId="s1"
+        onChange={() => {}}
+      />,
+    );
+    // 未滚动到最左时只有向右箭头
+    expect(screen.getByTitle("向右滚动")).toBeInTheDocument();
+    expect(screen.queryByTitle("向左滚动")).toBeNull();
+  });
+
+  test("未溢出时不显示滚动箭头", () => {
+    Object.defineProperty(HTMLElement.prototype, "scrollWidth", {
+      configurable: true,
+      value: 300,
+    });
+    Object.defineProperty(HTMLElement.prototype, "clientWidth", {
+      configurable: true,
+      value: 300,
+    });
+    Object.defineProperty(HTMLElement.prototype, "scrollLeft", {
+      configurable: true,
+      value: 0,
+    });
+    render(
+      <SubthreadTabs
+        subthreads={[
+          makeSub({ id: "s1", title: "主帖" }),
+          makeSub({ id: "s2", title: "设定区" }),
+        ]}
+        selectedId="s1"
+        onChange={() => {}}
+      />,
+    );
+    expect(screen.queryByTitle("向右滚动")).toBeNull();
+    expect(screen.queryByTitle("向左滚动")).toBeNull();
+  });
+
+  test("选中 Tab 变化时调用 scrollIntoView", () => {
+    Element.prototype.scrollIntoView = vi.fn();
+    const { rerender } = render(
+      <SubthreadTabs
+        subthreads={[
+          makeSub({ id: "s1", title: "主帖" }),
+          makeSub({ id: "s2", title: "设定区" }),
+        ]}
+        selectedId="s1"
+        onChange={() => {}}
+      />,
+    );
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <SubthreadTabs
+        subthreads={[
+          makeSub({ id: "s1", title: "主帖" }),
+          makeSub({ id: "s2", title: "设定区" }),
+        ]}
+        selectedId="s2"
+        onChange={() => {}}
+      />,
+    );
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalledTimes(2);
   });
 });

@@ -35,14 +35,14 @@ describe("SubthreadBody", () => {
     expect(strong.tagName).toBe("STRONG");
   });
 
-  test("默认子贴显示「默认」徽章", () => {
+  test("默认子贴显示「主帖」徽章", () => {
     render(<SubthreadBody subthread={baseSubthread} isDefault />);
-    expect(screen.getByText("默认")).toBeInTheDocument();
+    expect(screen.getByText("主帖")).toBeInTheDocument();
   });
 
-  test("非默认子贴不显示「默认」徽章", () => {
+  test("非默认子贴不显示「主帖」徽章", () => {
     render(<SubthreadBody subthread={baseSubthread} />);
-    expect(screen.queryByText("默认")).toBeNull();
+    expect(screen.queryByText("主帖")).toBeNull();
   });
 
   test("无正文时显示占位文案", () => {

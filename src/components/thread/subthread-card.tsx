@@ -67,7 +67,7 @@ export function SubthreadCard({
             </span>
             {isDefault && (
               <span className="shrink-0 rounded bg-primary/10 px-1.5 py-0.5 text-xs text-primary">
-                默认
+                主帖
               </span>
             )}
           </div>

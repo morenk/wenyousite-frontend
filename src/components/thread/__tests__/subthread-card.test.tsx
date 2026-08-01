@@ -43,9 +43,9 @@ describe("SubthreadCard", () => {
     expect(screen.getByText("3 楼")).toBeInTheDocument();
   });
 
-  test("默认子贴时显示'默认'徽章", () => {
+  test("默认子贴时显示'主帖'徽章", () => {
     render(<SubthreadCard subthread={mockSubthread} isDefault />);
-    expect(screen.getByText("默认")).toBeInTheDocument();
+    expect(screen.getByText("主帖")).toBeInTheDocument();
   });
 
   test("默认不显示操作按钮", () => {

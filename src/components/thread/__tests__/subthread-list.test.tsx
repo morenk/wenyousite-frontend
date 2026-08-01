@@ -53,7 +53,7 @@ describe("SubthreadList", () => {
     expect(screen.getByText("剧情区")).toBeInTheDocument();
   });
 
-  test("默认子贴显示'默认'徽章", () => {
+  test("默认子贴显示'主帖'徽章", () => {
     render(
       <SubthreadList
         subthreads={subthreads}
@@ -61,7 +61,7 @@ describe("SubthreadList", () => {
       />,
     );
 
-    expect(screen.getByText("默认")).toBeInTheDocument();
+    expect(screen.getByText("主帖")).toBeInTheDocument();
   });
 
   test("showActions 为 false 时不显示添加按钮", () => {

@@ -160,8 +160,13 @@ export function ManagementPanel({
     try {
       await reorderSubthreads.mutateAsync({ threadId: thread.id, ids });
       await onRefetch();
-    } catch {
-      toast.error("排序保存失败");
+    } catch (error) {
+      const err = error as { message?: string };
+      if (err.message?.includes("默认子贴") || err.message?.includes("第一位")) {
+        toast.error("主帖必须保持在第一位，不能与其他子帖交换顺序");
+      } else {
+        toast.error("排序保存失败，请稍后重试");
+      }
     }
   }
 

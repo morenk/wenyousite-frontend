@@ -20,7 +20,7 @@ export function SubthreadBody({ subthread, isDefault = false }: SubthreadBodyPro
         <h2 className="text-lg font-bold text-foreground">{subthread.title}</h2>
         {isDefault && (
           <span className="rounded bg-primary/10 px-1.5 py-0.5 text-xs text-primary">
-            默认
+            主帖
           </span>
         )}
       </div>

@@ -15,11 +15,12 @@ import {
   SortableContext,
   verticalListSortingStrategy,
   useSortable,
-  arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Pencil, Trash2, Plus } from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { computeReorderedIds } from "@/lib/reorder";
 import type { SubthreadDetail } from "@/api/hooks/use-thread-detail";
 
 const POSTING_POLICY_LABEL: Record<string, string> = {
@@ -52,7 +53,7 @@ function SubthreadTreeNode({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: subthread.id });
+  } = useSortable({ id: subthread.id, disabled: isDefault });
 
   return (
     <div
@@ -82,7 +83,7 @@ function SubthreadTreeNode({
         {subthread.title}
         {isDefault && (
           <span className="ml-1.5 rounded bg-primary/10 px-1 py-0.5 text-xs text-primary">
-            默认
+            主帖
           </span>
         )}
       </span>
@@ -150,17 +151,19 @@ export function SubthreadTree({
     (event: DragEndEvent) => {
       const { active, over } = event;
       if (!over || active.id === over.id) return;
-      const oldIndex = subthreads.findIndex((s) => s.id === active.id);
-      const newIndex = subthreads.findIndex((s) => s.id === over.id);
-      if (oldIndex === -1 || newIndex === -1) return;
-      const reordered = arrayMove(
+      const reordered = computeReorderedIds(
         subthreads.map((s) => s.id),
-        oldIndex,
-        newIndex,
+        String(active.id),
+        String(over.id),
+        defaultSubthreadId,
       );
+      if (!reordered) {
+        toast.error("主帖必须保持在第一位，不能与其他子帖交换顺序");
+        return;
+      }
       onReorder(reordered);
     },
-    [subthreads, onReorder],
+    [subthreads, defaultSubthreadId, onReorder],
   );
 
   return (

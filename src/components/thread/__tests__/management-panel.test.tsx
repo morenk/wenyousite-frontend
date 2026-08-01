@@ -4,8 +4,13 @@ import { describe, test, expect, vi, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { ManagementPanel } from "@/components/thread/management-panel";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
+
+vi.mock("sonner", () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
+}));
 
 vi.mock("@/components/editor/milkdown-editor", () => ({
   MilkdownEditor: ({ defaultValue, onChange }: { defaultValue?: string; onChange?: (v: string) => void }) => (
@@ -298,6 +303,36 @@ describe("ManagementPanel", () => {
       expect(mockReorderSubthreadsMutate).toHaveBeenCalledWith(
         expect.objectContaining({ threadId: "t1", ids: ["s2", "s1"] }),
       );
+    });
+  });
+
+  test("后端拒绝主帖排序时显示友好提示", async () => {
+    const user = userEvent.setup();
+    mockReorderSubthreadsMutate.mockRejectedValueOnce({
+      message: "默认子贴必须排在第一位",
+    });
+    renderPanel();
+
+    await user.click(screen.getByText("mock-reorder"));
+
+    await vi.waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith(
+        "主帖必须保持在第一位，不能与其他子帖交换顺序",
+      );
+    });
+  });
+
+  test("排序其他失败显示通用提示", async () => {
+    const user = userEvent.setup();
+    mockReorderSubthreadsMutate.mockRejectedValueOnce({
+      message: "网络错误",
+    });
+    renderPanel();
+
+    await user.click(screen.getByText("mock-reorder"));
+
+    await vi.waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("排序保存失败，请稍后重试");
     });
   });
 });
