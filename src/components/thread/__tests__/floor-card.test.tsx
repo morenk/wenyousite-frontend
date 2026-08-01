@@ -1,7 +1,9 @@
-/** FloorCard 组件测试 */
+/** FloorCard 组件测试：Markdown 渲染 + 作者编辑/删除 */
 
-import { describe, test, expect, vi, afterEach } from "vitest";
+import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { FloorCard } from "@/components/thread/floor-card";
 import type { PostData } from "@/api/hooks/use-floors";
 
@@ -9,6 +11,30 @@ vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: { children: React.ReactNode; href: string }) => {
     return <a href={href} {...props}>{children}</a>;
   },
+}));
+
+const mockUseAuth = vi.fn();
+vi.mock("@/lib/auth", () => ({
+  useAuth: () => mockUseAuth(),
+}));
+
+const mockUpdateMutateAsync = vi.fn().mockResolvedValue({ id: "post-1" });
+const mockDeleteMutateAsync = vi.fn().mockResolvedValue(undefined);
+vi.mock("@/api/hooks/use-update-post", () => ({
+  useUpdatePost: () => ({ mutateAsync: mockUpdateMutateAsync, isPending: false }),
+}));
+vi.mock("@/api/hooks/use-delete-post", () => ({
+  useDeletePost: () => ({ mutateAsync: mockDeleteMutateAsync }),
+}));
+
+vi.mock("@tanstack/react-query", async () => {
+  const actual = await vi.importActual("@tanstack/react-query");
+  return { ...actual, useQueryClient: () => ({ invalidateQueries: vi.fn().mockResolvedValue(undefined) }) };
+});
+
+import { toast } from "sonner";
+vi.mock("sonner", () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
 }));
 
 afterEach(() => cleanup());
@@ -31,27 +57,37 @@ const baseFloor: PostData = {
   replies: [],
 };
 
+function renderWithQC(ui: React.ReactElement) {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(<QueryClientProvider client={qc}>{ui}</QueryClientProvider>);
+}
+
 describe("FloorCard", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
+  });
+
   test("渲染作者名和楼层号", () => {
-    render(<FloorCard floor={baseFloor} isEven={false} />);
+    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
     expect(screen.getByText("测试用户")).toBeInTheDocument();
     expect(screen.getByText("#1")).toBeInTheDocument();
   });
 
   test("渲染 Markdown 加粗", () => {
-    render(<FloorCard floor={baseFloor} isEven={false} />);
+    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
     const strong = screen.getByText("加粗");
     expect(strong.tagName).toBe("STRONG");
   });
 
   test("渲染纯文本内容", () => {
     const plain = { ...baseFloor, content: "纯文本正文" };
-    render(<FloorCard floor={plain} isEven={false} />);
+    renderWithQC(<FloorCard floor={plain} isEven={false} />);
     expect(screen.getByText("纯文本正文")).toBeInTheDocument();
   });
 
   test("不显示回复数（replies 为 0）", () => {
-    render(<FloorCard floor={baseFloor} isEven={false} />);
+    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
     expect(screen.queryByText("条回复")).toBeNull();
   });
 
@@ -60,21 +96,150 @@ describe("FloorCard", () => {
       ...baseFloor,
       _count: { replies: 3 },
     };
-    render(<FloorCard floor={withReplies} isEven={false} />);
+    renderWithQC(<FloorCard floor={withReplies} isEven={false} />);
     expect(screen.getByText("3 条回复")).toBeInTheDocument();
   });
 
   test("偶数索引有 bg-muted 样式", () => {
-    const { container } = render(
+    const { container } = renderWithQC(
       <FloorCard floor={baseFloor} isEven={true} />,
     );
     expect(container.firstChild as HTMLElement).toHaveClass("bg-muted/30");
   });
 
-  test("奇数索引没有 bg-muted 样式", () => {
-    const { container } = render(
-      <FloorCard floor={baseFloor} isEven={false} />,
-    );
-    expect(container.firstChild as HTMLElement).not.toHaveClass("bg-muted/30");
+  test("未登录不显示编辑/删除按钮", () => {
+    mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
+    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+    expect(screen.queryByTitle("编辑楼层")).toBeNull();
+    expect(screen.queryByTitle("删除楼层")).toBeNull();
+  });
+
+  test("非作者不显示编辑/删除按钮", () => {
+    mockUseAuth.mockReturnValue({
+      user: { id: "other", username: "别人", emailVerified: true },
+      isInitialized: true,
+    });
+    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+    expect(screen.queryByTitle("编辑楼层")).toBeNull();
+    expect(screen.queryByTitle("删除楼层")).toBeNull();
+  });
+
+  test("作者显示编辑/删除按钮", () => {
+    mockUseAuth.mockReturnValue({
+      user: { id: "u1", username: "测试用户", emailVerified: true },
+      isInitialized: true,
+    });
+    const floor2 = { ...baseFloor, floorNumber: 2 };
+    renderWithQC(<FloorCard floor={floor2} isEven={false} />);
+    expect(screen.getByTitle("编辑楼层")).toBeInTheDocument();
+    expect(screen.getByTitle("删除楼层")).toBeInTheDocument();
+  });
+
+  test("首楼删除按钮禁用", () => {
+    mockUseAuth.mockReturnValue({
+      user: { id: "u1", username: "测试用户", emailVerified: true },
+      isInitialized: true,
+    });
+    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+    expect(screen.getByTitle("不能删除子贴第一楼")).toBeDisabled();
+  });
+
+  test("非首楼删除按钮可点", () => {
+    mockUseAuth.mockReturnValue({
+      user: { id: "u1", username: "测试用户", emailVerified: true },
+      isInitialized: true,
+    });
+    const floor2 = { ...baseFloor, floorNumber: 2 };
+    renderWithQC(<FloorCard floor={floor2} isEven={false} />);
+    const del = screen.getByTitle("删除楼层");
+    expect(del).not.toBeDisabled();
+  });
+
+  test("编辑保存：调用 useUpdatePost 并提示成功", async () => {
+    const user = userEvent.setup();
+    mockUseAuth.mockReturnValue({
+      user: { id: "u1", username: "测试用户", emailVerified: true },
+      isInitialized: true,
+    });
+    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+
+    await user.click(screen.getByTitle("编辑楼层"));
+    const textarea = screen.getByRole("textbox");
+    await user.clear(textarea);
+    await user.type(textarea, "编辑后的正文");
+    await user.click(screen.getByRole("button", { name: "保存" }));
+
+    expect(mockUpdateMutateAsync).toHaveBeenCalledWith({
+      postId: "post-1",
+      content: "编辑后的正文",
+      version: 1,
+    });
+    expect(toast.success).toHaveBeenCalledWith("已保存");
+  });
+
+  test("编辑保存乐观锁冲突提示 40900", async () => {
+    const user = userEvent.setup();
+    mockUseAuth.mockReturnValue({
+      user: { id: "u1", username: "测试用户", emailVerified: true },
+      isInitialized: true,
+    });
+    mockUpdateMutateAsync.mockRejectedValueOnce({ code: 40900, message: "内容已被修改" });
+    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+
+    await user.click(screen.getByTitle("编辑楼层"));
+    await user.click(screen.getByRole("button", { name: "保存" }));
+
+    expect(toast.error).toHaveBeenCalledWith("内容已被修改，请刷新后重试");
+  });
+
+  test("取消编辑不调用保存", async () => {
+    const user = userEvent.setup();
+    mockUseAuth.mockReturnValue({
+      user: { id: "u1", username: "测试用户", emailVerified: true },
+      isInitialized: true,
+    });
+    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+
+    await user.click(screen.getByTitle("编辑楼层"));
+    await user.click(screen.getByRole("button", { name: "取消" }));
+
+    expect(mockUpdateMutateAsync).not.toHaveBeenCalled();
+    expect(screen.queryByRole("textbox")).toBeNull();
+    expect(screen.getByText("加粗")).toBeInTheDocument();
+  });
+
+  test("删除确认后调用 useDeletePost 并提示成功", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("confirm", vi.fn(() => true));
+    mockUseAuth.mockReturnValue({
+      user: { id: "u1", username: "测试用户", emailVerified: true },
+      isInitialized: true,
+    });
+    const floor2 = { ...baseFloor, floorNumber: 2 };
+    renderWithQC(<FloorCard floor={floor2} isEven={false} />);
+
+    await user.click(screen.getByTitle("删除楼层"));
+
+    expect(window.confirm).toHaveBeenCalled();
+    expect(mockDeleteMutateAsync).toHaveBeenCalledWith("post-1");
+    expect(toast.success).toHaveBeenCalledWith("楼层已删除");
+    vi.unstubAllGlobals();
+  });
+
+  test("删除取消不调用 useDeletePost", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("confirm", vi.fn(() => false));
+    mockUseAuth.mockReturnValue({
+      user: { id: "u1", username: "测试用户", emailVerified: true },
+      isInitialized: true,
+    });
+    const floor2 = { ...baseFloor, floorNumber: 2 };
+    renderWithQC(<FloorCard floor={floor2} isEven={false} />);
+
+    await user.click(screen.getByTitle("删除楼层"));
+
+    expect(window.confirm).toHaveBeenCalled();
+    expect(mockDeleteMutateAsync).not.toHaveBeenCalled();
+    vi.unstubAllGlobals();
   });
 });

@@ -15,8 +15,8 @@
 - Loading / Error / Empty / 404 状态
 
 **后续迭代：**
-- 楼中楼回复（parentPostId / replyToPostId）
-- 楼层编辑与删除
+- ~~楼中楼回复（parentPostId / replyToPostId）~~ → 待迭代
+- ~~楼层编辑与删除~~ → 已实现（FloorCard 作者可编辑/删除，首楼禁删）
 - 玩家管理（楼主在候选池中授予/收回玩家身份）
 - 阅读进度
 - 订阅通知
@@ -169,7 +169,7 @@
 | ThreadDetailHeader | `src/components/thread/thread-detail-header.tsx` | 页面顶层独立标题区（非卡片）：徽章/主题帖标题/作者/标签/操作按钮 |
 | SubthreadTabs | `src/components/thread/subthread-tabs.tsx` | 子贴 Tab 切换导航 |
 | SubthreadBody | `src/components/thread/subthread-body.tsx` | 子贴卡（唯一卡片）：子贴标题 + 默认徽章 + 正文（kind=BODY）同容器（正文不进入楼层列表） |
-| FloorCard | `src/components/thread/floor-card.tsx` | 单条楼层卡片（Markdown 渲染） |
+| FloorCard | `src/components/thread/floor-card.tsx` | 单条楼层卡片（Markdown 渲染；作者本人可编辑/删除，首楼禁删） |
 | FloorList | `src/components/thread/floor-list.tsx` | 楼层列表（仅 kind=FLOOR，无限滚动，cursor 分页） |
 | FloorForm | `src/components/thread/floor-form.tsx` | 新楼层发布表单 |
 | ManagementPanel | `src/components/thread/management-panel.tsx` | 帖主管理面板：左子贴目录树 + 右单例编辑器 |
