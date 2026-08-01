@@ -20,8 +20,7 @@ import {
 } from "@/lib/validations/thread-create";
 import { useUpdateThread } from "@/api/hooks/use-update-thread";
 import { useUpdateSubthread } from "@/api/hooks/use-update-subthread";
-import { useCreatePost } from "@/api/hooks/use-create-post";
-import { useUpdatePost } from "@/api/hooks/use-update-post";
+import { useUpsertBody } from "@/api/hooks/use-upsert-body";
 import { useUploadImage } from "@/api/hooks/use-upload-image";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
 
@@ -54,8 +53,7 @@ export function ThreadCreateForm({
 
   const updateThread = useUpdateThread();
   const updateSubthread = useUpdateSubthread();
-  const createPost = useCreatePost();
-  const updatePost = useUpdatePost();
+  const upsertBody = useUpsertBody();
   const uploadImage = useUploadImage();
 
   const form = useForm<ThreadCreateFormData>({
@@ -79,18 +77,11 @@ export function ThreadCreateForm({
     const bodyPost = thread.defaultSubthread.bodyPost;
 
     if (content) {
-      if (bodyPost) {
-        await updatePost.mutateAsync({
-          postId: bodyPost.id,
-          content,
-          version: bodyPost.version,
-        });
-      } else {
-        await createPost.mutateAsync({
-          subthreadId: thread.defaultSubthreadId,
-          content,
-        });
-      }
+      await upsertBody.mutateAsync({
+        subthreadId: thread.defaultSubthreadId,
+        content,
+        version: bodyPost?.version,
+      });
     }
   }
 
@@ -155,16 +146,11 @@ export function ThreadCreateForm({
       }
 
       const content = values.content?.trim() ?? "";
-      if (content && !latestThread.defaultSubthread.bodyPost) {
-        await createPost.mutateAsync({
+      if (content) {
+        await upsertBody.mutateAsync({
           subthreadId: latestThread.defaultSubthreadId,
           content,
-        });
-      } else if (content && latestThread.defaultSubthread.bodyPost) {
-        await updatePost.mutateAsync({
-          postId: latestThread.defaultSubthread.bodyPost.id,
-          content,
-          version: latestThread.defaultSubthread.bodyPost.version,
+          version: latestThread.defaultSubthread.bodyPost?.version,
         });
       }
       await syncDefaultSubthreadTitle(values);

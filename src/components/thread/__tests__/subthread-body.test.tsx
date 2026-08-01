@@ -15,7 +15,6 @@ const baseSubthread: SubthreadDetail = {
   postingPolicy: "PARTICIPANTS",
   version: 1,
   lastPostAt: null,
-  bodyPostId: "post-1",
   deletedAt: null,
   createdAt: "2026-01-01T00:00:00Z",
   bodyPost: { id: "post-1", content: "这是**加粗**的正文", version: 1 },
@@ -46,7 +45,7 @@ describe("SubthreadBody", () => {
   });
 
   test("无正文时显示占位文案", () => {
-    const noBody = { ...baseSubthread, bodyPost: null, bodyPostId: null };
+    const noBody = { ...baseSubthread, bodyPost: null };
     render(<SubthreadBody subthread={noBody} />);
     expect(screen.getByText("暂无正文")).toBeInTheDocument();
   });

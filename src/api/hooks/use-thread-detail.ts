@@ -23,7 +23,6 @@ export interface SubthreadDetail {
   postingPolicy: "PARTICIPANTS" | "COLLABORATORS" | "PLAYERS";
   version: number;
   lastPostAt: string | null;
-  bodyPostId: string | null;
   deletedAt: string | null;
   createdAt: string;
   bodyPost: {

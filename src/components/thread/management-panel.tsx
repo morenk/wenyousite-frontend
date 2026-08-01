@@ -18,8 +18,7 @@ import { useCreateSubthread } from "@/api/hooks/use-create-subthread";
 import { useUpdateSubthread } from "@/api/hooks/use-update-subthread";
 import { useDeleteSubthread } from "@/api/hooks/use-delete-subthread";
 import { useReorderSubthreads } from "@/api/hooks/use-reorder-subthreads";
-import { useCreatePost } from "@/api/hooks/use-create-post";
-import { useUpdatePost } from "@/api/hooks/use-update-post";
+import { useUpsertBody } from "@/api/hooks/use-upsert-body";
 import { useUploadImage } from "@/api/hooks/use-upload-image";
 import type { ThreadDetail, SubthreadDetail } from "@/api/hooks/use-thread-detail";
 
@@ -52,8 +51,7 @@ export function ManagementPanel({
   const updateSubthread = useUpdateSubthread();
   const deleteSubthread = useDeleteSubthread();
   const reorderSubthreads = useReorderSubthreads();
-  const createPost = useCreatePost();
-  const updatePost = useUpdatePost();
+  const upsertBody = useUpsertBody();
   const uploadImage = useUploadImage();
 
   const selectedSub = thread.subthreads.find((s) => s.id === selectedId);
@@ -80,18 +78,11 @@ export function ManagementPanel({
 
     try {
       setIsSaving(true);
-      if (selectedSub.bodyPost) {
-        await updatePost.mutateAsync({
-          postId: selectedSub.bodyPost.id,
-          content: trimmed,
-          version: selectedSub.bodyPost.version,
-        });
-      } else {
-        await createPost.mutateAsync({
-          subthreadId: selectedSub.id,
-          content: trimmed,
-        });
-      }
+      await upsertBody.mutateAsync({
+        subthreadId: selectedSub.id,
+        content: trimmed,
+        version: selectedSub.bodyPost?.version,
+      });
       queryClient.invalidateQueries({ queryKey: ["floors"] });
       await onRefetch();
       toast.success("正文已保存");

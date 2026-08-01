@@ -35,11 +35,10 @@
 | Method | Path | Guard | 用途 |
 |--------|------|-------|------|
 | POST | `/threads` | Auth | 创建沙盒草稿（事务创建 Thread + OWNER + 默认子贴） |
-| GET | `/threads/:id` | AuthRead | 获取草稿最新数据（含 subthreads[].bodyPost: {id,content,version} 首楼信息，供编辑器回填和乐观锁编辑） |
+| GET | `/threads/:id` | AuthRead | 获取草稿最新数据（含 subthreads[].bodyPost: {id,content,version} 正文信息（kind=BODY），供编辑器回填和乐观锁编辑） |
 | PATCH | `/threads/:id` | Auth | 修改草稿元数据 / 发布 |
 | DELETE | `/threads/:id` | Auth | 放弃创建，删除草稿 |
-| POST | `/subthreads/:subthreadId/posts` | Auth | 创建默认子贴正文（首楼） |
-| PATCH | `/posts/:id` | Auth | 编辑默认子贴正文（作者 + version 乐观锁） |
+| PUT | `/subthreads/:subthreadId/body` | Auth | upsert 默认子贴正文（kind=BODY：无正文创建，有正文乐观锁更新，version 不匹配返回 409） |
 | GET | `/tags?q=` | Public | 标签自动补全 |
 | POST | `/media/upload-url` | Auth | 获取 S3 预签名 URL |
 | POST | `/media/upload-done` | Auth | 确认上传完成 |
@@ -50,7 +49,7 @@
 **响应数据类型说明（与真实 API 对齐）：**
 - `ThreadDetail` 的 `_count` 字段为 `{ members, posts }`（非 `{ subthreads, posts }`）。
 - 子贴对象通过 `normalizeThreadDetail()` 处理：后端返回 `subthreads` 数组 + `defaultSubthreadId`，前端按 ID 匹配出 `defaultSubthread` 字段。
-- 后端 `includeSubthreads` 已带 `bodyPost: { id, content, version }`，首次创建草稿无正文时 `bodyPost` 为 `null`，有正文后其中含 `id`（postId）和 `version` 用于乐观锁编辑。
+- 后端 `includeSubthreads` 已带 `bodyPost: { id, content, version }`（kind=BODY 正文帖），首次创建草稿无正文时 `bodyPost` 为 `null`，有正文后其中含 `id` 和 `version` 用于乐观锁编辑（经 `PUT /subthreads/:subthreadId/body` upsert）。
 
 ## 4. 状态管理
 
@@ -80,8 +79,7 @@
 | useThreadDetail | `src/api/hooks/use-thread-detail.ts` | 获取详情 hook |
 | useUpdateThread | `src/api/hooks/use-update-thread.ts` | 更新草稿 / 发布 hook |
 | useDeleteThread | `src/api/hooks/use-delete-thread.ts` | 删除草稿 hook |
-| useCreatePost | `src/api/hooks/use-create-post.ts` | 创建默认子贴正文 hook |
-| useUpdatePost | `src/api/hooks/use-update-post.ts` | 编辑默认子贴正文 hook |
+| useUpsertBody | `src/api/hooks/use-upsert-body.ts` | 写入默认子贴正文 hook（upsert：无正文创建、有正文乐观锁更新） |
 | useUploadImage | `src/api/hooks/use-upload-image.ts` | 图片上传 hook |
 | uploadImage | `src/lib/upload-image.ts` | 图片上传流程工具函数 |
 
@@ -191,9 +189,9 @@ POST /threads 创建草稿
   ↓ 成功
 显示表单（标题/分区/可见性/标签 + 默认子贴正文编辑器）
   ↓ 用户编辑
-点击"保存草稿" → PATCH /threads/:id { 当前字段, version } + 保存默认子贴正文
+点击"保存草稿" → PATCH /threads/:id { 当前字段, version } + PUT /subthreads/:id/body upsert 保存默认子贴正文
   ↓ 成功 toast "草稿已保存"
-点击"发布" → 校验默认子贴正文 → 保存正文 → PATCH { published: true, version }
+点击"发布" → 校验默认子贴正文 → upsert 正文（PUT /subthreads/:id/body）→ PATCH { published: true, version }
   ↓ 成功 toast "发布成功" 跳转 /threads/:id
   ↓ 失败 按错误码提示
 点击"放弃" → 确认弹窗 → DELETE /threads/:id → 跳转 /
@@ -230,7 +228,7 @@ POST /threads 创建草稿
 - [x] 实现 Milkdown Crepe WYSIWYG 编辑器 `src/components/editor/milkdown-editor.tsx`
 - [x] 实现图片上传工具 `src/lib/upload-image.ts`
 - [x] 实现 `useCreateThread` / `useThreadDetail` / `useUpdateThread` / `useDeleteThread` hooks
-- [x] 实现 `useCreatePost` / `useUpdatePost` / `useUploadImage` hooks
+- [x] 实现 `useUpsertBody` / `useUploadImage` hooks
 - [x] 实现 `TagInput` 标签输入组件
 - [x] 实现 `ThreadCreateForm` 表单组件（简洁模式）
 - [x] 实现 `/threads/create` 页面

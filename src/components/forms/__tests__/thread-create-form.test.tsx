@@ -20,15 +20,13 @@ vi.mock("@/components/editor/milkdown-editor", () => ({
 const {
   mockUpdateThreadMutate,
   mockUpdateSubthreadMutate,
-  mockCreatePostMutate,
-  mockUpdatePostMutate,
+  mockUpsertBodyMutate,
   mockUploadImageMutate,
 } =
   vi.hoisted(() => ({
     mockUpdateThreadMutate: vi.fn(),
     mockUpdateSubthreadMutate: vi.fn(),
-    mockCreatePostMutate: vi.fn(),
-    mockUpdatePostMutate: vi.fn(),
+    mockUpsertBodyMutate: vi.fn(),
     mockUploadImageMutate: vi.fn(),
   }));
 
@@ -46,16 +44,9 @@ vi.mock("@/api/hooks/use-update-subthread", () => ({
   }),
 }));
 
-vi.mock("@/api/hooks/use-create-post", () => ({
-  useCreatePost: () => ({
-    mutateAsync: mockCreatePostMutate,
-    isLoading: false,
-  }),
-}));
-
-vi.mock("@/api/hooks/use-update-post", () => ({
-  useUpdatePost: () => ({
-    mutateAsync: mockUpdatePostMutate,
+vi.mock("@/api/hooks/use-upsert-body", () => ({
+  useUpsertBody: () => ({
+    mutateAsync: mockUpsertBodyMutate,
     isLoading: false,
   }),
 }));
@@ -92,7 +83,6 @@ function makeSub(id: string, title: string, sortOrder: number) {
     postingPolicy: "PARTICIPANTS" as const,
     version: 1,
     lastPostAt: null,
-    bodyPostId: null,
     deletedAt: null,
     createdAt: "2026-01-01T00:00:00Z",
     bodyPost: null,
@@ -213,10 +203,10 @@ describe("ThreadCreateForm", () => {
     expect(mockUpdateThreadMutate).not.toHaveBeenCalled();
   });
 
-  test("编辑正文后保存草稿调用 createPost", async () => {
+  test("编辑正文后保存草稿调用 upsertBody", async () => {
     const user = userEvent.setup();
     mockUpdateThreadMutate.mockResolvedValueOnce({ data: mockThread });
-    mockCreatePostMutate.mockResolvedValueOnce({});
+    mockUpsertBodyMutate.mockResolvedValueOnce({});
 
     renderForm();
 
@@ -224,10 +214,11 @@ describe("ThreadCreateForm", () => {
     await user.click(screen.getByText("保存草稿"));
 
     await vi.waitFor(() => {
-      expect(mockCreatePostMutate).toHaveBeenCalledWith(
+      expect(mockUpsertBodyMutate).toHaveBeenCalledWith(
         expect.objectContaining({
           subthreadId: "s1",
           content: "正文内容",
+          version: undefined,
         }),
       );
     });

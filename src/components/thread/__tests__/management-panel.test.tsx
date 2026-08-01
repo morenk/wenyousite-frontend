@@ -67,16 +67,14 @@ const {
   mockUpdateSubthreadMutate,
   mockDeleteSubthreadMutate,
   mockReorderSubthreadsMutate,
-  mockCreatePostMutate,
-  mockUpdatePostMutate,
+  mockUpsertBodyMutate,
   mockUploadImageMutate,
 } = vi.hoisted(() => ({
   mockCreateSubthreadMutate: vi.fn(),
   mockUpdateSubthreadMutate: vi.fn(),
   mockDeleteSubthreadMutate: vi.fn(),
   mockReorderSubthreadsMutate: vi.fn(),
-  mockCreatePostMutate: vi.fn(),
-  mockUpdatePostMutate: vi.fn(),
+  mockUpsertBodyMutate: vi.fn(),
   mockUploadImageMutate: vi.fn(),
 }));
 
@@ -92,11 +90,8 @@ vi.mock("@/api/hooks/use-delete-subthread", () => ({
 vi.mock("@/api/hooks/use-reorder-subthreads", () => ({
   useReorderSubthreads: () => ({ mutateAsync: mockReorderSubthreadsMutate }),
 }));
-vi.mock("@/api/hooks/use-create-post", () => ({
-  useCreatePost: () => ({ mutateAsync: mockCreatePostMutate }),
-}));
-vi.mock("@/api/hooks/use-update-post", () => ({
-  useUpdatePost: () => ({ mutateAsync: mockUpdatePostMutate }),
+vi.mock("@/api/hooks/use-upsert-body", () => ({
+  useUpsertBody: () => ({ mutateAsync: mockUpsertBodyMutate }),
 }));
 vi.mock("@/api/hooks/use-upload-image", () => ({
   useUploadImage: () => ({ mutateAsync: mockUploadImageMutate }),
@@ -132,7 +127,6 @@ function makeSub(
     postingPolicy: "PARTICIPANTS" as const,
     version: 1,
     lastPostAt: null,
-    bodyPostId: bodyPost?.id ?? null,
     deletedAt: null,
     createdAt: "2026-01-01T00:00:00Z",
     bodyPost,
@@ -203,7 +197,7 @@ describe("ManagementPanel", () => {
     expect(screen.getByTestId("milkdown-editor")).toHaveValue("");
   });
 
-  test("已有正文时保存调用 updatePost", async () => {
+  test("已有正文时保存调用 upsertBody 并传 version", async () => {
     const user = userEvent.setup();
     renderPanel();
 
@@ -213,9 +207,9 @@ describe("ManagementPanel", () => {
     await user.click(screen.getByText("保存修改"));
 
     await vi.waitFor(() => {
-      expect(mockUpdatePostMutate).toHaveBeenCalledWith(
+      expect(mockUpsertBodyMutate).toHaveBeenCalledWith(
         expect.objectContaining({
-          postId: "p1",
+          subthreadId: "s1",
           content: "更新后的正文",
           version: 2,
         }),
@@ -223,7 +217,7 @@ describe("ManagementPanel", () => {
     });
   });
 
-  test("无正文子贴保存时调用 createPost", async () => {
+  test("无正文子贴保存时调用 upsertBody 且 version 为 undefined", async () => {
     const user = userEvent.setup();
     renderPanel();
 
@@ -233,10 +227,11 @@ describe("ManagementPanel", () => {
     await user.click(screen.getByText("保存修改"));
 
     await vi.waitFor(() => {
-      expect(mockCreatePostMutate).toHaveBeenCalledWith(
+      expect(mockUpsertBodyMutate).toHaveBeenCalledWith(
         expect.objectContaining({
           subthreadId: "s2",
           content: "设定区首楼",
+          version: undefined,
         }),
       );
     });

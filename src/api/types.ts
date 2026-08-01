@@ -958,6 +958,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/subthreads/{subthreadId}/body": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** 写入子贴正文（upsert：无正文创建，有正文乐观锁更新）。仅 OWNER/COLLABORATOR */
+        put: operations["PostsController_upsertBody"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/posts/{id}": {
         parameters: {
             query?: never;
@@ -1684,6 +1701,18 @@ export interface components {
              * @example #FF6B6B
              */
             color?: string;
+        };
+        UpsertBodyDto: {
+            /**
+             * @description 正文（Markdown）
+             * @example 这里是子贴正文…
+             */
+            content: string;
+            /**
+             * @description 乐观锁版本号。正文已存在时必填（传入过期版本返回 409）；首次创建时忽略
+             * @example 1
+             */
+            version?: number;
         };
         CreatePostDto: {
             /**
@@ -3956,6 +3985,51 @@ export interface operations {
         responses: {
             /** @description 楼中楼回复列表（平级挂载，含 replyToPostId 追踪回复目标），cursor 分页 */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PostsController_upsertBody: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subthreadId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpsertBodyDto"];
+            };
+        };
+        responses: {
+            /** @description 正文帖子（kind=BODY，不占楼层号） */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 未登录或 Token 无效 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 无管理权限 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 子贴不存在 */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

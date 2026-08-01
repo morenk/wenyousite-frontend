@@ -52,8 +52,6 @@ export default function ThreadDetailPage() {
   const selectedSubthread = thread?.subthreads.find(
     (s) => s.id === effectiveSubthreadId,
   );
-  // 一楼为该子贴正文（SubthreadBody 展示），从回复楼层列表中剔除
-  const replyFloors = floors.filter((f) => f.id !== selectedSubthread?.bodyPostId);
 
   const isOwner = user?.id === thread?.ownerId;
 
@@ -133,7 +131,7 @@ export default function ThreadDetailPage() {
           onChange={setSelectedSubthreadId}
         />
 
-        {/* 子贴标题 + 一楼正文（首楼不进入回复楼层列表） */}
+        {/* 子贴标题 + 正文（正文不占楼层号） */}
         {selectedSubthread && (
           <SubthreadBody
             subthread={selectedSubthread}
@@ -144,7 +142,7 @@ export default function ThreadDetailPage() {
         {/* 楼层列表 */}
         {effectiveSubthreadId && (
           <FloorList
-            floors={replyFloors}
+            floors={floors}
             hasNextPage={!!hasNextPage}
             isFetchingNextPage={isFetchingNextPage}
             isLoading={isFloorsLoading}

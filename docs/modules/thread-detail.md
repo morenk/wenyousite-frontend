@@ -33,7 +33,8 @@
 |--------|------|-------|------|
 | GET | `/threads/:id` | Public | 主题帖详情（含子贴列表、owner、_count） |
 | GET | `/subthreads/:subthreadId/posts` | Public | 楼层列表（cursor 分页，含内联 replies） |
-| POST | `/subthreads/:subthreadId/posts` | Auth | 发布新楼层（发帖自动成为参与人=玩家候选池） |
+| POST | `/subthreads/:subthreadId/posts` | Auth | 发布新楼层（kind=FLOOR，发帖自动成为参与人=玩家候选池） |
+| PUT | `/subthreads/:subthreadId/body` | Auth | upsert 子贴正文（管理面板保存正文：无正文创建 kind=BODY，有正文乐观锁更新） |
 | POST | `/threads/:id/like` | Auth | 点赞主题帖（幂等） |
 | DELETE | `/threads/:id/like` | Auth | 取消点赞 |
 
@@ -75,10 +76,9 @@
         "postingPolicy": "PARTICIPANTS",
         "version": 1,
         "lastPostAt": null,
-        "bodyPostId": "cms7rnyip00157qdyxd17ozbg",
         "deletedAt": null,
         "createdAt": "2026-07-30T17:07:26.207Z",
-        "_count": { "posts": 1 },
+        "_count": { "posts": 0 },
         "tags": [],
         "bodyPost": { "id": "cms7rnyip00157qdyxd17ozbg", "content": "这是一段正文内容（快照验证）", "version": 1 }
       }
@@ -86,7 +86,7 @@
     "topicTags": [
       { "id": "...", "threadId": "...", "tagId": "...", "tag": { "id": "...", "name": "测试", "color": null, "createdAt": "..." } }
     ],
-    "_count": { "members": 1, "players": 1, "posts": 1 }
+    "_count": { "members": 1, "players": 1, "posts": 0 }
   }
 }
 ```
@@ -168,9 +168,9 @@
 | ThreadDetailPage | `src/app/threads/[id]/page.tsx` | 详情页主逻辑（含管理面板切换） |
 | ThreadDetailHeader | `src/components/thread/thread-detail-header.tsx` | 页面顶层独立标题区（非卡片）：徽章/主题帖标题/作者/标签/操作按钮 |
 | SubthreadTabs | `src/components/thread/subthread-tabs.tsx` | 子贴 Tab 切换导航 |
-| SubthreadBody | `src/components/thread/subthread-body.tsx` | 子贴卡（唯一卡片）：子贴标题 + 默认徽章 + 一楼正文同容器（首楼不进入回复楼层列表） |
+| SubthreadBody | `src/components/thread/subthread-body.tsx` | 子贴卡（唯一卡片）：子贴标题 + 默认徽章 + 正文（kind=BODY）同容器（正文不进入楼层列表） |
 | FloorCard | `src/components/thread/floor-card.tsx` | 单条楼层卡片（Markdown 渲染） |
-| FloorList | `src/components/thread/floor-list.tsx` | 回复楼层列表（无限滚动，cursor 分页） |
+| FloorList | `src/components/thread/floor-list.tsx` | 楼层列表（仅 kind=FLOOR，无限滚动，cursor 分页） |
 | FloorForm | `src/components/thread/floor-form.tsx` | 新楼层发布表单 |
 | ManagementPanel | `src/components/thread/management-panel.tsx` | 帖主管理面板：左子贴目录树 + 右单例编辑器 |
 | SubthreadTree | `src/components/thread/subthread-tree.tsx` | 管理面板左栏子贴目录树（@dnd-kit 拖拽排序） |
@@ -181,7 +181,8 @@
 | useUpdateSubthread | `src/api/hooks/use-update-subthread.ts` | 管理面板：编辑子贴 |
 | useDeleteSubthread | `src/api/hooks/use-delete-subthread.ts` | 管理面板：删除子贴 |
 | useReorderSubthreads | `src/api/hooks/use-reorder-subthreads.ts` | 管理面板：拖拽排序 |
-| useCreatePost / useUpdatePost | `src/api/hooks/use-create-post.ts` 等 | 管理面板：编辑子贴正文 |
+| useUpsertBody | `src/api/hooks/use-upsert-body.ts` | 管理面板：写入子贴正文（upsert：无正文创建、有正文乐观锁更新） |
+| useCreatePost | `src/api/hooks/use-create-post.ts` | 楼层回复发布（FloorForm） |
 
 ## 6.1 帖主管理面板
 
@@ -200,16 +201,16 @@
 ```
 
 - 左栏：子贴目录树，节点可**拖拽排序**（`@dnd-kit`，触发 `useReorderSubthreads`）；「编辑」「删除」通过 `SubthreadForm` 弹窗 / confirm
-- 右栏：单例 MilkdownEditor，点击左栏子贴切换编辑目标（`key` 重挂载回填正文），保存调用 `createPost`（无首楼）或 `updatePost`（有首楼）。后端保证：每个子贴（含剧情区/设定区/管理面板新建的非默认子贴）**首次创建非回复楼层时自动回写 `bodyPostId`**，因此该 create/update 分支对任意子贴都成立，重进面板或切换子贴时均能通过 `bodyPost` 正确回填已有正文
+- 右栏：单例 MilkdownEditor，点击左栏子贴切换编辑目标（`key` 重挂载回填正文），保存调用 `PUT /subthreads/:id/body`（`useUpsertBody`，upsert：无正文创建、有正文乐观锁更新，不再区分 createPost/updatePost）。每个子贴（含剧情区/设定区/管理面板新建的非默认子贴）均有独立的 kind=BODY 正文，重进面板或切换子贴时均能通过 `bodyPost` 正确回填已有正文
 - 只做**子贴级管理**（增删改排 + 正文），不做楼层级管理（参与者回帖后难以管理单个楼层）
 - 默认子贴（**主帖**）不可删除、必须保持 sortOrder=0（排序时始终第一位）：前端在**操作层拦截**——主帖节点禁用拖拽，且自定义碰撞检测（`excludeDroppable`）把主帖从落点候选中剔除，拖其他子贴到主帖区域会吸附到主帖下方首个槽位，不会出现"不能交换"提示；后端仍兜底校验（`ids[0]` 必须为主帖）
 - 子贴较多时：`SubthreadTabs` 为横向滚动条 + 溢出左右箭头 + 选中 Tab 自动滚入视野，支持几十个子贴
 
 ## 7. 发布楼层流程
 
-> **一楼渲染规则：** 每个子贴的一楼（`subthread.bodyPost`）为该子贴的「正文」，由 `SubthreadBody` 与子贴标题放在同一卡片容器中渲染（Markdown），**不进入回复楼层列表**。`FloorList` 展示的为回复楼层（通过 `bodyPostId` 过滤首楼），楼层号保留真实编号（回复从 #2 开始显示）。`bodyPost` 对任意子贴均可用：每个子贴（含非默认子贴）首次保存正文后，后端会回写 `bodyPostId` 关联该首楼。
+> **一楼渲染规则：** 每个子贴的正文（`subthread.bodyPost`，kind=BODY）为该子贴的「正文」，由 `SubthreadBody` 与子贴标题放在同一卡片容器中渲染（Markdown），**不进入楼层列表**，`floorNumber = null` **不占楼层号**。`FloorList` 展示的为楼层（kind=FLOOR），楼层号从 #1 开始显示。楼层接口已只返回楼层（不含正文），前端无需再按 `bodyPostId` 过滤。`bodyPost` 对任意子贴均可用：每个子贴（含非默认子贴）的正文通过 `PUT /subthreads/:id/body` upsert。
 
-**页面布局：** 主题帖标题区为页面顶层独立标题区（非卡片，`ThreadDetailHeader`，含徽章/标题/作者/标签/操作按钮）→ 子贴 Tab → 子贴卡（`SubthreadBody`：子贴标题 + 一楼正文同卡）→ 回复楼层列表 → 发布表单。
+**页面布局：** 主题帖标题区为页面顶层独立标题区（非卡片，`ThreadDetailHeader`，含徽章/标题/作者/标签/操作按钮）→ 子贴 Tab → 子贴卡（`SubthreadBody`：子贴标题 + 正文同卡）→ 楼层列表 → 发布表单。
 
 ```
 用户在 FloorForm 输入内容
@@ -246,9 +247,9 @@
 - [x] 详情页正确展示帖子头部信息
 - [x] 头部分类/状态/标签徽章正确映射为中文
 - [x] 子贴 Tab 可切换，选中 Tab 高亮
-- [x] 子贴标题与一楼正文同容器渲染（SubthreadBody），首楼不进入回复楼层列表
+- [x] 子贴标题与正文（kind=BODY）同容器渲染（SubthreadBody），正文不进入楼层列表
 - [x] 主题帖标题区独立置顶（非卡片，ThreadDetailHeader），子贴标题取代原卡片内标题位置
-- [x] 回复楼层列表按 floorNumber 排序，分页加载（回复从 #2 开始）
+- [x] 楼层列表按 floorNumber 排序，分页加载（楼层从 #1 开始）
 - [x] 楼层卡片正确渲染 Markdown 内容
 - [x] 未登录用户可浏览公开帖，不能发帖
 - [x] 登录即可发帖（无加入/退出按钮，发帖自动入玩家候选池）
@@ -260,7 +261,7 @@
 - [x] 管理面板：左子贴目录树 + 右单例编辑器（返回浏览可切回）
 - [x] 管理面板：添加/编辑/删除子贴（SubthreadForm 弹窗）
 - [x] 管理面板：子贴拖拽排序（@dnd-kit + useReorderSubthreads）
-- [x] 管理面板：编辑子贴正文（保存调用 createPost/updatePost）
+- [x] 管理面板：编辑子贴正文（保存调用 PUT /subthreads/:id/body upsert，不再区分 createPost/updatePost）
 - [x] 默认子贴不可删除、排序保持首位
 - [x] 主帖徽章文案「主帖」；主帖节点不可拖拽，拖到主帖位置时前端拦截并 toast 友好提示
 - [x] SubthreadTabs 支持几十个子贴：横向滚动 + 溢出箭头 + 选中自动滚入视野
@@ -278,7 +279,7 @@
 - [x] 实现 `ThreadDetailHeader` 组件（含「管理」按钮）
 - [x] 实现 `SubthreadTabs` 组件
 - [x] 实现 `FloorCard` / `FloorList` / `FloorForm` 组件
-- [x] 实现 `SubthreadBody`（子贴标题 + 一楼正文同容器），详情页过滤首楼、回复列表从 #2 开始
+- [x] 实现 `SubthreadBody`（子贴标题 + 正文同容器），正文不进入楼层列表、楼层从 #1 开始
 - [x] 移除 `useMemberActions` hook（加入/退出），FloorForm 登录即可发帖并映射 40302/40303 错误码
 - [x] 元数据玩家数改用 `_count.players`（ThreadDetailHeader / ThreadCard）
 - [x] 主帖排序拦截：`computeReorderedIds` 纯函数 + 主帖禁用拖拽 + 友好 toast
