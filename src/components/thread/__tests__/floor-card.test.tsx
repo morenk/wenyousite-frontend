@@ -129,28 +129,17 @@ describe("FloorCard", () => {
       user: { id: "u1", username: "测试用户", emailVerified: true },
       isInitialized: true,
     });
-    const floor2 = { ...baseFloor, floorNumber: 2 };
-    renderWithQC(<FloorCard floor={floor2} isEven={false} />);
+    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
     expect(screen.getByTitle("编辑楼层")).toBeInTheDocument();
     expect(screen.getByTitle("删除楼层")).toBeInTheDocument();
   });
 
-  test("首楼删除按钮禁用", () => {
+  test("楼层 #1 删除按钮也可点（楼层均可删除，子贴正文由后端拦截）", () => {
     mockUseAuth.mockReturnValue({
       user: { id: "u1", username: "测试用户", emailVerified: true },
       isInitialized: true,
     });
     renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
-    expect(screen.getByTitle("不能删除子贴第一楼")).toBeDisabled();
-  });
-
-  test("非首楼删除按钮可点", () => {
-    mockUseAuth.mockReturnValue({
-      user: { id: "u1", username: "测试用户", emailVerified: true },
-      isInitialized: true,
-    });
-    const floor2 = { ...baseFloor, floorNumber: 2 };
-    renderWithQC(<FloorCard floor={floor2} isEven={false} />);
     const del = screen.getByTitle("删除楼层");
     expect(del).not.toBeDisabled();
   });
@@ -215,8 +204,7 @@ describe("FloorCard", () => {
       user: { id: "u1", username: "测试用户", emailVerified: true },
       isInitialized: true,
     });
-    const floor2 = { ...baseFloor, floorNumber: 2 };
-    renderWithQC(<FloorCard floor={floor2} isEven={false} />);
+    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
 
     await user.click(screen.getByTitle("删除楼层"));
 
@@ -233,8 +221,7 @@ describe("FloorCard", () => {
       user: { id: "u1", username: "测试用户", emailVerified: true },
       isInitialized: true,
     });
-    const floor2 = { ...baseFloor, floorNumber: 2 };
-    renderWithQC(<FloorCard floor={floor2} isEven={false} />);
+    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
 
     await user.click(screen.getByTitle("删除楼层"));
 

@@ -16,7 +16,7 @@
 
 **后续迭代：**
 - ~~楼中楼回复（parentPostId / replyToPostId）~~ → 待迭代
-- ~~楼层编辑与删除~~ → 已实现（FloorCard 作者可编辑/删除，首楼禁删）
+- ~~楼层编辑与删除~~ → 已实现（FloorCard 作者可编辑/删除；楼层均可删，子贴正文由后端拦截）
 - 玩家管理（楼主在候选池中授予/收回玩家身份）
 - 阅读进度
 - 订阅通知
@@ -170,7 +170,7 @@
 | ThreadDetailHeader | `src/components/thread/thread-detail-header.tsx` | 页面顶层独立标题区（非卡片）：徽章/主题帖标题/作者/标签/操作按钮 |
 | SubthreadTabs | `src/components/thread/subthread-tabs.tsx` | 子贴 Tab 切换导航 |
 | SubthreadBody | `src/components/thread/subthread-body.tsx` | 子贴卡（唯一卡片）：子贴标题 + 默认徽章 + 正文（kind=BODY）同容器（正文不进入楼层列表） |
-| FloorCard | `src/components/thread/floor-card.tsx` | 单条楼层卡片（Markdown 渲染；作者本人可编辑/删除，首楼禁删） |
+| FloorCard | `src/components/thread/floor-card.tsx` | 单条楼层卡片（Markdown 渲染；作者本人可编辑/删除，楼层均可删） |
 | FloorList | `src/components/thread/floor-list.tsx` | 楼层列表（仅 kind=FLOOR，无限滚动，cursor 分页） |
 | FloorForm | `src/components/thread/floor-form.tsx` | 新楼层发布表单 |
 | ManagementPanel | `src/components/thread/management-panel.tsx` | 帖主管理面板：左子贴目录树 + 右单例编辑器 |
@@ -185,7 +185,7 @@
 | useUpsertBody | `src/api/hooks/use-upsert-body.ts` | 管理面板：写入子贴正文（upsert：无正文创建、有正文乐观锁更新） |
 | useCreatePost | `src/api/hooks/use-create-post.ts` | 楼层回复发布（FloorForm） |
 | useUpdatePost | `src/api/hooks/use-update-post.ts` | 编辑楼层正文（乐观锁 version） |
-| useDeletePost | `src/api/hooks/use-delete-post.ts` | 删除楼层（作者本人，不能删首楼） |
+| useDeletePost | `src/api/hooks/use-delete-post.ts` | 删除楼层（作者本人；楼层均可删，子贴正文 kind=BODY 由后端拦截） |
 | useSyncThreadTags | `src/api/hooks/use-sync-thread-tags.ts` | 编辑帖时同步主题帖标签（diff 后添加/移除） |
 | ThreadEditForm | `src/components/forms/thread-edit-form.tsx` | 已发布帖编辑表单（标题/分区/可见性/标签/正文） |
 | EditThreadPage | `src/app/threads/[id]/edit/page.tsx` | 已发布帖编辑页（加载详情 + OWNER 守卫 + ThreadEditForm） |
@@ -215,6 +215,8 @@
 ## 7. 发布楼层流程
 
 > **一楼渲染规则：** 每个子贴的正文（`subthread.bodyPost`，kind=BODY）为该子贴的「正文」，由 `SubthreadBody` 与子贴标题放在同一卡片容器中渲染（Markdown），**不进入楼层列表**，`floorNumber = null` **不占楼层号**。`FloorList` 展示的为楼层（kind=FLOOR），楼层号从 #1 开始显示。楼层接口已只返回楼层（不含正文），前端无需再按 `bodyPostId` 过滤。`bodyPost` 对任意子贴均可用：每个子贴（含非默认子贴）的正文通过 `PUT /subthreads/:id/body` upsert。
+
+> **子贴正文 vs 回复串：** 子贴正文（kind=BODY）与楼层/回复串（kind=FLOOR）定位不同——正文由子贴生命周期管理（管理面板 upsert，删除帖子接口对 BODY 返回 403 拦截），**楼层列表中的楼层（含 #1）作者均可删除/编辑**，不存在「首楼禁删」。
 
 **页面布局：** 主题帖标题区为页面顶层独立标题区（非卡片，`ThreadDetailHeader`，含徽章/标题/作者/标签/操作按钮）→ 子贴 Tab → 子贴卡（`SubthreadBody`：子贴标题 + 正文同卡）→ 楼层列表 → 发布表单。
 

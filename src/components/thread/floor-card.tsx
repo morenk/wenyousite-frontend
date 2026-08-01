@@ -1,4 +1,4 @@
-/** 楼层卡片组件：Markdown 渲染 + 作者信息 + 时间 + 编辑/删除（作者本人） */
+/** 楼层卡片组件：Markdown 渲染 + 作者信息 + 时间 + 编辑/删除（作者本人，楼层均可删） */
 
 "use client";
 
@@ -31,7 +31,6 @@ export function FloorCard({ floor, isEven }: FloorCardProps) {
   const deletePost = useDeletePost();
 
   const isAuthor = !!user && user.id === floor.authorId;
-  const isFirstFloor = floor.floorNumber === 1;
 
   const invalidateFloors = () =>
     queryClient.invalidateQueries({
@@ -76,11 +75,7 @@ export function FloorCard({ floor, isEven }: FloorCardProps) {
       toast.success("楼层已删除");
     } catch (error: unknown) {
       const err = error as { code?: number; message?: string };
-      if (err.code === 40000 && /第一楼/.test(err.message ?? "")) {
-        toast.error("不能删除子贴第一楼");
-      } else {
-        toast.error(err.message || "删除失败，请稍后重试");
-      }
+      toast.error(err.message || "删除失败，请稍后重试");
     }
   };
 
@@ -129,8 +124,7 @@ export function FloorCard({ floor, isEven }: FloorCardProps) {
                 size="sm"
                 className="h-7 px-2 text-destructive hover:text-destructive"
                 onClick={handleDelete}
-                disabled={isFirstFloor}
-                title={isFirstFloor ? "不能删除子贴第一楼" : "删除楼层"}
+                title="删除楼层"
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
