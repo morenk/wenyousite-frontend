@@ -24,7 +24,12 @@ async function loginAndCreatePublishedThread(page: import("@playwright/test").Pa
   await expect(page.locator(".tabular-nums")).not.toHaveText(/^0\/10000$/);
 
   await page.getByText("发布").click();
-  await page.waitForURL(/\/threads\/.+/, { timeout: 15000 });
+  // 等待跳转到详情页（threadId 由后端生成，非 create）
+  await page.waitForFunction(
+    () => /\/threads\/[^/]+$/.test(location.pathname) && location.pathname !== "/threads/create",
+    undefined,
+    { timeout: 15000 },
+  );
 }
 
 /** 在详情页发布一楼新楼层 */
@@ -229,9 +234,9 @@ test.describe("楼层编辑与删除", () => {
 
     // 点击编辑按钮
     await floorCard.first().getByTitle("编辑楼层").click();
-    const editArea = floorCard.first().locator("textarea");
-    await editArea.fill("编辑后的楼层正文");
-    await floorCard.first().getByRole("button", { name: "保存" }).click();
+    // 编辑框 textarea 在页面中先于发布表单 textarea
+    await page.locator("textarea").first().fill("编辑后的楼层正文");
+    await page.getByRole("button", { name: "保存" }).click();
 
     // 等待保存提示并验证新正文渲染
     await expect(page.getByText("已保存").first()).toBeVisible({ timeout: 10000 });
