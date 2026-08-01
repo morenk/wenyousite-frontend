@@ -34,12 +34,23 @@
 |--------|------|-------|------|
 | GET | `/threads/:id` | Public | 主题帖详情（含子贴列表、owner、_count） |
 | GET | `/subthreads/:subthreadId/posts` | Public | 楼层列表（cursor 分页，含内联 replies） |
-| POST | `/subthreads/:subthreadId/posts` | Auth | 发布新楼层（kind=FLOOR，发帖自动成为参与人=玩家候选池） |
+| POST | `/subthreads/:subthreadId/posts` | Auth | 发布新楼层/楼中楼回复（kind=FLOOR，发帖自动成为参与人=玩家候选池；楼中楼带 parentPostId/replyToPostId） |
+| GET | `/posts/:id/replies` | Public | 楼中楼回复列表（cursor 分页） |
 | PUT | `/subthreads/:subthreadId/body` | Auth | upsert 子贴正文（管理面板保存正文：无正文创建 kind=BODY，有正文乐观锁更新） |
 | POST | `/threads/:id/like` | Auth | 点赞主题帖（幂等） |
 | DELETE | `/threads/:id/like` | Auth | 取消点赞 |
+| GET | `/threads/:threadId/members` | Public | 参与人列表（管理面板成员 tab） |
+| PATCH | `/threads/:threadId/members/:userId` | Auth | 改参与人角色/玩家标记（仅 OWNER/COLLABORATOR） |
+| DELETE | `/threads/:threadId/members/:userId` | Auth | 移除参与人/收回玩家标记 |
+| GET | `/subscriptions` | Auth | 我的订阅列表 |
+| POST | `/subscriptions` | Auth | 创建订阅（THREAD/USER） |
+| DELETE | `/subscriptions/:id` | Auth | 取消订阅 |
+| POST | `/reading-progress` | Auth | 记录阅读进度（subthreadId + postId） |
+| GET | `/reading-progress/new-replies` | Auth | 子贴新增回复数 |
 
 > **「参与」语义**：用户**无需手动加入**，在帖子内回复后由后端自动写入参与人记录（玩家候选池），对用户无感。前端不再提供加入/退出按钮。元数据显示的 `_count.players` 为被楼主授予玩家身份（`playerMarked=true`）的人数。
+
+> **ID 校验说明**：后端所有 ID 为 Prisma `cuid()` 生成的 CUID（非 UUID），DTO 校验统一使用 `@IsCuid`（替代 `@IsUUID`，后者会因 CUID 不含连字符而拒绝请求）。
 
 ## 4. API 响应快照
 
@@ -170,9 +181,12 @@
 | ThreadDetailHeader | `src/components/thread/thread-detail-header.tsx` | 页面顶层独立标题区（非卡片）：徽章/主题帖标题/作者/标签/操作按钮 |
 | SubthreadTabs | `src/components/thread/subthread-tabs.tsx` | 子贴 Tab 切换导航 |
 | SubthreadBody | `src/components/thread/subthread-body.tsx` | 子贴卡（唯一卡片）：子贴标题 + 默认徽章 + 正文（kind=BODY）同容器（正文不进入楼层列表） |
-| FloorCard | `src/components/thread/floor-card.tsx` | 单条楼层卡片（Markdown 渲染；作者本人可编辑/删除，楼层均可删；编辑态用 MilkdownEditor + 图片上传） |
+| FloorCard | `src/components/thread/floor-card.tsx` | 单条楼层卡片（Markdown 渲染；作者本人可编辑/删除；展开楼中楼 + 回复他人） |
 | FloorList | `src/components/thread/floor-list.tsx` | 楼层列表（仅 kind=FLOOR，无限滚动，cursor 分页） |
 | FloorForm | `src/components/thread/floor-form.tsx` | 新楼层发布表单（MilkdownEditor + 图片上传，发布后重挂载清空） |
+| ReplyList | `src/components/thread/reply-list.tsx` | 楼中楼回复列表（展开/加载更多） |
+| ReplyForm | `src/components/thread/reply-form.tsx` | 楼中楼回复表单（小尺寸 MilkdownEditor） |
+| MemberManager | `src/components/thread/member-manager.tsx` | 成员管理：授予/收回玩家、升级/降级协作者、移除参与人 |
 | ManagementPanel | `src/components/thread/management-panel.tsx` | 帖主管理面板：左子贴目录树 + 右单例编辑器 |
 | SubthreadTree | `src/components/thread/subthread-tree.tsx` | 管理面板左栏子贴目录树（@dnd-kit 拖拽排序） |
 | SubthreadForm | `src/components/forms/subthread-form.tsx` | 子贴创建/编辑弹窗（title + postingPolicy + Zod 校验） |
@@ -187,6 +201,13 @@
 | useUpdatePost | `src/api/hooks/use-update-post.ts` | 编辑楼层正文（乐观锁 version） |
 | useDeletePost | `src/api/hooks/use-delete-post.ts` | 删除楼层（作者本人；楼层均可删，子贴正文 kind=BODY 由后端拦截） |
 | useSyncThreadTags | `src/api/hooks/use-sync-thread-tags.ts` | 编辑帖时同步主题帖标签（diff 后添加/移除） |
+| useReplies | `src/api/hooks/use-replies.ts` | 楼中楼回复列表（cursor 分页） |
+| useMembers | `src/api/hooks/use-members.ts` | 参与人列表 |
+| useUpdateMember | `src/api/hooks/use-update-member.ts` | 改参与人角色/玩家标记 |
+| useRemoveMember | `src/api/hooks/use-remove-member.ts` | 移除参与人 |
+| useSubscriptions | `src/api/hooks/use-subscriptions.ts` | 我的订阅列表 |
+| useSubscriptionMutations | `src/api/hooks/use-subscription-mutations.ts` | 创建/取消订阅 |
+| useReadingProgress | `src/api/hooks/use-reading-progress.ts` | 记录阅读进度 + 新回复数 |
 | ThreadEditForm | `src/components/forms/thread-edit-form.tsx` | 已发布帖编辑表单（标题/分区/可见性/标签/正文） |
 | EditThreadPage | `src/app/threads/[id]/edit/page.tsx` | 已发布帖编辑页（加载详情 + OWNER 守卫 + ThreadEditForm） |
 
