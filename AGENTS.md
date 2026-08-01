@@ -264,7 +264,7 @@ setsid nohup env NODE_ENV=production node dist/main </dev/null \
 | 2 | 认证（登录/注册/忘记密码/重置/验证/导航） | `docs/modules/auth.md` | 已完成 |
 | 3 | 首页（主题帖列表、分类、分页） | `docs/modules/home.md` | 已完成 |
 | 4 | 创建主题帖（编辑器、草稿、发布） | `docs/modules/thread-create.md` | 已完成 |
-| 5 | 主题帖详情与回复（子贴、楼层、楼中楼） | `docs/modules/thread-detail.md` | 待设计 |
+| 5 | 主题帖详情与回复（子贴、楼层、楼中楼） | `docs/modules/thread-detail.md` | 已完成 |
 | 6 | 用户（资料、关注、拉黑、草稿箱） | `docs/modules/profile.md` | 待设计 |
 | 7 | 通知（列表、未读数、红点） | `docs/modules/notifications.md` | 待设计 |
 | 8 | 搜索与收藏 | `docs/modules/search.md` | 待设计 |

@@ -12,8 +12,8 @@
 |------|------|------|
 | [auth](./modules/auth.md) | 认证 | 已完成 |
 | [home](./modules/home.md) | 首页 | 已完成 |
-| thread-create | 创建主题帖 | 待设计 |
-| thread-detail | 主题帖详情与回复 | 待设计 |
+| [thread-create](./modules/thread-create.md) | 创建主题帖 | 已完成 |
+| [thread-detail](./modules/thread-detail.md) | 主题帖详情与回复 | 已完成 |
 | profile | 用户资料 | 待设计 |
 | notifications | 通知 | 待设计 |
 | search | 搜索 | 待设计 |
