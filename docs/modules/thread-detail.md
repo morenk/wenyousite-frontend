@@ -26,6 +26,7 @@
 | 路由 | 页面说明 | 权限 |
 |------|----------|------|
 | `/threads/[id]` | 主题帖详情页（含子贴、楼层） | 公开（PRIVATE 帖非成员返回 404） |
+| `/threads/[id]/edit` | 已发布帖编辑页（ThreadEditForm） | OWNER only |
 
 ## 3. 涉及 API
 
@@ -187,6 +188,7 @@
 | useDeletePost | `src/api/hooks/use-delete-post.ts` | 删除楼层（作者本人，不能删首楼） |
 | useSyncThreadTags | `src/api/hooks/use-sync-thread-tags.ts` | 编辑帖时同步主题帖标签（diff 后添加/移除） |
 | ThreadEditForm | `src/components/forms/thread-edit-form.tsx` | 已发布帖编辑表单（标题/分区/可见性/标签/正文） |
+| EditThreadPage | `src/app/threads/[id]/edit/page.tsx` | 已发布帖编辑页（加载详情 + OWNER 守卫 + ThreadEditForm） |
 
 ## 6.1 帖主管理面板
 
