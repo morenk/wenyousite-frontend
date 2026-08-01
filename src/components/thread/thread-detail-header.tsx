@@ -1,17 +1,16 @@
-/** 主题帖详情头部组件：标题、分类、状态、作者、时间、操作按钮 */
+/** 主题帖详情头部：页面顶层独立标题区（非卡片）——徽章、标题、作者、标签、操作按钮 */
 
 "use client";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Heart, LogIn, LogOut, Edit3, Settings, Loader2 } from "lucide-react";
+import { Heart, Edit3, Settings, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { useLikeThread } from "@/api/hooks/use-like-thread";
-import { useMemberActions } from "@/api/hooks/use-member-actions";
 import { Button } from "@/components/ui/button";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
 
@@ -41,19 +40,16 @@ const statusColor: Record<string, string> = {
 
 interface ThreadDetailHeaderProps {
   thread: ThreadDetail;
-  isMember: boolean;
   onManage?: () => void;
 }
 
 export function ThreadDetailHeader({
   thread,
-  isMember,
   onManage,
 }: ThreadDetailHeaderProps) {
   const { user } = useAuth();
   const router = useRouter();
   const { like, unlike } = useLikeThread(thread.id);
-  const { join, exit } = useMemberActions(thread.id);
   const isOwner = user?.id === thread.ownerId;
 
   const handleLike = async () => {
@@ -68,26 +64,8 @@ export function ThreadDetailHeader({
     }
   };
 
-  const handleJoin = async () => {
-    try {
-      await join.mutateAsync();
-      toast.success("已加入主题帖");
-    } catch {
-      toast.error("加入失败，请稍后重试");
-    }
-  };
-
-  const handleExit = async () => {
-    try {
-      await exit.mutateAsync();
-      toast.success("已退出主题帖");
-    } catch {
-      toast.error("操作失败，请稍后重试");
-    }
-  };
-
   return (
-    <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+    <div className="border-b border-border pb-5">
       <div className="flex flex-col gap-4">
         {/* 分类 + 状态 */}
         <div className="flex items-center gap-2">
@@ -151,7 +129,7 @@ export function ThreadDetailHeader({
             })}
           </span>
           <span>{thread.viewCount} 次浏览</span>
-          <span>{thread._count.members} 人参与</span>
+          <span>{thread._count.players} 位玩家</span>
           <span>{thread._count.posts} 楼</span>
         </div>
 
@@ -182,40 +160,6 @@ export function ThreadDetailHeader({
                 )}
                 {thread.likeCount > 0 ? thread.likeCount : "点赞"}
               </Button>
-
-              {!isOwner && (
-                <>
-                  {isMember ? (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleExit}
-                      disabled={exit.isPending}
-                    >
-                      {exit.isPending ? (
-                        <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                      ) : (
-                        <LogOut className="mr-1 h-4 w-4" />
-                      )}
-                      退出
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleJoin}
-                      disabled={join.isPending}
-                    >
-                      {join.isPending ? (
-                        <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                      ) : (
-                        <LogIn className="mr-1 h-4 w-4" />
-                      )}
-                      加入
-                    </Button>
-                  )}
-                </>
-              )}
 
               {isOwner && (
                 <>

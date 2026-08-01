@@ -12,13 +12,12 @@
 - 楼层 Markdown 渲染（react-markdown + remark-gfm）
 - 发布新楼层（简易 textarea）
 - 点赞/取消点赞主题帖
-- 加入/退出主题帖
 - Loading / Error / Empty / 404 状态
 
 **后续迭代：**
 - 楼中楼回复（parentPostId / replyToPostId）
 - 楼层编辑与删除
-- 成员管理
+- 玩家管理（楼主在候选池中授予/收回玩家身份）
 - 阅读进度
 - 订阅通知
 
@@ -34,11 +33,11 @@
 |--------|------|-------|------|
 | GET | `/threads/:id` | Public | 主题帖详情（含子贴列表、owner、_count） |
 | GET | `/subthreads/:subthreadId/posts` | Public | 楼层列表（cursor 分页，含内联 replies） |
-| POST | `/subthreads/:subthreadId/posts` | Auth | 发布新楼层 |
+| POST | `/subthreads/:subthreadId/posts` | Auth | 发布新楼层（发帖自动成为参与人=玩家候选池） |
 | POST | `/threads/:id/like` | Auth | 点赞主题帖（幂等） |
 | DELETE | `/threads/:id/like` | Auth | 取消点赞 |
-| POST | `/threads/:threadId/members/join` | Auth | 加入主题帖 |
-| DELETE | `/threads/:threadId/members/me` | Auth | 退出主题帖 |
+
+> **「参与」语义**：用户**无需手动加入**，在帖子内回复后由后端自动写入参与人记录（玩家候选池），对用户无感。前端不再提供加入/退出按钮。元数据显示的 `_count.players` 为被楼主授予玩家身份（`playerMarked=true`）的人数。
 
 ## 4. API 响应快照
 
@@ -87,7 +86,7 @@
     "topicTags": [
       { "id": "...", "threadId": "...", "tagId": "...", "tag": { "id": "...", "name": "测试", "color": null, "createdAt": "..." } }
     ],
-    "_count": { "members": 1, "posts": 1 }
+    "_count": { "members": 1, "players": 1, "posts": 1 }
   }
 }
 ```
@@ -152,10 +151,6 @@
 }
 ```
 
-### POST /threads/:threadId/members/join → 201
-
-成员记录返回 201，参与后即可发帖。
-
 ## 5. 状态管理
 
 | 状态 | 来源 | 管理方式 |
@@ -165,24 +160,23 @@
 | 当前选中子贴 | 用户点击 Tab | useState（默认 defaultSubthreadId） |
 | 新楼层内容 | 用户输入 | useState |
 | 点赞状态 | `POST/DELETE /threads/:id/like` | useMutation + query invalidation |
-| 加入/退出 | `POST/DELETE members` | useMutation + query invalidation |
 
 ## 6. 组件清单
 
 | 组件 | 路径 | 说明 |
 |------|------|------|
 | ThreadDetailPage | `src/app/threads/[id]/page.tsx` | 详情页主逻辑（含管理面板切换） |
-| ThreadDetailHeader | `src/components/thread/thread-detail-header.tsx` | 帖子头部信息 + 操作按钮（帖主含「管理」入口） |
+| ThreadDetailHeader | `src/components/thread/thread-detail-header.tsx` | 页面顶层独立标题区（非卡片）：徽章/主题帖标题/作者/标签/操作按钮 |
 | SubthreadTabs | `src/components/thread/subthread-tabs.tsx` | 子贴 Tab 切换导航 |
+| SubthreadBody | `src/components/thread/subthread-body.tsx` | 子贴卡（唯一卡片）：子贴标题 + 默认徽章 + 一楼正文同容器（首楼不进入回复楼层列表） |
 | FloorCard | `src/components/thread/floor-card.tsx` | 单条楼层卡片（Markdown 渲染） |
-| FloorList | `src/components/thread/floor-list.tsx` | 楼层列表（无限滚动，cursor 分页） |
+| FloorList | `src/components/thread/floor-list.tsx` | 回复楼层列表（无限滚动，cursor 分页） |
 | FloorForm | `src/components/thread/floor-form.tsx` | 新楼层发布表单 |
 | ManagementPanel | `src/components/thread/management-panel.tsx` | 帖主管理面板：左子贴目录树 + 右单例编辑器 |
 | SubthreadTree | `src/components/thread/subthread-tree.tsx` | 管理面板左栏子贴目录树（@dnd-kit 拖拽排序） |
 | SubthreadForm | `src/components/forms/subthread-form.tsx` | 子贴创建/编辑弹窗（title + postingPolicy + Zod 校验） |
 | useFloors | `src/api/hooks/use-floors.ts` | 楼层列表 hook |
 | useLikeThread | `src/api/hooks/use-like-thread.ts` | 点赞/取消点赞 hook |
-| useMemberActions | `src/api/hooks/use-member-actions.ts` | 加入/退出 hook |
 | useCreateSubthread | `src/api/hooks/use-create-subthread.ts` | 管理面板：添加子贴 |
 | useUpdateSubthread | `src/api/hooks/use-update-subthread.ts` | 管理面板：编辑子贴 |
 | useDeleteSubthread | `src/api/hooks/use-delete-subthread.ts` | 管理面板：删除子贴 |
@@ -212,13 +206,16 @@
 
 ## 7. 发布楼层流程
 
+> **一楼渲染规则：** 每个子贴的一楼（`subthread.bodyPost`）为该子贴的「正文」，由 `SubthreadBody` 与子贴标题放在同一卡片容器中渲染（Markdown），**不进入回复楼层列表**。`FloorList` 展示的为回复楼层（通过 `bodyPostId` 过滤首楼），楼层号保留真实编号（回复从 #2 开始显示）。
+
+**页面布局：** 主题帖标题区为页面顶层独立标题区（非卡片，`ThreadDetailHeader`，含徽章/标题/作者/标签/操作按钮）→ 子贴 Tab → 子贴卡（`SubthreadBody`：子贴标题 + 一楼正文同卡）→ 回复楼层列表 → 发布表单。
+
 ```
 用户在 FloorForm 输入内容
   → 未登录：跳转 /login
-  → 未加入：按钮变"加入后即可参与"
-  → 已加入：调用 POST /subthreads/:id/posts { content }
+  → 已登录：调用 POST /subthreads/:id/posts { content }（发帖自动成为参与人=候选池）
     → 成功：清空输入框 + invalidation 刷新楼层列表
-    → 失败：toast 后端 message
+    → 失败：按错误码提示（40302 协作者 / 40303 玩家，或后端 message）
 ```
 
 ## 8. 错误处理
@@ -227,7 +224,8 @@
 |--------|------|---------|
 | 404 | 主题帖不存在 / 未发布 / PRIVATE 帖非成员 | 显示 "主题帖不存在或已被删除" |
 | 40100 | 未登录发帖/点赞 | 自动跳转 /login（apiClient 拦截器） |
-| 40300 | 无发帖权限（未加入） | toast "请先加入主题帖" |
+| 40302 | 该子贴仅限协作者发帖 | toast "该子贴仅限协作者发帖" |
+| 40303 | 该子贴仅限玩家发帖 | toast "该子贴仅限玩家发帖" |
 | 40000 | 字段校验失败 | toast 后端 message |
 | 42900 | 限流 | toast "操作太频繁，请稍后再试" |
 | 网络错误 | fetch 失败 | 显示错误提示 + 重试按钮 |
@@ -239,7 +237,7 @@
 | 公开帖 | 所有用户可查看 |
 | 私密帖 + 非成员 | 后端返回 404（设计决策：避免枚举私密帖） |
 | 未登录发帖 | apiClient 拦截器自动跳转 /login |
-| 未加入发帖 | FloorForm 禁用，按钮变为"加入后即可参与" |
+| 发帖 | 登录即可发帖，发帖自动入候选池；子贴发帖策略（协作者/玩家）由后端拦截并映射错误码 |
 | 已发布帖 OWNER | 显示 "编辑" 按钮（跳 /threads/[id]/edit，后续实现） |
 
 ## 10. 验收标准
@@ -247,11 +245,13 @@
 - [x] 详情页正确展示帖子头部信息
 - [x] 头部分类/状态/标签徽章正确映射为中文
 - [x] 子贴 Tab 可切换，选中 Tab 高亮
-- [x] 楼层列表按 floorNumber 排序，分页加载
+- [x] 子贴标题与一楼正文同容器渲染（SubthreadBody），首楼不进入回复楼层列表
+- [x] 主题帖标题区独立置顶（非卡片，ThreadDetailHeader），子贴标题取代原卡片内标题位置
+- [x] 回复楼层列表按 floorNumber 排序，分页加载（回复从 #2 开始）
 - [x] 楼层卡片正确渲染 Markdown 内容
 - [x] 未登录用户可浏览公开帖，不能发帖
-- [x] 已登录未加入用户可浏览但发帖按钮变"加入后即可参与"
-- [x] 加入后可发布新楼层
+- [x] 登录即可发帖（无加入/退出按钮，发帖自动入玩家候选池）
+- [x] 发布新楼层
 - [x] 点赞/取消点赞实时更新 likeCount
 - [x] thread 不存在时显示 404
 - [x] 所有错误状态有 toast 或内联提示
@@ -261,6 +261,8 @@
 - [x] 管理面板：子贴拖拽排序（@dnd-kit + useReorderSubthreads）
 - [x] 管理面板：编辑子贴正文（保存调用 createPost/updatePost）
 - [x] 默认子贴不可删除、排序保持首位
+- [x] 移除加入/退出按钮，登录即可发帖（发帖自动入玩家候选池，无感参与）
+- [x] 元数据人数显示 `_count.players`（被授予玩家身份者），非候选池总数
 - [x] `pnpm lint && pnpm typecheck && pnpm build` 通过
 
 ## 11. 子任务
@@ -269,11 +271,13 @@
 - [x] 补齐 ThreadDetail / SubthreadDetail / PostData 类型
 - [x] 实现 `useFloors` hook（楼层列表 cursor 分页）
 - [x] 实现 `useLikeThread` hook（点赞/取消点赞）
-- [x] 实现 `useMemberActions` hook（加入/退出）
 - [x] 实现 `useCreateSubthread` / `useUpdateSubthread` / `useDeleteSubthread` / `useReorderSubthreads` hooks
 - [x] 实现 `ThreadDetailHeader` 组件（含「管理」按钮）
 - [x] 实现 `SubthreadTabs` 组件
 - [x] 实现 `FloorCard` / `FloorList` / `FloorForm` 组件
+- [x] 实现 `SubthreadBody`（子贴标题 + 一楼正文同容器），详情页过滤首楼、回复列表从 #2 开始
+- [x] 移除 `useMemberActions` hook（加入/退出），FloorForm 登录即可发帖并映射 40302/40303 错误码
+- [x] 元数据玩家数改用 `_count.players`（ThreadDetailHeader / ThreadCard）
 - [x] 实现 `SubthreadTree`（@dnd-kit 拖拽排序）与 `ManagementPanel`（左树右编辑）
 - [x] 实现 `/threads/[id]` 页面（含管理面板切换）
 - [x] 创建页移除沙盒多子贴/楼层管理，子贴管理移至详情页管理面板

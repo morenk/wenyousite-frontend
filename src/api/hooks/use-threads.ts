@@ -29,7 +29,7 @@ export interface ThreadCardData {
   owner: ThreadOwner;
   defaultSubthread: { id: string; title: string } | null;
   topicTags: { tag: ThreadTag }[];
-  _count: { members: number; posts: number };
+  _count: { members: number; players: number; posts: number };
   preview: string;
 }
 

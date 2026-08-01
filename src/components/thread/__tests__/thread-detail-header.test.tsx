@@ -75,7 +75,7 @@ const baseThread: ThreadDetail = {
     tags: [],
   },
   topicTags: [{ tag: { id: "tag-1", name: "测试标签", color: null } }],
-  _count: { members: 10, posts: 5 },
+  _count: { members: 10, players: 3, posts: 5 },
 };
 
 describe("ThreadDetailHeader", () => {
@@ -84,7 +84,7 @@ describe("ThreadDetailHeader", () => {
     mockPOST.mockResolvedValue({ error: undefined });
 
     renderWithQC(
-      <ThreadDetailHeader thread={baseThread} isMember={false} />,
+      <ThreadDetailHeader thread={baseThread} />,
     );
     expect(screen.getByText("测试主题帖")).toBeInTheDocument();
   });
@@ -92,7 +92,7 @@ describe("ThreadDetailHeader", () => {
   test("渲染分类和状态中文映射", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
     renderWithQC(
-      <ThreadDetailHeader thread={baseThread} isMember={false} />,
+      <ThreadDetailHeader thread={baseThread} />,
     );
     expect(screen.getByText("RPG")).toBeInTheDocument();
     expect(screen.getByText("招募中")).toBeInTheDocument();
@@ -101,7 +101,7 @@ describe("ThreadDetailHeader", () => {
   test("渲染标签", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
     renderWithQC(
-      <ThreadDetailHeader thread={baseThread} isMember={false} />,
+      <ThreadDetailHeader thread={baseThread} />,
     );
     expect(screen.getByText("#测试标签")).toBeInTheDocument();
   });
@@ -109,7 +109,7 @@ describe("ThreadDetailHeader", () => {
   test("渲染作者名", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
     renderWithQC(
-      <ThreadDetailHeader thread={baseThread} isMember={false} />,
+      <ThreadDetailHeader thread={baseThread} />,
     );
     expect(screen.getByText("帖主")).toBeInTheDocument();
   });
@@ -117,17 +117,17 @@ describe("ThreadDetailHeader", () => {
   test("渲染统计信息", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
     renderWithQC(
-      <ThreadDetailHeader thread={baseThread} isMember={false} />,
+      <ThreadDetailHeader thread={baseThread} />,
     );
     expect(screen.getByText("100 次浏览")).toBeInTheDocument();
-    expect(screen.getByText("10 人参与")).toBeInTheDocument();
+    expect(screen.getByText("3 位玩家")).toBeInTheDocument();
     expect(screen.getByText("5 楼")).toBeInTheDocument();
   });
 
   test("未登录时显示点赞按钮（不可交互）", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
     renderWithQC(
-      <ThreadDetailHeader thread={baseThread} isMember={false} />,
+      <ThreadDetailHeader thread={baseThread} />,
     );
     expect(screen.getByText("3")).toBeInTheDocument(); // likeCount
   });
@@ -139,7 +139,7 @@ describe("ThreadDetailHeader", () => {
     });
     mockPOST.mockResolvedValue({ error: undefined });
     renderWithQC(
-      <ThreadDetailHeader thread={baseThread} isMember={true} />,
+      <ThreadDetailHeader thread={baseThread} />,
     );
     expect(screen.getByText("编辑")).toBeInTheDocument();
     // OWNER 不应该看到加入/退出按钮
@@ -154,7 +154,7 @@ describe("ThreadDetailHeader", () => {
     });
     mockPOST.mockResolvedValue({ error: undefined });
     renderWithQC(
-      <ThreadDetailHeader thread={baseThread} isMember={true} />,
+      <ThreadDetailHeader thread={baseThread} />,
     );
     expect(screen.getByText("管理")).toBeInTheDocument();
   });
@@ -166,9 +166,12 @@ describe("ThreadDetailHeader", () => {
     });
     mockPOST.mockResolvedValue({ error: undefined });
     renderWithQC(
-      <ThreadDetailHeader thread={baseThread} isMember={false} />,
+      <ThreadDetailHeader thread={baseThread} />,
     );
     expect(screen.queryByText("管理")).toBeNull();
+    // 无加入/退出按钮（发帖自动入候选池，无需手动参与）
+    expect(screen.queryByText("加入")).toBeNull();
+    expect(screen.queryByText("退出")).toBeNull();
   });
 
   test("点击管理按钮调用 onManage", async () => {
@@ -182,7 +185,6 @@ describe("ThreadDetailHeader", () => {
     renderWithQC(
       <ThreadDetailHeader
         thread={baseThread}
-        isMember={true}
         onManage={onManage}
       />,
     );
@@ -191,33 +193,10 @@ describe("ThreadDetailHeader", () => {
     expect(onManage).toHaveBeenCalledTimes(1);
   });
 
-  test("非 OWNER 看到加入按钮", () => {
-    mockUseAuth.mockReturnValue({
-      user: { id: "other-user", username: "别人" },
-      isInitialized: true,
-    });
-    mockPOST.mockResolvedValue({ error: undefined });
-    renderWithQC(
-      <ThreadDetailHeader thread={baseThread} isMember={false} />,
-    );
-    expect(screen.getByText("加入")).toBeInTheDocument();
-  });
-
-  test("非 OWNER 已加入时看到退出按钮", () => {
-    mockUseAuth.mockReturnValue({
-      user: { id: "other-user", username: "别人" },
-      isInitialized: true,
-    });
-    renderWithQC(
-      <ThreadDetailHeader thread={baseThread} isMember={true} />,
-    );
-    expect(screen.getByText("退出")).toBeInTheDocument();
-  });
-
   test("已完结状态显示'已完结'", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
     const finished = { ...baseThread, status: "FINISHED" as const };
-    renderWithQC(<ThreadDetailHeader thread={finished} isMember={false} />);
+    renderWithQC(<ThreadDetailHeader thread={finished} />);
     expect(screen.getByText("已完结")).toBeInTheDocument();
   });
 
@@ -225,7 +204,7 @@ describe("ThreadDetailHeader", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
     const privateThread = { ...baseThread, visibility: "PRIVATE" as const };
     renderWithQC(
-      <ThreadDetailHeader thread={privateThread} isMember={false} />,
+      <ThreadDetailHeader thread={privateThread} />,
     );
     expect(screen.getByText("私密")).toBeInTheDocument();
   });
@@ -233,14 +212,14 @@ describe("ThreadDetailHeader", () => {
   test("置顶帖显示'置顶'标签", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
     const pinned = { ...baseThread, pinned: true };
-    renderWithQC(<ThreadDetailHeader thread={pinned} isMember={false} />);
+    renderWithQC(<ThreadDetailHeader thread={pinned} />);
     expect(screen.getByText("置顶")).toBeInTheDocument();
   });
 
   test("演绎分类显示'演绎'", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
     const deduction = { ...baseThread, category: "DEDUCTION" as const };
-    renderWithQC(<ThreadDetailHeader thread={deduction} isMember={false} />);
+    renderWithQC(<ThreadDetailHeader thread={deduction} />);
     expect(screen.getByText("演绎")).toBeInTheDocument();
   });
 
@@ -250,7 +229,7 @@ describe("ThreadDetailHeader", () => {
       isInitialized: true,
     });
     const noLikes = { ...baseThread, likeCount: 0 };
-    renderWithQC(<ThreadDetailHeader thread={noLikes} isMember={true} />);
+    renderWithQC(<ThreadDetailHeader thread={noLikes} />);
     expect(screen.getByText("点赞")).toBeInTheDocument();
   });
 });

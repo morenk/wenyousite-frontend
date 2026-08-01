@@ -101,7 +101,7 @@ export function ThreadCard({ thread }: ThreadCardProps) {
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1">
                 <Users className="h-3.5 w-3.5" />
-                {thread._count.members}
+                {thread._count.players}
               </span>
               <span className="flex items-center gap-1">
                 <MessageSquare className="h-3.5 w-3.5" />

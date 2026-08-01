@@ -27,7 +27,7 @@ const sampleThread: ThreadCardData = {
   owner: { id: "u1", username: "author", avatar: null },
   defaultSubthread: { id: "s1", title: "主帖" },
   topicTags: [],
-  _count: { members: 1, posts: 1 },
+  _count: { members: 1, players: 1, posts: 1 },
   preview: "预览内容",
 };
 

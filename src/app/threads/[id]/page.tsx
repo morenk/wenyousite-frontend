@@ -9,9 +9,9 @@ import { Loader2, AlertCircle } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useThreadDetail } from "@/api/hooks/use-thread-detail";
 import { useFloors } from "@/api/hooks/use-floors";
-import { useThreadMembers } from "@/api/hooks/use-member-actions";
 import { ThreadDetailHeader } from "@/components/thread/thread-detail-header";
 import { SubthreadTabs } from "@/components/thread/subthread-tabs";
+import { SubthreadBody } from "@/components/thread/subthread-body";
 import { FloorList } from "@/components/thread/floor-list";
 import { FloorForm } from "@/components/thread/floor-form";
 import { ManagementPanel } from "@/components/thread/management-panel";
@@ -31,8 +31,6 @@ export default function ThreadDetailPage() {
     refetch,
   } = useThreadDetail(threadId);
 
-  const { data: members = [] } = useThreadMembers(threadId);
-
   const [selectedSubthreadId, setSelectedSubthreadId] = useState<string>();
   const [isManaging, setIsManaging] = useState(false);
 
@@ -51,10 +49,13 @@ export default function ThreadDetailPage() {
 
   const floors = floorsData?.pages.flatMap((page) => page?.data ?? []) ?? [];
 
+  const selectedSubthread = thread?.subthreads.find(
+    (s) => s.id === effectiveSubthreadId,
+  );
+  // 一楼为该子贴正文（SubthreadBody 展示），从回复楼层列表中剔除
+  const replyFloors = floors.filter((f) => f.id !== selectedSubthread?.bodyPostId);
+
   const isOwner = user?.id === thread?.ownerId;
-  const isMember = user
-    ? isOwner || members.some((m) => m.userId === user.id)
-    : false;
 
   // Loading
   if (isLoading) {
@@ -121,7 +122,6 @@ export default function ThreadDetailPage() {
       {/* 头部 */}
       <ThreadDetailHeader
         thread={thread}
-        isMember={isMember}
         onManage={isOwner ? () => setIsManaging(true) : undefined}
       />
 
@@ -133,10 +133,18 @@ export default function ThreadDetailPage() {
           onChange={setSelectedSubthreadId}
         />
 
+        {/* 子贴标题 + 一楼正文（首楼不进入回复楼层列表） */}
+        {selectedSubthread && (
+          <SubthreadBody
+            subthread={selectedSubthread}
+            isDefault={selectedSubthread.id === thread.defaultSubthreadId}
+          />
+        )}
+
         {/* 楼层列表 */}
         {effectiveSubthreadId && (
           <FloorList
-            floors={floors}
+            floors={replyFloors}
             hasNextPage={!!hasNextPage}
             isFetchingNextPage={isFetchingNextPage}
             isLoading={isFloorsLoading}
@@ -150,8 +158,6 @@ export default function ThreadDetailPage() {
         {effectiveSubthreadId && thread.published && (
           <FloorForm
             subthreadId={effectiveSubthreadId}
-            threadId={thread.id}
-            isMember={isMember}
           />
         )}
       </div>

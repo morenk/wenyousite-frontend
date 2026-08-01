@@ -59,7 +59,7 @@
 | 正文预览 | 默认子贴首楼正文 | Markdown 纯文本截断（~120 字） |
 | 标签 | thread.topicTags[] | 标签徽章 |
 | 状态 | thread.status | 招募中/已关闭/已完结 |
-| 成员数 | thread._count.members | 数字 |
+| 玩家数 | thread._count.players | 数字（被楼主授予玩家身份者） |
 | 楼层数 | thread._count.posts | 数字 |
 | 最后活跃 | thread.updatedAt | date-fns 相对时间 |
 

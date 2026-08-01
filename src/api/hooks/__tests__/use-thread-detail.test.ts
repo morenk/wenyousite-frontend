@@ -47,7 +47,7 @@ const raw: RawThreadDetail = {
   owner: { id: "user-1", username: "test", avatar: null },
   subthreads: [makeSub("sub-1"), makeSub("sub-2"), makeSub("sub-3")],
   topicTags: [],
-  _count: { members: 1, posts: 3 },
+  _count: { members: 1, players: 1, posts: 3 },
 };
 
 describe("normalizeThreadDetail", () => {

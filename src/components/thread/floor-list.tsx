@@ -72,7 +72,7 @@ export function FloorList({
   if (floors.length === 0) {
     return (
       <EmptyState
-        title="暂无楼层"
+        title="暂无回复"
         description="来发第一帖吧"
       />
     );

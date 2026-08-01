@@ -30,7 +30,7 @@ const baseThread: ThreadCardData = {
     { tag: { id: "tag-1", name: "测试标签", color: null } },
     { tag: { id: "tag-2", name: "RPG", color: null } },
   ],
-  _count: { members: 5, posts: 12 },
+  _count: { members: 5, players: 2, posts: 12 },
   preview: "这是帖子摘要预览...",
 };
 
@@ -61,9 +61,9 @@ describe("ThreadCard", () => {
     expect(screen.getByText("#RPG")).toBeInTheDocument();
   });
 
-  test("渲染成员数和楼层数", () => {
+  test("渲染玩家数和楼层数", () => {
     render(<ThreadCard thread={baseThread} />);
-    expect(screen.getByText("5")).toBeInTheDocument();
+    expect(screen.getByText("2")).toBeInTheDocument();
     expect(screen.getByText("12")).toBeInTheDocument();
   });
 

@@ -59,6 +59,7 @@ export interface ThreadDetail {
   topicTags: { tag: ThreadTag }[];
   _count: {
     members: number;
+    players: number;
     posts: number;
   };
 }
@@ -86,6 +87,7 @@ export interface RawThreadDetail {
   topicTags: { tag: ThreadTag }[];
   _count: {
     members: number;
+    players: number;
     posts: number;
   };
 }

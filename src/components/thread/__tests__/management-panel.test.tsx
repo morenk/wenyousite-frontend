@@ -161,7 +161,7 @@ const mockThread: ThreadDetail = {
   ],
   defaultSubthread: makeSub("s1", "主帖", { id: "p1", content: "默认正文", version: 2 }),
   topicTags: [],
-  _count: { members: 1, posts: 1 },
+  _count: { members: 1, players: 1, posts: 1 },
 };
 
 function renderPanel(thread: ThreadDetail = mockThread) {

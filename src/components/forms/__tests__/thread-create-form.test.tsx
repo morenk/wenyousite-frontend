@@ -123,7 +123,7 @@ const mockThread: ThreadDetail = {
   subthreads: [makeSub("s1", "主帖", 0)],
   defaultSubthread: makeSub("s1", "主帖", 0),
   topicTags: [],
-  _count: { members: 1, posts: 0 },
+  _count: { members: 1, players: 1, posts: 0 },
 };
 
 function renderForm(thread: ThreadDetail = mockThread) {
