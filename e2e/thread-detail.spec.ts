@@ -279,3 +279,38 @@ test.describe("楼层编辑与删除", () => {
     ).not.toBeVisible({ timeout: 10000 });
   });
 });
+
+test.describe("楼中楼回复", () => {
+  test("展开楼中楼并回复他人楼层", async ({ page }) => {
+    await loginAndCreatePublishedThread(page);
+
+    // 发布一楼楼层
+    await postFloor(page, "主楼正文");
+
+    // 找到楼层卡片并点击回复按钮
+    const floorCard = page
+      .locator(".rounded-xl.border")
+      .filter({ hasText: "主楼正文" })
+      .first();
+    await expect(floorCard).toBeVisible();
+
+    await floorCard.getByRole("button", { name: "回复" }).click();
+    // 回复表单编辑器在楼层卡片内，精确范围定位
+    const replyEditor = floorCard.locator(".milkdown-editor .ProseMirror").first();
+    await expect(replyEditor).toBeVisible({ timeout: 10000 });
+
+    await replyEditor.click();
+    await replyEditor.pressSequentially("楼中楼回复内容", { delay: 20 });
+    // 等待 markdownUpdated 写入 + React state flush（页面首个 tabular-nums 变为非 0）
+    await expect(page.locator(".tabular-nums").first()).not.toHaveText(/^0\/10000$/);
+    await page.waitForTimeout(500);
+    await floorCard.getByRole("button", { name: "回复" }).last().click();
+
+    // 等待回复成功 + 回复内容渲染
+    await expect(page.getByText("回复成功").first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("楼中楼回复内容").first()).toBeVisible({ timeout: 10000 });
+
+    // 回复数更新为 1
+    await expect(page.getByText("1 条回复").first()).toBeVisible({ timeout: 10000 });
+  });
+});
