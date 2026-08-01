@@ -83,6 +83,39 @@ describe("SubthreadTabs", () => {
     expect(screen.getByText("设定区")).toBeInTheDocument();
   });
 
+  test("非选中子贴有新回复时显示徽标", () => {
+    const { container } = render(
+      <SubthreadTabs
+        subthreads={[
+          makeSub({ id: "s1", title: "主帖" }),
+          makeSub({ id: "s2", title: "设定区" }),
+        ]}
+        selectedId="s1"
+        onChange={() => {}}
+        newRepliesMap={{ s2: 5 }}
+      />,
+    );
+    // 徽标为含 bg-destructive 的红色小圆角
+    const badge = container.querySelector("span.bg-destructive");
+    expect(badge).toBeTruthy();
+    expect(badge?.textContent).toBe("5");
+  });
+
+  test("选中子贴不显示新回复徽标", () => {
+    render(
+      <SubthreadTabs
+        subthreads={[
+          makeSub({ id: "s1", title: "主帖" }),
+          makeSub({ id: "s2", title: "设定区" }),
+        ]}
+        selectedId="s1"
+        onChange={() => {}}
+        newRepliesMap={{ s1: 3 }}
+      />,
+    );
+    expect(screen.queryByText("3")).toBeNull();
+  });
+
   test("选中 Tab 高亮", () => {
     render(
       <SubthreadTabs

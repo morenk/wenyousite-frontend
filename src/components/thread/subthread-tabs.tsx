@@ -11,6 +11,8 @@ interface SubthreadTabsProps {
   subthreads: SubthreadDetail[];
   selectedId: string | undefined;
   onChange: (id: string) => void;
+  /** 每个子贴的新增回复数（key 为子贴 id），>0 时显示徽标 */
+  newRepliesMap?: Record<string, number>;
 }
 
 /** 判断横向内容是否溢出（供测试与内部使用） */
@@ -30,6 +32,7 @@ export function SubthreadTabs({
   subthreads,
   selectedId,
   onChange,
+  newRepliesMap,
 }: SubthreadTabsProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -103,6 +106,11 @@ export function SubthreadTabs({
             {sub._count.posts > 0 && (
               <span className="ml-1.5 text-xs text-muted-foreground">
                 {sub._count.posts}
+              </span>
+            )}
+            {selectedId !== sub.id && (newRepliesMap?.[sub.id] ?? 0) > 0 && (
+              <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-medium text-white">
+                {newRepliesMap![sub.id]}
               </span>
             )}
           </button>

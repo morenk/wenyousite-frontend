@@ -1,14 +1,18 @@
-/** 主题帖详情页：头部 + 子贴 Tab + 楼层列表 + 发布 */
+/** 主题帖详情页：头部 + 子贴 Tab + 楼层列表 + 发布 + 阅读进度 */
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Loader2, AlertCircle } from "lucide-react";
 
 import { useAuth } from "@/lib/auth";
 import { useThreadDetail } from "@/api/hooks/use-thread-detail";
 import { useFloors } from "@/api/hooks/use-floors";
+import {
+  useUpdateReadingProgress,
+  useNewReplies,
+} from "@/api/hooks/use-reading-progress";
 import { ThreadDetailHeader } from "@/components/thread/thread-detail-header";
 import { SubthreadTabs } from "@/components/thread/subthread-tabs";
 import { SubthreadBody } from "@/components/thread/subthread-body";
@@ -48,6 +52,28 @@ export default function ThreadDetailPage() {
   } = useFloors(effectiveSubthreadId);
 
   const floors = floorsData?.pages.flatMap((page) => page?.data ?? []) ?? [];
+
+  // 阅读进度：为每个子贴查询新增回复数，切换子贴时记录进度
+  const newReplies = useNewReplies(effectiveSubthreadId, !!user && thread?.published);
+  const updateProgress = useUpdateReadingProgress();
+
+  const newRepliesMap = Object.fromEntries(
+    thread?.subthreads.map((s) => [s.id, 0]) ?? [],
+  );
+  if (newReplies.data && effectiveSubthreadId) {
+    newRepliesMap[effectiveSubthreadId] = newReplies.data.newReplies;
+  }
+
+  // 进入/切换子贴时记录阅读进度
+  useEffect(() => {
+    if (!user || !effectiveSubthreadId || !thread?.published) return;
+    const lastPost = floors[floors.length - 1];
+    updateProgress.mutate({
+      subthreadId: effectiveSubthreadId,
+      postId: lastPost?.id,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [effectiveSubthreadId, user, thread?.id]);
 
   const selectedSubthread = thread?.subthreads.find(
     (s) => s.id === effectiveSubthreadId,
@@ -129,6 +155,7 @@ export default function ThreadDetailPage() {
           subthreads={thread.subthreads}
           selectedId={effectiveSubthreadId}
           onChange={setSelectedSubthreadId}
+          newRepliesMap={newRepliesMap}
         />
 
         {/* 子贴标题 + 正文（正文不占楼层号） */}
