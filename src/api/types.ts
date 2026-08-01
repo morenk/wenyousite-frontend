@@ -986,7 +986,7 @@ export interface paths {
         get: operations["PostsController_findById"];
         put?: never;
         post?: never;
-        /** 软删除帖子（不能删除子贴第一楼） */
+        /** 软删除楼层（子贴正文 kind=BODY 不可删除） */
         delete: operations["PostsController_remove"];
         options?: never;
         head?: never;
@@ -1560,7 +1560,7 @@ export interface components {
              */
             category: "DEDUCTION" | "NATION" | "RPG";
             /**
-             * @description 默认子贴首楼正文（可选，留空仅创建空子贴）
+             * @description 默认子贴正文（kind=BODY，可选，留空仅创建空子贴）
              * @example 这里是开场白...
              */
             content?: string;
@@ -1640,7 +1640,7 @@ export interface components {
              */
             title: string;
             /**
-             * @description 第一楼正文（可选，留空仅创建空子贴）
+             * @description 子贴正文（kind=BODY，可选，留空仅创建空子贴）
              * @example 这里是世界观设定...
              */
             content?: string;
