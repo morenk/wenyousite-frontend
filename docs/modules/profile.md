@@ -180,6 +180,7 @@
 | UserRecentReplies | `src/components/user/user-recent-replies.tsx` | 最近动态列表（含楼层/楼中楼标识、帖子标题链接、preview） |
 | UserPlayedThreads | `src/components/user/user-played-threads.tsx` | 参与的帖子列表（标题 + 分类/状态徽章 + 无限滚动） |
 | DraftList | `src/components/user/draft-list.tsx` | 草稿箱列表（标题/分类/更新时间/继续编辑/删除） |
+| UsernameEdit | `src/components/user/username-edit.tsx` | 独立用户名修改（默认只读，点「修改用户名」才进入编辑态，未改动不提交） |
 | useUserProfile | `src/api/hooks/use-user-profile.ts` | 用户公开资料 hook |
 | useUserRecentReplies | `src/api/hooks/use-user-recent-replies.ts` | 最近动态 hook |
 | useUserPlayedThreads | `src/api/hooks/use-user-played-threads.ts` | 参与帖子 hook（cursor 分页） |
@@ -196,13 +197,20 @@
 
 ### 资料编辑（/me）— PATCH /users/me
 
-Zod schema 对齐后端 DTO：
+主表单与用户名修改**解耦**（用户名改动需谨慎 + 7 天冷却，默认不修改）：
+
+**主表单**（bio + 隐私开关）— `profileSchema`，不含 username：
 
 ```ts
-username: 2-24 位，字母/数字/中文，禁标点符号与特殊字符
-bio: 可选，max 200
+bio: 可选，max 255
 showRecentReplies / showPlayerBadges / showBookmarks: boolean
 ```
+
+**独立用户名修改**（`UsernameEdit`，`usernameSchema`）：
+- 默认只读展示当前用户名，点「修改用户名」才进入编辑态
+- 输入值 trim 后与当前用户名相同 → 不发请求直接收起
+- 不同则校验后 `PATCH /users/me { username }`，成功后用 `setAuth` 同步导航栏用户名
+- `username`: 2-24 位，字母/数字/中文，禁标点符号与特殊字符
 
 > 用户名修改需间隔 7 天以上，不足时后端返回剩余天数提示；冲突返回 409。限流 5 次/分钟。
 

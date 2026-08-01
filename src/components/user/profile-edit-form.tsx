@@ -1,4 +1,4 @@
-/** 我的资料编辑表单：用户名/Bio/隐私开关 */
+/** 我的资料编辑表单：Bio/隐私开关（用户名单独由 UsernameEdit 修改） */
 
 "use client";
 
@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useMe } from "@/api/hooks/use-me";
 import { useUpdateProfile } from "@/api/hooks/use-update-profile";
 import { profileSchema, type ProfileFormData } from "@/lib/validations/profile";
+import { UsernameEdit } from "@/components/user/username-edit";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,7 +31,6 @@ export function ProfileEditForm() {
   } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      username: "",
       bio: "",
       showRecentReplies: true,
       showPlayerBadges: true,
@@ -41,7 +41,6 @@ export function ProfileEditForm() {
   useEffect(() => {
     if (me) {
       reset({
-        username: me.username,
         bio: me.bio ?? "",
         showRecentReplies: me.showRecentReplies,
         showPlayerBadges: me.showPlayerBadges,
@@ -53,7 +52,6 @@ export function ProfileEditForm() {
   const onSubmit = async (values: ProfileFormData) => {
     try {
       await updateProfile.mutateAsync({
-        username: values.username.trim(),
         bio: values.bio?.trim() || undefined,
         showRecentReplies: values.showRecentReplies,
         showPlayerBadges: values.showPlayerBadges,
@@ -63,9 +61,7 @@ export function ProfileEditForm() {
       router.refresh();
     } catch (err: unknown) {
       const e = err as { code?: number; message?: string };
-      if (e.code === 409) {
-        toast.error("用户名已被占用");
-      } else if (e.code === 42900) {
+      if (e.code === 42900) {
         toast.error("操作太频繁，请稍后再试");
       } else {
         toast.error(e.message || "保存失败，请稍后重试");
@@ -92,81 +88,70 @@ export function ProfileEditForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      <Card>
-        <CardHeader>
-          <CardTitle>基本信息</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4 pt-6">
-          <div className="space-y-1.5">
-            <Label htmlFor="username">用户名</Label>
-            <Input
-              id="username"
-              placeholder="用户名"
-              {...register("username")}
+    <div className="space-y-5">
+      {me && <UsernameEdit currentUsername={me.username} />}
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <Card>
+          <CardHeader>
+            <CardTitle>基本信息</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 pt-6">
+            <div className="space-y-1.5">
+              <Label htmlFor="bio">个人简介</Label>
+              <Input
+                id="bio"
+                placeholder="介绍一下自己（可选）"
+                {...register("bio")}
+              />
+              {errors.bio && (
+                <p className="text-xs text-destructive">{errors.bio.message}</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>隐私设置</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 pt-6">
+            <ToggleRow
+              label="公开最近动态"
+              description="允许他人在你的主页查看最近回复"
+              register={register("showRecentReplies")}
             />
-            {errors.username && (
-              <p className="text-xs text-destructive">{errors.username.message}</p>
-            )}
-            <p className="text-xs text-muted-foreground">
-              2-24 位，字母/数字/中文。修改后 7 天内不可再次修改。
-            </p>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="bio">个人简介</Label>
-            <Input
-              id="bio"
-              placeholder="介绍一下自己（可选）"
-              {...register("bio")}
+            <ToggleRow
+              label="公开玩家标记"
+              description="允许他人在你的主页查看参与的帖子"
+              register={register("showPlayerBadges")}
             />
-            {errors.bio && (
-              <p className="text-xs text-destructive">{errors.bio.message}</p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+            <ToggleRow
+              label="公开收藏"
+              description="允许他人在你的主页查看收藏"
+              register={register("showBookmarks")}
+            />
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>隐私设置</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3 pt-6">
-          <ToggleRow
-            label="公开最近动态"
-            description="允许他人在你的主页查看最近回复"
-            register={register("showRecentReplies")}
-          />
-          <ToggleRow
-            label="公开玩家标记"
-            description="允许他人在你的主页查看参与的帖子"
-            register={register("showPlayerBadges")}
-          />
-          <ToggleRow
-            label="公开收藏"
-            description="允许他人在你的主页查看收藏"
-            register={register("showBookmarks")}
-          />
-        </CardContent>
-      </Card>
-
-      <div className="flex items-center justify-end gap-2">
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={() => router.push(`/users/${me?.id}`)}
-          disabled={updateProfile.isPending}
-        >
-          返回主页
-        </Button>
-        <Button type="submit" disabled={updateProfile.isPending}>
-          {updateProfile.isPending ? (
-            <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-          ) : null}
-          保存
-        </Button>
-      </div>
-    </form>
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => router.push(`/users/${me?.id}`)}
+            disabled={updateProfile.isPending}
+          >
+            返回主页
+          </Button>
+          <Button type="submit" disabled={updateProfile.isPending}>
+            {updateProfile.isPending ? (
+              <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+            ) : null}
+            保存
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 }
 
