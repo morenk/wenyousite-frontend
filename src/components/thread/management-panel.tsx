@@ -1,4 +1,4 @@
-/** ManagementPanel：帖主管理面板 — 左子贴目录树 + 右单例编辑器 */
+/** ManagementPanel：帖主管理面板 — 左子贴目录树 + 右单例编辑器 + 成员管理 */
 
 "use client";
 
@@ -6,10 +6,12 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/lib/auth";
 
 import { Button } from "@/components/ui/button";
 import { MilkdownEditor } from "@/components/editor/milkdown-editor";
 import { SubthreadTree } from "@/components/thread/subthread-tree";
+import { MemberManager } from "@/components/thread/member-manager";
 import {
   SubthreadForm,
   type SubthreadFormData,
@@ -39,6 +41,8 @@ export function ManagementPanel({
   onExit,
   onRefetch,
 }: ManagementPanelProps) {
+  const { user } = useAuth();
+  const [view, setView] = useState<"subthreads" | "members">("subthreads");
   const [selectedId, setSelectedId] = useState(thread.defaultSubthreadId);
   const [content, setContent] = useState(
     thread.defaultSubthread.bodyPost?.content ?? "",
@@ -178,9 +182,39 @@ export function ManagementPanel({
         <span className="text-sm font-medium truncate">
           管理帖子：{thread.title}
         </span>
+        <div className="ml-auto flex items-center gap-1">
+          <Button
+            type="button"
+            variant={view === "subthreads" ? "secondary" : "ghost"}
+            size="sm"
+            onClick={() => setView("subthreads")}
+          >
+            子贴
+          </Button>
+          <Button
+            type="button"
+            variant={view === "members" ? "secondary" : "ghost"}
+            size="sm"
+            onClick={() => setView("members")}
+          >
+            成员
+          </Button>
+        </div>
       </div>
 
+      {/* 成员管理 */}
+      {view === "members" && (
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <MemberManager
+            threadId={thread.id}
+            isOwner={!!user && user.id === thread.ownerId}
+            onRefetch={onRefetch}
+          />
+        </div>
+      )}
+
       {/* 左树 + 右编辑 */}
+      {view === "subthreads" && (
       <div className="flex min-h-0 flex-1">
         {/* 左栏：子贴目录树 */}
         <aside className="flex w-64 min-h-0 shrink-0 flex-col border-r border-border bg-muted/30">
@@ -250,6 +284,7 @@ export function ManagementPanel({
           )}
         </section>
       </div>
+      )}
 
       {/* 子贴元数据表单弹窗 */}
       {subFormMode && (

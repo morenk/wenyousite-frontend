@@ -1,6 +1,6 @@
 /** ManagementPanel 组件测试 */
 
-import { describe, test, expect, vi, afterEach } from "vitest";
+import { describe, test, expect, vi, afterEach, beforeEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -10,6 +10,17 @@ import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
 
 vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
+}));
+
+const mockUseAuth = vi.fn();
+vi.mock("@/lib/auth", () => ({
+  useAuth: () => mockUseAuth(),
+}));
+
+vi.mock("@/components/thread/member-manager", () => ({
+  MemberManager: ({ isOwner }: { isOwner: boolean }) => (
+    <div data-testid="member-manager">成员管理 isOwner={String(isOwner)}</div>
+  ),
 }));
 
 vi.mock("@/components/editor/milkdown-editor", () => ({
@@ -101,6 +112,10 @@ afterEach(() => {
   cleanup();
   vi.clearAllMocks();
   vi.unstubAllGlobals();
+});
+
+beforeEach(() => {
+  mockUseAuth.mockReturnValue({ user: { id: "u1", username: "test" } });
 });
 
 function createWrapper() {
@@ -334,5 +349,25 @@ describe("ManagementPanel", () => {
     await vi.waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith("排序保存失败，请稍后重试");
     });
+  });
+
+  test("切换到成员 tab 显示成员管理", async () => {
+    const user = userEvent.setup();
+    renderPanel();
+
+    await user.click(screen.getByRole("button", { name: "成员" }));
+
+    expect(screen.getByTestId("member-manager")).toBeInTheDocument();
+    expect(screen.getByText("成员管理 isOwner=true")).toBeInTheDocument();
+  });
+
+  test("非帖主查看成员 tab 时 isOwner 为 false", async () => {
+    const user = userEvent.setup();
+    mockUseAuth.mockReturnValue({ user: { id: "other" } });
+    renderPanel();
+
+    await user.click(screen.getByRole("button", { name: "成员" }));
+
+    expect(screen.getByText("成员管理 isOwner=false")).toBeInTheDocument();
   });
 });
