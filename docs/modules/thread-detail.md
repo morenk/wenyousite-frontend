@@ -152,6 +152,40 @@
 }
 ```
 
+### GET /posts/:id/replies?limit=5 → ReplyList
+
+```json
+{
+  "code": 0,
+  "message": "ok",
+  "data": [
+    {
+      "id": "cms7rnyld001a7qdyojgawj99",
+      "threadId": "cms7rnyhi000t7qdy4m53nt03",
+      "subthreadId": "cms7rnyho000x7qdyqsooa5lc",
+      "authorId": "cms7kpgnb00067q6lg4u0tyuu",
+      "floorNumber": null,
+      "parentPostId": "cms7pq32u00cy7q6l84j84hjj",
+      "replyToPostId": "cms7rnyld001a7qdyojgawj98",
+      "replyTo": {
+        "id": "cms7rnyld001a7qdyojgawj98",
+        "authorId": "cms7gly7n00017q6lbkla7ojh",
+        "author": { "id": "cms7gly7n00017q6lbkla7ojh", "username": "morenk", "avatar": null }
+      },
+      "content": "回复 @morenk 的内容",
+      "version": 1,
+      "createdAt": "2026-07-30T17:07:26.306Z",
+      "updatedAt": "2026-07-30T17:07:26.306Z",
+      "deletedAt": null,
+      "author": { "id": "cms7kpgnb00067q6lg4u0tyuu", "username": "testthread2", "avatar": null }
+    }
+  ],
+  "meta": { "cursor": "cms7rnyld001a7qdyojgawj99", "hasMore": false }
+}
+```
+
+> **replyTo 字段**：后端 `GET /posts/:id/replies` 与 `GET /subthreads/:id/posts` 内嵌回复均带 `replyToPost` 关联（含目标回复 `author`），前端 `PostData.replyToPost` 据此渲染「回复 @xxx」上下文。旧快照（无 replyToPost）已过时，需重新抓取。
+
 ### POST /threads/:id/like → ThreadDetail (partial)
 
 ```json
@@ -184,8 +218,8 @@
 | FloorCard | `src/components/thread/floor-card.tsx` | 单条楼层卡片（Markdown 渲染；作者本人可编辑/删除；展开楼中楼 + 回复他人） |
 | FloorList | `src/components/thread/floor-list.tsx` | 楼层列表（仅 kind=FLOOR，无限滚动，cursor 分页） |
 | FloorForm | `src/components/thread/floor-form.tsx` | 新楼层发布表单（MilkdownEditor + 图片上传，发布后重挂载清空） |
-| ReplyList | `src/components/thread/reply-list.tsx` | 楼中楼回复列表（展开/加载更多） |
-| ReplyForm | `src/components/thread/reply-form.tsx` | 楼中楼回复表单（小尺寸 MilkdownEditor） |
+| ReplyList | `src/components/thread/reply-list.tsx` | 楼中楼回复列表（展开/加载更多；每条回复可对用户回复，显示「回复 @xxx」上下文） |
+| ReplyForm | `src/components/thread/reply-form.tsx` | 楼中楼回复表单（小尺寸 MilkdownEditor；支持 `replyToPostId` 指定回复串内目标，缺省回主楼层） |
 | MemberManager | `src/components/thread/member-manager.tsx` | 成员管理：授予/收回玩家、升级/降级协作者、移除参与人 |
 | ManagementPanel | `src/components/thread/management-panel.tsx` | 帖主管理面板：左子贴目录树 + 右单例编辑器 |
 | SubthreadTree | `src/components/thread/subthread-tree.tsx` | 管理面板左栏子贴目录树（@dnd-kit 拖拽排序） |
@@ -250,6 +284,8 @@
 ```
 
 > **楼层编辑**：作者点击 FloorCard 的编辑按钮进入编辑态，用 MilkdownEditor 回填 `floor.content`，保存调用 `useUpdatePost`（乐观锁 version）；编辑内容通过 `markdownUpdated` 异步写入 `editContent` state，保存前需等编辑器 markdown 更新完成。
+
+> **楼中楼回复（回复串内对用户回复）**：楼中楼回复串平级挂载于主楼层（`parentPostId` 指向主楼层，无嵌套深度限制，后端只允许回复主楼层）。楼层展开后 `ReplyList` 的每条回复头部有「回复」按钮（仅登录显示），点击在目标回复下方展开 `ReplyForm`：`parentPostId=主楼层 id`、`replyToPostId=目标回复 id`、`replyToLabel=@目标用户名`。`POST /subthreads/:id/posts` 的 `replyToPostId` 负责追踪回复目标，后端通知逻辑按 `replyToPostId ?? parentPostId` 通知被回复者。已有回复若带 `replyToPostId`，回复串内渲染「回复 @被回复者」链接上下文（`replyTo.author.username`，后端 `GET /posts/:id/replies` 已带出 author）。
 
 ## 8. 错误处理
 

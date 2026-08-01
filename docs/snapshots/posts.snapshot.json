@@ -1,10 +1,10 @@
 {
   "module": "posts",
-  "generatedAt": "2026-07-30T17:20:07.579Z",
+  "generatedAt": "2026-08-01T18:51:28.658Z",
   "description": "楼层/帖子端点快照",
   "endpoints": {
-    "GET /subthreads/cms7plnem00cu7q6lpbmq2b1o/posts?limit=5": {
-      "label": "GET /subthreads/cms7plnem00cu7q6lpbmq2b1o/posts?limit=5",
+    "GET /subthreads/cmsapbna8004r7q319m86krin/posts?limit=5": {
+      "label": "GET /subthreads/cmsapbna8004r7q319m86krin/posts?limit=5",
       "request": {
         "limit": 5
       },
@@ -13,47 +13,108 @@
         "message": "ok",
         "data": [
           {
-            "id": "cms7pq32u00cy7q6l84j84hjj",
-            "threadId": "cms7plneh00cq7q6lrmlwwpad",
-            "subthreadId": "cms7plnem00cu7q6lpbmq2b1o",
-            "authorId": "cms7gly7n00017q6lbkla7ojh",
+            "id": "cmsapbowx00517q313y47bmtj",
+            "threadId": "cmsapbna4004n7q31w8dvc0ln",
+            "subthreadId": "cmsapbna8004r7q319m86krin",
+            "authorId": "cms5zycb900017q0azar1nag2",
+            "kind": "FLOOR",
             "floorNumber": 1,
             "parentPostId": null,
             "replyToPostId": null,
-            "content": "sadasdasfasfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffa",
+            "content": "主楼正文",
             "version": 1,
-            "createdAt": "2026-07-30T16:13:06.198Z",
-            "updatedAt": "2026-07-30T16:13:06.198Z",
+            "createdAt": "2026-08-01T18:25:13.185Z",
+            "updatedAt": "2026-08-01T18:25:13.185Z",
             "deletedAt": null,
             "author": {
-              "id": "cms7gly7n00017q6lbkla7ojh",
-              "username": "morenk",
+              "id": "cms5zycb900017q0azar1nag2",
+              "username": "testuser",
               "avatar": null
             },
             "_count": {
-              "replies": 0
+              "replies": 1
             },
-            "replies": []
+            "replies": [
+              {
+                "id": "cmsapbpui00577q31p0c1vfxx",
+                "threadId": "cmsapbna4004n7q31w8dvc0ln",
+                "subthreadId": "cmsapbna8004r7q319m86krin",
+                "authorId": "cms5zycb900017q0azar1nag2",
+                "kind": "FLOOR",
+                "floorNumber": null,
+                "parentPostId": "cmsapbowx00517q313y47bmtj",
+                "replyToPostId": "cmsapbowx00517q313y47bmtj",
+                "content": "楼中楼回复内容",
+                "version": 1,
+                "createdAt": "2026-08-01T18:25:14.395Z",
+                "updatedAt": "2026-08-01T18:25:14.395Z",
+                "deletedAt": null,
+                "author": {
+                  "id": "cms5zycb900017q0azar1nag2",
+                  "username": "testuser",
+                  "avatar": null
+                },
+                "replyToPost": {
+                  "id": "cmsapbowx00517q313y47bmtj",
+                  "authorId": "cms5zycb900017q0azar1nag2",
+                  "author": {
+                    "id": "cms5zycb900017q0azar1nag2",
+                    "username": "testuser",
+                    "avatar": null
+                  }
+                }
+              }
+            ]
           }
         ],
         "meta": {
-          "cursor": "cms7pq32u00cy7q6l84j84hjj",
+          "cursor": "cmsapbowx00517q313y47bmtj",
           "hasMore": false
         }
       },
       "httpStatus": 200
     },
-    "GET /posts/cms7pq32u00cy7q6l84j84hjj/replies?limit=3": {
-      "label": "GET /posts/cms7pq32u00cy7q6l84j84hjj/replies?limit=3",
+    "GET /posts/cmsapbowx00517q313y47bmtj/replies?limit=3": {
+      "label": "GET /posts/cmsapbowx00517q313y47bmtj/replies?limit=3",
       "request": {
         "limit": 3
       },
       "response": {
         "code": 0,
         "message": "ok",
-        "data": [],
+        "data": [
+          {
+            "id": "cmsapbpui00577q31p0c1vfxx",
+            "threadId": "cmsapbna4004n7q31w8dvc0ln",
+            "subthreadId": "cmsapbna8004r7q319m86krin",
+            "authorId": "cms5zycb900017q0azar1nag2",
+            "kind": "FLOOR",
+            "floorNumber": null,
+            "parentPostId": "cmsapbowx00517q313y47bmtj",
+            "replyToPostId": "cmsapbowx00517q313y47bmtj",
+            "content": "楼中楼回复内容",
+            "version": 1,
+            "createdAt": "2026-08-01T18:25:14.395Z",
+            "updatedAt": "2026-08-01T18:25:14.395Z",
+            "deletedAt": null,
+            "author": {
+              "id": "cms5zycb900017q0azar1nag2",
+              "username": "testuser",
+              "avatar": null
+            },
+            "replyToPost": {
+              "id": "cmsapbowx00517q313y47bmtj",
+              "authorId": "cms5zycb900017q0azar1nag2",
+              "author": {
+                "id": "cms5zycb900017q0azar1nag2",
+                "username": "testuser",
+                "avatar": null
+              }
+            }
+          }
+        ],
         "meta": {
-          "cursor": null,
+          "cursor": "cmsapbpui00577q31p0c1vfxx",
           "hasMore": false
         }
       },
