@@ -32,11 +32,14 @@ async function loginAndCreatePublishedThread(page: import("@playwright/test").Pa
   );
 }
 
-/** 在详情页发布一楼新楼层 */
+/** 在详情页用 MD 编辑器发布一楼新楼层 */
 async function postFloor(page: import("@playwright/test").Page, content: string) {
-  const textarea = page.getByPlaceholder("输入正文内容（支持 Markdown）...");
-  await expect(textarea).toBeVisible();
-  await textarea.fill(content);
+  const editor = page.locator(".milkdown-editor .ProseMirror");
+  await expect(editor.first()).toBeVisible();
+  await editor.first().click();
+  await editor.first().pressSequentially(content, { delay: 20 });
+  // 等待字数统计更新为非 0（markdownUpdated 已触发）
+  await expect(page.locator(".tabular-nums").first()).not.toHaveText(/^0\/10000$/);
   await page.getByRole("button", { name: "发布" }).click();
   await expect(page.getByText("发布成功").first()).toBeVisible({ timeout: 10000 });
 }
@@ -234,14 +237,23 @@ test.describe("楼层编辑与删除", () => {
 
     // 点击编辑按钮
     await floorCard.first().getByTitle("编辑楼层").click();
-    // 编辑框 textarea 在页面中先于发布表单 textarea
-    await page.locator("textarea").first().fill("编辑后的楼层正文");
+    // 编辑态编辑器在楼层卡片内、DOM 中先于底部发布表单编辑器，取第一个
+    const editEditor = page.locator(".milkdown-editor .ProseMirror").first();
+    await expect(editEditor).toBeVisible();
+    // 全选删除后键入（fill 不触发 ProseMirror 的 markdownUpdated）
+    await editEditor.click();
+    await page.keyboard.press("ControlOrMeta+a");
+    await page.keyboard.press("Backspace");
+    await editEditor.pressSequentially("编辑后的楼层正文", { delay: 20 });
+    // 等待 markdownUpdated 异步写入编辑器内容 + React state flush
+    await expect(editEditor).toContainText("编辑后的楼层正文", { timeout: 10000 });
+    await page.waitForTimeout(500);
     await page.getByRole("button", { name: "保存" }).click();
 
-    // 等待保存提示并验证新正文渲染
+    // 等待保存提示并验证新正文渲染（自动重试直到楼层列表刷新完成）
     await expect(page.getByText("已保存").first()).toBeVisible({ timeout: 10000 });
     await expect(
-      page.locator(".rounded-xl.border").filter({ hasText: "编辑后的楼层正文" }).first(),
+      page.getByText("编辑后的楼层正文").first(),
     ).toBeVisible({ timeout: 10000 });
   });
 
