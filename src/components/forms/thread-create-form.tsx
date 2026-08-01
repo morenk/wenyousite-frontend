@@ -166,6 +166,9 @@ export function ThreadCreateForm({
         },
       });
 
+      // 发布成功后刷新详情缓存（跳转详情页时读到 published 的最新数据）
+      await onRefetch();
+
       toast.success("发布成功");
       onPublished(latestThread.id);
     } catch (error: unknown) {

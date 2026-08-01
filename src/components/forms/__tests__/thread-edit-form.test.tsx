@@ -165,7 +165,7 @@ describe("ThreadEditForm", () => {
 
   test("保存修改：更新正文、标题、标签并回详情", async () => {
     const user = userEvent.setup();
-    const { onBack } = renderForm();
+    const { onBack, onSaved } = renderForm();
 
     await user.clear(screen.getByTestId("milkdown-editor"));
     await user.type(screen.getByTestId("milkdown-editor"), "新正文");
@@ -196,6 +196,7 @@ describe("ThreadEditForm", () => {
     });
     expect(toast.success).toHaveBeenCalledWith("修改已保存");
     expect(onBack).toHaveBeenCalled();
+    expect(onSaved).toHaveBeenCalledTimes(2);
   });
 
   test("标题变化时同步默认子贴标题", async () => {

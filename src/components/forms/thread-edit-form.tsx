@@ -121,6 +121,9 @@ export function ThreadEditForm({
         },
       });
 
+      // 保存成功后刷新详情缓存（返回详情页时读到最新标题等数据）
+      await onSaved();
+
       toast.success("修改已保存");
       onBack();
     } catch (error: unknown) {
