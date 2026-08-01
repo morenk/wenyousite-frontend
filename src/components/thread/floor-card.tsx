@@ -12,8 +12,10 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { useUpdatePost } from "@/api/hooks/use-update-post";
 import { useDeletePost } from "@/api/hooks/use-delete-post";
+import { useUploadImage } from "@/api/hooks/use-upload-image";
 import { useQueryClient } from "@tanstack/react-query";
 import { MarkdownContent } from "@/components/thread/markdown-content";
+import { MilkdownEditor } from "@/components/editor/milkdown-editor";
 import { Button } from "@/components/ui/button";
 import type { PostData } from "@/api/hooks/use-floors";
 
@@ -29,6 +31,7 @@ export function FloorCard({ floor, isEven }: FloorCardProps) {
   const [editContent, setEditContent] = useState(floor.content);
   const updatePost = useUpdatePost();
   const deletePost = useDeletePost();
+  const uploadImage = useUploadImage();
 
   const isAuthor = !!user && user.id === floor.authorId;
 
@@ -136,11 +139,12 @@ export function FloorCard({ floor, isEven }: FloorCardProps) {
       {/* 楼层正文 / 编辑态 */}
       {isEditing ? (
         <div className="space-y-2">
-          <textarea
-            value={editContent}
-            onChange={(e) => setEditContent(e.target.value)}
-            rows={4}
-            className="w-full resize-y rounded-lg border border-border bg-background p-3 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+          <MilkdownEditor
+            key={`floor-edit-${floor.id}`}
+            defaultValue={floor.content}
+            onChange={setEditContent}
+            onUploadImage={async (file) => uploadImage.mutateAsync(file)}
+            disabled={updatePost.isPending}
           />
           <div className="flex items-center justify-end gap-2">
             <Button

@@ -26,6 +26,25 @@ vi.mock("@/api/hooks/use-update-post", () => ({
 vi.mock("@/api/hooks/use-delete-post", () => ({
   useDeletePost: () => ({ mutateAsync: mockDeleteMutateAsync }),
 }));
+vi.mock("@/api/hooks/use-upload-image", () => ({
+  useUploadImage: () => ({ mutateAsync: vi.fn() }),
+}));
+
+vi.mock("@/components/editor/milkdown-editor", () => ({
+  MilkdownEditor: ({
+    defaultValue,
+    onChange,
+  }: {
+    defaultValue?: string;
+    onChange?: (v: string) => void;
+  }) => (
+    <textarea
+      data-testid="milkdown-editor"
+      defaultValue={defaultValue}
+      onChange={(e) => onChange?.(e.target.value)}
+    />
+  ),
+}));
 
 vi.mock("@tanstack/react-query", async () => {
   const actual = await vi.importActual("@tanstack/react-query");
@@ -153,7 +172,7 @@ describe("FloorCard", () => {
     renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
 
     await user.click(screen.getByTitle("编辑楼层"));
-    const textarea = screen.getByRole("textbox");
+    const textarea = screen.getByTestId("milkdown-editor");
     await user.clear(textarea);
     await user.type(textarea, "编辑后的正文");
     await user.click(screen.getByRole("button", { name: "保存" }));
@@ -193,7 +212,7 @@ describe("FloorCard", () => {
     await user.click(screen.getByRole("button", { name: "取消" }));
 
     expect(mockUpdateMutateAsync).not.toHaveBeenCalled();
-    expect(screen.queryByRole("textbox")).toBeNull();
+    expect(screen.queryByTestId("milkdown-editor")).toBeNull();
     expect(screen.getByText("加粗")).toBeInTheDocument();
   });
 
