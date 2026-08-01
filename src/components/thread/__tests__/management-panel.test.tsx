@@ -187,6 +187,11 @@ describe("ManagementPanel", () => {
     expect(screen.getByTestId("milkdown-editor")).toHaveValue("默认正文");
   });
 
+  test("渲染发帖权限中文标签", () => {
+    renderPanel();
+    expect(screen.getByText("发帖权限：所有人")).toBeInTheDocument();
+  });
+
   test("切换子贴加载对应正文", async () => {
     const user = userEvent.setup();
     renderPanel();

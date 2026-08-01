@@ -9,6 +9,7 @@ import { Loader2, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { POSTING_POLICY_OPTIONS } from "@/lib/post-policy";
 
 const subthreadFormSchema = z.object({
   title: z.string().min(1, "请输入子贴标题").max(100, "子贴标题最多 100 个字符"),
@@ -16,12 +17,6 @@ const subthreadFormSchema = z.object({
 });
 
 export type SubthreadFormData = z.infer<typeof subthreadFormSchema>;
-
-const POSTING_POLICY_OPTIONS = [
-  { value: "PARTICIPANTS", label: "参与人可发帖" },
-  { value: "COLLABORATORS", label: "仅协作者" },
-  { value: "PLAYERS", label: "仅玩家" },
-] as const;
 
 interface SubthreadFormProps {
   mode: "create" | "edit";

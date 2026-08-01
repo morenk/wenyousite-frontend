@@ -63,7 +63,7 @@ describe("SubthreadTree", () => {
 
   test("渲染发帖权限标签", () => {
     render(<SubthreadTree {...baseProps} />);
-    expect(screen.getByText("参与人")).toBeInTheDocument();
+    expect(screen.getByText("所有人")).toBeInTheDocument();
     expect(screen.getByText("协作者")).toBeInTheDocument();
     expect(screen.getByText("玩家")).toBeInTheDocument();
   });

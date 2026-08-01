@@ -34,7 +34,7 @@ describe("SubthreadCard", () => {
 
   test("渲染发帖权限标签", () => {
     render(<SubthreadCard subthread={mockSubthread} />);
-    expect(screen.getByText("参与人可发帖")).toBeInTheDocument();
+    expect(screen.getByText("所有人")).toBeInTheDocument();
   });
 
   test("渲染楼层数量", () => {

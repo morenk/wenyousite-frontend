@@ -22,13 +22,8 @@ import { GripVertical, Pencil, Trash2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { computeReorderedIds, excludeDroppable } from "@/lib/reorder";
+import { POSTING_POLICY_LABEL } from "@/lib/post-policy";
 import type { SubthreadDetail } from "@/api/hooks/use-thread-detail";
-
-const POSTING_POLICY_LABEL: Record<string, string> = {
-  PARTICIPANTS: "参与人",
-  COLLABORATORS: "协作者",
-  PLAYERS: "玩家",
-};
 
 interface SubthreadTreeNodeProps {
   subthread: SubthreadDetail;

@@ -20,6 +20,7 @@ import { useDeleteSubthread } from "@/api/hooks/use-delete-subthread";
 import { useReorderSubthreads } from "@/api/hooks/use-reorder-subthreads";
 import { useUpsertBody } from "@/api/hooks/use-upsert-body";
 import { useUploadImage } from "@/api/hooks/use-upload-image";
+import { POSTING_POLICY_LABEL } from "@/lib/post-policy";
 import type { ThreadDetail, SubthreadDetail } from "@/api/hooks/use-thread-detail";
 
 interface ManagementPanelProps {
@@ -207,7 +208,7 @@ export function ManagementPanel({
                   正在编辑：{selectedSub.title}
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  发帖权限：{selectedSub.postingPolicy}
+                  发帖权限：{POSTING_POLICY_LABEL[selectedSub.postingPolicy] ?? selectedSub.postingPolicy}
                 </span>
               </div>
 

@@ -5,13 +5,8 @@
 import { useState } from "react";
 import { ChevronDown, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { POSTING_POLICY_LABEL } from "@/lib/post-policy";
 import type { SubthreadDetail } from "@/api/hooks/use-thread-detail";
-
-const POSTING_POLICY_LABEL: Record<string, string> = {
-  PARTICIPANTS: "参与人可发帖",
-  COLLABORATORS: "仅协作者",
-  PLAYERS: "仅玩家",
-};
 
 interface SubthreadCardProps {
   subthread: SubthreadDetail;
