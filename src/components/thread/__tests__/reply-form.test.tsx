@@ -92,6 +92,29 @@ describe("ReplyForm", () => {
     expect(onReplied).toHaveBeenCalled();
   });
 
+  test("回复串内回复：显式传入 replyToPostId 透传给接口", async () => {
+    const user = userEvent.setup();
+    renderWithQC(
+      <ReplyForm
+        subthreadId="s1"
+        parentPostId="post-1"
+        replyToPostId="reply-2"
+        replyToLabel="@小明"
+      />,
+    );
+
+    expect(screen.getByText("回复 @小明")).toBeInTheDocument();
+    await user.type(screen.getByTestId("milkdown-editor"), "回小明");
+    await user.click(screen.getByRole("button", { name: "回复" }));
+
+    expect(mockMutateAsync).toHaveBeenCalledWith({
+      subthreadId: "s1",
+      content: "回小明",
+      parentPostId: "post-1",
+      replyToPostId: "reply-2",
+    });
+  });
+
   test("内容为空时回复按钮禁用", () => {
     renderWithQC(<ReplyForm subthreadId="s1" parentPostId="post-1" />);
     expect(screen.getByRole("button", { name: "回复" })).toBeDisabled();

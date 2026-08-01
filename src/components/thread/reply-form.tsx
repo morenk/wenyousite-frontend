@@ -14,7 +14,9 @@ import { Button } from "@/components/ui/button";
 interface ReplyFormProps {
   subthreadId: string;
   parentPostId: string;
-  /** 回复目标楼层正文预览（可选），用于显示"回复 @xxx"上下文 */
+  /** 回复目标帖 ID（可选）：楼中楼内回复指定回复串内的某条回复；缺省回主楼层 */
+  replyToPostId?: string;
+  /** 回复目标用户/楼层上下文（可选），用于显示"回复 @xxx" */
   replyToLabel?: string;
   onReplied?: () => void;
 }
@@ -22,6 +24,7 @@ interface ReplyFormProps {
 export function ReplyForm({
   subthreadId,
   parentPostId,
+  replyToPostId,
   replyToLabel,
   onReplied,
 }: ReplyFormProps) {
@@ -38,7 +41,7 @@ export function ReplyForm({
         subthreadId,
         content: content.trim(),
         parentPostId,
-        replyToPostId: parentPostId,
+        replyToPostId: replyToPostId ?? parentPostId,
       });
       setContent("");
       setResetKey((k) => k + 1);
