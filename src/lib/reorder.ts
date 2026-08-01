@@ -32,3 +32,14 @@ export function computeReorderedIds(
 
   return reordered;
 }
+
+/**
+ * 从 dnd-kit droppable 容器中排除指定 id（主帖不作为拖拽落点，
+ * 使拖拽其他子贴时不会命中主帖，直接在操作层面拦截）。
+ */
+export function excludeDroppable<T extends { id: unknown }>(
+  containers: T[],
+  excludedId: string,
+): T[] {
+  return containers.filter((c) => c.id !== excludedId);
+}

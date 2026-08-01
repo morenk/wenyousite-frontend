@@ -9,6 +9,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  type CollisionDetection,
   type DragEndEvent,
 } from "@dnd-kit/core";
 import {
@@ -20,7 +21,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Pencil, Trash2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { computeReorderedIds } from "@/lib/reorder";
+import { computeReorderedIds, excludeDroppable } from "@/lib/reorder";
 import type { SubthreadDetail } from "@/api/hooks/use-thread-detail";
 
 const POSTING_POLICY_LABEL: Record<string, string> = {
@@ -147,6 +148,19 @@ export function SubthreadTree({
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   );
 
+  // 碰撞检测排除主帖：主帖不可作为拖拽落点，其他子贴拖到主帖区域会吸附到主帖下方首个槽位
+  const collisionDetection = useCallback<CollisionDetection>(
+    (args) =>
+      closestCenter({
+        ...args,
+        droppableContainers: excludeDroppable(
+          args.droppableContainers,
+          defaultSubthreadId,
+        ),
+      }),
+    [defaultSubthreadId],
+  );
+
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
@@ -171,7 +185,7 @@ export function SubthreadTree({
       <div className="flex-1 overflow-y-auto space-y-0.5 p-2">
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCenter}
+          collisionDetection={collisionDetection}
           onDragEnd={handleDragEnd}
         >
           <SortableContext

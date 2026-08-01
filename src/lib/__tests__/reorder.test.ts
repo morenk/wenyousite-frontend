@@ -1,7 +1,7 @@
-/** computeReorderedIds 纯函数测试 */
+/** computeReorderedIds / excludeDroppable 纯函数测试 */
 
 import { describe, test, expect } from "vitest";
-import { computeReorderedIds } from "@/lib/reorder";
+import { computeReorderedIds, excludeDroppable } from "@/lib/reorder";
 
 describe("computeReorderedIds", () => {
   const ids = ["s1", "s2", "s3", "s4"];
@@ -36,5 +36,24 @@ describe("computeReorderedIds", () => {
 
   test("空数组返回 null", () => {
     expect(computeReorderedIds([], "s2", "s3", "s1")).toBeNull();
+  });
+});
+
+describe("excludeDroppable", () => {
+  test("排除主帖后其余容器保留", () => {
+    const containers = [{ id: "s1" }, { id: "s2" }, { id: "s3" }];
+    expect(excludeDroppable(containers, "s1").map((c) => c.id)).toEqual([
+      "s2",
+      "s3",
+    ]);
+  });
+
+  test("排除的 id 不存在时原样返回", () => {
+    const containers = [{ id: "s2" }, { id: "s3" }];
+    expect(excludeDroppable(containers, "s1")).toEqual(containers);
+  });
+
+  test("空数组返回空数组", () => {
+    expect(excludeDroppable([], "s1")).toEqual([]);
   });
 });

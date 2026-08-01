@@ -112,9 +112,54 @@ test.describe("主题帖管理面板", () => {
     const reorderRes = await reorderResponse;
     expect(reorderRes.status()).toBe(200);
 
-    // 树中仍保留所有子贴（默认子贴标题已跟随帖子标题，用默认徽章断言）
-    await expect(aside.getByText("默认")).toBeVisible();
+    // 树中仍保留所有子贴（默认子贴标题已跟随帖子标题，用主帖徽章断言）
+    await expect(aside.getByText("主帖")).toBeVisible();
     await expect(aside.getByText("设定区")).toBeVisible();
     await expect(aside.getByText("剧情区")).toBeVisible();
+  });
+
+  test("拖拽子贴到主帖位置不触发交换且无错误提示", async ({ page }) => {
+    await loginAndCreatePublishedThread(page);
+
+    await page.getByRole("button", { name: "管理" }).click();
+    await expect(page.getByText("返回浏览")).toBeVisible();
+
+    const aside = page.locator("aside");
+
+    // 添加两个非默认子贴
+    for (const title of ["设定区", "剧情区"]) {
+      await page.getByText("添加子贴").click();
+      await page.getByPlaceholder("主帖 / 设定区 / 剧情区").fill(title);
+      await page.getByRole("button", { name: "添加", exact: true }).click();
+      await expect(aside.getByText(title)).toBeVisible({ timeout: 10000 });
+    }
+
+    // 记录拖拽前的树顺序
+    const treeList = aside.locator("div.overflow-y-auto").first();
+    const orderBefore = await treeList.innerText();
+
+    // 拖拽"设定区"（第 2 个节点）到主帖位置：主帖不作为落点，应被操作层拦截
+    const handle = aside.getByTitle("拖拽排序").nth(1);
+    const mainPost = aside.getByText("主帖").first();
+    const from = await handle.boundingBox();
+    const to = await mainPost.boundingBox();
+    if (!from || !to) throw new Error("无法获取拖拽元素位置");
+
+    await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, {
+      steps: 12,
+    });
+    await page.mouse.up();
+
+    // 顺序不变（主帖保持首位）
+    const orderAfter = await treeList.innerText();
+    expect(orderAfter).toBe(orderBefore);
+
+    // 无"不能交换"提示或排序失败提示
+    await expect(
+      page.getByText("主帖必须保持在第一位，不能与其他子帖交换顺序"),
+    ).not.toBeVisible();
+    await expect(page.getByText(/排序保存失败/)).not.toBeVisible();
   });
 });
