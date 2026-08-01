@@ -1,4 +1,4 @@
-/** 创建楼层 API hook（用于发布楼层回复） */
+/** 创建楼层 API hook（发布楼层或楼中楼回复） */
 
 import { useMutation } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
@@ -19,20 +19,21 @@ interface CreatePostResponse {
   data: CreatedPost;
 }
 
+interface CreatePostArgs {
+  subthreadId: string;
+  content: string;
+  parentPostId?: string;
+  replyToPostId?: string;
+}
+
 export function useCreatePost() {
   return useMutation({
-    mutationFn: async ({
-      subthreadId,
-      content,
-    }: {
-      subthreadId: string;
-      content: string;
-    }) => {
+    mutationFn: async ({ subthreadId, content, parentPostId, replyToPostId }: CreatePostArgs) => {
       const { data, error } = await apiClient.POST(
         "/api/v1/subthreads/{subthreadId}/posts",
         {
           params: { path: { subthreadId } },
-          body: { content },
+          body: { content, parentPostId, replyToPostId },
         },
       );
       if (error) throw error;

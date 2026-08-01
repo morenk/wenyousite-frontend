@@ -46,6 +46,16 @@ vi.mock("@/components/editor/milkdown-editor", () => ({
   ),
 }));
 
+vi.mock("@/components/thread/reply-list", () => ({
+  ReplyList: () => <div data-testid="reply-list">回复列表</div>,
+}));
+
+vi.mock("@/components/thread/reply-form", () => ({
+  ReplyForm: ({ parentPostId }: { parentPostId: string }) => (
+    <div data-testid={`reply-form-${parentPostId}`}>回复表单</div>
+  ),
+}));
+
 vi.mock("@tanstack/react-query", async () => {
   const actual = await vi.importActual("@tanstack/react-query");
   return { ...actual, useQueryClient: () => ({ invalidateQueries: vi.fn().mockResolvedValue(undefined) }) };
@@ -247,5 +257,39 @@ describe("FloorCard", () => {
     expect(window.confirm).toHaveBeenCalled();
     expect(mockDeleteMutateAsync).not.toHaveBeenCalled();
     vi.unstubAllGlobals();
+  });
+
+  test("有回复时点击回复数展开楼中楼列表", async () => {
+    const user = userEvent.setup();
+    const withReplies = { ...baseFloor, _count: { replies: 3 } };
+    mockUseAuth.mockReturnValue({
+      user: { id: "u1", username: "测试用户", emailVerified: true },
+      isInitialized: true,
+    });
+    renderWithQC(<FloorCard floor={withReplies} isEven={false} />);
+
+    await user.click(screen.getByText("3 条回复"));
+
+    expect(screen.getByTestId("reply-list")).toBeInTheDocument();
+  });
+
+  test("无回复时点击回复按钮展开并显示回复表单", async () => {
+    const user = userEvent.setup();
+    mockUseAuth.mockReturnValue({
+      user: { id: "u1", username: "测试用户", emailVerified: true },
+      isInitialized: true,
+    });
+    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+
+    await user.click(screen.getByRole("button", { name: "回复" }));
+
+    expect(screen.getByTestId("reply-list")).toBeInTheDocument();
+    expect(screen.getByTestId("reply-form-post-1")).toBeInTheDocument();
+  });
+
+  test("未登录不显示回复按钮", () => {
+    mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
+    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+    expect(screen.queryByRole("button", { name: "回复" })).toBeNull();
   });
 });

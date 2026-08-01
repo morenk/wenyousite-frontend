@@ -6,7 +6,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { MessageSquare, Pencil, Trash2, Loader2, Check, X } from "lucide-react";
+import { MessageSquare, Pencil, Trash2, Loader2, Check, X, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
@@ -16,6 +16,8 @@ import { useUploadImage } from "@/api/hooks/use-upload-image";
 import { useQueryClient } from "@tanstack/react-query";
 import { MarkdownContent } from "@/components/thread/markdown-content";
 import { MilkdownEditor } from "@/components/editor/milkdown-editor";
+import { ReplyList } from "@/components/thread/reply-list";
+import { ReplyForm } from "@/components/thread/reply-form";
 import { Button } from "@/components/ui/button";
 import type { PostData } from "@/api/hooks/use-floors";
 
@@ -29,6 +31,8 @@ export function FloorCard({ floor, isEven }: FloorCardProps) {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(floor.content);
+  const [isRepliesOpen, setIsRepliesOpen] = useState(false);
+  const [isReplying, setIsReplying] = useState(false);
   const updatePost = useUpdatePost();
   const deletePost = useDeletePost();
   const uploadImage = useUploadImage();
@@ -175,11 +179,55 @@ export function FloorCard({ floor, isEven }: FloorCardProps) {
         <MarkdownContent content={floor.content} />
       )}
 
-      {/* 回复数 */}
-      {!isEditing && floor._count.replies > 0 && (
-        <div className="mt-3 flex items-center gap-1 text-xs text-muted-foreground">
-          <MessageSquare className="h-3.5 w-3.5" />
-          {floor._count.replies} 条回复
+      {/* 回复数 / 回复按钮 */}
+      {!isEditing && (
+        <div className="mt-3 flex items-center justify-between border-t border-border pt-2">
+          {floor._count.replies > 0 ? (
+            <button
+              type="button"
+              onClick={() => setIsRepliesOpen((v) => !v)}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <MessageSquare className="h-3.5 w-3.5" />
+              {floor._count.replies} 条回复
+              {isRepliesOpen ? (
+                <ChevronUp className="h-3.5 w-3.5" />
+              ) : (
+                <ChevronDown className="h-3.5 w-3.5" />
+              )}
+            </button>
+          ) : (
+            <span className="text-xs text-muted-foreground">暂无回复</span>
+          )}
+          {user && floor.floorNumber != null && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 px-2 text-xs"
+              onClick={() => {
+                setIsRepliesOpen(true);
+                setIsReplying(true);
+              }}
+            >
+              <MessageSquare className="mr-1 h-3.5 w-3.5" />
+              回复
+            </Button>
+          )}
+        </div>
+      )}
+
+      {/* 楼中楼回复区 */}
+      {!isEditing && isRepliesOpen && (
+        <div className="mt-2">
+          <ReplyList postId={floor.id} />
+          {isReplying && (
+            <ReplyForm
+              subthreadId={floor.subthreadId}
+              parentPostId={floor.id}
+              replyToLabel={`#${floor.floorNumber} ${floor.author.username}`}
+              onReplied={() => setIsReplying(false)}
+            />
+          )}
         </div>
       )}
     </div>

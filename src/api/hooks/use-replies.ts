@@ -1,0 +1,49 @@
+/** 楼中楼回复列表 API hook（cursor 分页） */
+
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { apiClient } from "@/api/client";
+import type { PostData } from "./use-floors";
+
+export interface ReplyListResponse {
+  code: number;
+  message: string;
+  data: PostData[];
+  meta: {
+    cursor: string | null;
+    hasMore: boolean;
+  };
+}
+
+export function useReplies(postId: string | undefined) {
+  return useInfiniteQuery({
+    queryKey: ["replies", postId],
+    queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
+      if (!postId) throw new Error("缺少楼层 ID");
+      const queryParams: Record<string, string> = { limit: "20" };
+      if (pageParam) queryParams.cursor = pageParam;
+
+      const { data, error } = await apiClient.GET("/api/v1/posts/{id}/replies", {
+        params: { path: { id: postId }, query: queryParams },
+      });
+      if (error) throw error;
+
+      const response = data as unknown as ReplyListResponse;
+      if (!response?.data) {
+        return {
+          code: 0,
+          message: "ok",
+          data: [],
+          meta: { cursor: null, hasMore: false },
+        } as ReplyListResponse;
+      }
+      return response;
+    },
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => {
+      if (!lastPage?.meta?.hasMore) return undefined;
+      return lastPage.meta.cursor ?? undefined;
+    },
+    enabled: !!postId,
+    staleTime: 5 * 1000,
+  });
+}
