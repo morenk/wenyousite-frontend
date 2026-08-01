@@ -36,6 +36,11 @@ export function UsernameEdit({ currentUsername }: UsernameEditProps) {
 
   const handleSave = async () => {
     const next = value.trim();
+    // 空值防御：按钮已禁用，这里兜底
+    if (next === "") {
+      setFieldError("请输入用户名");
+      return;
+    }
     // 未修改用户名：不发请求，直接收起
     if (next === currentUsername) {
       setEditing(false);
@@ -60,7 +65,7 @@ export function UsernameEdit({ currentUsername }: UsernameEditProps) {
       setFieldError(null);
     } catch (err: unknown) {
       const e = err as { code?: number; message?: string };
-      if (e.code === 409) {
+      if (e.code === 40900) {
         setFieldError("用户名已被占用");
       } else if (e.code === 42900) {
         toast.error("操作太频繁，请稍后再试");

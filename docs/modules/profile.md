@@ -218,7 +218,9 @@ showRecentReplies / showPlayerBadges / showBookmarks: boolean
 - 不同则校验后 `PATCH /users/me { username }`，成功后用 `setAuth` 同步导航栏用户名
 - `username`: 2-24 位，字母/数字/中文，禁标点符号与特殊字符
 
-> 用户名修改需间隔 7 天以上，不足时后端返回剩余天数提示；冲突返回 409。限流 5 次/分钟。
+> 用户名修改需间隔 7 天以上，不足时后端返回剩余天数提示；冲突返回 409（code 40900）。限流 5 次/分钟。
+
+> **后端修复记录**：`update-user.dto.ts` 用户名曾误用 `@Transform(sanitizeContent)`（class-transformer 传入参数对象而非字符串，导致用户名恒为空、任何合法名都被拒）。已改为 `@Transform(({ value }) => sanitizeContent(value))`；并为 MinLength/MaxLength 补充中文消息（不再出现英文默认提示）。
 
 ## 8. 错误处理
 
@@ -226,8 +228,8 @@ showRecentReplies / showPlayerBadges / showBookmarks: boolean
 |--------|------|---------|
 | 404 | 用户不存在 / 已注销 / 隐私开关关闭（recent-replies/played-threads） | 板块隐藏或显示"该用户未公开此信息" |
 | 40100 | 未登录关注/拉黑 | apiClient 拦截器自动跳 /login |
-| 40000 | PATCH /users/me 校验失败 | toast 后端 message |
-| 40900 | 用户名冲突 | toast "用户名已被占用" |
+| 40000 | PATCH /users/me 校验失败 | toast 后端 message（全部中文化，无英文默认提示） |
+| 40900 | 用户名冲突（后端 ConflictException 409） | "用户名已被占用" |
 | 42900 | 资料修改限流 | toast "操作太频繁，请稍后再试" |
 | 网络错误 | fetch 失败 | 显示错误提示 + 重试按钮 |
 

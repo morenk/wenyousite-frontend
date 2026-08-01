@@ -117,11 +117,11 @@ describe("UsernameEdit", () => {
     expect(toast.success).toHaveBeenCalledWith("用户名已更新");
   });
 
-  test("用户名冲突提示已被占用", async () => {
+  test("用户名冲突（40900）提示已被占用", async () => {
     const user = userEvent.setup();
     mockUseUpdateProfile.mockReturnValue({
       isPending: false,
-      mutateAsync: vi.fn().mockRejectedValueOnce({ code: 409, message: "用户名已被占用" }),
+      mutateAsync: vi.fn().mockRejectedValueOnce({ code: 40900, message: "用户名已被占用" }),
     });
 
     renderWithQC(<UsernameEdit currentUsername="morenk" />);
@@ -131,5 +131,24 @@ describe("UsernameEdit", () => {
     await user.click(screen.getByRole("button", { name: "保存" }));
 
     expect(screen.getByText("用户名已被占用")).toBeInTheDocument();
+  });
+
+  test("后端 7 天冷却消息原样展示", async () => {
+    const user = userEvent.setup();
+    mockUseUpdateProfile.mockReturnValue({
+      isPending: false,
+      mutateAsync: vi.fn().mockRejectedValueOnce({
+        code: 40000,
+        message: "用户名修改后需间隔 7 天，剩余 6 天",
+      }),
+    });
+
+    renderWithQC(<UsernameEdit currentUsername="morenk" />);
+    await user.click(screen.getByRole("button", { name: "修改用户名" }));
+    await user.clear(screen.getByPlaceholderText("输入新用户名"));
+    await user.type(screen.getByPlaceholderText("输入新用户名"), "taken");
+    await user.click(screen.getByRole("button", { name: "保存" }));
+
+    expect(screen.getByText("用户名修改后需间隔 7 天，剩余 6 天")).toBeInTheDocument();
   });
 });
