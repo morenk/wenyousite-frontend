@@ -9,6 +9,12 @@ export interface PostAuthor {
   avatar: string | null;
 }
 
+export interface ReplyToTarget {
+  id: string;
+  authorId: string;
+  author?: PostAuthor;
+}
+
 export interface PostData {
   id: string;
   threadId: string;
@@ -17,6 +23,7 @@ export interface PostData {
   floorNumber: number | null;
   parentPostId: string | null;
   replyToPostId: string | null;
+  replyToPost?: ReplyToTarget | null;
   content: string;
   version: number;
   createdAt: string;

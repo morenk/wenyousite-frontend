@@ -31,6 +31,7 @@ const sampleFloor = {
   floorNumber: 1,
   parentPostId: null,
   replyToPostId: null,
+  replyToPost: null,
   content: "第一楼正文",
   version: 1,
   createdAt: "2026-01-01T00:00:00Z",

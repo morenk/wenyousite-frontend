@@ -31,6 +31,7 @@ const sampleReply = {
   floorNumber: null,
   parentPostId: "post-1",
   replyToPostId: null,
+  replyToPost: null,
   content: "楼中楼回复内容",
   version: 1,
   createdAt: "2026-01-01T00:00:00Z",
