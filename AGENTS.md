@@ -144,6 +144,40 @@ pnpm generate:api # 需要后端已启动
 - Caddy 同域路由：`/api/v1/*` → 后端，其余 → 前端。
 - 前端 Docker 服务名为 `web`，监听 `3001`。
 
+#### 公网生产模式迭代（VPS 手动运行，省内存）
+
+公网访问一律用**生产模式**（后端 `node dist/main` + 前端 standalone），**不用 `next dev` 暴露公网**：dev 的 Turbopack 编译缓存会让 RSS 随时间涨到数 GB 导致机器卡死（见第 3 节），生产模式两者合计仅 ~0.3GB、稳定不涨。
+
+**生产模式没有热更新**——改代码必须「重新构建 → 重启进程」，这是生产模式迭代的唯一代价。
+
+前端重启（改代码后）：
+
+```bash
+cd /root/wenyousite/wenyousite-frontend
+pnpm build
+cp -r .next/static .next/standalone/.next/static   # standalone 需静态资源
+kill $(ss -tlnp | grep :3001 | grep -oP 'pid=\K[0-9]+')
+setsid nohup env PORT=3001 node .next/standalone/server.js </dev/null \
+  > /tmp/opencode/wenyousite-frontend.log 2>&1 &
+```
+
+后端重启（改代码后）：
+
+```bash
+cd /root/wenyousite/wenyousite-backend
+pnpm build
+kill $(ss -tlnp | grep :3000 | grep -oP 'pid=\K[0-9]+')
+setsid nohup env NODE_ENV=production node dist/main </dev/null \
+  > /tmp/opencode/wenyousite-backend.log 2>&1 &
+```
+
+注意事项：
+
+- 日志：`/tmp/opencode/wenyousite-frontend.log`、`/tmp/opencode/wenyousite-backend.log`
+- 杀进程用 `ss` 提取 PID；**不要用 `pkill -f "next start"` 这类会匹配到自身 shell 的模式**
+- 后端首次/依赖变更后需 `npx prisma generate` 生成 Prisma Client；`npx prisma migrate deploy` 应用未执行迁移（幂等）
+- 验证：`curl -sI https://wenyou.site`（前端 200）+ `curl -s https://wenyou.site/api/v1/health`（后端 database up）
+
 ### 12. 迭代流程（Docs-First + API-First + Test-in-the-Loop）
 
 每个功能模块按以下步骤推进：
