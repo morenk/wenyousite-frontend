@@ -88,13 +88,15 @@ describe("DraftList", () => {
 
   test("渲染草稿并跳转编辑", () => {
     mockUseDrafts.mockReturnValue({
-      data: [sampleDraft],
+      data: [{ ...sampleDraft, category: "DEDUCTION" }],
       isLoading: false,
       error: undefined,
       refetch: vi.fn(),
     });
     renderWithQC(<DraftList />);
     expect(screen.getByText("我的草稿")).toBeInTheDocument();
+    expect(screen.getByText("演绎")).toBeInTheDocument();
+    expect(screen.queryByText("DEDUCTION")).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "继续编辑" })).toHaveAttribute(
       "href",
       "/threads/d1/edit",

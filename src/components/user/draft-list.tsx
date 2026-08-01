@@ -13,6 +13,12 @@ import { useDeleteThread } from "@/api/hooks/use-delete-thread";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
 
+const categoryLabel: Record<string, string> = {
+  DEDUCTION: "演绎",
+  NATION: "国策",
+  RPG: "RPG",
+};
+
 export function DraftList() {
   const { data: drafts, isLoading, error, refetch } = useDrafts();
   const deleteThread = useDeleteThread();
@@ -68,7 +74,7 @@ export function DraftList() {
           <div className="min-w-0">
             <div className="mb-1 flex items-center gap-2">
               <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                {draft.category}
+                {categoryLabel[draft.category] ?? draft.category}
               </span>
               {draft._count.posts > 0 && (
                 <span className="text-xs text-muted-foreground">
