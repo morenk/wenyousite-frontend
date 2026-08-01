@@ -297,9 +297,9 @@ setsid nohup env NODE_ENV=production node dist/main </dev/null \
 
 **分支：**
 
-- `main` — 可部署主干
-- `dev` — 开发分支，日常开发在此提交
+- `dev` — 开发分支，日常开发在此提交（前端当前唯一分支，由 master 改名而来）
 - `feat/<模块>` — 可选功能分支，合并到 dev
+- （如需可部署主干，后续再从 dev 分离 `main`）
 
 **提交示例：**
 
