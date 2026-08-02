@@ -1,6 +1,6 @@
 /** 登录 API hook */
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
 
 interface LoginRequest {
@@ -26,6 +26,7 @@ interface LoginResponse {
 }
 
 export function useLogin() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (req: LoginRequest) => {
       const { data, error } = await apiClient.POST("/api/v1/auth/login", {
@@ -33,6 +34,9 @@ export function useLogin() {
       });
       if (error) throw error;
       return data as unknown as LoginResponse;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
     },
   });
 }

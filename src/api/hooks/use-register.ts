@@ -1,6 +1,6 @@
 /** 注册 API hooks */
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
 
 interface RequestCodeResponse {
@@ -51,6 +51,7 @@ interface RegisterResponse {
 }
 
 export function useRegisterComplete() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (req: RegisterCompleteRequest) => {
       const { data, error } = await apiClient.POST(
@@ -59,6 +60,9 @@ export function useRegisterComplete() {
       );
       if (error) throw error;
       return data as unknown as RegisterResponse;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
     },
   });
 }
