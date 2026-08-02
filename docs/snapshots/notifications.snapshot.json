@@ -1,6 +1,6 @@
 {
   "module": "notifications",
-  "generatedAt": "2026-07-30T17:07:26.710Z",
+  "generatedAt": "2026-08-02T05:31:16.719Z",
   "description": "通知端点快照",
   "endpoints": {
     "GET /notifications?limit=5": {
