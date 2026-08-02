@@ -70,7 +70,7 @@ export function NavBar() {
                 草稿箱
               </Link>
               <Link
-                href="/me"
+                href={`/users/${user.id}`}
                 className="text-sm font-medium text-foreground hover:text-primary"
               >
                 {user.username}
