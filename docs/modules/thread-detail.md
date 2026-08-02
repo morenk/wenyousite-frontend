@@ -4,6 +4,8 @@
 
 实现主题帖详情页，展示帖子头部信息、子贴 Tab 切换、楼层列表（分页）、Markdown 渲染，以及发布新楼层。
 
+**2026-08 单编辑器重构：** 浏览态不预先挂载 Milkdown，仅展示轻量的「发表回复」入口；用户点击发表、回复或编辑后，页面按目标位置挂载全局唯一的上下文编辑器。同一时刻详情页最多存在一个 Milkdown 实例。
+
 **本次迭代范围（Phase 5 MVP）：**
 - 主题帖详情页 `/threads/[id]`
 - 详情头部（标题/分类/状态/作者/时间/操作按钮）
@@ -208,7 +210,7 @@
 | 主题帖详情 | `GET /threads/:id` | TanStack Query `useQuery` |
 | 楼层列表 | `GET /subthreads/:subthreadId/posts` | TanStack Query `useInfiniteQuery` |
 | 当前选中子贴 | 用户点击 Tab | useState（默认 defaultSubthreadId） |
-| 新楼层内容 | 用户输入 | useState |
+| 当前编辑会话 | 用户点击发表/回复/编辑 | `ThreadComposerProvider`（全页唯一 session + content + pending） |
 | 点赞状态 | `POST/DELETE /threads/:id/like` | useMutation + query invalidation |
 
 ## 6. 组件清单
@@ -221,9 +223,11 @@
 | SubthreadBody | `src/components/thread/subthread-body.tsx` | 子贴卡（唯一卡片）：子贴标题 + 默认徽章 + 正文（kind=BODY）同容器（正文不进入楼层列表） |
 | FloorCard | `src/components/thread/floor-card.tsx` | 单条楼层卡片（Markdown 渲染；作者本人可编辑/删除；展开楼中楼 + 回复他人） |
 | FloorList | `src/components/thread/floor-list.tsx` | 楼层列表（仅 kind=FLOOR，无限滚动，cursor 分页） |
-| FloorForm | `src/components/thread/floor-form.tsx` | 新楼层发布表单（MilkdownEditor + 图片上传，发布后重挂载清空） |
-| ReplyList | `src/components/thread/reply-list.tsx` | 楼中楼回复列表（展开/加载更多；每条回复可对用户回复，显示「回复 @xxx」上下文） |
-| ReplyForm | `src/components/thread/reply-form.tsx` | 楼中楼回复表单（小尺寸 MilkdownEditor；支持 `replyToPostId` 指定回复串内目标，缺省回主楼层） |
+| ThreadComposerProvider | `src/components/thread/thread-composer-context.tsx` | 全页唯一编辑会话；统一处理目标切换、脏内容确认和提交锁 |
+| ThreadComposer | `src/components/thread/thread-composer.tsx` | 按当前会话创建楼层、回复或编辑帖子；唯一挂载 MilkdownEditor |
+| ThreadComposerOutlet | `src/components/thread/thread-composer.tsx` | 放置在楼层/回复上下文中的轻量插槽，仅活动目标渲染编辑器 |
+| FloorForm | `src/components/thread/floor-form.tsx` | 新楼层轻量入口；点击后才在底部展开唯一编辑器 |
+| ReplyList | `src/components/thread/reply-list.tsx` | 楼中楼回复列表（展开/加载更多；作者本人可编辑/删除回复；每条回复可对用户回复，显示「回复 @xxx」上下文） |
 | MemberManager | `src/components/thread/member-manager.tsx` | 成员管理：授予/收回玩家、升级/降级协作者、移除参与人 |
 | ManagementPanel | `src/components/thread/management-panel.tsx` | 帖主管理面板：左子贴目录树 + 右单例编辑器 |
 | SubthreadTree | `src/components/thread/subthread-tree.tsx` | 管理面板左栏子贴目录树（@dnd-kit 拖拽排序） |
@@ -277,19 +281,22 @@
 
 > **子贴正文 vs 回复串：** 子贴正文（kind=BODY）与楼层/回复串（kind=FLOOR）定位不同——正文由子贴生命周期管理（管理面板 upsert，删除帖子接口对 BODY 返回 403 拦截），**楼层列表中的楼层（含 #1）作者均可删除/编辑**，不存在「首楼禁删」。
 
-**页面布局：** 主题帖标题区为页面顶层独立标题区（非卡片，`ThreadDetailHeader`，含徽章/标题/作者/标签/操作按钮）→ 子贴 Tab → 子贴卡（`SubthreadBody`：子贴标题 + 正文同卡）→ 楼层列表 → 发布表单。
+**页面布局：** 主题帖标题区为页面顶层独立标题区（非卡片，`ThreadDetailHeader`，含徽章/标题/作者/标签/操作按钮）→ 子贴 Tab → 子贴卡（`SubthreadBody`：子贴标题 + 正文同卡）→ 楼层列表 → 轻量发布入口。
 
 ```
-用户在 FloorForm 的 MilkdownEditor 输入内容（支持 Markdown + 图片上传）
+用户点击 FloorForm 的「发表回复」入口
+  → 按需挂载全页唯一 MilkdownEditor（支持 Markdown + 图片上传）
   → 未登录：跳转 /login
   → 已登录：调用 POST /subthreads/:id/posts { content }（发帖自动成为参与人=候选池）
-    → 成功：重置编辑器（key 重挂载清空）+ invalidation 刷新楼层列表
+    → 成功：关闭编辑会话 + invalidation 刷新楼层列表
     → 失败：按错误码提示（40302 协作者 / 40303 玩家，或后端 message）
 ```
 
-> **楼层编辑**：作者点击 FloorCard 的编辑按钮进入编辑态，用 MilkdownEditor 回填 `floor.content`，保存调用 `useUpdatePost`（乐观锁 version）；编辑内容通过 `markdownUpdated` 异步写入 `editContent` state，保存前需等编辑器 markdown 更新完成。
+> **唯一编辑会话：** `create-floor`、`reply`、`edit` 使用同一份判别联合状态。点击新目标时，当前内容为空或未修改则直接切换；存在未提交修改时先确认是否放弃；提交或图片上传期间禁止切换。保存成功后关闭会话。浏览态和未登录态均不挂载 Milkdown。
 
-> **楼中楼回复（回复串内对用户回复）**：楼中楼回复串平级挂载于主楼层（`parentPostId` 指向主楼层，无嵌套深度限制，后端只允许回复主楼层）。楼层展开后 `ReplyList` 的每条回复头部有「回复」按钮（仅登录显示），点击在目标回复下方展开 `ReplyForm`：`parentPostId=主楼层 id`、`replyToPostId=目标回复 id`、`replyToLabel=@目标用户名`。`POST /subthreads/:id/posts` 的 `replyToPostId` 负责追踪回复目标，后端通知逻辑按 `replyToPostId ?? parentPostId` 通知被回复者。已有回复若带 `replyToPostId`，回复串内渲染「回复 @被回复者」链接上下文（`replyTo.author.username`，后端 `GET /posts/:id/replies` 已带出 author）。
+> **楼层编辑**：作者点击 FloorCard 的编辑按钮后，唯一编辑器在正文位置回填 `floor.content`，保存调用 `useUpdatePost`（乐观锁 version）。原正文仅在该楼层为当前编辑目标时隐藏。
+
+> **楼中楼回复（回复串内对用户回复）**：楼中楼回复串平级挂载于主楼层（`parentPostId` 指向主楼层，无嵌套深度限制，后端只允许回复主楼层）。楼层展开后 `ReplyList` 的每条回复头部有「回复」按钮（仅登录显示），作者本人额外看到「编辑回复」「删除回复」按钮。点击「回复」或「编辑回复」后，唯一编辑器在目标回复下方按需出现；创建时传 `parentPostId=主楼层 id`、`replyToPostId=目标回复 id`，编辑沿用 `PATCH /posts/:id` 的 `version` 乐观锁。删除调用 `DELETE /posts/:id` 软删除，操作后刷新回复列表与父楼层回复数。
 
 ## 8. 错误处理
 
@@ -325,6 +332,10 @@
 - [x] 未登录用户可浏览公开帖，不能发帖
 - [x] 登录即可发帖（无加入/退出按钮，发帖自动入玩家候选池）
 - [x] 发布新楼层
+- [x] 浏览态不挂载 Milkdown，点击发表/回复/编辑后才出现编辑器
+- [x] 详情页任意时刻最多存在一个 MilkdownEditor
+- [x] 楼层与楼中楼的创建、回复、编辑统一使用 MilkdownEditor
+- [x] 切换目标时保护未提交内容，提交期间禁止切换
 - [x] 点赞/取消点赞实时更新 likeCount
 - [x] thread 不存在时显示 404
 - [x] 所有错误状态有 toast 或内联提示
@@ -360,3 +371,5 @@
 - [x] 后端读端点 `@Public()` → `@OptionalAuth()` 修复（草稿帖楼层/子贴可查询）
 - [x] lint / typecheck / build 通过
 - [x] E2E：管理面板全流程（进入→增删改→正文编辑→排序→返回）+ 拖拽排序验证
+- [x] 单编辑器切片 1：会话控制器测试、实现与文档
+- [x] 单编辑器切片 2：统一 Composer、详情页集成、组件测试与文档

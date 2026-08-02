@@ -20,16 +20,29 @@ import { SubthreadBody } from "@/components/thread/subthread-body";
 import { FloorList } from "@/components/thread/floor-list";
 import { FloorForm } from "@/components/thread/floor-form";
 import { ManagementPanel } from "@/components/thread/management-panel";
+import {
+  ThreadComposerProvider,
+  useThreadComposer,
+} from "@/components/thread/thread-composer-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
 
 export default function ThreadDetailPage() {
+  return (
+    <ThreadComposerProvider>
+      <ThreadDetailPageContent />
+    </ThreadComposerProvider>
+  );
+}
+
+function ThreadDetailPageContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const threadId = params.id as string;
   const targetPostId = searchParams.get("post") ?? undefined;
   const { user } = useAuth();
+  const { close: closeComposer } = useThreadComposer();
 
   const {
     data: thread,
@@ -153,7 +166,9 @@ export default function ThreadDetailPage() {
       {/* 头部 */}
       <ThreadDetailHeader
         thread={thread}
-        onManage={isOwner ? () => setIsManaging(true) : undefined}
+        onManage={isOwner ? () => {
+          if (closeComposer()) setIsManaging(true);
+        } : undefined}
       />
 
       <div className="mt-5 space-y-4">
@@ -161,7 +176,9 @@ export default function ThreadDetailPage() {
         <SubthreadTabs
           subthreads={thread.subthreads}
           selectedId={effectiveSubthreadId}
-          onChange={setSelectedSubthreadId}
+          onChange={(subthreadId) => {
+            if (closeComposer()) setSelectedSubthreadId(subthreadId);
+          }}
           newRepliesMap={newRepliesMap}
         />
 

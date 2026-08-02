@@ -1,16 +1,12 @@
-/** 楼层发布表单组件：MilkdownEditor + 图片上传 */
+/** 楼层发布入口：点击后才按需挂载详情页唯一 Markdown 编辑器 */
 
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Send, Loader2, LogIn } from "lucide-react";
-import { toast } from "sonner";
+import { LogIn, MessageSquare } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import { useCreatePost } from "@/api/hooks/use-create-post";
-import { useUploadImage } from "@/api/hooks/use-upload-image";
-import { useQueryClient } from "@tanstack/react-query";
-import { MilkdownEditor } from "@/components/editor/milkdown-editor";
+import { useThreadComposer } from "@/components/thread/thread-composer-context";
+import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
 import { Button } from "@/components/ui/button";
 
 interface FloorFormProps {
@@ -20,36 +16,9 @@ interface FloorFormProps {
 export function FloorForm({ subthreadId }: FloorFormProps) {
   const { user } = useAuth();
   const router = useRouter();
-  const [content, setContent] = useState("");
-  const [resetKey, setResetKey] = useState(0);
-  const createPost = useCreatePost();
-  const uploadImage = useUploadImage();
-  const queryClient = useQueryClient();
-
-  const handleSubmit = async () => {
-    if (!content.trim()) return;
-    try {
-      await createPost.mutateAsync({
-        subthreadId,
-        content: content.trim(),
-      });
-      setContent("");
-      setResetKey((k) => k + 1);
-      await queryClient.invalidateQueries({
-        queryKey: ["floors", subthreadId],
-      });
-      toast.success("发布成功");
-    } catch (error: unknown) {
-      const err = error as { code?: number; message?: string };
-      if (err.code === 40302) {
-        toast.error("该子贴仅限协作者发帖");
-      } else if (err.code === 40303) {
-        toast.error("该子贴仅限玩家发帖");
-      } else {
-        toast.error(err.message || "发布失败，请稍后重试");
-      }
-    }
-  };
+  const { session, open } = useThreadComposer();
+  const anchorId = `create-floor:${subthreadId}`;
+  const isActive = session?.anchorId === anchorId;
 
   if (!user) {
     return (
@@ -70,30 +39,26 @@ export function FloorForm({ subthreadId }: FloorFormProps) {
   }
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
-      <MilkdownEditor
-        key={`floor-form-${resetKey}`}
-        defaultValue={content}
-        onChange={setContent}
-        onUploadImage={async (file) => uploadImage.mutateAsync(file)}
-        placeholder="输入正文内容（支持 Markdown）..."
-        disabled={createPost.isPending}
-        maxHeight={300}
-      />
-      <div className="mt-3 flex items-center justify-end">
+    <div className="space-y-3 rounded-xl border border-border bg-card p-4">
+      {!isActive && (
         <Button
-          onClick={handleSubmit}
-          disabled={!content.trim() || createPost.isPending}
-          size="sm"
+          type="button"
+          variant="outline"
+          className="w-full justify-start text-muted-foreground"
+          onClick={() => open({
+            key: anchorId,
+            anchorId,
+            type: "create-floor",
+            subthreadId,
+            label: "发表回复",
+            initialContent: "",
+          })}
         >
-          {createPost.isPending ? (
-            <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-          ) : (
-            <Send className="mr-1.5 h-4 w-4" />
-          )}
-          发布
+          <MessageSquare className="mr-2 h-4 w-4" />
+          发表回复…
         </Button>
-      </div>
+      )}
+      <ThreadComposerOutlet anchorId={anchorId} />
     </div>
   );
 }

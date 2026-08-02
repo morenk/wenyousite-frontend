@@ -6,18 +6,16 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { MessageSquare, Pencil, Trash2, Loader2, Check, X, ChevronDown, ChevronUp } from "lucide-react";
+import { MessageSquare, Pencil, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
-import { useUpdatePost } from "@/api/hooks/use-update-post";
 import { useDeletePost } from "@/api/hooks/use-delete-post";
-import { useUploadImage } from "@/api/hooks/use-upload-image";
 import { useQueryClient } from "@tanstack/react-query";
 import { MarkdownContent } from "@/components/thread/markdown-content";
-import { MilkdownEditor } from "@/components/editor/milkdown-editor";
 import { ReplyList } from "@/components/thread/reply-list";
-import { ReplyForm } from "@/components/thread/reply-form";
+import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
+import { useThreadComposer } from "@/components/thread/thread-composer-context";
 import { Button } from "@/components/ui/button";
 import type { PostData } from "@/api/hooks/use-floors";
 
@@ -31,16 +29,15 @@ interface FloorCardProps {
 export function FloorCard({ floor, isEven, focused = false, focusedReply }: FloorCardProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [isEditing, setIsEditing] = useState(false);
-  const [editContent, setEditContent] = useState(floor.content);
   const [isRepliesOpen, setIsRepliesOpen] = useState(false);
-  const [isReplying, setIsReplying] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
-  const updatePost = useUpdatePost();
   const deletePost = useDeletePost();
-  const uploadImage = useUploadImage();
+  const { session, open } = useThreadComposer();
 
   const isAuthor = !!user && user.id === floor.authorId;
+  const editAnchorId = `floor-edit:${floor.id}`;
+  const replyAnchorId = `floor-reply:${floor.id}`;
+  const isEditing = session?.key === `edit:${floor.id}`;
   const showReplies = isRepliesOpen || !!focusedReply;
 
   useEffect(() => {
@@ -57,33 +54,16 @@ export function FloorCard({ floor, isEven, focused = false, focusedReply }: Floo
     });
 
   const handleStartEdit = () => {
-    setEditContent(floor.content);
-    setIsEditing(true);
-  };
-
-  const handleSave = async () => {
-    const content = editContent.trim();
-    if (!content) {
-      toast.error("正文不能为空");
-      return;
-    }
-    try {
-      await updatePost.mutateAsync({
-        postId: floor.id,
-        content,
-        version: floor.version,
-      });
-      setIsEditing(false);
-      await invalidateFloors();
-      toast.success("已保存");
-    } catch (error: unknown) {
-      const err = error as { code?: number; message?: string };
-      if (err.code === 40900) {
-        toast.error("内容已被修改，请刷新后重试");
-      } else {
-        toast.error(err.message || "保存失败，请稍后重试");
-      }
-    }
+    open({
+      key: `edit:${floor.id}`,
+      anchorId: editAnchorId,
+      type: "edit",
+      subthreadId: floor.subthreadId,
+      postId: floor.id,
+      version: floor.version,
+      label: `编辑 #${floor.floorNumber ?? ""}`,
+      initialContent: floor.content,
+    });
   };
 
   const handleDelete = async () => {
@@ -157,39 +137,7 @@ export function FloorCard({ floor, isEven, focused = false, focusedReply }: Floo
 
       {/* 楼层正文 / 编辑态 */}
       {isEditing ? (
-        <div className="space-y-2">
-          <MilkdownEditor
-            key={`floor-edit-${floor.id}`}
-            defaultValue={floor.content}
-            onChange={setEditContent}
-            onUploadImage={async (file) => uploadImage.mutateAsync(file)}
-            disabled={updatePost.isPending}
-            maxHeight={300}
-          />
-          <div className="flex items-center justify-end gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsEditing(false)}
-              disabled={updatePost.isPending}
-            >
-              <X className="mr-1 h-3.5 w-3.5" />
-              取消
-            </Button>
-            <Button
-              size="sm"
-              onClick={handleSave}
-              disabled={!editContent.trim() || updatePost.isPending}
-            >
-              {updatePost.isPending ? (
-                <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Check className="mr-1 h-3.5 w-3.5" />
-              )}
-              保存
-            </Button>
-          </div>
-        </div>
+        <ThreadComposerOutlet anchorId={editAnchorId} />
       ) : (
         <MarkdownContent content={floor.content} />
       )}
@@ -221,7 +169,16 @@ export function FloorCard({ floor, isEven, focused = false, focusedReply }: Floo
               className="h-6 px-2 text-xs"
               onClick={() => {
                 setIsRepliesOpen(true);
-                setIsReplying(true);
+                open({
+                  key: `reply:${floor.id}`,
+                  anchorId: replyAnchorId,
+                  type: "reply",
+                  subthreadId: floor.subthreadId,
+                  parentPostId: floor.id,
+                  replyToPostId: floor.id,
+                  label: `回复 #${floor.floorNumber} ${floor.author.username}`,
+                  initialContent: "",
+                });
               }}
             >
               <MessageSquare className="mr-1 h-3.5 w-3.5" />
@@ -235,14 +192,7 @@ export function FloorCard({ floor, isEven, focused = false, focusedReply }: Floo
       {!isEditing && showReplies && (
         <div className="mt-2">
           <ReplyList postId={floor.id} focusedReply={focusedReply} />
-          {isReplying && (
-            <ReplyForm
-              subthreadId={floor.subthreadId}
-              parentPostId={floor.id}
-              replyToLabel={`#${floor.floorNumber} ${floor.author.username}`}
-              onReplied={() => setIsReplying(false)}
-            />
-          )}
+          <ThreadComposerOutlet anchorId={replyAnchorId} />
         </div>
       )}
     </div>

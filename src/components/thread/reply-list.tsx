@@ -2,15 +2,19 @@
 
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { Loader2, ChevronDown, MessageSquare } from "lucide-react";
+import { Loader2, ChevronDown, MessageSquare, Pencil, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { useReplies } from "@/api/hooks/use-replies";
+import { useDeletePost } from "@/api/hooks/use-delete-post";
 import { useAuth } from "@/lib/auth";
+import { useQueryClient } from "@tanstack/react-query";
 import { MarkdownContent } from "@/components/thread/markdown-content";
-import { ReplyForm } from "@/components/thread/reply-form";
+import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
+import { useThreadComposer } from "@/components/thread/thread-composer-context";
 import { Button } from "@/components/ui/button";
 import type { PostData } from "@/api/hooks/use-floors";
 
@@ -21,7 +25,9 @@ interface ReplyListProps {
 
 export function ReplyList({ postId, focusedReply }: ReplyListProps) {
   const { user } = useAuth();
-  const [replyingToId, setReplyingToId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const deletePost = useDeletePost();
+  const { session, open } = useThreadComposer();
   const {
     data,
     fetchNextPage,
@@ -55,6 +61,26 @@ export function ReplyList({ postId, focusedReply }: ReplyListProps) {
   const replies = focusedReply && !loadedReplies.some((reply) => reply.id === focusedReply.id)
     ? [...loadedReplies, focusedReply]
     : loadedReplies;
+
+  const invalidateReplies = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["replies", postId] }),
+      // 更新父楼层的回复数。
+      queryClient.invalidateQueries({ queryKey: ["floors"] }),
+    ]);
+  };
+
+  const handleDeleteReply = async (reply: PostData) => {
+    if (!confirm("确定要删除这条回复吗？删除后无法恢复。")) return;
+    try {
+      await deletePost.mutateAsync(reply.id);
+      await invalidateReplies();
+      toast.success("回复已删除");
+    } catch (error: unknown) {
+      const err = error as { message?: string };
+      toast.error(err.message || "删除失败，请稍后重试");
+    }
+  };
 
   // 父楼展开、目标回复渲染完成后再执行第二阶段滚动，避免只停在父楼。
   useEffect(() => {
@@ -92,6 +118,9 @@ export function ReplyList({ postId, focusedReply }: ReplyListProps) {
       {replies.map((reply: PostData) => {
         const replyToUser = reply.replyToPost?.author?.username;
         const replyToId = reply.replyToPost?.id ?? reply.replyToPostId;
+        const isAuthor = user?.id === reply.authorId;
+        const anchorId = `reply:${reply.id}`;
+        const isEditing = session?.key === `edit:${reply.id}`;
         return (
           <div
             key={reply.id}
@@ -127,32 +156,65 @@ export function ReplyList({ postId, focusedReply }: ReplyListProps) {
                   })}
                 </span>
               </div>
-              {user && (
+              {isAuthor && !isEditing && (
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-xs"
+                    title="编辑回复"
+                    onClick={() => {
+                      open({
+                        key: `edit:${reply.id}`,
+                        anchorId,
+                        type: "edit",
+                        subthreadId: reply.subthreadId,
+                        postId: reply.id,
+                        parentPostId: postId,
+                        version: reply.version,
+                        label: `编辑 @${reply.author.username} 的回复`,
+                        initialContent: reply.content,
+                      });
+                    }}
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-xs text-destructive hover:text-destructive"
+                    title="删除回复"
+                    onClick={() => handleDeleteReply(reply)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              )}
+              {user && !isEditing && (
                 <Button
                   variant="ghost"
                   size="sm"
                   className="h-6 px-2 text-xs"
-                  onClick={() =>
-                    setReplyingToId((id) =>
-                      id === reply.id ? null : reply.id,
-                    )
-                  }
+                  onClick={() => open({
+                    key: `reply:${reply.id}`,
+                    anchorId,
+                    type: "reply",
+                    subthreadId: reply.subthreadId,
+                    parentPostId: postId,
+                    replyToPostId: reply.id,
+                    label: `回复 @${reply.author.username}`,
+                    initialContent: "",
+                  })}
                 >
                   <MessageSquare className="mr-1 h-3.5 w-3.5" />
                   回复
                 </Button>
               )}
             </div>
-            <MarkdownContent content={reply.content} />
-            {replyingToId === reply.id && (
-              <ReplyForm
-                subthreadId={reply.subthreadId}
-                parentPostId={postId}
-                replyToPostId={reply.id}
-                replyToLabel={`@${reply.author.username}`}
-                onReplied={() => setReplyingToId(null)}
-              />
+            {!isEditing && (
+              <MarkdownContent content={reply.content} />
             )}
+            <ThreadComposerOutlet anchorId={anchorId} />
           </div>
         );
       })}

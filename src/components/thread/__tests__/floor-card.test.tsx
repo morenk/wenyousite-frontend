@@ -5,6 +5,7 @@ import { render, screen, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { FloorCard } from "@/components/thread/floor-card";
+import { ThreadComposerProvider } from "@/components/thread/thread-composer-context";
 import type { PostData } from "@/api/hooks/use-floors";
 
 vi.mock("next/link", () => ({
@@ -22,6 +23,9 @@ const mockUpdateMutateAsync = vi.fn().mockResolvedValue({ id: "post-1" });
 const mockDeleteMutateAsync = vi.fn().mockResolvedValue(undefined);
 vi.mock("@/api/hooks/use-update-post", () => ({
   useUpdatePost: () => ({ mutateAsync: mockUpdateMutateAsync, isPending: false }),
+}));
+vi.mock("@/api/hooks/use-create-post", () => ({
+  useCreatePost: () => ({ mutateAsync: vi.fn().mockResolvedValue({ id: "reply-1" }) }),
 }));
 vi.mock("@/api/hooks/use-delete-post", () => ({
   useDeletePost: () => ({ mutateAsync: mockDeleteMutateAsync }),
@@ -48,12 +52,6 @@ vi.mock("@/components/editor/milkdown-editor", () => ({
 
 vi.mock("@/components/thread/reply-list", () => ({
   ReplyList: () => <div data-testid="reply-list">回复列表</div>,
-}));
-
-vi.mock("@/components/thread/reply-form", () => ({
-  ReplyForm: ({ parentPostId }: { parentPostId: string }) => (
-    <div data-testid={`reply-form-${parentPostId}`}>回复表单</div>
-  ),
 }));
 
 vi.mock("@tanstack/react-query", async () => {
@@ -88,7 +86,11 @@ const baseFloor: PostData = {
 
 function renderWithQC(ui: React.ReactElement) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(<QueryClientProvider client={qc}>{ui}</QueryClientProvider>);
+  return render(
+    <QueryClientProvider client={qc}>
+      <ThreadComposerProvider>{ui}</ThreadComposerProvider>
+    </QueryClientProvider>,
+  );
 }
 
 describe("FloorCard", () => {
@@ -185,7 +187,7 @@ describe("FloorCard", () => {
     const textarea = screen.getByTestId("milkdown-editor");
     await user.clear(textarea);
     await user.type(textarea, "编辑后的正文");
-    await user.click(screen.getByRole("button", { name: "保存" }));
+    await user.click(screen.getByRole("button", { name: "保存修改" }));
 
     expect(mockUpdateMutateAsync).toHaveBeenCalledWith({
       postId: "post-1",
@@ -205,7 +207,7 @@ describe("FloorCard", () => {
     renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
 
     await user.click(screen.getByTitle("编辑楼层"));
-    await user.click(screen.getByRole("button", { name: "保存" }));
+    await user.click(screen.getByRole("button", { name: "保存修改" }));
 
     expect(toast.error).toHaveBeenCalledWith("内容已被修改，请刷新后重试");
   });
@@ -273,7 +275,7 @@ describe("FloorCard", () => {
     expect(screen.getByTestId("reply-list")).toBeInTheDocument();
   });
 
-  test("无回复时点击回复按钮展开并显示回复表单", async () => {
+  test("无回复时点击回复按钮展开并按需显示唯一编辑器", async () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({
       user: { id: "u1", username: "测试用户", emailVerified: true },
@@ -284,7 +286,8 @@ describe("FloorCard", () => {
     await user.click(screen.getByRole("button", { name: "回复" }));
 
     expect(screen.getByTestId("reply-list")).toBeInTheDocument();
-    expect(screen.getByTestId("reply-form-post-1")).toBeInTheDocument();
+    expect(screen.getAllByTestId("milkdown-editor")).toHaveLength(1);
+    expect(screen.getByText("回复 #1 测试用户")).toBeInTheDocument();
   });
 
   test("未登录不显示回复按钮", () => {

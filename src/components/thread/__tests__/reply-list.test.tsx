@@ -4,6 +4,7 @@ import { describe, test, expect, vi, beforeAll, beforeEach, afterEach } from "vi
 import { render, screen, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ThreadComposerProvider } from "@/components/thread/thread-composer-context";
 
 const { mockUseReplies } = vi.hoisted(() => ({
   mockUseReplies: vi.fn(),
@@ -11,38 +12,46 @@ const { mockUseReplies } = vi.hoisted(() => ({
 const { mockUseAuth } = vi.hoisted(() => ({
   mockUseAuth: vi.fn(),
 }));
+const { mockUpdateMutateAsync, mockDeleteMutateAsync } = vi.hoisted(() => ({
+  mockUpdateMutateAsync: vi.fn().mockResolvedValue({}),
+  mockDeleteMutateAsync: vi.fn().mockResolvedValue(undefined),
+}));
 
 vi.mock("@/api/hooks/use-replies", () => ({
   useReplies: () => mockUseReplies(),
+}));
+
+vi.mock("@/api/hooks/use-update-post", () => ({
+  useUpdatePost: () => ({ mutateAsync: mockUpdateMutateAsync, isPending: false }),
+}));
+
+vi.mock("@/api/hooks/use-create-post", () => ({
+  useCreatePost: () => ({ mutateAsync: vi.fn().mockResolvedValue({ id: "new-reply" }) }),
+}));
+
+vi.mock("@/api/hooks/use-upload-image", () => ({
+  useUploadImage: () => ({ mutateAsync: vi.fn() }),
+}));
+
+vi.mock("@/api/hooks/use-delete-post", () => ({
+  useDeletePost: () => ({ mutateAsync: mockDeleteMutateAsync }),
+}));
+
+vi.mock("sonner", () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
 }));
 
 vi.mock("@/lib/auth", () => ({
   useAuth: () => mockUseAuth(),
 }));
 
-vi.mock("@/components/thread/reply-form", () => ({
-  ReplyForm: ({
-    subthreadId,
-    parentPostId,
-    replyToPostId,
-    replyToLabel,
-    onReplied,
-  }: {
-    subthreadId: string;
-    parentPostId: string;
-    replyToPostId?: string;
-    replyToLabel?: string;
-    onReplied?: () => void;
-  }) => (
-    <div data-testid="reply-form">
-      <span>subthread:{subthreadId}</span>
-      <span>parent:{parentPostId}</span>
-      <span>replyTo:{replyToPostId}</span>
-      <span>label:{replyToLabel}</span>
-      <button type="button" onClick={onReplied}>
-        onReplied
-      </button>
-    </div>
+vi.mock("@/components/editor/milkdown-editor", () => ({
+  MilkdownEditor: ({ defaultValue, onChange }: { defaultValue?: string; onChange?: (value: string) => void }) => (
+    <textarea
+      data-testid="milkdown-editor"
+      defaultValue={defaultValue}
+      onChange={(event) => onChange?.(event.target.value)}
+    />
   ),
 }));
 
@@ -65,12 +74,18 @@ beforeAll(() => {
 afterEach(() => cleanup());
 beforeEach(() => {
   mockUseAuth.mockReturnValue({ user: null });
+  mockUpdateMutateAsync.mockClear();
+  mockDeleteMutateAsync.mockClear();
 });
 
 function createWrapper() {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   function Wrapper({ children }: { children: React.ReactNode }) {
-    return <QueryClientProvider client={qc}>{children}</QueryClientProvider>;
+    return (
+      <QueryClientProvider client={qc}>
+        <ThreadComposerProvider>{children}</ThreadComposerProvider>
+      </QueryClientProvider>
+    );
   }
   Wrapper.displayName = "QueryClientWrapper";
   return Wrapper;
@@ -144,7 +159,7 @@ describe("ReplyList", () => {
     expect(screen.queryByRole("button", { name: "回复" })).not.toBeInTheDocument();
   });
 
-  test("登录后显示回复按钮，点击展开回复串内 ReplyForm 并传入目标", async () => {
+  test("登录后点击回复按钮才按需挂载目标编辑器", async () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({ user: { id: "u1" } });
     const reply = baseReply({ id: "reply-2", author: { id: "u3", username: "小明", avatar: null } });
@@ -153,16 +168,14 @@ describe("ReplyList", () => {
     render(<ReplyList postId="post-1" />, { wrapper: createWrapper() });
     const replyButton = screen.getByRole("button", { name: "回复" });
     expect(replyButton).toBeInTheDocument();
+    expect(screen.queryByTestId("milkdown-editor")).not.toBeInTheDocument();
 
     await user.click(replyButton);
-    const form = screen.getByTestId("reply-form");
-    expect(form).toHaveTextContent("subthread:s1");
-    expect(form).toHaveTextContent("parent:post-1");
-    expect(form).toHaveTextContent("replyTo:reply-2");
-    expect(form).toHaveTextContent("label:@小明");
+    expect(screen.getAllByTestId("milkdown-editor")).toHaveLength(1);
+    expect(screen.getByText("回复 @小明")).toBeInTheDocument();
   });
 
-  test("再次点击收起回复表单", async () => {
+  test("点击取消收起回复编辑器", async () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({ user: { id: "u1" } });
     mockUseReplies.mockReturnValue(dataWithReplies([baseReply()]));
@@ -171,10 +184,10 @@ describe("ReplyList", () => {
     const replyButton = screen.getByRole("button", { name: "回复" });
 
     await user.click(replyButton);
-    expect(screen.getByTestId("reply-form")).toBeInTheDocument();
+    expect(screen.getByTestId("milkdown-editor")).toBeInTheDocument();
 
-    await user.click(replyButton);
-    expect(screen.queryByTestId("reply-form")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "取消" }));
+    expect(screen.queryByTestId("milkdown-editor")).not.toBeInTheDocument();
   });
 
   test("回复串内回复显示「回复 @被回复者」上下文", () => {
@@ -194,5 +207,46 @@ describe("ReplyList", () => {
     const contextLink = screen.getByRole("link", { name: "@replier" });
     expect(contextLink).toHaveAttribute("href", "/users/u2");
     expect(screen.getByText("楼中楼回复内容")).toBeInTheDocument();
+  });
+
+  test("自己的楼中楼回复显示编辑/删除并可保存修改", async () => {
+    const user = userEvent.setup();
+    mockUseAuth.mockReturnValue({ user: { id: "u2" } });
+    mockUseReplies.mockReturnValue(dataWithReplies([baseReply()]));
+
+    render(<ReplyList postId="post-1" />, { wrapper: createWrapper() });
+    await user.click(screen.getByTitle("编辑回复"));
+    const input = screen.getByTestId("milkdown-editor");
+    expect(input).toHaveValue("楼中楼回复内容");
+    await user.clear(input);
+    await user.type(input, "修改后的回复");
+    await user.click(screen.getByRole("button", { name: "保存修改" }));
+
+    expect(mockUpdateMutateAsync).toHaveBeenCalledWith({
+      postId: "reply-1",
+      content: "修改后的回复",
+      version: 1,
+    });
+  });
+
+  test("自己的楼中楼回复确认后可删除", async () => {
+    const user = userEvent.setup();
+    mockUseAuth.mockReturnValue({ user: { id: "u2" } });
+    mockUseReplies.mockReturnValue(dataWithReplies([baseReply()]));
+    vi.stubGlobal("confirm", vi.fn(() => true));
+
+    render(<ReplyList postId="post-1" />, { wrapper: createWrapper() });
+    await user.click(screen.getByTitle("删除回复"));
+
+    expect(mockDeleteMutateAsync).toHaveBeenCalledWith("reply-1");
+  });
+
+  test("他人的楼中楼回复不显示编辑/删除", () => {
+    mockUseAuth.mockReturnValue({ user: { id: "u1" } });
+    mockUseReplies.mockReturnValue(dataWithReplies([baseReply()]));
+    render(<ReplyList postId="post-1" />, { wrapper: createWrapper() });
+
+    expect(screen.queryByTitle("编辑回复")).not.toBeInTheDocument();
+    expect(screen.queryByTitle("删除回复")).not.toBeInTheDocument();
   });
 });

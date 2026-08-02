@@ -4,6 +4,7 @@ import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ThreadComposerProvider } from "@/components/thread/thread-composer-context";
 
 const mockUseAuth = vi.fn();
 vi.mock("@/lib/auth", () => ({
@@ -17,6 +18,9 @@ const mockCreatePost = vi.fn(() => ({
 }));
 vi.mock("@/api/hooks/use-create-post", () => ({
   useCreatePost: () => mockCreatePost(),
+}));
+vi.mock("@/api/hooks/use-update-post", () => ({
+  useUpdatePost: () => ({ mutateAsync: vi.fn() }),
 }));
 
 vi.mock("@/api/hooks/use-upload-image", () => ({
@@ -60,7 +64,11 @@ vi.mock("sonner", () => ({
 
 function renderWithQC(ui: React.ReactElement) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(<QueryClientProvider client={qc}>{ui}</QueryClientProvider>);
+  return render(
+    <QueryClientProvider client={qc}>
+      <ThreadComposerProvider>{ui}</ThreadComposerProvider>
+    </QueryClientProvider>,
+  );
 }
 
 const loggedInUser = { id: "u1", username: "test", emailVerified: true };
@@ -82,7 +90,8 @@ describe("FloorForm", () => {
     expect(screen.getByText("登录")).toBeInTheDocument();
   });
 
-  test("已登录即显示编辑器（无需手动加入，发帖自动入候选池）", () => {
+  test("已登录仅显示轻量入口，点击后才挂载编辑器", async () => {
+    const user = userEvent.setup();
     mockUseAuth.mockReturnValue({
       user: loggedInUser,
       isInitialized: true,
@@ -90,13 +99,13 @@ describe("FloorForm", () => {
     renderWithQC(
       <FloorForm subthreadId="s1" />,
     );
-    expect(
-      screen.getByPlaceholderText("输入正文内容（支持 Markdown）..."),
-    ).toBeInTheDocument();
+    expect(screen.queryByTestId("milkdown-editor")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "发表回复…" }));
+    expect(screen.getAllByTestId("milkdown-editor")).toHaveLength(1);
     expect(screen.queryByText("加入")).toBeNull();
   });
 
-  test("输入框为空时发布按钮禁用", () => {
+  test("输入框为空时发布按钮禁用", async () => {
     mockUseAuth.mockReturnValue({
       user: loggedInUser,
       isInitialized: true,
@@ -104,9 +113,8 @@ describe("FloorForm", () => {
     renderWithQC(
       <FloorForm subthreadId="s1" />,
     );
-    const btns = screen.getAllByText("发布");
-    const publishBtn = btns.find((el) => el.closest("button")?.hasAttribute("disabled"));
-    expect(publishBtn).toBeInTheDocument();
+    await userEvent.setup().click(screen.getByRole("button", { name: "发表回复…" }));
+    expect(screen.getByRole("button", { name: "发布" })).toBeDisabled();
   });
 
   test("发布成功后清空输入框并提示", async () => {
@@ -114,6 +122,7 @@ describe("FloorForm", () => {
     mockUseAuth.mockReturnValue({ user: loggedInUser, isInitialized: true });
     renderWithQC(<FloorForm subthreadId="s1" />);
 
+    await user.click(screen.getByRole("button", { name: "发表回复…" }));
     const textarea = screen.getByTestId("milkdown-editor");
     await user.type(textarea, "新的回复内容");
     await user.click(screen.getByText("发布"));
@@ -134,6 +143,7 @@ describe("FloorForm", () => {
     });
     renderWithQC(<FloorForm subthreadId="s1" />);
 
+    await user.click(screen.getByRole("button", { name: "发表回复…" }));
     await user.type(screen.getByTestId("milkdown-editor"), "内容");
     await user.click(screen.getByText("发布"));
 
@@ -149,6 +159,7 @@ describe("FloorForm", () => {
     });
     renderWithQC(<FloorForm subthreadId="s1" />);
 
+    await user.click(screen.getByRole("button", { name: "发表回复…" }));
     await user.type(screen.getByTestId("milkdown-editor"), "内容");
     await user.click(screen.getByText("发布"));
 
@@ -161,6 +172,7 @@ describe("FloorForm", () => {
     mockMutateAsync.mockRejectedValueOnce({ code: 40001, message: "内容不能为空" });
     renderWithQC(<FloorForm subthreadId="s1" />);
 
+    await user.click(screen.getByRole("button", { name: "发表回复…" }));
     await user.type(screen.getByTestId("milkdown-editor"), "内容");
     await user.click(screen.getByText("发布"));
 
