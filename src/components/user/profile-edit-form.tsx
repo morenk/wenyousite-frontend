@@ -13,6 +13,7 @@ import { useMe } from "@/api/hooks/use-me";
 import { useUpdateProfile } from "@/api/hooks/use-update-profile";
 import { profileSchema, type ProfileFormData } from "@/lib/validations/profile";
 import { UsernameEdit } from "@/components/user/username-edit";
+import { AvatarUploader } from "@/components/user/avatar-uploader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -97,6 +98,7 @@ export function ProfileEditForm() {
             <CardTitle>基本信息</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 pt-6">
+            {me && <AvatarUploader username={me.username} avatar={me.avatar} />}
             <div className="space-y-1.5">
               <Label htmlFor="bio">个人简介</Label>
               <Input

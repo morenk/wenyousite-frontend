@@ -8,11 +8,10 @@
 - `/users/[id]` 用户主页：资料卡（头像/用户名/Bio/注册时间/关注粉丝数）+ 关注/拉黑按钮 + 最近动态（recent-replies）+ 创建的帖子（created-threads）+ 参与的帖子（played-threads）
 - 关注/取消关注、拉黑/取消拉黑（仅登录，用户主页操作）
 - 草稿箱：未发布帖列表（进入 `/threads/create` 草稿列表查看，可跳转继续编辑或删除）
-- `/me` 我的资料：编辑 Bio/隐私开关（用户名需显式进入编辑，默认不修改）
+- `/me` 我的资料：编辑头像（裁剪上传/移除）、Bio/隐私开关（用户名需显式进入编辑，默认不修改）
 - 参与列表排除自建帖：`played-threads` 只返回被其他楼主标记为玩家的帖，自建帖归入「创建的帖子」（后端 `4ed5449` 同步）
 
 **后续迭代：**
-- 头像上传（需 media 上传组件，`PATCH /users/me/avatar`）
 - 用户收藏页（`GET /users/:id/bookmarks`）与收藏功能
 - 我的关注/粉丝/黑名单列表页
 
@@ -33,6 +32,8 @@
 |--------|------|-------|------|
 | GET | `/users/me` | AuthRead | 我的完整资料（含 email、隐私开关、_count） |
 | PATCH | `/users/me` | Auth | 修改资料（username/bio/隐私开关），5次/分钟限流，需邮箱已验证 |
+| PATCH | `/users/me/avatar` | Auth | 设置头像（传入 mediaId），需邮箱已验证 |
+| DELETE | `/users/me/avatar` | Auth | 移除头像（置空 avatar，回到首字母占位），需邮箱已验证 |
 | GET | `/users/:id` | OptionalAuth | 用户公开资料；登录态额外返回 isFollowing/isFollowedBy/isBlocked/isBlockedBy |
 | GET | `/users/:id/recent-replies` | OptionalAuth | 最近 10 条回复（仅 PUBLIC 帖），不分页，受 showRecentReplies 控制 |
 | GET | `/users/:id/created-threads` | OptionalAuth | 创建的帖子（本人可见全部含私密帖，他人仅 PUBLIC），按创建时间倒序，Cursor 分页 |
@@ -193,6 +194,9 @@
 | UserPlayedThreads | `src/components/user/user-played-threads.tsx` | 参与的帖子列表（薄包装：useUserPlayedThreads + UserThreadList） |
 | DraftList | `src/components/user/draft-list.tsx` | 草稿箱列表（标题/分类/更新时间/继续编辑/删除） |
 | UsernameEdit | `src/components/user/username-edit.tsx` | 独立用户名修改（默认只读，点「修改用户名」才进入编辑态，未改动不提交） |
+| AvatarUploader | `src/components/user/avatar-uploader.tsx` | 头像上传器：预览（`_thumb.webp` 缩略图/首字母占位）→ 文件选择校验（仅 jpg/png/webp，排除 svg）→ react-easy-crop 1:1 裁剪 → canvas 导出 512×512 webp → 上传（预签名+直传+轮询）→ `PATCH /me/avatar` 立即生效；「移除头像」调 `DELETE /me/avatar` |
+| useSetAvatar | `src/api/hooks/use-set-avatar.ts` | 设置/移除头像 hook（PATCH/DELETE `/users/me/avatar`，成功后失效 me/user 缓存） |
+| getCroppedBlob | `src/lib/avatar-crop.ts` | react-easy-crop 裁剪区域 → 512×512 webp Blob（canvas） |
 | useUserProfile | `src/api/hooks/use-user-profile.ts` | 用户公开资料 hook |
 | useUserFollowList | `src/api/hooks/use-user-follow-list.ts` | 关注/粉丝列表 hook（kind 复用） |
 | useUserRecentReplies | `src/api/hooks/use-user-recent-replies.ts` | 最近动态 hook |

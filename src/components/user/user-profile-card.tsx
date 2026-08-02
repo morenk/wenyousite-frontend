@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { CalendarDays, Users } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { getImageUrlBySize } from "@/lib/upload-image";
 import { FollowButton } from "@/components/user/follow-button";
 import { BlockButton } from "@/components/user/block-button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -94,13 +95,13 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
   );
 }
 
-/** 头像：有 URL 用图片，无则显示用户名首字符 */
+/** 头像：有 URL 用缩略图，无则显示用户名首字符 */
 function Avatar({ name, src }: { name: string; src: string | null }) {
   if (src) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={src}
+        src={getImageUrlBySize(src, "thumb")}
         alt={name}
         className="h-16 w-16 rounded-full object-cover"
       />

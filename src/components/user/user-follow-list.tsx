@@ -5,6 +5,7 @@
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { useUserFollowList, type FollowListKind } from "@/api/hooks/use-user-follow-list";
+import { getImageUrlBySize } from "@/lib/upload-image";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 
@@ -57,12 +58,16 @@ export function UserFollowList({ userId, kind }: UserFollowListProps) {
   );
 }
 
-/** 头像：有 URL 用图片，无则显示用户名首字符 */
+/** 头像：有 URL 用缩略图，无则显示用户名首字符 */
 function Avatar({ name, src }: { name: string; src: string | null }) {
   if (src) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={src} alt={name} className="h-10 w-10 rounded-full object-cover" />
+      <img
+        src={getImageUrlBySize(src, "thumb")}
+        alt={name}
+        className="h-10 w-10 rounded-full object-cover"
+      />
     );
   }
   return (

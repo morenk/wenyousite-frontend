@@ -43,7 +43,23 @@ export function validateImageFile(file: File): string | null {
   return null;
 }
 
-export async function uploadImage(file: File): Promise<string> {
+/** 头像专用校验：仅允许光栅格式（裁剪后统一 webp），排除可能携带脚本的 svg */
+export function validateAvatarFile(file: File): string | null {
+  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+    return "头像仅支持 jpg/png/webp 格式";
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    return "图片大小不能超过 10MB";
+  }
+  return null;
+}
+
+interface UploadedImage {
+  url: string;
+  mediaId: string;
+}
+
+export async function uploadImageFile(file: File): Promise<UploadedImage> {
   const validationError = validateImageFile(file);
   if (validationError) {
     throw new Error(validationError);
@@ -108,7 +124,7 @@ export async function uploadImage(file: File): Promise<string> {
     }
 
     if (statusRes.data.status === "COMPLETED") {
-      return statusRes.data.url;
+      return { url: statusRes.data.url, mediaId: urlRes.data.mediaId };
     }
     if (statusRes.data.status === "FAILED") {
       throw new Error("图片处理失败，请重新上传");
@@ -118,6 +134,12 @@ export async function uploadImage(file: File): Promise<string> {
   }
 
   throw new Error("图片处理超时，请稍后刷新查看");
+}
+
+/** 编辑器图片上传：仅返回公开 URL */
+export async function uploadImage(file: File): Promise<string> {
+  const result = await uploadImageFile(file);
+  return result.url;
 }
 
 export function getImageUrlBySize(url: string, size: "md" | "thumb"): string {

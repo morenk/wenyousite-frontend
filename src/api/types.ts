@@ -305,7 +305,8 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete?: never;
+        /** 移除头像（置空 user.avatar，回到首字母占位） */
+        delete: operations["UsersController_removeAvatar"];
         options?: never;
         head?: never;
         /** 设置头像（传入 mediaId，校验归属和 COMPLETED 状态） */
@@ -2515,6 +2516,31 @@ export interface operations {
             };
             /** @description 用户名已被占用 */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UsersController_removeAvatar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 更新后的用户资料（avatar 为 null） */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 未登录或 Token 无效 */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };

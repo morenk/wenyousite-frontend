@@ -1,7 +1,7 @@
 /** uploadImage 工具函数测试 */
 
 import { describe, test, expect } from "vitest";
-import { validateImageFile, getImageUrlBySize } from "@/lib/upload-image";
+import { validateImageFile, validateAvatarFile, getImageUrlBySize } from "@/lib/upload-image";
 
 describe("validateImageFile", () => {
   test("合法 jpeg 文件通过", () => {
@@ -57,6 +57,31 @@ describe("validateImageFile", () => {
   test("空文件通过（size=0 也在合法范围）", () => {
     const file = new File([], "empty.png", { type: "image/png" });
     expect(validateImageFile(file)).toBeNull();
+  });
+});
+
+describe("validateAvatarFile", () => {
+  test("合法 jpg/png/webp 通过", () => {
+    expect(validateAvatarFile(new File(["x"], "a.jpg", { type: "image/jpeg" }))).toBeNull();
+    expect(validateAvatarFile(new File(["x"], "a.png", { type: "image/png" }))).toBeNull();
+    expect(validateAvatarFile(new File(["x"], "a.webp", { type: "image/webp" }))).toBeNull();
+  });
+
+  test("排除 svg（可能携带脚本）", () => {
+    const svg = new File(["<svg/>"], "a.svg", { type: "image/svg+xml" });
+    expect(validateAvatarFile(svg)).toMatch(/仅支持/);
+  });
+
+  test("排除 gif/avif", () => {
+    expect(validateAvatarFile(new File(["x"], "a.gif", { type: "image/gif" }))).toMatch(/仅支持/);
+    expect(validateAvatarFile(new File(["x"], "a.avif", { type: "image/avif" }))).toMatch(/仅支持/);
+  });
+
+  test("超大文件返回错误信息", () => {
+    const largeFile = new File(["x".repeat(11 * 1024 * 1024)], "big.jpg", {
+      type: "image/jpeg",
+    });
+    expect(validateAvatarFile(largeFile)).toMatch(/不能超过 10MB/);
   });
 });
 
