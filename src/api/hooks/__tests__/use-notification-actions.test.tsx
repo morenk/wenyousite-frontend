@@ -16,6 +16,10 @@ vi.mock("@/api/client", () => ({
   apiClient: { PATCH: mockPATCH, DELETE: mockDELETE, POST: mockPOST },
 }));
 
+vi.mock("@/lib/auth", () => ({
+  useAuth: () => ({ user: { id: "u1" } }),
+}));
+
 function createWrapper() {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   function Wrapper({ children }: { children: React.ReactNode }) {
