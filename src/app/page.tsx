@@ -4,7 +4,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Edit3 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useThreads } from "@/api/hooks/use-threads";
 import { ThreadList } from "@/components/thread/thread-list";
@@ -38,14 +38,6 @@ export default function HomePage() {
         <h1 className="text-xl font-bold text-foreground">发现</h1>
         {user && (
           <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.push("/drafts")}
-            >
-              <Edit3 className="h-4 w-4" />
-              草稿箱
-            </Button>
             <Button
               size="sm"
               onClick={() => router.push("/threads/create")}

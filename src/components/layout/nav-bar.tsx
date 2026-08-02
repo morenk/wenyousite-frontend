@@ -2,23 +2,20 @@
 
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, StickyNote } from "lucide-react";
+import { Search } from "lucide-react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/lib/auth";
 import { apiClient } from "@/api/client";
 import { useUnreadCount } from "@/api/hooks/use-unread-count";
 import { Button } from "@/components/ui/button";
-import { ContentDraftsPanel } from "@/components/user/content-drafts-panel";
 
 export function NavBar() {
   const router = useRouter();
   const { user, logout } = useAuth();
   const { data: unreadCount } = useUnreadCount(user?.id);
-  const [draftsOpen, setDraftsOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -67,19 +64,6 @@ export function NavBar() {
                 )}
               </Link>
               <Link
-                href="/drafts"
-                className="text-sm text-muted-foreground hover:text-foreground"
-              >
-                草稿箱
-              </Link>
-              <button
-                onClick={() => setDraftsOpen(true)}
-                className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-              >
-                <StickyNote className="h-3.5 w-3.5" />
-                正文草稿
-              </button>
-              <Link
                 href={`/users/${user.id}`}
                 className="text-sm font-medium text-foreground hover:text-primary"
               >
@@ -103,10 +87,6 @@ export function NavBar() {
           )}
         </div>
       </nav>
-      <ContentDraftsPanel
-        open={draftsOpen}
-        onClose={() => setDraftsOpen(false)}
-      />
     </header>
   );
 }
