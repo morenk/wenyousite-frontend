@@ -39,17 +39,15 @@ export function UserRecentReplies({
   return (
     <div className="space-y-3">
       {visible.map((reply) => (
-        <div
+        <Link
           key={reply.id}
-          className="rounded-lg border border-border bg-card p-3"
+          href={`/threads/${reply.threadId}?post=${reply.id}`}
+          className="block rounded-lg border border-border bg-card p-3 transition-colors hover:border-primary/40 hover:bg-muted/50"
         >
           <div className="mb-1 flex items-center justify-between">
-            <Link
-              href={`/threads/${reply.threadId}`}
-              className="text-xs font-medium text-muted-foreground hover:text-primary"
-            >
+            <span className="text-xs font-medium text-muted-foreground">
               {reply.thread.title}
-            </Link>
+            </span>
             <span className="flex items-center gap-1 text-xs text-muted-foreground">
               <span className="flex items-center gap-0.5">
                 {reply.parentPostId ? (
@@ -77,7 +75,7 @@ export function UserRecentReplies({
           <p className="line-clamp-2 text-sm text-foreground/90">
             {reply.preview || reply.content}
           </p>
-        </div>
+        </Link>
       ))}
     </div>
   );

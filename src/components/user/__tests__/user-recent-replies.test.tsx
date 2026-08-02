@@ -82,6 +82,18 @@ describe("UserRecentReplies", () => {
     expect(screen.getAllByRole("link")).toHaveLength(3);
   });
 
+  test("每条动态点击跳转到对应楼层/主贴", () => {
+    render(
+      <UserRecentReplies replies={sampleReplies} isLoading={false} error={false} />,
+    );
+    const links = screen.getAllByRole("link").map((el) => el.getAttribute("href"));
+    expect(links).toEqual([
+      "/threads/t1?post=r1",
+      "/threads/t1?post=r2",
+      "/threads/t2?post=r3",
+    ]);
+  });
+
   test("只显示最近 5 条", () => {
     const many = Array.from({ length: 7 }, (_, i) => ({
       id: `r${i}`,
