@@ -184,6 +184,7 @@
 | 组件 | 路径 | 说明 |
 |------|------|------|
 | UserProfileCard | `src/components/user/user-profile-card.tsx` | 用户资料卡：头像（无则首字母）/用户名/Bio/注册时间/关注粉丝数（可点击）/操作按钮 |
+| UserAvatar | `src/components/shared/user-avatar.tsx` | 共享头像组件：有 URL 用 `_thumb.webp` 缩略图，无则首字母占位；尺寸通过 className 控制（资料卡/关注列表/通知/主题帖列表/楼层/楼中楼复用） |
 | FollowButton | `src/components/user/follow-button.tsx` | 关注/取消关注切换（未登录跳 /login） |
 | BlockButton | `src/components/user/block-button.tsx` | 拉黑/取消拉黑切换（confirm 二次确认） |
 | UserFollowList | `src/components/user/user-follow-list.tsx` | 关注/粉丝列表（头像 + 用户名链接 + 三态，复用两种列表） |

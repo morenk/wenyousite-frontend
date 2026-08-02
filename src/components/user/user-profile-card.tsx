@@ -7,9 +7,9 @@ import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { CalendarDays, Users } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import { getImageUrlBySize } from "@/lib/upload-image";
 import { FollowButton } from "@/components/user/follow-button";
 import { BlockButton } from "@/components/user/block-button";
+import { UserAvatar } from "@/components/shared/user-avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { UserPublic } from "@/api/hooks/use-user-profile";
@@ -27,7 +27,12 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
       <CardContent className="pt-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-4">
-            <Avatar name={user.username} src={user.avatar} />
+            <UserAvatar
+              name={user.username}
+              src={user.avatar}
+              className="h-16 w-16"
+              textClassName="text-2xl"
+            />
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-lg font-bold text-foreground">
@@ -92,24 +97,5 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
         )}
       </CardContent>
     </Card>
-  );
-}
-
-/** 头像：有 URL 用缩略图，无则显示用户名首字符 */
-function Avatar({ name, src }: { name: string; src: string | null }) {
-  if (src) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={getImageUrlBySize(src, "thumb")}
-        alt={name}
-        className="h-16 w-16 rounded-full object-cover"
-      />
-    );
-  }
-  return (
-    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-2xl font-bold text-primary">
-      {name.slice(0, 1).toUpperCase()}
-    </div>
   );
 }
