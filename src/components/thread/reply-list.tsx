@@ -56,6 +56,18 @@ export function ReplyList({ postId, focusedReply }: ReplyListProps) {
     ? [...loadedReplies, focusedReply]
     : loadedReplies;
 
+  // 父楼展开、目标回复渲染完成后再执行第二阶段滚动，避免只停在父楼。
+  useEffect(() => {
+    if (!focusedReply) return;
+    const timer = window.setTimeout(() => {
+      document.getElementById(`post-${focusedReply.id}`)?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 150);
+    return () => window.clearTimeout(timer);
+  }, [focusedReply]);
+
   return (
     <div className="mt-3 space-y-2 border-l-2 border-border pl-3">
       {isLoading && (

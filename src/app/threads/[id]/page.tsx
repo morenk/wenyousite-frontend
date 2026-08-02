@@ -44,12 +44,8 @@ export default function ThreadDetailPage() {
   const targetFloorId = targetPost?.parentPostId ?? targetPost?.id;
   const { data: targetFloor } = usePost(targetFloorId);
 
-  useEffect(() => {
-    if (targetPost?.subthreadId) setSelectedSubthreadId(targetPost.subthreadId);
-  }, [targetPost?.subthreadId]);
-
   const effectiveSubthreadId =
-    selectedSubthreadId ?? thread?.defaultSubthreadId;
+    selectedSubthreadId ?? targetPost?.subthreadId ?? thread?.defaultSubthreadId;
 
   const {
     data: floorsData,

@@ -41,10 +41,10 @@ export function FloorCard({ floor, isEven, focused = false, focusedReply }: Floo
   const uploadImage = useUploadImage();
 
   const isAuthor = !!user && user.id === floor.authorId;
+  const showReplies = isRepliesOpen || !!focusedReply;
 
   useEffect(() => {
     if (!focused) return;
-    if (focusedReply) setIsRepliesOpen(true);
     const timer = window.setTimeout(() => {
       cardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 100);
@@ -205,7 +205,7 @@ export function FloorCard({ floor, isEven, focused = false, focusedReply }: Floo
             >
               <MessageSquare className="h-3.5 w-3.5" />
               {floor._count.replies} 条回复
-              {isRepliesOpen ? (
+              {showReplies ? (
                 <ChevronUp className="h-3.5 w-3.5" />
               ) : (
                 <ChevronDown className="h-3.5 w-3.5" />
@@ -232,7 +232,7 @@ export function FloorCard({ floor, isEven, focused = false, focusedReply }: Floo
       )}
 
       {/* 楼中楼回复区 */}
-      {!isEditing && isRepliesOpen && (
+      {!isEditing && showReplies && (
         <div className="mt-2">
           <ReplyList postId={floor.id} focusedReply={focusedReply} />
           {isReplying && (
