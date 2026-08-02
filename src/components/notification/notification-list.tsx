@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Loader2, CheckCheck, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { useNotifications } from "@/api/hooks/use-notifications";
@@ -14,15 +14,17 @@ import { Button } from "@/components/ui/button";
 
 export function NotificationList() {
   const { user } = useAuth();
+  const [type, setType] = useState<string>();
   const {
     data,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isFetchNextPageError,
     isLoading,
     isError,
     refetch,
-  } = useNotifications({ userId: user?.id });
+  } = useNotifications({ type, userId: user?.id });
   const { markAllRead } = useNotificationActions();
 
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -45,6 +47,14 @@ export function NotificationList() {
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const notifications = data?.pages.flatMap((page) => page?.data ?? []) ?? [];
+  const hasUnread = notifications.some((notification) => !notification.isRead);
+  const loadMoreFailed = Boolean(isFetchNextPageError);
+
+  useEffect(() => {
+    const refresh = () => refetch();
+    window.addEventListener("focus", refresh);
+    return () => window.removeEventListener("focus", refresh);
+  }, [refetch]);
 
   const handleMarkAllRead = async () => {
     try {
@@ -80,17 +90,32 @@ export function NotificationList() {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-end">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleMarkAllRead}
-          disabled={markAllRead.isPending}
-          className="text-xs"
-        >
-          <CheckCheck className="mr-1.5 h-3.5 w-3.5" />
-          全部已读
-        </Button>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap gap-1">
+          {NOTIFICATION_FILTERS.map((filter) => (
+            <Button
+              key={filter.value ?? "all"}
+              variant={type === filter.value ? "secondary" : "ghost"}
+              size="sm"
+              className="h-7 px-2 text-xs"
+              onClick={() => setType(filter.value)}
+            >
+              {filter.label}
+            </Button>
+          ))}
+        </div>
+        {hasUnread && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleMarkAllRead}
+            disabled={markAllRead.isPending}
+            className="shrink-0 text-xs"
+          >
+            <CheckCheck className="mr-1.5 h-3.5 w-3.5" />
+            全部已读
+          </Button>
+        )}
       </div>
 
       {notifications.map((notification) => (
@@ -112,6 +137,11 @@ export function NotificationList() {
             加载更多
           </Button>
         )}
+        {loadMoreFailed && (
+          <Button variant="outline" size="sm" onClick={() => refetch()} className="text-xs">
+            加载失败，重试
+          </Button>
+        )}
         {!hasNextPage && (
           <span className="text-xs text-muted-foreground">没有更多了</span>
         )}
@@ -119,3 +149,11 @@ export function NotificationList() {
     </div>
   );
 }
+
+const NOTIFICATION_FILTERS = [
+  { label: "全部", value: undefined },
+  { label: "回复与提及", value: "reply,mention" },
+  { label: "主题更新", value: "new_post,thread_created" },
+  { label: "关注与点赞", value: "follow,like" },
+  { label: "系统", value: "system" },
+] as const;
