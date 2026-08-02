@@ -267,7 +267,7 @@ setsid nohup env NODE_ENV=production node dist/main </dev/null \
 | 5 | 主题帖详情与回复（子贴、楼层、楼中楼） | `docs/modules/thread-detail.md` | 已完成 |
 | 6 | 用户（资料、关注、拉黑、草稿箱） | `docs/modules/profile.md` | 已完成 |
 | 7 | 通知（列表、未读数、红点） | `docs/modules/notifications.md` | 已完成 |
-| 8 | 搜索与收藏 | `docs/modules/search.md` | 待设计 |
+| 8 | 搜索与收藏 | `docs/modules/search.md` | 进行中（搜索完成，收藏待做） |
 | 9 | UI 美化（Misskey 风格、动画、响应式） | — | 待开始 |
 
 ### 15. Git 提交
