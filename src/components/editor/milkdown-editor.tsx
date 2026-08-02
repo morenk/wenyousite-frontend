@@ -13,16 +13,12 @@ const MAX_CHARS = 10000;
 const TOOLBAR_TOOLTIPS: Record<number, string> = {
   0: "粗体",
   1: "斜体",
-  2: "删除线",
-  3: "行内代码",
-  4: "无序列表",
-  5: "有序列表",
-  6: "任务列表",
-  7: "链接",
-  8: "图片",
-  9: "代码块",
-  10: "引用",
-  11: "分隔线",
+  2: "无序列表",
+  3: "链接",
+  4: "图片",
+  5: "代码块",
+  6: "引用",
+  7: "分隔线",
 };
 
 function injectToolbarTooltips() {
@@ -109,6 +105,17 @@ function EditorCore({
           },
           [CrepeFeature.TopBar]: {
             headingOptions: CN_HEADING_OPTIONS,
+            // 精简工具栏：移除 删除线/行内代码/有序列表/todo
+            buildTopBar: (builder) => {
+              const formatting = builder.getGroup("formatting").group;
+              formatting.items = formatting.items.filter(
+                (item) => item.key !== "strikethrough" && item.key !== "code",
+              );
+              const list = builder.getGroup("list").group;
+              list.items = list.items.filter(
+                (item) => item.key !== "ordered-list" && item.key !== "task-list",
+              );
+            },
           },
           [CrepeFeature.LinkTooltip]: {
             inputPlaceholder: "粘贴链接…",

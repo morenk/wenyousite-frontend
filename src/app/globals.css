@@ -108,3 +108,8 @@ body {
   max-width: 100%;
   height: auto;
 }
+
+/* Milkdown 工具栏精简：收窄正文/标题下拉按钮宽度，给其他按钮留空间 */
+.milkdown .milkdown-top-bar .top-bar-heading-button .top-bar-heading-label {
+  min-width: 48px;
+}
