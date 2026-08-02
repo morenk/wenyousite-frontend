@@ -15,6 +15,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { MarkdownContent } from "@/components/thread/markdown-content";
 import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
 import { useThreadComposer } from "@/components/thread/thread-composer-context";
+import { UserAvatar } from "@/components/shared/user-avatar";
 import { Button } from "@/components/ui/button";
 import type { PostData } from "@/api/hooks/use-floors";
 
@@ -132,6 +133,12 @@ export function ReplyList({ postId, focusedReply }: ReplyListProps) {
           >
             <div className="mb-1.5 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
+                <UserAvatar
+                  name={reply.author.username}
+                  src={reply.author.avatar}
+                  className="h-6 w-6"
+                  textClassName="text-[10px]"
+                />
                 <Link
                   href={`/users/${reply.authorId}`}
                   className="text-xs font-medium text-foreground hover:text-primary"

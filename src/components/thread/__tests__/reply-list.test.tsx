@@ -143,6 +143,20 @@ describe("ReplyList", () => {
     render(<ReplyList postId="post-1" />, { wrapper: createWrapper() });
     expect(screen.getByText("replier")).toBeInTheDocument();
     expect(screen.getByText("楼中楼回复内容")).toBeInTheDocument();
+    expect(screen.getByTestId("user-avatar-placeholder").textContent).toBe("R");
+  });
+
+  test("作者有头像时渲染缩略图", () => {
+    mockUseReplies.mockReturnValue(
+      dataWithReplies([
+        baseReply({ author: { id: "u2", username: "replier", avatar: "https://example.com/r.png" } }),
+      ]),
+    );
+    render(<ReplyList postId="post-1" />, { wrapper: createWrapper() });
+    expect(screen.getByRole("img")).toHaveAttribute(
+      "src",
+      "https://example.com/r_thumb.webp",
+    );
   });
 
   test("错误状态显示重试", () => {
