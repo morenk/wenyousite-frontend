@@ -1,4 +1,4 @@
-/** 删除主题帖草稿 API hook */
+/** 删除主题帖 API hook：草稿硬删除，已发布帖软删除 */
 
 import { useMutation } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";

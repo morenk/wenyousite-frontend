@@ -8,6 +8,11 @@ import { ThreadDetailHeader } from "@/components/thread/thread-detail-header";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
 import React from "react";
 
+vi.mock("sonner", () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
+}));
+import { toast } from "sonner";
+
 const mockUseAuth = vi.fn();
 vi.mock("@/lib/auth", () => ({
   useAuth: () => mockUseAuth(),
@@ -17,6 +22,10 @@ const { mockPOST, mockDELETE, mockGET } = vi.hoisted(() => ({
   mockPOST: vi.fn(),
   mockDELETE: vi.fn(),
   mockGET: vi.fn(),
+}));
+const { mockDeleteThreadMutate, mockRouterPush } = vi.hoisted(() => ({
+  mockDeleteThreadMutate: vi.fn().mockResolvedValue({}),
+  mockRouterPush: vi.fn(),
 }));
 
 vi.mock("@/api/client", () => ({
@@ -34,13 +43,17 @@ vi.mock("@/api/hooks/use-subscription-mutations", () => ({
   useDeleteSubscription: () => ({ mutateAsync: mockDeleteMutate, isPending: false }),
 }));
 
+vi.mock("@/api/hooks/use-delete-thread", () => ({
+  useDeleteThread: () => ({ mutateAsync: mockDeleteThreadMutate, isPending: false }),
+}));
+
 vi.mock("@tanstack/react-query", async () => {
   const actual = await vi.importActual("@tanstack/react-query");
   return { ...actual, useQueryClient: () => ({ invalidateQueries: vi.fn().mockResolvedValue(undefined) }) };
 });
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: mockRouterPush }),
 }));
 
 vi.mock("next/link", () => ({
@@ -49,10 +62,16 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-afterEach(() => cleanup());
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 
 beforeEach(() => {
   mockUseSubscriptions.mockReturnValue({ data: [], isLoading: false });
+  mockDeleteThreadMutate.mockClear();
+  mockDeleteThreadMutate.mockResolvedValue({});
+  mockRouterPush.mockClear();
 });
 
 function renderWithQC(ui: React.ReactElement) {
@@ -179,6 +198,71 @@ describe("ThreadDetailHeader", () => {
       <ThreadDetailHeader thread={baseThread} />,
     );
     expect(screen.getByText("管理")).toBeInTheDocument();
+  });
+
+  test("OWNER 看到删除主题帖按钮，确认后删除并返回首页", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("confirm", vi.fn(() => true));
+    mockUseAuth.mockReturnValue({
+      user: { id: "owner-1", username: "帖主" },
+      isInitialized: true,
+    });
+
+    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
+
+    await user.click(screen.getByTitle("删除主题帖"));
+
+    expect(window.confirm).toHaveBeenCalledWith(
+      "确定要删除该主题帖吗？已发布主题帖删除后将无法恢复。",
+    );
+    expect(mockDeleteThreadMutate).toHaveBeenCalledWith("thread-1");
+    expect(mockRouterPush).toHaveBeenCalledWith("/");
+  });
+
+  test("取消删除主题帖时不调用删除接口", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("confirm", vi.fn(() => false));
+    mockUseAuth.mockReturnValue({
+      user: { id: "owner-1", username: "帖主" },
+      isInitialized: true,
+    });
+
+    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
+
+    await user.click(screen.getByTitle("删除主题帖"));
+
+    expect(mockDeleteThreadMutate).not.toHaveBeenCalled();
+    expect(mockRouterPush).not.toHaveBeenCalled();
+  });
+
+  test("非 OWNER 看不到删除主题帖按钮", () => {
+    mockUseAuth.mockReturnValue({
+      user: { id: "other-user", username: "别人" },
+      isInitialized: true,
+    });
+
+    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
+
+    expect(screen.queryByTitle("删除主题帖")).toBeNull();
+  });
+
+  test("删除失败显示后端错误", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("confirm", vi.fn(() => true));
+    mockDeleteThreadMutate.mockRejectedValueOnce({
+      code: 40301,
+      message: "仅楼主可删除主题帖",
+    });
+    mockUseAuth.mockReturnValue({
+      user: { id: "owner-1", username: "帖主" },
+      isInitialized: true,
+    });
+
+    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
+    await user.click(screen.getByTitle("删除主题帖"));
+
+    expect(toast.error).toHaveBeenCalledWith("仅楼主可删除主题帖");
+    expect(mockRouterPush).not.toHaveBeenCalled();
   });
 
   test("非 OWNER 看不到管理按钮", () => {

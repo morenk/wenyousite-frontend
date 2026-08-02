@@ -36,6 +36,7 @@
 | Method | Path | Guard | 用途 |
 |--------|------|-------|------|
 | GET | `/threads/:id` | Public | 主题帖详情（含子贴列表、owner、_count） |
+| DELETE | `/threads/:id` | Auth | 删除主题帖：未发布帖硬删除，已发布帖软删除，仅 OWNER |
 | GET | `/subthreads/:subthreadId/posts` | Public | 楼层列表（cursor 分页，含内联 replies） |
 | POST | `/subthreads/:subthreadId/posts` | Auth | 发布新楼层/楼中楼回复（kind=FLOOR，发帖自动成为参与人=玩家候选池；楼中楼带 parentPostId/replyToPostId） |
 | GET | `/posts/:id/replies` | Public | 楼中楼回复列表（cursor 分页） |
@@ -218,7 +219,7 @@
 | 组件 | 路径 | 说明 |
 |------|------|------|
 | ThreadDetailPage | `src/app/threads/[id]/page.tsx` | 详情页主逻辑（含管理面板切换） |
-| ThreadDetailHeader | `src/components/thread/thread-detail-header.tsx` | 页面顶层独立标题区（非卡片）：徽章/主题帖标题/作者/标签/操作按钮 |
+| ThreadDetailHeader | `src/components/thread/thread-detail-header.tsx` | 页面顶层独立标题区（非卡片）：徽章/主题帖标题/作者/标签/操作按钮；OWNER 可删除主题帖 |
 | SubthreadTabs | `src/components/thread/subthread-tabs.tsx` | 子贴 Tab 切换导航 |
 | SubthreadBody | `src/components/thread/subthread-body.tsx` | 子贴卡（唯一卡片）：子贴标题 + 默认徽章 + 正文（kind=BODY）同容器（正文不进入楼层列表） |
 | FloorCard | `src/components/thread/floor-card.tsx` | 单条楼层卡片（Markdown 渲染；作者本人可编辑/删除；展开楼中楼 + 回复他人） |
@@ -306,6 +307,7 @@
 | 40100 | 未登录发帖/点赞 | 自动跳转 /login（apiClient 拦截器） |
 | 40302 | 该子贴仅限协作者发帖 | toast "该子贴仅限协作者发帖" |
 | 40303 | 该子贴仅限玩家发帖 | toast "该子贴仅限玩家发帖" |
+| 40301 | 非 OWNER 删除主题帖 | toast 后端 message |
 | 40000 | 字段校验失败 | toast 后端 message |
 | 42900 | 限流 | toast "操作太频繁，请稍后再试" |
 | 网络错误 | fetch 失败 | 显示错误提示 + 重试按钮 |
@@ -319,6 +321,7 @@
 | 未登录发帖 | apiClient 拦截器自动跳转 /login |
 | 发帖 | 登录即可发帖，发帖自动入候选池；子贴发帖策略（协作者/玩家）由后端拦截并映射错误码 |
 | 已发布帖 OWNER | 显示 "编辑" 按钮（跳 `/threads/[id]/edit`，编辑表单 ThreadEditForm） |
+| OWNER 删除 | 显示 "删除" 按钮；确认后调用 `DELETE /threads/:id`，成功返回首页 |
 
 ## 10. 验收标准
 
@@ -327,6 +330,7 @@
 - [x] 子贴 Tab 可切换，选中 Tab 高亮
 - [x] 子贴标题与正文（kind=BODY）同容器渲染（SubthreadBody），正文不进入楼层列表
 - [x] 主题帖标题区独立置顶（非卡片，ThreadDetailHeader），子贴标题取代原卡片内标题位置
+- [x] OWNER 可删除主题帖：已发布帖软删除，草稿硬删除，成功后返回首页
 - [x] 楼层列表按 floorNumber 排序，分页加载（楼层从 #1 开始）
 - [x] 楼层卡片正确渲染 Markdown 内容
 - [x] 未登录用户可浏览公开帖，不能发帖
@@ -371,5 +375,6 @@
 - [x] 后端读端点 `@Public()` → `@OptionalAuth()` 修复（草稿帖楼层/子贴可查询）
 - [x] lint / typecheck / build 通过
 - [x] E2E：管理面板全流程（进入→增删改→正文编辑→排序→返回）+ 拖拽排序验证
+- [x] 主题帖删除：详情头部 OWNER 入口、确认/取消、成功跳转与错误提示
 - [x] 单编辑器切片 1：会话控制器测试、实现与文档
 - [x] 单编辑器切片 2：统一 Composer、详情页集成、组件测试与文档

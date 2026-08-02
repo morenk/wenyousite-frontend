@@ -4,13 +4,14 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Heart, Edit3, Settings, Loader2, Bell, BellOff } from "lucide-react";
+import { Heart, Edit3, Settings, Loader2, Bell, BellOff, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { useLikeThread } from "@/api/hooks/use-like-thread";
+import { useDeleteThread } from "@/api/hooks/use-delete-thread";
 import { useSubscriptions } from "@/api/hooks/use-subscriptions";
 import {
   useCreateSubscription,
@@ -58,6 +59,7 @@ export function ThreadDetailHeader({
   const router = useRouter();
   const queryClient = useQueryClient();
   const { like, unlike } = useLikeThread(thread.id);
+  const deleteThread = useDeleteThread();
   const { data: subscriptions } = useSubscriptions(!!user);
   const createSubscription = useCreateSubscription();
   const deleteSubscription = useDeleteSubscription();
@@ -90,6 +92,22 @@ export function ThreadDetailHeader({
     } catch (error: unknown) {
       const err = error as { message?: string };
       toast.error(err.message || "操作失败，请稍后重试");
+    }
+  };
+
+  const handleDeleteThread = async () => {
+    const message = thread.published
+      ? "确定要删除该主题帖吗？已发布主题帖删除后将无法恢复。"
+      : "确定要删除该主题帖吗？草稿删除后将无法恢复。";
+    if (!confirm(message)) return;
+
+    try {
+      await deleteThread.mutateAsync(thread.id);
+      toast.success("主题帖已删除");
+      router.push("/");
+    } catch (error: unknown) {
+      const err = error as { message?: string };
+      toast.error(err.message || "删除失败，请稍后重试");
     }
   };
 
@@ -230,6 +248,21 @@ export function ThreadDetailHeader({
                   >
                     <Edit3 className="mr-1 h-4 w-4" />
                     编辑
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:text-destructive"
+                    title="删除主题帖"
+                    onClick={handleDeleteThread}
+                    disabled={deleteThread.isPending}
+                  >
+                    {deleteThread.isPending ? (
+                      <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="mr-1 h-4 w-4" />
+                    )}
+                    删除
                   </Button>
                 </>
               )}
