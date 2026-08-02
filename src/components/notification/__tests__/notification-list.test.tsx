@@ -24,6 +24,10 @@ vi.mock("@/components/notification/notification-item", () => ({
   ),
 }));
 
+vi.mock("@/lib/auth", () => ({
+  useAuth: () => ({ user: { id: "u1", username: "tester" } }),
+}));
+
 vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));

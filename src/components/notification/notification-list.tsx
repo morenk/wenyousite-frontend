@@ -7,11 +7,13 @@ import { Loader2, CheckCheck, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { useNotifications } from "@/api/hooks/use-notifications";
 import { useNotificationActions } from "@/api/hooks/use-notification-actions";
+import { useAuth } from "@/lib/auth";
 import { NotificationItem } from "@/components/notification/notification-item";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 
 export function NotificationList() {
+  const { user } = useAuth();
   const {
     data,
     fetchNextPage,
@@ -20,7 +22,7 @@ export function NotificationList() {
     isLoading,
     isError,
     refetch,
-  } = useNotifications();
+  } = useNotifications({ userId: user?.id });
   const { markAllRead } = useNotificationActions();
 
   const sentinelRef = useRef<HTMLDivElement>(null);

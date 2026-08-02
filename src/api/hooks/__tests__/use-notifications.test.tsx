@@ -50,7 +50,7 @@ describe("useNotifications", () => {
       error: undefined,
     });
 
-    const { result } = renderHook(() => useNotifications(), {
+    const { result } = renderHook(() => useNotifications({ userId: "u1" }), {
       wrapper: createWrapper(),
     });
 
@@ -69,7 +69,7 @@ describe("useNotifications", () => {
       error: undefined,
     });
 
-    renderHook(() => useNotifications({ type: "mention" }), {
+    renderHook(() => useNotifications({ type: "mention", userId: "u1" }), {
       wrapper: createWrapper(),
     });
 
@@ -90,11 +90,51 @@ describe("useNotifications", () => {
       error: undefined,
     });
 
-    const { result } = renderHook(() => useNotifications(), {
+    const { result } = renderHook(() => useNotifications({ userId: "u1" }), {
       wrapper: createWrapper(),
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.hasNextPage).toBe(true);
+  });
+
+  test("未登录（无 userId）时不发起请求", async () => {
+    mockGET.mockClear();
+
+    const { result } = renderHook(() => useNotifications(), {
+      wrapper: createWrapper(),
+    });
+
+    expect(mockGET).not.toHaveBeenCalled();
+    expect(result.current.data).toBeUndefined();
+  });
+
+  test("userId 从空切换为有效值时重新拉取列表（回归：按用户隔离）", async () => {
+    mockGET.mockClear();
+    mockGET.mockResolvedValue({
+      data: {
+        code: 0,
+        message: "ok",
+        data: [sampleNotification],
+        meta: { cursor: null, hasMore: false },
+      },
+      error: undefined,
+    });
+
+    const { result, rerender } = renderHook(
+      ({ userId }: { userId?: string }) => useNotifications({ userId }),
+      {
+        initialProps: { userId: undefined } as { userId?: string },
+        wrapper: createWrapper(),
+      },
+    );
+
+    expect(mockGET).not.toHaveBeenCalled();
+
+    rerender({ userId: "u1" });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockGET).toHaveBeenCalledWith("/api/v1/notifications", {
+      params: { query: { limit: "20" } },
+    });
   });
 });

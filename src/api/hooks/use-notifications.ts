@@ -1,4 +1,4 @@
-/** 通知列表 API hook（GET /notifications，cursor 分页，可选 type 过滤） */
+/** 通知列表 API hook（GET /notifications，cursor 分页，可选 type 过滤，按用户隔离缓存） */
 
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
@@ -33,11 +33,13 @@ export interface NotificationsResponse {
 
 interface UseNotificationsParams {
   type?: string;
+  userId?: string;
 }
 
-export function useNotifications({ type }: UseNotificationsParams = {}) {
+export function useNotifications({ type, userId }: UseNotificationsParams = {}) {
+  const enabled = !!userId;
   return useInfiniteQuery({
-    queryKey: ["notifications", type],
+    queryKey: ["notifications", type, userId],
     queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
       const queryParams: Record<string, string> = { limit: "20" };
       if (pageParam) queryParams.cursor = pageParam;
@@ -64,6 +66,7 @@ export function useNotifications({ type }: UseNotificationsParams = {}) {
       if (!lastPage?.meta?.hasMore) return undefined;
       return lastPage.meta.cursor ?? undefined;
     },
+    enabled,
     staleTime: 10 * 1000,
   });
 }
