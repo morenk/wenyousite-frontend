@@ -7,7 +7,6 @@ function useInvalidateNotifications() {
   const queryClient = useQueryClient();
   return () => {
     queryClient.invalidateQueries({ queryKey: ["notifications"] });
-    queryClient.invalidateQueries({ queryKey: ["notifications", "unread"] });
   };
 }
 

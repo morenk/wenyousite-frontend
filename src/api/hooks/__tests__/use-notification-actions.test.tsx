@@ -22,7 +22,7 @@ function createWrapper() {
     return <QueryClientProvider client={qc}>{children}</QueryClientProvider>;
   }
   Wrapper.displayName = "QueryClientWrapper";
-  return Wrapper;
+  return { qc, Wrapper };
 }
 
 describe("useNotificationActions", () => {
@@ -32,8 +32,9 @@ describe("useNotificationActions", () => {
       error: undefined,
     });
 
+    const { Wrapper } = createWrapper();
     const { result } = renderHook(() => useNotificationActions(), {
-      wrapper: createWrapper(),
+      wrapper: Wrapper,
     });
 
     result.current.markRead.mutate("n1");
@@ -50,8 +51,9 @@ describe("useNotificationActions", () => {
       error: undefined,
     });
 
+    const { Wrapper } = createWrapper();
     const { result } = renderHook(() => useNotificationActions(), {
-      wrapper: createWrapper(),
+      wrapper: Wrapper,
     });
 
     result.current.remove.mutate("n1");
@@ -67,12 +69,33 @@ describe("useNotificationActions", () => {
       error: undefined,
     });
 
+    const { Wrapper } = createWrapper();
     const { result } = renderHook(() => useNotificationActions(), {
-      wrapper: createWrapper(),
+      wrapper: Wrapper,
     });
 
     result.current.markAllRead.mutate();
     await waitFor(() => expect(result.current.markAllRead.isSuccess).toBe(true));
     expect(mockPOST).toHaveBeenCalledWith("/api/v1/notifications/read-all");
+  });
+
+  test("操作成功后失效通知前缀查询（含未读数/列表，按用户隔离）", async () => {
+    mockPOST.mockResolvedValue({
+      data: { code: 0, message: "ok", data: { message: "全部已标记为已读" } },
+      error: undefined,
+    });
+
+    const { qc, Wrapper } = createWrapper();
+    const invalidateSpy = vi.spyOn(qc, "invalidateQueries");
+    const { result } = renderHook(() => useNotificationActions(), {
+      wrapper: Wrapper,
+    });
+
+    result.current.markAllRead.mutate();
+    await waitFor(() => expect(result.current.markAllRead.isSuccess).toBe(true));
+
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["notifications"],
+    });
   });
 });
