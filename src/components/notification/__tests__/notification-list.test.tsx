@@ -35,6 +35,13 @@ vi.mock("sonner", () => ({
 import { toast } from "sonner";
 import { NotificationList } from "@/components/notification/notification-list";
 
+function renderList(overrides: { type?: string; onTypeChange?: (t?: string) => void } = {}) {
+  const onTypeChange = overrides.onTypeChange ?? vi.fn();
+  return render(<NotificationList type={overrides.type} onTypeChange={onTypeChange} />, {
+    wrapper: createWrapper(),
+  });
+}
+
 beforeAll(() => {
   vi.stubGlobal("IntersectionObserver", class {
     observe() {}
@@ -83,11 +90,11 @@ describe("NotificationList", () => {
       refetch: vi.fn(),
     });
     mockUseNotificationActions.mockReturnValue({ markAllRead: { isPending: false, mutateAsync: vi.fn() } });
-    render(<NotificationList />, { wrapper: createWrapper() });
+    renderList();
     expect(document.querySelector(".animate-spin")).toBeTruthy();
   });
 
-  test("空列表显示空状态", () => {
+  test("空列表显示空状态，且类型筛选栏仍然保留", () => {
     mockUseNotifications.mockReturnValue({
       data: { pages: [] },
       fetchNextPage: vi.fn(),
@@ -99,8 +106,34 @@ describe("NotificationList", () => {
       refetch: vi.fn(),
     });
     mockUseNotificationActions.mockReturnValue({ markAllRead: { isPending: false, mutateAsync: vi.fn() } });
-    render(<NotificationList />, { wrapper: createWrapper() });
+    renderList();
     expect(screen.getByText("暂无通知")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "全部" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "回复与提及" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "系统" })).toBeInTheDocument();
+  });
+
+  test("点击类型筛选触发 onTypeChange", async () => {
+    const user = userEvent.setup();
+    const onTypeChange = vi.fn();
+    mockUseNotifications.mockReturnValue({
+      data: { pages: [] },
+      fetchNextPage: vi.fn(),
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      isLoading: false,
+      isError: false,
+      error: undefined,
+      refetch: vi.fn(),
+    });
+    mockUseNotificationActions.mockReturnValue({ markAllRead: { isPending: false, mutateAsync: vi.fn() } });
+    renderList({ onTypeChange });
+
+    await user.click(screen.getByRole("button", { name: "系统" }));
+    expect(onTypeChange).toHaveBeenCalledWith("system");
+
+    await user.click(screen.getByRole("button", { name: "全部" }));
+    expect(onTypeChange).toHaveBeenCalledWith(undefined);
   });
 
   test("错误状态显示重试", () => {
@@ -115,7 +148,7 @@ describe("NotificationList", () => {
       refetch: vi.fn(),
     });
     mockUseNotificationActions.mockReturnValue({ markAllRead: { isPending: false, mutateAsync: vi.fn() } });
-    render(<NotificationList />, { wrapper: createWrapper() });
+    renderList();
     expect(screen.getByText("通知加载失败")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "重试" })).toBeInTheDocument();
   });
@@ -137,7 +170,7 @@ describe("NotificationList", () => {
       markAllRead: { isPending: false, mutateAsync: markAllReadMutate },
     });
 
-    render(<NotificationList />, { wrapper: createWrapper() });
+    renderList();
     expect(screen.getAllByTestId("notification-item")).toHaveLength(1);
 
     await user.click(screen.getByRole("button", { name: "全部已读" }));

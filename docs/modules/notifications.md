@@ -113,6 +113,8 @@
 - 删除按钮：硬删除 + 失效列表/未读数
 - 类型图标：reply/mention/new_post/thread_created → MessageSquare/AtSign/PenLine/FilePlus；follow → UserPlus；like → Heart；system → Megaphone
 - 未读：左侧圆点 + 背景高亮；点击后即时置为已读样式
+- 类型筛选由 URL `?type=` 驱动（如 `?type=reply,mention`）；切换筛选通过 `router.replace` 同步到 URL，点击导航栏「通知」入口回到 `/notifications`（无参数）即重置为「全部」
+- 类型筛选栏在任何状态下（加载中/出错/空数据）都保持渲染，空类型时不会丢失导航栏；「全部已读」仅在列表存在未读时显示
 - 历史通知展示时移除残留图片 Markdown；仅当结构化 `payload.preview` 明确等于 `1.00` 时移除尾部比例 alt，避免误删正常数字正文
 - 展示时顺带还原 Milkdown 序列化残留的反斜杠转义（`\<`/`\>` → `<`/`>`）及硬换行反斜杠（`\`+换行 → 换行），兼容已入库的旧通知，避免预览出现孤立 `\`
 
