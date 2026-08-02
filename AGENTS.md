@@ -124,7 +124,6 @@ pnpm generate:api # 需要后端已启动
 | `/threads/create` | 创建主题帖 |
 | `/threads/[id]` | 主题帖详情 |
 | `/threads/[id]/edit` | 编辑主题帖 |
-| `/drafts` | 我的草稿 |
 | `/notifications` | 通知 |
 | `/users/[id]` | 用户主页 |
 | `/me` | 我的资料 |

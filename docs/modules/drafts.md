@@ -2,7 +2,7 @@
 
 ## 1. 目标与范围
 
-实现「楼层/回复正文草稿」的前端能力，与「主题帖草稿」（`/drafts` 草稿箱）完全隔离展示。
+实现「编辑器正文草稿」的前端能力，与「主题帖草稿」（创建页草稿列表）完全隔离展示。
 
 **背景：站内有两套互相独立的草稿系统**
 
@@ -12,25 +12,28 @@
 | 模型 | Thread（`published=false`） | Draft（`userId + slot` 联合唯一） |
 | 容量 | 每用户最多 10 条 | 每用户固定 5 槽位（slot 1-5） |
 | 绑定 | 未发布帖，仅 owner 可见 | 不与子贴绑定，全局浮动编辑器缓存 |
-| 前端入口 | 导航「草稿箱」→ `/drafts` | 导航「正文草稿」→ 面板（Sheet） |
+| 前端入口 | `/threads/create` 草稿列表 | 编辑器工具栏「正文草稿」→ 面板（Sheet） |
 | 交互 | 显式「保存草稿」按钮 | 手动保存/恢复；后续自动暂存 |
 
 **本次迭代范围（面板骨架）：**
 - 正文草稿面板：5 槽位列表，支持手动保存/恢复/删除
-- 导航「正文草稿」入口，点击打开面板
-- 与 `/drafts` 主题帖草稿完全隔离（入口/命名/视觉/数据四层）
+- 编辑器工具栏「正文草稿」入口（所有 MilkdownEditor 共享），打开面板
+- 恢复草稿时回填当前编辑器内容；打开面板预填当前正文便于存池
+- 与主题帖草稿完全隔离（入口/命名/视觉/数据四层）
 
 **后续迭代：**
 - 楼层/回复编辑器自动暂存（debounce 输入 → 固定写 slot 1 覆盖）
 - 编辑器「已暂存正文草稿」状态提示条
 
+> **2026-08 交互调整**：入口由全局导航栏「正文草稿」移至编辑器工具栏（`milkdown-editor.tsx` 底部工具栏条，登录可见）；全局导航栏草稿入口已全部移除。
+
 ## 2. 页面与路由
 
 | 路由/形态 | 说明 | 权限 |
 |-----------|------|------|
-| 导航「正文草稿」 | 打开正文草稿面板（右侧 Sheet，非独立页面） | 需登录 |
+| 编辑器工具栏「正文草稿」 | 打开正文草稿面板（右侧 Sheet，非独立页面） | 需登录 |
 
-不占用独立路由：正文草稿是「全局浮动缓存」，面板由导航入口唤起，不新增页面。
+不占用独立路由：正文草稿是「全局浮动缓存」，面板由编辑器工具栏入口唤起，不新增页面。
 
 ## 3. 涉及 API
 
@@ -73,14 +76,14 @@ interface DraftItem {
 | 草稿列表 | `GET /drafts` | TanStack Query `useQuery`（queryKey `["content-drafts"]`） |
 | 槽位使用 | `GET /drafts/slots` | TanStack Query `useQuery`（queryKey `["draft-slots"]`） |
 | 保存/删除 | mutation | `useMutation`，成功后 invalidate 列表与槽位 |
-| 面板开关 | 导航入口 | useState（导航栏持有） |
+| 面板开关 | 编辑器工具栏入口 | useState（MilkdownEditor 持有） |
 
 ## 5. 组件清单
 
 | 组件 | 路径 | 说明 |
 |------|------|------|
-| ContentDraftsPanel | `src/components/user/content-drafts-panel.tsx` | 正文草稿面板：5 槽位卡片（内容预览/时间/恢复/删除），loading/error/empty/data 四态 |
-| NavBar 入口 | `src/components/layout/nav-bar.tsx` | 「正文草稿」按钮 + 面板挂载 |
+| ContentDraftsPanel | `src/components/user/content-drafts-panel.tsx` | 正文草稿面板：5 槽位卡片（内容预览/时间/恢复/删除），loading/error/empty/data 四态；支持 `initialContent` 预填 |
+| 编辑器入口 | `src/components/editor/milkdown-editor.tsx` | 底部工具栏「正文草稿」按钮（登录可见）+ 面板挂载；恢复草稿重挂载编辑器回填 |
 | useContentDrafts | `src/api/hooks/use-content-drafts.ts` | 草稿列表 hook（queryKey `["content-drafts"]`） |
 | useDraftSlots | `src/api/hooks/use-draft-slots.ts` | 槽位使用 hook（queryKey `["draft-slots"]`） |
 | useSaveDraft | `src/api/hooks/use-save-draft.ts` | 保存草稿 hook（成功 invalidate 列表+槽位） |
@@ -104,18 +107,19 @@ interface DraftItem {
 
 ## 8. 权限与访问控制
 
-- 未登录用户访问面板：导航入口仅登录后显示；未登录点「正文草稿」跳转 `/login`
+- 未登录用户不显示入口：编辑器工具栏「正文草稿」按钮仅登录后渲染
 - 草稿仅本人可见（后端 AuthRead 按 userId 隔离）
 
 ## 9. 验收标准
 
-- [x] 导航栏新增「正文草稿」入口，与「草稿箱」并列、图标不同
+- [x] 编辑器工具栏「正文草稿」入口（所有 MilkdownEditor 共享），登录可见
 - [x] 面板展示 5 槽位草稿：槽位号 + 内容预览 + 更新时间 + 恢复/删除
 - [x] 空槽位显示空态提示；无草稿时显示槽位占位
 - [x] 保存草稿到草稿池；满 5 槽时按后端 message toast 提示清理
-- [x] 恢复草稿把 content 回填给调用方（全局浮动语义，缺省复制剪贴板）
+- [x] 恢复草稿把 content 回填当前编辑器（缺省复制剪贴板）
+- [x] 打开面板预填当前编辑器正文，便于把正在写的内容存入草稿池
 - [x] 删除草稿确认后调用 DELETE，成功后列表刷新
-- [x] 与 `/drafts` 主题帖草稿在入口/命名/视觉/数据上完全隔离
+- [x] 与主题帖草稿在入口/命名/视觉/数据上完全隔离
 - [x] `pnpm lint && pnpm typecheck && pnpm test` 通过
 
 ## 10. 子任务（切片）
@@ -123,7 +127,7 @@ interface DraftItem {
 - [x] 切片1：扩展 `scripts/api-verify.ts` drafts 快照覆盖（GET/POST/PATCH/DELETE 全链路），抓取真实响应到 `docs/snapshots/drafts.snapshot.json`；编写本文档
 - [x] 切片2：API hooks（`useContentDrafts` / `useDraftSlots` / `useSaveDraft` / `useDeleteContentDraft`）+ 测试
 - [x] 切片3：`ContentDraftsPanel` 组件 + 测试
-- [x] 切片4：导航「正文草稿」入口 + 面板挂载
+- [x] 切片4：编辑器工具栏「正文草稿」入口 + 面板挂载（原导航栏入口已移除）
 - [x] 切片5：文档收尾 + 质量检查（lint / typecheck / test / build）
 
 ## 11. 后续（本次不做）

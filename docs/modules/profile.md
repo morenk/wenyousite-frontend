@@ -7,7 +7,7 @@
 **本次迭代范围（Phase 6 MVP）：**
 - `/users/[id]` 用户主页：资料卡（头像/用户名/Bio/注册时间/关注粉丝数）+ 关注/拉黑按钮 + 最近动态（recent-replies）+ 创建的帖子（created-threads）+ 参与的帖子（played-threads）
 - 关注/取消关注、拉黑/取消拉黑（仅登录，用户主页操作）
-- `/drafts` 草稿箱：我的未发布帖列表，可跳转继续编辑或删除
+- 草稿箱：未发布帖列表（进入 `/threads/create` 草稿列表查看，可跳转继续编辑或删除）
 - `/me` 我的资料：编辑 Bio/隐私开关（用户名需显式进入编辑，默认不修改）
 - 参与列表排除自建帖：`played-threads` 只返回被其他楼主标记为玩家的帖，自建帖归入「创建的帖子」（后端 `4ed5449` 同步）
 
@@ -23,8 +23,9 @@
 | `/users/[id]` | 用户主页：资料卡 + 最近动态 + 创建的帖子 + 参与的帖子 | 公开（OptionalAuth，登录态显示关系字段与操作） |
 | `/users/[id]/following` | 该用户关注的人列表 | 公开（OptionalAuth） |
 | `/users/[id]/followers` | 该用户的粉丝列表 | 公开（OptionalAuth） |
-| `/drafts` | 我的草稿箱（未发布帖列表） | Auth（仅本人） |
 | `/me` | 我的资料编辑（Bio/隐私开关） | Auth（仅本人） |
+
+> 草稿箱不占独立路由：未发布帖列表收进 `/threads/create` 的草稿选择器（原 `/drafts` 路由已删除，入口迁移见 `docs/modules/thread-create.md`）。
 
 ## 3. 涉及 API
 
@@ -203,7 +204,6 @@
 | useUpdateProfile | `src/api/hooks/use-update-profile.ts` | 修改资料 mutation |
 | useDrafts | `src/api/hooks/use-drafts.ts` | 草稿列表 hook |
 | UserProfilePage | `src/app/users/[id]/page.tsx` | 用户主页 |
-| DraftsPage | `src/app/drafts/page.tsx` | 草稿箱 |
 | MePage | `src/app/me/page.tsx` | 我的资料编辑 |
 
 ## 7. 表单与校验
@@ -264,7 +264,7 @@ showRecentReplies / showPlayerBadges / showBookmarks: boolean
 - [x] 参与的帖子列表渲染（标题 + 分类/状态徽章），cursor 分页加载，不含自建帖
 - [x] 已注销用户显示"已注销用户"占位
 - [x] 全站 `/users/{id}` 链接可正常跳转
-- [x] `/drafts` 草稿箱列出我的未发布帖，可跳转编辑、可删除
+- [x] 草稿箱（`/threads/create` 草稿列表）列出我的未发布帖，可跳转编辑、可删除
 - [x] `/me` 修改用户名/Bio/隐私开关，错误码映射正确
 - [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` 通过
 
@@ -278,7 +278,7 @@ showRecentReplies / showPlayerBadges / showBookmarks: boolean
 - [x] 切片4：`UserProfileCard` / `FollowButton` / `BlockButton` 组件（+ 测试）
 - [x] 切片5：`UserRecentReplies` / `UserPlayedThreads` 组件（+ 测试）
 - [x] 切片6：`/users/[id]` 用户主页
-- [x] 切片7：`useDrafts` hook + `DraftList` 组件 + `/drafts` 草稿箱
+- [x] 切片7：`useDrafts` hook + `DraftList` 组件 + 草稿箱（原 `/drafts` 路由，已迁入 `/threads/create` 草稿选择器）
 - [x] 切片8：`useMe` / `useUpdateProfile` hooks + `/me` 我的资料
 - [x] 同步后端 `created-threads`：useUserCreatedThreads hook + UserThreadList 共享组件 + /users/[id] 创建列表
 - [x] 关注/粉丝列表：后端公开端点（/users/:id/following + /followers）+ useUserFollowList + UserFollowList + 子页面

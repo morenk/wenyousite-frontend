@@ -2,17 +2,20 @@
 
 ## 1. 目标与范围
 
-实现用户创建并发布主题帖的完整前端流程：进入创建页自动创建沙盒草稿，编辑标题/分区/可见性/标签与默认子贴正文，保存草稿，最终发布。
+实现用户创建并发布主题帖的完整前端流程：进入创建页先看到未发布草稿列表，可继续编辑或点击「新建主题帖」进入编辑器（自动创建沙盒草稿），编辑标题/分区/可见性/标签与默认子贴正文，保存草稿，最终发布。
 
 **本次迭代范围（Phase 4）：**
-- 创建主题帖页面 `/threads/create`
-- 进入页面即自动创建沙盒草稿（方案 A）
+- 创建主题帖页面 `/threads/create`（**双模式：先草稿列表，点「新建」再进编辑器**）
+- 草稿列表：未发布帖（标题/分类/更新时间/继续编辑/删除），空态「没有草稿喔」
+- 点「新建主题帖」后自动创建沙盒草稿（方案 A）
 - 表单编辑：标题、分区、可见性、主题帖标签、默认子贴正文
-- Milkdown Crepe WYSIWYG 编辑器（可见工具栏 + 所见即所得渲染 + 字数统计）
+- Milkdown Crepe WYSIWYG 编辑器（可见工具栏 + 所见即所得渲染 + 字数统计 + 正文草稿入口）
 - 保存草稿（`PATCH /threads/:id`）
 - 发布主题帖（`PATCH /threads/:id { published: true }`）
 - 发布后跳转详情页 `/threads/[id]`
-- 放弃创建时删除草稿（`DELETE /threads/:id`）
+- 放弃创建时删除草稿并返回草稿列表（`DELETE /threads/:id`）
+
+> **2026-08 交互调整**：原「进入创建页即自动创建草稿」改为「进入创建页先展示草稿列表 + 「新建主题帖」按钮，点新建才进入编辑器」。全局导航栏的「草稿箱」「正文草稿」入口已移除；正文草稿入口移入编辑器工具栏。`/drafts` 路由已删除。
 
 **设计决策（与沙盒版对比）：**
 - 创建页**仅管理默认子贴正文**，不做多子贴 / 楼层管理（保持简洁）
@@ -55,25 +58,30 @@
 
 | 状态 | 来源 | 管理方式 |
 |------|------|----------|
-| 草稿 Thread | `POST /threads` | 页面本地 state，创建后持久化 threadId |
+| 页面模式 | picker / editor | useState（默认 picker，点「新建主题帖」切 editor） |
+| 草稿列表 | `GET /threads/draft` | TanStack Query `useQuery`（queryKey `["drafts"]`，DraftList 复用） |
+| 草稿 Thread | `POST /threads` | 页面本地 state，进入 editor 模式后创建并持久化 threadId |
 | 表单字段 | 用户输入 | react-hook-form |
 | 标签候选 | `GET /tags?q=` | TanStack Query + 本地 debounce |
 | 发布 loading | 提交中 | useState |
 | 编辑器 Markdown | Milkdown listener | 受控于表单字段 |
 
 **草稿生命周期：**
-- 进入页面即 `POST /threads`（可传空对象，前端不发送空 `title`，避免触发后端 `@MinLength(1)` 校验），拿到 `threadId` + `defaultSubthreadId` + `version`。
+- 进入 `/threads/create` 默认展示**草稿列表**（`picker` 模式），含「新建主题帖」按钮；无草稿时显示空态「没有草稿喔」。
+- 点「新建主题帖」切到 `editor` 模式并 `POST /threads`（可传空对象，前端不发送空 `title`，避免触发后端 `@MinLength(1)` 校验），拿到 `threadId` + `defaultSubthreadId` + `version`。
 - 用户每次修改后通过提交按钮保存，或最终发布时一次性提交。
-- 离开页面时如果未发布且未保存，草稿保留在 `GET /threads/draft` 中，用户可在草稿箱继续编辑。
-- 点击"放弃"调用 `DELETE /threads/:id` 硬删除。
+- 离开编辑器时如果未发布且未保存，草稿保留在 `GET /threads/draft` 中，用户下次进入创建页可在列表继续编辑。
+- 编辑器「放弃」调用 `DELETE /threads/:id` 硬删除并返回草稿列表。
 
 ## 5. 组件清单
 
 | 组件 | 路径 | 说明 |
 |------|------|------|
-| CreateThreadPage | `src/app/threads/create/page.tsx` | 创建页主逻辑 |
+| CreateThreadPage | `src/app/threads/create/page.tsx` | 创建页主逻辑（picker/editor 双模式） |
+| ThreadDraftPicker | `src/components/thread/thread-draft-picker.tsx` | 草稿选择：标题 + 「新建主题帖」按钮 + 草稿列表 |
+| DraftList | `src/components/user/draft-list.tsx` | 未发布帖列表（复用；空态「没有草稿喔」） |
 | ThreadCreateForm | `src/components/forms/thread-create-form.tsx` | 主题帖创建表单：基础信息 + 默认子贴正文（简洁模式） |
-| MilkdownEditor | `src/components/editor/milkdown-editor.tsx` | @milkdown/crepe WYSIWYG 编辑器（工具栏/字数统计/图片上传/中文本地化） |
+| MilkdownEditor | `src/components/editor/milkdown-editor.tsx` | @milkdown/crepe WYSIWYG 编辑器（工具栏/字数统计/图片上传/中文本地化 + 正文草稿入口） |
 | TagInput | `src/components/forms/tag-input.tsx` | 主题帖标签输入（支持自动补全） |
 | useCreateThread | `src/api/hooks/use-create-thread.ts` | 创建草稿 hook |
 | useThreadDetail | `src/api/hooks/use-thread-detail.ts` | 获取详情 hook |
