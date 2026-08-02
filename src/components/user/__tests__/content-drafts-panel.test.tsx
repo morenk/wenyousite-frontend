@@ -1,0 +1,184 @@
+/** ContentDraftsPanel 组件测试：四态/恢复/删除/保存 */
+
+import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, cleanup } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const { mockUseContentDrafts } = vi.hoisted(() => ({
+  mockUseContentDrafts: vi.fn(),
+}));
+const { mockUseDraftSlots } = vi.hoisted(() => ({ mockUseDraftSlots: vi.fn() }));
+const { mockUseSaveDraft } = vi.hoisted(() => ({ mockUseSaveDraft: vi.fn() }));
+const { mockUseDeleteContentDraft } = vi.hoisted(() => ({
+  mockUseDeleteContentDraft: vi.fn(),
+}));
+
+vi.mock("@/api/hooks/use-content-drafts", () => ({
+  useContentDrafts: () => mockUseContentDrafts(),
+}));
+vi.mock("@/api/hooks/use-draft-slots", () => ({
+  useDraftSlots: () => mockUseDraftSlots(),
+}));
+vi.mock("@/api/hooks/use-save-draft", () => ({
+  useSaveDraft: () => mockUseSaveDraft(),
+}));
+vi.mock("@/api/hooks/use-delete-content-draft", () => ({
+  useDeleteContentDraft: () => mockUseDeleteContentDraft(),
+}));
+
+vi.mock("sonner", () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
+}));
+
+import { toast } from "sonner";
+import { ContentDraftsPanel } from "@/components/user/content-drafts-panel";
+
+const sampleDraft = {
+  id: "d1",
+  userId: "u1",
+  slot: 1,
+  content: "这是槽位 1 的正文草稿",
+  createdAt: "2026-01-01T00:00:00Z",
+  updatedAt: "2026-01-01T00:00:00Z",
+};
+
+function defaultQueries() {
+  mockUseContentDrafts.mockReturnValue({
+    data: [sampleDraft],
+    isLoading: false,
+    error: undefined,
+    refetch: vi.fn(),
+  });
+  mockUseDraftSlots.mockReturnValue({
+    data: { usedSlots: 1, maxSlots: 5, slots: [1] },
+  });
+  mockUseSaveDraft.mockReturnValue({
+    isPending: false,
+    mutateAsync: vi.fn().mockResolvedValue(sampleDraft),
+  });
+  mockUseDeleteContentDraft.mockReturnValue({
+    isPending: false,
+    mutateAsync: vi.fn().mockResolvedValue({ message: "草稿已删除" }),
+  });
+}
+
+function renderPanel(props?: Partial<React.ComponentProps<typeof ContentDraftsPanel>>) {
+  return render(
+    <QueryClientProvider client={new QueryClient()}>
+      <ContentDraftsPanel open onClose={vi.fn()} {...props} />
+    </QueryClientProvider>,
+  );
+}
+
+describe("ContentDraftsPanel", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    defaultQueries();
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+  });
+
+  test("关闭时不渲染", () => {
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <ContentDraftsPanel open={false} onClose={vi.fn()} />
+      </QueryClientProvider>,
+    );
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  test("loading 状态显示加载中", () => {
+    mockUseContentDrafts.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      error: undefined,
+      refetch: vi.fn(),
+    });
+    renderPanel();
+    expect(screen.getByText("正文草稿")).toBeInTheDocument();
+    expect(screen.queryByText("槽位 1 空闲")).not.toBeInTheDocument();
+  });
+
+  test("error 状态显示重试", async () => {
+    const user = userEvent.setup();
+    const refetch = vi.fn();
+    mockUseContentDrafts.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: new Error("网络错误"),
+      refetch,
+    });
+    renderPanel();
+    await user.click(screen.getByText("重试"));
+    expect(refetch).toHaveBeenCalled();
+  });
+
+  test("渲染 5 槽位与草稿内容，空闲槽位显示占位", () => {
+    renderPanel();
+    expect(screen.getByText("这是槽位 1 的正文草稿")).toBeInTheDocument();
+    expect(screen.getByText("槽位 2 空闲")).toBeInTheDocument();
+    expect(screen.getByText("槽位 5 空闲")).toBeInTheDocument();
+    expect(screen.getByText("已用 1/5 槽位")).toBeInTheDocument();
+  });
+
+  test("恢复草稿调用 onRestore 并关闭面板", async () => {
+    const user = userEvent.setup();
+    const onRestore = vi.fn();
+    const onClose = vi.fn();
+    renderPanel({ onRestore, onClose });
+    await user.click(screen.getByText("恢复"));
+    expect(onRestore).toHaveBeenCalledWith(sampleDraft.content);
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  test("无 onRestore 时复制到剪贴板", async () => {
+    const user = userEvent.setup();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal(
+      "navigator",
+      Object.assign({}, globalThis.navigator, { clipboard: { writeText } }),
+    );
+    renderPanel();
+    await user.click(screen.getByText("恢复"));
+    expect(writeText).toHaveBeenCalledWith(sampleDraft.content);
+    expect(toast.success).toHaveBeenCalledWith(
+      "正文草稿已复制，可粘贴到楼层/回复编辑器",
+    );
+  });
+
+  test("删除草稿：confirm 确认后调用删除并提示", async () => {
+    const user = userEvent.setup();
+    const deleteMutate = vi.fn().mockResolvedValue({ message: "草稿已删除" });
+    mockUseDeleteContentDraft.mockReturnValue({
+      isPending: false,
+      mutateAsync: deleteMutate,
+    });
+    vi.stubGlobal("confirm", vi.fn(() => true));
+    renderPanel();
+    await user.click(screen.getByRole("button", { name: "删除草稿" }));
+    expect(global.confirm).toHaveBeenCalled();
+    expect(deleteMutate).toHaveBeenCalledWith("d1");
+    expect(toast.success).toHaveBeenCalledWith("正文草稿已删除");
+  });
+
+  test("保存新草稿：调用保存并清空输入", async () => {
+    const user = userEvent.setup();
+    const saveMutate = vi.fn().mockResolvedValue(sampleDraft);
+    mockUseSaveDraft.mockReturnValue({
+      isPending: false,
+      mutateAsync: saveMutate,
+    });
+    renderPanel();
+    await user.type(screen.getByPlaceholderText(/保存到草稿池/), "新的正文草稿");
+    await user.click(screen.getByText("保存到草稿池"));
+    expect(saveMutate).toHaveBeenCalledWith({ content: "新的正文草稿" });
+    expect(toast.success).toHaveBeenCalledWith("正文草稿已保存");
+    expect(
+      (screen.getByPlaceholderText(/保存到草稿池/) as HTMLTextAreaElement).value,
+    ).toBe("");
+  });
+});
