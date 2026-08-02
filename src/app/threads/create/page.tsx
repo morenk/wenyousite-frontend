@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -23,6 +23,8 @@ export default function CreateThreadPage() {
   const [createdThreadId, setCreatedThreadId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  // 点击入口同步上锁，直到离开创建流程；创建请求不得由渲染/effect 驱动。
+  const isDraftCreationStarted = useRef(false);
 
   const createThread = useCreateThread();
   const deleteThread = useDeleteThread();
@@ -46,42 +48,50 @@ export default function CreateThreadPage() {
     }
   }, [user, router, isInitialized]);
 
-  // 进入编辑器模式时自动创建草稿（切回 picker 后 createdThreadId 清空，可再次新建）
-  useEffect(() => {
+  async function handleCreateNew() {
     if (!isInitialized || !user?.emailVerified) return;
-    if (mode !== "editor" || createdThreadId) return;
+    if (isDraftCreationStarted.current) return;
+    isDraftCreationStarted.current = true;
+    setCreateError(null);
+    setCreatedThreadId(null);
+    setCreating(true);
+    setMode("editor");
 
-    async function initDraft() {
-      try {
-        setCreating(true);
-        const thread = await createThread.mutateAsync({
-          category: "DEDUCTION",
-          visibility: "PUBLIC",
-        });
-        setCreatedThreadId(thread.id);
-      } catch (error: unknown) {
-        const err = error as { code?: number; message?: string };
-        if (err.code === 40100) {
-          // apiClient 拦截器已清除 token 并跳转登录，页面无需额外处理
-          return;
-        }
-        setCreateError(err.message || "创建草稿失败，请检查网络后重试");
-      } finally {
-        setCreating(false);
+    try {
+      const thread = await createThread.mutateAsync({
+        category: "DEDUCTION",
+        visibility: "PUBLIC",
+      });
+      setCreatedThreadId(thread.id);
+    } catch (error: unknown) {
+      const err = error as { code?: number; message?: string };
+      if (err.code === 40100) {
+        // apiClient 拦截器已清除 token 并跳转登录，页面无需额外处理
+        return;
       }
+      setCreateError(err.message || "创建草稿失败，请检查网络后重试");
+    } finally {
+      setCreating(false);
     }
+  }
 
-    initDraft();
-  }, [mode, createdThreadId, user, createThread, router, isInitialized]);
+  function handleReturnToPicker() {
+    isDraftCreationStarted.current = false;
+    setCreateError(null);
+    setCreatedThreadId(null);
+    setMode("picker");
+  }
 
   async function handleCancel() {
     if (!createdThreadId) {
+      isDraftCreationStarted.current = false;
       setMode("picker");
       return;
     }
     if (confirm("确定要放弃创建吗？草稿将被删除。")) {
       try {
         await deleteThread.mutateAsync(createdThreadId);
+        isDraftCreationStarted.current = false;
         setCreatedThreadId(null);
         setMode("picker");
         toast.success("已放弃创建");
@@ -125,7 +135,7 @@ export default function CreateThreadPage() {
                   : "无法加载草稿")}
             </p>
             <div className="mt-4 flex gap-2">
-              <Button onClick={() => setMode("picker")}>返回草稿列表</Button>
+              <Button onClick={handleReturnToPicker}>返回草稿列表</Button>
               {createError && (
                 <Button
                   variant="outline"
@@ -147,13 +157,7 @@ export default function CreateThreadPage() {
 
   if (mode === "picker") {
     return (
-      <ThreadDraftPicker
-        onCreateNew={() => {
-          setCreateError(null);
-          setCreatedThreadId(null);
-          setMode("editor");
-        }}
-      />
+      <ThreadDraftPicker onCreateNew={handleCreateNew} />
     );
   }
 
