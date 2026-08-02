@@ -1,6 +1,6 @@
 {
   "module": "users",
-  "generatedAt": "2026-08-01T20:11:47.114Z",
+  "generatedAt": "2026-08-02T06:04:36.903Z",
   "description": "用户资料/关注/拉黑端点快照",
   "endpoints": {
     "GET /users/me": {
@@ -22,7 +22,7 @@
           "emailVerified": true,
           "deletedAt": null,
           "createdAt": "2026-07-30T13:52:39.048Z",
-          "updatedAt": "2026-07-30T13:52:39.048Z",
+          "updatedAt": "2026-08-01T20:29:18.081Z",
           "_count": {
             "following": 0,
             "followers": 0
@@ -67,7 +67,7 @@
           "createdAt": "2026-07-29T11:23:55.222Z",
           "_count": {
             "following": 0,
-            "followers": 0
+            "followers": 1
           },
           "isFollowing": false,
           "isFollowedBy": false,
@@ -284,12 +284,12 @@
             "publishedAt": "2026-08-01T18:25:12.134Z",
             "pinned": false,
             "pinnedAt": null,
-            "viewCount": 1,
+            "viewCount": 5,
             "version": 2,
             "likeCount": 0,
             "defaultSubthreadId": "cmsapbna8004r7q319m86krin",
             "createdAt": "2026-08-01T18:25:11.069Z",
-            "updatedAt": "2026-08-01T18:25:12.180Z",
+            "updatedAt": "2026-08-01T20:52:43.588Z",
             "deletedAt": null,
             "owner": {
               "id": "cms5zycb900017q0azar1nag2",
@@ -354,12 +354,12 @@
             "publishedAt": "2026-08-01T18:24:59.935Z",
             "pinned": false,
             "pinnedAt": null,
-            "viewCount": 1,
+            "viewCount": 4,
             "version": 2,
             "likeCount": 0,
             "defaultSubthreadId": "cmsapbduy003n7q31tly4td0z",
             "createdAt": "2026-08-01T18:24:58.840Z",
-            "updatedAt": "2026-08-01T18:24:59.989Z",
+            "updatedAt": "2026-08-01T20:52:21.146Z",
             "deletedAt": null,
             "owner": {
               "id": "cms5zycb900017q0azar1nag2",
@@ -383,6 +383,38 @@
           "cursor": "cmsapbdug003j7q31jyg0hbdd",
           "hasMore": true
         }
+      },
+      "httpStatus": 200
+    },
+    "GET /users/cms5zycb900017q0azar1nag2/following": {
+      "label": "GET /users/cms5zycb900017q0azar1nag2/following",
+      "request": null,
+      "response": {
+        "code": 0,
+        "message": "ok",
+        "data": []
+      },
+      "httpStatus": 200
+    },
+    "GET /users/cms5zycb900017q0azar1nag2/followers": {
+      "label": "GET /users/cms5zycb900017q0azar1nag2/followers",
+      "request": null,
+      "response": {
+        "code": 0,
+        "message": "ok",
+        "data": [
+          {
+            "id": "cmsaujdar00137qu5bvqu9z5t",
+            "followerId": "cmsafixae000b7qqsq6uxmroz",
+            "followingId": "cms5zycb900017q0azar1nag2",
+            "createdAt": "2026-08-01T20:51:09.460Z",
+            "follower": {
+              "id": "cmsafixae000b7qqsq6uxmroz",
+              "username": "玛利亚666",
+              "avatar": null
+            }
+          }
+        ]
       },
       "httpStatus": 200
     },
@@ -422,10 +454,10 @@
         "message": "ok",
         "data": [
           {
-            "id": "cmsat4qmf00057q1zd1thloek",
+            "id": "cmsbeb4gx00037qxe0k1ny3rl",
             "followerId": "cms7kpgnb00067q6lg4u0tyuu",
             "followingId": "cms5zycb900017q0azar1nag2",
-            "createdAt": "2026-08-01T20:11:47.272Z",
+            "createdAt": "2026-08-02T06:04:37.089Z",
             "following": {
               "id": "cms5zycb900017q0azar1nag2",
               "username": "testuser",
@@ -478,10 +510,10 @@
         "message": "ok",
         "data": [
           {
-            "id": "cmsat4qvj00077q1zoxazumxq",
+            "id": "cmsbeb4ie00057qxe0f9wh6md",
             "blockerId": "cms7kpgnb00067q6lg4u0tyuu",
             "blockedId": "cms5zycb900017q0azar1nag2",
-            "createdAt": "2026-08-01T20:11:47.600Z",
+            "createdAt": "2026-08-02T06:04:37.142Z",
             "blocked": {
               "id": "cms5zycb900017q0azar1nag2",
               "username": "testuser",

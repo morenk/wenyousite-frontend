@@ -354,6 +354,10 @@ async function captureUsers(): Promise<void> {
     record(s, `GET /users/${targetId}/played-threads?limit=3`, { limit: 3 }, played, pts);
     const { body: created, status: cts } = await api("GET", `/api/v1/users/${targetId}/created-threads?limit=3`);
     record(s, `GET /users/${targetId}/created-threads?limit=3`, { limit: 3 }, created, cts);
+    const { body: following, status: fws } = await api("GET", `/api/v1/users/${targetId}/following`);
+    record(s, `GET /users/${targetId}/following`, null, following, fws);
+    const { body: followers, status: fls2 } = await api("GET", `/api/v1/users/${targetId}/followers`);
+    record(s, `GET /users/${targetId}/followers`, null, followers, fls2);
     const { body: bm, status: bms } = await api("GET", `/api/v1/users/${targetId}/bookmarks?limit=3`);
     record(s, `GET /users/${targetId}/bookmarks?limit=3`, { limit: 3 }, bm, bms);
   }
