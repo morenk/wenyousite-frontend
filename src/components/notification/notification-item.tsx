@@ -28,6 +28,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const { markRead, remove } = useNotificationActions();
 
   const Icon = typeIconMap[notification.type] ?? MessageSquare;
+  const displayContent = sanitizeNotificationContent(notification);
   const href = notification.postId && notification.threadId
     ? `/threads/${notification.threadId}?post=${notification.postId}`
     : notification.threadId
@@ -74,7 +75,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
               : "text-foreground",
           )}
         >
-          {notification.content ?? "（无内容）"}
+          {displayContent || "（图片内容）"}
         </p>
         <p className="mt-0.5 text-xs text-muted-foreground">
           {formatDistanceToNow(new Date(notification.createdAt), {
@@ -121,6 +122,21 @@ export function NotificationItem({ notification }: NotificationItemProps) {
       </button>
     </div>
   );
+}
+
+/** 兼容旧通知中残留的图片 Markdown 及 Milkdown 比例 alt。 */
+function sanitizeNotificationContent(notification: NotificationItemData): string {
+  let content = (notification.content ?? "")
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  const preview = typeof notification.payload?.preview === "string"
+    ? notification.payload.preview.trim()
+    : "";
+  if (preview === "1.00") {
+    content = content.replace(/1\.00\s*$/, "").trimEnd();
+  }
+  return content;
 }
 
 const typeIconMap: Record<string, React.ComponentType<{ className?: string }>> = {

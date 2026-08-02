@@ -104,6 +104,32 @@ describe("NotificationItem", () => {
     expect(markReadMutate).not.toHaveBeenCalled();
   });
 
+  test("历史图片通知不展示 Milkdown 的 1.00 alt", () => {
+    renderWithQC(
+      <NotificationItem
+        notification={baseNotification({
+          content: "morenk 回复了：1.00",
+          payload: { action: "reply", preview: "1.00" },
+        })}
+      />,
+    );
+    expect(screen.queryByText(/1\.00/)).not.toBeInTheDocument();
+    expect(screen.getByText("morenk 回复了：")).toBeInTheDocument();
+  });
+
+  test("历史图文通知移除图片 Markdown 但保留正文", () => {
+    renderWithQC(
+      <NotificationItem
+        notification={baseNotification({
+          content: "morenk 回复了：![1.00]()\n\n玛～利～亚～",
+          payload: { action: "reply", preview: "![1.00]()\n\n玛～利～亚～" },
+        })}
+      />,
+    );
+    expect(screen.queryByText(/1\.00/)).not.toBeInTheDocument();
+    expect(screen.getByText(/玛～利～亚～/)).toBeInTheDocument();
+  });
+
   test("follow 类型无 threadId 时跳转用户主页", () => {
     renderWithQC(
       <NotificationItem

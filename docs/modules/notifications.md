@@ -113,6 +113,7 @@
 - 删除按钮：硬删除 + 失效列表/未读数
 - 类型图标：reply/mention/new_post/thread_created → MessageSquare/AtSign/PenLine/FilePlus；follow → UserPlus；like → Heart；system → Megaphone
 - 未读：左侧圆点 + 背景高亮；点击后即时置为已读样式
+- 历史通知展示时移除残留图片 Markdown；仅当结构化 `payload.preview` 明确等于 `1.00` 时移除尾部比例 alt，避免误删正常数字正文
 
 ## 8. 错误处理
 
