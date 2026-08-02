@@ -39,13 +39,19 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
                 )}
               </div>
               <div className="mt-1 flex items-center gap-4 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
+                <Link
+                  href={`/users/${user.id}/following`}
+                  className="flex items-center gap-1 hover:text-primary"
+                >
                   <Users className="h-3.5 w-3.5" />
                   关注 {user._count.following}
-                </span>
-                <span className="flex items-center gap-1">
+                </Link>
+                <Link
+                  href={`/users/${user.id}/followers`}
+                  className="flex items-center gap-1 hover:text-primary"
+                >
                   粉丝 {user._count.followers}
-                </span>
+                </Link>
                 <span className="flex items-center gap-1">
                   <CalendarDays className="h-3.5 w-3.5" />
                   {format(new Date(user.createdAt), "yyyy-MM-dd", {

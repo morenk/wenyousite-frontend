@@ -64,6 +64,14 @@ describe("UserProfileCard", () => {
     expect(screen.getByText("你好")).toBeInTheDocument();
     expect(screen.getByText("关注 3")).toBeInTheDocument();
     expect(screen.getByText("粉丝 5")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /关注 3/ })).toHaveAttribute(
+      "href",
+      "/users/u2/following",
+    );
+    expect(screen.getByRole("link", { name: /粉丝 5/ })).toHaveAttribute(
+      "href",
+      "/users/u2/followers",
+    );
   });
 
   test("查看他人时显示关注/拉黑按钮", () => {
