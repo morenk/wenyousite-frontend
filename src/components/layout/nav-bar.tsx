@@ -8,11 +8,13 @@ import { toast } from "sonner";
 
 import { useAuth } from "@/lib/auth";
 import { apiClient } from "@/api/client";
+import { useUnreadCount } from "@/api/hooks/use-unread-count";
 import { Button } from "@/components/ui/button";
 
 export function NavBar() {
   const router = useRouter();
   const { user, logout } = useAuth();
+  const { data: unreadCount } = useUnreadCount(!!user);
 
   const handleLogout = async () => {
     try {
@@ -38,9 +40,14 @@ export function NavBar() {
             <>
               <Link
                 href="/notifications"
-                className="text-sm text-muted-foreground hover:text-foreground"
+                className="relative text-sm text-muted-foreground hover:text-foreground"
               >
                 通知
+                {!!unreadCount && unreadCount > 0 && (
+                  <span className="absolute -right-3 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-white">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
               </Link>
               <Link
                 href="/drafts"
