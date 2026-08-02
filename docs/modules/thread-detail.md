@@ -26,6 +26,7 @@
 | 路由 | 页面说明 | 权限 |
 |------|----------|------|
 | `/threads/[id]` | 主题帖详情页（含子贴、楼层） | 公开（PRIVATE 帖非成员返回 404） |
+| `/threads/[id]?post={postId}` | 从通知进入并精确定位楼层/楼中楼 | 继承主题帖访问权限 |
 | `/threads/[id]/edit` | 已发布帖编辑页（ThreadEditForm） | OWNER only |
 
 ## 3. 涉及 API
@@ -36,6 +37,7 @@
 | GET | `/subthreads/:subthreadId/posts` | Public | 楼层列表（cursor 分页，含内联 replies） |
 | POST | `/subthreads/:subthreadId/posts` | Auth | 发布新楼层/楼中楼回复（kind=FLOOR，发帖自动成为参与人=玩家候选池；楼中楼带 parentPostId/replyToPostId） |
 | GET | `/posts/:id/replies` | Public | 楼中楼回复列表（cursor 分页） |
+| GET | `/posts/:id` | Public | 查询通知目标帖的主题、子贴与父楼上下文 |
 | PUT | `/subthreads/:subthreadId/body` | Auth | upsert 子贴正文（管理面板保存正文：无正文创建 kind=BODY，有正文乐观锁更新） |
 | POST | `/threads/:id/like` | Auth | 点赞主题帖（幂等） |
 | DELETE | `/threads/:id/like` | Auth | 取消点赞 |
@@ -51,6 +53,8 @@
 > **「参与」语义**：用户**无需手动加入**，在帖子内回复后由后端自动写入参与人记录（玩家候选池），对用户无感。前端不再提供加入/退出按钮。元数据显示的 `_count.players` 为被楼主授予玩家身份（`playerMarked=true`）的人数。
 
 > **ID 校验说明**：后端所有 ID 为 Prisma `cuid()` 生成的 CUID（非 UUID），DTO 校验统一使用 `@IsCuid`（替代 `@IsUUID`，后者会因 CUID 不含连字符而拒绝请求）。
+
+> **通知精确定位**：详情页读取 `post` 查询参数，通过 `GET /posts/:id` 确定目标子贴及父楼。主楼层会被注入当前楼层列表并滚动高亮；楼中楼先展开父楼，待回复渲染后进行第二阶段滚动并高亮具体回复。用户手动切换子贴后，以手动选择为准。
 
 ## 4. API 响应快照
 
