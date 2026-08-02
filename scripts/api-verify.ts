@@ -42,7 +42,8 @@ async function api(
   path: string,
   body?: unknown,
 ): Promise<{ body: unknown; status: number }> {
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const headers: Record<string, string> = {};
+  if (body !== undefined) headers["Content-Type"] = "application/json";
   if (TOKEN) headers["Authorization"] = `Bearer ${TOKEN}`;
 
   const res = await fetch(`${BASE}${path}`, {
@@ -118,13 +119,55 @@ async function captureTags(): Promise<void> {
 async function captureDrafts(): Promise<void> {
   const s = snap("drafts", "全局草稿池端点快照（5槽位）");
 
-  // slots
+  // slots（空态）
   const { body: slotBody, status: slotStatus } = await api("GET", "/api/v1/drafts/slots");
   record(s, "GET /drafts/slots", null, slotBody, slotStatus);
 
-  // thread drafts (沙盒草稿，不是全局草稿池)
-  const { body: draftList, status: draftStatus } = await api("GET", "/api/v1/threads/draft");
-  record(s, "GET /threads/draft", null, draftList, draftStatus);
+  // 空列表
+  const { body: listEmpty, status: listStatus } = await api("GET", "/api/v1/drafts");
+  record(s, "GET /drafts", null, listEmpty, listStatus);
+
+  // 创建（指定 slot=1）
+  const createReq = { content: "这是槽位 1 的正文草稿（快照）", slot: 1 };
+  const { body: createBody, status: createStatus } = await api("POST", "/api/v1/drafts", createReq);
+  record(s, "POST /drafts {slot:1}", createReq, createBody, createStatus);
+  const createdId = (createBody as any)?.data?.id;
+
+  // 创建（不指定 slot，自动分配空闲位）
+  const autoReq = { content: "这是自动分配的正文草稿（快照）" };
+  const { body: autoBody, status: autoStatus } = await api("POST", "/api/v1/drafts", autoReq);
+  record(s, "POST /drafts {自动分配}", autoReq, autoBody, autoStatus);
+  const autoId = (autoBody as any)?.data?.id;
+
+  // slots（有数据态）
+  const { body: slotUsed, status: slotUsedStatus } = await api("GET", "/api/v1/drafts/slots");
+  record(s, "GET /drafts/slots（有数据）", null, slotUsed, slotUsedStatus);
+
+  // 列表（有数据态）
+  const { body: listFull, status: listFullStatus } = await api("GET", "/api/v1/drafts");
+  record(s, "GET /drafts（有数据）", null, listFull, listFullStatus);
+
+  // 单条详情
+  if (createdId) {
+    const { body: oneBody, status: oneStatus } = await api("GET", `/api/v1/drafts/${createdId}`);
+    record(s, "GET /drafts/:id", { id: createdId }, oneBody, oneStatus);
+
+    // 更新
+    const patchReq = { content: "更新后的槽位 1 草稿（快照）" };
+    const { body: patchBody, status: patchStatus } = await api("PATCH", `/api/v1/drafts/${createdId}`, patchReq);
+    record(s, "PATCH /drafts/:id", { id: createdId, ...patchReq }, patchBody, patchStatus);
+
+    // 删除
+    const { body: delBody, status: delStatus } = await api("DELETE", `/api/v1/drafts/${createdId}`);
+    record(s, "DELETE /drafts/:id", { id: createdId }, delBody, delStatus);
+  }
+  if (autoId && autoId !== createdId) {
+    await api("DELETE", `/api/v1/drafts/${autoId}`);
+  }
+
+  // slots（清理后空态）
+  const { body: slotFinal, status: slotFinalStatus } = await api("GET", "/api/v1/drafts/slots");
+  record(s, "GET /drafts/slots（清理后）", null, slotFinal, slotFinalStatus);
 
   save(s);
 }
