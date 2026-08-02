@@ -61,6 +61,8 @@ export interface ThreadDetail {
     players: number;
     posts: number;
   };
+  isBookmarked: boolean;
+  bookmarkId: string | null;
 }
 
 export interface RawThreadDetail {
@@ -89,6 +91,8 @@ export interface RawThreadDetail {
     players: number;
     posts: number;
   };
+  isBookmarked?: boolean;
+  bookmarkId?: string | null;
 }
 
 interface ThreadDetailResponse {
@@ -105,6 +109,8 @@ export function normalizeThreadDetail(raw: RawThreadDetail): ThreadDetail {
   return {
     ...raw,
     defaultSubthread: defaultSubthread!,
+    isBookmarked: raw.isBookmarked ?? false,
+    bookmarkId: raw.bookmarkId ?? null,
   };
 }
 
