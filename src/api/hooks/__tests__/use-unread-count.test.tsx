@@ -30,7 +30,7 @@ describe("useUnreadCount", () => {
       error: undefined,
     });
 
-    const { result } = renderHook(() => useUnreadCount(), {
+    const { result } = renderHook(() => useUnreadCount("u1"), {
       wrapper: createWrapper(),
     });
 
@@ -45,11 +45,45 @@ describe("useUnreadCount", () => {
       error: undefined,
     });
 
-    const { result } = renderHook(() => useUnreadCount(), {
+    const { result } = renderHook(() => useUnreadCount("u1"), {
       wrapper: createWrapper(),
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toBe(0);
+  });
+
+  test("未登录时不发起请求且 data 为空", async () => {
+    mockGET.mockClear();
+
+    const { result } = renderHook(() => useUnreadCount(undefined), {
+      wrapper: createWrapper(),
+    });
+
+    expect(mockGET).not.toHaveBeenCalled();
+    expect(result.current.data).toBeUndefined();
+  });
+
+  test("登录后 userId 从空变为有效值时重新拉取未读数（回归：导航徽标登录即刷新）", async () => {
+    mockGET.mockClear();
+    mockGET.mockResolvedValue({
+      data: { code: 0, message: "ok", data: { unreadCount: 5 } },
+      error: undefined,
+    });
+
+    const { result, rerender } = renderHook(
+      ({ userId }: { userId?: string }) => useUnreadCount(userId),
+      {
+        initialProps: { userId: undefined } as { userId?: string },
+        wrapper: createWrapper(),
+      },
+    );
+
+    expect(mockGET).not.toHaveBeenCalled();
+
+    rerender({ userId: "u1" });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockGET).toHaveBeenCalledWith("/api/v1/notifications/unread");
+    expect(result.current.data).toBe(5);
   });
 });

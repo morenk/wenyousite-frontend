@@ -17,7 +17,7 @@ import { ContentDraftsPanel } from "@/components/user/content-drafts-panel";
 export function NavBar() {
   const router = useRouter();
   const { user, logout } = useAuth();
-  const { data: unreadCount } = useUnreadCount(!!user);
+  const { data: unreadCount } = useUnreadCount(user?.id);
   const [draftsOpen, setDraftsOpen] = useState(false);
 
   const handleLogout = async () => {

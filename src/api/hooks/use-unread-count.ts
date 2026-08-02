@@ -1,4 +1,4 @@
-/** 未读通知数量 API hook（GET /notifications/unread，30s 轮询） */
+/** 未读通知数量 API hook（GET /notifications/unread，30s 轮询，按用户隔离缓存） */
 
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
@@ -9,9 +9,10 @@ interface UnreadResponse {
   data: { unreadCount: number };
 }
 
-export function useUnreadCount(enabled = true) {
+export function useUnreadCount(userId?: string) {
+  const enabled = !!userId;
   return useQuery({
-    queryKey: ["notifications", "unread"],
+    queryKey: ["notifications", "unread", userId],
     queryFn: async () => {
       const { data, error } = await apiClient.GET("/api/v1/notifications/unread");
       if (error) throw error;

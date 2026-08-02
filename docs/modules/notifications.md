@@ -82,9 +82,11 @@
 
 | 状态 | 来源 | 管理方式 |
 |------|------|----------|
-| 通知列表 | `GET /notifications` | TanStack Query `useInfiniteQuery`（queryKey `["notifications"]`） |
-| 未读数 | `GET /notifications/unread` | `useQuery`（queryKey `["notifications","unread"]`，`refetchInterval: 30s`） |
-| 标记已读/删除/全部已读 | 各 mutation | 成功后失效列表 + 未读数 |
+| 通知列表 | `GET /notifications` | TanStack Query `useInfiniteQuery`（queryKey `["notifications", type, userId]`，按用户隔离） |
+| 未读数 | `GET /notifications/unread` | `useQuery`（queryKey `["notifications","unread",userId]`，按用户隔离，`refetchInterval: 30s`） |
+| 标记已读/删除/全部已读 | 各 mutation | 成功后失效 `["notifications"]` 前缀（覆盖列表 + 未读数） |
+
+> **缓存按用户隔离**：未读数与列表 queryKey 均包含 `userId`。登录切换账号时 key 变化 → 挂载全新缓存条目立即拉取；登出后旧账号缓存自动失活，避免「刚登录徽标不显示旧数据 / 串号」。登录/注册成功后会失效 `["notifications"]` 前缀，保证同账号重复登录也能刷新。
 
 ## 6. 组件清单
 
