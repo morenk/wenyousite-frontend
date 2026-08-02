@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useNotificationActions } from "@/api/hooks/use-notification-actions";
+import { UserAvatar } from "@/components/shared/user-avatar";
 import type { NotificationItem as NotificationItemData } from "@/api/hooks/use-notifications";
 
 interface NotificationItemProps {
@@ -56,16 +57,25 @@ export function NotificationItem({ notification }: NotificationItemProps) {
 
   const inner = (
     <>
-      <div
-        className={cn(
-          "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
-          notification.isRead
-            ? "bg-muted text-muted-foreground"
-            : "bg-primary/10 text-primary",
-        )}
-      >
-        <Icon className="h-4.5 w-4.5" />
-      </div>
+      {notification.fromUser ? (
+        <UserAvatar
+          name={notification.fromUser.username}
+          src={notification.fromUser.avatar}
+          className="h-9 w-9"
+          textClassName="text-sm"
+        />
+      ) : (
+        <div
+          className={cn(
+            "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
+            notification.isRead
+              ? "bg-muted text-muted-foreground"
+              : "bg-primary/10 text-primary",
+          )}
+        >
+          <Icon className="h-4.5 w-4.5" />
+        </div>
+      )}
       <div className="min-w-0 flex-1">
         <p
           className={cn(

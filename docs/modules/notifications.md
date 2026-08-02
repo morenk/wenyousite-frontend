@@ -112,6 +112,7 @@
 - 点击通知（有跳转目标）：若未读，立即乐观标记为已读并异步提交，不阻塞跳转
 - 删除按钮：硬删除 + 失效列表/未读数
 - 类型图标：reply/mention/new_post/thread_created → MessageSquare/AtSign/PenLine/FilePlus；follow → UserPlus；like → Heart；system → Megaphone
+- 有操作者（`fromUser`）时左侧显示操作者头像（`_thumb.webp` 缩略图，无则首字符占位）；系统通知无操作者时保留类型图标
 - 未读：左侧圆点 + 背景高亮；点击后即时置为已读样式
 - 类型筛选由 URL `?type=` 驱动（如 `?type=reply,mention`）；切换筛选通过 `router.replace` 同步到 URL，点击导航栏「通知」入口回到 `/notifications`（无参数）即重置为「全部」
 - 类型筛选栏在任何状态下（加载中/出错/空数据）都保持渲染，空类型时不会丢失导航栏；「全部已读」仅在列表存在未读时显示

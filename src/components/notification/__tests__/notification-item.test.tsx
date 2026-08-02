@@ -192,11 +192,48 @@ describe("NotificationItem", () => {
           threadId: null,
           postId: null,
           fromUserId: null,
+          fromUser: null,
           content: "欢迎使用温油站",
         })}
       />,
     );
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
+  });
+
+  test("有操作者时显示头像（无头像则首字符占位）", () => {
+    renderWithQC(<NotificationItem notification={baseNotification()} />);
+    expect(screen.getByTestId("user-avatar-placeholder").textContent).toBe("M");
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+  });
+
+  test("操作者有头像时渲染缩略图", () => {
+    renderWithQC(
+      <NotificationItem
+        notification={baseNotification({
+          fromUser: { id: "u2", username: "morenk", avatar: "https://example.com/uploads/a.png" },
+        })}
+      />,
+    );
+    expect(screen.getByRole("img")).toHaveAttribute(
+      "src",
+      "https://example.com/uploads/a_thumb.webp",
+    );
+    expect(screen.queryByTestId("user-avatar-placeholder")).not.toBeInTheDocument();
+  });
+
+  test("系统通知（无操作者）保留类型图标", () => {
+    renderWithQC(
+      <NotificationItem
+        notification={baseNotification({
+          type: "system",
+          fromUserId: null,
+          fromUser: null,
+          content: "欢迎使用温油站",
+        })}
+      />,
+    );
+    expect(screen.queryByTestId("user-avatar-placeholder")).not.toBeInTheDocument();
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
   });
 
   test("删除按钮触发删除", async () => {
