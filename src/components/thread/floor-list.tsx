@@ -17,6 +17,8 @@ interface FloorListProps {
   error: unknown;
   onLoadMore: () => void;
   onRetry: () => void;
+  focusedFloor?: PostData;
+  focusedReply?: PostData;
 }
 
 export function FloorList({
@@ -27,6 +29,8 @@ export function FloorList({
   error,
   onLoadMore,
   onRetry,
+  focusedFloor,
+  focusedReply,
 }: FloorListProps) {
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -78,13 +82,19 @@ export function FloorList({
     );
   }
 
+  const displayedFloors = focusedFloor && !floors.some((floor) => floor.id === focusedFloor.id)
+    ? [focusedFloor, ...floors]
+    : floors;
+
   return (
     <div className="flex flex-col gap-3">
-      {floors.map((floor, index) => (
+      {displayedFloors.map((floor, index) => (
         <FloorCard
           key={floor.id}
           floor={floor}
           isEven={index % 2 === 1}
+          focused={floor.id === focusedFloor?.id}
+          focusedReply={floor.id === focusedFloor?.id ? focusedReply : undefined}
         />
       ))}
 

@@ -16,9 +16,10 @@ import type { PostData } from "@/api/hooks/use-floors";
 
 interface ReplyListProps {
   postId: string;
+  focusedReply?: PostData;
 }
 
-export function ReplyList({ postId }: ReplyListProps) {
+export function ReplyList({ postId, focusedReply }: ReplyListProps) {
   const { user } = useAuth();
   const [replyingToId, setReplyingToId] = useState<string | null>(null);
   const {
@@ -50,7 +51,10 @@ export function ReplyList({ postId }: ReplyListProps) {
     return () => observer.disconnect();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  const replies = data?.pages.flatMap((page) => page?.data ?? []) ?? [];
+  const loadedReplies = data?.pages.flatMap((page) => page?.data ?? []) ?? [];
+  const replies = focusedReply && !loadedReplies.some((reply) => reply.id === focusedReply.id)
+    ? [...loadedReplies, focusedReply]
+    : loadedReplies;
 
   return (
     <div className="mt-3 space-y-2 border-l-2 border-border pl-3">
@@ -79,7 +83,11 @@ export function ReplyList({ postId }: ReplyListProps) {
         return (
           <div
             key={reply.id}
-            className="rounded-lg border border-border bg-background p-3"
+            id={`post-${reply.id}`}
+            className={[
+              "rounded-lg border border-border bg-background p-3",
+              reply.id === focusedReply?.id && "border-primary bg-primary/[0.06] ring-2 ring-primary/20",
+            ].filter(Boolean).join(" ")}
           >
             <div className="mb-1.5 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">

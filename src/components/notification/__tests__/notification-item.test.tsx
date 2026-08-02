@@ -71,7 +71,7 @@ describe("NotificationItem", () => {
   test("渲染文案与时间，未读时有跳转链接", () => {
     renderWithQC(<NotificationItem notification={baseNotification()} />);
     expect(screen.getByText("morenk 回复了：内容")).toBeInTheDocument();
-    expect(screen.getByRole("link")).toHaveAttribute("href", "/threads/t1");
+    expect(screen.getByRole("link")).toHaveAttribute("href", "/threads/t1?post=p1");
   });
 
   test("未读点击触发标记已读", async () => {

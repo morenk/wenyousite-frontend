@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
@@ -24,20 +24,32 @@ import type { PostData } from "@/api/hooks/use-floors";
 interface FloorCardProps {
   floor: PostData;
   isEven: boolean;
+  focused?: boolean;
+  focusedReply?: PostData;
 }
 
-export function FloorCard({ floor, isEven }: FloorCardProps) {
+export function FloorCard({ floor, isEven, focused = false, focusedReply }: FloorCardProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(floor.content);
   const [isRepliesOpen, setIsRepliesOpen] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
   const updatePost = useUpdatePost();
   const deletePost = useDeletePost();
   const uploadImage = useUploadImage();
 
   const isAuthor = !!user && user.id === floor.authorId;
+
+  useEffect(() => {
+    if (!focused) return;
+    if (focusedReply) setIsRepliesOpen(true);
+    const timer = window.setTimeout(() => {
+      cardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 100);
+    return () => window.clearTimeout(timer);
+  }, [focused, focusedReply]);
 
   const invalidateFloors = () =>
     queryClient.invalidateQueries({
@@ -88,9 +100,12 @@ export function FloorCard({ floor, isEven }: FloorCardProps) {
 
   return (
     <div
+      ref={cardRef}
+      id={`post-${floor.id}`}
       className={cn(
-        "rounded-xl border border-border p-4",
+        "rounded-xl border border-border p-4 transition-colors",
         isEven ? "bg-muted/30" : "bg-card",
+        focused && "border-primary bg-primary/[0.06] ring-2 ring-primary/20",
       )}
     >
       {/* 楼层头部 */}
@@ -219,7 +234,7 @@ export function FloorCard({ floor, isEven }: FloorCardProps) {
       {/* 楼中楼回复区 */}
       {!isEditing && isRepliesOpen && (
         <div className="mt-2">
-          <ReplyList postId={floor.id} />
+          <ReplyList postId={floor.id} focusedReply={focusedReply} />
           {isReplying && (
             <ReplyForm
               subthreadId={floor.subthreadId}

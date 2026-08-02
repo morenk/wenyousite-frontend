@@ -28,8 +28,10 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const { markRead, remove } = useNotificationActions();
 
   const Icon = typeIconMap[notification.type] ?? MessageSquare;
-  const href = notification.threadId
-    ? `/threads/${notification.threadId}`
+  const href = notification.postId && notification.threadId
+    ? `/threads/${notification.threadId}?post=${notification.postId}`
+    : notification.threadId
+      ? `/threads/${notification.threadId}`
     : notification.fromUserId
       ? `/users/${notification.fromUserId}`
       : null;

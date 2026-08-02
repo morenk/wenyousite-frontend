@@ -10,9 +10,14 @@
 - 导航栏「通知」链接显示未读徽标（轮询刷新）
 - 无限滚动（cursor 分页）+ loading / error / empty 三态
 
-**后续迭代：**
+**本轮迭代（通知可达性与一致性）：**
 - 按类型过滤 Tab（`?type=mention,reply`）
-- 标记单条未读、楼层锚点跳转、下拉刷新
+- 通知跳转精确定位到楼层或楼中楼，并高亮目标内容
+- 已读操作使用乐观缓存更新，跳转不再依赖请求完成
+- 页面重新获得焦点时刷新通知；补齐加载更多失败重试
+- 「全部已读」仅在有未读时展示，并即时更新列表与红点
+
+**后续迭代：**
 - payload 结构化渲染（actorName/action/preview 单独排版）
 
 ## 2. 页面与路由
@@ -32,6 +37,7 @@
 | PATCH | `/notifications/:id` | AuthRead | 标记单条已读/未读（Body `{ isRead }`） |
 | DELETE | `/notifications/:id` | AuthRead | 硬删除单条 |
 | POST | `/notifications/read-all` | AuthRead | 一键全部已读 |
+| GET | `/posts/:id` | Public | 获取通知目标帖的主题/子贴/父楼上下文，用于精确定位 |
 
 > `NotificationType`：reply / mention / new_post / thread_created / follow / like / system。旧类型 `new_floor` / `subthread_created` 后端自动映射为 `new_post`。
 
@@ -84,7 +90,7 @@
 |------|------|----------|
 | 通知列表 | `GET /notifications` | TanStack Query `useInfiniteQuery`（queryKey `["notifications", type, userId]`，按用户隔离） |
 | 未读数 | `GET /notifications/unread` | `useQuery`（queryKey `["notifications","unread",userId]`，按用户隔离，`refetchInterval: 30s`） |
-| 标记已读/删除/全部已读 | 各 mutation | 成功后失效 `["notifications"]` 前缀（覆盖列表 + 未读数） |
+| 标记已读/删除/全部已读 | 各 mutation | 乐观更新当前用户的列表与未读数；失败时回滚，再后台校验 |
 
 > **缓存按用户隔离**：未读数与列表 queryKey 均包含 `userId`。登录切换账号时 key 变化 → 挂载全新缓存条目立即拉取；登出后旧账号缓存自动失活，避免「刚登录徽标不显示旧数据 / 串号」。登录/注册成功后会失效 `["notifications"]` 前缀，保证同账号重复登录也能刷新。
 
@@ -101,8 +107,9 @@
 
 ## 7. 跳转与交互规则
 
-- 跳转优先级：有 `threadId` → `/threads/{threadId}`；否则有 `fromUserId`（follow）→ `/users/{fromUserId}`；system（均无）不可点
-- 点击通知（有跳转目标）：先 `PATCH isRead: true`（若未读）再跳转
+- 跳转优先级：有 `postId` → `/threads/{threadId}?post={postId}`；否则有 `threadId` → `/threads/{threadId}`；否则有 `fromUserId`（follow）→ `/users/{fromUserId}`；system（均无）不可点
+- 详情页读取 `post` 参数后通过 `GET /posts/:id` 查询目标上下文：切换子贴、展开父楼的回复区或显示目标楼层，并滚动高亮。已删除内容维持后端列表过滤策略。
+- 点击通知（有跳转目标）：若未读，立即乐观标记为已读并异步提交，不阻塞跳转
 - 删除按钮：硬删除 + 失效列表/未读数
 - 类型图标：reply/mention/new_post/thread_created → MessageSquare/AtSign/PenLine/FilePlus；follow → UserPlus；like → Heart；system → Megaphone
 - 未读：左侧圆点 + 背景高亮；点击后即时置为已读样式
@@ -113,6 +120,7 @@
 |--------|------|---------|
 | 40100 | 未登录 | apiClient 拦截器跳 /login（页面另有登录守卫） |
 | 网络错误 | 列表加载失败 | 错误态 + 重试按钮 |
+| 网络错误 | 加载下一页失败 | 保留已加载通知，在列表末尾显示重试按钮 |
 | 其他 | 标记/删除失败 | toast 后端 message 或"操作失败，请稍后重试" |
 
 ## 9. 权限与访问控制
@@ -133,6 +141,7 @@
 - [x] 导航栏「通知」显示未读徽标，读数随操作更新
 - [x] 未登录跳 /login
 - [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` 通过
+- [ ] 类型筛选、精确定位、乐观已读与刷新策略（本轮）
 
 ## 11. 子任务（切片）
 

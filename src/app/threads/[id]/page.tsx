@@ -3,12 +3,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { Loader2, AlertCircle } from "lucide-react";
 
 import { useAuth } from "@/lib/auth";
 import { useThreadDetail } from "@/api/hooks/use-thread-detail";
 import { useFloors } from "@/api/hooks/use-floors";
+import { usePost } from "@/api/hooks/use-post";
 import {
   useUpdateReadingProgress,
   useNewReplies,
@@ -25,7 +26,9 @@ import { EmptyState } from "@/components/shared/empty-state";
 
 export default function ThreadDetailPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const threadId = params.id as string;
+  const targetPostId = searchParams.get("post") ?? undefined;
   const { user } = useAuth();
 
   const {
@@ -37,6 +40,13 @@ export default function ThreadDetailPage() {
 
   const [selectedSubthreadId, setSelectedSubthreadId] = useState<string>();
   const [isManaging, setIsManaging] = useState(false);
+  const { data: targetPost } = usePost(targetPostId);
+  const targetFloorId = targetPost?.parentPostId ?? targetPost?.id;
+  const { data: targetFloor } = usePost(targetFloorId);
+
+  useEffect(() => {
+    if (targetPost?.subthreadId) setSelectedSubthreadId(targetPost.subthreadId);
+  }, [targetPost?.subthreadId]);
 
   const effectiveSubthreadId =
     selectedSubthreadId ?? thread?.defaultSubthreadId;
@@ -52,6 +62,7 @@ export default function ThreadDetailPage() {
   } = useFloors(effectiveSubthreadId);
 
   const floors = floorsData?.pages.flatMap((page) => page?.data ?? []) ?? [];
+  const focusedReply = targetPost?.parentPostId ? targetPost : undefined;
 
   // 阅读进度：为每个子贴查询新增回复数，切换子贴时记录进度
   const newReplies = useNewReplies(effectiveSubthreadId, !!user && thread?.published);
@@ -176,6 +187,8 @@ export default function ThreadDetailPage() {
             error={floorsError}
             onLoadMore={() => fetchNextPage()}
             onRetry={() => refetchFloors()}
+            focusedFloor={targetFloor}
+            focusedReply={focusedReply}
           />
         )}
 
