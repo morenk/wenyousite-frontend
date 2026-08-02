@@ -79,6 +79,10 @@ interface DraftItem {
 |------|------|------|
 | ContentDraftsPanel | `src/components/user/content-drafts-panel.tsx` | 正文草稿面板：5 槽位卡片（内容预览/时间/恢复/删除），loading/error/empty/data 四态 |
 | NavBar 入口 | `src/components/layout/nav-bar.tsx` | 「正文草稿」按钮 + 面板挂载 |
+| useContentDrafts | `src/api/hooks/use-content-drafts.ts` | 草稿列表 hook（queryKey `["content-drafts"]`） |
+| useDraftSlots | `src/api/hooks/use-draft-slots.ts` | 槽位使用 hook（queryKey `["draft-slots"]`） |
+| useSaveDraft | `src/api/hooks/use-save-draft.ts` | 保存草稿 hook（成功 invalidate 列表+槽位） |
+| useDeleteContentDraft | `src/api/hooks/use-delete-content-draft.ts` | 删除草稿 hook（成功 invalidate 列表+槽位） |
 
 > 面板形态：右侧 Sheet，参照 `image-lightbox.tsx` 手写 overlay 模式（不引入 shadcn CLI 依赖）。
 
@@ -103,22 +107,22 @@ interface DraftItem {
 
 ## 9. 验收标准
 
-- [ ] 导航栏新增「正文草稿」入口，与「草稿箱」并列、图标不同
-- [ ] 面板展示 5 槽位草稿：槽位号 + 内容预览 + 更新时间 + 恢复/删除
-- [ ] 空槽位显示空态提示；无草稿时显示「还没有正文草稿」
-- [ ] 保存草稿到指定槽位；满 5 槽时 toast 提示清理
-- [ ] 恢复草稿把 content 回填给调用方（全局浮动语义）
-- [ ] 删除草稿确认后调用 DELETE，成功后列表刷新
-- [ ] 与 `/drafts` 主题帖草稿在入口/命名/视觉/数据上完全隔离
-- [ ] `pnpm lint && pnpm typecheck && pnpm test` 通过
+- [x] 导航栏新增「正文草稿」入口，与「草稿箱」并列、图标不同
+- [x] 面板展示 5 槽位草稿：槽位号 + 内容预览 + 更新时间 + 恢复/删除
+- [x] 空槽位显示空态提示；无草稿时显示槽位占位
+- [x] 保存草稿到草稿池；满 5 槽时按后端 message toast 提示清理
+- [x] 恢复草稿把 content 回填给调用方（全局浮动语义，缺省复制剪贴板）
+- [x] 删除草稿确认后调用 DELETE，成功后列表刷新
+- [x] 与 `/drafts` 主题帖草稿在入口/命名/视觉/数据上完全隔离
+- [x] `pnpm lint && pnpm typecheck && pnpm test` 通过
 
 ## 10. 子任务（切片）
 
 - [x] 切片1：扩展 `scripts/api-verify.ts` drafts 快照覆盖（GET/POST/PATCH/DELETE 全链路），抓取真实响应到 `docs/snapshots/drafts.snapshot.json`；编写本文档
-- [ ] 切片2：API hooks（`useContentDrafts` / `useDraftSlots` / `useSaveDraft` / `useDeleteDraft`）+ 测试
-- [ ] 切片3：`ContentDraftsPanel` 组件 + 测试
-- [ ] 切片4：导航「正文草稿」入口 + 面板挂载
-- [ ] 切片5：文档收尾 + 质量检查
+- [x] 切片2：API hooks（`useContentDrafts` / `useDraftSlots` / `useSaveDraft` / `useDeleteContentDraft`）+ 测试
+- [x] 切片3：`ContentDraftsPanel` 组件 + 测试
+- [x] 切片4：导航「正文草稿」入口 + 面板挂载
+- [x] 切片5：文档收尾 + 质量检查（lint / typecheck / test / build）
 
 ## 11. 后续（本次不做）
 
