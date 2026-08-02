@@ -5,6 +5,12 @@
 温油站 Web 端。基于 Next.js 16 + React 19 + TypeScript 5 + Tailwind CSS 4 + shadcn/ui。
 与 NestJS 后端共用一套 REST API，通过 OpenAPI 生成类型。
 
+### 平台边界（全局强制）
+
+- 本项目仅面向 **PC Web 端**，以现代桌面浏览器和鼠标/键盘操作为目标。
+- 不为手机或平板追加响应式断点、触屏手势、移动端抽屉或移动端专用布局，也不因移动端显示效果牺牲 PC 信息密度与交互。
+- 移动端由独立的 Flutter 客户端实现；两端仅复用后端 REST API 契约，不在本仓库维护 Flutter 或移动 Web 适配代码。
+
 ## 技术栈
 
 | 分类 | 选型 | 用途 |
@@ -267,7 +273,7 @@ setsid nohup env NODE_ENV=production node dist/main </dev/null \
 | 6 | 用户（资料、关注、拉黑、草稿箱） | `docs/modules/profile.md` | 已完成 |
 | 7 | 通知（列表、未读数、红点） | `docs/modules/notifications.md` | 已完成 |
 | 8 | 搜索与收藏 | `docs/modules/search.md` + `docs/modules/bookmarks.md` | 已完成 |
-| 9 | UI 美化（Misskey 风格、动画、响应式） | — | 待开始 |
+| 9 | PC Web UI 美化（Misskey 风格、动画、桌面端布局） | — | 待开始 |
 
 ### 15. Git 提交
 
