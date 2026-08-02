@@ -37,6 +37,18 @@ const sampleReplies = [
     subthread: { title: "测试帖" },
     preview: "楼中楼内容",
   },
+  {
+    id: "r3",
+    createdAt: "2026-01-03T00:00:00Z",
+    floorNumber: null,
+    parentPostId: null,
+    content: "这是子贴正文内容",
+    threadId: "t2",
+    thread: { title: "正文帖" },
+    subthreadId: "s2",
+    subthread: { title: "正文帖" },
+    preview: "这是子贴正文内容",
+  },
 ];
 
 describe("UserRecentReplies", () => {
@@ -55,13 +67,37 @@ describe("UserRecentReplies", () => {
     expect(screen.getByText("还没有发布过回复")).toBeInTheDocument();
   });
 
-  test("渲染回复列表，楼层与楼中楼标识正确", () => {
+  test("渲染回复列表，正文/楼层/楼中楼标识正确", () => {
     render(
       <UserRecentReplies replies={sampleReplies} isLoading={false} error={false} />,
     );
     expect(screen.getByText("楼层回复内容")).toBeInTheDocument();
     expect(screen.getByText("楼中楼内容")).toBeInTheDocument();
-    expect(screen.getAllByTestId("reply-kind").map((el) => el.textContent)).toEqual(["#1", "楼中楼"]);
-    expect(screen.getAllByRole("link", { name: "测试帖" })).toHaveLength(2);
+    expect(screen.getByText("这是子贴正文内容")).toBeInTheDocument();
+    expect(screen.getAllByTestId("reply-kind").map((el) => el.textContent)).toEqual([
+      "#1",
+      "楼中楼",
+      "正文",
+    ]);
+    expect(screen.getAllByRole("link")).toHaveLength(3);
+  });
+
+  test("只显示最近 5 条", () => {
+    const many = Array.from({ length: 7 }, (_, i) => ({
+      id: `r${i}`,
+      createdAt: `2026-01-0${i + 1}T00:00:00Z`,
+      floorNumber: i + 1,
+      parentPostId: null,
+      content: `内容${i}`,
+      threadId: "t1",
+      thread: { title: "测试帖" },
+      subthreadId: "s1",
+      subthread: { title: "测试帖" },
+      preview: `内容${i}`,
+    }));
+    render(<UserRecentReplies replies={many} isLoading={false} error={false} />);
+    expect(screen.getByText("内容0")).toBeInTheDocument();
+    expect(screen.queryByText("内容6")).not.toBeInTheDocument();
+    expect(screen.getAllByTestId("reply-kind")).toHaveLength(5);
   });
 });
