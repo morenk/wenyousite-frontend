@@ -124,10 +124,12 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   );
 }
 
-/** 兼容旧通知中残留的图片 Markdown 及 Milkdown 比例 alt。 */
+/** 兼容旧通知中残留的图片 Markdown、Milkdown 比例 alt 及 Milkdown 转义残留的反斜杠。 */
 function sanitizeNotificationContent(notification: NotificationItemData): string {
   let content = (notification.content ?? "")
     .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+    // Milkdown 序列化把 < > 等标点转义为 \< \>，通知预览是纯文本，只去掉反斜杠还原为标点本身。
+    .replace(/\\([!-/:-@[-`{-~])/g, "$1")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
   const preview = typeof notification.payload?.preview === "string"

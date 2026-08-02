@@ -130,6 +130,32 @@ describe("NotificationItem", () => {
     expect(screen.getByText(/玛～利～亚～/)).toBeInTheDocument();
   });
 
+  test("Milkdown 转义残留的反斜杠在通知文案中被还原为标点", () => {
+    renderWithQC(
+      <NotificationItem
+        notification={baseNotification({
+          content: "玛利亚666 回复了：\\>",
+          payload: { action: "reply", preview: "\\>" },
+        })}
+      />,
+    );
+    expect(screen.getByText("玛利亚666 回复了：>")).toBeInTheDocument();
+    expect(screen.queryByText(/\\>/)).not.toBeInTheDocument();
+  });
+
+  test("Milkdown 转义残留的反斜杠在标签类文案中被清除", () => {
+    renderWithQC(
+      <NotificationItem
+        notification={baseNotification({
+          content: "morenk 回复了：\\<div>代码\\</div>",
+          payload: { action: "reply", preview: "\\<div>代码\\</div>" },
+        })}
+      />,
+    );
+    expect(screen.getByText("morenk 回复了：<div>代码</div>")).toBeInTheDocument();
+    expect(screen.queryByText(/\\</)).not.toBeInTheDocument();
+  });
+
   test("follow 类型无 threadId 时跳转用户主页", () => {
     renderWithQC(
       <NotificationItem
