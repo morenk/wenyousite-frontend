@@ -4,6 +4,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Search } from "lucide-react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/lib/auth";
@@ -36,6 +37,13 @@ export function NavBar() {
         </Link>
 
         <div className="flex items-center gap-2">
+          <Link
+            href="/search"
+            title="搜索"
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <Search className="h-4.5 w-4.5" />
+          </Link>
           {user ? (
             <>
               <Link
