@@ -10,7 +10,7 @@
 - loading / error / empty / data 四态
 
 **后续迭代（Phase 8 · 收藏）：**
-- 收藏：详情页收藏按钮（`POST/DELETE /bookmarks`）、`/bookmarks` 我的收藏页、后端 `findAll` 附带 `bookmarkId` + 帖详情附加 `isBookmarked`
+- 收藏功能已另立文档 `docs/modules/bookmarks.md`（详情页收藏按钮、/bookmarks 管理页、资料页收藏区块）
 - 搜索结果分页（后端当前各最多 50 条）、搜索高亮、收藏分组
 
 ## 2. 页面与路由

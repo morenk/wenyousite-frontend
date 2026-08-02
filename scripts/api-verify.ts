@@ -330,6 +330,36 @@ async function captureSearch(): Promise<void> {
   save(s);
 }
 
+async function captureBookmarks(): Promise<void> {
+  const s = snap("bookmarks", "收藏端点快照");
+
+  // 找一个已发布公开帖
+  const { body: list } = await api("GET", "/api/v1/threads?sort=newest&limit=5");
+  const published = ((list as any)?.data ?? []).find((t: any) => t.published);
+  if (!published) { console.log("  ⚠ 无已发布帖，跳过收藏快照"); return; }
+  const threadId = published.id;
+
+  // 收藏 → 列表 → 详情（isBookmarked） → 取消（清理）
+  const { body: createBody, status: cs } = await api("POST", "/api/v1/bookmarks", { threadId });
+  record(s, `POST /bookmarks {threadId}`, { threadId }, createBody, cs);
+  const bookmarkId = (createBody as any)?.data?.id;
+
+  const { body: listBody, status: ls } = await api("GET", "/api/v1/bookmarks?limit=3");
+  record(s, "GET /bookmarks?limit=3", { limit: 3 }, listBody, ls);
+
+  if (threadId) {
+    const { body: detail, status: ds } = await api("GET", `/api/v1/threads/${threadId}`);
+    record(s, `GET /threads/${threadId} (isBookmarked)`, null, detail, ds);
+  }
+
+  if (bookmarkId) {
+    const { body: delBody, status: ds2 } = await api("DELETE", `/api/v1/bookmarks/${bookmarkId}`);
+    record(s, `DELETE /bookmarks/${bookmarkId}`, null, delBody, ds2);
+  }
+
+  save(s);
+}
+
 async function captureUsers(): Promise<void> {
   const s = snap("users", "用户资料/关注/拉黑端点快照");
 
@@ -424,6 +454,10 @@ async function main() {
   if (mod === "all" || mod === "search") {
     console.log("[search]");
     await captureSearch();
+  }
+  if (mod === "all" || mod === "bookmarks") {
+    console.log("[bookmarks]");
+    await captureBookmarks();
   }
   if (mod === "all" || mod === "users") {
     console.log("[users]");

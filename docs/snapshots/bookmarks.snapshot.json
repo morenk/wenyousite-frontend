@@ -1,0 +1,143 @@
+{
+  "module": "bookmarks",
+  "generatedAt": "2026-08-02T07:39:51.453Z",
+  "description": "收藏端点快照",
+  "endpoints": {
+    "POST /bookmarks {threadId}": {
+      "label": "POST /bookmarks {threadId}",
+      "request": {
+        "threadId": "cmsapbna4004n7q31w8dvc0ln"
+      },
+      "response": {
+        "code": 0,
+        "message": "ok",
+        "data": {
+          "id": "cmsbhplr500077qlzudmhpesf",
+          "userId": "cms7kpgnb00067q6lg4u0tyuu",
+          "threadId": "cmsapbna4004n7q31w8dvc0ln",
+          "createdAt": "2026-08-02T07:39:51.522Z"
+        }
+      },
+      "httpStatus": 201
+    },
+    "GET /bookmarks?limit=3": {
+      "label": "GET /bookmarks?limit=3",
+      "request": {
+        "limit": 3
+      },
+      "response": {
+        "code": 0,
+        "message": "ok",
+        "data": [
+          {
+            "id": "cmsapbna4004n7q31w8dvc0ln",
+            "title": "管理面板测试帖 1785608711288",
+            "ownerId": "cms5zycb900017q0azar1nag2",
+            "category": "DEDUCTION",
+            "status": "RECRUITING",
+            "visibility": "PUBLIC",
+            "published": true,
+            "publishedAt": "2026-08-01T18:25:12.134Z",
+            "pinned": false,
+            "pinnedAt": null,
+            "viewCount": 6,
+            "version": 2,
+            "likeCount": 0,
+            "defaultSubthreadId": "cmsapbna8004r7q319m86krin",
+            "createdAt": "2026-08-01T18:25:11.069Z",
+            "updatedAt": "2026-08-02T07:32:02.968Z",
+            "deletedAt": null,
+            "owner": {
+              "id": "cms5zycb900017q0azar1nag2",
+              "username": "testuser",
+              "avatar": null
+            },
+            "_count": {
+              "members": 1,
+              "posts": 3
+            },
+            "bookmarkId": "cmsbhplr500077qlzudmhpesf"
+          }
+        ],
+        "meta": {
+          "cursor": "cmsbhplr500077qlzudmhpesf",
+          "hasMore": false
+        }
+      },
+      "httpStatus": 200
+    },
+    "GET /threads/cmsapbna4004n7q31w8dvc0ln (isBookmarked)": {
+      "label": "GET /threads/cmsapbna4004n7q31w8dvc0ln (isBookmarked)",
+      "request": null,
+      "response": {
+        "code": 0,
+        "message": "ok",
+        "data": {
+          "id": "cmsapbna4004n7q31w8dvc0ln",
+          "title": "管理面板测试帖 1785608711288",
+          "ownerId": "cms5zycb900017q0azar1nag2",
+          "category": "DEDUCTION",
+          "status": "RECRUITING",
+          "visibility": "PUBLIC",
+          "published": true,
+          "publishedAt": "2026-08-01T18:25:12.134Z",
+          "pinned": false,
+          "pinnedAt": null,
+          "viewCount": 6,
+          "version": 2,
+          "likeCount": 0,
+          "defaultSubthreadId": "cmsapbna8004r7q319m86krin",
+          "createdAt": "2026-08-01T18:25:11.069Z",
+          "updatedAt": "2026-08-02T07:32:02.968Z",
+          "deletedAt": null,
+          "owner": {
+            "id": "cms5zycb900017q0azar1nag2",
+            "username": "testuser",
+            "avatar": null
+          },
+          "subthreads": [
+            {
+              "id": "cmsapbna8004r7q319m86krin",
+              "threadId": "cmsapbna4004n7q31w8dvc0ln",
+              "title": "管理面板测试帖 1785608711288",
+              "sortOrder": 0,
+              "postingPolicy": "PARTICIPANTS",
+              "version": 2,
+              "lastPostAt": "2026-08-01T18:25:14.397Z",
+              "deletedAt": null,
+              "createdAt": "2026-08-01T18:25:11.073Z",
+              "_count": {
+                "posts": 2
+              },
+              "tags": [],
+              "bodyPost": {
+                "id": "cmsapbo2d004t7q31kr95y2xd",
+                "content": "这是管理面板测试正文。",
+                "version": 1
+              }
+            }
+          ],
+          "topicTags": [],
+          "_count": {
+            "members": 1,
+            "posts": 2,
+            "players": 1
+          },
+          "isBookmarked": true,
+          "bookmarkId": "cmsbhplr500077qlzudmhpesf"
+        }
+      },
+      "httpStatus": 200
+    },
+    "DELETE /bookmarks/cmsbhplr500077qlzudmhpesf": {
+      "label": "DELETE /bookmarks/cmsbhplr500077qlzudmhpesf",
+      "request": null,
+      "response": {
+        "code": 40001,
+        "message": "Body cannot be empty when content-type is set to 'application/json'",
+        "data": null
+      },
+      "httpStatus": 400
+    }
+  }
+}
