@@ -18,7 +18,9 @@ function createImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-/** 按 1:1 裁剪区域绘制并导出 webp Blob（quality 0.9） */
+/** 按 1:1 裁剪区域绘制并导出 webp Blob（quality 0.9）。
+ * react-easy-crop 的 croppedAreaPixels 已基于原图自然像素（mediaNaturalBBoxSize），
+ * 可直接作为 drawImage 源矩形，切勿再按缩放比换算，否则会偏移/溢出/留白。 */
 export async function getCroppedBlob(imageSrc: string, crop: CropArea): Promise<Blob> {
   const image = await createImage(imageSrc);
   const canvas = document.createElement("canvas");
@@ -27,14 +29,12 @@ export async function getCroppedBlob(imageSrc: string, crop: CropArea): Promise<
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("当前浏览器不支持画布裁剪");
 
-  const scaleX = image.naturalWidth / crop.width;
-  const scaleY = image.naturalHeight / crop.height;
   ctx.drawImage(
     image,
-    crop.x * scaleX,
-    crop.y * scaleY,
-    crop.width * scaleX,
-    crop.height * scaleY,
+    crop.x,
+    crop.y,
+    crop.width,
+    crop.height,
     0,
     0,
     OUTPUT_SIZE,
