@@ -61,6 +61,7 @@
 | 状态 | thread.status | 招募中/已关闭/已完结 |
 | 玩家数 | thread._count.players | 数字（被楼主授予玩家身份者） |
 | 楼层数 | thread._count.posts | 数字 |
+| 作者 | thread.owner | 头像（`_thumb.webp`，无则首字符占位）+ 用户名 |
 | 最后活跃 | thread.updatedAt | date-fns 相对时间 |
 
 ## 7. 分页策略

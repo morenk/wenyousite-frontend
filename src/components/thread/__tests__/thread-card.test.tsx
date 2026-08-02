@@ -55,6 +55,23 @@ describe("ThreadCard", () => {
     expect(screen.getByText("测试作者")).toBeInTheDocument();
   });
 
+  test("作者无头像时显示首字符占位", () => {
+    render(<ThreadCard thread={baseThread} />);
+    expect(screen.getByTestId("user-avatar-placeholder").textContent).toBe("测");
+  });
+
+  test("作者有头像时渲染缩略图", () => {
+    const withAvatar = {
+      ...baseThread,
+      owner: { id: "u1", username: "测试作者", avatar: "https://example.com/u.png" },
+    };
+    render(<ThreadCard thread={withAvatar} />);
+    expect(screen.getByRole("img")).toHaveAttribute(
+      "src",
+      "https://example.com/u_thumb.webp",
+    );
+  });
+
   test("渲染标签", () => {
     render(<ThreadCard thread={baseThread} />);
     expect(screen.getByText("#测试标签")).toBeInTheDocument();

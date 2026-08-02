@@ -7,6 +7,7 @@ import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { Users, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { UserAvatar } from "@/components/shared/user-avatar";
 import type { ThreadCardData } from "@/api/hooks/use-threads";
 
 const categoryLabel: Record<string, string> = {
@@ -109,7 +110,15 @@ export function ThreadCard({ thread }: ThreadCardProps) {
               </span>
             </div>
             <div className="flex items-center gap-3">
-              <span>{thread.owner.username}</span>
+              <span className="flex items-center gap-1.5">
+                <UserAvatar
+                  name={thread.owner.username}
+                  src={thread.owner.avatar}
+                  className="h-6 w-6"
+                  textClassName="text-[10px]"
+                />
+                {thread.owner.username}
+              </span>
               <span>
                 {formatDistanceToNow(new Date(thread.updatedAt), {
                   addSuffix: true,
