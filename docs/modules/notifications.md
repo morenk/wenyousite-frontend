@@ -142,7 +142,7 @@
 - [x] 未登录跳 /login
 - [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` 通过
 - [x] 类型筛选、精确定位与刷新策略（本轮）
-- [ ] 乐观已读缓存更新（待后续切片）
+- [x] 乐观已读缓存更新（失败时自动回滚）
 - [ ] payload 结构化渲染（TODO）
 
 ## 11. 子任务（切片）
