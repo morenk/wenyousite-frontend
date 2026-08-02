@@ -94,8 +94,8 @@
 |------|------|------|
 | NotificationItem | `src/components/notification/notification-item.tsx` | 单条通知：类型图标 + content + 时间 + 未读高亮 + 跳转 + 删除 |
 | NotificationList | `src/components/notification/notification-list.tsx` | 通知列表：无限滚动 + 三态 + 「全部已读」 |
-| useNotifications | `src/api/hooks/use-notifications.ts` | 通知列表 hook（cursor 分页） |
-| useUnreadCount | `src/api/hooks/use-unread-count.ts` | 未读数 hook（轮询） |
+| useNotifications | `src/api/hooks/use-notifications.ts` | 通知列表 hook（cursor 分页，`{ type, userId }` 按用户隔离） |
+| useUnreadCount | `src/api/hooks/use-unread-count.ts` | 未读数 hook（`userId` 按用户隔离，30s 轮询） |
 | useNotificationActions | `src/api/hooks/use-notification-actions.ts` | 标记已读/删除/全部已读 mutation |
 | NotificationsPage | `src/app/notifications/page.tsx` | 通知列表页 |
 
@@ -140,4 +140,5 @@
 - [x] 切片2：通知 API hooks（useNotifications / useUnreadCount / useNotificationActions）+ 测试
 - [x] 切片3：NotificationItem / NotificationList 组件 + 测试
 - [x] 切片4：/notifications 页面 + 导航未读徽标
+- [x] 修复：未读数/列表按 userId 隔离缓存，登录即时刷新徽标（含登录/注册后失效）
 - [ ] 切片5：质量检查 + 部署 + 提交推送
