@@ -227,7 +227,7 @@ showRecentReplies / showPlayerBadges / showBookmarks: boolean
 
 > 用户名修改需间隔 7 天以上，不足时后端返回剩余天数提示；冲突返回 409（code 40900）。限流 5 次/分钟。
 
-> **后端修复记录**：`update-user.dto.ts` 用户名曾误用 `@Transform(sanitizeContent)`（class-transformer 传入参数对象而非字符串，导致用户名恒为空、任何合法名都被拒）。已改为 `@Transform(({ value }) => sanitizeContent(value))`；并为 MinLength/MaxLength 补充中文消息（不再出现英文默认提示）。
+> **后端修复记录**：`update-user.dto.ts` 用户名曾误用 `@Transform(sanitizeContent)`（class-transformer 传入参数对象而非字符串，导致用户名恒为空、任何合法名都被拒）。已改为 `@Transform(({ value }) => sanitizeContent(value))`；并为 MinLength/MaxLength 补充中文消息（不再出现英文默认提示）。随后 content 字段已彻底移除 sanitize 转换，markdown 原样存储、XSS 由各端渲染层净化（详见 `docs/modules/drafts.md` 内容安全一节）。
 
 ## 8. 错误处理
 

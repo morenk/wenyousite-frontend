@@ -64,6 +64,8 @@ interface DraftItem {
 - `GET/PATCH /drafts/:id` → `data: DraftItem`
 - `DELETE /drafts/:id` → `data: { message: "草稿已删除" }`
 
+> **内容存储策略（全站统一）**：content 一律按 **Markdown 原样存储**，后端不再做 HTML 转义（曾用 sanitize-html 转义导致 `>` 变 `&gt;`，已修复并清理存量数据）。XSS 由各端渲染层净化：web 端 react-markdown 默认剥离原始 HTML 标签；移动端需用 markdown 渲染器。
+
 ## 4. 状态管理
 
 | 状态 | 来源 | 管理方式 |
