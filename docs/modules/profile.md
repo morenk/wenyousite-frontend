@@ -20,9 +20,11 @@
 
 | 路由 | 页面说明 | 权限 |
 |------|----------|------|
-| `/users/[id]` | 用户主页：资料卡 + 关注/拉黑 + 最近动态 + 参与的帖子 | 公开（OptionalAuth，登录态显示关系字段与操作） |
+| `/users/[id]` | 用户主页：资料卡 + 最近动态 + 创建的帖子 + 参与的帖子 | 公开（OptionalAuth，登录态显示关系字段与操作） |
+| `/users/[id]/following` | 该用户关注的人列表 | 公开（OptionalAuth） |
+| `/users/[id]/followers` | 该用户的粉丝列表 | 公开（OptionalAuth） |
 | `/drafts` | 我的草稿箱（未发布帖列表） | Auth（仅本人） |
-| `/me` | 我的资料编辑（用户名/Bio/隐私开关） | Auth（仅本人） |
+| `/me` | 我的资料编辑（Bio/隐私开关） | Auth（仅本人） |
 
 ## 3. 涉及 API
 
@@ -36,6 +38,8 @@
 | GET | `/users/:id/played-threads` | OptionalAuth | 参与的帖子（被其他楼主标记为玩家，**排除自建帖**），按加入时间倒序，Cursor 分页，受 showPlayerBadges 控制 |
 | POST | `/users/follow/:id` | Auth | 关注（幂等，首次关注发通知） |
 | DELETE | `/users/follow/:id` | Auth | 取消关注 |
+| GET | `/users/:id/following` | OptionalAuth | 该用户的关注列表（公开，用户不存在 404） |
+| GET | `/users/:id/followers` | OptionalAuth | 该用户的粉丝列表（公开，用户不存在 404） |
 | POST | `/users/me/block/:id` | Auth | 拉黑（幂等 upsert） |
 | DELETE | `/users/me/block/:id` | Auth | 取消拉黑 |
 | GET | `/threads/draft` | AuthRead | 我的未发布帖列表（草稿箱） |
@@ -177,9 +181,11 @@
 
 | 组件 | 路径 | 说明 |
 |------|------|------|
-| UserProfileCard | `src/components/user/user-profile-card.tsx` | 用户资料卡：头像（无则首字母）/用户名/Bio/注册时间/关注粉丝数/操作按钮 |
+| UserProfileCard | `src/components/user/user-profile-card.tsx` | 用户资料卡：头像（无则首字母）/用户名/Bio/注册时间/关注粉丝数（可点击）/操作按钮 |
 | FollowButton | `src/components/user/follow-button.tsx` | 关注/取消关注切换（未登录跳 /login） |
 | BlockButton | `src/components/user/block-button.tsx` | 拉黑/取消拉黑切换（confirm 二次确认） |
+| UserFollowList | `src/components/user/user-follow-list.tsx` | 关注/粉丝列表（头像 + 用户名链接 + 三态，复用两种列表） |
+| FollowListPage | `src/components/user/follow-list-page.tsx` | 关注/粉丝子页面主体（用户名标题 + 返回链接 + 列表） |
 | UserRecentReplies | `src/components/user/user-recent-replies.tsx` | 最近动态列表（含楼层/楼中楼标识、帖子标题链接、preview） |
 | UserThreadList | `src/components/user/user-thread-list.tsx` | 用户帖子列表通用展示组件（徽章/标题/无限滚动，empty/error 文案 props） |
 | UserCreatedThreads | `src/components/user/user-created-threads.tsx` | 创建的帖子列表（薄包装：useUserCreatedThreads + UserThreadList） |
@@ -187,6 +193,7 @@
 | DraftList | `src/components/user/draft-list.tsx` | 草稿箱列表（标题/分类/更新时间/继续编辑/删除） |
 | UsernameEdit | `src/components/user/username-edit.tsx` | 独立用户名修改（默认只读，点「修改用户名」才进入编辑态，未改动不提交） |
 | useUserProfile | `src/api/hooks/use-user-profile.ts` | 用户公开资料 hook |
+| useUserFollowList | `src/api/hooks/use-user-follow-list.ts` | 关注/粉丝列表 hook（kind 复用） |
 | useUserRecentReplies | `src/api/hooks/use-user-recent-replies.ts` | 最近动态 hook |
 | useUserCreatedThreads | `src/api/hooks/use-user-created-threads.ts` | 创建的帖子 hook（cursor 分页） |
 | useUserPlayedThreads | `src/api/hooks/use-user-played-threads.ts` | 参与帖子 hook（cursor 分页） |
@@ -247,6 +254,8 @@ showRecentReplies / showPlayerBadges / showBookmarks: boolean
 ## 10. 验收标准
 
 - [x] `/users/[id]` 展示资料卡（头像/用户名/Bio/时间/关注粉丝数）
+- [x] 「关注 N」「粉丝 N」可点击进入 `/users/[id]/following` / `/users/[id]/followers` 列表页
+- [x] 关注/粉丝列表展示用户名 + 头像，空态/错误态有占位
 - [x] 登录态显示关注/拉黑按钮，点击后状态即时更新（isFollowing/isBlocked + 计数）
 - [x] 未登录不显示关注/拉黑按钮；点击其他需登录操作跳 /login
 - [x] 关注/拉黑自己不显示按钮
@@ -272,4 +281,5 @@ showRecentReplies / showPlayerBadges / showBookmarks: boolean
 - [x] 切片7：`useDrafts` hook + `DraftList` 组件 + `/drafts` 草稿箱
 - [x] 切片8：`useMe` / `useUpdateProfile` hooks + `/me` 我的资料
 - [x] 同步后端 `created-threads`：useUserCreatedThreads hook + UserThreadList 共享组件 + /users/[id] 创建列表
+- [x] 关注/粉丝列表：后端公开端点（/users/:id/following + /followers）+ useUserFollowList + UserFollowList + 子页面
 - [ ] 质量检查 + 文档同步 + 提交推送
