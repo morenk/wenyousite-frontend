@@ -15,17 +15,18 @@
 | 前端入口 | `/threads/create` 草稿列表 | 编辑器工具栏「正文草稿」→ 面板（Sheet） |
 | 交互 | 显式「保存草稿」按钮 | 手动保存/恢复；后续自动暂存 |
 
-**本次迭代范围（面板骨架）：**
+**本次迭代范围（完整手动草稿闭环）：**
 - 正文草稿面板：5 槽位列表，支持手动保存/恢复/删除
-- 编辑器工具栏「正文草稿」入口（所有 MilkdownEditor 共享），打开面板
+- Milkdown 顶部格式工具栏「正文草稿」按钮（所有 MilkdownEditor 共享），打开面板
 - 恢复草稿时回填当前编辑器内容；打开面板预填当前正文便于存池
+- 可直接保存到空槽位、覆盖指定槽位；恢复覆盖非空正文前二次确认
 - 与主题帖草稿完全隔离（入口/命名/视觉/数据四层）
 
 **后续迭代：**
 - 楼层/回复编辑器自动暂存（debounce 输入 → 固定写 slot 1 覆盖）
 - 编辑器「已暂存正文草稿」状态提示条
 
-> **2026-08 交互调整**：入口由全局导航栏「正文草稿」移至编辑器工具栏（`milkdown-editor.tsx` 底部工具栏条，登录可见）；全局导航栏草稿入口已全部移除。
+> **2026-08 交互调整**：入口由全局导航栏移至 Milkdown 顶部格式工具栏（登录可见）；编辑器底部仅保留 Markdown 提示和字数统计，不重复放置入口。
 
 ## 2. 页面与路由
 
@@ -82,8 +83,8 @@ interface DraftItem {
 
 | 组件 | 路径 | 说明 |
 |------|------|------|
-| ContentDraftsPanel | `src/components/user/content-drafts-panel.tsx` | 正文草稿面板：5 槽位卡片（内容预览/时间/恢复/删除），loading/error/empty/data 四态；支持 `initialContent` 预填 |
-| 编辑器入口 | `src/components/editor/milkdown-editor.tsx` | 底部工具栏「正文草稿」按钮（登录可见）+ 面板挂载；恢复草稿重挂载编辑器回填 |
+| ContentDraftsPanel | `src/components/user/content-drafts-panel.tsx` | 正文草稿面板：5 槽位卡片（内容预览/时间/指定槽位保存或覆盖/恢复/删除），loading/error/empty/data 四态；支持 `initialContent` 预填 |
+| 编辑器入口 | `src/components/editor/milkdown-editor.tsx` | Milkdown 顶部格式工具栏草稿按钮（登录可见）+ 面板挂载；恢复草稿重挂载编辑器回填 |
 | useContentDrafts | `src/api/hooks/use-content-drafts.ts` | 草稿列表 hook（queryKey `["content-drafts"]`） |
 | useDraftSlots | `src/api/hooks/use-draft-slots.ts` | 槽位使用 hook（queryKey `["draft-slots"]`） |
 | useSaveDraft | `src/api/hooks/use-save-draft.ts` | 保存草稿 hook（成功 invalidate 列表+槽位） |
@@ -112,12 +113,14 @@ interface DraftItem {
 
 ## 9. 验收标准
 
-- [x] 编辑器工具栏「正文草稿」入口（所有 MilkdownEditor 共享），登录可见
+- [x] Milkdown 顶部格式工具栏「正文草稿」入口（所有 MilkdownEditor 共享），登录可见
 - [x] 面板展示 5 槽位草稿：槽位号 + 内容预览 + 更新时间 + 恢复/删除
 - [x] 空槽位显示空态提示；无草稿时显示槽位占位
-- [x] 保存草稿到草稿池；满 5 槽时按后端 message toast 提示清理
+- [x] 保存草稿到草稿池；满 5 槽时禁用自动分配并提示选择已有槽位覆盖
 - [x] 恢复草稿把 content 回填当前编辑器（缺省复制剪贴板）
 - [x] 打开面板预填当前编辑器正文，便于把正在写的内容存入草稿池
+- [x] 当前正文可保存到指定空槽位，或经确认后覆盖指定已用槽位
+- [x] 恢复草稿会覆盖非空当前正文时要求二次确认
 - [x] 删除草稿确认后调用 DELETE，成功后列表刷新
 - [x] 与主题帖草稿在入口/命名/视觉/数据上完全隔离
 - [x] `pnpm lint && pnpm typecheck && pnpm test` 通过
@@ -129,6 +132,7 @@ interface DraftItem {
 - [x] 切片3：`ContentDraftsPanel` 组件 + 测试
 - [x] 切片4：编辑器工具栏「正文草稿」入口 + 面板挂载（原导航栏入口已移除）
 - [x] 切片5：文档收尾 + 质量检查（lint / typecheck / test / build）
+- [x] 切片6：入口迁入 Milkdown 顶部工具栏；补齐指定槽位保存/覆盖与恢复确认
 
 ## 11. 后续（本次不做）
 

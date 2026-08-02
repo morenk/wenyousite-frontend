@@ -174,7 +174,7 @@ describe("ContentDraftsPanel", () => {
     });
     renderPanel();
     await user.type(screen.getByPlaceholderText(/保存到草稿池/), "新的正文草稿");
-    await user.click(screen.getByText("保存到草稿池"));
+    await user.click(screen.getByText("自动保存到空槽位"));
     expect(saveMutate).toHaveBeenCalledWith({ content: "新的正文草稿" });
     expect(toast.success).toHaveBeenCalledWith("正文草稿已保存");
     expect(
@@ -187,5 +187,37 @@ describe("ContentDraftsPanel", () => {
     expect(
       (screen.getByPlaceholderText(/保存到草稿池/) as HTMLTextAreaElement).value,
     ).toBe("编辑器里正在写的内容");
+  });
+
+  test("可把当前正文保存到指定空槽位", async () => {
+    const user = userEvent.setup();
+    const saveMutate = vi.fn().mockResolvedValue({ ...sampleDraft, slot: 2 });
+    mockUseSaveDraft.mockReturnValue({ isPending: false, mutateAsync: saveMutate });
+    renderPanel({ initialContent: "编辑器正文" });
+    await user.click(screen.getAllByText("保存到此处")[0]!);
+    expect(saveMutate).toHaveBeenCalledWith({ content: "编辑器正文", slot: 2 });
+  });
+
+  test("覆盖已用槽位前要求确认", async () => {
+    const user = userEvent.setup();
+    const saveMutate = vi.fn().mockResolvedValue(sampleDraft);
+    mockUseSaveDraft.mockReturnValue({ isPending: false, mutateAsync: saveMutate });
+    vi.stubGlobal("confirm", vi.fn(() => true));
+    renderPanel({ initialContent: "要覆盖保存的正文" });
+    await user.click(screen.getByRole("button", { name: "覆盖槽位 1" }));
+    expect(global.confirm).toHaveBeenCalledWith("确定要覆盖槽位 1 的正文草稿吗？");
+    expect(saveMutate).toHaveBeenCalledWith({ content: "要覆盖保存的正文", slot: 1 });
+  });
+
+  test("恢复草稿覆盖当前正文前要求确认，取消时不恢复", async () => {
+    const user = userEvent.setup();
+    const onRestore = vi.fn();
+    vi.stubGlobal("confirm", vi.fn(() => false));
+    renderPanel({ initialContent: "尚未保存的当前正文", onRestore });
+    await user.click(screen.getByText("恢复"));
+    expect(global.confirm).toHaveBeenCalledWith(
+      "恢复草稿将覆盖当前编辑器内容，是否继续？",
+    );
+    expect(onRestore).not.toHaveBeenCalled();
   });
 });

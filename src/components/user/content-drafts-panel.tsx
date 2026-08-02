@@ -68,6 +68,15 @@ export function ContentDraftsPanel({
   const draftBySlot = new Map(drafts.map((d) => [d.slot, d]));
 
   const handleRestore = (draft: DraftItem) => {
+    const currentText = initialContent?.trim();
+    if (
+      onRestore &&
+      currentText &&
+      currentText !== draft.content.trim() &&
+      !confirm("恢复草稿将覆盖当前编辑器内容，是否继续？")
+    ) {
+      return;
+    }
     if (onRestore) {
       onRestore(draft.content);
       onClose();
@@ -89,13 +98,15 @@ export function ContentDraftsPanel({
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = async (slot?: number) => {
     const text = content.trim();
     if (!text) return;
+    const occupied = slot === undefined ? undefined : draftBySlot.get(slot);
+    if (occupied && !confirm(`确定要覆盖槽位 ${slot} 的正文草稿吗？`)) return;
     try {
-      await saveDraft.mutateAsync({ content: text });
+      await saveDraft.mutateAsync({ content: text, ...(slot ? { slot } : {}) });
       setContent("");
-      toast.success("正文草稿已保存");
+      toast.success(occupied ? `已覆盖槽位 ${slot}` : "正文草稿已保存");
     } catch (err) {
       toast.error(getErrorMessage(err, "保存失败，请稍后重试"));
     }
@@ -158,6 +169,15 @@ export function ContentDraftsPanel({
                       <span className="text-xs text-muted-foreground">
                         槽位 {slot} 空闲
                       </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-xs"
+                        onClick={() => handleSave(slot)}
+                        disabled={!content.trim() || saveDraft.isPending}
+                      >
+                        保存到此处
+                      </Button>
                     </div>
                   );
                 }
@@ -189,6 +209,17 @@ export function ContentDraftsPanel({
                       >
                         <RotateCcw className="mr-1 h-3 w-3" />
                         恢复
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-xs"
+                        onClick={() => handleSave(slot)}
+                        disabled={!content.trim() || saveDraft.isPending}
+                        aria-label={`覆盖槽位 ${slot}`}
+                      >
+                        <Save className="mr-1 h-3 w-3" />
+                        覆盖
                       </Button>
                       <Button
                         variant="ghost"
@@ -233,15 +264,15 @@ export function ContentDraftsPanel({
             <Button
               size="sm"
               className="w-full"
-              onClick={handleSave}
-              disabled={!content.trim() || saveDraft.isPending}
+              onClick={() => handleSave()}
+              disabled={!content.trim() || saveDraft.isPending || usedSlots >= maxSlots}
             >
               {saveDraft.isPending ? (
                 <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
               ) : (
                 <Save className="mr-1.5 h-3.5 w-3.5" />
               )}
-              保存到草稿池
+              {usedSlots >= maxSlots ? "草稿池已满，请选择槽位覆盖" : "自动保存到空槽位"}
             </Button>
           </div>
         </div>

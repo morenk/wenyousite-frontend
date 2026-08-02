@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Milkdown, MilkdownProvider, useEditor, useInstance } from "@milkdown/react";
 import { Crepe, CrepeFeature } from "@milkdown/crepe";
 import { editorViewCtx } from "@milkdown/core";
-import { Loader2, StickyNote } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { sanitizeEmptyImages } from "@/lib/markdown";
@@ -24,22 +24,29 @@ const TOOLBAR_TOOLTIPS: Record<number, string> = {
   5: "代码块",
   6: "引用",
   7: "分隔线",
+  8: "正文草稿",
 };
 
+const DRAFT_ICON = `
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+    <path fill="currentColor" d="M5 3h11l3 3v15H5V3Zm2 2v14h10V7.5L14.5 5H7Zm2 4h6v2H9V9Zm0 4h6v2H9v-2Z" />
+  </svg>
+`;
+
 function injectToolbarTooltips() {
-  const topBar = document.querySelector(".milkdown-top-bar");
-  if (!topBar) return;
-
-  const headingBtn = topBar.querySelector<HTMLButtonElement>(".top-bar-heading-button");
-  if (headingBtn && !headingBtn.hasAttribute("title")) {
-    headingBtn.title = "切换标题级别";
-  }
-
-  const buttons = topBar.querySelectorAll<HTMLButtonElement>(".top-bar-item");
-  buttons.forEach((btn, index) => {
-    if (TOOLBAR_TOOLTIPS[index] && !btn.hasAttribute("title")) {
-      btn.title = TOOLBAR_TOOLTIPS[index]!;
+  document.querySelectorAll(".milkdown-top-bar").forEach((topBar) => {
+    const headingBtn = topBar.querySelector<HTMLButtonElement>(".top-bar-heading-button");
+    if (headingBtn && !headingBtn.hasAttribute("title")) {
+      headingBtn.title = "切换标题级别";
     }
+
+    const buttons = topBar.querySelectorAll<HTMLButtonElement>(".top-bar-item");
+    buttons.forEach((btn, index) => {
+      if (TOOLBAR_TOOLTIPS[index] && !btn.hasAttribute("title")) {
+        btn.title = TOOLBAR_TOOLTIPS[index]!;
+        btn.setAttribute("aria-label", TOOLBAR_TOOLTIPS[index]!);
+      }
+    });
   });
 }
 
@@ -85,6 +92,7 @@ interface EditorHostProps {
   onUploadImage?: (file: File) => Promise<string>;
   placeholder?: string;
   disabled?: boolean;
+  onOpenDrafts?: () => void;
   maxHeight: number;
   minHeight: number;
 }
@@ -96,6 +104,7 @@ function EditorHost({
   onUploadImage,
   placeholder,
   disabled,
+  onOpenDrafts,
 }: EditorHostProps) {
   const [loading] = useInstance();
   const crepeRef = useRef<Crepe | null>(null);
@@ -171,6 +180,13 @@ function EditorHost({
                   };
                   input.click();
                 };
+              }
+              if (onOpenDrafts) {
+                builder.addGroup("draft", "草稿").addItem("draft", {
+                  icon: DRAFT_ICON,
+                  active: () => false,
+                  onRun: () => onOpenDrafts(),
+                });
               }
             },
           },
@@ -285,6 +301,11 @@ function EditorCore({
     [onChange],
   );
 
+  const handleOpenDrafts = useCallback(() => {
+    setDraftInitialContent(latestContentRef.current);
+    setDraftOpen(true);
+  }, []);
+
   const charWarning =
     charCount > MAX_CHARS * 0.9
       ? "text-destructive"
@@ -306,12 +327,13 @@ function EditorCore({
       }
     >
       <EditorHost
-        key={version}
+        key={`${version}-${user?.id ?? "guest"}`}
         initialValue={restoredValue ?? ""}
         onChange={handleChange}
         onUploadImage={onUploadImage}
         placeholder={placeholder}
         disabled={disabled}
+        onOpenDrafts={user ? handleOpenDrafts : undefined}
         maxHeight={maxHeight}
         minHeight={minHeight}
       />
@@ -320,19 +342,6 @@ function EditorCore({
           支持 Markdown，粘贴或拖拽图片上传
         </span>
         <div className="flex items-center gap-3">
-          {user && (
-            <button
-              type="button"
-              onClick={() => {
-                setDraftInitialContent(latestContentRef.current);
-                setDraftOpen(true);
-              }}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-            >
-              <StickyNote className="h-3.5 w-3.5" />
-              正文草稿
-            </button>
-          )}
           <span className={cn("text-xs tabular-nums", charWarning)}>
             {charCount}/{MAX_CHARS}
           </span>
