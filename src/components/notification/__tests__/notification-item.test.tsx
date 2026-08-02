@@ -156,6 +156,20 @@ describe("NotificationItem", () => {
     expect(screen.queryByText(/\\</)).not.toBeInTheDocument();
   });
 
+  test("Milkdown 硬换行反斜杠在通知文案中被清除", () => {
+    renderWithQC(
+      <NotificationItem
+        notification={baseNotification({
+          content: "玛利亚666 回复了：<看看呢>\\\n>看看呢<",
+          payload: null,
+        })}
+      />,
+    );
+    expect(screen.getByText(/玛利亚666 回复了：<看看呢>/)).toBeInTheDocument();
+    expect(screen.queryByText(/看看呢>\\/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/\\/)).not.toBeInTheDocument();
+  });
+
   test("follow 类型无 threadId 时跳转用户主页", () => {
     renderWithQC(
       <NotificationItem
