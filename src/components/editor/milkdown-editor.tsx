@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { sanitizeEmptyImages } from "@/lib/markdown";
 import { useAuth } from "@/lib/auth";
+import { useSaveDraft } from "@/api/hooks/use-save-draft";
 import { ContentDraftsPanel } from "@/components/user/content-drafts-panel";
 
 const MAX_CHARS = 10000;
@@ -273,27 +274,35 @@ function EditorCore({
   minHeight = 280,
 }: MilkdownEditorProps) {
   const { user } = useAuth();
+  const { mutateAsync: saveDraftAutomatically } = useSaveDraft();
   const [restoredValue, setRestoredValue] = useState<string | undefined>(defaultValue);
   const [version, setVersion] = useState(0);
-  const [charCount, setCharCount] = useState(defaultValue?.length ?? 0);
+  const [currentContent, setCurrentContent] = useState(defaultValue ?? "");
   const [draftOpen, setDraftOpen] = useState(false);
   const [draftInitialContent, setDraftInitialContent] = useState("");
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
   const latestContentRef = useRef(defaultValue ?? "");
+  const autoSaveQueueRef = useRef<Promise<unknown>>(Promise.resolve());
+  const autoSaveSequenceRef = useRef(0);
 
   const handleChange = useCallback(
     (value: string) => {
       latestContentRef.current = value;
-      setCharCount(value.length);
+      setCurrentContent(value);
+      if (autoSaveEnabled) setAutoSaveStatus("idle");
       onChange?.(value);
     },
-    [onChange],
+    [autoSaveEnabled, onChange],
   );
 
   const handleRestore = useCallback(
     (content: string) => {
       latestContentRef.current = content;
       setRestoredValue(content);
-      setCharCount(content.length);
+      setCurrentContent(content);
       setVersion((v) => v + 1);
       onChange?.(content);
       toast.success("已恢复正文草稿");
@@ -305,6 +314,41 @@ function EditorCore({
     setDraftInitialContent(latestContentRef.current);
     setDraftOpen(true);
   }, []);
+
+  useEffect(() => {
+    if (!autoSaveEnabled) return;
+
+    const content = currentContent.trim();
+    if (!content) return;
+
+    const sequence = ++autoSaveSequenceRef.current;
+    const timer = window.setTimeout(() => {
+      setAutoSaveStatus("saving");
+      autoSaveQueueRef.current = autoSaveQueueRef.current
+        .catch(() => undefined)
+        .then(() => saveDraftAutomatically({ content, slot: 1 }))
+        .then(() => {
+          if (autoSaveSequenceRef.current === sequence) setAutoSaveStatus("saved");
+        })
+        .catch((error) => {
+          if (autoSaveSequenceRef.current === sequence) {
+            setAutoSaveStatus("error");
+            toast.error(
+              (error as { message?: string })?.message || "正文草稿自动保存失败",
+            );
+          }
+        });
+    }, 800);
+
+    return () => window.clearTimeout(timer);
+  }, [autoSaveEnabled, currentContent, saveDraftAutomatically]);
+
+  const handleAutoSaveChange = useCallback((enabled: boolean) => {
+    setAutoSaveEnabled(enabled);
+    setAutoSaveStatus("idle");
+  }, []);
+
+  const charCount = currentContent.length;
 
   const charWarning =
     charCount > MAX_CHARS * 0.9
@@ -342,6 +386,25 @@ function EditorCore({
           支持 Markdown，粘贴或拖拽图片上传
         </span>
         <div className="flex items-center gap-3">
+          {autoSaveEnabled && (
+            <span
+              className={cn(
+                "text-xs",
+                autoSaveStatus === "error"
+                  ? "text-destructive"
+                  : "text-muted-foreground",
+              )}
+            >
+              自动草稿：
+              {autoSaveStatus === "saving"
+                ? "保存中"
+                : autoSaveStatus === "saved"
+                  ? "已保存"
+                  : autoSaveStatus === "error"
+                    ? "保存失败"
+                    : "等待编辑"}
+            </span>
+          )}
           <span className={cn("text-xs tabular-nums", charWarning)}>
             {charCount}/{MAX_CHARS}
           </span>
@@ -353,6 +416,9 @@ function EditorCore({
           onClose={() => setDraftOpen(false)}
           onRestore={handleRestore}
           initialContent={draftInitialContent}
+          autoSaveEnabled={autoSaveEnabled}
+          autoSaveStatus={autoSaveStatus}
+          onAutoSaveChange={handleAutoSaveChange}
         />
       )}
     </div>

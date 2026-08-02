@@ -122,7 +122,7 @@ describe("ContentDraftsPanel", () => {
     expect(screen.getByText("这是槽位 1 的正文草稿")).toBeInTheDocument();
     expect(screen.getByText("槽位 2 空闲")).toBeInTheDocument();
     expect(screen.getByText("槽位 5 空闲")).toBeInTheDocument();
-    expect(screen.getByText("已用 1/5 槽位")).toBeInTheDocument();
+    expect(screen.getByText(/已用 1\/5 槽位/)).toBeInTheDocument();
   });
 
   test("恢复草稿调用 onRestore 并关闭面板", async () => {
@@ -165,28 +165,10 @@ describe("ContentDraftsPanel", () => {
     expect(toast.success).toHaveBeenCalledWith("正文草稿已删除");
   });
 
-  test("保存新草稿：调用保存并清空输入", async () => {
-    const user = userEvent.setup();
-    const saveMutate = vi.fn().mockResolvedValue(sampleDraft);
-    mockUseSaveDraft.mockReturnValue({
-      isPending: false,
-      mutateAsync: saveMutate,
-    });
-    renderPanel();
-    await user.type(screen.getByPlaceholderText(/保存到草稿池/), "新的正文草稿");
-    await user.click(screen.getByText("自动保存到空槽位"));
-    expect(saveMutate).toHaveBeenCalledWith({ content: "新的正文草稿" });
-    expect(toast.success).toHaveBeenCalledWith("正文草稿已保存");
-    expect(
-      (screen.getByPlaceholderText(/保存到草稿池/) as HTMLTextAreaElement).value,
-    ).toBe("");
-  });
-
-  test("initialContent 预填保存输入框（编辑器打开场景）", () => {
+  test("直接显示当前编辑器内容字数，不渲染二次输入框", () => {
     renderPanel({ initialContent: "编辑器里正在写的内容" });
-    expect(
-      (screen.getByPlaceholderText(/保存到草稿池/) as HTMLTextAreaElement).value,
-    ).toBe("编辑器里正在写的内容");
+    expect(screen.getByText("当前编辑器：10 个字符")).toBeInTheDocument();
+    expect(screen.queryByRole("textbox")).toBeNull();
   });
 
   test("可把当前正文保存到指定空槽位", async () => {
@@ -207,6 +189,23 @@ describe("ContentDraftsPanel", () => {
     await user.click(screen.getByRole("button", { name: "覆盖槽位 1" }));
     expect(global.confirm).toHaveBeenCalledWith("确定要覆盖槽位 1 的正文草稿吗？");
     expect(saveMutate).toHaveBeenCalledWith({ content: "要覆盖保存的正文", slot: 1 });
+  });
+
+  test("开启自动保存前确认槽位 1 将被接管", async () => {
+    const user = userEvent.setup();
+    const onAutoSaveChange = vi.fn();
+    vi.stubGlobal("confirm", vi.fn(() => true));
+    renderPanel({ onAutoSaveChange });
+    await user.click(screen.getByRole("switch", { name: "槽位 1 自动保存" }));
+    expect(global.confirm).toHaveBeenCalledWith(
+      "开启自动保存后，槽位 1 将由当前编辑器持续覆盖，是否继续？",
+    );
+    expect(onAutoSaveChange).toHaveBeenCalledWith(true);
+  });
+
+  test("显示自动保存完成状态", () => {
+    renderPanel({ autoSaveEnabled: true, autoSaveStatus: "saved" });
+    expect(screen.getByText("当前内容已自动保存")).toBeInTheDocument();
   });
 
   test("恢复草稿覆盖当前正文前要求确认，取消时不恢复", async () => {

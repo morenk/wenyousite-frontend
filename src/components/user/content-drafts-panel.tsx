@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import {
@@ -26,8 +26,11 @@ interface ContentDraftsPanelProps {
   onClose: () => void;
   /** 恢复草稿：把内容回填给调用方（楼层/回复编辑器）；缺省时复制到剪贴板 */
   onRestore?: (content: string) => void;
-  /** 打开时预填到「保存」输入框的内容（如当前编辑器正文），便于把正在写的内容存入草稿池 */
+  /** 打开面板时的当前编辑器全文，所有手动保存操作直接使用该内容 */
   initialContent?: string;
+  autoSaveEnabled?: boolean;
+  autoSaveStatus?: "idle" | "saving" | "saved" | "error";
+  onAutoSaveChange?: (enabled: boolean) => void;
 }
 
 function getErrorMessage(error: unknown, fallback: string): string {
@@ -40,8 +43,10 @@ export function ContentDraftsPanel({
   onClose,
   onRestore,
   initialContent,
+  autoSaveEnabled = false,
+  autoSaveStatus = "idle",
+  onAutoSaveChange,
 }: ContentDraftsPanelProps) {
-  const [content, setContent] = useState(initialContent ?? "");
   const {
     data: drafts = [],
     isLoading,
@@ -66,6 +71,7 @@ export function ContentDraftsPanel({
   const usedSlots = slots?.usedSlots ?? 0;
   const maxSlots = slots?.maxSlots ?? 5;
   const draftBySlot = new Map(drafts.map((d) => [d.slot, d]));
+  const currentContent = initialContent?.trim() ?? "";
 
   const handleRestore = (draft: DraftItem) => {
     const currentText = initialContent?.trim();
@@ -89,9 +95,14 @@ export function ContentDraftsPanel({
   };
 
   const handleDelete = async (draft: DraftItem) => {
-    if (!confirm("确定要删除这条正文草稿吗？删除后无法恢复。")) return;
+    const deletingAutoSave = draft.slot === 1 && autoSaveEnabled;
+    const message = deletingAutoSave
+      ? "删除槽位 1 会同时关闭当前编辑器的自动保存，是否继续？"
+      : "确定要删除这条正文草稿吗？删除后无法恢复。";
+    if (!confirm(message)) return;
     try {
       await deleteDraft.mutateAsync(draft.id);
+      if (deletingAutoSave) onAutoSaveChange?.(false);
       toast.success("正文草稿已删除");
     } catch (err) {
       toast.error(getErrorMessage(err, "删除失败，请稍后重试"));
@@ -99,17 +110,28 @@ export function ContentDraftsPanel({
   };
 
   const handleSave = async (slot?: number) => {
-    const text = content.trim();
+    const text = currentContent;
     if (!text) return;
     const occupied = slot === undefined ? undefined : draftBySlot.get(slot);
     if (occupied && !confirm(`确定要覆盖槽位 ${slot} 的正文草稿吗？`)) return;
     try {
       await saveDraft.mutateAsync({ content: text, ...(slot ? { slot } : {}) });
-      setContent("");
       toast.success(occupied ? `已覆盖槽位 ${slot}` : "正文草稿已保存");
     } catch (err) {
       toast.error(getErrorMessage(err, "保存失败，请稍后重试"));
     }
+  };
+
+  const handleAutoSaveToggle = () => {
+    const next = !autoSaveEnabled;
+    if (
+      next &&
+      draftBySlot.has(1) &&
+      !confirm("开启自动保存后，槽位 1 将由当前编辑器持续覆盖，是否继续？")
+    ) {
+      return;
+    }
+    onAutoSaveChange?.(next);
   };
 
   return (
@@ -144,6 +166,44 @@ export function ContentDraftsPanel({
         </div>
 
         <div className="flex-1 overflow-y-auto p-3">
+          <div className="mb-3 rounded-lg border border-border bg-muted/30 p-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-medium text-foreground">槽位 1 自动保存</p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  {autoSaveEnabled
+                    ? autoSaveStatus === "saving"
+                      ? "正在保存当前编辑器内容…"
+                      : autoSaveStatus === "error"
+                        ? "自动保存失败，将在下次编辑时重试"
+                        : autoSaveStatus === "saved"
+                          ? "当前内容已自动保存"
+                          : "编辑后将自动更新到槽位 1"
+                    : "开启后，当前编辑器全文会自动更新到槽位 1"}
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={autoSaveEnabled}
+                aria-label="槽位 1 自动保存"
+                onClick={handleAutoSaveToggle}
+                disabled={!onAutoSaveChange || isLoading}
+                className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                  autoSaveEnabled ? "bg-primary" : "bg-muted-foreground/30"
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                    autoSaveEnabled ? "translate-x-5" : "translate-x-0.5"
+                  }`}
+                />
+              </button>
+            </div>
+            <p className="mt-2 border-t border-border pt-2 text-[11px] text-muted-foreground">
+              当前编辑器：{currentContent ? `${currentContent.length} 个字符` : "暂无内容"}
+            </p>
+          </div>
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -174,7 +234,7 @@ export function ContentDraftsPanel({
                         size="sm"
                         className="h-7 px-2 text-xs"
                         onClick={() => handleSave(slot)}
-                        disabled={!content.trim() || saveDraft.isPending}
+                        disabled={!currentContent || saveDraft.isPending}
                       >
                         保存到此处
                       </Button>
@@ -215,7 +275,7 @@ export function ContentDraftsPanel({
                         size="sm"
                         className="h-7 px-2 text-xs"
                         onClick={() => handleSave(slot)}
-                        disabled={!content.trim() || saveDraft.isPending}
+                        disabled={!currentContent || saveDraft.isPending}
                         aria-label={`覆盖槽位 ${slot}`}
                       >
                         <Save className="mr-1 h-3 w-3" />
@@ -239,42 +299,8 @@ export function ContentDraftsPanel({
           )}
         </div>
 
-        <div className="border-t border-border p-3">
-          <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
-            <span>
-              已用 {usedSlots}/{maxSlots} 槽位
-            </span>
-            <button
-              className="text-primary hover:underline"
-              onClick={() =>
-                document.getElementById("draft-save-box")?.scrollIntoView({ behavior: "smooth" })
-              }
-            >
-              保存新草稿
-            </button>
-          </div>
-          <div id="draft-save-box" className="space-y-2">
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="粘贴或输入楼层/回复内容，保存到草稿池…"
-              rows={3}
-              className="w-full resize-none rounded-lg border border-border bg-background px-2.5 py-2 text-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-            />
-            <Button
-              size="sm"
-              className="w-full"
-              onClick={() => handleSave()}
-              disabled={!content.trim() || saveDraft.isPending || usedSlots >= maxSlots}
-            >
-              {saveDraft.isPending ? (
-                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Save className="mr-1.5 h-3.5 w-3.5" />
-              )}
-              {usedSlots >= maxSlots ? "草稿池已满，请选择槽位覆盖" : "自动保存到空槽位"}
-            </Button>
-          </div>
+        <div className="border-t border-border px-3 py-2 text-xs text-muted-foreground">
+          已用 {usedSlots}/{maxSlots} 槽位 · 点击槽位按钮直接保存当前编辑器全文
         </div>
       </div>
     </div>

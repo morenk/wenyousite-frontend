@@ -13,18 +13,19 @@
 | 容量 | 每用户最多 10 条 | 每用户固定 5 槽位（slot 1-5） |
 | 绑定 | 未发布帖，仅 owner 可见 | 不与子贴绑定，全局浮动编辑器缓存 |
 | 前端入口 | `/threads/create` 草稿列表 | 编辑器工具栏「正文草稿」→ 面板（Sheet） |
-| 交互 | 显式「保存草稿」按钮 | 手动保存/恢复；后续自动暂存 |
+| 交互 | 显式「保存草稿」按钮 | 当前编辑器全文手动保存/恢复；可开启自动保存 |
 
 **本次迭代范围（完整手动草稿闭环）：**
 - 正文草稿面板：5 槽位列表，支持手动保存/恢复/删除
 - Milkdown 顶部格式工具栏「正文草稿」按钮（所有 MilkdownEditor 共享），打开面板
 - 恢复草稿时回填当前编辑器内容；打开面板预填当前正文便于存池
-- 可直接保存到空槽位、覆盖指定槽位；恢复覆盖非空正文前二次确认
+- 不提供二次输入框：可把当前编辑器全文直接保存到空槽位或覆盖指定槽位
+- 自动保存开关：开启后防抖更新槽位 1；槽位 1 已有内容时开启前确认
+- 恢复覆盖非空正文前二次确认
 - 与主题帖草稿完全隔离（入口/命名/视觉/数据四层）
 
 **后续迭代：**
-- 楼层/回复编辑器自动暂存（debounce 输入 → 固定写 slot 1 覆盖）
-- 编辑器「已暂存正文草稿」状态提示条
+- 发布/回复成功后按产品策略决定是否自动清理槽位 1
 
 > **2026-08 交互调整**：入口由全局导航栏移至 Milkdown 顶部格式工具栏（登录可见）；编辑器底部仅保留 Markdown 提示和字数统计，不重复放置入口。
 
@@ -78,13 +79,14 @@ interface DraftItem {
 | 槽位使用 | `GET /drafts/slots` | TanStack Query `useQuery`（queryKey `["draft-slots"]`） |
 | 保存/删除 | mutation | `useMutation`，成功后 invalidate 列表与槽位 |
 | 面板开关 | 编辑器工具栏入口 | useState（MilkdownEditor 持有） |
+| 自动保存 | 当前编辑器状态 | 开关仅作用于当前编辑器实例；开启后 800ms 防抖串行写入 slot 1，空正文不覆盖 |
 
 ## 5. 组件清单
 
 | 组件 | 路径 | 说明 |
 |------|------|------|
-| ContentDraftsPanel | `src/components/user/content-drafts-panel.tsx` | 正文草稿面板：5 槽位卡片（内容预览/时间/指定槽位保存或覆盖/恢复/删除），loading/error/empty/data 四态；支持 `initialContent` 预填 |
-| 编辑器入口 | `src/components/editor/milkdown-editor.tsx` | Milkdown 顶部格式工具栏草稿按钮（登录可见）+ 面板挂载；恢复草稿重挂载编辑器回填 |
+| ContentDraftsPanel | `src/components/user/content-drafts-panel.tsx` | 5 槽位卡片；当前编辑器全文保存/覆盖/恢复/删除；槽位 1 自动保存开关 |
+| 编辑器入口 | `src/components/editor/milkdown-editor.tsx` | 顶部工具栏按钮、面板挂载、恢复回填及 slot 1 防抖自动保存 |
 | useContentDrafts | `src/api/hooks/use-content-drafts.ts` | 草稿列表 hook（queryKey `["content-drafts"]`） |
 | useDraftSlots | `src/api/hooks/use-draft-slots.ts` | 槽位使用 hook（queryKey `["draft-slots"]`） |
 | useSaveDraft | `src/api/hooks/use-save-draft.ts` | 保存草稿 hook（成功 invalidate 列表+槽位） |
@@ -94,7 +96,7 @@ interface DraftItem {
 
 ## 6. 表单与校验
 
-无表单。`POST /drafts` 的 `content` 为编辑器输出 Markdown；`slot` 可选（1-5），不传由后端自动分配。
+无二次输入表单。`POST /drafts` 的 `content` 直接取当前编辑器输出的完整 Markdown；`slot` 可选（1-5），不传由后端自动分配。
 
 ## 7. 错误处理
 
@@ -120,6 +122,8 @@ interface DraftItem {
 - [x] 恢复草稿把 content 回填当前编辑器（缺省复制剪贴板）
 - [x] 打开面板预填当前编辑器正文，便于把正在写的内容存入草稿池
 - [x] 当前正文可保存到指定空槽位，或经确认后覆盖指定已用槽位
+- [x] 面板不要求再次粘贴或输入内容，所有保存操作直接使用当前编辑器全文
+- [x] 自动保存开启后，当前编辑器正文经防抖自动更新到槽位 1，并显示保存状态
 - [x] 恢复草稿会覆盖非空当前正文时要求二次确认
 - [x] 删除草稿确认后调用 DELETE，成功后列表刷新
 - [x] 与主题帖草稿在入口/命名/视觉/数据上完全隔离
@@ -133,9 +137,8 @@ interface DraftItem {
 - [x] 切片4：编辑器工具栏「正文草稿」入口 + 面板挂载（原导航栏入口已移除）
 - [x] 切片5：文档收尾 + 质量检查（lint / typecheck / test / build）
 - [x] 切片6：入口迁入 Milkdown 顶部工具栏；补齐指定槽位保存/覆盖与恢复确认
+- [x] 切片7：移除面板二次输入；增加当前编辑器到槽位 1 的自动保存开关
 
 ## 11. 后续（本次不做）
 
-- 楼层/回复编辑器自动暂存：输入 debounce（~500ms）后固定写入 slot 1（覆盖更新），发布/回复成功清除该槽位
-- 编辑器「已暂存正文草稿 · 恢复/清除」提示条
-- 满 5 槽且自动暂存命中时按后端 400 提示，不做自动覆盖
+- 发布/回复成功后是否自动关闭开关并清除槽位 1
