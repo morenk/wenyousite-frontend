@@ -58,8 +58,8 @@ export function DraftList() {
   if (!drafts || drafts.length === 0) {
     return (
       <EmptyState
-        title="还没有草稿"
-        description="去创建主题帖吧，未发布的内容会保留在这里"
+        title="没有草稿喔"
+        description="还没有未发布的主题帖，点右上角「新建主题帖」开始创作吧"
       />
     );
   }

@@ -83,7 +83,7 @@ describe("DraftList", () => {
       refetch: vi.fn(),
     });
     renderWithQC(<DraftList />);
-    expect(screen.getByText("还没有草稿")).toBeInTheDocument();
+    expect(screen.getByText("没有草稿喔")).toBeInTheDocument();
   });
 
   test("渲染草稿并跳转编辑", () => {

@@ -1,8 +1,8 @@
-/** 创建主题帖页面：自动创建草稿并编辑发布 */
+/** 创建主题帖页面：先选草稿或新建主题帖，进入编辑器后自动创建草稿并编辑发布 */
 
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -12,12 +12,14 @@ import { useCreateThread } from "@/api/hooks/use-create-thread";
 import { useThreadDetail } from "@/api/hooks/use-thread-detail";
 import { useDeleteThread } from "@/api/hooks/use-delete-thread";
 import { ThreadCreateForm } from "@/components/forms/thread-create-form";
+import { ThreadDraftPicker } from "@/components/thread/thread-draft-picker";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function CreateThreadPage() {
   const router = useRouter();
   const { user, isInitialized } = useAuth();
+  const [mode, setMode] = useState<"picker" | "editor">("picker");
   const [createdThreadId, setCreatedThreadId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
@@ -44,11 +46,10 @@ export default function CreateThreadPage() {
     }
   }, [user, router, isInitialized]);
 
-  // 自动创建草稿（用 ref 保证生命周期内只创建一次，避免依赖变化导致无限循环）
-  const attemptedRef = useRef(false);
+  // 进入编辑器模式时自动创建草稿（切回 picker 后 createdThreadId 清空，可再次新建）
   useEffect(() => {
-    if (!isInitialized || !user?.emailVerified || createdThreadId || attemptedRef.current) return;
-    attemptedRef.current = true;
+    if (!isInitialized || !user?.emailVerified) return;
+    if (mode !== "editor" || createdThreadId) return;
 
     async function initDraft() {
       try {
@@ -71,18 +72,19 @@ export default function CreateThreadPage() {
     }
 
     initDraft();
-  }, [user, createdThreadId, createThread, router, isInitialized]);
+  }, [mode, createdThreadId, user, createThread, router, isInitialized]);
 
   async function handleCancel() {
     if (!createdThreadId) {
-      router.replace("/");
+      setMode("picker");
       return;
     }
     if (confirm("确定要放弃创建吗？草稿将被删除。")) {
       try {
         await deleteThread.mutateAsync(createdThreadId);
+        setCreatedThreadId(null);
+        setMode("picker");
         toast.success("已放弃创建");
-        router.replace("/");
       } catch (error: unknown) {
         const err = error as { message?: string };
         toast.error(err.message || "删除草稿失败");
@@ -94,12 +96,12 @@ export default function CreateThreadPage() {
     router.replace(`/threads/${threadId}`);
   }
 
-  if (!isInitialized || creating || isThreadLoading) {
+  if (!isInitialized) {
     return (
       <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
         <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin" />
-          {!isInitialized ? "加载中…" : creating ? "正在创建草稿…" : "加载中…"}
+          加载中…
         </div>
       </div>
     );
@@ -123,7 +125,7 @@ export default function CreateThreadPage() {
                   : "无法加载草稿")}
             </p>
             <div className="mt-4 flex gap-2">
-              <Button onClick={() => router.push("/")}>返回首页</Button>
+              <Button onClick={() => setMode("picker")}>返回草稿列表</Button>
               {createError && (
                 <Button
                   variant="outline"
@@ -139,9 +141,34 @@ export default function CreateThreadPage() {
     );
   }
 
-  if (!user || !user.emailVerified || !thread) {
+  if (!user || !user.emailVerified) {
     return null;
   }
+
+  if (mode === "picker") {
+    return (
+      <ThreadDraftPicker
+        onCreateNew={() => {
+          setCreateError(null);
+          setCreatedThreadId(null);
+          setMode("editor");
+        }}
+      />
+    );
+  }
+
+  if (creating || isThreadLoading) {
+    return (
+      <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          正在创建草稿…
+        </div>
+      </div>
+    );
+  }
+
+  if (!thread) return null;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
