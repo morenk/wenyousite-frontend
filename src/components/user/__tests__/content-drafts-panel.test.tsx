@@ -181,4 +181,11 @@ describe("ContentDraftsPanel", () => {
       (screen.getByPlaceholderText(/保存到草稿池/) as HTMLTextAreaElement).value,
     ).toBe("");
   });
+
+  test("initialContent 预填保存输入框（编辑器打开场景）", () => {
+    renderPanel({ initialContent: "编辑器里正在写的内容" });
+    expect(
+      (screen.getByPlaceholderText(/保存到草稿池/) as HTMLTextAreaElement).value,
+    ).toBe("编辑器里正在写的内容");
+  });
 });

@@ -26,6 +26,8 @@ interface ContentDraftsPanelProps {
   onClose: () => void;
   /** 恢复草稿：把内容回填给调用方（楼层/回复编辑器）；缺省时复制到剪贴板 */
   onRestore?: (content: string) => void;
+  /** 打开时预填到「保存」输入框的内容（如当前编辑器正文），便于把正在写的内容存入草稿池 */
+  initialContent?: string;
 }
 
 function getErrorMessage(error: unknown, fallback: string): string {
@@ -37,8 +39,9 @@ export function ContentDraftsPanel({
   open,
   onClose,
   onRestore,
+  initialContent,
 }: ContentDraftsPanelProps) {
-  const [content, setContent] = useState("");
+  const [content, setContent] = useState(initialContent ?? "");
   const {
     data: drafts = [],
     isLoading,

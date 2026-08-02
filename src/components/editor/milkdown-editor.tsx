@@ -6,10 +6,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Milkdown, MilkdownProvider, useEditor, useInstance } from "@milkdown/react";
 import { Crepe, CrepeFeature } from "@milkdown/crepe";
 import { editorViewCtx } from "@milkdown/core";
-import { Loader2 } from "lucide-react";
+import { Loader2, StickyNote } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { sanitizeEmptyImages } from "@/lib/markdown";
+import { useAuth } from "@/lib/auth";
+import { ContentDraftsPanel } from "@/components/user/content-drafts-panel";
 
 const MAX_CHARS = 10000;
 
@@ -77,17 +79,25 @@ function getImageBlockConfig(onUploadImage: (file: File) => Promise<string>) {
   };
 }
 
-function EditorCore({
-  defaultValue,
+interface EditorHostProps {
+  initialValue: string;
+  onChange?: (value: string) => void;
+  onUploadImage?: (file: File) => Promise<string>;
+  placeholder?: string;
+  disabled?: boolean;
+  maxHeight: number;
+  minHeight: number;
+}
+
+/** Crepe 编辑器宿主：以 initialValue 初始化；被外层按 key 重挂载以回填恢复的正文草稿 */
+function EditorHost({
+  initialValue,
   onChange,
   onUploadImage,
   placeholder,
   disabled,
-  maxHeight = 400,
-  minHeight = 280,
-}: MilkdownEditorProps) {
+}: EditorHostProps) {
   const [loading] = useInstance();
-  const [charCount, setCharCount] = useState(defaultValue?.length ?? 0);
   const crepeRef = useRef<Crepe | null>(null);
 
   /** 上传失败时统一弹 toast（Milkdown 内部会静默吞掉 onUpload 的 reject） */
@@ -109,7 +119,7 @@ function EditorCore({
     (root) => {
       const crepe = new Crepe({
         root,
-        defaultValue: defaultValue ?? "",
+        defaultValue: initialValue,
         features: {
           [CrepeFeature.Table]: false,
           [CrepeFeature.Latex]: false,
@@ -185,7 +195,6 @@ function EditorCore({
           if (markdown !== prevMarkdown) {
             // 移除空 URL 图片（空图片块序列化为 ![]()，发布后会显示破图）
             const cleaned = sanitizeEmptyImages(markdown);
-            setCharCount(cleaned.length);
             onChange?.(cleaned);
           }
         });
@@ -225,6 +234,57 @@ function EditorCore({
     return () => clearInterval(interval);
   }, []);
 
+  return (
+    <div className="milkdown-editor">
+      <Milkdown />
+      {loading && (
+        <div className="flex items-center justify-center py-12 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin mr-2" />
+          编辑器加载中…
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EditorCore({
+  defaultValue,
+  onChange,
+  onUploadImage,
+  placeholder,
+  disabled,
+  maxHeight = 400,
+  minHeight = 280,
+}: MilkdownEditorProps) {
+  const { user } = useAuth();
+  const [restoredValue, setRestoredValue] = useState<string | undefined>(defaultValue);
+  const [version, setVersion] = useState(0);
+  const [charCount, setCharCount] = useState(defaultValue?.length ?? 0);
+  const [draftOpen, setDraftOpen] = useState(false);
+  const [draftInitialContent, setDraftInitialContent] = useState("");
+  const latestContentRef = useRef(defaultValue ?? "");
+
+  const handleChange = useCallback(
+    (value: string) => {
+      latestContentRef.current = value;
+      setCharCount(value.length);
+      onChange?.(value);
+    },
+    [onChange],
+  );
+
+  const handleRestore = useCallback(
+    (content: string) => {
+      latestContentRef.current = content;
+      setRestoredValue(content);
+      setCharCount(content.length);
+      setVersion((v) => v + 1);
+      onChange?.(content);
+      toast.success("已恢复正文草稿");
+    },
+    [onChange],
+  );
+
   const charWarning =
     charCount > MAX_CHARS * 0.9
       ? "text-destructive"
@@ -245,23 +305,47 @@ function EditorCore({
         } as React.CSSProperties
       }
     >
-      <div className="milkdown-editor">
-        <Milkdown />
-        {loading && (
-          <div className="flex items-center justify-center py-12 text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin mr-2" />
-            编辑器加载中…
-          </div>
-        )}
-      </div>
+      <EditorHost
+        key={version}
+        initialValue={restoredValue ?? ""}
+        onChange={handleChange}
+        onUploadImage={onUploadImage}
+        placeholder={placeholder}
+        disabled={disabled}
+        maxHeight={maxHeight}
+        minHeight={minHeight}
+      />
       <div className="flex items-center justify-between border-t border-border px-3 py-2">
         <span className="text-xs text-muted-foreground">
           支持 Markdown，粘贴或拖拽图片上传
         </span>
-        <span className={cn("text-xs tabular-nums", charWarning)}>
-          {charCount}/{MAX_CHARS}
-        </span>
+        <div className="flex items-center gap-3">
+          {user && (
+            <button
+              type="button"
+              onClick={() => {
+                setDraftInitialContent(latestContentRef.current);
+                setDraftOpen(true);
+              }}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <StickyNote className="h-3.5 w-3.5" />
+              正文草稿
+            </button>
+          )}
+          <span className={cn("text-xs tabular-nums", charWarning)}>
+            {charCount}/{MAX_CHARS}
+          </span>
+        </div>
       </div>
+      {draftOpen && (
+        <ContentDraftsPanel
+          open
+          onClose={() => setDraftOpen(false)}
+          onRestore={handleRestore}
+          initialContent={draftInitialContent}
+        />
+      )}
     </div>
   );
 }
