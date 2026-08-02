@@ -114,6 +114,8 @@ const mockThread: ThreadDetail = {
   defaultSubthread: makeSub("s1", "主帖", 0),
   topicTags: [],
   _count: { members: 1, players: 1, posts: 0 },
+  isBookmarked: false,
+  bookmarkId: null,
 };
 
 function renderForm(thread: ThreadDetail = mockThread) {

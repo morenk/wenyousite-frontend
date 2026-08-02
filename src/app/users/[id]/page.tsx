@@ -10,6 +10,7 @@ import { UserProfileCard } from "@/components/user/user-profile-card";
 import { UserRecentReplies } from "@/components/user/user-recent-replies";
 import { UserCreatedThreads } from "@/components/user/user-created-threads";
 import { UserPlayedThreads } from "@/components/user/user-played-threads";
+import { UserBookmarksSection } from "@/components/user/user-bookmarks-section";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -104,6 +105,15 @@ export default function UserProfilePage() {
           </CardHeader>
           <CardContent>
             <UserCreatedThreads userId={userId} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">收藏</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <UserBookmarksSection userId={userId} />
           </CardContent>
         </Card>
 

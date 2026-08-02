@@ -96,6 +96,8 @@ const baseThread: ThreadDetail = {
   },
   topicTags: [{ tag: { id: "tag-1", name: "测试标签", color: null } }],
   _count: { members: 10, players: 3, posts: 5 },
+  isBookmarked: false,
+  bookmarkId: null,
 };
 
 describe("ThreadDetailHeader", () => {

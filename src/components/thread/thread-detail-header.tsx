@@ -18,6 +18,7 @@ import {
 } from "@/api/hooks/use-subscription-mutations";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { BookmarkButton } from "@/components/user/bookmark-button";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
 
 const categoryLabel: Record<string, string> = {
@@ -188,6 +189,12 @@ export function ThreadDetailHeader({
                 )}
                 {thread.likeCount > 0 ? thread.likeCount : "点赞"}
               </Button>
+
+              <BookmarkButton
+                threadId={thread.id}
+                isBookmarked={thread.isBookmarked}
+                bookmarkId={thread.bookmarkId}
+              />
 
               <Button
                 variant="ghost"

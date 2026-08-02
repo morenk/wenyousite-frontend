@@ -133,6 +133,8 @@ const mockThread: ThreadDetail = {
   },
   topicTags: [{ tag: { id: "tag-1", name: "保留", color: null } }],
   _count: { members: 1, players: 1, posts: 1 },
+  isBookmarked: false,
+  bookmarkId: null,
 };
 
 function renderForm() {
