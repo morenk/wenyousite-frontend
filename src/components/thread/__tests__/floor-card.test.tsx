@@ -103,6 +103,19 @@ describe("FloorCard", () => {
     renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
     expect(screen.getByText("测试用户")).toBeInTheDocument();
     expect(screen.getByText("#1")).toBeInTheDocument();
+    expect(screen.getByTestId("user-avatar-placeholder").textContent).toBe("测");
+  });
+
+  test("作者有头像时渲染缩略图", () => {
+    const withAvatar = {
+      ...baseFloor,
+      author: { id: "u1", username: "测试用户", avatar: "https://example.com/a.png" },
+    };
+    renderWithQC(<FloorCard floor={withAvatar} isEven={false} />);
+    expect(screen.getByRole("img")).toHaveAttribute(
+      "src",
+      "https://example.com/a_thumb.webp",
+    );
   });
 
   test("渲染 Markdown 加粗", () => {

@@ -16,6 +16,7 @@ import { MarkdownContent } from "@/components/thread/markdown-content";
 import { ReplyList } from "@/components/thread/reply-list";
 import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
 import { useThreadComposer } from "@/components/thread/thread-composer-context";
+import { UserAvatar } from "@/components/shared/user-avatar";
 import { Button } from "@/components/ui/button";
 import type { PostData } from "@/api/hooks/use-floors";
 
@@ -91,6 +92,12 @@ export function FloorCard({ floor, isEven, focused = false, focusedReply }: Floo
       {/* 楼层头部 */}
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
+          <UserAvatar
+            name={floor.author.username}
+            src={floor.author.avatar}
+            className="h-8 w-8"
+            textClassName="text-sm"
+          />
           <Link
             href={`/users/${floor.authorId}`}
             className="text-sm font-medium text-foreground hover:text-primary"
