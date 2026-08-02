@@ -19,6 +19,11 @@ describe("MarkdownContent", () => {
     expect(screen.getByText("正文内容")).toBeInTheDocument();
   });
 
+  test("空 URL 图片不渲染破图", () => {
+    render(<MarkdownContent content={"![1.00]()"} />);
+    expect(screen.queryByRole("img")).toBeNull();
+  });
+
   test("本站上传图渲染为中图并带尺寸约束与懒加载", () => {
     render(<MarkdownContent content={`![测试图](${UPLOADED_URL})`} />);
     const img = screen.getByRole("img", { name: "测试图" });

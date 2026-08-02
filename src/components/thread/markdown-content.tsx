@@ -30,6 +30,9 @@ function MarkdownImage({ src, alt }: ImageProps) {
 
   const displaySrc = failed ? originalUrl : mediumUrl;
 
+  // 空 URL 图片（历史脏数据如 ![1.00]()）直接不渲染，避免破图图标 + alt 泄漏
+  if (!originalUrl) return null;
+
   return (
     <>
       {/* eslint-disable-next-line @next/next/no-img-element -- COS 远程图 + onError 回退 + lightbox，用原生 img */}

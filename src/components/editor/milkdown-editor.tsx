@@ -2,11 +2,14 @@
 
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Milkdown, MilkdownProvider, useEditor, useInstance } from "@milkdown/react";
 import { Crepe, CrepeFeature } from "@milkdown/crepe";
+import { editorViewCtx } from "@milkdown/core";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { sanitizeEmptyImages } from "@/lib/markdown";
 
 const MAX_CHARS = 10000;
 
@@ -87,6 +90,21 @@ function EditorCore({
   const [charCount, setCharCount] = useState(defaultValue?.length ?? 0);
   const crepeRef = useRef<Crepe | null>(null);
 
+  /** 上传失败时统一弹 toast（Milkdown 内部会静默吞掉 onUpload 的 reject） */
+  const handleUpload = useCallback(
+    async (file: File) => {
+      try {
+        return await onUploadImage!(file);
+      } catch (error) {
+        toast.error(
+          (error as { message?: string })?.message || "上传失败，请稍后重试",
+        );
+        throw error;
+      }
+    },
+    [onUploadImage],
+  );
+
   useEditor(
     (root) => {
       const crepe = new Crepe({
@@ -115,6 +133,35 @@ function EditorCore({
               list.items = list.items.filter(
                 (item) => item.key !== "ordered-list" && item.key !== "task-list",
               );
+              // 图片按钮：直接弹出文件选择框，跳过「上传/粘贴链接」输入区（论坛不支持外链图片）
+              const insert = builder.getGroup("insert").group;
+              const imageItem = insert.items.find(
+                (item) => item.key === "image",
+              );
+              if (imageItem) {
+                imageItem.onRun = (ctx) => {
+                  const input = document.createElement("input");
+                  input.type = "file";
+                  input.accept = "image/*";
+                  input.onchange = () => {
+                    const file = input.files?.[0];
+                    if (!file) return;
+                    handleUpload(file)
+                      .then((url) => {
+                        const view = ctx.get(editorViewCtx);
+                        const nodeType = view.state.schema.nodes["image-block"];
+                        if (!nodeType) return;
+                        const node = nodeType.createAndFill({ src: url });
+                        if (!node) return;
+                        view.dispatch(
+                          view.state.tr.replaceSelectionWith(node),
+                        );
+                      })
+                      .catch(() => {});
+                  };
+                  input.click();
+                };
+              }
             },
           },
           [CrepeFeature.LinkTooltip]: {
@@ -127,7 +174,7 @@ function EditorCore({
             previewToggleText: (previewOnlyMode: boolean) =>
               previewOnlyMode ? "隐藏" : "编辑",
           },
-          ...(onUploadImage ? getImageBlockConfig(onUploadImage) : {}),
+          ...(onUploadImage ? getImageBlockConfig(handleUpload) : {}),
         },
       });
 
@@ -136,8 +183,10 @@ function EditorCore({
       crepe.on((listener) => {
         listener.markdownUpdated((_ctx, markdown, prevMarkdown) => {
           if (markdown !== prevMarkdown) {
-            setCharCount(markdown.length);
-            onChange?.(markdown);
+            // 移除空 URL 图片（空图片块序列化为 ![]()，发布后会显示破图）
+            const cleaned = sanitizeEmptyImages(markdown);
+            setCharCount(cleaned.length);
+            onChange?.(cleaned);
           }
         });
       });
