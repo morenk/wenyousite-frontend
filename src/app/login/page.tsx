@@ -1,4 +1,4 @@
-/** 登录页面：用户邮箱密码登录 */
+/** 登录页面：用户邮箱或用户名密码登录 */
 
 "use client";
 
@@ -48,7 +48,7 @@ export default function LoginPage() {
   const onSubmit = async (formData: LoginFormData) => {
     try {
       const result = await loginMutation.mutateAsync({
-        email: formData.email,
+        account: formData.account,
         password: formData.password,
       });
 
@@ -60,7 +60,7 @@ export default function LoginPage() {
     } catch (error: unknown) {
       const err = error as { code?: number; message?: string };
       if (err.code === 40100) {
-        toast.error("邮箱或密码错误");
+        toast.error("账号或密码错误");
       } else if (err.code === 42900) {
         toast.error("操作太频繁，请稍后再试");
       } else {
@@ -93,16 +93,16 @@ export default function LoginPage() {
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="email">邮箱</Label>
+                <Label htmlFor="account">邮箱或用户名</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="your@email.com"
-                  autoComplete="email"
-                  {...register("email")}
+                  id="account"
+                  type="text"
+                  placeholder="your@email.com 或用户名"
+                  autoComplete="username"
+                  {...register("account")}
                 />
-                {errors.email && (
-                  <p className="text-xs text-destructive">{errors.email.message}</p>
+                {errors.account && (
+                  <p className="text-xs text-destructive">{errors.account.message}</p>
                 )}
               </div>
 

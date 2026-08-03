@@ -15,23 +15,39 @@ import {
 describe("loginSchema", () => {
   test("合法邮箱密码通过", () => {
     const result = loginSchema.safeParse({
-      email: "test@example.com",
+      account: "test@example.com",
       password: "Test123456",
     });
     expect(result.success).toBe(true);
   });
 
-  test("邮箱为空", () => {
-    const result = loginSchema.safeParse({ email: "", password: "Test123456" });
+  test("合法用户名密码通过", () => {
+    const result = loginSchema.safeParse({
+      account: "zhangsan",
+      password: "Test123456",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  test("中文用户名密码通过", () => {
+    const result = loginSchema.safeParse({
+      account: "张三",
+      password: "Test123456",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  test("账号为空", () => {
+    const result = loginSchema.safeParse({ account: "", password: "Test123456" });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues[0].message).toMatch(/邮箱/);
+      expect(result.error.issues[0].message).toMatch(/邮箱或用户名/);
     }
   });
 
   test("邮箱格式错误", () => {
     const result = loginSchema.safeParse({
-      email: "not-email",
+      account: "test@@example.com",
       password: "Test123456",
     });
     expect(result.success).toBe(false);
@@ -40,9 +56,55 @@ describe("loginSchema", () => {
     }
   });
 
+  test("不含 @ 的非法账号按用户名校验", () => {
+    const result = loginSchema.safeParse({
+      account: "not-email",
+      password: "Test123456",
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0].message).toMatch(/用户名/);
+    }
+  });
+
+  test("用户名过短（1 位）不通过", () => {
+    const result = loginSchema.safeParse({
+      account: "A",
+      password: "Test123456",
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0].message).toMatch(/用户名/);
+    }
+  });
+
+  test("用户名过长（25 位）不通过", () => {
+    const result = loginSchema.safeParse({
+      account: "A".repeat(25),
+      password: "Test123456",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  test("用户名含特殊字符不通过", () => {
+    const result = loginSchema.safeParse({
+      account: "name@!",
+      password: "Test123456",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  test("用户名含下划线不通过（与后端注册规则一致）", () => {
+    const result = loginSchema.safeParse({
+      account: "foo_bar",
+      password: "Test123456",
+    });
+    expect(result.success).toBe(false);
+  });
+
   test("密码为空", () => {
     const result = loginSchema.safeParse({
-      email: "test@example.com",
+      account: "test@example.com",
       password: "",
     });
     expect(result.success).toBe(false);
@@ -53,7 +115,7 @@ describe("loginSchema", () => {
 
   test("密码不足 8 位", () => {
     const result = loginSchema.safeParse({
-      email: "test@example.com",
+      account: "test@example.com",
       password: "1234567",
     });
     expect(result.success).toBe(false);
@@ -64,7 +126,7 @@ describe("loginSchema", () => {
 
   test("密码刚好 8 位通过", () => {
     const result = loginSchema.safeParse({
-      email: "test@example.com",
+      account: "test@example.com",
       password: "12345678",
     });
     expect(result.success).toBe(true);

@@ -52,12 +52,12 @@ describe("useLogin", () => {
     const { result } = renderHook(() => useLogin(), { wrapper: Wrapper });
 
     const res = await result.current.mutateAsync({
-      email: "a@b.com",
+      account: "a@b.com",
       password: "secret",
     });
     expect(res.code).toBe(0);
     expect(mockPOST).toHaveBeenCalledWith("/api/v1/auth/login", {
-      body: { email: "a@b.com", password: "secret" },
+      body: { account: "a@b.com", password: "secret" },
     });
     await waitFor(() =>
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["notifications"] }),

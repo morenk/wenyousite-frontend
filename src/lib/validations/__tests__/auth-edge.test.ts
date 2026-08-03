@@ -13,7 +13,7 @@ import {
 describe("loginSchema 边界", () => {
   test("邮箱含空格 trim 后仍为非法", () => {
     const result = loginSchema.safeParse({
-      email: " not@email.com ",
+      account: " not@email.com ",
       password: "Test123456",
     });
     expect(result.success).toBe(false);
@@ -21,7 +21,7 @@ describe("loginSchema 边界", () => {
 
   test("密码长度为 100", () => {
     const result = loginSchema.safeParse({
-      email: "a@b.com",
+      account: "a@b.com",
       password: "A".repeat(100),
     });
     expect(result.success).toBe(true);
@@ -29,7 +29,7 @@ describe("loginSchema 边界", () => {
 
   test("邮箱含中文", () => {
     const result = loginSchema.safeParse({
-      email: "测试@example.com",
+      account: "测试@example.com",
       password: "Test123456",
     });
     expect(result.success).toBe(false);
@@ -37,7 +37,7 @@ describe("loginSchema 边界", () => {
 
   test("邮箱缺少 @", () => {
     const result = loginSchema.safeParse({
-      email: "testexample.com",
+      account: "testexample.com",
       password: "Test123456",
     });
     expect(result.success).toBe(false);
@@ -46,6 +46,46 @@ describe("loginSchema 边界", () => {
   test("两端都是 undefined", () => {
     const result = loginSchema.safeParse({});
     expect(result.success).toBe(false);
+  });
+
+  test("用户名含非字母数字中文字符不通过", () => {
+    const result = loginSchema.safeParse({
+      account: "张三😀",
+      password: "Test123456",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  test("用户名含前导/尾随空格不通过", () => {
+    const result = loginSchema.safeParse({
+      account: " zhangsan ",
+      password: "Test123456",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  test("24 位用户名恰好通过", () => {
+    const result = loginSchema.safeParse({
+      account: "A".repeat(24),
+      password: "Test123456",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  test("2 位用户名恰好通过", () => {
+    const result = loginSchema.safeParse({
+      account: "张三",
+      password: "Test123456",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  test("含下划线的类邮箱输入仍走邮箱校验", () => {
+    const result = loginSchema.safeParse({
+      account: "a_b@example.com",
+      password: "Test123456",
+    });
+    expect(result.success).toBe(true);
   });
 });
 
@@ -68,13 +108,13 @@ describe("registerStep2Schema 边界", () => {
     expect(result.success).toBe(true);
   });
 
-  test("用户名含下划线通过", () => {
+  test("用户名含下划线不通过（与后端注册规则一致）", () => {
     const result = registerStep2Schema.safeParse({
       code: "123456",
       username: "test_user",
       password: "Abcd1234",
     });
-    expect(result.success).toBe(true);
+    expect(result.success).toBe(false);
   });
 
   test("密码 7 位含字母数字", () => {

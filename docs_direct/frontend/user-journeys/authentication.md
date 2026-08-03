@@ -125,7 +125,7 @@ Content-Type: application/json
 X-Client-Platform: web
 
 {
-  "email": "user@example.com",
+  "account": "user@example.com 或 zhangsan",
   "password": "SecurePass123!"
 }
 ```
@@ -133,7 +133,7 @@ X-Client-Platform: web
 **响应**：与注册第二步相同，返回双 Token + 用户信息。
 
 **错误处理**：
-- 邮箱或密码错误：返回 401。
+- 账号或密码错误：返回 401。
 - 连续 5 次失败：账号锁定 15 分钟。
 
 ---
@@ -402,7 +402,7 @@ await FlutterSecureStorage().write(key: 'accessToken', value: token);
 | 验证码过期 | 40001 | 提示"验证码已过期，请重新获取" |
 | 用户名被占用 | 40900 | 提示"用户名已被占用" |
 | 邮箱已注册 | 40900 | 跳转登录页或提示"该邮箱已注册" |
-| 登录失败 | 40100 | 提示"邮箱或密码错误"，记录失败次数 |
+| 登录失败 | 40100 | 提示"账号或密码错误"，记录失败次数 |
 | 账号锁定 | 40100 | 提示"失败次数过多，请 15 分钟后重试" |
 | 令牌失效 | 40100 | 清除 token，跳转登录 |
 

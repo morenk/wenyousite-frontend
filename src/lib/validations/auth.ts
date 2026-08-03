@@ -9,11 +9,26 @@ export const emailSchema = z.object({
     .email({ message: "邮箱格式不正确" }),
 });
 
+/** 用户名规则：字母、数字、中文，2-24 位（与后端注册 DTO 一致） */
+const usernamePattern = /^[a-zA-Z0-9\u4e00-\u9fff]{2,24}$/;
+
 export const loginSchema = z.object({
-  email: z
+  account: z
     .string()
-    .min(1, { message: "请输入邮箱" })
-    .email({ message: "邮箱格式不正确" }),
+    .min(1, { message: "请输入邮箱或用户名" })
+    .superRefine((val, ctx) => {
+      // 含 @ 按邮箱校验，否则按用户名校验（与后端登录查询规则一致）
+      if (val.includes("@")) {
+        if (!z.string().email().safeParse(val).success) {
+          ctx.addIssue({ code: "custom", message: "邮箱格式不正确" });
+        }
+      } else if (!usernamePattern.test(val)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "用户名只允许 2-24 位字母、数字、中文",
+        });
+      }
+    }),
   password: z
     .string()
     .min(1, { message: "请输入密码" })
@@ -30,7 +45,7 @@ export const registerStep2Schema = z.object({
     .string()
     .min(2, { message: "用户名至少 2 位" })
     .max(24, { message: "用户名最多 24 位" })
-    .regex(/^[\w\u4e00-\u9fff]+$/, {
+    .regex(/^[a-zA-Z0-9\u4e00-\u9fff]+$/, {
       message: "用户名只允许字母、数字、中文",
     }),
   password: z

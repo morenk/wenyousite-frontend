@@ -23,7 +23,7 @@
 
 | 路由 | 页面说明 | 权限 |
 |------|----------|------|
-| `/login` | 登录表单（邮箱 + 密码） | 公开，已登录自动跳转 `/` |
+| `/login` | 登录表单（邮箱或用户名 + 密码） | 公开，已登录自动跳转 `/` |
 | `/register` | 注册两步：发验证码 → 填信息 | 公开，已登录自动跳转 `/` |
 | `/forgot-password` | 输入邮箱，请求重置邮件 | 公开，已登录自动跳转 `/` |
 | `/reset-password` | 输入验证码 + 新密码，完成重置 | 公开（通过链接/手动进入） |
@@ -82,10 +82,25 @@
 
 ```ts
 const loginSchema = z.object({
-  email: z.string().min(1, "请输入邮箱").email("邮箱格式不正确"),
+  account: z
+    .string()
+    .min(1, "请输入邮箱或用户名")
+    .superRefine((val, ctx) => {
+      // 含 @ 按邮箱校验，否则按用户名校验
+      if (val.includes("@")) {
+        if (!z.string().email().safeParse(val).success) {
+          ctx.addIssue({ code: "custom", message: "邮箱格式不正确" });
+        }
+      } else if (!/^[a-zA-Z0-9\u4e00-\u9fff]{2,24}$/.test(val)) {
+        ctx.addIssue({ code: "custom", message: "用户名只允许 2-24 位字母、数字、中文" });
+      }
+    }),
   password: z.string().min(1, "请输入密码").min(8, "密码至少 8 位"),
 });
 ```
+
+- `account` 为单一输入框，自动识别邮箱（含 `@`）或用户名
+- 用户名规则与注册保持一致：2-24 位字母、数字、中文；登录时用户名**大小写敏感精确匹配**（后端与注册唯一约束一致）
 
 ### 注册第一步（邮箱）
 
@@ -147,7 +162,7 @@ const verifyEmailSchema = z.object({
 
 | 错误码 | 场景 | UI 行为 |
 |--------|------|---------|
-| 40100 | 邮箱或密码错误 / 未登录 | toast "邮箱或密码错误" |
+| 40100 | 账号或密码错误 / 未登录 | toast "账号或密码错误" |
 | 40001 | 验证码错误 / 过期 / 业务校验 | toast 后端 message |
 | 40300 | 邮箱未验证 | toast "请先验证邮箱" |
 | 40900 | 用户名被占用 / 邮箱已注册 | toast "用户名已被占用" / "该邮箱已注册" |
@@ -177,7 +192,7 @@ if (error) {
 
 ### 登录
 ```
-进入 /login → 输入邮箱密码 → 提交 → 成功: 存 token / 跳首页 失败: toast
+进入 /login → 输入邮箱或用户名 + 密码 → 提交 → 成功: 存 token / 跳首页 失败: toast
 ```
 
 ### 注册

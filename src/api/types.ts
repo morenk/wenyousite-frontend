@@ -64,7 +64,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 邮箱 + 密码登录。5 次失败锁定 15 分钟 */
+        /** 邮箱或用户名 + 密码登录。5 次失败锁定 15 分钟 */
         post: operations["AuthController_login"];
         delete?: never;
         options?: never;
@@ -1422,10 +1422,10 @@ export interface components {
         };
         LoginDto: {
             /**
-             * @description 注册邮箱
-             * @example user@example.com
+             * @description 登录账号：邮箱或用户名
+             * @example user@example.com 或 zhangsan
              */
-            email: string;
+            account: string;
             /**
              * @description 登录密码
              * @example SecurePass123!
@@ -2092,7 +2092,7 @@ export interface operations {
                     "application/json": components["schemas"]["AuthResponseDto"];
                 };
             };
-            /** @description 邮箱或密码错误 或 账号被锁定 */
+            /** @description 账号或密码错误 或 账号被锁定 */
             401: {
                 headers: {
                     [name: string]: unknown;

@@ -25,7 +25,7 @@
 |--------|------|-------|------|------|
 | POST | `/auth/register/request-code` | Public | 1/min | 注册第一步：请求邮箱验证码 |
 | POST | `/auth/register/verify-and-complete` | Public | 全局 (20/min) | 注册第二步：验证码 + 用户名密码一步完成注册 |
-| POST | `/auth/login` | Public | 全局 (20/min) | 邮箱 + 密码登录，返回双 Token + 用户信息 |
+| POST | `/auth/login` | Public | 全局 (20/min) | 邮箱或用户名 + 密码登录，返回双 Token + 用户信息 |
 | POST | `/auth/refresh` | Public | 全局 (20/min) | 使用 refreshToken 轮转刷新双 Token（含盗用检测） |
 | POST | `/auth/verify-email` | Public | 5/min | 使用 6 位验证码验证邮箱 |
 | POST | `/auth/resend-verification` | Public | 1/min | 重发验证邮件 |
