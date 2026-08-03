@@ -1,8 +1,9 @@
-/** 我的资料编辑表单：Bio/隐私开关（用户名单独由 UsernameEdit 修改） */
+/** 我的资料编辑表单：账户信息/头像/Bio/隐私开关（用户名单独由 UsernameEdit 修改） */
 
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -15,9 +16,15 @@ import { profileSchema, type ProfileFormData } from "@/lib/validations/profile";
 import { UsernameEdit } from "@/components/user/username-edit";
 import { AvatarUploader } from "@/components/user/avatar-uploader";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+/** 邮箱脱敏：保留首字符与域名，如 a***@example.com */
+function maskEmail(email: string): string {
+  const [local, domain] = email.split("@");
+  if (!local || !domain) return email;
+  return `${local.charAt(0)}***@${domain}`;
+}
 
 export function ProfileEditForm() {
   const router = useRouter();
@@ -28,6 +35,7 @@ export function ProfileEditForm() {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -38,6 +46,8 @@ export function ProfileEditForm() {
       showBookmarks: true,
     },
   });
+
+  const bioLength = (watch("bio") ?? "").length;
 
   useEffect(() => {
     if (me) {
@@ -100,14 +110,55 @@ export function ProfileEditForm() {
           <CardContent className="space-y-4 pt-6">
             {me && <AvatarUploader username={me.username} avatar={me.avatar} />}
             <div className="space-y-1.5">
-              <Label htmlFor="bio">个人简介</Label>
-              <Input
+              <div className="flex items-center justify-between">
+                <Label htmlFor="bio">个人简介</Label>
+                <span className="text-xs text-muted-foreground tabular-nums">
+                  {bioLength}/255
+                </span>
+              </div>
+              <textarea
                 id="bio"
                 placeholder="介绍一下自己（可选）"
+                rows={3}
+                maxLength={255}
+                className="w-full min-w-0 resize-y rounded-lg border border-input bg-transparent px-2.5 py-2 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive dark:bg-input/30 md:text-sm"
                 {...register("bio")}
               />
               {errors.bio && (
                 <p className="text-xs text-destructive">{errors.bio.message}</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>账户</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 pt-6">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-foreground">邮箱</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {me ? maskEmail(me.email) : ""}
+                </p>
+              </div>
+              {me?.emailVerified ? (
+                <span className="shrink-0 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                  已认证
+                </span>
+              ) : (
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                    未认证
+                  </span>
+                  <Link
+                    href="/verify-email"
+                    className="text-xs font-medium text-primary hover:underline"
+                  >
+                    去验证
+                  </Link>
+                </div>
               )}
             </div>
           </CardContent>
