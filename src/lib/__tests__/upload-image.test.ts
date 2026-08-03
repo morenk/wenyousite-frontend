@@ -1,7 +1,18 @@
 /** uploadImage 工具函数测试 */
 
-import { describe, test, expect } from "vitest";
-import { validateImageFile, validateAvatarFile, getImageUrlBySize } from "@/lib/upload-image";
+import { describe, test, expect, vi, afterEach } from "vitest";
+
+vi.mock("@/api/client", () => ({
+  apiClient: { POST: vi.fn(), GET: vi.fn() },
+}));
+
+import { apiClient } from "@/api/client";
+import {
+  uploadImageFile,
+  validateImageFile,
+  validateAvatarFile,
+  getImageUrlBySize,
+} from "@/lib/upload-image";
 
 describe("validateImageFile", () => {
   test("合法 jpeg 文件通过", () => {
@@ -116,5 +127,82 @@ describe("getImageUrlBySize", () => {
     expect(getImageUrlBySize(url, "thumb")).toBe(
       "https://cdn.example.com/a/b/c/photo_thumb.webp",
     );
+  });
+});
+
+describe("uploadImageFile", () => {
+  const file = new File(["dummy"], "photo.jpg", { type: "image/jpeg" });
+
+  afterEach(() => {
+    vi.mocked(apiClient.POST).mockReset();
+    vi.mocked(apiClient.GET).mockReset();
+    vi.unstubAllGlobals();
+  });
+
+  test("upload-url 配额超限（code=42900）时抛出友好提示", async () => {
+    vi.mocked(apiClient.POST).mockResolvedValueOnce({
+      data: undefined,
+      error: { code: 42900, message: "图片上传频率超限，请稍后再试", data: null },
+    });
+
+    await expect(uploadImageFile(file)).rejects.toThrow("上传图片太频繁，请稍后再试");
+  });
+
+  test("upload-url 其他业务错误透传后端 message", async () => {
+    vi.mocked(apiClient.POST).mockResolvedValueOnce({
+      data: undefined,
+      error: { code: 40000, message: "文件类型不支持或超过大小限制", data: null },
+    });
+
+    await expect(uploadImageFile(file)).rejects.toThrow("文件类型不支持或超过大小限制");
+  });
+
+  test("完整上传流程返回公开 URL", async () => {
+    const uploadUrl = "https://s3.example.com/upload";
+    const publicUrl = "https://cdn.example.com/uploads/2026/08/03/u/a.png";
+
+    vi.mocked(apiClient.POST)
+      .mockResolvedValueOnce({
+        data: {
+          code: 0,
+          message: "ok",
+          data: {
+            uploadUrl,
+            mediaId: "media-1",
+            objectKey: "uploads/2026/08/03/u/a.png",
+            publicUrl,
+          },
+        },
+        error: undefined,
+      })
+      .mockResolvedValueOnce({
+        data: {
+          code: 0,
+          message: "ok",
+          data: {
+            id: "media-1",
+            status: "PROCESSING",
+            url: publicUrl,
+          },
+        },
+        error: undefined,
+      });
+
+    vi.mocked(apiClient.GET).mockResolvedValueOnce({
+      data: {
+        code: 0,
+        message: "ok",
+        data: { id: "media-1", status: "COMPLETED", url: publicUrl },
+      },
+      error: undefined,
+    } as never);
+
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true }));
+
+    await expect(uploadImageFile(file)).resolves.toEqual({
+      url: publicUrl,
+      mediaId: "media-1",
+    });
+    expect(global.fetch).toHaveBeenCalledWith(uploadUrl, expect.anything());
   });
 });

@@ -19,9 +19,22 @@ interface UploadUrlResponse {
   data: {
     uploadUrl: string;
     mediaId: string;
+    objectKey: string;
     publicUrl: string;
   };
 }
+
+/** 统一错误响应体（后端 AllExceptionsFilter）：code 为业务错误码，42900=限流 */
+interface ApiErrorBody {
+  code?: number;
+  message?: string;
+}
+
+/** 每用户小时上传配额超限（后端 media 配额，code=42900） */
+const UPLOAD_RATE_LIMIT_CODE = 42900;
+
+/** 配额超限时抛出的友好提示 */
+const RATE_LIMIT_MESSAGE = "上传图片太频繁，请稍后再试";
 
 interface MediaStatusResponse {
   code: number;
@@ -76,7 +89,13 @@ export async function uploadImageFile(file: File): Promise<UploadedImage> {
       },
     },
   );
-  if (urlError) throw urlError;
+  if (urlError) {
+    const err = urlError as ApiErrorBody;
+    if (err.code === UPLOAD_RATE_LIMIT_CODE) {
+      throw new Error(RATE_LIMIT_MESSAGE);
+    }
+    throw new Error(err.message || "获取上传地址失败");
+  }
 
   const urlRes = urlData as unknown as UploadUrlResponse;
   if (urlRes.code !== 0) {
