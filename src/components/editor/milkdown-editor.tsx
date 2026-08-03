@@ -23,10 +23,9 @@ const TOOLBAR_TOOLTIPS: Record<number, string> = {
   2: "无序列表",
   3: "链接",
   4: "图片",
-  5: "代码块",
-  6: "引用",
-  7: "分隔线",
-  8: "正文草稿",
+  5: "引用",
+  6: "分隔线",
+  7: "正文草稿",
 };
 
 const DRAFT_ICON = `
@@ -137,6 +136,7 @@ function EditorHost({
           [CrepeFeature.Latex]: false,
           [CrepeFeature.AI]: false,
           [CrepeFeature.BlockEdit]: false,
+          [CrepeFeature.CodeMirror]: false,
           [CrepeFeature.TopBar]: true,
         },
         featureConfigs: {
@@ -155,6 +155,10 @@ function EditorHost({
               list.items = list.items.filter(
                 (item) => item.key !== "ordered-list" && item.key !== "task-list",
               );
+              // 移除代码块：block 组仅含 code-block，整组删除避免残留分隔线
+              const groups = builder.build();
+              const blockIdx = groups.findIndex((g) => g.key === "block");
+              if (blockIdx !== -1) groups.splice(blockIdx, 1);
               // 图片按钮：直接弹出文件选择框，跳过「上传/粘贴链接」输入区（论坛不支持外链图片）
               const insert = builder.getGroup("insert").group;
               const imageItem = insert.items.find(
@@ -195,13 +199,6 @@ function EditorHost({
           },
           [CrepeFeature.LinkTooltip]: {
             inputPlaceholder: "粘贴链接…",
-          },
-          [CrepeFeature.CodeMirror]: {
-            searchPlaceholder: "搜索语言",
-            copyText: "复制",
-            noResultText: "无结果",
-            previewToggleText: (previewOnlyMode: boolean) =>
-              previewOnlyMode ? "隐藏" : "编辑",
           },
           ...(onUploadImage ? getImageBlockConfig(handleUpload) : {}),
         },
