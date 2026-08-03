@@ -8,7 +8,7 @@
 - 详情页收藏/取消收藏按钮（仅登录）
 - `/bookmarks` 我的收藏管理页（列表 + 取消收藏，cursor 分页）
 - 用户资料页「收藏」区块（read-only，尊重 showBookmarks：未公开显示占位）
-- 导航栏「收藏」入口（仅登录）
+- 收藏入口保留在主题帖详情页与个人资料相关区域，不在全局导航栏展示
 
 **后续迭代：** 收藏分组、搜索收藏、下拉刷新。
 
@@ -126,7 +126,7 @@
 
 - [x] 详情页收藏/取消收藏按钮（登录显示，状态即时更新）
 - [x] `/bookmarks` 我的收藏列表 + 取消收藏 + cursor 分页
-- [x] 导航栏「收藏」入口（登录）
+- [x] 全局导航栏不展示收藏入口，避免占用顶栏操作位
 - [x] 用户资料页「收藏」区块（read-only），未公开显示占位
 - [x] 私密帖收藏权限由后端保证
 - [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` 通过
@@ -136,6 +136,6 @@
 - [x] 后端：findById 附加 isBookmarked/bookmarkId + findAll 附带 bookmarkId + 测试
 - [x] 前端 hooks：useBookmarks / useUserBookmarks / useBookmarkActions + 测试
 - [x] 前端组件：BookmarkButton / BookmarkThreadCard / BookmarkList / UserBookmarksSection + 测试
-- [x] 页面：/bookmarks + nav 收藏入口 + 资料页收藏区块
+- [x] 页面：/bookmarks + 详情页收藏按钮 + 资料页收藏区块
 - [x] 快照 + 文档 + Roadmap
 - [ ] 质量检查 + 部署 + 提交推送

@@ -47,12 +47,6 @@ export function NavBar() {
           {user ? (
             <>
               <Link
-                href="/bookmarks"
-                className="text-sm text-muted-foreground hover:text-foreground"
-              >
-                收藏
-              </Link>
-              <Link
                 href="/notifications"
                 className="relative text-sm text-muted-foreground hover:text-foreground"
               >
