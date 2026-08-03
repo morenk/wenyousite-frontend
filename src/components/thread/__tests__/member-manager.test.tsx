@@ -20,12 +20,8 @@ vi.mock("@/api/hooks/use-members", () => ({
 }));
 
 const mockUpdateMutate = vi.fn().mockResolvedValue({});
-const mockRemoveMutate = vi.fn().mockResolvedValue({});
 vi.mock("@/api/hooks/use-update-member", () => ({
   useUpdateMember: () => ({ mutateAsync: mockUpdateMutate, isPending: false }),
-}));
-vi.mock("@/api/hooks/use-remove-member", () => ({
-  useRemoveMember: () => ({ mutateAsync: mockRemoveMutate, isPending: false }),
 }));
 
 vi.mock("@tanstack/react-query", async () => {
@@ -113,7 +109,7 @@ describe("MemberManager", () => {
       { wrapper: createWrapper() },
     );
 
-    await user.click(screen.getByRole("button", { name: "协作者" }));
+    await user.click(screen.getByRole("button", { name: "授予协作者" }));
 
     expect(mockUpdateMutate).toHaveBeenCalledWith({
       threadId: "t1",
@@ -121,6 +117,16 @@ describe("MemberManager", () => {
       role: "COLLABORATOR",
     });
     expect(toast.success).toHaveBeenCalledWith("已升级为协作者");
+  });
+
+  test("不显示移除参与人操作", () => {
+    render(
+      <MemberManager threadId="t1" isOwner={true} onRefetch={vi.fn()} />,
+      { wrapper: createWrapper() },
+    );
+
+    expect(screen.queryByTitle("移除参与人")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "移除参与人" })).not.toBeInTheDocument();
   });
 
   test("非帖主不显示管理按钮", () => {

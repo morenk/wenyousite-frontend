@@ -46,8 +46,7 @@
 | POST | `/threads/:id/like` | Auth | 点赞主题帖（幂等） |
 | DELETE | `/threads/:id/like` | Auth | 取消点赞 |
 | GET | `/threads/:threadId/members` | Public | 参与人列表（管理面板成员 tab） |
-| PATCH | `/threads/:threadId/members/:userId` | Auth | 改参与人角色/玩家标记（仅 OWNER/COLLABORATOR） |
-| DELETE | `/threads/:threadId/members/:userId` | Auth | 移除参与人/收回玩家标记 |
+| PATCH | `/threads/:threadId/members/:userId` | Auth | 授予/移除协作者身份，授予/收回玩家标记 |
 | GET | `/subscriptions` | Auth | 我的订阅列表 |
 | POST | `/subscriptions` | Auth | 创建订阅（THREAD/USER） |
 | DELETE | `/subscriptions/:id` | Auth | 取消订阅 |
@@ -55,6 +54,8 @@
 | GET | `/reading-progress/new-replies` | Auth | 子贴新增回复数 |
 
 > **「参与」语义**：用户**无需手动加入**，在帖子内回复后由后端自动写入参与人记录（玩家候选池），对用户无感。前端不再提供加入/退出按钮。元数据显示的 `_count.players` 为被楼主授予玩家身份（`playerMarked=true`）的人数。
+
+> **候选池管理**：参与人记录只表示用户曾回复过主题帖，用于楼主选定玩家；管理操作不会删除参与人记录，仅通过角色字段管理协作者身份、通过 `playerMarked` 管理玩家标记。
 
 > **ID 校验说明**：后端所有 ID 为 Prisma `cuid()` 生成的 CUID（非 UUID），DTO 校验统一使用 `@IsCuid`（替代 `@IsUUID`，后者会因 CUID 不含连字符而拒绝请求）。
 
@@ -238,7 +239,7 @@
 | ReplyDiscussion | `src/components/thread/reply-discussion.tsx` | 独立楼中楼阅读主体：原楼层作为讨论正文、导航回原楼层、回复列表与底部回复输入框 |
 | ReplyForm | `src/components/thread/reply-form.tsx` | 楼中楼底部回复入口：登录用户按需打开统一编辑器，未登录显示登录提示 |
 | ReplyList | `src/components/thread/reply-list.tsx` | 楼中楼连续楼层列表（无限加载；作者本人可编辑/删除；每条回复可对用户回复，显示「回复 @xxx」上下文） |
-| MemberManager | `src/components/thread/member-manager.tsx` | 成员管理：授予/收回玩家、升级/降级协作者、移除参与人 |
+| MemberManager | `src/components/thread/member-manager.tsx` | 成员候选池管理：授予/收回玩家、授予/移除协作者身份 |
 | ManagementPanel | `src/components/thread/management-panel.tsx` | 帖主管理面板：左子贴目录树 + 右单例编辑器 |
 | SubthreadTree | `src/components/thread/subthread-tree.tsx` | 管理面板左栏子贴目录树（@dnd-kit 拖拽排序） |
 | SubthreadForm | `src/components/forms/subthread-form.tsx` | 子贴创建/编辑弹窗（title + postingPolicy + Zod 校验） |
@@ -256,7 +257,6 @@
 | useReplies | `src/api/hooks/use-replies.ts` | 楼中楼回复列表（cursor 分页） |
 | useMembers | `src/api/hooks/use-members.ts` | 参与人列表 |
 | useUpdateMember | `src/api/hooks/use-update-member.ts` | 改参与人角色/玩家标记 |
-| useRemoveMember | `src/api/hooks/use-remove-member.ts` | 移除参与人 |
 | useSubscriptions | `src/api/hooks/use-subscriptions.ts` | 我的订阅列表 |
 
 > 楼层卡片会直接展示 API 返回的前 5 条楼中楼回复；这些回复正文合计超过 500 个字符时，内联区域截断并使用渐变遮罩，点击「展开回复」进入独立楼中楼页面。超过 5 条时仍只展示前 5 条，并通过回复数链接查看完整串。

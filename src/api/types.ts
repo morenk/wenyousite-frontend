@@ -791,8 +791,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** 取消参与人资格 / 收回玩家标记（仅 OWNER/COLLABORATOR） */
-        delete: operations["ThreadMembersController_removeMember"];
+        delete?: never;
         options?: never;
         head?: never;
         /** 修改参与人角色或玩家标记（仅 OWNER/COLLABORATOR） */
@@ -3688,26 +3687,6 @@ export interface operations {
         requestBody?: never;
         responses: {
             201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    ThreadMembersController_removeMember: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                threadId: string;
-                userId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
                 headers: {
                     [name: string]: unknown;
                 };
