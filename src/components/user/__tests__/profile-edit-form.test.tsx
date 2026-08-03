@@ -1,16 +1,12 @@
-/** ProfileEditForm 组件测试：账户信息（脱敏邮箱/验证状态）、Bio textarea、隐私开关 */
+/** ProfileEditForm 组件测试：账户信息（脱敏邮箱/验证状态）、Bio textarea、隐私开关、账号安全入口 */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, cleanup } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
 const { mockMe } = vi.hoisted(() => ({
   mockMe: vi.fn(),
-}));
-
-const { mockChangePassword } = vi.hoisted(() => ({
-  mockChangePassword: { mutateAsync: vi.fn() },
 }));
 
 vi.mock("@/api/hooks/use-me", () => ({
@@ -21,30 +17,12 @@ vi.mock("@/api/hooks/use-update-profile", () => ({
   useUpdateProfile: () => ({ isPending: false, mutateAsync: vi.fn() }),
 }));
 
-vi.mock("@/api/hooks/use-auth-actions", () => ({
-  useChangePassword: () => mockChangePassword,
-  useChangeEmailRequest: () => mockChangeEmailRequest,
-  useChangeEmailVerify: () => mockChangeEmailVerify,
-}));
-
-const { mockChangeEmailRequest } = vi.hoisted(() => ({
-  mockChangeEmailRequest: { mutateAsync: vi.fn() },
-}));
-
-const { mockChangeEmailVerify } = vi.hoisted(() => ({
-  mockChangeEmailVerify: { mutateAsync: vi.fn() },
-}));
-
-const { mockLogout } = vi.hoisted(() => ({ mockLogout: vi.fn() }));
-
 vi.mock("@/lib/auth", () => ({
-  useAuth: () => ({ user: { id: "u1" }, isInitialized: true, logout: mockLogout }),
+  useAuth: () => ({ user: { id: "u1" }, isInitialized: true }),
 }));
-
-const { mockReplace } = vi.hoisted(() => ({ mockReplace: vi.fn() }));
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ replace: mockReplace, push: vi.fn(), refresh: vi.fn() }),
+  useRouter: () => ({ replace: vi.fn(), push: vi.fn(), refresh: vi.fn() }),
 }));
 
 vi.mock("next/link", () => ({
@@ -65,7 +43,6 @@ vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
-import { toast } from "sonner";
 import { ProfileEditForm } from "@/components/user/profile-edit-form";
 
 const baseMe = {
@@ -97,9 +74,6 @@ function createWrapper() {
 beforeEach(() => {
   vi.clearAllMocks();
   mockMe.mockReturnValue({ data: baseMe, isLoading: false, error: null });
-  mockChangePassword.mutateAsync.mockResolvedValue(undefined);
-  mockChangeEmailRequest.mutateAsync.mockResolvedValue({ message: "验证码已发送，请查收新邮箱" });
-  mockChangeEmailVerify.mutateAsync.mockResolvedValue({ message: "邮箱已成功更换" });
 });
 
 afterEach(() => cleanup());
@@ -146,59 +120,15 @@ describe("ProfileEditForm", () => {
     expect(screen.getByText("公开收藏")).toBeInTheDocument();
   });
 
-  test("修改密码成功后登出并跳转登录页", async () => {
+  test("账号安全区提供修改密码与更换邮箱入口链接", () => {
     render(<ProfileEditForm />, { wrapper: createWrapper() });
-    fireEvent.change(document.getElementById("old-password")!, { target: { value: "OldPass123" } });
-    fireEvent.change(document.getElementById("new-password")!, { target: { value: "NewPass456" } });
-    fireEvent.change(document.getElementById("confirm-password")!, { target: { value: "NewPass456" } });
-    fireEvent.click(screen.getByRole("button", { name: "修改密码" }));
-
-    await waitFor(() => {
-      expect(mockChangePassword.mutateAsync).toHaveBeenCalledWith({
-        oldPassword: "OldPass123",
-        newPassword: "NewPass456",
-      });
-    });
-    expect(mockLogout).toHaveBeenCalled();
-    expect(mockReplace).toHaveBeenCalledWith("/login");
-  });
-
-  test("两次新密码不一致时不提交", async () => {
-    render(<ProfileEditForm />, { wrapper: createWrapper() });
-    fireEvent.change(document.getElementById("old-password")!, { target: { value: "OldPass123" } });
-    fireEvent.change(document.getElementById("new-password")!, { target: { value: "NewPass456" } });
-    fireEvent.change(document.getElementById("confirm-password")!, { target: { value: "Wrong456" } });
-    fireEvent.click(screen.getByRole("button", { name: "修改密码" }));
-
-    await waitFor(() => {
-      expect(screen.getByText("两次输入的新密码不一致")).toBeInTheDocument();
-    });
-    expect(mockChangePassword.mutateAsync).not.toHaveBeenCalled();
-  });
-
-  test("发送换邮箱验证码后确认更换成功", async () => {
-    render(<ProfileEditForm />, { wrapper: createWrapper() });
-    fireEvent.change(document.getElementById("new-email")!, { target: { value: "new@example.com" } });
-    fireEvent.click(screen.getByRole("button", { name: "发送验证码" }));
-
-    await waitFor(() => {
-      expect(mockChangeEmailRequest.mutateAsync).toHaveBeenCalledWith("new@example.com");
-    });
-
-    fireEvent.change(document.getElementById("email-code")!, { target: { value: "123456" } });
-    fireEvent.click(screen.getByRole("button", { name: "确认更换" }));
-
-    await waitFor(() => {
-      expect(mockChangeEmailVerify.mutateAsync).toHaveBeenCalledWith({
-        newEmail: "new@example.com",
-        code: "123456",
-      });
-    });
-    expect(toast.success).toHaveBeenCalledWith("邮箱已更换");
-  });
-
-  test("换邮箱验证码未发送时确认按钮禁用", () => {
-    render(<ProfileEditForm />, { wrapper: createWrapper() });
-    expect(screen.getByRole("button", { name: "确认更换" })).toBeDisabled();
+    expect(screen.getByRole("link", { name: /修改密码/ })).toHaveAttribute(
+      "href",
+      "/me/password",
+    );
+    expect(screen.getByRole("link", { name: /更换邮箱/ })).toHaveAttribute(
+      "href",
+      "/me/email",
+    );
   });
 });

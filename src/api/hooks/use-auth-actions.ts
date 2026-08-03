@@ -80,13 +80,18 @@ export function useChangePassword() {
   });
 }
 
-/** 更换邮箱第一步：向新邮箱发送验证码 */
+interface ChangeEmailRequest {
+  newEmail: string;
+  oldPassword: string;
+}
+
+/** 更换邮箱第一步：校验当前密码后向新邮箱发送验证码 */
 export function useChangeEmailRequest() {
   return useMutation({
-    mutationFn: async (newEmail: string) => {
+    mutationFn: async (req: ChangeEmailRequest) => {
       const { data, error } = await apiClient.POST(
         "/api/v1/auth/change-email/request-code",
-        { body: { newEmail } },
+        { body: req },
       );
       if (error) throw error;
       return data;

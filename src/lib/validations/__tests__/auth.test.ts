@@ -277,19 +277,24 @@ describe("changePasswordSchema", () => {
 });
 
 describe("changeEmailSchema", () => {
+  const valid = { oldPassword: "CurrentPass123", newEmail: "new@example.com", code: "123456" };
+
   test("合法输入通过", () => {
-    expect(
-      changeEmailSchema.safeParse({ newEmail: "new@example.com", code: "123456" }).success,
-    ).toBe(true);
+    expect(changeEmailSchema.safeParse(valid).success).toBe(true);
+  });
+
+  test("当前密码为空", () => {
+    const result = changeEmailSchema.safeParse({ ...valid, oldPassword: "" });
+    expect(result.success).toBe(false);
   });
 
   test("邮箱格式错误", () => {
-    const result = changeEmailSchema.safeParse({ newEmail: "bad", code: "123456" });
+    const result = changeEmailSchema.safeParse({ ...valid, newEmail: "bad" });
     expect(result.success).toBe(false);
   });
 
   test("验证码不足 6 位或含非数字", () => {
-    expect(changeEmailSchema.safeParse({ newEmail: "new@example.com", code: "123" }).success).toBe(false);
-    expect(changeEmailSchema.safeParse({ newEmail: "new@example.com", code: "abcdef" }).success).toBe(false);
+    expect(changeEmailSchema.safeParse({ ...valid, code: "123" }).success).toBe(false);
+    expect(changeEmailSchema.safeParse({ ...valid, code: "abcdef" }).success).toBe(false);
   });
 });

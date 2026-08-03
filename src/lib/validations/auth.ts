@@ -88,6 +88,7 @@ export const changePasswordSchema = z
   });
 
 export const changeEmailSchema = z.object({
+  oldPassword: z.string().min(1, { message: "请输入当前密码" }),
   newEmail: z
     .string()
     .min(1, { message: "请输入新邮箱" })

@@ -1495,6 +1495,11 @@ export interface components {
              * @example newemail@example.com
              */
             newEmail: string;
+            /**
+             * @description 当前密码（二次认证）
+             * @example CurrentPass123
+             */
+            oldPassword: string;
         };
         ChangeEmailVerifyDto: {
             /**

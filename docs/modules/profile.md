@@ -8,7 +8,9 @@
 - `/users/[id]` 用户主页：资料卡（头像/用户名/Bio/注册时间/关注粉丝数）+ 关注/拉黑按钮 + 最近动态（recent-replies）+ 创建的帖子（created-threads）+ 参与的帖子（played-threads）
 - 关注/取消关注、拉黑/取消拉黑（仅登录，用户主页操作）
 - 草稿箱：未发布帖列表（进入 `/threads/create` 草稿列表查看，可跳转继续编辑或删除）
-- `/me` 我的资料：账户信息（脱敏邮箱 + 邮箱验证状态，未验证可跳转 `/verify-email`）、头像（裁剪上传/移除）、Bio（textarea + 255 字数统计）、隐私开关（用户名需显式进入编辑，默认不修改）、账户安全（修改密码 + 更换邮箱：新邮箱→发送验证码→6 位验证码确认，成功后失效 me 缓存刷新邮箱）
+- `/me` 我的资料：账户信息（脱敏邮箱 + 邮箱验证状态，未验证可跳转 `/verify-email`）、头像（裁剪上传/移除）、Bio（textarea + 255 字数统计）、隐私开关（用户名需显式进入编辑，默认不修改）
+- `/me/password` 修改密码页：当前密码/新密码/确认新密码（显示/隐藏切换 + 需求提示），成功后登出跳登录
+- `/me/email` 更换邮箱页：当前密码二次认证 → 新邮箱 → 6 位验证码 → 成功态，成功后失效 me 缓存刷新邮箱
 - 参与列表排除自建帖：`played-threads` 只返回被其他楼主标记为玩家的帖，自建帖归入「创建的帖子」（后端 `4ed5449` 同步）
 
 **后续迭代：**
@@ -22,7 +24,9 @@
 | `/users/[id]` | 用户主页：资料卡 + 最近动态 + 创建的帖子 + 参与的帖子 | 公开（OptionalAuth，登录态显示关系字段与操作） |
 | `/users/[id]/following` | 该用户关注的人列表 | 公开（OptionalAuth） |
 | `/users/[id]/followers` | 该用户的粉丝列表 | 公开（OptionalAuth） |
-| `/me` | 我的资料编辑（Bio/隐私开关） | Auth（仅本人） |
+| `/me` | 我的资料编辑（Bio/隐私开关/账号安全入口） | Auth（仅本人） |
+| `/me/password` | 修改密码（成功后登出跳登录） | Auth（仅本人） |
+| `/me/email` | 更换邮箱（当前密码二次认证 + 验证码） | Auth（仅本人） |
 
 > 草稿箱不占独立路由：未发布帖列表收进 `/threads/create` 的草稿选择器（原 `/drafts` 路由已删除，入口迁移见 `docs/modules/thread-create.md`）。
 
@@ -35,7 +39,7 @@
 | PATCH | `/users/me/avatar` | Auth | 设置头像（传入 mediaId），需邮箱已验证 |
 | DELETE | `/users/me/avatar` | Auth | 移除头像（置空 avatar，回到首字母占位），需邮箱已验证 |
 | POST | `/auth/change-password` | AuthRead | 修改密码（旧+新），成功后吊销全部会话强制重新登录 |
-| POST | `/auth/change-email/request-code` | Auth | 更换邮箱第一步：向新邮箱发送验证码 |
+| POST | `/auth/change-email/request-code` | Auth | 更换邮箱第一步：校验当前密码后向新邮箱发送验证码 |
 | POST | `/auth/change-email/verify` | Auth | 更换邮箱第二步：验证码确认并更新邮箱 |
 | GET | `/users/:id` | OptionalAuth | 用户公开资料；登录态额外返回 isFollowing/isFollowedBy/isBlocked/isBlockedBy |
 | GET | `/users/:id/recent-replies` | OptionalAuth | 最近 10 条回复（仅 PUBLIC 帖），不分页，受 showRecentReplies 控制 |
@@ -199,6 +203,9 @@
 | DraftList | `src/components/user/draft-list.tsx` | 草稿箱列表（标题/分类/更新时间/继续编辑/删除） |
 | UsernameEdit | `src/components/user/username-edit.tsx` | 独立用户名修改（默认只读，点「修改用户名」才进入编辑态，未改动不提交） |
 | AvatarUploader | `src/components/user/avatar-uploader.tsx` | 头像上传器：预览（`_thumb.webp` 缩略图/首字母占位）→ 文件选择校验（仅 jpg/png/webp，排除 svg）→ react-easy-crop 1:1 裁剪 → canvas 导出 512×512 webp → 上传（预签名+直传+轮询）→ `PATCH /me/avatar` 立即生效；「移除头像」调 `DELETE /me/avatar` |
+| ChangePasswordForm | `src/components/user/change-password-form.tsx` | 修改密码表单（当前/新/确认密码，PasswordInput 显隐切换），成功后登出跳登录 |
+| ChangeEmailForm | `src/components/user/change-email-form.tsx` | 更换邮箱表单（当前密码二次认证 → 新邮箱 → 验证码 → 成功态），成功后失效 me 缓存 |
+| PasswordInput | `src/components/ui/password-input.tsx` | 密码输入框（Eye/EyeOff 显示/隐藏切换） |
 | useSetAvatar | `src/api/hooks/use-set-avatar.ts` | 设置/移除头像 hook（PATCH/DELETE `/users/me/avatar`，成功后失效 me/user 缓存） |
 | getCroppedBlob | `src/lib/avatar-crop.ts` | react-easy-crop 裁剪区域 → 512×512 webp Blob（canvas） |
 | useUserProfile | `src/api/hooks/use-user-profile.ts` | 用户公开资料 hook |
