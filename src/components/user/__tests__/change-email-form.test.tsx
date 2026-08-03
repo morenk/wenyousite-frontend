@@ -11,10 +11,17 @@ const { mockChangeEmailRequest } = vi.hoisted(() => ({
 const { mockChangeEmailVerify } = vi.hoisted(() => ({
   mockChangeEmailVerify: { mutateAsync: vi.fn() },
 }));
+const { mockReplace } = vi.hoisted(() => ({
+  mockReplace: vi.fn(),
+}));
 
 vi.mock("@/api/hooks/use-auth-actions", () => ({
   useChangeEmailRequest: () => mockChangeEmailRequest,
   useChangeEmailVerify: () => mockChangeEmailVerify,
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: mockReplace }),
 }));
 
 vi.mock("sonner", () => ({
@@ -57,7 +64,7 @@ describe("ChangeEmailForm", () => {
     expect(toast.success).toHaveBeenCalledWith("验证码已发送至新邮箱");
   });
 
-  test("确认更换成功后显示成功态", async () => {
+  test("确认更换成功后跳转回资料页", async () => {
     render(<ChangeEmailForm />, { wrapper: createWrapper() });
     fireEvent.change(document.getElementById("change-old-password")!, { target: { value: "CurrentPass123" } });
     fireEvent.change(document.getElementById("new-email")!, { target: { value: "new@example.com" } });
@@ -74,7 +81,8 @@ describe("ChangeEmailForm", () => {
       });
     });
     expect(toast.success).toHaveBeenCalledWith("邮箱已更换");
-    expect(screen.getByText("邮箱已更换")).toBeInTheDocument();
+    expect(mockReplace).toHaveBeenCalledWith("/me");
+    expect(screen.queryByText("邮箱已更换")).not.toBeInTheDocument();
   });
 
   test("验证码未发送时确认按钮禁用", () => {

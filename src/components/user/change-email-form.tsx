@@ -1,8 +1,9 @@
-/** 更换邮箱表单：当前密码二次认证 → 新邮箱 → 验证码确认 → 成功态 */
+/** 更换邮箱表单：当前密码二次认证 → 新邮箱 → 验证码确认 → 成功后跳回资料页 */
 
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -25,6 +26,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 
 export function ChangeEmailForm() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const changeEmailRequest = useChangeEmailRequest();
   const changeEmailVerify = useChangeEmailVerify();
@@ -39,7 +41,6 @@ export function ChangeEmailForm() {
   });
   const { countdown, sending, send } = useEmailCode();
   const [codeSent, setCodeSent] = useState(false);
-  const [done, setDone] = useState(false);
 
   const handleSendCode = async () => {
     const newEmail = getValues("newEmail").trim();
@@ -75,7 +76,7 @@ export function ChangeEmailForm() {
       });
       toast.success("邮箱已更换");
       queryClient.invalidateQueries({ queryKey: ["me"] });
-      setDone(true);
+      router.replace("/me");
     } catch (err) {
       const e = err as { code?: number; message?: string };
       if (e.code === 40001) {
@@ -85,15 +86,6 @@ export function ChangeEmailForm() {
       }
     }
   };
-
-  if (done) {
-    return (
-      <div className="rounded-lg border border-border bg-card p-6 text-center">
-        <p className="text-sm font-semibold text-foreground">邮箱已更换</p>
-        <p className="mt-1 text-xs text-muted-foreground">你的新邮箱已生效</p>
-      </div>
-    );
-  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
