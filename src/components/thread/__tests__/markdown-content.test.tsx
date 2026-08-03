@@ -19,6 +19,13 @@ describe("MarkdownContent", () => {
     expect(screen.getByText("正文内容")).toBeInTheDocument();
   });
 
+  test("历史内容中的 Milkdown 空段落标记不显示为 br 文本", () => {
+    render(<MarkdownContent content={"第一段\n\n<br />\n\n第二段"} />);
+    expect(screen.getByText("第一段")).toBeInTheDocument();
+    expect(screen.getByText("第二段")).toBeInTheDocument();
+    expect(screen.queryByText(/<br\s*\/>/i)).not.toBeInTheDocument();
+  });
+
   test("空 URL 图片不渲染破图", () => {
     render(<MarkdownContent content={"![1.00]()"} />);
     expect(screen.queryByRole("img")).toBeNull();

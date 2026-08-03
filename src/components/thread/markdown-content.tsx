@@ -6,6 +6,7 @@ import { useState, type ComponentProps } from "react";
 import ReactMarkdown, { type Components, type ExtraProps } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { getImageUrlBySize } from "@/lib/upload-image";
+import { sanitizeMilkdownMarkdown } from "@/lib/markdown";
 import { ImageLightbox } from "@/components/thread/image-lightbox";
 
 /** 判断是否为本站上传图片（objectKey 统一以 uploads/ 开头）且非派生图 */
@@ -67,10 +68,16 @@ interface MarkdownContentProps {
 }
 
 export function MarkdownContent({ content }: MarkdownContentProps) {
+  const sanitizedContent = sanitizeMilkdownMarkdown(content);
+
   return (
     <div className="prose prose-sm max-w-none dark:prose-invert">
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
-        {content}
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={components}
+        skipHtml
+      >
+        {sanitizedContent}
       </ReactMarkdown>
     </div>
   );

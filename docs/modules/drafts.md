@@ -69,7 +69,7 @@ interface DraftItem {
 - `GET/PATCH /drafts/:id` → `data: DraftItem`
 - `DELETE /drafts/:id` → `data: { message: "草稿已删除" }`
 
-> **内容存储策略（全站统一）**：content 一律按 **Markdown 原样存储**，后端不再做 HTML 转义（曾用 sanitize-html 转义导致 `>` 变 `&gt;`，已修复并清理存量数据）。XSS 由各端渲染层净化：web 端 react-markdown 默认剥离原始 HTML 标签；移动端需用 markdown 渲染器。
+> **内容存储策略（全站统一）**：content 按 **Markdown 存储**，后端不做 HTML 转义（曾用 sanitize-html 转义导致 `>` 变 `&gt;`，已修复并清理存量数据）。Web 编辑器在输出时只清理 Milkdown 自身产生的空图片和独占行空段落 `<br />`，不改动行内文本、围栏代码块或正常硬换行。XSS 由渲染层净化：web 端 react-markdown 启用 `skipHtml`，移动端需使用安全的 markdown 渲染器。
 
 ## 4. 状态管理
 

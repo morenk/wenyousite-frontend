@@ -1,7 +1,10 @@
 /** sanitizeEmptyImages 工具函数测试 */
 
 import { describe, test, expect } from "vitest";
-import { sanitizeEmptyImages } from "@/lib/markdown";
+import {
+  sanitizeEmptyImages,
+  sanitizeMilkdownMarkdown,
+} from "@/lib/markdown";
 
 describe("sanitizeEmptyImages", () => {
   test("移除空 URL 图片语法", () => {
@@ -35,5 +38,33 @@ describe("sanitizeEmptyImages", () => {
 
   test("整段空图片所在段落被清理为空行", () => {
     expect(sanitizeEmptyImages("\n\n![1.00]()\n\n正文")).toBe("\n\n\n\n正文");
+  });
+});
+
+describe("sanitizeMilkdownMarkdown", () => {
+  test("移除 Milkdown 为不可见空段落生成的独占行 br 标记", () => {
+    expect(
+      sanitizeMilkdownMarkdown(
+        "第一段\n\n<br />\n<br>\n<br >\n<br/>\n\n第二段",
+      ),
+    ).toBe("第一段\n\n\n\n\n\n\n第二段");
+  });
+
+  test("保留正文行内显式输入的 br 文本", () => {
+    expect(sanitizeMilkdownMarkdown("正文 <br /> 示例")).toBe(
+      "正文 <br /> 示例",
+    );
+  });
+
+  test("保留围栏代码块中的 br 示例", () => {
+    const markdown =
+      "```html\n<br />\n![empty]()\n```\n\n~~~html\n<br>\n![empty]( )\n~~~";
+    expect(sanitizeMilkdownMarkdown(markdown)).toBe(markdown);
+  });
+
+  test("同时移除空 URL 图片", () => {
+    expect(sanitizeMilkdownMarkdown("![1.00]()\n\n<br />\n正文")).toBe(
+      "\n\n\n正文",
+    );
   });
 });

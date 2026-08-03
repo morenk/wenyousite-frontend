@@ -9,7 +9,7 @@ import { editorViewCtx } from "@milkdown/core";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { sanitizeEmptyImages } from "@/lib/markdown";
+import { sanitizeMilkdownMarkdown } from "@/lib/markdown";
 import { useAuth } from "@/lib/auth";
 import { useSaveDraft } from "@/api/hooks/use-save-draft";
 import { ContentDraftsPanel } from "@/components/user/content-drafts-panel";
@@ -210,8 +210,8 @@ function EditorHost({
       crepe.on((listener) => {
         listener.markdownUpdated((_ctx, markdown, prevMarkdown) => {
           if (markdown !== prevMarkdown) {
-            // 移除空 URL 图片（空图片块序列化为 ![]()，发布后会显示破图）
-            const cleaned = sanitizeEmptyImages(markdown);
+            // 清理空图片与 Milkdown 为不可见空段落生成的独占行 <br />。
+            const cleaned = sanitizeMilkdownMarkdown(markdown);
             onChange?.(cleaned);
           }
         });

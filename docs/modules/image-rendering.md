@@ -9,6 +9,7 @@
 - 本站上传图自动显示 `_md.webp` 中图，点击打开 lightbox 查看原图
 - lightbox 支持适应屏幕、1:1、滚轮缩放与拖拽平移；原图以自然像素作为缩放基准，避免被正文 CSS 重复缩小
 - 共享渲染组件 `MarkdownContent` 接入楼层正文与子贴正文
+- `MarkdownContent` 兼容历史 Milkdown 内容：移除代码块外独占一行的空段落 `<br />` 标记，并通过 `skipHtml` 忽略其他原始 HTML，避免字面标签泄漏且保持 XSS 防护
 
 **设计决策（与后端派生图方案对齐）：**
 - **Markdown 存原图 URL**（`upload-image.ts` 插入的即为原图），渲染时识别本站上传图后显示中图。相比"插入时直接换成 `_md.webp`"，此方案：历史内容零迁移即可生效；lightbox 无需从 `_md.webp` 反推原图扩展名（.jpg/.png/.avif 有歧义）。
@@ -53,6 +54,8 @@
 | lightbox 默认状态 | 在不放大小图的前提下适应视口；缩放尺寸以图片自然像素为基准，不继承正文图片的宽度约束 |
 | lightbox 图片单击 | 在适应屏幕与 1:1 原图之间切换；事件不会冒泡触发遮罩关闭 |
 | lightbox 其他操作 | 滚轮/工具栏缩放，放大后拖拽平移；Esc、点背景或关闭按钮退出 |
+| Milkdown 历史空段落 | 独占行 `<br />` 在渲染前清理，不显示为字面文本；围栏代码块中的同名示例原样保留 |
+| 原始 HTML | `react-markdown` 使用 `skipHtml` 忽略，不执行用户输入的标签或脚本 |
 
 **识别本站上传图的判定**：objectKey 统一以 `uploads/` 开头（后端生成规则），故以 URL 包含 `/uploads/` 判断，无需前端持有 COS 域名配置。
 
@@ -64,6 +67,7 @@
 - [x] lightbox 支持 Esc / 点背景关闭
 - [x] 长图打开后不被 `max-width:100%` 与适应视口缩放重复缩小
 - [x] 单击原图执行缩放切换，不会同时关闭 lightbox
+- [x] 已入库的 Milkdown 空段落 `<br />` 不再显示为文本，原始 HTML 保持禁用
 - [x] `pnpm lint && pnpm typecheck && pnpm test` 通过
 
 ## 6. 子任务
