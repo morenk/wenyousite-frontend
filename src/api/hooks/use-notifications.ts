@@ -7,6 +7,7 @@ export interface NotificationFromUser {
   id: string;
   username: string;
   avatar: string | null;
+  deletedAt?: string | null;
 }
 
 export interface NotificationItem {
@@ -19,8 +20,13 @@ export interface NotificationItem {
   fromUserId: string | null;
   isRead: boolean;
   createdAt: string;
-  post: { id: string; floorNumber: number | null; parentPostId: string | null } | null;
-  thread: { id: string; title: string } | null;
+  post: {
+    id: string;
+    floorNumber: number | null;
+    parentPostId: string | null;
+    deletedAt?: string | null;
+  } | null;
+  thread: { id: string; title: string; deletedAt?: string | null } | null;
   fromUser: NotificationFromUser | null;
 }
 

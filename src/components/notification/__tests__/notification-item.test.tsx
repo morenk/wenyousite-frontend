@@ -28,7 +28,7 @@ vi.mock("next/link", () => ({
 }));
 
 vi.mock("sonner", () => ({
-  toast: { success: vi.fn(), error: vi.fn() },
+  toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() },
 }));
 
 import { NotificationItem } from "@/components/notification/notification-item";
@@ -198,6 +198,69 @@ describe("NotificationItem", () => {
       />,
     );
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
+  });
+
+  test("主题帖已删除时不渲染跳转链接，展示已删除提示", () => {
+    renderWithQC(
+      <NotificationItem
+        notification={baseNotification({
+          thread: { id: "t1", title: "测试帖", deletedAt: "2026-01-02T00:00:00Z" },
+        })}
+      />,
+    );
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(screen.getByText("该内容已删除")).toBeInTheDocument();
+  });
+
+  test("帖子已删除时不渲染跳转链接，展示已删除提示", () => {
+    renderWithQC(
+      <NotificationItem
+        notification={baseNotification({
+          post: { id: "p1", floorNumber: 1, parentPostId: null, deletedAt: "2026-01-02T00:00:00Z" },
+        })}
+      />,
+    );
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(screen.getByText("该内容已删除")).toBeInTheDocument();
+  });
+
+  test("关注来源用户已注销时不渲染跳转链接，展示注销提示", () => {
+    renderWithQC(
+      <NotificationItem
+        notification={baseNotification({
+          type: "follow",
+          threadId: null,
+          postId: null,
+          content: "morenk 关注了你",
+          fromUser: { id: "u2", username: "morenk", avatar: null, deletedAt: "2026-01-02T00:00:00Z" },
+        })}
+      />,
+    );
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(screen.getByText("该用户已注销")).toBeInTheDocument();
+  });
+
+  test("点击已删除目标触发提示且不跳转（仍标记已读）", async () => {
+    const user = userEvent.setup();
+    const markReadMutate = vi.fn();
+    mockUseNotificationActions.mockReturnValue({
+      markRead: { mutate: markReadMutate, isPending: false, mutateAsync: vi.fn() },
+      remove: { mutate: vi.fn(), isPending: false, mutateAsync: vi.fn() },
+      markAllRead: { mutate: vi.fn(), isPending: false },
+    });
+    const { toast } = await import("sonner");
+
+    renderWithQC(
+      <NotificationItem
+        notification={baseNotification({
+          thread: { id: "t1", title: "测试帖", deletedAt: "2026-01-02T00:00:00Z" },
+        })}
+      />,
+    );
+    await user.click(screen.getByText("该内容已删除"));
+
+    expect(markReadMutate).toHaveBeenCalledWith("n1");
+    expect(toast.info).toHaveBeenCalledWith("该内容已删除");
   });
 
   test("有操作者时显示头像（无头像则首字符占位）", () => {

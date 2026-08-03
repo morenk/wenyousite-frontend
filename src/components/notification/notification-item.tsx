@@ -30,6 +30,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
 
   const Icon = typeIconMap[notification.type] ?? MessageSquare;
   const displayContent = sanitizeNotificationContent(notification);
+  const deletedHint = getDeletedHint(notification);
   const href = notification.postId && notification.threadId
     ? `/threads/${notification.threadId}?post=${notification.postId}`
     : notification.threadId
@@ -41,6 +42,9 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const handleOpen = () => {
     if (!notification.isRead) {
       markRead.mutate(notification.id);
+    }
+    if (deletedHint) {
+      toast.info(deletedHint);
     }
   };
 
@@ -87,6 +91,9 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         >
           {displayContent || "（图片内容）"}
         </p>
+        {deletedHint && (
+          <p className="mt-1 text-xs font-medium text-destructive">{deletedHint}</p>
+        )}
         <p className="mt-0.5 text-xs text-muted-foreground">
           {formatDistanceToNow(new Date(notification.createdAt), {
             addSuffix: true,
@@ -100,7 +107,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     </>
   );
 
-  const content = href ? (
+  const content = href && !deletedHint ? (
     <Link
       href={href}
       onClick={handleOpen}
@@ -108,6 +115,10 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     >
       {inner}
     </Link>
+  ) : deletedHint ? (
+    <div onClick={handleOpen} className="flex cursor-default items-start gap-3">
+      {inner}
+    </div>
   ) : (
     <div className="flex items-start gap-3">{inner}</div>
   );
@@ -132,6 +143,14 @@ export function NotificationItem({ notification }: NotificationItemProps) {
       </button>
     </div>
   );
+}
+
+/** 跳转对象已被删除时的提示文案；目标存在则返回 null（不拦截跳转） */
+function getDeletedHint(notification: NotificationItemData): string | null {
+  if (notification.threadId && notification.thread?.deletedAt) return "该内容已删除";
+  if (notification.postId && notification.post?.deletedAt) return "该内容已删除";
+  if (notification.fromUserId && notification.fromUser?.deletedAt) return "该用户已注销";
+  return null;
 }
 
 /** 兼容旧通知中残留的图片 Markdown、Milkdown 比例 alt、转义反斜杠及硬换行。 */
