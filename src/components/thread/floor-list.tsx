@@ -18,7 +18,6 @@ interface FloorListProps {
   onLoadMore: () => void;
   onRetry: () => void;
   focusedFloor?: PostData;
-  focusedReply?: PostData;
 }
 
 export function FloorList({
@@ -30,7 +29,6 @@ export function FloorList({
   onLoadMore,
   onRetry,
   focusedFloor,
-  focusedReply,
 }: FloorListProps) {
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -94,7 +92,6 @@ export function FloorList({
           floor={floor}
           isEven={index % 2 === 1}
           focused={floor.id === focusedFloor?.id}
-          focusedReply={floor.id === focusedFloor?.id ? focusedReply : undefined}
         />
       ))}
 

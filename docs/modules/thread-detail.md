@@ -29,6 +29,7 @@
 |------|----------|------|
 | `/threads/[id]` | 主题帖详情页（含子贴、楼层） | 公开（PRIVATE 帖非成员返回 404） |
 | `/threads/[id]?post={postId}` | 从通知进入并精确定位楼层/楼中楼 | 继承主题帖访问权限 |
+| `/threads/[id]/posts/[postId]/replies?post={replyId}` | 独立楼中楼阅读页：原楼层作为讨论正文，楼中楼回复作为连续楼层 | 继承主题帖访问权限 |
 | `/threads/[id]/edit` | 状态感知编辑页：草稿使用 ThreadCreateForm（可发布），已发布帖使用 ThreadEditForm（保存修改） | OWNER only |
 
 ## 3. 涉及 API
@@ -57,7 +58,7 @@
 
 > **ID 校验说明**：后端所有 ID 为 Prisma `cuid()` 生成的 CUID（非 UUID），DTO 校验统一使用 `@IsCuid`（替代 `@IsUUID`，后者会因 CUID 不含连字符而拒绝请求）。
 
-> **通知精确定位**：详情页读取 `post` 查询参数，通过 `GET /posts/:id` 确定目标子贴及父楼。主楼层会被注入当前楼层列表并滚动高亮；楼中楼先展开父楼，待回复渲染后进行第二阶段滚动并高亮具体回复。用户手动切换子贴后，以手动选择为准。
+> **通知精确定位**：主楼层仍使用详情页 `?post=` 注入并高亮；楼中楼通知直接进入 `/threads/{threadId}/posts/{parentPostId}/replies?post={replyId}`，在独立阅读页高亮目标回复。兼容旧链接：详情页发现目标是楼中楼时立即重定向到独立阅读页。
 
 ## 4. API 响应快照
 
@@ -222,13 +223,14 @@
 | ThreadDetailHeader | `src/components/thread/thread-detail-header.tsx` | 页面顶层独立标题区（非卡片）：徽章/主题帖标题/作者/标签/操作按钮；OWNER 可删除主题帖 |
 | SubthreadTabs | `src/components/thread/subthread-tabs.tsx` | 子贴 Tab 切换导航 |
 | SubthreadBody | `src/components/thread/subthread-body.tsx` | 子贴卡（唯一卡片）：子贴标题 + 默认徽章 + 正文（kind=BODY）同容器（正文不进入楼层列表） |
-| FloorCard | `src/components/thread/floor-card.tsx` | 单条楼层卡片（Markdown 渲染；作者头像；作者本人可编辑/删除；展开楼中楼 + 回复他人） |
+| FloorCard | `src/components/thread/floor-card.tsx` | 单条楼层卡片（Markdown 渲染；作者头像；作者本人可编辑/删除；回复数与回复入口跳转独立楼中楼页） |
 | FloorList | `src/components/thread/floor-list.tsx` | 楼层列表（仅 kind=FLOOR，无限滚动，cursor 分页） |
 | ThreadComposerProvider | `src/components/thread/thread-composer-context.tsx` | 全页唯一编辑会话；统一处理目标切换、脏内容确认和提交锁 |
 | ThreadComposer | `src/components/thread/thread-composer.tsx` | 按当前会话创建楼层、回复或编辑帖子；唯一挂载 MilkdownEditor |
 | ThreadComposerOutlet | `src/components/thread/thread-composer.tsx` | 放置在楼层/回复上下文中的轻量插槽，仅活动目标渲染编辑器 |
 | FloorForm | `src/components/thread/floor-form.tsx` | 新楼层轻量入口；点击后才在底部展开唯一编辑器 |
-| ReplyList | `src/components/thread/reply-list.tsx` | 楼中楼回复列表（展开/加载更多；作者头像；作者本人可编辑/删除回复；每条回复可对用户回复，显示「回复 @xxx」上下文） |
+| ReplyDiscussion | `src/components/thread/reply-discussion.tsx` | 独立楼中楼阅读主体：原楼层作为讨论正文、导航回原楼层、回复入口与总数 |
+| ReplyList | `src/components/thread/reply-list.tsx` | 楼中楼连续楼层列表（无限加载；作者本人可编辑/删除；每条回复可对用户回复，显示「回复 @xxx」上下文） |
 | MemberManager | `src/components/thread/member-manager.tsx` | 成员管理：授予/收回玩家、升级/降级协作者、移除参与人 |
 | ManagementPanel | `src/components/thread/management-panel.tsx` | 帖主管理面板：左子贴目录树 + 右单例编辑器 |
 | SubthreadTree | `src/components/thread/subthread-tree.tsx` | 管理面板左栏子贴目录树（@dnd-kit 拖拽排序） |
@@ -297,7 +299,7 @@
 
 > **楼层编辑**：作者点击 FloorCard 的编辑按钮后，唯一编辑器在正文位置回填 `floor.content`，保存调用 `useUpdatePost`（乐观锁 version）。原正文仅在该楼层为当前编辑目标时隐藏。
 
-> **楼中楼回复（回复串内对用户回复）**：楼中楼回复串平级挂载于主楼层（`parentPostId` 指向主楼层，无嵌套深度限制，后端只允许回复主楼层）。楼层展开后 `ReplyList` 的每条回复头部有「回复」按钮（仅登录显示），作者本人额外看到「编辑回复」「删除回复」按钮。点击「回复」或「编辑回复」后，唯一编辑器在目标回复下方按需出现；创建时传 `parentPostId=主楼层 id`、`replyToPostId=目标回复 id`，编辑沿用 `PATCH /posts/:id` 的 `version` 乐观锁。删除调用 `DELETE /posts/:id` 软删除，操作后刷新回复列表与父楼层回复数。
+> **楼中楼独立阅读**：详情页不再原地展开长回复串。点击回复数或“回复”进入独立页面；页面顶部保留主题帖/子贴/原楼层上下文，原楼层在视觉上作为讨论正文，回复按普通楼层密度连续排列。存储语义不变，创建仍传 `parentPostId=主楼层 id`、`replyToPostId=目标 id`；编辑、删除和无限分页复用原有 hooks。
 
 ## 8. 错误处理
 

@@ -74,6 +74,21 @@ describe("NotificationItem", () => {
     expect(screen.getByRole("link")).toHaveAttribute("href", "/threads/t1?post=p1");
   });
 
+  test("楼中楼通知直接进入独立阅读页", () => {
+    renderWithQC(
+      <NotificationItem
+        notification={baseNotification({
+          postId: "r1",
+          post: { id: "r1", floorNumber: null, parentPostId: "p1" },
+        })}
+      />,
+    );
+    expect(screen.getByRole("link")).toHaveAttribute(
+      "href",
+      "/threads/t1/posts/p1/replies?post=r1",
+    );
+  });
+
   test("未读点击触发标记已读", async () => {
     const user = userEvent.setup();
     const markReadMutate = vi.fn();

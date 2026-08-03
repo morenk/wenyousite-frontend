@@ -41,7 +41,11 @@ export function UserRecentReplies({
       {visible.map((reply) => (
         <Link
           key={reply.id}
-          href={`/threads/${reply.threadId}?post=${reply.id}`}
+          href={
+            reply.parentPostId
+              ? `/threads/${reply.threadId}/posts/${reply.parentPostId}/replies?post=${reply.id}`
+              : `/threads/${reply.threadId}?post=${reply.id}`
+          }
           className="block rounded-lg border border-border bg-card p-3 transition-colors hover:border-primary/40 hover:bg-muted/50"
         >
           <div className="mb-1 flex items-center justify-between">

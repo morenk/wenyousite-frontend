@@ -274,8 +274,7 @@ describe("FloorCard", () => {
     vi.unstubAllGlobals();
   });
 
-  test("有回复时点击回复数展开楼中楼列表", async () => {
-    const user = userEvent.setup();
+  test("有回复时回复数链接进入独立楼中楼阅读页", () => {
     const withReplies = { ...baseFloor, _count: { replies: 3 } };
     mockUseAuth.mockReturnValue({
       user: { id: "u1", username: "测试用户", emailVerified: true },
@@ -283,29 +282,28 @@ describe("FloorCard", () => {
     });
     renderWithQC(<FloorCard floor={withReplies} isEven={false} />);
 
-    await user.click(screen.getByText("3 条回复"));
-
-    expect(screen.getByTestId("reply-list")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /3 条回复/ })).toHaveAttribute(
+      "href",
+      "/threads/t1/posts/post-1/replies",
+    );
   });
 
-  test("无回复时点击回复按钮展开并按需显示唯一编辑器", async () => {
-    const user = userEvent.setup();
+  test("回复按钮进入独立楼中楼阅读页", () => {
     mockUseAuth.mockReturnValue({
       user: { id: "u1", username: "测试用户", emailVerified: true },
       isInitialized: true,
     });
     renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
 
-    await user.click(screen.getByRole("button", { name: "回复" }));
-
-    expect(screen.getByTestId("reply-list")).toBeInTheDocument();
-    expect(screen.getAllByTestId("milkdown-editor")).toHaveLength(1);
-    expect(screen.getByText("回复 #1 测试用户")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "回复" })).toHaveAttribute(
+      "href",
+      "/threads/t1/posts/post-1/replies",
+    );
   });
 
   test("未登录不显示回复按钮", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
     renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
-    expect(screen.queryByRole("button", { name: "回复" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "回复" })).toBeNull();
   });
 });

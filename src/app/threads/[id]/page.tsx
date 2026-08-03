@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Loader2, AlertCircle } from "lucide-react";
 
 import { useAuth } from "@/lib/auth";
@@ -39,6 +39,7 @@ export default function ThreadDetailPage() {
 function ThreadDetailPageContent() {
   const params = useParams();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const threadId = params.id as string;
   const targetPostId = searchParams.get("post") ?? undefined;
   const { user } = useAuth();
@@ -71,7 +72,14 @@ function ThreadDetailPageContent() {
   } = useFloors(effectiveSubthreadId);
 
   const floors = floorsData?.pages.flatMap((page) => page?.data ?? []) ?? [];
-  const focusedReply = targetPost?.parentPostId ? targetPost : undefined;
+
+  // 兼容历史通知/动态链接：楼中楼统一进入独立阅读页。
+  useEffect(() => {
+    if (!targetPost?.parentPostId) return;
+    router.replace(
+      `/threads/${threadId}/posts/${targetPost.parentPostId}/replies?post=${targetPost.id}`,
+    );
+  }, [router, targetPost, threadId]);
 
   // 阅读进度：为每个子贴查询新增回复数，切换子贴时记录进度
   const newReplies = useNewReplies(effectiveSubthreadId, !!user && thread?.published);
@@ -201,7 +209,6 @@ function ThreadDetailPageContent() {
             onLoadMore={() => fetchNextPage()}
             onRetry={() => refetchFloors()}
             focusedFloor={targetFloor}
-            focusedReply={focusedReply}
           />
         )}
 

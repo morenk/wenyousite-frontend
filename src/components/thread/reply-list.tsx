@@ -22,9 +22,10 @@ import type { PostData } from "@/api/hooks/use-floors";
 interface ReplyListProps {
   postId: string;
   focusedReply?: PostData;
+  variant?: "embedded" | "discussion";
 }
 
-export function ReplyList({ postId, focusedReply }: ReplyListProps) {
+export function ReplyList({ postId, focusedReply, variant = "embedded" }: ReplyListProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const deletePost = useDeletePost();
@@ -96,7 +97,7 @@ export function ReplyList({ postId, focusedReply }: ReplyListProps) {
   }, [focusedReply]);
 
   return (
-    <div className="mt-3 space-y-2 border-l-2 border-border pl-3">
+    <div className={variant === "discussion" ? "space-y-3" : "mt-3 space-y-2 border-l-2 border-border pl-3"}>
       {isLoading && (
         <div className="flex items-center justify-center py-4">
           <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
@@ -116,7 +117,7 @@ export function ReplyList({ postId, focusedReply }: ReplyListProps) {
         <p className="py-2 text-xs text-muted-foreground">还没有回复</p>
       )}
 
-      {replies.map((reply: PostData) => {
+      {replies.map((reply: PostData, index) => {
         const replyToUser = reply.replyToPost?.author?.username;
         const replyToId = reply.replyToPost?.id ?? reply.replyToPostId;
         const isAuthor = user?.id === reply.authorId;
@@ -127,7 +128,9 @@ export function ReplyList({ postId, focusedReply }: ReplyListProps) {
             key={reply.id}
             id={`post-${reply.id}`}
             className={[
-              "rounded-lg border border-border bg-background p-3",
+              variant === "discussion"
+                ? "rounded-xl border border-border bg-card p-4"
+                : "rounded-lg border border-border bg-background p-3",
               reply.id === focusedReply?.id && "border-primary bg-primary/[0.06] ring-2 ring-primary/20",
             ].filter(Boolean).join(" ")}
           >
@@ -136,8 +139,8 @@ export function ReplyList({ postId, focusedReply }: ReplyListProps) {
                 <UserAvatar
                   name={reply.author.username}
                   src={reply.author.avatar}
-                  className="h-6 w-6"
-                  textClassName="text-[10px]"
+                  className={variant === "discussion" ? "h-8 w-8" : "h-6 w-6"}
+                  textClassName={variant === "discussion" ? "text-xs" : "text-[10px]"}
                 />
                 <Link
                   href={`/users/${reply.authorId}`}
@@ -145,6 +148,9 @@ export function ReplyList({ postId, focusedReply }: ReplyListProps) {
                 >
                   {reply.author.username}
                 </Link>
+                {variant === "discussion" && (
+                  <span className="text-xs text-muted-foreground">讨论 #{index + 1}</span>
+                )}
                 {replyToUser && replyToId && (
                   <span className="text-xs text-muted-foreground">
                     回复{" "}

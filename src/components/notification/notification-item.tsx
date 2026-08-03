@@ -32,7 +32,9 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const displayContent = sanitizeNotificationContent(notification);
   const deletedHint = getDeletedHint(notification);
   const href = notification.postId && notification.threadId
-    ? `/threads/${notification.threadId}?post=${notification.postId}`
+    ? notification.post?.parentPostId
+      ? `/threads/${notification.threadId}/posts/${notification.post.parentPostId}/replies?post=${notification.postId}`
+      : `/threads/${notification.threadId}?post=${notification.postId}`
     : notification.threadId
       ? `/threads/${notification.threadId}`
     : notification.fromUserId

@@ -89,7 +89,7 @@ describe("UserRecentReplies", () => {
     const links = screen.getAllByRole("link").map((el) => el.getAttribute("href"));
     expect(links).toEqual([
       "/threads/t1?post=r1",
-      "/threads/t1?post=r2",
+      "/threads/t1/posts/f1/replies?post=r2",
       "/threads/t2?post=r3",
     ]);
   });
