@@ -9,6 +9,7 @@ import {
   resetPasswordSchema,
   verifyEmailSchema,
   changePasswordSchema,
+  changeEmailSchema,
 } from "@/lib/validations/auth";
 
 describe("loginSchema", () => {
@@ -272,5 +273,23 @@ describe("changePasswordSchema", () => {
     if (!result.success) {
       expect(result.error.issues[0].path).toContain("confirmPassword");
     }
+  });
+});
+
+describe("changeEmailSchema", () => {
+  test("合法输入通过", () => {
+    expect(
+      changeEmailSchema.safeParse({ newEmail: "new@example.com", code: "123456" }).success,
+    ).toBe(true);
+  });
+
+  test("邮箱格式错误", () => {
+    const result = changeEmailSchema.safeParse({ newEmail: "bad", code: "123456" });
+    expect(result.success).toBe(false);
+  });
+
+  test("验证码不足 6 位或含非数字", () => {
+    expect(changeEmailSchema.safeParse({ newEmail: "new@example.com", code: "123" }).success).toBe(false);
+    expect(changeEmailSchema.safeParse({ newEmail: "new@example.com", code: "abcdef" }).success).toBe(false);
   });
 });

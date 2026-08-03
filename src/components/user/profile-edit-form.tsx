@@ -2,9 +2,10 @@
 
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import type { UseFormRegisterReturn } from "react-hook-form";
@@ -12,13 +13,21 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useMe } from "@/api/hooks/use-me";
 import { useUpdateProfile } from "@/api/hooks/use-update-profile";
-import { useChangePassword } from "@/api/hooks/use-auth-actions";
+import {
+  useChangePassword,
+  useChangeEmailRequest,
+  useChangeEmailVerify,
+} from "@/api/hooks/use-auth-actions";
 import { profileSchema, type ProfileFormData } from "@/lib/validations/profile";
 import {
   changePasswordSchema,
+  changeEmailSchema,
+  emailSchema,
   type ChangePasswordFormData,
+  type ChangeEmailFormData,
 } from "@/lib/validations/auth";
 import { useAuth } from "@/lib/auth";
+import { useCountdown } from "@/hooks/use-countdown";
 import { UsernameEdit } from "@/components/user/username-edit";
 import { AvatarUploader } from "@/components/user/avatar-uploader";
 import { Button } from "@/components/ui/button";
@@ -35,6 +44,7 @@ function maskEmail(email: string): string {
 
 export function ProfileEditForm() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { logout } = useAuth();
   const { data: me, isLoading, error } = useMe();
   const updateProfile = useUpdateProfile();
@@ -43,6 +53,14 @@ export function ProfileEditForm() {
     resolver: zodResolver(changePasswordSchema),
     defaultValues: { oldPassword: "", newPassword: "", confirmPassword: "" },
   });
+  const changeEmailRequest = useChangeEmailRequest();
+  const changeEmailVerify = useChangeEmailVerify();
+  const changeEmailForm = useForm<ChangeEmailFormData>({
+    resolver: zodResolver(changeEmailSchema),
+    defaultValues: { newEmail: "", code: "" },
+  });
+  const emailCountdown = useCountdown(60);
+  const [codeSent, setCodeSent] = useState(false);
 
   const {
     register,
@@ -106,6 +124,48 @@ export function ProfileEditForm() {
     } catch (err) {
       const e = err as { code?: number; message?: string };
       toast.error(e.message || "修改失败，请稍后重试");
+    }
+  };
+
+  const handleChangeEmailSendCode = async () => {
+    const newEmail = changeEmailForm.getValues("newEmail").trim();
+    const parsed = emailSchema.safeParse({ email: newEmail });
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0].message);
+      return;
+    }
+    try {
+      await changeEmailRequest.mutateAsync(parsed.data.email);
+      setCodeSent(true);
+      emailCountdown.start();
+      toast.success("验证码已发送至新邮箱");
+    } catch (err) {
+      const e = err as { code?: number; message?: string };
+      if (e.code === 40900) {
+        toast.error("该邮箱已被其他用户使用");
+      } else {
+        toast.error(e.message || "发送失败，请稍后重试");
+      }
+    }
+  };
+
+  const handleChangeEmail = async (values: ChangeEmailFormData) => {
+    try {
+      await changeEmailVerify.mutateAsync({
+        newEmail: values.newEmail.trim(),
+        code: values.code,
+      });
+      toast.success("邮箱已更换");
+      queryClient.invalidateQueries({ queryKey: ["me"] });
+      changeEmailForm.reset();
+      setCodeSent(false);
+    } catch (err) {
+      const e = err as { code?: number; message?: string };
+      if (e.code === 40001) {
+        toast.error(e.message || "验证码错误或已过期");
+      } else {
+        toast.error(e.message || "更换失败，请稍后重试");
+      }
     }
   };
 
@@ -273,6 +333,76 @@ export function ProfileEditForm() {
                   <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
                 ) : null}
                 修改密码
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>更换邮箱</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 pt-6">
+            <div className="space-y-1.5">
+              <Label htmlFor="new-email">新邮箱</Label>
+              <Input
+                id="new-email"
+                type="email"
+                autoComplete="email"
+                placeholder="输入新邮箱地址"
+                {...changeEmailForm.register("newEmail")}
+              />
+              {changeEmailForm.formState.errors.newEmail && (
+                <p className="text-xs text-destructive">
+                  {changeEmailForm.formState.errors.newEmail.message}
+                </p>
+              )}
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="email-code">验证码</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="email-code"
+                  inputMode="numeric"
+                  maxLength={6}
+                  placeholder="6 位数字"
+                  disabled={!codeSent}
+                  {...changeEmailForm.register("code")}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="shrink-0"
+                  onClick={handleChangeEmailSendCode}
+                  disabled={
+                    changeEmailRequest.isPending || emailCountdown.countdown > 0
+                  }
+                >
+                  {changeEmailRequest.isPending
+                    ? "发送中..."
+                    : emailCountdown.countdown > 0
+                      ? `${emailCountdown.countdown} 秒后重发`
+                      : codeSent
+                        ? "重新发送"
+                        : "发送验证码"}
+                </Button>
+              </div>
+              {changeEmailForm.formState.errors.code && (
+                <p className="text-xs text-destructive">
+                  {changeEmailForm.formState.errors.code.message}
+                </p>
+              )}
+            </div>
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                onClick={changeEmailForm.handleSubmit(handleChangeEmail)}
+                disabled={changeEmailVerify.isPending || !codeSent}
+              >
+                {changeEmailVerify.isPending ? (
+                  <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                ) : null}
+                确认更换
               </Button>
             </div>
           </CardContent>

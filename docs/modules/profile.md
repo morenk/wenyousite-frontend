@@ -8,7 +8,7 @@
 - `/users/[id]` 用户主页：资料卡（头像/用户名/Bio/注册时间/关注粉丝数）+ 关注/拉黑按钮 + 最近动态（recent-replies）+ 创建的帖子（created-threads）+ 参与的帖子（played-threads）
 - 关注/取消关注、拉黑/取消拉黑（仅登录，用户主页操作）
 - 草稿箱：未发布帖列表（进入 `/threads/create` 草稿列表查看，可跳转继续编辑或删除）
-- `/me` 我的资料：账户信息（脱敏邮箱 + 邮箱验证状态，未验证可跳转 `/verify-email`）、头像（裁剪上传/移除）、Bio（textarea + 255 字数统计）、隐私开关（用户名需显式进入编辑，默认不修改）、账户安全（修改密码：旧密码 + 新密码 + 确认，成功后强制登出重新登录）
+- `/me` 我的资料：账户信息（脱敏邮箱 + 邮箱验证状态，未验证可跳转 `/verify-email`）、头像（裁剪上传/移除）、Bio（textarea + 255 字数统计）、隐私开关（用户名需显式进入编辑，默认不修改）、账户安全（修改密码 + 更换邮箱：新邮箱→发送验证码→6 位验证码确认，成功后失效 me 缓存刷新邮箱）
 - 参与列表排除自建帖：`played-threads` 只返回被其他楼主标记为玩家的帖，自建帖归入「创建的帖子」（后端 `4ed5449` 同步）
 
 **后续迭代：**
@@ -35,6 +35,8 @@
 | PATCH | `/users/me/avatar` | Auth | 设置头像（传入 mediaId），需邮箱已验证 |
 | DELETE | `/users/me/avatar` | Auth | 移除头像（置空 avatar，回到首字母占位），需邮箱已验证 |
 | POST | `/auth/change-password` | AuthRead | 修改密码（旧+新），成功后吊销全部会话强制重新登录 |
+| POST | `/auth/change-email/request-code` | Auth | 更换邮箱第一步：向新邮箱发送验证码 |
+| POST | `/auth/change-email/verify` | Auth | 更换邮箱第二步：验证码确认并更新邮箱 |
 | GET | `/users/:id` | OptionalAuth | 用户公开资料；登录态额外返回 isFollowing/isFollowedBy/isBlocked/isBlockedBy |
 | GET | `/users/:id/recent-replies` | OptionalAuth | 最近 10 条回复（仅 PUBLIC 帖），不分页，受 showRecentReplies 控制 |
 | GET | `/users/:id/created-threads` | OptionalAuth | 创建的帖子（本人可见全部含私密帖，他人仅 PUBLIC），按创建时间倒序，Cursor 分页 |

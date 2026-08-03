@@ -79,3 +79,36 @@ export function useChangePassword() {
     },
   });
 }
+
+/** 更换邮箱第一步：向新邮箱发送验证码 */
+export function useChangeEmailRequest() {
+  return useMutation({
+    mutationFn: async (newEmail: string) => {
+      const { data, error } = await apiClient.POST(
+        "/api/v1/auth/change-email/request-code",
+        { body: { newEmail } },
+      );
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+interface ChangeEmailVerifyRequest {
+  newEmail: string;
+  code: string;
+}
+
+/** 更换邮箱第二步：验证码确认并更新邮箱 */
+export function useChangeEmailVerify() {
+  return useMutation({
+    mutationFn: async (req: ChangeEmailVerifyRequest) => {
+      const { data, error } = await apiClient.POST(
+        "/api/v1/auth/change-email/verify",
+        { body: req },
+      );
+      if (error) throw error;
+      return data;
+    },
+  });
+}

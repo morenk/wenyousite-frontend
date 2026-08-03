@@ -23,6 +23,16 @@ vi.mock("@/api/hooks/use-update-profile", () => ({
 
 vi.mock("@/api/hooks/use-auth-actions", () => ({
   useChangePassword: () => mockChangePassword,
+  useChangeEmailRequest: () => mockChangeEmailRequest,
+  useChangeEmailVerify: () => mockChangeEmailVerify,
+}));
+
+const { mockChangeEmailRequest } = vi.hoisted(() => ({
+  mockChangeEmailRequest: { mutateAsync: vi.fn() },
+}));
+
+const { mockChangeEmailVerify } = vi.hoisted(() => ({
+  mockChangeEmailVerify: { mutateAsync: vi.fn() },
 }));
 
 const { mockLogout } = vi.hoisted(() => ({ mockLogout: vi.fn() }));
@@ -55,6 +65,7 @@ vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
+import { toast } from "sonner";
 import { ProfileEditForm } from "@/components/user/profile-edit-form";
 
 const baseMe = {
@@ -87,6 +98,8 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockMe.mockReturnValue({ data: baseMe, isLoading: false, error: null });
   mockChangePassword.mutateAsync.mockResolvedValue(undefined);
+  mockChangeEmailRequest.mutateAsync.mockResolvedValue({ message: "验证码已发送，请查收新邮箱" });
+  mockChangeEmailVerify.mutateAsync.mockResolvedValue({ message: "邮箱已成功更换" });
 });
 
 afterEach(() => cleanup());
@@ -161,5 +174,31 @@ describe("ProfileEditForm", () => {
       expect(screen.getByText("两次输入的新密码不一致")).toBeInTheDocument();
     });
     expect(mockChangePassword.mutateAsync).not.toHaveBeenCalled();
+  });
+
+  test("发送换邮箱验证码后确认更换成功", async () => {
+    render(<ProfileEditForm />, { wrapper: createWrapper() });
+    fireEvent.change(document.getElementById("new-email")!, { target: { value: "new@example.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "发送验证码" }));
+
+    await waitFor(() => {
+      expect(mockChangeEmailRequest.mutateAsync).toHaveBeenCalledWith("new@example.com");
+    });
+
+    fireEvent.change(document.getElementById("email-code")!, { target: { value: "123456" } });
+    fireEvent.click(screen.getByRole("button", { name: "确认更换" }));
+
+    await waitFor(() => {
+      expect(mockChangeEmailVerify.mutateAsync).toHaveBeenCalledWith({
+        newEmail: "new@example.com",
+        code: "123456",
+      });
+    });
+    expect(toast.success).toHaveBeenCalledWith("邮箱已更换");
+  });
+
+  test("换邮箱验证码未发送时确认按钮禁用", () => {
+    render(<ProfileEditForm />, { wrapper: createWrapper() });
+    expect(screen.getByRole("button", { name: "确认更换" })).toBeDisabled();
   });
 });
