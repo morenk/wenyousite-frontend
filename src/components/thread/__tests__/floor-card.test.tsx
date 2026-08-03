@@ -84,6 +84,19 @@ const baseFloor: PostData = {
   replies: [],
 };
 
+function inlineReply(id: string, content = `回复 ${id}`): PostData {
+  return {
+    ...baseFloor,
+    id,
+    authorId: `author-${id}`,
+    floorNumber: null,
+    parentPostId: "post-1",
+    content,
+    author: { id: `author-${id}`, username: `用户${id}`, avatar: null },
+    replies: [],
+  };
+}
+
 function renderWithQC(ui: React.ReactElement) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
@@ -142,6 +155,32 @@ describe("FloorCard", () => {
     };
     renderWithQC(<FloorCard floor={withReplies} isEven={false} />);
     expect(screen.getByText("3 条回复")).toBeInTheDocument();
+  });
+
+  test("有简短回复时默认展示前五条内联预览", () => {
+    const replies = Array.from({ length: 6 }, (_, index) => inlineReply(`reply-${index + 1}`));
+    const withReplies = { ...baseFloor, _count: { replies: 6 }, replies };
+    renderWithQC(<FloorCard floor={withReplies} isEven={false} />);
+
+    expect(screen.getAllByTestId("inline-reply")).toHaveLength(5);
+    expect(screen.getByText("回复 reply-1")).toBeInTheDocument();
+    expect(screen.queryByText("回复 reply-6")).not.toBeInTheDocument();
+  });
+
+  test("内联回复正文合计超过限制时显示截断预览、渐变遮罩和展开入口", () => {
+    const withReplies = {
+      ...baseFloor,
+      _count: { replies: 1 },
+      replies: [inlineReply("reply-long", "长".repeat(501))],
+    };
+    renderWithQC(<FloorCard floor={withReplies} isEven={false} />);
+
+    expect(screen.getByTestId("inline-reply")).toBeInTheDocument();
+    expect(screen.getByTestId("inline-replies")).toHaveClass("overflow-hidden");
+    expect(screen.getByRole("link", { name: /展开回复/ })).toHaveAttribute(
+      "href",
+      "/threads/t1/posts/post-1/replies",
+    );
   });
 
   test("偶数索引有 bg-muted 样式", () => {

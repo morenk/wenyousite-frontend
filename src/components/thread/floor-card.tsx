@@ -25,6 +25,10 @@ interface FloorCardProps {
   focused?: boolean;
 }
 
+/** 楼层卡片内联楼中楼预览的字符上限。 */
+export const INLINE_REPLY_LIMIT = 5;
+export const INLINE_REPLY_MAX_LENGTH = 500;
+
 export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -36,6 +40,12 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
   const editAnchorId = `floor-edit:${floor.id}`;
   const isEditing = session?.key === `edit:${floor.id}`;
   const discussionHref = `/threads/${floor.threadId}/posts/${floor.id}/replies`;
+  const inlineReplies = (floor.replies ?? []).slice(0, INLINE_REPLY_LIMIT);
+  const inlineRepliesLength = inlineReplies.reduce(
+    (total, reply) => total + reply.content.length,
+    0,
+  );
+  const inlineRepliesOverflow = inlineRepliesLength > INLINE_REPLY_MAX_LENGTH;
 
   useEffect(() => {
     if (!focused) return;
@@ -143,6 +153,64 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
         <ThreadComposerOutlet anchorId={editAnchorId} />
       ) : (
         <MarkdownContent content={floor.content} />
+      )}
+
+      {/* 楼中楼预览：只展示前五条，正文合计过长时截断并用渐变遮罩。 */}
+      {!isEditing && inlineReplies.length > 0 && (
+        <div
+          data-testid="inline-replies"
+          className={cn(
+            "relative mt-3 border-l-2 border-border pl-3",
+            inlineRepliesOverflow && "max-h-96 overflow-hidden",
+          )}
+        >
+          <div className="space-y-2">
+            {inlineReplies.map((reply) => (
+              <div
+                key={reply.id}
+                data-testid="inline-reply"
+                className="rounded-lg border border-border bg-background p-3"
+              >
+                <div className="mb-1 flex items-center gap-2 text-xs text-muted-foreground">
+                  <UserAvatar
+                    name={reply.author.username}
+                    src={reply.author.avatar}
+                    className="h-5 w-5"
+                    textClassName="text-[9px]"
+                  />
+                  <Link
+                    href={`/users/${reply.authorId}`}
+                    className="font-medium text-foreground hover:text-primary"
+                  >
+                    {reply.author.username}
+                  </Link>
+                  <span>
+                    {formatDistanceToNow(new Date(reply.createdAt), {
+                      addSuffix: true,
+                      locale: zhCN,
+                    })}
+                  </span>
+                </div>
+                <MarkdownContent content={reply.content} />
+              </div>
+            ))}
+          </div>
+          {inlineRepliesOverflow && (
+            <>
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-card to-transparent" />
+              <Link
+                href={discussionHref}
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "sm" }),
+                  "absolute bottom-3 left-1/2 z-10 -translate-x-1/2 bg-card/95",
+                )}
+              >
+                展开回复
+                <ArrowRight className="ml-1 h-3.5 w-3.5" />
+              </Link>
+            </>
+          )}
+        </div>
       )}
 
       {/* 回复数 / 回复按钮 */}

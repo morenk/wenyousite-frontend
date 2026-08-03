@@ -38,7 +38,7 @@
 |--------|------|-------|------|
 | GET | `/threads/:id` | Public | 主题帖详情（含子贴列表、owner、_count） |
 | DELETE | `/threads/:id` | Auth | 删除主题帖：未发布帖硬删除，已发布帖软删除，仅 OWNER |
-| GET | `/subthreads/:subthreadId/posts` | Public | 楼层列表（cursor 分页，含内联 replies） |
+| GET | `/subthreads/:subthreadId/posts` | Public | 楼层列表（cursor 分页，含最多 5 条内联 replies） |
 | POST | `/subthreads/:subthreadId/posts` | Auth | 发布新楼层/楼中楼回复（kind=FLOOR，发帖自动成为参与人=玩家候选池；楼中楼带 parentPostId/replyToPostId） |
 | GET | `/posts/:id/replies` | Public | 楼中楼回复列表（cursor 分页） |
 | GET | `/posts/:id` | Public | 查询通知目标帖的主题、子贴与父楼上下文 |
@@ -251,6 +251,8 @@
 | useUpdateMember | `src/api/hooks/use-update-member.ts` | 改参与人角色/玩家标记 |
 | useRemoveMember | `src/api/hooks/use-remove-member.ts` | 移除参与人 |
 | useSubscriptions | `src/api/hooks/use-subscriptions.ts` | 我的订阅列表 |
+
+> 楼层卡片会直接展示 API 返回的前 5 条楼中楼回复；这些回复正文合计超过 500 个字符时，内联区域截断并使用渐变遮罩，点击「展开回复」进入独立楼中楼页面。超过 5 条时仍只展示前 5 条，并通过回复数链接查看完整串。
 | useSubscriptionMutations | `src/api/hooks/use-subscription-mutations.ts` | 创建/取消订阅 |
 | useReadingProgress | `src/api/hooks/use-reading-progress.ts` | 记录阅读进度 + 新回复数 |
 | ThreadEditForm | `src/components/forms/thread-edit-form.tsx` | 已发布帖编辑表单（标题/分区/可见性/标签/正文） |
