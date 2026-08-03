@@ -48,7 +48,7 @@
 | DELETE | `/threads/:id` | Auth | 放弃创建，删除草稿 |
 | PUT | `/subthreads/:subthreadId/body` | Auth | upsert 默认子贴正文（kind=BODY：无正文创建，有正文乐观锁更新，version 不匹配返回 409） |
 | GET | `/tags?q=` | Public | 标签自动补全 |
-| POST | `/media/upload-url` | Auth | 获取 S3 预签名 URL |
+| POST | `/media/upload-url` | Auth | 获取 S3 预签名 URL；**每用户小时配额（默认 60 次）**，超限返回 429 |
 | POST | `/media/upload-done` | Auth | 确认上传完成 |
 | GET | `/media/:id` | Auth | 轮询图片处理状态 |
 
@@ -181,7 +181,8 @@ const threadCreateSchema = z.object({
 | 40000 | 字段长度/格式校验失败 | 按字段显示 inline error |
 | 40001 | 发布校验失败（缺标题/分区/正文） | toast 后端 message |
 | 40900 | 乐观锁冲突 | toast "内容已被修改，请刷新后重试" 并重新获取详情 |
-| 42900 | 限流 | toast "操作太频繁，请稍后再试" |
+| 42900（发帖/保存） | 限流 | toast "操作太频繁，请稍后再试" |
+| 42900（图片上传） | 每用户小时上传配额超限 / 全局限流 | `uploadImageFile` 显式映射为 toast "上传图片太频繁，请稍后再试"，编辑器与头像上传统一复用 |
 | 网络错误 | fetch 失败 | toast "网络连接失败，请检查网络后重试" |
 
 ## 8. 权限与访问控制
