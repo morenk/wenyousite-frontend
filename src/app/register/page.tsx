@@ -17,7 +17,7 @@ import {
   type RegisterStep2FormData,
 } from "@/lib/validations/auth";
 import { useSendRegisterCode, useRegisterComplete } from "@/api/hooks/use-register";
-import { useCountdown } from "@/hooks/use-countdown";
+import { useEmailCode } from "@/hooks/use-email-code";
 import {
   Card,
   CardHeader,
@@ -33,7 +33,7 @@ export default function RegisterPage() {
   const [step, setStep] = useState<"email" | "register">("email");
   const [email, setEmail] = useState("");
   const emailRef = useRef<HTMLInputElement>(null);
-  const { countdown, start } = useCountdown(60);
+  const { countdown, sending, send } = useEmailCode();
   const sendCodeMutation = useSendRegisterCode();
   const registerMutation = useRegisterComplete();
 
@@ -66,18 +66,15 @@ export default function RegisterPage() {
     }
 
     try {
-      const result = await sendCodeMutation.mutateAsync(parsed.data.email);
-
-      if (result && result.data && result.data.emailSent === false) {
-        toast.warning("验证码已生成但邮件发送失败，稍后可重试");
-        start();
-        setStep("register");
-        return;
-      }
-
+      await send(async () => {
+        const result = await sendCodeMutation.mutateAsync(parsed.data.email);
+        if (result && result.data && result.data.emailSent === false) {
+          toast.warning("验证码已生成但邮件发送失败，稍后可重试");
+        } else {
+          toast.success("验证码已发送，请查收邮箱");
+        }
+      });
       setEmail(parsed.data.email);
-      toast.success("验证码已发送，请查收邮箱");
-      start();
       setStep("register");
     } catch (error: unknown) {
       const err = error as { code?: number; message?: string };
@@ -89,6 +86,12 @@ export default function RegisterPage() {
         toast.error(err.message || "发送验证码失败");
       }
     }
+  };
+
+  /** 换一个邮箱注册：返回第一步重新输入 */
+  const handleChangeEmail = () => {
+    setEmail("");
+    setStep("email");
   };
 
   const onSubmit = async (formData: RegisterStep2FormData) => {
@@ -169,10 +172,10 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={handleSendCode}
-                  disabled={sendCodeMutation.isPending}
+                  disabled={sending}
                   className={btnClass}
                 >
-                  {sendCodeMutation.isPending ? "发送中..." : "获取验证码"}
+                  {sending ? "发送中..." : "获取验证码"}
                 </button>
               </div>
             </CardContent>
@@ -182,12 +185,19 @@ export default function RegisterPage() {
                 onSubmit={handleSubmit(onSubmit)}
                 className="flex flex-col gap-4"
               >
-                <div className="flex flex-col gap-1.5">
+                <div className="flex items-center justify-between gap-2">
                   <label className="flex items-center gap-2 text-sm leading-none font-medium select-none">
                     邮箱
                   </label>
-                  <p className="text-sm text-muted-foreground">{email}</p>
+                  <button
+                    type="button"
+                    onClick={handleChangeEmail}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    换个邮箱
+                  </button>
                 </div>
+                <p className="text-sm text-muted-foreground">{email}</p>
 
                 <div className="flex flex-col gap-1.5">
                   <label
@@ -213,7 +223,7 @@ export default function RegisterPage() {
                   <p className="text-xs text-muted-foreground">
                     {countdown > 0
                       ? `${countdown} 秒后可重新发送`
-                      : countdown === 0 && !sendCodeMutation.isPending && (
+                      : countdown === 0 && !sending && (
                           <button
                             type="button"
                             className="text-primary hover:underline"

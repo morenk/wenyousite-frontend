@@ -13,9 +13,12 @@ import { Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import {
   resetPasswordSchema,
+  emailSchema,
   type ResetPasswordFormData,
 } from "@/lib/validations/auth";
-import { useResetPassword } from "@/api/hooks/use-auth-actions";
+import { useResetPassword, useForgotPassword } from "@/api/hooks/use-auth-actions";
+import { useEmailCode } from "@/hooks/use-email-code";
+import { SendCodeButton } from "@/components/auth/send-code-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,10 +35,13 @@ export default function ResetPasswordPage() {
   const router = useRouter();
   const { user, logout, isInitialized } = useAuth();
   const resetMutation = useResetPassword();
+  const forgotMutation = useForgotPassword();
+  const { countdown, sending, send } = useEmailCode();
 
   const {
     register,
     handleSubmit,
+    getValues,
     formState: { errors },
   } = useForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema),
@@ -47,6 +53,23 @@ export default function ResetPasswordPage() {
       router.replace("/");
     }
   }, [user, router, isInitialized]);
+
+  const handleSend = async () => {
+    const parsed = emailSchema.safeParse({ email: getValues("email") });
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0].message);
+      return;
+    }
+    try {
+      await send(async () => {
+        await forgotMutation.mutateAsync({ email: parsed.data.email });
+        toast.success("验证码已发送，请查收邮箱");
+      });
+    } catch (err) {
+      const e = err as { code?: number; message?: string };
+      toast.error(e.code === 42900 ? "操作太频繁，请稍后再试" : e.message || "发送失败，请稍后重试");
+    }
+  };
 
   const onSubmit = async (formData: ResetPasswordFormData) => {
     try {
@@ -112,14 +135,24 @@ export default function ResetPasswordPage() {
 
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="token">验证码</Label>
-                <Input
-                  id="token"
-                  placeholder="6 位数字"
-                  maxLength={6}
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  {...register("token")}
-                />
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="token"
+                    placeholder="6 位数字"
+                    maxLength={6}
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    {...register("token")}
+                  />
+                  <SendCodeButton
+                    countdown={countdown}
+                    sending={sending}
+                    sent={false}
+                    onSend={handleSend}
+                    initialLabel="发送验证码"
+                    className="shrink-0"
+                  />
+                </div>
                 {errors.token && (
                   <p className="text-xs text-destructive">
                     {errors.token.message}

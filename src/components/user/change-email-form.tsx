@@ -17,7 +17,8 @@ import {
   emailSchema,
   type ChangeEmailFormData,
 } from "@/lib/validations/auth";
-import { useCountdown } from "@/hooks/use-countdown";
+import { useEmailCode } from "@/hooks/use-email-code";
+import { SendCodeButton } from "@/components/auth/send-code-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
@@ -36,7 +37,7 @@ export function ChangeEmailForm() {
     resolver: zodResolver(changeEmailSchema),
     defaultValues: { oldPassword: "", newEmail: "", code: "" },
   });
-  const emailCountdown = useCountdown(60);
+  const { countdown, sending, send } = useEmailCode();
   const [codeSent, setCodeSent] = useState(false);
   const [done, setDone] = useState(false);
 
@@ -48,13 +49,14 @@ export function ChangeEmailForm() {
       return;
     }
     try {
-      await changeEmailRequest.mutateAsync({
-        newEmail: parsed.data.email,
-        oldPassword: getValues("oldPassword"),
+      await send(async () => {
+        await changeEmailRequest.mutateAsync({
+          newEmail: parsed.data.email,
+          oldPassword: getValues("oldPassword"),
+        });
+        setCodeSent(true);
+        toast.success("验证码已发送至新邮箱");
       });
-      setCodeSent(true);
-      emailCountdown.start();
-      toast.success("验证码已发送至新邮箱");
     } catch (err) {
       const e = err as { code?: number; message?: string };
       if (e.code === 40900) {
@@ -133,21 +135,13 @@ export function ChangeEmailForm() {
             disabled={!codeSent}
             {...register("code")}
           />
-          <Button
-            type="button"
-            variant="outline"
+          <SendCodeButton
+            countdown={countdown}
+            sending={sending}
+            sent={codeSent}
+            onSend={handleSendCode}
             className="shrink-0"
-            onClick={handleSendCode}
-            disabled={changeEmailRequest.isPending || emailCountdown.countdown > 0}
-          >
-            {changeEmailRequest.isPending
-              ? "发送中..."
-              : emailCountdown.countdown > 0
-                ? `${emailCountdown.countdown} 秒后重发`
-                : codeSent
-                  ? "重新发送"
-                  : "发送验证码"}
-          </Button>
+          />
         </div>
         {errors.code && (
           <p className="text-xs text-destructive">{errors.code.message}</p>

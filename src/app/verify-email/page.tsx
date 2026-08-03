@@ -18,6 +18,8 @@ import {
   useVerifyEmail,
   useResendVerification,
 } from "@/api/hooks/use-auth-actions";
+import { useEmailCode } from "@/hooks/use-email-code";
+import { SendCodeButton } from "@/components/auth/send-code-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +36,7 @@ export default function VerifyEmailPage() {
   const { user, isInitialized } = useAuth();
   const verifyMutation = useVerifyEmail();
   const resendMutation = useResendVerification();
+  const { countdown, sending, send } = useEmailCode();
 
   const {
     register,
@@ -65,14 +68,16 @@ export default function VerifyEmailPage() {
     }
   };
 
-  const handleResend = async () => {
+  const handleSend = async () => {
     if (!user?.email) {
       toast.error("无法获取邮箱信息");
       return;
     }
     try {
-      await resendMutation.mutateAsync(user.email);
-      toast.success("验证码已重新发送");
+      await send(async () => {
+        await resendMutation.mutateAsync(user.email);
+        toast.success("验证码已发送");
+      });
     } catch {
       toast.error("发送失败，请稍后重试");
     }
@@ -127,16 +132,14 @@ export default function VerifyEmailPage() {
                 {verifyMutation.isPending ? "验证中..." : "验证"}
               </Button>
 
-              <Button
-                type="button"
-                variant="link"
-                size="sm"
+              <SendCodeButton
+                countdown={countdown}
+                sending={sending}
+                sent={false}
+                onSend={handleSend}
+                initialLabel="发送验证码"
                 className="w-full"
-                disabled={resendMutation.isPending}
-                onClick={handleResend}
-              >
-                {resendMutation.isPending ? "发送中..." : "重新发送验证码"}
-              </Button>
+              />
             </form>
           </CardContent>
         </Card>
