@@ -42,7 +42,7 @@
 **接入点：**
 - `src/components/thread/floor-card.tsx` — 楼层正文
 - `src/components/thread/subthread-body.tsx` — 子贴正文
-- `src/app/globals.css` — `.prose img { max-width:100%; height:auto }` 兜底
+- `src/app/globals.css` — 注册 `@tailwindcss/typography` 插件（`@plugin`）提供 `.prose` 排版（引用/标题/列表等），并保留 `.prose img { max-width:100%; height:auto }` 兜底
 
 ## 4. 渲染约定
 
@@ -56,6 +56,7 @@
 | lightbox 图片单击 | 在适应屏幕与 1:1 原图之间切换；事件不会冒泡触发遮罩关闭 |
 | lightbox 其他操作 | 滚轮/工具栏缩放，放大后拖拽平移；Esc、点背景或关闭按钮退出 |
 | Milkdown 空段落 | 独占行 `<br />` / `<br>` / `<br/>` 规范化为安全空段落；围栏代码块中的同名示例原样保留 |
+| 引用（blockquote） | 由 `@tailwindcss/typography` 插件（`prose` 类）提供：左边框 + 斜体 + 引号；该插件已在 `globals.css` 以 `@plugin` 注册（此前未注册导致引用发布后呈常规文字） |
 | 原始 HTML | `react-markdown` 使用 `skipHtml` 忽略，不执行用户输入的标签或脚本 |
 
 **识别本站上传图的判定**：objectKey 统一以 `uploads/` 开头（后端生成规则），故以 URL 包含 `/uploads/` 判断，无需前端持有 COS 域名配置。
