@@ -5,14 +5,11 @@
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { ArrowLeft, MessageSquare } from "lucide-react";
-import { useAuth } from "@/lib/auth";
+import { ArrowLeft } from "lucide-react";
 import { MarkdownContent } from "@/components/thread/markdown-content";
 import { ReplyList } from "@/components/thread/reply-list";
-import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
-import { useThreadComposer } from "@/components/thread/thread-composer-context";
+import { ReplyForm } from "@/components/thread/reply-form";
 import { UserAvatar } from "@/components/shared/user-avatar";
-import { Button } from "@/components/ui/button";
 import type { PostData } from "@/api/hooks/use-floors";
 import type { PostDetail } from "@/api/hooks/use-post";
 
@@ -22,9 +19,6 @@ interface ReplyDiscussionProps {
 }
 
 export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps) {
-  const { user } = useAuth();
-  const { open } = useThreadComposer();
-  const replyAnchorId = `discussion-root-reply:${rootPost.id}`;
   const originalFloorHref = `/threads/${rootPost.thread.id}?post=${rootPost.id}`;
 
   return (
@@ -70,30 +64,10 @@ export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps
                 </p>
               </div>
             </div>
-            {user && (
-              <Button
-                type="button"
-                size="sm"
-                onClick={() => open({
-                  key: `reply:${rootPost.id}`,
-                  anchorId: replyAnchorId,
-                  type: "reply",
-                  subthreadId: rootPost.subthreadId,
-                  parentPostId: rootPost.id,
-                  replyToPostId: rootPost.id,
-                  label: `回复 #${rootPost.floorNumber} ${rootPost.author.username}`,
-                  initialContent: "",
-                })}
-              >
-                <MessageSquare className="mr-1.5 h-4 w-4" />
-                参与讨论
-              </Button>
-            )}
           </div>
         </div>
         <div className="px-5 py-5">
           <MarkdownContent content={rootPost.content} />
-          <ThreadComposerOutlet anchorId={replyAnchorId} />
         </div>
       </section>
 
@@ -105,6 +79,14 @@ export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps
           </span>
         </div>
         <ReplyList postId={rootPost.id} focusedReply={focusedReply} variant="discussion" />
+        <div className="mt-4">
+          <ReplyForm
+            subthreadId={rootPost.subthreadId}
+            parentPostId={rootPost.id}
+            replyToPostId={rootPost.id}
+            label={`回复 #${rootPost.floorNumber} ${rootPost.author.username}`}
+          />
+        </div>
       </section>
     </main>
   );

@@ -229,7 +229,8 @@
 | ThreadComposer | `src/components/thread/thread-composer.tsx` | 按当前会话创建楼层、回复或编辑帖子；唯一挂载 MilkdownEditor |
 | ThreadComposerOutlet | `src/components/thread/thread-composer.tsx` | 放置在楼层/回复上下文中的轻量插槽，仅活动目标渲染编辑器 |
 | FloorForm | `src/components/thread/floor-form.tsx` | 新楼层轻量入口；点击后才在底部展开唯一编辑器 |
-| ReplyDiscussion | `src/components/thread/reply-discussion.tsx` | 独立楼中楼阅读主体：原楼层作为讨论正文、导航回原楼层、回复入口与总数 |
+| ReplyDiscussion | `src/components/thread/reply-discussion.tsx` | 独立楼中楼阅读主体：原楼层作为讨论正文、导航回原楼层、回复列表与底部回复输入框 |
+| ReplyForm | `src/components/thread/reply-form.tsx` | 楼中楼底部回复入口：登录用户按需打开统一编辑器，未登录显示登录提示 |
 | ReplyList | `src/components/thread/reply-list.tsx` | 楼中楼连续楼层列表（无限加载；作者本人可编辑/删除；每条回复可对用户回复，显示「回复 @xxx」上下文） |
 | MemberManager | `src/components/thread/member-manager.tsx` | 成员管理：授予/收回玩家、升级/降级协作者、移除参与人 |
 | ManagementPanel | `src/components/thread/management-panel.tsx` | 帖主管理面板：左子贴目录树 + 右单例编辑器 |
