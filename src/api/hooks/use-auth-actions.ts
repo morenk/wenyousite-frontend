@@ -61,3 +61,21 @@ export function useResendVerification() {
     },
   });
 }
+
+interface ChangePasswordRequest {
+  oldPassword: string;
+  newPassword: string;
+}
+
+/** 修改密码：成功后后端吊销全部 refresh token，需重新登录 */
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: async (req: ChangePasswordRequest) => {
+      const { data, error } = await apiClient.POST("/api/v1/auth/change-password", {
+        body: req,
+      });
+      if (error) throw error;
+      return data;
+    },
+  });
+}

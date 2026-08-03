@@ -72,8 +72,24 @@ export const verifyEmailSchema = z.object({
     .regex(/^\d+$/, { message: "验证码为 6 位数字" }),
 });
 
+export const changePasswordSchema = z
+  .object({
+    oldPassword: z.string().min(1, { message: "请输入当前密码" }),
+    newPassword: z
+      .string()
+      .min(8, { message: "密码至少 8 位" })
+      .regex(/[a-zA-Z]/, { message: "密码需包含至少一个字母" })
+      .regex(/\d/, { message: "密码需包含至少一个数字" }),
+    confirmPassword: z.string().min(1, { message: "请再次输入新密码" }),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "两次输入的新密码不一致",
+    path: ["confirmPassword"],
+  });
+
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type RegisterStep2FormData = z.infer<typeof registerStep2Schema>;
 export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 export type VerifyEmailFormData = z.infer<typeof verifyEmailSchema>;
+export type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;

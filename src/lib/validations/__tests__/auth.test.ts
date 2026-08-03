@@ -8,6 +8,7 @@ import {
   forgotPasswordSchema,
   resetPasswordSchema,
   verifyEmailSchema,
+  changePasswordSchema,
 } from "@/lib/validations/auth";
 
 describe("loginSchema", () => {
@@ -229,5 +230,47 @@ describe("verifyEmailSchema", () => {
   test("验证码含非数字", () => {
     const result = verifyEmailSchema.safeParse({ token: "abcdef" });
     expect(result.success).toBe(false);
+  });
+});
+
+describe("changePasswordSchema", () => {
+  const valid = {
+    oldPassword: "OldPass123",
+    newPassword: "NewPass456",
+    confirmPassword: "NewPass456",
+  };
+
+  test("合法输入通过", () => {
+    expect(changePasswordSchema.safeParse(valid).success).toBe(true);
+  });
+
+  test("当前密码为空", () => {
+    const result = changePasswordSchema.safeParse({ ...valid, oldPassword: "" });
+    expect(result.success).toBe(false);
+  });
+
+  test("新密码不足 8 位", () => {
+    const result = changePasswordSchema.safeParse({
+      ...valid,
+      newPassword: "New1",
+      confirmPassword: "New1",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  test("新密码缺少字母或数字", () => {
+    expect(changePasswordSchema.safeParse({ ...valid, newPassword: "12345678", confirmPassword: "12345678" }).success).toBe(false);
+    expect(changePasswordSchema.safeParse({ ...valid, newPassword: "abcdefgh", confirmPassword: "abcdefgh" }).success).toBe(false);
+  });
+
+  test("两次新密码不一致", () => {
+    const result = changePasswordSchema.safeParse({
+      ...valid,
+      confirmPassword: "Different1",
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0].path).toContain("confirmPassword");
+    }
   });
 });

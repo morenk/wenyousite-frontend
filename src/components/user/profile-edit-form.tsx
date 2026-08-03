@@ -12,10 +12,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useMe } from "@/api/hooks/use-me";
 import { useUpdateProfile } from "@/api/hooks/use-update-profile";
+import { useChangePassword } from "@/api/hooks/use-auth-actions";
 import { profileSchema, type ProfileFormData } from "@/lib/validations/profile";
+import {
+  changePasswordSchema,
+  type ChangePasswordFormData,
+} from "@/lib/validations/auth";
+import { useAuth } from "@/lib/auth";
 import { UsernameEdit } from "@/components/user/username-edit";
 import { AvatarUploader } from "@/components/user/avatar-uploader";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -28,8 +35,14 @@ function maskEmail(email: string): string {
 
 export function ProfileEditForm() {
   const router = useRouter();
+  const { logout } = useAuth();
   const { data: me, isLoading, error } = useMe();
   const updateProfile = useUpdateProfile();
+  const changePassword = useChangePassword();
+  const changePwdForm = useForm<ChangePasswordFormData>({
+    resolver: zodResolver(changePasswordSchema),
+    defaultValues: { oldPassword: "", newPassword: "", confirmPassword: "" },
+  });
 
   const {
     register,
@@ -77,6 +90,22 @@ export function ProfileEditForm() {
       } else {
         toast.error(e.message || "保存失败，请稍后重试");
       }
+    }
+  };
+
+  const handleChangePassword = async (values: ChangePasswordFormData) => {
+    try {
+      await changePassword.mutateAsync({
+        oldPassword: values.oldPassword,
+        newPassword: values.newPassword,
+      });
+      toast.success("密码已修改，请重新登录");
+      // 后端已吊销全部 refresh token，当前会话强制下线
+      logout();
+      router.replace("/login");
+    } catch (err) {
+      const e = err as { code?: number; message?: string };
+      toast.error(e.message || "修改失败，请稍后重试");
     }
   };
 
@@ -184,6 +213,68 @@ export function ProfileEditForm() {
               description="允许他人在你的主页查看收藏"
               register={register("showBookmarks")}
             />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>账户安全</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 pt-6">
+            <div className="space-y-1.5">
+              <Label htmlFor="old-password">当前密码</Label>
+              <Input
+                id="old-password"
+                type="password"
+                autoComplete="current-password"
+                {...changePwdForm.register("oldPassword")}
+              />
+              {changePwdForm.formState.errors.oldPassword && (
+                <p className="text-xs text-destructive">
+                  {changePwdForm.formState.errors.oldPassword.message}
+                </p>
+              )}
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="new-password">新密码</Label>
+              <Input
+                id="new-password"
+                type="password"
+                autoComplete="new-password"
+                {...changePwdForm.register("newPassword")}
+              />
+              {changePwdForm.formState.errors.newPassword && (
+                <p className="text-xs text-destructive">
+                  {changePwdForm.formState.errors.newPassword.message}
+                </p>
+              )}
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="confirm-password">确认新密码</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                autoComplete="new-password"
+                {...changePwdForm.register("confirmPassword")}
+              />
+              {changePwdForm.formState.errors.confirmPassword && (
+                <p className="text-xs text-destructive">
+                  {changePwdForm.formState.errors.confirmPassword.message}
+                </p>
+              )}
+            </div>
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                onClick={changePwdForm.handleSubmit(handleChangePassword)}
+                disabled={changePassword.isPending}
+              >
+                {changePassword.isPending ? (
+                  <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                ) : null}
+                修改密码
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
