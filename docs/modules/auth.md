@@ -176,6 +176,9 @@ if (error) {
   toast.error(error.message || "操作失败");
   return;
 }
+```
+
+> **401 拦截器例外**：`apiClient` 对携带 accessToken 的请求遇到 401 会自动清除登录态并跳转 `/login`（会话过期）。但登录/注册/重置/验证码/改密/换邮箱等「业务 401」端点（`client.ts` 的 `BUSINESS_401_PATHS`）由页面自行 toast 提示，不触发跳转。
 // 处理 data
 ```
 
