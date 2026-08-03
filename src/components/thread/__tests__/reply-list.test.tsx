@@ -12,9 +12,11 @@ const { mockUseReplies } = vi.hoisted(() => ({
 const { mockUseAuth } = vi.hoisted(() => ({
   mockUseAuth: vi.fn(),
 }));
-const { mockUpdateMutateAsync, mockDeleteMutateAsync } = vi.hoisted(() => ({
+const { mockUpdateMutateAsync, mockDeleteMutateAsync, mockClipboardWriteText, mockToastSuccess } = vi.hoisted(() => ({
   mockUpdateMutateAsync: vi.fn().mockResolvedValue({}),
   mockDeleteMutateAsync: vi.fn().mockResolvedValue(undefined),
+  mockClipboardWriteText: vi.fn().mockResolvedValue(undefined),
+  mockToastSuccess: vi.fn(),
 }));
 
 vi.mock("@/api/hooks/use-replies", () => ({
@@ -38,7 +40,7 @@ vi.mock("@/api/hooks/use-delete-post", () => ({
 }));
 
 vi.mock("sonner", () => ({
-  toast: { success: vi.fn(), error: vi.fn() },
+  toast: { success: mockToastSuccess, error: vi.fn() },
 }));
 
 vi.mock("@/lib/auth", () => ({
@@ -76,6 +78,8 @@ beforeEach(() => {
   mockUseAuth.mockReturnValue({ user: null });
   mockUpdateMutateAsync.mockClear();
   mockDeleteMutateAsync.mockClear();
+  mockClipboardWriteText.mockClear();
+  mockToastSuccess.mockClear();
 });
 
 function createWrapper() {
@@ -144,6 +148,23 @@ describe("ReplyList", () => {
     expect(screen.getByText("replier")).toBeInTheDocument();
     expect(screen.getByText("楼中楼回复内容")).toBeInTheDocument();
     expect(screen.getByTestId("user-avatar-placeholder").textContent).toBe("R");
+  });
+
+  test("回复卡片可复制楼中楼精确链接", async () => {
+    const user = userEvent.setup();
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: mockClipboardWriteText },
+    });
+    mockUseReplies.mockReturnValue(dataWithReplies([baseReply()]));
+
+    render(<ReplyList postId="post-1" />, { wrapper: createWrapper() });
+    await user.click(screen.getByRole("button", { name: "复制回复链接" }));
+
+    expect(mockClipboardWriteText).toHaveBeenCalledWith(
+      "http://localhost:3000/threads/t1/posts/post-1/replies?post=reply-1",
+    );
+    expect(mockToastSuccess).toHaveBeenCalledWith("链接已复制");
   });
 
   test("作者有头像时渲染缩略图", () => {

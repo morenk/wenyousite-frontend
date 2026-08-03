@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { Loader2, ChevronDown, MessageSquare, Pencil, Trash2 } from "lucide-react";
+import { Loader2, ChevronDown, Copy, MessageSquare, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useReplies } from "@/api/hooks/use-replies";
 import { useDeletePost } from "@/api/hooks/use-delete-post";
@@ -123,6 +123,7 @@ export function ReplyList({ postId, focusedReply, variant = "embedded" }: ReplyL
         const isAuthor = user?.id === reply.authorId;
         const anchorId = `reply:${reply.id}`;
         const isEditing = session?.key === `edit:${reply.id}`;
+        const replyHref = `/threads/${reply.threadId}/posts/${postId}/replies?post=${reply.id}`;
         return (
           <div
             key={reply.id}
@@ -202,6 +203,25 @@ export function ReplyList({ postId, focusedReply, variant = "embedded" }: ReplyL
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>
+              )}
+              {!isEditing && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-xs"
+                  aria-label="复制回复链接"
+                  title="复制回复链接"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(`${window.location.origin}${replyHref}`);
+                      toast.success("链接已复制");
+                    } catch {
+                      toast.error("复制失败，请稍后重试");
+                    }
+                  }}
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
               )}
               {user && !isEditing && (
                 <Button

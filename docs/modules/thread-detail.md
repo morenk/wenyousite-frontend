@@ -60,6 +60,8 @@
 
 > **通知精确定位**：主楼层仍使用详情页 `?post=` 注入并高亮；楼中楼通知直接进入 `/threads/{threadId}/posts/{parentPostId}/replies?post={replyId}`，在独立阅读页高亮目标回复。兼容旧链接：详情页发现目标是楼中楼时立即重定向到独立阅读页。
 
+> **站内链接契约（第一切片）**：楼中楼回复可通过 `/threads/{threadId}/posts/{parentPostId}/replies?post={replyId}` 精确定位；回复卡片提供复制链接入口。该 URL 仅依赖现有 Post 字段，不新增 API。
+
 ## 4. API 响应快照
 
 ### GET /threads/:id → ThreadDetail
