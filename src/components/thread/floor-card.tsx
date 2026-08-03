@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { ArrowRight, Copy, MessageSquare, Pencil, Trash2 } from "lucide-react";
+import { ArrowRight, Link2, MessageSquare, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
@@ -129,8 +129,8 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
               variant="ghost"
               size="sm"
               className="h-7 px-2"
-              aria-label="复制楼层链接"
-              title="复制楼层链接"
+              aria-label="复制本楼层链接"
+              title="复制本楼层链接"
               onClick={async () => {
                 try {
                   await navigator.clipboard.writeText(`${window.location.origin}${floorHref}`);
@@ -140,7 +140,7 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
                 }
               }}
             >
-              <Copy className="h-3.5 w-3.5" />
+              <Link2 className="h-3.5 w-3.5" />
             </Button>
           )}
           {isAuthor && !isEditing && (

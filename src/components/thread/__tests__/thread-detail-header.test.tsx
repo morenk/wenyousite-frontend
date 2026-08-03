@@ -23,9 +23,10 @@ const { mockPOST, mockDELETE, mockGET } = vi.hoisted(() => ({
   mockDELETE: vi.fn(),
   mockGET: vi.fn(),
 }));
-const { mockDeleteThreadMutate, mockRouterPush } = vi.hoisted(() => ({
+const { mockDeleteThreadMutate, mockRouterPush, mockClipboardWriteText } = vi.hoisted(() => ({
   mockDeleteThreadMutate: vi.fn().mockResolvedValue({}),
   mockRouterPush: vi.fn(),
+  mockClipboardWriteText: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("@/api/client", () => ({
@@ -72,6 +73,11 @@ beforeEach(() => {
   mockDeleteThreadMutate.mockClear();
   mockDeleteThreadMutate.mockResolvedValue({});
   mockRouterPush.mockClear();
+  mockClipboardWriteText.mockClear();
+  Object.defineProperty(window.navigator, "clipboard", {
+    configurable: true,
+    value: { writeText: mockClipboardWriteText },
+  });
 });
 
 function renderWithQC(ui: React.ReactElement) {
@@ -128,6 +134,23 @@ describe("ThreadDetailHeader", () => {
       <ThreadDetailHeader thread={baseThread} />,
     );
     expect(screen.getByText("测试主题帖")).toBeInTheDocument();
+  });
+
+  test("可复制主题帖链接", async () => {
+    const user = userEvent.setup();
+    mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
+    Object.defineProperty(window.navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: mockClipboardWriteText },
+    });
+    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
+
+    await user.click(screen.getByRole("button", { name: "复制主题帖链接" }));
+
+    expect(mockClipboardWriteText).toHaveBeenCalledWith(
+      "http://localhost:3000/threads/thread-1",
+    );
+    expect(toast.success).toHaveBeenCalledWith("链接已复制");
   });
 
   test("渲染分类和状态中文映射", () => {

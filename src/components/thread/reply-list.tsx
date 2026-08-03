@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { Loader2, ChevronDown, Copy, MessageSquare, Pencil, Trash2 } from "lucide-react";
+import { ChevronDown, Link2, Loader2, MessageSquare, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useReplies } from "@/api/hooks/use-replies";
 import { useDeletePost } from "@/api/hooks/use-delete-post";
@@ -209,8 +209,8 @@ export function ReplyList({ postId, focusedReply, variant = "embedded" }: ReplyL
                   variant="ghost"
                   size="sm"
                   className="h-6 px-2 text-xs"
-                  aria-label="复制回复链接"
-                  title="复制回复链接"
+                  aria-label="复制此回复链接"
+                  title="复制此回复链接"
                   onClick={async () => {
                     try {
                       await navigator.clipboard.writeText(`${window.location.origin}${replyHref}`);
@@ -220,7 +220,7 @@ export function ReplyList({ postId, focusedReply, variant = "embedded" }: ReplyL
                     }
                   }}
                 >
-                  <Copy className="h-3.5 w-3.5" />
+                  <Link2 className="h-3.5 w-3.5" />
                 </Button>
               )}
               {user && !isEditing && (

@@ -64,6 +64,8 @@
 
 > **站内链接契约（第二切片）**：主楼层可通过 `/threads/{threadId}?post={postId}` 精确定位；楼层卡片提供复制链接入口。该 URL 仅依赖现有 Post 字段，不新增 API。
 
+> **站内链接契约（第三切片）**：主题帖可通过 `/threads/{threadId}` 访问根页面；主题帖头部提供复制主题帖链接入口。复制链接按钮统一使用链条语义文案，避免与复制正文混淆。
+
 ## 4. API 响应快照
 
 ### GET /threads/:id → ThreadDetail

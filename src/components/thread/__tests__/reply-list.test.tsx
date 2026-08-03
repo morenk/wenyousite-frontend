@@ -159,7 +159,7 @@ describe("ReplyList", () => {
     mockUseReplies.mockReturnValue(dataWithReplies([baseReply()]));
 
     render(<ReplyList postId="post-1" />, { wrapper: createWrapper() });
-    await user.click(screen.getByRole("button", { name: "复制回复链接" }));
+    await user.click(screen.getByRole("button", { name: "复制此回复链接" }));
 
     expect(mockClipboardWriteText).toHaveBeenCalledWith(
       "http://localhost:3000/threads/t1/posts/post-1/replies?post=reply-1",

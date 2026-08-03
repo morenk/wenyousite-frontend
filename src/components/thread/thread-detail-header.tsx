@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Heart, Edit3, Settings, Loader2, Bell, BellOff, Trash2 } from "lucide-react";
+import { Bell, BellOff, Edit3, Heart, Link2, Loader2, Settings, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
@@ -111,6 +111,15 @@ export function ThreadDetailHeader({
     }
   };
 
+  const handleCopyThreadLink = async () => {
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/threads/${thread.id}`);
+      toast.success("链接已复制");
+    } catch {
+      toast.error("复制失败，请稍后重试");
+    }
+  };
+
   return (
     <div className="border-b border-border pb-5">
       <div className="flex flex-col gap-4">
@@ -182,6 +191,16 @@ export function ThreadDetailHeader({
 
         {/* 操作按钮 */}
         <div className="flex items-center gap-2 border-t border-border pt-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-label="复制主题帖链接"
+            title="复制主题帖链接"
+            onClick={handleCopyThreadLink}
+          >
+            <Link2 className="mr-1 h-4 w-4" />
+            复制链接
+          </Button>
           {user ? (
             <>
               <Button

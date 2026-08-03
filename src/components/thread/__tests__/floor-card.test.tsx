@@ -172,12 +172,12 @@ describe("FloorCard", () => {
     });
     renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
 
-    await user.click(screen.getByRole("button", { name: "复制楼层链接" }));
+    await user.click(screen.getByRole("button", { name: "复制本楼层链接" }));
 
     expect(mockClipboardWriteText).toHaveBeenCalledWith(
       "http://localhost:3000/threads/t1?post=post-1",
     );
-    expect(screen.getByRole("button", { name: "复制楼层链接" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "复制本楼层链接" })).toBeInTheDocument();
   });
 
   test("有简短回复时默认展示前五条内联预览", () => {
