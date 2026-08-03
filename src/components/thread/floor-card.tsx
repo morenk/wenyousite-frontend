@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { MessageSquare, Pencil, Trash2, ArrowRight } from "lucide-react";
+import { ArrowRight, Copy, MessageSquare, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
@@ -40,6 +40,7 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
   const editAnchorId = `floor-edit:${floor.id}`;
   const isEditing = session?.key === `edit:${floor.id}`;
   const discussionHref = `/threads/${floor.threadId}/posts/${floor.id}/replies`;
+  const floorHref = `/threads/${floor.threadId}?post=${floor.id}`;
   const inlineReplies = (floor.replies ?? []).slice(0, INLINE_REPLY_LIMIT);
   const inlineRepliesLength = inlineReplies.reduce(
     (total, reply) => total + reply.content.length,
@@ -123,6 +124,25 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
               locale: zhCN,
             })}
           </span>
+          {!isEditing && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2"
+              aria-label="复制楼层链接"
+              title="复制楼层链接"
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(`${window.location.origin}${floorHref}`);
+                  toast.success("链接已复制");
+                } catch {
+                  toast.error("复制失败，请稍后重试");
+                }
+              }}
+            >
+              <Copy className="h-3.5 w-3.5" />
+            </Button>
+          )}
           {isAuthor && !isEditing && (
             <>
               <Button

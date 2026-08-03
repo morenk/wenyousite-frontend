@@ -14,7 +14,10 @@ vi.mock("next/link", () => ({
   },
 }));
 
-const mockUseAuth = vi.fn();
+const { mockUseAuth, mockClipboardWriteText } = vi.hoisted(() => ({
+  mockUseAuth: vi.fn(),
+  mockClipboardWriteText: vi.fn().mockResolvedValue(undefined),
+}));
 vi.mock("@/lib/auth", () => ({
   useAuth: () => mockUseAuth(),
 }));
@@ -109,6 +112,10 @@ function renderWithQC(ui: React.ReactElement) {
 describe("FloorCard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: mockClipboardWriteText },
+    });
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
   });
 
@@ -155,6 +162,22 @@ describe("FloorCard", () => {
     };
     renderWithQC(<FloorCard floor={withReplies} isEven={false} />);
     expect(screen.getByText("3 条回复")).toBeInTheDocument();
+  });
+
+  test("楼层卡片可复制楼层精确链接", async () => {
+    const user = userEvent.setup();
+    Object.defineProperty(window.navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: mockClipboardWriteText },
+    });
+    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+
+    await user.click(screen.getByRole("button", { name: "复制楼层链接" }));
+
+    expect(mockClipboardWriteText).toHaveBeenCalledWith(
+      "http://localhost:3000/threads/t1?post=post-1",
+    );
+    expect(screen.getByRole("button", { name: "复制楼层链接" })).toBeInTheDocument();
   });
 
   test("有简短回复时默认展示前五条内联预览", () => {
