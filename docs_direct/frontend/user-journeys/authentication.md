@@ -63,7 +63,7 @@ Content-Type: application/json
 - 倒计时 60 秒后才能再次点击"重新发送"。
 - 后端限流 1 次/分钟。
 
-### 第二步：提交验证码 + 用户名 + 密码
+### 第二步：提交验证码 + 用户名 + 密码（前端要求输入两次密码确认，`confirmPassword` 不随请求提交）
 
 ```http
 POST /api/v1/auth/register/verify-and-complete

@@ -35,25 +35,31 @@ export const loginSchema = z.object({
     .min(8, { message: "密码至少 8 位" }),
 });
 
-export const registerStep2Schema = z.object({
-  code: z
-    .string()
-    .min(6, { message: "验证码为 6 位数字" })
-    .max(6, { message: "验证码为 6 位数字" })
-    .regex(/^\d+$/, { message: "验证码为 6 位数字" }),
-  username: z
-    .string()
-    .min(2, { message: "用户名至少 2 位" })
-    .max(24, { message: "用户名最多 24 位" })
-    .regex(/^[a-zA-Z0-9\u4e00-\u9fff]+$/, {
-      message: "用户名只允许字母、数字、中文",
-    }),
-  password: z
-    .string()
-    .min(8, { message: "密码至少 8 位" })
-    .regex(/[a-zA-Z]/, { message: "密码需包含至少一个字母" })
-    .regex(/\d/, { message: "密码需包含至少一个数字" }),
-});
+export const registerStep2Schema = z
+  .object({
+    code: z
+      .string()
+      .min(6, { message: "验证码为 6 位数字" })
+      .max(6, { message: "验证码为 6 位数字" })
+      .regex(/^\d+$/, { message: "验证码为 6 位数字" }),
+    username: z
+      .string()
+      .min(2, { message: "用户名至少 2 位" })
+      .max(24, { message: "用户名最多 24 位" })
+      .regex(/^[a-zA-Z0-9\u4e00-\u9fff]+$/, {
+        message: "用户名只允许字母、数字、中文",
+      }),
+    password: z
+      .string()
+      .min(8, { message: "密码至少 8 位" })
+      .regex(/[a-zA-Z]/, { message: "密码需包含至少一个字母" })
+      .regex(/\d/, { message: "密码需包含至少一个数字" }),
+    confirmPassword: z.string().min(1, { message: "请再次输入密码" }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "两次输入的密码不一致",
+    path: ["confirmPassword"],
+  });
 
 export const forgotPasswordSchema = z.object({
   email: z

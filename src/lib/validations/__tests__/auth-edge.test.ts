@@ -95,6 +95,7 @@ describe("registerStep2Schema 边界", () => {
       code: "123456",
       username: "你好",
       password: "Abcd1234",
+      confirmPassword: "Abcd1234",
     });
     expect(result.success).toBe(true);
   });
@@ -104,6 +105,7 @@ describe("registerStep2Schema 边界", () => {
       code: "123456",
       username: "A".repeat(24),
       password: "Abcd1234",
+      confirmPassword: "Abcd1234",
     });
     expect(result.success).toBe(true);
   });
@@ -113,6 +115,7 @@ describe("registerStep2Schema 边界", () => {
       code: "123456",
       username: "test_user",
       password: "Abcd1234",
+      confirmPassword: "Abcd1234",
     });
     expect(result.success).toBe(false);
   });
@@ -122,6 +125,7 @@ describe("registerStep2Schema 边界", () => {
       code: "123456",
       username: "张三",
       password: "Abc1234",
+      confirmPassword: "Abc1234",
     });
     expect(result.success).toBe(false);
   });
@@ -131,6 +135,7 @@ describe("registerStep2Schema 边界", () => {
       code: " 123456",
       username: "张三",
       password: "Abcd1234",
+      confirmPassword: "Abcd1234",
     });
     expect(result.success).toBe(false);
   });
@@ -140,6 +145,7 @@ describe("registerStep2Schema 边界", () => {
       code: "1234567",
       username: "张三",
       password: "Abcd1234",
+      confirmPassword: "Abcd1234",
     });
     expect(result.success).toBe(false);
   });
@@ -149,6 +155,7 @@ describe("registerStep2Schema 边界", () => {
       code: "123456",
       username: "张三",
       password: "ABCD1234",
+      confirmPassword: "ABCD1234",
     });
     expect(result.success).toBe(true); // 含字母和数字即可
   });
@@ -158,6 +165,7 @@ describe("registerStep2Schema 边界", () => {
       code: "123456",
       username: "张三",
       password: "abcd1234",
+      confirmPassword: "abcd1234",
     });
     expect(result.success).toBe(true);
   });
@@ -167,6 +175,7 @@ describe("registerStep2Schema 边界", () => {
       code: "123456",
       username: "张三",
       password: "Abcdefgh",
+      confirmPassword: "Abcdefgh",
     });
     expect(result.success).toBe(false);
   });
@@ -176,6 +185,7 @@ describe("registerStep2Schema 边界", () => {
       code: "123456",
       username: "张三",
       password: "Abcdefg1" + "X".repeat(92),
+      confirmPassword: "Abcdefg1" + "X".repeat(92),
     });
     expect(result.success).toBe(true);
   });

@@ -278,6 +278,28 @@ export default function RegisterPage() {
                   )}
                 </div>
 
+                <div className="flex flex-col gap-1.5">
+                  <label
+                    htmlFor="confirm-password"
+                    className="flex items-center gap-2 text-sm leading-none font-medium select-none"
+                  >
+                    确认密码
+                  </label>
+                  <input
+                    id="confirm-password"
+                    type="password"
+                    placeholder="再次输入密码"
+                    autoComplete="new-password"
+                    className={inputClass}
+                    {...rhfRegister("confirmPassword")}
+                  />
+                  {errors.confirmPassword && (
+                    <p className="text-xs text-destructive">
+                      {errors.confirmPassword.message}
+                    </p>
+                  )}
+                </div>
+
                 <button
                   type="submit"
                   disabled={registerMutation.isPending}

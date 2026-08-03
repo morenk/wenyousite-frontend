@@ -153,20 +153,48 @@ describe("emailSchema", () => {
 });
 
 describe("registerStep2Schema", () => {
+  const valid = {
+    code: "123456",
+    username: "张三",
+    password: "Abcd1234",
+  };
+
   test("合法输入通过", () => {
     const result = registerStep2Schema.safeParse({
-      code: "123456",
-      username: "张三",
-      password: "Abcd1234",
+      ...valid,
+      confirmPassword: "Abcd1234",
     });
     expect(result.success).toBe(true);
   });
 
+  test("确认密码为空", () => {
+    const result = registerStep2Schema.safeParse({
+      ...valid,
+      confirmPassword: "",
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0].message).toMatch(/再次输入密码/);
+    }
+  });
+
+  test("两次密码不一致", () => {
+    const result = registerStep2Schema.safeParse({
+      ...valid,
+      confirmPassword: "Different1",
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0].path).toContain("confirmPassword");
+      expect(result.error.issues[0].message).toMatch(/不一致/);
+    }
+  });
+
   test("验证码不足 6 位", () => {
     const result = registerStep2Schema.safeParse({
+      ...valid,
       code: "12345",
-      username: "张三",
-      password: "Abcd1234",
+      confirmPassword: "Abcd1234",
     });
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -176,18 +204,18 @@ describe("registerStep2Schema", () => {
 
   test("验证码含非数字", () => {
     const result = registerStep2Schema.safeParse({
+      ...valid,
       code: "12345a",
-      username: "张三",
-      password: "Abcd1234",
+      confirmPassword: "Abcd1234",
     });
     expect(result.success).toBe(false);
   });
 
   test("用户名不足 2 位", () => {
     const result = registerStep2Schema.safeParse({
-      code: "123456",
+      ...valid,
       username: "A",
-      password: "Abcd1234",
+      confirmPassword: "Abcd1234",
     });
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -197,27 +225,27 @@ describe("registerStep2Schema", () => {
 
   test("用户名超过 24 位", () => {
     const result = registerStep2Schema.safeParse({
-      code: "123456",
+      ...valid,
       username: "A".repeat(25),
-      password: "Abcd1234",
+      confirmPassword: "Abcd1234",
     });
     expect(result.success).toBe(false);
   });
 
   test("用户名含特殊字符", () => {
     const result = registerStep2Schema.safeParse({
-      code: "123456",
+      ...valid,
       username: "name@!",
-      password: "Abcd1234",
+      confirmPassword: "Abcd1234",
     });
     expect(result.success).toBe(false);
   });
 
   test("密码不含字母", () => {
     const result = registerStep2Schema.safeParse({
-      code: "123456",
-      username: "张三",
+      ...valid,
       password: "12345678",
+      confirmPassword: "12345678",
     });
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -227,9 +255,9 @@ describe("registerStep2Schema", () => {
 
   test("密码不含数字", () => {
     const result = registerStep2Schema.safeParse({
-      code: "123456",
-      username: "张三",
+      ...valid,
       password: "Abcdefgh",
+      confirmPassword: "Abcdefgh",
     });
     expect(result.success).toBe(false);
     if (!result.success) {

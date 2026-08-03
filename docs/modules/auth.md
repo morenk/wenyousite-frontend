@@ -119,14 +119,20 @@ const registerSchema = z.object({
     .string()
     .min(2, "用户名至少 2 位")
     .max(24, "用户名最多 24 位")
-    .regex(/^[\w\u4e00-\u9fff]+$/, "用户名只允许字母、数字、中文"),
+    .regex(/^[a-zA-Z0-9\u4e00-\u9fff]+$/, "用户名只允许字母、数字、中文"),
   password: z
     .string()
     .min(8, "密码至少 8 位")
     .regex(/[a-zA-Z]/, "密码需包含至少一个字母")
     .regex(/\d/, "密码需包含至少一个数字"),
+  confirmPassword: z.string().min(1, "请再次输入密码"),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "两次输入的密码不一致",
+  path: ["confirmPassword"],
 });
 ```
+
+- 注册需输入两次密码（`confirmPassword` 仅前端校验，不随请求提交）
 
 ### 忘记密码
 
@@ -201,7 +207,7 @@ if (error) {
 ### 注册
 ```
 进入 /register → Step1: 输入邮箱 → 点击获取验证码 → 成功: 进入 Step2
-Step2: 输入验证码 / 用户名 / 密码 → 提交 → 成功: 自动登录跳首页 失败: toast
+Step2: 输入验证码 / 用户名 / 密码 / 确认密码 → 提交 → 成功: 自动登录跳首页 失败: toast
 60 秒倒计时后可重新发送验证码；邮箱输错可点「换个邮箱」返回 Step1 重新输入（新邮箱会生成新验证码）
 ```
 
