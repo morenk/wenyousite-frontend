@@ -30,7 +30,14 @@ describe("MarkdownContent", () => {
     expect(img).toHaveAttribute("src", UPLOADED_MD_URL);
     expect(img).toHaveAttribute("loading", "lazy");
     expect(img).toHaveAttribute("class", expect.stringContaining("max-w-full"));
-    expect(img).toHaveStyle({ maxWidth: "100%" });
+    expect(img).toHaveAttribute(
+      "style",
+      expect.stringContaining("max-width: 100%"),
+    );
+    expect(img).toHaveAttribute(
+      "style",
+      expect.stringContaining("max-height: 50vh"),
+    );
   });
 
   test("站外图片保持原 URL，不做中图替换", () => {

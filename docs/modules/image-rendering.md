@@ -5,8 +5,9 @@
 统一帖子正文图片的渲染与加载行为，避免大图溢出容器，同时利用后端已生成的派生图（`_md.webp` / `_thumb.webp`）降低带宽成本。
 
 **本次迭代范围：**
-- 正文图片渲染约束：`max-width: 100%` + `height: auto` + `loading="lazy"`，任何 markdown 内容图片不超出容器宽度
+- 正文图片渲染约束：`max-width: 100%` + `max-height: 50vh` + `height: auto` + `loading="lazy"`，长图不会撑满楼层
 - 本站上传图自动显示 `_md.webp` 中图，点击打开 lightbox 查看原图
+- lightbox 支持适应屏幕、1:1、滚轮缩放与拖拽平移；原图以自然像素作为缩放基准，避免被正文 CSS 重复缩小
 - 共享渲染组件 `MarkdownContent` 接入楼层正文与子贴正文
 
 **设计决策（与后端派生图方案对齐）：**
@@ -33,7 +34,7 @@
 | 组件 | 路径 | 说明 |
 |------|------|------|
 | MarkdownContent | `src/components/thread/markdown-content.tsx` | 共享 markdown 渲染：图片约束 + 懒加载 + 中图替换 + lightbox |
-| ImageLightbox | `src/components/thread/image-lightbox.tsx` | 点击查看原图的轻量遮罩（Esc / 点背景关闭） |
+| ImageLightbox | `src/components/thread/image-lightbox.tsx` | 原图查看器：适应屏幕 / 1:1 / 滚轮缩放 / 拖拽 / Esc / 点背景关闭 |
 | getImageUrlBySize | `src/lib/upload-image.ts` | 原图 URL → `_md.webp` / `_thumb.webp` 派生图 URL（SVG 原样返回） |
 
 **接入点：**
@@ -47,8 +48,11 @@
 |------|------|
 | 本站上传图（URL 含 `/uploads/`，且非 `_md.webp`/`_thumb.webp`） | 显示 `_md.webp` 中图；中图 404 时 `onError` 回退原图 |
 | 站外图片 / SVG / 已是派生图 URL | 原样显示，仅做尺寸约束 |
-| 所有正文图片 | `max-width:100%` + `height:auto` + `loading="lazy"` + 居中圆角 |
-| 点击图片 | 打开 lightbox 显示原图（Esc / 点击遮罩关闭） |
+| 所有正文图片 | `max-width:100%` + `max-height:50vh` + `height:auto` + `loading="lazy"` + 居中圆角 |
+| 点击正文图片 | 打开 lightbox，并直接请求 Markdown 中保存的原图 URL |
+| lightbox 默认状态 | 在不放大小图的前提下适应视口；缩放尺寸以图片自然像素为基准，不继承正文图片的宽度约束 |
+| lightbox 图片单击 | 在适应屏幕与 1:1 原图之间切换；事件不会冒泡触发遮罩关闭 |
+| lightbox 其他操作 | 滚轮/工具栏缩放，放大后拖拽平移；Esc、点背景或关闭按钮退出 |
 
 **识别本站上传图的判定**：objectKey 统一以 `uploads/` 开头（后端生成规则），故以 URL 包含 `/uploads/` 判断，无需前端持有 COS 域名配置。
 
@@ -58,6 +62,8 @@
 - [x] 本站上传图正文显示中图，点击可看原图
 - [x] 站外图片不被错误替换派生图
 - [x] lightbox 支持 Esc / 点背景关闭
+- [x] 长图打开后不被 `max-width:100%` 与适应视口缩放重复缩小
+- [x] 单击原图执行缩放切换，不会同时关闭 lightbox
 - [x] `pnpm lint && pnpm typecheck && pnpm test` 通过
 
 ## 6. 子任务
@@ -69,3 +75,6 @@
   - `floor-card.tsx`、`subthread-body.tsx` 换用 `<MarkdownContent>`
   - `globals.css` 加 `.prose img` 兜底
 - [x] `docs: 图片渲染约定`（本文档）
+- [x] `fix: 修复 lightbox 长图重复缩小和图片点击冒泡`
+  - 使用图片 `naturalWidth` / `naturalHeight` 作为 transform 尺寸基准
+  - 增加原图点击不关闭、自然尺寸不被全局 CSS 二次约束的回归测试

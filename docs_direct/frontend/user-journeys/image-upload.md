@@ -249,13 +249,35 @@ https://.../xxx.jpg
 Markdown 中图片使用标准语法：
 
 ```markdown
-![描述](https://.../xxx_md.webp)
+![描述](https://.../xxx.jpg)
 ```
 
 建议：
-- 默认插入中图 URL（`_md.webp`）。
-- 点击放大时展示原图 URL。
+- 默认插入原图 URL，发布后由 `MarkdownContent` 统一渲染。
 - 列表预览使用缩略图 URL（`_thumb.webp`）。
+
+## 发布后的图片展示（MarkdownContent）
+
+正文/楼层图片统一由 `src/components/thread/markdown-content.tsx` 渲染：
+
+- 本站上传图自动替换为**中图 `_md.webp`**（加载失败时回退原图）。
+- 尺寸约束：`max-width: 100%`（不超列宽） + `max-height: 50vh`（竖长图等比缩小到半屏内，不撑爆页面）；**低清图不放大**。
+- 点击图片打开 **lightbox 查看原图**。
+
+### Lightbox 交互（查看原图）
+
+`src/components/thread/image-lightbox.tsx` 展示**原图 URL**，支持：
+
+| 操作 | 行为 |
+|------|------|
+| 单击图片 | 适应屏幕 ↔ 1:1 切换 |
+| 滚轮 | 以光标为锚点缩放（不超 1:1） |
+| 拖拽 | 放大后平移查看 |
+| 工具条 | 放大 / 缩小 / 1:1 / 适应屏幕 / 缩放百分比 / 关闭 |
+| Esc / 点击遮罩 / 关闭按钮 | 关闭 |
+
+- 小图（小于视口）默认按原始尺寸显示，**不放大**。
+- 图片加载前（自然尺寸未知）保持安全显示。
 
 ---
 

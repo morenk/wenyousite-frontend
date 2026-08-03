@@ -41,7 +41,7 @@ function MarkdownImage({ src, alt }: ImageProps) {
         alt={alt ?? ""}
         loading="lazy"
         className="mx-auto my-2 block max-w-full cursor-zoom-in rounded-lg"
-        style={{ maxWidth: "100%", height: "auto" }}
+        style={{ maxWidth: "100%", maxHeight: "50vh", height: "auto" }}
         onError={() => {
           if (mediumUrl !== originalUrl) setFailed(true);
         }}
