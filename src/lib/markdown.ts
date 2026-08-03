@@ -1,4 +1,4 @@
-/** Markdown 清理工具：移除编辑器生成的无效图片与不可见空段落标记 */
+/** Markdown 工具：规范化编辑器内容并保留顶层空段落协议 */
 
 /** 匹配图片语法中括号为空的写法：![alt]() 或 ![alt]( ) */
 const EMPTY_IMAGE_REGEX = /!\[[^\]]*\]\(\s*\)/g;
@@ -9,9 +9,8 @@ export function sanitizeEmptyImages(markdown: string): string {
 }
 
 /**
- * 移除 Milkdown 为保留空段落而生成的独占行 `<br />`。
- *
- * 围栏代码块和正文行内的 br 文本必须原样保留，避免破坏代码示例或用户显式内容。
+ * 规范化 Milkdown 空段落协议并清理空图片。
+ * 围栏代码块和正文行内内容必须原样保留；独占行 br 统一写成标准 `<br />`。
  */
 function sanitizeOutsideFencedCode(markdown: string): string {
   const parts = markdown.split(/(\r?\n)/);
@@ -41,7 +40,7 @@ function sanitizeOutsideFencedCode(markdown: string): string {
     }
 
     if (/^ {0,3}<br\s*\/?>[\t ]*$/iu.test(line)) {
-      parts[index] = "";
+      parts[index] = "<br />";
       continue;
     }
 
@@ -54,4 +53,44 @@ function sanitizeOutsideFencedCode(markdown: string): string {
 /** 发布/暂存前统一清理 Milkdown 序列化残留。 */
 export function sanitizeMilkdownMarkdown(markdown: string): string {
   return sanitizeOutsideFencedCode(markdown);
+}
+
+const IMAGE_RE = /!\[[^\]]*\]\(\s*[^)\s]+[^)]*\)/;
+const EMPTY_LINK_RE = /\[[^\]]*\]\(\s*\)/g;
+const LINK_RE = /\[([^\]]+)\]\(\s*[^)\s]+[^)]*\)/g;
+const HTML_RE = /<[^>]*>/g;
+const THEMATIC_BREAK_RE = /^ {0,3}(?:(?:\*\s*){3,}|(?:-\s*){3,}|(?:_\s*){3,})$/;
+
+/** 判断 Markdown 是否包含可发布的可见内容（图片可单独发布，分隔线不可单独发布）。 */
+export function hasVisibleMarkdownContent(markdown: string): boolean {
+  const lines = markdown.split(/\r?\n/);
+  let fence: "`" | "~" | null = null;
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    const fenceMatch = rawLine.match(/^ {0,3}(`{3,}|~{3,})/);
+    if (fence) {
+      const closing = rawLine.match(/^ {0,3}(`{3,}|~{3,})[\t ]*$/);
+      if (closing?.[1][0] === fence) fence = null;
+      else if (line) return true;
+      continue;
+    }
+    if (fenceMatch) {
+      fence = fenceMatch[1][0] as "`" | "~";
+      continue;
+    }
+    if (!line || THEMATIC_BREAK_RE.test(rawLine)) continue;
+    if (IMAGE_RE.test(line)) return true;
+    const visible = line
+      .replace(/^ {0,3}<br\s*\/?>[\t ]*$/iu, "")
+      .replace(/!\[[^\]]*\]\(\s*\)/g, "")
+      .replace(EMPTY_LINK_RE, "")
+      .replace(LINK_RE, "$1")
+      .replace(HTML_RE, "")
+      .replace(/^[#>+\-\d.)\s]+/u, "")
+      .replace(/[*_~`]/g, "")
+      .trim();
+    if (visible) return true;
+  }
+  return false;
 }

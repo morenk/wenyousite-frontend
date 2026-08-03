@@ -3,6 +3,7 @@
 import { describe, test, expect } from "vitest";
 import {
   sanitizeEmptyImages,
+  hasVisibleMarkdownContent,
   sanitizeMilkdownMarkdown,
 } from "@/lib/markdown";
 
@@ -42,12 +43,12 @@ describe("sanitizeEmptyImages", () => {
 });
 
 describe("sanitizeMilkdownMarkdown", () => {
-  test("移除 Milkdown 为不可见空段落生成的独占行 br 标记", () => {
+  test("保留并规范化 Milkdown 顶层空段落标记", () => {
     expect(
       sanitizeMilkdownMarkdown(
         "第一段\n\n<br />\n<br>\n<br >\n<br/>\n\n第二段",
       ),
-    ).toBe("第一段\n\n\n\n\n\n\n第二段");
+    ).toBe("第一段\n\n<br />\n<br />\n<br />\n<br />\n\n第二段");
   });
 
   test("保留正文行内显式输入的 br 文本", () => {
@@ -62,9 +63,24 @@ describe("sanitizeMilkdownMarkdown", () => {
     expect(sanitizeMilkdownMarkdown(markdown)).toBe(markdown);
   });
 
-  test("同时移除空 URL 图片", () => {
+  test("清理空 URL 图片但保留空段落", () => {
     expect(sanitizeMilkdownMarkdown("![1.00]()\n\n<br />\n正文")).toBe(
-      "\n\n\n正文",
+      "\n\n<br />\n正文",
     );
+  });
+});
+
+describe("hasVisibleMarkdownContent", () => {
+  test("纯空白和独立分隔线不可发布", () => {
+    expect(hasVisibleMarkdownContent("\n<br />\n\n---\n")).toBe(false);
+  });
+
+  test("图片可单独发布，文字周围可保留空段落", () => {
+    expect(hasVisibleMarkdownContent("\n<br />\n![图](https://a.test/x.png)\n")).toBe(true);
+  });
+
+  test("代码块内容可发布，代码块内 br 不计为空段落", () => {
+    expect(hasVisibleMarkdownContent("```\n代码\n```\n")).toBe(true);
+    expect(hasVisibleMarkdownContent("```\n<br />\n```\n")).toBe(true);
   });
 });

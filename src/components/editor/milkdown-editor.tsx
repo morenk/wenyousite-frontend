@@ -208,10 +208,16 @@ function EditorHost({
       crepeRef.current = crepe;
 
       crepe.on((listener) => {
-        listener.markdownUpdated((_ctx, markdown, prevMarkdown) => {
+        listener.markdownUpdated((ctx, markdown, prevMarkdown) => {
           if (markdown !== prevMarkdown) {
-            // 清理空图片与 Milkdown 为不可见空段落生成的独占行 <br />。
-            const cleaned = sanitizeMilkdownMarkdown(markdown);
+            // 清理空图片并规范化空段落协议；独占行 <br /> 必须保留以支持艺术化留白。
+            let serialized = markdown;
+            // Milkdown 默认省略文档最后一个空段落；该段落是用户按 Enter 产生的有效留白，补回协议标记。
+            const lastNode = ctx.get(editorViewCtx).state.doc.lastChild;
+            if (lastNode?.type.name === "paragraph" && lastNode.content.size === 0) {
+              serialized = `${serialized.replace(/\s+$/u, "")}\n\n<br />`;
+            }
+            const cleaned = sanitizeMilkdownMarkdown(serialized);
             onChange?.(cleaned);
           }
         });

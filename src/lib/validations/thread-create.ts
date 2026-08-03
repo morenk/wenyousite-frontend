@@ -1,6 +1,7 @@
 /** 主题帖创建/编辑表单校验 schema */
 
 import { z } from "zod";
+import { hasVisibleMarkdownContent } from "@/lib/markdown";
 
 export const threadCreateSchema = z.object({
   title: z
@@ -43,8 +44,8 @@ export function validatePublishable(
   if (!values.category) {
     return "请选择分区后再发布";
   }
-  const effectiveContent = (defaultContent ?? values.content)?.trim() ?? "";
-  if (!effectiveContent) {
+  const effectiveContent = defaultContent ?? values.content ?? "";
+  if (!hasVisibleMarkdownContent(effectiveContent)) {
     return "请为默认子贴填写正文后再发布";
   }
   return null;

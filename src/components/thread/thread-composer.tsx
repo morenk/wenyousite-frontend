@@ -12,6 +12,7 @@ import { useUploadImage } from "@/api/hooks/use-upload-image";
 import { MilkdownEditor } from "@/components/editor/milkdown-editor";
 import { Button } from "@/components/ui/button";
 import { useThreadComposer } from "@/components/thread/thread-composer-context";
+import { hasVisibleMarkdownContent } from "@/lib/markdown";
 
 function getErrorMessage(error: unknown, fallback: string) {
   const err = error as { code?: number; message?: string };
@@ -65,7 +66,12 @@ function ThreadComposer() {
 
   const handleSubmit = async () => {
     const nextContent = content.trim();
-    if (!nextContent || pending) return;
+    if (!hasVisibleMarkdownContent(nextContent) || pending) {
+      if (nextContent && !hasVisibleMarkdownContent(nextContent)) {
+        toast.error("正文不能只有空白或分隔线");
+      }
+      return;
+    }
 
     setPending(true);
     try {

@@ -1,7 +1,7 @@
 /** MarkdownContent 组件测试：图片约束尺寸、中图替换、lightbox 交互 */
 
-import { describe, test, expect, afterEach } from "vitest";
-import { render, screen, cleanup, fireEvent, within } from "@testing-library/react";
+import { describe, test, expect, afterEach, vi } from "vitest";
+import { render, screen, cleanup, fireEvent, within, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MarkdownContent } from "@/components/thread/markdown-content";
 
@@ -19,11 +19,12 @@ describe("MarkdownContent", () => {
     expect(screen.getByText("正文内容")).toBeInTheDocument();
   });
 
-  test("历史内容中的 Milkdown 空段落标记不显示为 br 文本", () => {
+  test("历史内容中的 Milkdown 空段落按空行渲染，不显示字面标签", () => {
     render(<MarkdownContent content={"第一段\n\n<br />\n\n第二段"} />);
     expect(screen.getByText("第一段")).toBeInTheDocument();
     expect(screen.getByText("第二段")).toBeInTheDocument();
     expect(screen.queryByText(/<br\s*\/>/i)).not.toBeInTheDocument();
+    expect(document.querySelectorAll("br")).toHaveLength(1);
   });
 
   test("空 URL 图片不渲染破图", () => {
@@ -97,5 +98,21 @@ describe("MarkdownContent", () => {
 
     await user.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  test("正文超过视口高度时可展开并收起", async () => {
+    Object.defineProperty(window, "innerHeight", { configurable: true, value: 800 });
+    const scrollIntoView = vi.fn();
+    HTMLElement.prototype.scrollIntoView = scrollIntoView;
+    render(<MarkdownContent content={"很长的正文"} />);
+    const prose = document.querySelector(".prose") as HTMLDivElement;
+    Object.defineProperty(prose, "scrollHeight", { configurable: true, value: 1000 });
+    fireEvent.resize(window);
+    const expand = await screen.findByRole("button", { name: "展开全文" });
+    expect(expand).toHaveAttribute("aria-expanded", "false");
+    await userEvent.setup().click(expand);
+    expect(screen.getByRole("button", { name: "收起" })).toHaveAttribute("aria-expanded", "true");
+    await userEvent.setup().click(screen.getByRole("button", { name: "收起" }));
+    await waitFor(() => expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "auto", block: "start" }));
   });
 });
