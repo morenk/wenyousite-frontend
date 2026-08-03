@@ -1,4 +1,4 @@
-/** 我的资料编辑表单：账户信息/头像/Bio/隐私开关 + 账号安全入口（用户名单独由 UsernameEdit 修改） */
+/** 我的资料编辑表单：邮箱/头像/Bio/隐私开关 + 账号安全入口（用户名单独由 UsernameEdit 修改） */
 
 "use client";
 
@@ -109,33 +109,6 @@ export function ProfileEditForm() {
           </CardHeader>
           <CardContent className="space-y-4 pt-6">
             {me && <AvatarUploader username={me.username} avatar={me.avatar} />}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="bio">个人简介</Label>
-                <span className="text-xs text-muted-foreground tabular-nums">
-                  {bioLength}/255
-                </span>
-              </div>
-              <textarea
-                id="bio"
-                placeholder="介绍一下自己（可选）"
-                rows={3}
-                maxLength={255}
-                className="w-full min-w-0 resize-y rounded-lg border border-input bg-transparent px-2.5 py-2 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive dark:bg-input/30 md:text-sm"
-                {...register("bio")}
-              />
-              {errors.bio && (
-                <p className="text-xs text-destructive">{errors.bio.message}</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>账户</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-6">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-sm font-medium text-foreground">邮箱</p>
@@ -159,6 +132,25 @@ export function ProfileEditForm() {
                     去验证
                   </Link>
                 </div>
+              )}
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="bio">个人简介</Label>
+                <span className="text-xs text-muted-foreground tabular-nums">
+                  {bioLength}/255
+                </span>
+              </div>
+              <textarea
+                id="bio"
+                placeholder="介绍一下自己（可选）"
+                rows={3}
+                maxLength={255}
+                className="w-full min-w-0 resize-y rounded-lg border border-input bg-transparent px-2.5 py-2 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive dark:bg-input/30 md:text-sm"
+                {...register("bio")}
+              />
+              {errors.bio && (
+                <p className="text-xs text-destructive">{errors.bio.message}</p>
               )}
             </div>
           </CardContent>
