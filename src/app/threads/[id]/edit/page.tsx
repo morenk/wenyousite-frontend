@@ -1,4 +1,4 @@
-/** 已发布主题帖编辑页：加载详情 + 权限守卫 + ThreadEditForm */
+/** 主题帖编辑页：草稿使用发布表单，已发布帖子使用修改表单 */
 
 "use client";
 
@@ -8,6 +8,7 @@ import { Loader2, AlertCircle, ShieldAlert } from "lucide-react";
 
 import { useAuth } from "@/lib/auth";
 import { useThreadDetail } from "@/api/hooks/use-thread-detail";
+import { ThreadCreateForm } from "@/components/forms/thread-create-form";
 import { ThreadEditForm } from "@/components/forms/thread-edit-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -88,6 +89,32 @@ export default function EditThreadPage() {
                 返回帖子
               </Button>
             </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!thread.published) {
+    return (
+      <div className="mx-auto max-w-5xl px-4 py-6">
+        <div className="mb-5 flex items-center justify-between">
+          <h1 className="text-xl font-bold text-foreground">继续编辑草稿</h1>
+        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>草稿内容</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <ThreadCreateForm
+              thread={thread}
+              cancelMode="back"
+              onCancel={() => router.push("/threads/create")}
+              onPublished={(publishedThreadId) =>
+                router.replace(`/threads/${publishedThreadId}`)
+              }
+              onRefetch={refetch}
+            />
           </CardContent>
         </Card>
       </div>

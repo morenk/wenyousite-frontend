@@ -29,7 +29,7 @@
 |------|----------|------|
 | `/threads/[id]` | 主题帖详情页（含子贴、楼层） | 公开（PRIVATE 帖非成员返回 404） |
 | `/threads/[id]?post={postId}` | 从通知进入并精确定位楼层/楼中楼 | 继承主题帖访问权限 |
-| `/threads/[id]/edit` | 已发布帖编辑页（ThreadEditForm） | OWNER only |
+| `/threads/[id]/edit` | 状态感知编辑页：草稿使用 ThreadCreateForm（可发布），已发布帖使用 ThreadEditForm（保存修改） | OWNER only |
 
 ## 3. 涉及 API
 
@@ -252,7 +252,7 @@
 | useSubscriptionMutations | `src/api/hooks/use-subscription-mutations.ts` | 创建/取消订阅 |
 | useReadingProgress | `src/api/hooks/use-reading-progress.ts` | 记录阅读进度 + 新回复数 |
 | ThreadEditForm | `src/components/forms/thread-edit-form.tsx` | 已发布帖编辑表单（标题/分区/可见性/标签/正文） |
-| EditThreadPage | `src/app/threads/[id]/edit/page.tsx` | 已发布帖编辑页（加载详情 + OWNER 守卫 + ThreadEditForm） |
+| EditThreadPage | `src/app/threads/[id]/edit/page.tsx` | 加载详情 + OWNER 守卫；按 `published` 分流草稿发布表单与已发布帖修改表单 |
 
 ## 6.1 帖主管理面板
 
@@ -321,6 +321,7 @@
 | 未登录发帖 | apiClient 拦截器自动跳转 /login |
 | 发帖 | 登录即可发帖，发帖自动入候选池；子贴发帖策略（协作者/玩家）由后端拦截并映射错误码 |
 | 已发布帖 OWNER | 显示 "编辑" 按钮（跳 `/threads/[id]/edit`，编辑表单 ThreadEditForm） |
+| 未发布草稿 OWNER | 从草稿列表进入 `/threads/[id]/edit` 后显示 ThreadCreateForm，可保存草稿或最终发布 |
 | OWNER 删除 | 显示 "删除" 按钮；确认后调用 `DELETE /threads/:id`，成功返回首页 |
 
 ## 10. 验收标准
@@ -376,5 +377,6 @@
 - [x] lint / typecheck / build 通过
 - [x] E2E：管理面板全流程（进入→增删改→正文编辑→排序→返回）+ 拖拽排序验证
 - [x] 主题帖删除：详情头部 OWNER 入口、确认/取消、成功跳转与错误提示
+- [x] 编辑页按发布状态分流：未发布草稿保留发布入口，已发布帖仅保存修改
 - [x] 单编辑器切片 1：会话控制器测试、实现与文档
 - [x] 单编辑器切片 2：统一 Composer、详情页集成、组件测试与文档

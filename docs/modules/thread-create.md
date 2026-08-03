@@ -7,6 +7,7 @@
 **本次迭代范围（Phase 4）：**
 - 创建主题帖页面 `/threads/create`（**双模式：先草稿列表，点「新建」再进编辑器**）
 - 草稿列表：未发布帖（标题/分类/更新时间/继续编辑/删除），空态「没有草稿喔」
+- 草稿列表「继续编辑」进入 `/threads/:id/edit` 时按 `published` 分流：未发布草稿仍使用 `ThreadCreateForm`，保留「保存草稿」与最终「发布」按钮；不能误用仅有「保存修改」的已发布帖表单
 - 点「新建主题帖」后自动创建沙盒草稿（方案 A）
 - 草稿创建只允许由「新建主题帖」点击处理函数直接发起，并使用同步点击锁；渲染和 effect 均不发起 `POST /threads`，避免重渲染、Strict Mode effect 重放或连点生成重复草稿并触发 429 限流。
 - 表单编辑：标题、分区、可见性、主题帖标签、默认子贴正文
@@ -72,6 +73,7 @@
 - 点「新建主题帖」切到 `editor` 模式并 `POST /threads`（可传空对象，前端不发送空 `title`，避免触发后端 `@MinLength(1)` 校验），拿到 `threadId` + `defaultSubthreadId` + `version`。
 - 用户每次修改后通过提交按钮保存，或最终发布时一次性提交。
 - 离开编辑器时如果未发布且未保存，草稿保留在 `GET /threads/draft` 中，用户下次进入创建页可在列表继续编辑。
+- 从草稿列表继续编辑时，`/threads/:id/edit` 加载详情并依据 `published=false` 渲染发布表单；返回操作仅回到草稿列表，不删除已有草稿。
 - 编辑器「放弃」调用 `DELETE /threads/:id` 硬删除并返回草稿列表。
 
 ## 5. 组件清单
@@ -82,6 +84,7 @@
 | ThreadDraftPicker | `src/components/thread/thread-draft-picker.tsx` | 草稿选择：标题 + 「新建主题帖」按钮 + 草稿列表 |
 | DraftList | `src/components/user/draft-list.tsx` | 未发布帖列表（复用；空态「没有草稿喔」） |
 | ThreadCreateForm | `src/components/forms/thread-create-form.tsx` | 主题帖创建表单：基础信息 + 默认子贴正文（简洁模式） |
+| EditThreadPage | `src/app/threads/[id]/edit/page.tsx` | 状态感知编辑页：草稿渲染 ThreadCreateForm，已发布帖渲染 ThreadEditForm |
 | MilkdownEditor | `src/components/editor/milkdown-editor.tsx` | @milkdown/crepe WYSIWYG 编辑器（工具栏/字数统计/图片上传/中文本地化 + 正文草稿入口） |
 | TagInput | `src/components/forms/tag-input.tsx` | 主题帖标签输入（支持自动补全） |
 | useCreateThread | `src/api/hooks/use-create-thread.ts` | 创建草稿 hook |
@@ -225,6 +228,8 @@ POST /threads 创建草稿
 - [x] 保存草稿成功更新 Thread 元数据
 - [x] 发布前校验不满足时提示具体缺项（含默认子贴无正文）
 - [x] 发布成功跳转详情页
+- [x] 从草稿列表继续编辑时显示「保存草稿」与「发布」，发布后跳转详情页
+- [x] 已发布帖编辑页仍只显示「保存修改」，草稿/已发布状态互不混用
 - [x] 放弃创建可删除草稿
 - [x] 所有错误状态有 toast 提示
 - [x] 提交按钮显示 loading 状态
@@ -248,3 +253,4 @@ POST /threads 创建草稿
 - [x] lint / typecheck / build 通过
 - [x] vitest 单元测试通过：Zod schema / API hooks / 工具函数 / 组件
 - [x] Playwright E2E 测试通过：登录→创建完整流程 / 顶栏工具栏 / 发布校验 / 放弃
+- [x] 修复草稿继续编辑误用已发布帖表单：编辑页按 `published` 分流，并补页面回归测试

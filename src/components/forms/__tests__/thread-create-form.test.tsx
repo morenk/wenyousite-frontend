@@ -181,6 +181,26 @@ describe("ThreadCreateForm", () => {
     expect(onCancel).toHaveBeenCalled();
   });
 
+  test("继续编辑已有草稿时显示返回草稿列表", async () => {
+    const user = userEvent.setup();
+    const onCancel = vi.fn();
+
+    render(
+      <ThreadCreateForm
+        thread={mockThread}
+        cancelMode="back"
+        onCancel={onCancel}
+        onPublished={vi.fn()}
+        onRefetch={vi.fn().mockResolvedValue({ data: mockThread })}
+      />,
+      { wrapper: createWrapper() },
+    );
+
+    await user.click(screen.getByRole("button", { name: "返回草稿列表" }));
+    expect(onCancel).toHaveBeenCalled();
+    expect(screen.queryByText("放弃")).not.toBeInTheDocument();
+  });
+
   test("已命名草稿时标题回填", () => {
     const namedThread = { ...mockThread, title: "我的帖子" };
     renderForm(namedThread);

@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Loader2, Send, Save, Trash2 } from "lucide-react";
+import { ArrowLeft, Loader2, Send, Save, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,8 @@ import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
 
 interface ThreadCreateFormProps {
   thread: ThreadDetail;
+  /** 新建草稿时为放弃并删除；继续编辑已有草稿时为返回列表 */
+  cancelMode?: "discard" | "back";
   onCancel: () => void;
   onPublished: (threadId: string) => void;
   onRefetch: () => Promise<unknown>;
@@ -44,6 +46,7 @@ const VISIBILITY_OPTIONS = [
 
 export function ThreadCreateForm({
   thread,
+  cancelMode = "discard",
   onCancel,
   onPublished,
   onRefetch,
@@ -55,6 +58,7 @@ export function ThreadCreateForm({
   const updateSubthread = useUpdateSubthread();
   const upsertBody = useUpsertBody();
   const uploadImage = useUploadImage();
+  const CancelIcon = cancelMode === "back" ? ArrowLeft : Trash2;
 
   const form = useForm<ThreadCreateFormData>({
     resolver: zodResolver(threadCreateSchema),
@@ -280,8 +284,8 @@ export function ThreadCreateForm({
           onClick={onCancel}
           disabled={isSaving || isPublishing}
         >
-          <Trash2 className="mr-1.5 h-4 w-4" />
-          放弃
+          <CancelIcon className="mr-1.5 h-4 w-4" />
+          {cancelMode === "back" ? "返回草稿列表" : "放弃"}
         </Button>
         <div className="flex gap-2">
           <Button
