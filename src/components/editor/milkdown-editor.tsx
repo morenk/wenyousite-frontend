@@ -10,6 +10,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { sanitizeMilkdownMarkdown } from "@/lib/markdown";
+import { syncMilkdownToolbarVisibility } from "@/lib/milkdown-toolbar";
 import { useAuth } from "@/lib/auth";
 import { useSaveDraft } from "@/api/hooks/use-save-draft";
 import { ContentDraftsPanel } from "@/components/user/content-drafts-panel";
@@ -34,8 +35,8 @@ const DRAFT_ICON = `
   </svg>
 `;
 
-function injectToolbarTooltips() {
-  document.querySelectorAll(".milkdown-top-bar").forEach((topBar) => {
+function injectToolbarTooltips(root: ParentNode) {
+  root.querySelectorAll(".milkdown-top-bar").forEach((topBar) => {
     const headingBtn = topBar.querySelector<HTMLButtonElement>(".top-bar-heading-button");
     if (headingBtn && !headingBtn.hasAttribute("title")) {
       headingBtn.title = "切换标题级别";
@@ -109,6 +110,7 @@ function EditorHost({
 }: EditorHostProps) {
   const [loading] = useInstance();
   const crepeRef = useRef<Crepe | null>(null);
+  const hostRef = useRef<HTMLDivElement>(null);
 
   /** 上传失败时统一弹 toast（Milkdown 内部会静默吞掉 onUpload 的 reject） */
   const handleUpload = useCallback(
@@ -229,13 +231,22 @@ function EditorHost({
   );
 
   useEffect(() => {
-    crepeRef.current?.setReadonly(disabled ?? false);
+    const readonly = disabled ?? false;
+    crepeRef.current?.setReadonly(readonly);
+    const frame = window.requestAnimationFrame(() => {
+      if (hostRef.current) {
+        syncMilkdownToolbarVisibility(hostRef.current, readonly);
+      }
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, [disabled]);
 
   useEffect(() => {
-    const topBar = document.querySelector(".milkdown-top-bar");
+    const host = hostRef.current;
+    if (!host) return;
+    const topBar = host.querySelector(".milkdown-top-bar");
     if (topBar) {
-      injectToolbarTooltips();
+      injectToolbarTooltips(host);
       return;
     }
 
@@ -243,9 +254,10 @@ function EditorHost({
     const maxAttempts = 50;
     const interval = setInterval(() => {
       attempts++;
-      const tb = document.querySelector(".milkdown-top-bar");
+      const tb = host.querySelector(".milkdown-top-bar");
       if (tb) {
-        injectToolbarTooltips();
+        injectToolbarTooltips(host);
+        syncMilkdownToolbarVisibility(host, disabled ?? false);
         clearInterval(interval);
         return;
       }
@@ -255,10 +267,10 @@ function EditorHost({
     }, 100);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [disabled]);
 
   return (
-    <div className="milkdown-editor">
+    <div ref={hostRef} className="milkdown-editor">
       <Milkdown />
       {loading && (
         <div className="flex items-center justify-center py-12 text-muted-foreground">
