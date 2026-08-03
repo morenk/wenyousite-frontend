@@ -3119,6 +3119,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description 每用户小时上传配额超限（默认 60 次） */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     MediaController_confirmUpload: {
