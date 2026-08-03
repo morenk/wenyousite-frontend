@@ -46,6 +46,7 @@ function ThreadComposer() {
   const isEdit = session.type === "edit";
   const isReply = session.type === "reply";
   const submitLabel = isEdit ? "保存修改" : isReply ? "回复" : "发布";
+  const busy = pending || uploadImage.isPending;
 
   const invalidateAfterSubmit = async () => {
     const invalidations = [
@@ -59,6 +60,7 @@ function ThreadComposer() {
     if (parentPostId) {
       invalidations.push(
         queryClient.invalidateQueries({ queryKey: ["replies", parentPostId] }),
+        queryClient.invalidateQueries({ queryKey: ["post", parentPostId] }),
       );
     }
     await Promise.all(invalidations);
@@ -66,7 +68,7 @@ function ThreadComposer() {
 
   const handleSubmit = async () => {
     const nextContent = content.trim();
-    if (!hasVisibleMarkdownContent(nextContent) || pending) {
+    if (!hasVisibleMarkdownContent(nextContent) || busy) {
       if (nextContent && !hasVisibleMarkdownContent(nextContent)) {
         toast.error("正文不能只有空白或分隔线");
       }
@@ -103,14 +105,7 @@ function ThreadComposer() {
     }
   };
 
-  const handleUploadImage = async (file: File) => {
-    setPending(true);
-    try {
-      return await uploadImage.mutateAsync(file);
-    } finally {
-      setPending(false);
-    }
-  };
+  const handleUploadImage = (file: File) => uploadImage.mutateAsync(file);
 
   return (
     <div ref={containerRef} className="space-y-3 rounded-lg border border-primary/30 bg-background p-3">
@@ -122,7 +117,7 @@ function ThreadComposer() {
           size="sm"
           className="h-7 px-2"
           onClick={() => close()}
-          disabled={pending}
+          disabled={busy}
         >
           <X className="mr-1 h-3.5 w-3.5" />
           取消
@@ -143,9 +138,9 @@ function ThreadComposer() {
           type="button"
           size="sm"
           onClick={handleSubmit}
-          disabled={!content.trim() || pending}
+          disabled={!content.trim() || busy}
         >
-          {pending ? (
+          {busy ? (
             <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
           ) : isEdit ? (
             <Check className="mr-1.5 h-4 w-4" />

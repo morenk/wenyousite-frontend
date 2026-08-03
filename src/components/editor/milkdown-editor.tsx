@@ -244,11 +244,16 @@ function EditorHost({
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
-    const topBar = host.querySelector(".milkdown-top-bar");
-    if (topBar) {
+    const syncTopBar = () => {
       injectToolbarTooltips(host);
-      return;
-    }
+      syncMilkdownToolbarVisibility(host, disabled ?? false);
+    };
+
+    const observer = new MutationObserver(syncTopBar);
+    observer.observe(host, { childList: true, subtree: true });
+
+    const topBar = host.querySelector(".milkdown-top-bar");
+    if (topBar) syncTopBar();
 
     let attempts = 0;
     const maxAttempts = 50;
@@ -256,8 +261,7 @@ function EditorHost({
       attempts++;
       const tb = host.querySelector(".milkdown-top-bar");
       if (tb) {
-        injectToolbarTooltips(host);
-        syncMilkdownToolbarVisibility(host, disabled ?? false);
+        syncTopBar();
         clearInterval(interval);
         return;
       }
@@ -266,7 +270,10 @@ function EditorHost({
       }
     }, 100);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      observer.disconnect();
+    };
   }, [disabled]);
 
   return (

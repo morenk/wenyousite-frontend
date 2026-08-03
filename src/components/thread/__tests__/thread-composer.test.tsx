@@ -149,6 +149,7 @@ describe("ThreadComposer", () => {
       replyToPostId: "reply-2",
     }));
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ["replies", "post-1"] });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["post", "post-1"] });
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ["floors", "s1"] });
     expect(screen.queryByTestId("milkdown-editor")).not.toBeInTheDocument();
   });

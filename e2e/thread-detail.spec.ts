@@ -6,13 +6,18 @@ const TEST_PASSWORD = "E2eTest123!";
 /** 登录并发布一个测试帖，返回详情页 */
 async function loginAndCreatePublishedThread(page: import("@playwright/test").Page) {
   await page.goto("/login");
-  await page.waitForSelector("#email", { state: "visible" });
-  await page.fill("#email", TEST_EMAIL);
-  await page.fill("#password", TEST_PASSWORD);
+  const loginInput = page.getByLabel("邮箱或用户名");
+  await loginInput.waitFor({ state: "visible" });
+  await loginInput.fill(TEST_EMAIL);
+  await page.getByLabel("密码").fill(TEST_PASSWORD);
   await page.click('button[type="submit"]');
   await page.waitForURL("/");
 
   await page.goto("/threads/create");
+  const createButton = page.getByRole("button", { name: "新建主题帖" });
+  if (await createButton.isVisible().catch(() => false)) {
+    await createButton.click();
+  }
   await page.waitForSelector(".milkdown-editor .ProseMirror", { timeout: 30000 });
 
   await page.locator("#title").fill("管理面板测试帖 " + Date.now());
@@ -34,6 +39,7 @@ async function loginAndCreatePublishedThread(page: import("@playwright/test").Pa
 
 /** 在详情页用 MD 编辑器发布一楼新楼层 */
 async function postFloor(page: import("@playwright/test").Page, content: string) {
+  await page.getByRole("button", { name: "发表回复…" }).click();
   const editor = page.locator(".milkdown-editor .ProseMirror");
   await expect(editor.first()).toBeVisible();
   await editor.first().click();
@@ -281,22 +287,46 @@ test.describe("楼层编辑与删除", () => {
 });
 
 test.describe("楼中楼回复", () => {
-  test("展开楼中楼并回复他人楼层", async ({ page }) => {
+  test("独立楼中楼编辑器上传图片后工具栏仍可见", async ({ page }) => {
+    await loginAndCreatePublishedThread(page);
+    await postFloor(page, "图片上传测试楼层");
+
+    const floorCard = page
+      .locator(".rounded-xl.border")
+      .filter({ hasText: "图片上传测试楼层" })
+      .first();
+    await floorCard.getByRole("link", { name: "回复" }).click();
+    await expect(page.getByText("楼中楼讨论").first()).toBeVisible();
+    await page.getByRole("button", { name: "参与讨论" }).click();
+
+    const imageButton = page.locator('.milkdown-top-bar .top-bar-item[title="图片"]').first();
+    await expect(imageButton).toBeVisible();
+    const chooserPromise = page.waitForEvent("filechooser");
+    await imageButton.click();
+    const chooser = await chooserPromise;
+    await chooser.setFiles("public/globe.svg");
+
+    await expect(page.locator(".milkdown-image-block img").first()).toBeVisible({ timeout: 45000 });
+    await expect(page.locator(".milkdown-top-bar").first()).toBeVisible();
+    await expect(imageButton).toBeVisible();
+  });
+
+  test("进入独立楼中楼页面并回复原楼层", async ({ page }) => {
     await loginAndCreatePublishedThread(page);
 
     // 发布一楼楼层
     await postFloor(page, "主楼正文");
 
-    // 找到楼层卡片并点击回复按钮
+    // 找到楼层卡片并进入独立楼中楼阅读页
     const floorCard = page
       .locator(".rounded-xl.border")
       .filter({ hasText: "主楼正文" })
       .first();
     await expect(floorCard).toBeVisible();
 
-    await floorCard.getByRole("button", { name: "回复" }).click();
-    // 回复表单编辑器在楼层卡片内，精确范围定位
-    const replyEditor = floorCard.locator(".milkdown-editor .ProseMirror").first();
+    await floorCard.getByRole("link", { name: "回复" }).click();
+    await page.getByRole("button", { name: "参与讨论" }).click();
+    const replyEditor = page.locator(".milkdown-editor .ProseMirror").first();
     await expect(replyEditor).toBeVisible({ timeout: 10000 });
 
     await replyEditor.click();
@@ -304,13 +334,13 @@ test.describe("楼中楼回复", () => {
     // 等待 markdownUpdated 写入 + React state flush（页面首个 tabular-nums 变为非 0）
     await expect(page.locator(".tabular-nums").first()).not.toHaveText(/^0\/10000$/);
     await page.waitForTimeout(500);
-    await floorCard.getByRole("button", { name: "回复" }).last().click();
+    await page.getByRole("button", { name: "回复" }).click();
 
     // 等待回复成功 + 回复内容渲染
     await expect(page.getByText("回复成功").first()).toBeVisible({ timeout: 10000 });
     await expect(page.getByText("楼中楼回复内容").first()).toBeVisible({ timeout: 10000 });
 
-    // 回复数更新为 1
-    await expect(page.getByText("1 条回复").first()).toBeVisible({ timeout: 10000 });
+    // 独立讨论页回复数更新为 1
+    await expect(page.getByText("共 1 条回复").first()).toBeVisible({ timeout: 10000 });
   });
 });

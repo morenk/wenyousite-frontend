@@ -6,10 +6,11 @@ const TEST_PASSWORD = "E2eTest123!";
 test.describe("主题帖创建流程", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/login");
-    await page.waitForSelector("#email", { state: "visible" });
+    const loginInput = page.getByLabel("邮箱或用户名");
+    await loginInput.waitFor({ state: "visible" });
 
-    await page.fill("#email", TEST_EMAIL);
-    await page.fill("#password", TEST_PASSWORD);
+    await loginInput.fill(TEST_EMAIL);
+    await page.getByLabel("密码").fill(TEST_PASSWORD);
     await page.click('button[type="submit"]');
 
     await page.waitForURL("/");
@@ -75,6 +76,26 @@ test.describe("主题帖创建流程", () => {
     const boldBtn = topBar.nth(0);
     await boldBtn.hover();
     await expect(boldBtn).toHaveAttribute("title", /粗体|斜体|删除线|行内代码/);
+  });
+
+  test("上传并插入图片后编辑器工具栏仍可见", async ({ page }) => {
+    await page.goto("/threads/create");
+    const createButton = page.getByRole("button", { name: "新建主题帖" });
+    if (await createButton.isVisible().catch(() => false)) {
+      await createButton.click();
+    }
+    await page.waitForSelector(".milkdown-editor .ProseMirror", { timeout: 30000 });
+
+    const imageButton = page.locator('.milkdown-top-bar .top-bar-item[title="图片"]').first();
+    await expect(imageButton).toBeVisible();
+    const chooserPromise = page.waitForEvent("filechooser");
+    await imageButton.click();
+    const chooser = await chooserPromise;
+    await chooser.setFiles("public/globe.svg");
+
+    await expect(page.locator(".milkdown-image-block img").first()).toBeVisible({ timeout: 45000 });
+    await expect(page.locator(".milkdown-top-bar").first()).toBeVisible();
+    await expect(imageButton).toBeVisible();
   });
 
   test("提交前校验：空标题发布被阻止", async ({ page }) => {
