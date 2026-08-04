@@ -83,4 +83,14 @@ describe("hasVisibleMarkdownContent", () => {
     expect(hasVisibleMarkdownContent("```\n代码\n```\n")).toBe(true);
     expect(hasVisibleMarkdownContent("```\n<br />\n```\n")).toBe(true);
   });
+
+  test("纯数字正文可发布，不会被误判为有序列表前缀", () => {
+    expect(hasVisibleMarkdownContent("123")).toBe(true);
+    expect(hasVisibleMarkdownContent("1.00")).toBe(true);
+  });
+
+  test("只有有序列表标记时仍不可发布", () => {
+    expect(hasVisibleMarkdownContent("1.")).toBe(false);
+    expect(hasVisibleMarkdownContent("1)")).toBe(false);
+  });
 });
