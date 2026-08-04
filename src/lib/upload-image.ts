@@ -13,17 +13,6 @@ const ALLOWED_MIME_TYPES = [
 
 type AllowedMimeType = (typeof ALLOWED_MIME_TYPES)[number];
 
-interface UploadUrlResponse {
-  code: number;
-  message: string;
-  data: {
-    uploadUrl: string;
-    mediaId: string;
-    objectKey: string;
-    publicUrl: string;
-  };
-}
-
 /** 统一错误响应体（后端 AllExceptionsFilter）：code 为业务错误码，42900=限流 */
 interface ApiErrorBody {
   code?: number;
@@ -35,16 +24,6 @@ const UPLOAD_RATE_LIMIT_CODE = 42900;
 
 /** 配额超限时抛出的友好提示 */
 const RATE_LIMIT_MESSAGE = "上传图片太频繁，请稍后再试";
-
-interface MediaStatusResponse {
-  code: number;
-  message: string;
-  data: {
-    id: string;
-    status: "UPLOADING" | "PROCESSING" | "COMPLETED" | "FAILED";
-    url: string;
-  };
-}
 
 export function validateImageFile(file: File): string | null {
   if (!ALLOWED_MIME_TYPES.includes(file.type as AllowedMimeType)) {
@@ -97,13 +76,11 @@ export async function uploadImageFile(file: File): Promise<UploadedImage> {
     throw new Error(err.message || "获取上传地址失败");
   }
 
-  const urlRes = urlData as unknown as UploadUrlResponse;
-  if (urlRes.code !== 0) {
-    throw new Error(urlRes.message || "获取上传地址失败");
-  }
+  if (!urlData) throw new Error("获取上传地址失败");
+  const upload = urlData.data;
 
   // 2. 直传 S3
-  const putRes = await fetch(urlRes.data.uploadUrl, {
+  const putRes = await fetch(upload.uploadUrl, {
     method: "PUT",
     headers: { "Content-Type": file.type },
     body: file,
@@ -116,15 +93,12 @@ export async function uploadImageFile(file: File): Promise<UploadedImage> {
   const { data: doneData, error: doneError } = await apiClient.POST(
     "/api/v1/media/upload-done",
     {
-      body: { mediaId: urlRes.data.mediaId },
+      body: { mediaId: upload.mediaId },
     },
   );
   if (doneError) throw doneError;
 
-  const doneRes = doneData as unknown as MediaStatusResponse;
-  if (doneRes.code !== 0) {
-    throw new Error(doneRes.message || "文件确认失败");
-  }
+  if (!doneData) throw new Error("文件确认失败");
 
   // 4. 轮询处理状态
   await new Promise((resolve) => setTimeout(resolve, 500));
@@ -132,20 +106,18 @@ export async function uploadImageFile(file: File): Promise<UploadedImage> {
     const { data: statusData, error: statusError } = await apiClient.GET(
       "/api/v1/media/{id}",
       {
-        params: { path: { id: urlRes.data.mediaId } },
+        params: { path: { id: upload.mediaId } },
       },
     );
     if (statusError) throw statusError;
 
-    const statusRes = statusData as unknown as MediaStatusResponse;
-    if (statusRes.code !== 0) {
-      throw new Error(statusRes.message || "查询图片状态失败");
-    }
+    if (!statusData) throw new Error("查询图片状态失败");
+    const media = statusData.data;
 
-    if (statusRes.data.status === "COMPLETED") {
-      return { url: statusRes.data.url, mediaId: urlRes.data.mediaId };
+    if (media.status === "COMPLETED") {
+      return { url: media.url, mediaId: upload.mediaId };
     }
-    if (statusRes.data.status === "FAILED") {
+    if (media.status === "FAILED") {
       throw new Error("图片处理失败，请重新上传");
     }
 

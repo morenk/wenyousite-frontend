@@ -1539,7 +1539,7 @@ export interface components {
         MentionCandidateDto: {
             id: string;
             username: string;
-            avatar: Record<string, never> | null;
+            avatar: string | null;
             /** @enum {string} */
             relation: "FOLLOWING" | "PLAYER";
         };
@@ -1618,12 +1618,43 @@ export interface components {
              */
             size: number;
         };
+        UploadUrlResponseDto: {
+            /** @description 对象存储预签名 PUT 地址 */
+            uploadUrl: string;
+            /** @description 媒体记录 ID，后续确认和轮询使用 */
+            mediaId: string;
+            /** @description 对象存储 key */
+            objectKey: string;
+            /** @description 原图公开访问地址 */
+            publicUrl: string;
+        };
         ConfirmUploadDto: {
             /**
              * @description getUploadUrl 返回的 mediaId
              * @example clx...
              */
             mediaId: string;
+        };
+        MediaResponseDto: {
+            id: string;
+            userId: string;
+            /** @description 原图公开访问地址 */
+            url: string;
+            /** @description 对象存储 key */
+            key: string;
+            /** @description 实际文件大小（字节） */
+            size: number | null;
+            width: number | null;
+            height: number | null;
+            /** @enum {string} */
+            status: "UPLOADING" | "PROCESSING" | "COMPLETED" | "FAILED";
+            /** Format: date-time */
+            createdAt: string;
+        };
+        ConfirmUploadResponseDto: {
+            media: components["schemas"]["MediaResponseDto"];
+            /** @description 是否已进入异步图片处理队列；SVG 为 false */
+            processing: boolean;
         };
         CreateBookmarkDto: {
             /**
@@ -1787,6 +1818,66 @@ export interface components {
              */
             color?: string;
         };
+        PostAuthorResponseDto: {
+            id: string;
+            username: string;
+            avatar: string | null;
+        };
+        PostCountResponseDto: {
+            replies: number;
+        };
+        ReplyTargetResponseDto: {
+            id: string;
+            authorId: string;
+            author: components["schemas"]["PostAuthorResponseDto"];
+        };
+        ReplyResponseDto: {
+            id: string;
+            threadId: string;
+            subthreadId: string;
+            authorId: string;
+            /** @enum {string} */
+            kind: "BODY" | "FLOOR";
+            floorNumber: number | null;
+            parentPostId: string | null;
+            replyToPostId: string | null;
+            /** @description Markdown 正文 */
+            content: string;
+            /** @description 乐观锁版本 */
+            version: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: date-time */
+            deletedAt: string | null;
+            author: components["schemas"]["PostAuthorResponseDto"];
+            replyToPost: components["schemas"]["ReplyTargetResponseDto"] | null;
+        };
+        FloorResponseDto: {
+            id: string;
+            threadId: string;
+            subthreadId: string;
+            authorId: string;
+            /** @enum {string} */
+            kind: "BODY" | "FLOOR";
+            floorNumber: number | null;
+            parentPostId: string | null;
+            replyToPostId: string | null;
+            /** @description Markdown 正文 */
+            content: string;
+            /** @description 乐观锁版本 */
+            version: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: date-time */
+            deletedAt: string | null;
+            author: components["schemas"]["PostAuthorResponseDto"];
+            _count: components["schemas"]["PostCountResponseDto"];
+            replies: components["schemas"]["ReplyResponseDto"][];
+        };
         UpsertBodyDto: {
             /**
              * @description 正文（Markdown）
@@ -1798,6 +1889,28 @@ export interface components {
              * @example 1
              */
             version?: number;
+        };
+        PostResponseDto: {
+            id: string;
+            threadId: string;
+            subthreadId: string;
+            authorId: string;
+            /** @enum {string} */
+            kind: "BODY" | "FLOOR";
+            floorNumber: number | null;
+            parentPostId: string | null;
+            replyToPostId: string | null;
+            /** @description Markdown 正文 */
+            content: string;
+            /** @description 乐观锁版本 */
+            version: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: date-time */
+            deletedAt: string | null;
+            author: components["schemas"]["PostAuthorResponseDto"];
         };
         CreatePostDto: {
             /**
@@ -1815,6 +1928,44 @@ export interface components {
              * @example clxreply001...
              */
             replyToPostId?: string;
+        };
+        PostThreadResponseDto: {
+            id: string;
+            title: string;
+        };
+        PostSubthreadResponseDto: {
+            id: string;
+            title: string;
+        };
+        ParentPostResponseDto: {
+            id: string;
+            floorNumber: number | null;
+        };
+        PostDetailResponseDto: {
+            id: string;
+            threadId: string;
+            subthreadId: string;
+            authorId: string;
+            /** @enum {string} */
+            kind: "BODY" | "FLOOR";
+            floorNumber: number | null;
+            parentPostId: string | null;
+            replyToPostId: string | null;
+            /** @description Markdown 正文 */
+            content: string;
+            /** @description 乐观锁版本 */
+            version: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: date-time */
+            deletedAt: string | null;
+            author: components["schemas"]["PostAuthorResponseDto"];
+            thread: components["schemas"]["PostThreadResponseDto"];
+            subthread: components["schemas"]["PostSubthreadResponseDto"];
+            parentPost: components["schemas"]["ParentPostResponseDto"] | null;
+            _count: components["schemas"]["PostCountResponseDto"];
         };
         UpdatePostDto: {
             /**
@@ -1840,6 +1991,24 @@ export interface components {
              */
             postId?: string;
         };
+        DraftResponseDto: {
+            id: string;
+            userId: string;
+            slot: number;
+            /** @description Markdown 正文 */
+            content: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        DraftSlotUsageResponseDto: {
+            usedSlots: number;
+            /** @example 5 */
+            maxSlots: number;
+            /** @description 已占用槽位编号 */
+            slots: number[];
+        };
         CreateDraftDto: {
             /**
              * @description 草稿正文（Markdown 格式，与楼层一致）
@@ -1858,6 +2027,10 @@ export interface components {
              * @example 更新后的草稿内容...
              */
             content: string;
+        };
+        DeleteDraftResponseDto: {
+            /** @example 草稿已删除 */
+            message: string;
         };
         SetReadStatusDto: {
             /** @description 阅读状态（true=已读，false=未读） */
@@ -1900,6 +2073,20 @@ export interface components {
             /** @description 关联主题帖 ID（可选，前端跳转用） */
             threadId?: string;
         };
+        ApiPaginationMeta: {
+            cursor: string | null;
+            hasMore: boolean;
+        };
+        ApiSuccessEnvelope: {
+            /**
+             * @example 0
+             * @enum {integer}
+             */
+            code: 0;
+            /** @example ok */
+            message: string;
+            meta?: components["schemas"]["ApiPaginationMeta"];
+        };
     };
     responses: never;
     parameters: never;
@@ -1928,43 +2115,45 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @example ok */
-                        status?: string;
-                        /**
-                         * @example {
-                         *       "database": {
-                         *         "status": "up"
-                         *       }
-                         *     }
-                         */
-                        info?: {
-                            [key: string]: {
-                                status: string;
-                            } & {
-                                [key: string]: unknown;
-                            };
-                        } | null;
-                        /** @example {} */
-                        error?: {
-                            [key: string]: {
-                                status: string;
-                            } & {
-                                [key: string]: unknown;
-                            };
-                        } | null;
-                        /**
-                         * @example {
-                         *       "database": {
-                         *         "status": "up"
-                         *       }
-                         *     }
-                         */
-                        details?: {
-                            [key: string]: {
-                                status: string;
-                            } & {
-                                [key: string]: unknown;
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: {
+                            /** @example ok */
+                            status?: string;
+                            /**
+                             * @example {
+                             *       "database": {
+                             *         "status": "up"
+                             *       }
+                             *     }
+                             */
+                            info?: {
+                                [key: string]: {
+                                    status: string;
+                                } & {
+                                    [key: string]: unknown;
+                                };
+                            } | null;
+                            /** @example {} */
+                            error?: {
+                                [key: string]: {
+                                    status: string;
+                                } & {
+                                    [key: string]: unknown;
+                                };
+                            } | null;
+                            /**
+                             * @example {
+                             *       "database": {
+                             *         "status": "up"
+                             *       }
+                             *     }
+                             */
+                            details?: {
+                                [key: string]: {
+                                    status: string;
+                                } & {
+                                    [key: string]: unknown;
+                                };
                             };
                         };
                     };
@@ -2049,7 +2238,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 请求频繁，请稍后重试（1 分钟 1 次） */
             429: {
@@ -2079,7 +2272,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AuthResponseDto"];
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["AuthResponseDto"];
+                    };
                 };
             };
             /** @description 验证码错误或过期 */
@@ -2117,7 +2312,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AuthResponseDto"];
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["AuthResponseDto"];
+                    };
                 };
             };
             /** @description 账号或密码错误 或 账号被锁定 */
@@ -2155,7 +2352,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AuthResponseDto"];
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["AuthResponseDto"];
+                    };
                 };
             };
             /** @description refreshToken 无效/过期/已被盗用（盗用时全设备强制登出） */
@@ -2185,7 +2384,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 验证码错误 */
             400: {
@@ -2221,7 +2424,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -2243,7 +2450,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或旧密码错误 */
             401: {
@@ -2272,7 +2483,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 邮箱未注册 */
             404: {
@@ -2301,7 +2516,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 验证码错误 或 密码格式不符合要求 */
             400: {
@@ -2330,7 +2549,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录 */
             401: {
@@ -2366,7 +2589,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 验证码错误或过期 */
             400: {
@@ -2402,7 +2629,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -2419,7 +2650,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -2438,7 +2673,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -2459,7 +2698,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -2476,7 +2719,7 @@ export interface operations {
                 /** @description 主题帖 ID */
                 threadId: string;
                 /** @description 用户名搜索关键词 */
-                q?: unknown;
+                q?: string;
             };
             header?: never;
             path?: never;
@@ -2490,7 +2733,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MentionCandidatesResponseDto"];
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["MentionCandidatesResponseDto"];
+                    };
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -2516,7 +2761,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -2541,7 +2790,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -2570,7 +2823,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -2602,7 +2859,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -2631,7 +2892,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -2670,7 +2935,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 用户不存在或未公开收藏 */
             404: {
@@ -2702,7 +2971,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 用户不存在或未公开参与的帖子 */
             404: {
@@ -2734,7 +3007,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 用户不存在 */
             404: {
@@ -2761,7 +3038,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 用户不存在或未公开最近动态 */
             404: {
@@ -2788,7 +3069,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 用户不存在 */
             404: {
@@ -2815,7 +3100,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -2849,7 +3138,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -2881,7 +3174,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -2906,7 +3203,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -2933,7 +3234,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 用户不存在 */
             404: {
@@ -2960,7 +3265,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 用户不存在 */
             404: {
@@ -2987,7 +3296,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -3021,7 +3334,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -3046,7 +3363,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -3071,7 +3392,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -3100,7 +3425,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -3127,7 +3456,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -3163,7 +3496,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["UploadUrlResponseDto"];
+                    };
+                };
             };
             /** @description 文件类型不支持或超过大小限制 */
             400: {
@@ -3206,7 +3543,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["ConfirmUploadResponseDto"];
+                    };
+                };
             };
             /** @description 文件不存在或不属于当前用户 */
             400: {
@@ -3235,12 +3576,16 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 图片处理状态（UPLOADING / PROCESSING / COMPLETED / FAILED），含缩略图 URL */
+            /** @description 图片处理状态（UPLOADING / PROCESSING / COMPLETED / FAILED） */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["MediaResponseDto"];
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -3277,7 +3622,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -3306,7 +3655,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -3347,7 +3700,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -3379,7 +3736,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录 */
             401: {
@@ -3417,7 +3778,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -3439,7 +3804,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或邮箱未验证 */
             401: {
@@ -3466,7 +3835,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 主题帖不存在或已删除（PRIVATE 帖非成员也返回 404） */
             404: {
@@ -3493,7 +3866,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或邮箱未验证 */
             401: {
@@ -3538,7 +3915,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或邮箱未验证 */
             401: {
@@ -3585,7 +3966,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -3604,7 +3989,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -3624,7 +4013,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或邮箱未验证 */
             401: {
@@ -3658,7 +4051,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录 */
             401: {
@@ -3692,7 +4089,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或邮箱未验证 */
             401: {
@@ -3732,7 +4133,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -3751,7 +4156,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -3779,7 +4188,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -3798,7 +4211,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -3817,7 +4234,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -3840,7 +4261,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -3860,7 +4285,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -3881,7 +4310,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -3903,7 +4336,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或邮箱未验证 */
             401: {
@@ -3937,7 +4374,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -3956,7 +4397,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -3979,7 +4424,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -3998,7 +4447,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -4017,7 +4470,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -4040,7 +4497,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -4063,7 +4524,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -4082,7 +4547,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -4105,7 +4574,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -4125,7 +4598,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -4150,7 +4627,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["FloorResponseDto"][];
+                    };
+                };
             };
         };
     };
@@ -4174,7 +4655,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["PostResponseDto"];
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -4213,7 +4698,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["ReplyResponseDto"][];
+                    };
+                };
             };
         };
     };
@@ -4237,7 +4726,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["PostResponseDto"];
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -4273,12 +4766,16 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 帖子详情（含作者信息、点赞数、是否已点赞） */
+            /** @description 帖子详情（含作者和导航上下文） */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["PostDetailResponseDto"];
+                    };
+                };
             };
             /** @description 帖子不存在 */
             404: {
@@ -4305,7 +4802,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -4350,7 +4851,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["PostResponseDto"];
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -4391,7 +4896,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -4420,7 +4929,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -4447,7 +4960,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -4472,7 +4989,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["DraftResponseDto"][];
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -4501,7 +5022,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["DraftResponseDto"];
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -4526,7 +5051,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["DraftSlotUsageResponseDto"];
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -4553,7 +5082,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["DraftResponseDto"];
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -4587,7 +5120,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["DeleteDraftResponseDto"];
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -4625,7 +5162,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["DraftResponseDto"];
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -4662,7 +5203,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -4687,7 +5232,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -4714,7 +5263,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -4745,7 +5298,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -4770,7 +5327,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
@@ -4796,7 +5357,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -4817,7 +5382,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -4840,7 +5409,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -4857,7 +5430,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -4878,7 +5455,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -4899,7 +5480,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -4919,7 +5504,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -4939,7 +5528,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };
@@ -4960,7 +5553,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: unknown;
+                    };
+                };
             };
         };
     };

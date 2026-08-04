@@ -17,11 +17,11 @@ import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
 import { useThreadComposer } from "@/components/thread/thread-composer-context";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Button } from "@/components/ui/button";
-import type { PostData } from "@/api/hooks/use-floors";
+import type { ReplyData, ReplyDisplayData } from "@/api/hooks/use-floors";
 
 interface ReplyListProps {
   postId: string;
-  focusedReply?: PostData;
+  focusedReply?: ReplyDisplayData;
   variant?: "embedded" | "discussion";
 }
 
@@ -72,7 +72,7 @@ export function ReplyList({ postId, focusedReply, variant = "embedded" }: ReplyL
     ]);
   };
 
-  const handleDeleteReply = async (reply: PostData) => {
+  const handleDeleteReply = async (reply: ReplyDisplayData) => {
     if (!confirm("确定要删除这条回复吗？删除后无法恢复。")) return;
     try {
       await deletePost.mutateAsync(reply.id);
@@ -117,7 +117,7 @@ export function ReplyList({ postId, focusedReply, variant = "embedded" }: ReplyL
         <p className="py-2 text-xs text-muted-foreground">还没有回复</p>
       )}
 
-      {replies.map((reply: PostData, index) => {
+      {replies.map((reply: ReplyData | ReplyDisplayData, index) => {
         const replyToUser = reply.replyToPost?.author?.username;
         const replyToId = reply.replyToPost?.id ?? reply.replyToPostId;
         const isAuthor = user?.id === reply.authorId;

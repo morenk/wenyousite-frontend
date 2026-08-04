@@ -2,13 +2,6 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
-import type { DraftItem } from "./use-content-drafts";
-
-interface SaveDraftResponse {
-  code: number;
-  message: string;
-  data: DraftItem;
-}
 
 export interface SaveDraftArgs {
   content: string;
@@ -29,7 +22,8 @@ export function useSaveDraft() {
         body: { content, ...(slot !== undefined ? { slot } : {}) },
       });
       if (error) throw error;
-      return (data as unknown as SaveDraftResponse).data;
+      if (!data) throw new Error("保存草稿响应为空");
+      return data.data;
     },
     onSuccess: invalidate,
   });

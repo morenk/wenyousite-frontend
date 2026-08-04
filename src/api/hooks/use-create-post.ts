@@ -2,22 +2,9 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import type { components } from "@/api/types";
 
-export interface CreatedPost {
-  id: string;
-  content: string;
-  floorNumber: number | null;
-  version: number;
-  subthreadId: string;
-  threadId: string;
-  authorId: string;
-}
-
-interface CreatePostResponse {
-  code: number;
-  message: string;
-  data: CreatedPost;
-}
+export type CreatedPost = components["schemas"]["PostResponseDto"];
 
 interface CreatePostArgs {
   subthreadId: string;
@@ -37,7 +24,8 @@ export function useCreatePost() {
         },
       );
       if (error) throw error;
-      return (data as unknown as CreatePostResponse).data;
+      if (!data) throw new Error("创建帖子响应为空");
+      return data.data;
     },
   });
 }

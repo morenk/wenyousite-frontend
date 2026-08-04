@@ -6,7 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { FloorCard } from "@/components/thread/floor-card";
 import { ThreadComposerProvider } from "@/components/thread/thread-composer-context";
-import type { PostData } from "@/api/hooks/use-floors";
+import type { PostData, ReplyData } from "@/api/hooks/use-floors";
 
 vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: { children: React.ReactNode; href: string }) => {
@@ -77,6 +77,7 @@ const baseFloor: PostData = {
   threadId: "t1",
   subthreadId: "s1",
   authorId: "u1",
+  kind: "FLOOR",
   floorNumber: 1,
   parentPostId: null,
   replyToPostId: null,
@@ -90,16 +91,23 @@ const baseFloor: PostData = {
   replies: [],
 };
 
-function inlineReply(id: string, content = `回复 ${id}`): PostData {
+function inlineReply(id: string, content = `回复 ${id}`): ReplyData {
   return {
-    ...baseFloor,
     id,
+    threadId: baseFloor.threadId,
+    subthreadId: baseFloor.subthreadId,
     authorId: `author-${id}`,
+    kind: "FLOOR",
     floorNumber: null,
     parentPostId: "post-1",
+    replyToPostId: null,
     content,
+    version: baseFloor.version,
+    createdAt: baseFloor.createdAt,
+    updatedAt: baseFloor.updatedAt,
+    deletedAt: null,
     author: { id: `author-${id}`, username: `用户${id}`, avatar: null },
-    replies: [],
+    replyToPost: null,
   };
 }
 

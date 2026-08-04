@@ -64,6 +64,7 @@ vi.mock("next/link", () => ({
 }));
 
 import { ReplyList } from "@/components/thread/reply-list";
+import type { ReplyData } from "@/api/hooks/use-floors";
 
 // happy-dom 无 IntersectionObserver
 beforeAll(() => {
@@ -98,12 +99,13 @@ function createWrapper() {
   return Wrapper;
 }
 
-function baseReply(overrides: Record<string, unknown> = {}) {
+function baseReply(overrides: Partial<ReplyData> = {}): ReplyData {
   return {
     id: "reply-1",
     threadId: "t1",
     subthreadId: "s1",
     authorId: "u2",
+    kind: "FLOOR",
     floorNumber: null,
     parentPostId: "post-1",
     replyToPostId: null,
@@ -114,8 +116,6 @@ function baseReply(overrides: Record<string, unknown> = {}) {
     updatedAt: "2026-01-01T00:00:00Z",
     deletedAt: null,
     author: { id: "u2", username: "replier", avatar: null },
-    _count: { replies: 0 },
-    replies: [],
     ...overrides,
   };
 }

@@ -2,22 +2,10 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import type { components } from "@/api/types";
 
 /** 正文草稿实体（Draft 模型，userId + slot 联合唯一） */
-export interface DraftItem {
-  id: string;
-  userId: string;
-  slot: number;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface DraftsResponse {
-  code: number;
-  message: string;
-  data: DraftItem[];
-}
+export type DraftItem = components["schemas"]["DraftResponseDto"];
 
 export function useContentDrafts() {
   return useQuery({
@@ -25,8 +13,7 @@ export function useContentDrafts() {
     queryFn: async () => {
       const { data, error } = await apiClient.GET("/api/v1/drafts");
       if (error) throw error;
-      const response = data as unknown as DraftsResponse;
-      return response?.data ?? [];
+      return data?.data ?? [];
     },
     staleTime: 10 * 1000,
   });

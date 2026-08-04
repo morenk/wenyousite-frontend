@@ -10,12 +10,12 @@ import { MarkdownContent } from "@/components/thread/markdown-content";
 import { ReplyList } from "@/components/thread/reply-list";
 import { ReplyForm } from "@/components/thread/reply-form";
 import { UserAvatar } from "@/components/shared/user-avatar";
-import type { PostData } from "@/api/hooks/use-floors";
+import type { ReplyDisplayData } from "@/api/hooks/use-floors";
 import type { PostDetail } from "@/api/hooks/use-post";
 
 interface ReplyDiscussionProps {
   rootPost: PostDetail;
-  focusedReply?: PostData;
+  focusedReply?: ReplyDisplayData;
 }
 
 export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps) {

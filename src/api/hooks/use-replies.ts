@@ -2,17 +2,9 @@
 
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
-import type { PostData } from "./use-floors";
+import type { operations } from "@/api/types";
 
-export interface ReplyListResponse {
-  code: number;
-  message: string;
-  data: PostData[];
-  meta: {
-    cursor: string | null;
-    hasMore: boolean;
-  };
-}
+export type ReplyListResponse = operations["PostsController_findReplies"]["responses"][200]["content"]["application/json"];
 
 export function useReplies(postId: string | undefined) {
   return useInfiniteQuery({
@@ -27,16 +19,15 @@ export function useReplies(postId: string | undefined) {
       });
       if (error) throw error;
 
-      const response = data as unknown as ReplyListResponse;
-      if (!response?.data) {
+      if (!data?.data) {
         return {
           code: 0,
           message: "ok",
           data: [],
           meta: { cursor: null, hasMore: false },
-        } as ReplyListResponse;
+        } satisfies ReplyListResponse;
       }
-      return response;
+      return data;
     },
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => {

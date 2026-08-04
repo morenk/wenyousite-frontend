@@ -4,7 +4,7 @@
 
 import { useEffect, useRef } from "react";
 import { Loader2 } from "lucide-react";
-import type { PostData } from "@/api/hooks/use-floors";
+import type { FloorDisplayData, PostData } from "@/api/hooks/use-floors";
 import { FloorCard } from "./floor-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ interface FloorListProps {
   error: unknown;
   onLoadMore: () => void;
   onRetry: () => void;
-  focusedFloor?: PostData;
+  focusedFloor?: FloorDisplayData;
 }
 
 export function FloorList({

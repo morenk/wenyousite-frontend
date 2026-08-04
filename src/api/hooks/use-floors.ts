@@ -2,47 +2,20 @@
 
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import type { components, operations } from "@/api/types";
 
-export interface PostAuthor {
-  id: string;
-  username: string;
-  avatar: string | null;
-}
-
-export interface ReplyToTarget {
-  id: string;
-  authorId: string;
-  author?: PostAuthor;
-}
-
-export interface PostData {
-  id: string;
-  threadId: string;
-  subthreadId: string;
-  authorId: string;
-  floorNumber: number | null;
-  parentPostId: string | null;
-  replyToPostId: string | null;
-  replyToPost?: ReplyToTarget | null;
-  content: string;
-  version: number;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt: string | null;
-  author: PostAuthor;
-  _count: { replies: number };
-  replies: PostData[];
-}
-
-export interface FloorListResponse {
-  code: number;
-  message: string;
-  data: PostData[];
-  meta: {
-    cursor: string | null;
-    hasMore: boolean;
-  };
-}
+export type PostAuthor = components["schemas"]["PostAuthorResponseDto"];
+export type ReplyToTarget = components["schemas"]["ReplyTargetResponseDto"];
+export type ReplyData = components["schemas"]["ReplyResponseDto"];
+export type PostData = components["schemas"]["FloorResponseDto"];
+export type FloorDisplayData = components["schemas"]["PostResponseDto"] & {
+  _count: components["schemas"]["PostCountResponseDto"];
+  replies?: ReplyData[];
+};
+export type ReplyDisplayData = components["schemas"]["PostResponseDto"] & {
+  replyToPost?: ReplyData["replyToPost"];
+};
+export type FloorListResponse = operations["PostsController_findFloors"]["responses"][200]["content"]["application/json"];
 
 export function useFloors(subthreadId: string | undefined) {
   return useInfiniteQuery({
@@ -60,16 +33,15 @@ export function useFloors(subthreadId: string | undefined) {
       );
       if (error) throw error;
 
-      const response = data as unknown as FloorListResponse;
-      if (!response?.data) {
+      if (!data?.data) {
         return {
           code: 0,
           message: "ok",
           data: [],
           meta: { cursor: null, hasMore: false },
-        } as FloorListResponse;
+        } satisfies FloorListResponse;
       }
-      return response;
+      return data;
     },
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => {

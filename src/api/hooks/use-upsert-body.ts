@@ -2,23 +2,9 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import type { components } from "@/api/types";
 
-export interface UpsertedBody {
-  id: string;
-  kind: "BODY" | "FLOOR";
-  floorNumber: number | null;
-  version: number;
-  subthreadId: string;
-  threadId: string;
-  authorId: string;
-  content: string;
-}
-
-interface UpsertBodyResponse {
-  code: number;
-  message: string;
-  data: UpsertedBody;
-}
+export type UpsertedBody = components["schemas"]["PostResponseDto"];
 
 export function useUpsertBody() {
   return useMutation({
@@ -39,7 +25,8 @@ export function useUpsertBody() {
         },
       );
       if (error) throw error;
-      return (data as unknown as UpsertBodyResponse).data;
+      if (!data) throw new Error("保存正文响应为空");
+      return data.data;
     },
   });
 }

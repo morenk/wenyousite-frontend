@@ -68,18 +68,6 @@ interface MilkdownEditorProps {
   threadId?: string;
 }
 
-interface MentionCandidate {
-  id: string;
-  username: string;
-  avatar: string | null;
-  relation: "FOLLOWING" | "PLAYER";
-}
-
-interface MentionCandidatesResponse {
-  users: MentionCandidate[];
-  canMentionAllPlayers: boolean;
-}
-
 interface MentionMenuItem {
   id: string;
   label: string;
@@ -167,11 +155,7 @@ function EditorHost({
       );
       if (error) throw error;
       if (!data) return { users: [], canMentionAllPlayers: false };
-      const response = data as unknown as { data?: MentionCandidatesResponse } | MentionCandidatesResponse;
-      return (("data" in response ? response.data : response) ?? {
-        users: [],
-        canMentionAllPlayers: false,
-      }) as MentionCandidatesResponse;
+      return data.data;
     },
     enabled: Boolean(threadId && mentionMenu),
     staleTime: 10_000,

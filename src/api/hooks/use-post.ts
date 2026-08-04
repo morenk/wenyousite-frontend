@@ -2,19 +2,9 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
-import type { PostData } from "@/api/hooks/use-floors";
+import type { components } from "@/api/types";
 
-export type PostDetail = PostData & {
-  thread: { id: string; title: string };
-  subthread: { id: string; title: string };
-  parentPost: { id: string; floorNumber: number | null } | null;
-};
-
-interface PostResponse {
-  code: number;
-  message: string;
-  data: PostDetail;
-}
+export type PostDetail = components["schemas"]["PostDetailResponseDto"];
 
 /** 查询一个未删除且当前用户可访问的帖子 */
 export function usePost(id?: string) {
@@ -26,7 +16,8 @@ export function usePost(id?: string) {
         params: { path: { id } },
       });
       if (error) throw error;
-      return (data as unknown as PostResponse).data;
+      if (!data) throw new Error("帖子详情响应为空");
+      return data.data;
     },
     enabled: !!id,
     staleTime: 30 * 1000,

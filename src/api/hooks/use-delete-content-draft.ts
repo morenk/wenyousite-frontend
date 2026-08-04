@@ -3,12 +3,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
 
-interface DeleteDraftResponse {
-  code: number;
-  message: string;
-  data: { message: string };
-}
-
 export function useDeleteContentDraft() {
   const queryClient = useQueryClient();
 
@@ -23,7 +17,8 @@ export function useDeleteContentDraft() {
         params: { path: { id } },
       });
       if (error) throw error;
-      return (data as unknown as DeleteDraftResponse).data;
+      if (!data) throw new Error("删除草稿响应为空");
+      return data.data;
     },
     onSuccess: invalidate,
   });

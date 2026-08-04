@@ -2,13 +2,6 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
-import type { PostData } from "./use-floors";
-
-interface UpdatePostResponse {
-  code: number;
-  message: string;
-  data: PostData;
-}
 
 export function useUpdatePost() {
   return useMutation({
@@ -26,7 +19,8 @@ export function useUpdatePost() {
         body: { content, version },
       });
       if (error) throw error;
-      return (data as unknown as UpdatePostResponse).data;
+      if (!data) throw new Error("更新帖子响应为空");
+      return data.data;
     },
   });
 }

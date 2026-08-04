@@ -17,10 +17,10 @@ import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
 import { useThreadComposer } from "@/components/thread/thread-composer-context";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
-import type { PostData } from "@/api/hooks/use-floors";
+import type { FloorDisplayData } from "@/api/hooks/use-floors";
 
 interface FloorCardProps {
-  floor: PostData;
+  floor: FloorDisplayData;
   isEven: boolean;
   focused?: boolean;
 }
