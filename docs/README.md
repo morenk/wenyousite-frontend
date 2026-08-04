@@ -24,25 +24,24 @@
 
 ### 参考文档
 
-> 后端已有完整的前端对接文档，详见 `../wenyousite-backend/docs/frontend/`。
+> 后端契约说明位于同级后端仓库 `wenyousite-backend/docs/`。跨仓库文档以路径标注，避免在单仓 CI 中产生失效相对链接。
 
 | 文档 | 内容 |
 |------|------|
-| [后端前端文档中心](../wenyousite-backend/docs/frontend/README.md) | API 客户端、全局约定、用户旅程 |
-| [后端错误码](../wenyousite-backend/docs/frontend/error-handling.md) | 统一错误码与前端提示策略 |
-| [后端数据模型](../wenyousite-backend/docs/data-model.md) | 22 张表 + 8 个枚举 |
-| [后端 API 端点](../wenyousite-backend/docs/api-endpoints.md) | 78 个路径、105 个操作 |
+| `wenyousite-backend/docs/frontend-guide.md` | 认证、分页、业务流程和错误码 |
+| `wenyousite-backend/src/common/exceptions/error-codes.ts` | 可机器识别的错误码定义 |
+| `wenyousite-backend/docs/data-model.md` | 数据模型 |
+| `wenyousite-backend/docs/api-endpoints.md` | API 端点索引 |
 
 ## 迭代流程
 
 详见项目根目录 `AGENTS.md` 中的"迭代流程"章节。简而言之：
 
-1. 定模块 → 创建/更新 `docs/modules/<module>.md`
-2. 拆任务 → 在文档里列子任务和验收标准
-3. 写代码 → 页面、组件、API hooks、校验 schema
-4. 同步文档 → 变更回写
-5. 质量检查 → `pnpm lint && pnpm typecheck && pnpm build`
-6. 提交 → 原子提交，代码 + 文档同一次 commit
-7. 生产重启 → 每次迭代无论代码或文档变更，都必须重新构建、重启对应服务并完成健康检查后才能交付
+1. 定范围与风险 → 写清目标、验收标准、跨端和生产风险
+2. 契约先行 → API 变更先更新后端 Swagger，再生成前端类型
+3. 按完整行为实现 → 测试、代码和必要文档同步完成
+4. 质量检查 → `pnpm check`
+5. 提交 → 一个 commit 对应一个可验证、可回滚的完整行为
+6. 发布 → 仅在明确要求时按发布批次构建、部署、烟雾测试和观察
 
-> 生产模式没有热更新。每次迭代的「构建 → 更新 standalone 静态资源 → 重启 → 健康检查」是硬性步骤，详见 `AGENTS.md` 第 11 节。
+> 生产部署与普通提交解耦；纯文档变更不构建、不重启服务。完整规则见 `AGENTS.md` 第 11-12 节。

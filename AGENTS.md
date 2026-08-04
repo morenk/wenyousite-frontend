@@ -68,9 +68,13 @@ pnpm lint         # ESLint
 pnpm typecheck    # TypeScript
 pnpm test         # vitest 单元/组件测试
 pnpm test:watch   # vitest watch 模式
-pnpm test:e2e     # Playwright E2E 测试
+pnpm test:e2e     # Playwright E2E（需 E2E_ENV=test，独立使用 3101 端口）
+pnpm check        # 唯一质量门禁：lint + typecheck + test + 快照/文档检查 + build
+pnpm check:full   # 发布前完整门禁：check + 本机 E2E
 pnpm generate:api # 需要后端已启动
 ```
+
+当前 ESLint 历史基线为 1 个 React Compiler warning，`pnpm lint` 使用 `--max-warnings 1` 作为债务棘轮：新改动不得增加 warning；修复后应将基线降为 0。
 
 **dev server 内存说明：** Next 16 dev 用 Turbopack，会把访问过的路由（尤其 `/threads/create`、`/threads/[id]` 的 Milkdown+Vue 编辑器模块图）编译结果常驻内存，RSS 随访问路由累积（可到 4GB+）。这是 dev-only 的编译缓存，**生产 standalone 构建不会这样**。缓解：`dev` 脚本已加 `NODE_OPTIONS=--max-old-space-size=3072`；若 RSS 仍接近 3GB 或测试/build 因内存不足挂起，**重启 `pnpm dev`** 即可释放（首访会重新编译几秒）。若改动后 dev 首次编译 OOM，可调低/移除该 NODE_OPTIONS。
 
@@ -79,8 +83,11 @@ pnpm generate:api # 需要后端已启动
 - 统一使用 `src/api/client.ts` 中的 `apiClient`。
 - 不要在页面里直接调用 `fetch`，统一走 TanStack Query hooks。
 - 后端运行后执行 `pnpm generate:api` 生成 `src/api/types.ts`。
-- 错误码处理按后端 `error-handling.md` 统一映射。
-- **API 事实快照**：新模块开发前，运行 `npx tsx scripts/api-verify.ts`（或指定模块 `--module=threads`）抓取所有涉及端点的真实响应 JSON 到 `docs/snapshots/`。**手写 hooks 类型时必须以此快照为依据，不得凭设计文档猜测。** 快照文件随模块文档一起提交，作为类型契约。
+- 错误码和前端行为按后端仓库 `wenyousite-backend/docs/frontend-guide.md` 与 `wenyousite-backend/src/common/exceptions/error-codes.ts` 对齐。
+- **OpenAPI 是 API 结构契约的唯一事实源**：请求、成功响应、错误 envelope、可选字段、nullability 和枚举必须由 Swagger DTO 描述，并通过 `openapi-typescript` 生成。不得重复手写已经存在的生成类型。
+- **运行时快照是验证样例，不是类型定义**：用于发现 Swagger 与真实实现不一致、记录关键状态样例；快照缺少某字段不代表字段不存在。
+- 抓取快照必须使用专用测试账号和测试环境：`API_SNAPSHOT_ENV=test TEST_EMAIL=... TEST_PASS=... pnpm snapshots:verify -- --module=threads`。远程测试环境还需用 `API_SNAPSHOT_REMOTE_HOST=<hostname>` 精确声明主机；禁止指向生产环境。
+- 快照保存前必须脱敏。`pnpm snapshots:check` 会拒绝 token、邮箱、设备信息和稳定标识符；发现历史数据时运行 `pnpm snapshots:sanitize`。
 
 ### 5. 认证
 
@@ -164,7 +171,9 @@ pnpm generate:api # 需要后端已启动
 
 **生产模式没有热更新**——改代码必须「重新构建 → 重启进程」，这是生产模式迭代的唯一代价。
 
-**每次迭代重启为硬性规则（无例外）：** 每次涉及源码、样式、配置或开发文档的迭代，在质量检查通过后都必须执行一次「生产构建 → 更新 standalone 静态资源 → 重启对应服务 → 健康检查」；即使是仅文档变更也必须重启前端服务。未完成重启和验证，不得向用户报告该迭代完成。前端迭代固定使用下方前端重启流程，后端变更再执行后端重启流程。
+生产部署与代码提交解耦。普通代码编辑、测试和文档更新不隐式授权生产部署；只有用户明确要求发布，或当前任务本身就是部署时，才执行生产重启。
+
+**发布批次规则：** 一个可交付迭代可以包含多个原子提交，但整个批次只构建、部署和验证一次。纯文档变更不构建、不重启服务。部署前必须完成 `pnpm check`；核心用户旅程或跨端改动还需完成 `pnpm check:full` 或等价烟雾测试。
 
 前端重启（改代码后）：
 
@@ -192,73 +201,58 @@ setsid nohup env NODE_ENV=production node dist/main </dev/null \
 - 日志：`/tmp/opencode/wenyousite-frontend.log`、`/tmp/opencode/wenyousite-backend.log`
 - 杀进程用 `ss` 提取 PID；**不要用 `pkill -f "next start"` 这类会匹配到自身 shell 的模式**
 - 后端首次/依赖变更后需 `npx prisma generate` 生成 Prisma Client；`npx prisma migrate deploy` 应用未执行迁移（幂等）
-- 验证：`curl -sI https://wenyou.site`（前端 200）+ `curl -s https://wenyou.site/api/v1/health`（后端 database up）
+- 验证：`curl -sI https://wenyou.site`（前端 200）+ `curl -s https://wenyou.site/api/v1/health`（后端 database/redis up）
+- 发布后至少验证本次改动涉及的真实用户路径，并观察对应服务日志；出现持续 5xx、关键路径失败或健康检查失败时停止发布并回滚到上一已验证构建。
 
-### 12. 迭代流程（Docs-First + API-First + Test-in-the-Loop）
+### 12. 迭代流程（Contract-First + Risk-Based Testing）
 
 每个功能模块按以下步骤推进：
 
-**阶段一：模块级准备**
+**阶段一：范围与风险**
 
-1. **定模块** → 创建/更新 `docs/modules/<module>.md`
-2. **拆最小切片** → 在文档里将功能拆为可独立交付的子任务（见下方"切片粒度"）
-3. **API 先验** → `curl` 或 Swagger Try-it 跑一遍涉及的所有端点，把**真实响应 JSON 粘到模块文档的"API 响应快照"小节**。这是手写类型的唯一依据——`docs_direct` 是设计意图，API 真实响应才是事实。
-4. **后端对齐** → 对照响应发现缺失字段 → 先改后端（include/DTO） → 再回前端写 hooks 类型（后端先行原则）
+1. **定范围** → 写清目标、非目标、验收标准和受影响模块；小型内部修复可直接更新现有模块文档，不强制新建文档。
+2. **评风险** → 标记是否涉及认证/权限、数据写入、API 契约、数据库迁移、队列、缓存、上传、核心用户旅程或生产配置。
+3. **拆行为切片** → 每个切片必须形成可验证的完整行为，可以同时包含 schema、hook、组件、页面、测试和文档；不按文件类型机械拆分。
+4. **契约先行** → API 变更先更新后端 DTO/Swagger，并判断为“向后兼容新增”或“破坏性变更”。生成前端类型后再实现消费逻辑。
 
-**阶段二：切片级循环（每个切片独立执行以下步骤）**
+**阶段二：实现循环**
 
-1. **写测试**（P0 先写测试再实现；P1 测试与实现同步；P2 实现后补测试）
-2. **写代码** → 页面、组件、API hooks、校验 schema（类型一对一对应 API 快照）
-3. **同步文档** → 涉及到的接口/字段/行为变化，随实现一起更新到 `docs/modules/<module>.md`
-4. **质量检查** → `pnpm lint && pnpm typecheck && pnpm test`
-5. **原子提交** → 该切片代码 + 测试 + 文档更新同一次 commit
-6. **生产重启** → 按第 11 节对应流程重新构建、重启服务并完成健康检查；每个切片都必须执行，不得省略
+1. **测试与实现同步** → bug 先写回归测试；高风险逻辑优先测试先行；纯展示调整可说明人工验证范围。
+2. **写代码** → 优先复用生成 API 类型和现有组件/缓存模式，处理 loading、error、empty、success 以及权限分支。
+3. **同步文档** → 只有公共行为、API、架构、运维方式或用户流程变化时强制更新；内部重构无需制造无意义文档 churn。
+4. **本地门禁** → 每个可提交行为切片执行相关测试，迭代完成统一执行 `pnpm check`。
+5. **原子提交** → 一个 commit 对应一个可理解、可验证、可回滚的完整行为，不要求一个文件或一种文件类型一个 commit。
 
-**切片粒度（一个 commit 的大小）：**
+**测试映射：**
 
-| 切片大小 | 示例 | 提交 Type |
-|----------|------|-----------|
-| 1 个 Zod schema | `src/lib/validations/xxx.ts` + 测试 | `feat:` |
-| 1 个 API hook | `src/api/hooks/use-xxx.ts` + 测试 | `feat:` |
-| 1 个纯展示组件 | `src/components/xxx.tsx` + 测试 | `feat:` |
-| 1 个表单/业务组件 | `src/components/forms/xxx.tsx` + 测试 | `feat:` |
-| 1 个页面集成 | `src/app/xxx/page.tsx`（组合已有组件，不含新组件） | `feat:` |
-| 1 个工具函数 | `src/lib/xxx.ts` + 测试 | `feat:` |
-| bug 修复 | 含回归测试 | `fix:` |
-| E2E 测试 | `e2e/xxx.spec.ts`（在相关切片之后单独提交） | `test:` |
-| 文档更新 | 仅文档，无代码变更 | `docs:` |
-| 依赖/配置 | 纯 `package.json` / 构建脚本 | `chore:` |
+| 变更类型 | 最低验证要求 |
+|----------|--------------|
+| bug 修复 | 能复现旧问题的回归测试 |
+| Zod/工具函数 | 正常、边界、错误输入单元测试 |
+| Query/Mutation hook | 请求参数、成功/失败、缓存更新或失效测试 |
+| 业务组件/页面 | 关键状态和用户交互测试 |
+| API 契约变更 | OpenAPI 类型重新生成 + 运行时样例核对 |
+| 认证/权限/核心旅程 | 组件或集成测试，发布前补 E2E/烟雾测试 |
+| 纯展示样式 | lint/typecheck/build + 明确的人工视觉验证 |
 
-**反例（不合规的切片）：**
-- 把 3 个 hook + 1 个组件 + 1 个页面合在一次提交 → 不可独立回滚
-- 先提交代码、后补测试拆分到另一个 commit → 测试应同步提交
+**跨端兼容规则：**
 
-**拆分示例（以 thread-create 模块为例）：**
+- 新字段优先做可选、提供默认值，后端先部署，前端后部署。
+- 字段重命名或删除采用“新增新字段 → 客户端迁移 → 移除旧字段”的分阶段流程。
+- 前后端分别提交时，在模块文档记录对应仓库 commit SHA 或发布批次标识。
+- 破坏性变更必须明确部署顺序、兼容窗口和回滚方案，不允许前后端同时假定对方已部署。
 
-```
-├── 切片1：Zod schema         → 测试 + 实现 → feat: 主题帖表单校验 schema
-├── 切片2：useCreateThread    → 测试 + 实现 → feat: useCreateThread API hook
-├── 切片3：useUpdateThread    → 测试 + 实现 → feat: useUpdateThread API hook
-├── 切片4：useDeleteThread    → 测试 + 实现 → feat: useDeleteThread API hook
-├── 切片5：uploadImage 工具   → 测试 + 实现 → feat: 图片上传工具函数
-├── 切片6：MilkdownEditor     → 编辑区（跳单测）→ feat: Milkdown Crepe 编辑器
-├── 切片7：ThreadCreateForm   → 测试 + 实现 → feat: 主题帖创建表单组件
-├── 切片8：CreateThreadPage   → 页面集成 → feat: /threads/create 创建页面
-├── 切片9：E2E                → 实现 → test: E2E 主题帖创建全流程
-└── （每一步 commit 都包含对应文档更新）
-```
+**Definition of Done：**
 
-**铁律：**
-- 不写文档不开始编码。
-- **不准凭设计文档猜类型——以真实 API 响应为准。**
-- 接口/字段/行为变了，必须同步改文档。
-- `docs_direct` 与实际 API 冲突时，以真实响应为准修正 docs_direct。
-- 一个 commit 只包含一个可独立回滚的逻辑单元（即一个切片）。
-- **测试必须在实现代码之前或同步编写，不得后补。**
+- 验收标准全部满足，无已知 P0/P1 缺陷。
+- `pnpm check` 通过；高风险或发布任务完成相应 E2E/烟雾测试。
+- OpenAPI、生成类型、运行时行为一致，快照已脱敏且只作为验证样例。
+- 公共行为变化已同步文档，提交中没有 secrets、无关文件或临时调试代码。
+- 若发布：已记录部署顺序、健康检查、关键路径验证、日志观察和回滚点。
 
 ### 13. 模块文档模板
 
-每个功能模块必须写 `docs/modules/<module>.md`，包含以下章节：
+新增功能模块或公共行为发生变化时，创建/更新 `docs/modules/<module>.md`，包含以下章节；纯内部重构无需机械补文档：
 
 1. 目标与范围 — 本次迭代做什么、哪些留到后续
 2. 页面与路由 — 路由表、权限
@@ -269,7 +263,7 @@ setsid nohup env NODE_ENV=production node dist/main </dev/null \
 7. 错误处理 — 错误码 → UI 行为映射
 8. 权限与访问控制 — 未登录/无权限的处理
 9. 验收标准 — checkbox 列表
-10. 子任务 — 按最小可回滚切片拆分为独立 commit，每个切片独立测试（P0/P1）/ 实现 / 文档更新 / 质量检查
+10. 子任务 — 按完整用户行为拆分，标明风险、测试范围、跨端依赖和发布顺序
 
 ### 14. 开发步骤 Roadmap
 
@@ -329,21 +323,19 @@ feat: 实现登录页面
 - 同步更新 docs/modules/auth.md
 ```
 
-**提交前检查：**
+**提交/合并前检查：**
 
-- [ ] `pnpm lint` 通过
-- [ ] `pnpm typecheck` 通过
-- [ ] `pnpm test` 通过（新增逻辑必须含测试，不可后补）
-- [ ] `pnpm build` 通过
+- [ ] `pnpm check` 通过
+- [ ] 高风险或发布变更完成 `pnpm check:full` 或等价集成验证
 - [ ] 相关模块文档 `docs/modules/<module>.md` 已更新
 - [ ] 没有混入无关文件或 secrets
-- [ ] 提交粒度合理
+- [ ] 提交对应完整行为，部署顺序和兼容性已明确
 
 ### 16. 代码规范
 
 #### 文件头部注释
 
-每个 `.ts/.tsx` 文件顶部加一行用途说明：
+仅在文件职责无法从路径、导出名称或框架约定看出时添加用途说明；注释重点解释约束、原因和非显然逻辑，不重复代码字面含义。
 
 ```ts
 /** 登录页面：用户邮箱密码登录 */
@@ -371,7 +363,7 @@ feat: 实现登录页面
 
 - 统一用 `sonner` toast。
 - 401 自动处理（apiClient 拦截器），页面不需重复。
-- 业务错误按 `docs/frontend/error-handling.md` 映射。
+- 业务错误按后端 `docs/frontend-guide.md` 的错误码速查和模块文档映射。
 - 兜底错误文案："操作失败，请稍后重试"。
 
 #### Zod 4 注意
@@ -383,6 +375,8 @@ feat: 实现登录页面
 - 客户端不暴露密钥、数据库密码等。
 - 渲染用户输入 Markdown 时使用 sanitization。
 - 不要长期把 `next dev` 暴露在公网。
+- API 快照不得包含 token、Cookie、真实邮箱、设备信息或可关联用户的稳定标识符。
+- 任何会写数据的快照/E2E 脚本必须拒绝生产地址，并使用可清理的专用测试账号。
 
 ### 18. 测试规范
 
@@ -497,5 +491,5 @@ test("非法输入列出具体 issue", () => {
 ```bash
 pnpm test           # 单次全量运行
 pnpm test:watch     # watch 模式（开发时用）
-pnpm test:e2e       # Playwright E2E 测试（需前端 dev server 已启动）
+E2E_ENV=test pnpm test:e2e # Playwright E2E；自动启动独立 3101 前端，要求本机后端已启动
 ```
