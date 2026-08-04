@@ -104,7 +104,7 @@
 
 使用 `@milkdown/crepe`（Milkdown 官方 WYSIWYG 方案），通过 `CrepeFeature` 精确控制功能：
 
-输入 `@` 后，编辑器从 `/users/mention-candidates?threadId=&q=` 拉取候选；单人插入 `[@用户名](/users/{userId})`，群体插入 `@全体玩家`。后端在创建和编辑正文时再次校验权限并同步提及快照，前端候选菜单不是安全边界。
+输入 `@` 后，编辑器从 `/users/mention-candidates?threadId=&q=` 拉取候选；单人通过原生链接 Mark 插入并所见即所得显示为 `@用户名`，序列化时才写入 `[@用户名](/users/{userId})`，群体插入 `@全体玩家`。后端在创建和编辑正文时再次校验权限并同步提及快照，前端候选菜单不是安全边界。
 
 | Feature | 状态 | 说明 |
 |---------|------|------|

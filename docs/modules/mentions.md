@@ -8,7 +8,7 @@ Milkdown 编辑器在输入 `@` 时显示当前主题帖候选，候选来自后
 - 楼主/协作者额外显示 `@全体玩家`；
 - 键盘支持上下选择、Enter/Tab 确认、Escape 关闭；点击候选不会丢失光标位置。
 
-单人候选写入稳定 Markdown 链接 `[@用户名](/users/{userId})`，`@全体玩家`保留为纯文本保留标记。候选接口只改善输入体验，后端 `MentionsService.syncMentions()` 会在创建和编辑时重新校验并同步提及快照。
+单人候选在编辑器内部通过原生链接 Mark 插入，因此所见即所得地显示为 `@用户名`，不会把 Markdown 源码暴露给用户；Milkdown 序列化时才写入稳定 Markdown 链接 `[@用户名](/users/{userId})`。`@全体玩家`保留为纯文本保留标记。候选接口只改善输入体验，后端 `MentionsService.syncMentions()` 会在创建和编辑时重新校验并同步提及快照。
 
 ## 渲染与兼容
 

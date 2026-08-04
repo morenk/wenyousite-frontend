@@ -390,12 +390,22 @@ function EditorHost({
         } else if (event.key === "Enter" || event.key === "Tab") {
           event.preventDefault();
           const item = items[selectedMentionIndexRef.current] ?? items[0];
-          const value = item.isGroup
-            ? `@全体玩家 `
-            : `[@${item.username}](/users/${item.id}) `;
           const view = viewForInsert();
           if (!view) return;
-          view.dispatch(view.state.tr.insertText(value, menu.from, menu.to));
+          if (item.isGroup) {
+            view.dispatch(view.state.tr.insertText("@全体玩家 ", menu.from, menu.to));
+          } else {
+            const linkMarkType = view.state.schema.marks.link;
+            if (!linkMarkType || !item.username) return;
+            const linkMark = linkMarkType.create({
+              href: `/users/${item.id}`,
+              title: null,
+            });
+            const mentionNode = view.state.schema.text(`@${item.username}`, [linkMark]);
+            const transaction = view.state.tr.replaceWith(menu.from, menu.to, mentionNode);
+            transaction.insertText(" ", menu.from + mentionNode.nodeSize);
+            view.dispatch(transaction);
+          }
           view.focus();
           mentionMenuRef.current = null;
           setMentionMenu(null);
@@ -493,10 +503,20 @@ function EditorHost({
                 const view = crepeRef.current?.editor.action((ctx) => ctx.get(editorViewCtx));
                 const range = mentionMenuRef.current;
                 if (!view || !range) return;
-                const value = item.isGroup
-                  ? "@全体玩家 "
-                  : `[@${item.username}](/users/${item.id}) `;
-                view.dispatch(view.state.tr.insertText(value, range.from, range.to));
+                if (item.isGroup) {
+                  view.dispatch(view.state.tr.insertText("@全体玩家 ", range.from, range.to));
+                } else {
+                  const linkMarkType = view.state.schema.marks.link;
+                  if (!linkMarkType || !item.username) return;
+                  const linkMark = linkMarkType.create({
+                    href: `/users/${item.id}`,
+                    title: null,
+                  });
+                  const mentionNode = view.state.schema.text(`@${item.username}`, [linkMark]);
+                  const transaction = view.state.tr.replaceWith(range.from, range.to, mentionNode);
+                  transaction.insertText(" ", range.from + mentionNode.nodeSize);
+                  view.dispatch(transaction);
+                }
                 view.focus();
                 mentionMenuRef.current = null;
                 setMentionMenu(null);
