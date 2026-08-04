@@ -131,8 +131,17 @@ pnpm generate:api # 需要后端已启动
 | `/threads/[id]` | 主题帖详情 |
 | `/threads/[id]/edit` | 编辑主题帖 |
 | `/notifications` | 通知 |
+| `/bookmarks` | 我的收藏 |
+| `/search` | 全文搜索 |
 | `/users/[id]` | 用户主页 |
+| `/users/[id]/following` | 用户关注列表 |
+| `/users/[id]/followers` | 用户粉丝列表 |
 | `/me` | 我的资料 |
+| `/me/password` | 修改密码 |
+| `/me/email` | 修改邮箱 |
+| `/me/security` | 设备会话、黑名单与账号注销 |
+| `/join/[token]` | 私密帖邀请预览与加入 |
+| `/threads/[id]/posts/[postId]/replies` | 独立楼中楼阅读页 |
 
 ### 10. 环境变量
 

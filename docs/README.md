@@ -14,10 +14,13 @@
 | [home](./modules/home.md) | 首页 | 已完成 |
 | [thread-create](./modules/thread-create.md) | 创建主题帖 | 已完成 |
 | [thread-detail](./modules/thread-detail.md) | 主题帖详情与回复 | 已完成 |
-| profile | 用户资料 | 待设计 |
-| notifications | 通知 | 待设计 |
-| search | 搜索 | 待设计 |
-| drafts | 草稿箱 | 待设计 |
+| [profile](./modules/profile.md) | 用户资料与账号安全 | 已完成 |
+| [notifications](./modules/notifications.md) | 通知 | 已完成 |
+| [search](./modules/search.md) | 搜索 | 已完成 |
+| [drafts](./modules/drafts.md) | 草稿箱 | 已完成 |
+| [bookmarks](./modules/bookmarks.md) | 收藏 | 已完成 |
+| [mentions](./modules/mentions.md) | 帖内提及 | 已完成 |
+| [api-coverage](./api-coverage.md) | 前后端 API 覆盖审计 | 2026-08-04 已复核 |
 
 ### 参考文档
 
@@ -28,7 +31,7 @@
 | [后端前端文档中心](../wenyousite-backend/docs/frontend/README.md) | API 客户端、全局约定、用户旅程 |
 | [后端错误码](../wenyousite-backend/docs/frontend/error-handling.md) | 统一错误码与前端提示策略 |
 | [后端数据模型](../wenyousite-backend/docs/data-model.md) | 22 张表 + 8 个枚举 |
-| [后端 API 端点](../wenyousite-backend/docs/api-endpoints.md) | 全部 48 个端点 |
+| [后端 API 端点](../wenyousite-backend/docs/api-endpoints.md) | 78 个路径、105 个操作 |
 
 ## 迭代流程
 
