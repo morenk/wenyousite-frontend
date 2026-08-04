@@ -78,7 +78,7 @@ describe("MemberManager", () => {
 
   test("渲染参与人列表与角色徽章", () => {
     render(
-      <MemberManager threadId="t1" isOwner={true} onRefetch={vi.fn()} />,
+      <MemberManager threadId="t1" isOwner={true} isCollaborator={false} onRefetch={vi.fn()} />,
       { wrapper: createWrapper() },
     );
     expect(screen.getByText("楼主")).toBeInTheDocument();
@@ -88,7 +88,7 @@ describe("MemberManager", () => {
   test("帖主授予/收回玩家标记", async () => {
     const user = userEvent.setup();
     render(
-      <MemberManager threadId="t1" isOwner={true} onRefetch={vi.fn()} />,
+      <MemberManager threadId="t1" isOwner={true} isCollaborator={false} onRefetch={vi.fn()} />,
       { wrapper: createWrapper() },
     );
 
@@ -105,7 +105,7 @@ describe("MemberManager", () => {
   test("帖主升级协作者", async () => {
     const user = userEvent.setup();
     render(
-      <MemberManager threadId="t1" isOwner={true} onRefetch={vi.fn()} />,
+      <MemberManager threadId="t1" isOwner={true} isCollaborator={false} onRefetch={vi.fn()} />,
       { wrapper: createWrapper() },
     );
 
@@ -121,7 +121,7 @@ describe("MemberManager", () => {
 
   test("不显示移除参与人操作", () => {
     render(
-      <MemberManager threadId="t1" isOwner={true} onRefetch={vi.fn()} />,
+      <MemberManager threadId="t1" isOwner={true} isCollaborator={false} onRefetch={vi.fn()} />,
       { wrapper: createWrapper() },
     );
 
@@ -131,10 +131,20 @@ describe("MemberManager", () => {
 
   test("非帖主不显示管理按钮", () => {
     render(
-      <MemberManager threadId="t1" isOwner={false} onRefetch={vi.fn()} />,
+      <MemberManager threadId="t1" isOwner={false} isCollaborator={false} onRefetch={vi.fn()} />,
       { wrapper: createWrapper() },
     );
     expect(screen.queryByRole("button", { name: "授予玩家" })).toBeNull();
     expect(screen.queryByRole("button", { name: "协作者" })).toBeNull();
+  });
+
+  test("协作者只能修改玩家标记", () => {
+    render(
+      <MemberManager threadId="t1" isOwner={false} isCollaborator={true} onRefetch={vi.fn()} />,
+      { wrapper: createWrapper() },
+    );
+
+    expect(screen.getByRole("button", { name: "授予玩家" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "授予协作者" })).not.toBeInTheDocument();
   });
 });

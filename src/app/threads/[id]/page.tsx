@@ -24,6 +24,10 @@ import {
   ThreadComposerProvider,
   useThreadComposer,
 } from "@/components/thread/thread-composer-context";
+import {
+  ThreadPermissionsProvider,
+  useThreadPermissions,
+} from "@/components/thread/thread-permissions-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -33,7 +37,9 @@ export default function ThreadDetailPage() {
   const threadId = params.id as string;
   return (
     <ThreadComposerProvider threadId={threadId}>
-      <ThreadDetailPageContent />
+      <ThreadPermissionsProvider threadId={threadId}>
+        <ThreadDetailPageContent />
+      </ThreadPermissionsProvider>
     </ThreadComposerProvider>
   );
 }
@@ -109,7 +115,8 @@ function ThreadDetailPageContent() {
     (s) => s.id === effectiveSubthreadId,
   );
 
-  const isOwner = user?.id === thread?.ownerId;
+  const { isThreadManager } = useThreadPermissions();
+  const canManageThread = isThreadManager || user?.id === thread?.ownerId;
 
   // Loading
   if (isLoading) {
@@ -176,7 +183,7 @@ function ThreadDetailPageContent() {
       {/* 头部 */}
       <ThreadDetailHeader
         thread={thread}
-        onManage={isOwner ? () => {
+        onManage={canManageThread ? () => {
           if (closeComposer()) setIsManaging(true);
         } : undefined}
       />

@@ -8,7 +8,6 @@ import {
   useCreateInviteLink,
   useExitThreadPlayer,
   useInvitePreview,
-  useJoinPublicThread,
   useJoinThreadByInvite,
 } from "@/api/hooks/use-thread-access-actions";
 
@@ -46,14 +45,8 @@ describe("主题帖访问操作 hooks", () => {
     await waitFor(() => expect(join.result.current.isSuccess).toBe(true));
   });
 
-  test("加入公开帖并退出玩家身份", async () => {
-    mockPOST.mockResolvedValueOnce({ data: { data: { id: "member-1" } }, error: undefined });
+  test("退出玩家身份", async () => {
     const wrapper = createWrapper();
-    const join = renderHook(() => useJoinPublicThread(), { wrapper });
-    join.result.current.mutate("t1");
-    await waitFor(() => expect(join.result.current.isSuccess).toBe(true));
-    expect(mockPOST).toHaveBeenCalledWith("/api/v1/threads/{threadId}/members/join", { params: { path: { threadId: "t1" } } });
-
     mockDELETE.mockResolvedValueOnce({ data: { data: { message: "已退出主题帖" } }, error: undefined });
     const exit = renderHook(() => useExitThreadPlayer(), { wrapper });
     exit.result.current.mutate("t1");

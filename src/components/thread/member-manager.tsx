@@ -15,8 +15,9 @@ import type { ThreadMember } from "@/api/hooks/use-members";
 
 interface MemberManagerProps {
   threadId: string;
-  /** 当前用户是否为帖主（仅帖主可管理） */
+  /** 楼主可任免协作者；楼主和协作者都可修改玩家标记。 */
   isOwner: boolean;
+  isCollaborator: boolean;
   onRefetch: () => Promise<unknown>;
 }
 
@@ -26,7 +27,7 @@ const ROLE_LABEL: Record<string, string> = {
   PARTICIPANT: "参与人",
 };
 
-export function MemberManager({ threadId, isOwner, onRefetch }: MemberManagerProps) {
+export function MemberManager({ threadId, isOwner, isCollaborator, onRefetch }: MemberManagerProps) {
   const queryClient = useQueryClient();
   const { data: members, isLoading, error, refetch } = useMembers(threadId);
   const updateMember = useUpdateMember();
@@ -124,7 +125,7 @@ export function MemberManager({ threadId, isOwner, onRefetch }: MemberManagerPro
               )}
             </div>
 
-            {isOwner && m.role !== "OWNER" && (
+            {(isOwner || isCollaborator) && m.role !== "OWNER" && (
               <div className="flex items-center gap-1">
                 <Button
                   variant="ghost"
@@ -136,7 +137,7 @@ export function MemberManager({ threadId, isOwner, onRefetch }: MemberManagerPro
                 >
                   {m.playerMarked ? "收回玩家" : "授予玩家"}
                 </Button>
-                <Button
+                {isOwner && <Button
                   variant="ghost"
                   size="sm"
                   className="h-7 px-2 text-xs"
@@ -150,7 +151,7 @@ export function MemberManager({ threadId, isOwner, onRefetch }: MemberManagerPro
                     <ShieldCheck className="mr-1 h-3.5 w-3.5" />
                   )}
                   {m.role === "COLLABORATOR" ? "移除协作者" : "授予协作者"}
-                </Button>
+                </Button>}
               </div>
             )}
           </li>

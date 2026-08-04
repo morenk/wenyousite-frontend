@@ -138,10 +138,10 @@ const mockThread: ThreadDetail = {
   isLiked: false,
 };
 
-function renderForm() {
+function renderForm(isOwner = true) {
   const onBack = vi.fn();
   const onSaved = vi.fn().mockResolvedValue({ data: mockThread });
-  render(<ThreadEditForm thread={mockThread} onBack={onBack} onSaved={onSaved} />, {
+  render(<ThreadEditForm thread={mockThread} isOwner={isOwner} onBack={onBack} onSaved={onSaved} />, {
     wrapper: createWrapper(),
   });
   return { onBack, onSaved };
@@ -162,6 +162,7 @@ describe("ThreadEditForm", () => {
     expect(category.value).toBe("RPG");
     const visibility = screen.getByLabelText("可见性") as HTMLSelectElement;
     expect(visibility.value).toBe("PUBLIC");
+    expect(screen.getByLabelText("状态")).toHaveValue("RECRUITING");
     expect(screen.getByText("保留")).toBeInTheDocument();
     expect(screen.getByDisplayValue("默认正文")).toBeInTheDocument();
   });
@@ -193,6 +194,7 @@ describe("ThreadEditForm", () => {
       body: {
         title: "新标题",
         category: "RPG",
+        status: "RECRUITING",
         visibility: "PUBLIC",
         version: 3,
       },
@@ -214,6 +216,36 @@ describe("ThreadEditForm", () => {
       subthreadId: "s1",
       body: { title: "新标题", version: 1 },
     });
+  });
+
+  test("协作者不可修改可见性且保存请求不包含 visibility", async () => {
+    const user = userEvent.setup();
+    renderForm(false);
+
+    expect(screen.queryByLabelText("可见性")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "保存修改" }));
+
+    expect(mockUpdateThreadMutate).toHaveBeenCalledWith({
+      threadId: "t1",
+      body: {
+        title: "测试帖",
+        category: "RPG",
+        status: "RECRUITING",
+        version: 3,
+      },
+    });
+  });
+
+  test("协作者可以修改帖子状态", async () => {
+    const user = userEvent.setup();
+    renderForm(false);
+
+    await user.selectOptions(screen.getByLabelText("状态"), "FINISHED");
+    await user.click(screen.getByRole("button", { name: "保存修改" }));
+
+    expect(mockUpdateThreadMutate).toHaveBeenCalledWith(
+      expect.objectContaining({ body: expect.objectContaining({ status: "FINISHED" }) }),
+    );
   });
 
   test("乐观锁冲突提示 40900", async () => {

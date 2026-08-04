@@ -546,7 +546,7 @@ export interface paths {
         /** 我的订阅列表 */
         get: operations["SubscriptionsController_findAll"];
         put?: never;
-        /** 创建订阅 */
+        /** 创建官方更新或玩家发言订阅 */
         post: operations["SubscriptionsController_create"];
         delete?: never;
         options?: never;
@@ -790,7 +790,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 自由加入主题帖 */
+        /**
+         * 自由加入主题帖（兼容旧客户端，Web 已改为发言时自动参与）
+         * @deprecated
+         */
         post: operations["ThreadMembersController_join"];
         delete?: never;
         options?: never;
@@ -1589,13 +1592,13 @@ export interface components {
              */
             threadId: string;
             /**
-             * @description THREAD=订阅整帖所有动态, USER=仅订阅帖内某用户的发言
+             * @description THREAD=楼主或协作者发布的官方更新, USER=指定普通玩家在帖内的新发言
              * @example THREAD
              * @enum {string}
              */
             type: "THREAD" | "USER";
             /**
-             * @description 目标用户 ID（type=USER 时必填，订阅该用户在帖内的发言）
+             * @description 目标玩家 ID（type=USER 时必填；必须是本帖已标记玩家的普通参与人）
              * @example clxuser001...
              */
             targetUserId?: string;
@@ -2145,7 +2148,7 @@ export interface operations {
         requestBody?: never;
         responses: {
             /**
-             * @description { status: "ok", info: { database: { status: "up" } } }
+             * @description { status: "ok", info: { database: { status: "up" }, redis: { status: "up" } } }
              *
              *     The Health Check is successful
              */

@@ -26,6 +26,7 @@ import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
 
 interface ThreadEditFormProps {
   thread: ThreadDetail;
+  isOwner: boolean;
   onBack: () => void;
   onSaved: () => Promise<unknown>;
 }
@@ -41,12 +42,20 @@ const VISIBILITY_OPTIONS = [
   { value: "PRIVATE", label: "私密" },
 ];
 
+const STATUS_OPTIONS = [
+  { value: "RECRUITING", label: "招募中" },
+  { value: "CLOSED", label: "已关闭" },
+  { value: "FINISHED", label: "已完结" },
+];
+
 export function ThreadEditForm({
   thread,
+  isOwner,
   onBack,
   onSaved,
 }: ThreadEditFormProps) {
   const [isSaving, setIsSaving] = useState(false);
+  const [status, setStatus] = useState<ThreadDetail["status"]>(thread.status);
 
   const updateThread = useUpdateThread();
   const updateSubthread = useUpdateSubthread();
@@ -116,7 +125,8 @@ export function ThreadEditForm({
         body: {
           title: values.title,
           category: values.category,
-          visibility: values.visibility,
+          status,
+          ...(isOwner ? { visibility: values.visibility } : {}),
           version: latestThread.version,
         },
       });
@@ -175,6 +185,23 @@ export function ThreadEditForm({
         </div>
 
         <div className="space-y-2">
+          <Label htmlFor="status">状态</Label>
+          <select
+            id="status"
+            value={status}
+            onChange={(event) => setStatus(event.target.value as ThreadDetail["status"])}
+            disabled={isSaving}
+            className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-60"
+          >
+            {STATUS_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {isOwner && <div className="space-y-2">
           <Label htmlFor="visibility">可见性</Label>
           <select
             id="visibility"
@@ -194,7 +221,7 @@ export function ThreadEditForm({
               </option>
             ))}
           </select>
-        </div>
+        </div>}
 
         <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="tags">标签</Label>

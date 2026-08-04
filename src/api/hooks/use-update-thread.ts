@@ -6,7 +6,11 @@ import type { ThreadCreateFormData } from "@/lib/validations/thread-create";
 import type { RawThreadDetail } from "./use-thread-detail";
 import { normalizeThreadDetail } from "./use-thread-detail";
 
-export interface UpdateThreadBody extends ThreadCreateFormData {
+export interface UpdateThreadBody {
+  title?: ThreadCreateFormData["title"];
+  category?: ThreadCreateFormData["category"];
+  status?: "RECRUITING" | "CLOSED" | "FINISHED";
+  visibility?: ThreadCreateFormData["visibility"];
   published?: boolean;
   version: number;
 }
@@ -31,7 +35,8 @@ export function useUpdateThread() {
         body: {
           title: body.title,
           category: body.category,
-          visibility: body.visibility,
+          ...(body.status !== undefined ? { status: body.status } : {}),
+          ...(body.visibility !== undefined ? { visibility: body.visibility } : {}),
           published: body.published,
           version: body.version,
         },

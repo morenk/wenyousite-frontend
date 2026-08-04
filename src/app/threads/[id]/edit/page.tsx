@@ -13,8 +13,22 @@ import { ThreadEditForm } from "@/components/forms/thread-edit-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
+import {
+  ThreadPermissionsProvider,
+  useThreadPermissions,
+} from "@/components/thread/thread-permissions-context";
 
 export default function EditThreadPage() {
+  const params = useParams();
+  const threadId = params.id as string;
+  return (
+    <ThreadPermissionsProvider threadId={threadId}>
+      <EditThreadPageContent />
+    </ThreadPermissionsProvider>
+  );
+}
+
+function EditThreadPageContent() {
   const params = useParams();
   const router = useRouter();
   const threadId = params.id as string;
@@ -26,6 +40,8 @@ export default function EditThreadPage() {
     error,
     refetch,
   } = useThreadDetail(threadId);
+  const { isOwner, isCollaborator, isLoading: isPermissionsLoading } =
+    useThreadPermissions();
 
   useEffect(() => {
     if (!isInitialized) return;
@@ -34,9 +50,9 @@ export default function EditThreadPage() {
     }
   }, [user, router, isInitialized]);
 
-  const isOwner = !!user && user.id === thread?.ownerId;
+  const canEdit = isOwner || isCollaborator;
 
-  if (!isInitialized || isLoading) {
+  if (!isInitialized || isLoading || isPermissionsLoading) {
     return (
       <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
         <div className="flex items-center gap-2 text-muted-foreground">
@@ -70,7 +86,7 @@ export default function EditThreadPage() {
 
   if (!user || !thread) return null;
 
-  if (!isOwner) {
+  if (!canEdit) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-12">
         <Card>
@@ -79,7 +95,7 @@ export default function EditThreadPage() {
               <ShieldAlert className="h-10 w-10 text-muted-foreground" />
               <EmptyState
                 title="无权编辑"
-                description="只有帖主可以编辑该主题帖"
+                description="只有楼主或协作者可以编辑该主题帖"
               />
               <Button
                 variant="outline"
@@ -95,7 +111,7 @@ export default function EditThreadPage() {
     );
   }
 
-  if (!thread.published) {
+  if (!thread.published && isOwner) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-6">
         <div className="mb-5 flex items-center justify-between">
@@ -133,6 +149,7 @@ export default function EditThreadPage() {
         <CardContent className="pt-6">
           <ThreadEditForm
             thread={thread}
+            isOwner={isOwner}
             onBack={() => router.push(`/threads/${threadId}`)}
             onSaved={refetch}
           />

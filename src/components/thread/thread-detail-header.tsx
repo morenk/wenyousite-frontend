@@ -14,11 +14,9 @@ import { useAuth } from "@/lib/auth";
 import { useLikeThread } from "@/api/hooks/use-like-thread";
 import { useDeleteThread } from "@/api/hooks/use-delete-thread";
 import { useSubscriptions } from "@/api/hooks/use-subscriptions";
-import { useMembers } from "@/api/hooks/use-members";
 import {
   useCreateInviteLink,
   useExitThreadPlayer,
-  useJoinPublicThread,
 } from "@/api/hooks/use-thread-access-actions";
 import {
   useCreateSubscription,
@@ -27,6 +25,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { BookmarkButton } from "@/components/user/bookmark-button";
+import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
 
 const categoryLabel: Record<string, string> = {
@@ -68,20 +67,26 @@ export function ThreadDetailHeader({
   const { like, unlike } = useLikeThread(thread.id);
   const deleteThread = useDeleteThread();
   const { data: subscriptions } = useSubscriptions(!!user);
-  const { data: members } = useMembers(user ? thread.id : undefined);
+  const { members, currentMember, isOwner: roleIsOwner, isManager, isThreadManager } =
+    useThreadPermissions();
+  const isOwner = roleIsOwner || user?.id === thread.ownerId;
+  const canManageThread = isThreadManager || isOwner;
+  const hasAutomaticUpdates = isManager || isOwner;
   const createSubscription = useCreateSubscription();
   const deleteSubscription = useDeleteSubscription();
-  const isOwner = user?.id === thread.ownerId;
   const createInviteLink = useCreateInviteLink();
-  const joinPublicThread = useJoinPublicThread();
   const exitThreadPlayer = useExitThreadPlayer();
   const [selectedTargetUserId, setSelectedTargetUserId] = useState("");
 
   const mySubscription = subscriptions?.find(
     (s) => s.threadId === thread.id && s.type === "THREAD",
   );
-  const candidateMembers = members?.filter((member) => member.userId !== user?.id) ?? [];
-  const myMember = members?.find((member) => member.userId === user?.id);
+  const candidateMembers = members.filter(
+    (member) =>
+      member.role === "PARTICIPANT" &&
+      member.playerMarked &&
+      member.userId !== user?.id,
+  );
   const selectedUserSubscription = subscriptions?.find(
     (subscription) =>
       subscription.threadId === thread.id &&
@@ -170,15 +175,6 @@ export function ThreadDetailHeader({
       toast.success("邀请链接已复制，旧链接已失效");
     } catch (error: unknown) {
       toast.error((error as { message?: string }).message || "邀请链接生成失败");
-    }
-  };
-
-  const handleJoinPublicThread = async () => {
-    try {
-      await joinPublicThread.mutateAsync(thread.id);
-      toast.success("已加入主题帖");
-    } catch (error: unknown) {
-      toast.error((error as { message?: string }).message || "加入失败，请稍后重试");
     }
   };
 
@@ -287,12 +283,7 @@ export function ThreadDetailHeader({
           )}
           {user ? (
             <>
-              {!isOwner && thread.published && thread.visibility === "PUBLIC" && !myMember && (
-                <Button variant="outline" size="sm" onClick={handleJoinPublicThread} disabled={joinPublicThread.isPending}>
-                  加入主题帖
-                </Button>
-              )}
-              {!isOwner && myMember?.playerMarked && (
+              {!isOwner && currentMember?.playerMarked && (
                 <Button variant="ghost" size="sm" onClick={handleExitPlayer} disabled={exitThreadPlayer.isPending}>
                   退出玩家身份
                 </Button>
@@ -327,13 +318,13 @@ export function ThreadDetailHeader({
                 bookmarkId={thread.bookmarkId}
               />
 
-              {!isOwner && (
+              {!hasAutomaticUpdates && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={handleToggleSubscribe}
                   disabled={createSubscription.isPending || deleteSubscription.isPending}
-                  title={mySubscription ? "取消订阅" : "订阅帖子更新"}
+                  title={mySubscription ? "取消订阅" : "订阅官方更新"}
                 >
                   {createSubscription.isPending || deleteSubscription.isPending ? (
                     <Loader2 className="mr-1 h-4 w-4 animate-spin" />
@@ -342,19 +333,19 @@ export function ThreadDetailHeader({
                   ) : (
                     <Bell className="mr-1 h-4 w-4" />
                   )}
-                  {mySubscription ? "已订阅" : "订阅"}
+                  {mySubscription ? "已订阅官方更新" : "订阅官方更新"}
                 </Button>
               )}
 
-              {candidateMembers.length > 0 && (
+              {!hasAutomaticUpdates && candidateMembers.length > 0 && (
                 <div className="flex items-center gap-1">
                   <select
-                    aria-label="订阅帖内用户"
+                    aria-label="订阅帖内玩家"
                     value={selectedTargetUserId}
                     onChange={(event) => setSelectedTargetUserId(event.target.value)}
                     className="h-8 max-w-32 rounded-md border border-border bg-background px-2 text-xs"
                   >
-                    <option value="">选择用户</option>
+                    <option value="">选择玩家</option>
                     {candidateMembers.map((member) => (
                       <option key={member.userId} value={member.userId}>
                         {member.user.username}
@@ -370,14 +361,14 @@ export function ThreadDetailHeader({
                       createSubscription.isPending ||
                       deleteSubscription.isPending
                     }
-                    aria-label={selectedUserSubscription ? "取消订阅该用户" : "订阅该用户"}
+                    aria-label={selectedUserSubscription ? "取消订阅该玩家" : "订阅该玩家"}
                   >
-                    {selectedUserSubscription ? "取消用户订阅" : "订阅用户"}
+                    {selectedUserSubscription ? "取消玩家订阅" : "订阅玩家回复"}
                   </Button>
                 </div>
               )}
 
-              {isOwner && (
+              {canManageThread && (
                 <>
                   <Button
                     variant="outline"
@@ -395,7 +386,8 @@ export function ThreadDetailHeader({
                     <Edit3 className="mr-1 h-4 w-4" />
                     编辑
                   </Button>
-                  <Button
+                  {isOwner && (
+                    <Button
                     variant="ghost"
                     size="sm"
                     className="text-destructive hover:text-destructive"
@@ -409,7 +401,8 @@ export function ThreadDetailHeader({
                       <Trash2 className="mr-1 h-4 w-4" />
                     )}
                     删除
-                  </Button>
+                    </Button>
+                  )}
                 </>
               )}
             </>

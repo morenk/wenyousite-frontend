@@ -7,13 +7,16 @@ import { AlertCircle, Loader2 } from "lucide-react";
 import { usePost } from "@/api/hooks/use-post";
 import { ReplyDiscussion } from "@/components/thread/reply-discussion";
 import { ThreadComposerProvider } from "@/components/thread/thread-composer-context";
+import { ThreadPermissionsProvider } from "@/components/thread/thread-permissions-context";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function ReplyDiscussionPage() {
   const params = useParams<{ id: string }>();
   return (
     <ThreadComposerProvider threadId={params.id}>
-      <ReplyDiscussionPageContent />
+      <ThreadPermissionsProvider threadId={params.id}>
+        <ReplyDiscussionPageContent />
+      </ThreadPermissionsProvider>
     </ThreadComposerProvider>
   );
 }

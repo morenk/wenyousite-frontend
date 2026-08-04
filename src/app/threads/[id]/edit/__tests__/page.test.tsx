@@ -2,6 +2,7 @@
 
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -34,6 +35,15 @@ vi.mock("@/api/hooks/use-thread-detail", () => ({
     isLoading: false,
     error: null,
     refetch: mocks.refetch,
+  }),
+}));
+
+vi.mock("@/components/thread/thread-permissions-context", () => ({
+  ThreadPermissionsProvider: ({ children }: { children: ReactNode }) => children,
+  useThreadPermissions: () => ({
+    isOwner: true,
+    isCollaborator: false,
+    isLoading: false,
   }),
 }));
 

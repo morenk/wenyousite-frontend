@@ -15,6 +15,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { MarkdownContent } from "@/components/thread/markdown-content";
 import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
 import { useThreadComposer } from "@/components/thread/thread-composer-context";
+import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Button } from "@/components/ui/button";
 import type { ReplyData, ReplyDisplayData } from "@/api/hooks/use-floors";
@@ -30,6 +31,7 @@ export function ReplyList({ postId, focusedReply, variant = "embedded" }: ReplyL
   const queryClient = useQueryClient();
   const deletePost = useDeletePost();
   const { session, open } = useThreadComposer();
+  const { isManager } = useThreadPermissions();
   const {
     data,
     fetchNextPage,
@@ -121,6 +123,7 @@ export function ReplyList({ postId, focusedReply, variant = "embedded" }: ReplyL
         const replyToUser = reply.replyToPost?.author?.username;
         const replyToId = reply.replyToPost?.id ?? reply.replyToPostId;
         const isAuthor = user?.id === reply.authorId;
+        const canDelete = isAuthor || isManager;
         const anchorId = `reply:${reply.id}`;
         const isEditing = session?.key === `edit:${reply.id}`;
         const replyHref = `/threads/${reply.threadId}/posts/${postId}/replies?post=${reply.id}`;
@@ -170,9 +173,9 @@ export function ReplyList({ postId, focusedReply, variant = "embedded" }: ReplyL
                   })}
                 </span>
               </div>
-              {isAuthor && !isEditing && (
+              {!isEditing && (isAuthor || canDelete) && (
                 <div className="flex items-center gap-1">
-                  <Button
+                  {isAuthor && <Button
                     variant="ghost"
                     size="sm"
                     className="h-6 px-2 text-xs"
@@ -192,8 +195,8 @@ export function ReplyList({ postId, focusedReply, variant = "embedded" }: ReplyL
                     }}
                   >
                     <Pencil className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button
+                  </Button>}
+                  {canDelete && <Button
                     variant="ghost"
                     size="sm"
                     className="h-6 px-2 text-xs text-destructive hover:text-destructive"
@@ -201,7 +204,7 @@ export function ReplyList({ postId, focusedReply, variant = "embedded" }: ReplyL
                     onClick={() => handleDeleteReply(reply)}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                  </Button>}
                 </div>
               )}
               {!isEditing && (

@@ -25,6 +25,7 @@ import { useUpsertBody } from "@/api/hooks/use-upsert-body";
 import { useUploadImage } from "@/api/hooks/use-upload-image";
 import { POSTING_POLICY_LABEL } from "@/lib/post-policy";
 import type { ThreadDetail, SubthreadDetail } from "@/api/hooks/use-thread-detail";
+import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
 
 interface ManagementPanelProps {
   thread: ThreadDetail;
@@ -43,6 +44,9 @@ export function ManagementPanel({
   onRefetch,
 }: ManagementPanelProps) {
   const { user } = useAuth();
+  const permissions = useThreadPermissions();
+  const isOwner = permissions.isOwner || user?.id === thread.ownerId;
+  const isCollaborator = permissions.isCollaborator;
   const [view, setView] = useState<"subthreads" | "members">("subthreads");
   const [selectedId, setSelectedId] = useState(thread.defaultSubthreadId);
   const [content, setContent] = useState(
@@ -235,7 +239,8 @@ export function ManagementPanel({
         <div className="min-h-0 flex-1 overflow-y-auto">
           <MemberManager
             threadId={thread.id}
-            isOwner={!!user && user.id === thread.ownerId}
+            isOwner={isOwner}
+            isCollaborator={isCollaborator}
             onRefetch={onRefetch}
           />
         </div>

@@ -14,12 +14,16 @@ vi.mock("next/link", () => ({
   },
 }));
 
-const { mockUseAuth, mockClipboardWriteText } = vi.hoisted(() => ({
+const { mockUseAuth, mockClipboardWriteText, mockUseThreadPermissions } = vi.hoisted(() => ({
   mockUseAuth: vi.fn(),
   mockClipboardWriteText: vi.fn().mockResolvedValue(undefined),
+  mockUseThreadPermissions: vi.fn(),
 }));
 vi.mock("@/lib/auth", () => ({
   useAuth: () => mockUseAuth(),
+}));
+vi.mock("@/components/thread/thread-permissions-context", () => ({
+  useThreadPermissions: () => mockUseThreadPermissions(),
 }));
 
 const mockUpdateMutateAsync = vi.fn().mockResolvedValue({ id: "post-1" });
@@ -130,6 +134,7 @@ describe("FloorCard", () => {
       value: { writeText: mockClipboardWriteText },
     });
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
+    mockUseThreadPermissions.mockReturnValue({ isManager: false });
   });
 
   test("渲染作者名和楼层号", () => {
@@ -258,6 +263,19 @@ describe("FloorCard", () => {
     renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
     expect(screen.queryByTitle("编辑楼层")).toBeNull();
     expect(screen.queryByTitle("删除楼层")).toBeNull();
+  });
+
+  test("管理者可删除他人楼层但不可编辑", () => {
+    mockUseAuth.mockReturnValue({
+      user: { id: "manager", username: "管理者", emailVerified: true },
+      isInitialized: true,
+    });
+    mockUseThreadPermissions.mockReturnValue({ isManager: true });
+
+    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+
+    expect(screen.queryByTitle("编辑楼层")).not.toBeInTheDocument();
+    expect(screen.getByTitle("删除楼层")).toBeInTheDocument();
   });
 
   test("作者显示编辑/删除按钮", () => {

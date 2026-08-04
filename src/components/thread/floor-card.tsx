@@ -15,6 +15,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { MarkdownContent } from "@/components/thread/markdown-content";
 import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
 import { useThreadComposer } from "@/components/thread/thread-composer-context";
+import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
 import type { FloorDisplayData } from "@/api/hooks/use-floors";
@@ -35,8 +36,10 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const deletePost = useDeletePost();
   const { session, open } = useThreadComposer();
+  const { isManager } = useThreadPermissions();
 
   const isAuthor = !!user && user.id === floor.authorId;
+  const canDelete = isAuthor || isManager;
   const editAnchorId = `floor-edit:${floor.id}`;
   const isEditing = session?.key === `edit:${floor.id}`;
   const discussionHref = `/threads/${floor.threadId}/posts/${floor.id}/replies`;
@@ -143,9 +146,9 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
               <Link2 className="h-3.5 w-3.5" />
             </Button>
           )}
-          {isAuthor && !isEditing && (
+          {!isEditing && (isAuthor || canDelete) && (
             <>
-              <Button
+              {isAuthor && <Button
                 variant="ghost"
                 size="sm"
                 className="h-7 px-2"
@@ -153,8 +156,8 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
                 title="编辑楼层"
               >
                 <Pencil className="h-3.5 w-3.5" />
-              </Button>
-              <Button
+              </Button>}
+              {canDelete && <Button
                 variant="ghost"
                 size="sm"
                 className="h-7 px-2 text-destructive hover:text-destructive"
@@ -162,7 +165,7 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
                 title="删除楼层"
               >
                 <Trash2 className="h-3.5 w-3.5" />
-              </Button>
+              </Button>}
             </>
           )}
         </div>

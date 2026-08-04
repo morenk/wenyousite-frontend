@@ -1,4 +1,4 @@
-/** 主题帖访问操作 hooks：邀请链接、公开加入与退出玩家身份 */
+/** 主题帖访问操作 hooks：邀请链接与退出玩家身份 */
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
@@ -52,23 +52,6 @@ export function useJoinThreadByInvite() {
       });
       if (error) throw error;
       return data;
-    },
-  });
-}
-
-export function useJoinPublicThread() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (threadId: string) => {
-      const { data, error } = await apiClient.POST("/api/v1/threads/{threadId}/members/join", {
-        params: { path: { threadId } },
-      });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (_data, threadId) => {
-      queryClient.invalidateQueries({ queryKey: ["members", threadId] });
-      queryClient.invalidateQueries({ queryKey: ["thread", threadId] });
     },
   });
 }

@@ -9,8 +9,9 @@ import { ThreadComposerProvider } from "@/components/thread/thread-composer-cont
 const { mockUseReplies } = vi.hoisted(() => ({
   mockUseReplies: vi.fn(),
 }));
-const { mockUseAuth } = vi.hoisted(() => ({
+const { mockUseAuth, mockUseThreadPermissions } = vi.hoisted(() => ({
   mockUseAuth: vi.fn(),
+  mockUseThreadPermissions: vi.fn(),
 }));
 const { mockUpdateMutateAsync, mockDeleteMutateAsync, mockClipboardWriteText, mockToastSuccess } = vi.hoisted(() => ({
   mockUpdateMutateAsync: vi.fn().mockResolvedValue({}),
@@ -46,6 +47,9 @@ vi.mock("sonner", () => ({
 vi.mock("@/lib/auth", () => ({
   useAuth: () => mockUseAuth(),
 }));
+vi.mock("@/components/thread/thread-permissions-context", () => ({
+  useThreadPermissions: () => mockUseThreadPermissions(),
+}));
 
 vi.mock("@/components/editor/milkdown-editor", () => ({
   MilkdownEditor: ({ defaultValue, onChange }: { defaultValue?: string; onChange?: (value: string) => void }) => (
@@ -80,6 +84,7 @@ afterEach(() => {
 });
 beforeEach(() => {
   mockUseAuth.mockReturnValue({ user: null });
+  mockUseThreadPermissions.mockReturnValue({ isManager: false });
   mockUpdateMutateAsync.mockClear();
   mockDeleteMutateAsync.mockClear();
   mockClipboardWriteText.mockClear();
@@ -308,5 +313,16 @@ describe("ReplyList", () => {
 
     expect(screen.queryByTitle("编辑回复")).not.toBeInTheDocument();
     expect(screen.queryByTitle("删除回复")).not.toBeInTheDocument();
+  });
+
+  test("管理者可删除他人回复但不可编辑", () => {
+    mockUseAuth.mockReturnValue({ user: { id: "manager" } });
+    mockUseThreadPermissions.mockReturnValue({ isManager: true });
+    mockUseReplies.mockReturnValue(dataWithReplies([baseReply()]));
+
+    render(<ReplyList postId="post-1" />, { wrapper: createWrapper() });
+
+    expect(screen.queryByTitle("编辑回复")).not.toBeInTheDocument();
+    expect(screen.getByTitle("删除回复")).toBeInTheDocument();
   });
 });

@@ -5,6 +5,7 @@ import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThreadDetailHeader } from "@/components/thread/thread-detail-header";
+import { ThreadPermissionsProvider } from "@/components/thread/thread-permissions-context";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
 import React from "react";
 
@@ -91,7 +92,13 @@ beforeEach(() => {
 
 function renderWithQC(ui: React.ReactElement) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(<QueryClientProvider client={qc}>{ui}</QueryClientProvider>);
+  return render(
+    <QueryClientProvider client={qc}>
+      <ThreadPermissionsProvider threadId="thread-1" ownerId="owner-1">
+        {ui}
+      </ThreadPermissionsProvider>
+    </QueryClientProvider>,
+  );
 }
 
 const baseThread: ThreadDetail = {
@@ -231,6 +238,34 @@ describe("ThreadDetailHeader", () => {
       <ThreadDetailHeader thread={baseThread} />,
     );
     expect(screen.getByText("管理")).toBeInTheDocument();
+  });
+
+  test("协作者可编辑和管理，但不可删除整帖或创建订阅", () => {
+    mockUseAuth.mockReturnValue({
+      user: { id: "collaborator-1", username: "协作者" },
+      isInitialized: true,
+    });
+    mockUseMembers.mockReturnValue({
+      data: [
+        {
+          id: "member-collaborator",
+          threadId: "thread-1",
+          userId: "collaborator-1",
+          role: "COLLABORATOR",
+          playerMarked: false,
+          joinedAt: "2026-01-01T00:00:00Z",
+          user: { id: "collaborator-1", username: "协作者", avatar: null },
+        },
+      ],
+      isLoading: false,
+    } as never);
+
+    renderWithQC(<ThreadDetailHeader thread={baseThread} onManage={vi.fn()} />);
+
+    expect(screen.getByText("编辑")).toBeInTheDocument();
+    expect(screen.getByText("管理")).toBeInTheDocument();
+    expect(screen.queryByTitle("删除主题帖")).not.toBeInTheDocument();
+    expect(screen.queryByText("订阅官方更新")).not.toBeInTheDocument();
   });
 
   test("OWNER 看到删除主题帖按钮，确认后删除并返回首页", async () => {
@@ -411,9 +446,9 @@ describe("ThreadDetailHeader", () => {
     });
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
 
-    expect(screen.getByText("订阅")).toBeInTheDocument();
+    expect(screen.getByText("订阅官方更新")).toBeInTheDocument();
 
-    await user.click(screen.getByText("订阅"));
+    await user.click(screen.getByText("订阅官方更新"));
 
     expect(mockCreateMutate).toHaveBeenCalledWith({
       threadId: "thread-1",
@@ -444,9 +479,9 @@ describe("ThreadDetailHeader", () => {
 
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
 
-    expect(screen.getByText("已订阅")).toBeInTheDocument();
+    expect(screen.getByText("已订阅官方更新")).toBeInTheDocument();
 
-    await user.click(screen.getByText("已订阅"));
+    await user.click(screen.getByText("已订阅官方更新"));
 
     expect(mockDeleteMutate).toHaveBeenCalledWith("sub1");
   });
@@ -472,8 +507,8 @@ describe("ThreadDetailHeader", () => {
     } as never);
 
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
-    expect(screen.getByText("订阅")).toBeInTheDocument();
-    expect(screen.queryByText("已订阅")).toBeNull();
+    expect(screen.getByText("订阅官方更新")).toBeInTheDocument();
+    expect(screen.queryByText("已订阅官方更新")).toBeNull();
   });
 
   test("可选择参与人并创建 USER 订阅", async () => {
@@ -493,19 +528,39 @@ describe("ThreadDetailHeader", () => {
           joinedAt: "2026-01-01T00:00:00Z",
           user: { id: "target-user", username: "目标用户", avatar: null },
         },
+        {
+          id: "member-owner",
+          threadId: "thread-1",
+          userId: "owner-1",
+          role: "OWNER",
+          playerMarked: true,
+          joinedAt: "2026-01-01T00:00:00Z",
+          user: { id: "owner-1", username: "帖主", avatar: null },
+        },
+        {
+          id: "member-unmarked",
+          threadId: "thread-1",
+          userId: "unmarked-user",
+          role: "PARTICIPANT",
+          playerMarked: false,
+          joinedAt: "2026-01-01T00:00:00Z",
+          user: { id: "unmarked-user", username: "未标记参与人", avatar: null },
+        },
       ],
       isLoading: false,
     } as never);
 
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
-    await user.selectOptions(screen.getByLabelText("订阅帖内用户"), "target-user");
-    await user.click(screen.getByRole("button", { name: "订阅该用户" }));
+    await user.selectOptions(screen.getByLabelText("订阅帖内玩家"), "target-user");
+    await user.click(screen.getByRole("button", { name: "订阅该玩家" }));
 
     expect(mockCreateMutate).toHaveBeenCalledWith({
       threadId: "thread-1",
       type: "USER",
       targetUserId: "target-user",
     });
+    expect(screen.queryByRole("option", { name: "帖主" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: "未标记参与人" })).not.toBeInTheDocument();
   });
 
   test("楼主不显示整帖订阅按钮", () => {
@@ -514,7 +569,7 @@ describe("ThreadDetailHeader", () => {
       isInitialized: true,
     });
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
-    expect(screen.queryByTitle("订阅帖子更新")).toBeNull();
+    expect(screen.queryByTitle("订阅官方更新")).toBeNull();
   });
 
   test("私密帖楼主可生成并复制邀请链接", async () => {
@@ -546,20 +601,14 @@ describe("ThreadDetailHeader", () => {
     );
   });
 
-  test("公开帖非成员可加入", async () => {
-    const user = userEvent.setup();
+  test("公开帖不提供手动加入入口", () => {
     mockUseAuth.mockReturnValue({
       user: { id: "other-user", username: "别人" },
       isInitialized: true,
     });
-    mockPOST.mockResolvedValueOnce({ data: { data: { id: "member-1" } }, error: undefined });
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
 
-    await user.click(screen.getByRole("button", { name: "加入主题帖" }));
-    expect(mockPOST).toHaveBeenCalledWith(
-      "/api/v1/threads/{threadId}/members/join",
-      { params: { path: { threadId: "thread-1" } } },
-    );
+    expect(screen.queryByRole("button", { name: "加入主题帖" })).not.toBeInTheDocument();
   });
 
   test("已标记玩家可退出玩家身份", async () => {
@@ -596,7 +645,7 @@ describe("ThreadDetailHeader", () => {
   test("未登录不显示订阅按钮", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
-    expect(screen.queryByText("订阅")).toBeNull();
-    expect(screen.queryByText("已订阅")).toBeNull();
+    expect(screen.queryByText("订阅官方更新")).toBeNull();
+    expect(screen.queryByText("已订阅官方更新")).toBeNull();
   });
 });
