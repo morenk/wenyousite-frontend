@@ -11,11 +11,11 @@
 - `/me` 我的资料：邮箱（并入基本信息，脱敏显示 + 邮箱验证状态，未验证可跳转 `/verify-email`）、头像（裁剪上传/移除）、Bio（textarea + 255 字数统计）、隐私开关（用户名需显式进入编辑，默认不修改）
 - `/me/password` 修改密码页：当前密码/新密码/确认新密码（显示/隐藏切换 + 需求提示），成功后登出跳登录
 - `/me/email` 更换邮箱页：当前密码二次认证 → 新邮箱 → 6 位验证码，成功后失效 me 缓存并跳转 `/me`
+- `/me/security` 账号安全页：活跃设备会话、黑名单、账号注销
 - 参与列表排除自建帖：`played-threads` 只返回被其他楼主标记为玩家的帖，自建帖归入「创建的帖子」（后端 `4ed5449` 同步）
 
 **后续迭代：**
-- 用户收藏页（`GET /users/:id/bookmarks`）与收藏功能
-- 我的关注/粉丝/黑名单列表页
+- 无（举报与管理后台不属于本模块）
 
 ## 2. 页面与路由
 
@@ -27,6 +27,7 @@
 | `/me` | 我的资料编辑（Bio/隐私开关/账号安全入口） | Auth（仅本人） |
 | `/me/password` | 修改密码（成功后登出跳登录） | Auth（仅本人） |
 | `/me/email` | 更换邮箱（当前密码二次认证 + 验证码） | Auth（仅本人） |
+| `/me/security` | 活跃设备远程登出、黑名单管理、注销账号 | Auth（仅本人） |
 
 > 草稿箱不占独立路由：未发布帖列表收进 `/threads/create` 的草稿选择器（原 `/drafts` 路由已删除，入口迁移见 `docs/modules/thread-create.md`）。
 
@@ -51,6 +52,10 @@
 | GET | `/users/:id/followers` | OptionalAuth | 该用户的粉丝列表（公开，用户不存在 404） |
 | POST | `/users/me/block/:id` | Auth | 拉黑（幂等 upsert） |
 | DELETE | `/users/me/block/:id` | Auth | 取消拉黑 |
+| GET | `/users/me/blocks` | AuthRead | 我的黑名单 |
+| GET | `/auth/sessions` | AuthRead | 当前用户所有活跃设备会话 |
+| DELETE | `/auth/sessions/:id` | AuthRead | 撤销指定设备会话 |
+| DELETE | `/users/me` | Auth | 注销账号并吊销全部会话 |
 | GET | `/threads/draft` | AuthRead | 我的未发布帖列表（草稿箱） |
 | DELETE | `/threads/:id` | Auth | 删除草稿（草稿箱操作） |
 
@@ -185,6 +190,8 @@
 | 我的资料 | `GET /users/me` | TanStack Query `useQuery` |
 | 草稿列表 | `GET /threads/draft` | TanStack Query `useQuery`（queryKey `["drafts"]`） |
 | 关注/拉黑状态 | 用户资料中的 isFollowing/isBlocked | `useMutation` + 失效 `["user", id]` |
+| 活跃会话 | `GET /auth/sessions` | `useQuery(["auth-sessions"])`，撤销后失效缓存 |
+| 黑名单 | `GET /users/me/blocks` | `useQuery(["blocked-users"])`，取消拉黑后失效缓存 |
 
 ## 6. 组件清单
 
@@ -220,6 +227,8 @@
 | useDrafts | `src/api/hooks/use-drafts.ts` | 草稿列表 hook |
 | UserProfilePage | `src/app/users/[id]/page.tsx` | 用户主页 |
 | MePage | `src/app/me/page.tsx` | 我的资料编辑 |
+| AccountSecurityPanel | `src/components/user/account-security-panel.tsx` | 会话、黑名单和账号注销三块安全操作 |
+| useAccountSecurity | `src/api/hooks/use-account-security.ts` | 会话列表/撤销、黑名单/取消拉黑、注销账号 hooks |
 
 ## 7. 表单与校验
 
@@ -265,6 +274,7 @@ showRecentReplies / showPlayerBadges / showBookmarks: boolean
 | 隐私开关关闭（showRecentReplies/showPlayerBadges） | 对应板块显示"未公开"占位；后端返回 404 时按 404 处理 |
 | 草稿箱 | 仅本人（登录守卫，isInitialized 后再判断） |
 | /me | 仅本人（未登录跳 /login） |
+| 注销账号 | 必须输入“注销账号”二次确认；成功后清空本地登录态并跳首页 |
 
 ## 10. 验收标准
 
@@ -281,6 +291,9 @@ showRecentReplies / showPlayerBadges / showBookmarks: boolean
 - [x] 全站 `/users/{id}` 链接可正常跳转
 - [x] 草稿箱（`/threads/create` 草稿列表）列出我的未发布帖，可跳转编辑、可删除
 - [x] `/me` 修改用户名/Bio/隐私开关，错误码映射正确
+- [x] `/me/security` 可查看并撤销其他设备会话
+- [x] `/me/security` 可查看黑名单并取消拉黑
+- [x] 输入确认文字后可注销账号并清空登录态
 - [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` 通过
 
 ## 11. 子任务（切片）
