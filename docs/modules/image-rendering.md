@@ -5,6 +5,8 @@
 统一帖子正文图片的渲染与加载行为，避免大图溢出容器，同时利用后端已生成的派生图（`_md.webp` / `_thumb.webp`）降低带宽成本。
 
 **本次迭代范围：**
+- 上传安全契约与后端对齐：仅接受 JPEG / PNG / GIF / WebP / AVIF，拒绝空文件与未经净化的 SVG
+- `upload-done` 由后端核对对象存储实际大小和 MIME，并支持网络超时后的幂等重试；Web/Flutter 都只把 `COMPLETED` 媒体写入正文或头像
 - 正文图片渲染约束：`max-width: 100%` + `max-height: 50vh` + `height: auto` + `loading="lazy"`，长图不会撑满楼层
 - 本站上传图自动显示 `_md.webp` 中图，点击打开 lightbox 查看原图
 - lightbox 支持适应屏幕、1:1、滚轮缩放与拖拽平移；原图以自然像素作为缩放基准，避免被正文 CSS 重复缩小
@@ -14,10 +16,10 @@
 
 **设计决策（与后端派生图方案对齐）：**
 - **Markdown 存原图 URL**（`upload-image.ts` 插入的即为原图），渲染时识别本站上传图后显示中图。相比"插入时直接换成 `_md.webp`"，此方案：历史内容零迁移即可生效；lightbox 无需从 `_md.webp` 反推原图扩展名（.jpg/.png/.avif 有歧义）。
-- 后端仍保留派生图生成（sharp：300×300 cover `_thumb.webp` q80 / 800px 等比 `_md.webp` q85），本次不涉及后端改动。
+- 后端仍保留派生图生成（sharp：300×300 cover `_thumb.webp` q80 / 800px 等比 `_md.webp` q85）；上传完成确认会在入队前复核预签名阶段固化的大小与 MIME。
 
 **后续迭代（未含）：**
-- 上传前前端 canvas 压缩超大图（P2：>2000px 或 >3MB 压到 ~1600px，跳过 GIF/SVG）
+- 上传前前端 canvas 压缩超大图（P2：>2000px 或 >3MB 压到 ~1600px，跳过 GIF）
 - 后端原图像素封顶 + EXIF 清理（P3）
 - 列表/封面预览使用 `_thumb.webp` 缩略图
 
@@ -26,10 +28,10 @@
 | Method | Path | Guard | 用途 |
 |--------|------|-------|------|
 | POST | `/media/upload-url` | Auth | 获取 S3 预签名 URL |
-| POST | `/media/upload-done` | Auth | 确认上传完成 |
+| POST | `/media/upload-done` | Auth | 幂等确认上传；后端核对对象实际大小/MIME并原子入队 |
 | GET | `/media/:id` | Auth | 轮询图片处理状态 |
 
-> 上传链路（`src/lib/upload-image.ts`）本次未改动。后端生成派生图逻辑见后端 `docs/image-upload.md`。
+上传链路由 `src/lib/upload-image.ts` 统一实现。允许 MIME 为 `image/jpeg`、`image/png`、`image/gif`、`image/webp`、`image/avif`，文件大小范围为 1B–10MB；Web 先给出友好错误，后端仍是最终校验边界。Flutter 必须复用同一范围并在选择器中排除 SVG。
 
 ## 3. 组件清单
 
@@ -72,6 +74,7 @@
 - [x] 已入库的 Milkdown 空段落保留视觉高度且不显示为字面文本，原始 HTML 保持禁用
 - [x] 正文高度超过 `120vh` 时折叠为 `80vh`，展开/收起后按当前内容位置跳转
 - [x] `pnpm lint && pnpm typecheck && pnpm test` 通过
+- [x] SVG 与空文件在调用 `upload-url` 前被客户端拒绝
 
 ## 6. 子任务
 

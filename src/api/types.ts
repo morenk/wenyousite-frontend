@@ -1611,7 +1611,7 @@ export interface components {
              * @example image/jpeg
              * @enum {string}
              */
-            contentType: "image/jpeg" | "image/png" | "image/gif" | "image/webp" | "image/avif" | "image/svg+xml";
+            contentType: "image/jpeg" | "image/png" | "image/gif" | "image/webp" | "image/avif";
             /**
              * @description 文件大小（字节），上限 10MB
              * @example 204800
@@ -1642,7 +1642,9 @@ export interface components {
             url: string;
             /** @description 对象存储 key */
             key: string;
-            /** @description 实际文件大小（字节） */
+            /** @description 经对象存储确认的 MIME 类型；历史记录可能为空 */
+            contentType: string | null;
+            /** @description 声明或经确认的文件大小（字节） */
             size: number | null;
             width: number | null;
             height: number | null;
@@ -1653,7 +1655,7 @@ export interface components {
         };
         ConfirmUploadResponseDto: {
             media: components["schemas"]["MediaResponseDto"];
-            /** @description 是否已进入异步图片处理队列；SVG 为 false */
+            /** @description 是否处于异步图片处理阶段 */
             processing: boolean;
         };
         CreateBookmarkDto: {

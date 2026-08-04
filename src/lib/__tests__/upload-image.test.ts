@@ -35,9 +35,9 @@ describe("validateImageFile", () => {
     expect(validateImageFile(file)).toBeNull();
   });
 
-  test("合法 svg 文件通过", () => {
+  test("svg 文件在请求上传凭证前被拒绝", () => {
     const file = new File(["dummy"], "icon.svg", { type: "image/svg+xml" });
-    expect(validateImageFile(file)).toBeNull();
+    expect(validateImageFile(file)).toMatch(/仅支持/);
   });
 
   test("合法 gif 文件通过", () => {
@@ -65,9 +65,9 @@ describe("validateImageFile", () => {
     expect(validateImageFile(file)).toBeNull();
   });
 
-  test("空文件通过（size=0 也在合法范围）", () => {
+  test("空文件被拒绝，与后端 size 最小值保持一致", () => {
     const file = new File([], "empty.png", { type: "image/png" });
-    expect(validateImageFile(file)).toBeNull();
+    expect(validateImageFile(file)).toMatch(/不能为空/);
   });
 });
 
@@ -93,6 +93,10 @@ describe("validateAvatarFile", () => {
       type: "image/jpeg",
     });
     expect(validateAvatarFile(largeFile)).toMatch(/不能超过 10MB/);
+  });
+
+  test("空头像文件被拒绝", () => {
+    expect(validateAvatarFile(new File([], "empty.png", { type: "image/png" }))).toMatch(/不能为空/);
   });
 });
 

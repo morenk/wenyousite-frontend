@@ -8,7 +8,6 @@ const ALLOWED_MIME_TYPES = [
   "image/gif",
   "image/webp",
   "image/avif",
-  "image/svg+xml",
 ] as const;
 
 type AllowedMimeType = (typeof ALLOWED_MIME_TYPES)[number];
@@ -27,7 +26,10 @@ const RATE_LIMIT_MESSAGE = "上传图片太频繁，请稍后再试";
 
 export function validateImageFile(file: File): string | null {
   if (!ALLOWED_MIME_TYPES.includes(file.type as AllowedMimeType)) {
-    return "仅支持 jpg/png/gif/webp/avif/svg 格式";
+    return "仅支持 jpg/png/gif/webp/avif 格式";
+  }
+  if (file.size < 1) {
+    return "图片文件不能为空";
   }
   if (file.size > 10 * 1024 * 1024) {
     return "图片大小不能超过 10MB";
@@ -39,6 +41,9 @@ export function validateImageFile(file: File): string | null {
 export function validateAvatarFile(file: File): string | null {
   if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
     return "头像仅支持 jpg/png/webp 格式";
+  }
+  if (file.size < 1) {
+    return "头像文件不能为空";
   }
   if (file.size > 10 * 1024 * 1024) {
     return "图片大小不能超过 10MB";
