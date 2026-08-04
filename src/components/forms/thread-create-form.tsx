@@ -268,6 +268,7 @@ export function ThreadCreateForm({
         <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="content">正文</Label>
           <MilkdownEditor
+            threadId={thread.id}
             defaultValue={form.getValues("content") ?? ""}
             onChange={(v) => form.setValue("content", v)}
             onUploadImage={handleUploadImage}

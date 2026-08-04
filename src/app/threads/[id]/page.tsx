@@ -29,8 +29,10 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
 
 export default function ThreadDetailPage() {
+  const params = useParams();
+  const threadId = params.id as string;
   return (
-    <ThreadComposerProvider>
+    <ThreadComposerProvider threadId={threadId}>
       <ThreadDetailPageContent />
     </ThreadComposerProvider>
   );

@@ -115,7 +115,7 @@ pnpm generate:api # 需要后端已启动
 - 使用 `src/components/editor/milkdown-editor.tsx`。
 - 编辑器输出 Markdown 字符串，直接调用后端接口。
 - 图片通过预签名 URL 上传后插入为 `![alt](url)`。
-- @提及功能后续通过 Milkdown 插件实现。
+- @提及功能通过编辑器候选菜单写入稳定用户链接；候选范围由后端接口和提交时服务端复核共同保证。
 
 ### 9. 路由
 

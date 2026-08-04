@@ -46,6 +46,7 @@ interface CloseOptions {
 }
 
 interface ThreadComposerContextValue {
+  threadId?: string;
   session: ThreadComposerSession | null;
   content: string;
   dirty: boolean;
@@ -58,7 +59,7 @@ interface ThreadComposerContextValue {
 
 const ThreadComposerContext = createContext<ThreadComposerContextValue | null>(null);
 
-export function ThreadComposerProvider({ children }: { children: ReactNode }) {
+export function ThreadComposerProvider({ children, threadId }: { children: ReactNode; threadId?: string }) {
   const [session, setSession] = useState<ThreadComposerSession | null>(null);
   const [content, setContent] = useState("");
   const [pending, setPending] = useState(false);
@@ -97,6 +98,7 @@ export function ThreadComposerProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<ThreadComposerContextValue>(
     () => ({
+      threadId,
       session,
       content,
       dirty,
@@ -106,7 +108,7 @@ export function ThreadComposerProvider({ children }: { children: ReactNode }) {
       setContent,
       setPending,
     }),
-    [session, content, dirty, pending, open, close],
+    [threadId, session, content, dirty, pending, open, close],
   );
 
   return (

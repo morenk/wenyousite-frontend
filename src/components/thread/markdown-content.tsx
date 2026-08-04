@@ -10,6 +10,7 @@ import {
   type ComponentProps,
 } from "react";
 import ReactMarkdown, { type Components, type ExtraProps } from "react-markdown";
+import Link from "next/link";
 import remarkGfm from "remark-gfm";
 import { getImageUrlBySize } from "@/lib/upload-image";
 import { sanitizeMilkdownMarkdown } from "@/lib/markdown";
@@ -25,6 +26,31 @@ function isUploadedMediaUrl(url: string): boolean {
 }
 
 type ImageProps = ComponentProps<"img"> & ExtraProps;
+type AnchorProps = ComponentProps<"a"> & ExtraProps;
+
+function MarkdownLink({ href, children, ...props }: AnchorProps) {
+  const userMatch = typeof href === "string" ? /^\/users\/([^/]+)$/u.exec(href) : null;
+  if (userMatch) {
+    return (
+      <Link
+        href={`/users/${userMatch[1]}`}
+        className="font-medium text-primary no-underline hover:underline"
+      >
+        {children}
+      </Link>
+    );
+  }
+  return (
+    <a
+      href={href}
+      {...props}
+      target="_blank"
+      rel="noreferrer"
+    >
+      {children}
+    </a>
+  );
+}
 
 /** 图片组件：本站上传图默认显示 _md.webp 中图，失败回退原图；点击打开原图 lightbox */
 function MarkdownImage({ src, alt }: ImageProps) {
@@ -67,6 +93,7 @@ function MarkdownImage({ src, alt }: ImageProps) {
 
 const components: Components = {
   img: MarkdownImage,
+  a: MarkdownLink,
 };
 
 type MarkdownNode = {

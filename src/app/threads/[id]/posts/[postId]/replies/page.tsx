@@ -10,8 +10,9 @@ import { ThreadComposerProvider } from "@/components/thread/thread-composer-cont
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function ReplyDiscussionPage() {
+  const params = useParams<{ id: string }>();
   return (
-    <ThreadComposerProvider>
+    <ThreadComposerProvider threadId={params.id}>
       <ReplyDiscussionPageContent />
     </ThreadComposerProvider>
   );

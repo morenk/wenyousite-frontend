@@ -276,6 +276,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/users/mention-candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取当前主题帖可艾特候选（关注的人 + 帖内标记玩家） */
+        get: operations["UsersController_mentionCandidates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/users/me": {
         parameters: {
             query?: never;
@@ -1519,6 +1536,18 @@ export interface components {
              */
             refreshToken?: string;
         };
+        MentionCandidateDto: {
+            id: string;
+            username: string;
+            avatar: Record<string, never> | null;
+            /** @enum {string} */
+            relation: "FOLLOWING" | "PLAYER";
+        };
+        MentionCandidatesResponseDto: {
+            users: components["schemas"]["MentionCandidateDto"][];
+            /** @description 当前用户是否允许使用 @全体玩家 */
+            canMentionAllPlayers: boolean;
+        };
         UpdateUserDto: {
             /**
              * @description 用户名（字母、数字、中文，修改后 7 天内不可再次修改）
@@ -2431,6 +2460,38 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description 未登录或 Token 无效 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UsersController_mentionCandidates: {
+        parameters: {
+            query: {
+                /** @description 主题帖 ID */
+                threadId: string;
+                /** @description 用户名搜索关键词 */
+                q?: unknown;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 最多返回 20 个可艾特用户，并返回是否允许 @全体玩家 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MentionCandidatesResponseDto"];
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {

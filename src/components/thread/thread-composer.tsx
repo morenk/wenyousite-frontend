@@ -25,6 +25,7 @@ function getErrorMessage(error: unknown, fallback: string) {
 function ThreadComposer() {
   const {
     session,
+    threadId,
     content,
     pending,
     setContent,
@@ -132,6 +133,7 @@ function ThreadComposer() {
         disabled={pending}
         maxHeight={isReply ? 200 : 300}
         minHeight={isReply ? 120 : 180}
+        threadId={threadId}
       />
       <div className="flex justify-end">
         <Button

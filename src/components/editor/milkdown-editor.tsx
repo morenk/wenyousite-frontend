@@ -2,16 +2,18 @@
 
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Milkdown, MilkdownProvider, useEditor, useInstance } from "@milkdown/react";
 import { Crepe, CrepeFeature } from "@milkdown/crepe";
 import { editorViewCtx } from "@milkdown/core";
-import { Loader2 } from "lucide-react";
+import { AtSign, Loader2, UsersRound } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { sanitizeMilkdownMarkdown } from "@/lib/markdown";
 import { syncMilkdownToolbarVisibility } from "@/lib/milkdown-toolbar";
 import { useAuth } from "@/lib/auth";
+import { apiClient } from "@/api/client";
 import { useSaveDraft } from "@/api/hooks/use-save-draft";
 import { ContentDraftsPanel } from "@/components/user/content-drafts-panel";
 
@@ -61,6 +63,28 @@ interface MilkdownEditorProps {
   maxHeight?: number;
   /** 内容区最小高度（px），保证空白区可点击落位；默认 280 */
   minHeight?: number;
+  /** 当前主题帖 ID；提供后启用受权限约束的 @候选菜单。 */
+  threadId?: string;
+}
+
+interface MentionCandidate {
+  id: string;
+  username: string;
+  avatar: string | null;
+  relation: "FOLLOWING" | "PLAYER";
+}
+
+interface MentionCandidatesResponse {
+  users: MentionCandidate[];
+  canMentionAllPlayers: boolean;
+}
+
+interface MentionMenuItem {
+  id: string;
+  label: string;
+  username?: string;
+  relation?: "FOLLOWING" | "PLAYER";
+  isGroup?: boolean;
 }
 
 const CN_HEADING_OPTIONS = [
@@ -96,6 +120,7 @@ interface EditorHostProps {
   onOpenDrafts?: () => void;
   maxHeight: number;
   minHeight: number;
+  threadId?: string;
 }
 
 /** Crepe 编辑器宿主：以 initialValue 初始化；被外层按 key 重挂载以回填恢复的正文草稿 */
@@ -106,10 +131,75 @@ function EditorHost({
   placeholder,
   disabled,
   onOpenDrafts,
+  threadId,
 }: EditorHostProps) {
   const [loading] = useInstance();
   const crepeRef = useRef<Crepe | null>(null);
   const hostRef = useRef<HTMLDivElement>(null);
+  const editorDomRef = useRef<HTMLElement | null>(null);
+  const editorCleanupRef = useRef<(() => void) | null>(null);
+  const mentionMenuRef = useRef<{ from: number; to: number; query: string } | null>(null);
+  const mentionItemsRef = useRef<MentionMenuItem[]>([]);
+  const selectedMentionIndexRef = useRef(0);
+  const [mentionMenu, setMentionMenu] = useState<{
+    from: number;
+    to: number;
+    query: string;
+    top: number;
+    left: number;
+  } | null>(null);
+  const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
+  const mentionQuery = mentionMenu?.query ?? "";
+  const { data: mentionResponse } = useQuery({
+    queryKey: ["mention-candidates", threadId, mentionQuery],
+    queryFn: async () => {
+      const { data, error } = await apiClient.GET(
+        "/api/v1/users/mention-candidates",
+        { params: { query: { threadId: threadId ?? "", ...(mentionQuery ? { q: mentionQuery } : {}) } } },
+      );
+      if (error) throw error;
+      if (!data) return { users: [], canMentionAllPlayers: false };
+      const response = data as unknown as { data?: MentionCandidatesResponse } | MentionCandidatesResponse;
+      return (("data" in response ? response.data : response) ?? {
+        users: [],
+        canMentionAllPlayers: false,
+      }) as MentionCandidatesResponse;
+    },
+    enabled: Boolean(threadId && mentionMenu),
+    staleTime: 10_000,
+  });
+
+  const mentionItems = useMemo<MentionMenuItem[]>(() => {
+    const items: MentionMenuItem[] = [];
+    if (
+      mentionResponse?.canMentionAllPlayers &&
+      (!mentionQuery || "全体玩家".includes(mentionQuery))
+    ) {
+      items.push({ id: "all-players", label: "全体玩家", isGroup: true });
+    }
+    for (const candidate of mentionResponse?.users ?? []) {
+      items.push({
+        id: candidate.id,
+        label: `@${candidate.username}`,
+        username: candidate.username,
+        relation: candidate.relation,
+      });
+    }
+    return items;
+  }, [mentionQuery, mentionResponse]);
+
+  useEffect(() => {
+    mentionItemsRef.current = mentionItems;
+    selectedMentionIndexRef.current = Math.min(
+      selectedMentionIndexRef.current,
+      Math.max(mentionItems.length - 1, 0),
+    );
+  }, [mentionItems]);
+
+  const activeMentionIndex = Math.min(
+    selectedMentionIndex,
+    Math.max(mentionItems.length - 1, 0),
+  );
 
   /** 上传失败时统一弹 toast（Milkdown 内部会静默吞掉 onUpload 的 reject） */
   const handleUpload = useCallback(
@@ -240,6 +330,105 @@ function EditorHost({
 
   useEffect(() => {
     const host = hostRef.current;
+    if (!host || !threadId) return;
+
+    const updateMentionMenu = () => {
+      const view = crepeRef.current?.editor.action((ctx) => ctx.get(editorViewCtx));
+      const editor = editorDomRef.current;
+      if (!view || !editor || disabled) return;
+      const { from, empty } = view.state.selection;
+      if (!empty) {
+        mentionMenuRef.current = null;
+        setMentionMenu(null);
+        return;
+      }
+      const resolved = view.state.doc.resolve(from);
+      const textBefore = resolved.parent.textBetween(0, resolved.parentOffset, "\n", "\n");
+      const match = /(^|[\s([>])@([a-zA-Z0-9_\u4e00-\u9fff]{0,24})$/u.exec(textBefore);
+      if (!match) {
+        mentionMenuRef.current = null;
+        setMentionMenu(null);
+        return;
+      }
+      const range = {
+        from: from - match[0].length + match[1].length,
+        to: from,
+        query: match[2] ?? "",
+      };
+      const coords = view.coordsAtPos(from);
+      const hostRect = host.getBoundingClientRect();
+      mentionMenuRef.current = range;
+      setMentionMenu({
+        ...range,
+        top: coords.bottom - hostRect.top + 4,
+        left: Math.max(8, coords.left - hostRect.left),
+      });
+    };
+
+    const attach = () => {
+      const editor = host.querySelector<HTMLElement>(".ProseMirror");
+      if (!editor || editorDomRef.current === editor) return;
+      editorDomRef.current = editor;
+      const handleKeyDown = (event: KeyboardEvent) => {
+        const menu = mentionMenuRef.current;
+        const items = mentionItemsRef.current;
+        if (!menu || items.length === 0) return;
+        if (event.key === "ArrowDown") {
+          event.preventDefault();
+          const next = (selectedMentionIndexRef.current + 1) % items.length;
+          selectedMentionIndexRef.current = next;
+          setSelectedMentionIndex(next);
+        } else if (event.key === "ArrowUp") {
+          event.preventDefault();
+          const next = (selectedMentionIndexRef.current - 1 + items.length) % items.length;
+          selectedMentionIndexRef.current = next;
+          setSelectedMentionIndex(next);
+        } else if (event.key === "Escape") {
+          event.preventDefault();
+          mentionMenuRef.current = null;
+          setMentionMenu(null);
+        } else if (event.key === "Enter" || event.key === "Tab") {
+          event.preventDefault();
+          const item = items[selectedMentionIndexRef.current] ?? items[0];
+          const value = item.isGroup
+            ? `@全体玩家 `
+            : `[@${item.username}](/users/${item.id}) `;
+          const view = viewForInsert();
+          if (!view) return;
+          view.dispatch(view.state.tr.insertText(value, menu.from, menu.to));
+          view.focus();
+          mentionMenuRef.current = null;
+          setMentionMenu(null);
+        }
+      };
+      editor.addEventListener("input", updateMentionMenu);
+      editor.addEventListener("keyup", updateMentionMenu);
+      editor.addEventListener("keydown", handleKeyDown);
+      editorCleanupRef.current = () => {
+        editor.removeEventListener("input", updateMentionMenu);
+        editor.removeEventListener("keyup", updateMentionMenu);
+        editor.removeEventListener("keydown", handleKeyDown);
+        editorDomRef.current = null;
+      };
+      updateMentionMenu();
+    };
+
+    const viewForInsert = () =>
+      crepeRef.current?.editor.action((ctx) => ctx.get(editorViewCtx)) ?? null;
+    const observer = new MutationObserver(attach);
+    observer.observe(host, { childList: true, subtree: true });
+    attach();
+    return () => {
+      observer.disconnect();
+      editorCleanupRef.current?.();
+      editorCleanupRef.current = null;
+      mentionMenuRef.current = null;
+      setMentionMenu(null);
+    };
+  }, [disabled, loading, threadId]);
+
+  useEffect(() => {
+    const host = hostRef.current;
     if (!host) return;
     const syncTopBar = () => {
       injectToolbarTooltips(host);
@@ -274,12 +463,52 @@ function EditorHost({
   }, [disabled]);
 
   return (
-    <div ref={hostRef} className="milkdown-editor">
+    <div ref={hostRef} className="milkdown-editor relative">
       <Milkdown />
       {loading && (
         <div className="flex items-center justify-center py-12 text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin mr-2" />
           编辑器加载中…
+        </div>
+      )}
+      {mentionMenu && mentionItems.length > 0 && (
+        <div
+          role="listbox"
+          aria-label="艾特候选"
+          className="absolute z-50 min-w-56 max-w-72 overflow-hidden rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-lg"
+          style={{ top: mentionMenu.top, left: mentionMenu.left }}
+        >
+          {mentionItems.map((item, index) => (
+            <button
+              key={item.id}
+              type="button"
+              role="option"
+              aria-selected={index === activeMentionIndex}
+              className={cn(
+                "flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm",
+                index === activeMentionIndex ? "bg-accent text-accent-foreground" : "hover:bg-accent/60",
+              )}
+              onMouseDown={(event) => {
+                event.preventDefault();
+                const view = crepeRef.current?.editor.action((ctx) => ctx.get(editorViewCtx));
+                const range = mentionMenuRef.current;
+                if (!view || !range) return;
+                const value = item.isGroup
+                  ? "@全体玩家 "
+                  : `[@${item.username}](/users/${item.id}) `;
+                view.dispatch(view.state.tr.insertText(value, range.from, range.to));
+                view.focus();
+                mentionMenuRef.current = null;
+                setMentionMenu(null);
+              }}
+            >
+              {item.isGroup ? <UsersRound className="h-4 w-4" /> : <AtSign className="h-4 w-4" />}
+              <span className="min-w-0 flex-1 truncate">{item.label}</span>
+              <span className="text-xs text-muted-foreground">
+                {item.isGroup ? "仅楼主/协作者" : item.relation === "PLAYER" ? "帖内玩家" : "我关注的人"}
+              </span>
+            </button>
+          ))}
         </div>
       )}
     </div>
@@ -294,6 +523,7 @@ function EditorCore({
   disabled,
   maxHeight = 400,
   minHeight = 280,
+  threadId,
 }: MilkdownEditorProps) {
   const { user } = useAuth();
   const { mutateAsync: saveDraftAutomatically } = useSaveDraft();
@@ -402,6 +632,7 @@ function EditorCore({
         onOpenDrafts={user ? handleOpenDrafts : undefined}
         maxHeight={maxHeight}
         minHeight={minHeight}
+        threadId={threadId}
       />
       <div className="flex items-center justify-between border-t border-border px-3 py-2">
         <span className="text-xs text-muted-foreground">

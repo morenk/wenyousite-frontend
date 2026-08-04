@@ -248,6 +248,7 @@ export function ManagementPanel({
 
               <MilkdownEditor
                 key={`${selectedSub.id}-${resetKey}`}
+                threadId={thread.id}
                 defaultValue={selectedSub.bodyPost?.content ?? ""}
                 onChange={setContent}
                 onUploadImage={handleUploadImage}
