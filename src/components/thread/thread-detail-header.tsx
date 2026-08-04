@@ -16,6 +16,11 @@ import { useDeleteThread } from "@/api/hooks/use-delete-thread";
 import { useSubscriptions } from "@/api/hooks/use-subscriptions";
 import { useMembers } from "@/api/hooks/use-members";
 import {
+  useCreateInviteLink,
+  useExitThreadPlayer,
+  useJoinPublicThread,
+} from "@/api/hooks/use-thread-access-actions";
+import {
   useCreateSubscription,
   useDeleteSubscription,
 } from "@/api/hooks/use-subscription-mutations";
@@ -67,12 +72,16 @@ export function ThreadDetailHeader({
   const createSubscription = useCreateSubscription();
   const deleteSubscription = useDeleteSubscription();
   const isOwner = user?.id === thread.ownerId;
+  const createInviteLink = useCreateInviteLink();
+  const joinPublicThread = useJoinPublicThread();
+  const exitThreadPlayer = useExitThreadPlayer();
   const [selectedTargetUserId, setSelectedTargetUserId] = useState("");
 
   const mySubscription = subscriptions?.find(
     (s) => s.threadId === thread.id && s.type === "THREAD",
   );
   const candidateMembers = members?.filter((member) => member.userId !== user?.id) ?? [];
+  const myMember = members?.find((member) => member.userId === user?.id);
   const selectedUserSubscription = subscriptions?.find(
     (subscription) =>
       subscription.threadId === thread.id &&
@@ -151,6 +160,35 @@ export function ThreadDetailHeader({
       toast.success("链接已复制");
     } catch {
       toast.error("复制失败，请稍后重试");
+    }
+  };
+
+  const handleCopyInviteLink = async () => {
+    try {
+      const invite = await createInviteLink.mutateAsync(thread.id);
+      await navigator.clipboard.writeText(`${window.location.origin}/join/${invite.token}`);
+      toast.success("邀请链接已复制，旧链接已失效");
+    } catch (error: unknown) {
+      toast.error((error as { message?: string }).message || "邀请链接生成失败");
+    }
+  };
+
+  const handleJoinPublicThread = async () => {
+    try {
+      await joinPublicThread.mutateAsync(thread.id);
+      toast.success("已加入主题帖");
+    } catch (error: unknown) {
+      toast.error((error as { message?: string }).message || "加入失败，请稍后重试");
+    }
+  };
+
+  const handleExitPlayer = async () => {
+    if (!window.confirm("确定退出玩家身份吗？参与记录仍会保留。")) return;
+    try {
+      await exitThreadPlayer.mutateAsync(thread.id);
+      toast.success("已退出玩家身份");
+    } catch (error: unknown) {
+      toast.error((error as { message?: string }).message || "退出失败，请稍后重试");
     }
   };
 
@@ -235,8 +273,30 @@ export function ThreadDetailHeader({
             <Link2 className="mr-1 h-4 w-4" />
             复制链接
           </Button>
+          {isOwner && thread.published && thread.visibility === "PRIVATE" && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCopyInviteLink}
+              disabled={createInviteLink.isPending}
+              title="生成并复制私密帖邀请链接"
+            >
+              {createInviteLink.isPending && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
+              复制邀请链接
+            </Button>
+          )}
           {user ? (
             <>
+              {!isOwner && thread.published && thread.visibility === "PUBLIC" && !myMember && (
+                <Button variant="outline" size="sm" onClick={handleJoinPublicThread} disabled={joinPublicThread.isPending}>
+                  加入主题帖
+                </Button>
+              )}
+              {!isOwner && myMember?.playerMarked && (
+                <Button variant="ghost" size="sm" onClick={handleExitPlayer} disabled={exitThreadPlayer.isPending}>
+                  退出玩家身份
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 size="sm"

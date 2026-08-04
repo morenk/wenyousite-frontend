@@ -1,7 +1,7 @@
 /** ThreadDetailHeader 组件测试 */
 
 import { describe, test, expect, vi, afterEach, beforeEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThreadDetailHeader } from "@/components/thread/thread-detail-header";
@@ -308,9 +308,6 @@ describe("ThreadDetailHeader", () => {
       <ThreadDetailHeader thread={baseThread} />,
     );
     expect(screen.queryByText("管理")).toBeNull();
-    // 无加入/退出按钮（发帖自动入候选池，无需手动参与）
-    expect(screen.queryByText("加入")).toBeNull();
-    expect(screen.queryByText("退出")).toBeNull();
   });
 
   test("点击管理按钮调用 onManage", async () => {
@@ -518,6 +515,82 @@ describe("ThreadDetailHeader", () => {
     });
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
     expect(screen.queryByTitle("订阅帖子更新")).toBeNull();
+  });
+
+  test("私密帖楼主可生成并复制邀请链接", async () => {
+    const user = userEvent.setup();
+    Object.defineProperty(window.navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: mockClipboardWriteText },
+    });
+    mockUseAuth.mockReturnValue({
+      user: { id: "owner-1", username: "帖主" },
+      isInitialized: true,
+    });
+    mockPOST.mockResolvedValueOnce({
+      data: { data: { threadId: "thread-1", token: "invite-token" } },
+      error: undefined,
+    });
+    renderWithQC(
+      <ThreadDetailHeader thread={{ ...baseThread, visibility: "PRIVATE" }} />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "复制邀请链接" }));
+    expect(mockPOST).toHaveBeenCalledWith("/api/v1/threads/{id}/invite-link", {
+      params: { path: { id: "thread-1" } },
+    });
+    await waitFor(() =>
+      expect(mockClipboardWriteText).toHaveBeenCalledWith(
+        `${window.location.origin}/join/invite-token`,
+      ),
+    );
+  });
+
+  test("公开帖非成员可加入", async () => {
+    const user = userEvent.setup();
+    mockUseAuth.mockReturnValue({
+      user: { id: "other-user", username: "别人" },
+      isInitialized: true,
+    });
+    mockPOST.mockResolvedValueOnce({ data: { data: { id: "member-1" } }, error: undefined });
+    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
+
+    await user.click(screen.getByRole("button", { name: "加入主题帖" }));
+    expect(mockPOST).toHaveBeenCalledWith(
+      "/api/v1/threads/{threadId}/members/join",
+      { params: { path: { threadId: "thread-1" } } },
+    );
+  });
+
+  test("已标记玩家可退出玩家身份", async () => {
+    const user = userEvent.setup();
+    mockUseAuth.mockReturnValue({
+      user: { id: "other-user", username: "别人" },
+      isInitialized: true,
+    });
+    mockUseMembers.mockReturnValue({
+      data: [
+        {
+          id: "member-self",
+          threadId: "thread-1",
+          userId: "other-user",
+          role: "PARTICIPANT",
+          playerMarked: true,
+          joinedAt: "2026-01-01T00:00:00Z",
+          user: { id: "other-user", username: "别人", avatar: null },
+        },
+      ],
+      isLoading: false,
+    } as never);
+    mockDELETE.mockResolvedValueOnce({ data: { data: { message: "已退出主题帖" } }, error: undefined });
+    vi.stubGlobal("confirm", vi.fn(() => true));
+    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
+
+    await user.click(screen.getByRole("button", { name: "退出玩家身份" }));
+    expect(mockDELETE).toHaveBeenCalledWith(
+      "/api/v1/threads/{threadId}/members/me",
+      { params: { path: { threadId: "thread-1" } } },
+    );
   });
 
   test("未登录不显示订阅按钮", () => {

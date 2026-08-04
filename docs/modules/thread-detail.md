@@ -23,6 +23,8 @@
 - ~~玩家管理（楼主在候选池中授予/收回玩家身份）~~ → 已实现（管理面板「成员」tab）
 - ~~订阅通知~~ → 已实现（ThreadDetailHeader 订阅/取消订阅）
 - 帖内用户订阅：从参与人列表选择目标用户，提交 `type=USER + targetUserId`；整帖订阅与用户订阅分别判断和取消
+- 私密帖邀请：楼主生成/刷新邀请链接，受邀用户在 `/join/[token]` 预览并加入
+- 公开帖成员操作：非成员可显式加入；已标记玩家可退出玩家身份
 - ~~阅读进度~~ → 已实现（详情页记录进度 + 子贴 Tab 新回复徽标）
 
 ## 2. 页面与路由
@@ -49,13 +51,18 @@
 | DELETE | `/threads/:id/like` | Auth | 取消点赞 |
 | GET | `/threads/:threadId/members` | Public | 参与人列表（管理面板成员 tab） |
 | PATCH | `/threads/:threadId/members/:userId` | Auth | 授予/移除协作者身份，授予/收回玩家标记 |
+| POST | `/threads/:threadId/members/join` | Auth | 自由加入已发布公开帖 |
+| DELETE | `/threads/:threadId/members/me` | AuthRead | 退出玩家身份（保留参与人候选记录） |
+| POST | `/threads/:id/invite-link` | Auth | 私密帖楼主生成或刷新邀请 token |
+| GET | `/threads/join-by-link/:token` | AuthRead | 预览私密帖邀请 |
+| POST | `/threads/join-by-link/:token` | Auth | 通过邀请加入私密帖 |
 | GET | `/subscriptions` | Auth | 我的订阅列表 |
 | POST | `/subscriptions` | Auth | 创建订阅（THREAD/USER） |
 | DELETE | `/subscriptions/:id` | Auth | 取消订阅 |
 | POST | `/reading-progress` | Auth | 记录阅读进度（subthreadId + postId） |
 | GET | `/reading-progress/new-replies` | Auth | 子贴新增回复数 |
 
-> **「参与」语义**：用户**无需手动加入**，在帖子内回复后由后端自动写入参与人记录（玩家候选池），对用户无感。前端不再提供加入/退出按钮。元数据显示的 `_count.players` 为被楼主授予玩家身份（`playerMarked=true`）的人数。
+> **「参与」语义**：回复后后端仍会自动写入参与人记录；此外公开帖提供显式“加入主题帖”，用于提前建立 PARTICIPANT 记录。`DELETE members/me` 只取消 `playerMarked`，因此 UI 文案为“退出玩家身份”，不会误导为删除参与记录。元数据显示的 `_count.players` 为被楼主授予玩家身份（`playerMarked=true`）的人数。
 
 > **候选池管理**：参与人记录只表示用户曾回复过主题帖，用于楼主选定玩家；管理操作不会删除参与人记录，仅通过角色字段管理协作者身份、通过 `playerMarked` 管理玩家标记。
 
@@ -344,6 +351,9 @@
 | 未发布草稿 OWNER | 从草稿列表进入 `/threads/[id]/edit` 后显示 ThreadCreateForm，可保存草稿或最终发布 |
 | OWNER 删除 | 显示 "删除" 按钮；确认后调用 `DELETE /threads/:id`，成功返回首页 |
 | OWNER 订阅 | 不显示整帖订阅（后端拒绝订阅自建帖）；仍可订阅其他参与人的发言 |
+| PRIVATE OWNER | 显示“复制邀请链接”，每次调用都会刷新旧 token |
+| PUBLIC 非成员 | 显示“加入主题帖”；加入后刷新成员与详情缓存 |
+| 已标记玩家 | 显示“退出玩家身份”；OWNER 不可退出 |
 
 ## 10. 验收标准
 
@@ -357,6 +367,8 @@
 - [x] 楼层卡片正确渲染 Markdown 内容
 - [x] 未登录用户可浏览公开帖，不能发帖
 - [x] 登录即可发帖（无加入/退出按钮，发帖自动入玩家候选池）
+- [x] 私密帖楼主可生成邀请链接，受邀用户可预览并加入
+- [x] 公开帖非成员可加入，玩家可退出玩家身份
 - [x] 发布新楼层
 - [x] 浏览态不挂载 Milkdown，点击发表/回复/编辑后才出现编辑器
 - [x] 详情页任意时刻最多存在一个 MilkdownEditor

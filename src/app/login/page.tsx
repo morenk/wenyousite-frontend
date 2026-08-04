@@ -25,6 +25,12 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 
+function getNextPath() {
+  if (typeof window === "undefined") return "/";
+  const next = new URLSearchParams(window.location.search).get("next");
+  return next?.startsWith("/") && !next.startsWith("//") ? next : "/";
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const { user, setAuth, isInitialized } = useAuth();
@@ -41,7 +47,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (!isInitialized) return;
     if (user) {
-      router.replace("/");
+      router.replace(getNextPath());
     }
   }, [user, router, isInitialized]);
 
@@ -55,7 +61,7 @@ export default function LoginPage() {
       if (result.code === 0) {
         setAuth(result.data.user, result.data.accessToken);
         toast.success("登录成功");
-        router.replace("/");
+        router.replace(getNextPath());
       }
     } catch (error: unknown) {
       const err = error as { code?: number; message?: string };
