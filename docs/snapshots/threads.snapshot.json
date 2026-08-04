@@ -1,6 +1,6 @@
 {
   "module": "threads",
-  "generatedAt": "2026-07-30T17:07:26.106Z",
+  "generatedAt": "2026-08-04T17:29:32.497Z",
   "description": "主题帖全部端点快照",
   "endpoints": {
     "GET /threads?sort=recommended&limit=3": {
@@ -14,95 +14,135 @@
         "message": "ok",
         "data": [
           {
-            "id": "cms7plneh00cq7q6lrmlwwpad",
-            "title": "测试帖子喔",
-            "ownerId": "cms7gly7n00017q6lbkla7ojh",
+            "id": "cmsewdo0h000x7qv6aa77ll1v",
+            "title": "病魔与医生",
+            "ownerId": "cmsamzi9h000r7qmyeea4jt7g",
             "category": "DEDUCTION",
             "status": "RECRUITING",
             "visibility": "PUBLIC",
             "published": true,
-            "publishedAt": "2026-07-30T16:13:06.430Z",
+            "publishedAt": "2026-08-04T16:59:38.380Z",
             "pinned": false,
             "pinnedAt": null,
-            "viewCount": 0,
-            "version": 2,
+            "viewCount": 36,
+            "version": 6,
             "likeCount": 0,
-            "defaultSubthreadId": "cms7plnem00cu7q6lpbmq2b1o",
-            "createdAt": "2026-07-30T16:09:39.257Z",
-            "updatedAt": "2026-07-30T16:13:06.431Z",
+            "defaultSubthreadId": "cmsewdo0m00117qv6uk53oscs",
+            "createdAt": "2026-08-04T16:53:47.346Z",
+            "updatedAt": "2026-08-04T17:26:46.532Z",
             "deletedAt": null,
             "owner": {
-              "id": "cms7gly7n00017q6lbkla7ojh",
-              "username": "morenk",
-              "avatar": null
+              "id": "cmsamzi9h000r7qmyeea4jt7g",
+              "username": "天下何人不通共",
+              "avatar": "https://cn-nb1.rains3.com/wenyou/uploads/2026/08/02/cmsamzi9h000r7qmyeea4jt7g/1785701800078-8c3c0a.webp"
             },
             "defaultSubthread": {
-              "id": "cms7plnem00cu7q6lpbmq2b1o",
-              "threadId": "cms7plneh00cq7q6lrmlwwpad",
-              "title": "未命名草稿",
+              "id": "cmsewdo0m00117qv6uk53oscs",
+              "threadId": "cmsewdo0h000x7qv6aa77ll1v",
+              "title": "病魔与医生",
               "sortOrder": 0,
               "postingPolicy": "PARTICIPANTS",
-              "version": 1,
-              "lastPostAt": "2026-07-30T16:13:06.203Z",
-              "bodyPostId": null,
+              "version": 2,
+              "lastPostAt": "2026-08-04T17:05:32.853Z",
               "deletedAt": null,
-              "createdAt": "2026-07-30T16:09:39.262Z",
-              "bodyPost": null
+              "createdAt": "2026-08-04T16:53:47.350Z"
             },
             "topicTags": [],
             "_count": {
               "members": 1,
-              "posts": 1
+              "posts": 5,
+              "players": 1
             },
-            "preview": ""
+            "preview": "世界早已崩坏\n\n战争，战争从未结束。"
           },
           {
-            "id": "cms60cg7a000j7qah3lfs60j0",
-            "title": "智能排序测试帖",
-            "ownerId": "cms5zycb900017q0azar1nag2",
+            "id": "cmsebxyuj000u7qzfmlpiotly",
+            "title": "链接测试",
+            "ownerId": "cmsafixae000b7qqsq6uxmroz",
             "category": "DEDUCTION",
             "status": "RECRUITING",
             "visibility": "PUBLIC",
             "published": true,
-            "publishedAt": "2026-07-29T11:34:53.535Z",
+            "publishedAt": "2026-08-04T07:22:11.088Z",
             "pinned": false,
             "pinnedAt": null,
-            "viewCount": 0,
+            "viewCount": 36,
             "version": 2,
             "likeCount": 0,
-            "defaultSubthreadId": "cms60cg8p000n7qah7wmucyj6",
-            "createdAt": "2026-07-29T11:34:53.446Z",
-            "updatedAt": "2026-07-29T11:34:53.536Z",
+            "defaultSubthreadId": "cmsebxyuo000y7qzfl1jc298f",
+            "createdAt": "2026-08-04T07:21:42.571Z",
+            "updatedAt": "2026-08-04T15:40:16.166Z",
             "deletedAt": null,
             "owner": {
-              "id": "cms5zycb900017q0azar1nag2",
-              "username": "testuser",
-              "avatar": null
+              "id": "cmsafixae000b7qqsq6uxmroz",
+              "username": "玛利亚666",
+              "avatar": "https://cn-nb1.rains3.com/wenyou/uploads/2026/08/02/cmsafixae000b7qqsq6uxmroz/1785698736759-0pg9gj.webp"
             },
             "defaultSubthread": {
-              "id": "cms60cg8p000n7qah7wmucyj6",
-              "threadId": "cms60cg7a000j7qah3lfs60j0",
-              "title": "主讨论区",
+              "id": "cmsebxyuo000y7qzfl1jc298f",
+              "threadId": "cmsebxyuj000u7qzfmlpiotly",
+              "title": "链接测试",
               "sortOrder": 0,
               "postingPolicy": "PARTICIPANTS",
-              "version": 1,
-              "lastPostAt": null,
-              "bodyPostId": "cms60cg8t000p7qahayb90l1a",
+              "version": 2,
+              "lastPostAt": "2026-08-04T11:30:34.423Z",
               "deletedAt": null,
-              "createdAt": "2026-07-29T11:34:53.497Z",
-              "bodyPost": {}
+              "createdAt": "2026-08-04T07:21:42.576Z"
             },
             "topicTags": [],
             "_count": {
-              "members": 1,
-              "posts": 1
+              "members": 3,
+              "posts": 9,
+              "players": 2
             },
-            "preview": "这是主题帖的正文预览内容，用于测试列表卡片展示。"
+            "preview": "这个是温柔哥的超链接"
+          },
+          {
+            "id": "cmsbktek3003f7qlzxf6rowlt",
+            "title": "神话毁灭机",
+            "ownerId": "cmsamzi9h000r7qmyeea4jt7g",
+            "category": "DEDUCTION",
+            "status": "RECRUITING",
+            "visibility": "PUBLIC",
+            "published": true,
+            "publishedAt": "2026-08-02T09:08:18.691Z",
+            "pinned": false,
+            "pinnedAt": null,
+            "viewCount": 161,
+            "version": 2,
+            "likeCount": 1,
+            "defaultSubthreadId": "cmsbktek8003j7qlzzdymo73l",
+            "createdAt": "2026-08-02T09:06:47.667Z",
+            "updatedAt": "2026-08-04T15:40:59.685Z",
+            "deletedAt": null,
+            "owner": {
+              "id": "cmsamzi9h000r7qmyeea4jt7g",
+              "username": "天下何人不通共",
+              "avatar": "https://cn-nb1.rains3.com/wenyou/uploads/2026/08/02/cmsamzi9h000r7qmyeea4jt7g/1785701800078-8c3c0a.webp"
+            },
+            "defaultSubthread": {
+              "id": "cmsbktek8003j7qlzzdymo73l",
+              "threadId": "cmsbktek3003f7qlzxf6rowlt",
+              "title": "神话毁灭机",
+              "sortOrder": 0,
+              "postingPolicy": "PARTICIPANTS",
+              "version": 2,
+              "lastPostAt": "2026-08-04T05:56:53.880Z",
+              "deletedAt": null,
+              "createdAt": "2026-08-02T09:06:47.673Z"
+            },
+            "topicTags": [],
+            "_count": {
+              "members": 4,
+              "posts": 29,
+              "players": 1
+            },
+            "preview": "喜欢我的超级小马吗\n\n[图片]"
           }
         ],
         "meta": {
-          "cursor": null,
-          "hasMore": false
+          "cursor": "3",
+          "hasMore": true
         }
       },
       "httpStatus": 200
@@ -118,65 +158,106 @@
         "message": "ok",
         "data": [
           {
-            "id": "cms7plneh00cq7q6lrmlwwpad",
-            "title": "测试帖子喔",
-            "ownerId": "cms7gly7n00017q6lbkla7ojh",
+            "id": "cmsewdo0h000x7qv6aa77ll1v",
+            "title": "病魔与医生",
+            "ownerId": "cmsamzi9h000r7qmyeea4jt7g",
             "category": "DEDUCTION",
             "status": "RECRUITING",
             "visibility": "PUBLIC",
             "published": true,
-            "publishedAt": "2026-07-30T16:13:06.430Z",
+            "publishedAt": "2026-08-04T16:59:38.380Z",
             "pinned": false,
             "pinnedAt": null,
-            "viewCount": 0,
-            "version": 2,
+            "viewCount": 36,
+            "version": 6,
             "likeCount": 0,
-            "defaultSubthreadId": "cms7plnem00cu7q6lpbmq2b1o",
-            "createdAt": "2026-07-30T16:09:39.257Z",
-            "updatedAt": "2026-07-30T16:13:06.431Z",
+            "defaultSubthreadId": "cmsewdo0m00117qv6uk53oscs",
+            "createdAt": "2026-08-04T16:53:47.346Z",
+            "updatedAt": "2026-08-04T17:26:46.532Z",
             "deletedAt": null,
             "owner": {
-              "id": "cms7gly7n00017q6lbkla7ojh",
-              "username": "morenk",
-              "avatar": null
+              "id": "cmsamzi9h000r7qmyeea4jt7g",
+              "username": "天下何人不通共",
+              "avatar": "https://cn-nb1.rains3.com/wenyou/uploads/2026/08/02/cmsamzi9h000r7qmyeea4jt7g/1785701800078-8c3c0a.webp"
             },
             "defaultSubthread": {
-              "id": "cms7plnem00cu7q6lpbmq2b1o",
-              "threadId": "cms7plneh00cq7q6lrmlwwpad",
-              "title": "未命名草稿",
+              "id": "cmsewdo0m00117qv6uk53oscs",
+              "threadId": "cmsewdo0h000x7qv6aa77ll1v",
+              "title": "病魔与医生",
               "sortOrder": 0,
               "postingPolicy": "PARTICIPANTS",
-              "version": 1,
-              "lastPostAt": "2026-07-30T16:13:06.203Z",
-              "bodyPostId": null,
+              "version": 2,
+              "lastPostAt": "2026-08-04T17:05:32.853Z",
               "deletedAt": null,
-              "createdAt": "2026-07-30T16:09:39.262Z",
-              "bodyPost": null
+              "createdAt": "2026-08-04T16:53:47.350Z"
             },
             "topicTags": [],
             "_count": {
               "members": 1,
-              "posts": 1
+              "posts": 5,
+              "players": 1
             },
-            "preview": ""
+            "preview": "世界早已崩坏\n\n战争，战争从未结束。"
           },
           {
-            "id": "cms60cg7a000j7qah3lfs60j0",
-            "title": "智能排序测试帖",
+            "id": "cmsebxyuj000u7qzfmlpiotly",
+            "title": "链接测试",
+            "ownerId": "cmsafixae000b7qqsq6uxmroz",
+            "category": "DEDUCTION",
+            "status": "RECRUITING",
+            "visibility": "PUBLIC",
+            "published": true,
+            "publishedAt": "2026-08-04T07:22:11.088Z",
+            "pinned": false,
+            "pinnedAt": null,
+            "viewCount": 36,
+            "version": 2,
+            "likeCount": 0,
+            "defaultSubthreadId": "cmsebxyuo000y7qzfl1jc298f",
+            "createdAt": "2026-08-04T07:21:42.571Z",
+            "updatedAt": "2026-08-04T15:40:16.166Z",
+            "deletedAt": null,
+            "owner": {
+              "id": "cmsafixae000b7qqsq6uxmroz",
+              "username": "玛利亚666",
+              "avatar": "https://cn-nb1.rains3.com/wenyou/uploads/2026/08/02/cmsafixae000b7qqsq6uxmroz/1785698736759-0pg9gj.webp"
+            },
+            "defaultSubthread": {
+              "id": "cmsebxyuo000y7qzfl1jc298f",
+              "threadId": "cmsebxyuj000u7qzfmlpiotly",
+              "title": "链接测试",
+              "sortOrder": 0,
+              "postingPolicy": "PARTICIPANTS",
+              "version": 2,
+              "lastPostAt": "2026-08-04T11:30:34.423Z",
+              "deletedAt": null,
+              "createdAt": "2026-08-04T07:21:42.576Z"
+            },
+            "topicTags": [],
+            "_count": {
+              "members": 3,
+              "posts": 9,
+              "players": 2
+            },
+            "preview": "这个是温柔哥的超链接"
+          },
+          {
+            "id": "cmsda1d0q00677qfbunf4vl9l",
+            "title": "管理面板测试帖 1785764435689",
             "ownerId": "cms5zycb900017q0azar1nag2",
             "category": "DEDUCTION",
             "status": "RECRUITING",
             "visibility": "PUBLIC",
             "published": true,
-            "publishedAt": "2026-07-29T11:34:53.535Z",
+            "publishedAt": "2026-08-03T13:40:36.499Z",
             "pinned": false,
             "pinnedAt": null,
-            "viewCount": 0,
+            "viewCount": 20,
             "version": 2,
             "likeCount": 0,
-            "defaultSubthreadId": "cms60cg8p000n7qah7wmucyj6",
-            "createdAt": "2026-07-29T11:34:53.446Z",
-            "updatedAt": "2026-07-29T11:34:53.536Z",
+            "defaultSubthreadId": "cmsda1d0x006b7qfbgsch3met",
+            "createdAt": "2026-08-03T13:40:35.498Z",
+            "updatedAt": "2026-08-03T20:02:51.462Z",
             "deletedAt": null,
             "owner": {
               "id": "cms5zycb900017q0azar1nag2",
@@ -184,29 +265,28 @@
               "avatar": null
             },
             "defaultSubthread": {
-              "id": "cms60cg8p000n7qah7wmucyj6",
-              "threadId": "cms60cg7a000j7qah3lfs60j0",
-              "title": "主讨论区",
+              "id": "cmsda1d0x006b7qfbgsch3met",
+              "threadId": "cmsda1d0q00677qfbunf4vl9l",
+              "title": "管理面板测试帖 1785764435689",
               "sortOrder": 0,
               "postingPolicy": "PARTICIPANTS",
-              "version": 1,
-              "lastPostAt": null,
-              "bodyPostId": "cms60cg8t000p7qahayb90l1a",
+              "version": 2,
+              "lastPostAt": "2026-08-03T19:59:17.530Z",
               "deletedAt": null,
-              "createdAt": "2026-07-29T11:34:53.497Z",
-              "bodyPost": {}
+              "createdAt": "2026-08-03T13:40:35.505Z"
             },
             "topicTags": [],
             "_count": {
-              "members": 1,
-              "posts": 1
+              "members": 2,
+              "posts": 5,
+              "players": 1
             },
-            "preview": "这是主题帖的正文预览内容，用于测试列表卡片展示。"
+            "preview": "这是管理面板测试正文。"
           }
         ],
         "meta": {
-          "cursor": "cms60cg7a000j7qah3lfs60j0",
-          "hasMore": false
+          "cursor": "cmsda1d0q00677qfbunf4vl9l",
+          "hasMore": true
         }
       },
       "httpStatus": 200
@@ -220,7 +300,50 @@
       "response": {
         "code": 0,
         "message": "ok",
-        "data": [],
+        "data": [
+          {
+            "id": "cmsaog3j700a07qmyz7mrku4d",
+            "title": "你会重复吗",
+            "ownerId": "cmsafixae000b7qqsq6uxmroz",
+            "category": "RPG",
+            "status": "RECRUITING",
+            "visibility": "PUBLIC",
+            "published": true,
+            "publishedAt": "2026-08-01T18:00:50.988Z",
+            "pinned": false,
+            "pinnedAt": null,
+            "viewCount": 51,
+            "version": 2,
+            "likeCount": 0,
+            "defaultSubthreadId": "cmsaog3jf00a47qmyxvk4iz8y",
+            "createdAt": "2026-08-01T18:00:39.139Z",
+            "updatedAt": "2026-08-04T15:38:04.818Z",
+            "deletedAt": null,
+            "owner": {
+              "id": "cmsafixae000b7qqsq6uxmroz",
+              "username": "玛利亚666",
+              "avatar": "https://cn-nb1.rains3.com/wenyou/uploads/2026/08/02/cmsafixae000b7qqsq6uxmroz/1785698736759-0pg9gj.webp"
+            },
+            "defaultSubthread": {
+              "id": "cmsaog3jf00a47qmyxvk4iz8y",
+              "threadId": "cmsaog3j700a07qmyz7mrku4d",
+              "title": "你会重复吗",
+              "sortOrder": 0,
+              "postingPolicy": "PARTICIPANTS",
+              "version": 2,
+              "lastPostAt": "2026-08-04T15:39:48.973Z",
+              "deletedAt": null,
+              "createdAt": "2026-08-01T18:00:39.147Z"
+            },
+            "topicTags": [],
+            "_count": {
+              "members": 3,
+              "posts": 13,
+              "players": 3
+            },
+            "preview": "你会重复吗"
+          }
+        ],
         "meta": {
           "cursor": null,
           "hasMore": false
@@ -235,9 +358,9 @@
         "code": 0,
         "message": "ok",
         "data": {
-          "id": "cms7rnyhi000t7qdy4m53nt03",
+          "id": "cmsexnnbc00077qo3ye8uvo2f",
           "title": "未命名草稿",
-          "ownerId": "cms7kpgnb00067q6lg4u0tyuu",
+          "ownerId": "cmsexnh6900017qo3p91u37y1",
           "category": "DEDUCTION",
           "status": "RECRUITING",
           "visibility": "PUBLIC",
@@ -248,27 +371,26 @@
           "viewCount": 0,
           "version": 1,
           "likeCount": 0,
-          "defaultSubthreadId": "cms7rnyho000x7qdyqsooa5lc",
-          "createdAt": "2026-07-30T17:07:26.167Z",
-          "updatedAt": "2026-07-30T17:07:26.176Z",
+          "defaultSubthreadId": "cmsexnnbh000b7qo3s43vko7h",
+          "createdAt": "2026-08-04T17:29:32.617Z",
+          "updatedAt": "2026-08-04T17:29:32.623Z",
           "deletedAt": null,
           "owner": {
-            "id": "cms7kpgnb00067q6lg4u0tyuu",
-            "username": "testthread2",
+            "id": "cmsexnh6900017qo3p91u37y1",
+            "username": "apitagsverify0804",
             "avatar": null
           },
           "subthreads": [
             {
-              "id": "cms7rnyho000x7qdyqsooa5lc",
-              "threadId": "cms7rnyhi000t7qdy4m53nt03",
+              "id": "cmsexnnbh000b7qo3s43vko7h",
+              "threadId": "cmsexnnbc00077qo3ye8uvo2f",
               "title": "未命名草稿",
               "sortOrder": 0,
               "postingPolicy": "PARTICIPANTS",
               "version": 1,
               "lastPostAt": null,
-              "bodyPostId": null,
               "deletedAt": null,
-              "createdAt": "2026-07-30T17:07:26.173Z",
+              "createdAt": "2026-08-04T17:29:32.621Z",
               "_count": {
                 "posts": 0
               },
@@ -279,7 +401,8 @@
           "topicTags": [],
           "_count": {
             "members": 1,
-            "posts": 0
+            "posts": 0,
+            "players": 1
           }
         }
       },
@@ -299,9 +422,9 @@
         "code": 0,
         "message": "ok",
         "data": {
-          "id": "cms7rnyij000z7qdyg6zbge8e",
+          "id": "cmsexnncm000d7qo3k340m4ad",
           "title": "快照测试帖",
-          "ownerId": "cms7kpgnb00067q6lg4u0tyuu",
+          "ownerId": "cmsexnh6900017qo3p91u37y1",
           "category": "RPG",
           "status": "RECRUITING",
           "visibility": "PUBLIC",
@@ -312,33 +435,32 @@
           "viewCount": 0,
           "version": 1,
           "likeCount": 0,
-          "defaultSubthreadId": "cms7rnyin00137qdyzq0v3mw1",
-          "createdAt": "2026-07-30T17:07:26.204Z",
-          "updatedAt": "2026-07-30T17:07:26.215Z",
+          "defaultSubthreadId": "cmsexnncp000h7qo375sod3h5",
+          "createdAt": "2026-08-04T17:29:32.662Z",
+          "updatedAt": "2026-08-04T17:29:32.670Z",
           "deletedAt": null,
           "owner": {
-            "id": "cms7kpgnb00067q6lg4u0tyuu",
-            "username": "testthread2",
+            "id": "cmsexnh6900017qo3p91u37y1",
+            "username": "apitagsverify0804",
             "avatar": null
           },
           "subthreads": [
             {
-              "id": "cms7rnyin00137qdyzq0v3mw1",
-              "threadId": "cms7rnyij000z7qdyg6zbge8e",
+              "id": "cmsexnncp000h7qo375sod3h5",
+              "threadId": "cmsexnncm000d7qo3k340m4ad",
               "title": "快照测试帖",
               "sortOrder": 0,
               "postingPolicy": "PARTICIPANTS",
               "version": 1,
               "lastPostAt": null,
-              "bodyPostId": "cms7rnyip00157qdyxd17ozbg",
               "deletedAt": null,
-              "createdAt": "2026-07-30T17:07:26.207Z",
+              "createdAt": "2026-08-04T17:29:32.665Z",
               "_count": {
-                "posts": 1
+                "posts": 0
               },
               "tags": [],
               "bodyPost": {
-                "id": "cms7rnyip00157qdyxd17ozbg",
+                "id": "cmsexnncq000j7qo3g6ebzkwc",
                 "content": "这是一段正文内容（快照验证）",
                 "version": 1
               }
@@ -346,8 +468,8 @@
           ],
           "topicTags": [
             {
-              "id": "cms7rnyj100167qdyrhnywxuv",
-              "threadId": "cms7rnyij000z7qdyg6zbge8e",
+              "id": "cmsexnnd3000k7qo3e3pkm4t5",
+              "threadId": "cmsexnncm000d7qo3k340m4ad",
               "tagId": "cms5zytdj000c7q0aallmk37p",
               "tag": {
                 "id": "cms5zytdj000c7q0aallmk37p",
@@ -359,22 +481,23 @@
           ],
           "_count": {
             "members": 1,
-            "posts": 1
+            "posts": 0,
+            "players": 1
           }
         }
       },
       "httpStatus": 201
     },
-    "GET /threads/cms7rnyij000z7qdyg6zbge8e (draft with bodyPost)": {
-      "label": "GET /threads/cms7rnyij000z7qdyg6zbge8e (draft with bodyPost)",
+    "GET /threads/cmsexnncm000d7qo3k340m4ad (draft with bodyPost)": {
+      "label": "GET /threads/cmsexnncm000d7qo3k340m4ad (draft with bodyPost)",
       "request": null,
       "response": {
         "code": 0,
         "message": "ok",
         "data": {
-          "id": "cms7rnyij000z7qdyg6zbge8e",
+          "id": "cmsexnncm000d7qo3k340m4ad",
           "title": "快照测试帖",
-          "ownerId": "cms7kpgnb00067q6lg4u0tyuu",
+          "ownerId": "cmsexnh6900017qo3p91u37y1",
           "category": "RPG",
           "status": "RECRUITING",
           "visibility": "PUBLIC",
@@ -385,33 +508,32 @@
           "viewCount": 0,
           "version": 1,
           "likeCount": 0,
-          "defaultSubthreadId": "cms7rnyin00137qdyzq0v3mw1",
-          "createdAt": "2026-07-30T17:07:26.204Z",
-          "updatedAt": "2026-07-30T17:07:26.215Z",
+          "defaultSubthreadId": "cmsexnncp000h7qo375sod3h5",
+          "createdAt": "2026-08-04T17:29:32.662Z",
+          "updatedAt": "2026-08-04T17:29:32.670Z",
           "deletedAt": null,
           "owner": {
-            "id": "cms7kpgnb00067q6lg4u0tyuu",
-            "username": "testthread2",
+            "id": "cmsexnh6900017qo3p91u37y1",
+            "username": "apitagsverify0804",
             "avatar": null
           },
           "subthreads": [
             {
-              "id": "cms7rnyin00137qdyzq0v3mw1",
-              "threadId": "cms7rnyij000z7qdyg6zbge8e",
+              "id": "cmsexnncp000h7qo375sod3h5",
+              "threadId": "cmsexnncm000d7qo3k340m4ad",
               "title": "快照测试帖",
               "sortOrder": 0,
               "postingPolicy": "PARTICIPANTS",
               "version": 1,
               "lastPostAt": null,
-              "bodyPostId": "cms7rnyip00157qdyxd17ozbg",
               "deletedAt": null,
-              "createdAt": "2026-07-30T17:07:26.207Z",
+              "createdAt": "2026-08-04T17:29:32.665Z",
               "_count": {
-                "posts": 1
+                "posts": 0
               },
               "tags": [],
               "bodyPost": {
-                "id": "cms7rnyip00157qdyxd17ozbg",
+                "id": "cmsexnncq000j7qo3g6ebzkwc",
                 "content": "这是一段正文内容（快照验证）",
                 "version": 1
               }
@@ -419,8 +541,8 @@
           ],
           "topicTags": [
             {
-              "id": "cms7rnyj100167qdyrhnywxuv",
-              "threadId": "cms7rnyij000z7qdyg6zbge8e",
+              "id": "cmsexnnd3000k7qo3e3pkm4t5",
+              "threadId": "cmsexnncm000d7qo3k340m4ad",
               "tagId": "cms5zytdj000c7q0aallmk37p",
               "tag": {
                 "id": "cms5zytdj000c7q0aallmk37p",
@@ -432,22 +554,79 @@
           ],
           "_count": {
             "members": 1,
-            "posts": 1
-          }
+            "posts": 0,
+            "players": 1
+          },
+          "isBookmarked": false,
+          "bookmarkId": null,
+          "isLiked": false
         }
       },
       "httpStatus": 200
     },
-    "GET /threads/cms7rnyhi000t7qdy4m53nt03 (draft without bodyPost)": {
-      "label": "GET /threads/cms7rnyhi000t7qdy4m53nt03 (draft without bodyPost)",
+    "POST /subthreads/cmsexnncp000h7qo375sod3h5/tags": {
+      "label": "POST /subthreads/cmsexnncp000h7qo375sod3h5/tags",
+      "request": {
+        "name": "快照子贴标签"
+      },
+      "response": {
+        "code": 0,
+        "message": "ok",
+        "data": {
+          "id": "cmsexnnfg000m7qo37lunkx8g",
+          "threadId": "cmsexnncm000d7qo3k340m4ad",
+          "name": "快照子贴标签",
+          "color": null,
+          "createdAt": "2026-08-04T17:29:32.764Z"
+        }
+      },
+      "httpStatus": 201
+    },
+    "GET /subthreads/cmsexnncp000h7qo375sod3h5/tags": {
+      "label": "GET /subthreads/cmsexnncp000h7qo375sod3h5/tags",
+      "request": null,
+      "response": {
+        "code": 0,
+        "message": "ok",
+        "data": [
+          {
+            "id": "cmsexnnfn000o7qo36zhbmexr",
+            "subthreadId": "cmsexnncp000h7qo375sod3h5",
+            "tagId": "cmsexnnfg000m7qo37lunkx8g",
+            "tag": {
+              "id": "cmsexnnfg000m7qo37lunkx8g",
+              "threadId": "cmsexnncm000d7qo3k340m4ad",
+              "name": "快照子贴标签",
+              "color": null,
+              "createdAt": "2026-08-04T17:29:32.764Z"
+            }
+          }
+        ]
+      },
+      "httpStatus": 200
+    },
+    "DELETE /subthreads/cmsexnncp000h7qo375sod3h5/tags/cmsexnnfg000m7qo37lunkx8g": {
+      "label": "DELETE /subthreads/cmsexnncp000h7qo375sod3h5/tags/cmsexnnfg000m7qo37lunkx8g",
       "request": null,
       "response": {
         "code": 0,
         "message": "ok",
         "data": {
-          "id": "cms7rnyhi000t7qdy4m53nt03",
+          "message": "标签已移除"
+        }
+      },
+      "httpStatus": 200
+    },
+    "GET /threads/cmsexnnbc00077qo3ye8uvo2f (draft without bodyPost)": {
+      "label": "GET /threads/cmsexnnbc00077qo3ye8uvo2f (draft without bodyPost)",
+      "request": null,
+      "response": {
+        "code": 0,
+        "message": "ok",
+        "data": {
+          "id": "cmsexnnbc00077qo3ye8uvo2f",
           "title": "未命名草稿",
-          "ownerId": "cms7kpgnb00067q6lg4u0tyuu",
+          "ownerId": "cmsexnh6900017qo3p91u37y1",
           "category": "DEDUCTION",
           "status": "RECRUITING",
           "visibility": "PUBLIC",
@@ -458,27 +637,26 @@
           "viewCount": 0,
           "version": 1,
           "likeCount": 0,
-          "defaultSubthreadId": "cms7rnyho000x7qdyqsooa5lc",
-          "createdAt": "2026-07-30T17:07:26.167Z",
-          "updatedAt": "2026-07-30T17:07:26.176Z",
+          "defaultSubthreadId": "cmsexnnbh000b7qo3s43vko7h",
+          "createdAt": "2026-08-04T17:29:32.617Z",
+          "updatedAt": "2026-08-04T17:29:32.623Z",
           "deletedAt": null,
           "owner": {
-            "id": "cms7kpgnb00067q6lg4u0tyuu",
-            "username": "testthread2",
+            "id": "cmsexnh6900017qo3p91u37y1",
+            "username": "apitagsverify0804",
             "avatar": null
           },
           "subthreads": [
             {
-              "id": "cms7rnyho000x7qdyqsooa5lc",
-              "threadId": "cms7rnyhi000t7qdy4m53nt03",
+              "id": "cmsexnnbh000b7qo3s43vko7h",
+              "threadId": "cmsexnnbc00077qo3ye8uvo2f",
               "title": "未命名草稿",
               "sortOrder": 0,
               "postingPolicy": "PARTICIPANTS",
               "version": 1,
               "lastPostAt": null,
-              "bodyPostId": null,
               "deletedAt": null,
-              "createdAt": "2026-07-30T17:07:26.173Z",
+              "createdAt": "2026-08-04T17:29:32.621Z",
               "_count": {
                 "posts": 0
               },
@@ -489,14 +667,18 @@
           "topicTags": [],
           "_count": {
             "members": 1,
-            "posts": 0
-          }
+            "posts": 0,
+            "players": 1
+          },
+          "isBookmarked": false,
+          "bookmarkId": null,
+          "isLiked": false
         }
       },
       "httpStatus": 200
     },
-    "POST /subthreads/cms7rnyho000x7qdyqsooa5lc/posts": {
-      "label": "POST /subthreads/cms7rnyho000x7qdyqsooa5lc/posts",
+    "POST /subthreads/cmsexnnbh000b7qo3s43vko7h/posts": {
+      "label": "POST /subthreads/cmsexnnbh000b7qo3s43vko7h/posts",
       "request": {
         "content": "后来补的首楼"
       },
@@ -504,37 +686,39 @@
         "code": 0,
         "message": "ok",
         "data": {
-          "id": "cms7rnyld001a7qdyojgawj99",
-          "threadId": "cms7rnyhi000t7qdy4m53nt03",
-          "subthreadId": "cms7rnyho000x7qdyqsooa5lc",
-          "authorId": "cms7kpgnb00067q6lg4u0tyuu",
+          "id": "cmsexnnhx000s7qo3ic3aikgv",
+          "threadId": "cmsexnnbc00077qo3ye8uvo2f",
+          "subthreadId": "cmsexnnbh000b7qo3s43vko7h",
+          "authorId": "cmsexnh6900017qo3p91u37y1",
+          "kind": "FLOOR",
           "floorNumber": 1,
           "parentPostId": null,
           "replyToPostId": null,
+          "clientRequestId": null,
           "content": "后来补的首楼",
           "version": 1,
-          "createdAt": "2026-07-30T17:07:26.306Z",
-          "updatedAt": "2026-07-30T17:07:26.306Z",
+          "createdAt": "2026-08-04T17:29:32.853Z",
+          "updatedAt": "2026-08-04T17:29:32.853Z",
           "deletedAt": null,
           "author": {
-            "id": "cms7kpgnb00067q6lg4u0tyuu",
-            "username": "testthread2",
+            "id": "cmsexnh6900017qo3p91u37y1",
+            "username": "apitagsverify0804",
             "avatar": null
           }
         }
       },
       "httpStatus": 201
     },
-    "GET /threads/cms7rnyhi000t7qdy4m53nt03 (after creating first post)": {
-      "label": "GET /threads/cms7rnyhi000t7qdy4m53nt03 (after creating first post)",
+    "GET /threads/cmsexnnbc00077qo3ye8uvo2f (after creating first post)": {
+      "label": "GET /threads/cmsexnnbc00077qo3ye8uvo2f (after creating first post)",
       "request": null,
       "response": {
         "code": 0,
         "message": "ok",
         "data": {
-          "id": "cms7rnyhi000t7qdy4m53nt03",
+          "id": "cmsexnnbc00077qo3ye8uvo2f",
           "title": "未命名草稿",
-          "ownerId": "cms7kpgnb00067q6lg4u0tyuu",
+          "ownerId": "cmsexnh6900017qo3p91u37y1",
           "category": "DEDUCTION",
           "status": "RECRUITING",
           "visibility": "PUBLIC",
@@ -545,49 +729,48 @@
           "viewCount": 0,
           "version": 1,
           "likeCount": 0,
-          "defaultSubthreadId": "cms7rnyho000x7qdyqsooa5lc",
-          "createdAt": "2026-07-30T17:07:26.167Z",
-          "updatedAt": "2026-07-30T17:07:26.176Z",
+          "defaultSubthreadId": "cmsexnnbh000b7qo3s43vko7h",
+          "createdAt": "2026-08-04T17:29:32.617Z",
+          "updatedAt": "2026-08-04T17:29:32.623Z",
           "deletedAt": null,
           "owner": {
-            "id": "cms7kpgnb00067q6lg4u0tyuu",
-            "username": "testthread2",
+            "id": "cmsexnh6900017qo3p91u37y1",
+            "username": "apitagsverify0804",
             "avatar": null
           },
           "subthreads": [
             {
-              "id": "cms7rnyho000x7qdyqsooa5lc",
-              "threadId": "cms7rnyhi000t7qdy4m53nt03",
+              "id": "cmsexnnbh000b7qo3s43vko7h",
+              "threadId": "cmsexnnbc00077qo3ye8uvo2f",
               "title": "未命名草稿",
               "sortOrder": 0,
               "postingPolicy": "PARTICIPANTS",
               "version": 1,
-              "lastPostAt": "2026-07-30T17:07:26.309Z",
-              "bodyPostId": "cms7rnyld001a7qdyojgawj99",
+              "lastPostAt": "2026-08-04T17:29:32.856Z",
               "deletedAt": null,
-              "createdAt": "2026-07-30T17:07:26.173Z",
+              "createdAt": "2026-08-04T17:29:32.621Z",
               "_count": {
                 "posts": 1
               },
               "tags": [],
-              "bodyPost": {
-                "id": "cms7rnyld001a7qdyojgawj99",
-                "content": "后来补的首楼",
-                "version": 1
-              }
+              "bodyPost": null
             }
           ],
           "topicTags": [],
           "_count": {
             "members": 1,
-            "posts": 1
-          }
+            "posts": 1,
+            "players": 1
+          },
+          "isBookmarked": false,
+          "bookmarkId": null,
+          "isLiked": false
         }
       },
       "httpStatus": 200
     },
-    "PATCH /posts/cms7rnyld001a7qdyojgawj99": {
-      "label": "PATCH /posts/cms7rnyld001a7qdyojgawj99",
+    "PATCH /posts/cmsexnnhx000s7qo3ic3aikgv": {
+      "label": "PATCH /posts/cmsexnnhx000s7qo3ic3aikgv",
       "request": {
         "content": "修改后的首楼正文",
         "version": 1
@@ -596,29 +779,31 @@
         "code": 0,
         "message": "ok",
         "data": {
-          "id": "cms7rnyld001a7qdyojgawj99",
-          "threadId": "cms7rnyhi000t7qdy4m53nt03",
-          "subthreadId": "cms7rnyho000x7qdyqsooa5lc",
-          "authorId": "cms7kpgnb00067q6lg4u0tyuu",
+          "id": "cmsexnnhx000s7qo3ic3aikgv",
+          "threadId": "cmsexnnbc00077qo3ye8uvo2f",
+          "subthreadId": "cmsexnnbh000b7qo3s43vko7h",
+          "authorId": "cmsexnh6900017qo3p91u37y1",
+          "kind": "FLOOR",
           "floorNumber": 1,
           "parentPostId": null,
           "replyToPostId": null,
+          "clientRequestId": null,
           "content": "修改后的首楼正文",
           "version": 2,
-          "createdAt": "2026-07-30T17:07:26.306Z",
-          "updatedAt": "2026-07-30T17:07:26.380Z",
+          "createdAt": "2026-08-04T17:29:32.853Z",
+          "updatedAt": "2026-08-04T17:29:32.893Z",
           "deletedAt": null,
           "author": {
-            "id": "cms7kpgnb00067q6lg4u0tyuu",
-            "username": "testthread2",
+            "id": "cmsexnh6900017qo3p91u37y1",
+            "username": "apitagsverify0804",
             "avatar": null
           }
         }
       },
       "httpStatus": 200
     },
-    "PATCH /threads/cms7rnyhi000t7qdy4m53nt03 (update meta)": {
-      "label": "PATCH /threads/cms7rnyhi000t7qdy4m53nt03 (update meta)",
+    "PATCH /threads/cmsexnnbc00077qo3ye8uvo2f (update meta)": {
+      "label": "PATCH /threads/cmsexnnbc00077qo3ye8uvo2f (update meta)",
       "request": {
         "title": "更新后的标题",
         "category": "NATION",
@@ -628,9 +813,9 @@
         "code": 0,
         "message": "ok",
         "data": {
-          "id": "cms7rnyhi000t7qdy4m53nt03",
+          "id": "cmsexnnbc00077qo3ye8uvo2f",
           "title": "更新后的标题",
-          "ownerId": "cms7kpgnb00067q6lg4u0tyuu",
+          "ownerId": "cmsexnh6900017qo3p91u37y1",
           "category": "NATION",
           "status": "RECRUITING",
           "visibility": "PUBLIC",
@@ -641,42 +826,38 @@
           "viewCount": 0,
           "version": 2,
           "likeCount": 0,
-          "defaultSubthreadId": "cms7rnyho000x7qdyqsooa5lc",
-          "createdAt": "2026-07-30T17:07:26.167Z",
-          "updatedAt": "2026-07-30T17:07:26.400Z",
+          "defaultSubthreadId": "cmsexnnbh000b7qo3s43vko7h",
+          "createdAt": "2026-08-04T17:29:32.617Z",
+          "updatedAt": "2026-08-04T17:29:32.915Z",
           "deletedAt": null,
           "owner": {
-            "id": "cms7kpgnb00067q6lg4u0tyuu",
-            "username": "testthread2",
+            "id": "cmsexnh6900017qo3p91u37y1",
+            "username": "apitagsverify0804",
             "avatar": null
           },
           "subthreads": [
             {
-              "id": "cms7rnyho000x7qdyqsooa5lc",
-              "threadId": "cms7rnyhi000t7qdy4m53nt03",
+              "id": "cmsexnnbh000b7qo3s43vko7h",
+              "threadId": "cmsexnnbc00077qo3ye8uvo2f",
               "title": "未命名草稿",
               "sortOrder": 0,
               "postingPolicy": "PARTICIPANTS",
               "version": 1,
-              "lastPostAt": "2026-07-30T17:07:26.309Z",
-              "bodyPostId": "cms7rnyld001a7qdyojgawj99",
+              "lastPostAt": "2026-08-04T17:29:32.856Z",
               "deletedAt": null,
-              "createdAt": "2026-07-30T17:07:26.173Z",
+              "createdAt": "2026-08-04T17:29:32.621Z",
               "_count": {
                 "posts": 1
               },
               "tags": [],
-              "bodyPost": {
-                "id": "cms7rnyld001a7qdyojgawj99",
-                "content": "修改后的首楼正文",
-                "version": 2
-              }
+              "bodyPost": null
             }
           ],
           "topicTags": [],
           "_count": {
             "members": 1,
-            "posts": 1
+            "posts": 1,
+            "players": 1
           }
         }
       },
@@ -690,9 +871,9 @@
         "message": "ok",
         "data": [
           {
-            "id": "cms7rnyij000z7qdyg6zbge8e",
+            "id": "cmsexnncm000d7qo3k340m4ad",
             "title": "快照测试帖",
-            "ownerId": "cms7kpgnb00067q6lg4u0tyuu",
+            "ownerId": "cmsexnh6900017qo3p91u37y1",
             "category": "RPG",
             "status": "RECRUITING",
             "visibility": "PUBLIC",
@@ -703,18 +884,18 @@
             "viewCount": 0,
             "version": 1,
             "likeCount": 0,
-            "defaultSubthreadId": "cms7rnyin00137qdyzq0v3mw1",
-            "createdAt": "2026-07-30T17:07:26.204Z",
-            "updatedAt": "2026-07-30T17:07:26.215Z",
+            "defaultSubthreadId": "cmsexnncp000h7qo375sod3h5",
+            "createdAt": "2026-08-04T17:29:32.662Z",
+            "updatedAt": "2026-08-04T17:29:32.670Z",
             "deletedAt": null,
             "defaultSubthread": {
-              "id": "cms7rnyin00137qdyzq0v3mw1",
+              "id": "cmsexnncp000h7qo375sod3h5",
               "title": "快照测试帖"
             },
             "topicTags": [
               {
-                "id": "cms7rnyj100167qdyrhnywxuv",
-                "threadId": "cms7rnyij000z7qdyg6zbge8e",
+                "id": "cmsexnnd3000k7qo3e3pkm4t5",
+                "threadId": "cmsexnncm000d7qo3k340m4ad",
                 "tagId": "cms5zytdj000c7q0aallmk37p",
                 "tag": {
                   "id": "cms5zytdj000c7q0aallmk37p",
@@ -730,9 +911,9 @@
             }
           },
           {
-            "id": "cms7rnyhi000t7qdy4m53nt03",
+            "id": "cmsexnnbc00077qo3ye8uvo2f",
             "title": "更新后的标题",
-            "ownerId": "cms7kpgnb00067q6lg4u0tyuu",
+            "ownerId": "cmsexnh6900017qo3p91u37y1",
             "category": "NATION",
             "status": "RECRUITING",
             "visibility": "PUBLIC",
@@ -743,12 +924,12 @@
             "viewCount": 0,
             "version": 2,
             "likeCount": 0,
-            "defaultSubthreadId": "cms7rnyho000x7qdyqsooa5lc",
-            "createdAt": "2026-07-30T17:07:26.167Z",
-            "updatedAt": "2026-07-30T17:07:26.400Z",
+            "defaultSubthreadId": "cmsexnnbh000b7qo3s43vko7h",
+            "createdAt": "2026-08-04T17:29:32.617Z",
+            "updatedAt": "2026-08-04T17:29:32.915Z",
             "deletedAt": null,
             "defaultSubthread": {
-              "id": "cms7rnyho000x7qdyqsooa5lc",
+              "id": "cmsexnnbh000b7qo3s43vko7h",
               "title": "未命名草稿"
             },
             "topicTags": [],
@@ -761,8 +942,8 @@
       },
       "httpStatus": 200
     },
-    "PATCH /threads/cms7rnyij000z7qdyg6zbge8e {published:true}": {
-      "label": "PATCH /threads/cms7rnyij000z7qdyg6zbge8e {published:true}",
+    "PATCH /threads/cmsexnncm000d7qo3k340m4ad {published:true}": {
+      "label": "PATCH /threads/cmsexnncm000d7qo3k340m4ad {published:true}",
       "request": {
         "published": true,
         "version": 1
@@ -771,46 +952,45 @@
         "code": 0,
         "message": "ok",
         "data": {
-          "id": "cms7rnyij000z7qdyg6zbge8e",
+          "id": "cmsexnncm000d7qo3k340m4ad",
           "title": "快照测试帖",
-          "ownerId": "cms7kpgnb00067q6lg4u0tyuu",
+          "ownerId": "cmsexnh6900017qo3p91u37y1",
           "category": "RPG",
           "status": "RECRUITING",
           "visibility": "PUBLIC",
           "published": true,
-          "publishedAt": "2026-07-30T17:07:26.446Z",
+          "publishedAt": "2026-08-04T17:29:32.954Z",
           "pinned": false,
           "pinnedAt": null,
           "viewCount": 0,
           "version": 2,
           "likeCount": 0,
-          "defaultSubthreadId": "cms7rnyin00137qdyzq0v3mw1",
-          "createdAt": "2026-07-30T17:07:26.204Z",
-          "updatedAt": "2026-07-30T17:07:26.447Z",
+          "defaultSubthreadId": "cmsexnncp000h7qo375sod3h5",
+          "createdAt": "2026-08-04T17:29:32.662Z",
+          "updatedAt": "2026-08-04T17:29:32.955Z",
           "deletedAt": null,
           "owner": {
-            "id": "cms7kpgnb00067q6lg4u0tyuu",
-            "username": "testthread2",
+            "id": "cmsexnh6900017qo3p91u37y1",
+            "username": "apitagsverify0804",
             "avatar": null
           },
           "subthreads": [
             {
-              "id": "cms7rnyin00137qdyzq0v3mw1",
-              "threadId": "cms7rnyij000z7qdyg6zbge8e",
+              "id": "cmsexnncp000h7qo375sod3h5",
+              "threadId": "cmsexnncm000d7qo3k340m4ad",
               "title": "快照测试帖",
               "sortOrder": 0,
               "postingPolicy": "PARTICIPANTS",
               "version": 1,
               "lastPostAt": null,
-              "bodyPostId": "cms7rnyip00157qdyxd17ozbg",
               "deletedAt": null,
-              "createdAt": "2026-07-30T17:07:26.207Z",
+              "createdAt": "2026-08-04T17:29:32.665Z",
               "_count": {
-                "posts": 1
+                "posts": 0
               },
               "tags": [],
               "bodyPost": {
-                "id": "cms7rnyip00157qdyxd17ozbg",
+                "id": "cmsexnncq000j7qo3g6ebzkwc",
                 "content": "这是一段正文内容（快照验证）",
                 "version": 1
               }
@@ -818,8 +998,8 @@
           ],
           "topicTags": [
             {
-              "id": "cms7rnyj100167qdyrhnywxuv",
-              "threadId": "cms7rnyij000z7qdyg6zbge8e",
+              "id": "cmsexnnd3000k7qo3e3pkm4t5",
+              "threadId": "cmsexnncm000d7qo3k340m4ad",
               "tagId": "cms5zytdj000c7q0aallmk37p",
               "tag": {
                 "id": "cms5zytdj000c7q0aallmk37p",
@@ -831,124 +1011,96 @@
           ],
           "_count": {
             "members": 1,
-            "posts": 1
+            "posts": 0,
+            "players": 1
           }
         }
       },
       "httpStatus": 200
     },
-    "POST /threads/cms7rnyhi000t7qdy4m53nt03/invite-link": {
-      "label": "POST /threads/cms7rnyhi000t7qdy4m53nt03/invite-link",
+    "POST /threads/cmsexnnbc00077qo3ye8uvo2f/invite-link": {
+      "label": "POST /threads/cmsexnnbc00077qo3ye8uvo2f/invite-link",
       "request": null,
       "response": {
-        "code": 0,
-        "message": "ok",
-        "data": {
-          "id": "cms7rnytd001e7qdygkmp3bj4",
-          "threadId": "cms7rnyhi000t7qdy4m53nt03",
-          "token": "6n7xb4_1F8uS932D",
-          "createdAt": "2026-07-30T17:07:26.594Z"
-        }
+        "code": 40300,
+        "message": "请先发布主题帖",
+        "data": null
       },
-      "httpStatus": 201
+      "httpStatus": 403
     },
-    "GET /threads/join-by-link/6n7xb4_1F8uS932D": {
-      "label": "GET /threads/join-by-link/6n7xb4_1F8uS932D",
+    "POST /threads/cmsexnncm000d7qo3k340m4ad/like": {
+      "label": "POST /threads/cmsexnncm000d7qo3k340m4ad/like",
       "request": null,
       "response": {
         "code": 0,
         "message": "ok",
         "data": {
-          "thread": {
-            "id": "cms7rnyhi000t7qdy4m53nt03",
-            "title": "更新后的标题",
-            "category": "NATION",
-            "status": "RECRUITING",
-            "owner": {
-              "id": "cms7kpgnb00067q6lg4u0tyuu",
-              "username": "testthread2",
-              "avatar": null
-            },
-            "memberCount": 1,
-            "createdAt": "2026-07-30T17:07:26.167Z"
-          }
-        }
-      },
-      "httpStatus": 200
-    },
-    "POST /threads/cms7rnyij000z7qdyg6zbge8e/like": {
-      "label": "POST /threads/cms7rnyij000z7qdyg6zbge8e/like",
-      "request": null,
-      "response": {
-        "code": 0,
-        "message": "ok",
-        "data": {
-          "id": "cms7rnyij000z7qdyg6zbge8e",
+          "id": "cmsexnncm000d7qo3k340m4ad",
           "title": "快照测试帖",
-          "ownerId": "cms7kpgnb00067q6lg4u0tyuu",
+          "ownerId": "cmsexnh6900017qo3p91u37y1",
           "category": "RPG",
           "status": "RECRUITING",
           "visibility": "PUBLIC",
           "published": true,
-          "publishedAt": "2026-07-30T17:07:26.446Z",
+          "publishedAt": "2026-08-04T17:29:32.954Z",
           "pinned": false,
           "pinnedAt": null,
           "viewCount": 0,
           "version": 2,
           "likeCount": 1,
-          "defaultSubthreadId": "cms7rnyin00137qdyzq0v3mw1",
-          "createdAt": "2026-07-30T17:07:26.204Z",
-          "updatedAt": "2026-07-30T17:07:26.635Z",
+          "defaultSubthreadId": "cmsexnncp000h7qo375sod3h5",
+          "createdAt": "2026-08-04T17:29:32.662Z",
+          "updatedAt": "2026-08-04T17:29:33.097Z",
           "deletedAt": null
         }
       },
       "httpStatus": 201
     },
-    "DELETE /threads/cms7rnyij000z7qdyg6zbge8e/like": {
-      "label": "DELETE /threads/cms7rnyij000z7qdyg6zbge8e/like",
+    "DELETE /threads/cmsexnncm000d7qo3k340m4ad/like": {
+      "label": "DELETE /threads/cmsexnncm000d7qo3k340m4ad/like",
       "request": null,
       "response": {
         "code": 0,
         "message": "ok",
         "data": {
-          "id": "cms7rnyij000z7qdyg6zbge8e",
+          "id": "cmsexnncm000d7qo3k340m4ad",
           "title": "快照测试帖",
-          "ownerId": "cms7kpgnb00067q6lg4u0tyuu",
+          "ownerId": "cmsexnh6900017qo3p91u37y1",
           "category": "RPG",
           "status": "RECRUITING",
           "visibility": "PUBLIC",
           "published": true,
-          "publishedAt": "2026-07-30T17:07:26.446Z",
+          "publishedAt": "2026-08-04T17:29:32.954Z",
           "pinned": false,
           "pinnedAt": null,
           "viewCount": 0,
           "version": 2,
           "likeCount": 0,
-          "defaultSubthreadId": "cms7rnyin00137qdyzq0v3mw1",
-          "createdAt": "2026-07-30T17:07:26.204Z",
-          "updatedAt": "2026-07-30T17:07:26.657Z",
+          "defaultSubthreadId": "cmsexnncp000h7qo375sod3h5",
+          "createdAt": "2026-08-04T17:29:32.662Z",
+          "updatedAt": "2026-08-04T17:29:33.111Z",
           "deletedAt": null
         }
       },
       "httpStatus": 200
     },
-    "GET /threads/cms7rnyij000z7qdyg6zbge8e/members": {
-      "label": "GET /threads/cms7rnyij000z7qdyg6zbge8e/members",
+    "GET /threads/cmsexnncm000d7qo3k340m4ad/members": {
+      "label": "GET /threads/cmsexnncm000d7qo3k340m4ad/members",
       "request": null,
       "response": {
         "code": 0,
         "message": "ok",
         "data": [
           {
-            "id": "cms7rnyil00117qdyplke3dp2",
-            "threadId": "cms7rnyij000z7qdyg6zbge8e",
-            "userId": "cms7kpgnb00067q6lg4u0tyuu",
+            "id": "cmsexnnco000f7qo3y5bi8e6v",
+            "threadId": "cmsexnncm000d7qo3k340m4ad",
+            "userId": "cmsexnh6900017qo3p91u37y1",
             "role": "OWNER",
             "playerMarked": true,
-            "joinedAt": "2026-07-30T17:07:26.206Z",
+            "joinedAt": "2026-08-04T17:29:32.664Z",
             "user": {
-              "id": "cms7kpgnb00067q6lg4u0tyuu",
-              "username": "testthread2",
+              "id": "cmsexnh6900017qo3p91u37y1",
+              "username": "apitagsverify0804",
               "avatar": null
             }
           }

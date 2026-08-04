@@ -6,6 +6,12 @@ import userEvent from "@testing-library/user-event";
 import { SubthreadList } from "@/components/thread/subthread-list";
 import type { SubthreadDetail } from "@/api/hooks/use-thread-detail";
 
+vi.mock("@/components/forms/tag-input", () => ({
+  TagInput: ({ value }: { value: string[] }) => (
+    <span data-testid="tag-values">{value.join(",")}</span>
+  ),
+}));
+
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();

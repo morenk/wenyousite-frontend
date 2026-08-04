@@ -5,6 +5,23 @@ import { render, screen, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SubthreadForm } from "@/components/forms/subthread-form";
 
+vi.mock("@/components/forms/tag-input", () => ({
+  TagInput: ({
+    value,
+    onChange,
+  }: {
+    value: string[];
+    onChange: (tags: string[]) => void;
+  }) => (
+    <div>
+      <span data-testid="tag-values">{value.join(",")}</span>
+      <button type="button" onClick={() => onChange([...value, "剧情"])}>
+        添加测试标签
+      </button>
+    </div>
+  ),
+}));
+
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
@@ -29,12 +46,17 @@ describe("SubthreadForm", () => {
     render(
       <SubthreadForm
         mode="edit"
-        defaultValues={{ title: "设定区", postingPolicy: "COLLABORATORS" }}
+        defaultValues={{
+          title: "设定区",
+          postingPolicy: "COLLABORATORS",
+          tagNames: ["设定"],
+        }}
         onSubmit={vi.fn()}
         onCancel={vi.fn()}
       />,
     );
     expect(screen.getByDisplayValue("设定区")).toBeInTheDocument();
+    expect(screen.getByTestId("tag-values")).toHaveTextContent("设定");
   });
 
   test("创建模式下按钮文案为'添加'", () => {
@@ -76,11 +98,16 @@ describe("SubthreadForm", () => {
     );
 
     await user.type(screen.getByPlaceholderText("主帖 / 设定区 / 剧情区"), "新子贴");
+    await user.click(screen.getByText("添加测试标签"));
     await user.click(screen.getByText("添加"));
 
     await vi.waitFor(() => {
       expect(onSubmit).toHaveBeenCalledWith(
-        expect.objectContaining({ title: "新子贴", postingPolicy: "PARTICIPANTS" }),
+        expect.objectContaining({
+          title: "新子贴",
+          postingPolicy: "PARTICIPANTS",
+          tagNames: ["剧情"],
+        }),
       );
     });
   });

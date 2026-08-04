@@ -61,6 +61,9 @@
 | DELETE | `/subscriptions/:id` | Auth | 取消订阅 |
 | POST | `/reading-progress` | Auth | 记录阅读进度（subthreadId + postId） |
 | GET | `/reading-progress/new-replies` | Auth | 子贴新增回复数 |
+| GET | `/subthreads/:subthreadId/tags` | OptionalAuth | 获取子贴标签（遵循主题帖可见性） |
+| POST | `/subthreads/:subthreadId/tags` | Auth | 创建并关联子贴标签 |
+| DELETE | `/subthreads/:subthreadId/tags/:tagId` | Auth | 移除子贴标签 |
 
 > **「参与」语义**：回复后后端仍会自动写入参与人记录；此外公开帖提供显式“加入主题帖”，用于提前建立 PARTICIPANT 记录。`DELETE members/me` 只取消 `playerMarked`，因此 UI 文案为“退出玩家身份”，不会误导为删除参与记录。元数据显示的 `_count.players` 为被楼主授予玩家身份（`playerMarked=true`）的人数。
 
@@ -124,6 +127,49 @@
       { "id": "...", "threadId": "...", "tagId": "...", "tag": { "id": "...", "name": "测试", "color": null, "createdAt": "..." } }
     ],
     "_count": { "members": 1, "players": 1, "posts": 0 }
+  }
+}
+```
+
+### 子贴标签新增/查询/移除
+
+2026-08-04 使用临时测试账号对本地生产后端完成“新增 → 查询 → 移除”并清理测试数据；完整原始响应见 `docs/snapshots/threads.snapshot.json`。
+
+```json
+{
+  "POST /subthreads/:id/tags": {
+    "code": 0,
+    "message": "ok",
+    "data": {
+      "id": "<tagId>",
+      "threadId": "<threadId>",
+      "name": "快照子贴标签",
+      "color": null,
+      "createdAt": "2026-08-04T17:29:32.764Z"
+    }
+  },
+  "GET /subthreads/:id/tags": {
+    "code": 0,
+    "message": "ok",
+    "data": [
+      {
+        "id": "<relationId>",
+        "subthreadId": "<subthreadId>",
+        "tagId": "<tagId>",
+        "tag": {
+          "id": "<tagId>",
+          "threadId": "<threadId>",
+          "name": "快照子贴标签",
+          "color": null,
+          "createdAt": "2026-08-04T17:29:32.764Z"
+        }
+      }
+    ]
+  },
+  "DELETE /subthreads/:id/tags/:tagId": {
+    "code": 0,
+    "message": "ok",
+    "data": { "message": "标签已移除" }
   }
 }
 ```
@@ -253,13 +299,14 @@
 | MemberManager | `src/components/thread/member-manager.tsx` | 成员候选池管理：授予/收回玩家、授予/移除协作者身份 |
 | ManagementPanel | `src/components/thread/management-panel.tsx` | 帖主管理面板：左子贴目录树 + 右单例编辑器 |
 | SubthreadTree | `src/components/thread/subthread-tree.tsx` | 管理面板左栏子贴目录树（@dnd-kit 拖拽排序） |
-| SubthreadForm | `src/components/forms/subthread-form.tsx` | 子贴创建/编辑弹窗（title + postingPolicy + Zod 校验） |
+| SubthreadForm | `src/components/forms/subthread-form.tsx` | 子贴创建/编辑弹窗（title + postingPolicy + 最多 5 个子贴标签 + Zod 校验） |
 | useFloors | `src/api/hooks/use-floors.ts` | 楼层列表 hook |
 | useLikeThread | `src/api/hooks/use-like-thread.ts` | 点赞/取消点赞 hook |
 | useCreateSubthread | `src/api/hooks/use-create-subthread.ts` | 管理面板：添加子贴 |
 | useUpdateSubthread | `src/api/hooks/use-update-subthread.ts` | 管理面板：编辑子贴 |
 | useDeleteSubthread | `src/api/hooks/use-delete-subthread.ts` | 管理面板：删除子贴 |
 | useReorderSubthreads | `src/api/hooks/use-reorder-subthreads.ts` | 管理面板：拖拽排序 |
+| useSyncSubthreadTags | `src/api/hooks/use-sync-subthread-tags.ts` | 子贴创建/编辑时按名称 diff 同步标签 |
 | useUpsertBody | `src/api/hooks/use-upsert-body.ts` | 管理面板：写入子贴正文（upsert：无正文创建、有正文乐观锁更新） |
 | useCreatePost | `src/api/hooks/use-create-post.ts` | 楼层回复发布（FloorForm） |
 | useUpdatePost | `src/api/hooks/use-update-post.ts` | 编辑楼层正文（乐观锁 version） |
@@ -360,6 +407,7 @@
 - [x] 详情页正确展示帖子头部信息
 - [x] 头部分类/状态/标签徽章正确映射为中文
 - [x] 子贴 Tab 可切换，选中 Tab 高亮
+- [x] 子贴创建/编辑弹窗可添加和移除最多 5 个子贴标签
 - [x] 子贴标题与正文（kind=BODY）同容器渲染（SubthreadBody），正文不进入楼层列表
 - [x] 主题帖标题区独立置顶（非卡片，ThreadDetailHeader），子贴标题取代原卡片内标题位置
 - [x] OWNER 可删除主题帖：已发布帖软删除，草稿硬删除，成功后返回首页

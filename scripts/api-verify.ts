@@ -82,7 +82,7 @@ function save(s: ModuleSnapshot) {
 }
 
 async function login(): Promise<void> {
-  const { body } = await api("POST", "/api/v1/auth/login", { email: CREDENTIALS.email, password: CREDENTIALS.password });
+  const { body } = await api("POST", "/api/v1/auth/login", { account: CREDENTIALS.email, password: CREDENTIALS.password });
   const data = (body as any)?.data;
   TOKEN = data?.accessToken ?? "";
   USER_ID = data?.user?.id ?? "";
@@ -97,10 +97,10 @@ async function captureAuth(): Promise<void> {
   // 使用一个完整注册流程需要新邮箱，这里仅记录已登录态下的端点
   // 先 login 获取最新 token
   const { body: loginBody, status: loginStatus } = await api("POST", "/api/v1/auth/login", {
-    email: CREDENTIALS.email,
+    account: CREDENTIALS.email,
     password: CREDENTIALS.password,
   });
-  record(s, "POST /auth/login", { email: CREDENTIALS.email }, loginBody, loginStatus);
+  record(s, "POST /auth/login", { account: CREDENTIALS.email }, loginBody, loginStatus);
 
   // sessions
   const { body: sessBody, status: sessStatus } = await api("GET", "/api/v1/auth/sessions");
@@ -227,10 +227,43 @@ async function captureThreads(): Promise<void> {
     tagNames: ["测试"],
   }, createFull, cf);
   const fullThreadId = (createFull as any)?.data?.id;
+  const fullSubthreadId = (createFull as any)?.data?.defaultSubthreadId;
 
   // ── 详情（含正文的草稿） ──
   const { body: detailFull, status: df } = await api("GET", `/api/v1/threads/${fullThreadId}`);
   record(s, `GET /threads/${fullThreadId} (draft with bodyPost)`, null, detailFull, df);
+
+  // ── 子贴标签：添加 → 列表 → 移除 ──
+  if (fullSubthreadId) {
+    const tagReq = { name: "快照子贴标签" };
+    const { body: addSubTag, status: addSubTagStatus } = await api(
+      "POST",
+      `/api/v1/subthreads/${fullSubthreadId}/tags`,
+      tagReq,
+    );
+    record(s, `POST /subthreads/${fullSubthreadId}/tags`, tagReq, addSubTag, addSubTagStatus);
+    const subTagId = (addSubTag as any)?.data?.id;
+
+    const { body: subTags, status: subTagsStatus } = await api(
+      "GET",
+      `/api/v1/subthreads/${fullSubthreadId}/tags`,
+    );
+    record(s, `GET /subthreads/${fullSubthreadId}/tags`, null, subTags, subTagsStatus);
+
+    if (subTagId) {
+      const { body: removeSubTag, status: removeSubTagStatus } = await api(
+        "DELETE",
+        `/api/v1/subthreads/${fullSubthreadId}/tags/${subTagId}`,
+      );
+      record(
+        s,
+        `DELETE /subthreads/${fullSubthreadId}/tags/${subTagId}`,
+        null,
+        removeSubTag,
+        removeSubTagStatus,
+      );
+    }
+  }
 
   // ── 详情（无正文的草稿） ──
   const { body: detailEmpty, status: de } = await api("GET", `/api/v1/threads/${emptyThreadId}`);
