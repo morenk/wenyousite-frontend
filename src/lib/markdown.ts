@@ -13,7 +13,7 @@ export function sanitizeEmptyImages(markdown: string): string {
  * 围栏代码块和正文行内内容必须原样保留；独占行 br 统一写成标准 `<br />`。
  */
 function sanitizeOutsideFencedCode(markdown: string): string {
-  const parts = markdown.split(/(\r?\n)/);
+  const parts = markdown.replace(/\r\n?/g, "\n").split(/(\n)/);
   let fence: { marker: "`" | "~"; length: number } | null = null;
 
   for (let index = 0; index < parts.length; index += 2) {
@@ -60,23 +60,38 @@ const EMPTY_LINK_RE = /\[[^\]]*\]\(\s*\)/g;
 const LINK_RE = /\[([^\]]+)\]\(\s*[^)\s]+[^)]*\)/g;
 const HTML_RE = /<[^>]*>/g;
 const THEMATIC_BREAK_RE = /^ {0,3}(?:(?:\*\s*){3,}|(?:-\s*){3,}|(?:_\s*){3,})$/;
+/** 仅用于可见性判断；保留原文，避免破坏 ZWJ Emoji 和变体选择符。 */
+const DEFAULT_IGNORABLE_RE = /[\u00AD\u034F\u061C\u115F\u1160\u17B4\u17B5\u180B-\u180F\u200B-\u200F\u202A-\u202E\u2060-\u206F\u3164\uFE00-\uFE0F\uFEFF\uFFA0]/gu;
+
+function hasNonIgnorableText(value: string): boolean {
+  return value.replace(DEFAULT_IGNORABLE_RE, "").trim().length > 0;
+}
 
 /** 判断 Markdown 是否包含可发布的可见内容（图片可单独发布，分隔线不可单独发布）。 */
 export function hasVisibleMarkdownContent(markdown: string): boolean {
-  const lines = markdown.split(/\r?\n/);
-  let fence: "`" | "~" | null = null;
+  const lines = sanitizeMilkdownMarkdown(markdown).split("\n");
+  let fence: { marker: "`" | "~"; length: number } | null = null;
 
   for (const rawLine of lines) {
     const line = rawLine.trim();
-    const fenceMatch = rawLine.match(/^ {0,3}(`{3,}|~{3,})/);
+    const fenceToken = rawLine.match(/^ {0,3}(`{3,}|~{3,})/)?.[1];
     if (fence) {
-      const closing = rawLine.match(/^ {0,3}(`{3,}|~{3,})[\t ]*$/);
-      if (closing?.[1][0] === fence) fence = null;
-      else if (line) return true;
+      const closingToken = rawLine.match(/^ {0,3}(`{3,}|~{3,})[\t ]*$/)?.[1];
+      if (
+        closingToken?.[0] === fence.marker &&
+        closingToken.length >= fence.length
+      ) {
+        fence = null;
+      } else if (hasNonIgnorableText(line)) {
+        return true;
+      }
       continue;
     }
-    if (fenceMatch) {
-      fence = fenceMatch[1][0] as "`" | "~";
+    if (fenceToken) {
+      fence = {
+        marker: fenceToken[0] as "`" | "~",
+        length: fenceToken.length,
+      };
       continue;
     }
     if (!line || THEMATIC_BREAK_RE.test(rawLine)) continue;
@@ -91,6 +106,7 @@ export function hasVisibleMarkdownContent(markdown: string): boolean {
       .replace(/^[#>+\-\s]+/u, "")
       .replace(/^\d+[.)]\s*/u, "")
       .replace(/[*_~`]/g, "")
+      .replace(DEFAULT_IGNORABLE_RE, "")
       .trim();
     if (visible) return true;
   }
