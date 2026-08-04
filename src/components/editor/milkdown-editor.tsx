@@ -12,6 +12,7 @@ import { useDebounce } from "use-debounce";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { sanitizeMilkdownMarkdown } from "@/lib/markdown";
+import { getMentionUserId, markEditorMentionAnchors } from "@/lib/mention";
 import { syncMilkdownToolbarVisibility } from "@/lib/milkdown-toolbar";
 import { useAuth } from "@/lib/auth";
 import { apiClient } from "@/api/client";
@@ -359,18 +360,22 @@ function EditorHost({
     const viewForInsert = () =>
       crepeRef.current?.editor.action((ctx) => ctx.get(editorViewCtx)) ?? null;
 
-    const isMentionNode = (node: unknown): node is { isText: boolean; nodeSize: number; marks: Array<{ type: { name: string }; attrs: { href?: string } }> } => {
+    const isMentionNode = (node: unknown): node is { isText: boolean; nodeSize: number; text: string; marks: Array<{ type: { name: string }; attrs: { href?: string } }> } => {
       if (!node || typeof node !== "object") return false;
       const candidate = node as {
         isText?: boolean;
         nodeSize?: number;
+        text?: string;
         marks?: Array<{ type: { name: string }; attrs: { href?: string } }>;
       };
       return Boolean(
         candidate.isText &&
           candidate.nodeSize &&
+          candidate.text &&
           candidate.marks?.some(
-            (mark) => mark.type.name === "link" && mark.attrs.href?.startsWith("/users/"),
+            (mark) =>
+              mark.type.name === "link" &&
+              getMentionUserId(mark.attrs.href, candidate.text),
           ),
       );
     };
@@ -439,14 +444,23 @@ function EditorHost({
 
     const attach = () => {
       const editor = host.querySelector<HTMLElement>(".ProseMirror");
-      if (!editor || editorDomRef.current === editor) return;
+      if (!editor) return;
+      markEditorMentionAnchors(editor);
+      if (editorDomRef.current === editor) return;
       editorDomRef.current = editor;
       const handleCompositionStart = () => {
         isComposingRef.current = true;
       };
       const handleCompositionEnd = () => {
         isComposingRef.current = false;
-        window.requestAnimationFrame(updateMentionMenu);
+        window.requestAnimationFrame(() => {
+          markEditorMentionAnchors(editor);
+          updateMentionMenu();
+        });
+      };
+      const handleInput = () => {
+        markEditorMentionAnchors(editor);
+        updateMentionMenu();
       };
       const handleKeyDown = (event: KeyboardEvent) => {
         if (isComposingRef.current || event.isComposing) return;
@@ -515,13 +529,13 @@ function EditorHost({
       };
       editor.addEventListener("compositionstart", handleCompositionStart);
       editor.addEventListener("compositionend", handleCompositionEnd);
-      editor.addEventListener("input", updateMentionMenu);
+      editor.addEventListener("input", handleInput);
       editor.addEventListener("keyup", updateMentionMenu);
       editor.addEventListener("keydown", handleKeyDown);
       editorCleanupRef.current = () => {
         editor.removeEventListener("compositionstart", handleCompositionStart);
         editor.removeEventListener("compositionend", handleCompositionEnd);
-        editor.removeEventListener("input", updateMentionMenu);
+        editor.removeEventListener("input", handleInput);
         editor.removeEventListener("keyup", updateMentionMenu);
         editor.removeEventListener("keydown", handleKeyDown);
         editorDomRef.current = null;
