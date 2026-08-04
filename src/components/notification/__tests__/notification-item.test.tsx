@@ -74,6 +74,21 @@ describe("NotificationItem", () => {
     expect(screen.getByRole("link")).toHaveAttribute("href", "/threads/t1?post=p1");
   });
 
+  test("优先使用结构化 payload 展示操作者、动作和正文预览", () => {
+    renderWithQC(
+      <NotificationItem
+        notification={baseNotification({
+          content: "旧版完整文案",
+          payload: { action: "reply", actorName: "新用户名", preview: "结构化预览" },
+        })}
+      />,
+    );
+    expect(screen.getByText("新用户名")).toBeInTheDocument();
+    expect(screen.getByText("回复了")).toBeInTheDocument();
+    expect(screen.getByText(/结构化预览/)).toBeInTheDocument();
+    expect(screen.queryByText("旧版完整文案")).not.toBeInTheDocument();
+  });
+
   test("楼中楼通知直接进入独立阅读页", () => {
     renderWithQC(
       <NotificationItem

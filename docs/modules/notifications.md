@@ -5,7 +5,7 @@
 实现站内通知的列表查看、未读标记与导航红点，补全导航栏「通知」链接死链。
 
 **本次迭代范围（Phase 7 MVP，最小实现）：**
-- `/notifications` 通知列表页：类型图标 + content 文案 + 相对时间 + 未读高亮 + 跳转 + 删除
+- `/notifications` 通知列表页：类型图标 + 结构化 payload 文案（旧通知回退 content）+ 相对时间 + 未读高亮 + 跳转 + 删除
 - 单条点击标记已读，顶部「全部已读」
 - 导航栏「通知」链接显示未读徽标（轮询刷新）
 - 无限滚动（cursor 分页）+ loading / error / empty 三态
@@ -17,8 +17,8 @@
 - 页面重新获得焦点时刷新通知；补齐加载更多失败重试
 - 「全部已读」仅在有未读时展示，并即时更新列表与红点
 
-**后续迭代：**
-- payload 结构化渲染（actorName/action/preview 单独排版）
+**本轮补充：**
+- payload 结构化渲染：`actorName`、动作和 `preview` 分段排版；点赞聚合继续使用后端生成的完整文案
 
 提及通知使用后端稳定 `eventKey` 幂等；同一帖子中显式提及已覆盖的用户不会再重复收到该帖的普通回复/新楼层提醒。正文中的 `[@用户名](/users/{userId})` 由 MarkdownContent 渲染为本站用户链接，兼容历史纯文本提及。
 
@@ -100,7 +100,7 @@
 
 | 组件 | 路径 | 说明 |
 |------|------|------|
-| NotificationItem | `src/components/notification/notification-item.tsx` | 单条通知：类型图标 + content + 时间 + 未读高亮 + 跳转 + 删除 |
+| NotificationItem | `src/components/notification/notification-item.tsx` | 单条通知：类型图标 + payload/content 降级文案 + 时间 + 未读高亮 + 跳转 + 删除 |
 | NotificationList | `src/components/notification/notification-list.tsx` | 通知列表：无限滚动 + 三态 + 「全部已读」 |
 | useNotifications | `src/api/hooks/use-notifications.ts` | 通知列表 hook（cursor 分页，`{ type, userId }` 按用户隔离） |
 | useUnreadCount | `src/api/hooks/use-unread-count.ts` | 未读数 hook（`userId` 按用户隔离，30s 轮询） |
@@ -152,7 +152,7 @@
 - [x] 类型筛选、精确定位与刷新策略（本轮）
 - [x] 通知定位取消平滑移动动画，且只高亮目标卡片
 - [x] 乐观已读缓存更新（失败时自动回滚）
-- [ ] payload 结构化渲染（TODO）
+- [x] payload 结构化渲染（actorName/action/preview 分段，旧数据回退 content）
 
 ## 11. 子任务（切片）
 

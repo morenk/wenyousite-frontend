@@ -30,6 +30,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
 
   const Icon = typeIconMap[notification.type] ?? MessageSquare;
   const displayContent = sanitizeNotificationContent(notification);
+  const structuredContent = getStructuredNotificationContent(notification);
   const deletedHint = getDeletedHint(notification);
   const href = notification.postId && notification.threadId
     ? notification.post?.parentPostId
@@ -91,7 +92,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
               : "text-foreground",
           )}
         >
-          {displayContent || "（图片内容）"}
+          {structuredContent ?? (displayContent || "（图片内容）")}
         </p>
         {deletedHint && (
           <p className="mt-1 text-xs font-medium text-destructive">{deletedHint}</p>
@@ -157,7 +158,44 @@ function getDeletedHint(notification: NotificationItemData): string | null {
 
 /** 兼容旧通知中残留的图片 Markdown、Milkdown 比例 alt、转义反斜杠及硬换行。 */
 function sanitizeNotificationContent(notification: NotificationItemData): string {
-  let content = (notification.content ?? "")
+  return sanitizeNotificationText(
+    notification.content ?? "",
+    typeof notification.payload?.preview === "string" ? notification.payload.preview : undefined,
+  );
+}
+
+/** 结构化通知优先使用 payload，content 仅作为旧数据和未知类型的降级字段。 */
+function getStructuredNotificationContent(notification: NotificationItemData): React.ReactNode | null {
+  const payload = notification.payload;
+  const actorName = typeof payload?.actorName === "string" ? payload.actorName.trim() : "";
+  const action = typeof payload?.action === "string" ? payload.action : "";
+
+  // 点赞通知可能已经聚合了多人，必须保留后端生成的聚合文案。
+  if (!actorName || !["reply", "mention", "new_post"].includes(action)) return null;
+
+  const preview = typeof payload?.preview === "string"
+    ? sanitizeNotificationText(payload.preview)
+    : "";
+  const subthreadTitle = typeof payload?.subthreadTitle === "string"
+    ? payload.subthreadTitle.trim()
+    : "";
+  const actionText = action === "reply"
+    ? "回复了"
+    : action === "mention"
+      ? subthreadTitle ? `在「${subthreadTitle}」提到了你` : "提到了你"
+      : subthreadTitle ? `创建了新子贴「${subthreadTitle}」` : "发布了新楼层";
+
+  return (
+    <>
+      <span className="font-medium text-foreground">{actorName}</span>{" "}
+      <span>{actionText}</span>
+      {preview && <span className="text-muted-foreground">：{preview}</span>}
+    </>
+  );
+}
+
+function sanitizeNotificationText(rawContent: string, payloadPreview?: string): string {
+  let content = rawContent
     .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
     // Milkdown 序列化把 < > 等标点转义为 \< \>，通知预览是纯文本，只去掉反斜杠还原为标点本身。
     .replace(/\\([!-/:-@[-`{-~])/g, "$1")
@@ -165,9 +203,7 @@ function sanitizeNotificationContent(notification: NotificationItemData): string
     .replace(/\\\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
-  const preview = typeof notification.payload?.preview === "string"
-    ? notification.payload.preview.trim()
-    : "";
+  const preview = payloadPreview?.trim() ?? "";
   if (preview === "1.00") {
     content = content.replace(/1\.00\s*$/, "").trimEnd();
   }
