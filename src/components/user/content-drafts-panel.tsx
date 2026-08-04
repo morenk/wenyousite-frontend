@@ -30,7 +30,7 @@ interface ContentDraftsPanelProps {
   initialContent?: string;
   autoSaveEnabled?: boolean;
   autoSaveStatus?: "idle" | "saving" | "saved" | "error";
-  onAutoSaveChange?: (enabled: boolean) => void;
+  onAutoSaveChange?: (enabled: boolean, version?: number) => void;
 }
 
 function getErrorMessage(error: unknown, fallback: string): string {
@@ -115,7 +115,11 @@ export function ContentDraftsPanel({
     const occupied = slot === undefined ? undefined : draftBySlot.get(slot);
     if (occupied && !confirm(`确定要覆盖槽位 ${slot} 的正文草稿吗？`)) return;
     try {
-      await saveDraft.mutateAsync({ content: text, ...(slot ? { slot } : {}) });
+      await saveDraft.mutateAsync({
+        content: text,
+        ...(slot ? { slot } : {}),
+        ...(occupied ? { version: occupied.version } : {}),
+      });
       toast.success(occupied ? `已覆盖槽位 ${slot}` : "正文草稿已保存");
     } catch (err) {
       toast.error(getErrorMessage(err, "保存失败，请稍后重试"));
@@ -131,7 +135,7 @@ export function ContentDraftsPanel({
     ) {
       return;
     }
-    onAutoSaveChange?.(next);
+    onAutoSaveChange?.(next, next ? draftBySlot.get(1)?.version : undefined);
   };
 
   return (

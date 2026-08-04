@@ -1997,6 +1997,8 @@ export interface components {
             slot: number;
             /** @description Markdown 正文 */
             content: string;
+            /** @description 乐观锁版本，每次覆盖后递增 */
+            version: number;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -2020,6 +2022,11 @@ export interface components {
              * @example 1
              */
             slot?: number;
+            /**
+             * @description 覆盖已有槽位时必填的当前乐观锁版本；创建空槽位时省略
+             * @example 2
+             */
+            version?: number;
         };
         UpdateDraftDto: {
             /**
@@ -2027,6 +2034,11 @@ export interface components {
              * @example 更新后的草稿内容...
              */
             content: string;
+            /**
+             * @description 当前乐观锁版本
+             * @example 2
+             */
+            version: number;
         };
         DeleteDraftResponseDto: {
             /** @example 草稿已删除 */
@@ -5035,6 +5047,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description 覆盖已有槽位时 version 缺失或已过期 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     DraftsController_slotUsage: {
@@ -5177,6 +5196,13 @@ export interface operations {
             };
             /** @description 草稿不存在 */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description version 已过期 */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

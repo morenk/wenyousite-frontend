@@ -39,6 +39,7 @@ const sampleDraft = {
   userId: "u1",
   slot: 1,
   content: "这是槽位 1 的正文草稿",
+  version: 2,
   createdAt: "2026-01-01T00:00:00Z",
   updatedAt: "2026-01-01T00:00:00Z",
 };
@@ -188,7 +189,20 @@ describe("ContentDraftsPanel", () => {
     renderPanel({ initialContent: "要覆盖保存的正文" });
     await user.click(screen.getByRole("button", { name: "覆盖槽位 1" }));
     expect(global.confirm).toHaveBeenCalledWith("确定要覆盖槽位 1 的正文草稿吗？");
-    expect(saveMutate).toHaveBeenCalledWith({ content: "要覆盖保存的正文", slot: 1 });
+    expect(saveMutate).toHaveBeenCalledWith({ content: "要覆盖保存的正文", slot: 1, version: 2 });
+  });
+
+  test("覆盖发生版本冲突时显示后端提示且不报告成功", async () => {
+    const user = userEvent.setup();
+    const saveMutate = vi.fn().mockRejectedValue(new Error("草稿已在其他位置修改，请刷新后重试"));
+    mockUseSaveDraft.mockReturnValue({ isPending: false, mutateAsync: saveMutate });
+    vi.stubGlobal("confirm", vi.fn(() => true));
+    renderPanel({ initialContent: "本地旧版本" });
+
+    await user.click(screen.getByRole("button", { name: "覆盖槽位 1" }));
+
+    expect(toast.error).toHaveBeenCalledWith("草稿已在其他位置修改，请刷新后重试");
+    expect(toast.success).not.toHaveBeenCalled();
   });
 
   test("开启自动保存前确认槽位 1 将被接管", async () => {
@@ -200,7 +214,7 @@ describe("ContentDraftsPanel", () => {
     expect(global.confirm).toHaveBeenCalledWith(
       "开启自动保存后，槽位 1 将由当前编辑器持续覆盖，是否继续？",
     );
-    expect(onAutoSaveChange).toHaveBeenCalledWith(true);
+    expect(onAutoSaveChange).toHaveBeenCalledWith(true, 2);
   });
 
   test("显示自动保存完成状态", () => {

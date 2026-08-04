@@ -58,6 +58,7 @@ interface DraftItem {
   userId: string;
   slot: number;        // 1-5
   content: string;     // Markdown 纯文本
+  version: number;     // 乐观锁版本
   createdAt: string;
   updatedAt: string;
 }
@@ -65,7 +66,7 @@ interface DraftItem {
 
 - `GET /drafts` → `data: DraftItem[]`
 - `GET /drafts/slots` → `data: { usedSlots: number; maxSlots: number; slots: number[] }`（`slots` 顺序不保证稳定）
-- `POST /drafts`（body `{ content, slot? }`）→ 201，`data: DraftItem`；满 5 槽且未指定 slot 时返回 400「草稿位已满（5/5），请先删除旧草稿」
+- `POST /drafts`（body `{ content, slot?, version? }`）→ 201，覆盖已有槽位时必须提交当前 version
 - `GET/PATCH /drafts/:id` → `data: DraftItem`
 - `DELETE /drafts/:id` → `data: { message: "草稿已删除" }`
 
@@ -79,7 +80,7 @@ interface DraftItem {
 | 槽位使用 | `GET /drafts/slots` | TanStack Query `useQuery`（queryKey `["draft-slots"]`） |
 | 保存/删除 | mutation | `useMutation`，成功后 invalidate 列表与槽位 |
 | 面板开关 | 编辑器工具栏入口 | useState（MilkdownEditor 持有） |
-| 自动保存 | 当前编辑器状态 | 开关仅作用于当前编辑器实例；开启后 800ms 防抖串行写入 slot 1，空正文不覆盖 |
+| 自动保存 | 当前编辑器状态 | 800ms 防抖串行写入 slot 1；成功后推进 version，409 时关闭自动保存 |
 
 ## 5. 组件清单
 
@@ -96,7 +97,7 @@ interface DraftItem {
 
 ## 6. 表单与校验
 
-无二次输入表单。`POST /drafts` 的 `content` 直接取当前编辑器输出的完整 Markdown；`slot` 可选（1-5），不传由后端自动分配。
+无二次输入表单。`POST /drafts` 的 `content` 直接取当前编辑器输出的完整 Markdown；`slot` 可选（1-5），不传由后端自动分配。覆盖已有槽位时同时提交该记录当前的正整数 `version`。
 
 ## 7. 错误处理
 
@@ -105,6 +106,7 @@ interface DraftItem {
 | 40100 | 未登录 / token 失效 | apiClient 拦截器自动跳转 `/login` |
 | 40000 | 草稿位已满（5/5） | toast「草稿位已满（5/5），请先删除旧草稿」 |
 | 40400 | 草稿不存在（已被删） | toast「草稿不存在或已删除」并刷新列表 |
+| 40002 / HTTP 409 | 草稿已在其他标签页或设备修改 | 停止自动保存，刷新列表并提示用户重新确认 |
 | 网络错误 | fetch 失败 | toast「网络连接失败，请稍后重试」 |
 | 兜底 | 其它 | toast「操作失败，请稍后重试」 |
 
@@ -128,6 +130,8 @@ interface DraftItem {
 - [x] 删除草稿确认后调用 DELETE，成功后列表刷新
 - [x] 与主题帖草稿在入口/命名/视觉/数据上完全隔离
 - [x] `pnpm lint && pnpm typecheck && pnpm test` 通过
+- [x] 手动覆盖与自动保存均携带当前 version，成功后使用响应中的新版本
+- [x] 409 冲突不覆盖远端内容，并停止当前编辑器自动保存
 
 ## 10. 子任务（切片）
 
@@ -138,6 +142,7 @@ interface DraftItem {
 - [x] 切片5：文档收尾 + 质量检查（lint / typecheck / test / build）
 - [x] 切片6：入口迁入 Milkdown 顶部工具栏；补齐指定槽位保存/覆盖与恢复确认
 - [x] 切片7：移除面板二次输入；增加当前编辑器到槽位 1 的自动保存开关
+- [x] 切片8：接入 Draft version 乐观锁；手动/自动保存处理跨端并发冲突
 
 ## 11. 后续（本次不做）
 

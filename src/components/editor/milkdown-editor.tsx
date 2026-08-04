@@ -681,6 +681,8 @@ function EditorCore({
   const latestContentRef = useRef(defaultValue ?? "");
   const autoSaveQueueRef = useRef<Promise<unknown>>(Promise.resolve());
   const autoSaveSequenceRef = useRef(0);
+  const autoSaveVersionRef = useRef<number | undefined>(undefined);
+  const autoSaveEnabledRef = useRef(false);
 
   const handleChange = useCallback(
     (value: string) => {
@@ -720,13 +722,26 @@ function EditorCore({
       setAutoSaveStatus("saving");
       autoSaveQueueRef.current = autoSaveQueueRef.current
         .catch(() => undefined)
-        .then(() => saveDraftAutomatically({ content, slot: 1 }))
         .then(() => {
+          if (!autoSaveEnabledRef.current) return null;
+          return saveDraftAutomatically({
+            content,
+            slot: 1,
+            ...(autoSaveVersionRef.current !== undefined
+              ? { version: autoSaveVersionRef.current }
+              : {}),
+          });
+        })
+        .then((draft) => {
+          if (!draft || !autoSaveEnabledRef.current) return;
+          autoSaveVersionRef.current = draft.version;
           if (autoSaveSequenceRef.current === sequence) setAutoSaveStatus("saved");
         })
         .catch((error) => {
           if (autoSaveSequenceRef.current === sequence) {
             setAutoSaveStatus("error");
+            autoSaveEnabledRef.current = false;
+            setAutoSaveEnabled(false);
             toast.error(
               (error as { message?: string })?.message || "正文草稿自动保存失败",
             );
@@ -737,7 +752,9 @@ function EditorCore({
     return () => window.clearTimeout(timer);
   }, [autoSaveEnabled, currentContent, saveDraftAutomatically]);
 
-  const handleAutoSaveChange = useCallback((enabled: boolean) => {
+  const handleAutoSaveChange = useCallback((enabled: boolean, version?: number) => {
+    autoSaveEnabledRef.current = enabled;
+    autoSaveVersionRef.current = enabled ? version : undefined;
     setAutoSaveEnabled(enabled);
     setAutoSaveStatus("idle");
   }, []);

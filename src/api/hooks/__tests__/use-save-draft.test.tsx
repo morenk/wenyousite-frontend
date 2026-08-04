@@ -30,6 +30,7 @@ const createdDraft = {
   userId: "u1",
   slot: 1,
   content: "槽位 1 的草稿",
+  version: 2,
   createdAt: "2026-01-01T00:00:00Z",
   updatedAt: "2026-01-01T00:00:00Z",
 };
@@ -45,11 +46,11 @@ describe("useSaveDraft", () => {
       wrapper: createWrapper(),
     });
 
-    result.current.mutate({ content: "槽位 1 的草稿", slot: 1 });
+    result.current.mutate({ content: "槽位 1 的草稿", slot: 1, version: 1 });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(mockPOST).toHaveBeenCalledWith("/api/v1/drafts", {
-      body: { content: "槽位 1 的草稿", slot: 1 },
+      body: { content: "槽位 1 的草稿", slot: 1, version: 1 },
     });
     expect(result.current.data?.slot).toBe(1);
   });

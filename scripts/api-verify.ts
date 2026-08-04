@@ -126,12 +126,32 @@ async function captureDrafts(): Promise<void> {
   // 空列表
   const { body: listEmpty, status: listStatus } = await api("GET", "/api/v1/drafts");
   record(s, "GET /drafts", null, listEmpty, listStatus);
+  const initialDrafts = ((listEmpty as any)?.data ?? []) as Array<{ slot: number }>;
+  const usedSlots = new Set(initialDrafts.map((draft) => draft.slot));
+  const testSlot = [1, 2, 3, 4, 5].find((slot) => !usedSlots.has(slot));
+  if (!testSlot) {
+    console.log("  ⚠ 草稿槽位已满，跳过写入快照以避免覆盖用户数据");
+    save(s);
+    return;
+  }
 
-  // 创建（指定 slot=1）
-  const createReq = { content: "这是槽位 1 的正文草稿（快照）", slot: 1 };
+  // 创建（指定空闲 slot）
+  const createReq = { content: "这是指定槽位的正文草稿（快照）", slot: testSlot };
   const { body: createBody, status: createStatus } = await api("POST", "/api/v1/drafts", createReq);
   record(s, "POST /drafts {slot:1}", createReq, createBody, createStatus);
   const createdId = (createBody as any)?.data?.id;
+  const createdVersion = (createBody as any)?.data?.version;
+
+  // 覆盖同一槽位（乐观锁）
+  const overwriteReq = { content: "覆盖后的正文草稿（快照）", slot: testSlot, version: createdVersion };
+  const { body: overwriteBody, status: overwriteStatus } = await api("POST", "/api/v1/drafts", overwriteReq);
+  record(s, "POST /drafts {覆盖槽位}", overwriteReq, overwriteBody, overwriteStatus);
+  const currentVersion = (overwriteBody as any)?.data?.version;
+
+  // 旧版本不得覆盖
+  const staleReq = { content: "不应写入的旧版本", slot: testSlot, version: createdVersion };
+  const { body: staleBody, status: staleStatus } = await api("POST", "/api/v1/drafts", staleReq);
+  record(s, "POST /drafts {过期version}", staleReq, staleBody, staleStatus);
 
   // 创建（不指定 slot，自动分配空闲位）
   const autoReq = { content: "这是自动分配的正文草稿（快照）" };
@@ -153,7 +173,7 @@ async function captureDrafts(): Promise<void> {
     record(s, "GET /drafts/:id", { id: createdId }, oneBody, oneStatus);
 
     // 更新
-    const patchReq = { content: "更新后的槽位 1 草稿（快照）" };
+    const patchReq = { content: "更新后的指定槽位草稿（快照）", version: currentVersion };
     const { body: patchBody, status: patchStatus } = await api("PATCH", `/api/v1/drafts/${createdId}`, patchReq);
     record(s, "PATCH /drafts/:id", { id: createdId, ...patchReq }, patchBody, patchStatus);
 
