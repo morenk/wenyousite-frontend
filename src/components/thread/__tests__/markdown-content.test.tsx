@@ -48,6 +48,16 @@ describe("MarkdownContent", () => {
     );
   });
 
+  test.each([
+    "https://cos.example.com/wenyou/uploads/2026/01/01/u1/animated.gif",
+    "https://cos.example.com/wenyou/uploads/2026/01/01/u1/animated.GIF?version=1#preview",
+  ])("本站 GIF 默认渲染原图以自动播放：%s", (gifUrl) => {
+    render(<MarkdownContent content={`![动态图](${gifUrl})`} />);
+    const img = screen.getByRole("img", { name: "动态图" });
+    expect(img).toHaveAttribute("src", gifUrl);
+    expect(img).toHaveAttribute("loading", "lazy");
+  });
+
   test("站外图片保持原 URL，不做中图替换", () => {
     render(<MarkdownContent content={`![外部图](${EXTERNAL_URL})`} />);
     const img = screen.getByRole("img", { name: "外部图" });

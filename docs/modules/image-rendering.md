@@ -7,8 +7,9 @@
 **本次迭代范围：**
 - 上传安全契约与后端对齐：仅接受 JPEG / PNG / GIF / WebP / AVIF，拒绝空文件与未经净化的 SVG
 - `upload-done` 由后端核对对象存储实际大小和 MIME，并支持网络超时后的幂等重试；Web/Flutter 都只把 `COMPLETED` 媒体写入正文或头像
+- GIF 动图在正文进入视口并加载后默认播放，不再以静态 `_md.webp` 首帧代替；循环次数遵循文件自身设置
 - 正文图片渲染约束：`max-width: 100%` + `max-height: 50vh` + `height: auto` + `loading="lazy"`，长图不会撑满楼层
-- 本站上传图自动显示 `_md.webp` 中图，点击打开 lightbox 查看原图
+- 本站上传的静态图自动显示 `_md.webp` 中图，点击打开 lightbox 查看原图
 - lightbox 支持适应屏幕、1:1、滚轮缩放与拖拽平移；原图以自然像素作为缩放基准，避免被正文 CSS 重复缩小
 - 共享渲染组件 `MarkdownContent` 接入楼层正文与子贴正文
 - `MarkdownContent` 兼容 Milkdown 空段落协议：代码块外独占一行的 `<br />`（及历史变体）转换为安全的 Markdown break，保留用户手动输入的空行；其他原始 HTML 仍通过 `skipHtml` 忽略
@@ -16,6 +17,7 @@
 
 **设计决策（与后端派生图方案对齐）：**
 - **Markdown 存原图 URL**（`upload-image.ts` 插入的即为原图），渲染时识别本站上传图后显示中图。相比"插入时直接换成 `_md.webp`"，此方案：历史内容零迁移即可生效；lightbox 无需从 `_md.webp` 反推原图扩展名（.jpg/.png/.avif 有歧义）。
+- **GIF 正文使用原图**：现有 sharp 派生链路生成的是静态 WebP 首帧，无法满足默认播放；因此 `.gif`（扩展名大小写不敏感，允许 URL query/hash）跳过中图替换。仍保留 `loading="lazy"`，避免未进入视口的长页面动图提前消耗带宽。
 - 后端仍保留派生图生成（sharp：300×300 cover `_thumb.webp` q80 / 800px 等比 `_md.webp` q85）；上传完成确认会在入队前复核预签名阶段固化的大小与 MIME。
 
 **后续迭代（未含）：**
@@ -39,7 +41,7 @@
 |------|------|------|
 | MarkdownContent | `src/components/thread/markdown-content.tsx` | 共享 markdown 渲染：图片约束 + 懒加载 + 中图替换 + lightbox |
 | ImageLightbox | `src/components/thread/image-lightbox.tsx` | 原图查看器：适应屏幕 / 1:1 / 滚轮缩放 / 拖拽 / Esc / 点背景关闭 |
-| getImageUrlBySize | `src/lib/upload-image.ts` | 原图 URL → `_md.webp` / `_thumb.webp` 派生图 URL（SVG 原样返回） |
+| getImageUrlBySize | `src/lib/upload-image.ts` | 静态原图 URL → `_md.webp` / `_thumb.webp` 派生图 URL（历史 SVG 原样返回） |
 
 **接入点：**
 - `src/components/thread/floor-card.tsx` — 楼层正文
@@ -50,7 +52,8 @@
 
 | 场景 | 行为 |
 |------|------|
-| 本站上传图（URL 含 `/uploads/`，且非 `_md.webp`/`_thumb.webp`） | 显示 `_md.webp` 中图；中图 404 时 `onError` 回退原图 |
+| 本站静态上传图（URL 含 `/uploads/`，且非 `_md.webp`/`_thumb.webp`） | 显示 `_md.webp` 中图；中图 404 时 `onError` 回退原图 |
+| 本站 GIF（`.gif`，大小写不敏感） | 直接显示原图，加载后自动播放；保留懒加载和正文尺寸约束，循环策略由 GIF 自身决定 |
 | 站外图片 / SVG / 已是派生图 URL | 原样显示，仅做尺寸约束 |
 | 所有正文图片 | `max-width:100%` + `max-height:50vh` + `height:auto` + `loading="lazy"` + 居中圆角 |
 | 点击正文图片 | 打开 lightbox，并直接请求 Markdown 中保存的原图 URL |
@@ -75,6 +78,7 @@
 - [x] 正文高度超过 `120vh` 时折叠为 `80vh`，展开/收起后按当前内容位置跳转
 - [x] `pnpm lint && pnpm typecheck && pnpm test` 通过
 - [x] SVG 与空文件在调用 `upload-url` 前被客户端拒绝
+- [x] 本站 GIF 正文默认请求原图并播放，不需要先打开 lightbox
 
 ## 6. 子任务
 

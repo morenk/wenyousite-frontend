@@ -25,6 +25,11 @@ function isUploadedMediaUrl(url: string): boolean {
   );
 }
 
+/** GIF 派生图仅有静态首帧，正文直接使用原图让浏览器按文件设置播放。 */
+function isGifUrl(url: string): boolean {
+  return /\.gif(?:[?#]|$)/iu.test(url);
+}
+
 type ImageProps = ComponentProps<"img"> & ExtraProps;
 type AnchorProps = ComponentProps<"a"> & ExtraProps;
 
@@ -52,10 +57,10 @@ function MarkdownLink({ href, children, ...props }: AnchorProps) {
   );
 }
 
-/** 图片组件：本站上传图默认显示 _md.webp 中图，失败回退原图；点击打开原图 lightbox */
+/** 图片组件：本站静态图显示中图，GIF 默认播放原图；点击打开原图 lightbox */
 function MarkdownImage({ src, alt }: ImageProps) {
   const originalUrl = typeof src === "string" ? src : "";
-  const mediumUrl = isUploadedMediaUrl(originalUrl)
+  const mediumUrl = isUploadedMediaUrl(originalUrl) && !isGifUrl(originalUrl)
     ? getImageUrlBySize(originalUrl, "md")
     : originalUrl;
   const [failed, setFailed] = useState(false);
