@@ -71,8 +71,8 @@
 {
   "code": 0, "message": "ok",
   "data": {
-    "id": "cms7kpgnb00067q6lg4u0tyuu",
-    "email": "test_thread2@example.com",
+    "id": "<redacted-id>",
+    "email": "<redacted-email>",
     "username": "testthread2",
     "avatar": null,
     "bio": null,
@@ -95,7 +95,7 @@
 {
   "code": 0, "message": "ok",
   "data": {
-    "id": "cms5zycb900017q0azar1nag2",
+    "id": "<redacted-id>",
     "username": "testuser",
     "avatar": null,
     "bio": null,
@@ -119,14 +119,14 @@
   "code": 0, "message": "ok",
   "data": [
     {
-      "id": "cmsapbpui00577q31p0c1vfxx",
+      "id": "<redacted-id>",
       "createdAt": "2026-08-01T18:25:14.395Z",
       "floorNumber": null,
-      "parentPostId": "cmsapbowx00517q313y47bmtj",
+      "parentPostId": "<redacted-id>",
       "content": "楼中楼回复内容",
-      "threadId": "cmsapbna4004n7q31w8dvc0ln",
+      "threadId": "<redacted-id>",
       "thread": { "title": "管理面板测试帖 1785608711288" },
-      "subthreadId": "cmsapbna8004r7q319m86krin",
+      "subthreadId": "<redacted-id>",
       "subthread": { "title": "管理面板测试帖 1785608711288" },
       "preview": "楼中楼回复内容"
     }
@@ -143,9 +143,9 @@
   "code": 0, "message": "ok",
   "data": [
     {
-      "id": "cmsapbna4004n7q31w8dvc0ln",
+      "id": "<redacted-id>",
       "title": "管理面板测试帖 1785608711288",
-      "ownerId": "cms5zycb900017q0azar1nag2",
+      "ownerId": "<redacted-id>",
       "category": "DEDUCTION", "status": "RECRUITING", "visibility": "PUBLIC",
       "published": true, "publishedAt": "...", "pinned": false,
       "viewCount": 1, "version": 2, "likeCount": 0,

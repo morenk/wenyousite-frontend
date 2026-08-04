@@ -1,10 +1,10 @@
 {
   "module": "posts",
   "generatedAt": "2026-08-01T18:51:28.658Z",
-  "description": "楼层/帖子端点快照",
+  "description": "<redacted-device>",
   "endpoints": {
-    "GET /subthreads/cmsapbna8004r7q319m86krin/posts?limit=5": {
-      "label": "GET /subthreads/cmsapbna8004r7q319m86krin/posts?limit=5",
+    "GET /subthreads/<redacted-id>/posts?limit=5": {
+      "label": "GET /subthreads/<redacted-id>/posts?limit=5",
       "request": {
         "limit": 5
       },
@@ -13,10 +13,10 @@
         "message": "ok",
         "data": [
           {
-            "id": "cmsapbowx00517q313y47bmtj",
-            "threadId": "cmsapbna4004n7q31w8dvc0ln",
-            "subthreadId": "cmsapbna8004r7q319m86krin",
-            "authorId": "cms5zycb900017q0azar1nag2",
+            "id": "<redacted-id>",
+            "threadId": "<redacted-id>",
+            "subthreadId": "<redacted-id>",
+            "authorId": "<redacted-id>",
             "kind": "FLOOR",
             "floorNumber": 1,
             "parentPostId": null,
@@ -27,7 +27,7 @@
             "updatedAt": "2026-08-01T18:25:13.185Z",
             "deletedAt": null,
             "author": {
-              "id": "cms5zycb900017q0azar1nag2",
+              "id": "<redacted-id>",
               "username": "testuser",
               "avatar": null
             },
@@ -36,29 +36,29 @@
             },
             "replies": [
               {
-                "id": "cmsapbpui00577q31p0c1vfxx",
-                "threadId": "cmsapbna4004n7q31w8dvc0ln",
-                "subthreadId": "cmsapbna8004r7q319m86krin",
-                "authorId": "cms5zycb900017q0azar1nag2",
+                "id": "<redacted-id>",
+                "threadId": "<redacted-id>",
+                "subthreadId": "<redacted-id>",
+                "authorId": "<redacted-id>",
                 "kind": "FLOOR",
                 "floorNumber": null,
-                "parentPostId": "cmsapbowx00517q313y47bmtj",
-                "replyToPostId": "cmsapbowx00517q313y47bmtj",
+                "parentPostId": "<redacted-id>",
+                "replyToPostId": "<redacted-id>",
                 "content": "楼中楼回复内容",
                 "version": 1,
                 "createdAt": "2026-08-01T18:25:14.395Z",
                 "updatedAt": "2026-08-01T18:25:14.395Z",
                 "deletedAt": null,
                 "author": {
-                  "id": "cms5zycb900017q0azar1nag2",
+                  "id": "<redacted-id>",
                   "username": "testuser",
                   "avatar": null
                 },
                 "replyToPost": {
-                  "id": "cmsapbowx00517q313y47bmtj",
-                  "authorId": "cms5zycb900017q0azar1nag2",
+                  "id": "<redacted-id>",
+                  "authorId": "<redacted-id>",
                   "author": {
-                    "id": "cms5zycb900017q0azar1nag2",
+                    "id": "<redacted-id>",
                     "username": "testuser",
                     "avatar": null
                   }
@@ -68,14 +68,14 @@
           }
         ],
         "meta": {
-          "cursor": "cmsapbowx00517q313y47bmtj",
+          "cursor": "<redacted-id>",
           "hasMore": false
         }
       },
       "httpStatus": 200
     },
-    "GET /posts/cmsapbowx00517q313y47bmtj/replies?limit=3": {
-      "label": "GET /posts/cmsapbowx00517q313y47bmtj/replies?limit=3",
+    "GET /posts/<redacted-id>/replies?limit=3": {
+      "label": "GET /posts/<redacted-id>/replies?limit=3",
       "request": {
         "limit": 3
       },
@@ -84,29 +84,29 @@
         "message": "ok",
         "data": [
           {
-            "id": "cmsapbpui00577q31p0c1vfxx",
-            "threadId": "cmsapbna4004n7q31w8dvc0ln",
-            "subthreadId": "cmsapbna8004r7q319m86krin",
-            "authorId": "cms5zycb900017q0azar1nag2",
+            "id": "<redacted-id>",
+            "threadId": "<redacted-id>",
+            "subthreadId": "<redacted-id>",
+            "authorId": "<redacted-id>",
             "kind": "FLOOR",
             "floorNumber": null,
-            "parentPostId": "cmsapbowx00517q313y47bmtj",
-            "replyToPostId": "cmsapbowx00517q313y47bmtj",
+            "parentPostId": "<redacted-id>",
+            "replyToPostId": "<redacted-id>",
             "content": "楼中楼回复内容",
             "version": 1,
             "createdAt": "2026-08-01T18:25:14.395Z",
             "updatedAt": "2026-08-01T18:25:14.395Z",
             "deletedAt": null,
             "author": {
-              "id": "cms5zycb900017q0azar1nag2",
+              "id": "<redacted-id>",
               "username": "testuser",
               "avatar": null
             },
             "replyToPost": {
-              "id": "cmsapbowx00517q313y47bmtj",
-              "authorId": "cms5zycb900017q0azar1nag2",
+              "id": "<redacted-id>",
+              "authorId": "<redacted-id>",
               "author": {
-                "id": "cms5zycb900017q0azar1nag2",
+                "id": "<redacted-id>",
                 "username": "testuser",
                 "avatar": null
               }
@@ -114,7 +114,7 @@
           }
         ],
         "meta": {
-          "cursor": "cmsapbpui00577q31p0c1vfxx",
+          "cursor": "<redacted-id>",
           "hasMore": false
         }
       },

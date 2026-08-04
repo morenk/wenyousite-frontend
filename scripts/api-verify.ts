@@ -1,7 +1,7 @@
 /** API 事实快照脚本
  *  用真实 HTTP 请求抓取每个模块所有端点的响应 JSON，
  *  保存到 docs/snapshots/<module>.snapshot.json，
- *  作为前端类型和 docs_direct 的唯一依据。
+ *  作为 OpenAPI 契约的运行时验证样例，不替代 OpenAPI 类型定义。
  *
  *  用法: npx tsx scripts/api-verify.ts [--module=all|threads|auth|posts|tags|drafts]
  */
@@ -10,12 +10,13 @@
 
 import * as fs from "fs";
 import * as path from "path";
+import { assertSafeSnapshotTarget, sanitizeSnapshotValue } from "./snapshot-safety";
 
 const BASE = process.env.API_BASE || "http://127.0.0.1:3000";
 const SNAPSHOT_DIR = path.resolve("docs/snapshots");
 const CREDENTIALS = {
-  email: process.env.TEST_EMAIL || "test_thread2@example.com",
-  password: process.env.TEST_PASS || "Test123456!",
+  email: process.env.TEST_EMAIL || "",
+  password: process.env.TEST_PASS || "",
 };
 
 interface SnapEntry {
@@ -33,7 +34,10 @@ interface ModuleSnapshot {
 }
 
 let TOKEN = "";
+let REFRESH_TOKEN = "";
 let USER_ID = "";
+let LOGIN_RESPONSE: unknown;
+let LOGIN_STATUS = 0;
 
 /** ── helpers ── */
 
@@ -77,30 +81,28 @@ function record(s: ModuleSnapshot, label: string, req: unknown, resBody: unknown
 
 function save(s: ModuleSnapshot) {
   const file = path.join(SNAPSHOT_DIR, `${s.module}.snapshot.json`);
-  fs.writeFileSync(file, JSON.stringify(s, null, 2), "utf-8");
+  fs.writeFileSync(file, `${JSON.stringify(sanitizeSnapshotValue(s), null, 2)}\n`, "utf-8");
   console.log(`  ✓ ${s.module}.snapshot.json (${Object.keys(s.endpoints).length} endpoints)`);
 }
 
 async function login(): Promise<void> {
-  const { body } = await api("POST", "/api/v1/auth/login", { account: CREDENTIALS.email, password: CREDENTIALS.password });
+  const { body, status } = await api("POST", "/api/v1/auth/login", { account: CREDENTIALS.email, password: CREDENTIALS.password });
   const data = (body as any)?.data;
   TOKEN = data?.accessToken ?? "";
+  REFRESH_TOKEN = data?.refreshToken ?? "";
   USER_ID = data?.user?.id ?? "";
-  if (!TOKEN) throw new Error("登录失败，无法获取 accessToken");
-  console.log(`  logged in as ${data?.user?.username} (${USER_ID})`);
+  LOGIN_RESPONSE = body;
+  LOGIN_STATUS = status;
+  if (!TOKEN || !REFRESH_TOKEN) throw new Error("登录失败，无法获取测试会话 Token");
+  console.log("  authenticated dedicated snapshot account");
 }
 
 /** ── module runners ── */
 
 async function captureAuth(): Promise<void> {
   const s = snap("auth", "认证模块全部端点快照");
-  // 使用一个完整注册流程需要新邮箱，这里仅记录已登录态下的端点
-  // 先 login 获取最新 token
-  const { body: loginBody, status: loginStatus } = await api("POST", "/api/v1/auth/login", {
-    account: CREDENTIALS.email,
-    password: CREDENTIALS.password,
-  });
-  record(s, "POST /auth/login", { account: CREDENTIALS.email }, loginBody, loginStatus);
+  // 复用 main 创建的唯一测试会话，避免额外签发无法撤销的 refresh token。
+  record(s, "POST /auth/login", { account: CREDENTIALS.email }, LOGIN_RESPONSE, LOGIN_STATUS);
 
   // sessions
   const { body: sessBody, status: sessStatus } = await api("GET", "/api/v1/auth/sessions");
@@ -517,52 +519,59 @@ async function captureUsers(): Promise<void> {
 
 async function main() {
   const mod = process.argv[2]?.replace("--module=", "") || "all";
+  assertSafeSnapshotTarget(BASE, process.env);
   console.log(`\nAPI Verify — capturing real response snapshots (module=${mod})\n`);
 
   fs.mkdirSync(SNAPSHOT_DIR, { recursive: true });
 
-  await login();
+  try {
+    await login();
 
-  if (mod === "all" || mod === "auth") {
-    console.log("[auth]");
-    await captureAuth();
-  }
-  if (mod === "all" || mod === "tags") {
-    console.log("[tags]");
-    await captureTags();
-  }
-  if (mod === "all" || mod === "drafts") {
-    console.log("[drafts]");
-    await captureDrafts();
-  }
-  if (mod === "all" || mod === "threads") {
-    console.log("[threads]");
-    await captureThreads();
-  }
-  if (mod === "all" || mod === "posts") {
-    console.log("[posts]");
-    await capturePosts();
-  }
-  if (mod === "all" || mod === "notifications") {
-    console.log("[notifications]");
-    await captureNotifications();
-  }
-  if (mod === "all" || mod === "search") {
-    console.log("[search]");
-    await captureSearch();
-  }
-  if (mod === "all" || mod === "bookmarks") {
-    console.log("[bookmarks]");
-    await captureBookmarks();
-  }
-  if (mod === "all" || mod === "users") {
-    console.log("[users]");
-    await captureUsers();
-  }
+    if (mod === "all" || mod === "auth") {
+      console.log("[auth]");
+      await captureAuth();
+    }
+    if (mod === "all" || mod === "tags") {
+      console.log("[tags]");
+      await captureTags();
+    }
+    if (mod === "all" || mod === "drafts") {
+      console.log("[drafts]");
+      await captureDrafts();
+    }
+    if (mod === "all" || mod === "threads") {
+      console.log("[threads]");
+      await captureThreads();
+    }
+    if (mod === "all" || mod === "posts") {
+      console.log("[posts]");
+      await capturePosts();
+    }
+    if (mod === "all" || mod === "notifications") {
+      console.log("[notifications]");
+      await captureNotifications();
+    }
+    if (mod === "all" || mod === "search") {
+      console.log("[search]");
+      await captureSearch();
+    }
+    if (mod === "all" || mod === "bookmarks") {
+      console.log("[bookmarks]");
+      await captureBookmarks();
+    }
+    if (mod === "all" || mod === "users") {
+      console.log("[users]");
+      await captureUsers();
+    }
 
-  // 登出
-  await api("POST", "/api/v1/auth/logout", {});
-  console.log(`\nDone. Snapshots written to ${SNAPSHOT_DIR}/\n`);
+    console.log(`\nDone. Sanitized snapshots written to ${SNAPSHOT_DIR}/\n`);
+  } finally {
+    if (TOKEN && REFRESH_TOKEN) {
+      await api("POST", "/api/v1/auth/logout", { refreshToken: REFRESH_TOKEN }).catch((error) => {
+        console.error("Snapshot session cleanup failed:", error.message);
+      });
+    }
+  }
 }
 
 main().catch((err) => {

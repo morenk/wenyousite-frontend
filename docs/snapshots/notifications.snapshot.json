@@ -1,7 +1,7 @@
 {
   "module": "notifications",
   "generatedAt": "2026-08-02T05:31:16.719Z",
-  "description": "通知端点快照",
+  "description": "<redacted-device>",
   "endpoints": {
     "GET /notifications?limit=5": {
       "label": "GET /notifications?limit=5",

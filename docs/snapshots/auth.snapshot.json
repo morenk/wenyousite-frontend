@@ -1,22 +1,22 @@
 {
   "module": "auth",
   "generatedAt": "2026-07-30T17:07:25.874Z",
-  "description": "认证模块全部端点快照",
+  "description": "<redacted-device>",
   "endpoints": {
     "POST /auth/login": {
       "label": "POST /auth/login",
       "request": {
-        "email": "test_thread2@example.com"
+        "email": "<redacted-email>"
       },
       "response": {
         "code": 0,
         "message": "ok",
         "data": {
-          "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXM3a3BnbmIwMDA2N3E2bGc0dTB0eXV1IiwiaWF0IjoxNzg1NDMxMjQ2LCJleHAiOjE3ODU0MzIxNDZ9.1ABxPwTRBY2GOlroyo6gpe_axBe-_M4N_g7cB_nLXRw",
-          "refreshToken": "d2b0173b-de36-4680-afc9-12b398a76192",
+          "accessToken": "<redacted>",
+          "refreshToken": "<redacted>",
           "user": {
-            "id": "cms7kpgnb00067q6lg4u0tyuu",
-            "email": "test_thread2@example.com",
+            "id": "<redacted-id>",
+            "email": "<redacted-email>",
             "username": "testthread2",
             "avatar": null,
             "role": "USER",
@@ -34,81 +34,81 @@
         "message": "ok",
         "data": [
           {
-            "id": "cms7rnydr000r7qdye2x53w2z",
+            "id": "<redacted-id>",
             "platform": "web",
-            "deviceInfo": "node",
+            "deviceInfo": "<redacted-device>",
             "isCurrent": false,
             "createdAt": "2026-07-30T17:07:26.031Z",
             "expiresAt": "2026-08-06T17:07:26.030Z"
           },
           {
-            "id": "cms7rny8t000p7qdyjyl6ohn5",
+            "id": "<redacted-id>",
             "platform": "web",
-            "deviceInfo": "node",
+            "deviceInfo": "<redacted-device>",
             "isCurrent": false,
             "createdAt": "2026-07-30T17:07:25.853Z",
             "expiresAt": "2026-08-06T17:07:25.852Z"
           },
           {
-            "id": "cms7qhm1j000f7qdy8lwho7qc",
+            "id": "<redacted-id>",
             "platform": "web",
-            "deviceInfo": "curl/8.5.0",
+            "deviceInfo": "<redacted-device>",
             "isCurrent": false,
             "createdAt": "2026-07-30T16:34:30.487Z",
             "expiresAt": "2026-08-06T16:34:30.486Z"
           },
           {
-            "id": "cms7qheik00017qdyho51uafe",
+            "id": "<redacted-id>",
             "platform": "web",
-            "deviceInfo": "curl/8.5.0",
+            "deviceInfo": "<redacted-device>",
             "isCurrent": false,
             "createdAt": "2026-07-30T16:34:20.733Z",
             "expiresAt": "2026-08-06T16:34:20.731Z"
           },
           {
-            "id": "cms7qex7o000f7qn07el04ewo",
+            "id": "<redacted-id>",
             "platform": "web",
-            "deviceInfo": "curl/8.5.0",
+            "deviceInfo": "<redacted-device>",
             "isCurrent": false,
             "createdAt": "2026-07-30T16:32:24.997Z",
             "expiresAt": "2026-08-06T16:32:24.995Z"
           },
           {
-            "id": "cms7qck30000d7qn02knac4ms",
+            "id": "<redacted-id>",
             "platform": "web",
-            "deviceInfo": "curl/8.5.0",
+            "deviceInfo": "<redacted-device>",
             "isCurrent": false,
             "createdAt": "2026-07-30T16:30:34.669Z",
             "expiresAt": "2026-08-06T16:30:34.668Z"
           },
           {
-            "id": "cms7qcf9k00037qn0qedf50nl",
+            "id": "<redacted-id>",
             "platform": "web",
-            "deviceInfo": "curl/8.5.0",
+            "deviceInfo": "<redacted-device>",
             "isCurrent": false,
             "createdAt": "2026-07-30T16:30:28.424Z",
             "expiresAt": "2026-08-06T16:30:28.423Z"
           },
           {
-            "id": "cms7q3rm500017qn0y8n2ahdr",
+            "id": "<redacted-id>",
             "platform": "web",
-            "deviceInfo": "curl/8.5.0",
+            "deviceInfo": "<redacted-device>",
             "isCurrent": false,
             "createdAt": "2026-07-30T16:23:44.525Z",
             "expiresAt": "2026-08-06T16:23:44.524Z"
           },
           {
-            "id": "cms7pryzg00d27q6l0q55i3l9",
+            "id": "<redacted-id>",
             "platform": "web",
-            "deviceInfo": "curl/8.5.0",
+            "deviceInfo": "<redacted-device>",
             "isCurrent": false,
             "createdAt": "2026-07-30T16:14:34.204Z",
             "expiresAt": "2026-08-06T16:14:34.203Z"
           },
           {
-            "id": "cms7kpgnp00087q6l3svaffd5",
+            "id": "<redacted-id>",
             "platform": "web",
-            "deviceInfo": "curl/8.5.0",
+            "deviceInfo": "<redacted-device>",
             "isCurrent": false,
             "createdAt": "2026-07-30T13:52:39.061Z",
             "expiresAt": "2026-08-06T13:52:39.060Z"

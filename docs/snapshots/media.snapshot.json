@@ -1,7 +1,7 @@
 {
   "module": "media",
   "generatedAt": "2026-08-03T15:52:00.000Z",
-  "description": "图片上传（media）端点快照：upload-url 成功 + 每用户小时配额 429 + 全局限流 429（后端 commit 11fd35a 图片上传存储治理）。upload-done / 状态轮询契约未变，前端类型沿用先前真实响应。预签名 URL 中 X-Amz-Credential 与 X-Amz-Signature 已脱敏",
+  "description": "<redacted-device>",
   "endpoints": {
     "POST /media/upload-url (成功)": {
       "label": "POST /media/upload-url (成功)",
@@ -14,10 +14,10 @@
         "code": 0,
         "message": "ok",
         "data": {
-          "uploadUrl": "https://cn-nb1.rains3.com/wenyou/uploads/2026/08/03/cms7kpgnb00067q6lg4u0tyuu/1785771998192-lmt3yn.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=<REDACTED>&X-Amz-Date=20260803T154638Z&X-Amz-Expires=600&X-Amz-Signature=<REDACTED>&X-Amz-SignedHeaders=content-length%3Bhost&x-amz-checksum-crc32=AAAAAA%3D%3D&x-amz-sdk-checksum-algorithm=CRC32&x-id=PutObject",
-          "mediaId": "cmsdejgfk008r7qfb0xgfw5fd",
-          "objectKey": "uploads/2026/08/03/cms7kpgnb00067q6lg4u0tyuu/1785771998192-lmt3yn.png",
-          "publicUrl": "https://cn-nb1.rains3.com/wenyou/uploads/2026/08/03/cms7kpgnb00067q6lg4u0tyuu/1785771998192-lmt3yn.png"
+          "uploadUrl": "https://cn-nb1.rains3.com/wenyou/uploads/2026/08/03/<redacted-id>/1785771998192-lmt3yn.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=<REDACTED>&X-Amz-Date=20260803T154638Z&X-Amz-Expires=600&X-Amz-Signature=<REDACTED>&X-Amz-SignedHeaders=content-length%3Bhost&x-amz-checksum-crc32=AAAAAA%3D%3D&x-amz-sdk-checksum-algorithm=CRC32&x-id=PutObject",
+          "mediaId": "<redacted-id>",
+          "objectKey": "uploads/2026/08/03/<redacted-id>/1785771998192-lmt3yn.png",
+          "publicUrl": "https://cn-nb1.rains3.com/wenyou/uploads/2026/08/03/<redacted-id>/1785771998192-lmt3yn.png"
         }
       },
       "httpStatus": 201

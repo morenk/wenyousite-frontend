@@ -41,23 +41,23 @@
   "data": {
     "threads": [
       {
-        "id": "cms7plneh00cq7q6lrmlwwpad",
+        "id": "<redacted-id>",
         "title": "测试帖子喔",
         "category": "DEDUCTION",
         "createdAt": "2026-07-30T16:09:39.257Z",
-        "owner": { "id": "cms7gly7n00017q6lbkla7ojh", "username": "morenk", "avatar": null },
+        "owner": { "id": "<redacted-id>", "username": "morenk", "avatar": null },
         "_count": { "members": 1, "posts": 1 }
       }
     ],
     "posts": [
       {
-        "id": "cms60cg8t000p7qahayb90l1a",
+        "id": "<redacted-id>",
         "floorNumber": 1,
         "content": "这是主题帖的正文预览内容…",
         "createdAt": "2026-07-29T11:34:53.501Z",
-        "author": { "id": "cms5zycb900017q0azar1nag2", "username": "testuser" },
-        "thread": { "id": "cms60cg7a000j7qah3lfs60j0", "title": "智能排序测试帖" },
-        "subthread": { "id": "cms60cg8p000n7qah7wmucyj6", "title": "主讨论区" }
+        "author": { "id": "<redacted-id>", "username": "testuser" },
+        "thread": { "id": "<redacted-id>", "title": "智能排序测试帖" },
+        "subthread": { "id": "<redacted-id>", "title": "主讨论区" }
       }
     ]
   }

@@ -133,6 +133,6 @@ test.describe("主题帖创建流程", () => {
 
     // 应跳回首页
     await page.waitForURL("/", { timeout: 10000 });
-    expect(page.url()).toBe("http://localhost:3001/");
+    expect(new URL(page.url()).pathname).toBe("/");
   });
 });

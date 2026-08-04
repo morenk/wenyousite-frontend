@@ -1,7 +1,7 @@
 {
   "module": "drafts",
   "generatedAt": "2026-08-02T10:48:38.797Z",
-  "description": "全局草稿池端点快照（5槽位）",
+  "description": "<redacted-device>",
   "endpoints": {
     "GET /drafts/slots": {
       "label": "GET /drafts/slots",
@@ -37,8 +37,8 @@
         "code": 0,
         "message": "ok",
         "data": {
-          "id": "cmsbogdyk009q7qlziodtgi8t",
-          "userId": "cms7kpgnb00067q6lg4u0tyuu",
+          "id": "<redacted-id>",
+          "userId": "<redacted-id>",
           "slot": 1,
           "content": "这是槽位 1 的正文草稿（快照）",
           "createdAt": "2026-08-02T10:48:38.829Z",
@@ -56,8 +56,8 @@
         "code": 0,
         "message": "ok",
         "data": {
-          "id": "cmsbogdz1009s7qlz4wylo33d",
-          "userId": "cms7kpgnb00067q6lg4u0tyuu",
+          "id": "<redacted-id>",
+          "userId": "<redacted-id>",
           "slot": 2,
           "content": "这是自动分配的正文草稿（快照）",
           "createdAt": "2026-08-02T10:48:38.845Z",
@@ -91,16 +91,16 @@
         "message": "ok",
         "data": [
           {
-            "id": "cmsbogdyk009q7qlziodtgi8t",
-            "userId": "cms7kpgnb00067q6lg4u0tyuu",
+            "id": "<redacted-id>",
+            "userId": "<redacted-id>",
             "slot": 1,
             "content": "这是槽位 1 的正文草稿（快照）",
             "createdAt": "2026-08-02T10:48:38.829Z",
             "updatedAt": "2026-08-02T10:48:38.829Z"
           },
           {
-            "id": "cmsbogdz1009s7qlz4wylo33d",
-            "userId": "cms7kpgnb00067q6lg4u0tyuu",
+            "id": "<redacted-id>",
+            "userId": "<redacted-id>",
             "slot": 2,
             "content": "这是自动分配的正文草稿（快照）",
             "createdAt": "2026-08-02T10:48:38.845Z",
@@ -113,14 +113,14 @@
     "GET /drafts/:id": {
       "label": "GET /drafts/:id",
       "request": {
-        "id": "cmsbogdyk009q7qlziodtgi8t"
+        "id": "<redacted-id>"
       },
       "response": {
         "code": 0,
         "message": "ok",
         "data": {
-          "id": "cmsbogdyk009q7qlziodtgi8t",
-          "userId": "cms7kpgnb00067q6lg4u0tyuu",
+          "id": "<redacted-id>",
+          "userId": "<redacted-id>",
           "slot": 1,
           "content": "这是槽位 1 的正文草稿（快照）",
           "createdAt": "2026-08-02T10:48:38.829Z",
@@ -132,15 +132,15 @@
     "PATCH /drafts/:id": {
       "label": "PATCH /drafts/:id",
       "request": {
-        "id": "cmsbogdyk009q7qlziodtgi8t",
+        "id": "<redacted-id>",
         "content": "更新后的槽位 1 草稿（快照）"
       },
       "response": {
         "code": 0,
         "message": "ok",
         "data": {
-          "id": "cmsbogdyk009q7qlziodtgi8t",
-          "userId": "cms7kpgnb00067q6lg4u0tyuu",
+          "id": "<redacted-id>",
+          "userId": "<redacted-id>",
           "slot": 1,
           "content": "更新后的槽位 1 草稿（快照）",
           "createdAt": "2026-08-02T10:48:38.829Z",
@@ -152,7 +152,7 @@
     "DELETE /drafts/:id": {
       "label": "DELETE /drafts/:id",
       "request": {
-        "id": "cmsbogdyk009q7qlziodtgi8t"
+        "id": "<redacted-id>"
       },
       "response": {
         "code": 0,

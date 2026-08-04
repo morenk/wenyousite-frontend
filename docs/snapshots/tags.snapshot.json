@@ -1,7 +1,7 @@
 {
   "module": "tags",
   "generatedAt": "2026-07-30T17:07:26.055Z",
-  "description": "标签搜索端点快照",
+  "description": "<redacted-device>",
   "endpoints": {
     "GET /tags?q=test": {
       "label": "GET /tags?q=test",

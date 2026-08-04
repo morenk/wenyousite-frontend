@@ -42,19 +42,19 @@
   "code": 0, "message": "ok",
   "data": [
     {
-      "id": "cmsapbna4004n7q31w8dvc0ln",
+      "id": "<redacted-id>",
       "title": "管理面板测试帖",
       "category": "DEDUCTION",
       "status": "RECRUITING",
       "visibility": "PUBLIC",
       "published": true,
       "createdAt": "2026-08-01T18:25:11.069Z",
-      "owner": { "id": "cms5zycb900017q0azar1nag2", "username": "testuser", "avatar": null },
+      "owner": { "id": "<redacted-id>", "username": "testuser", "avatar": null },
       "_count": { "members": 1, "posts": 3 },
-      "bookmarkId": "cmsbhplr500077qlzudmhpesf"
+      "bookmarkId": "<redacted-id>"
     }
   ],
-  "meta": { "cursor": "cmsbhplr500077qlzudmhpesf", "hasMore": false }
+  "meta": { "cursor": "<redacted-id>", "hasMore": false }
 }
 ```
 
@@ -70,7 +70,7 @@
 ### GET /threads/:id（登录态附加）
 
 ```json
-{ "isBookmarked": true, "bookmarkId": "cmsbhplr500077qlzudmhpesf", "...": "..." }
+{ "isBookmarked": true, "bookmarkId": "<redacted-id>", "...": "..." }
 ```
 
 > 私密帖：非参与人收藏返回 404；`/users/:id/bookmarks` 对他人只暴露 PUBLIC + 查看者参与中的私密帖。

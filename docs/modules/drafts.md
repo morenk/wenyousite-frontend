@@ -48,9 +48,9 @@
 | PATCH | `/drafts/:id` | AuthRead | 更新草稿内容 |
 | DELETE | `/drafts/:id` | AuthRead | 删除草稿（硬删除） |
 
-**API 响应快照（事实契约）**：`docs/snapshots/drafts.snapshot.json`
+**API 响应快照（脱敏运行时样例）**：`docs/snapshots/drafts.snapshot.json`。结构契约以生成 OpenAPI 类型为准。
 
-**响应数据类型（与真实快照对齐）：**
+**响应数据类型（与 OpenAPI 对齐，并用运行时快照核验）：**
 
 ```ts
 interface DraftItem {

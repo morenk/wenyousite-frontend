@@ -88,9 +88,9 @@
   "code": 0,
   "message": "ok",
   "data": {
-    "id": "cms7rnyij000z7qdyg6zbge8e",
+    "id": "<redacted-id>",
     "title": "快照测试帖",
-    "ownerId": "cms7kpgnb00067q6lg4u0tyuu",
+    "ownerId": "<redacted-id>",
     "category": "RPG",
     "status": "RECRUITING",
     "visibility": "PUBLIC",
@@ -102,15 +102,15 @@
     "version": 1,
     "likeCount": 0,
     "isLiked": false,
-    "defaultSubthreadId": "cms7rnyin00137qdyzq0v3mw1",
+    "defaultSubthreadId": "<redacted-id>",
     "createdAt": "2026-07-30T17:07:26.204Z",
     "updatedAt": "2026-07-30T17:07:26.215Z",
     "deletedAt": null,
-    "owner": { "id": "cms7kpgnb00067q6lg4u0tyuu", "username": "testthread2", "avatar": null },
+    "owner": { "id": "<redacted-id>", "username": "testthread2", "avatar": null },
     "subthreads": [
       {
-        "id": "cms7rnyin00137qdyzq0v3mw1",
-        "threadId": "cms7rnyij000z7qdyg6zbge8e",
+        "id": "<redacted-id>",
+        "threadId": "<redacted-id>",
         "title": "快照测试帖",
         "sortOrder": 0,
         "postingPolicy": "PARTICIPANTS",
@@ -120,7 +120,7 @@
         "createdAt": "2026-07-30T17:07:26.207Z",
         "_count": { "posts": 0 },
         "tags": [],
-        "bodyPost": { "id": "cms7rnyip00157qdyxd17ozbg", "content": "这是一段正文内容（快照验证）", "version": 1 }
+        "bodyPost": { "id": "<redacted-id>", "content": "这是一段正文内容（快照验证）", "version": 1 }
       }
     ],
     "topicTags": [
@@ -182,10 +182,10 @@
   "message": "ok",
   "data": [
     {
-      "id": "cms7pq32u00cy7q6l84j84hjj",
-      "threadId": "cms7plneh00cq7q6lrmlwwpad",
-      "subthreadId": "cms7plnem00cu7q6lpbmq2b1o",
-      "authorId": "cms7gly7n00017q6lbkla7ojh",
+      "id": "<redacted-id>",
+      "threadId": "<redacted-id>",
+      "subthreadId": "<redacted-id>",
+      "authorId": "<redacted-id>",
       "floorNumber": 1,
       "parentPostId": null,
       "replyToPostId": null,
@@ -194,12 +194,12 @@
       "createdAt": "2026-07-30T16:13:06.198Z",
       "updatedAt": "2026-07-30T16:13:06.198Z",
       "deletedAt": null,
-      "author": { "id": "cms7gly7n00017q6lbkla7ojh", "username": "morenk", "avatar": null },
+      "author": { "id": "<redacted-id>", "username": "morenk", "avatar": null },
       "_count": { "replies": 0 },
       "replies": []
     }
   ],
-  "meta": { "cursor": "cms7pq32u00cy7q6l84j84hjj", "hasMore": false }
+  "meta": { "cursor": "<redacted-id>", "hasMore": false }
 }
 ```
 
@@ -207,10 +207,10 @@
 
 ```json
 {
-  "id": "cms7rnyld001a7qdyojgawj99",
-  "threadId": "cms7rnyhi000t7qdy4m53nt03",
-  "subthreadId": "cms7rnyho000x7qdyqsooa5lc",
-  "authorId": "cms7kpgnb00067q6lg4u0tyuu",
+  "id": "<redacted-id>",
+  "threadId": "<redacted-id>",
+  "subthreadId": "<redacted-id>",
+  "authorId": "<redacted-id>",
   "floorNumber": 1,
   "parentPostId": null,
   "replyToPostId": null,
@@ -219,7 +219,7 @@
   "createdAt": "2026-07-30T17:07:26.306Z",
   "updatedAt": "2026-07-30T17:07:26.306Z",
   "deletedAt": null,
-  "author": { "id": "cms7kpgnb00067q6lg4u0tyuu", "username": "testthread2", "avatar": null }
+  "author": { "id": "<redacted-id>", "username": "testthread2", "avatar": null }
 }
 ```
 
@@ -231,27 +231,27 @@
   "message": "ok",
   "data": [
     {
-      "id": "cms7rnyld001a7qdyojgawj99",
-      "threadId": "cms7rnyhi000t7qdy4m53nt03",
-      "subthreadId": "cms7rnyho000x7qdyqsooa5lc",
-      "authorId": "cms7kpgnb00067q6lg4u0tyuu",
+      "id": "<redacted-id>",
+      "threadId": "<redacted-id>",
+      "subthreadId": "<redacted-id>",
+      "authorId": "<redacted-id>",
       "floorNumber": null,
-      "parentPostId": "cms7pq32u00cy7q6l84j84hjj",
-      "replyToPostId": "cms7rnyld001a7qdyojgawj98",
+      "parentPostId": "<redacted-id>",
+      "replyToPostId": "<redacted-id>",
       "replyTo": {
-        "id": "cms7rnyld001a7qdyojgawj98",
-        "authorId": "cms7gly7n00017q6lbkla7ojh",
-        "author": { "id": "cms7gly7n00017q6lbkla7ojh", "username": "morenk", "avatar": null }
+        "id": "<redacted-id>",
+        "authorId": "<redacted-id>",
+        "author": { "id": "<redacted-id>", "username": "morenk", "avatar": null }
       },
       "content": "回复 @morenk 的内容",
       "version": 1,
       "createdAt": "2026-07-30T17:07:26.306Z",
       "updatedAt": "2026-07-30T17:07:26.306Z",
       "deletedAt": null,
-      "author": { "id": "cms7kpgnb00067q6lg4u0tyuu", "username": "testthread2", "avatar": null }
+      "author": { "id": "<redacted-id>", "username": "testthread2", "avatar": null }
     }
   ],
-  "meta": { "cursor": "cms7rnyld001a7qdyojgawj99", "hasMore": false }
+  "meta": { "cursor": "<redacted-id>", "hasMore": false }
 }
 ```
 
@@ -261,7 +261,7 @@
 
 ```json
 {
-  "id": "cms7rnyij000z7qdyg6zbge8e",
+  "id": "<redacted-id>",
   "title": "快照测试帖",
   "likeCount": 1,
   ...

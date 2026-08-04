@@ -1,20 +1,20 @@
 {
   "module": "bookmarks",
   "generatedAt": "2026-08-02T07:39:51.453Z",
-  "description": "收藏端点快照",
+  "description": "<redacted-device>",
   "endpoints": {
     "POST /bookmarks {threadId}": {
       "label": "POST /bookmarks {threadId}",
       "request": {
-        "threadId": "cmsapbna4004n7q31w8dvc0ln"
+        "threadId": "<redacted-id>"
       },
       "response": {
         "code": 0,
         "message": "ok",
         "data": {
-          "id": "cmsbhplr500077qlzudmhpesf",
-          "userId": "cms7kpgnb00067q6lg4u0tyuu",
-          "threadId": "cmsapbna4004n7q31w8dvc0ln",
+          "id": "<redacted-id>",
+          "userId": "<redacted-id>",
+          "threadId": "<redacted-id>",
           "createdAt": "2026-08-02T07:39:51.522Z"
         }
       },
@@ -30,9 +30,9 @@
         "message": "ok",
         "data": [
           {
-            "id": "cmsapbna4004n7q31w8dvc0ln",
+            "id": "<redacted-id>",
             "title": "管理面板测试帖 1785608711288",
-            "ownerId": "cms5zycb900017q0azar1nag2",
+            "ownerId": "<redacted-id>",
             "category": "DEDUCTION",
             "status": "RECRUITING",
             "visibility": "PUBLIC",
@@ -43,12 +43,12 @@
             "viewCount": 6,
             "version": 2,
             "likeCount": 0,
-            "defaultSubthreadId": "cmsapbna8004r7q319m86krin",
+            "defaultSubthreadId": "<redacted-id>",
             "createdAt": "2026-08-01T18:25:11.069Z",
             "updatedAt": "2026-08-02T07:32:02.968Z",
             "deletedAt": null,
             "owner": {
-              "id": "cms5zycb900017q0azar1nag2",
+              "id": "<redacted-id>",
               "username": "testuser",
               "avatar": null
             },
@@ -56,26 +56,26 @@
               "members": 1,
               "posts": 3
             },
-            "bookmarkId": "cmsbhplr500077qlzudmhpesf"
+            "bookmarkId": "<redacted-id>"
           }
         ],
         "meta": {
-          "cursor": "cmsbhplr500077qlzudmhpesf",
+          "cursor": "<redacted-id>",
           "hasMore": false
         }
       },
       "httpStatus": 200
     },
-    "GET /threads/cmsapbna4004n7q31w8dvc0ln (isBookmarked)": {
-      "label": "GET /threads/cmsapbna4004n7q31w8dvc0ln (isBookmarked)",
+    "GET /threads/<redacted-id> (isBookmarked)": {
+      "label": "GET /threads/<redacted-id> (isBookmarked)",
       "request": null,
       "response": {
         "code": 0,
         "message": "ok",
         "data": {
-          "id": "cmsapbna4004n7q31w8dvc0ln",
+          "id": "<redacted-id>",
           "title": "管理面板测试帖 1785608711288",
-          "ownerId": "cms5zycb900017q0azar1nag2",
+          "ownerId": "<redacted-id>",
           "category": "DEDUCTION",
           "status": "RECRUITING",
           "visibility": "PUBLIC",
@@ -86,19 +86,19 @@
           "viewCount": 6,
           "version": 2,
           "likeCount": 0,
-          "defaultSubthreadId": "cmsapbna8004r7q319m86krin",
+          "defaultSubthreadId": "<redacted-id>",
           "createdAt": "2026-08-01T18:25:11.069Z",
           "updatedAt": "2026-08-02T07:32:02.968Z",
           "deletedAt": null,
           "owner": {
-            "id": "cms5zycb900017q0azar1nag2",
+            "id": "<redacted-id>",
             "username": "testuser",
             "avatar": null
           },
           "subthreads": [
             {
-              "id": "cmsapbna8004r7q319m86krin",
-              "threadId": "cmsapbna4004n7q31w8dvc0ln",
+              "id": "<redacted-id>",
+              "threadId": "<redacted-id>",
               "title": "管理面板测试帖 1785608711288",
               "sortOrder": 0,
               "postingPolicy": "PARTICIPANTS",
@@ -111,7 +111,7 @@
               },
               "tags": [],
               "bodyPost": {
-                "id": "cmsapbo2d004t7q31kr95y2xd",
+                "id": "<redacted-id>",
                 "content": "这是管理面板测试正文。",
                 "version": 1
               }
@@ -124,13 +124,13 @@
             "players": 1
           },
           "isBookmarked": true,
-          "bookmarkId": "cmsbhplr500077qlzudmhpesf"
+          "bookmarkId": "<redacted-id>"
         }
       },
       "httpStatus": 200
     },
-    "DELETE /bookmarks/cmsbhplr500077qlzudmhpesf": {
-      "label": "DELETE /bookmarks/cmsbhplr500077qlzudmhpesf",
+    "DELETE /bookmarks/<redacted-id>": {
+      "label": "DELETE /bookmarks/<redacted-id>",
       "request": null,
       "response": {
         "code": 40001,
