@@ -37,8 +37,10 @@ function ThreadComposer() {
   const uploadImage = useUploadImage();
   const queryClient = useQueryClient();
   const containerRef = useRef<HTMLDivElement>(null);
+  const createRequestRef = useRef<{ fingerprint: string; id: string } | null>(null);
 
   useEffect(() => {
+    createRequestRef.current = null;
     containerRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [session?.key]);
 
@@ -85,9 +87,21 @@ function ThreadComposer() {
           version: session.version,
         });
       } else {
+        const parentPostId = session.type === "reply" ? session.parentPostId : null;
+        const replyToPostId = session.type === "reply" ? session.replyToPostId : null;
+        const fingerprint = JSON.stringify({
+          subthreadId: session.subthreadId,
+          content: nextContent,
+          parentPostId,
+          replyToPostId,
+        });
+        if (createRequestRef.current?.fingerprint !== fingerprint) {
+          createRequestRef.current = { fingerprint, id: crypto.randomUUID() };
+        }
         await createPost.mutateAsync({
           subthreadId: session.subthreadId,
           content: nextContent,
+          clientRequestId: createRequestRef.current.id,
           ...(session.type === "reply"
             ? {
                 parentPostId: session.parentPostId,
@@ -98,6 +112,7 @@ function ThreadComposer() {
       }
 
       await invalidateAfterSubmit();
+      createRequestRef.current = null;
       close({ force: true });
       toast.success(isEdit ? "已保存" : isReply ? "回复成功" : "发布成功");
     } catch (error: unknown) {

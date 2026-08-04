@@ -19,6 +19,8 @@ const mocks = vi.hoisted(() => ({
   error: vi.fn(),
 }));
 
+const REQUEST_ID = "6f9619ff-8b86-4e4b-a59b-19a25f6d6f77";
+
 vi.mock("@/api/hooks/use-create-post", () => ({
   useCreatePost: () => ({ mutateAsync: mocks.create }),
 }));
@@ -119,6 +121,7 @@ describe("ThreadComposer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal("confirm", vi.fn(() => true));
+    vi.stubGlobal("crypto", { randomUUID: vi.fn(() => REQUEST_ID) });
   });
 
   test("浏览态不挂载编辑器，点击入口后始终只挂载一个", async () => {
@@ -147,11 +150,50 @@ describe("ThreadComposer", () => {
       content: "回复内容",
       parentPostId: "post-1",
       replyToPostId: "reply-2",
+      clientRequestId: REQUEST_ID,
     }));
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ["replies", "post-1"] });
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ["post", "post-1"] });
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ["floors", "s1"] });
     expect(screen.queryByTestId("milkdown-editor")).not.toBeInTheDocument();
+  });
+
+  test("相同正文失败后重试复用 clientRequestId", async () => {
+    const user = userEvent.setup();
+    mocks.create.mockRejectedValueOnce(new Error("网络超时")).mockResolvedValueOnce({ id: "created-post" });
+    renderHarness();
+    await user.click(screen.getByRole("button", { name: "发表入口" }));
+    await user.type(screen.getByTestId("milkdown-editor"), "重试正文");
+
+    await user.click(screen.getByRole("button", { name: "发布" }));
+    await waitFor(() => expect(mocks.error).toHaveBeenCalled());
+    await user.click(screen.getByRole("button", { name: "发布" }));
+
+    await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(2));
+    expect(mocks.create.mock.calls[0]?.[0].clientRequestId).toBe(REQUEST_ID);
+    expect(mocks.create.mock.calls[1]?.[0].clientRequestId).toBe(REQUEST_ID);
+  });
+
+  test("失败后修改正文会生成新的 clientRequestId", async () => {
+    const user = userEvent.setup();
+    const nextRequestId = "d9428888-122b-4c71-9a16-6f91a7c31917";
+    vi.stubGlobal("crypto", {
+      randomUUID: vi.fn().mockReturnValueOnce(REQUEST_ID).mockReturnValueOnce(nextRequestId),
+    });
+    mocks.create.mockRejectedValueOnce(new Error("网络超时")).mockResolvedValueOnce({ id: "created-post" });
+    renderHarness();
+    await user.click(screen.getByRole("button", { name: "发表入口" }));
+    const editor = screen.getByTestId("milkdown-editor");
+    await user.type(editor, "原正文");
+    await user.click(screen.getByRole("button", { name: "发布" }));
+    await waitFor(() => expect(mocks.error).toHaveBeenCalled());
+
+    await user.type(editor, "已修改");
+    await user.click(screen.getByRole("button", { name: "发布" }));
+
+    await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(2));
+    expect(mocks.create.mock.calls[0]?.[0].clientRequestId).toBe(REQUEST_ID);
+    expect(mocks.create.mock.calls[1]?.[0].clientRequestId).toBe(nextRequestId);
   });
 
   test("编辑楼中楼回填原文并使用乐观锁保存", async () => {

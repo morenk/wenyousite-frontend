@@ -9,18 +9,19 @@ export type CreatedPost = components["schemas"]["PostResponseDto"];
 interface CreatePostArgs {
   subthreadId: string;
   content: string;
+  clientRequestId: string;
   parentPostId?: string;
   replyToPostId?: string;
 }
 
 export function useCreatePost() {
   return useMutation({
-    mutationFn: async ({ subthreadId, content, parentPostId, replyToPostId }: CreatePostArgs) => {
+    mutationFn: async ({ subthreadId, content, clientRequestId, parentPostId, replyToPostId }: CreatePostArgs) => {
       const { data, error } = await apiClient.POST(
         "/api/v1/subthreads/{subthreadId}/posts",
         {
           params: { path: { subthreadId } },
-          body: { content, parentPostId, replyToPostId },
+          body: { content, parentPostId, replyToPostId, clientRequestId },
         },
       );
       if (error) throw error;

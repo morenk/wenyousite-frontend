@@ -1,6 +1,6 @@
 /** useCreatePost hook 测试：楼层发布与楼中楼回复 */
 
-import { describe, test, expect, vi } from "vitest";
+import { beforeEach, describe, test, expect, vi } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useCreatePost } from "@/api/hooks/use-create-post";
@@ -25,6 +25,9 @@ function createWrapper() {
 }
 
 describe("useCreatePost", () => {
+  beforeEach(() => {
+    mockPOST.mockReset();
+  });
   test("发布楼层：只传 content", async () => {
     mockPOST.mockResolvedValueOnce({
       data: { code: 0, message: "ok", data: { id: "post-1" } },
@@ -35,12 +38,12 @@ describe("useCreatePost", () => {
       wrapper: createWrapper(),
     });
 
-    result.current.mutate({ subthreadId: "s1", content: "新楼层" });
+    result.current.mutate({ subthreadId: "s1", content: "新楼层", clientRequestId: "6f9619ff-8b86-4e4b-a59b-19a25f6d6f77" });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(mockPOST).toHaveBeenCalledWith("/api/v1/subthreads/{subthreadId}/posts", {
       params: { path: { subthreadId: "s1" } },
-      body: { content: "新楼层", parentPostId: undefined, replyToPostId: undefined },
+      body: { content: "新楼层", parentPostId: undefined, replyToPostId: undefined, clientRequestId: "6f9619ff-8b86-4e4b-a59b-19a25f6d6f77" },
     });
   });
 
@@ -59,12 +62,13 @@ describe("useCreatePost", () => {
       content: "楼中楼回复",
       parentPostId: "post-1",
       replyToPostId: "post-1",
+      clientRequestId: "6f9619ff-8b86-4e4b-a59b-19a25f6d6f77",
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(mockPOST).toHaveBeenCalledWith("/api/v1/subthreads/{subthreadId}/posts", {
       params: { path: { subthreadId: "s1" } },
-      body: { content: "楼中楼回复", parentPostId: "post-1", replyToPostId: "post-1" },
+      body: { content: "楼中楼回复", parentPostId: "post-1", replyToPostId: "post-1", clientRequestId: "6f9619ff-8b86-4e4b-a59b-19a25f6d6f77" },
     });
   });
 
@@ -75,7 +79,7 @@ describe("useCreatePost", () => {
       wrapper: createWrapper(),
     });
 
-    result.current.mutate({ subthreadId: "s1", content: "x" });
+    result.current.mutate({ subthreadId: "s1", content: "x", clientRequestId: "6f9619ff-8b86-4e4b-a59b-19a25f6d6f77" });
 
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(result.current.error).toMatchObject({ code: 40303 });

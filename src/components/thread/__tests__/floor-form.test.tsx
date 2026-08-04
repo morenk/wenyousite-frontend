@@ -130,6 +130,7 @@ describe("FloorForm", () => {
     expect(mockMutateAsync).toHaveBeenCalledWith({
       subthreadId: "s1",
       content: "新的回复内容",
+      clientRequestId: expect.any(String),
     });
     expect(toast.success).toHaveBeenCalledWith("发布成功");
   });

@@ -43,6 +43,7 @@ const rootPost: PostDetail = {
   floorNumber: 12,
   parentPostId: null,
   replyToPostId: null,
+  clientRequestId: null,
   content: "原楼层长文",
   version: 1,
   createdAt: "2026-08-01T00:00:00Z",

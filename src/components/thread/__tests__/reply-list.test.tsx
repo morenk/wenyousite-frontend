@@ -109,6 +109,7 @@ function baseReply(overrides: Partial<ReplyData> = {}): ReplyData {
     floorNumber: null,
     parentPostId: "post-1",
     replyToPostId: null,
+    clientRequestId: null,
     replyToPost: null,
     content: "楼中楼回复内容",
     version: 1,

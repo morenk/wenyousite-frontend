@@ -1841,6 +1841,11 @@ export interface components {
             floorNumber: number | null;
             parentPostId: string | null;
             replyToPostId: string | null;
+            /**
+             * Format: uuid
+             * @description 客户端创建请求幂等键；正文帖和旧客户端帖子为 null
+             */
+            clientRequestId: string | null;
             /** @description Markdown 正文 */
             content: string;
             /** @description 乐观锁版本 */
@@ -1864,6 +1869,11 @@ export interface components {
             floorNumber: number | null;
             parentPostId: string | null;
             replyToPostId: string | null;
+            /**
+             * Format: uuid
+             * @description 客户端创建请求幂等键；正文帖和旧客户端帖子为 null
+             */
+            clientRequestId: string | null;
             /** @description Markdown 正文 */
             content: string;
             /** @description 乐观锁版本 */
@@ -1900,6 +1910,11 @@ export interface components {
             floorNumber: number | null;
             parentPostId: string | null;
             replyToPostId: string | null;
+            /**
+             * Format: uuid
+             * @description 客户端创建请求幂等键；正文帖和旧客户端帖子为 null
+             */
+            clientRequestId: string | null;
             /** @description Markdown 正文 */
             content: string;
             /** @description 乐观锁版本 */
@@ -1928,6 +1943,11 @@ export interface components {
              * @example clxreply001...
              */
             replyToPostId?: string;
+            /**
+             * Format: uuid
+             * @description 客户端创建请求幂等键；同一次用户提交及网络重试必须复用
+             */
+            clientRequestId?: string;
         };
         PostThreadResponseDto: {
             id: string;
@@ -1951,6 +1971,11 @@ export interface components {
             floorNumber: number | null;
             parentPostId: string | null;
             replyToPostId: string | null;
+            /**
+             * Format: uuid
+             * @description 客户端创建请求幂等键；正文帖和旧客户端帖子为 null
+             */
+            clientRequestId: string | null;
             /** @description Markdown 正文 */
             content: string;
             /** @description 乐观锁版本 */
@@ -4682,6 +4707,13 @@ export interface operations {
             };
             /** @description 无发帖权限（未加入子贴或权限不足） */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description clientRequestId 已用于不同发帖载荷 */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
