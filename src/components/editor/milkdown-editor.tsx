@@ -2,12 +2,13 @@
 
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { Milkdown, MilkdownProvider, useEditor, useInstance } from "@milkdown/react";
 import { Crepe, CrepeFeature } from "@milkdown/crepe";
 import { editorViewCtx } from "@milkdown/core";
 import { AtSign, Loader2, UsersRound } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useDebounce } from "use-debounce";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { sanitizeMilkdownMarkdown } from "@/lib/markdown";
@@ -141,6 +142,7 @@ function EditorHost({
   const mentionMenuRef = useRef<{ from: number; to: number; query: string } | null>(null);
   const mentionItemsRef = useRef<MentionMenuItem[]>([]);
   const selectedMentionIndexRef = useRef(0);
+  const isComposingRef = useRef(false);
   const [mentionMenu, setMentionMenu] = useState<{
     from: number;
     to: number;
@@ -150,12 +152,18 @@ function EditorHost({
   } | null>(null);
   const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
   const mentionQuery = mentionMenu?.query ?? "";
-  const { data: mentionResponse } = useQuery({
-    queryKey: ["mention-candidates", threadId, mentionQuery],
+  const [debouncedMentionQuery] = useDebounce(mentionQuery, 180);
+  const {
+    data: mentionResponse,
+    isFetching: isMentionFetching,
+    isError: isMentionError,
+    refetch: refetchMentionCandidates,
+  } = useQuery({
+    queryKey: ["mention-candidates", threadId, debouncedMentionQuery],
     queryFn: async () => {
       const { data, error } = await apiClient.GET(
         "/api/v1/users/mention-candidates",
-        { params: { query: { threadId: threadId ?? "", ...(mentionQuery ? { q: mentionQuery } : {}) } } },
+        { params: { query: { threadId: threadId ?? "", ...(debouncedMentionQuery ? { q: debouncedMentionQuery } : {}) } } },
       );
       if (error) throw error;
       if (!data) return { users: [], canMentionAllPlayers: false };
@@ -187,19 +195,51 @@ function EditorHost({
     }
     return items;
   }, [mentionQuery, mentionResponse]);
+  const mentionQueryPending = debouncedMentionQuery !== mentionQuery;
+  const visibleMentionItems = useMemo(
+    () => (mentionQueryPending ? [] : mentionItems),
+    [mentionItems, mentionQueryPending],
+  );
 
   useEffect(() => {
-    mentionItemsRef.current = mentionItems;
+    mentionItemsRef.current = visibleMentionItems;
     selectedMentionIndexRef.current = Math.min(
       selectedMentionIndexRef.current,
-      Math.max(mentionItems.length - 1, 0),
+      Math.max(visibleMentionItems.length - 1, 0),
     );
-  }, [mentionItems]);
+  }, [visibleMentionItems]);
 
   const activeMentionIndex = Math.min(
     selectedMentionIndex,
-    Math.max(mentionItems.length - 1, 0),
+    Math.max(visibleMentionItems.length - 1, 0),
   );
+
+  const handleMentionSelect = useCallback((event: ReactMouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    const itemId = event.currentTarget.dataset.mentionId;
+    const item = mentionItemsRef.current.find((candidate) => candidate.id === itemId);
+    if (!item) return;
+    const view = crepeRef.current?.editor.action((ctx) => ctx.get(editorViewCtx));
+    const range = mentionMenuRef.current;
+    if (!view || !range) return;
+    if (item.isGroup) {
+      view.dispatch(view.state.tr.insertText("@全体玩家 ", range.from, range.to));
+    } else {
+      const linkMarkType = view.state.schema.marks.link;
+      if (!linkMarkType || !item.username) return;
+      const linkMark = linkMarkType.create({
+        href: `/users/${item.id}`,
+        title: null,
+      });
+      const mentionNode = view.state.schema.text(`@${item.username}`, [linkMark]);
+      const transaction = view.state.tr.replaceWith(range.from, range.to, mentionNode);
+      transaction.insertText(" ", range.from + mentionNode.nodeSize);
+      view.dispatch(transaction);
+    }
+    view.focus();
+    mentionMenuRef.current = null;
+    setMentionMenu(null);
+  }, []);
 
   /** 上传失败时统一弹 toast（Milkdown 内部会静默吞掉 onUpload 的 reject） */
   const handleUpload = useCallback(
@@ -332,10 +372,50 @@ function EditorHost({
     const host = hostRef.current;
     if (!host || !threadId) return;
 
+    const viewForInsert = () =>
+      crepeRef.current?.editor.action((ctx) => ctx.get(editorViewCtx)) ?? null;
+
+    const isMentionNode = (node: unknown): node is { isText: boolean; nodeSize: number; marks: Array<{ type: { name: string }; attrs: { href?: string } }> } => {
+      if (!node || typeof node !== "object") return false;
+      const candidate = node as {
+        isText?: boolean;
+        nodeSize?: number;
+        marks?: Array<{ type: { name: string }; attrs: { href?: string } }>;
+      };
+      return Boolean(
+        candidate.isText &&
+          candidate.nodeSize &&
+          candidate.marks?.some(
+            (mark) => mark.type.name === "link" && mark.attrs.href?.startsWith("/users/"),
+          ),
+      );
+    };
+
+    const findMentionRangeAt = (
+      view: ReturnType<typeof viewForInsert>,
+      position: number,
+      direction: "back" | "delete",
+    ): { from: number; to: number } | null => {
+      if (!view) return null;
+      const resolved = view.state.doc.resolve(position);
+      const parentStart = resolved.start();
+      let result: { from: number; to: number } | null = null;
+      resolved.parent.forEach((node, offset) => {
+        if (!isMentionNode(node)) return;
+        const from = parentStart + offset;
+        const to = from + node.nodeSize;
+        const matches = direction === "back"
+          ? position > from && position <= to
+          : position >= from && position < to;
+        if (matches) result = { from, to };
+      });
+      return result;
+    };
+
     const updateMentionMenu = () => {
       const view = crepeRef.current?.editor.action((ctx) => ctx.get(editorViewCtx));
       const editor = editorDomRef.current;
-      if (!view || !editor || disabled) return;
+      if (!view || !editor || disabled || isComposingRef.current) return;
       const { from, empty } = view.state.selection;
       if (!empty) {
         mentionMenuRef.current = null;
@@ -357,11 +437,19 @@ function EditorHost({
       };
       const coords = view.coordsAtPos(from);
       const hostRect = host.getBoundingClientRect();
+      const menuWidth = Math.min(288, Math.max(224, window.innerWidth - 16));
+      const menuHeight = 240;
+      const maxLeft = Math.max(8, host.clientWidth - menuWidth - 8);
+      const belowTop = coords.bottom - hostRect.top + 4;
+      const aboveTop = coords.top - hostRect.top - menuHeight - 4;
+      const top = coords.bottom + menuHeight > window.innerHeight && aboveTop > 8
+        ? aboveTop
+        : belowTop;
       mentionMenuRef.current = range;
       setMentionMenu({
         ...range,
-        top: coords.bottom - hostRect.top + 4,
-        left: Math.max(8, coords.left - hostRect.left),
+        top,
+        left: Math.min(maxLeft, Math.max(8, coords.left - hostRect.left)),
       });
     };
 
@@ -369,7 +457,39 @@ function EditorHost({
       const editor = host.querySelector<HTMLElement>(".ProseMirror");
       if (!editor || editorDomRef.current === editor) return;
       editorDomRef.current = editor;
+      const handleCompositionStart = () => {
+        isComposingRef.current = true;
+      };
+      const handleCompositionEnd = () => {
+        isComposingRef.current = false;
+        window.requestAnimationFrame(updateMentionMenu);
+      };
       const handleKeyDown = (event: KeyboardEvent) => {
+        if (isComposingRef.current || event.isComposing) return;
+        const view = viewForInsert();
+        if (!view) return;
+
+        if (event.key === "Backspace" || event.key === "Delete") {
+          const direction: "back" | "delete" = event.key === "Backspace" ? "back" : "delete";
+          let range = findMentionRangeAt(view, view.state.selection.from, direction);
+          if (
+            event.key === "Backspace" &&
+            !range &&
+            view.state.selection.empty &&
+            view.state.selection.from > 0 &&
+            view.state.doc.resolve(view.state.selection.from).nodeBefore?.text?.endsWith(" ")
+          ) {
+            range = findMentionRangeAt(view, view.state.selection.from - 1, "back");
+            if (range) range.to = view.state.selection.from;
+          }
+          if (range) {
+            event.preventDefault();
+            view.dispatch(view.state.tr.delete(range.from, range.to).scrollIntoView());
+            window.requestAnimationFrame(updateMentionMenu);
+            return;
+          }
+        }
+
         const menu = mentionMenuRef.current;
         const items = mentionItemsRef.current;
         if (!menu || items.length === 0) return;
@@ -390,8 +510,6 @@ function EditorHost({
         } else if (event.key === "Enter" || event.key === "Tab") {
           event.preventDefault();
           const item = items[selectedMentionIndexRef.current] ?? items[0];
-          const view = viewForInsert();
-          if (!view) return;
           if (item.isGroup) {
             view.dispatch(view.state.tr.insertText("@全体玩家 ", menu.from, menu.to));
           } else {
@@ -411,10 +529,14 @@ function EditorHost({
           setMentionMenu(null);
         }
       };
+      editor.addEventListener("compositionstart", handleCompositionStart);
+      editor.addEventListener("compositionend", handleCompositionEnd);
       editor.addEventListener("input", updateMentionMenu);
       editor.addEventListener("keyup", updateMentionMenu);
       editor.addEventListener("keydown", handleKeyDown);
       editorCleanupRef.current = () => {
+        editor.removeEventListener("compositionstart", handleCompositionStart);
+        editor.removeEventListener("compositionend", handleCompositionEnd);
         editor.removeEventListener("input", updateMentionMenu);
         editor.removeEventListener("keyup", updateMentionMenu);
         editor.removeEventListener("keydown", handleKeyDown);
@@ -423,13 +545,15 @@ function EditorHost({
       updateMentionMenu();
     };
 
-    const viewForInsert = () =>
-      crepeRef.current?.editor.action((ctx) => ctx.get(editorViewCtx)) ?? null;
     const observer = new MutationObserver(attach);
     observer.observe(host, { childList: true, subtree: true });
+    window.addEventListener("resize", updateMentionMenu);
+    window.addEventListener("scroll", updateMentionMenu, true);
     attach();
     return () => {
       observer.disconnect();
+      window.removeEventListener("resize", updateMentionMenu);
+      window.removeEventListener("scroll", updateMentionMenu, true);
       editorCleanupRef.current?.();
       editorCleanupRef.current = null;
       mentionMenuRef.current = null;
@@ -481,14 +605,35 @@ function EditorHost({
           编辑器加载中…
         </div>
       )}
-      {mentionMenu && mentionItems.length > 0 && (
+      {mentionMenu && (
         <div
           role="listbox"
           aria-label="艾特候选"
-          className="absolute z-50 min-w-56 max-w-72 overflow-hidden rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-lg"
+          className="absolute z-50 w-[min(18rem,calc(100vw-1rem))] overflow-hidden rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-lg"
           style={{ top: mentionMenu.top, left: mentionMenu.left }}
         >
-          {mentionItems.map((item, index) => (
+          {(mentionQueryPending || isMentionFetching) && (
+            <div className="flex items-center gap-2 px-2.5 py-2 text-sm text-muted-foreground" role="status">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              正在查找可艾特用户…
+            </div>
+          )}
+          {!mentionQueryPending && !isMentionFetching && isMentionError && (
+            <button
+              type="button"
+              className="flex w-full items-center justify-center rounded-md px-2.5 py-2 text-sm text-destructive hover:bg-accent/60"
+              onMouseDown={(event) => {
+                event.preventDefault();
+                void refetchMentionCandidates();
+              }}
+            >
+              加载失败，点击重试
+            </button>
+          )}
+          {!mentionQueryPending && !isMentionFetching && !isMentionError && visibleMentionItems.length === 0 && (
+            <div className="px-2.5 py-2 text-sm text-muted-foreground">暂无可艾特用户</div>
+          )}
+          {!mentionQueryPending && !isMentionFetching && visibleMentionItems.map((item, index) => (
             <button
               key={item.id}
               type="button"
@@ -498,29 +643,8 @@ function EditorHost({
                 "flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm",
                 index === activeMentionIndex ? "bg-accent text-accent-foreground" : "hover:bg-accent/60",
               )}
-              onMouseDown={(event) => {
-                event.preventDefault();
-                const view = crepeRef.current?.editor.action((ctx) => ctx.get(editorViewCtx));
-                const range = mentionMenuRef.current;
-                if (!view || !range) return;
-                if (item.isGroup) {
-                  view.dispatch(view.state.tr.insertText("@全体玩家 ", range.from, range.to));
-                } else {
-                  const linkMarkType = view.state.schema.marks.link;
-                  if (!linkMarkType || !item.username) return;
-                  const linkMark = linkMarkType.create({
-                    href: `/users/${item.id}`,
-                    title: null,
-                  });
-                  const mentionNode = view.state.schema.text(`@${item.username}`, [linkMark]);
-                  const transaction = view.state.tr.replaceWith(range.from, range.to, mentionNode);
-                  transaction.insertText(" ", range.from + mentionNode.nodeSize);
-                  view.dispatch(transaction);
-                }
-                view.focus();
-                mentionMenuRef.current = null;
-                setMentionMenu(null);
-              }}
+              data-mention-id={item.id}
+              onMouseDown={handleMentionSelect}
             >
               {item.isGroup ? <UsersRound className="h-4 w-4" /> : <AtSign className="h-4 w-4" />}
               <span className="min-w-0 flex-1 truncate">{item.label}</span>
