@@ -48,6 +48,7 @@ export interface ThreadDetail {
   viewCount: number;
   version: number;
   likeCount: number;
+  isLiked: boolean;
   defaultSubthreadId: string;
   createdAt: string;
   updatedAt: string;
@@ -79,6 +80,7 @@ export interface RawThreadDetail {
   viewCount: number;
   version: number;
   likeCount: number;
+  isLiked?: boolean;
   defaultSubthreadId: string;
   createdAt: string;
   updatedAt: string;
@@ -111,6 +113,7 @@ export function normalizeThreadDetail(raw: RawThreadDetail): ThreadDetail {
     defaultSubthread: defaultSubthread!,
     isBookmarked: raw.isBookmarked ?? false,
     bookmarkId: raw.bookmarkId ?? null,
+    isLiked: raw.isLiked ?? false,
   };
 }
 

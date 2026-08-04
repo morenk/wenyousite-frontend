@@ -69,6 +69,10 @@ afterEach(() => {
 });
 
 beforeEach(() => {
+  mockPOST.mockReset();
+  mockDELETE.mockReset();
+  mockPOST.mockResolvedValue({ error: undefined });
+  mockDELETE.mockResolvedValue({ error: undefined });
   mockUseSubscriptions.mockReturnValue({ data: [], isLoading: false });
   mockDeleteThreadMutate.mockClear();
   mockDeleteThreadMutate.mockResolvedValue({});
@@ -123,6 +127,7 @@ const baseThread: ThreadDetail = {
   _count: { members: 10, players: 3, posts: 5 },
   isBookmarked: false,
   bookmarkId: null,
+  isLiked: false,
 };
 
 describe("ThreadDetailHeader", () => {
@@ -360,6 +365,40 @@ describe("ThreadDetailHeader", () => {
     const noLikes = { ...baseThread, likeCount: 0 };
     renderWithQC(<ThreadDetailHeader thread={noLikes} />);
     expect(screen.getByText("点赞")).toBeInTheDocument();
+  });
+
+  test("其他人已点赞但当前用户未点赞时调用点赞接口", async () => {
+    const user = userEvent.setup();
+    mockUseAuth.mockReturnValue({
+      user: { id: "other-user", username: "别人" },
+      isInitialized: true,
+    });
+    renderWithQC(
+      <ThreadDetailHeader thread={{ ...baseThread, likeCount: 7, isLiked: false }} />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /7/ }));
+    expect(mockPOST).toHaveBeenCalledWith("/api/v1/threads/{id}/like", {
+      params: { path: { id: "thread-1" } },
+    });
+    expect(mockDELETE).not.toHaveBeenCalled();
+  });
+
+  test("当前用户已点赞时调用取消点赞接口", async () => {
+    const user = userEvent.setup();
+    mockUseAuth.mockReturnValue({
+      user: { id: "other-user", username: "别人" },
+      isInitialized: true,
+    });
+    renderWithQC(
+      <ThreadDetailHeader thread={{ ...baseThread, likeCount: 1, isLiked: true }} />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /1/ }));
+    expect(mockDELETE).toHaveBeenCalledWith("/api/v1/threads/{id}/like", {
+      params: { path: { id: "thread-1" } },
+    });
+    expect(mockPOST).not.toHaveBeenCalled();
   });
 
   test("登录用户显示订阅按钮，点击后订阅", async () => {

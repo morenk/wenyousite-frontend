@@ -14,6 +14,7 @@
 - 楼层 Markdown 渲染（react-markdown + remark-gfm）
 - 发布新楼层（简易 textarea）
 - 点赞/取消点赞主题帖
+- 当前用户点赞状态 `isLiked`，不得使用全站 `likeCount` 推断
 - Loading / Error / Empty / 404 状态
 
 **后续迭代：**
@@ -36,7 +37,7 @@
 
 | Method | Path | Guard | 用途 |
 |--------|------|-------|------|
-| GET | `/threads/:id` | Public | 主题帖详情（含子贴列表、owner、_count） |
+| GET | `/threads/:id` | OptionalAuth | 主题帖详情（含子贴列表、owner、_count；登录时附加 isBookmarked/isLiked） |
 | DELETE | `/threads/:id` | Auth | 删除主题帖：未发布帖硬删除，已发布帖软删除，仅 OWNER |
 | GET | `/subthreads/:subthreadId/posts` | Public | 楼层列表（cursor 分页，含最多 5 条内联 replies） |
 | POST | `/subthreads/:subthreadId/posts` | Auth | 发布新楼层/楼中楼回复（kind=FLOOR，发帖自动成为参与人=玩家候选池；楼中楼带 parentPostId/replyToPostId） |
@@ -89,6 +90,7 @@
     "viewCount": 0,
     "version": 1,
     "likeCount": 0,
+    "isLiked": false,
     "defaultSubthreadId": "cms7rnyin00137qdyzq0v3mw1",
     "createdAt": "2026-07-30T17:07:26.204Z",
     "updatedAt": "2026-07-30T17:07:26.215Z",
@@ -220,7 +222,7 @@
 | 楼层列表 | `GET /subthreads/:subthreadId/posts` | TanStack Query `useInfiniteQuery` |
 | 当前选中子贴 | 用户点击 Tab | useState（默认 defaultSubthreadId） |
 | 当前编辑会话 | 用户点击发表/回复/编辑 | `ThreadComposerProvider`（全页唯一 session + content + pending） |
-| 点赞状态 | `POST/DELETE /threads/:id/like` | useMutation + query invalidation |
+| 点赞状态 | `GET /threads/:id` 的 `isLiked` + `POST/DELETE /threads/:id/like` | useMutation + query invalidation；`likeCount` 仅用于展示总数 |
 
 ## 6. 组件清单
 
@@ -358,6 +360,7 @@
 - [x] 楼层与楼中楼的创建、回复、编辑统一使用 MilkdownEditor
 - [x] 切换目标时保护未提交内容，提交期间禁止切换
 - [x] 点赞/取消点赞实时更新 likeCount
+- [x] 不同用户分别按 `isLiked` 正确展示和切换点赞状态
 - [x] thread 不存在时显示 404
 - [x] 所有错误状态有 toast 或内联提示
 - [x] 帖主看到「管理」按钮（非帖主不显示）

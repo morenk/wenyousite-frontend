@@ -19,7 +19,8 @@ export function NavBar() {
 
   const handleLogout = async () => {
     try {
-      await apiClient.POST("/api/v1/auth/logout", { body: {} });
+      const { error } = await apiClient.POST("/api/v1/auth/logout", { body: {} });
+      if (error) throw error;
     } catch {
       // 登出接口失败也不阻断前端清除
     }

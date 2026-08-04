@@ -178,6 +178,7 @@ const mockThread: ThreadDetail = {
   _count: { members: 1, players: 1, posts: 1 },
   isBookmarked: false,
   bookmarkId: null,
+  isLiked: false,
 };
 
 function renderPanel(thread: ThreadDetail = mockThread) {

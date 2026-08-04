@@ -69,7 +69,7 @@ export function ThreadDetailHeader({
 
   const handleLike = async () => {
     try {
-      if (thread.likeCount > 0) {
+      if (thread.isLiked) {
         await unlike.mutateAsync();
       } else {
         await like.mutateAsync();
@@ -209,7 +209,7 @@ export function ThreadDetailHeader({
                 onClick={handleLike}
                 disabled={like.isPending || unlike.isPending}
                 className={
-                  (thread.likeCount > 0)
+                  thread.isLiked
                     ? "text-rose-500 hover:text-rose-600"
                     : ""
                 }
@@ -220,7 +220,7 @@ export function ThreadDetailHeader({
                   <Heart
                     className={cn(
                       "mr-1 h-4 w-4",
-                      thread.likeCount > 0 && "fill-current",
+                      thread.isLiked && "fill-current",
                     )}
                   />
                 )}

@@ -13,11 +13,11 @@
 - [x] 全局导航栏（含登出按钮）
 - [x] Zod 校验 schema 抽取
 - [x] TanStack Query API hooks 抽取
+- [x] Access Token 过期后使用 httpOnly refresh cookie 单飞刷新并重放原请求
+- [x] 登出时检查服务端错误，确保 refresh cookie 与设备会话被撤销
 
 **后续迭代：**
-- 修改密码
 - 会话管理（列表 + 远程登出）
-- 更换邮箱
 
 ## 2. 页面与路由
 
@@ -37,6 +37,7 @@
 | POST | `/auth/register/request-code` | Public | 注册第一步：发验证码 |
 | POST | `/auth/register/verify-and-complete` | Public | 注册第二步：完成注册 |
 | POST | `/auth/logout` | AuthRead | 登出 |
+| POST | `/auth/refresh` | Public | access token 过期后轮换 refresh token，并重放原请求 |
 | POST | `/auth/forgot-password` | Public | 请求重置密码邮件 |
 | POST | `/auth/reset-password` | Public | 使用验证码重置密码 |
 | POST | `/auth/verify-email` | AuthRead | 使用验证码验证邮箱 |
@@ -54,7 +55,7 @@
 | 表单状态 | react-hook-form | 组件本地 |
 | 提交 loading | useState | 组件本地 |
 
-**缓存策略：** 注册/登录成功后直接 `setAuth` 写入 context + localStorage，不做 react-query 缓存（认证态是全局的）。
+**缓存策略：** 注册/登录/刷新成功后直接写入 AuthContext + localStorage，不做 react-query 缓存。并发请求同时收到 401 时共享同一个刷新 Promise，避免 refresh token 被重复轮换；刷新成功后分别重放各自的原始请求，失败才清理登录态并跳转登录页。
 
 ## 5. 组件清单
 
@@ -184,7 +185,7 @@ if (error) {
 }
 ```
 
-> **401 拦截器例外**：`apiClient` 对携带 accessToken 的请求遇到 401 会自动清除登录态并跳转 `/login`（会话过期）。但登录/注册/重置/验证码/改密/换邮箱等「业务 401」端点（`client.ts` 的 `BUSINESS_401_PATHS`）由页面自行 toast 提示，不触发跳转。
+> **401 拦截器例外**：`apiClient` 对携带 accessToken 的请求遇到 401 会先单飞调用 `/auth/refresh`，成功后重放原请求；刷新失败才清除登录态并跳转 `/login`。登录/注册/重置/验证码/改密/换邮箱等「业务 401」端点（`client.ts` 的 `BUSINESS_401_PATHS`）由页面自行 toast 提示，不触发刷新或跳转。
 // 处理 data
 ```
 
@@ -234,6 +235,8 @@ Step2: 输入验证码 / 用户名 / 密码 / 确认密码 → 提交 → 成功
 - [x] `/verify-email` 验证邮箱成功
 - [x] 导航栏根据登录状态显示不同按钮
 - [x] 登出清除 token 并跳转首页
+- [x] access token 过期后可无感刷新并重放原请求
+- [x] 多个并发 401 只发起一次 refresh 请求
 - [x] 已登录用户访问公开认证页自动跳转
 - [x] 所有错误状态有 toast 提示
 - [x] 提交按钮有 loading 状态

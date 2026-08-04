@@ -125,8 +125,8 @@ function ThreadDetailPageContent() {
 
   // 404
   if (error) {
-    const err = error as { statusCode?: number };
-    const is404 = err?.statusCode === 404;
+    const err = error as { code?: number };
+    const is404 = err?.code === 40400;
     return (
       <div className="mx-auto max-w-3xl px-4 py-12">
         <Card>
