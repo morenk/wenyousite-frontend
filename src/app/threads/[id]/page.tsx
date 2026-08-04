@@ -208,7 +208,8 @@ function ThreadDetailPageContent() {
             error={floorsError}
             onLoadMore={() => fetchNextPage()}
             onRetry={() => refetchFloors()}
-            focusedFloor={targetFloor}
+            // 旧楼中楼链接重定向期间不高亮父楼层，最终只在独立页高亮目标回复。
+            focusedFloor={targetPost?.parentPostId ? undefined : targetFloor}
           />
         )}
 

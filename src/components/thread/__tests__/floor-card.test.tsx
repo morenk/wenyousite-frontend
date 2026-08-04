@@ -1,7 +1,7 @@
 /** FloorCard 组件测试：Markdown 渲染 + 作者编辑/删除 */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { FloorCard } from "@/components/thread/floor-card";
@@ -67,7 +67,10 @@ vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
-afterEach(() => cleanup());
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
 
 const baseFloor: PostData = {
   id: "post-1",
@@ -124,6 +127,23 @@ describe("FloorCard", () => {
     expect(screen.getByText("测试用户")).toBeInTheDocument();
     expect(screen.getByText("#1")).toBeInTheDocument();
     expect(screen.getByTestId("user-avatar-placeholder").textContent).toBe("测");
+  });
+
+  test("定位楼层时立即滚动且只高亮楼层卡片本身", async () => {
+    const scrollIntoView = vi
+      .spyOn(HTMLElement.prototype, "scrollIntoView")
+      .mockImplementation(() => {});
+    const { container } = renderWithQC(
+      <FloorCard floor={baseFloor} isEven={false} focused />,
+    );
+
+    await waitFor(() => {
+      expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "auto", block: "center" });
+    });
+
+    const card = container.querySelector("#post-post-1");
+    expect(card).toHaveClass("border-primary", "ring-2");
+    expect(card?.parentElement).not.toHaveClass("border-primary", "ring-2");
   });
 
   test("作者有头像时渲染缩略图", () => {

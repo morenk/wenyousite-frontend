@@ -1,7 +1,7 @@
 /** ReplyList 组件测试：楼中楼回复列表 + 回复串内对用户回复 */
 
 import { describe, test, expect, vi, beforeAll, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThreadComposerProvider } from "@/components/thread/thread-composer-context";
@@ -73,7 +73,10 @@ beforeAll(() => {
     disconnect() {}
   });
 });
-afterEach(() => cleanup());
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
 beforeEach(() => {
   mockUseAuth.mockReturnValue({ user: null });
   mockUpdateMutateAsync.mockClear();
@@ -148,6 +151,27 @@ describe("ReplyList", () => {
     expect(screen.getByText("replier")).toBeInTheDocument();
     expect(screen.getByText("楼中楼回复内容")).toBeInTheDocument();
     expect(screen.getByTestId("user-avatar-placeholder").textContent).toBe("R");
+  });
+
+  test("定位回复时立即滚动且只高亮目标回复卡片", async () => {
+    const scrollIntoView = vi
+      .spyOn(HTMLElement.prototype, "scrollIntoView")
+      .mockImplementation(() => {});
+    const targetReply = baseReply({ id: "reply-target" });
+    mockUseReplies.mockReturnValue(dataWithReplies([targetReply]));
+
+    const { container } = render(
+      <ReplyList postId="post-1" focusedReply={targetReply} variant="discussion" />,
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => {
+      expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "auto", block: "center" });
+    });
+
+    const card = container.querySelector("#post-reply-target");
+    expect(card).toHaveClass("border-primary", "ring-2");
+    expect(card?.parentElement).not.toHaveClass("border-primary", "ring-2");
   });
 
   test("回复卡片可复制楼中楼精确链接", async () => {

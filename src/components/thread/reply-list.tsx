@@ -89,7 +89,7 @@ export function ReplyList({ postId, focusedReply, variant = "embedded" }: ReplyL
     if (!focusedReply) return;
     const timer = window.setTimeout(() => {
       document.getElementById(`post-${focusedReply.id}`)?.scrollIntoView({
-        behavior: "smooth",
+        behavior: "auto",
         block: "center",
       });
     }, 150);

@@ -109,7 +109,7 @@
 
 - 跳转优先级：有 `postId` → `/threads/{threadId}?post={postId}`；否则有 `threadId` → `/threads/{threadId}`；否则有 `fromUserId`（follow）→ `/users/{fromUserId}`；system（均无）不可点
 - **跳转对象已删除不跳转**：列表接口返回 thread/post/fromUser 的 `deletedAt`；目标已删除时该通知不渲染链接，行内显示提示（帖子/楼层 →「该内容已删除」，用户 →「该用户已注销」），点击仅标记已读并 toast 提示，不导航
-- 详情页读取 `post` 参数后通过 `GET /posts/:id` 查询目标上下文：切换子贴、显示并滚动高亮目标楼层；楼中楼采用二阶段定位，在父楼展开且回复渲染完成后再次滚动高亮目标回复。已删除内容维持后端列表过滤策略。
+- 详情页读取 `post` 参数后通过 `GET /posts/:id` 查询目标上下文：切换子贴并立即滚动到目标楼层；楼中楼采用二阶段定位，在父楼展开且回复渲染完成后立即滚动到目标回复。定位不使用平滑移动动画；高亮只加在目标楼层/回复卡片本身，父楼层和列表容器不高亮。已删除内容维持后端列表过滤策略。
 - 点击通知（有跳转目标）：若未读，立即乐观标记为已读并异步提交，不阻塞跳转
 - 删除按钮：硬删除 + 失效列表/未读数
 - 类型图标：reply/mention/new_post/thread_created → MessageSquare/AtSign/PenLine/FilePlus；follow → UserPlus；like → Heart；system → Megaphone
@@ -148,6 +148,7 @@
 - [x] 未登录跳 /login
 - [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` 通过
 - [x] 类型筛选、精确定位与刷新策略（本轮）
+- [x] 通知定位取消平滑移动动画，且只高亮目标卡片
 - [x] 乐观已读缓存更新（失败时自动回滚）
 - [ ] payload 结构化渲染（TODO）
 

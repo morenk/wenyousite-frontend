@@ -51,7 +51,7 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
   useEffect(() => {
     if (!focused) return;
     const timer = window.setTimeout(() => {
-      cardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      cardRef.current?.scrollIntoView({ behavior: "auto", block: "center" });
     }, 100);
     return () => window.clearTimeout(timer);
   }, [focused]);

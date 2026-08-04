@@ -59,7 +59,7 @@
 
 > **ID 校验说明**：后端所有 ID 为 Prisma `cuid()` 生成的 CUID（非 UUID），DTO 校验统一使用 `@IsCuid`（替代 `@IsUUID`，后者会因 CUID 不含连字符而拒绝请求）。
 
-> **通知精确定位**：主楼层仍使用详情页 `?post=` 注入并高亮；楼中楼通知直接进入 `/threads/{threadId}/posts/{parentPostId}/replies?post={replyId}`，在独立阅读页高亮目标回复。兼容旧链接：详情页发现目标是楼中楼时立即重定向到独立阅读页。
+> **通知精确定位**：主楼层仍使用详情页 `?post=` 注入并立即定位；楼中楼通知直接进入 `/threads/{threadId}/posts/{parentPostId}/replies?post={replyId}`，在独立阅读页立即定位并高亮目标回复。定位不使用平滑移动动画；高亮只作用于目标楼层/回复卡片本身，父楼层和列表容器不高亮。兼容旧链接：详情页发现目标是楼中楼时立即重定向到独立阅读页，重定向期间不高亮父楼层。
 
 > **站内链接契约（第一切片）**：楼中楼回复可通过 `/threads/{threadId}/posts/{parentPostId}/replies?post={replyId}` 精确定位；回复卡片提供复制链接入口。该 URL 仅依赖现有 Post 字段，不新增 API。
 
@@ -365,6 +365,7 @@
 - [x] 默认子贴不可删除、排序保持首位
 - [x] 主帖徽章文案「主帖」；主帖节点不可拖拽，拖到主帖位置时前端拦截并 toast 友好提示
 - [x] SubthreadTabs 支持几十个子贴：横向滚动 + 溢出箭头 + 选中自动滚入视野
+- [x] 消息/站内链接定位取消移动动画，仅高亮目标楼层或楼中楼回复卡片
 - [x] 移除加入/退出按钮，登录即可发帖（发帖自动入玩家候选池，无感参与）
 - [x] 元数据人数显示 `_count.players`（被授予玩家身份者），非候选池总数
 - [x] `pnpm lint && pnpm typecheck && pnpm build` 通过
