@@ -22,6 +22,7 @@
 - ~~楼层编辑与删除~~ → 已实现（FloorCard 作者可编辑/删除；楼层均可删，子贴正文由后端拦截）
 - ~~玩家管理（楼主在候选池中授予/收回玩家身份）~~ → 已实现（管理面板「成员」tab）
 - ~~订阅通知~~ → 已实现（ThreadDetailHeader 订阅/取消订阅）
+- 帖内用户订阅：从参与人列表选择目标用户，提交 `type=USER + targetUserId`；整帖订阅与用户订阅分别判断和取消
 - ~~阅读进度~~ → 已实现（详情页记录进度 + 子贴 Tab 新回复徽标）
 
 ## 2. 页面与路由
@@ -223,6 +224,7 @@
 | 当前选中子贴 | 用户点击 Tab | useState（默认 defaultSubthreadId） |
 | 当前编辑会话 | 用户点击发表/回复/编辑 | `ThreadComposerProvider`（全页唯一 session + content + pending） |
 | 点赞状态 | `GET /threads/:id` 的 `isLiked` + `POST/DELETE /threads/:id/like` | useMutation + query invalidation；`likeCount` 仅用于展示总数 |
+| 订阅状态 | `GET /subscriptions` + `GET /threads/:id/members` | 整帖订阅按 `type=THREAD` 匹配；用户订阅按 `type=USER + targetUserId` 匹配 |
 
 ## 6. 组件清单
 
@@ -341,6 +343,7 @@
 | 已发布帖 OWNER | 显示 "编辑" 按钮（跳 `/threads/[id]/edit`，编辑表单 ThreadEditForm） |
 | 未发布草稿 OWNER | 从草稿列表进入 `/threads/[id]/edit` 后显示 ThreadCreateForm，可保存草稿或最终发布 |
 | OWNER 删除 | 显示 "删除" 按钮；确认后调用 `DELETE /threads/:id`，成功返回首页 |
+| OWNER 订阅 | 不显示整帖订阅（后端拒绝订阅自建帖）；仍可订阅其他参与人的发言 |
 
 ## 10. 验收标准
 

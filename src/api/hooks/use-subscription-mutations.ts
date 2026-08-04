@@ -3,11 +3,20 @@
 import { useMutation } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
 
+export type CreateSubscriptionArgs =
+  | { threadId: string; type: "THREAD" }
+  | { threadId: string; type: "USER"; targetUserId: string };
+
 export function useCreateSubscription() {
   return useMutation({
-    mutationFn: async ({ threadId, type }: { threadId: string; type: "THREAD" | "USER" }) => {
+    mutationFn: async (args: CreateSubscriptionArgs) => {
+      const { threadId, type } = args;
       const { data, error } = await apiClient.POST("/api/v1/subscriptions", {
-        body: { threadId, type },
+        body: {
+          threadId,
+          type,
+          ...(type === "USER" ? { targetUserId: args.targetUserId } : {}),
+        },
       });
       if (error) throw error;
       return data;

@@ -36,8 +36,12 @@ vi.mock("@/api/client", () => ({
 const mockCreateMutate = vi.fn().mockResolvedValue({});
 const mockDeleteMutate = vi.fn().mockResolvedValue({});
 const mockUseSubscriptions = vi.fn(() => ({ data: [], isLoading: false }));
+const mockUseMembers = vi.fn(() => ({ data: [], isLoading: false }));
 vi.mock("@/api/hooks/use-subscriptions", () => ({
   useSubscriptions: () => mockUseSubscriptions(),
+}));
+vi.mock("@/api/hooks/use-members", () => ({
+  useMembers: () => mockUseMembers(),
 }));
 vi.mock("@/api/hooks/use-subscription-mutations", () => ({
   useCreateSubscription: () => ({ mutateAsync: mockCreateMutate, isPending: false }),
@@ -74,6 +78,7 @@ beforeEach(() => {
   mockPOST.mockResolvedValue({ error: undefined });
   mockDELETE.mockResolvedValue({ error: undefined });
   mockUseSubscriptions.mockReturnValue({ data: [], isLoading: false });
+  mockUseMembers.mockReturnValue({ data: [], isLoading: false });
   mockDeleteThreadMutate.mockClear();
   mockDeleteThreadMutate.mockResolvedValue({});
   mockRouterPush.mockClear();
@@ -447,6 +452,72 @@ describe("ThreadDetailHeader", () => {
     await user.click(screen.getByText("已订阅"));
 
     expect(mockDeleteMutate).toHaveBeenCalledWith("sub1");
+  });
+
+  test("USER 订阅不会被误认为整帖订阅", () => {
+    mockUseAuth.mockReturnValue({
+      user: { id: "other-user", username: "别人" },
+      isInitialized: true,
+    });
+    vi.mocked(mockUseSubscriptions).mockReturnValue({
+      data: [
+        {
+          id: "sub-user",
+          userId: "other-user",
+          threadId: "thread-1",
+          type: "USER",
+          targetUserId: "target-user",
+          createdAt: "2026-01-01T00:00:00Z",
+          thread: { id: "thread-1", title: "测试主题帖" },
+        },
+      ],
+      isLoading: false,
+    } as never);
+
+    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
+    expect(screen.getByText("订阅")).toBeInTheDocument();
+    expect(screen.queryByText("已订阅")).toBeNull();
+  });
+
+  test("可选择参与人并创建 USER 订阅", async () => {
+    const user = userEvent.setup();
+    mockUseAuth.mockReturnValue({
+      user: { id: "other-user", username: "别人" },
+      isInitialized: true,
+    });
+    mockUseMembers.mockReturnValue({
+      data: [
+        {
+          id: "member-1",
+          threadId: "thread-1",
+          userId: "target-user",
+          role: "PARTICIPANT",
+          playerMarked: true,
+          joinedAt: "2026-01-01T00:00:00Z",
+          user: { id: "target-user", username: "目标用户", avatar: null },
+        },
+      ],
+      isLoading: false,
+    } as never);
+
+    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
+    await user.selectOptions(screen.getByLabelText("订阅帖内用户"), "target-user");
+    await user.click(screen.getByRole("button", { name: "订阅该用户" }));
+
+    expect(mockCreateMutate).toHaveBeenCalledWith({
+      threadId: "thread-1",
+      type: "USER",
+      targetUserId: "target-user",
+    });
+  });
+
+  test("楼主不显示整帖订阅按钮", () => {
+    mockUseAuth.mockReturnValue({
+      user: { id: "owner-1", username: "帖主" },
+      isInitialized: true,
+    });
+    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
+    expect(screen.queryByTitle("订阅帖子更新")).toBeNull();
   });
 
   test("未登录不显示订阅按钮", () => {

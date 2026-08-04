@@ -70,6 +70,21 @@ describe("useCreateSubscription", () => {
       body: { threadId: "t1", type: "THREAD" },
     });
   });
+
+  test("创建用户订阅时提交 targetUserId", async () => {
+    mockPOST.mockResolvedValueOnce({ data: { code: 0 }, error: undefined });
+
+    const { result } = renderHook(() => useCreateSubscription(), {
+      wrapper: createWrapper(),
+    });
+
+    result.current.mutate({ threadId: "t1", type: "USER", targetUserId: "u2" });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockPOST).toHaveBeenCalledWith("/api/v1/subscriptions", {
+      body: { threadId: "t1", type: "USER", targetUserId: "u2" },
+    });
+  });
 });
 
 describe("useDeleteSubscription", () => {
