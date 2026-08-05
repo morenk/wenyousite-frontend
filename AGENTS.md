@@ -165,13 +165,26 @@ pnpm generate:api # 从相邻后端源码离线导出 OpenAPI 并生成类型，
 - Caddy 同域路由：`/api/v1/*` → 后端，其余 → 前端。
 - 前端 Docker 服务名为 `web`，监听 `3001`。
 
+#### 当前阶段：公网开发快速迭代
+
+`wenyou.site` 当前是**公网可访问的开发环境**。为避免 Next dev/Turbopack 长时间运行造成高内存，只借用 production standalone 作为稳定运行方式，不按正式生产发布审批处理。
+
+默认交付链路为：**实现 → 相关测试 → `pnpm check` 一次 → 原子提交 → 推送 `dev` → 重启受影响服务 → 最小烟雾验证**。用户明确说“不提交 / 不推送 / 不重启”时才跳过对应步骤。
+
+- 纯前端变化只重启 3001；后端/API 契约变化先切换后端，再切换前端
+- 纯文档变化只提交并推送，不构建、不重启
+- `pnpm check` 已包含 build；检查后源码未变化时复用 `.next`，只补齐 standalone 的 static/public 目录，不再次 build
+- 普通页面/UI 变化以组件测试、`pnpm check` 和公网关键页面 200 为准；认证/权限/核心旅程才补 E2E 或真人验证
+- 不默认预构建回滚产物、安排维护窗口或长时间观察；启动失败、持续 5xx 或关键路径失败时优先快速前滚修复
+- 项目进入正式生产阶段后，由用户明确更新本节，再恢复严格发布审批、回滚和监控要求
+
 #### 公网生产模式迭代（VPS 手动运行，省内存）
 
 公网访问一律用**生产模式**（后端 `node dist/main` + 前端 standalone），**不用 `next dev` 暴露公网**：dev 的 Turbopack 编译缓存会让 RSS 随时间涨到数 GB 导致机器卡死（见第 3 节），生产模式两者合计仅 ~0.3GB、稳定不涨。
 
 **生产模式没有热更新**——改代码必须「重新构建 → 重启进程」，这是生产模式迭代的唯一代价。
 
-生产部署与代码提交解耦。普通代码编辑、测试和文档更新不隐式授权生产部署；只有用户明确要求发布，或当前任务本身就是部署时，才执行生产重启。
+当前公网开发阶段，功能任务完成默认包含提交、推送和受影响服务重启，无需逐次询问；正式生产阶段才恢复发布授权分离。
 
 **发布批次规则：** 一个可交付迭代可以包含多个原子提交，但整个批次只构建、部署和验证一次。纯文档变更不构建、不重启服务。部署前必须完成 `pnpm check`；核心用户旅程或跨端改动还需完成 `pnpm check:full` 或等价烟雾测试。
 
@@ -180,7 +193,8 @@ pnpm generate:api # 从相邻后端源码离线导出 OpenAPI 并生成类型，
 ```bash
 cd /root/wenyousite/wenyousite-frontend
 pnpm build
-cp -r .next/static .next/standalone/.next/static   # standalone 需静态资源
+cp -a .next/static .next/standalone/.next/         # standalone 需静态资源
+cp -a public .next/standalone/                     # standalone 需 public 资源
 kill $(ss -tlnp | grep :3001 | grep -oP 'pid=\K[0-9]+')
 setsid nohup env PORT=3001 node .next/standalone/server.js </dev/null \
   > /tmp/opencode/wenyousite-frontend.log 2>&1 &
@@ -202,7 +216,7 @@ setsid nohup env NODE_ENV=production node dist/main </dev/null \
 - 杀进程用 `ss` 提取 PID；**不要用 `pkill -f "next start"` 这类会匹配到自身 shell 的模式**
 - 后端首次/依赖变更后需 `npx prisma generate` 生成 Prisma Client；`npx prisma migrate deploy` 应用未执行迁移（幂等）
 - 验证：`curl -sI https://wenyou.site`（前端 200）+ `curl -s https://wenyou.site/api/v1/health`（后端 database/redis up）
-- 发布后至少验证本次改动涉及的真实用户路径，并观察对应服务日志；出现持续 5xx、关键路径失败或健康检查失败时停止发布并回滚到上一已验证构建。
+- 切换后验证本次关键页面/接口并查看最近日志；出现持续 5xx、关键路径失败或健康检查失败时优先快速前滚修复。
 
 ### 12. 迭代流程（Contract-First + Risk-Based Testing）
 
@@ -221,7 +235,7 @@ setsid nohup env NODE_ENV=production node dist/main </dev/null \
 2. **写代码** → 优先复用生成 API 类型和现有组件/缓存模式，处理 loading、error、empty、success 以及权限分支。
 3. **同步文档** → 只有公共行为、API、架构、运维方式或用户流程变化时强制更新；内部重构无需制造无意义文档 churn。
 4. **本地门禁** → 每个可提交行为切片执行相关测试，迭代完成统一执行 `pnpm check`。
-5. **原子提交** → 一个 commit 对应一个可理解、可验证、可回滚的完整行为，不要求一个文件或一种文件类型一个 commit。
+5. **交付公网开发环境** → 一个 commit 对应一个可理解、可验证的完整行为；批次结束默认提交、推送 `dev`，并按影响范围重启和烟雾验证，不按文件类型机械拆分。
 
 **测试映射：**
 
@@ -248,7 +262,7 @@ setsid nohup env NODE_ENV=production node dist/main </dev/null \
 - `pnpm check` 通过；高风险或发布任务完成相应 E2E/烟雾测试。
 - OpenAPI、生成类型、运行时行为一致，快照已脱敏且只作为验证样例。
 - 公共行为变化已同步文档，提交中没有 secrets、无关文件或临时调试代码。
-- 若发布：已记录部署顺序、健康检查、关键路径验证、日志观察和回滚点。
+- 公网开发环境已按影响范围完成提交、推送、重启和最小烟雾验证；纯文档变更无需重启。
 
 ### 13. 模块文档模板
 
