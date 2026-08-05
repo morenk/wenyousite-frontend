@@ -29,7 +29,6 @@ const registerResponse = {
     message: "ok",
     data: {
       accessToken: "token",
-      refreshToken: "refresh",
       user: {
         id: "u1",
         email: "a@b.com",

@@ -22,7 +22,8 @@ export function NavBar() {
       const { error } = await apiClient.POST("/api/v1/auth/logout", { body: {} });
       if (error) throw error;
     } catch {
-      // 登出接口失败也不阻断前端清除
+      toast.error("退出失败，请检查网络后重试");
+      return;
     }
     logout();
     toast.success("已登出");

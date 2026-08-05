@@ -49,7 +49,7 @@ export default function ChangePasswordPage() {
       <Card>
         <CardHeader>
           <CardTitle>修改密码</CardTitle>
-          <CardDescription>修改后需重新登录，其他设备将自动下线</CardDescription>
+          <CardDescription>修改后需重新登录，所有登录终端将自动退出</CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
           <ChangePasswordForm />

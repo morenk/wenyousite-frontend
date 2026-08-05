@@ -1,4 +1,4 @@
-/** /me/password 与 /me/email 页面测试：登录守卫 + 渲染表单 */
+/** 账号安全子页面测试：登录守卫 + 渲染对应内容 */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
@@ -29,8 +29,13 @@ vi.mock("@/components/user/change-email-form", () => ({
   ChangeEmailForm: () => <div data-testid="change-email-form" />,
 }));
 
+vi.mock("@/components/user/account-security-panel", () => ({
+  AccountSecurityPanel: () => <div data-testid="account-security-panel" />,
+}));
+
 import ChangePasswordPage from "@/app/me/password/page";
 import ChangeEmailPage from "@/app/me/email/page";
+import AccountSecurityPage from "@/app/me/security/page";
 
 const authedUser = { id: "u1", username: "tester", emailVerified: true };
 
@@ -68,5 +73,20 @@ describe("/me/email", () => {
     mockUseAuth.mockReturnValue({ user: authedUser, isInitialized: true });
     render(<ChangeEmailPage />);
     expect(screen.getByTestId("change-email-form")).toBeInTheDocument();
+  });
+});
+
+describe("/me/security", () => {
+  test("未登录跳转登录页", () => {
+    mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
+    render(<AccountSecurityPage />);
+    expect(mockReplace).toHaveBeenCalledWith("/login");
+    expect(screen.queryByTestId("account-security-panel")).not.toBeInTheDocument();
+  });
+
+  test("已登录渲染登录终端管理", () => {
+    mockUseAuth.mockReturnValue({ user: authedUser, isInitialized: true });
+    render(<AccountSecurityPage />);
+    expect(screen.getByTestId("account-security-panel")).toBeInTheDocument();
   });
 });

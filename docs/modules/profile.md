@@ -1,4 +1,4 @@
-# 用户模块（资料 / 关注拉黑 / 草稿箱）
+# 用户模块（资料 / 登录终端 / 关注拉黑 / 草稿箱）
 
 ## 1. 目标与范围
 
@@ -11,7 +11,8 @@
 - `/me` 我的资料：邮箱（并入基本信息，脱敏显示 + 邮箱验证状态，未验证可跳转 `/verify-email`）、头像（裁剪上传/移除）、Bio（textarea + 255 字数统计）、隐私开关（用户名需显式进入编辑，默认不修改）
 - `/me/password` 修改密码页：当前密码/新密码/确认新密码（显示/隐藏切换 + 需求提示），成功后登出跳登录
 - `/me/email` 更换邮箱页：当前密码二次认证 → 新邮箱 → 6 位验证码，成功后失效 me 缓存并跳转 `/me`
-- `/me/security` 账号安全页：活跃设备会话、黑名单、账号注销
+- `/me/security` 账号安全页：双端登录终端、黑名单、账号注销
+- 登录终端改动属于发布批次 `auth-login-terminal-2026-08-05`；跨端契约、数据库迁移、发布顺序与回滚要求见 `docs/modules/auth.md`
 - 参与列表排除自建帖：`played-threads` 只返回被其他楼主标记为玩家的帖，自建帖归入「创建的帖子」（后端 `4ed5449` 同步）
 
 **后续迭代：**
@@ -27,7 +28,7 @@
 | `/me` | 我的资料编辑（Bio/隐私开关/账号安全入口） | Auth（仅本人） |
 | `/me/password` | 修改密码（成功后登出跳登录） | Auth（仅本人） |
 | `/me/email` | 更换邮箱（当前密码二次认证 + 验证码） | Auth（仅本人） |
-| `/me/security` | 活跃设备远程登出、黑名单管理、注销账号 | Auth（仅本人） |
+| `/me/security` | Web / 移动端登录终端管理、黑名单管理、注销账号 | Auth（仅本人） |
 
 > 草稿箱不占独立路由：未发布帖列表收进 `/threads/create` 的草稿选择器（原 `/drafts` 路由已删除，入口迁移见 `docs/modules/thread-create.md`）。
 
@@ -39,7 +40,7 @@
 | PATCH | `/users/me` | Auth | 修改资料（username/bio/隐私开关），5次/分钟限流，需邮箱已验证 |
 | PATCH | `/users/me/avatar` | Auth | 设置头像（传入 mediaId），需邮箱已验证 |
 | DELETE | `/users/me/avatar` | Auth | 移除头像（置空 avatar，回到首字母占位），需邮箱已验证 |
-| POST | `/auth/change-password` | AuthRead | 修改密码（旧+新），成功后吊销全部会话强制重新登录 |
+| POST | `/auth/change-password` | AuthRead | 修改密码（旧+新），成功后退出全部登录终端并强制重新登录 |
 | POST | `/auth/change-email/request-code` | Auth | 更换邮箱第一步：校验当前密码后向新邮箱发送验证码 |
 | POST | `/auth/change-email/verify` | Auth | 更换邮箱第二步：验证码确认并更新邮箱 |
 | GET | `/users/:id` | OptionalAuth | 用户公开资料；登录态额外返回 isFollowing/isFollowedBy/isBlocked/isBlockedBy |
@@ -53,9 +54,9 @@
 | POST | `/users/me/block/:id` | Auth | 拉黑（幂等 upsert） |
 | DELETE | `/users/me/block/:id` | Auth | 取消拉黑 |
 | GET | `/users/me/blocks` | AuthRead | 我的黑名单 |
-| GET | `/auth/sessions` | AuthRead | 当前用户所有活跃设备会话 |
-| DELETE | `/auth/sessions/:id` | AuthRead | 撤销指定设备会话 |
-| DELETE | `/users/me` | Auth | 注销账号并吊销全部会话 |
+| GET | `/auth/sessions` | AuthRead | 当前用户活跃登录终端（Web / 移动端最多各一条） |
+| DELETE | `/auth/sessions/:id` | AuthRead | 退出指定登录终端 |
+| DELETE | `/users/me` | Auth | 注销账号并退出全部登录终端 |
 | GET | `/threads/draft` | AuthRead | 我的未发布帖列表（草稿箱） |
 | DELETE | `/threads/:id` | Auth | 删除草稿（草稿箱操作） |
 
@@ -173,6 +174,29 @@
 { "code": 0, "message": "ok", "data": { "message": "已取消拉黑" } }
 ```
 
+### GET /auth/sessions → 登录终端[]
+
+```json
+{
+  "code": 0,
+  "message": "ok",
+  "data": [
+    {
+      "id": "<stable-terminal-id>",
+      "platform": "web",
+      "deviceInfo": "<deprecated-raw-user-agent>",
+      "isCurrent": true,
+      "signedInAt": "2026-08-05T09:00:00.000Z",
+      "lastActiveAt": "2026-08-05T09:15:00.000Z",
+      "expiresAt": "2026-08-12T09:15:00.000Z",
+      "createdAt": "2026-08-05T09:00:00.000Z"
+    }
+  ]
+}
+```
+
+界面只依据 `platform` 映射“Web 端登录”或“移动端登录”，不展示已废弃的 `deviceInfo` 原始 UA。`id` 在 refresh token 轮转期间稳定；`signedInAt` 是本次终端登录时间，`lastActiveAt` 是最近登录/刷新时间，`createdAt` 仅为旧客户端兼容别名。
+
 ### GET /threads/draft → Thread[]
 
 ```json
@@ -190,8 +214,10 @@
 | 我的资料 | `GET /users/me` | TanStack Query `useQuery` |
 | 草稿列表 | `GET /threads/draft` | TanStack Query `useQuery`（queryKey `["drafts"]`） |
 | 关注/拉黑状态 | 用户资料中的 isFollowing/isBlocked | `useMutation` + 失效 `["user", id]` |
-| 活跃会话 | `GET /auth/sessions` | `useQuery(["auth-sessions"])`，仅返回未撤销且未过期会话；429 不自动重试，撤销成功后本地移除缓存项 |
-| 黑名单 | `GET /users/me/blocks` | `useQuery(["blocked-users"])`，取消拉黑后失效缓存 |
+| 登录终端 | `GET /auth/sessions` | `useQuery(["auth-sessions", userId])`；`staleTime=0` 且每次挂载重新读取，429 不自动重试，退出成功后按稳定终端 ID 从缓存移除 |
+| 黑名单 | `GET /users/me/blocks` | `useQuery(["blocked-users", userId])`，取消拉黑后失效缓存 |
+
+登录终端与黑名单的 query key 包含当前用户 ID；AuthContext 中用户身份变化时，根 Provider 还会重新创建 QueryClient，从缓存容器层阻断其他私有数据在账号切换后串用。
 
 ## 6. 组件清单
 
@@ -227,8 +253,8 @@
 | useDrafts | `src/api/hooks/use-drafts.ts` | 草稿列表 hook |
 | UserProfilePage | `src/app/users/[id]/page.tsx` | 用户主页 |
 | MePage | `src/app/me/page.tsx` | 我的资料编辑 |
-| AccountSecurityPanel | `src/components/user/account-security-panel.tsx` | 会话、黑名单和账号注销三块安全操作 |
-| useAccountSecurity | `src/api/hooks/use-account-security.ts` | 会话列表/撤销、黑名单/取消拉黑、注销账号 hooks |
+| AccountSecurityPanel | `src/components/user/account-security-panel.tsx` | 双端登录终端、黑名单和账号注销三块安全操作；当前终端不可远程退出 |
+| useAccountSecurity | `src/api/hooks/use-account-security.ts` | 登录终端列表/退出、黑名单/取消拉黑、注销账号 hooks |
 
 ## 7. 表单与校验
 
@@ -291,7 +317,9 @@ showRecentReplies / showPlayerBadges / showBookmarks: boolean
 - [x] 全站 `/users/{id}` 链接可正常跳转
 - [x] 草稿箱（`/threads/create` 草稿列表）列出我的未发布帖，可跳转编辑、可删除
 - [x] `/me` 修改用户名/Bio/隐私开关，错误码映射正确
-- [x] `/me/security` 可查看并撤销其他设备会话
+- [x] `/me/security` 以“Web 端登录/移动端登录”展示双端登录终端，不显示原始 UA
+- [x] `/me/security` 正确标记当前终端，并可退出另一登录终端
+- [x] 登录终端登录时间在 token 轮转后保持不变，账号切换不复用旧账号缓存
 - [x] `/me/security` 可查看黑名单并取消拉黑
 - [x] 输入确认文字后可注销账号并清空登录态
 - [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` 通过
@@ -310,4 +338,5 @@ showRecentReplies / showPlayerBadges / showBookmarks: boolean
 - [x] 切片8：`useMe` / `useUpdateProfile` hooks + `/me` 我的资料
 - [x] 同步后端 `created-threads`：useUserCreatedThreads hook + UserThreadList 共享组件 + /users/[id] 创建列表
 - [x] 关注/粉丝列表：后端公开端点（/users/:id/following + /followers）+ useUserFollowList + UserFollowList + 子页面
+- [x] 登录终端高风险切片：友好平台文案、当前终端识别、稳定 ID 退出、加载/错误/空态、按用户隔离缓存；组件/hook 单测 + 后端真实 PostgreSQL 双端 E2E
 - [ ] 质量检查 + 文档同步 + 提交推送

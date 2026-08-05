@@ -213,8 +213,8 @@ export function ProfileEditForm() {
               className="flex items-center justify-between rounded-lg px-3 py-3 transition-colors hover:bg-muted/50"
             >
               <div>
-                <p className="text-sm font-medium text-foreground">设备与账号安全</p>
-                <p className="text-xs text-muted-foreground">管理登录设备、黑名单和账号注销</p>
+                <p className="text-sm font-medium text-foreground">登录终端与账号安全</p>
+                <p className="text-xs text-muted-foreground">管理登录终端、黑名单和账号注销</p>
               </div>
               <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
             </Link>

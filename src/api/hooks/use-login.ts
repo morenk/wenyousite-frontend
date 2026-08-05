@@ -2,28 +2,9 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import type { components } from "@/api/types";
 
-interface LoginRequest {
-  account: string;
-  password: string;
-}
-
-interface LoginResponse {
-  code: number;
-  message?: string;
-  data: {
-    accessToken: string;
-    refreshToken: string;
-    user: {
-      id: string;
-      email: string;
-      username: string;
-      avatar: string | null;
-      role: string;
-      emailVerified: boolean;
-    };
-  };
-}
+type LoginRequest = components["schemas"]["LoginDto"];
 
 export function useLogin() {
   const queryClient = useQueryClient();
@@ -33,7 +14,8 @@ export function useLogin() {
         body: req,
       });
       if (error) throw error;
-      return data as unknown as LoginResponse;
+      if (!data) throw new Error("登录响应为空");
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });

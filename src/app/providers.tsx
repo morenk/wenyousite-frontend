@@ -3,9 +3,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import { useState } from "react";
-import { AuthProvider } from "@/lib/auth";
+import { AuthProvider, useAuth } from "@/lib/auth";
 
-export function Providers({ children }: { children: React.ReactNode }) {
+function UserQueryClientProvider({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -19,18 +19,30 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 
   return (
+    <QueryClientProvider client={queryClient}>
+      {children}
+      <Toaster
+        position="top-center"
+        richColors
+        closeButton
+        toastOptions={{
+          className: "rounded-xl border-border shadow-lg",
+        }}
+      />
+    </QueryClientProvider>
+  );
+}
+
+function IdentityScopedQueries({ children }: { children: React.ReactNode }) {
+  const { user, isInitialized } = useAuth();
+  const identity = isInitialized ? (user?.id ?? "anonymous") : "initializing";
+  return <UserQueryClientProvider key={identity}>{children}</UserQueryClientProvider>;
+}
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
     <AuthProvider>
-      <QueryClientProvider client={queryClient}>
-        {children}
-        <Toaster
-          position="top-center"
-          richColors
-          closeButton
-          toastOptions={{
-            className: "rounded-xl border-border shadow-lg",
-          }}
-        />
-      </QueryClientProvider>
+      <IdentityScopedQueries>{children}</IdentityScopedQueries>
     </AuthProvider>
   );
 }

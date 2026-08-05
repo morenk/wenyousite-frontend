@@ -1,6 +1,6 @@
 /** api client 401 会话过期判定测试 */
 
-import { beforeEach, describe, test, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, test, expect, vi } from "vitest";
 import {
   createAuthenticatedFetch,
   isSessionExpired401,
@@ -9,6 +9,10 @@ import {
 beforeEach(() => {
   localStorage.clear();
   vi.restoreAllMocks();
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
 });
 
 describe("isSessionExpired401", () => {
@@ -122,5 +126,69 @@ describe("createAuthenticatedFetch", () => {
 
     expect(responses.map((response) => response.status)).toEqual([200, 200]);
     expect(refreshCalls).toBe(1);
+  });
+
+  test("其他标签页已完成刷新时复用新 access token，不重复轮转 refresh token", async () => {
+    localStorage.setItem("accessToken", "old-token");
+    localStorage.setItem("user", JSON.stringify({ id: "u1" }));
+    let refreshCalls = 0;
+    const fetchImpl = vi.fn<typeof fetch>(async (input) => {
+      const request = new Request(input);
+      if (request.url.endsWith("/auth/refresh")) {
+        refreshCalls += 1;
+        return new Response(null, { status: 500 });
+      }
+      return new Response(null, {
+        status: request.headers.get("Authorization") === "Bearer old-token" ? 401 : 200,
+      });
+    });
+    vi.stubGlobal("navigator", {
+      locks: {
+        request: async (_name: string, callback: () => Promise<unknown>) => {
+          localStorage.setItem("accessToken", "token-from-other-tab");
+          return callback();
+        },
+      },
+    });
+
+    const authenticatedFetch = createAuthenticatedFetch(fetchImpl);
+    const response = await authenticatedFetch(
+      new Request("https://wenyou.site/api/v1/notifications", {
+        headers: { Authorization: "Bearer old-token" },
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(refreshCalls).toBe(0);
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    expect(new Request(fetchImpl.mock.calls[1][0]).headers.get("Authorization"))
+      .toBe("Bearer token-from-other-tab");
+  });
+
+  test("等待跨标签页刷新期间切换账号时不重放旧请求或清除新账号", async () => {
+    localStorage.setItem("accessToken", "old-token");
+    localStorage.setItem("user", JSON.stringify({ id: "u1" }));
+    const fetchImpl = vi.fn<typeof fetch>(async () => new Response(null, { status: 401 }));
+    vi.stubGlobal("navigator", {
+      locks: {
+        request: async (_name: string, callback: () => Promise<unknown>) => {
+          localStorage.setItem("accessToken", "token-u2");
+          localStorage.setItem("user", JSON.stringify({ id: "u2" }));
+          return callback();
+        },
+      },
+    });
+
+    const authenticatedFetch = createAuthenticatedFetch(fetchImpl);
+    const response = await authenticatedFetch(
+      new Request("https://wenyou.site/api/v1/notifications", {
+        headers: { Authorization: "Bearer old-token" },
+      }),
+    );
+
+    expect(response.status).toBe(401);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(localStorage.getItem("accessToken")).toBe("token-u2");
+    expect(JSON.parse(localStorage.getItem("user") ?? "{}").id).toBe("u2");
   });
 });

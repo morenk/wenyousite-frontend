@@ -13,8 +13,8 @@ const replace = vi.fn();
 const refresh = vi.fn();
 const sessionQuery = vi.hoisted(() => ({
   data: [
-    { id: "current", platform: "web", deviceInfo: "当前 Chrome", isCurrent: true, createdAt: "2026-08-01T00:00:00Z", expiresAt: "2026-08-08T00:00:00Z" },
-    { id: "remote", platform: "web", deviceInfo: "远程 Firefox", isCurrent: false, createdAt: "2026-08-01T00:00:00Z", expiresAt: "2026-08-08T00:00:00Z" },
+    { id: "current", platform: "web", deviceInfo: "Mozilla/5.0 raw-web-ua", isCurrent: true, signedInAt: "2026-08-01T00:00:00Z", lastActiveAt: "2026-08-01T01:00:00Z", createdAt: "2026-08-01T00:00:00Z", expiresAt: "2026-08-08T00:00:00Z" },
+    { id: "remote", platform: "mobile", deviceInfo: "Dart/3 raw-mobile-ua", isCurrent: false, signedInAt: "2026-08-02T00:00:00Z", lastActiveAt: "2026-08-02T01:00:00Z", createdAt: "2026-08-02T00:00:00Z", expiresAt: "2026-09-01T00:00:00Z" },
   ] as Array<Record<string, unknown>>,
   isLoading: false,
   error: null as unknown,
@@ -33,7 +33,7 @@ vi.mock("@/api/hooks/use-account-security", () => ({
   useDeleteAccount: () => ({ mutateAsync: deleteMutate, isPending: false }),
 }));
 
-vi.mock("@/lib/auth", () => ({ useAuth: () => ({ logout }) }));
+vi.mock("@/lib/auth", () => ({ useAuth: () => ({ logout, user: { id: "u1" } }) }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ replace, refresh }) }));
 vi.mock("next/link", () => ({
   default: ({ href, children }: { href: string; children: React.ReactNode }) => <a href={href}>{children}</a>,
@@ -42,8 +42,8 @@ vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 beforeEach(() => {
   sessionQuery.data = [
-    { id: "current", platform: "web", deviceInfo: "当前 Chrome", isCurrent: true, createdAt: "2026-08-01T00:00:00Z", expiresAt: "2026-08-08T00:00:00Z" },
-    { id: "remote", platform: "web", deviceInfo: "远程 Firefox", isCurrent: false, createdAt: "2026-08-01T00:00:00Z", expiresAt: "2026-08-08T00:00:00Z" },
+    { id: "current", platform: "web", deviceInfo: "Mozilla/5.0 raw-web-ua", isCurrent: true, signedInAt: "2026-08-01T00:00:00Z", lastActiveAt: "2026-08-01T01:00:00Z", createdAt: "2026-08-01T00:00:00Z", expiresAt: "2026-08-08T00:00:00Z" },
+    { id: "remote", platform: "mobile", deviceInfo: "Dart/3 raw-mobile-ua", isCurrent: false, signedInAt: "2026-08-02T00:00:00Z", lastActiveAt: "2026-08-02T01:00:00Z", createdAt: "2026-08-02T00:00:00Z", expiresAt: "2026-09-01T00:00:00Z" },
   ];
   sessionQuery.isLoading = false;
   sessionQuery.error = null;
@@ -63,13 +63,17 @@ afterEach(() => {
 });
 
 describe("AccountSecurityPanel", () => {
-  test("展示会话和黑名单，并执行撤销与取消拉黑", async () => {
+  test("以友好终端文案展示双端登录且不泄露原始 UA", async () => {
     const user = userEvent.setup();
     render(<AccountSecurityPanel />);
 
-    expect(screen.getByText("当前 Chrome")).toBeInTheDocument();
+    expect(screen.getByText("Web 端登录")).toBeInTheDocument();
+    expect(screen.getByText("移动端登录")).toBeInTheDocument();
+    expect(screen.getByText("当前终端")).toBeInTheDocument();
+    expect(screen.queryByText(/Mozilla\/5\.0/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Dart\/3/)).not.toBeInTheDocument();
     expect(screen.getByText("用户二")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "远程登出" }));
+    await user.click(screen.getByRole("button", { name: "退出登录" }));
     await user.click(screen.getByRole("button", { name: "取消拉黑" }));
     expect(revokeMutate).toHaveBeenCalledWith("remote");
     expect(unblockMutate).toHaveBeenCalledWith("u2");
@@ -96,8 +100,24 @@ describe("AccountSecurityPanel", () => {
     render(<AccountSecurityPanel />);
 
     expect(screen.getByText("操作太频繁，请稍后再试")).toBeInTheDocument();
-    expect(screen.queryByText("设备会话加载失败")).not.toBeInTheDocument();
+    expect(screen.queryByText("登录终端加载失败")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "重新加载" }));
     expect(sessionQuery.refetch).toHaveBeenCalledTimes(1);
+  });
+
+  test("旧后端缺少新时间字段时回退到 createdAt", () => {
+    sessionQuery.data = [{
+      id: "legacy",
+      platform: "web",
+      deviceInfo: "legacy raw UA",
+      isCurrent: true,
+      createdAt: "2026-08-03T02:04:00Z",
+      expiresAt: "2026-08-10T02:04:00Z",
+    }];
+
+    render(<AccountSecurityPanel />);
+
+    expect(screen.getByText(/登录于 2026-08-03 02:04 · 最近活动 2026-08-03 02:04/)).toBeInTheDocument();
+    expect(screen.queryByText(/legacy raw UA/)).not.toBeInTheDocument();
   });
 });

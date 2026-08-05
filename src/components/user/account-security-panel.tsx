@@ -1,4 +1,4 @@
-/** 账号安全面板：管理设备会话、黑名单和账号注销 */
+/** 账号安全面板：管理双端登录终端、黑名单和账号注销 */
 
 "use client";
 
@@ -7,9 +7,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { Loader2, RefreshCw } from "lucide-react";
+import { Loader2, Monitor, RefreshCw, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
+import { getLoginTerminalLabel } from "@/lib/session-display";
 import {
   useAccountSessions,
   useBlockedUsers,
@@ -28,25 +29,25 @@ function formatTime(value: string) {
 
 function getSessionErrorMessage(error: unknown) {
   const code = (error as { code?: number } | null)?.code;
-  return code === 42900 ? "操作太频繁，请稍后再试" : "设备会话加载失败";
+  return code === 42900 ? "操作太频繁，请稍后再试" : "登录终端加载失败";
 }
 
 export function AccountSecurityPanel() {
   const router = useRouter();
-  const { logout } = useAuth();
-  const sessions = useAccountSessions();
-  const blockedUsers = useBlockedUsers();
-  const revokeSession = useRevokeSession();
-  const unblockUser = useUnblockUser();
+  const { logout, user } = useAuth();
+  const sessions = useAccountSessions(user?.id);
+  const blockedUsers = useBlockedUsers(user?.id);
+  const revokeSession = useRevokeSession(user?.id);
+  const unblockUser = useUnblockUser(user?.id);
   const deleteAccount = useDeleteAccount();
   const [confirmation, setConfirmation] = useState("");
 
   async function handleRevoke(sessionId: string) {
     try {
       await revokeSession.mutateAsync(sessionId);
-      toast.success("设备会话已撤销");
+      toast.success("登录终端已退出");
     } catch (error: unknown) {
-      toast.error((error as { message?: string }).message || "撤销失败，请稍后重试");
+      toast.error((error as { message?: string }).message || "退出失败，请稍后重试");
     }
   }
 
@@ -76,7 +77,7 @@ export function AccountSecurityPanel() {
   return (
     <div className="space-y-5">
       <Card>
-        <CardHeader><CardTitle>登录设备</CardTitle></CardHeader>
+        <CardHeader><CardTitle>登录终端</CardTitle></CardHeader>
         <CardContent>
           {sessions.isLoading ? (
             <Loader2 className="mx-auto h-5 w-5 animate-spin text-muted-foreground" />
@@ -96,14 +97,24 @@ export function AccountSecurityPanel() {
             <ul className="divide-y divide-border">
               {sessions.data.map((session) => (
                 <li key={session.id} className="flex items-center justify-between gap-4 py-3">
-                  <div>
-                    <p className="text-sm font-medium">
-                      {session.deviceInfo || session.platform}
-                      {session.isCurrent && <span className="ml-2 text-xs text-primary">当前设备</span>}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      登录于 {formatTime(session.createdAt)} · 到期 {formatTime(session.expiresAt)}
-                    </p>
+                  <div className="flex min-w-0 items-start gap-3">
+                    {session.platform === "mobile" ? (
+                      <Smartphone aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
+                    ) : (
+                      <Monitor aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
+                    )}
+                    <div>
+                      <p className="text-sm font-medium">
+                        {getLoginTerminalLabel(session.platform)}
+                        {session.isCurrent && <span className="ml-2 text-xs text-primary">当前终端</span>}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        登录于 {formatTime(session.signedInAt ?? session.createdAt)} · 最近活动 {formatTime(session.lastActiveAt ?? session.createdAt)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        有效期至 {formatTime(session.expiresAt)}
+                      </p>
+                    </div>
                   </div>
                   {!session.isCurrent && (
                     <Button
@@ -112,14 +123,14 @@ export function AccountSecurityPanel() {
                       disabled={revokeSession.isPending}
                       onClick={() => handleRevoke(session.id)}
                     >
-                      远程登出
+                      退出登录
                     </Button>
                   )}
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-muted-foreground">暂无活跃会话</p>
+            <p className="text-sm text-muted-foreground">暂无活跃登录终端</p>
           )}
         </CardContent>
       </Card>
@@ -160,7 +171,7 @@ export function AccountSecurityPanel() {
         <CardHeader><CardTitle className="text-destructive">注销账号</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            注销后账号、登录会话和身份信息将无法恢复。请输入“注销账号”确认。
+            注销后账号、登录终端和身份信息将无法恢复。请输入“注销账号”确认。
           </p>
           <div className="flex max-w-md gap-2">
             <Input

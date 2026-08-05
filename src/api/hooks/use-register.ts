@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import type { components } from "@/api/types";
 
 interface RequestCodeResponse {
   code: number;
@@ -26,29 +27,7 @@ export function useSendRegisterCode() {
   });
 }
 
-interface RegisterCompleteRequest {
-  email: string;
-  code: string;
-  username: string;
-  password: string;
-}
-
-interface RegisterResponse {
-  code: number;
-  message?: string;
-  data: {
-    accessToken: string;
-    refreshToken: string;
-    user: {
-      id: string;
-      email: string;
-      username: string;
-      avatar: string | null;
-      role: string;
-      emailVerified: boolean;
-    };
-  };
-}
+type RegisterCompleteRequest = components["schemas"]["VerifyAndCompleteDto"];
 
 export function useRegisterComplete() {
   const queryClient = useQueryClient();
@@ -59,7 +38,8 @@ export function useRegisterComplete() {
         { body: req },
       );
       if (error) throw error;
-      return data as unknown as RegisterResponse;
+      if (!data) throw new Error("注册响应为空");
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });

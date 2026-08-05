@@ -37,7 +37,7 @@ export function ChangePasswordForm() {
         newPassword: values.newPassword,
       });
       toast.success("密码已修改，请重新登录");
-      // 后端已吊销全部 refresh token，当前会话强制下线
+      // 后端已吊销全部 refresh token，所有登录终端强制退出
       logout();
       router.replace("/login");
     } catch (err) {

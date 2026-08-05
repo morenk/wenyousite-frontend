@@ -13,7 +13,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "generate:api": "openapi-typescript http://127.0.0.1:3000/api/docs-json -o src/api/types.ts",
+    "generate:api": "pnpm --dir ../wenyousite-backend openapi:export /tmp/wenyousite-openapi.json && openapi-typescript /tmp/wenyousite-openapi.json -o src/api/types.ts",
     "snapshots:check": "tsx scripts/check-api-snapshots.ts",
     "snapshots:sanitize": "tsx scripts/sanitize-api-snapshots.ts",
     "snapshots:verify": "tsx scripts/api-verify.ts",

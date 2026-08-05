@@ -71,7 +71,7 @@ pnpm test:watch   # vitest watch 模式
 pnpm test:e2e     # Playwright E2E（需 E2E_ENV=test，独立使用 3101 端口）
 pnpm check        # 唯一质量门禁：lint + typecheck + test + 快照/文档检查 + build
 pnpm check:full   # 发布前完整门禁：check + 本机 E2E
-pnpm generate:api # 需要后端已启动
+pnpm generate:api # 从相邻后端源码离线导出 OpenAPI 并生成类型，无需启动服务
 ```
 
 当前 ESLint 历史基线为 1 个 React Compiler warning，`pnpm lint` 使用 `--max-warnings 1` 作为债务棘轮：新改动不得增加 warning；修复后应将基线降为 0。
@@ -82,7 +82,7 @@ pnpm generate:api # 需要后端已启动
 
 - 统一使用 `src/api/client.ts` 中的 `apiClient`。
 - 不要在页面里直接调用 `fetch`，统一走 TanStack Query hooks。
-- 后端运行后执行 `pnpm generate:api` 生成 `src/api/types.ts`。
+- 执行 `pnpm generate:api` 从相邻后端源码离线导出 OpenAPI 并生成 `src/api/types.ts`，无需启动后端或连接数据库/Redis。
 - 错误码和前端行为按后端仓库 `wenyousite-backend/docs/frontend-guide.md` 与 `wenyousite-backend/src/common/exceptions/error-codes.ts` 对齐。
 - **OpenAPI 是 API 结构契约的唯一事实源**：请求、成功响应、错误 envelope、可选字段、nullability 和枚举必须由 Swagger DTO 描述，并通过 `openapi-typescript` 生成。不得重复手写已经存在的生成类型。
 - **运行时快照是验证样例，不是类型定义**：用于发现 Swagger 与真实实现不一致、记录关键状态样例；快照缺少某字段不代表字段不存在。
@@ -146,7 +146,7 @@ pnpm generate:api # 需要后端已启动
 | `/me` | 我的资料 |
 | `/me/password` | 修改密码 |
 | `/me/email` | 修改邮箱 |
-| `/me/security` | 设备会话、黑名单与账号注销 |
+| `/me/security` | 双端登录终端、黑名单与账号注销 |
 | `/join/[token]` | 私密帖邀请预览与加入 |
 | `/threads/[id]/posts/[postId]/replies` | 独立楼中楼阅读页 |
 

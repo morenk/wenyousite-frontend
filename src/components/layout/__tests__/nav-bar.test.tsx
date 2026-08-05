@@ -1,10 +1,15 @@
 /** NavBar 测试：登录状态导航与收藏入口布局 */
 
-import { afterEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { NavBar } from "@/components/layout/nav-bar";
 
-const { mockUseAuth } = vi.hoisted(() => ({ mockUseAuth: vi.fn() }));
+const { mockUseAuth, mockPOST, mockToastError } = vi.hoisted(() => ({
+  mockUseAuth: vi.fn(),
+  mockPOST: vi.fn(),
+  mockToastError: vi.fn(),
+}));
 
 vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: { children: React.ReactNode; href: string }) => (
@@ -25,8 +30,16 @@ vi.mock("@/api/hooks/use-unread-count", () => ({
 }));
 
 vi.mock("@/api/client", () => ({
-  apiClient: { POST: vi.fn() },
+  apiClient: { POST: mockPOST },
 }));
+
+vi.mock("sonner", () => ({
+  toast: { success: vi.fn(), error: mockToastError },
+}));
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
 afterEach(() => cleanup());
 
@@ -46,5 +59,17 @@ describe("NavBar", () => {
 
     expect(screen.getByRole("link", { name: "登录" })).toHaveAttribute("href", "/login");
     expect(screen.getByRole("link", { name: "注册" })).toHaveAttribute("href", "/register");
+  });
+
+  test("服务端未能撤销终端时保留本地登录态并提示重试", async () => {
+    const logout = vi.fn();
+    mockUseAuth.mockReturnValue({ user: { id: "u1", username: "用户" }, logout });
+    mockPOST.mockResolvedValue({ data: undefined, error: { message: "network" } });
+    render(<NavBar />);
+
+    await userEvent.click(screen.getByRole("button", { name: "退出" }));
+
+    expect(logout).not.toHaveBeenCalled();
+    expect(mockToastError).toHaveBeenCalledWith("退出失败，请检查网络后重试");
   });
 });

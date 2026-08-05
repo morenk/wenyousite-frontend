@@ -132,7 +132,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 修改密码（需旧密码），成功后吊销全部 refresh token 强制所有设备重新登录 */
+        /** 修改密码（需旧密码），成功后退出全部登录终端 */
         post: operations["AuthController_changePassword"];
         delete?: never;
         options?: never;
@@ -217,7 +217,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 登出：撤销指定设备的 refresh token（Cookie 优先），同时清除客户端 Cookie */
+        /** 登出：撤销当前登录终端的 refresh token（Cookie 优先），同时清除客户端 Cookie */
         post: operations["AuthController_logout"];
         delete?: never;
         options?: never;
@@ -232,7 +232,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 获取当前用户所有活跃会话列表（限流 60 次/分钟） */
+        /** 获取当前用户的 Web / 移动客户端活跃登录终端（限流 60 次/分钟） */
         get: operations["AuthController_listSessions"];
         put?: never;
         post?: never;
@@ -252,7 +252,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** 撤销指定会话（远程登出设备，限流 60 次/分钟） */
+        /** 退出指定登录终端（限流 60 次/分钟） */
         delete: operations["AuthController_revokeSession"];
         options?: never;
         head?: never;
@@ -1413,7 +1413,7 @@ export interface components {
              * @description 头像 URL
              * @example https://cdn.example.com/avatars/abc.jpg
              */
-            avatar?: Record<string, never> | null;
+            avatar: string | null;
             /**
              * @description 用户角色（USER / ADMIN / SUPER_ADMIN）
              * @example USER
@@ -1432,12 +1432,17 @@ export interface components {
              */
             accessToken: string;
             /**
-             * @description 刷新令牌（web 7 天 / mobile 30 天有效期），用于 /auth/refresh 刷新 accessToken
+             * @description 仅移动客户端返回；Web 端通过 httpOnly Cookie 接收（mobile 30 天有效期）
              * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
              */
-            refreshToken: string;
+            refreshToken?: string;
             /** @description 当前登录用户信息 */
             user: components["schemas"]["UserProfile"];
+            /**
+             * @description 仅完成注册时返回的提示文案
+             * @example 注册成功
+             */
+            message?: string;
         };
         LoginDto: {
             /**
@@ -1538,6 +1543,59 @@ export interface components {
              * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
              */
             refreshToken?: string;
+        };
+        SessionResponseDto: {
+            /**
+             * @description 稳定的登录终端标识；refresh token 轮转时保持不变
+             * @example 80c3c7f7-4eb2-4747-8e27-a5ea6bc64167
+             */
+            id: string;
+            /**
+             * @description 终端平台：web=浏览器，mobile=原生移动客户端
+             * @example web
+             * @enum {string}
+             */
+            platform: "web" | "mobile";
+            /**
+             * @deprecated
+             * @description 原始客户端标识，仅为旧客户端兼容保留；界面不得直接展示
+             * @example Mozilla/5.0 ...
+             */
+            deviceInfo: string | null;
+            /**
+             * @description 是否为发起当前请求的登录终端
+             * @example true
+             */
+            isCurrent: boolean;
+            /**
+             * Format: date-time
+             * @description 本次终端登录的开始时间，refresh token 轮转时保持不变
+             * @example 2026-08-05T09:00:00.000Z
+             */
+            signedInAt: string;
+            /**
+             * Format: date-time
+             * @description 最近一次登录或令牌续期时间
+             * @example 2026-08-05T09:15:00.000Z
+             */
+            lastActiveAt: string;
+            /**
+             * Format: date-time
+             * @description 当前 refresh token 的过期时间
+             * @example 2026-08-12T09:15:00.000Z
+             */
+            expiresAt: string;
+            /**
+             * Format: date-time
+             * @deprecated
+             * @description 兼容旧客户端的登录时间别名；新客户端请使用 signedInAt
+             * @example 2026-08-05T09:00:00.000Z
+             */
+            createdAt: string;
+        };
+        RevokeSessionResponseDto: {
+            /** @example 登录终端已退出 */
+            message: string;
         };
         MentionCandidateDto: {
             id: string;
@@ -2298,7 +2356,10 @@ export interface operations {
     AuthController_verifyAndComplete: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 客户端类型：web（PC/手机浏览器）或 mobile（原生移动端） */
+                "X-Client-Platform"?: "web" | "mobile";
+            };
             path?: never;
             cookie?: never;
         };
@@ -2308,7 +2369,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description 注册成功返回双 Token（同时 set-Cookie refreshToken）和 user 信息 */
+            /** @description 注册成功；Web 通过 httpOnly Cookie 接收 refresh token，移动客户端从响应体接收 */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2338,7 +2399,10 @@ export interface operations {
     AuthController_login: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 客户端类型：web（PC/手机浏览器）或 mobile（原生移动端） */
+                "X-Client-Platform"?: "web" | "mobile";
+            };
             path?: never;
             cookie?: never;
         };
@@ -2348,7 +2412,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description 登录成功返回双 Token（同时 set-Cookie refreshToken）和 user 信息 */
+            /** @description 登录成功；Web 通过 httpOnly Cookie 接收 refresh token，移动客户端从响应体接收 */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2361,13 +2425,6 @@ export interface operations {
             };
             /** @description 账号或密码错误 或 账号被锁定 */
             401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description 邮箱未注册 */
-            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2388,7 +2445,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description 刷新成功，旧 token 注销，签发新双 Token（set-Cookie 新 refreshToken） */
+            /** @description 刷新成功；平台沿用服务端会话记录，不信任请求头 */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2399,7 +2456,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description refreshToken 无效/过期/已被盗用（盗用时全设备强制登出） */
+            /** @description refreshToken 无效/过期/已被盗用（确认重放时对应登录终端退出） */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -2530,13 +2587,6 @@ export interface operations {
                         data: unknown;
                     };
                 };
-            };
-            /** @description 邮箱未注册 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -2688,18 +2738,18 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 当前用户所有未撤销且未过期的活跃会话列表 */
+            /** @description 最多返回 Web 与移动客户端各一个活跃登录终端 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["SessionResponseDto"][];
                     };
                 };
             };
-            /** @description 请求频繁，请稍后重试（会话列表独立限流 60 次/分钟） */
+            /** @description 请求频繁，请稍后重试（登录终端列表独立限流 60 次/分钟） */
             429: {
                 headers: {
                     [name: string]: unknown;
@@ -2719,18 +2769,25 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 会话已撤销 */
+            /** @description 指定登录终端已退出 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["RevokeSessionResponseDto"];
                     };
                 };
             };
-            /** @description 请求频繁，请稍后重试（远程撤销独立限流 60 次/分钟） */
+            /** @description 登录终端不存在或已失效 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 请求频繁，请稍后重试（退出登录终端独立限流 60 次/分钟） */
             429: {
                 headers: {
                     [name: string]: unknown;

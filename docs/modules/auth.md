@@ -5,6 +5,7 @@
 实现用户注册（两步：请求验证码 → 验证码+用户名密码完成注册）、登录、登出、忘记密码、重置密码、邮箱验证的全流程 UI。
 
 **本次迭代范围：**
+- 发布批次标识：`auth-login-terminal-2026-08-05`（与后端模块文档一致）
 - [x] 登录页面 `/login`
 - [x] 注册页面 `/register`
 - [x] 忘记密码页面 `/forgot-password`
@@ -14,7 +15,10 @@
 - [x] Zod 校验 schema 抽取
 - [x] TanStack Query API hooks 抽取
 - [x] Access Token 过期后使用 httpOnly refresh cookie 单飞刷新并重放原请求
-- [x] 登出时检查服务端错误，确保 refresh cookie 与设备会话被撤销
+- [x] 使用 Web Locks 协调多个浏览器标签页的 refresh token 轮转
+- [x] 登出时检查服务端错误，确保 refresh cookie 与当前登录终端确实退出
+- [x] 双端登录：每个账号最多一个 Web 登录终端和一个原生移动端登录终端，PC/手机网页共用 Web 槽位
+- [x] 登录/注册使用 OpenAPI 生成请求与响应类型，Web 响应体不再假定存在 refresh token
 
 **后续迭代：**
 - 无
@@ -48,14 +52,16 @@
 | 状态 | 来源 | 存储 |
 |------|------|------|
 | `accessToken` | 登录/注册/刷新响应 | `localStorage` |
-| `refreshToken` | 登录/注册/刷新响应 | httpOnly Cookie（后端管理） |
+| `refreshToken` | 登录/注册/刷新响应的 `Set-Cookie` | 仅 httpOnly Cookie（后端管理，JavaScript 不可读） |
 | `user` 对象 | 登录/注册/刷新响应 | `localStorage` + AuthContext |
 | `isInitialized` | 客户端 hydration 完成标志 | AuthContext（server=false, client=true） |
 | `email`（注册第一步） | 用户输入，暂存 | 组件 state，第二步复用 |
 | 表单状态 | react-hook-form | 组件本地 |
 | 提交 loading | useState | 组件本地 |
 
-**缓存策略：** 注册/登录/刷新成功后直接写入 AuthContext + localStorage，不做 react-query 缓存。并发请求同时收到 401 时共享同一个刷新 Promise，避免 refresh token 被重复轮换；刷新成功后分别重放各自的原始请求，失败才清理登录态并跳转登录页。
+**刷新与缓存策略：** 注册/登录/刷新成功后直接写入 AuthContext + localStorage，不把认证响应放进 TanStack Query。单个标签页内的并发 401 共享同一个刷新 Promise；不同标签页通过名为 `wenyousite-auth-refresh` 的 Web Lock 串行刷新，后取得锁的标签页若发现 access token 已变化就直接复用，不再重复轮换。刷新成功后分别重放原请求；确认刷新失败才清理登录态并跳转登录页。
+
+TanStack Query 容器由当前认证身份隔离；登录账号变化时重新创建 QueryClient。登录终端、黑名单等敏感 hook 还会把用户 ID 放入 query key，双层避免私有数据跨账号短暂复用。
 
 ## 5. 组件清单
 
@@ -183,11 +189,10 @@ if (error) {
   toast.error(error.message || "操作失败");
   return;
 }
+// 处理 data
 ```
 
 > **401 拦截器例外**：`apiClient` 对携带 accessToken 的请求遇到 401 会先单飞调用 `/auth/refresh`，成功后重放原请求；刷新失败才清除登录态并跳转 `/login`。登录/注册/重置/验证码/改密/换邮箱等「业务 401」端点（`client.ts` 的 `BUSINESS_401_PATHS`）由页面自行 toast 提示，不触发刷新或跳转。
-// 处理 data
-```
 
 ## 8. 权限与访问控制
 
@@ -195,7 +200,7 @@ if (error) {
 |------|------|
 | 已登录用户访问 `/login`、`/register` 等 | `useEffect` 检测 user 存在，`router.replace("/")` |
 | 未登录用户访问需登录页面 | 暂不拦截（后续用 middleware），页面内 `useAuth` 判断；需等待 `isInitialized` 为 true 后再跳转，避免 hydration 期间误判 |
-| 登出 | 调 `POST /auth/logout` + 清除 localStorage + 跳转首页 |
+| 登出 | 调 `POST /auth/logout`；服务端成功后才清除 localStorage 并跳首页，失败则保留登录态并提示重试 |
 | verify-email 需登录 | 页面内 `useAuth` 检查 user，需等 `isInitialized` 后再跳转 `/login` |
 
 ## 9. 用户流程
@@ -237,10 +242,12 @@ Step2: 输入验证码 / 用户名 / 密码 / 确认密码 → 提交 → 成功
 - [x] 登出清除 token 并跳转首页
 - [x] access token 过期后可无感刷新并重放原请求
 - [x] 多个并发 401 只发起一次 refresh 请求
+- [x] 多标签页同时过期时串行刷新并复用另一标签页写入的新 access token
+- [x] 登录账号变化后不会复用上一个账号的私有 Query 缓存
 - [x] 已登录用户访问公开认证页自动跳转
 - [x] 所有错误状态有 toast 提示
 - [x] 提交按钮有 loading 状态
-- [x] `pnpm lint && pnpm typecheck && pnpm build` 全部通过
+- [x] `pnpm check` 全部通过
 
 ## 11. 子任务
 
@@ -254,5 +261,14 @@ Step2: 输入验证码 / 用户名 / 密码 / 确认密码 → 提交 → 成功
 - [x] 实现 /reset-password（重置密码）
 - [x] 实现 /verify-email（邮箱验证）
 - [x] 实现 NavBar（全局导航栏 + 登出）
+- [x] 高风险认证切片：Web refresh cookie-only、多标签页单飞、账号切换缓存隔离；单元测试覆盖，跨端行为由后端 `pnpm test:e2e:auth-terminal` 在真实 PostgreSQL 临时 Schema 验证
 - [x] 同步更新文档
-- [x] lint / typecheck / build 通过
+- [x] `pnpm check` 通过
+
+## 12. 跨端依赖与发布顺序
+
+- **风险**：认证状态、refresh token 轮转和私有缓存属于高风险路径。Web 不得读取或持久化 refresh token；原生移动端仍从响应体读取，两个客户端都依赖后端以 `platform` 区分登录终端
+- **契约依赖**：后端先保留可选 `refreshToken`、`createdAt` 和已废弃 `deviceInfo` 兼容字段，并新增稳定 `id`、`signedInAt`、`lastActiveAt`。前端类型必须由运行时 OpenAPI 重新生成，不手写平行类型
+- **发布顺序**：先按后端文档执行备份、迁移和新后端烟雾测试，再发布本 Web 构建，最后通知原生移动端确认 `X-Client-Platform: mobile` 与响应体 refresh token 流程；不允许客户端先假定新后端已上线
+- **兼容与回滚**：旧 Web 在兼容窗口内仍可使用 `createdAt`，新 Web 对缺失新时间字段提供显示兜底。Web 可回滚到上一构建而不回滚数据库；后端回滚及 token 重新登录影响见后端同批次文档
+- **发布后验证**：分别验证 Web 登录、原生移动端登录、双端并存、同端替换、多标签页刷新、登录终端列表、远程退出和账号切换；持续 401/5xx 或 refresh 失败时停止客户端发布并回滚 Web 构建
