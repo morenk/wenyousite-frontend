@@ -16,8 +16,13 @@ const { mockGET, mockPOST, mockDELETE } = vi.hoisted(() => ({
 }));
 vi.mock("@/api/client", () => ({ apiClient: { GET: mockGET, POST: mockPOST, DELETE: mockDELETE } }));
 
-function createWrapper() {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+function createWrapper(queryRetry: boolean | number = false) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: queryRetry, retryDelay: 0 },
+      mutations: { retry: false },
+    },
+  });
   function Wrapper({ children }: { children: React.ReactNode }) {
     return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   }
@@ -47,6 +52,20 @@ describe("主题帖访问操作 hooks", () => {
     join.result.current.mutate("invite-token");
     await waitFor(() => expect(join.result.current.isSuccess).toBe(true));
     expect(queryClient.getQueryState(["user", "played-threads", "u2"])?.isInvalidated).toBe(true);
+  });
+
+  test("失效邀请预览不重复请求 404", async () => {
+    mockGET.mockClear();
+    mockGET.mockResolvedValue({
+      data: undefined,
+      error: { code: 40404, message: "邀请链接无效或已失效" },
+    });
+    const { wrapper } = createWrapper(3);
+
+    const preview = renderHook(() => useInvitePreview("expired-token"), { wrapper });
+
+    await waitFor(() => expect(preview.result.current.isError).toBe(true));
+    expect(mockGET).toHaveBeenCalledTimes(1);
   });
 
   test("退出玩家身份", async () => {

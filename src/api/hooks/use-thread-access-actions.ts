@@ -32,6 +32,8 @@ export function useInvitePreview(token: string | undefined) {
       return (data as unknown as Envelope<InvitePreview>).data;
     },
     enabled: !!token,
+    // 邀请 token 的 404/403 是确定结果；重试只会让失效页多转数秒并重复刷请求。
+    retry: false,
   });
 }
 
