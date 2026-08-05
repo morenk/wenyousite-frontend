@@ -11,16 +11,18 @@ const deleteMutate = vi.fn();
 const logout = vi.fn();
 const replace = vi.fn();
 const refresh = vi.fn();
+const sessionQuery = vi.hoisted(() => ({
+  data: [
+    { id: "current", platform: "web", deviceInfo: "当前 Chrome", isCurrent: true, createdAt: "2026-08-01T00:00:00Z", expiresAt: "2026-08-08T00:00:00Z" },
+    { id: "remote", platform: "web", deviceInfo: "远程 Firefox", isCurrent: false, createdAt: "2026-08-01T00:00:00Z", expiresAt: "2026-08-08T00:00:00Z" },
+  ] as Array<Record<string, unknown>>,
+  isLoading: false,
+  error: null as unknown,
+  refetch: vi.fn(),
+}));
 
 vi.mock("@/api/hooks/use-account-security", () => ({
-  useAccountSessions: () => ({
-    data: [
-      { id: "current", platform: "web", deviceInfo: "当前 Chrome", isCurrent: true, createdAt: "2026-08-01T00:00:00Z", expiresAt: "2026-08-08T00:00:00Z" },
-      { id: "remote", platform: "web", deviceInfo: "远程 Firefox", isCurrent: false, createdAt: "2026-08-01T00:00:00Z", expiresAt: "2026-08-08T00:00:00Z" },
-    ],
-    isLoading: false,
-    error: null,
-  }),
+  useAccountSessions: () => sessionQuery,
   useBlockedUsers: () => ({
     data: [{ id: "block-1", blocked: { id: "u2", username: "用户二", avatar: null } }],
     isLoading: false,
@@ -39,6 +41,13 @@ vi.mock("next/link", () => ({
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 beforeEach(() => {
+  sessionQuery.data = [
+    { id: "current", platform: "web", deviceInfo: "当前 Chrome", isCurrent: true, createdAt: "2026-08-01T00:00:00Z", expiresAt: "2026-08-08T00:00:00Z" },
+    { id: "remote", platform: "web", deviceInfo: "远程 Firefox", isCurrent: false, createdAt: "2026-08-01T00:00:00Z", expiresAt: "2026-08-08T00:00:00Z" },
+  ];
+  sessionQuery.isLoading = false;
+  sessionQuery.error = null;
+  sessionQuery.refetch.mockReset();
   revokeMutate.mockReset().mockResolvedValue({});
   unblockMutate.mockReset().mockResolvedValue({});
   deleteMutate.mockReset().mockResolvedValue({});
@@ -79,5 +88,16 @@ describe("AccountSecurityPanel", () => {
     expect(deleteMutate).toHaveBeenCalledTimes(1);
     expect(logout).toHaveBeenCalledTimes(1);
     expect(replace).toHaveBeenCalledWith("/");
+  });
+
+  test("429 时显示限流原因并支持手动重新加载", async () => {
+    const user = userEvent.setup();
+    sessionQuery.error = { code: 42900, message: "请求过于频繁" };
+    render(<AccountSecurityPanel />);
+
+    expect(screen.getByText("操作太频繁，请稍后再试")).toBeInTheDocument();
+    expect(screen.queryByText("设备会话加载失败")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "重新加载" }));
+    expect(sessionQuery.refetch).toHaveBeenCalledTimes(1);
   });
 });

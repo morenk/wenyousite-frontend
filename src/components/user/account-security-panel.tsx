@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { Loader2 } from "lucide-react";
+import { Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import {
@@ -24,6 +24,11 @@ import { Input } from "@/components/ui/input";
 
 function formatTime(value: string) {
   return format(new Date(value), "yyyy-MM-dd HH:mm", { locale: zhCN });
+}
+
+function getSessionErrorMessage(error: unknown) {
+  const code = (error as { code?: number } | null)?.code;
+  return code === 42900 ? "操作太频繁，请稍后再试" : "设备会话加载失败";
 }
 
 export function AccountSecurityPanel() {
@@ -76,7 +81,17 @@ export function AccountSecurityPanel() {
           {sessions.isLoading ? (
             <Loader2 className="mx-auto h-5 w-5 animate-spin text-muted-foreground" />
           ) : sessions.error ? (
-            <p className="text-sm text-destructive">设备会话加载失败</p>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm text-destructive">{getSessionErrorMessage(sessions.error)}</p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void sessions.refetch()}
+              >
+                <RefreshCw className="mr-1 h-4 w-4" />
+                重新加载
+              </Button>
+            </div>
           ) : sessions.data?.length ? (
             <ul className="divide-y divide-border">
               {sessions.data.map((session) => (

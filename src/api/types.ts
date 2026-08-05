@@ -232,7 +232,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 获取当前用户所有活跃会话列表 */
+        /** 获取当前用户所有活跃会话列表（限流 60 次/分钟） */
         get: operations["AuthController_listSessions"];
         put?: never;
         post?: never;
@@ -252,7 +252,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** 撤销指定会话（远程登出设备） */
+        /** 撤销指定会话（远程登出设备，限流 60 次/分钟） */
         delete: operations["AuthController_revokeSession"];
         options?: never;
         head?: never;
@@ -2688,6 +2688,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description 当前用户所有未撤销且未过期的活跃会话列表 */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2697,6 +2698,13 @@ export interface operations {
                         data: unknown;
                     };
                 };
+            };
+            /** @description 请求频繁，请稍后重试（会话列表独立限流 60 次/分钟） */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -2711,6 +2719,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description 会话已撤销 */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2720,6 +2729,13 @@ export interface operations {
                         data: unknown;
                     };
                 };
+            };
+            /** @description 请求频繁，请稍后重试（远程撤销独立限流 60 次/分钟） */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

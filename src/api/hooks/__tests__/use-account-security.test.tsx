@@ -1,6 +1,6 @@
 /** 账号安全 hooks 测试：设备会话、黑名单与注销账号 */
 
-import { describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
@@ -21,9 +21,12 @@ vi.mock("@/api/client", () => ({
   apiClient: { GET: mockGET, DELETE: mockDELETE },
 }));
 
-function createWrapper() {
+function createWrapper(queryOptions: { retry?: boolean | number; retryDelay?: number } = {}) {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    defaultOptions: {
+      queries: { retry: false, ...queryOptions },
+      mutations: { retry: false },
+    },
   });
   return function Wrapper({ children }: { children: React.ReactNode }) {
     return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
@@ -31,6 +34,11 @@ function createWrapper() {
 }
 
 describe("账号安全 hooks", () => {
+  beforeEach(() => {
+    mockGET.mockReset();
+    mockDELETE.mockReset();
+  });
+
   test("加载活跃会话", async () => {
     mockGET.mockResolvedValueOnce({
       data: {
@@ -52,6 +60,19 @@ describe("账号安全 hooks", () => {
     expect(result.current.data?.[0].isCurrent).toBe(true);
   });
 
+  test("429 限流错误不会自动重试", async () => {
+    mockGET.mockResolvedValue({
+      data: undefined,
+      error: { code: 42900, message: "请求过于频繁" },
+    });
+    const { result } = renderHook(() => useAccountSessions(), {
+      wrapper: createWrapper({ retry: 3, retryDelay: 0 }),
+    });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(mockGET).toHaveBeenCalledTimes(1);
+  });
+
   test("撤销指定会话", async () => {
     mockDELETE.mockResolvedValueOnce({ data: { data: { message: "已撤销" } }, error: undefined });
     const { result } = renderHook(() => useRevokeSession(), { wrapper: createWrapper() });
@@ -60,6 +81,29 @@ describe("账号安全 hooks", () => {
     expect(mockDELETE).toHaveBeenCalledWith("/api/v1/auth/sessions/{id}", {
       params: { path: { id: "session-1" } },
     });
+  });
+
+  test("撤销成功后从本地缓存移除会话，不重新请求列表", async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    });
+    queryClient.setQueryData(["auth-sessions"], [
+      { id: "current", platform: "web", deviceInfo: null, isCurrent: true, createdAt: "2026-08-01", expiresAt: "2026-08-08" },
+      { id: "remote", platform: "web", deviceInfo: null, isCurrent: false, createdAt: "2026-08-01", expiresAt: "2026-08-08" },
+    ]);
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+    mockDELETE.mockResolvedValueOnce({ data: { data: { message: "已撤销" } }, error: undefined });
+
+    const { result } = renderHook(() => useRevokeSession(), { wrapper: Wrapper });
+    result.current.mutate("remote");
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(queryClient.getQueryData<{ id: string }[]>(["auth-sessions"])).toEqual([
+      expect.objectContaining({ id: "current" }),
+    ]);
+    expect(mockGET).not.toHaveBeenCalled();
   });
 
   test("加载黑名单并取消拉黑", async () => {

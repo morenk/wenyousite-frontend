@@ -25,6 +25,25 @@ interface Envelope<T> {
   data: T;
 }
 
+interface ApiError {
+  code?: number;
+  message?: string;
+}
+
+const RATE_LIMIT_ERROR_CODE = 42900;
+
+export function isRateLimitedAccountSessionError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    (error as ApiError).code === RATE_LIMIT_ERROR_CODE
+  );
+}
+
+export function shouldRetryAccountSessions(failureCount: number, error: unknown) {
+  return !isRateLimitedAccountSessionError(error) && failureCount < 3;
+}
+
 export function useAccountSessions() {
   return useQuery({
     queryKey: ["auth-sessions"],
@@ -33,6 +52,7 @@ export function useAccountSessions() {
       if (error) throw error;
       return (data as unknown as Envelope<AccountSession[]>).data;
     },
+    retry: shouldRetryAccountSessions,
   });
 }
 
@@ -46,7 +66,11 @@ export function useRevokeSession() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["auth-sessions"] }),
+    onSuccess: (_data, sessionId) => {
+      queryClient.setQueryData<AccountSession[]>(["auth-sessions"], (sessions) =>
+        sessions?.filter((session) => session.id !== sessionId),
+      );
+    },
   });
 }
 

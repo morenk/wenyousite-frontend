@@ -190,7 +190,7 @@
 | 我的资料 | `GET /users/me` | TanStack Query `useQuery` |
 | 草稿列表 | `GET /threads/draft` | TanStack Query `useQuery`（queryKey `["drafts"]`） |
 | 关注/拉黑状态 | 用户资料中的 isFollowing/isBlocked | `useMutation` + 失效 `["user", id]` |
-| 活跃会话 | `GET /auth/sessions` | `useQuery(["auth-sessions"])`，撤销后失效缓存 |
+| 活跃会话 | `GET /auth/sessions` | `useQuery(["auth-sessions"])`，仅返回未撤销且未过期会话；429 不自动重试，撤销成功后本地移除缓存项 |
 | 黑名单 | `GET /users/me/blocks` | `useQuery(["blocked-users"])`，取消拉黑后失效缓存 |
 
 ## 6. 组件清单
