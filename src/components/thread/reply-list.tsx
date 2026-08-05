@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useReplies } from "@/api/hooks/use-replies";
 import { useDeletePost } from "@/api/hooks/use-delete-post";
 import { useAuth } from "@/lib/auth";
+import { getPostHref } from "@/lib/post-navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { MarkdownContent } from "@/components/thread/markdown-content";
 import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
@@ -126,7 +127,11 @@ export function ReplyList({ postId, focusedReply, variant = "embedded" }: ReplyL
         const canDelete = isAuthor || isManager;
         const anchorId = `reply:${reply.id}`;
         const isEditing = session?.key === `edit:${reply.id}`;
-        const replyHref = `/threads/${reply.threadId}/posts/${postId}/replies?post=${reply.id}`;
+        const replyHref = getPostHref({
+          threadId: reply.threadId,
+          postId: reply.id,
+          parentPostId: postId,
+        });
         return (
           <div
             key={reply.id}

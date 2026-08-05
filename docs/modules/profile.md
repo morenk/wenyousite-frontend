@@ -231,7 +231,7 @@
 | BlockButton | `src/components/user/block-button.tsx` | 拉黑/取消拉黑切换（confirm 二次确认） |
 | UserFollowList | `src/components/user/user-follow-list.tsx` | 关注/粉丝列表（头像 + 用户名链接 + 三态，复用两种列表） |
 | FollowListPage | `src/components/user/follow-list-page.tsx` | 关注/粉丝子页面主体（用户名标题 + 返回链接 + 列表） |
-| UserRecentReplies | `src/components/user/user-recent-replies.tsx` | 最近动态列表（**仅展示最近 5 条**；整卡可点击，跳转 `/threads/{threadId}?post={postId}` 精确定位到对应楼层/楼中楼/正文，复用详情页 `?post=` 高亮定位；正文/楼层/楼中楼三态标识 + preview） |
+| UserRecentReplies | `src/components/user/user-recent-replies.tsx` | 最近动态列表（**仅展示最近 5 条**；整卡通过共享 `getPostHref` 精确定位到对应楼层/楼中楼/正文；正文/楼层/楼中楼三态标识 + preview） |
 | UserThreadList | `src/components/user/user-thread-list.tsx` | 用户帖子列表通用展示组件（徽章/标题/无限滚动，empty/error 文案 props） |
 | UserCreatedThreads | `src/components/user/user-created-threads.tsx` | 创建的帖子列表（薄包装：useUserCreatedThreads + UserThreadList） |
 | UserPlayedThreads | `src/components/user/user-played-threads.tsx` | 参与的帖子列表；本人显示“全部 / 公开帖 / 私密帖”，他人不显示私密分类入口 |
@@ -314,7 +314,7 @@ showRecentReplies / showPlayerBadges / showBookmarks: boolean
 - [x] 登录态显示关注/拉黑按钮，点击后状态即时更新（isFollowing/isBlocked + 计数）
 - [x] 未登录不显示关注/拉黑按钮；点击其他需登录操作跳 /login
 - [x] 关注/拉黑自己不显示按钮
-- [x] 最近动态列表渲染（正文/楼层/楼中楼三态标识 + 帖子链接 + preview），**仅展示最近 5 条**，为空/未公开有占位；点击跳转 `/threads/{threadId}?post={postId}` 精确定位到对应楼层/楼中楼/正文
+- [x] 最近动态列表渲染（正文/楼层/楼中楼三态标识 + 帖子链接 + preview），**仅展示最近 5 条**，为空/未公开有占位；点击通过共享 `getPostHref` 精确定位到对应楼层/楼中楼/正文
 - [x] 创建的帖子列表渲染（标题 + 分类/状态徽章），cursor 分页加载
 - [x] 参与的帖子列表渲染（标题 + 分类/状态/私密徽章），cursor 分页加载，不含自建帖；本人可按全部/公开帖/私密帖分类，他人仅见公开玩家帖
 - [x] 已注销用户显示"已注销用户"占位

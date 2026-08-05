@@ -34,7 +34,7 @@
 | 路由 | 页面说明 | 权限 |
 |------|----------|------|
 | `/threads/[id]` | 主题帖详情页（含子贴、楼层） | 公开（PRIVATE 帖非成员返回 404） |
-| `/threads/[id]?post={postId}` | 从通知进入并精确定位楼层/楼中楼 | 继承主题帖访问权限 |
+| `/threads/[id]?post={postId}` | 精确定位主楼层；未知父楼上下文时兼容识别并转入楼中楼 | 继承主题帖访问权限 |
 | `/threads/[id]/posts/[postId]/replies?post={replyId}` | 独立楼中楼阅读页：原楼层作为讨论正文，楼中楼回复作为连续楼层 | 继承主题帖访问权限 |
 | `/threads/[id]/edit` | 状态感知编辑页：草稿使用 ThreadCreateForm（仅楼主可发布），已发布帖使用 ThreadEditForm | OWNER/COLLABORATOR；草稿仅 OWNER |
 
@@ -78,6 +78,8 @@
 > **站内链接契约（第一切片）**：楼中楼回复可通过 `/threads/{threadId}/posts/{parentPostId}/replies?post={replyId}` 精确定位；回复卡片提供复制链接入口。该 URL 仅依赖现有 Post 字段，不新增 API。
 
 > **站内链接契约（第二切片）**：主楼层可通过 `/threads/{threadId}?post={postId}` 精确定位；楼层卡片提供复制链接入口。该 URL 仅依赖现有 Post 字段，不新增 API。
+
+> **统一导航契约**：`src/lib/post-navigation.ts` 集中生成主楼层、楼中楼讨论和目标回复地址，供搜索、通知、个人动态、复制链接、讨论列表及兼容重定向复用。各业务组件只负责呈现或触发导航，不再自行拼接帖子定位 URL。
 
 > **站内链接契约（第三切片）**：公开主题帖可通过 `/threads/{threadId}` 访问根页面，头部提供复制主题帖链接入口。私密帖不显示普通复制链接；楼主只显示可授予访问权限的“复制邀请链接”，其他成员不显示分享入口。
 
@@ -298,6 +300,7 @@
 | ThreadComposerOutlet | `src/components/thread/thread-composer.tsx` | 放置在楼层/回复上下文中的轻量插槽，仅活动目标渲染编辑器 |
 | FloorForm | `src/components/thread/floor-form.tsx` | 新楼层轻量入口；点击后才在底部展开唯一编辑器 |
 | ReplyDiscussion | `src/components/thread/reply-discussion.tsx` | 独立楼中楼阅读主体：原楼层作为讨论正文、导航回原楼层、回复列表与底部回复输入框 |
+| getPostHref / getPostDiscussionHref | `src/lib/post-navigation.ts` | 共享帖子导航契约：统一主楼层定位、楼中楼直达及 URL 编码 |
 | ReplyForm | `src/components/thread/reply-form.tsx` | 楼中楼底部回复入口：登录用户按需打开统一编辑器，未登录显示登录提示 |
 | ReplyList | `src/components/thread/reply-list.tsx` | 楼中楼连续列表；作者可编辑，作者或楼主/协作者可删除 |
 | ThreadPermissionsProvider | `src/components/thread/thread-permissions-context.tsx` | 统一加载成员并计算楼主、协作者、参与人和帖内管理权限 |

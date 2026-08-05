@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { getPostHref } from "@/lib/post-navigation";
 import { useNotificationActions } from "@/api/hooks/use-notification-actions";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import type { NotificationItem as NotificationItemData } from "@/api/hooks/use-notifications";
@@ -33,9 +34,11 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const structuredContent = getStructuredNotificationContent(notification);
   const deletedHint = getDeletedHint(notification);
   const href = notification.postId && notification.threadId
-    ? notification.post?.parentPostId
-      ? `/threads/${notification.threadId}/posts/${notification.post.parentPostId}/replies?post=${notification.postId}`
-      : `/threads/${notification.threadId}?post=${notification.postId}`
+    ? getPostHref({
+        threadId: notification.threadId,
+        postId: notification.postId,
+        parentPostId: notification.post?.parentPostId,
+      })
     : notification.threadId
       ? `/threads/${notification.threadId}`
     : notification.fromUserId

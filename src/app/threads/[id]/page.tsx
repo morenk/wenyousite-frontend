@@ -7,6 +7,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Loader2, AlertCircle } from "lucide-react";
 
 import { useAuth } from "@/lib/auth";
+import { getPostHref } from "@/lib/post-navigation";
 import { useThreadDetail } from "@/api/hooks/use-thread-detail";
 import { useFloors } from "@/api/hooks/use-floors";
 import { usePost } from "@/api/hooks/use-post";
@@ -84,9 +85,11 @@ function ThreadDetailPageContent() {
   // 兼容历史通知/动态链接：楼中楼统一进入独立阅读页。
   useEffect(() => {
     if (!targetPost?.parentPostId) return;
-    router.replace(
-      `/threads/${threadId}/posts/${targetPost.parentPostId}/replies?post=${targetPost.id}`,
-    );
+    router.replace(getPostHref({
+      threadId,
+      postId: targetPost.id,
+      parentPostId: targetPost.parentPostId,
+    }));
   }, [router, targetPost, threadId]);
 
   // 阅读进度：为每个子贴查询新增回复数，切换子贴时记录进度

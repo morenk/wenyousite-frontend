@@ -109,7 +109,7 @@
 
 ## 7. 跳转与交互规则
 
-- 跳转优先级：有 `postId` → `/threads/{threadId}?post={postId}`；否则有 `threadId` → `/threads/{threadId}`；否则有 `fromUserId`（follow）→ `/users/{fromUserId}`；system（均无）不可点
+- 跳转优先级：有 `postId` → 通过共享 `getPostHref` 定位主楼层或直达楼中楼回复；否则有 `threadId` → `/threads/{threadId}`；否则有 `fromUserId`（follow）→ `/users/{fromUserId}`；system（均无）不可点
 - **跳转对象已删除不跳转**：列表接口返回 thread/post/fromUser 的 `deletedAt`；目标已删除时该通知不渲染链接，行内显示提示（帖子/楼层 →「该内容已删除」，用户 →「该用户已注销」），点击仅标记已读并 toast 提示，不导航
 - 详情页读取 `post` 参数后通过 `GET /posts/:id` 查询目标上下文：切换子贴并立即滚动到目标楼层；楼中楼采用二阶段定位，在父楼展开且回复渲染完成后立即滚动到目标回复。定位不使用平滑移动动画；高亮只加在目标楼层/回复卡片本身，父楼层和列表容器不高亮。已删除内容维持后端列表过滤策略。
 - 点击通知（有跳转目标）：若未读，立即乐观标记为已读并异步提交，不阻塞跳转

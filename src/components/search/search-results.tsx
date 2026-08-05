@@ -8,6 +8,7 @@ import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { MessageSquare, FileText, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getPostHref } from "@/lib/post-navigation";
 import { EmptyState } from "@/components/shared/empty-state";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import type { SearchResult } from "@/api/hooks/use-search";
@@ -154,7 +155,7 @@ export function SearchResults({ data }: SearchResultsProps) {
               {posts.map((post) => (
                 <Link
                   key={post.id}
-                  href={`/threads/${post.thread.id}?post=${encodeURIComponent(post.id)}`}
+                  href={getPostHref({ threadId: post.thread.id, postId: post.id })}
                   className="block rounded-xl border border-border bg-card p-4 transition-shadow hover:shadow-md"
                 >
                   <p className="mb-1.5 text-sm text-foreground/90 line-clamp-2">

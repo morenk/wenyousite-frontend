@@ -7,6 +7,7 @@ import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { MessageSquare, CornerDownRight, FileText } from "lucide-react";
 import { EmptyState } from "@/components/shared/empty-state";
+import { getPostHref } from "@/lib/post-navigation";
 import type { RecentReply } from "@/api/hooks/use-user-recent-replies";
 
 const MAX_REPLIES = 5;
@@ -41,11 +42,11 @@ export function UserRecentReplies({
       {visible.map((reply) => (
         <Link
           key={reply.id}
-          href={
-            reply.parentPostId
-              ? `/threads/${reply.threadId}/posts/${reply.parentPostId}/replies?post=${reply.id}`
-              : `/threads/${reply.threadId}?post=${reply.id}`
-          }
+          href={getPostHref({
+            threadId: reply.threadId,
+            postId: reply.id,
+            parentPostId: reply.parentPostId,
+          })}
           className="block rounded-lg border border-border bg-card p-3 transition-colors hover:border-primary/40 hover:bg-muted/50"
         >
           <div className="mb-1 flex items-center justify-between">

@@ -10,6 +10,7 @@ import { MarkdownContent } from "@/components/thread/markdown-content";
 import { ReplyList } from "@/components/thread/reply-list";
 import { ReplyForm } from "@/components/thread/reply-form";
 import { UserAvatar } from "@/components/shared/user-avatar";
+import { getPostHref } from "@/lib/post-navigation";
 import type { ReplyDisplayData } from "@/api/hooks/use-floors";
 import type { PostDetail } from "@/api/hooks/use-post";
 
@@ -19,7 +20,10 @@ interface ReplyDiscussionProps {
 }
 
 export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps) {
-  const originalFloorHref = `/threads/${rootPost.thread.id}?post=${rootPost.id}`;
+  const originalFloorHref = getPostHref({
+    threadId: rootPost.thread.id,
+    postId: rootPost.id,
+  });
 
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-6">

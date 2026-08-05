@@ -9,6 +9,7 @@ import { zhCN } from "date-fns/locale";
 import { ArrowRight, Link2, MessageSquare, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { getPostDiscussionHref, getPostHref } from "@/lib/post-navigation";
 import { useAuth } from "@/lib/auth";
 import { useDeletePost } from "@/api/hooks/use-delete-post";
 import { useQueryClient } from "@tanstack/react-query";
@@ -42,8 +43,8 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
   const canDelete = isAuthor || isManager;
   const editAnchorId = `floor-edit:${floor.id}`;
   const isEditing = session?.key === `edit:${floor.id}`;
-  const discussionHref = `/threads/${floor.threadId}/posts/${floor.id}/replies`;
-  const floorHref = `/threads/${floor.threadId}?post=${floor.id}`;
+  const discussionHref = getPostDiscussionHref(floor.threadId, floor.id);
+  const floorHref = getPostHref({ threadId: floor.threadId, postId: floor.id });
   const inlineReplies = (floor.replies ?? []).slice(0, INLINE_REPLY_LIMIT);
   const inlineRepliesLength = inlineReplies.reduce(
     (total, reply) => total + reply.content.length,
