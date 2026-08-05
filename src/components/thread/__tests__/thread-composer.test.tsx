@@ -158,6 +158,24 @@ describe("ThreadComposer", () => {
     expect(screen.queryByTestId("milkdown-editor")).not.toBeInTheDocument();
   });
 
+  test("只输入 CommonMark 自动链接也可以发布回复", async () => {
+    const user = userEvent.setup();
+    renderHarness();
+    await user.click(screen.getByRole("button", { name: "发表入口" }));
+    await user.type(
+      screen.getByTestId("milkdown-editor"),
+      "<https://wenyou.site/threads/example>",
+    );
+    await user.click(screen.getByRole("button", { name: "发布" }));
+
+    await waitFor(() => expect(mocks.create).toHaveBeenCalledWith({
+      subthreadId: "s1",
+      content: "<https://wenyou.site/threads/example>",
+      clientRequestId: REQUEST_ID,
+    }));
+    expect(mocks.error).not.toHaveBeenCalled();
+  });
+
   test("相同正文失败后重试复用 clientRequestId", async () => {
     const user = userEvent.setup();
     mocks.create.mockRejectedValueOnce(new Error("网络超时")).mockResolvedValueOnce({ id: "created-post" });

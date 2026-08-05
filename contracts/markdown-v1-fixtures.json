@@ -17,6 +17,8 @@
     { "id": "empty-image", "description": "空 URL 图片被移除且不可发布", "input": "![1.00]()", "canonical": "", "visible": false },
     { "id": "empty-link", "description": "空 URL 链接不构成正文", "input": "[文字]()", "canonical": "[文字]()", "visible": false },
     { "id": "visible-link-label", "description": "有效链接的标签属于可见正文", "input": "[链接文字](https://example.com)", "canonical": "[链接文字](https://example.com)", "visible": true },
+    { "id": "bare-http-link", "description": "裸 HTTP 链接可单独发布", "input": "https://wenyou.site/threads/example", "canonical": "https://wenyou.site/threads/example", "visible": true },
+    { "id": "commonmark-http-autolink", "description": "CommonMark HTTP 自动链接可单独发布", "input": "<https://wenyou.site/threads/example>", "canonical": "<https://wenyou.site/threads/example>", "visible": true },
     { "id": "empty-fenced-code", "description": "空围栏代码块不可发布", "input": "```\n\n```", "canonical": "```\n\n```", "visible": false },
     { "id": "code-with-protocol-looking-text", "description": "代码块中的空段落和空图片写法保持原样并算代码内容", "input": "```html\r\n<br>\r\n![empty]()\r\n```", "canonical": "```html\n<br>\n![empty]()\n```", "visible": true },
     { "id": "long-fence-does-not-close-early", "description": "四反引号围栏不会被三个反引号提前关闭", "input": "````\n```\n正文\n```\n````", "canonical": "````\n```\n正文\n```\n````", "visible": true },
