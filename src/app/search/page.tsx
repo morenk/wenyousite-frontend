@@ -34,7 +34,7 @@ function SearchPageInner() {
             key={q}
             defaultValue={q}
             ref={inputRef}
-            placeholder="搜索主题帖标题或楼层内容…"
+            placeholder="搜索用户、主题帖标题或楼层内容…"
             className="pl-9"
           />
         </div>
@@ -42,7 +42,7 @@ function SearchPageInner() {
       </form>
 
       {!q.trim() ? (
-        <EmptyState title="输入关键词开始搜索" description="支持主题帖标题与楼层内容" />
+        <EmptyState title="输入关键词开始搜索" description="支持用户名、主题帖标题与楼层内容" />
       ) : isLoading ? (
         <div className="flex items-center justify-center py-16">
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />

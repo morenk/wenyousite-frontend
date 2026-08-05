@@ -5,9 +5,10 @@
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { MessageSquare, FileText } from "lucide-react";
+import { MessageSquare, FileText, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/shared/empty-state";
+import { UserAvatar } from "@/components/shared/user-avatar";
 import type { SearchResult } from "@/api/hooks/use-search";
 
 const categoryLabel: Record<string, string> = {
@@ -27,14 +28,48 @@ interface SearchResultsProps {
 }
 
 export function SearchResults({ data }: SearchResultsProps) {
-  const { threads, posts } = data;
+  const { users, threads, posts } = data;
 
-  if (threads.length === 0 && posts.length === 0) {
+  if (users.length === 0 && threads.length === 0 && posts.length === 0) {
     return <EmptyState title="没有找到相关内容" description="换个关键词试试" />;
   }
 
   return (
     <div className="space-y-6">
+      {users.length > 0 && (
+        <section>
+          <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-foreground">
+            <Users className="h-4 w-4 text-muted-foreground" />
+            用户（{users.length}）
+          </h2>
+          <div className="space-y-3">
+            {users.map((user) => (
+              <Link
+                key={user.id}
+                href={`/users/${user.id}`}
+                className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-shadow hover:shadow-md"
+              >
+                <UserAvatar
+                  name={user.username}
+                  src={user.avatar}
+                  className="h-10 w-10"
+                />
+                <div className="min-w-0">
+                  <h3 className="text-sm font-semibold text-foreground">
+                    {user.username}
+                  </h3>
+                  {user.bio && (
+                    <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
+                      {user.bio}
+                    </p>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
       {threads.length > 0 && (
         <section>
           <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-foreground">

@@ -2,10 +2,10 @@
 
 ## 1. 目标与范围
 
-实现全文搜索入口与结果页，可搜索主题帖标题与楼层内容。
+实现全站搜索入口与结果页，可搜索用户名、主题帖标题与楼层内容。
 
 **本次迭代范围（Phase 8 · 第一轮：搜索）：**
-- `/search` 搜索页：输入框（URL `?q=` 同步）+ 两栏结果（主题帖 / 楼层内容）
+- `/search` 搜索页：输入框（URL `?q=` 同步）+ 三类结果（用户 / 主题帖 / 楼层内容）
 - 导航栏搜索图标入口
 - loading / error / empty / data 四态
 
@@ -25,9 +25,9 @@
 
 | Method | Path | Guard | 用途 |
 |--------|------|-------|------|
-| GET | `/search?q=` | Public | 全文搜索（主题帖标题 + 楼层内容，ILIKE，各最多 50 条，无分页） |
+| GET | `/search?q=` | Public | 全站搜索（用户名最多 20 条；主题帖标题和楼层内容各最多 50 条，无分页） |
 
-> 空关键词返回 `{ threads: [], posts: [] }`；主题帖仅返回 PUBLIC 已发布帖。
+> 空关键词返回 `{ users: [], threads: [], posts: [] }`；用户结果排除注销账号，主题帖与楼层仅返回 PUBLIC 已发布帖。
 
 ## 4. API 响应快照
 
@@ -39,6 +39,14 @@
 {
   "code": 0, "message": "ok",
   "data": {
+    "users": [
+      {
+        "id": "<redacted-id>",
+        "username": "测试用户",
+        "avatar": null,
+        "bio": "一起写故事"
+      }
+    ],
     "threads": [
       {
         "id": "<redacted-id>",
@@ -64,7 +72,7 @@
 }
 ```
 
-> 主题帖结果无 `preview`/`status`/`pinned`（与 ThreadCardData 不同），楼层项含 `floorNumber`/`thread`/`subthread` 供跳转。
+> 用户结果只含公开展示所需的 `id/username/avatar/bio`；主题帖结果无 `preview`/`status`/`pinned`，楼层项含 `floorNumber`/`thread`/`subthread` 供跳转。
 
 ## 5. 状态管理
 
@@ -77,7 +85,7 @@
 
 | 组件 | 路径 | 说明 |
 |------|------|------|
-| SearchResults | `src/components/search/search-results.tsx` | 结果两栏（主题帖 / 楼层），空态 |
+| SearchResults | `src/components/search/search-results.tsx` | 用户、主题帖、楼层内容三类结果与空态；用户项可进入个人主页 |
 | useSearch | `src/api/hooks/use-search.ts` | 搜索 hook |
 | SearchPage | `src/app/search/page.tsx` | 搜索页（输入 + 四态） |
 
@@ -85,7 +93,7 @@
 
 - 输入框提交 → `router.replace('/search?q=…')`，URL 为唯一事实源
 - `key={q}` 使输入框随 URL 变化重挂载（含浏览器前进/后退）
-- 主题帖项 → `/threads/{id}`；楼层项 → `/threads/{threadId}`
+- 用户项 → `/users/{id}`；主题帖项 → `/threads/{id}`；楼层项 → `/threads/{threadId}`
 - 空关键词 → 提示输入；无结果 → "没有找到相关内容"
 
 ## 8. 错误处理
@@ -98,12 +106,12 @@
 
 ## 9. 权限与访问控制
 
-`/search` 公开，无需登录。
+`/search` 公开，无需登录。用户结果不返回邮箱等敏感字段且排除已注销账号；帖子结果不包含私密帖。
 
 ## 10. 验收标准
 
-- [x] `/search` 输入关键词搜索主题帖标题与楼层内容
-- [x] 结果分「主题帖」「楼层内容」两栏，均可跳转
+- [x] `/search` 输入关键词搜索用户名、主题帖标题与楼层内容
+- [x] 结果分「用户」「主题帖」「楼层内容」三类，均可跳转
 - [x] URL `?q=` 与输入框同步（前进/后退生效）
 - [x] loading / error / empty 三态
 - [x] 导航栏搜索图标入口

@@ -24,6 +24,14 @@ function createWrapper() {
 }
 
 const sampleResult = {
+  users: [
+    {
+      id: "u1",
+      username: "测试用户",
+      avatar: null,
+      bio: "一起写故事",
+    },
+  ],
   threads: [
     {
       id: "t1",
@@ -62,6 +70,7 @@ describe("useSearch", () => {
     expect(mockGET).toHaveBeenCalledWith("/api/v1/search", {
       params: { query: { q: "测试" } },
     });
+    expect(result.current.data?.users[0].username).toBe("测试用户");
     expect(result.current.data?.threads[0].title).toBe("测试帖子");
     expect(result.current.data?.posts[0].content).toBe("测试内容");
   });

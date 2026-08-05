@@ -1350,7 +1350,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 全文搜索（主题帖标题 + 楼层内容） */
+        /** 全站搜索（用户名 + 主题帖标题 + 楼层内容） */
         get: operations["SearchController_search"];
         put?: never;
         post?: never;
@@ -2211,6 +2211,97 @@ export interface components {
             conditions?: components["schemas"]["UserConditionDto"];
             /** @description 关联主题帖 ID（可选，前端跳转用） */
             threadId?: string;
+        };
+        SearchUserResponseDto: {
+            /** @description 用户 ID */
+            id: string;
+            /** @description 用户名 */
+            username: string;
+            /** @description 头像 URL */
+            avatar: string | null;
+            /** @description 个人简介 */
+            bio: string | null;
+        };
+        SearchThreadOwnerResponseDto: {
+            /** @description 用户 ID */
+            id: string;
+            /** @description 用户名 */
+            username: string;
+            /** @description 头像 URL */
+            avatar: string | null;
+        };
+        SearchThreadCountResponseDto: {
+            /** @description 参与人数 */
+            members: number;
+            /** @description 帖子数 */
+            posts: number;
+            /** @description 已标记玩家数 */
+            players: number;
+        };
+        SearchThreadResponseDto: {
+            /** @description 主题帖 ID */
+            id: string;
+            /** @description 主题帖标题 */
+            title: string;
+            /**
+             * @description 主题帖分区
+             * @enum {string}
+             */
+            category: "DEDUCTION" | "NATION" | "RPG";
+            /**
+             * Format: date-time
+             * @description 创建时间
+             */
+            createdAt: string;
+            /** @description 楼主信息 */
+            owner: components["schemas"]["SearchThreadOwnerResponseDto"];
+            /** @description 主题帖统计 */
+            _count: components["schemas"]["SearchThreadCountResponseDto"];
+        };
+        SearchAuthorResponseDto: {
+            /** @description 用户 ID */
+            id: string;
+            /** @description 用户名 */
+            username: string;
+        };
+        SearchThreadReferenceResponseDto: {
+            /** @description 主题帖 ID */
+            id: string;
+            /** @description 主题帖标题 */
+            title: string;
+        };
+        SearchSubthreadReferenceResponseDto: {
+            /** @description 子贴 ID */
+            id: string;
+            /** @description 子贴标题 */
+            title: string;
+        };
+        SearchPostResponseDto: {
+            /** @description 帖子 ID */
+            id: string;
+            /** @description 楼层号；正文或楼中楼为 null */
+            floorNumber: number | null;
+            /** @description Markdown 正文 */
+            content: string;
+            /**
+             * Format: date-time
+             * @description 创建时间
+             */
+            createdAt: string;
+            /** @description 作者信息 */
+            author: components["schemas"]["SearchAuthorResponseDto"];
+            /** @description 所属主题帖 */
+            thread: components["schemas"]["SearchThreadReferenceResponseDto"];
+            /** @description 所属子贴 */
+            subthread: components["schemas"]["SearchSubthreadReferenceResponseDto"];
+        };
+        SearchResultResponseDto: {
+            /** @description 用户名匹配结果，最多 20 条 */
+            users: components["schemas"]["SearchUserResponseDto"][];
+            /** @description 公开主题帖标题匹配结果，最多 50 条 */
+            threads: components["schemas"]["SearchThreadResponseDto"][];
+            /** @description 公开帖子正文匹配结果，最多 50 条 */
+            posts: components["schemas"]["SearchPostResponseDto"][];
         };
         ApiPaginationMeta: {
             cursor: string | null;
@@ -5718,14 +5809,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 搜索结果 { threads: [...], posts: [...] }，各最多 50 条 */
+            /** @description 搜索结果 { users, threads, posts } */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["SearchResultResponseDto"];
                     };
                 };
             };

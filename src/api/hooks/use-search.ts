@@ -2,31 +2,9 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
-import type { ThreadOwner } from "./use-threads";
+import type { components } from "@/api/types";
 
-export interface SearchThread {
-  id: string;
-  title: string;
-  category: string;
-  createdAt: string;
-  owner: ThreadOwner;
-  _count: { members: number; posts: number };
-}
-
-export interface SearchPost {
-  id: string;
-  floorNumber: number | null;
-  content: string;
-  createdAt: string;
-  author: { id: string; username: string };
-  thread: { id: string; title: string };
-  subthread: { id: string; title: string };
-}
-
-export interface SearchResult {
-  threads: SearchThread[];
-  posts: SearchPost[];
-}
+export type SearchResult = components["schemas"]["SearchResultResponseDto"];
 
 interface SearchResponse {
   code: number;
@@ -45,7 +23,7 @@ export function useSearch(q: string) {
       if (error) throw error;
       const response = data as unknown as SearchResponse;
       return (
-        response?.data ?? { threads: [], posts: [] }
+        response?.data ?? { users: [], threads: [], posts: [] }
       ) as SearchResult;
     },
     enabled: keyword.length > 0,
