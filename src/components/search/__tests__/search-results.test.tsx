@@ -68,7 +68,10 @@ describe("SearchResults", () => {
 
     fireEvent.click(postTab);
     expect(screen.getByText("这是匹配的楼层内容")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /测试帖子/ })).toHaveAttribute("href", "/threads/t1");
+    expect(screen.getByRole("link", { name: /测试帖子/ })).toHaveAttribute(
+      "href",
+      "/threads/t1?post=p1",
+    );
   });
 
   test("可切换到无结果分类并显示分类空态", () => {

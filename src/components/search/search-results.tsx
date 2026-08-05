@@ -154,7 +154,7 @@ export function SearchResults({ data }: SearchResultsProps) {
               {posts.map((post) => (
                 <Link
                   key={post.id}
-                  href={`/threads/${post.thread.id}`}
+                  href={`/threads/${post.thread.id}?post=${encodeURIComponent(post.id)}`}
                   className="block rounded-xl border border-border bg-card p-4 transition-shadow hover:shadow-md"
                 >
                   <p className="mb-1.5 text-sm text-foreground/90 line-clamp-2">
