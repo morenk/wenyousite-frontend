@@ -1,4 +1,4 @@
-/** 搜索结果展示：主题帖 / 楼层内容 / 用户 Tab */
+/** 搜索结果展示：三个 Tab 独立惰性加载，楼层支持游标分页。 */
 
 "use client";
 
@@ -6,12 +6,18 @@ import { useState, type KeyboardEvent } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { MessageSquare, FileText, Users } from "lucide-react";
+import { FileText, Loader2, MessageSquare, Users } from "lucide-react";
+import {
+  isPostSearchKeywordValid,
+  useSearchPosts,
+  useSearchThreads,
+  useSearchUsers,
+} from "@/api/hooks/use-search";
 import { cn } from "@/lib/utils";
 import { getPostHref } from "@/lib/post-navigation";
 import { EmptyState } from "@/components/shared/empty-state";
 import { UserAvatar } from "@/components/shared/user-avatar";
-import type { SearchResult } from "@/api/hooks/use-search";
+import { Button } from "@/components/ui/button";
 
 const categoryLabel: Record<string, string> = {
   DEDUCTION: "演绎",
@@ -30,33 +36,76 @@ type SearchTab = "threads" | "posts" | "users";
 const tabOrder: SearchTab[] = ["threads", "posts", "users"];
 
 interface SearchResultsProps {
-  data: SearchResult;
+  keyword: string;
 }
 
-function getDefaultTab(data: SearchResult): SearchTab {
-  if (data.threads.length > 0) return "threads";
-  if (data.posts.length > 0) return "posts";
-  return "users";
+interface SearchErrorProps {
+  onRetry: () => void;
 }
 
-export function SearchResults({ data }: SearchResultsProps) {
-  const { users, threads, posts } = data;
-  const [activeTab, setActiveTab] = useState<SearchTab>(() => getDefaultTab(data));
+function SearchLoading() {
+  return (
+    <div className="flex items-center justify-center py-16">
+      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+    </div>
+  );
+}
 
-  if (users.length === 0 && threads.length === 0 && posts.length === 0) {
-    return <EmptyState title="没有找到相关内容" description="换个关键词试试" />;
-  }
+function SearchError({ onRetry }: SearchErrorProps) {
+  return (
+    <div className="flex flex-col items-center gap-4 py-12">
+      <EmptyState title="搜索失败" description="请稍后重试" />
+      <Button variant="outline" size="sm" onClick={onRetry}>
+        重试
+      </Button>
+    </div>
+  );
+}
+
+export function SearchResults({ keyword }: SearchResultsProps) {
+  const [activeTab, setActiveTab] = useState<SearchTab>("threads");
+  const postKeywordValid = isPostSearchKeywordValid(keyword);
+  const threadsQuery = useSearchThreads(keyword, activeTab === "threads");
+  const usersQuery = useSearchUsers(keyword, activeTab === "users");
+  const postsQuery = useSearchPosts(
+    keyword,
+    activeTab === "posts" && postKeywordValid,
+  );
+  const posts = postsQuery.data?.pages.flatMap((page) => page.data) ?? [];
 
   const tabs = [
-    { value: "threads" as const, label: "主题帖", count: threads.length, icon: MessageSquare },
-    { value: "posts" as const, label: "楼层内容", count: posts.length, icon: FileText },
-    { value: "users" as const, label: "用户", count: users.length, icon: Users },
+    {
+      value: "threads" as const,
+      label: "主题帖",
+      count: threadsQuery.data?.length,
+      hasMore: threadsQuery.data?.length === 50,
+      icon: MessageSquare,
+    },
+    {
+      value: "posts" as const,
+      label: "楼层内容",
+      count: postsQuery.data ? posts.length : undefined,
+      hasMore: postsQuery.hasNextPage,
+      icon: FileText,
+    },
+    {
+      value: "users" as const,
+      label: "用户",
+      count: usersQuery.data?.length,
+      hasMore: usersQuery.data?.length === 20,
+      icon: Users,
+    },
   ];
 
-  const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+  const handleTabKeyDown = (
+    event: KeyboardEvent<HTMLButtonElement>,
+    index: number,
+  ) => {
     let nextIndex: number | undefined;
     if (event.key === "ArrowRight") nextIndex = (index + 1) % tabOrder.length;
-    if (event.key === "ArrowLeft") nextIndex = (index - 1 + tabOrder.length) % tabOrder.length;
+    if (event.key === "ArrowLeft") {
+      nextIndex = (index - 1 + tabOrder.length) % tabOrder.length;
+    }
     if (event.key === "Home") nextIndex = 0;
     if (event.key === "End") nextIndex = tabOrder.length - 1;
     if (nextIndex === undefined) return;
@@ -77,13 +126,16 @@ export function SearchResults({ data }: SearchResultsProps) {
         {tabs.map((tab, index) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.value;
+          const countSuffix = tab.count === undefined
+            ? ""
+            : ` ${tab.count}${tab.hasMore ? "+" : ""}`;
           return (
             <button
               key={tab.value}
               id={`search-tab-${tab.value}`}
               type="button"
               role="tab"
-              aria-label={`${tab.label} ${tab.count}`}
+              aria-label={`${tab.label}${countSuffix}`}
               aria-selected={isActive}
               aria-controls={`search-panel-${tab.value}`}
               tabIndex={isActive ? 0 : -1}
@@ -98,9 +150,11 @@ export function SearchResults({ data }: SearchResultsProps) {
             >
               <Icon className="h-4 w-4 shrink-0" />
               <span className="truncate">{tab.label}</span>
-              <span className="rounded-full bg-muted-foreground/10 px-1.5 text-[11px] tabular-nums">
-                {tab.count}
-              </span>
+              {tab.count !== undefined && (
+                <span className="rounded-full bg-muted-foreground/10 px-1.5 text-[11px] tabular-nums">
+                  {tab.count}{tab.hasMore ? "+" : ""}
+                </span>
+              )}
             </button>
           );
         })}
@@ -113,9 +167,15 @@ export function SearchResults({ data }: SearchResultsProps) {
         className="mt-4"
       >
         {activeTab === "threads" && (
-          threads.length > 0 ? (
+          threadsQuery.isLoading ? (
+            <SearchLoading />
+          ) : threadsQuery.isError ? (
+            <SearchError onRetry={() => void threadsQuery.refetch()} />
+          ) : !threadsQuery.data || threadsQuery.data.length === 0 ? (
+            <EmptyState title="没有匹配的主题帖" description="可以查看其他分类" />
+          ) : (
             <div className="space-y-3">
-              {threads.map((thread) => (
+              {threadsQuery.data.map((thread) => (
                 <Link
                   key={thread.id}
                   href={`/threads/${thread.id}`}
@@ -125,7 +185,8 @@ export function SearchResults({ data }: SearchResultsProps) {
                     <span
                       className={cn(
                         "rounded-full px-2.5 py-0.5 text-xs font-medium",
-                        categoryColor[thread.category] ?? "bg-muted text-muted-foreground",
+                        categoryColor[thread.category]
+                          ?? "bg-muted text-muted-foreground",
                       )}
                     >
                       {categoryLabel[thread.category] ?? thread.category}
@@ -144,18 +205,30 @@ export function SearchResults({ data }: SearchResultsProps) {
                 </Link>
               ))}
             </div>
-          ) : (
-            <EmptyState title="没有匹配的主题帖" description="可以查看其他分类" />
           )
         )}
 
         {activeTab === "posts" && (
-          posts.length > 0 ? (
+          !postKeywordValid ? (
+            <EmptyState
+              title="楼层内容搜索至少需要 2 个字符"
+              description="用户名和主题帖仍支持单字符搜索"
+            />
+          ) : postsQuery.isLoading ? (
+            <SearchLoading />
+          ) : postsQuery.isError ? (
+            <SearchError onRetry={() => void postsQuery.refetch()} />
+          ) : posts.length === 0 ? (
+            <EmptyState title="没有匹配的楼层内容" description="可以查看其他分类" />
+          ) : (
             <div className="space-y-3">
               {posts.map((post) => (
                 <Link
                   key={post.id}
-                  href={getPostHref({ threadId: post.thread.id, postId: post.id })}
+                  href={getPostHref({
+                    threadId: post.thread.id,
+                    postId: post.id,
+                  })}
                   className="block rounded-xl border border-border bg-card p-4 transition-shadow hover:shadow-md"
                 >
                   <p className="mb-1.5 text-sm text-foreground/90 line-clamp-2">
@@ -168,16 +241,36 @@ export function SearchResults({ data }: SearchResultsProps) {
                   </p>
                 </Link>
               ))}
+
+              {postsQuery.hasNextPage && (
+                <div className="flex justify-center pt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={postsQuery.isFetchingNextPage}
+                    onClick={() => void postsQuery.fetchNextPage()}
+                  >
+                    {postsQuery.isFetchingNextPage && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    加载更多楼层
+                  </Button>
+                </div>
+              )}
             </div>
-          ) : (
-            <EmptyState title="没有匹配的楼层内容" description="可以查看其他分类" />
           )
         )}
 
         {activeTab === "users" && (
-          users.length > 0 ? (
+          usersQuery.isLoading ? (
+            <SearchLoading />
+          ) : usersQuery.isError ? (
+            <SearchError onRetry={() => void usersQuery.refetch()} />
+          ) : !usersQuery.data || usersQuery.data.length === 0 ? (
+            <EmptyState title="没有匹配的用户" description="可以查看其他分类" />
+          ) : (
             <div className="space-y-3">
-              {users.map((user) => (
+              {usersQuery.data.map((user) => (
                 <Link
                   key={user.id}
                   href={`/users/${user.id}`}
@@ -201,8 +294,6 @@ export function SearchResults({ data }: SearchResultsProps) {
                 </Link>
               ))}
             </div>
-          ) : (
-            <EmptyState title="没有匹配的用户" description="可以查看其他分类" />
           )
         )}
       </div>

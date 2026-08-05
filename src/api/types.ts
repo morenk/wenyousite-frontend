@@ -1343,6 +1343,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/search/threads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 按标题搜索公开主题帖 */
+        get: operations["SearchController_searchThreads"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/search/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 按用户名搜索未注销用户 */
+        get: operations["SearchController_searchUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/search/posts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 按正文搜索公开楼层与楼中楼 */
+        get: operations["SearchController_searchPosts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/search": {
         parameters: {
             query?: never;
@@ -1350,7 +1401,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 全站搜索（用户名 + 主题帖标题 + 楼层内容） */
+        /** 兼容聚合搜索（用户名 + 主题帖标题 + 楼层内容） */
         get: operations["SearchController_search"];
         put?: never;
         post?: never;
@@ -2212,16 +2263,6 @@ export interface components {
             /** @description 关联主题帖 ID（可选，前端跳转用） */
             threadId?: string;
         };
-        SearchUserResponseDto: {
-            /** @description 用户 ID */
-            id: string;
-            /** @description 用户名 */
-            username: string;
-            /** @description 头像 URL */
-            avatar: string | null;
-            /** @description 个人简介 */
-            bio: string | null;
-        };
         SearchThreadOwnerResponseDto: {
             /** @description 用户 ID */
             id: string;
@@ -2258,6 +2299,16 @@ export interface components {
             /** @description 主题帖统计 */
             _count: components["schemas"]["SearchThreadCountResponseDto"];
         };
+        SearchUserResponseDto: {
+            /** @description 用户 ID */
+            id: string;
+            /** @description 用户名 */
+            username: string;
+            /** @description 头像 URL */
+            avatar: string | null;
+            /** @description 个人简介 */
+            bio: string | null;
+        };
         SearchAuthorResponseDto: {
             /** @description 用户 ID */
             id: string;
@@ -2279,7 +2330,7 @@ export interface components {
         SearchPostResponseDto: {
             /** @description 帖子 ID */
             id: string;
-            /** @description 楼层号；正文或楼中楼为 null */
+            /** @description 楼层号；楼中楼为 null */
             floorNumber: number | null;
             /** @description Markdown 正文 */
             content: string;
@@ -2300,7 +2351,7 @@ export interface components {
             users: components["schemas"]["SearchUserResponseDto"][];
             /** @description 公开主题帖标题匹配结果，最多 50 条 */
             threads: components["schemas"]["SearchThreadResponseDto"][];
-            /** @description 公开帖子正文匹配结果，最多 50 条 */
+            /** @description 公开楼层正文兼容匹配结果，最多 20 条 */
             posts: components["schemas"]["SearchPostResponseDto"][];
         };
         ApiPaginationMeta: {
@@ -5797,10 +5848,10 @@ export interface operations {
             };
         };
     };
-    SearchController_search: {
+    SearchController_searchThreads: {
         parameters: {
             query: {
-                /** @description 搜索关键词 */
+                /** @description 搜索关键词，首尾空白会被移除 */
                 q: string;
             };
             header?: never;
@@ -5809,7 +5860,93 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 搜索结果 { users, threads, posts } */
+            /** @description 主题帖结果，最多 50 条 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["SearchThreadResponseDto"][];
+                    };
+                };
+            };
+        };
+    };
+    SearchController_searchUsers: {
+        parameters: {
+            query: {
+                /** @description 搜索关键词，首尾空白会被移除 */
+                q: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 用户结果，最多 20 条 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["SearchUserResponseDto"][];
+                    };
+                };
+            };
+        };
+    };
+    SearchController_searchPosts: {
+        parameters: {
+            query: {
+                /** @description 搜索关键词，首尾空白会被移除 */
+                q: string;
+                /** @description 上一页返回的不透明游标 */
+                cursor?: string;
+                /** @description 每页条数，默认及最大均为 20 */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 相关度游标分页；meta 含 cursor/hasMore */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["SearchPostResponseDto"][];
+                    };
+                };
+            };
+            /** @description 关键词不足 2 个字符或游标无效 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SearchController_search: {
+        parameters: {
+            query: {
+                /** @description 搜索关键词，首尾空白会被移除 */
+                q: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 兼容旧客户端的聚合搜索结果 */
             200: {
                 headers: {
                     [name: string]: unknown;

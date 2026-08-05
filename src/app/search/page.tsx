@@ -5,7 +5,6 @@
 import { Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Search } from "lucide-react";
-import { useSearch } from "@/api/hooks/use-search";
 import { SearchResults } from "@/components/search/search-results";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
@@ -16,8 +15,6 @@ function SearchPageInner() {
   const searchParams = useSearchParams();
   const q = searchParams.get("q") ?? "";
   const inputRef = useRef<HTMLInputElement>(null);
-
-  const { data, isLoading, isError, refetch } = useSearch(q);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,20 +40,9 @@ function SearchPageInner() {
 
       {!q.trim() ? (
         <EmptyState title="输入关键词开始搜索" description="支持用户名、主题帖标题与楼层内容" />
-      ) : isLoading ? (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-        </div>
-      ) : isError ? (
-        <div className="flex flex-col items-center gap-4 py-16">
-          <EmptyState title="搜索失败" description="请稍后重试" />
-          <Button variant="outline" size="sm" onClick={() => refetch()}>
-            重试
-          </Button>
-        </div>
-      ) : data ? (
-        <SearchResults key={q} data={data} />
-      ) : null}
+      ) : (
+        <SearchResults key={q} keyword={q} />
+      )}
     </div>
   );
 }
