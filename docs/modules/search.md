@@ -5,7 +5,7 @@
 实现全站搜索入口与结果页，可搜索用户名、主题帖标题与楼层内容。
 
 **本次迭代范围（Phase 8 · 第一轮：搜索）：**
-- `/search` 搜索页：输入框（URL `?q=` 同步）+ 三类结果（用户 / 主题帖 / 楼层内容）
+- `/search` 搜索页：输入框（URL `?q=` 同步）+ 三类结果 Tab（主题帖 / 楼层内容 / 用户）
 - 导航栏搜索图标入口
 - loading / error / empty / data 四态
 
@@ -85,7 +85,7 @@
 
 | 组件 | 路径 | 说明 |
 |------|------|------|
-| SearchResults | `src/components/search/search-results.tsx` | 用户、主题帖、楼层内容三类结果与空态；用户项可进入个人主页 |
+| SearchResults | `src/components/search/search-results.tsx` | 主题帖、楼层内容、用户三类结果 Tab 与分类空态；用户项可进入个人主页 |
 | useSearch | `src/api/hooks/use-search.ts` | 搜索 hook |
 | SearchPage | `src/app/search/page.tsx` | 搜索页（输入 + 四态） |
 
@@ -93,6 +93,7 @@
 
 - 输入框提交 → `router.replace('/search?q=…')`，URL 为唯一事实源
 - `key={q}` 使输入框随 URL 变化重挂载（含浏览器前进/后退）
+- 三类结果通过 Tab 切换并显示各自数量，避免某类大量结果挤压其他分类；默认优先主题帖，无主题帖时打开首个有结果的分类
 - 用户项 → `/users/{id}`；主题帖项 → `/threads/{id}`；楼层项 → `/threads/{threadId}`
 - 空关键词 → 提示输入；无结果 → "没有找到相关内容"
 
@@ -111,7 +112,7 @@
 ## 10. 验收标准
 
 - [x] `/search` 输入关键词搜索用户名、主题帖标题与楼层内容
-- [x] 结果分「用户」「主题帖」「楼层内容」三类，均可跳转
+- [x] 结果分「主题帖」「楼层内容」「用户」三个 Tab，均可切换和跳转
 - [x] URL `?q=` 与输入框同步（前进/后退生效）
 - [x] loading / error / empty 三态
 - [x] 导航栏搜索图标入口

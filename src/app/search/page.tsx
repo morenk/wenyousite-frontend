@@ -55,7 +55,7 @@ function SearchPageInner() {
           </Button>
         </div>
       ) : data ? (
-        <SearchResults data={data} />
+        <SearchResults key={q} data={data} />
       ) : null}
     </div>
   );

@@ -1,7 +1,7 @@
-/** SearchResults 组件测试：主题帖/楼层/空态 */
+/** SearchResults 组件测试：三类结果 Tab、分类切换与空态 */
 
 import { describe, test, expect, vi, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import { SearchResults } from "@/components/search/search-results";
 import type { SearchResult } from "@/api/hooks/use-search";
 
@@ -51,28 +51,35 @@ describe("SearchResults", () => {
     expect(screen.getByText("没有找到相关内容")).toBeInTheDocument();
   });
 
-  test("渲染用户、主题帖与楼层三栏", () => {
+  test("以 Tab 展示三类结果且默认优先展示主题帖", () => {
     render(<SearchResults data={data} />);
-    expect(screen.getByText("用户（1）")).toBeInTheDocument();
-    expect(screen.getByText("主题帖（1）")).toBeInTheDocument();
-    expect(screen.getByText("楼层内容（1）")).toBeInTheDocument();
+
+    const threadTab = screen.getByRole("tab", { name: "主题帖 1" });
+    const postTab = screen.getByRole("tab", { name: "楼层内容 1" });
+    const userTab = screen.getByRole("tab", { name: "用户 1" });
+    expect(threadTab).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("link", { name: /测试帖子/ })).toHaveAttribute("href", "/threads/t1");
+    expect(screen.queryByRole("link", { name: /测试用户/ })).not.toBeInTheDocument();
+    expect(screen.queryByText("这是匹配的楼层内容")).not.toBeInTheDocument();
+
+    fireEvent.click(userTab);
     expect(screen.getByRole("link", { name: /测试用户/ })).toHaveAttribute("href", "/users/u1");
+    expect(screen.queryByRole("link", { name: /测试帖子/ })).not.toBeInTheDocument();
+
+    fireEvent.click(postTab);
     expect(screen.getByText("这是匹配的楼层内容")).toBeInTheDocument();
-    const links = screen.getAllByRole("link", { name: /测试帖子/ });
-    expect(links).toHaveLength(2);
-    links.forEach((l) => expect(l).toHaveAttribute("href", "/threads/t1"));
+    expect(screen.getByRole("link", { name: /测试帖子/ })).toHaveAttribute("href", "/threads/t1");
   });
 
-  test("仅主题帖无楼层时只显示主题帖栏", () => {
+  test("可切换到无结果分类并显示分类空态", () => {
     render(<SearchResults data={{ users: [], threads: data.threads, posts: [] }} />);
-    expect(screen.getByText("主题帖（1）")).toBeInTheDocument();
-    expect(screen.queryByText(/楼层内容/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "楼层内容 0" }));
+    expect(screen.getByText("没有匹配的楼层内容")).toBeInTheDocument();
   });
 
-  test("仅用户结果时仍能进入用户主页", () => {
+  test("仅用户有结果时默认打开用户 Tab", () => {
     render(<SearchResults data={{ users: data.users, threads: [], posts: [] }} />);
-    expect(screen.getByText("用户（1）")).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "用户 1" })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByText("一起写故事")).toBeInTheDocument();
-    expect(screen.queryByText(/主题帖（/)).not.toBeInTheDocument();
   });
 });
