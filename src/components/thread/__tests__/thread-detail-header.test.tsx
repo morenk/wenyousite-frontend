@@ -153,6 +153,19 @@ describe("ThreadDetailHeader", () => {
     expect(screen.getByText("测试主题帖")).toBeInTheDocument();
   });
 
+  test("点击帖内搜索入口触发详情页搜索面板", async () => {
+    const user = userEvent.setup();
+    const onSearch = vi.fn();
+    mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
+    renderWithQC(
+      <ThreadDetailHeader thread={baseThread} onSearch={onSearch} />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "搜索本帖楼层" }));
+
+    expect(onSearch).toHaveBeenCalledTimes(1);
+  });
+
   test("可复制主题帖链接", async () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });

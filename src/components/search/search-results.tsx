@@ -14,10 +14,10 @@ import {
   useSearchUsers,
 } from "@/api/hooks/use-search";
 import { cn } from "@/lib/utils";
-import { getPostHref } from "@/lib/post-navigation";
 import { EmptyState } from "@/components/shared/empty-state";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Button } from "@/components/ui/button";
+import { PostSearchResultList } from "@/components/search/post-search-result-list";
 
 const categoryLabel: Record<string, string> = {
   DEDUCTION: "演绎",
@@ -221,43 +221,12 @@ export function SearchResults({ keyword }: SearchResultsProps) {
           ) : posts.length === 0 ? (
             <EmptyState title="没有匹配的楼层内容" description="可以查看其他分类" />
           ) : (
-            <div className="space-y-3">
-              {posts.map((post) => (
-                <Link
-                  key={post.id}
-                  href={getPostHref({
-                    threadId: post.thread.id,
-                    postId: post.id,
-                  })}
-                  className="block rounded-xl border border-border bg-card p-4 transition-shadow hover:shadow-md"
-                >
-                  <p className="mb-1.5 text-sm text-foreground/90 line-clamp-2">
-                    {post.content}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {post.author.username}
-                    {post.floorNumber != null ? ` · #${post.floorNumber}` : ""} ·{" "}
-                    {post.thread.title}
-                  </p>
-                </Link>
-              ))}
-
-              {postsQuery.hasNextPage && (
-                <div className="flex justify-center pt-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={postsQuery.isFetchingNextPage}
-                    onClick={() => void postsQuery.fetchNextPage()}
-                  >
-                    {postsQuery.isFetchingNextPage && (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    )}
-                    加载更多楼层
-                  </Button>
-                </div>
-              )}
-            </div>
+            <PostSearchResultList
+              posts={posts}
+              hasNextPage={!!postsQuery.hasNextPage}
+              isFetchingNextPage={postsQuery.isFetchingNextPage}
+              onLoadMore={() => void postsQuery.fetchNextPage()}
+            />
           )
         )}
 

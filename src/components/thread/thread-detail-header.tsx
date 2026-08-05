@@ -5,7 +5,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bell, BellOff, Edit3, Heart, Link2, Loader2, Settings, Trash2 } from "lucide-react";
+import { Bell, BellOff, Edit3, Heart, Link2, Loader2, Search, Settings, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
@@ -55,11 +55,15 @@ const statusColor: Record<string, string> = {
 interface ThreadDetailHeaderProps {
   thread: ThreadDetail;
   onManage?: () => void;
+  onSearch?: () => void;
+  isSearchOpen?: boolean;
 }
 
 export function ThreadDetailHeader({
   thread,
   onManage,
+  onSearch,
+  isSearchOpen = false,
 }: ThreadDetailHeaderProps) {
   const { user } = useAuth();
   const router = useRouter();
@@ -259,6 +263,19 @@ export function ThreadDetailHeader({
 
         {/* 操作按钮 */}
         <div className="flex items-center gap-2 border-t border-border pt-3">
+          {onSearch && (
+            <Button
+              variant="ghost"
+              size="sm"
+              aria-label="搜索本帖楼层"
+              title="搜索本帖楼层"
+              aria-expanded={isSearchOpen}
+              onClick={onSearch}
+            >
+              <Search className="mr-1 h-4 w-4" />
+              搜索本帖
+            </Button>
+          )}
           {thread.visibility === "PUBLIC" && (
             <Button
               variant="ghost"

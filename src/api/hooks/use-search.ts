@@ -13,6 +13,23 @@ interface SearchPostPage {
   meta: components["schemas"]["ApiPaginationMeta"];
 }
 
+function usePostSearchPages(
+  queryKey: readonly unknown[],
+  enabled: boolean,
+  fetchPage: (cursor?: string) => Promise<SearchPostPage>,
+) {
+  return useInfiniteQuery({
+    queryKey,
+    queryFn: ({ pageParam }: { pageParam: string | undefined }) =>
+      fetchPage(pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) =>
+      lastPage.meta.hasMore ? (lastPage.meta.cursor ?? undefined) : undefined,
+    enabled,
+    staleTime: 30 * 1000,
+  });
+}
+
 export const isPostSearchKeywordValid = (q: string) =>
   Array.from(q.trim()).length >= 2;
 
@@ -50,9 +67,10 @@ export function useSearchUsers(q: string, enabled: boolean) {
 
 export function useSearchPosts(q: string, enabled: boolean) {
   const keyword = q.trim();
-  return useInfiniteQuery({
-    queryKey: ["search", "posts", keyword],
-    queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
+  return usePostSearchPages(
+    ["search", "posts", keyword],
+    enabled && isPostSearchKeywordValid(keyword),
+    async (pageParam) => {
       const query = pageParam
         ? { q: keyword, limit: 20, cursor: pageParam }
         : { q: keyword, limit: 20 };
@@ -65,10 +83,33 @@ export function useSearchPosts(q: string, enabled: boolean) {
         meta: data?.meta ?? { cursor: null, hasMore: false },
       } satisfies SearchPostPage;
     },
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) =>
-      lastPage.meta.hasMore ? (lastPage.meta.cursor ?? undefined) : undefined,
-    enabled: enabled && isPostSearchKeywordValid(keyword),
-    staleTime: 30 * 1000,
-  });
+  );
+}
+
+export function useThreadSearchPosts(
+  threadId: string,
+  q: string,
+  enabled: boolean,
+) {
+  const keyword = q.trim();
+  return usePostSearchPages(
+    ["thread-search", threadId, "posts", keyword],
+    enabled && !!threadId && isPostSearchKeywordValid(keyword),
+    async (pageParam) => {
+      const query = pageParam
+        ? { q: keyword, limit: 20, cursor: pageParam }
+        : { q: keyword, limit: 20 };
+      const { data, error } = await apiClient.GET(
+        "/api/v1/threads/{threadId}/search/posts",
+        {
+          params: { path: { threadId }, query },
+        },
+      );
+      if (error) throw error;
+      return {
+        data: data?.data ?? [],
+        meta: data?.meta ?? { cursor: null, hasMore: false },
+      } satisfies SearchPostPage;
+    },
+  );
 }

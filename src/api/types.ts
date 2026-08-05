@@ -1411,6 +1411,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/threads/{threadId}/search/posts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 按正文搜索单个主题帖内的楼层与楼中楼 */
+        get: operations["ThreadSearchController_searchPosts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2332,6 +2349,8 @@ export interface components {
             id: string;
             /** @description 楼层号；楼中楼为 null */
             floorNumber: number | null;
+            /** @description 父楼层 ID；主楼层为 null */
+            parentPostId: string | null;
             /** @description Markdown 正文 */
             content: string;
             /**
@@ -5956,6 +5975,51 @@ export interface operations {
                         data: components["schemas"]["SearchResultResponseDto"];
                     };
                 };
+            };
+        };
+    };
+    ThreadSearchController_searchPosts: {
+        parameters: {
+            query: {
+                /** @description 搜索关键词，首尾空白会被移除 */
+                q: string;
+                /** @description 上一页返回的不透明游标 */
+                cursor?: string;
+                /** @description 每页条数，默认及最大均为 20 */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                threadId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 相关度游标分页；搜索全部子贴，不限制单帖结果数量 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["SearchPostResponseDto"][];
+                    };
+                };
+            };
+            /** @description 关键词不足 2 个字符或游标无效 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 主题帖不存在，或当前用户无权访问私密帖 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

@@ -16,6 +16,7 @@ import {
   useNewReplies,
 } from "@/api/hooks/use-reading-progress";
 import { ThreadDetailHeader } from "@/components/thread/thread-detail-header";
+import { ThreadPostSearch } from "@/components/thread/thread-post-search";
 import { SubthreadTabs } from "@/components/thread/subthread-tabs";
 import { SubthreadBody } from "@/components/thread/subthread-body";
 import { FloorList } from "@/components/thread/floor-list";
@@ -63,6 +64,7 @@ function ThreadDetailPageContent() {
 
   const [selectedSubthreadId, setSelectedSubthreadId] = useState<string>();
   const [isManaging, setIsManaging] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const { data: targetPost } = usePost(targetPostId);
   const targetFloorId = targetPost?.parentPostId ?? targetPost?.id;
   const { data: targetFloor } = usePost(targetFloorId);
@@ -186,10 +188,25 @@ function ThreadDetailPageContent() {
       {/* 头部 */}
       <ThreadDetailHeader
         thread={thread}
+        isSearchOpen={isSearching}
+        onSearch={() => setIsSearching((open) => !open)}
         onManage={canManageThread ? () => {
           if (closeComposer()) setIsManaging(true);
         } : undefined}
       />
+
+      {isSearching && (
+        <div className="mt-5">
+          <ThreadPostSearch
+            threadId={thread.id}
+            onClose={() => setIsSearching(false)}
+            onSelect={() => {
+              setSelectedSubthreadId(undefined);
+              setIsSearching(false);
+            }}
+          />
+        </div>
+      )}
 
       <div className="mt-5 space-y-4">
         {/* 子贴 Tabs */}

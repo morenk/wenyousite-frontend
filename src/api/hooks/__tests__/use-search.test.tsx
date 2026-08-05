@@ -6,6 +6,7 @@ import {
   useSearchPosts,
   useSearchThreads,
   useSearchUsers,
+  useThreadSearchPosts,
 } from "@/api/hooks/use-search";
 
 const { mockGET } = vi.hoisted(() => ({
@@ -135,5 +136,55 @@ describe("分类搜索 hooks", () => {
     });
     expect(nextPageResult?.data?.pages).toHaveLength(2);
     expect(nextPageResult?.hasNextPage).toBe(false);
+  });
+
+  test("帖内楼层搜索复用游标协议并携带主题帖路径参数", async () => {
+    mockGET
+      .mockResolvedValueOnce({
+        data: {
+          code: 0,
+          message: "ok",
+          data: [post],
+          meta: { cursor: "thread-next", hasMore: true },
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          code: 0,
+          message: "ok",
+          data: [{ ...post, id: "p2" }],
+          meta: { cursor: null, hasMore: false },
+        },
+      });
+
+    const { result } = renderHook(
+      () => useThreadSearchPosts("t1", " 测试 ", true),
+      { wrapper: createWrapper() },
+    );
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockGET).toHaveBeenNthCalledWith(
+      1,
+      "/api/v1/threads/{threadId}/search/posts",
+      {
+        params: {
+          path: { threadId: "t1" },
+          query: { q: "测试", limit: 20 },
+        },
+      },
+    );
+
+    await act(async () => {
+      await result.current.fetchNextPage();
+    });
+    expect(mockGET).toHaveBeenNthCalledWith(
+      2,
+      "/api/v1/threads/{threadId}/search/posts",
+      {
+        params: {
+          path: { threadId: "t1" },
+          query: { q: "测试", limit: 20, cursor: "thread-next" },
+        },
+      },
+    );
   });
 });

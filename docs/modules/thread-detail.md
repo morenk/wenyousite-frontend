@@ -1,6 +1,6 @@
 # 主题帖详情与楼层模块
 
-> 本轮跨端发布批次：`private-thread-access-2026-08-05`。
+> 本轮跨端发布批次：`thread-post-search-20260805`；私密帖访问基线批次为 `private-thread-access-2026-08-05`。
 
 ## 1. 目标与范围
 
@@ -18,6 +18,7 @@
 - 点赞/取消点赞主题帖
 - 当前用户点赞状态 `isLiked`，不得使用全站 `likeCount` 推断
 - Loading / Error / Empty / 404 状态
+- 头部“搜索本帖”内联面板：检索全部子贴的楼层与楼中楼并精确定位
 
 **后续迭代：**
 - ~~楼中楼回复（parentPostId / replyToPostId）~~ → 已实现
@@ -43,6 +44,7 @@
 | Method | Path | Guard | 用途 |
 |--------|------|-------|------|
 | GET | `/threads/:id` | OptionalAuth | 主题帖详情（含子贴列表、owner、_count；登录时附加 isBookmarked/isLiked） |
+| GET | `/threads/:threadId/search/posts` | OptionalAuth | 帖内楼层搜索（至少 2 字符，相关度游标分页，继承主题帖权限） |
 | DELETE | `/threads/:id` | Auth | 删除主题帖：未发布帖硬删除，已发布帖软删除，仅 OWNER |
 | GET | `/subthreads/:subthreadId/posts` | Public | 楼层列表（cursor 分页，含最多 5 条内联 replies） |
 | POST | `/subthreads/:subthreadId/posts` | Auth | 发布新楼层/楼中楼回复（kind=FLOOR，发帖自动成为参与人=玩家候选池；楼中楼带 parentPostId/replyToPostId） |
@@ -284,13 +286,16 @@
 | 当前编辑会话 | 用户点击发表/回复/编辑 | `ThreadComposerProvider`（全页唯一 session + content + pending） |
 | 点赞状态 | `GET /threads/:id` 的 `isLiked` + `POST/DELETE /threads/:id/like` | useMutation + query invalidation；`likeCount` 仅用于展示总数 |
 | 订阅状态 | `GET /subscriptions` + `GET /threads/:id/members` | THREAD 订阅官方更新；USER 候选仅普通已标记玩家；楼主/协作者隐藏全部订阅控件 |
+| 帖内搜索 | `GET /threads/:threadId/search/posts` | `useThreadSearchPosts` 游标分页；面板开关与待提交输入为详情页/组件本地状态 |
 
 ## 6. 组件清单
 
 | 组件 | 路径 | 说明 |
 |------|------|------|
 | ThreadDetailPage | `src/app/threads/[id]/page.tsx` | 详情页主逻辑（含管理面板切换） |
-| ThreadDetailHeader | `src/components/thread/thread-detail-header.tsx` | 标题与操作区；楼主/协作者可编辑管理，仅楼主可邀请和删除整帖 |
+| ThreadDetailHeader | `src/components/thread/thread-detail-header.tsx` | 标题与操作区；提供“搜索本帖”，楼主/协作者可编辑管理，仅楼主可邀请和删除整帖 |
+| ThreadPostSearch | `src/components/thread/thread-post-search.tsx` | 内联搜索全部子贴与楼中楼；处理短词、分页及四态 |
+| PostSearchResultList | `src/components/search/post-search-result-list.tsx` | 与全站搜索共用的结果列表、加载更多和精确帖子导航 |
 | SubthreadTabs | `src/components/thread/subthread-tabs.tsx` | 子贴 Tab 切换导航 |
 | SubthreadBody | `src/components/thread/subthread-body.tsx` | 子贴卡（唯一卡片）：子贴标题 + 默认徽章 + 正文（kind=BODY）同容器（正文不进入楼层列表） |
 | FloorCard | `src/components/thread/floor-card.tsx` | 单条楼层卡片；作者可编辑，作者或楼主/协作者可删除 |
@@ -400,6 +405,7 @@
 |------|------|
 | 公开帖 | 所有用户可查看 |
 | 私密帖 + 非成员 | 后端返回 404（设计决策：避免枚举私密帖） |
+| 帖内搜索 | 公开帖允许匿名；PRIVATE 帖仅成员；未发布草稿仅 OWNER；无权访问返回 404 |
 | 未登录发帖 | apiClient 拦截器自动跳转 /login |
 | 发帖 | 登录且通过主题帖访问校验即可发帖，发帖自动入候选池；OWNER/COLLABORATOR 绕过子贴策略 |
 | 已发布帖 OWNER/COLLABORATOR | 显示 "编辑" 与 "管理"；协作者保存请求不包含 visibility/published |
@@ -445,6 +451,9 @@
 - [x] 主帖徽章文案「主帖」；主帖节点不可拖拽，拖到主帖位置时前端拦截并 toast 友好提示
 - [x] SubthreadTabs 支持几十个子贴：横向滚动 + 溢出箭头 + 选中自动滚入视野
 - [x] 消息/站内链接定位取消移动动画，仅高亮目标楼层或楼中楼回复卡片
+- [x] 头部可打开帖内搜索，覆盖全部子贴与楼中楼并支持游标加载更多
+- [x] 搜索结果可切换到所属子贴并精确定位；楼中楼直达独立讨论页
+- [x] 帖内搜索与全站搜索复用结果列表和导航协议，同时继承私密帖/草稿权限
 - [x] 登录发帖自动进入参与人候选池，同时提供公开加入与退出玩家身份操作
 - [x] 元数据人数显示 `_count.players`（被授予玩家身份者），非候选池总数
 - [x] `pnpm lint && pnpm typecheck && pnpm build` 通过

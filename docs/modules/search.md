@@ -1,15 +1,16 @@
 # 搜索模块
 
-跨端发布批次：`search-scale-20260805`
+跨端发布批次：`thread-post-search-20260805`
 
 ## 1. 目标与范围
 
-实现全站搜索入口与结果页，可搜索用户名、主题帖标题与楼层内容。
+实现全站搜索入口与结果页，并在主题帖详情中提供继承帖子访问权限的楼层搜索；两处复用分页协议、结果列表与精确定位能力。
 
 **本次迭代范围（Phase 8 · 第一轮：搜索）：**
 - `/search` 搜索页：输入框（URL `?q=` 同步）+ 三类结果 Tab（主题帖 / 楼层内容 / 用户）
 - 导航栏搜索图标入口
 - loading / error / empty / data 四态
+- `/threads/[id]` 帖内搜索面板：覆盖全部子贴与楼中楼，不离开当前主题帖即可检索和定位
 
 **后续迭代（Phase 8 · 收藏）：**
 - 收藏功能已另立文档 `docs/modules/bookmarks.md`（详情页收藏按钮、/bookmarks 管理页、资料页收藏区块）
@@ -20,6 +21,7 @@
 | 路由 | 页面说明 | 权限 |
 |------|----------|------|
 | `/search` | 搜索页（`?q=` 关键词同步） | 公开 |
+| `/threads/[id]` | 头部“搜索本帖”打开内联搜索面板 | 继承主题帖访问权限 |
 
 导航栏搜索图标 → `/search`。
 
@@ -30,9 +32,12 @@
 | GET | `/search/threads?q=` | Public | 主题帖 Tab 按需查询，最多 50 条 |
 | GET | `/search/users?q=` | Public | 用户 Tab 按需查询，最多 20 条 |
 | GET | `/search/posts?q=&cursor=&limit=20` | Public | 楼层 Tab 按需查询，相关度游标分页 |
+| GET | `/threads/:threadId/search/posts?q=&cursor=&limit=20` | OptionalAuth | 搜索本帖全部子贴中的楼层与楼中楼 |
 | GET | `/search?q=` | Public | 旧客户端兼容聚合端点，新前端不调用 |
 
 > 三个 Tab 不会并发预取：默认只请求主题帖，首次点击用户或楼层时才请求对应端点。楼层关键词至少 2 个字符，每页 20 条，每个主题帖最多 3 条；用户结果排除注销账号，主题帖与楼层仅返回 PUBLIC 已发布帖。
+
+> 帖内搜索使用相同的短词限制、相关度排序和游标，但不套用“每个主题帖最多 3 条”；PRIVATE 帖仅成员可搜，未发布帖仅楼主可搜。搜索结果携带 `parentPostId`，楼中楼可直接进入独立讨论页。
 
 ## 4. API 响应快照
 
@@ -86,6 +91,7 @@
 | 主题帖结果 | `GET /search/threads?q=` | `useQuery`，仅主题帖 Tab 激活时 enabled |
 | 用户结果 | `GET /search/users?q=` | `useQuery`，仅用户 Tab 激活时 enabled |
 | 楼层结果 | `GET /search/posts?q=&cursor=` | `useInfiniteQuery`，仅楼层 Tab 激活且关键词不少于 2 字符时 enabled |
+| 帖内楼层结果 | `GET /threads/:threadId/search/posts?q=&cursor=` | `useThreadSearchPosts`；仅提交有效关键词后请求，按 threadId 隔离缓存 |
 | 输入框 | 组件本地 | 受控 ref（`key={q}` 随 URL 同步，提交时 router.replace 更新 URL） |
 
 ## 6. 组件清单
@@ -95,6 +101,9 @@
 | SearchResults | `src/components/search/search-results.tsx` | 三类结果 Tab、分类 loading/error/empty、短词提示与楼层加载更多 |
 | useSearchThreads / useSearchUsers | `src/api/hooks/use-search.ts` | 主题帖与用户分类查询 hooks |
 | useSearchPosts | `src/api/hooks/use-search.ts` | 楼层游标分页 hook，透传 `meta.cursor` |
+| useThreadSearchPosts | `src/api/hooks/use-search.ts` | 帖内楼层分页 hook，与全站楼层共享分页核心 |
+| PostSearchResultList | `src/components/search/post-search-result-list.tsx` | 全站与帖内共享的楼层结果、加载更多和精确定位列表 |
+| ThreadPostSearch | `src/components/thread/thread-post-search.tsx` | 详情页内联搜索面板，处理输入与 loading/error/empty/data 四态 |
 | SearchPage | `src/app/search/page.tsx` | 搜索页（输入 + 四态） |
 
 ## 7. 交互规则
@@ -105,7 +114,8 @@
 - Tab 数量表示当前已加载条数而非全站总数；达到分类上限或楼层仍有下一页时显示 `+`，不发起昂贵的总数统计
 - 用户名和主题帖允许单字符；单字符进入楼层 Tab 时提示至少输入 2 个字符且不请求接口
 - 楼层每页加载 20 条，`meta.hasMore=true` 时显示“加载更多楼层”
-- 用户项 → `/users/{id}`；主题帖项 → `/threads/{id}`；楼层项通过共享 `getPostHref` 携带目标帖子 ID，进入所属子贴并定位高亮具体楼层（楼中楼继续进入对应讨论页）
+- 用户项 → `/users/{id}`；主题帖项 → `/threads/{id}`；楼层项通过共享 `getPostHref` 携带目标帖子 ID 和 `parentPostId`，主楼层进入所属子贴，楼中楼直达对应讨论页并定位高亮
+- 详情页头部“搜索本帖”切换内联面板；输入只在提交时发请求，点击主楼层结果会清除当前手选子贴后切换到结果所属子贴
 - 空关键词 → 提示输入；无结果 → "没有找到相关内容"
 
 ## 8. 错误处理
@@ -119,7 +129,7 @@
 
 ## 9. 权限与访问控制
 
-`/search` 公开，无需登录。用户结果不返回邮箱等敏感字段且排除已注销账号；帖子结果不包含私密帖。
+`/search` 公开，无需登录。用户结果不返回邮箱等敏感字段且排除已注销账号；全站帖子结果不包含私密帖。帖内搜索继承当前主题帖权限：公开帖允许匿名，PRIVATE 帖仅成员可用，未发布帖仅楼主可用，无权访问时后端统一返回 404。
 
 ## 10. 验收标准
 
@@ -133,6 +143,9 @@
 - [x] URL `?q=` 与输入框同步（前进/后退生效）
 - [x] loading / error / empty 三态
 - [x] 导航栏搜索图标入口
+- [x] 主题帖详情可搜索全部子贴中的主楼层和楼中楼
+- [x] 帖内搜索复用全站短词、游标、结果列表与帖子导航组件，且不限制为 3 条
+- [x] 私密帖与未发布帖的帖内搜索继承主题帖访问权限
 - [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` 通过
 
 ## 11. 子任务（切片）
@@ -141,4 +154,5 @@
 - [x] 切片2：`SearchResults` 组件 + `/search` 页 + nav 入口 + 测试
 - [x] 切片3：重抓 search 快照 + 模块文档 + Roadmap
 - [x] 切片4：短词限制、Tab 惰性加载、楼层分页与结果去重策略
-- [ ] 切片5：质量检查 + 部署 + 提交推送
+- [x] 切片5：质量检查 + 部署 + 提交推送
+- [x] 切片6：帖内搜索端点、共享结果列表、详情页面板与权限测试
