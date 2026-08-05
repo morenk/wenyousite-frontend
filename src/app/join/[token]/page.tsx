@@ -26,6 +26,12 @@ export default function JoinByInvitePage() {
     }
   }, [isInitialized, router, token, user]);
 
+  useEffect(() => {
+    if (preview.data?.alreadyJoined) {
+      router.replace(`/threads/${preview.data.thread.id}`);
+    }
+  }, [preview.data, router]);
+
   async function handleJoin() {
     try {
       await join.mutateAsync(token);
@@ -36,7 +42,7 @@ export default function JoinByInvitePage() {
     }
   }
 
-  if (!isInitialized || !user || preview.isLoading) {
+  if (!isInitialized || !user || preview.isLoading || preview.data?.alreadyJoined) {
     return <Loader2 className="mx-auto mt-24 h-6 w-6 animate-spin text-muted-foreground" />;
   }
 

@@ -4,7 +4,7 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
-import { Loader2, ChevronDown } from "lucide-react";
+import { Loader2, ChevronDown, LockKeyhole } from "lucide-react";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -99,6 +99,12 @@ export function UserThreadList({
             >
               {statusLabel[thread.status] ?? thread.status}
             </span>
+            {thread.visibility === "PRIVATE" && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                <LockKeyhole className="h-3 w-3" />
+                私密帖
+              </span>
+            )}
           </div>
           <h3 className="text-sm font-semibold text-foreground line-clamp-1">
             {thread.title}

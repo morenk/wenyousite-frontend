@@ -259,16 +259,18 @@ export function ThreadDetailHeader({
 
         {/* 操作按钮 */}
         <div className="flex items-center gap-2 border-t border-border pt-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            aria-label="复制主题帖链接"
-            title="复制主题帖链接"
-            onClick={handleCopyThreadLink}
-          >
-            <Link2 className="mr-1 h-4 w-4" />
-            复制链接
-          </Button>
+          {thread.visibility === "PUBLIC" && (
+            <Button
+              variant="ghost"
+              size="sm"
+              aria-label="复制主题帖链接"
+              title="复制主题帖链接"
+              onClick={handleCopyThreadLink}
+            >
+              <Link2 className="mr-1 h-4 w-4" />
+              复制链接
+            </Button>
+          )}
           {isOwner && thread.published && thread.visibility === "PRIVATE" && (
             <Button
               variant="outline"

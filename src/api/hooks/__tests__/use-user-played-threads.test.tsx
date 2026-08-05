@@ -60,7 +60,7 @@ describe("useUserPlayedThreads", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(mockGET).toHaveBeenCalledWith("/api/v1/users/{id}/played-threads", {
-      params: { path: { id: "u1" }, query: { limit: "10" } },
+      params: { path: { id: "u1" }, query: { limit: 10 } },
     });
     const pages = result.current.data?.pages ?? [];
     expect(pages[0]?.data[0].title).toBe("测试帖");
@@ -83,5 +83,21 @@ describe("useUserPlayedThreads", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.hasNextPage).toBe(true);
+  });
+
+  test("私密分类作为服务端分页参数并隔离缓存", async () => {
+    mockGET.mockResolvedValue({
+      data: { code: 0, message: "ok", data: [], meta: { cursor: null, hasMore: false } },
+      error: undefined,
+    });
+
+    const { result } = renderHook(() => useUserPlayedThreads("u1", "PRIVATE"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockGET).toHaveBeenCalledWith("/api/v1/users/{id}/played-threads", {
+      params: { path: { id: "u1" }, query: { limit: 10, visibility: "PRIVATE" } },
+    });
   });
 });

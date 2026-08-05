@@ -354,7 +354,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 查看用户参与的帖子（被标记为玩家，受 showPlayerBadges 隐私开关控制） */
+        /** 查看用户参与的帖子（本人含全部实际参与帖；他人仅公开玩家帖） */
         get: operations["UsersController_getUserPlayedThreads"];
         put?: never;
         post?: never;
@@ -753,10 +753,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 预览邀请链接对应的私密帖信息（需已发布 + 私密帖，不创建成员记录） */
+        /** 预览邀请链接对应的私密帖信息，并判断当前用户是否已加入 */
         get: operations["ThreadsController_previewInviteLink"];
         put?: never;
-        /** 通过 16 位邀请 token 加入私密帖（需已发布） */
+        /** 通过 16 位邀请 token 幂等加入私密帖（需已发布） */
         post: operations["ThreadsController_joinByInviteLink"];
         delete?: never;
         options?: never;
@@ -1792,6 +1792,45 @@ export interface components {
              * @example 1
              */
             version: number;
+        };
+        InviteOwnerResponseDto: {
+            /** @description 楼主用户 ID */
+            id: string;
+            /** @description 楼主用户名 */
+            username: string;
+            /** @description 楼主头像 URL */
+            avatar: string | null;
+        };
+        InviteThreadPreviewResponseDto: {
+            /** @description 主题帖 ID */
+            id: string;
+            /** @description 主题帖标题 */
+            title: string;
+            /**
+             * @description 主题帖分区
+             * @enum {string}
+             */
+            category: "DEDUCTION" | "NATION" | "RPG";
+            /**
+             * @description 主题帖状态
+             * @enum {string}
+             */
+            status: "RECRUITING" | "CLOSED" | "FINISHED";
+            /** @description 楼主信息 */
+            owner: components["schemas"]["InviteOwnerResponseDto"];
+            /** @description 当前参与人数 */
+            memberCount: number;
+            /**
+             * Format: date-time
+             * @description 主题帖创建时间
+             */
+            createdAt: string;
+        };
+        InvitePreviewResponseDto: {
+            /** @description 邀请对应的主题帖概要 */
+            thread: components["schemas"]["InviteThreadPreviewResponseDto"];
+            /** @description 当前登录用户是否已经加入该主题帖 */
+            alreadyJoined: boolean;
         };
         AddThreadTagDto: {
             /**
@@ -3068,10 +3107,12 @@ export interface operations {
     UsersController_getUserPlayedThreads: {
         parameters: {
             query?: {
+                /** @description 分页游标（上一页最后一条记录的 ID），首次请求不传 */
+                cursor?: string;
                 /** @description 每页条数（默认 20，最大 50） */
-                limit?: unknown;
-                /** @description 分页游标（上一页最后一条记录 ID） */
-                cursor?: unknown;
+                limit?: number;
+                /** @description 按公开帖或私密帖筛选。本人可筛选全部实际参与帖；他人请求 PRIVATE 返回空列表 */
+                visibility?: "PUBLIC" | "PRIVATE";
             };
             header?: never;
             path: {
@@ -4161,14 +4202,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 帖子概要（title / category / owner / memberCount） */
+            /** @description 帖子概要和 alreadyJoined 状态 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["InvitePreviewResponseDto"];
                     };
                 };
             };
@@ -4199,7 +4240,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 加入成功返回成员记录（thread.title / user 基本信息） */
+            /** @description 加入成功或已加入时返回成员记录（thread.title / user 基本信息） */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -4219,13 +4260,6 @@ export interface operations {
             };
             /** @description 邀请链接无效或已失效 */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description 已是该帖参与人 */
-            409: {
                 headers: {
                     [name: string]: unknown;
                 };

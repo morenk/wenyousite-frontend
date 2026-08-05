@@ -2,20 +2,11 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import type { components } from "@/api/types";
 
 interface Envelope<T> { data: T }
 
-export interface InvitePreview {
-  thread: {
-    id: string;
-    title: string;
-    category: "DEDUCTION" | "NATION" | "RPG";
-    status: "RECRUITING" | "CLOSED" | "FINISHED";
-    owner: { id: string; username: string; avatar: string | null };
-    memberCount: number;
-    createdAt: string;
-  };
-}
+export type InvitePreview = components["schemas"]["InvitePreviewResponseDto"];
 
 export function useCreateInviteLink() {
   return useMutation({
@@ -45,6 +36,7 @@ export function useInvitePreview(token: string | undefined) {
 }
 
 export function useJoinThreadByInvite() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (token: string) => {
       const { data, error } = await apiClient.POST("/api/v1/threads/join-by-link/{token}", {
@@ -52,6 +44,9 @@ export function useJoinThreadByInvite() {
       });
       if (error) throw error;
       return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user", "played-threads"] });
     },
   });
 }

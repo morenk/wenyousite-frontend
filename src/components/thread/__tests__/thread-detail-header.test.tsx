@@ -590,6 +590,7 @@ describe("ThreadDetailHeader", () => {
       <ThreadDetailHeader thread={{ ...baseThread, visibility: "PRIVATE" }} />,
     );
 
+    expect(screen.queryByRole("button", { name: "复制主题帖链接" })).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "复制邀请链接" }));
     expect(mockPOST).toHaveBeenCalledWith("/api/v1/threads/{id}/invite-link", {
       params: { path: { id: "thread-1" } },

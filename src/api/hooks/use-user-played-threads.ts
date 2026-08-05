@@ -2,7 +2,13 @@
 
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import type { operations } from "@/api/types";
 import type { ThreadCardData } from "./use-threads";
+
+type PlayedThreadsQuery = NonNullable<
+  operations["UsersController_getUserPlayedThreads"]["parameters"]["query"]
+>;
+export type PlayedThreadVisibility = NonNullable<PlayedThreadsQuery["visibility"]>;
 
 export interface PlayedThreadsResponse {
   code: number;
@@ -11,13 +17,17 @@ export interface PlayedThreadsResponse {
   meta: { cursor: string | null; hasMore: boolean };
 }
 
-export function useUserPlayedThreads(userId: string | undefined) {
+export function useUserPlayedThreads(
+  userId: string | undefined,
+  visibility?: PlayedThreadVisibility,
+) {
   return useInfiniteQuery({
-    queryKey: ["user", "played-threads", userId],
+    queryKey: ["user", "played-threads", userId, visibility ?? "ALL"],
     queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
       if (!userId) throw new Error("缺少用户 ID");
-      const queryParams: Record<string, string> = { limit: "10" };
+      const queryParams: PlayedThreadsQuery = { limit: 10 };
       if (pageParam) queryParams.cursor = pageParam;
+      if (visibility) queryParams.visibility = visibility;
 
       const { data, error } = await apiClient.GET(
         "/api/v1/users/{id}/played-threads",

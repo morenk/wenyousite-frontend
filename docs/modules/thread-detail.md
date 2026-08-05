@@ -1,5 +1,7 @@
 # 主题帖详情与楼层模块
 
+> 本轮跨端发布批次：`private-thread-access-2026-08-05`。
+
 ## 1. 目标与范围
 
 实现主题帖详情页，展示帖子头部信息、子贴 Tab 切换、楼层列表（分页）、Markdown 渲染，以及发布新楼层。
@@ -23,7 +25,7 @@
 - ~~玩家管理（楼主在候选池中授予/收回玩家身份）~~ → 已实现（管理面板「成员」tab）
 - ~~订阅通知~~ → 已实现（ThreadDetailHeader 订阅/取消订阅）
 - 帖内订阅：THREAD 为楼主/协作者官方更新；USER 仅可选择 `PARTICIPANT + playerMarked=true` 的普通玩家
-- 私密帖邀请：楼主生成/刷新邀请链接，受邀用户在 `/join/[token]` 预览并加入
+- 私密帖邀请：楼主生成/刷新邀请链接，受邀用户在 `/join/[token]` 预览并加入；已加入用户再次打开同一邀请会直接进入主题帖
 - 公开帖发言即参与，不提供手动加入入口；已标记玩家可退出玩家身份
 - ~~阅读进度~~ → 已实现（详情页记录进度 + 子贴 Tab 新回复徽标）
 
@@ -54,8 +56,8 @@
 | POST | `/threads/:threadId/members/join` | Auth | 旧客户端兼容端点（deprecated；Web 不调用） |
 | DELETE | `/threads/:threadId/members/me` | AuthRead | 退出玩家身份（保留参与人候选记录） |
 | POST | `/threads/:id/invite-link` | Auth | 私密帖楼主生成或刷新邀请 token |
-| GET | `/threads/join-by-link/:token` | AuthRead | 预览私密帖邀请 |
-| POST | `/threads/join-by-link/:token` | Auth | 通过邀请加入私密帖 |
+| GET | `/threads/join-by-link/:token` | AuthRead | 预览私密帖邀请并返回 `alreadyJoined` |
+| POST | `/threads/join-by-link/:token` | Auth | 幂等地通过邀请加入私密帖 |
 | GET | `/subscriptions` | Auth | 我的订阅列表 |
 | POST | `/subscriptions` | Auth | 创建订阅（THREAD/USER） |
 | DELETE | `/subscriptions/:id` | Auth | 取消订阅 |
@@ -77,7 +79,9 @@
 
 > **站内链接契约（第二切片）**：主楼层可通过 `/threads/{threadId}?post={postId}` 精确定位；楼层卡片提供复制链接入口。该 URL 仅依赖现有 Post 字段，不新增 API。
 
-> **站内链接契约（第三切片）**：主题帖可通过 `/threads/{threadId}` 访问根页面；主题帖头部提供复制主题帖链接入口。复制链接按钮统一使用链条语义文案，避免与复制正文混淆。
+> **站内链接契约（第三切片）**：公开主题帖可通过 `/threads/{threadId}` 访问根页面，头部提供复制主题帖链接入口。私密帖不显示普通复制链接；楼主只显示可授予访问权限的“复制邀请链接”，其他成员不显示分享入口。
+
+> **邀请重复访问契约**：`/join/[token]` 读取预览响应的 `alreadyJoined`。已是成员时显示加载过渡并立即 `replace` 到 `/threads/{threadId}`；提交加入接口本身也保持幂等，用于覆盖多标签页或并发点击。加入成功后失效“参与的帖子”缓存。
 
 ## 4. API 响应快照
 
@@ -400,7 +404,8 @@
 | OWNER 删除 | 显示 "删除" 按钮；确认后调用 `DELETE /threads/:id`，成功返回首页 |
 | OWNER/COLLABORATOR 订阅 | 不显示任何订阅控件；自动接收全部帖子动态 |
 | 普通用户订阅 | THREAD 显示“订阅官方更新”；USER 候选仅 `PARTICIPANT + playerMarked=true` 普通玩家 |
-| PRIVATE OWNER | 显示“复制邀请链接”，每次调用都会刷新旧 token |
+| PRIVATE OWNER | 只显示“复制邀请链接”，不显示无授权能力的普通链接；每次调用都会刷新旧 token |
+| PRIVATE 其他成员 | 不显示普通复制链接或邀请链接 |
 | PUBLIC 非成员 | 不显示手动加入；首次发言自动建立参与人记录 |
 | 已标记玩家 | 显示“退出玩家身份”；OWNER 不可退出 |
 
@@ -417,7 +422,7 @@
 - [x] 楼层卡片正确渲染 Markdown 内容
 - [x] 未登录用户可浏览公开帖，不能发帖
 - [x] 登录且通过访问校验即可发帖；公开帖发言即参与，已有玩家可退出玩家身份
-- [x] 私密帖楼主可生成邀请链接，受邀用户可预览并加入
+- [x] 私密帖楼主可生成邀请链接，受邀用户可预览并加入；已加入用户重复打开邀请直接进入帖子
 - [x] 公开帖不提供手动加入，玩家可退出玩家身份
 - [x] 发布新楼层
 - [x] 浏览态不挂载 Milkdown，点击发表/回复/编辑后才出现编辑器

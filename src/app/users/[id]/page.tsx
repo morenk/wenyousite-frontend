@@ -14,10 +14,12 @@ import { UserBookmarksSection } from "@/components/user/user-bookmarks-section";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
+import { useAuth } from "@/lib/auth";
 
 export default function UserProfilePage() {
   const params = useParams();
   const userId = params.id as string;
+  const { user } = useAuth();
 
   const {
     data: profile,
@@ -122,7 +124,7 @@ export default function UserProfilePage() {
             <CardTitle className="text-base">参与的帖子</CardTitle>
           </CardHeader>
           <CardContent>
-            <UserPlayedThreads userId={userId} />
+            <UserPlayedThreads userId={userId} isSelf={user?.id === userId} />
           </CardContent>
         </Card>
       </div>

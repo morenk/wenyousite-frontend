@@ -1,5 +1,7 @@
 # 用户模块（资料 / 登录终端 / 关注拉黑 / 草稿箱）
 
+> 本轮跨端发布批次：`private-thread-access-2026-08-05`。
+
 ## 1. 目标与范围
 
 实现用户主页、关注/拉黑、草稿箱三个子功能，补齐全站所有 `Link href="/users/{id}"` 的死链落点。
@@ -13,7 +15,7 @@
 - `/me/email` 更换邮箱页：当前密码二次认证 → 新邮箱 → 6 位验证码，成功后失效 me 缓存并跳转 `/me`
 - `/me/security` 账号安全页：双端登录终端、黑名单、账号注销
 - 登录终端改动属于发布批次 `auth-login-terminal-2026-08-05`；跨端契约、数据库迁移、发布顺序与回滚要求见 `docs/modules/auth.md`
-- 参与列表排除自建帖：`played-threads` 只返回被其他楼主标记为玩家的帖，自建帖归入「创建的帖子」（后端 `4ed5449` 同步）
+- 参与列表排除自建帖：本人列表按实际成员关系返回其他楼主的帖子（含邀请加入的私密帖），并提供“全部 / 公开帖 / 私密帖”服务端分页分类；他人列表仍只返回公开且被标记为玩家的帖子
 
 **后续迭代：**
 - 无（举报与管理后台不属于本模块）
@@ -46,7 +48,7 @@
 | GET | `/users/:id` | OptionalAuth | 用户公开资料；登录态额外返回 isFollowing/isFollowedBy/isBlocked/isBlockedBy |
 | GET | `/users/:id/recent-replies` | OptionalAuth | 最近 10 条回复（仅 PUBLIC 帖），不分页，受 showRecentReplies 控制 |
 | GET | `/users/:id/created-threads` | OptionalAuth | 创建的帖子（本人可见全部含私密帖，他人仅 PUBLIC），按创建时间倒序，Cursor 分页 |
-| GET | `/users/:id/played-threads` | OptionalAuth | 参与的帖子（被其他楼主标记为玩家，**排除自建帖**），按加入时间倒序，Cursor 分页，受 showPlayerBadges 控制 |
+| GET | `/users/:id/played-threads` | OptionalAuth | 参与的非自建帖子，支持 `visibility=PUBLIC\|PRIVATE`；本人含全部实际参与帖，他人仅公开玩家帖，按加入时间倒序和 Cursor 分页 |
 | POST | `/users/follow/:id` | Auth | 关注（幂等，首次关注发通知） |
 | DELETE | `/users/follow/:id` | Auth | 取消关注 |
 | GET | `/users/:id/following` | OptionalAuth | 该用户的关注列表（公开，用户不存在 404） |
@@ -210,7 +212,7 @@
 | 用户资料 | `GET /users/:id` | TanStack Query `useQuery`（queryKey `["user", id]`） |
 | 最近动态 | `GET /users/:id/recent-replies` | TanStack Query `useQuery` |
 | 创建的帖子 | `GET /users/:id/created-threads` | `useInfiniteQuery`（cursor 分页） |
-| 参与的帖子 | `GET /users/:id/played-threads` | `useInfiniteQuery`（cursor 分页） |
+| 参与的帖子 | `GET /users/:id/played-threads` | `useInfiniteQuery`（cursor 分页；query key 含 PUBLIC/PRIVATE/ALL 分类） |
 | 我的资料 | `GET /users/me` | TanStack Query `useQuery` |
 | 草稿列表 | `GET /threads/draft` | TanStack Query `useQuery`（queryKey `["drafts"]`） |
 | 关注/拉黑状态 | 用户资料中的 isFollowing/isBlocked | `useMutation` + 失效 `["user", id]` |
@@ -232,7 +234,7 @@
 | UserRecentReplies | `src/components/user/user-recent-replies.tsx` | 最近动态列表（**仅展示最近 5 条**；整卡可点击，跳转 `/threads/{threadId}?post={postId}` 精确定位到对应楼层/楼中楼/正文，复用详情页 `?post=` 高亮定位；正文/楼层/楼中楼三态标识 + preview） |
 | UserThreadList | `src/components/user/user-thread-list.tsx` | 用户帖子列表通用展示组件（徽章/标题/无限滚动，empty/error 文案 props） |
 | UserCreatedThreads | `src/components/user/user-created-threads.tsx` | 创建的帖子列表（薄包装：useUserCreatedThreads + UserThreadList） |
-| UserPlayedThreads | `src/components/user/user-played-threads.tsx` | 参与的帖子列表（薄包装：useUserPlayedThreads + UserThreadList） |
+| UserPlayedThreads | `src/components/user/user-played-threads.tsx` | 参与的帖子列表；本人显示“全部 / 公开帖 / 私密帖”，他人不显示私密分类入口 |
 | DraftList | `src/components/user/draft-list.tsx` | 草稿箱列表（标题/分类/更新时间/继续编辑/删除） |
 | UsernameEdit | `src/components/user/username-edit.tsx` | 独立用户名修改（默认只读，点「修改用户名」才进入编辑态，未改动不提交） |
 | AvatarUploader | `src/components/user/avatar-uploader.tsx` | 头像上传器：预览（`_thumb.webp` 缩略图/首字母占位）→ 文件选择校验（仅 jpg/png/webp，排除 svg）→ react-easy-crop 1:1 裁剪 → canvas 导出 512×512 webp → 上传（预签名+直传+轮询）→ `PATCH /me/avatar` 立即生效；「移除头像」调 `DELETE /me/avatar` |
@@ -245,7 +247,7 @@
 | useUserFollowList | `src/api/hooks/use-user-follow-list.ts` | 关注/粉丝列表 hook（kind 复用） |
 | useUserRecentReplies | `src/api/hooks/use-user-recent-replies.ts` | 最近动态 hook |
 | useUserCreatedThreads | `src/api/hooks/use-user-created-threads.ts` | 创建的帖子 hook（cursor 分页） |
-| useUserPlayedThreads | `src/api/hooks/use-user-played-threads.ts` | 参与帖子 hook（cursor 分页） |
+| useUserPlayedThreads | `src/api/hooks/use-user-played-threads.ts` | 参与帖子 hook（服务端 visibility 分类 + cursor 分页） |
 | useFollowActions | `src/api/hooks/use-follow-actions.ts` | 关注/取消关注 mutation |
 | useBlockActions | `src/api/hooks/use-block-actions.ts` | 拉黑/取消拉黑 mutation |
 | useMe | `src/api/hooks/use-me.ts` | 我的资料 hook |
@@ -296,6 +298,8 @@ showRecentReplies / showPlayerBadges / showBookmarks: boolean
 |------|------|
 | 未登录查看用户主页 | 显示公开资料，不显示关注/拉黑按钮 |
 | 查看自己主页 | 显示"编辑资料"入口（跳 /me），不显示关注/拉黑按钮 |
+| 查看自己的参与列表 | 返回全部实际加入的非自建帖子（含私密帖），可按全部/公开帖/私密帖分类 |
+| 查看他人的参与列表 | 不显示分类控件；后端仅返回 PUBLIC 且 playerMarked=true 的帖子，绝不返回私密帖 |
 | 关注/拉黑他人 | 仅登录；isFollowing/isBlocked 为 true 时按钮切换为取消态 |
 | 隐私开关关闭（showRecentReplies/showPlayerBadges） | 对应板块显示"未公开"占位；后端返回 404 时按 404 处理 |
 | 草稿箱 | 仅本人（登录守卫，isInitialized 后再判断） |
@@ -312,7 +316,7 @@ showRecentReplies / showPlayerBadges / showBookmarks: boolean
 - [x] 关注/拉黑自己不显示按钮
 - [x] 最近动态列表渲染（正文/楼层/楼中楼三态标识 + 帖子链接 + preview），**仅展示最近 5 条**，为空/未公开有占位；点击跳转 `/threads/{threadId}?post={postId}` 精确定位到对应楼层/楼中楼/正文
 - [x] 创建的帖子列表渲染（标题 + 分类/状态徽章），cursor 分页加载
-- [x] 参与的帖子列表渲染（标题 + 分类/状态徽章），cursor 分页加载，不含自建帖
+- [x] 参与的帖子列表渲染（标题 + 分类/状态/私密徽章），cursor 分页加载，不含自建帖；本人可按全部/公开帖/私密帖分类，他人仅见公开玩家帖
 - [x] 已注销用户显示"已注销用户"占位
 - [x] 全站 `/users/{id}` 链接可正常跳转
 - [x] 草稿箱（`/threads/create` 草稿列表）列出我的未发布帖，可跳转编辑、可删除
