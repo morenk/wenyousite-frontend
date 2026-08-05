@@ -15,7 +15,7 @@
 - `/me/email` 更换邮箱页：当前密码二次认证 → 新邮箱 → 6 位验证码，成功后失效 me 缓存并跳转 `/me`
 - `/me/security` 账号安全页：双端登录终端、黑名单、账号注销
 - 登录终端改动属于发布批次 `auth-login-terminal-2026-08-05`；跨端契约、数据库迁移、发布顺序与回滚要求见 `docs/modules/auth.md`
-- 参与列表排除自建帖：本人列表按实际成员关系返回其他楼主的帖子（含邀请加入的私密帖），并提供“全部 / 公开帖 / 私密帖”服务端分页分类；他人列表仍只返回公开且被标记为玩家的帖子
+- 参与列表排除自建帖：只有被授予玩家身份（`playerMarked=true`）的帖子才计入，仅回复过而生成的候选成员关系不计入；本人可按“全部 / 公开帖 / 私密帖”分类，他人仅可见公开帖
 
 **后续迭代：**
 - 无（举报与管理后台不属于本模块）
@@ -48,7 +48,7 @@
 | GET | `/users/:id` | OptionalAuth | 用户公开资料；登录态额外返回 isFollowing/isFollowedBy/isBlocked/isBlockedBy |
 | GET | `/users/:id/recent-replies` | OptionalAuth | 最近 10 条回复（仅 PUBLIC 帖），不分页，受 showRecentReplies 控制 |
 | GET | `/users/:id/created-threads` | OptionalAuth | 创建的帖子（本人可见全部含私密帖，他人仅 PUBLIC），按创建时间倒序，Cursor 分页 |
-| GET | `/users/:id/played-threads` | OptionalAuth | 参与的非自建帖子，支持 `visibility=PUBLIC\|PRIVATE`；本人含全部实际参与帖，他人仅公开玩家帖，按加入时间倒序和 Cursor 分页 |
+| GET | `/users/:id/played-threads` | OptionalAuth | 已获授玩家身份的非自建帖子，支持 `visibility=PUBLIC\|PRIVATE`；本人可见公开/私密帖，他人仅可见公开帖，按加入时间倒序和 Cursor 分页 |
 | POST | `/users/follow/:id` | Auth | 关注（幂等，首次关注发通知） |
 | DELETE | `/users/follow/:id` | Auth | 取消关注 |
 | GET | `/users/:id/following` | OptionalAuth | 该用户的关注列表（公开，用户不存在 404） |
@@ -298,7 +298,7 @@ showRecentReplies / showPlayerBadges / showBookmarks: boolean
 |------|------|
 | 未登录查看用户主页 | 显示公开资料，不显示关注/拉黑按钮 |
 | 查看自己主页 | 显示"编辑资料"入口（跳 /me），不显示关注/拉黑按钮 |
-| 查看自己的参与列表 | 返回全部实际加入的非自建帖子（含私密帖），可按全部/公开帖/私密帖分类 |
+| 查看自己的参与列表 | 只返回已获授玩家身份的非自建帖子（可含私密帖），可按全部/公开帖/私密帖分类 |
 | 查看他人的参与列表 | 不显示分类控件；后端仅返回 PUBLIC 且 playerMarked=true 的帖子，绝不返回私密帖 |
 | 关注/拉黑他人 | 仅登录；isFollowing/isBlocked 为 true 时按钮切换为取消态 |
 | 隐私开关关闭（showRecentReplies/showPlayerBadges） | 对应板块显示"未公开"占位；后端返回 404 时按 404 处理 |

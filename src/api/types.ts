@@ -354,7 +354,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 查看用户参与的帖子（本人含全部实际参与帖；他人仅公开玩家帖） */
+        /** 查看用户参与的帖子（仅已被授予玩家身份的帖子；他人仅可见公开帖） */
         get: operations["UsersController_getUserPlayedThreads"];
         put?: never;
         post?: never;
@@ -3272,7 +3272,7 @@ export interface operations {
                 cursor?: string;
                 /** @description 每页条数（默认 20，最大 50） */
                 limit?: number;
-                /** @description 按公开帖或私密帖筛选。本人可筛选全部实际参与帖；他人请求 PRIVATE 返回空列表 */
+                /** @description 按公开帖或私密帖筛选已获得玩家身份的帖子。他人请求 PRIVATE 返回空列表 */
                 visibility?: "PUBLIC" | "PRIVATE";
             };
             header?: never;
