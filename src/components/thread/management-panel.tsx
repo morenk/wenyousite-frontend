@@ -10,6 +10,7 @@ import { useAuth } from "@/lib/auth";
 
 import { Button } from "@/components/ui/button";
 import { MilkdownEditor } from "@/components/editor/milkdown-editor";
+import { DiceInput } from "@/components/thread/dice-input";
 import { SubthreadTree } from "@/components/thread/subthread-tree";
 import { MemberManager } from "@/components/thread/member-manager";
 import {
@@ -52,6 +53,9 @@ export function ManagementPanel({
   const [content, setContent] = useState(
     thread.defaultSubthread.bodyPost?.content ?? "",
   );
+  const [pendingDiceNotations, setPendingDiceNotations] = useState<string[]>(
+    thread.published ? [] : (thread.defaultSubthread.bodyPost?.pendingDiceNotations ?? []),
+  );
   const [resetKey, setResetKey] = useState(0);
   const [subFormMode, setSubFormMode] = useState<SubFormMode>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -71,11 +75,17 @@ export function ManagementPanel({
     setSelectedId(id);
     const sub = thread.subthreads.find((s) => s.id === id);
     setContent(sub?.bodyPost?.content ?? "");
+    setPendingDiceNotations(
+      thread.published ? [] : (sub?.bodyPost?.pendingDiceNotations ?? []),
+    );
     setResetKey((k) => k + 1);
   }
 
   function handleCancel() {
     setContent(selectedSub?.bodyPost?.content ?? "");
+    setPendingDiceNotations(
+      thread.published ? [] : (selectedSub?.bodyPost?.pendingDiceNotations ?? []),
+    );
     setResetKey((k) => k + 1);
   }
 
@@ -93,9 +103,13 @@ export function ManagementPanel({
         subthreadId: selectedSub.id,
         content: trimmed,
         version: selectedSub.bodyPost?.version,
+        ...((pendingDiceNotations.length > 0 || (selectedSub.bodyPost?.pendingDiceNotations?.length ?? 0) > 0)
+          ? { diceNotations: pendingDiceNotations }
+          : {}),
       });
       queryClient.invalidateQueries({ queryKey: ["floors"] });
       await onRefetch();
+      if (thread.published) setPendingDiceNotations([]);
       toast.success("正文已保存");
     } catch (error) {
       const err = error as { message?: string };
@@ -176,6 +190,9 @@ export function ManagementPanel({
         const next = thread.subthreads.find((s) => s.id !== sub.id);
         setSelectedId(next?.id ?? "");
         setContent(next?.bodyPost?.content ?? "");
+        setPendingDiceNotations(
+          thread.published ? [] : (next?.bodyPost?.pendingDiceNotations ?? []),
+        );
       }
       await onRefetch();
       toast.success("子贴已删除");
@@ -285,6 +302,14 @@ export function ManagementPanel({
                 defaultValue={selectedSub.bodyPost?.content ?? ""}
                 onChange={setContent}
                 onUploadImage={handleUploadImage}
+                disabled={isSaving}
+                pendingDiceNotations={pendingDiceNotations}
+                onPendingDiceNotationsChange={setPendingDiceNotations}
+              />
+              <DiceInput
+                value={pendingDiceNotations}
+                onChange={setPendingDiceNotations}
+                existingCount={selectedSub.bodyPost?.diceRolls?.length ?? 0}
                 disabled={isSaving}
               />
 

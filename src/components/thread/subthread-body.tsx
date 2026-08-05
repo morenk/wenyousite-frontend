@@ -4,6 +4,7 @@
 
 import { MarkdownContent } from "@/components/thread/markdown-content";
 import type { SubthreadDetail } from "@/api/hooks/use-thread-detail";
+import { DiceRolls } from "@/components/thread/dice-rolls";
 
 interface SubthreadBodyProps {
   subthread: SubthreadDetail;
@@ -27,6 +28,21 @@ export function SubthreadBody({ subthread, isDefault = false }: SubthreadBodyPro
       {content ? (
         <div className="mt-3 border-t border-border pt-3">
           <MarkdownContent content={content} />
+          <DiceRolls
+            className="mt-3"
+            rolls={subthread.bodyPost?.diceRolls}
+            pendingNotations={subthread.bodyPost?.pendingDiceNotations}
+          />
+        </div>
+      ) : subthread.bodyPost && (
+        (subthread.bodyPost.diceRolls?.length ?? 0) > 0 ||
+        (subthread.bodyPost.pendingDiceNotations?.length ?? 0) > 0
+      ) ? (
+        <div className="mt-3 border-t border-border pt-3">
+          <DiceRolls
+            rolls={subthread.bodyPost.diceRolls}
+            pendingNotations={subthread.bodyPost.pendingDiceNotations}
+          />
         </div>
       ) : (
         <p className="mt-3 border-t border-border pt-3 text-sm text-muted-foreground">

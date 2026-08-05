@@ -176,6 +176,21 @@ describe("ThreadComposer", () => {
     expect(mocks.error).not.toHaveBeenCalled();
   });
 
+  test("楼层可以只提交待掷骰子，正式结果由服务端生成", async () => {
+    const user = userEvent.setup();
+    renderHarness();
+    await user.click(screen.getByRole("button", { name: "发表入口" }));
+    await user.click(screen.getByRole("button", { name: "d20" }));
+    await user.click(screen.getByRole("button", { name: "发布" }));
+
+    await waitFor(() => expect(mocks.create).toHaveBeenCalledWith({
+      subthreadId: "s1",
+      content: "",
+      diceNotations: ["1d20"],
+      clientRequestId: REQUEST_ID,
+    }));
+  });
+
   test("相同正文失败后重试复用 clientRequestId", async () => {
     const user = userEvent.setup();
     mocks.create.mockRejectedValueOnce(new Error("网络超时")).mockResolvedValueOnce({ id: "created-post" });

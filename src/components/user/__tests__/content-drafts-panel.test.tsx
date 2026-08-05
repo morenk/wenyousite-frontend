@@ -39,6 +39,7 @@ const sampleDraft = {
   userId: "u1",
   slot: 1,
   content: "这是槽位 1 的正文草稿",
+  pendingDiceNotations: [],
   version: 2,
   createdAt: "2026-01-01T00:00:00Z",
   updatedAt: "2026-01-01T00:00:00Z",
@@ -49,7 +50,7 @@ function defaultQueries() {
     data: [sampleDraft],
     isLoading: false,
     error: undefined,
-    refetch: vi.fn(),
+    refetch: vi.fn().mockResolvedValue({ data: [sampleDraft] }),
   });
   mockUseDraftSlots.mockReturnValue({
     data: { usedSlots: 1, maxSlots: 5, slots: [1] },
@@ -132,8 +133,45 @@ describe("ContentDraftsPanel", () => {
     const onClose = vi.fn();
     renderPanel({ onRestore, onClose });
     await user.click(screen.getByText("恢复"));
-    expect(onRestore).toHaveBeenCalledWith(sampleDraft.content);
+    expect(onRestore).toHaveBeenCalledWith({
+      content: sampleDraft.content,
+      pendingDiceNotations: [],
+    });
     expect(onClose).toHaveBeenCalled();
+  });
+
+  test("正文与待掷骰子作为同一快照跨设备恢复", async () => {
+    const user = userEvent.setup();
+    const onRestore = vi.fn();
+    const diceDraft = { ...sampleDraft, content: "", pendingDiceNotations: ["1d20", "2d6+3"] };
+    mockUseContentDrafts.mockReturnValue({
+      data: [diceDraft],
+      isLoading: false,
+      error: undefined,
+      refetch: vi.fn().mockResolvedValue({ data: [diceDraft] }),
+    });
+    renderPanel({ onRestore });
+
+    expect(screen.getByText("待掷：1d20、2d6+3")).toBeInTheDocument();
+    await user.click(screen.getByText("恢复"));
+    expect(onRestore).toHaveBeenCalledWith({
+      content: "",
+      pendingDiceNotations: ["1d20", "2d6+3"],
+    });
+  });
+
+  test("没有正文时也能把待掷骰子保存到云端槽位", async () => {
+    const user = userEvent.setup();
+    const saveMutate = vi.fn().mockResolvedValue(sampleDraft);
+    mockUseSaveDraft.mockReturnValue({ isPending: false, mutateAsync: saveMutate });
+    renderPanel({ initialContent: "", initialPendingDiceNotations: ["1d12"] });
+
+    await user.click(screen.getAllByText("保存到此处")[0]!);
+    expect(saveMutate).toHaveBeenCalledWith({
+      content: "",
+      pendingDiceNotations: ["1d12"],
+      slot: 2,
+    });
   });
 
   test("无 onRestore 时复制到剪贴板", async () => {
@@ -178,7 +216,11 @@ describe("ContentDraftsPanel", () => {
     mockUseSaveDraft.mockReturnValue({ isPending: false, mutateAsync: saveMutate });
     renderPanel({ initialContent: "编辑器正文" });
     await user.click(screen.getAllByText("保存到此处")[0]!);
-    expect(saveMutate).toHaveBeenCalledWith({ content: "编辑器正文", slot: 2 });
+    expect(saveMutate).toHaveBeenCalledWith({
+      content: "编辑器正文",
+      pendingDiceNotations: [],
+      slot: 2,
+    });
   });
 
   test("覆盖已用槽位前要求确认", async () => {
@@ -189,7 +231,12 @@ describe("ContentDraftsPanel", () => {
     renderPanel({ initialContent: "要覆盖保存的正文" });
     await user.click(screen.getByRole("button", { name: "覆盖槽位 1" }));
     expect(global.confirm).toHaveBeenCalledWith("确定要覆盖槽位 1 的正文草稿吗？");
-    expect(saveMutate).toHaveBeenCalledWith({ content: "要覆盖保存的正文", slot: 1, version: 2 });
+    expect(saveMutate).toHaveBeenCalledWith({
+      content: "要覆盖保存的正文",
+      pendingDiceNotations: [],
+      slot: 1,
+      version: 2,
+    });
   });
 
   test("覆盖发生版本冲突时显示后端提示且不报告成功", async () => {

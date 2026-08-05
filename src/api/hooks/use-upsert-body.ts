@@ -12,16 +12,18 @@ export function useUpsertBody() {
       subthreadId,
       content,
       version,
+      diceNotations,
     }: {
       subthreadId: string;
       content: string;
       version?: number;
+      diceNotations?: string[];
     }) => {
       const { data, error } = await apiClient.PUT(
         "/api/v1/subthreads/{subthreadId}/body",
         {
           params: { path: { subthreadId } },
-          body: { content, version },
+          body: { content, version, diceNotations },
         },
       );
       if (error) throw error;

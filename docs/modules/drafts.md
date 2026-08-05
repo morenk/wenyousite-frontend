@@ -8,7 +8,7 @@
 
 | 维度 | 主题帖草稿（threads 模块） | 正文草稿（drafts 模块） |
 |------|---------------------------|------------------------|
-| 语义 | 创建帖子的沙盒：标题/分区/可见性/标签/正文 | 通用编辑器内容暂存：仅 `content` 纯文本 |
+| 语义 | 创建帖子的沙盒：标题/分区/可见性/标签/正文/待掷骰子 | 通用编辑器快照：`content + pendingDiceNotations` |
 | 模型 | Thread（`published=false`） | Draft（`userId + slot` 联合唯一） |
 | 容量 | 每用户最多 10 条 | 每用户固定 5 槽位（slot 1-5） |
 | 绑定 | 未发布帖，仅 owner 可见 | 不与子贴绑定，全局浮动编辑器缓存 |
@@ -18,7 +18,7 @@
 **本次迭代范围（完整手动草稿闭环）：**
 - 正文草稿面板：5 槽位列表，支持手动保存/恢复/删除
 - Milkdown 顶部格式工具栏「正文草稿」按钮（所有 MilkdownEditor 共享），打开面板
-- 恢复草稿时回填当前编辑器内容；打开面板预填当前正文便于存池
+- 恢复草稿时同时回填正文和待掷骰子；打开面板预填当前快照便于存池
 - 不提供二次输入框：可把当前编辑器全文直接保存到空槽位或覆盖指定槽位
 - 自动保存开关：开启后防抖更新槽位 1；槽位 1 已有内容时开启前确认
 - 恢复覆盖非空正文前二次确认
@@ -58,6 +58,7 @@ interface DraftItem {
   userId: string;
   slot: number;        // 1-5
   content: string;     // Markdown 纯文本
+  pendingDiceNotations: string[]; // 待掷表达式，不含客户端生成结果
   version: number;     // 乐观锁版本
   createdAt: string;
   updatedAt: string;
@@ -66,7 +67,7 @@ interface DraftItem {
 
 - `GET /drafts` → `data: DraftItem[]`
 - `GET /drafts/slots` → `data: { usedSlots: number; maxSlots: number; slots: number[] }`（`slots` 顺序不保证稳定）
-- `POST /drafts`（body `{ content, slot?, version? }`）→ 201，覆盖已有槽位时必须提交当前 version
+- `POST /drafts`（body `{ content, pendingDiceNotations, slot?, version? }`）→ 201，覆盖已有槽位时必须提交当前 version
 - `GET/PATCH /drafts/:id` → `data: DraftItem`
 - `DELETE /drafts/:id` → `data: { message: "草稿已删除" }`
 
@@ -80,7 +81,7 @@ interface DraftItem {
 | 槽位使用 | `GET /drafts/slots` | TanStack Query `useQuery`（queryKey `["draft-slots"]`） |
 | 保存/删除 | mutation | `useMutation`，成功后 invalidate 列表与槽位 |
 | 面板开关 | 编辑器工具栏入口 | useState（MilkdownEditor 持有） |
-| 自动保存 | 当前编辑器状态 | 800ms 防抖串行写入 slot 1；成功后推进 version，409 时关闭自动保存 |
+| 自动保存 | 当前编辑器状态 | 800ms 防抖串行写入正文+骰子到 slot 1；成功后推进 version，409 时关闭自动保存 |
 
 ## 5. 组件清单
 
@@ -97,7 +98,9 @@ interface DraftItem {
 
 ## 6. 表单与校验
 
-无二次输入表单。`POST /drafts` 的 `content` 直接取当前编辑器输出的完整 Markdown；`slot` 可选（1-5），不传由后端自动分配。覆盖已有槽位时同时提交该记录当前的正整数 `version`。
+无二次输入表单。`POST /drafts` 直接提交当前编辑器的完整 Markdown 与待掷表达式列表，两者是不可拆分的同版本快照；允许纯正文或纯骰子，但不能同时为空。`slot` 可选（1-5），不传由后端自动分配。覆盖已有槽位时同时提交该记录当前的正整数 `version`。
+
+打开面板、窗口重新获得焦点、开启自动保存前都会重新拉取远端快照。发生 409 时停止当前自动保存并提示刷新，不进行正文/骰子字段级自动合并，避免跨设备把两个版本拼成非用户意图的状态。
 
 ## 7. 错误处理
 
@@ -121,17 +124,18 @@ interface DraftItem {
 - [x] 面板展示 5 槽位草稿：槽位号 + 内容预览 + 更新时间 + 恢复/删除
 - [x] 空槽位显示空态提示；无草稿时显示槽位占位
 - [x] 保存草稿到草稿池；满 5 槽时禁用自动分配并提示选择已有槽位覆盖
-- [x] 恢复草稿把 content 回填当前编辑器（缺省复制剪贴板）
+- [x] 恢复草稿把 content 与 pendingDiceNotations 同时回填当前编辑器（无回调时仅复制正文）
 - [x] 打开面板预填当前编辑器正文，便于把正在写的内容存入草稿池
 - [x] 当前正文可保存到指定空槽位，或经确认后覆盖指定已用槽位
 - [x] 面板不要求再次粘贴或输入内容，所有保存操作直接使用当前编辑器全文
-- [x] 自动保存开启后，当前编辑器正文经防抖自动更新到槽位 1，并显示保存状态
+- [x] 自动保存开启后，当前编辑器正文和待掷骰子经防抖原子更新到槽位 1，并显示保存状态
 - [x] 恢复草稿会覆盖非空当前正文时要求二次确认
 - [x] 删除草稿确认后调用 DELETE，成功后列表刷新
 - [x] 与主题帖草稿在入口/命名/视觉/数据上完全隔离
 - [x] `pnpm lint && pnpm typecheck && pnpm test` 通过
 - [x] 手动覆盖与自动保存均携带当前 version，成功后使用响应中的新版本
 - [x] 409 冲突不覆盖远端内容，并停止当前编辑器自动保存
+- [x] 面板打开、窗口聚焦和启用自动保存时刷新远端版本，支持多设备接续
 
 ## 10. 子任务（切片）
 

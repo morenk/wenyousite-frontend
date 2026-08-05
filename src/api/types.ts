@@ -1812,6 +1812,13 @@ export interface components {
              */
             content?: string;
             /**
+             * @description 默认子贴正文的待掷表达式，保存草稿时不生成结果
+             * @example [
+             *       "1d20"
+             *     ]
+             */
+            diceNotations?: string[];
+            /**
              * @description 默认子贴标题（可选，不填则取主题帖标题）
              * @example 主帖
              */
@@ -1830,6 +1837,96 @@ export interface components {
              * @enum {string}
              */
             visibility: "PUBLIC" | "PRIVATE";
+        };
+        PostAuthorResponseDto: {
+            id: string;
+            username: string;
+            avatar: string | null;
+        };
+        DiceRollResponseDto: {
+            id: string;
+            postId: string;
+            sequence: number;
+            /**
+             * @description 骰子结果协议版本
+             * @example 1
+             */
+            protocolVersion: number;
+            /**
+             * @description 规范化后的基础骰子表达式
+             * @example 2d6+3
+             */
+            notation: string;
+            quantity: number;
+            sides: number;
+            modifier: number;
+            /** @description 每一枚骰子的原始点数 */
+            results: number[];
+            /** @description 逐骰点数之和加修正值 */
+            total: number;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        ThreadBodyPostResponseDto: {
+            id: string;
+            content: string;
+            version: number;
+            pendingDiceNotations: string[];
+            diceRolls: components["schemas"]["DiceRollResponseDto"][];
+        };
+        ThreadSubthreadCountResponseDto: {
+            posts: number;
+        };
+        ThreadSubthreadResponseDto: {
+            id: string;
+            threadId: string;
+            title: string;
+            sortOrder: number;
+            /** @enum {string} */
+            postingPolicy: "PARTICIPANTS" | "COLLABORATORS" | "PLAYERS";
+            version: number;
+            /** Format: date-time */
+            lastPostAt: string | null;
+            bodyPost: components["schemas"]["ThreadBodyPostResponseDto"] | null;
+            _count: components["schemas"]["ThreadSubthreadCountResponseDto"];
+            /** @description 子贴标签关联 */
+            tags: Record<string, never>[];
+        };
+        ThreadCountResponseDto: {
+            members: number;
+            posts: number;
+            players: number;
+        };
+        ThreadDetailResponseDto: {
+            id: string;
+            title: string | null;
+            ownerId: string;
+            /** @enum {string} */
+            category: "DEDUCTION" | "NATION" | "RPG";
+            /** @enum {string} */
+            status: "RECRUITING" | "CLOSED" | "FINISHED";
+            /** @enum {string} */
+            visibility: "PUBLIC" | "PRIVATE";
+            published: boolean;
+            /** Format: date-time */
+            publishedAt: string | null;
+            pinned: boolean;
+            viewCount: number;
+            version: number;
+            likeCount: number;
+            defaultSubthreadId: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            owner: components["schemas"]["PostAuthorResponseDto"];
+            subthreads: components["schemas"]["ThreadSubthreadResponseDto"][];
+            /** @description 平台主题标签关联 */
+            topicTags: Record<string, never>[];
+            _count: components["schemas"]["ThreadCountResponseDto"];
+            isBookmarked?: boolean;
+            bookmarkId?: string | null;
+            isLiked?: boolean;
         };
         UpdateThreadDto: {
             /** @example 奇幻大陆·重置版 */
@@ -1931,6 +2028,13 @@ export interface components {
              */
             content?: string;
             /**
+             * @description 子贴正文的骰子表达式；草稿阶段仅保存待掷意图
+             * @example [
+             *       "1d20"
+             *     ]
+             */
+            diceNotations?: string[];
+            /**
              * @description 排序序号，越小越靠前
              * @example 1
              */
@@ -1988,11 +2092,6 @@ export interface components {
              */
             color?: string;
         };
-        PostAuthorResponseDto: {
-            id: string;
-            username: string;
-            avatar: string | null;
-        };
         PostCountResponseDto: {
             replies: number;
         };
@@ -2018,6 +2117,10 @@ export interface components {
             clientRequestId: string | null;
             /** @description Markdown 正文 */
             content: string;
+            /** @description 未发布主题内尚未结算的规范化骰子表达式 */
+            pendingDiceNotations: string[];
+            /** @description 服务端生成的正式骰子结果，按 sequence 排序 */
+            diceRolls: components["schemas"]["DiceRollResponseDto"][];
             /** @description 乐观锁版本 */
             version: number;
             /** Format: date-time */
@@ -2046,6 +2149,10 @@ export interface components {
             clientRequestId: string | null;
             /** @description Markdown 正文 */
             content: string;
+            /** @description 未发布主题内尚未结算的规范化骰子表达式 */
+            pendingDiceNotations: string[];
+            /** @description 服务端生成的正式骰子结果，按 sequence 排序 */
+            diceRolls: components["schemas"]["DiceRollResponseDto"][];
             /** @description 乐观锁版本 */
             version: number;
             /** Format: date-time */
@@ -2060,10 +2167,17 @@ export interface components {
         };
         UpsertBodyDto: {
             /**
-             * @description 正文（Markdown）
+             * @description 正文（Markdown）；发布时必须包含可见文字
              * @example 这里是子贴正文…
              */
             content: string;
+            /**
+             * @description 正文关联的待掷表达式；发布后只能追加，不能修改已有结果
+             * @example [
+             *       "1d20"
+             *     ]
+             */
+            diceNotations?: string[];
             /**
              * @description 乐观锁版本号。正文已存在时必填（传入过期版本返回 409）；首次创建时忽略
              * @example 1
@@ -2087,6 +2201,10 @@ export interface components {
             clientRequestId: string | null;
             /** @description Markdown 正文 */
             content: string;
+            /** @description 未发布主题内尚未结算的规范化骰子表达式 */
+            pendingDiceNotations: string[];
+            /** @description 服务端生成的正式骰子结果，按 sequence 排序 */
+            diceRolls: components["schemas"]["DiceRollResponseDto"][];
             /** @description 乐观锁版本 */
             version: number;
             /** Format: date-time */
@@ -2099,10 +2217,18 @@ export interface components {
         };
         CreatePostDto: {
             /**
-             * @description 帖子正文（支持 Markdown，前后端不渲染）
+             * @description 帖子正文；允许为空，但此时必须至少提交一个骰子表达式
              * @example 这是一段正文内容，支持 Markdown 格式。
              */
             content: string;
+            /**
+             * @description 待掷骰子表达式；服务端仅接受 NdM±K 并生成正式结果
+             * @example [
+             *       "1d20",
+             *       "2d6+3"
+             *     ]
+             */
+            diceNotations?: string[];
             /**
              * @description 父楼层 ID（楼中楼回复时指定，平级挂载，无嵌套深度限制）
              * @example clxfloor001...
@@ -2148,6 +2274,10 @@ export interface components {
             clientRequestId: string | null;
             /** @description Markdown 正文 */
             content: string;
+            /** @description 未发布主题内尚未结算的规范化骰子表达式 */
+            pendingDiceNotations: string[];
+            /** @description 服务端生成的正式骰子结果，按 sequence 排序 */
+            diceRolls: components["schemas"]["DiceRollResponseDto"][];
             /** @description 乐观锁版本 */
             version: number;
             /** Format: date-time */
@@ -2164,10 +2294,17 @@ export interface components {
         };
         UpdatePostDto: {
             /**
-             * @description 新正文
+             * @description 新正文；已有或本次新增骰子结果时允许为空
              * @example 编辑后的内容...
              */
             content: string;
+            /**
+             * @description 已发布帖子中追加新骰子；未发布帖子中替换待掷列表，省略则保留
+             * @example [
+             *       "1d20"
+             *     ]
+             */
+            diceNotations?: string[];
             /**
              * @description 乐观锁版本号（必填，前端需先 fetch 获取当前 version，传入过期版本会返回 409）
              * @example 1
@@ -2192,6 +2329,8 @@ export interface components {
             slot: number;
             /** @description Markdown 正文 */
             content: string;
+            /** @description 规范化后的待掷骰子表达式，不包含正式结果 */
+            pendingDiceNotations: string[];
             /** @description 乐观锁版本，每次覆盖后递增 */
             version: number;
             /** Format: date-time */
@@ -2208,10 +2347,17 @@ export interface components {
         };
         CreateDraftDto: {
             /**
-             * @description 草稿正文（Markdown 格式，与楼层一致）
+             * @description 草稿正文；允许为空，但必须至少包含一个待掷骰子
              * @example 这是一段草稿内容...
              */
             content: string;
+            /**
+             * @description 待掷骰子表达式，与正文作为同一版本快照保存
+             * @example [
+             *       "1d20"
+             *     ]
+             */
+            pendingDiceNotations?: string[];
             /**
              * @description 草稿位（1-5），不传则自动选择空闲位
              * @example 1
@@ -2225,10 +2371,17 @@ export interface components {
         };
         UpdateDraftDto: {
             /**
-             * @description 更新后的草稿内容
+             * @description 更新后的草稿正文
              * @example 更新后的草稿内容...
              */
             content: string;
+            /**
+             * @description 待掷骰子表达式；省略按空数组处理
+             * @example [
+             *       "1d20"
+             *     ]
+             */
+            pendingDiceNotations: string[];
             /**
              * @description 当前乐观锁版本
              * @example 2
@@ -4116,14 +4269,14 @@ export interface operations {
             };
         };
         responses: {
-            /** @description 草稿创建成功，返回完整 Thread 对象（含 owner/subthreads/tags/_count） */
+            /** @description 草稿创建成功，返回完整 Thread 对象（含正文待掷骰子） */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["ThreadDetailResponseDto"];
                     };
                 };
             };
@@ -4147,14 +4300,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Thread 完整对象（owner / subthreads[]._count.posts / topicTags / _count）。viewCount 异步 +1 */
+            /** @description Thread 完整对象（含 bodyPost 的待掷与正式骰子结果）。viewCount 异步 +1 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["ThreadDetailResponseDto"];
                     };
                 };
             };
@@ -4227,14 +4380,14 @@ export interface operations {
             };
         };
         responses: {
-            /** @description 更新成功返回 Thread 完整对象。发布时会校验 title/category/子贴楼层完整性，成功后通知粉丝 */
+            /** @description 更新成功返回 Thread 完整对象。发布时原子结算全部待掷骰子 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["ThreadDetailResponseDto"];
                     };
                 };
             };

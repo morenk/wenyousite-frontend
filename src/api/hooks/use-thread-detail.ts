@@ -2,6 +2,9 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import type { components } from "@/api/types";
+
+type DiceRoll = components["schemas"]["DiceRollResponseDto"];
 
 export interface ThreadTag {
   id: string;
@@ -29,6 +32,8 @@ export interface SubthreadDetail {
     id: string;
     content: string;
     version: number;
+    pendingDiceNotations?: string[];
+    diceRolls?: DiceRoll[];
   } | null;
   _count: { posts: number };
   tags: { tag: { id: string; name: string; color: string | null } }[];

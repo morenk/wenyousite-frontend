@@ -6,13 +6,18 @@ import type { components, operations } from "@/api/types";
 
 export type PostAuthor = components["schemas"]["PostAuthorResponseDto"];
 export type ReplyToTarget = components["schemas"]["ReplyTargetResponseDto"];
-export type ReplyData = components["schemas"]["ReplyResponseDto"];
-export type PostData = components["schemas"]["FloorResponseDto"];
-export type FloorDisplayData = components["schemas"]["PostResponseDto"] & {
+type DiceRoll = components["schemas"]["DiceRollResponseDto"];
+type CompatiblePost<T> = Omit<T, "pendingDiceNotations" | "diceRolls"> & {
+  pendingDiceNotations?: string[];
+  diceRolls?: DiceRoll[];
+};
+export type ReplyData = CompatiblePost<components["schemas"]["ReplyResponseDto"]>;
+export type PostData = CompatiblePost<components["schemas"]["FloorResponseDto"]>;
+export type FloorDisplayData = CompatiblePost<components["schemas"]["PostResponseDto"]> & {
   _count: components["schemas"]["PostCountResponseDto"];
   replies?: ReplyData[];
 };
-export type ReplyDisplayData = components["schemas"]["PostResponseDto"] & {
+export type ReplyDisplayData = CompatiblePost<components["schemas"]["PostResponseDto"]> & {
   replyToPost?: ReplyData["replyToPost"];
 };
 export type FloorListResponse = operations["PostsController_findFloors"]["responses"][200]["content"]["application/json"];

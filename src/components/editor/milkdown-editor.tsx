@@ -7,7 +7,7 @@ import { Milkdown, MilkdownProvider, useEditor, useInstance } from "@milkdown/re
 import { Crepe, CrepeFeature } from "@milkdown/crepe";
 import { editorViewCtx } from "@milkdown/core";
 import { AtSign, Loader2, UsersRound } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDebounce } from "use-debounce";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -17,9 +17,13 @@ import { syncMilkdownToolbarVisibility } from "@/lib/milkdown-toolbar";
 import { useAuth } from "@/lib/auth";
 import { apiClient } from "@/api/client";
 import { useSaveDraft } from "@/api/hooks/use-save-draft";
-import { ContentDraftsPanel } from "@/components/user/content-drafts-panel";
+import {
+  ContentDraftsPanel,
+  type EditorDraftSnapshot,
+} from "@/components/user/content-drafts-panel";
 
 const MAX_CHARS = 10000;
+const EMPTY_DICE_NOTATIONS: string[] = [];
 
 const TOOLBAR_TOOLTIPS: Record<number, string> = {
   0: "粗体",
@@ -67,6 +71,9 @@ interface MilkdownEditorProps {
   minHeight?: number;
   /** 当前主题帖 ID；提供后启用受权限约束的 @候选菜单。 */
   threadId?: string;
+  /** 与正文一起进入云端草稿的待掷骰子表达式。 */
+  pendingDiceNotations?: string[];
+  onPendingDiceNotationsChange?: (value: string[]) => void;
 }
 
 interface MentionMenuItem {
@@ -666,14 +673,18 @@ function EditorCore({
   maxHeight = 400,
   minHeight = 280,
   threadId,
+  pendingDiceNotations = EMPTY_DICE_NOTATIONS,
+  onPendingDiceNotationsChange,
 }: MilkdownEditorProps) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const { mutateAsync: saveDraftAutomatically } = useSaveDraft();
   const [restoredValue, setRestoredValue] = useState<string | undefined>(defaultValue);
   const [version, setVersion] = useState(0);
   const [currentContent, setCurrentContent] = useState(defaultValue ?? "");
   const [draftOpen, setDraftOpen] = useState(false);
   const [draftInitialContent, setDraftInitialContent] = useState("");
+  const [draftInitialDiceNotations, setDraftInitialDiceNotations] = useState<string[]>([]);
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<
     "idle" | "saving" | "saved" | "error"
@@ -695,27 +706,40 @@ function EditorCore({
   );
 
   const handleRestore = useCallback(
-    (content: string) => {
+    (snapshot: EditorDraftSnapshot) => {
+      const { content, pendingDiceNotations: restoredDice } = snapshot;
       latestContentRef.current = content;
       setRestoredValue(content);
       setCurrentContent(content);
       setVersion((v) => v + 1);
       onChange?.(content);
+      onPendingDiceNotationsChange?.(restoredDice);
       toast.success("已恢复正文草稿");
     },
-    [onChange],
+    [onChange, onPendingDiceNotationsChange],
   );
 
   const handleOpenDrafts = useCallback(() => {
     setDraftInitialContent(latestContentRef.current);
+    setDraftInitialDiceNotations(pendingDiceNotations);
     setDraftOpen(true);
-  }, []);
+  }, [pendingDiceNotations]);
+
+  useEffect(() => {
+    if (!user) return;
+    const refreshDrafts = () => {
+      void queryClient.refetchQueries({ queryKey: ["content-drafts"] });
+      void queryClient.refetchQueries({ queryKey: ["draft-slots"] });
+    };
+    window.addEventListener("focus", refreshDrafts);
+    return () => window.removeEventListener("focus", refreshDrafts);
+  }, [queryClient, user]);
 
   useEffect(() => {
     if (!autoSaveEnabled) return;
 
     const content = currentContent.trim();
-    if (!content) return;
+    if (!content && pendingDiceNotations.length === 0) return;
 
     const sequence = ++autoSaveSequenceRef.current;
     const timer = window.setTimeout(() => {
@@ -726,6 +750,7 @@ function EditorCore({
           if (!autoSaveEnabledRef.current) return null;
           return saveDraftAutomatically({
             content,
+            pendingDiceNotations,
             slot: 1,
             ...(autoSaveVersionRef.current !== undefined
               ? { version: autoSaveVersionRef.current }
@@ -750,7 +775,7 @@ function EditorCore({
     }, 800);
 
     return () => window.clearTimeout(timer);
-  }, [autoSaveEnabled, currentContent, saveDraftAutomatically]);
+  }, [autoSaveEnabled, currentContent, pendingDiceNotations, saveDraftAutomatically]);
 
   const handleAutoSaveChange = useCallback((enabled: boolean, version?: number) => {
     autoSaveEnabledRef.current = enabled;
@@ -828,6 +853,7 @@ function EditorCore({
           onClose={() => setDraftOpen(false)}
           onRestore={handleRestore}
           initialContent={draftInitialContent}
+          initialPendingDiceNotations={draftInitialDiceNotations}
           autoSaveEnabled={autoSaveEnabled}
           autoSaveStatus={autoSaveStatus}
           onAutoSaveChange={handleAutoSaveChange}

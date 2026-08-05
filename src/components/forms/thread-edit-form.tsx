@@ -23,6 +23,7 @@ import { useUpsertBody } from "@/api/hooks/use-upsert-body";
 import { useSyncThreadTags } from "@/api/hooks/use-sync-thread-tags";
 import { useUploadImage } from "@/api/hooks/use-upload-image";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
+import { DiceInput } from "@/components/thread/dice-input";
 
 interface ThreadEditFormProps {
   thread: ThreadDetail;
@@ -56,6 +57,9 @@ export function ThreadEditForm({
 }: ThreadEditFormProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [status, setStatus] = useState<ThreadDetail["status"]>(thread.status);
+  const [pendingDiceNotations, setPendingDiceNotations] = useState<string[]>(
+    thread.published ? [] : (thread.defaultSubthread.bodyPost?.pendingDiceNotations ?? []),
+  );
 
   const updateThread = useUpdateThread();
   const updateSubthread = useUpdateSubthread();
@@ -106,11 +110,14 @@ export function ThreadEditForm({
       }
 
       const content = values.content?.trim() ?? "";
-      if (content) {
+      if (content || pendingDiceNotations.length > 0 || latestThread.defaultSubthread.bodyPost) {
         await upsertBody.mutateAsync({
           subthreadId: latestThread.defaultSubthreadId,
           content,
           version: latestThread.defaultSubthread.bodyPost?.version,
+          ...((pendingDiceNotations.length > 0 || (latestThread.defaultSubthread.bodyPost?.pendingDiceNotations?.length ?? 0) > 0)
+            ? { diceNotations: pendingDiceNotations }
+            : {}),
         });
       }
       await syncDefaultSubthreadTitle(values);
@@ -239,6 +246,14 @@ export function ThreadEditForm({
             defaultValue={form.getValues("content") ?? ""}
             onChange={(v) => form.setValue("content", v)}
             onUploadImage={async (file) => uploadImage.mutateAsync(file)}
+            disabled={isSaving}
+            pendingDiceNotations={pendingDiceNotations}
+            onPendingDiceNotationsChange={setPendingDiceNotations}
+          />
+          <DiceInput
+            value={pendingDiceNotations}
+            onChange={setPendingDiceNotations}
+            existingCount={thread.defaultSubthread.bodyPost?.diceRolls?.length ?? 0}
             disabled={isSaving}
           />
         </div>

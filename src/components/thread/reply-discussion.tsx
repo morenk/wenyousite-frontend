@@ -13,6 +13,7 @@ import { UserAvatar } from "@/components/shared/user-avatar";
 import { getPostHref } from "@/lib/post-navigation";
 import type { ReplyDisplayData } from "@/api/hooks/use-floors";
 import type { PostDetail } from "@/api/hooks/use-post";
+import { DiceRolls } from "@/components/thread/dice-rolls";
 
 interface ReplyDiscussionProps {
   rootPost: PostDetail;
@@ -72,6 +73,11 @@ export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps
         </div>
         <div className="px-5 py-5">
           <MarkdownContent content={rootPost.content} />
+          <DiceRolls
+            className={rootPost.content.trim() ? "mt-3" : undefined}
+            rolls={rootPost.diceRolls}
+            pendingNotations={rootPost.pendingDiceNotations}
+          />
         </div>
       </section>
 

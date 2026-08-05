@@ -20,6 +20,7 @@ import { useThreadPermissions } from "@/components/thread/thread-permissions-con
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Button } from "@/components/ui/button";
 import type { ReplyData, ReplyDisplayData } from "@/api/hooks/use-floors";
+import { DiceRolls } from "@/components/thread/dice-rolls";
 
 interface ReplyListProps {
   postId: string;
@@ -196,6 +197,8 @@ export function ReplyList({ postId, focusedReply, variant = "embedded" }: ReplyL
                         version: reply.version,
                         label: `编辑 @${reply.author.username} 的回复`,
                         initialContent: reply.content,
+                        initialDiceNotations: reply.pendingDiceNotations ?? [],
+                        existingDiceCount: reply.diceRolls?.length ?? 0,
                       });
                     }}
                   >
@@ -253,7 +256,14 @@ export function ReplyList({ postId, focusedReply, variant = "embedded" }: ReplyL
               )}
             </div>
             {!isEditing && (
-              <MarkdownContent content={reply.content} />
+              <>
+                <MarkdownContent content={reply.content} />
+                <DiceRolls
+                  className={reply.content.trim() ? "mt-2" : undefined}
+                  rolls={reply.diceRolls}
+                  pendingNotations={reply.pendingDiceNotations}
+                />
+              </>
             )}
             <ThreadComposerOutlet anchorId={anchorId} />
           </div>

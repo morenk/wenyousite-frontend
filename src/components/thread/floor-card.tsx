@@ -20,6 +20,7 @@ import { useThreadPermissions } from "@/components/thread/thread-permissions-con
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
 import type { FloorDisplayData } from "@/api/hooks/use-floors";
+import { DiceRolls } from "@/components/thread/dice-rolls";
 
 interface FloorCardProps {
   floor: FloorDisplayData;
@@ -75,6 +76,8 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
       version: floor.version,
       label: `编辑 #${floor.floorNumber ?? ""}`,
       initialContent: floor.content,
+      initialDiceNotations: floor.pendingDiceNotations ?? [],
+      existingDiceCount: floor.diceRolls?.length ?? 0,
     });
   };
 
@@ -176,7 +179,14 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
       {isEditing ? (
         <ThreadComposerOutlet anchorId={editAnchorId} />
       ) : (
-        <MarkdownContent content={floor.content} />
+        <>
+          <MarkdownContent content={floor.content} />
+          <DiceRolls
+            className={floor.content.trim() ? "mt-3" : undefined}
+            rolls={floor.diceRolls}
+            pendingNotations={floor.pendingDiceNotations}
+          />
+        </>
       )}
 
       {/* 楼中楼预览：只展示前五条，正文合计过长时截断并用渐变遮罩。 */}
@@ -216,6 +226,11 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
                   </span>
                 </div>
                 <MarkdownContent content={reply.content} />
+                <DiceRolls
+                  className={reply.content.trim() ? "mt-2" : undefined}
+                  rolls={reply.diceRolls}
+                  pendingNotations={reply.pendingDiceNotations}
+                />
               </div>
             ))}
           </div>

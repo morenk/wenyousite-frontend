@@ -25,12 +25,18 @@ interface ContentDraftsPanelProps {
   open: boolean;
   onClose: () => void;
   /** 恢复草稿：把内容回填给调用方（楼层/回复编辑器）；缺省时复制到剪贴板 */
-  onRestore?: (content: string) => void;
+  onRestore?: (snapshot: EditorDraftSnapshot) => void;
   /** 打开面板时的当前编辑器全文，所有手动保存操作直接使用该内容 */
   initialContent?: string;
+  initialPendingDiceNotations?: string[];
   autoSaveEnabled?: boolean;
   autoSaveStatus?: "idle" | "saving" | "saved" | "error";
   onAutoSaveChange?: (enabled: boolean, version?: number) => void;
+}
+
+export interface EditorDraftSnapshot {
+  content: string;
+  pendingDiceNotations: string[];
 }
 
 function getErrorMessage(error: unknown, fallback: string): string {
@@ -43,6 +49,7 @@ export function ContentDraftsPanel({
   onClose,
   onRestore,
   initialContent,
+  initialPendingDiceNotations = [],
   autoSaveEnabled = false,
   autoSaveStatus = "idle",
   onAutoSaveChange,
@@ -59,12 +66,18 @@ export function ContentDraftsPanel({
 
   useEffect(() => {
     if (!open) return;
+    void refetch();
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
     }
+    const onFocus = () => void refetch();
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [open, onClose]);
+    window.addEventListener("focus", onFocus);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [open, onClose, refetch]);
 
   if (!open) return null;
 
@@ -72,19 +85,26 @@ export function ContentDraftsPanel({
   const maxSlots = slots?.maxSlots ?? 5;
   const draftBySlot = new Map(drafts.map((d) => [d.slot, d]));
   const currentContent = initialContent?.trim() ?? "";
+  const currentPendingDice = initialPendingDiceNotations;
+  const hasCurrentSnapshot = !!currentContent || currentPendingDice.length > 0;
 
   const handleRestore = (draft: DraftItem) => {
     const currentText = initialContent?.trim();
+    const draftDice = draft.pendingDiceNotations ?? [];
+    const diceChanged = JSON.stringify(currentPendingDice) !== JSON.stringify(draftDice);
     if (
       onRestore &&
-      currentText &&
-      currentText !== draft.content.trim() &&
+      hasCurrentSnapshot &&
+      (currentText !== draft.content.trim() || diceChanged) &&
       !confirm("恢复草稿将覆盖当前编辑器内容，是否继续？")
     ) {
       return;
     }
     if (onRestore) {
-      onRestore(draft.content);
+      onRestore({
+        content: draft.content,
+        pendingDiceNotations: draftDice,
+      });
       onClose();
       return;
     }
@@ -111,12 +131,13 @@ export function ContentDraftsPanel({
 
   const handleSave = async (slot?: number) => {
     const text = currentContent;
-    if (!text) return;
+    if (!text && currentPendingDice.length === 0) return;
     const occupied = slot === undefined ? undefined : draftBySlot.get(slot);
     if (occupied && !confirm(`确定要覆盖槽位 ${slot} 的正文草稿吗？`)) return;
     try {
       await saveDraft.mutateAsync({
         content: text,
+        pendingDiceNotations: currentPendingDice,
         ...(slot ? { slot } : {}),
         ...(occupied ? { version: occupied.version } : {}),
       });
@@ -126,16 +147,18 @@ export function ContentDraftsPanel({
     }
   };
 
-  const handleAutoSaveToggle = () => {
+  const handleAutoSaveToggle = async () => {
     const next = !autoSaveEnabled;
+    const refreshed = next ? await refetch() : null;
+    const freshSlotOne = (refreshed?.data ?? drafts).find((draft) => draft.slot === 1);
     if (
       next &&
-      draftBySlot.has(1) &&
+      !!freshSlotOne &&
       !confirm("开启自动保存后，槽位 1 将由当前编辑器持续覆盖，是否继续？")
     ) {
       return;
     }
-    onAutoSaveChange?.(next, next ? draftBySlot.get(1)?.version : undefined);
+    onAutoSaveChange?.(next, next ? freshSlotOne?.version : undefined);
   };
 
   return (
@@ -191,7 +214,7 @@ export function ContentDraftsPanel({
                 role="switch"
                 aria-checked={autoSaveEnabled}
                 aria-label="槽位 1 自动保存"
-                onClick={handleAutoSaveToggle}
+                onClick={() => void handleAutoSaveToggle()}
                 disabled={!onAutoSaveChange || isLoading}
                 className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
                   autoSaveEnabled ? "bg-primary" : "bg-muted-foreground/30"
@@ -205,7 +228,8 @@ export function ContentDraftsPanel({
               </button>
             </div>
             <p className="mt-2 border-t border-border pt-2 text-[11px] text-muted-foreground">
-              当前编辑器：{currentContent ? `${currentContent.length} 个字符` : "暂无内容"}
+              当前编辑器：{currentContent ? `${currentContent.length} 个字符` : "无正文"}
+              {currentPendingDice.length > 0 ? ` · ${currentPendingDice.length} 次待掷` : ""}
             </p>
           </div>
           {isLoading ? (
@@ -238,7 +262,7 @@ export function ContentDraftsPanel({
                         size="sm"
                         className="h-7 px-2 text-xs"
                         onClick={() => handleSave(slot)}
-                        disabled={!currentContent || saveDraft.isPending}
+                        disabled={!hasCurrentSnapshot || saveDraft.isPending}
                       >
                         保存到此处
                       </Button>
@@ -262,8 +286,13 @@ export function ContentDraftsPanel({
                       </span>
                     </div>
                     <p className="mb-2 line-clamp-3 whitespace-pre-wrap break-words text-xs text-foreground">
-                      {draft.content}
+                      {draft.content || "（无正文）"}
                     </p>
+                    {(draft.pendingDiceNotations?.length ?? 0) > 0 && (
+                      <p className="mb-2 font-mono text-[11px] text-amber-700 dark:text-amber-400">
+                        待掷：{draft.pendingDiceNotations.join("、")}
+                      </p>
+                    )}
                     <div className="flex items-center gap-1.5">
                       <Button
                         variant="outline"
@@ -279,7 +308,7 @@ export function ContentDraftsPanel({
                         size="sm"
                         className="h-7 px-2 text-xs"
                         onClick={() => handleSave(slot)}
-                        disabled={!currentContent || saveDraft.isPending}
+                        disabled={!hasCurrentSnapshot || saveDraft.isPending}
                         aria-label={`覆盖槽位 ${slot}`}
                       >
                         <Save className="mr-1 h-3 w-3" />
@@ -304,7 +333,7 @@ export function ContentDraftsPanel({
         </div>
 
         <div className="border-t border-border px-3 py-2 text-xs text-muted-foreground">
-          已用 {usedSlots}/{maxSlots} 槽位 · 点击槽位按钮直接保存当前编辑器全文
+          已用 {usedSlots}/{maxSlots} 槽位 · 正文与待掷骰子会作为一个版本保存
         </div>
       </div>
     </div>

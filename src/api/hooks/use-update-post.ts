@@ -9,14 +9,16 @@ export function useUpdatePost() {
       postId,
       content,
       version,
+      diceNotations,
     }: {
       postId: string;
       content: string;
       version: number;
+      diceNotations?: string[];
     }) => {
       const { data, error } = await apiClient.PATCH("/api/v1/posts/{id}", {
         params: { path: { id: postId } },
-        body: { content, version },
+        body: { content, version, diceNotations },
       });
       if (error) throw error;
       if (!data) throw new Error("更新帖子响应为空");

@@ -4,7 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
 import type { components } from "@/api/types";
 
-export type PostDetail = components["schemas"]["PostDetailResponseDto"];
+type GeneratedPostDetail = components["schemas"]["PostDetailResponseDto"];
+export type PostDetail = Omit<GeneratedPostDetail, "pendingDiceNotations" | "diceRolls"> & {
+  pendingDiceNotations?: string[];
+  diceRolls?: components["schemas"]["DiceRollResponseDto"][];
+};
 
 /** 查询一个未删除且当前用户可访问的帖子 */
 export function usePost(id?: string) {

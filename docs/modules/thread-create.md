@@ -10,13 +10,13 @@
 - 草稿列表「继续编辑」进入 `/threads/:id/edit` 时按 `published` 分流：未发布草稿仍使用 `ThreadCreateForm`，保留「保存草稿」与最终「发布」按钮；不能误用仅有「保存修改」的已发布帖表单
 - 点「新建主题帖」后自动创建沙盒草稿（方案 A）
 - 草稿创建只允许由「新建主题帖」点击处理函数直接发起，并使用同步点击锁；渲染和 effect 均不发起 `POST /threads`，避免重渲染、Strict Mode effect 重放或连点生成重复草稿并触发 429 限流。
-- 表单编辑：标题、分区、可见性、主题帖标签、默认子贴正文
+- 表单编辑：标题、分区、可见性、主题帖标签、默认子贴正文与待掷骰子
 - Milkdown Crepe WYSIWYG 编辑器（可见工具栏 + 所见即所得渲染 + 字数统计 + 正文草稿入口）
 - Milkdown 输出协议：代码块外独占行 `<br />`（含历史变体）规范化并原样保存，用于精确保留手动空行；空图片语法清理，围栏代码块和 Shift+Enter 硬换行保持原样
 - 图片上传期间仅锁定提交/取消操作，不把编辑器切换为只读，避免 Crepe 重建顶栏；若第三方内部仍替换顶栏节点，当前编辑器宿主会重新同步可见性与中文标签，多编辑器页面之间互不影响
 - 发布校验：纯空白、仅空段落或仅分隔线不可发布；图片、代码块、列表、裸 HTTP(S) URL、CommonMark 自动链接等非空内容可发布，禁止任意 HTML
 - 保存草稿（`PATCH /threads/:id`）
-- 发布主题帖（`PATCH /threads/:id { published: true }`）
+- 发布主题帖（`PATCH /threads/:id { published: true }`）；待掷骰子由服务端在发布事务中统一结算
 - 发布后跳转详情页 `/threads/[id]`
 - 放弃创建时删除草稿并返回草稿列表（`DELETE /threads/:id`）
 
@@ -57,7 +57,7 @@
 **响应数据类型说明（与真实 API 对齐）：**
 - `ThreadDetail` 的 `_count` 字段为 `{ members, posts }`（非 `{ subthreads, posts }`）。
 - 子贴对象通过 `normalizeThreadDetail()` 处理：后端返回 `subthreads` 数组 + `defaultSubthreadId`，前端按 ID 匹配出 `defaultSubthread` 字段。
-- 后端 `includeSubthreads` 已带 `bodyPost: { id, content, version }`（kind=BODY 正文帖），首次创建草稿无正文时 `bodyPost` 为 `null`，有正文后其中含 `id` 和 `version` 用于乐观锁编辑（经 `PUT /subthreads/:subthreadId/body` upsert）。
+- 后端 `includeSubthreads` 已带 `bodyPost: { id, content, version, pendingDiceNotations, diceRolls }`。草稿期编辑 `pendingDiceNotations`；发布成功后只展示服务端 `diceRolls`。
 
 ## 4. 状态管理
 
@@ -69,7 +69,7 @@
 | 表单字段 | 用户输入 | react-hook-form |
 | 标签候选 | `GET /tags?q=` | TanStack Query + 本地 debounce |
 | 发布 loading | 提交中 | useState |
-| 编辑器 Markdown | Milkdown listener | 受控于表单字段 |
+| 编辑器 Markdown / 待掷骰子 | Milkdown listener + DiceInput | 本地受控状态，保存时共同提交 |
 
 **草稿生命周期：**
 - 进入 `/threads/create` 默认展示**草稿列表**（`picker` 模式），含「新建主题帖」按钮；无草稿时显示空态「没有草稿喔」。
@@ -90,6 +90,7 @@
 | EditThreadPage | `src/app/threads/[id]/edit/page.tsx` | 状态感知编辑页：草稿渲染 ThreadCreateForm，已发布帖渲染 ThreadEditForm |
 | MilkdownEditor | `src/components/editor/milkdown-editor.tsx` | @milkdown/crepe WYSIWYG 编辑器（工具栏/字数统计/图片上传/中文本地化 + 正文草稿入口） |
 | TagInput | `src/components/forms/tag-input.tsx` | 主题帖标签输入（支持自动补全） |
+| DiceInput / DiceRolls | `src/components/thread/` | 快捷/自定义待掷输入与服务端正式结果展示 |
 | useCreateThread | `src/api/hooks/use-create-thread.ts` | 创建草稿 hook |
 | useThreadDetail | `src/api/hooks/use-thread-detail.ts` | 获取详情 hook |
 | useUpdateThread | `src/api/hooks/use-update-thread.ts` | 更新草稿 / 发布 hook |

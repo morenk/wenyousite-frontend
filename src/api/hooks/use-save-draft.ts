@@ -8,6 +8,7 @@ export interface SaveDraftArgs {
   content: string;
   slot?: number;
   version?: number;
+  pendingDiceNotations?: string[];
 }
 
 export function useSaveDraft() {
@@ -19,10 +20,11 @@ export function useSaveDraft() {
   };
 
   return useMutation({
-    mutationFn: async ({ content, slot, version }: SaveDraftArgs) => {
+    mutationFn: async ({ content, slot, version, pendingDiceNotations }: SaveDraftArgs) => {
       const { data, error } = await apiClient.POST("/api/v1/drafts", {
         body: {
           content,
+          pendingDiceNotations: pendingDiceNotations ?? [],
           ...(slot !== undefined ? { slot } : {}),
           ...(version !== undefined ? { version } : {}),
         },
