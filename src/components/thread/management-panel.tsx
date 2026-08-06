@@ -20,7 +20,6 @@ import { useCreateSubthread } from "@/api/hooks/use-create-subthread";
 import { useUpdateSubthread } from "@/api/hooks/use-update-subthread";
 import { useDeleteSubthread } from "@/api/hooks/use-delete-subthread";
 import { useReorderSubthreads } from "@/api/hooks/use-reorder-subthreads";
-import { useSyncSubthreadTags } from "@/api/hooks/use-sync-subthread-tags";
 import { useUpsertBody } from "@/api/hooks/use-upsert-body";
 import { useUploadImage } from "@/api/hooks/use-upload-image";
 import { getApiError, getApiErrorMessage } from "@/api/errors";
@@ -75,7 +74,6 @@ export function ManagementPanel({
   const updateSubthread = useUpdateSubthread();
   const deleteSubthread = useDeleteSubthread();
   const reorderSubthreads = useReorderSubthreads();
-  const syncSubthreadTags = useSyncSubthreadTags();
   const upsertBody = useUpsertBody();
   const uploadImage = useUploadImage();
 
@@ -168,39 +166,25 @@ export function ManagementPanel({
   }
 
   async function handleCreateSubthread(data: SubthreadFormData) {
-    let created = false;
     try {
-      const subthread = await createSubthread.mutateAsync({
+      await createSubthread.mutateAsync({
         threadId: thread.id,
         body: {
           title: data.title,
           postingPolicy: data.postingPolicy,
         },
       });
-      created = true;
-      await syncSubthreadTags.mutateAsync({
-        subthreadId: subthread.id,
-        existingTags: [],
-        targetNames: data.tagNames,
-      });
       await onRefetch();
       setSubFormMode(null);
       toast.success("子贴已创建");
     } catch {
-      if (created) {
-        await onRefetch().catch(() => undefined);
-        setSubFormMode(null);
-        toast.error("子贴已创建，但标签同步失败，请重新编辑标签");
-      } else {
-        toast.error("创建子贴失败");
-      }
+      toast.error("创建子贴失败");
     }
   }
 
   async function handleUpdateSubthread(data: SubthreadFormData) {
     if (subFormMode?.mode !== "edit") return;
     const sub = subFormMode.sub;
-    let updated = false;
     try {
       await updateSubthread.mutateAsync({
         subthreadId: sub.id,
@@ -210,27 +194,11 @@ export function ManagementPanel({
           version: sub.version,
         },
       });
-      updated = true;
-      await syncSubthreadTags.mutateAsync({
-        subthreadId: sub.id,
-        existingTags: sub.tags.map(({ tag }) => ({
-          id: tag.id,
-          name: tag.name,
-          color: tag.color,
-        })),
-        targetNames: data.tagNames,
-      });
       await onRefetch();
       setSubFormMode(null);
       toast.success("子贴已更新");
     } catch {
-      if (updated) {
-        await onRefetch().catch(() => undefined);
-        setSubFormMode(null);
-        toast.error("子贴已更新，但标签同步失败，请重新编辑标签");
-      } else {
-        toast.error("更新子贴失败");
-      }
+      toast.error("更新子贴失败");
     }
   }
 
@@ -435,15 +403,13 @@ export function ManagementPanel({
               ? {
                   title: subFormMode.sub.title,
                   postingPolicy: subFormMode.sub.postingPolicy,
-                  tagNames: subFormMode.sub.tags.map(({ tag }) => tag.name),
                 }
               : undefined
           }
           isSubmitting={
             isSaving ||
             createSubthread.isPending ||
-            updateSubthread.isPending ||
-            syncSubthreadTags.isPending
+            updateSubthread.isPending
           }
           onSubmit={
             subFormMode.mode === "create"

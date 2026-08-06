@@ -109,7 +109,6 @@
               "_count": {
                 "posts": 2
               },
-              "tags": [],
               "bodyPost": {
                 "id": "<redacted-id>",
                 "content": "这是管理面板测试正文。",

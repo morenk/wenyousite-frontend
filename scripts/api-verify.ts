@@ -229,43 +229,10 @@ async function captureThreads(): Promise<void> {
     tagNames: ["测试"],
   }, createFull, cf);
   const fullThreadId = (createFull as any)?.data?.id;
-  const fullSubthreadId = (createFull as any)?.data?.defaultSubthreadId;
 
   // ── 详情（含正文的草稿） ──
   const { body: detailFull, status: df } = await api("GET", `/api/v1/threads/${fullThreadId}`);
   record(s, `GET /threads/${fullThreadId} (draft with bodyPost)`, null, detailFull, df);
-
-  // ── 子贴标签：添加 → 列表 → 移除 ──
-  if (fullSubthreadId) {
-    const tagReq = { name: "快照子贴标签" };
-    const { body: addSubTag, status: addSubTagStatus } = await api(
-      "POST",
-      `/api/v1/subthreads/${fullSubthreadId}/tags`,
-      tagReq,
-    );
-    record(s, `POST /subthreads/${fullSubthreadId}/tags`, tagReq, addSubTag, addSubTagStatus);
-    const subTagId = (addSubTag as any)?.data?.id;
-
-    const { body: subTags, status: subTagsStatus } = await api(
-      "GET",
-      `/api/v1/subthreads/${fullSubthreadId}/tags`,
-    );
-    record(s, `GET /subthreads/${fullSubthreadId}/tags`, null, subTags, subTagsStatus);
-
-    if (subTagId) {
-      const { body: removeSubTag, status: removeSubTagStatus } = await api(
-        "DELETE",
-        `/api/v1/subthreads/${fullSubthreadId}/tags/${subTagId}`,
-      );
-      record(
-        s,
-        `DELETE /subthreads/${fullSubthreadId}/tags/${subTagId}`,
-        null,
-        removeSubTag,
-        removeSubTagStatus,
-      );
-    }
-  }
 
   // ── 详情（无正文的草稿） ──
   const { body: detailEmpty, status: de } = await api("GET", `/api/v1/threads/${emptyThreadId}`);

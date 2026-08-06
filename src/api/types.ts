@@ -959,41 +959,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/subthreads/{subthreadId}/tags": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** 获取子贴的标签列表 */
-        get: operations["SubthreadTagsController_findAll"];
-        put?: never;
-        /** 为子贴添加标签（仅 OWNER/COLLABORATOR） */
-        post: operations["SubthreadTagsController_add"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/subthreads/{subthreadId}/tags/{tagId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** 移除子贴的标签（仅 OWNER/COLLABORATOR） */
-        delete: operations["SubthreadTagsController_remove"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/subthreads/{subthreadId}/posts": {
         parameters: {
             query?: never;
@@ -2103,20 +2068,6 @@ export interface components {
         ThreadSubthreadCountResponseDto: {
             posts: number;
         };
-        SubthreadTagDefinitionResponseDto: {
-            id: string;
-            threadId: string;
-            name: string;
-            color: string | null;
-            /** Format: date-time */
-            createdAt: string;
-        };
-        SubthreadTagRelationResponseDto: {
-            id: string;
-            subthreadId: string;
-            tagId: string;
-            tag: components["schemas"]["SubthreadTagDefinitionResponseDto"];
-        };
         ThreadSubthreadResponseDto: {
             id: string;
             threadId: string;
@@ -2133,8 +2084,6 @@ export interface components {
             createdAt: string;
             bodyPost: components["schemas"]["ThreadBodyPostResponseDto"] | null;
             _count: components["schemas"]["ThreadSubthreadCountResponseDto"];
-            /** @description 子贴标签关联 */
-            tags: components["schemas"]["SubthreadTagRelationResponseDto"][];
         };
         ThreadCountResponseDto: {
             members: number;
@@ -2376,7 +2325,6 @@ export interface components {
             deletedAt: string | null;
             /** Format: date-time */
             createdAt: string;
-            tags: components["schemas"]["SubthreadTagRelationResponseDto"][];
             _count: components["schemas"]["SubthreadCountResponseDto"];
             thread?: components["schemas"]["SubthreadThreadReferenceResponseDto"];
         };
@@ -2441,18 +2389,6 @@ export interface components {
              * @example 1
              */
             version: number;
-        };
-        AddSubthreadTagDto: {
-            /**
-             * @description 子贴标签名
-             * @example 设定区
-             */
-            name: string;
-            /**
-             * @description 标签颜色（#RRGGBB 十六进制格式）
-             * @example #FF6B6B
-             */
-            color?: string;
         };
         PostCountResponseDto: {
             replies: number;
@@ -6039,108 +5975,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
                         data: components["schemas"]["ReorderedSubthreadResponseDto"][];
-                    };
-                };
-            };
-            /** @description 未在此操作中单独列出的错误响应 */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelope"];
-                };
-            };
-        };
-    };
-    SubthreadTagsController_findAll: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                subthreadId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["SubthreadTagRelationResponseDto"][];
-                    };
-                };
-            };
-            /** @description 未在此操作中单独列出的错误响应 */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelope"];
-                };
-            };
-        };
-    };
-    SubthreadTagsController_add: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                subthreadId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AddSubthreadTagDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["SubthreadTagDefinitionResponseDto"];
-                    };
-                };
-            };
-            /** @description 未在此操作中单独列出的错误响应 */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelope"];
-                };
-            };
-        };
-    };
-    SubthreadTagsController_remove: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                subthreadId: string;
-                tagId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 标签已移除 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["MessageResponseDto"];
                     };
                 };
             };

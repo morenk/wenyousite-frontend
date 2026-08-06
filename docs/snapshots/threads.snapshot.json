@@ -394,7 +394,6 @@
               "_count": {
                 "posts": 0
               },
-              "tags": [],
               "bodyPost": null
             }
           ],
@@ -458,7 +457,6 @@
               "_count": {
                 "posts": 0
               },
-              "tags": [],
               "bodyPost": {
                 "id": "<redacted-id>",
                 "content": "这是一段正文内容（快照验证）",
@@ -531,7 +529,6 @@
               "_count": {
                 "posts": 0
               },
-              "tags": [],
               "bodyPost": {
                 "id": "<redacted-id>",
                 "content": "这是一段正文内容（快照验证）",
@@ -560,59 +557,6 @@
           "isBookmarked": false,
           "bookmarkId": null,
           "isLiked": false
-        }
-      },
-      "httpStatus": 200
-    },
-    "POST /subthreads/<redacted-id>/tags": {
-      "label": "POST /subthreads/<redacted-id>/tags",
-      "request": {
-        "name": "快照子贴标签"
-      },
-      "response": {
-        "code": 0,
-        "message": "ok",
-        "data": {
-          "id": "<redacted-id>",
-          "threadId": "<redacted-id>",
-          "name": "快照子贴标签",
-          "color": null,
-          "createdAt": "2026-08-04T17:29:32.764Z"
-        }
-      },
-      "httpStatus": 201
-    },
-    "GET /subthreads/<redacted-id>/tags": {
-      "label": "GET /subthreads/<redacted-id>/tags",
-      "request": null,
-      "response": {
-        "code": 0,
-        "message": "ok",
-        "data": [
-          {
-            "id": "<redacted-id>",
-            "subthreadId": "<redacted-id>",
-            "tagId": "<redacted-id>",
-            "tag": {
-              "id": "<redacted-id>",
-              "threadId": "<redacted-id>",
-              "name": "快照子贴标签",
-              "color": null,
-              "createdAt": "2026-08-04T17:29:32.764Z"
-            }
-          }
-        ]
-      },
-      "httpStatus": 200
-    },
-    "DELETE /subthreads/<redacted-id>/tags/<redacted-id>": {
-      "label": "DELETE /subthreads/<redacted-id>/tags/<redacted-id>",
-      "request": null,
-      "response": {
-        "code": 0,
-        "message": "ok",
-        "data": {
-          "message": "标签已移除"
         }
       },
       "httpStatus": 200
@@ -660,7 +604,6 @@
               "_count": {
                 "posts": 0
               },
-              "tags": [],
               "bodyPost": null
             }
           ],
@@ -752,7 +695,6 @@
               "_count": {
                 "posts": 1
               },
-              "tags": [],
               "bodyPost": null
             }
           ],
@@ -849,7 +791,6 @@
               "_count": {
                 "posts": 1
               },
-              "tags": [],
               "bodyPost": null
             }
           ],
@@ -988,7 +929,6 @@
               "_count": {
                 "posts": 0
               },
-              "tags": [],
               "bodyPost": {
                 "id": "<redacted-id>",
                 "content": "这是一段正文内容（快照验证）",

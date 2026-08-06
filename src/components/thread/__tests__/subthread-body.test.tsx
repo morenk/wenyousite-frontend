@@ -24,7 +24,6 @@ const baseSubthread: SubthreadDetail = {
     diceRolls: [],
   },
   _count: { posts: 3 },
-  tags: [],
 };
 
 describe("SubthreadBody", () => {

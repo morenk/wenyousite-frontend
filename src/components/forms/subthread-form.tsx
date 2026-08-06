@@ -2,20 +2,18 @@
 
 "use client";
 
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { TagInput } from "@/components/forms/tag-input";
 import { POSTING_POLICY_OPTIONS } from "@/lib/post-policy";
 
 const subthreadFormSchema = z.object({
   title: z.string().min(1, "请输入子贴标题").max(100, "子贴标题最多 100 个字符"),
   postingPolicy: z.enum(["PARTICIPANTS", "COLLABORATORS", "PLAYERS"]),
-  tagNames: z.array(z.string().min(1).max(20)).max(5, "子贴标签最多 5 个"),
 });
 
 export type SubthreadFormData = z.infer<typeof subthreadFormSchema>;
@@ -42,7 +40,6 @@ export function SubthreadForm({
     defaultValues: defaultValues ?? {
       title: "",
       postingPolicy: "PARTICIPANTS",
-      tagNames: [],
     },
   });
 
@@ -107,25 +104,6 @@ export function SubthreadForm({
                 </option>
               ))}
             </select>
-          </div>
-
-          <div className="space-y-2">
-            <Label>子贴标签</Label>
-            <Controller
-              control={form.control}
-              name="tagNames"
-              render={({ field }) => (
-                <TagInput
-                  value={field.value}
-                  onChange={field.onChange}
-                  max={5}
-                  disabled={isSubmitting}
-                />
-              )}
-            />
-            <p className="text-xs text-muted-foreground">
-              最多 5 个，每个标签最多 20 个字符
-            </p>
           </div>
 
           <div className="flex justify-end gap-2 pt-2">

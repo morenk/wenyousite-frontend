@@ -53,23 +53,6 @@ vi.mock("@/components/editor/milkdown-editor", () => ({
   ),
 }));
 
-vi.mock("@/components/forms/tag-input", () => ({
-  TagInput: ({
-    value,
-    onChange,
-  }: {
-    value: string[];
-    onChange: (tags: string[]) => void;
-  }) => (
-    <div>
-      <span data-testid="tag-values">{value.join(",")}</span>
-      <button type="button" onClick={() => onChange([...value, "剧情"])}>
-        添加测试标签
-      </button>
-    </div>
-  ),
-}));
-
 vi.mock("@/components/thread/subthread-tree", () => ({
   SubthreadTree: ({
     subthreads,
@@ -117,7 +100,6 @@ const {
   mockReorderSubthreadsMutate,
   mockUpsertBodyMutate,
   mockUploadImageMutate,
-  mockSyncSubthreadTagsMutate,
 } = vi.hoisted(() => ({
   mockCreateSubthreadMutate: vi.fn(),
   mockUpdateSubthreadMutate: vi.fn(),
@@ -125,7 +107,6 @@ const {
   mockReorderSubthreadsMutate: vi.fn(),
   mockUpsertBodyMutate: vi.fn(),
   mockUploadImageMutate: vi.fn(),
-  mockSyncSubthreadTagsMutate: vi.fn(),
 }));
 
 vi.mock("@/api/hooks/use-create-subthread", () => ({
@@ -152,13 +133,6 @@ vi.mock("@/api/hooks/use-upsert-body", () => ({
 vi.mock("@/api/hooks/use-upload-image", () => ({
   useUploadImage: () => ({ mutateAsync: mockUploadImageMutate, isPending: false }),
 }));
-vi.mock("@/api/hooks/use-sync-subthread-tags", () => ({
-  useSyncSubthreadTags: () => ({
-    mutateAsync: mockSyncSubthreadTagsMutate,
-    isPending: false,
-  }),
-}));
-
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
@@ -170,7 +144,6 @@ beforeEach(() => {
   mockCreateSubthreadMutate.mockResolvedValue(
     makeSub("s3", "新子贴", null),
   );
-  mockSyncSubthreadTagsMutate.mockResolvedValue(undefined);
 });
 
 function createWrapper() {
@@ -201,7 +174,6 @@ function makeSub(
     createdAt: "2026-01-01T00:00:00Z",
     bodyPost: bodyPost ? { ...bodyPost, diceRolls: [] } : null,
     _count: { posts: bodyPost ? 1 : 0 },
-    tags: [],
   };
 }
 
@@ -368,7 +340,6 @@ describe("ManagementPanel", () => {
     await user.click(screen.getByText("mock-add-subthread"));
     const input = screen.getByPlaceholderText("主帖 / 设定区 / 剧情区");
     await user.type(input, "新子贴");
-    await user.click(screen.getByText("添加测试标签"));
     await user.click(screen.getByRole("button", { name: "添加" }));
 
     await vi.waitFor(() => {
@@ -378,11 +349,6 @@ describe("ManagementPanel", () => {
           body: expect.objectContaining({ title: "新子贴" }),
         }),
       );
-      expect(mockSyncSubthreadTagsMutate).toHaveBeenCalledWith({
-        subthreadId: "s3",
-        existingTags: [],
-        targetNames: ["剧情"],
-      });
     });
   });
 
@@ -394,47 +360,6 @@ describe("ManagementPanel", () => {
 
     expect(screen.getByDisplayValue("设定区")).toBeInTheDocument();
     expect(screen.getByText("编辑子贴")).toBeInTheDocument();
-    expect(screen.getByTestId("tag-values")).toHaveTextContent("");
-  });
-
-  test("编辑子贴时按现有标签同步变更", async () => {
-    const user = userEvent.setup();
-    const taggedSub = {
-      ...mockThread.subthreads[1],
-      tags: [
-        {
-          id: "relation-existing",
-          subthreadId: "s2",
-          tagId: "tag-existing",
-          tag: {
-            id: "tag-existing",
-            threadId: mockThread.id,
-            name: "设定",
-            color: null,
-            createdAt: "2026-01-01T00:00:00Z",
-          },
-        },
-      ],
-    };
-    renderPanel({
-      ...mockThread,
-      subthreads: [mockThread.subthreads[0], taggedSub],
-    });
-
-    await user.click(screen.getByText("edit-s2"));
-    expect(screen.getByTestId("tag-values")).toHaveTextContent("设定");
-    await user.click(screen.getByText("添加测试标签"));
-    await user.click(screen.getByRole("button", { name: "保存" }));
-
-    await vi.waitFor(() => {
-      expect(mockSyncSubthreadTagsMutate).toHaveBeenCalledWith({
-        subthreadId: "s2",
-        existingTags: [
-          { id: "tag-existing", name: "设定", color: null },
-        ],
-        targetNames: ["设定", "剧情"],
-      });
-    });
   });
 
   test("删除子贴确认后调用 deleteSubthread", async () => {

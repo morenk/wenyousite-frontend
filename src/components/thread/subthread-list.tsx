@@ -81,7 +81,6 @@ export function SubthreadList({
               defaultValues: {
                 title: sub.title,
                 postingPolicy: sub.postingPolicy,
-                tagNames: sub.tags.map(({ tag }) => tag.name),
               },
             })
           }

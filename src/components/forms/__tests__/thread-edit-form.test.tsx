@@ -99,7 +99,6 @@ const mockThread: ThreadDetail = {
       createdAt: "2026-01-01T00:00:00Z",
       bodyPost: { id: "p1", content: "默认正文", version: 2, diceRolls: [] },
       _count: { posts: 1 },
-      tags: [],
     },
   ],
   defaultSubthread: {
@@ -114,7 +113,6 @@ const mockThread: ThreadDetail = {
     createdAt: "2026-01-01T00:00:00Z",
     bodyPost: { id: "p1", content: "默认正文", version: 2, diceRolls: [] },
     _count: { posts: 1 },
-    tags: [],
   },
   topicTags: [
     {
