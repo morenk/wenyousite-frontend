@@ -7,8 +7,7 @@ import type { components, operations } from "@/api/types";
 export type PostAuthor = components["schemas"]["PostAuthorResponseDto"];
 export type ReplyToTarget = components["schemas"]["ReplyTargetResponseDto"];
 type DiceRoll = components["schemas"]["DiceRollResponseDto"];
-type CompatiblePost<T> = Omit<T, "pendingDiceNotations" | "diceRolls"> & {
-  pendingDiceNotations?: string[];
+type CompatiblePost<T> = Omit<T, "diceRolls"> & {
   diceRolls?: DiceRoll[];
 };
 export type ReplyData = CompatiblePost<components["schemas"]["ReplyResponseDto"]>;

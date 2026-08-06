@@ -20,6 +20,7 @@ import { useDraftSlots } from "@/api/hooks/use-draft-slots";
 import { useSaveDraft } from "@/api/hooks/use-save-draft";
 import { useDeleteContentDraft } from "@/api/hooks/use-delete-content-draft";
 import { Button } from "@/components/ui/button";
+import { parseInlineDiceNodes, replaceInlineDiceNodes } from "@/lib/dice-inline";
 
 interface ContentDraftsPanelProps {
   open: boolean;
@@ -28,7 +29,6 @@ interface ContentDraftsPanelProps {
   onRestore?: (snapshot: EditorDraftSnapshot) => void;
   /** 打开面板时的当前编辑器全文，所有手动保存操作直接使用该内容 */
   initialContent?: string;
-  initialPendingDiceNotations?: string[];
   autoSaveEnabled?: boolean;
   autoSaveStatus?: "idle" | "saving" | "saved" | "error";
   onAutoSaveChange?: (enabled: boolean, version?: number) => void;
@@ -36,7 +36,6 @@ interface ContentDraftsPanelProps {
 
 export interface EditorDraftSnapshot {
   content: string;
-  pendingDiceNotations: string[];
 }
 
 function getErrorMessage(error: unknown, fallback: string): string {
@@ -49,7 +48,6 @@ export function ContentDraftsPanel({
   onClose,
   onRestore,
   initialContent,
-  initialPendingDiceNotations = [],
   autoSaveEnabled = false,
   autoSaveStatus = "idle",
   onAutoSaveChange,
@@ -85,26 +83,21 @@ export function ContentDraftsPanel({
   const maxSlots = slots?.maxSlots ?? 5;
   const draftBySlot = new Map(drafts.map((d) => [d.slot, d]));
   const currentContent = initialContent?.trim() ?? "";
-  const currentPendingDice = initialPendingDiceNotations;
-  const hasCurrentSnapshot = !!currentContent || currentPendingDice.length > 0;
+  const currentDiceCount = parseInlineDiceNodes(currentContent).length;
+  const hasCurrentSnapshot = !!currentContent;
 
   const handleRestore = (draft: DraftItem) => {
     const currentText = initialContent?.trim();
-    const draftDice = draft.pendingDiceNotations ?? [];
-    const diceChanged = JSON.stringify(currentPendingDice) !== JSON.stringify(draftDice);
     if (
       onRestore &&
       hasCurrentSnapshot &&
-      (currentText !== draft.content.trim() || diceChanged) &&
+      currentText !== draft.content.trim() &&
       !confirm("恢复草稿将覆盖当前编辑器内容，是否继续？")
     ) {
       return;
     }
     if (onRestore) {
-      onRestore({
-        content: draft.content,
-        pendingDiceNotations: draftDice,
-      });
+      onRestore({ content: draft.content });
       onClose();
       return;
     }
@@ -131,13 +124,12 @@ export function ContentDraftsPanel({
 
   const handleSave = async (slot?: number) => {
     const text = currentContent;
-    if (!text && currentPendingDice.length === 0) return;
+    if (!text) return;
     const occupied = slot === undefined ? undefined : draftBySlot.get(slot);
     if (occupied && !confirm(`确定要覆盖槽位 ${slot} 的正文草稿吗？`)) return;
     try {
       await saveDraft.mutateAsync({
         content: text,
-        pendingDiceNotations: currentPendingDice,
         ...(slot ? { slot } : {}),
         ...(occupied ? { version: occupied.version } : {}),
       });
@@ -229,7 +221,7 @@ export function ContentDraftsPanel({
             </div>
             <p className="mt-2 border-t border-border pt-2 text-[11px] text-muted-foreground">
               当前编辑器：{currentContent ? `${currentContent.length} 个字符` : "无正文"}
-              {currentPendingDice.length > 0 ? ` · ${currentPendingDice.length} 次待掷` : ""}
+              {currentDiceCount > 0 ? ` · ${currentDiceCount} 个待掷节点` : ""}
             </p>
           </div>
           {isLoading ? (
@@ -286,13 +278,8 @@ export function ContentDraftsPanel({
                       </span>
                     </div>
                     <p className="mb-2 line-clamp-3 whitespace-pre-wrap break-words text-xs text-foreground">
-                      {draft.content || "（无正文）"}
+                      {replaceInlineDiceNodes(draft.content, (node) => `${node.notation} = ?`) || "（无正文）"}
                     </p>
-                    {(draft.pendingDiceNotations?.length ?? 0) > 0 && (
-                      <p className="mb-2 font-mono text-[11px] text-amber-700 dark:text-amber-400">
-                        待掷：{draft.pendingDiceNotations.join("、")}
-                      </p>
-                    )}
                     <div className="flex items-center gap-1.5">
                       <Button
                         variant="outline"
@@ -333,7 +320,7 @@ export function ContentDraftsPanel({
         </div>
 
         <div className="border-t border-border px-3 py-2 text-xs text-muted-foreground">
-          已用 {usedSlots}/{maxSlots} 槽位 · 正文与待掷骰子会作为一个版本保存
+          已用 {usedSlots}/{maxSlots} 槽位 · 正文与内联骰子节点作为一个版本保存
         </div>
       </div>
     </div>

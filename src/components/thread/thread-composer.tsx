@@ -13,7 +13,6 @@ import { MilkdownEditor } from "@/components/editor/milkdown-editor";
 import { Button } from "@/components/ui/button";
 import { useThreadComposer } from "@/components/thread/thread-composer-context";
 import { hasVisibleMarkdownContent } from "@/lib/markdown";
-import { DiceInput } from "@/components/thread/dice-input";
 
 function getErrorMessage(error: unknown, fallback: string) {
   const err = error as { code?: number; message?: string };
@@ -28,10 +27,8 @@ function ThreadComposer() {
     session,
     threadId,
     content,
-    diceNotations,
     pending,
     setContent,
-    setDiceNotations,
     setPending,
     close,
   } = useThreadComposer();
@@ -53,7 +50,6 @@ function ThreadComposer() {
   const isReply = session.type === "reply";
   const submitLabel = isEdit ? "保存修改" : isReply ? "回复" : "发布";
   const busy = pending || uploadImage.isPending;
-  const shouldSendDice = diceNotations.length > 0 || (session.initialDiceNotations?.length ?? 0) > 0;
 
   const invalidateAfterSubmit = async () => {
     const invalidations = [
@@ -76,7 +72,7 @@ function ThreadComposer() {
   const handleSubmit = async () => {
     const nextContent = content.trim();
     if (busy) return;
-    if (!hasVisibleMarkdownContent(nextContent) && diceNotations.length === 0) {
+    if (!hasVisibleMarkdownContent(nextContent)) {
       toast.error("正文和骰子不能同时为空");
       return;
     }
@@ -88,7 +84,6 @@ function ThreadComposer() {
           postId: session.postId,
           content: nextContent,
           version: session.version,
-          ...(shouldSendDice ? { diceNotations } : {}),
         });
       } else {
         const parentPostId = session.type === "reply" ? session.parentPostId : null;
@@ -98,7 +93,6 @@ function ThreadComposer() {
           content: nextContent,
           parentPostId,
           replyToPostId,
-          diceNotations,
         });
         if (createRequestRef.current?.fingerprint !== fingerprint) {
           createRequestRef.current = { fingerprint, id: crypto.randomUUID() };
@@ -107,7 +101,6 @@ function ThreadComposer() {
           subthreadId: session.subthreadId,
           content: nextContent,
           clientRequestId: createRequestRef.current.id,
-          ...(shouldSendDice ? { diceNotations } : {}),
           ...(session.type === "reply"
             ? {
                 parentPostId: session.parentPostId,
@@ -155,21 +148,14 @@ function ThreadComposer() {
         maxHeight={isReply ? 200 : 300}
         minHeight={isReply ? 120 : 180}
         threadId={threadId}
-        pendingDiceNotations={diceNotations}
-        onPendingDiceNotationsChange={setDiceNotations}
-      />
-      <DiceInput
-        value={diceNotations}
-        onChange={setDiceNotations}
-        existingCount={session.existingDiceCount ?? 0}
-        disabled={pending}
+        diceRolls={session.diceRolls}
       />
       <div className="flex justify-end">
         <Button
           type="button"
           size="sm"
           onClick={handleSubmit}
-          disabled={(!hasVisibleMarkdownContent(content) && diceNotations.length === 0) || busy}
+          disabled={!hasVisibleMarkdownContent(content) || busy}
         >
           {busy ? (
             <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />

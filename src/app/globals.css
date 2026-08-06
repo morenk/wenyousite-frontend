@@ -100,6 +100,31 @@ body {
   overflow-y: auto;
 }
 
+/* 骰子是正文内联原子节点：继承周围文字，只用底色区分待掷与正式结果。 */
+.dice-inline {
+  display: inline;
+  padding: 0.08em 0.3em;
+  border-radius: 0.3em;
+  font: inherit;
+  line-height: inherit;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  font-variant-numeric: tabular-nums;
+}
+
+.dice-inline-result {
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
+}
+
+.dice-inline-pending {
+  background: color-mix(in srgb, #f59e0b 18%, transparent);
+}
+
+.milkdown .ProseMirror .dice-inline.ProseMirror-selectednode {
+  outline: 2px solid color-mix(in srgb, var(--primary) 55%, transparent);
+  outline-offset: 1px;
+}
+
 /* 正文图片兜底：任何 markdown 内容图片都不超出容器宽度 */
 .prose img {
   max-width: 100%;

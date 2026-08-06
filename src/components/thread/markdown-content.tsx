@@ -14,6 +14,10 @@ import Link from "next/link";
 import remarkGfm from "remark-gfm";
 import { getImageUrlBySize } from "@/lib/upload-image";
 import { sanitizeMilkdownMarkdown } from "@/lib/markdown";
+import {
+  DICE_INLINE_MARKER_SOURCE,
+  type InlineDiceRoll,
+} from "@/lib/dice-inline";
 import { ImageLightbox } from "@/components/thread/image-lightbox";
 
 /** 判断是否为本站上传图片（objectKey 统一以 uploads/ 开头）且非派生图 */
@@ -105,6 +109,10 @@ type MarkdownNode = {
   type?: string;
   value?: string;
   children?: MarkdownNode[];
+  data?: {
+    hName?: string;
+    hProperties?: Record<string, unknown>;
+  };
 };
 
 const EMPTY_PARAGRAPH_RE = /^ {0,3}<br\s*\/?>[\t ]*$/iu;
@@ -125,13 +133,68 @@ function remarkMilkdownEmptyParagraphs() {
   };
 }
 
+function remarkInlineDice(rolls: InlineDiceRoll[]) {
+  const byNodeId = new Map(rolls.map((roll) => [roll.nodeId, roll]));
+  return () => (tree: MarkdownNode) => {
+    const transform = (node: MarkdownNode) => {
+      if (!node.children) return;
+      const children: MarkdownNode[] = [];
+      for (const child of node.children) {
+        if (child.type !== "text" || !child.value) {
+          transform(child);
+          children.push(child);
+          continue;
+        }
+        const matcher = new RegExp(DICE_INLINE_MARKER_SOURCE, "giu");
+        let lastIndex = 0;
+        for (const match of child.value.matchAll(matcher)) {
+          if (match.index > lastIndex) {
+            children.push({ type: "text", value: child.value.slice(lastIndex, match.index) });
+          }
+          const nodeId = match[1]!.toLowerCase();
+          const notation = match[2]!;
+          const roll = byNodeId.get(nodeId);
+          const label = `${roll?.notation ?? notation} = ${roll?.total ?? "?"}`;
+          children.push({
+            type: "diceInline",
+            children: [{ type: "text", value: label }],
+            data: {
+              hName: "span",
+              hProperties: {
+                className: [
+                  "dice-inline",
+                  roll ? "dice-inline-result" : "dice-inline-pending",
+                ],
+                role: "note",
+                ariaLabel: roll
+                  ? `骰子 ${roll.notation}，结果 ${roll.total}`
+                  : `骰子 ${notation}，待掷`,
+                dataDiceNodeId: nodeId,
+              },
+            },
+          });
+          lastIndex = match.index + match[0].length;
+        }
+        if (lastIndex === 0) {
+          children.push(child);
+        } else if (lastIndex < child.value.length) {
+          children.push({ type: "text", value: child.value.slice(lastIndex) });
+        }
+      }
+      node.children = children;
+    };
+    transform(tree);
+  };
+}
+
 const COLLAPSE_TRIGGER_VIEWPORT_RATIO = 1.2;
 
 interface CollapsibleMarkdownProps {
   content: string;
+  diceRolls?: InlineDiceRoll[];
 }
 
-function CollapsibleMarkdown({ content }: CollapsibleMarkdownProps) {
+function CollapsibleMarkdown({ content, diceRolls = [] }: CollapsibleMarkdownProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const collapseButtonRef = useRef<HTMLButtonElement>(null);
   const [tooTall, setTooTall] = useState(false);
@@ -187,7 +250,7 @@ function CollapsibleMarkdown({ content }: CollapsibleMarkdownProps) {
         style={collapsed ? { maxHeight: "80vh", overflow: "hidden" } : undefined}
       >
         <ReactMarkdown
-          remarkPlugins={[remarkGfm, remarkMilkdownEmptyParagraphs]}
+          remarkPlugins={[remarkGfm, remarkMilkdownEmptyParagraphs, remarkInlineDice(diceRolls)]}
           components={components}
           skipHtml
         >
@@ -220,8 +283,9 @@ function CollapsibleMarkdown({ content }: CollapsibleMarkdownProps) {
 
 interface MarkdownContentProps {
   content: string;
+  diceRolls?: InlineDiceRoll[];
 }
 
-export function MarkdownContent({ content }: MarkdownContentProps) {
-  return <CollapsibleMarkdown content={content} />;
+export function MarkdownContent({ content, diceRolls }: MarkdownContentProps) {
+  return <CollapsibleMarkdown content={content} diceRolls={diceRolls} />;
 }

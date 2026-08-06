@@ -30,7 +30,6 @@ const createdDraft = {
   userId: "u1",
   slot: 1,
   content: "槽位 1 的草稿",
-  pendingDiceNotations: [],
   version: 2,
   createdAt: "2026-01-01T00:00:00Z",
   updatedAt: "2026-01-01T00:00:00Z",
@@ -57,7 +56,6 @@ describe("useSaveDraft", () => {
     expect(mockPOST).toHaveBeenCalledWith("/api/v1/drafts", {
       body: {
         content: "槽位 1 的草稿",
-        pendingDiceNotations: [],
         slot: 1,
         version: 1,
       },
@@ -83,7 +81,7 @@ describe("useSaveDraft", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(mockPOST).toHaveBeenCalledWith("/api/v1/drafts", {
-      body: { content: "自动分配的草稿", pendingDiceNotations: [] },
+      body: { content: "自动分配的草稿" },
     });
     expect(result.current.data?.slot).toBe(2);
   });

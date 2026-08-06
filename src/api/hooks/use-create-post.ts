@@ -10,19 +10,18 @@ interface CreatePostArgs {
   subthreadId: string;
   content: string;
   clientRequestId: string;
-  diceNotations?: string[];
   parentPostId?: string;
   replyToPostId?: string;
 }
 
 export function useCreatePost() {
   return useMutation({
-    mutationFn: async ({ subthreadId, content, clientRequestId, diceNotations, parentPostId, replyToPostId }: CreatePostArgs) => {
+    mutationFn: async ({ subthreadId, content, clientRequestId, parentPostId, replyToPostId }: CreatePostArgs) => {
       const { data, error } = await apiClient.POST(
         "/api/v1/subthreads/{subthreadId}/posts",
         {
           params: { path: { subthreadId } },
-          body: { content, diceNotations, parentPostId, replyToPostId, clientRequestId },
+          body: { content, parentPostId, replyToPostId, clientRequestId },
         },
       );
       if (error) throw error;

@@ -34,12 +34,14 @@ vi.mock("sonner", () => ({
 import { toast } from "sonner";
 import { ContentDraftsPanel } from "@/components/user/content-drafts-panel";
 
+const DICE_NODE_ID = "550e8400-e29b-41d4-a716-446655440000";
+const DICE_MARKER = `[[dice:v1:${DICE_NODE_ID}:1d20]]`;
+
 const sampleDraft = {
   id: "d1",
   userId: "u1",
   slot: 1,
   content: "这是槽位 1 的正文草稿",
-  pendingDiceNotations: [],
   version: 2,
   createdAt: "2026-01-01T00:00:00Z",
   updatedAt: "2026-01-01T00:00:00Z",
@@ -135,15 +137,14 @@ describe("ContentDraftsPanel", () => {
     await user.click(screen.getByText("恢复"));
     expect(onRestore).toHaveBeenCalledWith({
       content: sampleDraft.content,
-      pendingDiceNotations: [],
     });
     expect(onClose).toHaveBeenCalled();
   });
 
-  test("正文与待掷骰子作为同一快照跨设备恢复", async () => {
+  test("正文与内联骰子节点作为同一快照跨设备恢复", async () => {
     const user = userEvent.setup();
     const onRestore = vi.fn();
-    const diceDraft = { ...sampleDraft, content: "", pendingDiceNotations: ["1d20", "2d6+3"] };
+    const diceDraft = { ...sampleDraft, content: `前文 ${DICE_MARKER} 后文` };
     mockUseContentDrafts.mockReturnValue({
       data: [diceDraft],
       isLoading: false,
@@ -152,24 +153,22 @@ describe("ContentDraftsPanel", () => {
     });
     renderPanel({ onRestore });
 
-    expect(screen.getByText("待掷：1d20、2d6+3")).toBeInTheDocument();
+    expect(screen.getByText("前文 1d20 = ? 后文")).toBeInTheDocument();
     await user.click(screen.getByText("恢复"));
     expect(onRestore).toHaveBeenCalledWith({
-      content: "",
-      pendingDiceNotations: ["1d20", "2d6+3"],
+      content: `前文 ${DICE_MARKER} 后文`,
     });
   });
 
-  test("没有正文时也能把待掷骰子保存到云端槽位", async () => {
+  test("只有内联骰子节点时也能保存到云端槽位", async () => {
     const user = userEvent.setup();
     const saveMutate = vi.fn().mockResolvedValue(sampleDraft);
     mockUseSaveDraft.mockReturnValue({ isPending: false, mutateAsync: saveMutate });
-    renderPanel({ initialContent: "", initialPendingDiceNotations: ["1d12"] });
+    renderPanel({ initialContent: DICE_MARKER });
 
     await user.click(screen.getAllByText("保存到此处")[0]!);
     expect(saveMutate).toHaveBeenCalledWith({
-      content: "",
-      pendingDiceNotations: ["1d12"],
+      content: DICE_MARKER,
       slot: 2,
     });
   });
@@ -218,7 +217,6 @@ describe("ContentDraftsPanel", () => {
     await user.click(screen.getAllByText("保存到此处")[0]!);
     expect(saveMutate).toHaveBeenCalledWith({
       content: "编辑器正文",
-      pendingDiceNotations: [],
       slot: 2,
     });
   });
@@ -233,7 +231,6 @@ describe("ContentDraftsPanel", () => {
     expect(global.confirm).toHaveBeenCalledWith("确定要覆盖槽位 1 的正文草稿吗？");
     expect(saveMutate).toHaveBeenCalledWith({
       content: "要覆盖保存的正文",
-      pendingDiceNotations: [],
       slot: 1,
       version: 2,
     });

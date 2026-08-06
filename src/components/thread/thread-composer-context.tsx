@@ -10,6 +10,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import type { InlineDiceRoll } from "@/lib/dice-inline";
 
 interface BaseComposerSession {
   key: string;
@@ -17,8 +18,7 @@ interface BaseComposerSession {
   subthreadId: string;
   label: string;
   initialContent: string;
-  initialDiceNotations?: string[];
-  existingDiceCount?: number;
+  diceRolls?: InlineDiceRoll[];
 }
 
 export interface CreateFloorComposerSession extends BaseComposerSession {
@@ -51,13 +51,11 @@ interface ThreadComposerContextValue {
   threadId?: string;
   session: ThreadComposerSession | null;
   content: string;
-  diceNotations: string[];
   dirty: boolean;
   pending: boolean;
   open: (session: ThreadComposerSession) => boolean;
   close: (options?: CloseOptions) => boolean;
   setContent: (content: string) => void;
-  setDiceNotations: (notations: string[]) => void;
   setPending: (pending: boolean) => void;
 }
 
@@ -66,12 +64,8 @@ const ThreadComposerContext = createContext<ThreadComposerContextValue | null>(n
 export function ThreadComposerProvider({ children, threadId }: { children: ReactNode; threadId?: string }) {
   const [session, setSession] = useState<ThreadComposerSession | null>(null);
   const [content, setContent] = useState("");
-  const [diceNotations, setDiceNotations] = useState<string[]>([]);
   const [pending, setPending] = useState(false);
-  const dirty = session !== null && (
-    content !== session.initialContent ||
-    JSON.stringify(diceNotations) !== JSON.stringify(session.initialDiceNotations ?? [])
-  );
+  const dirty = session !== null && content !== session.initialContent;
 
   const confirmDiscard = useCallback(() => {
     if (!dirty) return true;
@@ -86,7 +80,6 @@ export function ThreadComposerProvider({ children, threadId }: { children: React
 
       setSession(nextSession);
       setContent(nextSession.initialContent);
-      setDiceNotations(nextSession.initialDiceNotations ?? []);
       return true;
     },
     [confirmDiscard, pending, session?.key],
@@ -99,7 +92,6 @@ export function ThreadComposerProvider({ children, threadId }: { children: React
 
       setSession(null);
       setContent("");
-      setDiceNotations([]);
       setPending(false);
       return true;
     },
@@ -111,16 +103,14 @@ export function ThreadComposerProvider({ children, threadId }: { children: React
       threadId,
       session,
       content,
-      diceNotations,
       dirty,
       pending,
       open,
       close,
       setContent,
-      setDiceNotations,
       setPending,
     }),
-    [threadId, session, content, diceNotations, dirty, pending, open, close],
+    [threadId, session, content, dirty, pending, open, close],
   );
 
   return (

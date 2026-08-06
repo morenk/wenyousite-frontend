@@ -5,8 +5,7 @@ import { apiClient } from "@/api/client";
 import type { components } from "@/api/types";
 
 type GeneratedPostDetail = components["schemas"]["PostDetailResponseDto"];
-export type PostDetail = Omit<GeneratedPostDetail, "pendingDiceNotations" | "diceRolls"> & {
-  pendingDiceNotations?: string[];
+export type PostDetail = Omit<GeneratedPostDetail, "diceRolls"> & {
   diceRolls?: components["schemas"]["DiceRollResponseDto"][];
 };
 

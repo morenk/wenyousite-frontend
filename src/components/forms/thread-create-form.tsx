@@ -23,7 +23,6 @@ import { useUpdateSubthread } from "@/api/hooks/use-update-subthread";
 import { useUpsertBody } from "@/api/hooks/use-upsert-body";
 import { useUploadImage } from "@/api/hooks/use-upload-image";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
-import { DiceInput } from "@/components/thread/dice-input";
 
 interface ThreadCreateFormProps {
   thread: ThreadDetail;
@@ -54,10 +53,6 @@ export function ThreadCreateForm({
 }: ThreadCreateFormProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
-  const [pendingDiceNotations, setPendingDiceNotations] = useState<string[]>(
-    thread.defaultSubthread.bodyPost?.pendingDiceNotations ?? [],
-  );
-
   const updateThread = useUpdateThread();
   const updateSubthread = useUpdateSubthread();
   const upsertBody = useUpsertBody();
@@ -84,14 +79,11 @@ export function ThreadCreateForm({
     const content = values.content?.trim() ?? "";
     const bodyPost = thread.defaultSubthread.bodyPost;
 
-    if (content || pendingDiceNotations.length > 0 || bodyPost) {
+    if (content || bodyPost) {
       await upsertBody.mutateAsync({
         subthreadId: thread.defaultSubthreadId,
         content,
         version: bodyPost?.version,
-        ...((pendingDiceNotations.length > 0 || (bodyPost?.pendingDiceNotations?.length ?? 0) > 0)
-          ? { diceNotations: pendingDiceNotations }
-          : {}),
       });
     }
   }
@@ -157,14 +149,11 @@ export function ThreadCreateForm({
       }
 
       const content = values.content?.trim() ?? "";
-      if (content || pendingDiceNotations.length > 0 || latestThread.defaultSubthread.bodyPost) {
+      if (content || latestThread.defaultSubthread.bodyPost) {
         await upsertBody.mutateAsync({
           subthreadId: latestThread.defaultSubthreadId,
           content,
           version: latestThread.defaultSubthread.bodyPost?.version,
-          ...((pendingDiceNotations.length > 0 || (latestThread.defaultSubthread.bodyPost?.pendingDiceNotations?.length ?? 0) > 0)
-            ? { diceNotations: pendingDiceNotations }
-            : {}),
         });
       }
       await syncDefaultSubthreadTitle(values);
@@ -283,14 +272,7 @@ export function ThreadCreateForm({
             onChange={(v) => form.setValue("content", v)}
             onUploadImage={handleUploadImage}
             disabled={isSaving || isPublishing}
-            pendingDiceNotations={pendingDiceNotations}
-            onPendingDiceNotationsChange={setPendingDiceNotations}
-          />
-          <DiceInput
-            value={pendingDiceNotations}
-            onChange={setPendingDiceNotations}
-            existingCount={thread.defaultSubthread.bodyPost?.diceRolls?.length ?? 0}
-            disabled={isSaving || isPublishing}
+            diceRolls={thread.defaultSubthread.bodyPost?.diceRolls}
           />
         </div>
       </div>

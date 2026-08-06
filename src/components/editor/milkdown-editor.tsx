@@ -6,12 +6,21 @@ import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as R
 import { Milkdown, MilkdownProvider, useEditor, useInstance } from "@milkdown/react";
 import { Crepe, CrepeFeature } from "@milkdown/crepe";
 import { editorViewCtx } from "@milkdown/core";
+import { TextSelection } from "@milkdown/kit/prose/state";
+import type { EditorView } from "@milkdown/kit/prose/view";
 import { AtSign, Loader2, UsersRound } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDebounce } from "use-debounce";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { sanitizeMilkdownMarkdown } from "@/lib/markdown";
+import {
+  createInlineDiceNode,
+  DICE_INLINE_NODE_NAME,
+  parseInlineDiceNodes,
+  type InlineDiceRoll,
+} from "@/lib/dice-inline";
+import { getDiceNotationError, MAX_DICE_ROLLS_PER_POST } from "@/lib/dice";
 import { getMentionUserId, markEditorMentionAnchors } from "@/lib/mention";
 import { syncMilkdownToolbarVisibility } from "@/lib/milkdown-toolbar";
 import { useAuth } from "@/lib/auth";
@@ -21,9 +30,12 @@ import {
   ContentDraftsPanel,
   type EditorDraftSnapshot,
 } from "@/components/user/content-drafts-panel";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { createDiceInlineEditorPlugins } from "@/components/editor/dice-inline-plugin";
 
 const MAX_CHARS = 10000;
-const EMPTY_DICE_NOTATIONS: string[] = [];
+const QUICK_DICE_SIDES = [4, 6, 8, 10, 12, 20, 100];
 
 const TOOLBAR_TOOLTIPS: Record<number, string> = {
   0: "粗体",
@@ -33,12 +45,19 @@ const TOOLBAR_TOOLTIPS: Record<number, string> = {
   4: "图片",
   5: "引用",
   6: "分隔线",
-  7: "正文草稿",
+  7: "骰子",
+  8: "正文草稿",
 };
 
 const DRAFT_ICON = `
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
     <path fill="currentColor" d="M5 3h11l3 3v15H5V3Zm2 2v14h10V7.5L14.5 5H7Zm2 4h6v2H9V9Zm0 4h6v2H9v-2Z" />
+  </svg>
+`;
+
+const DICE_ICON = `
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+    <path fill="currentColor" d="M5 3h6a2 2 0 0 1 2 2v1h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-6v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm0 2v14h6V5H5Zm8 3v8h6V8h-6ZM7 7h2v2H7V7Zm0 6h2v2H7v-2Zm8-3h2v2h-2v-2Zm2 3h2v2h-2v-2Z" />
   </svg>
 `;
 
@@ -71,9 +90,8 @@ interface MilkdownEditorProps {
   minHeight?: number;
   /** 当前主题帖 ID；提供后启用受权限约束的 @候选菜单。 */
   threadId?: string;
-  /** 与正文一起进入云端草稿的待掷骰子表达式。 */
-  pendingDiceNotations?: string[];
-  onPendingDiceNotationsChange?: (value: string[]) => void;
+  /** 已由服务端结算的结果；按 nodeId 映射到正文内联节点。 */
+  diceRolls?: InlineDiceRoll[];
 }
 
 interface MentionMenuItem {
@@ -118,6 +136,7 @@ interface EditorHostProps {
   maxHeight: number;
   minHeight: number;
   threadId?: string;
+  diceRolls?: InlineDiceRoll[];
 }
 
 /** Crepe 编辑器宿主：以 initialValue 初始化；被外层按 key 重挂载以回填恢复的正文草稿 */
@@ -129,6 +148,7 @@ function EditorHost({
   disabled,
   onOpenDrafts,
   threadId,
+  diceRolls = [],
 }: EditorHostProps) {
   const [loading] = useInstance();
   const crepeRef = useRef<Crepe | null>(null);
@@ -139,6 +159,12 @@ function EditorHost({
   const mentionItemsRef = useRef<MentionMenuItem[]>([]);
   const selectedMentionIndexRef = useRef(0);
   const isComposingRef = useRef(false);
+  const diceSelectionRef = useRef<{ from: number; to: number } | null>(null);
+  const [dicePopover, setDicePopover] = useState<{ top: number; left: number } | null>(null);
+  const [diceNodeCount, setDiceNodeCount] = useState(
+    () => parseInlineDiceNodes(initialValue).length,
+  );
+  const [customDiceNotation, setCustomDiceNotation] = useState("1d20");
   const [mentionMenu, setMentionMenu] = useState<{
     from: number;
     to: number;
@@ -248,6 +274,60 @@ function EditorHost({
     [onUploadImage],
   );
 
+  const handleOpenDice = useCallback((view: EditorView) => {
+    if (disabled) return;
+    let count = 0;
+    view.state.doc.descendants((node) => {
+      if (node.type.name === DICE_INLINE_NODE_NAME) count++;
+    });
+    setDiceNodeCount(count);
+    diceSelectionRef.current = {
+      from: view.state.selection.from,
+      to: view.state.selection.to,
+    };
+    const host = hostRef.current;
+    const topBar = host?.querySelector<HTMLElement>(".milkdown-top-bar");
+    if (!host || !topBar) return;
+    const width = 288;
+    setDicePopover({
+      top: topBar.offsetTop + topBar.offsetHeight + 6,
+      left: Math.max(8, Math.min(host.clientWidth - width - 8, topBar.offsetLeft + topBar.offsetWidth - width)),
+    });
+  }, [disabled]);
+
+  const handleInsertDice = useCallback((notationInput: string) => {
+    const error = getDiceNotationError(notationInput);
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    const view = crepeRef.current?.editor.action((ctx) => ctx.get(editorViewCtx));
+    if (!view) return;
+    let diceCount = 0;
+    view.state.doc.descendants((node) => {
+      if (node.type.name === DICE_INLINE_NODE_NAME) diceCount++;
+    });
+    if (diceCount >= MAX_DICE_ROLLS_PER_POST) {
+      toast.error(`每个帖子最多包含 ${MAX_DICE_ROLLS_PER_POST} 个骰子节点`);
+      return;
+    }
+    const dice = createInlineDiceNode(notationInput);
+    const nodeType = view.state.schema.nodes[DICE_INLINE_NODE_NAME];
+    if (!dice || !nodeType) return;
+    const range = diceSelectionRef.current ?? view.state.selection;
+    const maxPosition = view.state.doc.content.size;
+    const from = Math.max(0, Math.min(range.from, maxPosition));
+    const to = Math.max(from, Math.min(range.to, maxPosition));
+    const node = nodeType.create(dice);
+    const transaction = view.state.tr.replaceRangeWith(from, to, node);
+    transaction.setSelection(TextSelection.near(transaction.doc.resolve(from + node.nodeSize)));
+    view.dispatch(transaction);
+    view.focus();
+    setDiceNodeCount(diceCount + 1);
+    diceSelectionRef.current = null;
+    setDicePopover(null);
+  }, []);
+
   useEditor(
     (root) => {
       const crepe = new Crepe({
@@ -310,6 +390,11 @@ function EditorHost({
                   input.click();
                 };
               }
+              builder.addGroup("dice", "骰子").addItem("dice", {
+                icon: DICE_ICON,
+                active: () => false,
+                onRun: (ctx) => handleOpenDice(ctx.get(editorViewCtx)),
+              });
               if (onOpenDrafts) {
                 builder.addGroup("draft", "草稿").addItem("draft", {
                   icon: DRAFT_ICON,
@@ -325,6 +410,12 @@ function EditorHost({
           ...(onUploadImage ? getImageBlockConfig(handleUpload) : {}),
         },
       });
+
+      const dicePlugins = createDiceInlineEditorPlugins(diceRolls);
+      crepe.editor
+        .use(dicePlugins.remarkDiceInline)
+        .use(dicePlugins.diceInlineSchema)
+        .use(dicePlugins.clonePastedDice);
 
       crepeRef.current = crepe;
 
@@ -359,6 +450,28 @@ function EditorHost({
     });
     return () => window.cancelAnimationFrame(frame);
   }, [disabled]);
+
+  useEffect(() => {
+    if (!dicePopover) return;
+    const close = (event: PointerEvent) => {
+      const target = event.target as Element | null;
+      if (target?.closest("[data-dice-popover]")) return;
+      setDicePopover(null);
+      diceSelectionRef.current = null;
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setDicePopover(null);
+      diceSelectionRef.current = null;
+      crepeRef.current?.editor.action((ctx) => ctx.get(editorViewCtx)).focus();
+    };
+    document.addEventListener("pointerdown", close);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", close);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [dicePopover]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -610,6 +723,62 @@ function EditorHost({
           编辑器加载中…
         </div>
       )}
+      {dicePopover && (
+        <div
+          data-dice-popover
+          role="dialog"
+          aria-label="插入骰子"
+          className="absolute z-50 w-72 rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-lg"
+          style={{ top: dicePopover.top, left: dicePopover.left }}
+        >
+          <div className="mb-2 flex items-center justify-between gap-3 text-sm font-medium">
+            <span>插入骰子</span>
+            <span className="text-xs font-normal text-muted-foreground">
+              {diceNodeCount}/{MAX_DICE_ROLLS_PER_POST}
+            </span>
+          </div>
+          <div className="mb-2 flex flex-wrap gap-1.5">
+            {QUICK_DICE_SIDES.map((sides) => (
+              <Button
+                key={sides}
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 px-2 text-xs"
+                disabled={diceNodeCount >= MAX_DICE_ROLLS_PER_POST}
+                onClick={() => handleInsertDice(`1d${sides}`)}
+              >
+                d{sides}
+              </Button>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <Input
+              autoFocus
+              value={customDiceNotation}
+              onChange={(event) => setCustomDiceNotation(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key !== "Enter") return;
+                event.preventDefault();
+                handleInsertDice(customDiceNotation);
+              }}
+              className="h-8"
+              aria-label="自定义骰子表达式"
+              placeholder="例如 2d6+3"
+            />
+            <Button
+              type="button"
+              size="sm"
+              className="h-8 px-3"
+              disabled={diceNodeCount >= MAX_DICE_ROLLS_PER_POST}
+              onClick={() => handleInsertDice(customDiceNotation)}
+            >
+              插入
+            </Button>
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">提交后由服务器生成结果</p>
+        </div>
+      )}
       {mentionMenu && (
         <div
           role="listbox"
@@ -673,8 +842,7 @@ function EditorCore({
   maxHeight = 400,
   minHeight = 280,
   threadId,
-  pendingDiceNotations = EMPTY_DICE_NOTATIONS,
-  onPendingDiceNotationsChange,
+  diceRolls = [],
 }: MilkdownEditorProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -684,7 +852,6 @@ function EditorCore({
   const [currentContent, setCurrentContent] = useState(defaultValue ?? "");
   const [draftOpen, setDraftOpen] = useState(false);
   const [draftInitialContent, setDraftInitialContent] = useState("");
-  const [draftInitialDiceNotations, setDraftInitialDiceNotations] = useState<string[]>([]);
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<
     "idle" | "saving" | "saved" | "error"
@@ -707,23 +874,21 @@ function EditorCore({
 
   const handleRestore = useCallback(
     (snapshot: EditorDraftSnapshot) => {
-      const { content, pendingDiceNotations: restoredDice } = snapshot;
+      const { content } = snapshot;
       latestContentRef.current = content;
       setRestoredValue(content);
       setCurrentContent(content);
       setVersion((v) => v + 1);
       onChange?.(content);
-      onPendingDiceNotationsChange?.(restoredDice);
       toast.success("已恢复正文草稿");
     },
-    [onChange, onPendingDiceNotationsChange],
+    [onChange],
   );
 
   const handleOpenDrafts = useCallback(() => {
     setDraftInitialContent(latestContentRef.current);
-    setDraftInitialDiceNotations(pendingDiceNotations);
     setDraftOpen(true);
-  }, [pendingDiceNotations]);
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -739,7 +904,7 @@ function EditorCore({
     if (!autoSaveEnabled) return;
 
     const content = currentContent.trim();
-    if (!content && pendingDiceNotations.length === 0) return;
+    if (!content) return;
 
     const sequence = ++autoSaveSequenceRef.current;
     const timer = window.setTimeout(() => {
@@ -750,7 +915,6 @@ function EditorCore({
           if (!autoSaveEnabledRef.current) return null;
           return saveDraftAutomatically({
             content,
-            pendingDiceNotations,
             slot: 1,
             ...(autoSaveVersionRef.current !== undefined
               ? { version: autoSaveVersionRef.current }
@@ -775,7 +939,7 @@ function EditorCore({
     }, 800);
 
     return () => window.clearTimeout(timer);
-  }, [autoSaveEnabled, currentContent, pendingDiceNotations, saveDraftAutomatically]);
+  }, [autoSaveEnabled, currentContent, saveDraftAutomatically]);
 
   const handleAutoSaveChange = useCallback((enabled: boolean, version?: number) => {
     autoSaveEnabledRef.current = enabled;
@@ -817,6 +981,7 @@ function EditorCore({
         maxHeight={maxHeight}
         minHeight={minHeight}
         threadId={threadId}
+        diceRolls={diceRolls}
       />
       <div className="flex items-center justify-between border-t border-border px-3 py-2">
         <span className="text-xs text-muted-foreground">
@@ -853,7 +1018,6 @@ function EditorCore({
           onClose={() => setDraftOpen(false)}
           onRestore={handleRestore}
           initialContent={draftInitialContent}
-          initialPendingDiceNotations={draftInitialDiceNotations}
           autoSaveEnabled={autoSaveEnabled}
           autoSaveStatus={autoSaveStatus}
           onAutoSaveChange={handleAutoSaveChange}

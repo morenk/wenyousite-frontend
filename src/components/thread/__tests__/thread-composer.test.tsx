@@ -1,6 +1,6 @@
 /** ThreadComposer 测试：按需挂载唯一编辑器并统一创建、回复与编辑提交 */
 
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
@@ -176,17 +176,20 @@ describe("ThreadComposer", () => {
     expect(mocks.error).not.toHaveBeenCalled();
   });
 
-  test("楼层可以只提交待掷骰子，正式结果由服务端生成", async () => {
+  test("楼层可以只提交正文内的骰子节点，正式结果由服务端生成", async () => {
     const user = userEvent.setup();
     renderHarness();
     await user.click(screen.getByRole("button", { name: "发表入口" }));
-    await user.click(screen.getByRole("button", { name: "d20" }));
+    const marker =
+      "[[dice:v1:550e8400-e29b-41d4-a716-446655440000:1d20]]";
+    fireEvent.change(screen.getByTestId("milkdown-editor"), {
+      target: { value: marker },
+    });
     await user.click(screen.getByRole("button", { name: "发布" }));
 
     await waitFor(() => expect(mocks.create).toHaveBeenCalledWith({
       subthreadId: "s1",
-      content: "",
-      diceNotations: ["1d20"],
+      content: marker,
       clientRequestId: REQUEST_ID,
     }));
   });

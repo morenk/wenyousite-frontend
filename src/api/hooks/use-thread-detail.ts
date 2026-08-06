@@ -32,7 +32,6 @@ export interface SubthreadDetail {
     id: string;
     content: string;
     version: number;
-    pendingDiceNotations?: string[];
     diceRolls?: DiceRoll[];
   } | null;
   _count: { posts: number };

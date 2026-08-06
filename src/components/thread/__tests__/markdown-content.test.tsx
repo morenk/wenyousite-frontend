@@ -11,12 +11,36 @@ const UPLOADED_URL =
   "https://cos.example.com/wenyou/uploads/2026/01/01/u1/123-abc.jpg";
 const UPLOADED_MD_URL = UPLOADED_URL.replace(/\.jpg$/, "_md.webp");
 const EXTERNAL_URL = "https://example.com/pic.png";
+const DICE_NODE_ID = "550e8400-e29b-41d4-a716-446655440000";
+const DICE_MARKER = `[[dice:v1:${DICE_NODE_ID}:1d20]]`;
 
 describe("MarkdownContent", () => {
   test("渲染普通 markdown 文本", () => {
     render(<MarkdownContent content={"# 标题\n\n正文内容"} />);
     expect(screen.getByRole("heading", { name: "标题" })).toBeInTheDocument();
     expect(screen.getByText("正文内容")).toBeInTheDocument();
+  });
+
+  test("骰子结果以和文字混排的背景色标签显示", () => {
+    render(
+      <MarkdownContent
+        content={`前文 ${DICE_MARKER} 后文`}
+        diceRolls={[{ nodeId: DICE_NODE_ID, notation: "1d20", total: 14 }]}
+      />,
+    );
+
+    const result = screen.getByText("1d20 = 14");
+    expect(result.tagName).toBe("SPAN");
+    expect(result).toHaveClass("dice-inline", "dice-inline-result");
+    expect(result.closest("p")).toHaveTextContent("前文 1d20 = 14 后文");
+    expect(result.querySelector("svg")).toBeNull();
+  });
+
+  test("未发布骰子节点以内联待掷状态显示", () => {
+    render(<MarkdownContent content={DICE_MARKER} />);
+
+    const pending = screen.getByText("1d20 = ?");
+    expect(pending).toHaveClass("dice-inline", "dice-inline-pending");
   });
 
   test("历史内容中的 Milkdown 空段落按空行渲染，不显示字面标签", () => {
