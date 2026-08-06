@@ -113,7 +113,7 @@
 }
 ```
 
-> 已注销用户被屏蔽为 `{ id, username: "已注销用户", isDeactivated: true }`。
+> 已注销用户的公开主页被屏蔽为 `{ id, username: "已注销用户", isDeactivated: true }`；帖子作者、楼主、成员、关注列表、收藏、搜索和通知中的用户摘要也统一显示“已注销用户”与灰色用户图标，不显示内部墓碑用户名或旧头像。
 
 ### GET /users/:id/recent-replies → RecentReply[]
 
@@ -226,7 +226,7 @@
 | 组件 | 路径 | 说明 |
 |------|------|------|
 | UserProfileCard | `src/components/user/user-profile-card.tsx` | 用户资料卡：头像（无则首字母）/用户名/Bio/注册时间/关注粉丝数（可点击）/操作按钮 |
-| UserAvatar | `src/components/shared/user-avatar.tsx` | 共享头像组件：有 URL 用 `_thumb.webp` 缩略图，无则首字母占位；尺寸通过 className 控制（资料卡/关注列表/通知/主题帖列表/楼层/楼中楼复用） |
+| UserAvatar | `src/components/shared/user-avatar.tsx` | 共享头像组件：有 URL 用 `_thumb.webp` 缩略图，无则首字母占位；“已注销用户”始终忽略 URL 并使用统一灰色用户图标；尺寸通过 className 控制（资料卡/关注列表/通知/主题帖列表/楼层/楼中楼复用） |
 | FollowButton | `src/components/user/follow-button.tsx` | 关注/取消关注切换（未登录跳 /login） |
 | BlockButton | `src/components/user/block-button.tsx` | 拉黑/取消拉黑切换（confirm 二次确认） |
 | UserFollowList | `src/components/user/user-follow-list.tsx` | 关注/粉丝列表（头像 + 用户名链接 + 三态，复用两种列表） |
@@ -317,7 +317,7 @@ showRecentReplies / showPlayerBadges / showBookmarks: boolean
 - [x] 最近动态列表渲染（正文/楼层/楼中楼三态标识 + 帖子链接 + preview），**仅展示最近 5 条**，为空/未公开有占位；点击通过共享 `getPostHref` 精确定位到对应楼层/楼中楼/正文
 - [x] 创建的帖子列表渲染（标题 + 分类/状态徽章），cursor 分页加载
 - [x] 参与的帖子列表渲染（标题 + 分类/状态/私密徽章），cursor 分页加载，不含自建帖；本人可按全部/公开帖/私密帖分类，他人仅见公开玩家帖
-- [x] 已注销用户显示"已注销用户"占位
+- [x] 已注销用户在全站用户摘要中统一显示“已注销用户”与灰色用户图标
 - [x] 全站 `/users/{id}` 链接可正常跳转
 - [x] 草稿箱（`/threads/create` 草稿列表）列出我的未发布帖，可跳转编辑、可删除
 - [x] `/me` 修改用户名/Bio/隐私开关，错误码映射正确

@@ -36,4 +36,20 @@ describe("UserAvatar", () => {
     render(<UserAvatar name="alice" src="https://example.com/icon.svg" />);
     expect(screen.getByRole("img")).toHaveAttribute("src", "https://example.com/icon.svg");
   });
+
+  test("已注销用户统一显示灰色用户图标且忽略旧头像", () => {
+    render(
+      <UserAvatar
+        name="已注销用户"
+        src="https://example.com/old-avatar.png"
+        className="h-9 w-9"
+      />,
+    );
+
+    const avatar = screen.getByTestId("deactivated-user-avatar");
+    expect(avatar.className).toContain("bg-muted");
+    expect(avatar.className).toContain("text-muted-foreground");
+    expect(screen.getByRole("img", { name: "已注销用户头像" })).toBe(avatar);
+    expect(avatar.querySelector("img")).toBeNull();
+  });
 });
