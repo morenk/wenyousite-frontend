@@ -3,6 +3,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
+import { createPortal } from "react-dom";
 import { Milkdown, MilkdownProvider, useEditor, useInstance } from "@milkdown/react";
 import { Crepe, CrepeFeature } from "@milkdown/crepe";
 import { editorViewCtx } from "@milkdown/core";
@@ -73,6 +74,9 @@ function injectToolbarTooltips(root: ParentNode) {
       if (TOOLBAR_TOOLTIPS[index] && !btn.hasAttribute("title")) {
         btn.title = TOOLBAR_TOOLTIPS[index]!;
         btn.setAttribute("aria-label", TOOLBAR_TOOLTIPS[index]!);
+      }
+      if (TOOLBAR_TOOLTIPS[index] === "骰子") {
+        btn.dataset.editorTool = "dice";
       }
     });
   });
@@ -287,11 +291,19 @@ function EditorHost({
     };
     const host = hostRef.current;
     const topBar = host?.querySelector<HTMLElement>(".milkdown-top-bar");
+    const trigger = host?.querySelector<HTMLElement>('[data-editor-tool="dice"]');
     if (!host || !topBar) return;
     const width = 288;
+    const estimatedHeight = 220;
+    const anchorRect = (trigger ?? topBar).getBoundingClientRect();
+    const maxLeft = Math.max(8, window.innerWidth - width - 8);
+    const belowTop = anchorRect.bottom + 6;
+    const top = belowTop + estimatedHeight <= window.innerHeight
+      ? belowTop
+      : Math.max(8, anchorRect.top - estimatedHeight - 6);
     setDicePopover({
-      top: topBar.offsetTop + topBar.offsetHeight + 6,
-      left: Math.max(8, Math.min(host.clientWidth - width - 8, topBar.offsetLeft + topBar.offsetWidth - width)),
+      top,
+      left: Math.max(8, Math.min(maxLeft, anchorRect.left)),
     });
   }, [disabled]);
 
@@ -455,7 +467,12 @@ function EditorHost({
     if (!dicePopover) return;
     const close = (event: PointerEvent) => {
       const target = event.target as Element | null;
-      if (target?.closest("[data-dice-popover]")) return;
+      if (
+        target?.closest("[data-dice-popover]") ||
+        target?.closest('[data-editor-tool="dice"]')
+      ) {
+        return;
+      }
       setDicePopover(null);
       diceSelectionRef.current = null;
     };
@@ -723,12 +740,12 @@ function EditorHost({
           编辑器加载中…
         </div>
       )}
-      {dicePopover && (
+      {dicePopover && createPortal(
         <div
           data-dice-popover
           role="dialog"
           aria-label="插入骰子"
-          className="absolute z-50 w-72 rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-lg"
+          className="fixed z-[100] w-72 rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-lg"
           style={{ top: dicePopover.top, left: dicePopover.left }}
         >
           <div className="mb-2 flex items-center justify-between gap-3 text-sm font-medium">
@@ -777,7 +794,8 @@ function EditorHost({
             </Button>
           </div>
           <p className="mt-2 text-xs text-muted-foreground">提交后由服务器生成结果</p>
-        </div>
+        </div>,
+        document.body,
       )}
       {mentionMenu && (
         <div
