@@ -175,8 +175,9 @@ ESLint 使用 `--max-warnings 0`，warning 与 error 都会阻止质量门禁。
 默认实现链路为：**实现 → 相关测试 → `pnpm check` → 重启部署受影响服务 → 公网烟雾验证 → 汇报结果**。当前公网开发阶段无需等待正式生产发布审批或额外部署授权，检查通过后直接切换服务；提交和推送仍属于独立版本管理动作，仅在用户明确要求时执行。
 
 - 纯前端变化只重启 3001；后端/API 契约变化先切换后端，再切换前端
-- 纯文档变化只提交并推送，不构建、不重启
+- 纯文档或仅 `.github` 的仓库配置变化只做针对性检查并提交推送，不运行 `pnpm check`、不构建、不重启
 - `pnpm check` 已包含 build；检查后源码未变化时复用 `.next`，只补齐 standalone 的 static/public 目录，不再次 build
+- `next build` 会重建线上进程正在读取的 `.next/standalone`；只要执行过 `pnpm check` 或 `pnpm build`，就必须在同一批次立即补齐 static/public、重启 3001 并烟雾验证，禁止让旧进程继续读取新旧混合产物（否则动态路由会触发 `ChunkLoadError`）
 - 普通页面/UI 变化以组件测试、`pnpm check` 和公网关键页面 200 为准；认证/权限/核心旅程才补 E2E 或真人验证
 - 不默认预构建回滚产物、安排维护窗口或长时间观察；启动失败、持续 5xx 或关键路径失败时优先快速前滚修复
 - 项目进入正式生产阶段后，由用户明确更新本节，再恢复严格发布审批、回滚和监控要求
@@ -191,7 +192,7 @@ ESLint 使用 `--max-warnings 0`，warning 与 error 都会阻止质量门禁。
 
 **发布批次规则：** 一个可交付迭代可以包含多个原子提交，但整个批次只构建、部署和验证一次。纯文档变更不构建、不重启服务。部署前必须完成 `pnpm check`；核心用户旅程或跨端改动还需完成 `pnpm check:full` 或等价烟雾测试。
 
-前端重启（改代码后）：
+前端重启（执行过 `pnpm check` / `pnpm build` 后；若已执行 `pnpm check`，跳过下面重复的 `pnpm build`）：
 
 ```bash
 cd /root/wenyousite/wenyousite-frontend
