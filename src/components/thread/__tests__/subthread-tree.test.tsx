@@ -33,14 +33,12 @@ function makeSub(
 }
 
 const subthreads = [
-  makeSub("s1", "公告"),
   makeSub("s2", "设定区", "COLLABORATORS"),
   makeSub("s3", "剧情区", "PLAYERS"),
 ];
 
 const baseProps = {
   subthreads,
-  defaultSubthreadId: "s1",
   onSelect: vi.fn(),
   onEdit: vi.fn(),
   onDelete: vi.fn(),
@@ -51,19 +49,12 @@ const baseProps = {
 describe("SubthreadTree", () => {
   test("渲染所有子贴标题", () => {
     render(<SubthreadTree {...baseProps} />);
-    expect(screen.getByText("公告")).toBeInTheDocument();
     expect(screen.getByText("设定区")).toBeInTheDocument();
     expect(screen.getByText("剧情区")).toBeInTheDocument();
   });
 
-  test("默认子贴显示'主帖'徽章", () => {
-    render(<SubthreadTree {...baseProps} />);
-    expect(screen.getByText("主帖")).toBeInTheDocument();
-  });
-
   test("渲染发帖权限标签", () => {
     render(<SubthreadTree {...baseProps} />);
-    expect(screen.getByText("所有人")).toBeInTheDocument();
     expect(screen.getByText("协作者")).toBeInTheDocument();
     expect(screen.getByText("玩家")).toBeInTheDocument();
   });
@@ -88,11 +79,11 @@ describe("SubthreadTree", () => {
     const onEdit = vi.fn();
     render(<SubthreadTree {...baseProps} onEdit={onEdit} />);
 
-    await user.click(screen.getAllByTitle("编辑子贴")[1]);
-    expect(onEdit).toHaveBeenCalledWith(subthreads[1]);
+    await user.click(screen.getAllByTitle("编辑子贴")[0]);
+    expect(onEdit).toHaveBeenCalledWith(subthreads[0]);
   });
 
-  test("默认子贴不显示删除按钮", () => {
+  test("所有目录项均可删除", () => {
     render(<SubthreadTree {...baseProps} />);
     expect(screen.getAllByTitle("删除子贴")).toHaveLength(2);
   });
@@ -103,7 +94,7 @@ describe("SubthreadTree", () => {
     render(<SubthreadTree {...baseProps} onDelete={onDelete} />);
 
     await user.click(screen.getAllByTitle("删除子贴")[0]);
-    expect(onDelete).toHaveBeenCalledWith(subthreads[1]);
+    expect(onDelete).toHaveBeenCalledWith(subthreads[0]);
   });
 
   test("点击添加子贴按钮调用 onCreate", async () => {

@@ -52,13 +52,16 @@ export function ManagementPanel({
   const permissions = useThreadPermissions();
   const isOwner = permissions.isOwner || user?.id === thread.ownerId;
   const isCollaborator = permissions.isCollaborator;
+  const subthreads = thread.subthreads.filter(
+    (subthread) => subthread.id !== thread.defaultSubthreadId,
+  );
   const [view, setView] = useState<ManagementView>(initialView);
-  const [selectedId, setSelectedId] = useState(thread.defaultSubthreadId);
+  const [selectedId, setSelectedId] = useState(subthreads[0]?.id ?? "");
   const [content, setContent] = useState(
-    thread.defaultSubthread.bodyPost?.content ?? "",
+    subthreads[0]?.bodyPost?.content ?? "",
   );
   const [savedContent, setSavedContent] = useState(
-    thread.defaultSubthread.bodyPost?.content ?? "",
+    subthreads[0]?.bodyPost?.content ?? "",
   );
   const [resetKey, setResetKey] = useState(0);
   const [subFormMode, setSubFormMode] = useState<SubFormMode>(null);
@@ -75,9 +78,8 @@ export function ManagementPanel({
   const upsertBody = useUpsertBody();
   const uploadImage = useUploadImage();
 
-  const selectedSub = thread.subthreads.find((s) => s.id === selectedId);
-  const isDefaultSelected = selectedId === thread.defaultSubthreadId;
-  const isSubthreadDirty = !isDefaultSelected && content !== savedContent;
+  const selectedSub = subthreads.find((subthread) => subthread.id === selectedId);
+  const isSubthreadDirty = Boolean(selectedSub) && content !== savedContent;
   const isNavigationLocked =
     isSaving || isThreadSaving || uploadImage.isPending;
 
@@ -130,7 +132,7 @@ export function ManagementPanel({
   }
 
   async function handleSave() {
-    if (!selectedSub || isDefaultSelected) return;
+    if (!selectedSub) return;
     const trimmed = content.trim();
     if (!trimmed) {
       toast.error("请输入正文内容");
@@ -196,8 +198,7 @@ export function ManagementPanel({
       await updateSubthread.mutateAsync({
         subthreadId: sub.id,
         body: {
-          title:
-            sub.id === thread.defaultSubthreadId ? sub.title : data.title,
+          title: data.title,
           postingPolicy: data.postingPolicy,
           version: sub.version,
         },
@@ -227,7 +228,7 @@ export function ManagementPanel({
     try {
       await deleteSubthread.mutateAsync(sub.id);
       if (selectedId === sub.id) {
-        const next = thread.subthreads.find((s) => s.id !== sub.id);
+        const next = subthreads.find((item) => item.id !== sub.id);
         setSelectedId(next?.id ?? "");
         const nextContent = next?.bodyPost?.content ?? "";
         setContent(nextContent);
@@ -242,7 +243,10 @@ export function ManagementPanel({
 
   async function handleReorder(ids: string[]) {
     try {
-      await reorderSubthreads.mutateAsync({ threadId: thread.id, ids });
+      await reorderSubthreads.mutateAsync({
+        threadId: thread.id,
+        ids: [thread.defaultSubthreadId, ...ids],
+      });
       await onRefetch();
     } catch (error) {
       const err = error as { message?: string };
@@ -343,8 +347,7 @@ export function ManagementPanel({
               子贴目录
             </div>
             <SubthreadTree
-              subthreads={thread.subthreads}
-              defaultSubthreadId={thread.defaultSubthreadId}
+              subthreads={subthreads}
               selectedId={selectedId}
               onSelect={handleSelect}
               onEdit={(sub) => setSubFormMode({ mode: "edit", sub })}
@@ -354,23 +357,9 @@ export function ManagementPanel({
             />
           </aside>
 
-          {/* 右栏：非默认子贴正文编辑器 */}
+          {/* 右栏：子贴正文编辑器 */}
           <section className="flex min-w-0 flex-1 flex-col p-4">
-            {isDefaultSelected ? (
-              <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
-                <p className="text-sm text-muted-foreground">
-                  主帖正文已统一移至“主题帖”页签编辑
-                </p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleViewChange("thread")}
-                >
-                  前往主题帖
-                </Button>
-              </div>
-            ) : selectedSub ? (
+            {selectedSub ? (
               <div className="flex flex-col gap-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">
@@ -416,7 +405,7 @@ export function ManagementPanel({
               </div>
             ) : (
               <p className="py-16 text-center text-sm text-muted-foreground">
-                请选择一个子贴开始编辑
+                暂无子贴，请先添加子贴
               </p>
             )}
           </section>
@@ -427,10 +416,6 @@ export function ManagementPanel({
       {subFormMode && (
         <SubthreadForm
           mode={subFormMode.mode}
-          lockTitle={
-            subFormMode.mode === "edit" &&
-            subFormMode.sub.id === thread.defaultSubthreadId
-          }
           defaultValues={
             subFormMode.mode === "edit"
               ? {

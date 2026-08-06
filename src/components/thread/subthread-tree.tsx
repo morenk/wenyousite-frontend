@@ -9,25 +9,22 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  type CollisionDetection,
   type DragEndEvent,
 } from "@dnd-kit/core";
 import {
+  arrayMove,
   SortableContext,
   verticalListSortingStrategy,
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Pencil, Trash2, Plus } from "lucide-react";
-import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { computeReorderedIds, excludeDroppable } from "@/lib/reorder";
 import { POSTING_POLICY_LABEL } from "@/lib/post-policy";
 import type { SubthreadDetail } from "@/api/hooks/use-thread-detail";
 
 interface SubthreadTreeNodeProps {
   subthread: SubthreadDetail;
-  isDefault: boolean;
   isSelected: boolean;
   onSelect: () => void;
   onEdit: () => void;
@@ -36,7 +33,6 @@ interface SubthreadTreeNodeProps {
 
 function SubthreadTreeNode({
   subthread,
-  isDefault,
   isSelected,
   onSelect,
   onEdit,
@@ -49,7 +45,7 @@ function SubthreadTreeNode({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: subthread.id, disabled: isDefault });
+  } = useSortable({ id: subthread.id });
 
   return (
     <div
@@ -77,11 +73,6 @@ function SubthreadTreeNode({
 
       <span className="min-w-0 flex-1 truncate">
         {subthread.title}
-        {isDefault && (
-          <span className="ml-1.5 rounded bg-primary/10 px-1 py-0.5 text-xs text-primary">
-            主帖
-          </span>
-        )}
       </span>
 
       <span className="shrink-0 text-xs text-muted-foreground">
@@ -100,19 +91,17 @@ function SubthreadTreeNode({
         >
           <Pencil className="h-3.5 w-3.5" />
         </button>
-        {!isDefault && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
-            }}
-            title="删除子贴"
-            className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          title="删除子贴"
+          className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
       </div>
     </div>
   );
@@ -120,7 +109,6 @@ function SubthreadTreeNode({
 
 interface SubthreadTreeProps {
   subthreads: SubthreadDetail[];
-  defaultSubthreadId: string;
   selectedId?: string;
   onSelect: (id: string) => void;
   onEdit: (subthread: SubthreadDetail) => void;
@@ -131,7 +119,6 @@ interface SubthreadTreeProps {
 
 export function SubthreadTree({
   subthreads,
-  defaultSubthreadId,
   selectedId,
   onSelect,
   onEdit,
@@ -143,36 +130,19 @@ export function SubthreadTree({
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   );
 
-  // 碰撞检测排除主帖：主帖不可作为拖拽落点，其他子贴拖到主帖区域会吸附到主帖下方首个槽位
-  const collisionDetection = useCallback<CollisionDetection>(
-    (args) =>
-      closestCenter({
-        ...args,
-        droppableContainers: excludeDroppable(
-          args.droppableContainers,
-          defaultSubthreadId,
-        ),
-      }),
-    [defaultSubthreadId],
-  );
-
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
       if (!over || active.id === over.id) return;
-      const reordered = computeReorderedIds(
-        subthreads.map((s) => s.id),
-        String(active.id),
-        String(over.id),
-        defaultSubthreadId,
+      const oldIndex = subthreads.findIndex((sub) => sub.id === active.id);
+      const newIndex = subthreads.findIndex((sub) => sub.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return;
+      const reordered = arrayMove(subthreads, oldIndex, newIndex).map(
+        (sub) => sub.id,
       );
-      if (!reordered) {
-        toast.error("主帖必须保持在第一位，不能与其他子帖交换顺序");
-        return;
-      }
       onReorder(reordered);
     },
-    [subthreads, defaultSubthreadId, onReorder],
+    [subthreads, onReorder],
   );
 
   return (
@@ -180,7 +150,7 @@ export function SubthreadTree({
       <div className="flex-1 overflow-y-auto space-y-0.5 p-2">
         <DndContext
           sensors={sensors}
-          collisionDetection={collisionDetection}
+          collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
         >
           <SortableContext
@@ -191,7 +161,6 @@ export function SubthreadTree({
               <SubthreadTreeNode
                 key={sub.id}
                 subthread={sub}
-                isDefault={sub.id === defaultSubthreadId}
                 isSelected={selectedId === sub.id}
                 onSelect={() => onSelect(sub.id)}
                 onEdit={() => onEdit(sub)}

@@ -103,7 +103,7 @@ vi.mock("@/components/thread/subthread-tree", () => ({
       <button type="button" onClick={onCreate}>
         mock-add-subthread
       </button>
-      <button type="button" onClick={() => onReorder(["s2", "s1"])}>
+      <button type="button" onClick={() => onReorder(["s3", "s2"])}>
         mock-reorder
       </button>
     </div>
@@ -280,11 +280,14 @@ describe("ManagementPanel", () => {
     expect(screen.queryByText("子贴目录")).not.toBeInTheDocument();
   });
 
-  test("子贴页签中的主帖只提供主题帖入口，不重复渲染正文编辑器", () => {
+  test("子贴目录不展示主帖并默认编辑第一个真实子贴", () => {
     renderPanel();
 
-    expect(screen.getByText("主帖正文已统一移至“主题帖”页签编辑")).toBeInTheDocument();
-    expect(screen.queryByTestId("milkdown-editor")).not.toBeInTheDocument();
+    expect(screen.queryByText("select-s1")).not.toBeInTheDocument();
+    expect(screen.queryByText("edit-s1")).not.toBeInTheDocument();
+    expect(screen.queryByText("delete-s1")).not.toBeInTheDocument();
+    expect(screen.getByText("正在编辑：设定区")).toBeInTheDocument();
+    expect(screen.getByTestId("milkdown-editor")).toBeInTheDocument();
   });
 
   test("非默认子贴渲染发帖权限中文标签", async () => {
@@ -394,16 +397,6 @@ describe("ManagementPanel", () => {
     expect(screen.getByTestId("tag-values")).toHaveTextContent("");
   });
 
-  test("编辑默认主帖元数据时标题只读", async () => {
-    const user = userEvent.setup();
-    renderPanel();
-
-    await user.click(screen.getByText("edit-s1"));
-
-    expect(screen.getByDisplayValue("主帖")).toHaveAttribute("readonly");
-    expect(screen.getByText("主帖标题请在“主题帖”页签中修改")).toBeInTheDocument();
-  });
-
   test("编辑子贴时按现有标签同步变更", async () => {
     const user = userEvent.setup();
     const taggedSub = {
@@ -463,7 +456,10 @@ describe("ManagementPanel", () => {
 
     await vi.waitFor(() => {
       expect(mockReorderSubthreadsMutate).toHaveBeenCalledWith(
-        expect.objectContaining({ threadId: "t1", ids: ["s2", "s1"] }),
+        expect.objectContaining({
+          threadId: "t1",
+          ids: ["s1", "s3", "s2"],
+        }),
       );
     });
   });
@@ -547,11 +543,14 @@ describe("ManagementPanel", () => {
   test("非默认子贴有未保存正文时取消切换会保留编辑内容", async () => {
     const user = userEvent.setup();
     vi.stubGlobal("confirm", vi.fn(() => false));
-    renderPanel();
+    renderPanel({
+      ...mockThread,
+      subthreads: [...mockThread.subthreads, makeSub("s3", "剧情区", null)],
+    });
 
     await user.click(screen.getByText("select-s2"));
     await user.type(screen.getByTestId("milkdown-editor"), "尚未保存");
-    await user.click(screen.getByText("select-s1"));
+    await user.click(screen.getByText("select-s3"));
 
     expect(window.confirm).toHaveBeenCalledWith(
       "当前修改尚未保存，确定要放弃吗？",
