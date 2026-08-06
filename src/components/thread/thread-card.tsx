@@ -7,6 +7,7 @@ import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { Users, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatMarkdownPreview } from "@/lib/markdown-preview";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import type { ThreadCardData } from "@/api/hooks/use-threads";
 
@@ -79,7 +80,7 @@ export function ThreadCard({ thread }: ThreadCardProps) {
           {/* 预览摘要 */}
           {thread.preview && (
             <p className="text-sm leading-relaxed text-muted-foreground line-clamp-2">
-              {thread.preview}
+              {formatMarkdownPreview(thread.preview)}
             </p>
           )}
 

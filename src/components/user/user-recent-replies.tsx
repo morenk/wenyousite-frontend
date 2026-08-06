@@ -8,6 +8,7 @@ import { zhCN } from "date-fns/locale";
 import { MessageSquare, CornerDownRight, FileText } from "lucide-react";
 import { EmptyState } from "@/components/shared/empty-state";
 import { getPostHref } from "@/lib/post-navigation";
+import { formatMarkdownPreview } from "@/lib/markdown-preview";
 import type { RecentReply } from "@/api/hooks/use-user-recent-replies";
 
 const MAX_REPLIES = 5;
@@ -78,7 +79,7 @@ export function UserRecentReplies({
             </span>
           </div>
           <p className="line-clamp-2 text-sm text-foreground/90">
-            {reply.preview || reply.content}
+            {formatMarkdownPreview(reply.preview || reply.content)}
           </p>
         </Link>
       ))}

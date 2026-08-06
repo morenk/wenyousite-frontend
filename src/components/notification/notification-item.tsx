@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { formatMarkdownPreview } from "@/lib/markdown-preview";
 import { getPostHref } from "@/lib/post-navigation";
 import { useNotificationActions } from "@/api/hooks/use-notification-actions";
 import { UserAvatar } from "@/components/shared/user-avatar";
@@ -210,7 +211,7 @@ function sanitizeNotificationText(rawContent: string, payloadPreview?: string): 
   if (preview === "1.00") {
     content = content.replace(/1\.00\s*$/, "").trimEnd();
   }
-  return content;
+  return formatMarkdownPreview(content);
 }
 
 const typeIconMap: Record<string, React.ComponentType<{ className?: string }>> = {

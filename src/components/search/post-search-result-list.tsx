@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import type { SearchPost } from "@/api/hooks/use-search";
 import { getPostHref } from "@/lib/post-navigation";
+import { formatMarkdownPreview } from "@/lib/markdown-preview";
 import { Button } from "@/components/ui/button";
 
 interface PostSearchResultListProps {
@@ -39,7 +40,7 @@ export function PostSearchResultList({
           className="block rounded-xl border border-border bg-card p-4 transition-shadow hover:shadow-md"
         >
           <p className="mb-1.5 line-clamp-2 text-sm text-foreground/90">
-            {post.content}
+            {formatMarkdownPreview(post.content)}
           </p>
           <p className="text-xs text-muted-foreground">
             {post.author.username} · {post.floorNumber != null

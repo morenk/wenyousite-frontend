@@ -112,4 +112,15 @@ describe("UserRecentReplies", () => {
     expect(screen.queryByText("内容6")).not.toBeInTheDocument();
     expect(screen.getAllByTestId("reply-kind")).toHaveLength(5);
   });
+
+  test("动态预览隐藏骰子协议和链接地址", () => {
+    const replies = [{
+      ...sampleReplies[0],
+      preview:
+        "判定 [[dice:v1:0f16151d-6e9e-415d-b9ae-c91829a52888:2d50]] [详情](https://example.com)",
+    }];
+    render(<UserRecentReplies replies={replies} isLoading={false} error={false} />);
+
+    expect(screen.getByText("判定 [2d50] [详情]")).toBeInTheDocument();
+  });
 });

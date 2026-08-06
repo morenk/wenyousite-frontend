@@ -89,6 +89,17 @@ describe("ThreadCard", () => {
     expect(screen.getByText("这是帖子摘要预览...")).toBeInTheDocument();
   });
 
+  test("预览摘要隐藏骰子协议和链接地址", () => {
+    const protocolPreview = {
+      ...baseThread,
+      preview:
+        "概率 [[dice:v1:0f16151d-6e9e-415d-b9ae-c91829a52888:2d50]] [规则](https://example.com)",
+    };
+    render(<ThreadCard thread={protocolPreview} />);
+
+    expect(screen.getByText("概率 [2d50] [规则]")).toBeInTheDocument();
+  });
+
   test("已停招状态显示'已停招'", () => {
     const closed = { ...baseThread, status: "CLOSED" as const };
     render(<ThreadCard thread={closed} />);

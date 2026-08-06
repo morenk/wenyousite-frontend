@@ -107,6 +107,35 @@ describe("ThreadPostSearch", () => {
     expect(mockFetchNextPage).toHaveBeenCalledTimes(1);
   });
 
+  test("搜索预览隐藏骰子协议和链接地址", async () => {
+    const user = userEvent.setup();
+    const protocolPost = {
+      ...post,
+      content:
+        "概率 [[dice:v1:0f16151d-6e9e-415d-b9ae-c91829a52888:2d50]]，查看 [规则](https://example.com/rule)",
+    };
+    mockUseThreadSearchPosts.mockReturnValue({
+      ...idleQuery,
+      data: {
+        pages: [{
+          data: [protocolPost],
+          meta: { cursor: null, hasMore: false },
+        }],
+      },
+    });
+    render(<ThreadPostSearch threadId="t1" onClose={vi.fn()} />);
+
+    await user.type(
+      screen.getByRole("searchbox", { name: "搜索本帖楼层关键词" }),
+      "概率",
+    );
+    await user.click(screen.getByRole("button", { name: "搜索" }));
+
+    expect(screen.getByText("概率 [2d50]，查看 [规则]")).toBeInTheDocument();
+    expect(screen.queryByText(/dice:v1/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/example\.com/)).not.toBeInTheDocument();
+  });
+
   test("无匹配结果显示空态", async () => {
     const user = userEvent.setup();
     mockUseThreadSearchPosts.mockReturnValue({

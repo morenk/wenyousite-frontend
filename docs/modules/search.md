@@ -102,7 +102,7 @@
 | useSearchThreads / useSearchUsers | `src/api/hooks/use-search.ts` | 主题帖与用户分类查询 hooks |
 | useSearchPosts | `src/api/hooks/use-search.ts` | 楼层游标分页 hook，透传 `meta.cursor` |
 | useThreadSearchPosts | `src/api/hooks/use-search.ts` | 帖内楼层分页 hook，与全站楼层共享分页核心 |
-| PostSearchResultList | `src/components/search/post-search-result-list.tsx` | 全站与帖内共享的楼层结果、加载更多和精确定位列表 |
+| PostSearchResultList | `src/components/search/post-search-result-list.tsx` | 全站与帖内共享的楼层结果、统一 Markdown 纯文本预览、加载更多和精确定位列表 |
 | ThreadPostSearch | `src/components/thread/thread-post-search.tsx` | 详情页内联搜索面板，处理输入与 loading/error/empty/data 四态 |
 | SearchPage | `src/app/search/page.tsx` | 搜索页（输入 + 四态） |
 
@@ -114,6 +114,7 @@
 - Tab 数量表示当前已加载条数而非全站总数；达到分类上限或楼层仍有下一页时显示 `+`，不发起昂贵的总数统计
 - 用户名和主题帖允许单字符；单字符进入楼层 Tab 时提示至少输入 2 个字符且不请求接口
 - 楼层每页加载 20 条，`meta.hasMore=true` 时显示“加载更多楼层”
+- 楼层内容卡片不暴露 Markdown 协议或链接地址：骰子显示为 `[表达式]`，标签链接显示为 `[标签]`，裸链接显示为 `[链接]`
 - 用户项 → `/users/{id}`；主题帖项 → `/threads/{id}`；楼层项通过共享 `getPostHref` 携带目标帖子 ID 和 `parentPostId`，主楼层进入所属子贴，楼中楼直达对应讨论页并定位高亮
 - 详情页头部“搜索本帖”切换内联面板；输入只在提交时发请求，点击主楼层结果会清除当前手选子贴后切换到结果所属子贴
 - 空关键词 → 提示输入；无结果 → "没有找到相关内容"
@@ -140,6 +141,7 @@
 - [x] 楼层每页 20 条，可使用游标加载更多；数量有更多时显示 `+`
 - [x] 后端保证每个主题帖最多返回 3 条楼层并按相关度优先排序
 - [x] 楼层搜索结果可直接定位到具体楼层或楼中楼回复
+- [x] 楼层搜索预览以方括号占位展示骰子和链接，不显示内部协议或裸 URL
 - [x] URL `?q=` 与输入框同步（前进/后退生效）
 - [x] loading / error / empty 三态
 - [x] 导航栏搜索图标入口
