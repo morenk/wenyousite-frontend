@@ -89,16 +89,16 @@ describe("ThreadCard", () => {
     expect(screen.getByText("这是帖子摘要预览...")).toBeInTheDocument();
   });
 
-  test("已关闭状态显示'已关闭'", () => {
+  test("已停招状态显示'已停招'", () => {
     const closed = { ...baseThread, status: "CLOSED" as const };
     render(<ThreadCard thread={closed} />);
-    expect(screen.getByText("已关闭")).toBeInTheDocument();
+    expect(screen.getByText("已停招")).toBeInTheDocument();
   });
 
-  test("已完结状态显示'已完结'", () => {
+  test("已结束状态显示'已结束'", () => {
     const finished = { ...baseThread, status: "FINISHED" as const };
     render(<ThreadCard thread={finished} />);
-    expect(screen.getByText("已完结")).toBeInTheDocument();
+    expect(screen.getByText("已结束")).toBeInTheDocument();
   });
 
   test("国策分类显示'国策'", () => {

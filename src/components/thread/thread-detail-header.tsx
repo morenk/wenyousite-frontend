@@ -42,8 +42,8 @@ const categoryColor: Record<string, string> = {
 
 const statusLabel: Record<string, string> = {
   RECRUITING: "招募中",
-  CLOSED: "已关闭",
-  FINISHED: "已完结",
+  CLOSED: "已停招",
+  FINISHED: "已结束",
 };
 
 const statusColor: Record<string, string> = {

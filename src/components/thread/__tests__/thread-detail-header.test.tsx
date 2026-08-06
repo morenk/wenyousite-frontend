@@ -377,11 +377,11 @@ describe("ThreadDetailHeader", () => {
     expect(onManage).toHaveBeenCalledTimes(1);
   });
 
-  test("已完结状态显示'已完结'", () => {
+  test("已结束状态显示'已结束'", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
     const finished = { ...baseThread, status: "FINISHED" as const };
     renderWithQC(<ThreadDetailHeader thread={finished} />);
-    expect(screen.getByText("已完结")).toBeInTheDocument();
+    expect(screen.getByText("已结束")).toBeInTheDocument();
   });
 
   test("私密帖显示'私密'标签", () => {

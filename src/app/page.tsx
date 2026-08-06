@@ -7,14 +7,18 @@ import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useThreads } from "@/api/hooks/use-threads";
+import type { ThreadSort, ThreadStatusFilter } from "@/api/hooks/use-threads";
 import { ThreadList } from "@/components/thread/thread-list";
 import { CategoryTabs } from "@/components/thread/category-tabs";
+import { ThreadFilters } from "@/components/thread/thread-filters";
 import { Button } from "@/components/ui/button";
 
 export default function HomePage() {
   const { user } = useAuth();
   const router = useRouter();
   const [category, setCategory] = useState<string | undefined>();
+  const [sort, setSort] = useState<ThreadSort>("recommended");
+  const [status, setStatus] = useState<ThreadStatusFilter>();
 
   const {
     data,
@@ -26,7 +30,8 @@ export default function HomePage() {
     refetch,
   } = useThreads({
     category: category as "DEDUCTION" | "NATION" | "RPG" | undefined,
-    sort: "recommended",
+    sort,
+    status,
   });
 
   const threads = data?.pages.flatMap((page) => page?.data ?? []) ?? [];
@@ -52,6 +57,15 @@ export default function HomePage() {
       {/* 分类筛选 */}
       <div className="mb-5">
         <CategoryTabs selected={category} onChange={setCategory} />
+      </div>
+
+      <div className="mb-5">
+        <ThreadFilters
+          sort={sort}
+          status={status}
+          onSortChange={setSort}
+          onStatusChange={setStatus}
+        />
       </div>
 
       {/* 帖列表 */}

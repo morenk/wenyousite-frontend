@@ -4177,6 +4177,8 @@ export interface operations {
                 category?: "DEDUCTION" | "NATION" | "RPG";
                 /** @description recommended=智能排序, newest=最新创建, active=最新回复 */
                 sort?: "recommended" | "newest" | "active";
+                /** @description 主题帖状态筛选：招募中、已停招、已结束 */
+                status?: "RECRUITING" | "CLOSED" | "FINISHED";
                 /** @description 按标签名模糊筛选主题帖 */
                 tag?: string;
             };

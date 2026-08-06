@@ -101,4 +101,25 @@ describe("useThreads", () => {
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(result.current.error?.message).toMatch(/网络错误/);
   });
+
+  test("传递排序和状态筛选参数", async () => {
+    mockGET.mockClear();
+    mockGET.mockResolvedValue({ data: sampleResponse, error: undefined });
+
+    const { result } = renderHook(
+      () => useThreads({ sort: "active", status: "CLOSED" }),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockGET).toHaveBeenCalledWith("/api/v1/threads", {
+      params: {
+        query: {
+          sort: "active",
+          status: "CLOSED",
+          limit: "20",
+        },
+      },
+    });
+  });
 });

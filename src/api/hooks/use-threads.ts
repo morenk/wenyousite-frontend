@@ -43,10 +43,14 @@ export interface ThreadListResponse {
   };
 }
 
+export type ThreadSort = "recommended" | "newest" | "active";
+export type ThreadStatusFilter = "RECRUITING" | "CLOSED" | "FINISHED";
+
 interface ThreadQueryParams {
   filter?: "all" | "playing";
   category?: "DEDUCTION" | "NATION" | "RPG";
-  sort?: "recommended" | "newest" | "active";
+  sort?: ThreadSort;
+  status?: ThreadStatusFilter;
   tag?: string;
   limit?: number;
   cursor?: string;
@@ -59,6 +63,7 @@ export function useThreads(params: ThreadQueryParams = {}) {
       const queryParams: Record<string, string> = {};
       if (params.category) queryParams.category = params.category;
       if (params.sort) queryParams.sort = params.sort;
+      if (params.status) queryParams.status = params.status;
       if (params.tag) queryParams.tag = params.tag;
       if (params.filter) queryParams.filter = params.filter;
       queryParams.limit = String(params.limit ?? 20);

@@ -99,6 +99,7 @@
 |------|------|------|
 | sort | string | `recommended` / `newest` / `active`，默认 `recommended` |
 | category | string | 按分区筛选 |
+| status | string | `RECRUITING` / `CLOSED` / `FINISHED`，不传表示全部状态 |
 | tag | string | 按标签名筛选 |
 | filter | string | `all`（默认，仅 PUBLIC）/ `playing`（我参与的，含私密帖） |
 | cursor | string | 游标，首页不传 |
@@ -207,5 +208,5 @@
 | 值 | 含义 |
 |----|------|
 | `RECRUITING` | 招募中 |
-| `CLOSED` | 已截止 |
-| `FINISHED` | 已完结 |
+| `CLOSED` | 已停招 |
+| `FINISHED` | 已结束 |

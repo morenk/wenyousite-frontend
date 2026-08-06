@@ -44,8 +44,8 @@ const VISIBILITY_OPTIONS = [
 
 const STATUS_OPTIONS = [
   { value: "RECRUITING", label: "招募中" },
-  { value: "CLOSED", label: "已关闭" },
-  { value: "FINISHED", label: "已完结" },
+  { value: "CLOSED", label: "已停招" },
+  { value: "FINISHED", label: "已结束" },
 ];
 
 export function ThreadEditForm({
