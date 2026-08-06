@@ -9,6 +9,9 @@ describe("Next.js 安全响应头", () => {
     expect(entries?.[0]?.source).toBe("/(.*)");
     expect(headers.get("Content-Security-Policy")).toContain("object-src 'none'");
     expect(headers.get("Content-Security-Policy")).toContain("frame-ancestors 'none'");
+    expect(headers.get("Content-Security-Policy")).toContain(
+      "img-src 'self' data: blob: https://cn-nb1.rains3.com",
+    );
     expect(headers.get("X-Content-Type-Options")).toBe("nosniff");
     expect(headers.get("X-Frame-Options")).toBe("DENY");
     expect(headers.get("Permissions-Policy")).toContain("camera=()");

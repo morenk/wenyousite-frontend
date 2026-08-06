@@ -2,12 +2,13 @@ import type { NextConfig } from "next";
 
 const backendUrl = process.env.BACKEND_URL || "http://127.0.0.1:3000";
 const isDevelopment = process.env.NODE_ENV === "development";
+const mediaOrigin = "https://cn-nb1.rains3.com";
 
 const contentSecurityPolicy = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  `img-src 'self' data: blob: ${mediaOrigin}`,
   "font-src 'self' data:",
   `connect-src 'self'${isDevelopment ? " ws: wss:" : ""}`,
   "media-src 'self' blob:",
