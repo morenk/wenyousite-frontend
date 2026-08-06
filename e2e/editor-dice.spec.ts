@@ -40,6 +40,7 @@ const thread = {
 };
 
 test("编辑器骰子按钮在真实浏览器中打开可见弹窗", async ({ page }) => {
+  let submittedBody = "";
   await page.addInitScript(() => {
     localStorage.setItem("accessToken", "e2e-local-token");
     localStorage.setItem(
@@ -70,15 +71,41 @@ test("编辑器骰子按钮在真实浏览器中打开可见弹窗", async ({ pa
   await page.route("**/api/v1/threads/t-dice-e2e", (route) =>
     route.fulfill({ json: { code: 0, message: "ok", data: thread } }),
   );
+  await page.route("**/api/v1/subthreads/s-dice-e2e/body", async (route) => {
+    submittedBody = (route.request().postDataJSON() as { content: string }).content;
+    await route.fulfill({
+      json: {
+        code: 0,
+        message: "ok",
+        data: { id: "p-dice-e2e", content: submittedBody, version: 1, diceRolls: [] },
+      },
+    });
+  });
+  await page.route("**/api/v1/subthreads/s-dice-e2e", (route) =>
+    route.fulfill({ json: { code: 0, message: "ok", data: thread.subthreads[0] } }),
+  );
 
   await page.goto("/threads/create");
   await page.getByRole("button", { name: "新建主题帖" }).click();
 
   const diceButton = page.getByRole("button", { name: "骰子" });
   await expect(diceButton).toBeVisible();
+  const editor = page.locator(".milkdown .ProseMirror");
+  await editor.click();
+  await editor.fill("玛利亚发财的概率：");
   await diceButton.click();
 
   const popover = page.getByRole("dialog", { name: "插入骰子" });
   await expect(popover).toBeVisible();
-  await expect(popover.getByRole("button", { name: "d20" })).toBeVisible();
+  await popover.getByRole("button", { name: "d100" }).click();
+  await expect(page.getByRole("note", { name: "骰子 1d100，待掷" })).toHaveText(
+    "1d100 = ?",
+  );
+
+  await page.getByLabel("主题帖标题").fill("骰子发布载荷测试");
+  await page.getByRole("button", { name: "发布", exact: true }).click();
+  await expect.poll(() => submittedBody).toMatch(
+    /^玛利亚发财的概率：\[\[dice:v1:[0-9a-f-]{36}:1d100\]\]$/u,
+  );
+  expect(submittedBody).not.toContain("\\[\\[dice:v1:");
 });

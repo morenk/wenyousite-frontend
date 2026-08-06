@@ -19,6 +19,7 @@ import {
   createInlineDiceNode,
   DICE_INLINE_NODE_NAME,
   parseInlineDiceNodes,
+  restoreSerializedInlineDiceNodes,
   type InlineDiceRoll,
 } from "@/lib/dice-inline";
 import { getDiceNotationError, MAX_DICE_ROLLS_PER_POST } from "@/lib/dice";
@@ -435,9 +436,18 @@ function EditorHost({
         listener.markdownUpdated((ctx, markdown, prevMarkdown) => {
           if (markdown !== prevMarkdown) {
             // 清理空图片并规范化空段落协议；独占行 <br /> 必须保留以支持艺术化留白。
-            let serialized = markdown;
+            const view = ctx.get(editorViewCtx);
+            const diceNodes: Array<{ nodeId: string; notation: string }> = [];
+            view.state.doc.descendants((node) => {
+              if (node.type.name !== DICE_INLINE_NODE_NAME) return;
+              diceNodes.push({
+                nodeId: String(node.attrs.nodeId),
+                notation: String(node.attrs.notation),
+              });
+            });
+            let serialized = restoreSerializedInlineDiceNodes(markdown, diceNodes);
             // Milkdown 默认省略文档最后一个空段落；该段落是用户按 Enter 产生的有效留白，补回协议标记。
-            const lastNode = ctx.get(editorViewCtx).state.doc.lastChild;
+            const lastNode = view.state.doc.lastChild;
             if (lastNode?.type.name === "paragraph" && lastNode.content.size === 0) {
               serialized = `${serialized.replace(/\s+$/u, "")}\n\n<br />`;
             }

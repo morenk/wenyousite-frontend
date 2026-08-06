@@ -3,6 +3,7 @@ import {
   createInlineDiceNode,
   parseInlineDiceNodes,
   replaceInlineDiceNodes,
+  restoreSerializedInlineDiceNodes,
   serializeInlineDiceNode,
 } from "@/lib/dice-inline";
 
@@ -55,5 +56,15 @@ describe("dice-inline", () => {
 
   test("不接受无效骰子表达式", () => {
     expect(createInlineDiceNode("101d1000")).toBeNull();
+  });
+
+  test("只恢复编辑器真实骰子节点被 Milkdown 转义的协议标记", () => {
+    const node = { nodeId: NODE_ID, notation: "1d100" };
+    const escaped = `正文 \\[\\[dice:v1:${NODE_ID}:1d100]]`;
+    const unknown = "\\[\\[dice:v1:550e8400-e29b-41d4-a716-446655440099:1d20]]";
+
+    expect(restoreSerializedInlineDiceNodes(`${escaped} ${unknown}`, [node])).toBe(
+      `正文 ${serializeInlineDiceNode(node)} ${unknown}`,
+    );
   });
 });
