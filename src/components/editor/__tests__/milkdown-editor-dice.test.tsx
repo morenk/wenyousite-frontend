@@ -95,4 +95,26 @@ describe("MilkdownEditor 内联骰子", () => {
 
     await waitFor(() => expect(latestOnChange).toHaveBeenCalled());
   });
+
+  test("编辑已发布正文时显示多骰的逐骰结果", async () => {
+    const nodeId = "550e8400-e29b-41d4-a716-446655440000";
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <MilkdownEditor
+          defaultValue={`结果 [[dice:v1:${nodeId}:2d50]]`}
+          diceRolls={[{
+            nodeId,
+            notation: "2d50",
+            results: [33, 48],
+            modifier: 0,
+            total: 81,
+          }]}
+        />
+      </QueryClientProvider>,
+    );
+
+    expect(await screen.findByRole("note", {
+      name: "骰子 2d50，逐骰结果 33、48，总计 81",
+    })).toHaveTextContent("2d50 = [33, 48] = 81");
+  });
 });

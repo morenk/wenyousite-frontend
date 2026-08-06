@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import {
   createInlineDiceNode,
+  describeInlineDiceRoll,
+  formatInlineDiceRoll,
   parseInlineDiceNodes,
   replaceInlineDiceNodes,
   restoreSerializedInlineDiceNodes,
@@ -66,5 +68,29 @@ describe("dice-inline", () => {
     expect(restoreSerializedInlineDiceNodes(`${escaped} ${unknown}`, [node])).toBe(
       `正文 ${serializeInlineDiceNode(node)} ${unknown}`,
     );
+  });
+
+  test("格式化多骰、正修正和负修正的逐骰结果", () => {
+    expect(formatInlineDiceRoll({
+      nodeId: NODE_ID,
+      notation: "2d50",
+      results: [33, 48],
+      modifier: 0,
+      total: 81,
+    })).toBe("2d50 = [33, 48] = 81");
+    expect(formatInlineDiceRoll({
+      nodeId: NODE_ID,
+      notation: "2d6+3",
+      results: [2, 5],
+      modifier: 3,
+      total: 10,
+    })).toBe("2d6+3 = [2, 5] + 3 = 10");
+    expect(describeInlineDiceRoll({
+      nodeId: NODE_ID,
+      notation: "2d6-3",
+      results: [2, 5],
+      modifier: -3,
+      total: 4,
+    })).toBe("骰子 2d6-3，逐骰结果 2、5，修正减 3，总计 4");
   });
 });

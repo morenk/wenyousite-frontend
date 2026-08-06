@@ -25,7 +25,13 @@ describe("MarkdownContent", () => {
     render(
       <MarkdownContent
         content={`前文 ${DICE_MARKER} 后文`}
-        diceRolls={[{ nodeId: DICE_NODE_ID, notation: "1d20", total: 14 }]}
+        diceRolls={[{
+          nodeId: DICE_NODE_ID,
+          notation: "1d20",
+          results: [14],
+          modifier: 0,
+          total: 14,
+        }]}
       />,
     );
 
@@ -34,6 +40,27 @@ describe("MarkdownContent", () => {
     expect(result).toHaveClass("dice-inline", "dice-inline-result");
     expect(result.closest("p")).toHaveTextContent("前文 1d20 = 14 后文");
     expect(result.querySelector("svg")).toBeNull();
+  });
+
+  test("多骰展示每一枚点数和总计", () => {
+    render(
+      <MarkdownContent
+        content={`概率 ${DICE_MARKER}`}
+        diceRolls={[{
+          nodeId: DICE_NODE_ID,
+          notation: "2d50",
+          results: [33, 48],
+          modifier: 0,
+          total: 81,
+        }]}
+      />,
+    );
+
+    const result = screen.getByText("2d50 = [33, 48] = 81");
+    expect(result).toHaveAttribute(
+      "aria-label",
+      "骰子 2d50，逐骰结果 33、48，总计 81",
+    );
   });
 
   test("未发布骰子节点以内联待掷状态显示", () => {

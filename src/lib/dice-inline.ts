@@ -11,7 +11,32 @@ export interface InlineDiceNode {
 }
 
 export interface InlineDiceRoll extends InlineDiceNode {
+  results: number[];
+  modifier: number;
   total: number;
+}
+
+/** 阅读态和编辑态共用的正式结果文案；多骰展示每一枚原始点数。 */
+export function formatInlineDiceRoll(roll: InlineDiceRoll): string {
+  if (roll.results.length <= 1 && roll.modifier === 0) {
+    return `${roll.notation} = ${roll.total}`;
+  }
+  const modifier = roll.modifier > 0
+    ? ` + ${roll.modifier}`
+    : roll.modifier < 0
+      ? ` - ${Math.abs(roll.modifier)}`
+      : "";
+  return `${roll.notation} = [${roll.results.join(", ")}]${modifier} = ${roll.total}`;
+}
+
+export function describeInlineDiceRoll(roll: InlineDiceRoll): string {
+  const parts = roll.results.join("、");
+  const modifier = roll.modifier > 0
+    ? `，修正加 ${roll.modifier}`
+    : roll.modifier < 0
+      ? `，修正减 ${Math.abs(roll.modifier)}`
+      : "";
+  return `骰子 ${roll.notation}，逐骰结果 ${parts}${modifier}，总计 ${roll.total}`;
 }
 
 export function serializeInlineDiceNode(node: InlineDiceNode): string {
