@@ -58,6 +58,11 @@ test("编辑器骰子按钮在真实浏览器中打开可见弹窗", async ({ pa
   await page.route("**/api/v1/threads/draft", (route) =>
     route.fulfill({ json: { code: 0, message: "ok", data: [] } }),
   );
+  await page.route("**/api/v1/notifications/unread", (route) =>
+    route.fulfill({
+      json: { code: 0, message: "ok", data: { unreadCount: 0 } },
+    }),
+  );
   await page.route("**/api/v1/threads", async (route) => {
     if (route.request().method() !== "POST") return route.continue();
     await route.fulfill({ json: { code: 0, message: "ok", data: thread } });
