@@ -2,24 +2,46 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AuthProvider, useAuth } from "@/lib/auth";
 
-function UserQueryClientProvider({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 60 * 1000,
-            refetchOnWindowFocus: false,
-          },
-        },
-      }),
-  );
+function createQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 60 * 1000,
+        refetchOnWindowFocus: false,
+      },
+    },
+  });
+}
+
+function IdentityScopedQueries({ children }: { children: React.ReactNode }) {
+  const { user, isInitialized } = useAuth();
+  const [queryScope, setQueryScope] = useState(() => ({
+    client: createQueryClient(),
+    version: 0,
+  }));
+  const identityRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!isInitialized) return;
+    const nextIdentity = user?.id ?? "anonymous";
+    if (identityRef.current === null) {
+      identityRef.current = nextIdentity;
+      return;
+    }
+    if (identityRef.current !== nextIdentity) {
+      identityRef.current = nextIdentity;
+      setQueryScope((current) => ({
+        client: createQueryClient(),
+        version: current.version + 1,
+      }));
+    }
+  }, [isInitialized, user?.id]);
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <QueryClientProvider key={queryScope.version} client={queryScope.client}>
       {children}
       <Toaster
         position="top-center"
@@ -31,12 +53,6 @@ function UserQueryClientProvider({ children }: { children: React.ReactNode }) {
       />
     </QueryClientProvider>
   );
-}
-
-function IdentityScopedQueries({ children }: { children: React.ReactNode }) {
-  const { user, isInitialized } = useAuth();
-  const identity = isInitialized ? (user?.id ?? "anonymous") : "initializing";
-  return <UserQueryClientProvider key={identity}>{children}</UserQueryClientProvider>;
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {

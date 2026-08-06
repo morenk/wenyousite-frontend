@@ -56,7 +56,7 @@ export function useUserBookmarks(userId: string | undefined) {
       return lastPage.meta.cursor ?? undefined;
     },
     enabled: !!userId,
-    staleTime: 10 * 1000,
+    staleTime: 60 * 1000,
     retry: false,
   });
 }

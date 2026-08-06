@@ -21,11 +21,12 @@ export type ReplyDisplayData = CompatiblePost<components["schemas"]["PostRespons
 };
 export type FloorListResponse = operations["PostsController_findFloors"]["responses"][200]["content"]["application/json"];
 
-export function useFloors(subthreadId: string | undefined) {
-  return useInfiniteQuery({
-    queryKey: ["floors", subthreadId],
+export const FLOORS_STALE_TIME = 30 * 1000;
+
+export function floorsQueryOptions(subthreadId: string) {
+  return {
+    queryKey: ["floors", subthreadId] as const,
     queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
-      if (!subthreadId) throw new Error("缺少子贴 ID");
       const queryParams: Record<string, string> = { limit: "20" };
       if (pageParam) queryParams.cursor = pageParam;
 
@@ -48,11 +49,17 @@ export function useFloors(subthreadId: string | undefined) {
       return data;
     },
     initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) => {
+    getNextPageParam: (lastPage: FloorListResponse) => {
       if (!lastPage?.meta?.hasMore) return undefined;
       return lastPage.meta.cursor ?? undefined;
     },
+    staleTime: FLOORS_STALE_TIME,
+  };
+}
+
+export function useFloors(subthreadId: string | undefined) {
+  return useInfiniteQuery({
+    ...floorsQueryOptions(subthreadId ?? ""),
     enabled: !!subthreadId,
-    staleTime: 5 * 1000,
   });
 }

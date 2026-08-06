@@ -1,7 +1,14 @@
 /** ThreadList 组件测试：loading/error/empty/data 四态 + 回调 */
 
 import { describe, test, expect, vi, afterEach } from "vitest";
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import {
+  render as testingLibraryRender,
+  screen,
+  fireEvent,
+  cleanup,
+} from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import type { ReactElement } from "react";
 import { ThreadList } from "@/components/thread/thread-list";
 import type { ThreadCardData } from "@/api/hooks/use-threads";
 
@@ -12,6 +19,15 @@ vi.mock("next/link", () => ({
 }));
 
 afterEach(() => cleanup());
+
+function render(ui: ReactElement) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return testingLibraryRender(
+    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
+  );
+}
 
 const sampleThread: ThreadCardData = {
   id: "t1",

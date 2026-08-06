@@ -1,0 +1,46 @@
+@import "@milkdown/crepe/theme/nord.css";
+@import "@milkdown/crepe/theme/common/prosemirror.css";
+@import "@milkdown/crepe/theme/common/reset.css";
+@import "@milkdown/crepe/theme/common/cursor.css";
+@import "@milkdown/crepe/theme/common/image-block.css";
+@import "@milkdown/crepe/theme/common/link-tooltip.css";
+@import "@milkdown/crepe/theme/common/list-item.css";
+@import "@milkdown/crepe/theme/common/placeholder.css";
+@import "@milkdown/crepe/theme/common/top-bar.css";
+
+.milkdown {
+  --crepe-font-default: var(--font-sans);
+  --crepe-font-title: var(--font-rounded);
+  --crepe-font-code: var(--font-mono);
+}
+
+.milkdown .ProseMirror {
+  padding: 20px 32px;
+}
+
+.milkdown-editor .ProseMirror {
+  min-height: var(--editor-min-height, 280px);
+  max-height: var(--editor-max-height, 400px);
+  overflow-y: auto;
+}
+
+.milkdown .ProseMirror .dice-inline.ProseMirror-selectednode {
+  outline: 2px solid color-mix(in srgb, var(--primary) 55%, transparent);
+  outline-offset: 1px;
+}
+
+.milkdown .milkdown-top-bar .top-bar-heading-button .top-bar-heading-label {
+  min-width: 40px;
+}
+
+.milkdown .milkdown-top-bar .top-bar-heading-button {
+  padding: 4px 2px 4px 8px;
+}
+
+.milkdown .milkdown-top-bar .top-bar-heading-selector {
+  padding: 4px;
+}
+
+.milkdown .milkdown-top-bar .top-bar-heading-dropdown {
+  min-width: 120px;
+}

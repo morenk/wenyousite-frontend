@@ -61,7 +61,7 @@
 
 **刷新与缓存策略：** 注册/登录/刷新成功后直接写入 AuthContext + localStorage，不把认证响应放进 TanStack Query。单个标签页内的并发 401 共享同一个刷新 Promise；不同标签页通过名为 `wenyousite-auth-refresh` 的 Web Lock 串行刷新，后取得锁的标签页若发现 access token 已变化就直接复用，不再重复轮换。刷新成功后分别重放原请求；确认刷新失败才清理登录态并跳转登录页。
 
-TanStack Query 容器由当前认证身份隔离；登录账号变化时重新创建 QueryClient。登录终端、黑名单等敏感 hook 还会把用户 ID 放入 query key，双层避免私有数据跨账号短暂复用。
+TanStack Query 容器由当前认证身份隔离；首次 AuthContext hydration 只记录当前身份，不重复创建 QueryClient，避免公共首页请求两次。此后登录、登出或账号切换才重新创建 QueryClient。登录终端、黑名单等敏感 hook 还会把用户 ID 放入 query key，双层避免私有数据跨账号短暂复用。
 
 ## 5. 组件清单
 

@@ -36,6 +36,6 @@ export function useUserRecentReplies(userId: string | undefined) {
       return response?.data ?? [];
     },
     enabled: !!userId,
-    staleTime: 10 * 1000,
+    staleTime: 60 * 1000,
   });
 }

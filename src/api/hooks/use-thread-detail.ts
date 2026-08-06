@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
 import type { components } from "@/api/types";
 
+export const THREAD_DETAIL_STALE_TIME = 30 * 1000;
+
 type DiceRoll = components["schemas"]["DiceRollResponseDto"];
 
 export interface ThreadTag {
@@ -121,18 +123,23 @@ export function normalizeThreadDetail(raw: RawThreadDetail): ThreadDetail {
   };
 }
 
-export function useThreadDetail(threadId: string | undefined) {
-  return useQuery({
-    queryKey: ["thread", threadId],
+export function threadDetailQueryOptions(threadId: string) {
+  return {
+    queryKey: ["thread", threadId] as const,
     queryFn: async () => {
-      if (!threadId) throw new Error("缺少主题帖 ID");
       const { data, error } = await apiClient.GET("/api/v1/threads/{id}", {
         params: { path: { id: threadId } },
       });
       if (error) throw error;
       return normalizeThreadDetail((data as unknown as ThreadDetailResponse).data);
     },
+    staleTime: THREAD_DETAIL_STALE_TIME,
+  };
+}
+
+export function useThreadDetail(threadId: string | undefined) {
+  return useQuery({
+    ...threadDetailQueryOptions(threadId ?? ""),
     enabled: !!threadId,
-    staleTime: 5 * 1000,
   });
 }

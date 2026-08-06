@@ -34,6 +34,11 @@ function PrivateQueryProbe() {
   );
 }
 
+function PublicQueryProbe({ queryFn }: { queryFn: () => Promise<string> }) {
+  const query = useQuery({ queryKey: ["public-probe"], queryFn });
+  return <span data-testid="public-data">{query.data}</span>;
+}
+
 beforeEach(() => {
   localStorage.setItem("accessToken", "token-u1");
   localStorage.setItem("user", JSON.stringify({
@@ -53,6 +58,14 @@ afterEach(() => {
 });
 
 describe("Providers 用户缓存隔离", () => {
+  test("认证初始化完成时不重复请求公开数据", async () => {
+    const queryFn = vi.fn().mockResolvedValue("公开数据");
+    render(<Providers><PublicQueryProbe queryFn={queryFn} /></Providers>);
+
+    await waitFor(() => expect(screen.getByTestId("public-data")).toHaveTextContent("公开数据"));
+    expect(queryFn).toHaveBeenCalledTimes(1);
+  });
+
   test("账号身份变化后重建 QueryClient，不复用前一账号私有缓存", async () => {
     render(<Providers><PrivateQueryProbe /></Providers>);
     await waitFor(() => expect(screen.getByTestId("private-data")).toHaveTextContent("u1"));

@@ -90,6 +90,6 @@ export function useThreads(params: ThreadQueryParams = {}) {
       if (!lastPage?.meta?.hasMore) return undefined;
       return lastPage.meta.cursor ?? undefined;
     },
-    staleTime: 30 * 1000,
+    staleTime: 60 * 1000,
   });
 }

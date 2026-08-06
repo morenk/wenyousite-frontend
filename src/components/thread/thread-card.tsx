@@ -3,6 +3,7 @@
 "use client";
 
 import Link from "next/link";
+import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { Users, MessageSquare } from "lucide-react";
@@ -10,6 +11,8 @@ import { cn } from "@/lib/utils";
 import { formatMarkdownPreview } from "@/lib/markdown-preview";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import type { ThreadCardData } from "@/api/hooks/use-threads";
+import { threadDetailQueryOptions } from "@/api/hooks/use-thread-detail";
+import { floorsQueryOptions } from "@/api/hooks/use-floors";
 
 const categoryLabel: Record<string, string> = {
   DEDUCTION: "演绎",
@@ -40,10 +43,22 @@ interface ThreadCardProps {
 }
 
 export function ThreadCard({ thread }: ThreadCardProps) {
+  const queryClient = useQueryClient();
+  const prefetchThread = () => {
+    void queryClient.prefetchQuery(threadDetailQueryOptions(thread.id));
+    if (thread.defaultSubthread?.id) {
+      void queryClient.prefetchInfiniteQuery(
+        floorsQueryOptions(thread.defaultSubthread.id),
+      );
+    }
+  };
+
   return (
     <div>
       <Link
         href={`/threads/${thread.id}`}
+        onMouseEnter={prefetchThread}
+        onFocus={prefetchThread}
         className="block rounded-xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md"
       >
         <div className="flex flex-col gap-3">

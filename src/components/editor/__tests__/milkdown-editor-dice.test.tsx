@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { MilkdownEditor } from "@/components/editor/milkdown-editor";
+import { MilkdownEditor } from "@/components/editor/milkdown-editor-core";
 
 vi.mock("@/lib/auth", () => ({
   useAuth: () => ({ user: null }),
