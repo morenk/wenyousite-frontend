@@ -14,13 +14,15 @@ describe("ThreadFilters", () => {
       />,
     );
 
-    expect(screen.getByRole("button", { name: "最新创建" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "最新回复" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "智能排序" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "全部状态" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "招募中" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "已停招" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "已结束" })).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "排序" })).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "状态" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "最新创建" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "最新回复" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "智能排序" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "全部状态" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "招募中" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "已停招" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "已结束" })).toBeInTheDocument();
   });
 
   test("切换排序和状态", () => {
@@ -34,14 +36,18 @@ describe("ThreadFilters", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "最新回复" }));
-    fireEvent.click(screen.getByRole("button", { name: "已停招" }));
+    fireEvent.change(screen.getByRole("combobox", { name: "排序" }), {
+      target: { value: "active" },
+    });
+    fireEvent.change(screen.getByRole("combobox", { name: "状态" }), {
+      target: { value: "CLOSED" },
+    });
 
     expect(onSortChange).toHaveBeenCalledWith("active");
     expect(onStatusChange).toHaveBeenCalledWith("CLOSED");
   });
 
-  test("标记当前选项", () => {
+  test("显示当前选项", () => {
     render(
       <ThreadFilters
         sort="newest"
@@ -51,13 +57,25 @@ describe("ThreadFilters", () => {
       />,
     );
 
-    expect(screen.getByRole("button", { name: "最新创建" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
+    expect(screen.getByRole("combobox", { name: "排序" })).toHaveValue("newest");
+    expect(screen.getByRole("combobox", { name: "状态" })).toHaveValue("FINISHED");
+  });
+
+  test("选择全部状态时回传 undefined", () => {
+    const onStatusChange = vi.fn();
+    render(
+      <ThreadFilters
+        sort="recommended"
+        status="CLOSED"
+        onSortChange={() => {}}
+        onStatusChange={onStatusChange}
+      />,
     );
-    expect(screen.getByRole("button", { name: "已结束" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
+
+    fireEvent.change(screen.getByRole("combobox", { name: "状态" }), {
+      target: { value: "" },
+    });
+
+    expect(onStatusChange).toHaveBeenCalledWith(undefined);
   });
 });

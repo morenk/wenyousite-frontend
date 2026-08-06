@@ -49,7 +49,7 @@
 | ThreadList | `src/components/thread/thread-list.tsx` | 列表容器 |
 | ThreadCard | `src/components/thread/thread-card.tsx` | 主题帖卡片 |
 | CategoryTabs | `src/components/thread/category-tabs.tsx` | 分类筛选 Tab |
-| ThreadFilters | `src/components/thread/thread-filters.tsx` | 排序与状态筛选栏 |
+| ThreadFilters | `src/components/thread/thread-filters.tsx` | 排序与状态下拉筛选栏 |
 | EmptyState | `src/components/shared/empty-state.tsx` | 空状态提示 |
 
 ## 6. ThreadCard 卡片信息
@@ -113,7 +113,7 @@
 - [x] 实现 ThreadCard 组件
 - [x] 实现 ThreadList 组件（含无限滚动）
 - [x] 实现 CategoryTabs 组件
-- [x] 实现 ThreadFilters 排序与状态筛选组件
+- [x] 实现 ThreadFilters 排序与状态下拉筛选组件
 - [x] 实现 EmptyState 组件
 - [x] 集成 TanStack Query `useInfiniteQuery`
 - [x] 更新首页 page.tsx
