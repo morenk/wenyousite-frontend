@@ -377,7 +377,8 @@ function EditorHost({
       // 只装载当前顶部工具栏实际依赖的交互特性；表格、代码编辑器、公式、AI、
       // 块菜单和选择气泡工具栏均不进入客户端包。基础 Markdown schema 仍能读取历史内容。
       crepe
-        .addFeature(cursor)
+        // 正文自身是滚动容器；Crepe 虚拟光标会把滚动偏移同时计入坐标和元素滚动，导致错位。
+        .addFeature(cursor, { virtual: false })
         .addFeature(listItem)
         .addFeature(linkTooltip, { inputPlaceholder: "粘贴链接…" })
         .addFeature(placeholderFeature, { text: placeholder ?? "开始输入…" });

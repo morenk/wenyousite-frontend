@@ -131,7 +131,7 @@ Milkdown Crepe v7 不支持 i18n 插件，所有文本通过各 feature 的 conf
 
 字数统计：底部实时显示 `{已输入}/10000`，70% 黄色警告，90% 红色警告。
 
-**内容区高度与滚动：** `.ProseMirror` 内容区通过 CSS 变量 `--editor-min-height`（默认 280px）/ `--editor-max-height`（默认 400px）控制：min-height 撑开可视区，使空白处点击可将光标落到文档末尾（ProseMirror 原生 clamp，记事本式落位）；超过 max-height 后内容区出现滚动条，顶部工具栏 fixed 不滚动。组件提供 `maxHeight`/`minHeight` props 按场景覆盖（创建/编辑/管理面板默认 400，发布/编辑楼层传 300）。
+**内容区高度与滚动：** `.ProseMirror` 内容区通过 CSS 变量 `--editor-min-height`（默认 280px）/ `--editor-max-height`（默认 400px）控制：min-height 撑开可视区，使空白处点击可将光标落到文档末尾（ProseMirror 原生 clamp，记事本式落位）；超过 max-height 后内容区出现滚动条，顶部工具栏 fixed 不滚动。编辑器保留 Crepe 的拖拽落点能力，但关闭会重复计算滚动偏移的虚拟光标，统一使用浏览器原生输入光标。组件提供 `maxHeight`/`minHeight` props 按场景覆盖（创建/编辑/管理面板默认 400，发布/编辑楼层传 300）。
 
 编辑区内边距通过 `globals.css` 覆盖 `.milkdown .ProseMirror { padding: 20px 32px }`（Nord 主题默认 60px 120px 过宽）。
 

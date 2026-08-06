@@ -18,6 +18,21 @@ vi.mock("sonner", () => ({
 describe("MilkdownEditor 内联骰子", () => {
   afterEach(() => cleanup());
 
+  test("正文滚动区使用浏览器原生光标，避免虚拟光标重复计算滚动偏移", async () => {
+    const { container } = render(
+      <QueryClientProvider client={new QueryClient()}>
+        <MilkdownEditor defaultValue={"第一行\n\n第二行"} />
+      </QueryClientProvider>,
+    );
+
+    await waitFor(() => {
+      expect(container.querySelector(".ProseMirror")).toBeInTheDocument();
+    });
+    const editor = container.querySelector(".ProseMirror");
+    expect(editor).not.toHaveClass("virtual-cursor-enabled");
+    expect(editor?.querySelector(".prosemirror-virtual-cursor")).toBeNull();
+  });
+
   test("点击工具栏骰子按钮会打开插入弹窗", async () => {
     Object.defineProperty(window, "innerWidth", { configurable: true, value: 1280 });
     Object.defineProperty(window, "innerHeight", { configurable: true, value: 800 });
