@@ -56,10 +56,6 @@ export const queryKeys = {
   },
   subscriptions: ["subscriptions"] as const,
   topicTags: (query: string) => ["tags", query] as const,
-  threadNewReplies: (threadId: string) =>
-    ["thread-new-replies", threadId] as const,
-  newReplies: (subthreadId: string) =>
-    ["new-replies", subthreadId] as const,
   contentDrafts: ["content-drafts"] as const,
   draftSlots: ["draft-slots"] as const,
   threadDrafts: ["drafts"] as const,

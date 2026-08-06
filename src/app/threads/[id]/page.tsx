@@ -1,4 +1,4 @@
-/** 主题帖详情页：头部 + 子贴 Tab + 楼层列表 + 发布 + 阅读进度 */
+/** 主题帖详情页：头部 + 子贴 Tab + 楼层列表 + 发布 */
 
 "use client";
 
@@ -11,10 +11,6 @@ import { getPostHref } from "@/lib/post-navigation";
 import { useThreadDetail } from "@/api/hooks/use-thread-detail";
 import { useFloors } from "@/api/hooks/use-floors";
 import { usePost } from "@/api/hooks/use-post";
-import {
-  useRecordLoadedReadingProgress,
-  useThreadNewReplies,
-} from "@/api/hooks/use-reading-progress";
 import { ThreadDetailHeader } from "@/components/thread/thread-detail-header";
 import { ThreadPostSearch } from "@/components/thread/thread-post-search";
 import { SubthreadTabs } from "@/components/thread/subthread-tabs";
@@ -53,7 +49,6 @@ function ThreadDetailPageContent() {
   const threadId = params.id as string;
   const targetPostId = searchParams.get("post") ?? undefined;
   const { user } = useAuth();
-  const userId = user?.id;
   const { close: closeComposer } = useThreadComposer();
 
   const {
@@ -94,24 +89,6 @@ function ThreadDetailPageContent() {
       parentPostId: targetPost.parentPostId,
     }));
   }, [router, targetPost, threadId]);
-
-  // 阅读进度：一次查询全部子贴摘要，楼层实际加载后再记录当前位置。
-  const newReplies = useThreadNewReplies(threadId, !!userId && thread?.published);
-
-  const newRepliesMap = Object.fromEntries(
-    newReplies.data?.items.map((item) => [item.subthreadId, item.newReplies]) ?? [],
-  );
-
-  const lastLoadedPostId = floors[floors.length - 1]?.id;
-  const hasLoadedFloors = floorsData !== undefined && !isFloorsLoading;
-
-  // 进入/切换/加载更多后，记录页面已经渲染到的最后楼层；空子贴记录进入时间。
-  useRecordLoadedReadingProgress({
-    threadId,
-    subthreadId: effectiveSubthreadId,
-    postId: lastLoadedPostId,
-    ready: !!userId && !!thread?.published && hasLoadedFloors,
-  });
 
   const selectedSubthread = thread?.subthreads.find(
     (s) => s.id === effectiveSubthreadId,
@@ -213,7 +190,6 @@ function ThreadDetailPageContent() {
           onChange={async (subthreadId) => {
             if (await closeComposer()) setSelectedSubthreadId(subthreadId);
           }}
-          newRepliesMap={newRepliesMap}
         />
 
         {/* 子贴标题 + 正文（正文不占楼层号） */}

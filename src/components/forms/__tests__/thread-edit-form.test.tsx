@@ -116,7 +116,14 @@ const mockThread: ThreadDetail = {
     _count: { posts: 1 },
     tags: [],
   },
-  topicTags: [{ tag: { id: "tag-1", name: "保留", color: null } }],
+  topicTags: [
+    {
+      id: "relation-1",
+      threadId: "thread-1",
+      tagId: "tag-1",
+      tag: { id: "tag-1", name: "保留", color: null },
+    },
+  ],
   _count: { members: 1, players: 1, posts: 1 },
   isBookmarked: false,
   bookmarkId: null,
@@ -163,6 +170,9 @@ describe("ThreadEditForm", () => {
           defaultSubthread: nextSubthread,
           subthreads: [nextSubthread],
           topicTags: ((body.tagNames as string[]) ?? []).map((name) => ({
+            id: `relation-${name}`,
+            threadId: mockThread.id,
+            tagId: `tag-${name}`,
             tag: { id: `tag-${name}`, name, color: null },
           })),
         } as ThreadDetail;

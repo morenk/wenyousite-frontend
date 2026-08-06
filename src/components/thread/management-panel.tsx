@@ -213,7 +213,11 @@ export function ManagementPanel({
       updated = true;
       await syncSubthreadTags.mutateAsync({
         subthreadId: sub.id,
-        existingTags: sub.tags.map(({ tag }) => tag),
+        existingTags: sub.tags.map(({ tag }) => ({
+          id: tag.id,
+          name: tag.name,
+          color: tag.color,
+        })),
         targetNames: data.tagNames,
       });
       await onRefetch();

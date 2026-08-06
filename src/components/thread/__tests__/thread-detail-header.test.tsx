@@ -141,7 +141,14 @@ const baseThread: ThreadDetail = {
     _count: { posts: 5 },
     tags: [],
   },
-  topicTags: [{ tag: { id: "tag-1", name: "测试标签", color: null } }],
+  topicTags: [
+    {
+      id: "relation-1",
+      threadId: "thread-1",
+      tagId: "tag-1",
+      tag: { id: "tag-1", name: "测试标签", color: null },
+    },
+  ],
   _count: { members: 10, players: 3, posts: 5 },
   isBookmarked: false,
   bookmarkId: null,

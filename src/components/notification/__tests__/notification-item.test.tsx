@@ -32,13 +32,16 @@ vi.mock("sonner", () => ({
 }));
 
 import { NotificationItem } from "@/components/notification/notification-item";
+import type { NotificationItem as NotificationItemData } from "@/api/hooks/use-notifications";
 
 function renderWithQC(ui: React.ReactElement) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(<QueryClientProvider client={qc}>{ui}</QueryClientProvider>);
 }
 
-function baseNotification(overrides: Record<string, unknown> = {}) {
+function baseNotification(
+  overrides: Partial<NotificationItemData> = {},
+): NotificationItemData {
   return {
     id: "n1",
     type: "reply",

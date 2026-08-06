@@ -1065,58 +1065,6 @@ export interface paths {
         patch: operations["PostsController_update"];
         trace?: never;
     };
-    "/api/v1/reading-progress": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** 查询阅读进度（按子贴） */
-        get: operations["ReadingProgressController_get"];
-        put?: never;
-        /** 记录阅读进度（精确到楼层/楼中楼） */
-        post: operations["ReadingProgressController_update"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/reading-progress/new-replies": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** 自上次阅读后子贴新增回复数 */
-        get: operations["ReadingProgressController_newReplies"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/reading-progress/threads/{threadId}/new-replies": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** 查询主题帖全部子贴的新增回复数 */
-        get: operations["ReadingProgressController_threadNewReplies"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/drafts": {
         parameters: {
             query?: never;
@@ -1849,6 +1797,9 @@ export interface components {
             color: string | null;
         };
         ThreadTagRelationResponseDto: {
+            id: string;
+            threadId: string;
+            tagId: string;
             tag: components["schemas"]["ThreadTagResponseDto"];
         };
         ThreadListCountResponseDto: {
@@ -1965,7 +1916,8 @@ export interface components {
         NotificationResponseDto: {
             id: string;
             userId: string;
-            type: string;
+            /** @enum {string} */
+            type: "reply" | "mention" | "new_floor" | "subthread_created" | "new_post" | "thread_created" | "follow" | "like" | "system";
             content: string | null;
             payload: {
                 [key: string]: unknown;
@@ -2016,6 +1968,13 @@ export interface components {
              * @example clxthread001...
              */
             threadId: string;
+        };
+        BookmarkResponseDto: {
+            id: string;
+            userId: string;
+            threadId: string;
+            /** Format: date-time */
+            createdAt: string;
         };
         DraftDefaultSubthreadResponseDto: {
             id: string;
@@ -2144,6 +2103,20 @@ export interface components {
         ThreadSubthreadCountResponseDto: {
             posts: number;
         };
+        SubthreadTagDefinitionResponseDto: {
+            id: string;
+            threadId: string;
+            name: string;
+            color: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        SubthreadTagRelationResponseDto: {
+            id: string;
+            subthreadId: string;
+            tagId: string;
+            tag: components["schemas"]["SubthreadTagDefinitionResponseDto"];
+        };
         ThreadSubthreadResponseDto: {
             id: string;
             threadId: string;
@@ -2161,7 +2134,7 @@ export interface components {
             bodyPost: components["schemas"]["ThreadBodyPostResponseDto"] | null;
             _count: components["schemas"]["ThreadSubthreadCountResponseDto"];
             /** @description 子贴标签关联 */
-            tags: components["schemas"]["ThreadTagRelationResponseDto"][];
+            tags: components["schemas"]["SubthreadTagRelationResponseDto"][];
         };
         ThreadCountResponseDto: {
             members: number;
@@ -2276,6 +2249,10 @@ export interface components {
              */
             tagNames: string[];
         };
+        ThreadLikeResponseDto: {
+            id: string;
+            likeCount: number;
+        };
         InviteLinkResponseDto: {
             id: string;
             threadId: string;
@@ -2321,6 +2298,22 @@ export interface components {
             thread: components["schemas"]["InviteThreadPreviewResponseDto"];
             /** @description 当前登录用户是否已经加入该主题帖 */
             alreadyJoined: boolean;
+        };
+        JoinedThreadReferenceResponseDto: {
+            id: string;
+            title: string | null;
+        };
+        JoinedThreadMemberResponseDto: {
+            id: string;
+            threadId: string;
+            userId: string;
+            /** @enum {string} */
+            role: "OWNER" | "COLLABORATOR" | "PARTICIPANT";
+            playerMarked: boolean;
+            /** Format: date-time */
+            joinedAt: string;
+            user: components["schemas"]["PostAuthorResponseDto"];
+            thread: components["schemas"]["JoinedThreadReferenceResponseDto"];
         };
         ThreadMemberResponseDto: {
             id: string;
@@ -2383,7 +2376,7 @@ export interface components {
             deletedAt: string | null;
             /** Format: date-time */
             createdAt: string;
-            tags: components["schemas"]["ThreadTagRelationResponseDto"][];
+            tags: components["schemas"]["SubthreadTagRelationResponseDto"][];
             _count: components["schemas"]["SubthreadCountResponseDto"];
             thread?: components["schemas"]["SubthreadThreadReferenceResponseDto"];
         };
@@ -2421,6 +2414,11 @@ export interface components {
              *     ]
              */
             ids: string[];
+        };
+        ReorderedSubthreadResponseDto: {
+            id: string;
+            title: string;
+            sortOrder: number;
         };
         UpdateSubthreadDto: {
             /**
@@ -2644,35 +2642,6 @@ export interface components {
              * @example 1
              */
             version: number;
-        };
-        ContinueReadingFromDto: {
-            id: string;
-            floorNumber: number | null;
-            parentPostId: string | null;
-        };
-        NewRepliesResponseDto: {
-            subthreadId: string;
-            newReplies: number;
-            totalPosts: number;
-            lastReadPostId: string | null;
-            /** Format: date-time */
-            lastReadTime: string | null;
-            continueFrom: components["schemas"]["ContinueReadingFromDto"] | null;
-        };
-        ThreadNewRepliesResponseDto: {
-            items: components["schemas"]["NewRepliesResponseDto"][];
-        };
-        UpdateReadingProgressDto: {
-            /**
-             * @description 子贴 ID
-             * @example clxsubthread001...
-             */
-            subthreadId: string;
-            /**
-             * @description 帖子 ID（记录读到哪条帖子，精确到楼层/楼中楼）
-             * @example clxpost001...
-             */
-            postId?: string;
         };
         DraftResponseDto: {
             id: string;
@@ -2964,6 +2933,17 @@ export interface components {
             message: string;
             meta?: components["schemas"]["ApiPaginationMeta"];
         };
+        /**
+         * @description 稳定业务错误码；名称和值来源于 ErrorCode
+         * @enum {integer}
+         */
+        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40107 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40300 | 40301 | 40302 | 40303 | 40304 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 42900 | 50000;
+        ApiErrorEnvelope: {
+            code: components["schemas"]["BusinessErrorCode"];
+            message: string;
+            /** @example null */
+            data: Record<string, never> | null;
+        };
     };
     responses: never;
     parameters: never;
@@ -3042,57 +3022,16 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @example error */
-                        status?: string;
-                        /**
-                         * @example {
-                         *       "database": {
-                         *         "status": "up"
-                         *       }
-                         *     }
-                         */
-                        info?: {
-                            [key: string]: {
-                                status: string;
-                            } & {
-                                [key: string]: unknown;
-                            };
-                        } | null;
-                        /**
-                         * @example {
-                         *       "redis": {
-                         *         "status": "down",
-                         *         "message": "Could not connect"
-                         *       }
-                         *     }
-                         */
-                        error?: {
-                            [key: string]: {
-                                status: string;
-                            } & {
-                                [key: string]: unknown;
-                            };
-                        } | null;
-                        /**
-                         * @example {
-                         *       "database": {
-                         *         "status": "up"
-                         *       },
-                         *       "redis": {
-                         *         "status": "down",
-                         *         "message": "Could not connect"
-                         *       }
-                         *     }
-                         */
-                        details?: {
-                            [key: string]: {
-                                status: string;
-                            } & {
-                                [key: string]: unknown;
-                            };
-                        };
-                    };
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -3126,7 +3065,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -3162,14 +3112,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 用户名已被占用 */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -3205,7 +3168,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -3238,7 +3212,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -3271,14 +3256,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 未登录 */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -3304,6 +3302,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
                         data: components["schemas"]["MessageResponseDto"];
                     };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -3337,7 +3344,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -3363,6 +3381,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
                         data: components["schemas"]["MessageResponseDto"];
                     };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -3396,7 +3423,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -3429,14 +3467,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 新邮箱已被占用 */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -3469,14 +3520,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 未登录或邮箱未验证 */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -3502,6 +3566,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
                         data: components["schemas"]["MessageResponseDto"];
                     };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -3531,7 +3604,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -3562,14 +3646,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 请求频繁，请稍后重试（退出登录终端独立限流 60 次/分钟） */
             429: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -3601,7 +3698,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -3635,7 +3743,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -3664,7 +3783,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -3693,7 +3823,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -3726,14 +3867,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 用户名已被占用 */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -3762,7 +3916,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -3795,14 +3960,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description mediaId 不存在或未完成处理 */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -3838,7 +4016,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -3876,7 +4065,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -3912,7 +4112,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -3943,7 +4154,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -3974,7 +4196,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -4005,14 +4238,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 目标用户不存在 */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -4038,6 +4284,15 @@ export interface operations {
                     };
                 };
             };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
         };
     };
     UsersFollowController_following: {
@@ -4060,6 +4315,15 @@ export interface operations {
                     };
                 };
             };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
         };
     };
     UsersFollowController_followers: {
@@ -4080,6 +4344,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
                         data: components["schemas"]["UserFollowRecordResponseDto"][];
                     };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -4106,6 +4379,15 @@ export interface operations {
                     };
                 };
             };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
         };
     };
     UsersFollowController_userFollowers: {
@@ -4128,6 +4410,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
                         data: components["schemas"]["UserFollowRecordResponseDto"][];
                     };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -4154,6 +4445,15 @@ export interface operations {
                     };
                 };
             };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
         };
     };
     UsersFollowController_unblock: {
@@ -4178,6 +4478,15 @@ export interface operations {
                     };
                 };
             };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
         };
     };
     UsersFollowController_blocks: {
@@ -4198,6 +4507,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
                         data: components["schemas"]["BlockedUserRecordResponseDto"][];
                     };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -4232,7 +4550,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -4261,7 +4590,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -4292,7 +4632,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -4327,7 +4678,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -4356,7 +4718,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -4390,7 +4763,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -4414,7 +4798,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["BookmarkResponseDto"];
                     };
                 };
             };
@@ -4423,21 +4807,36 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 帖子不存在 */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 重复收藏 */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -4468,14 +4867,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 收藏不存在 */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -4504,7 +4916,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -4543,6 +4966,15 @@ export interface operations {
                     };
                 };
             };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
         };
     };
     ThreadsController_create: {
@@ -4574,7 +5006,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -4605,7 +5048,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -4636,21 +5090,36 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 非 OWNER 不可删除 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 主题帖不存在 */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -4685,28 +5154,45 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 无管理权限（非 OWNER/COLLABORATOR） */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 主题帖不存在 */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 乐观锁冲突（version 过期）或已发布帖重复发布 */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -4741,28 +5227,45 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 无管理权限或协作者尝试修改楼主专属字段 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 主题帖或默认子贴不存在 */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 主题帖、默认子贴或正文乐观锁冲突 */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -4777,14 +5280,24 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description 主题帖 ID 与最新点赞数 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["ThreadLikeResponseDto"];
                     };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -4800,14 +5313,24 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description 主题帖 ID 与最新点赞数 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["ThreadLikeResponseDto"];
                     };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -4839,14 +5362,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 仅 OWNER / 未发布 / 非私密帖 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -4877,14 +5413,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 邀请链接无效或已失效 */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -4906,7 +5455,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["JoinedThreadMemberResponseDto"];
                     };
                 };
             };
@@ -4915,14 +5464,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 邀请链接无效或已失效 */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -4947,6 +5509,15 @@ export interface operations {
                     };
                 };
             };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
         };
     };
     ThreadMembersController_join: {
@@ -4968,6 +5539,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
                         data: components["schemas"]["ThreadMemberResponseDto"];
                     };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -5002,6 +5582,15 @@ export interface operations {
                     };
                 };
             };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
         };
     };
     ThreadMembersController_exitMember: {
@@ -5026,6 +5615,15 @@ export interface operations {
                     };
                 };
             };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
         };
     };
     ThreadTagsController_findAll: {
@@ -5045,8 +5643,17 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["ThreadTagRelationResponseDto"][];
                     };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -5072,8 +5679,17 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["ThreadTagResponseDto"];
                     };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -5101,6 +5717,15 @@ export interface operations {
                     };
                 };
             };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
         };
     };
     TagsController_search: {
@@ -5124,6 +5749,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
                         data: components["schemas"]["TagResponseDto"][];
                     };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -5157,14 +5791,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 标签名已存在 */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -5190,6 +5837,15 @@ export interface operations {
                     };
                 };
             };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
         };
     };
     SubthreadsController_findAll: {
@@ -5211,6 +5867,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
                         data: components["schemas"]["SubthreadResponseDto"][];
                     };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -5240,6 +5905,15 @@ export interface operations {
                     };
                 };
             };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
         };
     };
     SubthreadsController_findById: {
@@ -5261,6 +5935,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
                         data: components["schemas"]["SubthreadResponseDto"];
                     };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -5285,6 +5968,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
                         data: components["schemas"]["MessageResponseDto"];
                     };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -5314,6 +6006,15 @@ export interface operations {
                     };
                 };
             };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
         };
     };
     SubthreadsController_reorder: {
@@ -5337,8 +6038,17 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["ReorderedSubthreadResponseDto"][];
                     };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -5360,8 +6070,17 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["SubthreadTagRelationResponseDto"][];
                     };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -5387,8 +6106,17 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["SubthreadTagDefinitionResponseDto"];
                     };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -5414,6 +6142,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
                         data: components["schemas"]["MessageResponseDto"];
                     };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -5443,6 +6180,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
                         data: components["schemas"]["FloorResponseDto"][];
                     };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -5478,21 +6224,36 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 无发帖权限（未加入子贴或权限不足） */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description clientRequestId 已用于不同发帖载荷 */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -5521,6 +6282,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
                         data: components["schemas"]["ReplyResponseDto"][];
                     };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -5556,21 +6326,36 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 无管理权限 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 子贴不存在 */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -5601,7 +6386,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -5632,21 +6428,36 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 非本人帖子，无权删除 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 帖子不存在 */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -5681,147 +6492,36 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 非本人帖子，无权编辑 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 帖子不存在 */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
-        };
-    };
-    ReadingProgressController_get: {
-        parameters: {
-            query: {
-                subthreadId: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 阅读进度记录（不传 subthreadId 返回全部子贴进度） */
-            200: {
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
-                    };
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
-            };
-            /** @description 未登录或 Token 无效 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    ReadingProgressController_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateReadingProgressDto"];
-            };
-        };
-        responses: {
-            /** @description 已记录阅读进度 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
-                    };
-                };
-            };
-            /** @description 未登录或 Token 无效 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    ReadingProgressController_newReplies: {
-        parameters: {
-            query: {
-                subthreadId: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 新增回复数 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["NewRepliesResponseDto"];
-                    };
-                };
-            };
-            /** @description 未登录或 Token 无效 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    ReadingProgressController_threadNewReplies: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                threadId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 按子贴汇总的新增回复数 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["ThreadNewRepliesResponseDto"];
-                    };
-                };
-            };
-            /** @description 未登录或 Token 无效 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -5850,7 +6550,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -5883,14 +6594,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 覆盖已有槽位时 version 缺失或已过期 */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -5919,7 +6643,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -5950,14 +6685,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 草稿不存在 */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -5988,14 +6736,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 草稿不存在 */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -6030,21 +6791,36 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 草稿不存在 */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description version 已过期 */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -6073,7 +6849,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -6106,7 +6893,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -6137,14 +6935,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 订阅不存在 */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -6167,6 +6978,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
                         data: unknown;
                     };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -6192,6 +7012,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
                         data: unknown;
                     };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -6221,6 +7050,15 @@ export interface operations {
                     };
                 };
             };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
         };
     };
     AdminController_index: {
@@ -6240,6 +7078,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
                         data: unknown;
                     };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -6267,6 +7114,15 @@ export interface operations {
                     };
                 };
             };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
         };
     };
     AdminController_previewRecipients: {
@@ -6290,6 +7146,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
                         data: unknown;
                     };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -6316,6 +7181,15 @@ export interface operations {
                     };
                 };
             };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
         };
     };
     AdminController_searchUsers: {
@@ -6338,6 +7212,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
                         data: unknown;
                     };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -6365,6 +7248,15 @@ export interface operations {
                     };
                 };
             };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
         };
     };
     SearchController_searchUsers: {
@@ -6388,6 +7280,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
                         data: components["schemas"]["SearchUserResponseDto"][];
                     };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -6424,7 +7325,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -6449,6 +7361,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
                         data: components["schemas"]["SearchResultResponseDto"];
                     };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
         };
@@ -6487,14 +7408,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 主题帖不存在，或当前用户无权访问私密帖 */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -6527,21 +7461,36 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 每用户小时上传配额超限（默认 60 次） */
             429: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -6574,14 +7523,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };
@@ -6612,14 +7574,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
             /** @description 图片记录不存在或不属于当前用户 */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
             };
         };
     };

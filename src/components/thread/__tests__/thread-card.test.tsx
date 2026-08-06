@@ -44,8 +44,18 @@ const baseThread: ThreadCardData = {
   owner: { id: "u1", username: "测试作者", avatar: null },
   defaultSubthread: { id: "s1", title: "主帖", lastPostAt: null },
   topicTags: [
-    { tag: { id: "tag-1", name: "测试标签", color: null } },
-    { tag: { id: "tag-2", name: "RPG", color: null } },
+    {
+      id: "relation-1",
+      threadId: "thread-1",
+      tagId: "tag-1",
+      tag: { id: "tag-1", name: "测试标签", color: null },
+    },
+    {
+      id: "relation-2",
+      threadId: "thread-1",
+      tagId: "tag-2",
+      tag: { id: "tag-2", name: "RPG", color: null },
+    },
   ],
   _count: { members: 5, players: 2, posts: 12 },
   preview: "这是帖子摘要预览...",

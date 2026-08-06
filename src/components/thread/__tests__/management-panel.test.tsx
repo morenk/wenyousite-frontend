@@ -402,7 +402,18 @@ describe("ManagementPanel", () => {
     const taggedSub = {
       ...mockThread.subthreads[1],
       tags: [
-        { tag: { id: "tag-existing", name: "设定", color: null } },
+        {
+          id: "relation-existing",
+          subthreadId: "s2",
+          tagId: "tag-existing",
+          tag: {
+            id: "tag-existing",
+            threadId: mockThread.id,
+            name: "设定",
+            color: null,
+            createdAt: "2026-01-01T00:00:00Z",
+          },
+        },
       ],
     };
     renderPanel({

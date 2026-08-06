@@ -8,6 +8,8 @@
 
 实现主题帖详情页，展示帖子头部信息、子贴 Tab 切换、楼层列表（分页）、Markdown 渲染，以及发布新楼层。
 
+内容浏览不维护阅读进度、楼层更新数或内容未读状态；子贴 Tab 只展示楼层总数。通知中心的未读状态属于独立通知能力，继续保留。
+
 **2026-08 单编辑器重构：** 浏览态不预先挂载 Milkdown，仅展示轻量的「发表回复」入口；用户点击发表、回复或编辑后，页面按目标位置挂载全局唯一的上下文编辑器。同一时刻详情页最多存在一个 Milkdown 实例。
 
 **2026-08 性能收敛：** Milkdown 通过客户端动态模块按需加载，编辑器样式不再进入全局 CSS。Crepe 只注册当前工具栏所需的标题、粗体、斜体、无序列表、链接、图片、引用、分隔线，以及项目自定义的骰子、草稿和 @ 提及能力；未提供入口的表格、代码编辑器、公式、AI、块编辑等模块不进入编辑器包。历史 CommonMark/GFM 内容仍保持只读解析兼容。主题卡片在鼠标悬停或键盘聚焦时并行预取 30 秒内可复用的详情与首屏楼层，进入详情后不再串行等待两次请求。
@@ -32,7 +34,6 @@
 - 帖内订阅：THREAD 为楼主/协作者官方更新；USER 仅可选择 `PARTICIPANT + playerMarked=true` 的普通玩家
 - 私密帖邀请：楼主生成/刷新邀请链接，受邀用户在 `/join/[token]` 预览并加入；已加入用户再次打开同一邀请会直接进入主题帖
 - 公开帖发言即参与，不提供手动加入入口；已标记玩家可退出玩家身份
-- ~~阅读进度~~ → 已实现（详情页记录进度 + 子贴 Tab 新回复徽标）
 
 ## 2. 页面与路由
 
@@ -67,8 +68,6 @@
 | GET | `/subscriptions` | Auth | 我的订阅列表 |
 | POST | `/subscriptions` | Auth | 创建订阅（THREAD/USER） |
 | DELETE | `/subscriptions/:id` | Auth | 取消订阅 |
-| POST | `/reading-progress` | Auth | 记录阅读进度（subthreadId + postId） |
-| GET | `/reading-progress/new-replies` | Auth | 子贴新增回复数 |
 | GET | `/subthreads/:subthreadId/tags` | OptionalAuth | 获取子贴标签（遵循主题帖可见性） |
 | POST | `/subthreads/:subthreadId/tags` | Auth | 创建并关联子贴标签 |
 | DELETE | `/subthreads/:subthreadId/tags/:tagId` | Auth | 移除子贴标签 |
@@ -338,7 +337,6 @@
 
 > 楼层卡片会直接展示 API 返回的前 5 条楼中楼回复；这些回复正文合计超过 500 个字符时，内联区域截断并使用渐变遮罩，点击「展开回复」进入独立楼中楼页面。超过 5 条时仍只展示前 5 条，并通过回复数链接查看完整串。
 | useSubscriptionMutations | `src/api/hooks/use-subscription-mutations.ts` | 创建/取消订阅 |
-| useReadingProgress | `src/api/hooks/use-reading-progress.ts` | 记录阅读进度 + 新回复数 |
 | ThreadEditForm | `src/components/forms/thread-edit-form.tsx` | 管理面板「主题帖」表单；协作者可改标题/分区/状态/标签/主帖正文，可见性仅楼主；上报脏状态与保存状态 |
 | EditThreadPage | `src/app/threads/[id]/edit/page.tsx` | 兼容路由：未发布草稿继续使用发布表单，已发布帖复用统一管理面板 |
 
