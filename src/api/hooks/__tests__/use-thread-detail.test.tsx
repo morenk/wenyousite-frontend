@@ -148,11 +148,10 @@ describe("useThreadDetail", () => {
 describe("normalizeThreadDetail", () => {
   test("不带 subthreads", () => {
     const raw = { ...rawThread, subthreads: [], defaultSubthreadId: "any" };
-    const result = normalizeThreadDetail(raw);
-    expect(result.defaultSubthread).toBeUndefined();
+    expect(() => normalizeThreadDetail(raw)).toThrow("未返回可用子贴");
   });
 
-  test("defaultSubthreadId 为 null/undefined 时 fallback 到第一项", () => {
+  test("defaultSubthreadId 为空时拒绝不完整响应", () => {
     const raw = {
       ...rawThread,
       defaultSubthreadId: "",
@@ -160,7 +159,6 @@ describe("normalizeThreadDetail", () => {
         { ...rawThread.subthreads[0], id: "first", title: "第一个" },
       ],
     };
-    const result = normalizeThreadDetail(raw);
-    expect(result.defaultSubthread.id).toBe("first");
+    expect(() => normalizeThreadDetail(raw)).toThrow("缺少默认子贴");
   });
 });

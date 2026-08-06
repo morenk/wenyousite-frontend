@@ -2,9 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { queryKeys } from "@/api/query-keys";
 import type { components } from "@/api/types";
-
-interface Envelope<T> { data: T }
 
 export type InvitePreview = components["schemas"]["InvitePreviewResponseDto"];
 
@@ -15,21 +14,23 @@ export function useCreateInviteLink() {
         params: { path: { id: threadId } },
       });
       if (error) throw error;
-      return (data as unknown as Envelope<{ threadId: string; token: string }>).data;
+      if (!data) throw new Error("邀请链接响应为空");
+      return data.data;
     },
   });
 }
 
 export function useInvitePreview(token: string | undefined) {
   return useQuery({
-    queryKey: ["invite-preview", token],
+    queryKey: queryKeys.invitePreview(token),
     queryFn: async () => {
       if (!token) throw new Error("缺少邀请 token");
       const { data, error } = await apiClient.GET("/api/v1/threads/join-by-link/{token}", {
         params: { path: { token } },
       });
       if (error) throw error;
-      return (data as unknown as Envelope<InvitePreview>).data;
+      if (!data) throw new Error("邀请预览响应为空");
+      return data.data;
     },
     enabled: !!token,
     // 邀请 token 的 404/403 是确定结果；重试只会让失效页多转数秒并重复刷请求。
@@ -48,7 +49,7 @@ export function useJoinThreadByInvite() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user", "played-threads"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.playedThreads() });
     },
   });
 }
@@ -64,8 +65,8 @@ export function useExitThreadPlayer() {
       return data;
     },
     onSuccess: (_data, threadId) => {
-      queryClient.invalidateQueries({ queryKey: ["members", threadId] });
-      queryClient.invalidateQueries({ queryKey: ["thread", threadId] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.members.list(threadId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.threads.detail(threadId) });
     },
   });
 }

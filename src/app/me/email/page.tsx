@@ -2,11 +2,8 @@
 
 "use client";
 
-import { useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Loader2, ArrowLeft } from "lucide-react";
-import { useAuth } from "@/lib/auth";
+import { ArrowLeft } from "lucide-react";
 import { ChangeEmailForm } from "@/components/user/change-email-form";
 import {
   Card,
@@ -17,26 +14,6 @@ import {
 } from "@/components/ui/card";
 
 export default function ChangeEmailPage() {
-  const { user, isInitialized } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!isInitialized) return;
-    if (!user) {
-      router.replace("/login");
-    }
-  }, [user, isInitialized, router]);
-
-  if (!isInitialized) {
-    return (
-      <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
-  if (!user) return null;
-
   return (
     <div className="mx-auto max-w-md px-4 py-8">
       <Link

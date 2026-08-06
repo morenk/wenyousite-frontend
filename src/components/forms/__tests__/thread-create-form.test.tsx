@@ -17,37 +17,29 @@ vi.mock("@/components/editor/milkdown-editor", () => ({
   ),
 }));
 
+vi.mock("@/components/forms/tag-input", () => ({
+  TagInput: ({ value, onChange }: { value: string[]; onChange: (tags: string[]) => void }) => (
+    <div data-testid="tag-input">
+      {value.map((tag) => <span key={tag}>{tag}</span>)}
+      <button type="button" onClick={() => onChange(["剧情", "招募"])}>
+        设置标签
+      </button>
+    </div>
+  ),
+}));
+
 const {
-  mockUpdateThreadMutate,
-  mockUpdateSubthreadMutate,
-  mockUpsertBodyMutate,
+  mockSaveThreadMutate,
   mockUploadImageMutate,
 } =
   vi.hoisted(() => ({
-    mockUpdateThreadMutate: vi.fn(),
-    mockUpdateSubthreadMutate: vi.fn(),
-    mockUpsertBodyMutate: vi.fn(),
+    mockSaveThreadMutate: vi.fn(),
     mockUploadImageMutate: vi.fn(),
   }));
 
-vi.mock("@/api/hooks/use-update-thread", () => ({
-  useUpdateThread: () => ({
-    mutateAsync: mockUpdateThreadMutate,
-    isLoading: false,
-  }),
-}));
-
-vi.mock("@/api/hooks/use-update-subthread", () => ({
-  useUpdateSubthread: () => ({
-    mutateAsync: mockUpdateSubthreadMutate,
-    isLoading: false,
-  }),
-}));
-
-vi.mock("@/api/hooks/use-upsert-body", () => ({
-  useUpsertBody: () => ({
-    mutateAsync: mockUpsertBodyMutate,
-    isLoading: false,
+vi.mock("@/api/hooks/use-save-thread-aggregate", () => ({
+  useSaveThreadAggregate: () => ({
+    mutateAsync: mockSaveThreadMutate,
   }),
 }));
 
@@ -120,12 +112,12 @@ const mockThread: ThreadDetail = {
 };
 
 function renderForm(thread: ThreadDetail = mockThread) {
+  mockSaveThreadMutate.mockResolvedValue(thread);
   return render(
     <ThreadCreateForm
       thread={thread}
       onCancel={vi.fn()}
       onPublished={vi.fn()}
-      onRefetch={vi.fn().mockResolvedValue({ data: thread })}
     />,
     { wrapper: createWrapper() },
   );
@@ -152,6 +144,21 @@ describe("ThreadCreateForm", () => {
     expect(screen.getByText("标签")).toBeInTheDocument();
   });
 
+  test("保存草稿时同步所选标签", async () => {
+    const user = userEvent.setup();
+    renderForm();
+
+    await user.click(screen.getByRole("button", { name: "设置标签" }));
+    await user.click(screen.getByRole("button", { name: "保存草稿" }));
+
+    await vi.waitFor(() => {
+      expect(mockSaveThreadMutate).toHaveBeenCalledWith({
+        threadId: "t1",
+        body: expect.objectContaining({ tagNames: ["剧情", "招募"] }),
+      });
+    });
+  });
+
   test("渲染默认子贴正文编辑器", () => {
     renderForm();
     expect(screen.getByTestId("milkdown-editor")).toBeInTheDocument();
@@ -173,7 +180,6 @@ describe("ThreadCreateForm", () => {
         thread={mockThread}
         onCancel={onCancel}
         onPublished={vi.fn()}
-        onRefetch={vi.fn().mockResolvedValue({ data: mockThread })}
       />,
       { wrapper: createWrapper() },
     );
@@ -192,7 +198,6 @@ describe("ThreadCreateForm", () => {
         cancelMode="back"
         onCancel={onCancel}
         onPublished={vi.fn()}
-        onRefetch={vi.fn().mockResolvedValue({ data: mockThread })}
       />,
       { wrapper: createWrapper() },
     );
@@ -213,7 +218,21 @@ describe("ThreadCreateForm", () => {
     renderForm();
 
     await user.click(screen.getByText("发布"));
-    expect(mockUpdateThreadMutate).not.toHaveBeenCalled();
+    expect(mockSaveThreadMutate).not.toHaveBeenCalled();
+  });
+
+  test("标题超过上限时阻止保存并显示字段错误", async () => {
+    const user = userEvent.setup();
+    renderForm();
+
+    await user.type(
+      screen.getByPlaceholderText("给你的主题帖起个名字"),
+      "超".repeat(101),
+    );
+    await user.click(screen.getByRole("button", { name: "保存草稿" }));
+
+    expect(await screen.findByText("标题最多 100 个字符")).toBeInTheDocument();
+    expect(mockSaveThreadMutate).not.toHaveBeenCalled();
   });
 
   test("标题已填但默认子贴无正文时提示校验错误", async () => {
@@ -223,35 +242,31 @@ describe("ThreadCreateForm", () => {
     await user.type(screen.getByPlaceholderText("给你的主题帖起个名字"), "测试标题");
     await user.click(screen.getByText("发布"));
 
-    expect(mockUpdateThreadMutate).not.toHaveBeenCalled();
+    expect(mockSaveThreadMutate).not.toHaveBeenCalled();
   });
 
-  test("编辑正文后保存草稿调用 upsertBody", async () => {
+  test("编辑正文后以单次聚合请求保存草稿", async () => {
     const user = userEvent.setup();
-    mockUpdateThreadMutate.mockResolvedValueOnce({ data: mockThread });
-    mockUpsertBodyMutate.mockResolvedValueOnce({});
-
     renderForm();
 
     await user.type(screen.getByTestId("milkdown-editor"), "正文内容");
     await user.click(screen.getByText("保存草稿"));
 
     await vi.waitFor(() => {
-      expect(mockUpsertBodyMutate).toHaveBeenCalledWith(
-        expect.objectContaining({
-          subthreadId: "s1",
+      expect(mockSaveThreadMutate).toHaveBeenCalledWith({
+        threadId: "t1",
+        body: expect.objectContaining({
           content: "正文内容",
-          version: undefined,
+          version: 1,
+          defaultSubthreadVersion: 1,
+          bodyVersion: undefined,
         }),
-      );
+      });
     });
   });
 
-  test("标题变更后保存草稿同步默认子贴标题", async () => {
+  test("标题变更与默认子贴标题在同一聚合请求中保存", async () => {
     const user = userEvent.setup();
-    mockUpdateThreadMutate.mockResolvedValueOnce({ data: mockThread });
-    mockUpdateSubthreadMutate.mockResolvedValueOnce({});
-
     renderForm();
 
     await user.type(
@@ -261,39 +276,25 @@ describe("ThreadCreateForm", () => {
     await user.click(screen.getByText("保存草稿"));
 
     await vi.waitFor(() => {
-      expect(mockUpdateSubthreadMutate).toHaveBeenCalledWith(
-        expect.objectContaining({
-          subthreadId: "s1",
-          body: expect.objectContaining({
-            title: "新标题",
-            version: 1,
-          }),
+      expect(mockSaveThreadMutate).toHaveBeenCalledWith({
+        threadId: "t1",
+        body: expect.objectContaining({
+          title: "新标题",
+          defaultSubthreadVersion: 1,
         }),
-      );
+      });
     });
   });
 
-  test("标题为空时保存草稿不调用同步子贴标题", async () => {
+  test("标题为空时保存草稿不覆盖现有占位标题", async () => {
     const user = userEvent.setup();
-    mockUpdateThreadMutate.mockResolvedValueOnce({ data: mockThread });
-
     renderForm();
 
     await user.click(screen.getByText("保存草稿"));
 
-    expect(mockUpdateSubthreadMutate).not.toHaveBeenCalled();
-  });
-
-  test("标题与默认子贴标题相同时不调用同步", async () => {
-    const user = userEvent.setup();
-    // 默认子贴标题为"主帖"，将帖子标题也设为"主帖"
-    const titledThread = { ...mockThread, title: "主帖" };
-    mockUpdateThreadMutate.mockResolvedValueOnce({ data: titledThread });
-
-    renderForm(titledThread);
-
-    await user.click(screen.getByText("保存草稿"));
-
-    expect(mockUpdateSubthreadMutate).not.toHaveBeenCalled();
+    expect(mockSaveThreadMutate).toHaveBeenCalledWith({
+      threadId: "t1",
+      body: expect.not.objectContaining({ title: expect.anything() }),
+    });
   });
 });

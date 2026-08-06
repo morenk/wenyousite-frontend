@@ -20,7 +20,12 @@
 | [drafts](./modules/drafts.md) | 草稿箱 | 已完成 |
 | [bookmarks](./modules/bookmarks.md) | 收藏 | 已完成 |
 | [mentions](./modules/mentions.md) | 帖内提及 | 已完成 |
-| [api-coverage](./api-coverage.md) | 前后端 API 覆盖审计 | 2026-08-04 已复核 |
+| [api-contract](./modules/api-contract.md) | OpenAPI 契约与生成类型 | 已完成 |
+| [image-rendering](./modules/image-rendering.md) | 图片渲染与缩略图规则 | 已完成 |
+| [markdown-content-protocol](./modules/markdown-content-protocol.md) | Markdown 跨端内容协议 | 已完成 |
+| [api-coverage](./api-coverage.md) | 前后端 API 覆盖审计 | 2026-08-06 已复核 |
+
+“已完成”表示当前产品能力已实现，不表示文档中的数字可永久手工维护。链接、模块索引、OpenAPI 操作数量和未调用端点表由 `pnpm docs:check` 按当前源码校验。
 
 ### 参考文档
 

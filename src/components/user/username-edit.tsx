@@ -7,6 +7,7 @@ import { Loader2, Pencil, X, Check } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { useUpdateProfile } from "@/api/hooks/use-update-profile";
+import { getApiError } from "@/api/errors";
 import { usernameSchema } from "@/lib/validations/profile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,7 +57,7 @@ export function UsernameEdit({ currentUsername }: UsernameEditProps) {
 
     try {
       await updateProfile.mutateAsync({ username: next });
-      // 同步更新导航栏等 localStorage 中的用户信息
+      // 同步更新导航栏等内存认证状态中的用户信息
       if (user && accessToken) {
         setAuth({ ...user, username: next }, accessToken);
       }
@@ -64,7 +65,7 @@ export function UsernameEdit({ currentUsername }: UsernameEditProps) {
       setEditing(false);
       setFieldError(null);
     } catch (err: unknown) {
-      const e = err as { code?: number; message?: string };
+      const e = getApiError(err);
       if (e.code === 40900) {
         setFieldError("用户名已被占用");
       } else if (e.code === 42900) {

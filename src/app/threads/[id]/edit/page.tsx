@@ -129,7 +129,6 @@ function EditThreadPageContent() {
               onPublished={(publishedThreadId) =>
                 router.replace(`/threads/${publishedThreadId}`)
               }
-              onRefetch={refetch}
             />
           </CardContent>
         </Card>

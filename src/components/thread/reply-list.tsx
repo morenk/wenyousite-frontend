@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
@@ -10,16 +10,18 @@ import { ChevronDown, Link2, Loader2, MessageSquare, Pencil, Trash2 } from "luci
 import { toast } from "sonner";
 import { useReplies } from "@/api/hooks/use-replies";
 import { useDeletePost } from "@/api/hooks/use-delete-post";
+import { getApiErrorMessage } from "@/api/errors";
 import { useAuth } from "@/lib/auth";
 import { getPostHref } from "@/lib/post-navigation";
-import { useQueryClient } from "@tanstack/react-query";
 import { MarkdownContent } from "@/components/thread/markdown-content";
 import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
 import { useThreadComposer } from "@/components/thread/thread-composer-context";
 import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-provider";
 import type { ReplyData, ReplyDisplayData } from "@/api/hooks/use-floors";
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 
 interface ReplyListProps {
   postId: string;
@@ -29,8 +31,8 @@ interface ReplyListProps {
 
 export function ReplyList({ postId, focusedReply, variant = "embedded" }: ReplyListProps) {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
   const deletePost = useDeletePost();
+  const confirmAction = useConfirm();
   const { session, open } = useThreadComposer();
   const { isManager } = useThreadPermissions();
   const {
@@ -43,47 +45,29 @@ export function ReplyList({ postId, focusedReply, variant = "embedded" }: ReplyL
     refetch,
   } = useReplies(postId);
 
-  const sentinelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-          fetchNextPage();
-        }
-      },
-      { threshold: 0.1 },
-    );
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  const sentinelRef = useInfiniteScroll({
+    hasNextPage: !!hasNextPage,
+    isFetchingNextPage,
+    onLoadMore: fetchNextPage,
+  });
 
   const loadedReplies = data?.pages.flatMap((page) => page?.data ?? []) ?? [];
   const replies = focusedReply && !loadedReplies.some((reply) => reply.id === focusedReply.id)
     ? [...loadedReplies, focusedReply]
     : loadedReplies;
 
-  const invalidateReplies = async () => {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["replies", postId] }),
-      // 更新父楼层的回复数。
-      queryClient.invalidateQueries({ queryKey: ["floors"] }),
-    ]);
-  };
-
   const handleDeleteReply = async (reply: ReplyDisplayData) => {
-    if (!confirm("确定要删除这条回复吗？删除后无法恢复。")) return;
+    if (!(await confirmAction({
+      title: "删除回复",
+      description: "确定要删除这条回复吗？删除后无法恢复。",
+      confirmLabel: "删除",
+      destructive: true,
+    }))) return;
     try {
       await deletePost.mutateAsync(reply.id);
-      await invalidateReplies();
       toast.success("回复已删除");
     } catch (error: unknown) {
-      const err = error as { message?: string };
-      toast.error(err.message || "删除失败，请稍后重试");
+      toast.error(getApiErrorMessage(error, "删除失败，请稍后重试"));
     }
   };
 

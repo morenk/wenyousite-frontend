@@ -2,12 +2,30 @@
 
 import { afterEach, beforeEach, describe, test, expect, vi } from "vitest";
 import {
+  bootstrapAuthSession,
   createAuthenticatedFetch,
   isSessionExpired401,
 } from "@/api/client";
+import {
+  clearAuthSession,
+  getAuthAccessToken,
+  getAuthSnapshot,
+  setAuthSession,
+  type AuthUser,
+} from "@/lib/auth-store";
+
+const user = (id: string, username = id): AuthUser => ({
+  id,
+  email: `${id}@example.com`,
+  username,
+  avatar: null,
+  role: "USER",
+  emailVerified: true,
+});
 
 beforeEach(() => {
   localStorage.clear();
+  clearAuthSession({ announce: false });
   vi.restoreAllMocks();
 });
 
@@ -53,9 +71,31 @@ describe("isSessionExpired401", () => {
 });
 
 describe("createAuthenticatedFetch", () => {
+  test("页面启动通过 refresh cookie 恢复内存会话且不持久化 access token", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          code: 0,
+          data: { accessToken: "boot-token", user: user("u1") },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchImpl);
+
+    await bootstrapAuthSession();
+
+    expect(fetchImpl).toHaveBeenCalledWith(
+      expect.stringContaining("/api/v1/auth/refresh"),
+      expect.objectContaining({ credentials: "same-origin" }),
+    );
+    expect(getAuthAccessToken()).toBe("boot-token");
+    expect(getAuthSnapshot().user?.id).toBe("u1");
+    expect(localStorage.getItem("accessToken")).toBeNull();
+  });
+
   test("普通接口 401 时刷新 token 并重放原请求", async () => {
-    localStorage.setItem("accessToken", "old-token");
-    localStorage.setItem("user", JSON.stringify({ id: "u1", username: "旧用户" }));
+    setAuthSession(user("u1", "旧用户"), "old-token");
     const fetchImpl = vi
       .fn<typeof fetch>()
       .mockResolvedValueOnce(new Response(JSON.stringify({ code: 40100 }), { status: 401 }))
@@ -66,7 +106,7 @@ describe("createAuthenticatedFetch", () => {
             message: "ok",
             data: {
               accessToken: "new-token",
-              user: { id: "u1", username: "新用户" },
+              user: user("u1", "新用户"),
             },
           }),
           { status: 200, headers: { "content-type": "application/json" } },
@@ -88,12 +128,13 @@ describe("createAuthenticatedFetch", () => {
     );
     const retriedRequest = new Request(fetchImpl.mock.calls[2][0]);
     expect(retriedRequest.headers.get("Authorization")).toBe("Bearer new-token");
-    expect(localStorage.getItem("accessToken")).toBe("new-token");
-    expect(JSON.parse(localStorage.getItem("user") ?? "{}").username).toBe("新用户");
+    expect(getAuthAccessToken()).toBe("new-token");
+    expect(getAuthSnapshot().user?.username).toBe("新用户");
+    expect(localStorage.getItem("accessToken")).toBeNull();
   });
 
   test("并发 401 共享一次 refresh 请求", async () => {
-    localStorage.setItem("accessToken", "old-token");
+    setAuthSession(user("u1"), "old-token");
     let refreshCalls = 0;
     const fetchImpl = vi.fn<typeof fetch>(async (input) => {
       const request = new Request(input);
@@ -103,7 +144,7 @@ describe("createAuthenticatedFetch", () => {
         return new Response(
           JSON.stringify({
             code: 0,
-            data: { accessToken: "new-token", user: { id: "u1" } },
+            data: { accessToken: "new-token", user: user("u1") },
           }),
           { status: 200, headers: { "content-type": "application/json" } },
         );
@@ -129,8 +170,7 @@ describe("createAuthenticatedFetch", () => {
   });
 
   test("其他标签页已完成刷新时复用新 access token，不重复轮转 refresh token", async () => {
-    localStorage.setItem("accessToken", "old-token");
-    localStorage.setItem("user", JSON.stringify({ id: "u1" }));
+    setAuthSession(user("u1"), "old-token");
     let refreshCalls = 0;
     const fetchImpl = vi.fn<typeof fetch>(async (input) => {
       const request = new Request(input);
@@ -145,7 +185,7 @@ describe("createAuthenticatedFetch", () => {
     vi.stubGlobal("navigator", {
       locks: {
         request: async (_name: string, callback: () => Promise<unknown>) => {
-          localStorage.setItem("accessToken", "token-from-other-tab");
+          setAuthSession(user("u1"), "token-from-other-tab", { announce: false });
           return callback();
         },
       },
@@ -166,14 +206,12 @@ describe("createAuthenticatedFetch", () => {
   });
 
   test("等待跨标签页刷新期间切换账号时不重放旧请求或清除新账号", async () => {
-    localStorage.setItem("accessToken", "old-token");
-    localStorage.setItem("user", JSON.stringify({ id: "u1" }));
+    setAuthSession(user("u1"), "old-token");
     const fetchImpl = vi.fn<typeof fetch>(async () => new Response(null, { status: 401 }));
     vi.stubGlobal("navigator", {
       locks: {
         request: async (_name: string, callback: () => Promise<unknown>) => {
-          localStorage.setItem("accessToken", "token-u2");
-          localStorage.setItem("user", JSON.stringify({ id: "u2" }));
+          setAuthSession(user("u2"), "token-u2");
           return callback();
         },
       },
@@ -188,7 +226,7 @@ describe("createAuthenticatedFetch", () => {
 
     expect(response.status).toBe(401);
     expect(fetchImpl).toHaveBeenCalledTimes(1);
-    expect(localStorage.getItem("accessToken")).toBe("token-u2");
-    expect(JSON.parse(localStorage.getItem("user") ?? "{}").id).toBe("u2");
+    expect(getAuthAccessToken()).toBe("token-u2");
+    expect(getAuthSnapshot().user?.id).toBe("u2");
   });
 });

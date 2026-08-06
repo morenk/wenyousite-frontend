@@ -11,7 +11,6 @@ import { cn } from "@/lib/utils";
 import { formatMarkdownPreview } from "@/lib/markdown-preview";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import type { ThreadCardData } from "@/api/hooks/use-threads";
-import { threadDetailQueryOptions } from "@/api/hooks/use-thread-detail";
 import { floorsQueryOptions } from "@/api/hooks/use-floors";
 
 const categoryLabel: Record<string, string> = {
@@ -45,7 +44,7 @@ interface ThreadCardProps {
 export function ThreadCard({ thread }: ThreadCardProps) {
   const queryClient = useQueryClient();
   const prefetchThread = () => {
-    void queryClient.prefetchQuery(threadDetailQueryOptions(thread.id));
+    // 详情接口会记录浏览量，不能在悬停/聚焦时调用；楼层列表是无副作用查询。
     if (thread.defaultSubthread?.id) {
       void queryClient.prefetchInfiniteQuery(
         floorsQueryOptions(thread.defaultSubthread.id),

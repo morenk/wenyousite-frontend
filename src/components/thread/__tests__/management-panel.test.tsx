@@ -199,7 +199,7 @@ function makeSub(
     lastPostAt: null,
     deletedAt: null,
     createdAt: "2026-01-01T00:00:00Z",
-    bodyPost,
+    bodyPost: bodyPost ? { ...bodyPost, diceRolls: [] } : null,
     _count: { posts: bodyPost ? 1 : 0 },
     tags: [],
   };

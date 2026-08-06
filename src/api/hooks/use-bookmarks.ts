@@ -2,34 +2,17 @@
 
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
-import type { ThreadOwner } from "./use-threads";
+import { queryKeys } from "@/api/query-keys";
+import type { components, operations } from "@/api/types";
 
-export interface BookmarkedThread {
-  id: string;
-  title: string;
-  category: string;
-  status: string;
-  visibility: "PUBLIC" | "PRIVATE";
-  published: boolean;
-  pinned: boolean;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt: string | null;
-  owner: ThreadOwner;
-  _count: { members: number; posts: number };
-  bookmarkId: string;
-}
-
-export interface BookmarksResponse {
-  code: number;
-  message: string;
-  data: BookmarkedThread[];
-  meta: { cursor: string | null; hasMore: boolean };
-}
+export type BookmarkedThread =
+  components["schemas"]["OwnBookmarkThreadResponseDto"];
+export type BookmarksResponse =
+  operations["BookmarksController_findAll"]["responses"][200]["content"]["application/json"];
 
 export function useBookmarks() {
   return useInfiniteQuery({
-    queryKey: ["bookmarks"],
+    queryKey: queryKeys.bookmarks.all,
     queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
       const queryParams: Record<string, string> = { limit: "10" };
       if (pageParam) queryParams.cursor = pageParam;
@@ -39,16 +22,15 @@ export function useBookmarks() {
       });
       if (error) throw error;
 
-      const response = data as unknown as BookmarksResponse;
-      if (!response?.data) {
+      if (!data?.data) {
         return {
           code: 0,
           message: "ok",
           data: [],
           meta: { cursor: null, hasMore: false },
-        } as BookmarksResponse;
+        } satisfies BookmarksResponse;
       }
-      return response;
+      return data;
     },
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => {

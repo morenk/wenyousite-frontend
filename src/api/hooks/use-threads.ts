@@ -2,46 +2,15 @@
 
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { queryKeys } from "@/api/query-keys";
+import type { components, operations } from "@/api/types";
 
-export interface ThreadOwner {
-  id: string;
-  username: string;
-  avatar: string | null;
-}
-
-export interface ThreadTag {
-  id: string;
-  name: string;
-  color: string | null;
-}
-
-export interface ThreadCardData {
-  id: string;
-  title: string;
-  category: "DEDUCTION" | "NATION" | "RPG";
-  status: "RECRUITING" | "CLOSED" | "FINISHED";
-  visibility: "PUBLIC" | "PRIVATE";
-  published: boolean;
-  pinned: boolean;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt: string | null;
-  owner: ThreadOwner;
-  defaultSubthread: { id: string; title: string } | null;
-  topicTags: { tag: ThreadTag }[];
-  _count: { members: number; players: number; posts: number };
-  preview: string;
-}
-
-export interface ThreadListResponse {
-  code: number;
-  message: string;
-  data: ThreadCardData[];
-  meta: {
-    cursor: string | null;
-    hasMore: boolean;
-  };
-}
+export type ThreadOwner = components["schemas"]["PostAuthorResponseDto"];
+export type ThreadTag = components["schemas"]["ThreadTagResponseDto"];
+export type ThreadCardData =
+  components["schemas"]["HomeThreadListItemResponseDto"];
+export type ThreadListResponse =
+  operations["ThreadsController_findAll"]["responses"][200]["content"]["application/json"];
 
 export type ThreadSort = "recommended" | "newest" | "active";
 export type ThreadStatusFilter = "RECRUITING" | "CLOSED" | "FINISHED";
@@ -58,7 +27,7 @@ interface ThreadQueryParams {
 
 export function useThreads(params: ThreadQueryParams = {}) {
   return useInfiniteQuery({
-    queryKey: ["threads", params],
+    queryKey: queryKeys.threads.list(params),
     queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
       const queryParams: Record<string, string> = {};
       if (params.category) queryParams.category = params.category;
@@ -74,16 +43,15 @@ export function useThreads(params: ThreadQueryParams = {}) {
       });
       if (error) throw error;
 
-      const response = data as unknown as ThreadListResponse;
-      if (!response?.data) {
+      if (!data?.data) {
         return {
           code: 0,
           message: "ok",
           data: [],
           meta: { cursor: null, hasMore: false },
-        } as ThreadListResponse;
+        } satisfies ThreadListResponse;
       }
-      return response;
+      return data;
     },
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => {

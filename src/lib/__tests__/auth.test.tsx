@@ -3,6 +3,10 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, act, renderHook, cleanup } from "@testing-library/react";
 import { AuthProvider, useAuth, type AuthUser } from "@/lib/auth";
+import {
+  clearAuthSession,
+  getAuthAccessToken,
+} from "@/lib/auth-store";
 
 const mockUser: AuthUser = {
   id: "user-1",
@@ -15,9 +19,14 @@ const mockUser: AuthUser = {
 
 beforeEach(() => {
   localStorage.clear();
+  clearAuthSession({ announce: false });
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(null, { status: 401 })));
 });
 
-afterEach(() => cleanup());
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 
 function TestComponent() {
   const { user, isInitialized, setAuth, logout } = useAuth();
@@ -53,6 +62,21 @@ describe("AuthProvider", () => {
     expect(screen.getByTestId("username").textContent).toBe("null");
   });
 
+  test("启动刷新遇到网络错误时仍结束初始化", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("offline")));
+
+    render(
+      <AuthProvider>
+        <TestComponent />
+      </AuthProvider>,
+    );
+
+    await vi.waitFor(() => {
+      expect(screen.getByTestId("initialized").textContent).toBe("yes");
+    });
+    expect(screen.getByTestId("username")).toHaveTextContent("null");
+  });
+
   test("setAuth 后 user 可读", async () => {
     render(
       <AuthProvider>
@@ -71,6 +95,8 @@ describe("AuthProvider", () => {
     await vi.waitFor(() => {
       expect(screen.getByTestId("username").textContent).toBe("testuser");
     });
+    expect(getAuthAccessToken()).toBe("test-token");
+    expect(localStorage.getItem("accessToken")).toBeNull();
   });
 
   test("logout 清除 user", async () => {
@@ -101,7 +127,8 @@ describe("AuthProvider", () => {
     });
   });
 
-  test("accessToken 为 null 时 user 为 null", async () => {
+  test("不再从旧版 localStorage 凭证恢复登录态", async () => {
+    localStorage.setItem("accessToken", "legacy-token");
     localStorage.setItem("user", JSON.stringify(mockUser));
 
     render(

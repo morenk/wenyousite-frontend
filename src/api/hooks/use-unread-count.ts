@@ -2,22 +2,16 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
-
-interface UnreadResponse {
-  code: number;
-  message: string;
-  data: { unreadCount: number };
-}
+import { queryKeys } from "@/api/query-keys";
 
 export function useUnreadCount(userId?: string) {
   const enabled = !!userId;
   return useQuery({
-    queryKey: ["notifications", "unread", userId],
+    queryKey: queryKeys.notifications.unread(userId),
     queryFn: async () => {
       const { data, error } = await apiClient.GET("/api/v1/notifications/unread");
       if (error) throw error;
-      const response = data as unknown as UnreadResponse;
-      return response?.data?.unreadCount ?? 0;
+      return data?.data.unreadCount ?? 0;
     },
     enabled,
     refetchInterval: enabled ? 30 * 1000 : false,

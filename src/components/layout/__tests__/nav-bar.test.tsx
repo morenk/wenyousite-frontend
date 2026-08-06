@@ -5,9 +5,9 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NavBar } from "@/components/layout/nav-bar";
 
-const { mockUseAuth, mockPOST, mockToastError } = vi.hoisted(() => ({
+const { mockUseAuth, mockLogoutMutate, mockToastError } = vi.hoisted(() => ({
   mockUseAuth: vi.fn(),
-  mockPOST: vi.fn(),
+  mockLogoutMutate: vi.fn(),
   mockToastError: vi.fn(),
 }));
 
@@ -29,8 +29,8 @@ vi.mock("@/api/hooks/use-unread-count", () => ({
   useUnreadCount: () => ({ data: 0 }),
 }));
 
-vi.mock("@/api/client", () => ({
-  apiClient: { POST: mockPOST },
+vi.mock("@/api/hooks/use-auth-actions", () => ({
+  useLogout: () => ({ mutateAsync: mockLogoutMutate }),
 }));
 
 vi.mock("sonner", () => ({
@@ -39,6 +39,7 @@ vi.mock("sonner", () => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockLogoutMutate.mockResolvedValue(undefined);
 });
 
 afterEach(() => cleanup());
@@ -64,7 +65,7 @@ describe("NavBar", () => {
   test("服务端未能撤销终端时保留本地登录态并提示重试", async () => {
     const logout = vi.fn();
     mockUseAuth.mockReturnValue({ user: { id: "u1", username: "用户" }, logout });
-    mockPOST.mockResolvedValue({ data: undefined, error: { message: "network" } });
+    mockLogoutMutate.mockRejectedValue({ message: "network" });
     render(<NavBar />);
 
     await userEvent.click(screen.getByRole("button", { name: "退出" }));

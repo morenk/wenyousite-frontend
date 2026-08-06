@@ -1,7 +1,8 @@
 /** 认证操作 API hooks（忘记密码、重置密码、邮箱验证、登出等） */
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { queryKeys } from "@/api/query-keys";
 
 interface ForgotPasswordRequest {
   email: string;
@@ -106,12 +107,27 @@ interface ChangeEmailVerifyRequest {
 
 /** 更换邮箱第二步：验证码确认并更新邮箱 */
 export function useChangeEmailVerify() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (req: ChangeEmailVerifyRequest) => {
       const { data, error } = await apiClient.POST(
         "/api/v1/auth/change-email/verify",
         { body: req },
       );
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.me }),
+  });
+}
+
+/** 服务端吊销当前 Web refresh 会话；本地认证状态由调用方在成功后清理。 */
+export function useLogout() {
+  return useMutation({
+    mutationFn: async () => {
+      const { data, error } = await apiClient.POST("/api/v1/auth/logout", {
+        body: {},
+      });
       if (error) throw error;
       return data;
     },

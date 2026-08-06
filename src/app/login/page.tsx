@@ -13,6 +13,7 @@ import { Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { loginSchema, type LoginFormData } from "@/lib/validations/auth";
 import { useLogin } from "@/api/hooks/use-login";
+import { getApiError } from "@/api/errors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -64,7 +65,7 @@ export default function LoginPage() {
         router.replace(getNextPath());
       }
     } catch (error: unknown) {
-      const err = error as { code?: number; message?: string };
+      const err = getApiError(error);
       if (err.code === 40100) {
         toast.error("账号或密码错误");
       } else if (err.code === 42900) {

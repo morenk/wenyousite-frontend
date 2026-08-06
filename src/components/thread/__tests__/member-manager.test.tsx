@@ -24,11 +24,6 @@ vi.mock("@/api/hooks/use-update-member", () => ({
   useUpdateMember: () => ({ mutateAsync: mockUpdateMutate, isPending: false }),
 }));
 
-vi.mock("@tanstack/react-query", async () => {
-  const actual = await vi.importActual("@tanstack/react-query");
-  return { ...actual, useQueryClient: () => ({ invalidateQueries: vi.fn().mockResolvedValue(undefined) }) };
-});
-
 import { toast } from "sonner";
 vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
@@ -78,7 +73,7 @@ describe("MemberManager", () => {
 
   test("渲染参与人列表与角色徽章", () => {
     render(
-      <MemberManager threadId="t1" isOwner={true} isCollaborator={false} onRefetch={vi.fn()} />,
+      <MemberManager threadId="t1" isOwner={true} isCollaborator={false} />,
       { wrapper: createWrapper() },
     );
     expect(screen.getByText("楼主")).toBeInTheDocument();
@@ -88,7 +83,7 @@ describe("MemberManager", () => {
   test("帖主授予/收回玩家标记", async () => {
     const user = userEvent.setup();
     render(
-      <MemberManager threadId="t1" isOwner={true} isCollaborator={false} onRefetch={vi.fn()} />,
+      <MemberManager threadId="t1" isOwner={true} isCollaborator={false} />,
       { wrapper: createWrapper() },
     );
 
@@ -105,7 +100,7 @@ describe("MemberManager", () => {
   test("帖主升级协作者", async () => {
     const user = userEvent.setup();
     render(
-      <MemberManager threadId="t1" isOwner={true} isCollaborator={false} onRefetch={vi.fn()} />,
+      <MemberManager threadId="t1" isOwner={true} isCollaborator={false} />,
       { wrapper: createWrapper() },
     );
 
@@ -121,7 +116,7 @@ describe("MemberManager", () => {
 
   test("不显示移除参与人操作", () => {
     render(
-      <MemberManager threadId="t1" isOwner={true} isCollaborator={false} onRefetch={vi.fn()} />,
+      <MemberManager threadId="t1" isOwner={true} isCollaborator={false} />,
       { wrapper: createWrapper() },
     );
 
@@ -131,7 +126,7 @@ describe("MemberManager", () => {
 
   test("非帖主不显示管理按钮", () => {
     render(
-      <MemberManager threadId="t1" isOwner={false} isCollaborator={false} onRefetch={vi.fn()} />,
+      <MemberManager threadId="t1" isOwner={false} isCollaborator={false} />,
       { wrapper: createWrapper() },
     );
     expect(screen.queryByRole("button", { name: "授予玩家" })).toBeNull();
@@ -140,7 +135,7 @@ describe("MemberManager", () => {
 
   test("协作者只能修改玩家标记", () => {
     render(
-      <MemberManager threadId="t1" isOwner={false} isCollaborator={true} onRefetch={vi.fn()} />,
+      <MemberManager threadId="t1" isOwner={false} isCollaborator={true} />,
       { wrapper: createWrapper() },
     );
 

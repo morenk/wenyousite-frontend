@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { Loader2, CheckCheck, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { useNotifications } from "@/api/hooks/use-notifications";
@@ -11,6 +11,7 @@ import { useAuth } from "@/lib/auth";
 import { NotificationItem } from "@/components/notification/notification-item";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 
 interface NotificationListProps {
   type?: string;
@@ -31,24 +32,11 @@ export function NotificationList({ type, onTypeChange }: NotificationListProps) 
   } = useNotifications({ type, userId: user?.id });
   const { markAllRead } = useNotificationActions();
 
-  const sentinelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-          fetchNextPage();
-        }
-      },
-      { threshold: 0.1 },
-    );
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  const sentinelRef = useInfiniteScroll({
+    hasNextPage: !!hasNextPage,
+    isFetchingNextPage,
+    onLoadMore: fetchNextPage,
+  });
 
   const notifications = data?.pages.flatMap((page) => page?.data ?? []) ?? [];
   const hasUnread = notifications.some((notification) => !notification.isRead);

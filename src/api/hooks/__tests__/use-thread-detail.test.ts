@@ -5,7 +5,6 @@ import { normalizeThreadDetail } from "@/api/hooks/use-thread-detail";
 import type {
   RawThreadDetail,
   SubthreadDetail,
-  ThreadDetail,
 } from "@/api/hooks/use-thread-detail";
 
 function makeSub(id: string): SubthreadDetail {
@@ -55,10 +54,9 @@ describe("normalizeThreadDetail", () => {
     expect(result.defaultSubthread.id).toBe("sub-2");
   });
 
-  test("defaultSubthreadId 无匹配时 fallback 到数组第一项", () => {
+  test("defaultSubthreadId 无匹配时拒绝不完整响应", () => {
     const r = { ...raw, defaultSubthreadId: "nonexistent" };
-    const result = normalizeThreadDetail(r);
-    expect(result.defaultSubthread.id).toBe("sub-1");
+    expect(() => normalizeThreadDetail(r)).toThrow("未返回可用子贴");
   });
 
   test("defaultSubthread 基于 id 精确匹配", () => {
@@ -66,9 +64,8 @@ describe("normalizeThreadDetail", () => {
     expect(result.defaultSubthread.title).toBe("子贴sub-2");
   });
 
-  test("subthreads 为空时仍然返回 defaultSubthread 字段（可为 undefined）", () => {
+  test("subthreads 为空时拒绝不完整响应", () => {
     const r = { ...raw, subthreads: [] };
-    const result = normalizeThreadDetail(r) as ThreadDetail;
-    expect(result.defaultSubthread).toBeUndefined();
+    expect(() => normalizeThreadDetail(r)).toThrow("未返回可用子贴");
   });
 });

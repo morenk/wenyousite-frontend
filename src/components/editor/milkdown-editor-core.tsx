@@ -16,7 +16,6 @@ import { editorViewCtx } from "@milkdown/core";
 import { TextSelection } from "@milkdown/kit/prose/state";
 import type { EditorView } from "@milkdown/kit/prose/view";
 import { AtSign, Loader2, UsersRound } from "lucide-react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDebounce } from "use-debounce";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -31,13 +30,12 @@ import {
 import { getDiceNotationError, MAX_DICE_ROLLS_PER_POST } from "@/lib/dice";
 import { getMentionUserId, markEditorMentionAnchors } from "@/lib/mention";
 import { syncMilkdownToolbarVisibility } from "@/lib/milkdown-toolbar";
-import { useAuth } from "@/lib/auth";
-import { apiClient } from "@/api/client";
-import { useSaveDraft } from "@/api/hooks/use-save-draft";
+import { getApiErrorMessage } from "@/api/errors";
+import { useMentionCandidates } from "@/api/hooks/use-mention-candidates";
 import {
   ContentDraftsPanel,
-  type EditorDraftSnapshot,
 } from "@/components/user/content-drafts-panel";
+import { useEditorDraftController } from "@/components/editor/use-editor-draft-controller";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createDiceInlineEditorPlugins } from "@/components/editor/dice-inline-plugin";
@@ -197,20 +195,11 @@ function EditorHost({
     isFetching: isMentionFetching,
     isError: isMentionError,
     refetch: refetchMentionCandidates,
-  } = useQuery({
-    queryKey: ["mention-candidates", threadId, debouncedMentionQuery],
-    queryFn: async () => {
-      const { data, error } = await apiClient.GET(
-        "/api/v1/users/mention-candidates",
-        { params: { query: { threadId: threadId ?? "", ...(debouncedMentionQuery ? { q: debouncedMentionQuery } : {}) } } },
-      );
-      if (error) throw error;
-      if (!data) return { users: [], canMentionAllPlayers: false };
-      return data.data;
-    },
-    enabled: Boolean(threadId && mentionMenu),
-    staleTime: 10_000,
-  });
+  } = useMentionCandidates(
+    threadId,
+    debouncedMentionQuery,
+    Boolean(mentionMenu),
+  );
 
   const mentionItems = useMemo<MentionMenuItem[]>(() => {
     const items: MentionMenuItem[] = [];
@@ -306,7 +295,7 @@ function EditorHost({
         return await onUploadImage!(file);
       } catch (error) {
         toast.error(
-          (error as { message?: string })?.message || "上传失败，请稍后重试",
+          getApiErrorMessage(error, "上传失败，请稍后重试"),
         );
         throw error;
       }
@@ -889,114 +878,21 @@ function EditorCore({
   threadId,
   diceRolls = [],
 }: MilkdownEditorProps) {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const { mutateAsync: saveDraftAutomatically } = useSaveDraft();
-  const [restoredValue, setRestoredValue] = useState<string | undefined>(defaultValue);
-  const [version, setVersion] = useState(0);
-  const [currentContent, setCurrentContent] = useState(defaultValue ?? "");
-  const [draftOpen, setDraftOpen] = useState(false);
-  const [draftInitialContent, setDraftInitialContent] = useState("");
-  const [autoSaveEnabled, setAutoSaveEnabled] = useState(false);
-  const [autoSaveStatus, setAutoSaveStatus] = useState<
-    "idle" | "saving" | "saved" | "error"
-  >("idle");
-  const externalOnChangeRef = useRef(onChange);
-  const latestContentRef = useRef(defaultValue ?? "");
-  const autoSaveQueueRef = useRef<Promise<unknown>>(Promise.resolve());
-  const autoSaveSequenceRef = useRef(0);
-  const autoSaveVersionRef = useRef<number | undefined>(undefined);
-  const autoSaveEnabledRef = useRef(false);
-
-  useEffect(() => {
-    externalOnChangeRef.current = onChange;
-  }, [onChange]);
-
-  const handleChange = useCallback(
-    (value: string) => {
-      latestContentRef.current = value;
-      setCurrentContent(value);
-      if (autoSaveEnabled) setAutoSaveStatus("idle");
-      externalOnChangeRef.current?.(value);
-    },
-    [autoSaveEnabled],
-  );
-
-  const handleRestore = useCallback(
-    (snapshot: EditorDraftSnapshot) => {
-      const { content } = snapshot;
-      latestContentRef.current = content;
-      setRestoredValue(content);
-      setCurrentContent(content);
-      setVersion((v) => v + 1);
-      externalOnChangeRef.current?.(content);
-      toast.success("已恢复正文草稿");
-    },
-    [],
-  );
-
-  const handleOpenDrafts = useCallback(() => {
-    setDraftInitialContent(latestContentRef.current);
-    setDraftOpen(true);
-  }, []);
-
-  useEffect(() => {
-    if (!user) return;
-    const refreshDrafts = () => {
-      void queryClient.refetchQueries({ queryKey: ["content-drafts"] });
-      void queryClient.refetchQueries({ queryKey: ["draft-slots"] });
-    };
-    window.addEventListener("focus", refreshDrafts);
-    return () => window.removeEventListener("focus", refreshDrafts);
-  }, [queryClient, user]);
-
-  useEffect(() => {
-    if (!autoSaveEnabled) return;
-
-    const content = currentContent.trim();
-    if (!content) return;
-
-    const sequence = ++autoSaveSequenceRef.current;
-    const timer = window.setTimeout(() => {
-      setAutoSaveStatus("saving");
-      autoSaveQueueRef.current = autoSaveQueueRef.current
-        .catch(() => undefined)
-        .then(() => {
-          if (!autoSaveEnabledRef.current) return null;
-          return saveDraftAutomatically({
-            content,
-            slot: 1,
-            ...(autoSaveVersionRef.current !== undefined
-              ? { version: autoSaveVersionRef.current }
-              : {}),
-          });
-        })
-        .then((draft) => {
-          if (!draft || !autoSaveEnabledRef.current) return;
-          autoSaveVersionRef.current = draft.version;
-          if (autoSaveSequenceRef.current === sequence) setAutoSaveStatus("saved");
-        })
-        .catch((error) => {
-          if (autoSaveSequenceRef.current === sequence) {
-            setAutoSaveStatus("error");
-            autoSaveEnabledRef.current = false;
-            setAutoSaveEnabled(false);
-            toast.error(
-              (error as { message?: string })?.message || "正文草稿自动保存失败",
-            );
-          }
-        });
-    }, 800);
-
-    return () => window.clearTimeout(timer);
-  }, [autoSaveEnabled, currentContent, saveDraftAutomatically]);
-
-  const handleAutoSaveChange = useCallback((enabled: boolean, version?: number) => {
-    autoSaveEnabledRef.current = enabled;
-    autoSaveVersionRef.current = enabled ? version : undefined;
-    setAutoSaveEnabled(enabled);
-    setAutoSaveStatus("idle");
-  }, []);
+  const {
+    user,
+    restoredValue,
+    version,
+    currentContent,
+    draftOpen,
+    setDraftOpen,
+    draftInitialContent,
+    autoSaveEnabled,
+    autoSaveStatus,
+    handleChange,
+    handleRestore,
+    handleOpenDrafts,
+    handleAutoSaveChange,
+  } = useEditorDraftController({ defaultValue: defaultValue ?? "", onChange });
 
   const charCount = currentContent.length;
 

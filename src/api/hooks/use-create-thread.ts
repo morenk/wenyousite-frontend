@@ -3,14 +3,8 @@
 import { useMutation } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
 import type { ThreadCreateFormData } from "@/lib/validations/thread-create";
-import type { ThreadDetail, RawThreadDetail } from "./use-thread-detail";
+import type { ThreadDetail } from "./use-thread-detail";
 import { normalizeThreadDetail } from "./use-thread-detail";
-
-interface CreateThreadResponse {
-  code: number;
-  message: string;
-  data: RawThreadDetail;
-}
 
 export function useCreateThread() {
   return useMutation({
@@ -26,7 +20,8 @@ export function useCreateThread() {
         },
       });
       if (error) throw error;
-      return normalizeThreadDetail((data as unknown as CreateThreadResponse).data);
+      if (!data) throw new Error("创建主题帖响应为空");
+      return normalizeThreadDetail(data.data);
     },
   });
 }

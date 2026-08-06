@@ -12,13 +12,14 @@ import { cn } from "@/lib/utils";
 import { getPostDiscussionHref, getPostHref } from "@/lib/post-navigation";
 import { useAuth } from "@/lib/auth";
 import { useDeletePost } from "@/api/hooks/use-delete-post";
-import { useQueryClient } from "@tanstack/react-query";
+import { getApiErrorMessage } from "@/api/errors";
 import { MarkdownContent } from "@/components/thread/markdown-content";
 import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
 import { useThreadComposer } from "@/components/thread/thread-composer-context";
 import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-provider";
 import type { FloorDisplayData } from "@/api/hooks/use-floors";
 
 interface FloorCardProps {
@@ -33,9 +34,9 @@ export const INLINE_REPLY_MAX_LENGTH = 500;
 
 export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
   const cardRef = useRef<HTMLDivElement>(null);
   const deletePost = useDeletePost();
+  const confirmAction = useConfirm();
   const { session, open } = useThreadComposer();
   const { isManager } = useThreadPermissions();
 
@@ -60,11 +61,6 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
     return () => window.clearTimeout(timer);
   }, [focused]);
 
-  const invalidateFloors = () =>
-    queryClient.invalidateQueries({
-      queryKey: ["floors", floor.subthreadId],
-    });
-
   const handleStartEdit = () => {
     open({
       key: `edit:${floor.id}`,
@@ -80,14 +76,17 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
   };
 
   const handleDelete = async () => {
-    if (!confirm("确定要删除该楼层吗？删除后无法恢复。")) return;
+    if (!(await confirmAction({
+      title: "删除楼层",
+      description: "确定要删除该楼层吗？删除后无法恢复。",
+      confirmLabel: "删除",
+      destructive: true,
+    }))) return;
     try {
       await deletePost.mutateAsync(floor.id);
-      await invalidateFloors();
       toast.success("楼层已删除");
     } catch (error: unknown) {
-      const err = error as { code?: number; message?: string };
-      toast.error(err.message || "删除失败，请稍后重试");
+      toast.error(getApiErrorMessage(error, "删除失败，请稍后重试"));
     }
   };
 

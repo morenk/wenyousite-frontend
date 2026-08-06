@@ -2,12 +2,13 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { queryKeys } from "@/api/query-keys";
 
 export function useBlockActions(userId: string) {
   const queryClient = useQueryClient();
 
   const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: ["user", userId] });
+    queryClient.invalidateQueries({ queryKey: queryKeys.users.detail(userId) });
   };
 
   const block = useMutation({

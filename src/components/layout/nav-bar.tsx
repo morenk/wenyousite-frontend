@@ -8,19 +8,19 @@ import { Search } from "lucide-react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/lib/auth";
-import { apiClient } from "@/api/client";
+import { useLogout } from "@/api/hooks/use-auth-actions";
 import { useUnreadCount } from "@/api/hooks/use-unread-count";
 import { Button } from "@/components/ui/button";
 
 export function NavBar() {
   const router = useRouter();
   const { user, logout } = useAuth();
+  const logoutRequest = useLogout();
   const { data: unreadCount } = useUnreadCount(user?.id);
 
   const handleLogout = async () => {
     try {
-      const { error } = await apiClient.POST("/api/v1/auth/logout", { body: {} });
-      if (error) throw error;
+      await logoutRequest.mutateAsync();
     } catch {
       toast.error("退出失败，请检查网络后重试");
       return;

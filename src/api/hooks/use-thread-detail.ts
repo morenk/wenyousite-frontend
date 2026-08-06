@@ -2,121 +2,54 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { queryKeys } from "@/api/query-keys";
 import type { components } from "@/api/types";
 
 export const THREAD_DETAIL_STALE_TIME = 30 * 1000;
 
-type DiceRoll = components["schemas"]["DiceRollResponseDto"];
-
-export interface ThreadTag {
-  id: string;
-  name: string;
-  color: string | null;
-}
-
-export interface ThreadOwner {
-  id: string;
-  username: string;
-  avatar: string | null;
-}
-
-export interface SubthreadDetail {
-  id: string;
-  threadId: string;
+export type ThreadTag = components["schemas"]["ThreadTagResponseDto"];
+export type ThreadOwner = components["schemas"]["PostAuthorResponseDto"];
+export type CurrentThreadMembership =
+  components["schemas"]["CurrentThreadMembershipResponseDto"];
+export type SubthreadDetail =
+  components["schemas"]["ThreadSubthreadResponseDto"];
+export type RawThreadDetail =
+  components["schemas"]["ThreadDetailResponseDto"];
+export type ThreadDetail = Omit<
+  RawThreadDetail,
+  | "title"
+  | "defaultSubthreadId"
+  | "isBookmarked"
+  | "bookmarkId"
+  | "isLiked"
+> & {
   title: string;
-  sortOrder: number;
-  postingPolicy: "PARTICIPANTS" | "COLLABORATORS" | "PLAYERS";
-  version: number;
-  lastPostAt: string | null;
-  deletedAt: string | null;
-  createdAt: string;
-  bodyPost: {
-    id: string;
-    content: string;
-    version: number;
-    diceRolls?: DiceRoll[];
-  } | null;
-  _count: { posts: number };
-  tags: { tag: { id: string; name: string; color: string | null } }[];
-}
-
-export interface ThreadDetail {
-  id: string;
-  title: string;
-  ownerId: string;
-  category: "DEDUCTION" | "NATION" | "RPG";
-  status: "RECRUITING" | "CLOSED" | "FINISHED";
-  visibility: "PUBLIC" | "PRIVATE";
-  published: boolean;
-  publishedAt: string | null;
-  pinned: boolean;
-  pinnedAt: string | null;
-  viewCount: number;
-  version: number;
-  likeCount: number;
-  isLiked: boolean;
   defaultSubthreadId: string;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt: string | null;
-  owner: ThreadOwner;
-  subthreads: SubthreadDetail[];
   defaultSubthread: SubthreadDetail;
-  topicTags: { tag: ThreadTag }[];
-  _count: {
-    members: number;
-    players: number;
-    posts: number;
-  };
   isBookmarked: boolean;
   bookmarkId: string | null;
-}
-
-export interface RawThreadDetail {
-  id: string;
-  title: string;
-  ownerId: string;
-  category: "DEDUCTION" | "NATION" | "RPG";
-  status: "RECRUITING" | "CLOSED" | "FINISHED";
-  visibility: "PUBLIC" | "PRIVATE";
-  published: boolean;
-  publishedAt: string | null;
-  pinned: boolean;
-  pinnedAt: string | null;
-  viewCount: number;
-  version: number;
-  likeCount: number;
-  isLiked?: boolean;
-  defaultSubthreadId: string;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt: string | null;
-  owner: ThreadOwner;
-  subthreads: SubthreadDetail[];
-  topicTags: { tag: ThreadTag }[];
-  _count: {
-    members: number;
-    players: number;
-    posts: number;
-  };
-  isBookmarked?: boolean;
-  bookmarkId?: string | null;
-}
-
-interface ThreadDetailResponse {
-  code: number;
-  message: string;
-  data: RawThreadDetail;
-}
+  isLiked: boolean;
+};
 
 export function normalizeThreadDetail(raw: RawThreadDetail): ThreadDetail {
-  const defaultSubthread =
-    raw.subthreads?.find((s) => s.id === raw.defaultSubthreadId) ??
-    raw.subthreads?.[0];
+  if (!raw.title?.trim()) {
+    throw new Error("主题帖详情缺少标题");
+  }
+  if (!raw.defaultSubthreadId) {
+    throw new Error("主题帖详情缺少默认子贴");
+  }
+  const defaultSubthread = raw.subthreads.find(
+    (subthread) => subthread.id === raw.defaultSubthreadId,
+  );
+  if (!defaultSubthread) {
+    throw new Error("主题帖详情未返回可用子贴");
+  }
 
   return {
     ...raw,
-    defaultSubthread: defaultSubthread!,
+    title: raw.title,
+    defaultSubthreadId: raw.defaultSubthreadId,
+    defaultSubthread,
     isBookmarked: raw.isBookmarked ?? false,
     bookmarkId: raw.bookmarkId ?? null,
     isLiked: raw.isLiked ?? false,
@@ -125,13 +58,14 @@ export function normalizeThreadDetail(raw: RawThreadDetail): ThreadDetail {
 
 export function threadDetailQueryOptions(threadId: string) {
   return {
-    queryKey: ["thread", threadId] as const,
+    queryKey: queryKeys.threads.detail(threadId),
     queryFn: async () => {
       const { data, error } = await apiClient.GET("/api/v1/threads/{id}", {
         params: { path: { id: threadId } },
       });
       if (error) throw error;
-      return normalizeThreadDetail((data as unknown as ThreadDetailResponse).data);
+      if (!data) throw new Error("主题帖详情响应为空");
+      return normalizeThreadDetail(data.data);
     },
     staleTime: THREAD_DETAIL_STALE_TIME,
   };

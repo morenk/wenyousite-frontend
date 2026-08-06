@@ -2,7 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
-import type { PostAuthor } from "./use-floors";
+import { queryKeys } from "@/api/query-keys";
+import type { components } from "@/api/types";
 
 export interface FollowUser {
   id: string;
@@ -12,40 +13,23 @@ export interface FollowUser {
 
 export type FollowListKind = "following" | "followers";
 
-interface UserFollowRecord {
-  id: string;
-  followerId: string;
-  followingId: string;
-  createdAt: string;
-  following?: PostAuthor;
-  follower?: PostAuthor;
-}
-
-interface UserFollowListResponse {
-  code: number;
-  message: string;
-  data: UserFollowRecord[];
-}
-
-const listPath = {
-  following: "/api/v1/users/{id}/following",
-  followers: "/api/v1/users/{id}/followers",
-} as const;
+type UserFollowRecord =
+  components["schemas"]["UserFollowRecordResponseDto"];
 
 export function useUserFollowList(
   userId: string | undefined,
   kind: FollowListKind,
 ) {
   return useQuery({
-    queryKey: ["user", kind, userId],
+    queryKey: queryKeys.users.followLists(kind, userId),
     queryFn: async () => {
       if (!userId) throw new Error("缺少用户 ID");
-      const { data, error } = await apiClient.GET(listPath[kind], {
-        params: { path: { id: userId } },
-      });
+      const requestOptions = { params: { path: { id: userId } } } as const;
+      const { data, error } = kind === "following"
+        ? await apiClient.GET("/api/v1/users/{id}/following", requestOptions)
+        : await apiClient.GET("/api/v1/users/{id}/followers", requestOptions);
       if (error) throw error;
-      const response = data as unknown as UserFollowListResponse;
-      const records = response?.data ?? [];
+      const records: UserFollowRecord[] = data?.data ?? [];
       return records
         .map((r) => r.following ?? r.follower)
         .filter((u): u is FollowUser => !!u);

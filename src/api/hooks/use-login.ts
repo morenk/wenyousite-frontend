@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { queryKeys } from "@/api/query-keys";
 import type { components } from "@/api/types";
 
 type LoginRequest = components["schemas"]["LoginDto"];
@@ -18,7 +19,7 @@ export function useLogin() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
     },
   });
 }

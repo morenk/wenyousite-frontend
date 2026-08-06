@@ -5,7 +5,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -13,6 +12,7 @@ import {
   useChangeEmailRequest,
   useChangeEmailVerify,
 } from "@/api/hooks/use-auth-actions";
+import { getApiError } from "@/api/errors";
 import {
   changeEmailSchema,
   emailSchema,
@@ -27,7 +27,6 @@ import { Label } from "@/components/ui/label";
 
 export function ChangeEmailForm() {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const changeEmailRequest = useChangeEmailRequest();
   const changeEmailVerify = useChangeEmailVerify();
   const {
@@ -59,7 +58,7 @@ export function ChangeEmailForm() {
         toast.success("验证码已发送至新邮箱");
       });
     } catch (err) {
-      const e = err as { code?: number; message?: string };
+      const e = getApiError(err);
       if (e.code === 40900) {
         toast.error("该邮箱已被其他用户使用");
       } else {
@@ -75,10 +74,9 @@ export function ChangeEmailForm() {
         code: values.code,
       });
       toast.success("邮箱已更换");
-      queryClient.invalidateQueries({ queryKey: ["me"] });
       router.replace("/me");
     } catch (err) {
-      const e = err as { code?: number; message?: string };
+      const e = getApiError(err);
       if (e.code === 40001) {
         toast.error(e.message || "验证码错误或已过期");
       } else {

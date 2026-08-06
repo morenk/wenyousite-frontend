@@ -2,12 +2,12 @@
 
 "use client";
 
-import { useEffect, useRef } from "react";
 import { Loader2, ChevronDown } from "lucide-react";
 import { useUserBookmarks } from "@/api/hooks/use-user-bookmarks";
 import { BookmarkThreadCard } from "@/components/user/bookmark-thread-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 
 interface UserBookmarksSectionProps {
   userId: string;
@@ -23,24 +23,11 @@ export function UserBookmarksSection({ userId }: UserBookmarksSectionProps) {
     isError,
   } = useUserBookmarks(userId);
 
-  const sentinelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-          fetchNextPage();
-        }
-      },
-      { threshold: 0.1 },
-    );
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  const sentinelRef = useInfiniteScroll({
+    hasNextPage: !!hasNextPage,
+    isFetchingNextPage,
+    onLoadMore: fetchNextPage,
+  });
 
   const bookmarks = data?.pages.flatMap((page) => page?.data ?? []) ?? [];
 

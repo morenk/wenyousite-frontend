@@ -15,8 +15,9 @@ vi.mock("@/api/client", () => ({
   apiClient: { POST: mockPOST, DELETE: mockDELETE },
 }));
 
-function createWrapper() {
-  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+function createWrapper(
+  qc = new QueryClient({ defaultOptions: { queries: { retry: false } } }),
+) {
   function Wrapper({ children }: { children: React.ReactNode }) {
     return <QueryClientProvider client={qc}>{children}</QueryClientProvider>;
   }
@@ -56,6 +57,30 @@ describe("useFollowActions", () => {
     await waitFor(() => expect(result.current.unfollow.isSuccess).toBe(true));
     expect(mockDELETE).toHaveBeenCalledWith("/api/v1/users/follow/{id}", {
       params: { path: { id: "u2" } },
+    });
+  });
+
+  test("关注变化同时失效目标粉丝和关注列表", async () => {
+    mockPOST.mockResolvedValue({
+      data: { code: 0, message: "ok", data: { message: "已关注" } },
+      error: undefined,
+    });
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    const invalidate = vi.spyOn(queryClient, "invalidateQueries");
+    const { result } = renderHook(() => useFollowActions("u2"), {
+      wrapper: createWrapper(queryClient),
+    });
+
+    result.current.follow.mutate();
+    await waitFor(() => expect(result.current.follow.isSuccess).toBe(true));
+
+    expect(invalidate).toHaveBeenCalledWith({
+      queryKey: ["user", "followers", "u2"],
+    });
+    expect(invalidate).toHaveBeenCalledWith({
+      queryKey: ["user", "following"],
     });
   });
 });

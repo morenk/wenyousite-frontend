@@ -35,30 +35,15 @@ vi.mock("@/components/forms/tag-input", () => ({
 }));
 
 const {
-  mockUpdateThreadMutate,
-  mockUpdateSubthreadMutate,
-  mockUpsertBodyMutate,
-  mockSyncTagsMutate,
+  mockSaveThreadMutate,
   mockUploadImageMutate,
 } = vi.hoisted(() => ({
-  mockUpdateThreadMutate: vi.fn(),
-  mockUpdateSubthreadMutate: vi.fn(),
-  mockUpsertBodyMutate: vi.fn(),
-  mockSyncTagsMutate: vi.fn(),
+  mockSaveThreadMutate: vi.fn(),
   mockUploadImageMutate: vi.fn(),
 }));
 
-vi.mock("@/api/hooks/use-update-thread", () => ({
-  useUpdateThread: () => ({ mutateAsync: mockUpdateThreadMutate }),
-}));
-vi.mock("@/api/hooks/use-update-subthread", () => ({
-  useUpdateSubthread: () => ({ mutateAsync: mockUpdateSubthreadMutate }),
-}));
-vi.mock("@/api/hooks/use-upsert-body", () => ({
-  useUpsertBody: () => ({ mutateAsync: mockUpsertBodyMutate }),
-}));
-vi.mock("@/api/hooks/use-sync-thread-tags", () => ({
-  useSyncThreadTags: () => ({ mutateAsync: mockSyncTagsMutate }),
+vi.mock("@/api/hooks/use-save-thread-aggregate", () => ({
+  useSaveThreadAggregate: () => ({ mutateAsync: mockSaveThreadMutate }),
 }));
 vi.mock("@/api/hooks/use-upload-image", () => ({
   useUploadImage: () => ({ mutateAsync: mockUploadImageMutate, isPending: false }),
@@ -112,7 +97,7 @@ const mockThread: ThreadDetail = {
       lastPostAt: null,
       deletedAt: null,
       createdAt: "2026-01-01T00:00:00Z",
-      bodyPost: { id: "p1", content: "默认正文", version: 2 },
+      bodyPost: { id: "p1", content: "默认正文", version: 2, diceRolls: [] },
       _count: { posts: 1 },
       tags: [],
     },
@@ -127,7 +112,7 @@ const mockThread: ThreadDetail = {
     lastPostAt: null,
     deletedAt: null,
     createdAt: "2026-01-01T00:00:00Z",
-    bodyPost: { id: "p1", content: "默认正文", version: 2 },
+    bodyPost: { id: "p1", content: "默认正文", version: 2, diceRolls: [] },
     _count: { posts: 1 },
     tags: [],
   },
@@ -139,28 +124,50 @@ const mockThread: ThreadDetail = {
 };
 
 function renderForm(isOwner = true) {
-  const onSaved = vi.fn().mockResolvedValue({ data: mockThread });
   const onDirtyChange = vi.fn();
   const onSavingChange = vi.fn();
   render(
     <ThreadEditForm
       thread={mockThread}
       isOwner={isOwner}
-      onSaved={onSaved}
       onDirtyChange={onDirtyChange}
       onSavingChange={onSavingChange}
     />,
     { wrapper: createWrapper() },
   );
-  return { onSaved, onDirtyChange, onSavingChange };
+  return { onDirtyChange, onSavingChange };
 }
 
 describe("ThreadEditForm", () => {
   beforeEach(() => {
-    mockUpdateThreadMutate.mockResolvedValue({ id: "t1" });
-    mockUpdateSubthreadMutate.mockResolvedValue({});
-    mockUpsertBodyMutate.mockResolvedValue({ id: "p1" });
-    mockSyncTagsMutate.mockResolvedValue(undefined);
+    mockSaveThreadMutate.mockImplementation(
+      async ({ body }: { body: Record<string, unknown> }) => {
+        const nextBodyPost = {
+          ...mockThread.defaultSubthread.bodyPost!,
+          content: String(body.content ?? ""),
+          version: 3,
+        };
+        const nextSubthread = {
+          ...mockThread.defaultSubthread,
+          title: String(body.title ?? mockThread.defaultSubthread.title),
+          version: 2,
+          bodyPost: nextBodyPost,
+        };
+        return {
+          ...mockThread,
+          title: String(body.title ?? mockThread.title),
+          category: body.category ?? mockThread.category,
+          status: body.status ?? mockThread.status,
+          visibility: body.visibility ?? mockThread.visibility,
+          version: 4,
+          defaultSubthread: nextSubthread,
+          subthreads: [nextSubthread],
+          topicTags: ((body.tagNames as string[]) ?? []).map((name) => ({
+            tag: { id: `tag-${name}`, name, color: null },
+          })),
+        } as ThreadDetail;
+      },
+    );
   });
 
   test("回填现有标题、分区、可见性、标签、正文", () => {
@@ -177,7 +184,7 @@ describe("ThreadEditForm", () => {
 
   test("保存修改：更新正文、标题和标签并停留在表单", async () => {
     const user = userEvent.setup();
-    const { onSaved } = renderForm();
+    renderForm();
 
     await user.clear(screen.getByTestId("milkdown-editor"));
     await user.type(screen.getByTestId("milkdown-editor"), "新正文");
@@ -187,17 +194,7 @@ describe("ThreadEditForm", () => {
 
     await user.click(screen.getByRole("button", { name: "保存修改" }));
 
-    expect(mockUpsertBodyMutate).toHaveBeenCalledWith({
-      subthreadId: "s1",
-      content: "新正文",
-      version: 2,
-    });
-    expect(mockSyncTagsMutate).toHaveBeenCalledWith({
-      threadId: "t1",
-      existingTags: [{ id: "tag-1", name: "保留", color: null }],
-      targetNames: ["保留", "新标签"],
-    });
-    expect(mockUpdateThreadMutate).toHaveBeenCalledWith({
+    expect(mockSaveThreadMutate).toHaveBeenCalledWith({
       threadId: "t1",
       body: {
         title: "新标题",
@@ -205,14 +202,17 @@ describe("ThreadEditForm", () => {
         status: "RECRUITING",
         visibility: "PUBLIC",
         version: 3,
+        defaultSubthreadVersion: 1,
+        bodyVersion: 2,
+        content: "新正文",
+        tagNames: ["保留", "新标签"],
       },
     });
     expect(toast.success).toHaveBeenCalledWith("修改已保存");
-    expect(onSaved).toHaveBeenCalledTimes(2);
     expect(screen.getByRole("button", { name: "保存修改" })).toBeInTheDocument();
   });
 
-  test("标题变化时同步默认子贴标题", async () => {
+  test("标题变化通过聚合端点同步默认子贴标题", async () => {
     const user = userEvent.setup();
     renderForm();
 
@@ -220,9 +220,12 @@ describe("ThreadEditForm", () => {
     await user.type(screen.getByLabelText("主题帖标题"), "新标题");
     await user.click(screen.getByRole("button", { name: "保存修改" }));
 
-    expect(mockUpdateSubthreadMutate).toHaveBeenCalledWith({
-      subthreadId: "s1",
-      body: { title: "新标题", version: 1 },
+    expect(mockSaveThreadMutate).toHaveBeenCalledWith({
+      threadId: "t1",
+      body: expect.objectContaining({
+        title: "新标题",
+        defaultSubthreadVersion: 1,
+      }),
     });
   });
 
@@ -233,13 +236,17 @@ describe("ThreadEditForm", () => {
     expect(screen.queryByLabelText("可见性")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "保存修改" }));
 
-    expect(mockUpdateThreadMutate).toHaveBeenCalledWith({
+    expect(mockSaveThreadMutate).toHaveBeenCalledWith({
       threadId: "t1",
       body: {
         title: "测试帖",
         category: "RPG",
         status: "RECRUITING",
         version: 3,
+        defaultSubthreadVersion: 1,
+        bodyVersion: 2,
+        content: "默认正文",
+        tagNames: ["保留"],
       },
     });
   });
@@ -251,20 +258,32 @@ describe("ThreadEditForm", () => {
     await user.selectOptions(screen.getByLabelText("状态"), "FINISHED");
     await user.click(screen.getByRole("button", { name: "保存修改" }));
 
-    expect(mockUpdateThreadMutate).toHaveBeenCalledWith(
+    expect(mockSaveThreadMutate).toHaveBeenCalledWith(
       expect.objectContaining({ body: expect.objectContaining({ status: "FINISHED" }) }),
     );
   });
 
-  test("乐观锁冲突提示 40900", async () => {
+  test("乐观锁冲突提示 40002", async () => {
     const user = userEvent.setup();
     renderForm();
-    mockUpdateThreadMutate.mockRejectedValueOnce({ code: 40900, message: "内容已被修改" });
+    mockSaveThreadMutate.mockRejectedValueOnce({ code: 40002, message: "内容已被修改" });
 
     await user.click(screen.getByRole("button", { name: "保存修改" }));
 
     expect(toast.error).toHaveBeenCalledWith("内容已被修改，请刷新后重试");
     expect(toast.success).not.toHaveBeenCalled();
+  });
+
+  test("标题超过上限时阻止保存并显示字段错误", async () => {
+    const user = userEvent.setup();
+    renderForm();
+
+    await user.clear(screen.getByLabelText("主题帖标题"));
+    await user.type(screen.getByLabelText("主题帖标题"), "超".repeat(101));
+    await user.click(screen.getByRole("button", { name: "保存修改" }));
+
+    expect(await screen.findByText("标题最多 100 个字符")).toBeInTheDocument();
+    expect(mockSaveThreadMutate).not.toHaveBeenCalled();
   });
 
   test("修改后上报未保存状态，保存成功后清除", async () => {

@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-provider";
 import { SubthreadCard } from "@/components/thread/subthread-card";
 import { SubthreadForm, type SubthreadFormData } from "@/components/forms/subthread-form";
 import type { SubthreadDetail } from "@/api/hooks/use-thread-detail";
@@ -39,6 +40,7 @@ export function SubthreadList({
   renderFloors,
 }: SubthreadListProps) {
   const [formMode, setFormMode] = useState<FormMode | null>(null);
+  const confirmAction = useConfirm();
 
   async function handleCreate(data: SubthreadFormData) {
     await onCreate?.(data);
@@ -52,8 +54,13 @@ export function SubthreadList({
     setFormMode(null);
   }
 
-  function handleDelete(subthreadId: string) {
-    if (confirm("确定要删除该子贴吗？子贴及其所有楼层将被删除。")) {
+  async function handleDelete(subthreadId: string) {
+    if (await confirmAction({
+      title: "删除子贴",
+      description: "确定要删除该子贴吗？子贴及其所有楼层将被删除。",
+      confirmLabel: "删除",
+      destructive: true,
+    })) {
       onDelete?.(subthreadId);
     }
   }

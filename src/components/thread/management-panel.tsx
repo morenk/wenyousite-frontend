@@ -5,7 +5,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 
 import { Button } from "@/components/ui/button";
@@ -24,9 +23,11 @@ import { useReorderSubthreads } from "@/api/hooks/use-reorder-subthreads";
 import { useSyncSubthreadTags } from "@/api/hooks/use-sync-subthread-tags";
 import { useUpsertBody } from "@/api/hooks/use-upsert-body";
 import { useUploadImage } from "@/api/hooks/use-upload-image";
+import { getApiError, getApiErrorMessage } from "@/api/errors";
 import { POSTING_POLICY_LABEL } from "@/lib/post-policy";
 import type { ThreadDetail, SubthreadDetail } from "@/api/hooks/use-thread-detail";
 import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
+import { useConfirm } from "@/components/ui/confirm-provider";
 
 interface ManagementPanelProps {
   thread: ThreadDetail;
@@ -68,8 +69,8 @@ export function ManagementPanel({
   const [isSaving, setIsSaving] = useState(false);
   const [isThreadDirty, setIsThreadDirty] = useState(false);
   const [isThreadSaving, setIsThreadSaving] = useState(false);
+  const confirmAction = useConfirm();
 
-  const queryClient = useQueryClient();
   const createSubthread = useCreateSubthread();
   const updateSubthread = useUpdateSubthread();
   const deleteSubthread = useDeleteSubthread();
@@ -89,11 +90,14 @@ export function ManagementPanel({
       : view === "subthreads" && isSubthreadDirty;
   }
 
-  function confirmDiscardChanges() {
-    return (
-      !hasUnsavedChanges() ||
-      confirm("当前修改尚未保存，确定要放弃吗？")
-    );
+  async function confirmDiscardChanges() {
+    if (!hasUnsavedChanges()) return true;
+    return confirmAction({
+      title: "放弃未保存修改",
+      description: "当前修改尚未保存，确定要放弃吗？",
+      confirmLabel: "放弃修改",
+      destructive: true,
+    });
   }
 
   function resetSubthreadEditor() {
@@ -101,22 +105,27 @@ export function ManagementPanel({
     setResetKey((key) => key + 1);
   }
 
-  function handleViewChange(nextView: ManagementView) {
+  async function handleViewChange(nextView: ManagementView) {
     if (nextView === view || isNavigationLocked) return;
-    if (!confirmDiscardChanges()) return;
+    if (!(await confirmDiscardChanges())) return;
     if (view === "thread") setIsThreadDirty(false);
     if (view === "subthreads") resetSubthreadEditor();
     setView(nextView);
   }
 
-  function handleExit() {
-    if (isNavigationLocked || !confirmDiscardChanges()) return;
+  async function handleExit() {
+    if (isNavigationLocked || !(await confirmDiscardChanges())) return;
     onExit();
   }
 
-  function handleSelect(id: string) {
+  async function handleSelect(id: string) {
     if (id === selectedId || isNavigationLocked) return;
-    if (isSubthreadDirty && !confirm("当前修改尚未保存，确定要放弃吗？")) {
+    if (isSubthreadDirty && !(await confirmAction({
+      title: "切换子贴",
+      description: "当前修改尚未保存，确定要放弃吗？",
+      confirmLabel: "放弃并切换",
+      destructive: true,
+    }))) {
       return;
     }
     setSelectedId(id);
@@ -143,18 +152,16 @@ export function ManagementPanel({
       setIsSaving(true);
       await upsertBody.mutateAsync({
         subthreadId: selectedSub.id,
+        threadId: thread.id,
         content: trimmed,
         version: selectedSub.bodyPost?.version,
       });
-      queryClient.invalidateQueries({ queryKey: ["floors"] });
-      await onRefetch();
       setContent(trimmed);
       setSavedContent(trimmed);
       setResetKey((key) => key + 1);
       toast.success("正文已保存");
     } catch (error) {
-      const err = error as { message?: string };
-      toast.error(err.message || "保存失败，请稍后重试");
+      toast.error(getApiErrorMessage(error, "保存失败，请稍后重试"));
     } finally {
       setIsSaving(false);
     }
@@ -224,7 +231,12 @@ export function ManagementPanel({
   }
 
   async function handleDeleteSubthread(sub: SubthreadDetail) {
-    if (!confirm("确定要删除该子贴吗？子贴及其所有楼层将被删除。")) return;
+    if (!(await confirmAction({
+      title: "删除子贴",
+      description: "确定要删除该子贴吗？子贴及其所有楼层将被删除。",
+      confirmLabel: "删除",
+      destructive: true,
+    }))) return;
     try {
       await deleteSubthread.mutateAsync(sub.id);
       if (selectedId === sub.id) {
@@ -249,7 +261,7 @@ export function ManagementPanel({
       });
       await onRefetch();
     } catch (error) {
-      const err = error as { message?: string };
+      const err = getApiError(error);
       if (err.message?.includes("默认子贴") || err.message?.includes("第一位")) {
         toast.error("主帖必须保持在第一位，不能与其他子帖交换顺序");
       } else {
@@ -318,7 +330,6 @@ export function ManagementPanel({
             <ThreadEditForm
               thread={thread}
               isOwner={isOwner}
-              onSaved={onRefetch}
               onDirtyChange={setIsThreadDirty}
               onSavingChange={setIsThreadSaving}
             />
@@ -333,7 +344,6 @@ export function ManagementPanel({
             threadId={thread.id}
             isOwner={isOwner}
             isCollaborator={isCollaborator}
-            onRefetch={onRefetch}
           />
         </div>
       )}

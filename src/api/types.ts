@@ -536,25 +536,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/subscriptions": {
+    "/api/v1/notifications": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** 我的订阅列表 */
-        get: operations["SubscriptionsController_findAll"];
+        /** 通知列表 */
+        get: operations["NotificationsController_findAll"];
         put?: never;
-        /** 创建官方更新或玩家发言订阅 */
-        post: operations["SubscriptionsController_create"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/subscriptions/{id}": {
+    "/api/v1/notifications/unread": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 未读通知数 */
+        get: operations["NotificationsController_unreadCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -564,14 +580,15 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** 取消订阅 */
-        delete: operations["SubscriptionsController_remove"];
+        /** 删除通知 */
+        delete: operations["NotificationsController_remove"];
         options?: never;
         head?: never;
-        patch?: never;
+        /** 标记通知阅读状态 */
+        patch: operations["NotificationsController_setReadStatus"];
         trace?: never;
     };
-    "/api/v1/media/upload-url": {
+    "/api/v1/notifications/read-all": {
         parameters: {
             query?: never;
             header?: never;
@@ -580,42 +597,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 获取临时上传 URL + mediaId（有效期 10 分钟，预建 UPLOADING 记录） */
-        post: operations["MediaController_getUploadUrl"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/media/upload-done": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** 确认上传完成（校验归属 + S3，入队异步图片处理） */
-        post: operations["MediaController_confirmUpload"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/media/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** 查询图片处理状态（UPLOADING / PROCESSING / COMPLETED / FAILED） */
-        get: operations["MediaController_getMedia"];
-        put?: never;
-        post?: never;
+        /** 全部已读 */
+        post: operations["NotificationsController_markAllAsRead"];
         delete?: never;
         options?: never;
         head?: never;
@@ -709,6 +692,23 @@ export interface paths {
         head?: never;
         /** 修改/发布主题帖（仅 OWNER/COLLABORATOR）。设置 published=true 发布，带乐观锁 version */
         patch: operations["ThreadsController_update"];
+        trace?: never;
+    };
+    "/api/v1/threads/{id}/aggregate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** 原子保存主题帖元数据、默认子贴标题/正文和标签，可同时发布草稿 */
+        patch: operations["ThreadsController_saveAggregate"];
         trace?: never;
     };
     "/api/v1/threads/{id}/like": {
@@ -1100,6 +1100,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reading-progress/threads/{threadId}/new-replies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 查询主题帖全部子贴的新增回复数 */
+        get: operations["ReadingProgressController_threadNewReplies"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/drafts": {
         parameters: {
             query?: never;
@@ -1154,41 +1171,25 @@ export interface paths {
         patch: operations["DraftsController_update"];
         trace?: never;
     };
-    "/api/v1/notifications": {
+    "/api/v1/subscriptions": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** 通知列表 */
-        get: operations["NotificationsController_findAll"];
+        /** 我的订阅列表 */
+        get: operations["SubscriptionsController_findAll"];
         put?: never;
-        post?: never;
+        /** 创建官方更新或玩家发言订阅 */
+        post: operations["SubscriptionsController_create"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/notifications/unread": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** 未读通知数 */
-        get: operations["NotificationsController_unreadCount"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/notifications/{id}": {
+    "/api/v1/subscriptions/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1198,26 +1199,8 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** 删除通知 */
-        delete: operations["NotificationsController_remove"];
-        options?: never;
-        head?: never;
-        /** 标记通知阅读状态 */
-        patch: operations["NotificationsController_setReadStatus"];
-        trace?: never;
-    };
-    "/api/v1/notifications/read-all": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** 全部已读 */
-        post: operations["NotificationsController_markAllAsRead"];
-        delete?: never;
+        /** 取消订阅 */
+        delete: operations["SubscriptionsController_remove"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1428,6 +1411,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/media/upload-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 获取临时上传 URL + mediaId（有效期 10 分钟，预建 UPLOADING 记录） */
+        post: operations["MediaController_getUploadUrl"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/media/upload-done": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 确认上传完成（校验归属 + S3，入队异步图片处理） */
+        post: operations["MediaController_confirmUpload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/media/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 查询图片处理状态（UPLOADING / PROCESSING / COMPLETED / FAILED） */
+        get: operations["MediaController_getMedia"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1438,6 +1472,15 @@ export interface components {
              * @example user@example.com
              */
             email: string;
+        };
+        RegisterCodeResponseDto: {
+            emailSent: boolean;
+            /**
+             * @description 验证码有效秒数
+             * @example 900
+             */
+            codeExpiresIn: number;
+            message: string;
         };
         VerifyAndCompleteDto: {
             /**
@@ -1537,6 +1580,13 @@ export interface components {
              * @example 8a7b3c
              */
             token: string;
+        };
+        MessageResponseDto: {
+            /**
+             * @description 操作结果说明
+             * @example 操作成功
+             */
+            message: string;
         };
         ResendVerificationDto: {
             /**
@@ -1665,6 +1715,11 @@ export interface components {
             /** @example 登录终端已退出 */
             message: string;
         };
+        PostAuthorResponseDto: {
+            id: string;
+            username: string;
+            avatar: string | null;
+        };
         MentionCandidateDto: {
             id: string;
             username: string;
@@ -1676,6 +1731,31 @@ export interface components {
             users: components["schemas"]["MentionCandidateDto"][];
             /** @description 当前用户是否允许使用 @全体玩家 */
             canMentionAllPlayers: boolean;
+        };
+        UserSocialCountResponseDto: {
+            following: number;
+            followers: number;
+        };
+        CurrentUserResponseDto: {
+            id: string;
+            /** Format: email */
+            email: string;
+            username: string;
+            avatar: string | null;
+            bio: string | null;
+            /** @enum {string} */
+            role: "USER" | "ADMIN" | "SUPER_ADMIN";
+            showRecentReplies: boolean;
+            showPlayerBadges: boolean;
+            showBookmarks: boolean;
+            emailVerified: boolean;
+            /** Format: date-time */
+            deletedAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            _count: components["schemas"]["UserSocialCountResponseDto"];
         };
         UpdateUserDto: {
             /**
@@ -1704,6 +1784,26 @@ export interface components {
              */
             showBookmarks?: boolean;
         };
+        PrivateUserResponseDto: {
+            id: string;
+            /** Format: email */
+            email: string;
+            username: string;
+            avatar: string | null;
+            bio: string | null;
+            /** @enum {string} */
+            role: "USER" | "ADMIN" | "SUPER_ADMIN";
+            showRecentReplies: boolean;
+            showPlayerBadges: boolean;
+            showBookmarks: boolean;
+            emailVerified: boolean;
+            /** Format: date-time */
+            deletedAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
         SetAvatarDto: {
             /**
              * @description upload-url 返回的 mediaId
@@ -1711,81 +1811,204 @@ export interface components {
              */
             mediaId: string;
         };
-        CreateSubscriptionDto: {
-            /**
-             * @description 要订阅的主题帖 ID
-             * @example clxthread001...
-             */
-            threadId: string;
-            /**
-             * @description THREAD=楼主或协作者发布的官方更新, USER=指定普通玩家在帖内的新发言
-             * @example THREAD
-             * @enum {string}
-             */
-            type: "THREAD" | "USER";
-            /**
-             * @description 目标玩家 ID（type=USER 时必填；必须是本帖已标记玩家的普通参与人）
-             * @example clxuser001...
-             */
-            targetUserId?: string;
+        BookmarkThreadCountResponseDto: {
+            members: number;
+            posts: number;
         };
-        CreateUploadUrlDto: {
-            /**
-             * @description 原始文件名
-             * @example photo.jpg
-             */
-            filename: string;
-            /**
-             * @description 文件 MIME 类型
-             * @example image/jpeg
-             * @enum {string}
-             */
-            contentType: "image/jpeg" | "image/png" | "image/gif" | "image/webp" | "image/avif";
-            /**
-             * @description 文件大小（字节），上限 10MB
-             * @example 204800
-             */
-            size: number;
-        };
-        UploadUrlResponseDto: {
-            /** @description 对象存储预签名 PUT 地址 */
-            uploadUrl: string;
-            /** @description 媒体记录 ID，后续确认和轮询使用 */
-            mediaId: string;
-            /** @description 对象存储 key */
-            objectKey: string;
-            /** @description 原图公开访问地址 */
-            publicUrl: string;
-        };
-        ConfirmUploadDto: {
-            /**
-             * @description getUploadUrl 返回的 mediaId
-             * @example clx...
-             */
-            mediaId: string;
-        };
-        MediaResponseDto: {
+        BookmarkThreadResponseDto: {
             id: string;
-            userId: string;
-            /** @description 原图公开访问地址 */
-            url: string;
-            /** @description 对象存储 key */
-            key: string;
-            /** @description 经对象存储确认的 MIME 类型；历史记录可能为空 */
-            contentType: string | null;
-            /** @description 声明或经确认的文件大小（字节） */
-            size: number | null;
-            width: number | null;
-            height: number | null;
+            title: string;
             /** @enum {string} */
-            status: "UPLOADING" | "PROCESSING" | "COMPLETED" | "FAILED";
+            category: "DEDUCTION" | "NATION" | "RPG";
+            /** @enum {string} */
+            status: "RECRUITING" | "CLOSED" | "FINISHED";
+            /** @enum {string} */
+            visibility: "PUBLIC" | "PRIVATE";
+            published: boolean;
+            pinned: boolean;
             /** Format: date-time */
             createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: date-time */
+            deletedAt: string | null;
+            owner: components["schemas"]["PostAuthorResponseDto"];
+            _count: components["schemas"]["BookmarkThreadCountResponseDto"];
+            /** @description 查看自己的收藏时返回收藏记录 ID */
+            bookmarkId?: string;
         };
-        ConfirmUploadResponseDto: {
-            media: components["schemas"]["MediaResponseDto"];
-            /** @description 是否处于异步图片处理阶段 */
-            processing: boolean;
+        ThreadListDefaultSubthreadResponseDto: {
+            id: string;
+            title: string;
+            /** Format: date-time */
+            lastPostAt: string | null;
+        };
+        ThreadTagResponseDto: {
+            id: string;
+            name: string;
+            color: string | null;
+        };
+        ThreadTagRelationResponseDto: {
+            tag: components["schemas"]["ThreadTagResponseDto"];
+        };
+        ThreadListCountResponseDto: {
+            members: number;
+            players: number;
+            posts: number;
+        };
+        ThreadListItemResponseDto: {
+            id: string;
+            title: string;
+            /** @enum {string} */
+            category: "DEDUCTION" | "NATION" | "RPG";
+            /** @enum {string} */
+            status: "RECRUITING" | "CLOSED" | "FINISHED";
+            /** @enum {string} */
+            visibility: "PUBLIC" | "PRIVATE";
+            published: boolean;
+            pinned: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: date-time */
+            deletedAt: string | null;
+            owner: components["schemas"]["PostAuthorResponseDto"];
+            defaultSubthread: components["schemas"]["ThreadListDefaultSubthreadResponseDto"] | null;
+            topicTags: components["schemas"]["ThreadTagRelationResponseDto"][];
+            _count: components["schemas"]["ThreadListCountResponseDto"];
+            /** @description 首页列表正文预览；用户活动列表可能不返回 */
+            preview?: string;
+        };
+        RecentReplyThreadResponseDto: {
+            title: string;
+        };
+        RecentReplySubthreadResponseDto: {
+            title: string;
+        };
+        RecentReplyDiceResponseDto: {
+            /** Format: uuid */
+            nodeId: string;
+            notation: string;
+            total: number;
+        };
+        RecentReplyResponseDto: {
+            id: string;
+            /** Format: date-time */
+            createdAt: string;
+            floorNumber: number | null;
+            parentPostId: string | null;
+            content: string;
+            threadId: string;
+            thread: components["schemas"]["RecentReplyThreadResponseDto"];
+            subthreadId: string;
+            subthread: components["schemas"]["RecentReplySubthreadResponseDto"];
+            diceRolls: components["schemas"]["RecentReplyDiceResponseDto"][];
+            preview: string;
+        };
+        PublicUserResponseDto: {
+            id: string;
+            username: string;
+            avatar?: string | null;
+            bio?: string | null;
+            /** @enum {string} */
+            role?: "USER" | "ADMIN" | "SUPER_ADMIN";
+            showRecentReplies?: boolean;
+            showPlayerBadges?: boolean;
+            showBookmarks?: boolean;
+            /** Format: date-time */
+            createdAt?: string;
+            _count?: components["schemas"]["UserSocialCountResponseDto"];
+            isFollowing?: boolean;
+            isFollowedBy?: boolean;
+            isBlocked?: boolean;
+            isBlockedBy?: boolean;
+            isDeactivated?: boolean;
+        };
+        UserFollowRecordResponseDto: {
+            id: string;
+            followerId: string;
+            followingId: string;
+            /** Format: date-time */
+            createdAt: string;
+            following?: components["schemas"]["PostAuthorResponseDto"];
+            follower?: components["schemas"]["PostAuthorResponseDto"];
+        };
+        BlockedUserRecordResponseDto: {
+            id: string;
+            blockerId: string;
+            blockedId: string;
+            /** Format: date-time */
+            createdAt: string;
+            blocked: components["schemas"]["PostAuthorResponseDto"];
+        };
+        NotificationPostResponseDto: {
+            id: string;
+            floorNumber: number | null;
+            parentPostId: string | null;
+            /** Format: date-time */
+            deletedAt: string | null;
+        };
+        NotificationThreadResponseDto: {
+            id: string;
+            title: string | null;
+            /** Format: date-time */
+            deletedAt: string | null;
+        };
+        NotificationFromUserResponseDto: {
+            id: string;
+            username: string;
+            avatar: string | null;
+            /** Format: date-time */
+            deletedAt: string | null;
+        };
+        NotificationResponseDto: {
+            id: string;
+            userId: string;
+            type: string;
+            content: string | null;
+            payload: {
+                [key: string]: unknown;
+            } | null;
+            postId: string | null;
+            threadId: string | null;
+            fromUserId: string | null;
+            eventKey: string;
+            isRead: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            post: components["schemas"]["NotificationPostResponseDto"] | null;
+            thread: components["schemas"]["NotificationThreadResponseDto"] | null;
+            fromUser: components["schemas"]["NotificationFromUserResponseDto"] | null;
+        };
+        UnreadNotificationCountResponseDto: {
+            unreadCount: number;
+        };
+        SetReadStatusDto: {
+            /** @description 阅读状态（true=已读，false=未读） */
+            isRead: boolean;
+        };
+        OwnBookmarkThreadResponseDto: {
+            id: string;
+            title: string;
+            /** @enum {string} */
+            category: "DEDUCTION" | "NATION" | "RPG";
+            /** @enum {string} */
+            status: "RECRUITING" | "CLOSED" | "FINISHED";
+            /** @enum {string} */
+            visibility: "PUBLIC" | "PRIVATE";
+            published: boolean;
+            pinned: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: date-time */
+            deletedAt: string | null;
+            owner: components["schemas"]["PostAuthorResponseDto"];
+            _count: components["schemas"]["BookmarkThreadCountResponseDto"];
+            /** @description 收藏记录 ID */
+            bookmarkId?: string;
         };
         CreateBookmarkDto: {
             /**
@@ -1793,6 +2016,59 @@ export interface components {
              * @example clxthread001...
              */
             threadId: string;
+        };
+        DraftDefaultSubthreadResponseDto: {
+            id: string;
+            title: string;
+        };
+        DraftThreadCountResponseDto: {
+            subthreads: number;
+            posts: number;
+        };
+        DraftThreadResponseDto: {
+            id: string;
+            title: string;
+            /** @enum {string} */
+            category: "DEDUCTION" | "NATION" | "RPG";
+            /** @enum {string} */
+            status: "RECRUITING" | "CLOSED" | "FINISHED";
+            /** @enum {string} */
+            visibility: "PUBLIC" | "PRIVATE";
+            published: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: date-time */
+            deletedAt: string | null;
+            defaultSubthreadId: string | null;
+            defaultSubthread: components["schemas"]["DraftDefaultSubthreadResponseDto"] | null;
+            topicTags: components["schemas"]["ThreadTagRelationResponseDto"][];
+            _count: components["schemas"]["DraftThreadCountResponseDto"];
+        };
+        HomeThreadListItemResponseDto: {
+            id: string;
+            title: string;
+            /** @enum {string} */
+            category: "DEDUCTION" | "NATION" | "RPG";
+            /** @enum {string} */
+            status: "RECRUITING" | "CLOSED" | "FINISHED";
+            /** @enum {string} */
+            visibility: "PUBLIC" | "PRIVATE";
+            published: boolean;
+            pinned: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: date-time */
+            deletedAt: string | null;
+            owner: components["schemas"]["PostAuthorResponseDto"];
+            defaultSubthread: components["schemas"]["ThreadListDefaultSubthreadResponseDto"] | null;
+            topicTags: components["schemas"]["ThreadTagRelationResponseDto"][];
+            _count: components["schemas"]["ThreadListCountResponseDto"];
+            /** @description 首页列表正文预览 */
+            preview?: string;
         };
         CreateThreadDto: {
             /**
@@ -1830,11 +2106,6 @@ export interface components {
              * @enum {string}
              */
             visibility: "PUBLIC" | "PRIVATE";
-        };
-        PostAuthorResponseDto: {
-            id: string;
-            username: string;
-            avatar: string | null;
         };
         DiceRollResponseDto: {
             id: string;
@@ -1883,15 +2154,31 @@ export interface components {
             version: number;
             /** Format: date-time */
             lastPostAt: string | null;
+            /** Format: date-time */
+            deletedAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
             bodyPost: components["schemas"]["ThreadBodyPostResponseDto"] | null;
             _count: components["schemas"]["ThreadSubthreadCountResponseDto"];
             /** @description 子贴标签关联 */
-            tags: Record<string, never>[];
+            tags: components["schemas"]["ThreadTagRelationResponseDto"][];
         };
         ThreadCountResponseDto: {
             members: number;
             posts: number;
             players: number;
+        };
+        CurrentThreadMembershipResponseDto: {
+            id: string;
+            userId: string;
+            /** @enum {string} */
+            role: "OWNER" | "COLLABORATOR" | "PARTICIPANT";
+            playerMarked: boolean;
+        };
+        ThreadCapabilitiesResponseDto: {
+            canManageThread: boolean;
+            canManageMembers: boolean;
+            isOwner: boolean;
         };
         ThreadDetailResponseDto: {
             id: string;
@@ -1907,6 +2194,8 @@ export interface components {
             /** Format: date-time */
             publishedAt: string | null;
             pinned: boolean;
+            /** Format: date-time */
+            pinnedAt: string | null;
             viewCount: number;
             version: number;
             likeCount: number;
@@ -1915,14 +2204,18 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
+            /** Format: date-time */
+            deletedAt: string | null;
             owner: components["schemas"]["PostAuthorResponseDto"];
             subthreads: components["schemas"]["ThreadSubthreadResponseDto"][];
             /** @description 平台主题标签关联 */
-            topicTags: Record<string, never>[];
+            topicTags: components["schemas"]["ThreadTagRelationResponseDto"][];
             _count: components["schemas"]["ThreadCountResponseDto"];
             isBookmarked?: boolean;
             bookmarkId?: string | null;
             isLiked?: boolean;
+            currentMembership?: components["schemas"]["CurrentThreadMembershipResponseDto"] | null;
+            capabilities?: components["schemas"]["ThreadCapabilitiesResponseDto"];
         };
         UpdateThreadDto: {
             /** @example 奇幻大陆·重置版 */
@@ -1953,6 +2246,42 @@ export interface components {
              * @example 1
              */
             version: number;
+        };
+        SaveThreadAggregateDto: {
+            title?: string;
+            /** @enum {string} */
+            category?: "DEDUCTION" | "NATION" | "RPG";
+            /** @enum {string} */
+            status?: "RECRUITING" | "CLOSED" | "FINISHED";
+            /** @enum {string} */
+            visibility?: "PUBLIC" | "PRIVATE";
+            /**
+             * @description 仅允许从草稿发布，不允许撤回
+             * @example true
+             */
+            published?: boolean;
+            /** @description 主题帖乐观锁版本 */
+            version: number;
+            /** @description 默认子贴乐观锁版本 */
+            defaultSubthreadVersion: number;
+            /** @description 已有默认正文的乐观锁版本 */
+            bodyVersion?: number;
+            /** @description 默认子贴 Markdown 正文 */
+            content: string;
+            /**
+             * @example [
+             *       "跑团",
+             *       "奇幻"
+             *     ]
+             */
+            tagNames: string[];
+        };
+        InviteLinkResponseDto: {
+            id: string;
+            threadId: string;
+            token: string;
+            /** Format: date-time */
+            createdAt: string;
         };
         InviteOwnerResponseDto: {
             /** @description 楼主用户 ID */
@@ -1993,12 +2322,30 @@ export interface components {
             /** @description 当前登录用户是否已经加入该主题帖 */
             alreadyJoined: boolean;
         };
+        ThreadMemberResponseDto: {
+            id: string;
+            threadId: string;
+            userId: string;
+            /** @enum {string} */
+            role: "OWNER" | "COLLABORATOR" | "PARTICIPANT";
+            playerMarked: boolean;
+            /** Format: date-time */
+            joinedAt: string;
+            user: components["schemas"]["PostAuthorResponseDto"];
+        };
         AddThreadTagDto: {
             /**
              * @description 主题帖标签名
              * @example 无限流
              */
             name: string;
+        };
+        TagResponseDto: {
+            id: string;
+            name: string;
+            color: string | null;
+            /** Format: date-time */
+            createdAt: string;
         };
         CreateTagDto: {
             /**
@@ -2011,6 +2358,34 @@ export interface components {
              * @example #FF6B6B
              */
             color?: string;
+        };
+        SubthreadCountResponseDto: {
+            posts: number;
+        };
+        SubthreadThreadReferenceResponseDto: {
+            id: string;
+            title: string | null;
+            ownerId: string;
+            /** @enum {string} */
+            visibility: "PUBLIC" | "PRIVATE";
+        };
+        SubthreadResponseDto: {
+            id: string;
+            threadId: string;
+            title: string;
+            sortOrder: number;
+            /** @enum {string} */
+            postingPolicy: "PARTICIPANTS" | "COLLABORATORS" | "PLAYERS";
+            version: number;
+            /** Format: date-time */
+            lastPostAt: string | null;
+            /** Format: date-time */
+            deletedAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            tags: components["schemas"]["ThreadTagRelationResponseDto"][];
+            _count: components["schemas"]["SubthreadCountResponseDto"];
+            thread?: components["schemas"]["SubthreadThreadReferenceResponseDto"];
         };
         CreateSubthreadDto: {
             /**
@@ -2270,6 +2645,23 @@ export interface components {
              */
             version: number;
         };
+        ContinueReadingFromDto: {
+            id: string;
+            floorNumber: number | null;
+            parentPostId: string | null;
+        };
+        NewRepliesResponseDto: {
+            subthreadId: string;
+            newReplies: number;
+            totalPosts: number;
+            lastReadPostId: string | null;
+            /** Format: date-time */
+            lastReadTime: string | null;
+            continueFrom: components["schemas"]["ContinueReadingFromDto"] | null;
+        };
+        ThreadNewRepliesResponseDto: {
+            items: components["schemas"]["NewRepliesResponseDto"][];
+        };
         UpdateReadingProgressDto: {
             /**
              * @description 子贴 ID
@@ -2335,9 +2727,40 @@ export interface components {
             /** @example 草稿已删除 */
             message: string;
         };
-        SetReadStatusDto: {
-            /** @description 阅读状态（true=已读，false=未读） */
-            isRead: boolean;
+        SubscriptionThreadResponseDto: {
+            id: string;
+            title: string;
+            /** @enum {string} */
+            category: "DEDUCTION" | "NATION" | "RPG";
+        };
+        SubscriptionResponseDto: {
+            id: string;
+            userId: string;
+            threadId: string;
+            targetUserId: string | null;
+            /** @enum {string} */
+            type: "THREAD" | "USER";
+            /** Format: date-time */
+            createdAt: string;
+            thread: components["schemas"]["SubscriptionThreadResponseDto"];
+        };
+        CreateSubscriptionDto: {
+            /**
+             * @description 要订阅的主题帖 ID
+             * @example clxthread001...
+             */
+            threadId: string;
+            /**
+             * @description THREAD=楼主或协作者发布的官方更新, USER=指定普通玩家在帖内的新发言
+             * @example THREAD
+             * @enum {string}
+             */
+            type: "THREAD" | "USER";
+            /**
+             * @description 目标玩家 ID（type=USER 时必填；必须是本帖已标记玩家的普通参与人）
+             * @example clxuser001...
+             */
+            targetUserId?: string;
         };
         CreateReportDto: {
             /** @description 举报目标类型 */
@@ -2468,6 +2891,64 @@ export interface components {
             threads: components["schemas"]["SearchThreadResponseDto"][];
             /** @description 公开楼层正文兼容匹配结果，最多 20 条 */
             posts: components["schemas"]["SearchPostResponseDto"][];
+        };
+        CreateUploadUrlDto: {
+            /**
+             * @description 原始文件名
+             * @example photo.jpg
+             */
+            filename: string;
+            /**
+             * @description 文件 MIME 类型
+             * @example image/jpeg
+             * @enum {string}
+             */
+            contentType: "image/jpeg" | "image/png" | "image/gif" | "image/webp" | "image/avif";
+            /**
+             * @description 文件大小（字节），上限 10MB
+             * @example 204800
+             */
+            size: number;
+        };
+        UploadUrlResponseDto: {
+            /** @description 对象存储预签名 PUT 地址 */
+            uploadUrl: string;
+            /** @description 媒体记录 ID，后续确认和轮询使用 */
+            mediaId: string;
+            /** @description 对象存储 key */
+            objectKey: string;
+            /** @description 原图公开访问地址 */
+            publicUrl: string;
+        };
+        ConfirmUploadDto: {
+            /**
+             * @description getUploadUrl 返回的 mediaId
+             * @example clx...
+             */
+            mediaId: string;
+        };
+        MediaResponseDto: {
+            id: string;
+            userId: string;
+            /** @description 原图公开访问地址 */
+            url: string;
+            /** @description 对象存储 key */
+            key: string;
+            /** @description 经对象存储确认的 MIME 类型；历史记录可能为空 */
+            contentType: string | null;
+            /** @description 声明或经确认的文件大小（字节） */
+            size: number | null;
+            width: number | null;
+            height: number | null;
+            /** @enum {string} */
+            status: "UPLOADING" | "PROCESSING" | "COMPLETED" | "FAILED";
+            /** Format: date-time */
+            createdAt: string;
+        };
+        ConfirmUploadResponseDto: {
+            media: components["schemas"]["MediaResponseDto"];
+            /** @description 是否处于异步图片处理阶段 */
+            processing: boolean;
         };
         ApiPaginationMeta: {
             cursor: string | null;
@@ -2636,7 +3117,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["RegisterCodeResponseDto"];
                     };
                 };
             };
@@ -2774,14 +3255,14 @@ export interface operations {
             };
         };
         responses: {
-            /** @description 验证成功 { message } */
+            /** @description 验证成功 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["MessageResponseDto"];
                     };
                 };
             };
@@ -2814,14 +3295,14 @@ export interface operations {
             };
         };
         responses: {
-            /** @description 验证邮件已重新发送 { message } */
+            /** @description 验证邮件已重新发送 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["MessageResponseDto"];
                     };
                 };
             };
@@ -2840,14 +3321,14 @@ export interface operations {
             };
         };
         responses: {
-            /** @description 密码修改成功 { message } */
+            /** @description 密码修改成功 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["MessageResponseDto"];
                     };
                 };
             };
@@ -2873,14 +3354,14 @@ export interface operations {
             };
         };
         responses: {
-            /** @description 密码重置邮件已发送 { message } */
+            /** @description 密码重置邮件已发送 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["MessageResponseDto"];
                     };
                 };
             };
@@ -2899,14 +3380,14 @@ export interface operations {
             };
         };
         responses: {
-            /** @description 密码重置成功 { message } */
+            /** @description 密码重置成功 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["MessageResponseDto"];
                     };
                 };
             };
@@ -2932,14 +3413,14 @@ export interface operations {
             };
         };
         responses: {
-            /** @description 验证码已发送 { message } */
+            /** @description 验证码已发送 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["MessageResponseDto"];
                     };
                 };
             };
@@ -2972,14 +3453,14 @@ export interface operations {
             };
         };
         responses: {
-            /** @description 邮箱更换成功 { message } */
+            /** @description 邮箱更换成功 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["MessageResponseDto"];
                     };
                 };
             };
@@ -3012,14 +3493,14 @@ export interface operations {
             };
         };
         responses: {
-            /** @description 登出成功 { message: "已登出" }，refreshToken 被撤销，Cookie 被清除 */
+            /** @description 登出成功，refreshToken 被撤销，Cookie 被清除 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["MessageResponseDto"];
                     };
                 };
             };
@@ -3111,7 +3592,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["PostAuthorResponseDto"][];
                     };
                 };
             };
@@ -3174,7 +3655,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["CurrentUserResponseDto"];
                     };
                 };
             };
@@ -3203,7 +3684,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["MessageResponseDto"];
                     };
                 };
             };
@@ -3236,7 +3717,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["PrivateUserResponseDto"];
                     };
                 };
             };
@@ -3272,7 +3753,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["PrivateUserResponseDto"];
                     };
                 };
             };
@@ -3305,7 +3786,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["PrivateUserResponseDto"];
                     };
                 };
             };
@@ -3348,7 +3829,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["BookmarkThreadResponseDto"][];
                     };
                 };
             };
@@ -3386,7 +3867,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["ThreadListItemResponseDto"][];
                     };
                 };
             };
@@ -3422,7 +3903,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["ThreadListItemResponseDto"][];
                     };
                 };
             };
@@ -3453,7 +3934,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["RecentReplyResponseDto"][];
                     };
                 };
             };
@@ -3484,7 +3965,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["PublicUserResponseDto"];
                     };
                 };
             };
@@ -3515,7 +3996,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["MessageResponseDto"];
                     };
                 };
             };
@@ -3553,23 +4034,9 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["MessageResponseDto"];
                     };
                 };
-            };
-            /** @description 未登录或 Token 无效 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description 目标用户不存在 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -3582,23 +4049,16 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 我的关注用户列表（含 id/username/avatar） */
+            /** @description 我的关注用户列表 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["UserFollowRecordResponseDto"][];
                     };
                 };
-            };
-            /** @description 未登录或 Token 无效 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -3611,23 +4071,16 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 我的粉丝列表（含 id/username/avatar） */
+            /** @description 我的粉丝列表 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["UserFollowRecordResponseDto"][];
                     };
                 };
-            };
-            /** @description 未登录或 Token 无效 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -3642,23 +4095,16 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 指定用户的关注列表（含 id/username/avatar） */
+            /** @description 指定用户的关注列表 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["UserFollowRecordResponseDto"][];
                     };
                 };
-            };
-            /** @description 用户不存在 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -3673,23 +4119,16 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 指定用户的粉丝列表（含 id/username/avatar） */
+            /** @description 指定用户的粉丝列表 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["UserFollowRecordResponseDto"][];
                     };
                 };
-            };
-            /** @description 用户不存在 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -3704,30 +4143,16 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 拉黑结果（成功 / 不能拉黑自己） */
+            /** @description 拉黑结果 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["MessageResponseDto"];
                     };
                 };
-            };
-            /** @description 未登录或 Token 无效 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description 目标用户不存在 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -3749,16 +4174,9 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["MessageResponseDto"];
                     };
                 };
-            };
-            /** @description 未登录或 Token 无效 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -3771,14 +4189,41 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 我的黑名单列表（含 id/username/avatar） */
+            /** @description 我的黑名单列表 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["BlockedUserRecordResponseDto"][];
+                    };
+                };
+            };
+        };
+    };
+    NotificationsController_findAll: {
+        parameters: {
+            query?: {
+                /** @description 分页游标（上一页最后一条通知 ID） */
+                cursor?: string;
+                /** @description 按类型过滤，逗号分隔，如 type=mention,reply */
+                type?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 通知列表（cursor 分页，按时间倒序） */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["NotificationResponseDto"][];
                     };
                 };
             };
@@ -3791,7 +4236,7 @@ export interface operations {
             };
         };
     };
-    SubscriptionsController_findAll: {
+    NotificationsController_unreadCount: {
         parameters: {
             query?: never;
             header?: never;
@@ -3800,14 +4245,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 我的订阅列表（含订阅类型和关联信息） */
+            /** @description { unreadCount: number } */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["UnreadNotificationCountResponseDto"];
                     };
                 };
             };
@@ -3820,40 +4265,7 @@ export interface operations {
             };
         };
     };
-    SubscriptionsController_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateSubscriptionDto"];
-            };
-        };
-        responses: {
-            /** @description 创建的订阅记录 */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
-                    };
-                };
-            };
-            /** @description 未登录或 Token 无效 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    SubscriptionsController_remove: {
+    NotificationsController_remove: {
         parameters: {
             query?: never;
             header?: never;
@@ -3864,14 +4276,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 已取消订阅 */
+            /** @description 已删除 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["MessageResponseDto"];
                     };
                 };
             };
@@ -3882,103 +4294,9 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 订阅不存在 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
         };
     };
-    MediaController_getUploadUrl: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateUploadUrlDto"];
-            };
-        };
-        responses: {
-            /** @description 预签名 URL 和 mediaId（UPLOADING 状态） */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["UploadUrlResponseDto"];
-                    };
-                };
-            };
-            /** @description 文件类型不支持或超过大小限制 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description 未登录或 Token 无效 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description 每用户小时上传配额超限（默认 60 次） */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    MediaController_confirmUpload: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ConfirmUploadDto"];
-            };
-        };
-        responses: {
-            /** @description 确认结果（转 PROCESSING 状态） */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["ConfirmUploadResponseDto"];
-                    };
-                };
-            };
-            /** @description 文件不存在或不属于当前用户 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description 未登录或 Token 无效 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    MediaController_getMedia: {
+    NotificationsController_setReadStatus: {
         parameters: {
             query?: never;
             header?: never;
@@ -3987,16 +4305,20 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetReadStatusDto"];
+            };
+        };
         responses: {
-            /** @description 图片处理状态（UPLOADING / PROCESSING / COMPLETED / FAILED） */
+            /** @description 标记结果（已标记为已读 / 已标记为未读） */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["MediaResponseDto"];
+                        data: components["schemas"]["MessageResponseDto"];
                     };
                 };
             };
@@ -4007,8 +4329,30 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 图片记录不存在或不属于当前用户 */
-            404: {
+        };
+    };
+    NotificationsController_markAllAsRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 全部已标记为已读 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["MessageResponseDto"];
+                    };
+                };
+            };
+            /** @description 未登录或 Token 无效 */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4037,7 +4381,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["OwnBookmarkThreadResponseDto"][];
                     };
                 };
             };
@@ -4115,7 +4459,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["MessageResponseDto"];
                     };
                 };
             };
@@ -4151,7 +4495,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["DraftThreadResponseDto"][];
                     };
                 };
             };
@@ -4195,7 +4539,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["HomeThreadListItemResponseDto"][];
                     };
                 };
             };
@@ -4276,14 +4620,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 删除成功返回 { message } 或 Thread 对象 */
+            /** @description 主题帖已删除 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["MessageResponseDto"];
                     };
                 };
             };
@@ -4366,6 +4710,62 @@ export interface operations {
             };
         };
     };
+    ThreadsController_saveAggregate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveThreadAggregateDto"];
+            };
+        };
+        responses: {
+            /** @description 全部字段在同一事务内保存，返回最新完整主题帖 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["ThreadDetailResponseDto"];
+                    };
+                };
+            };
+            /** @description 未登录或邮箱未验证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 无管理权限或协作者尝试修改楼主专属字段 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 主题帖或默认子贴不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 主题帖、默认子贴或正文乐观锁冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     ThreadsController_like: {
         parameters: {
             query?: never;
@@ -4430,7 +4830,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["InviteLinkResponseDto"];
                     };
                 };
             };
@@ -4543,7 +4943,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["ThreadMemberResponseDto"][];
                     };
                 };
             };
@@ -4566,7 +4966,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["ThreadMemberResponseDto"];
                     };
                 };
             };
@@ -4598,7 +4998,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["ThreadMemberResponseDto"];
                     };
                 };
             };
@@ -4615,13 +5015,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description 已退出主题帖 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["MessageResponseDto"];
                     };
                 };
             };
@@ -4689,13 +5090,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description 标签已移除 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["MessageResponseDto"];
                     };
                 };
             };
@@ -4720,7 +5122,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["TagResponseDto"][];
                     };
                 };
             };
@@ -4746,7 +5148,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["TagResponseDto"];
                     };
                 };
             };
@@ -4784,7 +5186,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["TagResponseDto"];
                     };
                 };
             };
@@ -4807,7 +5209,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["SubthreadResponseDto"][];
                     };
                 };
             };
@@ -4834,7 +5236,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["SubthreadResponseDto"];
                     };
                 };
             };
@@ -4857,7 +5259,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["SubthreadResponseDto"];
                     };
                 };
             };
@@ -4874,13 +5276,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description 子贴已删除 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["MessageResponseDto"];
                     };
                 };
             };
@@ -4907,7 +5310,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["SubthreadResponseDto"];
                     };
                 };
             };
@@ -5002,13 +5405,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description 标签已移除 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["MessageResponseDto"];
                     };
                 };
             };
@@ -5219,7 +5623,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["MessageResponseDto"];
                     };
                 };
             };
@@ -5377,7 +5781,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["NewRepliesResponseDto"];
+                    };
+                };
+            };
+            /** @description 未登录或 Token 无效 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReadingProgressController_threadNewReplies: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                threadId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 按子贴汇总的新增回复数 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["ThreadNewRepliesResponseDto"];
                     };
                 };
             };
@@ -5613,41 +6048,7 @@ export interface operations {
             };
         };
     };
-    NotificationsController_findAll: {
-        parameters: {
-            query?: {
-                /** @description 分页游标（上一页最后一条通知 ID） */
-                cursor?: string;
-                /** @description 按类型过滤，逗号分隔，如 type=mention,reply */
-                type?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 通知列表（cursor 分页，按时间倒序） */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
-                    };
-                };
-            };
-            /** @description 未登录或 Token 无效 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    NotificationsController_unreadCount: {
+    SubscriptionsController_findAll: {
         parameters: {
             query?: never;
             header?: never;
@@ -5656,14 +6057,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description { unreadCount: number } */
+            /** @description 我的订阅列表（含订阅类型和关联信息） */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["SubscriptionResponseDto"][];
                     };
                 };
             };
@@ -5676,60 +6077,27 @@ export interface operations {
             };
         };
     };
-    NotificationsController_remove: {
+    SubscriptionsController_create: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 已删除 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
-                    };
-                };
-            };
-            /** @description 未登录或 Token 无效 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    NotificationsController_setReadStatus: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SetReadStatusDto"];
+                "application/json": components["schemas"]["CreateSubscriptionDto"];
             };
         };
         responses: {
-            /** @description 标记结果（已标记为已读 / 已标记为未读） */
-            200: {
+            /** @description 创建的订阅记录 */
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["SubscriptionResponseDto"];
                     };
                 };
             };
@@ -5742,28 +6110,37 @@ export interface operations {
             };
         };
     };
-    NotificationsController_markAllAsRead: {
+    SubscriptionsController_remove: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description 全部已标记为已读 */
+            /** @description 已取消订阅 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
+                        data: components["schemas"]["MessageResponseDto"];
                     };
                 };
             };
             /** @description 未登录或 Token 无效 */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 订阅不存在 */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6113,6 +6490,131 @@ export interface operations {
                 content?: never;
             };
             /** @description 主题帖不存在，或当前用户无权访问私密帖 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MediaController_getUploadUrl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateUploadUrlDto"];
+            };
+        };
+        responses: {
+            /** @description 预签名 URL 和 mediaId（UPLOADING 状态） */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["UploadUrlResponseDto"];
+                    };
+                };
+            };
+            /** @description 文件类型不支持或超过大小限制 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 未登录或 Token 无效 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 每用户小时上传配额超限（默认 60 次） */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MediaController_confirmUpload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConfirmUploadDto"];
+            };
+        };
+        responses: {
+            /** @description 确认结果（转 PROCESSING 状态） */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["ConfirmUploadResponseDto"];
+                    };
+                };
+            };
+            /** @description 文件不存在或不属于当前用户 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 未登录或 Token 无效 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MediaController_getMedia: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 图片处理状态（UPLOADING / PROCESSING / COMPLETED / FAILED） */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["MediaResponseDto"];
+                    };
+                };
+            };
+            /** @description 未登录或 Token 无效 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 图片记录不存在或不属于当前用户 */
             404: {
                 headers: {
                     [name: string]: unknown;

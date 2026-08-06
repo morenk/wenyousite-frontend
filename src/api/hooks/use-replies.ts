@@ -2,13 +2,14 @@
 
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { queryKeys } from "@/api/query-keys";
 import type { operations } from "@/api/types";
 
 export type ReplyListResponse = operations["PostsController_findReplies"]["responses"][200]["content"]["application/json"];
 
 export function useReplies(postId: string | undefined) {
   return useInfiniteQuery({
-    queryKey: ["replies", postId],
+    queryKey: queryKeys.replies.list(postId),
     queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
       if (!postId) throw new Error("缺少楼层 ID");
       const queryParams: Record<string, string> = { limit: "20" };

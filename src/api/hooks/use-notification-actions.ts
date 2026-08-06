@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { queryKeys } from "@/api/query-keys";
 import { useAuth } from "@/lib/auth";
 import type { NotificationsResponse } from "@/api/hooks/use-notifications";
 
@@ -10,7 +11,7 @@ type NotificationCacheSnapshot = Array<[readonly unknown[], unknown]>;
 function useInvalidateNotifications() {
   const queryClient = useQueryClient();
   return () => {
-    queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
   };
 }
 
@@ -23,7 +24,7 @@ export function useNotificationActions() {
     queryKey[0] === "notifications" && queryKey[2] === user?.id;
 
   const snapshot = (): NotificationCacheSnapshot =>
-    queryClient.getQueriesData({ queryKey: ["notifications"] }).filter(
+    queryClient.getQueriesData({ queryKey: queryKeys.notifications.all }).filter(
       ([queryKey]) => isCurrentUserNotificationKey(queryKey),
     );
 
@@ -55,7 +56,7 @@ export function useNotificationActions() {
       if (error) throw error;
     },
     onMutate: async (id) => {
-      await queryClient.cancelQueries({ queryKey: ["notifications"] });
+      await queryClient.cancelQueries({ queryKey: queryKeys.notifications.all });
       const snapshots = snapshot();
       updateNotificationLists((notification) => notification.id === id ? { ...notification, isRead: true } : notification);
       queryClient.setQueriesData<number>(
@@ -84,7 +85,7 @@ export function useNotificationActions() {
       if (error) throw error;
     },
     onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: ["notifications"] });
+      await queryClient.cancelQueries({ queryKey: queryKeys.notifications.all });
       const snapshots = snapshot();
       updateNotificationLists((notification) => ({ ...notification, isRead: true }));
       queryClient.setQueriesData<number>(

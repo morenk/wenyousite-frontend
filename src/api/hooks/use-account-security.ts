@@ -2,44 +2,26 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { queryKeys } from "@/api/query-keys";
 import type { components } from "@/api/types";
+import { hasApiErrorCode } from "@/api/errors";
 
 export type AccountSession = components["schemas"]["SessionResponseDto"];
-
-export interface BlockedUserRecord {
-  id: string;
-  blocked: {
-    id: string;
-    username: string;
-    avatar: string | null;
-  };
-}
-
-interface Envelope<T> {
-  data: T;
-}
-
-interface ApiError {
-  code?: number;
-  message?: string;
-}
+export type BlockedUserRecord =
+  components["schemas"]["BlockedUserRecordResponseDto"];
 
 const RATE_LIMIT_ERROR_CODE = 42900;
 
 export function isRateLimitedAccountSessionError(error: unknown) {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    (error as ApiError).code === RATE_LIMIT_ERROR_CODE
-  );
+  return hasApiErrorCode(error, RATE_LIMIT_ERROR_CODE);
 }
 
 export function shouldRetryAccountSessions(failureCount: number, error: unknown) {
   return !isRateLimitedAccountSessionError(error) && failureCount < 3;
 }
 
-export const accountSessionsQueryKey = (userId?: string) => ["auth-sessions", userId] as const;
-export const blockedUsersQueryKey = (userId?: string) => ["blocked-users", userId] as const;
+export const accountSessionsQueryKey = queryKeys.sessions;
+export const blockedUsersQueryKey = queryKeys.blockedUsers;
 
 export function useAccountSessions(userId?: string) {
   return useQuery({
@@ -82,7 +64,8 @@ export function useBlockedUsers(userId?: string) {
       if (!userId) throw new Error("缺少用户 ID");
       const { data, error } = await apiClient.GET("/api/v1/users/me/blocks");
       if (error) throw error;
-      return (data as unknown as Envelope<BlockedUserRecord[]>).data;
+      if (!data) throw new Error("黑名单响应为空");
+      return data.data;
     },
     enabled: Boolean(userId),
   });

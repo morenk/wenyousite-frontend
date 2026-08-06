@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { queryKeys } from "@/api/query-keys";
 import type { components } from "@/api/types";
 
 /** 正文草稿实体（Draft 模型，userId + slot 联合唯一） */
@@ -9,7 +10,7 @@ export type DraftItem = components["schemas"]["DraftResponseDto"];
 
 export function useContentDrafts() {
   return useQuery({
-    queryKey: ["content-drafts"],
+    queryKey: queryKeys.contentDrafts,
     queryFn: async () => {
       const { data, error } = await apiClient.GET("/api/v1/drafts");
       if (error) throw error;

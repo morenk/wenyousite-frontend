@@ -40,7 +40,7 @@ const sampleUser = {
   username: "testuser",
   avatar: null,
   bio: "你好",
-  role: "USER",
+  role: "USER" as const,
   showRecentReplies: true,
   showPlayerBadges: true,
   showBookmarks: true,

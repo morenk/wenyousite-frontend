@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useChangePassword } from "@/api/hooks/use-auth-actions";
+import { getApiErrorMessage } from "@/api/errors";
 import {
   changePasswordSchema,
   type ChangePasswordFormData,
@@ -41,8 +42,7 @@ export function ChangePasswordForm() {
       logout();
       router.replace("/login");
     } catch (err) {
-      const e = err as { message?: string };
-      toast.error(e.message || "修改失败，请稍后重试");
+      toast.error(getApiErrorMessage(err, "修改失败，请稍后重试"));
     }
   };
 

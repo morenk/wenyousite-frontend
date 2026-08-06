@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { useBlockActions } from "@/api/hooks/use-block-actions";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-provider";
 
 interface BlockButtonProps {
   userId: string;
@@ -16,13 +17,19 @@ interface BlockButtonProps {
 export function BlockButton({ userId, isBlocked }: BlockButtonProps) {
   const { user } = useAuth();
   const { block, unblock } = useBlockActions(userId);
+  const confirmAction = useConfirm();
 
   if (!user) return null;
 
   const isPending = block.isPending || unblock.isPending;
 
   const handleBlock = async () => {
-    if (!confirm("确定要拉黑该用户吗？拉黑后将屏蔽其回复与通知。")) return;
+    if (!(await confirmAction({
+      title: "拉黑用户",
+      description: "确定要拉黑该用户吗？拉黑后将屏蔽其回复与通知。",
+      confirmLabel: "拉黑",
+      destructive: true,
+    }))) return;
     try {
       await block.mutateAsync();
       toast.success("已拉黑");

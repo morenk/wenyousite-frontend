@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import type { InlineDiceRoll } from "@/lib/dice-inline";
+import { useConfirm } from "@/components/ui/confirm-provider";
 
 interface BaseComposerSession {
   key: string;
@@ -53,8 +54,8 @@ interface ThreadComposerContextValue {
   content: string;
   dirty: boolean;
   pending: boolean;
-  open: (session: ThreadComposerSession) => boolean;
-  close: (options?: CloseOptions) => boolean;
+  open: (session: ThreadComposerSession) => Promise<boolean>;
+  close: (options?: CloseOptions) => Promise<boolean>;
   setContent: (content: string) => void;
   setPending: (pending: boolean) => void;
 }
@@ -65,18 +66,24 @@ export function ThreadComposerProvider({ children, threadId }: { children: React
   const [session, setSession] = useState<ThreadComposerSession | null>(null);
   const [content, setContent] = useState("");
   const [pending, setPending] = useState(false);
+  const confirmAction = useConfirm();
   const dirty = session !== null && content !== session.initialContent;
 
-  const confirmDiscard = useCallback(() => {
+  const confirmDiscard = useCallback(async () => {
     if (!dirty) return true;
-    return window.confirm("当前内容尚未提交，确定要放弃吗？");
-  }, [dirty]);
+    return confirmAction({
+      title: "放弃未提交内容",
+      description: "当前内容尚未提交，确定要放弃吗？",
+      confirmLabel: "放弃内容",
+      destructive: true,
+    });
+  }, [confirmAction, dirty]);
 
   const open = useCallback(
-    (nextSession: ThreadComposerSession) => {
+    async (nextSession: ThreadComposerSession) => {
       if (pending) return false;
       if (session?.key === nextSession.key) return true;
-      if (!confirmDiscard()) return false;
+      if (!(await confirmDiscard())) return false;
 
       setSession(nextSession);
       setContent(nextSession.initialContent);
@@ -86,9 +93,9 @@ export function ThreadComposerProvider({ children, threadId }: { children: React
   );
 
   const close = useCallback(
-    ({ force = false }: CloseOptions = {}) => {
+    async ({ force = false }: CloseOptions = {}) => {
       if (!force && pending) return false;
-      if (!force && !confirmDiscard()) return false;
+      if (!force && !(await confirmDiscard())) return false;
 
       setSession(null);
       setContent("");

@@ -16,6 +16,8 @@
 - [x] TanStack Query API hooks 抽取
 - [x] Access Token 过期后使用 httpOnly refresh cookie 单飞刷新并重放原请求
 - [x] 使用 Web Locks 协调多个浏览器标签页的 refresh token 轮转
+- [x] access token 仅驻留内存，页面启动时用 httpOnly refresh cookie 恢复会话
+- [x] `localStorage` 只保存不含凭证的用户 ID/修订号会话标记，用于跨标签页同步
 - [x] 登出时检查服务端错误，确保 refresh cookie 与当前登录终端确实退出
 - [x] 双端登录：每个账号最多一个 Web 登录终端和一个原生移动端登录终端，PC/手机网页共用 Web 槽位
 - [x] 登录/注册使用 OpenAPI 生成请求与响应类型，Web 响应体不再假定存在 refresh token
@@ -51,15 +53,16 @@
 
 | 状态 | 来源 | 存储 |
 |------|------|------|
-| `accessToken` | 登录/注册/刷新响应 | `localStorage` |
+| `accessToken` | 登录/注册/刷新响应 | 模块内存仓库；刷新页面后丢弃 |
 | `refreshToken` | 登录/注册/刷新响应的 `Set-Cookie` | 仅 httpOnly Cookie（后端管理，JavaScript 不可读） |
-| `user` 对象 | 登录/注册/刷新响应 | `localStorage` + AuthContext |
-| `isInitialized` | 客户端 hydration 完成标志 | AuthContext（server=false, client=true） |
+| `user` 对象 | 登录/注册/刷新响应 | 内存仓库 + AuthContext |
+| 会话标记 | 当前 userId + 随机 revision，不含 token/资料 | `localStorage`，只用于多标签页身份变化通知 |
+| `isInitialized` | refresh cookie 启动恢复完成标志 | AuthContext（恢复前 false，结束后 true） |
 | `email`（注册第一步） | 用户输入，暂存 | 组件 state，第二步复用 |
 | 表单状态 | react-hook-form | 组件本地 |
 | 提交 loading | useState | 组件本地 |
 
-**刷新与缓存策略：** 注册/登录/刷新成功后直接写入 AuthContext + localStorage，不把认证响应放进 TanStack Query。单个标签页内的并发 401 共享同一个刷新 Promise；不同标签页通过名为 `wenyousite-auth-refresh` 的 Web Lock 串行刷新，后取得锁的标签页若发现 access token 已变化就直接复用，不再重复轮换。刷新成功后分别重放原请求；确认刷新失败才清理登录态并跳转登录页。
+**刷新与缓存策略：** 注册/登录成功后把 access token 与 user 写入模块内存，绝不把 access token 写入 Web Storage。刷新页面时 `AuthProvider` 先调用 `/auth/refresh`，用 httpOnly cookie 恢复内存会话，完成后才把 `isInitialized` 置为 true。单个标签页内的并发 401 共享一个刷新 Promise；不同标签页通过名为 `wenyousite-auth-refresh` 的 Web Lock 串行轮换。登录/登出的会话标记变化会通知其他标签页重新恢复或清空，但标记本身不含凭证。确认刷新失败才清理登录态并跳转登录页。
 
 TanStack Query 容器由当前认证身份隔离；首次 AuthContext hydration 只记录当前身份，不重复创建 QueryClient，避免公共首页请求两次。此后登录、登出或账号切换才重新创建 QueryClient。登录终端、黑名单等敏感 hook 还会把用户 ID 放入 query key，双层避免私有数据跨账号短暂复用。
 
@@ -199,15 +202,16 @@ if (error) {
 | 场景 | 处理 |
 |------|------|
 | 已登录用户访问 `/login`、`/register` 等 | `useEffect` 检测 user 存在，`router.replace("/")` |
-| 未登录用户访问需登录页面 | 暂不拦截（后续用 middleware），页面内 `useAuth` 判断；需等待 `isInitialized` 为 true 后再跳转，避免 hydration 期间误判 |
-| 登出 | 调 `POST /auth/logout`；服务端成功后才清除 localStorage 并跳首页，失败则保留登录态并提示重试 |
-| verify-email 需登录 | 页面内 `useAuth` 检查 user，需等 `isInitialized` 后再跳转 `/login` |
+| 未登录用户访问需登录页面 | 受保护路由的 `layout.tsx` 统一挂载 `RequireAuth`，等待启动恢复后保留 `next` 路径跳登录 |
+| 需验证邮箱的写入口 | 创建、编辑、邀请加入布局统一传 `requireVerifiedEmail`，未验证跳 `/verify-email` |
+| 登出 | 调 `POST /auth/logout`；服务端成功后清除内存会话和无凭证标记并跳首页，失败则保留登录态并提示重试 |
+| verify-email 需登录 | `/verify-email/layout.tsx` 使用 `RequireAuth`，未登录保留目标路径跳转 |
 
 ## 9. 用户流程
 
 ### 登录
 ```
-进入 /login → 输入邮箱或用户名 + 密码 → 提交 → 成功: 存 token / 跳首页 失败: toast
+进入 /login → 输入邮箱或用户名 + 密码 → 提交 → 成功: token 写入内存 / 跳首页 失败: toast
 ```
 
 ### 注册
@@ -242,7 +246,8 @@ Step2: 输入验证码 / 用户名 / 密码 / 确认密码 → 提交 → 成功
 - [x] 登出清除 token 并跳转首页
 - [x] access token 过期后可无感刷新并重放原请求
 - [x] 多个并发 401 只发起一次 refresh 请求
-- [x] 多标签页同时过期时串行刷新并复用另一标签页写入的新 access token
+- [x] 多标签页同时过期时通过 Web Lock 串行轮换 refresh cookie
+- [x] 生产代码静态门禁禁止恢复 `localStorage.accessToken`
 - [x] 登录账号变化后不会复用上一个账号的私有 Query 缓存
 - [x] 已登录用户访问公开认证页自动跳转
 - [x] 所有错误状态有 toast 提示

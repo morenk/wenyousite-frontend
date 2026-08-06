@@ -17,7 +17,12 @@ const baseSubthread: SubthreadDetail = {
   lastPostAt: null,
   deletedAt: null,
   createdAt: "2026-01-01T00:00:00Z",
-  bodyPost: { id: "post-1", content: "这是**加粗**的正文", version: 1 },
+  bodyPost: {
+    id: "post-1",
+    content: "这是**加粗**的正文",
+    version: 1,
+    diceRolls: [],
+  },
   _count: { posts: 3 },
   tags: [],
 };
@@ -53,7 +58,7 @@ describe("SubthreadBody", () => {
   test("正文为空字符串时显示占位文案", () => {
     const emptyBody = {
       ...baseSubthread,
-      bodyPost: { id: "post-1", content: "   ", version: 1 },
+      bodyPost: { id: "post-1", content: "   ", version: 1, diceRolls: [] },
     };
     render(<SubthreadBody subthread={emptyBody} />);
     expect(screen.getByText("暂无正文")).toBeInTheDocument();

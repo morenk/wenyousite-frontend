@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { queryKeys } from "@/api/query-keys";
 import type { components } from "@/api/types";
 
 type GeneratedPostDetail = components["schemas"]["PostDetailResponseDto"];
@@ -12,7 +13,7 @@ export type PostDetail = Omit<GeneratedPostDetail, "diceRolls"> & {
 /** 查询一个未删除且当前用户可访问的帖子 */
 export function usePost(id?: string) {
   return useQuery({
-    queryKey: ["post", id],
+    queryKey: queryKeys.posts.detail(id),
     queryFn: async () => {
       if (!id) throw new Error("缺少帖子 ID");
       const { data, error } = await apiClient.GET("/api/v1/posts/{id}", {

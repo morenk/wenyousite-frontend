@@ -11,10 +11,12 @@ import { useAuth } from "@/lib/auth";
 import { useCreateThread } from "@/api/hooks/use-create-thread";
 import { useThreadDetail } from "@/api/hooks/use-thread-detail";
 import { useDeleteThread } from "@/api/hooks/use-delete-thread";
+import { getApiError, getApiErrorMessage } from "@/api/errors";
 import { ThreadCreateForm } from "@/components/forms/thread-create-form";
 import { ThreadDraftPicker } from "@/components/thread/thread-draft-picker";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useConfirm } from "@/components/ui/confirm-provider";
 
 export default function CreateThreadPage() {
   const router = useRouter();
@@ -23,6 +25,7 @@ export default function CreateThreadPage() {
   const [createdThreadId, setCreatedThreadId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const confirmAction = useConfirm();
   // 点击入口同步上锁，直到离开创建流程；创建请求不得由渲染/effect 驱动。
   const isDraftCreationStarted = useRef(false);
 
@@ -32,7 +35,6 @@ export default function CreateThreadPage() {
     data: thread,
     isLoading: isThreadLoading,
     error: threadError,
-    refetch,
   } = useThreadDetail(createdThreadId ?? undefined);
 
   // 检查登录和邮箱验证（等 auth 初始化完成后再判断，避免 hydration 期间误判为未登录）
@@ -64,7 +66,7 @@ export default function CreateThreadPage() {
       });
       setCreatedThreadId(thread.id);
     } catch (error: unknown) {
-      const err = error as { code?: number; message?: string };
+      const err = getApiError(error);
       if (err.code === 40100) {
         // apiClient 拦截器已清除 token 并跳转登录，页面无需额外处理
         return;
@@ -88,7 +90,12 @@ export default function CreateThreadPage() {
       setMode("picker");
       return;
     }
-    if (confirm("确定要放弃创建吗？草稿将被删除。")) {
+    if (await confirmAction({
+      title: "放弃创建",
+      description: "确定要放弃创建吗？草稿将被删除。",
+      confirmLabel: "放弃并删除",
+      destructive: true,
+    })) {
       try {
         await deleteThread.mutateAsync(createdThreadId);
         isDraftCreationStarted.current = false;
@@ -96,8 +103,7 @@ export default function CreateThreadPage() {
         setMode("picker");
         toast.success("已放弃创建");
       } catch (error: unknown) {
-        const err = error as { message?: string };
-        toast.error(err.message || "删除草稿失败");
+        toast.error(getApiErrorMessage(error, "删除草稿失败"));
       }
     }
   }
@@ -184,9 +190,8 @@ export default function CreateThreadPage() {
           <ThreadCreateForm
             thread={thread}
             onCancel={handleCancel}
-            onPublished={handlePublished}
-            onRefetch={refetch}
-          />
+              onPublished={handlePublished}
+            />
         </CardContent>
       </Card>
     </div>

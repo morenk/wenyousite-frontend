@@ -30,7 +30,7 @@ interface BookmarkThreadCardProps {
     owner: ThreadOwner;
     bookmarkId?: string;
   };
-  onUnbookmark?: (bookmarkId: string) => void;
+  onUnbookmark?: (bookmarkId: string, threadId: string) => void;
   isUnbookmarking?: boolean;
 }
 
@@ -67,7 +67,7 @@ export function BookmarkThreadCard({
         <button
           type="button"
           title="取消收藏"
-          onClick={() => onUnbookmark(thread.bookmarkId!)}
+          onClick={() => onUnbookmark(thread.bookmarkId!, thread.id)}
           disabled={isUnbookmarking}
           className="shrink-0 rounded p-1.5 text-muted-foreground/60 hover:bg-muted hover:text-foreground"
         >

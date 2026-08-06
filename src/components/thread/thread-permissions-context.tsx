@@ -2,11 +2,13 @@
 
 import { createContext, useContext, type ReactNode } from "react";
 import { useAuth } from "@/lib/auth";
-import { useMembers, type ThreadMember } from "@/api/hooks/use-members";
+import {
+  useThreadDetail,
+  type CurrentThreadMembership,
+} from "@/api/hooks/use-thread-detail";
 
 interface ThreadPermissionsValue {
-  members: ThreadMember[];
-  currentMember?: ThreadMember;
+  currentMember?: CurrentThreadMembership;
   isOwner: boolean;
   isCollaborator: boolean;
   isParticipant: boolean;
@@ -19,7 +21,6 @@ interface ThreadPermissionsValue {
 }
 
 const emptyPermissions: ThreadPermissionsValue = {
-  members: [],
   isOwner: false,
   isCollaborator: false,
   isParticipant: false,
@@ -42,18 +43,22 @@ export function ThreadPermissionsProvider({
   children: ReactNode;
 }) {
   const { user } = useAuth();
-  const membersQuery = useMembers(user ? threadId : undefined);
-  const members = membersQuery.data ?? [];
-  const currentMember = members.find((member) => member.userId === user?.id);
+  const threadQuery = useThreadDetail(threadId);
+  const currentMember = threadQuery.data?.currentMembership ?? undefined;
+  const capabilities = threadQuery.data?.capabilities;
   const isAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
-  const isOwner = !!user && (ownerId === user.id || currentMember?.role === "OWNER");
+  const isOwner = !!user && (
+    capabilities?.isOwner ||
+    ownerId === user.id ||
+    threadQuery.data?.ownerId === user.id ||
+    currentMember?.role === "OWNER"
+  );
   const isCollaborator = currentMember?.role === "COLLABORATOR";
   const isParticipant = currentMember?.role === "PARTICIPANT";
 
   return (
     <ThreadPermissionsContext.Provider
       value={{
-        members,
         currentMember,
         isOwner,
         isCollaborator,
@@ -61,7 +66,7 @@ export function ThreadPermissionsProvider({
         isAdmin,
         isManager: isOwner || isCollaborator,
         isThreadManager: isOwner || isCollaborator,
-        isLoading: !!user && membersQuery.isLoading,
+        isLoading: !!user && threadQuery.isLoading,
         isProvided: true,
       }}
     >

@@ -2,17 +2,8 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { queryKeys } from "@/api/query-keys";
 import type { components } from "@/api/types";
-
-interface RequestCodeResponse {
-  code: number;
-  message: string;
-  data: {
-    emailSent: boolean;
-    codeExpiresIn: number;
-    message?: string;
-  };
-}
 
 export function useSendRegisterCode() {
   return useMutation({
@@ -22,7 +13,8 @@ export function useSendRegisterCode() {
         { body: { email } },
       );
       if (error) throw error;
-      return data as unknown as RequestCodeResponse;
+      if (!data) throw new Error("验证码响应为空");
+      return data;
     },
   });
 }
@@ -42,7 +34,7 @@ export function useRegisterComplete() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
     },
   });
 }

@@ -2,6 +2,7 @@
 
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { queryKeys } from "@/api/query-keys";
 import type { components } from "@/api/types";
 
 export type SearchUser = components["schemas"]["SearchUserResponseDto"];
@@ -36,7 +37,7 @@ export const isPostSearchKeywordValid = (q: string) =>
 export function useSearchThreads(q: string, enabled: boolean) {
   const keyword = q.trim();
   return useQuery({
-    queryKey: ["search", "threads", keyword],
+    queryKey: queryKeys.search.threads(keyword),
     queryFn: async () => {
       const { data, error } = await apiClient.GET("/api/v1/search/threads", {
         params: { query: { q: keyword } },
@@ -52,7 +53,7 @@ export function useSearchThreads(q: string, enabled: boolean) {
 export function useSearchUsers(q: string, enabled: boolean) {
   const keyword = q.trim();
   return useQuery({
-    queryKey: ["search", "users", keyword],
+    queryKey: queryKeys.search.users(keyword),
     queryFn: async () => {
       const { data, error } = await apiClient.GET("/api/v1/search/users", {
         params: { query: { q: keyword } },

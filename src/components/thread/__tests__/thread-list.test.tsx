@@ -41,7 +41,7 @@ const sampleThread: ThreadCardData = {
   updatedAt: "2026-01-01T00:00:00Z",
   deletedAt: null,
   owner: { id: "u1", username: "author", avatar: null },
-  defaultSubthread: { id: "s1", title: "主帖" },
+  defaultSubthread: { id: "s1", title: "主帖", lastPostAt: null },
   topicTags: [],
   _count: { members: 1, players: 1, posts: 1 },
   preview: "预览内容",

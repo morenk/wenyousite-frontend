@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { useInvitePreview, useJoinThreadByInvite } from "@/api/hooks/use-thread-access-actions";
+import { getApiErrorMessage } from "@/api/errors";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -38,7 +39,7 @@ export default function JoinByInvitePage() {
       toast.success("已加入私密主题帖");
       router.replace(`/threads/${preview.data?.thread.id}`);
     } catch (error: unknown) {
-      toast.error((error as { message?: string }).message || "加入失败，请稍后重试");
+      toast.error(getApiErrorMessage(error, "加入失败，请稍后重试"));
     }
   }
 

@@ -2,18 +2,16 @@
 
 "use client";
 
-import { useEffect, useRef } from "react";
 import { Loader2, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiClient } from "@/api/client";
 import { useBookmarks } from "@/api/hooks/use-bookmarks";
+import { useRemoveBookmark } from "@/api/hooks/use-bookmark-actions";
 import { BookmarkThreadCard } from "@/components/user/bookmark-thread-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 
 export function BookmarkList() {
-  const queryClient = useQueryClient();
   const {
     data,
     fetchNextPage,
@@ -24,38 +22,13 @@ export function BookmarkList() {
     refetch,
   } = useBookmarks();
 
-  const removeBookmark = useMutation({
-    mutationFn: async (bookmarkId: string) => {
-      const { error } = await apiClient.DELETE("/api/v1/bookmarks/{id}", {
-        params: { path: { id: bookmarkId } },
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
-      queryClient.invalidateQueries({ queryKey: ["user", "bookmarks"] });
-      toast.success("已取消收藏");
-    },
+  const removeBookmark = useRemoveBookmark();
+
+  const sentinelRef = useInfiniteScroll({
+    hasNextPage: !!hasNextPage,
+    isFetchingNextPage,
+    onLoadMore: fetchNextPage,
   });
-
-  const sentinelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-          fetchNextPage();
-        }
-      },
-      { threshold: 0.1 },
-    );
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const bookmarks = data?.pages.flatMap((page) => page?.data ?? []) ?? [];
 
@@ -90,7 +63,12 @@ export function BookmarkList() {
         <BookmarkThreadCard
           key={bookmark.id}
           thread={bookmark}
-          onUnbookmark={(id) => removeBookmark.mutate(id)}
+          onUnbookmark={(bookmarkId, threadId) =>
+            removeBookmark.mutate(
+              { bookmarkId, threadId },
+              { onSuccess: () => toast.success("已取消收藏") },
+            )
+          }
           isUnbookmarking={removeBookmark.isPending}
         />
       ))}

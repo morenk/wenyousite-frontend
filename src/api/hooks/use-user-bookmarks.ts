@@ -2,33 +2,17 @@
 
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
-import type { ThreadOwner } from "./use-threads";
+import { queryKeys } from "@/api/query-keys";
+import type { components, operations } from "@/api/types";
 
-export interface UserBookmarkedThread {
-  id: string;
-  title: string;
-  category: string;
-  status: string;
-  visibility: "PUBLIC" | "PRIVATE";
-  published: boolean;
-  pinned: boolean;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt: string | null;
-  owner: ThreadOwner;
-  _count: { members: number; posts: number };
-}
-
-export interface UserBookmarksResponse {
-  code: number;
-  message: string;
-  data: UserBookmarkedThread[];
-  meta: { cursor: string | null; hasMore: boolean };
-}
+export type UserBookmarkedThread =
+  components["schemas"]["BookmarkThreadResponseDto"];
+export type UserBookmarksResponse =
+  operations["UsersController_getUserBookmarks"]["responses"][200]["content"]["application/json"];
 
 export function useUserBookmarks(userId: string | undefined) {
   return useInfiniteQuery({
-    queryKey: ["user", "bookmarks", userId],
+    queryKey: queryKeys.users.bookmarks(userId),
     queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
       if (!userId) throw new Error("缺少用户 ID");
       const queryParams: Record<string, string> = { limit: "10" };
@@ -39,16 +23,15 @@ export function useUserBookmarks(userId: string | undefined) {
       });
       if (error) throw error;
 
-      const response = data as unknown as UserBookmarksResponse;
-      if (!response?.data) {
+      if (!data?.data) {
         return {
           code: 0,
           message: "ok",
           data: [],
           meta: { cursor: null, hasMore: false },
-        } as UserBookmarksResponse;
+        } satisfies UserBookmarksResponse;
       }
-      return response;
+      return data;
     },
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => {

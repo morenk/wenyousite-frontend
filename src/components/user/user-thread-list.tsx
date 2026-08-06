@@ -2,13 +2,13 @@
 
 "use client";
 
-import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { Loader2, ChevronDown, LockKeyhole } from "lucide-react";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { ThreadCardData } from "@/api/hooks/use-threads";
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 
 const categoryLabel: Record<string, string> = {
   DEDUCTION: "演绎",
@@ -43,24 +43,11 @@ export function UserThreadList({
   emptyTitle,
   errorTitle,
 }: UserThreadListProps) {
-  const sentinelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-          fetchNextPage();
-        }
-      },
-      { threshold: 0.1 },
-    );
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  const sentinelRef = useInfiniteScroll({
+    hasNextPage,
+    isFetchingNextPage,
+    onLoadMore: fetchNextPage,
+  });
 
   if (isLoading) {
     return <p className="py-8 text-center text-sm text-muted-foreground">加载中…</p>;

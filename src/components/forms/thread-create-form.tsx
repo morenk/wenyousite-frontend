@@ -3,25 +3,23 @@
 "use client";
 
 import { useState } from "react";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2, Send, Save, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MilkdownEditor } from "@/components/editor/milkdown-editor";
-import { TagInput } from "@/components/forms/tag-input";
+import { ThreadMetadataFields } from "@/components/forms/thread-metadata-fields";
 import {
   threadCreateSchema,
   type ThreadCreateFormData,
   validatePublishable,
 } from "@/lib/validations/thread-create";
-import { useUpdateThread } from "@/api/hooks/use-update-thread";
-import { useUpdateSubthread } from "@/api/hooks/use-update-subthread";
-import { useUpsertBody } from "@/api/hooks/use-upsert-body";
+import { useSaveThreadAggregate } from "@/api/hooks/use-save-thread-aggregate";
 import { useUploadImage } from "@/api/hooks/use-upload-image";
+import { API_ERROR_CODE, getApiError } from "@/api/errors";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
 
 interface ThreadCreateFormProps {
@@ -30,38 +28,19 @@ interface ThreadCreateFormProps {
   cancelMode?: "discard" | "back";
   onCancel: () => void;
   onPublished: (threadId: string) => void;
-  onRefetch: () => Promise<unknown>;
 }
-
-const CATEGORY_OPTIONS = [
-  { value: "DEDUCTION", label: "演绎" },
-  { value: "NATION", label: "国策" },
-  { value: "RPG", label: "角色扮演" },
-];
-
-const VISIBILITY_OPTIONS = [
-  { value: "PUBLIC", label: "公开" },
-  { value: "PRIVATE", label: "私密" },
-];
 
 export function ThreadCreateForm({
   thread,
   cancelMode = "discard",
   onCancel,
   onPublished,
-  onRefetch,
 }: ThreadCreateFormProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
-  const updateThread = useUpdateThread();
-  const updateSubthread = useUpdateSubthread();
-  const upsertBody = useUpsertBody();
+  const saveThread = useSaveThreadAggregate();
   const uploadImage = useUploadImage();
   const CancelIcon = cancelMode === "back" ? ArrowLeft : Trash2;
-  const [editorContent, setEditorContent] = useState(
-    thread.defaultSubthread.bodyPost?.content ?? "",
-  );
-
   const form = useForm<ThreadCreateFormData>({
     resolver: zodResolver(threadCreateSchema),
     defaultValues: {
@@ -74,56 +53,24 @@ export function ThreadCreateForm({
     },
   });
 
-  const category = useWatch({ control: form.control, name: "category" });
-  const visibility = useWatch({ control: form.control, name: "visibility" });
-  const tagNames = useWatch({ control: form.control, name: "tagNames" });
-
-  async function saveBodyContent(values: ThreadCreateFormData) {
-    const content = values.content?.trim() ?? "";
-    const bodyPost = thread.defaultSubthread.bodyPost;
-
-    if (content || bodyPost) {
-      await upsertBody.mutateAsync({
-        subthreadId: thread.defaultSubthreadId,
-        content,
-        version: bodyPost?.version,
-      });
-    }
-  }
-
-  /** 默认子贴标题跟随主题帖标题（仅当标题有值且与当前子贴标题不同时更新） */
-  async function syncDefaultSubthreadTitle(values: ThreadCreateFormData) {
+  async function handleSaveDraft(values: ThreadCreateFormData) {
     const title = values.title?.trim();
-    const defaultSub = thread.defaultSubthread;
-    if (!title || defaultSub.title === title) return;
-    await updateSubthread.mutateAsync({
-      subthreadId: defaultSub.id,
-      body: {
-        title,
-        version: defaultSub.version,
-      },
-    });
-  }
-
-  async function handleSaveDraft() {
-    const values = { ...form.getValues(), content: editorContent };
-    const body: ThreadCreateFormData & { version: number } = {
-      ...values,
-      version: thread.version,
-    };
-    if (!body.title || body.title.trim() === "") {
-      delete body.title;
-    }
 
     try {
       setIsSaving(true);
-      await updateThread.mutateAsync({
+      await saveThread.mutateAsync({
         threadId: thread.id,
-        body,
+        body: {
+          ...(title ? { title } : {}),
+          category: values.category,
+          visibility: values.visibility,
+          version: thread.version,
+          defaultSubthreadVersion: thread.defaultSubthread.version,
+          bodyVersion: thread.defaultSubthread.bodyPost?.version,
+          content: values.content?.trim() ?? "",
+          tagNames: values.tagNames ?? [],
+        },
       });
-      await saveBodyContent(values);
-      await syncDefaultSubthreadTitle(values);
-      await onRefetch();
       toast.success("草稿已保存");
     } catch (error: unknown) {
       handleError(error);
@@ -132,8 +79,7 @@ export function ThreadCreateForm({
     }
   }
 
-  async function handlePublish() {
-    const values = { ...form.getValues(), content: editorContent };
+  async function handlePublish(values: ThreadCreateFormData) {
     const validationError = validatePublishable(values);
     if (validationError) {
       toast.error(validationError);
@@ -143,40 +89,23 @@ export function ThreadCreateForm({
     try {
       setIsPublishing(true);
 
-      const refetchResult = await onRefetch();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const latestThread = (refetchResult as any)?.data as ThreadDetail | undefined;
-      if (!latestThread) {
-        toast.error("获取草稿信息失败，请重试");
-        return;
-      }
-
-      const content = values.content?.trim() ?? "";
-      if (content || latestThread.defaultSubthread.bodyPost) {
-        await upsertBody.mutateAsync({
-          subthreadId: latestThread.defaultSubthreadId,
-          content,
-          version: latestThread.defaultSubthread.bodyPost?.version,
-        });
-      }
-      await syncDefaultSubthreadTitle(values);
-
-      await updateThread.mutateAsync({
-        threadId: latestThread.id,
+      const savedThread = await saveThread.mutateAsync({
+        threadId: thread.id,
         body: {
-          title: values.title,
+          title: values.title?.trim(),
           category: values.category,
           visibility: values.visibility,
           published: true,
-          version: latestThread.version,
+          version: thread.version,
+          defaultSubthreadVersion: thread.defaultSubthread.version,
+          bodyVersion: thread.defaultSubthread.bodyPost?.version,
+          content: values.content?.trim() ?? "",
+          tagNames: values.tagNames ?? [],
         },
       });
 
-      // 发布成功后刷新详情缓存（跳转详情页时读到 published 的最新数据）
-      await onRefetch();
-
       toast.success("发布成功");
-      onPublished(latestThread.id);
+      onPublished(savedThread.id);
     } catch (error: unknown) {
       handleError(error);
     } finally {
@@ -185,12 +114,12 @@ export function ThreadCreateForm({
   }
 
   function handleError(error: unknown) {
-    const err = error as { code?: number; message?: string };
-    if (err.code === 40001) {
+    const err = getApiError(error);
+    if (err.code === API_ERROR_CODE.BAD_REQUEST) {
       toast.error(err.message || "发布失败，请检查内容");
-    } else if (err.code === 40900) {
+    } else if (err.code === API_ERROR_CODE.OPTIMISTIC_LOCK_CONFLICT) {
       toast.error("内容已被修改，请刷新后重试");
-    } else if (err.code === 42900) {
+    } else if (err.code === API_ERROR_CODE.RATE_LIMITED) {
       toast.error("操作太频繁，请稍后再试");
     } else {
       toast.error(err.message || "操作失败，请稍后重试");
@@ -205,67 +134,10 @@ export function ThreadCreateForm({
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="title">主题帖标题</Label>
-          <Input
-            id="title"
-            placeholder="给你的主题帖起个名字"
-            {...form.register("title")}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="category">分区</Label>
-          <select
-            id="category"
-            value={category}
-            onChange={(e) =>
-              form.setValue(
-                "category",
-                e.target.value as ThreadCreateFormData["category"],
-              )
-            }
-            disabled={isSaving || isPublishing}
-            className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-60"
-          >
-            {CATEGORY_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="visibility">可见性</Label>
-          <select
-            id="visibility"
-            value={visibility}
-            onChange={(e) =>
-              form.setValue(
-                "visibility",
-                e.target.value as ThreadCreateFormData["visibility"],
-              )
-            }
-            disabled={isSaving || isPublishing}
-            className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-60"
-          >
-            {VISIBILITY_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="tags">标签</Label>
-          <TagInput
-            value={tagNames ?? []}
-            onChange={(tags) => form.setValue("tagNames", tags)}
-            disabled={isSaving || isPublishing}
-          />
-        </div>
+        <ThreadMetadataFields
+          form={form}
+          disabled={isSaving || isPublishing}
+        />
 
         <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="content">正文</Label>
@@ -276,16 +148,18 @@ export function ThreadCreateForm({
               <MilkdownEditor
                 threadId={thread.id}
                 defaultValue={field.value ?? ""}
-                onChange={(value) => {
-                  setEditorContent(value);
-                  field.onChange(value);
-                }}
+                onChange={field.onChange}
                 onUploadImage={handleUploadImage}
                 disabled={isSaving || isPublishing}
                 diceRolls={thread.defaultSubthread.bodyPost?.diceRolls}
               />
             )}
           />
+          {form.formState.errors.content?.message && (
+            <p className="text-sm text-destructive">
+              {form.formState.errors.content.message}
+            </p>
+          )}
         </div>
       </div>
 
@@ -304,7 +178,7 @@ export function ThreadCreateForm({
           <Button
             type="button"
             variant="outline"
-            onClick={handleSaveDraft}
+            onClick={form.handleSubmit(handleSaveDraft)}
             disabled={isSaving || isPublishing}
           >
             {isSaving ? (
@@ -316,7 +190,7 @@ export function ThreadCreateForm({
           </Button>
           <Button
             type="button"
-            onClick={handlePublish}
+            onClick={form.handleSubmit(handlePublish)}
             disabled={isSaving || isPublishing}
           >
             {isPublishing ? (

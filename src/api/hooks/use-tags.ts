@@ -2,22 +2,14 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { queryKeys } from "@/api/query-keys";
+import type { components } from "@/api/types";
 
-export interface TopicTag {
-  id: string;
-  name: string;
-  color: string | null;
-}
-
-interface TagsResponse {
-  code: number;
-  message: string;
-  data: TopicTag[];
-}
+export type TopicTag = components["schemas"]["TagResponseDto"];
 
 export function useTags(query: string) {
   return useQuery({
-    queryKey: ["tags", query],
+    queryKey: queryKeys.topicTags(query),
     queryFn: async () => {
       const params: Record<string, string> = {};
       if (query.trim()) params.q = query.trim();
@@ -25,7 +17,8 @@ export function useTags(query: string) {
         params: { query: params },
       });
       if (error) throw error;
-      return (data as unknown as TagsResponse).data;
+      if (!data) throw new Error("标签列表响应为空");
+      return data.data;
     },
     enabled: query.trim().length > 0,
     staleTime: 60 * 1000,

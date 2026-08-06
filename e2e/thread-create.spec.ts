@@ -1,29 +1,13 @@
 import { test, expect } from "@playwright/test";
-
-const TEST_EMAIL = "test@wenyou.site";
-const TEST_PASSWORD = "E2eTest123!";
+import { loginAsE2eUser, openFreshThreadDraft } from "./fixtures/auth";
 
 test.describe("主题帖创建流程", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/login");
-    const loginInput = page.getByLabel("邮箱或用户名");
-    await loginInput.waitFor({ state: "visible" });
-
-    await loginInput.fill(TEST_EMAIL);
-    await page.getByLabel("密码").fill(TEST_PASSWORD);
-    await page.click('button[type="submit"]');
-
-    await page.waitForURL("/");
+    await loginAsE2eUser(page);
   });
 
   test("从登录到创建主题帖完整流程", async ({ page }) => {
-    await page.goto("/threads/create");
-    await page.waitForURL("/threads/create");
-
-    // 等待编辑器加载完成
-    await page.waitForSelector(".milkdown-editor .ProseMirror", {
-      timeout: 30000,
-    });
+    await openFreshThreadDraft(page);
 
     // 填写标题
     const titleInput = page.locator("#title");
@@ -60,10 +44,7 @@ test.describe("主题帖创建流程", () => {
   });
 
   test("编辑器顶栏工具栏可见", async ({ page }) => {
-    await page.goto("/threads/create");
-    await page.waitForSelector(".milkdown-editor .ProseMirror", {
-      timeout: 30000,
-    });
+    await openFreshThreadDraft(page);
 
     // 点击编辑器获取焦点，顶栏工具栏应可见（TopBar 固定工具栏）
     const editor = page.locator(".ProseMirror");
@@ -79,12 +60,7 @@ test.describe("主题帖创建流程", () => {
   });
 
   test("上传并插入图片后编辑器工具栏仍可见", async ({ page }) => {
-    await page.goto("/threads/create");
-    const createButton = page.getByRole("button", { name: "新建主题帖" });
-    if (await createButton.isVisible().catch(() => false)) {
-      await createButton.click();
-    }
-    await page.waitForSelector(".milkdown-editor .ProseMirror", { timeout: 30000 });
+    await openFreshThreadDraft(page);
 
     const imageButton = page.locator('.milkdown-top-bar .top-bar-item[title="图片"]').first();
     await expect(imageButton).toBeVisible();
@@ -99,10 +75,7 @@ test.describe("主题帖创建流程", () => {
   });
 
   test("提交前校验：空标题发布被阻止", async ({ page }) => {
-    await page.goto("/threads/create");
-    await page.waitForSelector(".milkdown-editor .ProseMirror", {
-      timeout: 30000,
-    });
+    await openFreshThreadDraft(page);
 
     // 直接点发布（标题为空时使用默认草稿标题）
     const publishBtn = page.getByText("发布");
@@ -119,20 +92,14 @@ test.describe("主题帖创建流程", () => {
   });
 
   test("放弃创建：点击放弃按钮", async ({ page }) => {
-    // 用 dialog handler 监听 confirm
-    page.on("dialog", (dialog) => dialog.accept());
-
-    await page.goto("/threads/create");
-    await page.waitForSelector(".milkdown-editor .ProseMirror", {
-      timeout: 30000,
-    });
+    await openFreshThreadDraft(page);
 
     const cancelBtn = page.getByText("放弃");
     await expect(cancelBtn).toBeEnabled();
     await cancelBtn.click();
+    await page.getByRole("button", { name: "放弃并删除" }).click();
 
-    // 应跳回首页
-    await page.waitForURL("/", { timeout: 10000 });
-    expect(new URL(page.url()).pathname).toBe("/");
+    // 删除草稿后返回草稿选择器
+    await expect(page.getByRole("button", { name: "新建主题帖" })).toBeVisible();
   });
 });

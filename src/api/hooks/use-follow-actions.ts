@@ -2,12 +2,19 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { queryKeys } from "@/api/query-keys";
 
 export function useFollowActions(userId: string) {
   const queryClient = useQueryClient();
 
   const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: ["user", userId] });
+    return Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.detail(userId) }),
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.users.followLists("followers", userId),
+      }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.followLists("following") }),
+    ]);
   };
 
   const follow = useMutation({

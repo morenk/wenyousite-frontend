@@ -211,15 +211,15 @@
 
 | 状态 | 来源 | 管理方式 |
 |------|------|----------|
-| 用户资料 | `GET /users/:id` | TanStack Query `useQuery`（queryKey `["user", id]`） |
+| 用户资料 | `GET /users/:id` | TanStack Query `useQuery`（`queryKeys.users.detail(id)`） |
 | 最近动态 | `GET /users/:id/recent-replies` | TanStack Query `useQuery` |
 | 创建的帖子 | `GET /users/:id/created-threads` | `useInfiniteQuery`（cursor 分页） |
 | 参与的帖子 | `GET /users/:id/played-threads` | `useInfiniteQuery`（cursor 分页；query key 含 PUBLIC/PRIVATE/ALL 分类） |
 | 我的资料 | `GET /users/me` | TanStack Query `useQuery` |
-| 草稿列表 | `GET /threads/draft` | TanStack Query `useQuery`（queryKey `["drafts"]`） |
-| 关注/拉黑状态 | 用户资料中的 isFollowing/isBlocked | `useMutation` + 失效 `["user", id]` |
-| 登录终端 | `GET /auth/sessions` | `useQuery(["auth-sessions", userId])`；`staleTime=0` 且每次挂载重新读取，429 不自动重试，退出成功后按稳定终端 ID 从缓存移除 |
-| 黑名单 | `GET /users/me/blocks` | `useQuery(["blocked-users", userId])`，取消拉黑后失效缓存 |
+| 草稿列表 | `GET /threads/draft` | TanStack Query `useQuery`（`queryKeys.threadDrafts`） |
+| 关注/拉黑状态 | 用户资料中的 isFollowing/isBlocked | 领域 mutation hook 统一更新/失效用户资料 |
+| 登录终端 | `GET /auth/sessions` | `queryKeys.auth.sessions(userId)`；`staleTime=0`，退出成功后按稳定终端 ID 从缓存移除 |
+| 黑名单 | `GET /users/me/blocks` | `queryKeys.users.blocks(userId)`，取消拉黑后失效缓存 |
 
 登录终端与黑名单的 query key 包含当前用户 ID；AuthContext 中用户身份变化时，根 Provider 还会重新创建 QueryClient，从缓存容器层阻断其他私有数据在账号切换后串用。
 
@@ -230,7 +230,7 @@
 | UserProfileCard | `src/components/user/user-profile-card.tsx` | 用户资料卡：头像（无则首字母）/用户名/Bio/注册时间/关注粉丝数（可点击）/操作按钮 |
 | UserAvatar | `src/components/shared/user-avatar.tsx` | 共享头像组件：有 URL 用 `_thumb.webp` 缩略图，无则首字母占位；“已注销用户”始终忽略 URL 并使用统一灰色用户图标；尺寸通过 className 控制（资料卡/关注列表/通知/主题帖列表/楼层/楼中楼复用） |
 | FollowButton | `src/components/user/follow-button.tsx` | 关注/取消关注切换（未登录跳 /login） |
-| BlockButton | `src/components/user/block-button.tsx` | 拉黑/取消拉黑切换（confirm 二次确认） |
+| BlockButton | `src/components/user/block-button.tsx` | 拉黑/取消拉黑切换（全局无障碍确认框二次确认） |
 | UserFollowList | `src/components/user/user-follow-list.tsx` | 关注/粉丝列表（头像 + 用户名链接 + 三态，复用两种列表） |
 | FollowListPage | `src/components/user/follow-list-page.tsx` | 关注/粉丝子页面主体（用户名标题 + 返回链接 + 列表） |
 | UserRecentReplies | `src/components/user/user-recent-replies.tsx` | 最近动态列表（**仅展示最近 5 条**；整卡通过共享 `getPostHref` 精确定位到对应楼层/楼中楼/正文；正文/楼层/楼中楼三态标识 + preview） |

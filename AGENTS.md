@@ -49,7 +49,8 @@ src/
     editor/         # Milkdown 编辑器封装
     thread/         # 主题帖相关业务组件
   lib/
-    auth.tsx        # 认证上下文
+    auth.tsx        # 认证上下文与启动恢复
+    auth-store.ts   # 仅驻留内存的 access token / user 仓库
     utils.ts        # cn 等工具函数
   api/
     client.ts       # openapi-fetch 客户端
@@ -67,14 +68,15 @@ pnpm start        # 生产运行（端口 3001）
 pnpm lint         # ESLint
 pnpm typecheck    # TypeScript
 pnpm test         # vitest 单元/组件测试
+pnpm test:coverage # vitest + 全局覆盖率债务棘轮
 pnpm test:watch   # vitest watch 模式
-pnpm test:e2e     # Playwright E2E（需 E2E_ENV=test，独立使用 3101 端口）
-pnpm check        # 唯一质量门禁：lint + typecheck + test + 快照/文档检查 + build
+pnpm test:e2e     # Playwright E2E（需 E2E_ENV=test + 专用 E2E_EMAIL/E2E_PASSWORD，独立 3101 端口）
+pnpm check        # 唯一质量门禁：lint + typecheck + 契约/架构 + 覆盖率 + 快照/文档 + build
 pnpm check:full   # 发布前完整门禁：check + 本机 E2E
 pnpm generate:api # 从相邻后端源码离线导出 OpenAPI 并生成类型，无需启动服务
 ```
 
-当前 ESLint 历史基线为 1 个 React Compiler warning，`pnpm lint` 使用 `--max-warnings 1` 作为债务棘轮：新改动不得增加 warning；修复后应将基线降为 0。
+ESLint 使用 `--max-warnings 0`，warning 与 error 都会阻止质量门禁。Vitest 覆盖率阈值以当前全量基线建立债务棘轮，新增代码不得让 statements/branches/functions/lines 低于配置值。
 
 **dev server 内存说明：** Next 16 dev 用 Turbopack，会把访问过的路由（尤其 `/threads/create`、`/threads/[id]` 的 Milkdown+Vue 编辑器模块图）编译结果常驻内存，RSS 随访问路由累积（可到 4GB+）。这是 dev-only 的编译缓存，**生产 standalone 构建不会这样**。缓解：`dev` 脚本已加 `NODE_OPTIONS=--max-old-space-size=3072`；若 RSS 仍接近 3GB 或测试/build 因内存不足挂起，**重启 `pnpm dev`** 即可释放（首访会重新编译几秒）。若改动后 dev 首次编译 OOM，可调低/移除该 NODE_OPTIONS。
 
@@ -91,10 +93,11 @@ pnpm generate:api # 从相邻后端源码离线导出 OpenAPI 并生成类型，
 
 ### 5. 认证
 
-- `accessToken` 存在 `localStorage`；`refreshToken` 由后端 httpOnly Cookie 管理。
+- `accessToken` 只存在模块内存；刷新页面后由后端 httpOnly refresh cookie 恢复，生产代码门禁禁止写入 `localStorage.accessToken`。
+- `localStorage` 只允许保存不含凭证的会话用户 ID/修订号标记，用于跨标签页登录/登出通知。
 - 使用 `useAuth()` 获取用户状态：`const { user, isInitialized } = useAuth()`。
 - 401 时自动刷新，刷新失败则清除 token 并跳转 `/login`。
-- **任何需要登录判断的页面必须等待 `isInitialized` 完成后再做跳转判断**，避免 hydration 期间误判为未登录：
+- 受保护路由优先在对应 `layout.tsx` 使用 `RequireAuth`；组件内仍需登录分支时必须等待 `isInitialized`，避免 refresh cookie 恢复前误判：
 
   ```tsx
   const { user, isInitialized } = useAuth();
@@ -154,9 +157,9 @@ pnpm generate:api # 从相邻后端源码离线导出 OpenAPI 并生成类型，
 
 | 变量 | 说明 |
 |------|------|
-| `NEXT_PUBLIC_API_BASE_URL` | 浏览器端 API 前缀，如 `/api/v1` |
 | `BACKEND_URL` | 服务端/代理用后端地址，如 `http://api:3000` |
-| `NEXT_PUBLIC_APP_URL` | 公网域名，如 `https://wenyou.site` |
+
+浏览器固定访问同域 `/api/v1`，由 Next rewrite/Caddy 代理；不要重新引入未被代码读取的 `NEXT_PUBLIC_*` 配置。E2E 变量见 `.env.e2e.example`，必须使用本机后端和可清理的专用测试账号。
 
 ### 11. 部署
 
@@ -169,7 +172,7 @@ pnpm generate:api # 从相邻后端源码离线导出 OpenAPI 并生成类型，
 
 `wenyou.site` 当前是**公网可访问的开发环境**。为避免 Next dev/Turbopack 长时间运行造成高内存，只借用 production standalone 作为稳定运行方式，不按正式生产发布审批处理。
 
-默认交付链路为：**实现 → 相关测试 → `pnpm check` 一次 → 原子提交 → 推送 `dev` → 重启受影响服务 → 最小烟雾验证**。用户明确说“不提交 / 不推送 / 不重启”时才跳过对应步骤。
+默认实现链路为：**实现 → 相关测试 → `pnpm check` → 汇报结果**。提交、推送、重启和部署属于独立外部状态变更，仅在用户明确要求时执行。
 
 - 纯前端变化只重启 3001；后端/API 契约变化先切换后端，再切换前端
 - 纯文档变化只提交并推送，不构建、不重启
@@ -184,7 +187,7 @@ pnpm generate:api # 从相邻后端源码离线导出 OpenAPI 并生成类型，
 
 **生产模式没有热更新**——改代码必须「重新构建 → 重启进程」，这是生产模式迭代的唯一代价。
 
-当前公网开发阶段，功能任务完成默认包含提交、推送和受影响服务重启，无需逐次询问；正式生产阶段才恢复发布授权分离。
+公网环境也保持发布授权分离；功能任务完成不自动提交、推送或重启服务。
 
 **发布批次规则：** 一个可交付迭代可以包含多个原子提交，但整个批次只构建、部署和验证一次。纯文档变更不构建、不重启服务。部署前必须完成 `pnpm check`；核心用户旅程或跨端改动还需完成 `pnpm check:full` 或等价烟雾测试。
 
@@ -333,7 +336,7 @@ feat: 实现登录页面
 
 - 新增 /login 页面与登录表单
 - 使用 react-hook-form + zod 校验邮箱/密码
-- 调用 POST /auth/login 并存储 accessToken
+- 调用 POST /auth/login，并把 accessToken 写入内存认证仓库
 - 同步更新 docs/modules/auth.md
 ```
 
@@ -505,5 +508,5 @@ test("非法输入列出具体 issue", () => {
 ```bash
 pnpm test           # 单次全量运行
 pnpm test:watch     # watch 模式（开发时用）
-E2E_ENV=test pnpm test:e2e # Playwright E2E；自动启动独立 3101 前端，要求本机后端已启动
+E2E_ENV=test E2E_EMAIL=... E2E_PASSWORD=... pnpm test:e2e # Playwright E2E；自动启动独立 3101 前端，要求本机后端与专用测试账号已就绪
 ```

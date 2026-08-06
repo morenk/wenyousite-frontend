@@ -1,7 +1,8 @@
 /** 创建楼层 API hook（发布楼层或楼中楼回复） */
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { queryKeys } from "@/api/query-keys";
 import type { components } from "@/api/types";
 
 export type CreatedPost = components["schemas"]["PostResponseDto"];
@@ -15,6 +16,7 @@ interface CreatePostArgs {
 }
 
 export function useCreatePost() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ subthreadId, content, clientRequestId, parentPostId, replyToPostId }: CreatePostArgs) => {
       const { data, error } = await apiClient.POST(
@@ -28,5 +30,21 @@ export function useCreatePost() {
       if (!data) throw new Error("创建帖子响应为空");
       return data.data;
     },
+    onSuccess: (_data, variables) =>
+      Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.floors.list(variables.subthreadId),
+        }),
+        ...(variables.parentPostId
+          ? [
+              queryClient.invalidateQueries({
+                queryKey: queryKeys.replies.list(variables.parentPostId),
+              }),
+              queryClient.invalidateQueries({
+                queryKey: queryKeys.posts.detail(variables.parentPostId),
+              }),
+            ]
+          : []),
+      ]),
   });
 }

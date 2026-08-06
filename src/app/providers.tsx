@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import { useEffect, useRef, useState } from "react";
 import { AuthProvider, useAuth } from "@/lib/auth";
+import { ConfirmProvider } from "@/components/ui/confirm-provider";
 
 function createQueryClient() {
   return new QueryClient({
@@ -58,7 +59,9 @@ function IdentityScopedQueries({ children }: { children: React.ReactNode }) {
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
-      <IdentityScopedQueries>{children}</IdentityScopedQueries>
+      <IdentityScopedQueries>
+        <ConfirmProvider>{children}</ConfirmProvider>
+      </IdentityScopedQueries>
     </AuthProvider>
   );
 }

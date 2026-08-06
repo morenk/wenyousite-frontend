@@ -7,6 +7,7 @@ import Cropper, { type Area } from "react-easy-crop";
 import { Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useSetAvatar } from "@/api/hooks/use-set-avatar";
+import { getApiErrorMessage } from "@/api/errors";
 import { getImageUrlBySize, uploadImageFile, validateAvatarFile } from "@/lib/upload-image";
 import { getCroppedBlob } from "@/lib/avatar-crop";
 import { Button } from "@/components/ui/button";
@@ -64,8 +65,7 @@ export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
       toast.success("头像已更新");
       closeCrop();
     } catch (err) {
-      const e = err as { message?: string };
-      toast.error(e.message || "头像上传失败，请稍后重试");
+      toast.error(getApiErrorMessage(err, "头像上传失败，请稍后重试"));
     } finally {
       setIsUploading(false);
     }

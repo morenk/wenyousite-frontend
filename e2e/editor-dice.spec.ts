@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { openFreshThreadDraft } from "./fixtures/auth";
 
 const thread = {
   id: "t-dice-e2e",
@@ -41,20 +42,25 @@ const thread = {
 
 test("编辑器骰子按钮在真实浏览器中打开可见弹窗", async ({ page }) => {
   let submittedBody = "";
-  await page.addInitScript(() => {
-    localStorage.setItem("accessToken", "e2e-local-token");
-    localStorage.setItem(
-      "user",
-      JSON.stringify({
-        id: "u-dice-e2e",
-        email: "dice-e2e@example.invalid",
-        username: "骰子测试",
-        avatar: null,
-        role: "USER",
-        emailVerified: true,
-      }),
-    );
-  });
+  await page.route("**/api/v1/auth/refresh", (route) =>
+    route.fulfill({
+      json: {
+        code: 0,
+        message: "ok",
+        data: {
+          accessToken: "e2e-memory-token",
+          user: {
+            id: "u-dice-e2e",
+            email: "dice-e2e@example.invalid",
+            username: "骰子测试",
+            avatar: null,
+            role: "USER",
+            emailVerified: true,
+          },
+        },
+      },
+    }),
+  );
 
   await page.route("**/api/v1/threads/draft", (route) =>
     route.fulfill({ json: { code: 0, message: "ok", data: [] } }),
@@ -71,22 +77,18 @@ test("编辑器骰子按钮在真实浏览器中打开可见弹窗", async ({ pa
   await page.route("**/api/v1/threads/t-dice-e2e", (route) =>
     route.fulfill({ json: { code: 0, message: "ok", data: thread } }),
   );
-  await page.route("**/api/v1/subthreads/s-dice-e2e/body", async (route) => {
+  await page.route("**/api/v1/threads/t-dice-e2e/aggregate", async (route) => {
     submittedBody = (route.request().postDataJSON() as { content: string }).content;
     await route.fulfill({
       json: {
         code: 0,
         message: "ok",
-        data: { id: "p-dice-e2e", content: submittedBody, version: 1, diceRolls: [] },
+        data: { ...thread, title: "骰子发布载荷测试", published: true },
       },
     });
   });
-  await page.route("**/api/v1/subthreads/s-dice-e2e", (route) =>
-    route.fulfill({ json: { code: 0, message: "ok", data: thread.subthreads[0] } }),
-  );
 
-  await page.goto("/threads/create");
-  await page.getByRole("button", { name: "新建主题帖" }).click();
+  await openFreshThreadDraft(page);
 
   const diceButton = page.getByRole("button", { name: "骰子" });
   await expect(diceButton).toBeVisible();

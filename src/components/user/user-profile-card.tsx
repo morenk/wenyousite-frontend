@@ -12,10 +12,10 @@ import { BlockButton } from "@/components/user/block-button";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import type { UserPublic } from "@/api/hooks/use-user-profile";
+import type { ActiveUserPublic } from "@/api/hooks/use-user-profile";
 
 interface UserProfileCardProps {
-  user: UserPublic;
+  user: ActiveUserPublic;
 }
 
 export function UserProfileCard({ user }: UserProfileCardProps) {

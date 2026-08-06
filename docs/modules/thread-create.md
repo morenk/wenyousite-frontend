@@ -15,8 +15,8 @@
 - Milkdown 输出协议：代码块外独占行 `<br />`（含历史变体）规范化并原样保存，用于精确保留手动空行；空图片语法清理，围栏代码块和 Shift+Enter 硬换行保持原样
 - 图片上传期间仅锁定提交/取消操作，不把编辑器切换为只读，避免 Crepe 重建顶栏；若第三方内部仍替换顶栏节点，当前编辑器宿主会重新同步可见性与中文标签，多编辑器页面之间互不影响
 - 发布校验：纯空白、仅空段落或仅分隔线不可发布；图片、代码块、列表、裸 HTTP(S) URL、CommonMark 自动链接等非空内容可发布，禁止任意 HTML
-- 保存草稿（`PATCH /threads/:id`）
-- 发布主题帖（`PATCH /threads/:id { published: true }`）；正文内联骰子节点由服务端在发布事务中统一结算
+- 保存草稿与发布统一调用聚合端点（`PATCH /threads/:id/aggregate`），元数据、默认子贴标题/正文、标签和发布状态在同一数据库事务中提交
+- 正文内联骰子节点由服务端在同一发布事务中统一结算
 - 发布后跳转详情页 `/threads/[id]`
 - 放弃创建时删除草稿并返回草稿列表（`DELETE /threads/:id`）
 
@@ -44,9 +44,10 @@
 |--------|------|-------|------|
 | POST | `/threads` | Auth | 创建沙盒草稿（事务创建 Thread + OWNER + 默认子贴） |
 | GET | `/threads/:id` | AuthRead | 获取草稿最新数据（含 subthreads[].bodyPost: {id,content,version} 正文信息（kind=BODY），供编辑器回填和乐观锁编辑） |
-| PATCH | `/threads/:id` | Auth | 修改草稿元数据 / 发布 |
+| PATCH | `/threads/:id/aggregate` | Auth | 原子保存元数据、默认子贴标题/正文、标签和发布状态 |
+| PATCH | `/threads/:id` | Auth | 细粒度元数据更新（其他管理入口兼容；创建表单不再使用） |
 | DELETE | `/threads/:id` | Auth | 放弃创建，删除草稿 |
-| PUT | `/subthreads/:subthreadId/body` | Auth | upsert 默认子贴正文（kind=BODY：无正文创建，有正文乐观锁更新，version 不匹配返回 409） |
+| PUT | `/subthreads/:subthreadId/body` | Auth | 非默认子贴管理时单独 upsert 正文；创建表单改用聚合端点 |
 | GET | `/tags?q=` | Public | 标签自动补全 |
 | POST | `/media/upload-url` | Auth | 获取 S3 预签名 URL；**每用户小时配额（默认 60 次）**，超限返回 429 |
 | POST | `/media/upload-done` | Auth | 确认上传完成 |
@@ -64,7 +65,7 @@
 | 状态 | 来源 | 管理方式 |
 |------|------|----------|
 | 页面模式 | picker / editor | useState（默认 picker，点「新建主题帖」切 editor） |
-| 草稿列表 | `GET /threads/draft` | TanStack Query `useQuery`（queryKey `["drafts"]`，DraftList 复用） |
+| 草稿列表 | `GET /threads/draft` | TanStack Query `useQuery`（`queryKeys.threadDrafts`，DraftList 复用） |
 | 草稿 Thread | `POST /threads` | 页面本地 state，进入 editor 模式后创建并持久化 threadId |
 | 表单字段 | 用户输入 | react-hook-form |
 | 标签候选 | `GET /tags?q=` | TanStack Query + 本地 debounce |
@@ -92,9 +93,10 @@
 | TagInput | `src/components/forms/tag-input.tsx` | 主题帖标签输入（支持自动补全） |
 | useCreateThread | `src/api/hooks/use-create-thread.ts` | 创建草稿 hook |
 | useThreadDetail | `src/api/hooks/use-thread-detail.ts` | 获取详情 hook |
-| useUpdateThread | `src/api/hooks/use-update-thread.ts` | 更新草稿 / 发布 hook |
+| useSaveThreadAggregate | `src/api/hooks/use-save-thread-aggregate.ts` | 单请求原子保存/发布主题帖聚合 |
+| useUpdateThread | `src/api/hooks/use-update-thread.ts` | 细粒度元数据更新兼容 hook |
 | useDeleteThread | `src/api/hooks/use-delete-thread.ts` | 删除草稿 hook |
-| useUpsertBody | `src/api/hooks/use-upsert-body.ts` | 写入默认子贴正文 hook（upsert：无正文创建、有正文乐观锁更新） |
+| useUpsertBody | `src/api/hooks/use-upsert-body.ts` | 非默认子贴正文的细粒度 upsert hook |
 | useUploadImage | `src/api/hooks/use-upload-image.ts` | 图片上传 hook |
 | uploadImage | `src/lib/upload-image.ts` | 图片上传流程工具函数 |
 
@@ -193,8 +195,8 @@ const threadCreateSchema = z.object({
 
 | 场景 | 处理 |
 |------|------|
-| 未登录用户访问 `/threads/create` | 等 `isInitialized` 为 true 后跳转 `/login`（避免 hydration 误判） |
-| 已登录但邮箱未验证 | 等 `isInitialized` 后提示"请先验证邮箱"并跳转 `/verify-email` |
+| 未登录用户访问 `/threads/create` | 路由 layout 的 `RequireAuth` 等待会话恢复，保留 `next` 跳转登录 |
+| 已登录但邮箱未验证 | layout 的 `RequireAuth(requireVerifiedEmail)` 跳转 `/verify-email` |
 | 创建草稿失败（网络等） | 显示错误提示，提供重试按钮 |
 | 发布时并发冲突 | 重新获取详情刷新 version，用户手动再次发布 |
 
@@ -203,26 +205,27 @@ const threadCreateSchema = z.object({
 ### 创建并发布
 
 ```
-进入 /threads/create
+进入 /threads/create 草稿选择器
   ↓ 未登录 → /login
   ↓ 未验证邮箱 → /verify-email
   ↓ 已登录且已验证
+点击“新建主题帖”
 POST /threads 创建草稿
   ↓ 成功
 显示表单（标题/分区/可见性/标签 + 默认子贴正文编辑器）
   ↓ 用户编辑
-点击"保存草稿" → PATCH /threads/:id { 当前字段, version } + PUT /subthreads/:id/body upsert 保存默认子贴正文
+点击"保存草稿" → PATCH /threads/:id/aggregate { 元数据、标签、默认子贴/正文版本与 content }
   ↓ 成功 toast "草稿已保存"
-点击"发布" → 校验默认子贴正文 → upsert 正文（PUT /subthreads/:id/body）→ PATCH { published: true, version }
+点击"发布" → 前端校验 → PATCH /threads/:id/aggregate { ..., published: true }
   ↓ 成功 toast "发布成功" 跳转 /threads/:id
   ↓ 失败 按错误码提示
-点击"放弃" → 确认弹窗 → DELETE /threads/:id → 跳转 /
+点击"放弃" → 站内无障碍确认框 → DELETE /threads/:id → 返回草稿选择器
 ```
 > 发布后的主题信息、主帖正文、多子贴与成员管理统一使用详情页「管理」面板（见 thread-detail.md）；旧 `/threads/[id]/edit` 链接也会渲染同一管理界面。
 
 ## 10. 验收标准
 
-- [x] 进入 `/threads/create` 自动创建草稿并显示表单
+- [x] 进入 `/threads/create` 先展示草稿选择器，仅点击「新建主题帖」才创建草稿
 - [x] 未登录用户跳转登录页
 - [x] 未验证邮箱用户收到提示并跳转验证页
 - [x] 表单可编辑标题、分区、可见性、标签、默认子贴正文
@@ -235,6 +238,7 @@ POST /threads 创建草稿
 - [x] 编辑器不可见空段落不会在发布后显示为字面 `<br />`，代码块中的 `<br />` 示例不被误删
 - [x] 编辑器禁用表格功能
 - [x] 保存草稿成功更新 Thread 元数据
+- [x] 元数据、标签、默认正文与发布状态使用单个聚合请求原子保存
 - [x] 发布前校验不满足时提示具体缺项（含默认子贴无正文）
 - [x] 发布成功跳转详情页
 - [x] 从草稿列表继续编辑时显示「保存草稿」与「发布」，发布后跳转详情页
@@ -261,6 +265,6 @@ POST /threads 创建草稿
 - [x] 同步更新文档
 - [x] lint / typecheck / build 通过
 - [x] vitest 单元测试通过：Zod schema / API hooks / 工具函数 / 组件
-- [x] Playwright E2E 测试通过：登录→创建完整流程 / 顶栏工具栏 / 发布校验 / 放弃
+- [x] Playwright E2E 覆盖：专用环境凭据、每用例显式新建草稿、登录→创建 / 工具栏 / 发布校验 / 站内确认框放弃
 - [x] 修复草稿继续编辑误用已发布帖表单：编辑页按 `published` 分流，并补页面回归测试
 - [x] 修复 Milkdown 空段落序列化泄漏：输出阶段清理独占行 `<br />`，并补代码块保护测试

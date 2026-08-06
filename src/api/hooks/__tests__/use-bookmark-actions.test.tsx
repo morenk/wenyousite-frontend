@@ -3,7 +3,10 @@
 import { describe, test, expect, vi } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useBookmarkActions } from "@/api/hooks/use-bookmark-actions";
+import {
+  useBookmarkActions,
+  useRemoveBookmark,
+} from "@/api/hooks/use-bookmark-actions";
 import React from "react";
 
 const { mockPOST, mockDELETE } = vi.hoisted(() => ({
@@ -15,8 +18,9 @@ vi.mock("@/api/client", () => ({
   apiClient: { POST: mockPOST, DELETE: mockDELETE },
 }));
 
-function createWrapper() {
-  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+function createWrapper(
+  qc = new QueryClient({ defaultOptions: { queries: { retry: false } } }),
+) {
   function Wrapper({ children }: { children: React.ReactNode }) {
     return <QueryClientProvider client={qc}>{children}</QueryClientProvider>;
   }
@@ -57,5 +61,25 @@ describe("useBookmarkActions", () => {
     expect(mockDELETE).toHaveBeenCalledWith("/api/v1/bookmarks/{id}", {
       params: { path: { id: "bm1" } },
     });
+  });
+
+  test("列表取消收藏同时失效帖子详情", async () => {
+    mockDELETE.mockResolvedValue({
+      data: { code: 0, message: "ok", data: { message: "已取消收藏" } },
+      error: undefined,
+    });
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    const invalidate = vi.spyOn(queryClient, "invalidateQueries");
+    const { result } = renderHook(() => useRemoveBookmark(), {
+      wrapper: createWrapper(queryClient),
+    });
+
+    result.current.mutate({ bookmarkId: "bm1", threadId: "t1" });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["thread", "t1"] });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["bookmarks"] });
   });
 });

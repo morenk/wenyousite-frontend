@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { useQuery } from "@tanstack/react-query";
 import { Providers } from "@/app/providers";
 import { useAuth } from "@/lib/auth";
+import { clearAuthSession } from "@/lib/auth-store";
 
 vi.mock("sonner", () => ({ Toaster: () => null }));
 
@@ -40,21 +41,28 @@ function PublicQueryProbe({ queryFn }: { queryFn: () => Promise<string> }) {
 }
 
 beforeEach(() => {
-  localStorage.setItem("accessToken", "token-u1");
-  localStorage.setItem("user", JSON.stringify({
-    id: "u1",
-    email: "u1@example.com",
-    username: "用户一",
-    avatar: null,
-    role: "USER",
-    emailVerified: true,
-  }));
+  clearAuthSession({ announce: false });
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
+    code: 0,
+    data: {
+      accessToken: "token-u1",
+      user: {
+        id: "u1",
+        email: "u1@example.com",
+        username: "用户一",
+        avatar: null,
+        role: "USER",
+        emailVerified: true,
+      },
+    },
+  }), { status: 200, headers: { "content-type": "application/json" } })));
 });
 
 afterEach(() => {
   cleanup();
   localStorage.clear();
-  window.dispatchEvent(new Event("auth-change"));
+  clearAuthSession({ announce: false });
+  vi.unstubAllGlobals();
 });
 
 describe("Providers 用户缓存隔离", () => {

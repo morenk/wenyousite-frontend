@@ -104,7 +104,6 @@ function Harness() {
 
 function renderHarness() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  const invalidate = vi.spyOn(queryClient, "invalidateQueries");
   render(
     <QueryClientProvider client={queryClient}>
       <ThreadComposerProvider>
@@ -112,7 +111,6 @@ function renderHarness() {
       </ThreadComposerProvider>
     </QueryClientProvider>,
   );
-  return { invalidate };
 }
 
 describe("ThreadComposer", () => {
@@ -138,9 +136,9 @@ describe("ThreadComposer", () => {
     expect(screen.getByText("回复 @小明")).toBeInTheDocument();
   });
 
-  test("楼中楼回复提交目标参数并刷新回复与楼层", async () => {
+  test("楼中楼回复提交完整目标参数，缓存刷新交给领域 hook", async () => {
     const user = userEvent.setup();
-    const { invalidate } = renderHarness();
+    renderHarness();
     await user.click(screen.getByRole("button", { name: "回复入口" }));
     await user.type(screen.getByTestId("milkdown-editor"), "回复内容");
     await user.click(screen.getByRole("button", { name: /^回复$/ }));
@@ -152,9 +150,6 @@ describe("ThreadComposer", () => {
       replyToPostId: "reply-2",
       clientRequestId: REQUEST_ID,
     }));
-    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["replies", "post-1"] });
-    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["post", "post-1"] });
-    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["floors", "s1"] });
     expect(screen.queryByTestId("milkdown-editor")).not.toBeInTheDocument();
   });
 

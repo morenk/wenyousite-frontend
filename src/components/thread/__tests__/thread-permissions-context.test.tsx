@@ -5,14 +5,14 @@ import {
   useThreadPermissions,
 } from "@/components/thread/thread-permissions-context";
 
-const { mockUseAuth, mockUseMembers } = vi.hoisted(() => ({
+const { mockUseAuth, mockUseThreadDetail } = vi.hoisted(() => ({
   mockUseAuth: vi.fn(),
-  mockUseMembers: vi.fn(),
+  mockUseThreadDetail: vi.fn(),
 }));
 
 vi.mock("@/lib/auth", () => ({ useAuth: () => mockUseAuth() }));
-vi.mock("@/api/hooks/use-members", () => ({
-  useMembers: () => mockUseMembers(),
+vi.mock("@/api/hooks/use-thread-detail", () => ({
+  useThreadDetail: () => mockUseThreadDetail(),
 }));
 
 function Harness() {
@@ -29,24 +29,27 @@ function Harness() {
 describe("ThreadPermissionsProvider", () => {
   beforeEach(() => {
     mockUseAuth.mockReturnValue({ user: { id: "current", role: "USER" } });
-    mockUseMembers.mockReturnValue({ data: [], isLoading: false });
+    mockUseThreadDetail.mockReturnValue({ data: undefined, isLoading: false });
   });
 
   afterEach(cleanup);
 
   test("根据帖内成员角色识别协作者管理权限", () => {
-    mockUseMembers.mockReturnValue({
-      data: [
-        {
+    mockUseThreadDetail.mockReturnValue({
+      data: {
+        ownerId: "owner",
+        currentMembership: {
           id: "member-1",
-          threadId: "thread-1",
           userId: "current",
           role: "COLLABORATOR",
           playerMarked: false,
-          joinedAt: "2026-01-01T00:00:00Z",
-          user: { id: "current", username: "协作者", avatar: null },
         },
-      ],
+        capabilities: {
+          isOwner: false,
+          canManageThread: true,
+          canManageMembers: true,
+        },
+      },
       isLoading: false,
     });
 

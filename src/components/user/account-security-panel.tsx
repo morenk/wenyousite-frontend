@@ -18,17 +18,19 @@ import {
   useRevokeSession,
   useUnblockUser,
 } from "@/api/hooks/use-account-security";
+import { getApiError, getApiErrorMessage } from "@/api/errors";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useConfirm } from "@/components/ui/confirm-provider";
 
 function formatTime(value: string) {
   return format(new Date(value), "yyyy-MM-dd HH:mm", { locale: zhCN });
 }
 
 function getSessionErrorMessage(error: unknown) {
-  const code = (error as { code?: number } | null)?.code;
+  const code = getApiError(error).code;
   return code === 42900 ? "操作太频繁，请稍后再试" : "登录终端加载失败";
 }
 
@@ -41,13 +43,14 @@ export function AccountSecurityPanel() {
   const unblockUser = useUnblockUser(user?.id);
   const deleteAccount = useDeleteAccount();
   const [confirmation, setConfirmation] = useState("");
+  const confirmAction = useConfirm();
 
   async function handleRevoke(sessionId: string) {
     try {
       await revokeSession.mutateAsync(sessionId);
       toast.success("登录终端已退出");
     } catch (error: unknown) {
-      toast.error((error as { message?: string }).message || "退出失败，请稍后重试");
+      toast.error(getApiErrorMessage(error, "退出失败，请稍后重试"));
     }
   }
 
@@ -56,13 +59,18 @@ export function AccountSecurityPanel() {
       await unblockUser.mutateAsync(userId);
       toast.success("已取消拉黑");
     } catch (error: unknown) {
-      toast.error((error as { message?: string }).message || "操作失败，请稍后重试");
+      toast.error(getApiErrorMessage(error, "操作失败，请稍后重试"));
     }
   }
 
   async function handleDeleteAccount() {
     if (confirmation !== "注销账号") return;
-    if (!window.confirm("账号注销后无法恢复，确定继续吗？")) return;
+    if (!(await confirmAction({
+      title: "注销账号",
+      description: "账号注销后无法恢复，确定继续吗？",
+      confirmLabel: "永久注销",
+      destructive: true,
+    }))) return;
     try {
       await deleteAccount.mutateAsync();
       logout();
@@ -70,7 +78,7 @@ export function AccountSecurityPanel() {
       router.replace("/");
       router.refresh();
     } catch (error: unknown) {
-      toast.error((error as { message?: string }).message || "注销失败，请稍后重试");
+      toast.error(getApiErrorMessage(error, "注销失败，请稍后重试"));
     }
   }
 

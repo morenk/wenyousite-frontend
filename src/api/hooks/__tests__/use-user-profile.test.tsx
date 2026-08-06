@@ -56,7 +56,11 @@ describe("useUserProfile", () => {
       params: { path: { id: "u1" } },
     });
     expect(result.current.data?.username).toBe("testuser");
-    expect(result.current.data?._count.followers).toBe(1);
+    expect(result.current.data?.isDeactivated).toBe(false);
+    if (!result.current.data || result.current.data.isDeactivated) {
+      throw new Error("应返回有效用户资料");
+    }
+    expect(result.current.data._count.followers).toBe(1);
   });
 
   test("userId 为 undefined 时不请求", () => {

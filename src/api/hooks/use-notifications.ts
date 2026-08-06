@@ -2,40 +2,34 @@
 
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { queryKeys } from "@/api/query-keys";
+import type { components, operations } from "@/api/types";
 
-export interface NotificationFromUser {
-  id: string;
-  username: string;
-  avatar: string | null;
-  deletedAt?: string | null;
-}
-
-export interface NotificationItem {
-  id: string;
-  type: string;
-  content: string | null;
-  payload: Record<string, unknown> | null;
-  postId: string | null;
-  threadId: string | null;
-  fromUserId: string | null;
-  isRead: boolean;
-  createdAt: string;
-  post: {
-    id: string;
-    floorNumber: number | null;
-    parentPostId: string | null;
-    deletedAt?: string | null;
-  } | null;
-  thread: { id: string; title: string; deletedAt?: string | null } | null;
-  fromUser: NotificationFromUser | null;
-}
-
-export interface NotificationsResponse {
-  code: number;
-  message: string;
-  data: NotificationItem[];
-  meta: { cursor: string | null; hasMore: boolean };
-}
+type GeneratedNotificationItem =
+  components["schemas"]["NotificationResponseDto"];
+type NotificationPost = NonNullable<GeneratedNotificationItem["post"]>;
+type NotificationThread = NonNullable<GeneratedNotificationItem["thread"]>;
+type GeneratedNotificationFromUser = NonNullable<
+  GeneratedNotificationItem["fromUser"]
+>;
+/** UI 不依赖接收者 ID 和服务端幂等键，组件只消费展示字段。 */
+export type NotificationItem = Omit<
+  GeneratedNotificationItem,
+  "userId" | "eventKey" | "post" | "thread" | "fromUser"
+> & {
+  post: (Omit<NotificationPost, "deletedAt"> & {
+    deletedAt?: NotificationPost["deletedAt"];
+  }) | null;
+  thread: (Omit<NotificationThread, "deletedAt"> & {
+    deletedAt?: NotificationThread["deletedAt"];
+  }) | null;
+  fromUser: (Omit<GeneratedNotificationFromUser, "deletedAt"> & {
+    deletedAt?: GeneratedNotificationFromUser["deletedAt"];
+  }) | null;
+};
+export type NotificationFromUser = NonNullable<NotificationItem["fromUser"]>;
+export type NotificationsResponse =
+  operations["NotificationsController_findAll"]["responses"][200]["content"]["application/json"];
 
 interface UseNotificationsParams {
   type?: string;
@@ -45,7 +39,7 @@ interface UseNotificationsParams {
 export function useNotifications({ type, userId }: UseNotificationsParams = {}) {
   const enabled = !!userId;
   return useInfiniteQuery({
-    queryKey: ["notifications", type, userId],
+    queryKey: queryKeys.notifications.list(type, userId),
     queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
       const queryParams: Record<string, string> = { limit: "20" };
       if (pageParam) queryParams.cursor = pageParam;
@@ -56,16 +50,15 @@ export function useNotifications({ type, userId }: UseNotificationsParams = {}) 
       });
       if (error) throw error;
 
-      const response = data as unknown as NotificationsResponse;
-      if (!response?.data) {
+      if (!data?.data) {
         return {
           code: 0,
           message: "ok",
           data: [],
           meta: { cursor: null, hasMore: false },
-        } as NotificationsResponse;
+        } satisfies NotificationsResponse;
       }
-      return response;
+      return data;
     },
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => {

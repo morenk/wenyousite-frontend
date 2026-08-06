@@ -42,7 +42,7 @@ const baseThread: ThreadCardData = {
   updatedAt: "2026-01-01T00:00:00Z",
   deletedAt: null,
   owner: { id: "u1", username: "测试作者", avatar: null },
-  defaultSubthread: { id: "s1", title: "主帖" },
+  defaultSubthread: { id: "s1", title: "主帖", lastPostAt: null },
   topicTags: [
     { tag: { id: "tag-1", name: "测试标签", color: null } },
     { tag: { id: "tag-2", name: "RPG", color: null } },
@@ -159,7 +159,7 @@ describe("ThreadCard", () => {
     expect(link).toHaveAttribute("href", "/threads/thread-1");
   });
 
-  test("悬停时预取主题详情和首屏楼层", () => {
+  test("悬停时仅预取无副作用的首屏楼层", () => {
     const queryClient = new QueryClient();
     const detailPrefetch = vi
       .spyOn(queryClient, "prefetchQuery")
@@ -171,9 +171,7 @@ describe("ThreadCard", () => {
     renderThreadCard(baseThread, queryClient);
     fireEvent.mouseEnter(screen.getByRole("link"));
 
-    expect(detailPrefetch).toHaveBeenCalledWith(
-      expect.objectContaining({ queryKey: ["thread", "thread-1"] }),
-    );
+    expect(detailPrefetch).not.toHaveBeenCalled();
     expect(floorPrefetch).toHaveBeenCalledWith(
       expect.objectContaining({ queryKey: ["floors", "s1"] }),
     );

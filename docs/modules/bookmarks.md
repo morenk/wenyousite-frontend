@@ -79,10 +79,10 @@
 
 | 状态 | 来源 | 管理方式 |
 |------|------|----------|
-| 我的收藏 | `GET /bookmarks` | `useInfiniteQuery`（queryKey `["bookmarks"]`） |
-| 他人收藏 | `GET /users/:id/bookmarks` | `useInfiniteQuery`（queryKey `["user","bookmarks",id]`，404→error 显示未公开） |
-| 详情页收藏态 | `GET /threads/:id` 的 isBookmarked/bookmarkId | `useQuery`（`["thread",id]`） |
-| 收藏/取消 | POST/DELETE | `useMutation`，成功后失效 `["bookmarks"]` + `["user","bookmarks"]` + `["thread",id]` |
+| 我的收藏 | `GET /bookmarks` | `useInfiniteQuery`（`queryKeys.bookmarks.all`） |
+| 他人收藏 | `GET /users/:id/bookmarks` | `useInfiniteQuery`（`queryKeys.users.bookmarks(id)`，404→error 显示未公开） |
+| 详情页收藏态 | `GET /threads/:id` 的 isBookmarked/bookmarkId | `useQuery`（`queryKeys.threads.detail(id)`） |
+| 收藏/取消 | POST/DELETE | 领域 mutation hook 统一更新详情并失效收藏列表 |
 
 ## 6. 组件清单
 

@@ -4,10 +4,10 @@
 
 import { Loader2, ShieldCheck, Shield } from "lucide-react";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useMembers } from "@/api/hooks/use-members";
 import { useUpdateMember } from "@/api/hooks/use-update-member";
+import { getApiErrorMessage } from "@/api/errors";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
 import { cn } from "@/lib/utils";
@@ -18,7 +18,6 @@ interface MemberManagerProps {
   /** 楼主可任免协作者；楼主和协作者都可修改玩家标记。 */
   isOwner: boolean;
   isCollaborator: boolean;
-  onRefetch: () => Promise<unknown>;
 }
 
 const ROLE_LABEL: Record<string, string> = {
@@ -27,15 +26,9 @@ const ROLE_LABEL: Record<string, string> = {
   PARTICIPANT: "参与人",
 };
 
-export function MemberManager({ threadId, isOwner, isCollaborator, onRefetch }: MemberManagerProps) {
-  const queryClient = useQueryClient();
+export function MemberManager({ threadId, isOwner, isCollaborator }: MemberManagerProps) {
   const { data: members, isLoading, error, refetch } = useMembers(threadId);
   const updateMember = useUpdateMember();
-
-  const invalidate = async () => {
-    await queryClient.invalidateQueries({ queryKey: ["members", threadId] });
-    await onRefetch();
-  };
 
   const handleTogglePlayer = async (m: ThreadMember) => {
     try {
@@ -45,10 +38,8 @@ export function MemberManager({ threadId, isOwner, isCollaborator, onRefetch }: 
         playerMarked: !m.playerMarked,
       });
       toast.success(m.playerMarked ? "已收回玩家身份" : "已授予玩家身份");
-      await invalidate();
     } catch (error: unknown) {
-      const err = error as { message?: string };
-      toast.error(err.message || "操作失败，请稍后重试");
+      toast.error(getApiErrorMessage(error, "操作失败，请稍后重试"));
     }
   };
 
@@ -57,10 +48,8 @@ export function MemberManager({ threadId, isOwner, isCollaborator, onRefetch }: 
     try {
       await updateMember.mutateAsync({ threadId, userId: m.userId, role: nextRole });
       toast.success(nextRole === "COLLABORATOR" ? "已升级为协作者" : "已降级为参与人");
-      await invalidate();
     } catch (error: unknown) {
-      const err = error as { message?: string };
-      toast.error(err.message || "操作失败，请稍后重试");
+      toast.error(getApiErrorMessage(error, "操作失败，请稍后重试"));
     }
   };
 

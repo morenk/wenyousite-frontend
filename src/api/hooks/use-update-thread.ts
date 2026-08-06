@@ -3,7 +3,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
 import type { ThreadCreateFormData } from "@/lib/validations/thread-create";
-import type { RawThreadDetail } from "./use-thread-detail";
 import { normalizeThreadDetail } from "./use-thread-detail";
 
 export interface UpdateThreadBody {
@@ -13,12 +12,6 @@ export interface UpdateThreadBody {
   visibility?: ThreadCreateFormData["visibility"];
   published?: boolean;
   version: number;
-}
-
-interface UpdateThreadResponse {
-  code: number;
-  message: string;
-  data: RawThreadDetail;
 }
 
 export function useUpdateThread() {
@@ -42,7 +35,8 @@ export function useUpdateThread() {
         },
       });
       if (error) throw error;
-      return normalizeThreadDetail((data as unknown as UpdateThreadResponse).data);
+      if (!data) throw new Error("更新主题帖响应为空");
+      return normalizeThreadDetail(data.data);
     },
   });
 }

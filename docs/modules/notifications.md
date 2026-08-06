@@ -90,11 +90,11 @@
 
 | 状态 | 来源 | 管理方式 |
 |------|------|----------|
-| 通知列表 | `GET /notifications` | TanStack Query `useInfiniteQuery`（queryKey `["notifications", type, userId]`，按用户隔离） |
-| 未读数 | `GET /notifications/unread` | `useQuery`（queryKey `["notifications","unread",userId]`，按用户隔离，`refetchInterval: 30s`） |
+| 通知列表 | `GET /notifications` | TanStack Query `useInfiniteQuery`（`queryKeys.notifications.list(type, userId)`，按用户隔离） |
+| 未读数 | `GET /notifications/unread` | `useQuery`（`queryKeys.notifications.unread(userId)`，按用户隔离，`refetchInterval: 30s`） |
 | 标记已读/删除/全部已读 | 各 mutation | 乐观更新当前用户的列表与未读数；失败时回滚，再后台校验 |
 
-> **缓存按用户隔离**：未读数与列表 queryKey 均包含 `userId`。登录切换账号时 key 变化 → 挂载全新缓存条目立即拉取；登出后旧账号缓存自动失活，避免「刚登录徽标不显示旧数据 / 串号」。登录/注册成功后会失效 `["notifications"]` 前缀，保证同账号重复登录也能刷新。
+> **缓存按用户隔离**：未读数与列表 key 均由 `queryKeys` 工厂生成并包含 `userId`。登录切换账号时还会重建 QueryClient，从 key 与容器两层避免私有通知串号。
 
 ## 6. 组件清单
 

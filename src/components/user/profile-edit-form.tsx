@@ -6,12 +6,13 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2, ChevronRight } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import type { UseFormRegisterReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useMe } from "@/api/hooks/use-me";
 import { useUpdateProfile } from "@/api/hooks/use-update-profile";
+import { getApiError } from "@/api/errors";
 import { profileSchema, type ProfileFormData } from "@/lib/validations/profile";
 import { UsernameEdit } from "@/components/user/username-edit";
 import { AvatarUploader } from "@/components/user/avatar-uploader";
@@ -35,7 +36,7 @@ export function ProfileEditForm() {
     register,
     handleSubmit,
     reset,
-    watch,
+    control,
     formState: { errors },
   } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -47,7 +48,7 @@ export function ProfileEditForm() {
     },
   });
 
-  const bioLength = (watch("bio") ?? "").length;
+  const bioLength = (useWatch({ control, name: "bio" }) ?? "").length;
 
   useEffect(() => {
     if (me) {
@@ -71,7 +72,7 @@ export function ProfileEditForm() {
       toast.success("资料已保存");
       router.refresh();
     } catch (err: unknown) {
-      const e = err as { code?: number; message?: string };
+      const e = getApiError(err);
       if (e.code === 42900) {
         toast.error("操作太频繁，请稍后再试");
       } else {

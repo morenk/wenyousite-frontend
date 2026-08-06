@@ -2,13 +2,14 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { queryKeys } from "@/api/query-keys";
 import type { components } from "@/api/types";
 
 export type DraftSlotsInfo = components["schemas"]["DraftSlotUsageResponseDto"];
 
 export function useDraftSlots(enabled = true) {
   return useQuery({
-    queryKey: ["draft-slots"],
+    queryKey: queryKeys.draftSlots,
     queryFn: async () => {
       const { data, error } = await apiClient.GET("/api/v1/drafts/slots");
       if (error) throw error;

@@ -16,6 +16,7 @@ import {
   type ForgotPasswordFormData,
 } from "@/lib/validations/auth";
 import { useForgotPassword } from "@/api/hooks/use-auth-actions";
+import { getApiError } from "@/api/errors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,7 +57,7 @@ export default function ForgotPasswordPage() {
       setValue("email", formData.email);
       router.push("/reset-password");
     } catch (error: unknown) {
-      const err = error as { code?: number; message?: string };
+      const err = getApiError(error);
       if (err.code === 42900) {
         toast.error("操作太频繁，请稍后再试");
       } else {

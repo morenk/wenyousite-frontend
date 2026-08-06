@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { queryKeys } from "@/api/query-keys";
 
 export function useLikeThread(threadId: string) {
   const queryClient = useQueryClient();
@@ -14,7 +15,7 @@ export function useLikeThread(threadId: string) {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["thread", threadId] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.threads.detail(threadId) });
     },
   });
 
@@ -26,7 +27,7 @@ export function useLikeThread(threadId: string) {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["thread", threadId] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.threads.detail(threadId) });
     },
   });
 

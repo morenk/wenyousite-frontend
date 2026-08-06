@@ -2,45 +2,74 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { queryKeys } from "@/api/query-keys";
+import type { components } from "@/api/types";
 
-export interface UserPublic {
-  id: string;
-  username: string;
-  avatar: string | null;
-  bio: string | null;
-  role: string;
-  showRecentReplies: boolean;
-  showPlayerBadges: boolean;
-  showBookmarks: boolean;
-  createdAt: string;
-  _count: { following: number; followers: number };
-  isFollowing?: boolean;
-  isFollowedBy?: boolean;
-  isBlocked?: boolean;
-  isBlockedBy?: boolean;
-  isDeactivated?: boolean;
-}
+type GeneratedUserPublic =
+  components["schemas"]["PublicUserResponseDto"];
+type ActiveUserFields =
+  | "avatar"
+  | "bio"
+  | "role"
+  | "showRecentReplies"
+  | "showPlayerBadges"
+  | "showBookmarks"
+  | "createdAt"
+  | "_count";
 
-interface UserResponse {
-  code: number;
-  message: string;
-  data: UserPublic;
+export type ActiveUserPublic = GeneratedUserPublic &
+  Required<Pick<GeneratedUserPublic, ActiveUserFields>> & {
+    isDeactivated?: false;
+  };
+export type DeactivatedUserPublic = Pick<
+  GeneratedUserPublic,
+  "id" | "username"
+> & { isDeactivated: true };
+export type UserPublic = ActiveUserPublic | DeactivatedUserPublic;
+
+function normalizeUserPublic(user: GeneratedUserPublic): UserPublic {
+  if (user.isDeactivated) {
+    return { id: user.id, username: user.username, isDeactivated: true };
+  }
+  if (
+    user.avatar === undefined ||
+    user.bio === undefined ||
+    user.role === undefined ||
+    user.showRecentReplies === undefined ||
+    user.showPlayerBadges === undefined ||
+    user.showBookmarks === undefined ||
+    user.createdAt === undefined ||
+    user._count === undefined
+  ) {
+    throw new Error("用户资料响应不完整");
+  }
+  return {
+    ...user,
+    avatar: user.avatar,
+    bio: user.bio,
+    role: user.role,
+    showRecentReplies: user.showRecentReplies,
+    showPlayerBadges: user.showPlayerBadges,
+    showBookmarks: user.showBookmarks,
+    createdAt: user.createdAt,
+    _count: user._count,
+    isDeactivated: false,
+  };
 }
 
 export function useUserProfile(userId: string | undefined) {
   return useQuery({
-    queryKey: ["user", userId],
+    queryKey: queryKeys.users.detail(userId),
     queryFn: async () => {
       if (!userId) throw new Error("缺少用户 ID");
       const { data, error } = await apiClient.GET("/api/v1/users/{id}", {
         params: { path: { id: userId } },
       });
       if (error) throw error;
-      const response = data as unknown as UserResponse;
-      if (!response?.data) {
+      if (!data) {
         throw new Error("用户不存在");
       }
-      return response.data;
+      return normalizeUserPublic(data.data);
     },
     enabled: !!userId,
     staleTime: 60 * 1000,

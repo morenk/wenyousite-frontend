@@ -1,24 +1,10 @@
 import { test, expect } from "@playwright/test";
-
-const TEST_EMAIL = "test@wenyou.site";
-const TEST_PASSWORD = "E2eTest123!";
+import { loginAsE2eUser, openFreshThreadDraft } from "./fixtures/auth";
 
 /** 登录并发布一个测试帖，返回详情页 */
 async function loginAndCreatePublishedThread(page: import("@playwright/test").Page) {
-  await page.goto("/login");
-  const loginInput = page.getByLabel("邮箱或用户名");
-  await loginInput.waitFor({ state: "visible" });
-  await loginInput.fill(TEST_EMAIL);
-  await page.getByLabel("密码").fill(TEST_PASSWORD);
-  await page.click('button[type="submit"]');
-  await page.waitForURL("/");
-
-  await page.goto("/threads/create");
-  const createButton = page.getByRole("button", { name: "新建主题帖" });
-  if (await createButton.isVisible().catch(() => false)) {
-    await createButton.click();
-  }
-  await page.waitForSelector(".milkdown-editor .ProseMirror", { timeout: 30000 });
+  await loginAsE2eUser(page);
+  await openFreshThreadDraft(page);
 
   await page.locator("#title").fill("管理面板测试帖 " + Date.now());
 
@@ -83,9 +69,9 @@ test.describe("主题帖管理面板", () => {
     await page.getByText("保存修改").click();
     await expect(page.getByText("正文已保存").first()).toBeVisible({ timeout: 10000 });
 
-    // 删除刚创建的子贴（先注册 dialog 处理器，confirm 同步触发）
-    page.once("dialog", (d) => d.accept());
+    // 删除刚创建的子贴
     await page.locator("aside").getByTitle("删除子贴").click();
+    await page.getByRole("button", { name: "删除", exact: true }).click();
     await expect(page.getByText("子贴已删除").first()).toBeVisible({ timeout: 10000 });
     await expect(page.locator("aside").getByText("设定区")).not.toBeVisible();
 
@@ -229,7 +215,7 @@ test.describe("已发布帖统一管理", () => {
     await expect(page.getByRole("button", { name: "主题帖" })).toBeVisible();
 
     // 登出后访问应跳转登录
-    await page.evaluate(() => localStorage.clear());
+    await page.context().clearCookies();
     await page.goto(`/threads/${threadId}/edit`);
     await expect(page).toHaveURL(/\/login/);
   });
@@ -280,9 +266,9 @@ test.describe("楼层编辑与删除", () => {
       .first();
     await expect(floorCard).toBeVisible();
 
-    // 点击删除，确认 dialog
-    page.once("dialog", (d) => d.accept());
+    // 点击删除并在站内确认框确认
     await floorCard.getByTitle("删除楼层").click();
+    await page.getByRole("button", { name: "删除", exact: true }).click();
 
     await expect(page.getByText("楼层已删除").first()).toBeVisible({ timeout: 10000 });
     await expect(

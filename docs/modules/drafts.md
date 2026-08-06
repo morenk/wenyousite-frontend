@@ -76,8 +76,8 @@ interface DraftItem {
 
 | 状态 | 来源 | 管理方式 |
 |------|------|----------|
-| 草稿列表 | `GET /drafts` | TanStack Query `useQuery`（queryKey `["content-drafts"]`） |
-| 槽位使用 | `GET /drafts/slots` | TanStack Query `useQuery`（queryKey `["draft-slots"]`） |
+| 草稿列表 | `GET /drafts` | TanStack Query `useQuery`（`queryKeys.contentDrafts`） |
+| 槽位使用 | `GET /drafts/slots` | TanStack Query `useQuery`（`queryKeys.draftSlots`） |
 | 保存/删除 | mutation | `useMutation`，成功后 invalidate 列表与槽位 |
 | 面板开关 | 编辑器工具栏入口 | useState（MilkdownEditor 持有） |
 | 自动保存 | 当前编辑器状态 | 800ms 防抖串行写入完整 content 到 slot 1；成功后推进 version，409 时关闭自动保存 |
@@ -88,8 +88,8 @@ interface DraftItem {
 |------|------|------|
 | ContentDraftsPanel | `src/components/user/content-drafts-panel.tsx` | 5 槽位卡片；当前编辑器全文保存/覆盖/恢复/删除；槽位 1 自动保存开关 |
 | 编辑器入口 | `src/components/editor/milkdown-editor.tsx` | 顶部工具栏按钮、面板挂载、恢复回填及 slot 1 防抖自动保存 |
-| useContentDrafts | `src/api/hooks/use-content-drafts.ts` | 草稿列表 hook（queryKey `["content-drafts"]`） |
-| useDraftSlots | `src/api/hooks/use-draft-slots.ts` | 槽位使用 hook（queryKey `["draft-slots"]`） |
+| useContentDrafts | `src/api/hooks/use-content-drafts.ts` | 草稿列表 hook（集中式 query key） |
+| useDraftSlots | `src/api/hooks/use-draft-slots.ts` | 槽位使用 hook（集中式 query key） |
 | useSaveDraft | `src/api/hooks/use-save-draft.ts` | 保存草稿 hook（成功 invalidate 列表+槽位） |
 | useDeleteContentDraft | `src/api/hooks/use-delete-content-draft.ts` | 删除草稿 hook（成功 invalidate 列表+槽位） |
 

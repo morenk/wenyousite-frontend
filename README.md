@@ -17,8 +17,18 @@ pnpm dev
 pnpm lint
 pnpm typecheck
 pnpm test
+pnpm test:coverage
+pnpm check
 pnpm build
 pnpm generate:api
 ```
+
+`pnpm check` 会校验 OpenAPI 生成类型、查询键与 UI/API 分层、覆盖率阈值、安全快照、文档事实和生产构建。Playwright 会写入测试数据，只允许本机后端；运行前按 `.env.e2e.example` 提供专用测试账号：
+
+```bash
+E2E_ENV=test E2E_EMAIL=... E2E_PASSWORD=... pnpm test:e2e
+```
+
+Web access token 只驻留内存，页面刷新通过 httpOnly refresh cookie 恢复；浏览器存储中不持久化凭证。
 
 项目使用 Next.js standalone 生产构建。模块设计、API 覆盖状态和迭代流程分别见 [开发文档](./docs/README.md)、[API 覆盖审计](./docs/api-coverage.md) 和 [AGENTS.md](./AGENTS.md)。

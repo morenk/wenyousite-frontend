@@ -2,13 +2,14 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { queryKeys } from "@/api/query-keys";
 
 export function useDeleteContentDraft() {
   const queryClient = useQueryClient();
 
   const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: ["content-drafts"] });
-    queryClient.invalidateQueries({ queryKey: ["draft-slots"] });
+    queryClient.invalidateQueries({ queryKey: queryKeys.contentDrafts });
+    queryClient.invalidateQueries({ queryKey: queryKeys.draftSlots });
   };
 
   return useMutation({

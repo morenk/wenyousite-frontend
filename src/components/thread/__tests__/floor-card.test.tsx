@@ -320,13 +320,13 @@ describe("FloorCard", () => {
     expect(toast.success).toHaveBeenCalledWith("已保存");
   });
 
-  test("编辑保存乐观锁冲突提示 40900", async () => {
+  test("编辑保存乐观锁冲突提示 40002", async () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({
       user: { id: "u1", username: "测试用户", emailVerified: true },
       isInitialized: true,
     });
-    mockUpdateMutateAsync.mockRejectedValueOnce({ code: 40900, message: "内容已被修改" });
+    mockUpdateMutateAsync.mockRejectedValueOnce({ code: 40002, message: "内容已被修改" });
     renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
 
     await user.click(screen.getByTitle("编辑楼层"));

@@ -2,12 +2,12 @@
 
 "use client";
 
-import { useEffect, useRef } from "react";
 import { Loader2 } from "lucide-react";
 import type { ThreadCardData } from "@/api/hooks/use-threads";
 import { ThreadCard } from "./thread-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 
 interface ThreadListProps {
   threads: ThreadCardData[];
@@ -28,24 +28,11 @@ export function ThreadList({
   onLoadMore,
   onRetry,
 }: ThreadListProps) {
-  const sentinelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-          onLoadMore();
-        }
-      },
-      { threshold: 0.1 },
-    );
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [hasNextPage, isFetchingNextPage, onLoadMore]);
+  const sentinelRef = useInfiniteScroll({
+    hasNextPage,
+    isFetchingNextPage,
+    onLoadMore,
+  });
 
   if (isLoading) {
     return (

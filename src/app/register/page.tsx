@@ -17,6 +17,7 @@ import {
   type RegisterStep2FormData,
 } from "@/lib/validations/auth";
 import { useSendRegisterCode, useRegisterComplete } from "@/api/hooks/use-register";
+import { getApiError } from "@/api/errors";
 import { useEmailCode } from "@/hooks/use-email-code";
 import {
   Card,
@@ -77,7 +78,7 @@ export default function RegisterPage() {
       setEmail(parsed.data.email);
       setStep("register");
     } catch (error: unknown) {
-      const err = error as { code?: number; message?: string };
+      const err = getApiError(error);
       if (err.code === 40900) {
         toast.error("该邮箱已注册");
       } else if (err.code === 42900) {
@@ -109,7 +110,7 @@ export default function RegisterPage() {
         router.replace("/");
       }
     } catch (error: unknown) {
-      const err = error as { code?: number; message?: string };
+      const err = getApiError(error);
       if (err.code === 40001) {
         toast.error(err.message || "验证码错误或已过期");
       } else if (err.code === 40900) {

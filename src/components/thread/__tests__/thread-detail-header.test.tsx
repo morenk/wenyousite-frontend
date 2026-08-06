@@ -38,12 +38,17 @@ const mockCreateMutate = vi.fn().mockResolvedValue({});
 const mockDeleteMutate = vi.fn().mockResolvedValue({});
 const mockUseSubscriptions = vi.fn(() => ({ data: [], isLoading: false }));
 const mockUseMembers = vi.fn(() => ({ data: [], isLoading: false }));
+const mockUseThreadDetail = vi.fn(() => ({ data: undefined, isLoading: false }));
 vi.mock("@/api/hooks/use-subscriptions", () => ({
   useSubscriptions: () => mockUseSubscriptions(),
 }));
 vi.mock("@/api/hooks/use-members", () => ({
   useMembers: () => mockUseMembers(),
 }));
+vi.mock("@/api/hooks/use-thread-detail", async () => {
+  const actual = await vi.importActual("@/api/hooks/use-thread-detail");
+  return { ...actual, useThreadDetail: () => mockUseThreadDetail() };
+});
 vi.mock("@/api/hooks/use-subscription-mutations", () => ({
   useCreateSubscription: () => ({ mutateAsync: mockCreateMutate, isPending: false }),
   useDeleteSubscription: () => ({ mutateAsync: mockDeleteMutate, isPending: false }),
@@ -80,6 +85,7 @@ beforeEach(() => {
   mockDELETE.mockResolvedValue({ error: undefined });
   mockUseSubscriptions.mockReturnValue({ data: [], isLoading: false });
   mockUseMembers.mockReturnValue({ data: [], isLoading: false });
+  mockUseThreadDetail.mockReturnValue({ data: undefined, isLoading: false });
   mockDeleteThreadMutate.mockClear();
   mockDeleteThreadMutate.mockResolvedValue({});
   mockRouterPush.mockClear();
@@ -259,18 +265,21 @@ describe("ThreadDetailHeader", () => {
       user: { id: "collaborator-1", username: "协作者" },
       isInitialized: true,
     });
-    mockUseMembers.mockReturnValue({
-      data: [
-        {
+    mockUseThreadDetail.mockReturnValue({
+      data: {
+        ownerId: "owner-1",
+        currentMembership: {
           id: "member-collaborator",
-          threadId: "thread-1",
           userId: "collaborator-1",
           role: "COLLABORATOR",
           playerMarked: false,
-          joinedAt: "2026-01-01T00:00:00Z",
-          user: { id: "collaborator-1", username: "协作者", avatar: null },
         },
-      ],
+        capabilities: {
+          isOwner: false,
+          canManageThread: true,
+          canManageMembers: true,
+        },
+      },
       isLoading: false,
     } as never);
 
@@ -632,18 +641,21 @@ describe("ThreadDetailHeader", () => {
       user: { id: "other-user", username: "别人" },
       isInitialized: true,
     });
-    mockUseMembers.mockReturnValue({
-      data: [
-        {
+    mockUseThreadDetail.mockReturnValue({
+      data: {
+        ownerId: "owner-1",
+        currentMembership: {
           id: "member-self",
-          threadId: "thread-1",
           userId: "other-user",
           role: "PARTICIPANT",
           playerMarked: true,
-          joinedAt: "2026-01-01T00:00:00Z",
-          user: { id: "other-user", username: "别人", avatar: null },
         },
-      ],
+        capabilities: {
+          isOwner: false,
+          canManageThread: false,
+          canManageMembers: false,
+        },
+      },
       isLoading: false,
     } as never);
     mockDELETE.mockResolvedValueOnce({ data: { data: { message: "已退出主题帖" } }, error: undefined });

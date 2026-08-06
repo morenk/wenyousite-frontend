@@ -7,11 +7,12 @@ import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { FileEdit, Trash2, Loader2, Clock } from "lucide-react";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
 import { useDrafts } from "@/api/hooks/use-drafts";
 import { useDeleteThread } from "@/api/hooks/use-delete-thread";
+import { getApiErrorMessage } from "@/api/errors";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
+import { useConfirm } from "@/components/ui/confirm-provider";
 
 const categoryLabel: Record<string, string> = {
   DEDUCTION: "演绎",
@@ -22,17 +23,20 @@ const categoryLabel: Record<string, string> = {
 export function DraftList() {
   const { data: drafts, isLoading, error, refetch } = useDrafts();
   const deleteThread = useDeleteThread();
-  const queryClient = useQueryClient();
+  const confirmAction = useConfirm();
 
   const handleDelete = async (threadId: string) => {
-    if (!confirm("确定要删除该草稿吗？删除后无法恢复。")) return;
+    if (!(await confirmAction({
+      title: "删除草稿",
+      description: "确定要删除该草稿吗？删除后无法恢复。",
+      confirmLabel: "删除",
+      destructive: true,
+    }))) return;
     try {
       await deleteThread.mutateAsync(threadId);
-      await queryClient.invalidateQueries({ queryKey: ["drafts"] });
       toast.success("草稿已删除");
     } catch (err: unknown) {
-      const e = err as { message?: string };
-      toast.error(e.message || "删除失败，请稍后重试");
+      toast.error(getApiErrorMessage(err, "删除失败，请稍后重试"));
     }
   };
 

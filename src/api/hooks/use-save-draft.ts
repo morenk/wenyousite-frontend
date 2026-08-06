@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { queryKeys } from "@/api/query-keys";
 import type { DraftItem } from "@/api/hooks/use-content-drafts";
 
 export interface SaveDraftArgs {
@@ -14,8 +15,8 @@ export function useSaveDraft() {
   const queryClient = useQueryClient();
 
   const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: ["content-drafts"] });
-    queryClient.invalidateQueries({ queryKey: ["draft-slots"] });
+    queryClient.invalidateQueries({ queryKey: queryKeys.contentDrafts });
+    queryClient.invalidateQueries({ queryKey: queryKeys.draftSlots });
   };
 
   return useMutation({
@@ -32,7 +33,7 @@ export function useSaveDraft() {
       return data.data;
     },
     onSuccess: (draft) => {
-      queryClient.setQueryData<DraftItem[]>(["content-drafts"], (current) => {
+      queryClient.setQueryData<DraftItem[]>(queryKeys.contentDrafts, (current) => {
         if (!current) return [draft];
         const exists = current.some((item) => item.id === draft.id);
         return exists

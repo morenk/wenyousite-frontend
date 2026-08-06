@@ -2,38 +2,18 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
-import type { ThreadTag } from "./use-threads";
+import { queryKeys } from "@/api/query-keys";
+import type { components } from "@/api/types";
 
-export interface DraftThread {
-  id: string;
-  title: string;
-  category: string;
-  status: string;
-  visibility: "PUBLIC" | "PRIVATE";
-  published: boolean;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt: string | null;
-  defaultSubthreadId: string | null;
-  defaultSubthread: { id: string; title: string } | null;
-  topicTags: { tag: ThreadTag }[];
-  _count: { subthreads: number; posts: number };
-}
-
-interface DraftsResponse {
-  code: number;
-  message: string;
-  data: DraftThread[];
-}
+export type DraftThread = components["schemas"]["DraftThreadResponseDto"];
 
 export function useDrafts() {
   return useQuery({
-    queryKey: ["drafts"],
+    queryKey: queryKeys.threadDrafts,
     queryFn: async () => {
       const { data, error } = await apiClient.GET("/api/v1/threads/draft");
       if (error) throw error;
-      const response = data as unknown as DraftsResponse;
-      return response?.data ?? [];
+      return data?.data ?? [];
     },
     staleTime: 10 * 1000,
   });

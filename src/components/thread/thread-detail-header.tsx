@@ -13,7 +13,9 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { useLikeThread } from "@/api/hooks/use-like-thread";
 import { useDeleteThread } from "@/api/hooks/use-delete-thread";
+import { getApiErrorMessage } from "@/api/errors";
 import { useSubscriptions } from "@/api/hooks/use-subscriptions";
+import { useMembers } from "@/api/hooks/use-members";
 import {
   useCreateInviteLink,
   useExitThreadPlayer,
@@ -22,8 +24,8 @@ import {
   useCreateSubscription,
   useDeleteSubscription,
 } from "@/api/hooks/use-subscription-mutations";
-import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-provider";
 import { BookmarkButton } from "@/components/user/bookmark-button";
 import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
@@ -67,25 +69,28 @@ export function ThreadDetailHeader({
 }: ThreadDetailHeaderProps) {
   const { user } = useAuth();
   const router = useRouter();
-  const queryClient = useQueryClient();
   const { like, unlike } = useLikeThread(thread.id);
   const deleteThread = useDeleteThread();
   const { data: subscriptions } = useSubscriptions(!!user);
-  const { members, currentMember, isOwner: roleIsOwner, isManager, isThreadManager } =
+  const { currentMember, isOwner: roleIsOwner, isManager, isThreadManager } =
     useThreadPermissions();
   const isOwner = roleIsOwner || user?.id === thread.ownerId;
   const canManageThread = isThreadManager || isOwner;
   const hasAutomaticUpdates = isManager || isOwner;
+  const { data: subscriptionCandidateMembers = [] } = useMembers(
+    user && !hasAutomaticUpdates ? thread.id : undefined,
+  );
   const createSubscription = useCreateSubscription();
   const deleteSubscription = useDeleteSubscription();
   const createInviteLink = useCreateInviteLink();
   const exitThreadPlayer = useExitThreadPlayer();
+  const confirmAction = useConfirm();
   const [selectedTargetUserId, setSelectedTargetUserId] = useState("");
 
   const mySubscription = subscriptions?.find(
     (s) => s.threadId === thread.id && s.type === "THREAD",
   );
-  const candidateMembers = members.filter(
+  const candidateMembers = subscriptionCandidateMembers.filter(
     (member) =>
       member.role === "PARTICIPANT" &&
       member.playerMarked &&
@@ -119,10 +124,8 @@ export function ThreadDetailHeader({
         await createSubscription.mutateAsync({ threadId: thread.id, type: "THREAD" });
         toast.success("已订阅，帖子更新将通知你");
       }
-      await queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
     } catch (error: unknown) {
-      const err = error as { message?: string };
-      toast.error(err.message || "操作失败，请稍后重试");
+      toast.error(getApiErrorMessage(error, "操作失败，请稍后重试"));
     }
   };
 
@@ -140,10 +143,8 @@ export function ThreadDetailHeader({
         });
         toast.success("已订阅该用户在本帖的发言");
       }
-      await queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
     } catch (error: unknown) {
-      const err = error as { message?: string };
-      toast.error(err.message || "操作失败，请稍后重试");
+      toast.error(getApiErrorMessage(error, "操作失败，请稍后重试"));
     }
   };
 
@@ -151,15 +152,19 @@ export function ThreadDetailHeader({
     const message = thread.published
       ? "确定要删除该主题帖吗？已发布主题帖删除后将无法恢复。"
       : "确定要删除该主题帖吗？草稿删除后将无法恢复。";
-    if (!confirm(message)) return;
+    if (!(await confirmAction({
+      title: "删除主题帖",
+      description: message,
+      confirmLabel: "删除",
+      destructive: true,
+    }))) return;
 
     try {
       await deleteThread.mutateAsync(thread.id);
       toast.success("主题帖已删除");
       router.push("/");
     } catch (error: unknown) {
-      const err = error as { message?: string };
-      toast.error(err.message || "删除失败，请稍后重试");
+      toast.error(getApiErrorMessage(error, "删除失败，请稍后重试"));
     }
   };
 
@@ -178,17 +183,22 @@ export function ThreadDetailHeader({
       await navigator.clipboard.writeText(`${window.location.origin}/join/${invite.token}`);
       toast.success("邀请链接已复制，旧链接已失效");
     } catch (error: unknown) {
-      toast.error((error as { message?: string }).message || "邀请链接生成失败");
+      toast.error(getApiErrorMessage(error, "邀请链接生成失败"));
     }
   };
 
   const handleExitPlayer = async () => {
-    if (!window.confirm("确定退出玩家身份吗？参与记录仍会保留。")) return;
+    if (!(await confirmAction({
+      title: "退出玩家身份",
+      description: "确定退出玩家身份吗？参与记录仍会保留。",
+      confirmLabel: "确认退出",
+      destructive: true,
+    }))) return;
     try {
       await exitThreadPlayer.mutateAsync(thread.id);
       toast.success("已退出玩家身份");
     } catch (error: unknown) {
-      toast.error((error as { message?: string }).message || "退出失败，请稍后重试");
+      toast.error(getApiErrorMessage(error, "退出失败，请稍后重试"));
     }
   };
 

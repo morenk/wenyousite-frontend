@@ -17,6 +17,7 @@ import {
   type ResetPasswordFormData,
 } from "@/lib/validations/auth";
 import { useResetPassword, useForgotPassword } from "@/api/hooks/use-auth-actions";
+import { getApiError } from "@/api/errors";
 import { useEmailCode } from "@/hooks/use-email-code";
 import { SendCodeButton } from "@/components/auth/send-code-button";
 import { Button } from "@/components/ui/button";
@@ -66,7 +67,7 @@ export default function ResetPasswordPage() {
         toast.success("验证码已发送，请查收邮箱");
       });
     } catch (err) {
-      const e = err as { code?: number; message?: string };
+      const e = getApiError(err);
       toast.error(e.code === 42900 ? "操作太频繁，请稍后再试" : e.message || "发送失败，请稍后重试");
     }
   };
@@ -83,7 +84,7 @@ export default function ResetPasswordPage() {
       logout();
       router.push("/login");
     } catch (error: unknown) {
-      const err = error as { code?: number; message?: string };
+      const err = getApiError(error);
       if (err.code === 40001) {
         toast.error(err.message || "验证码错误或已过期");
       } else if (err.code === 42900) {

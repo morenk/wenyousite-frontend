@@ -290,6 +290,7 @@
 | 当前编辑会话 | 用户点击发表/回复/编辑 | `ThreadComposerProvider`（全页唯一 session + content + pending） |
 | 点赞状态 | `GET /threads/:id` 的 `isLiked` + `POST/DELETE /threads/:id/like` | useMutation + query invalidation；`likeCount` 仅用于展示总数 |
 | 订阅状态 | `GET /subscriptions` + `GET /threads/:id/members` | THREAD 订阅官方更新；USER 候选仅普通已标记玩家；楼主/协作者隐藏全部订阅控件 |
+| 当前用户帖内权限 | `GET /threads/:id` 的 `currentMembership` + `capabilities` | 与详情共用缓存，只查询当前用户成员关系；不为权限判断预取全量成员 |
 | 帖内搜索 | `GET /threads/:threadId/search/posts` | `useThreadSearchPosts` 游标分页；面板开关与待提交输入为详情页/组件本地状态 |
 | 管理视图 | 用户点击管理页签 | `thread / subthreads / members` 本地状态；默认 `thread`，切换前检查未保存内容 |
 
@@ -313,7 +314,7 @@
 | getPostHref / getPostDiscussionHref | `src/lib/post-navigation.ts` | 共享帖子导航契约：统一主楼层定位、楼中楼直达及 URL 编码 |
 | ReplyForm | `src/components/thread/reply-form.tsx` | 楼中楼底部回复入口：登录用户按需打开统一编辑器，未登录显示登录提示 |
 | ReplyList | `src/components/thread/reply-list.tsx` | 楼中楼连续列表；作者可编辑，作者或楼主/协作者可删除 |
-| ThreadPermissionsProvider | `src/components/thread/thread-permissions-context.tsx` | 统一加载成员并计算楼主、协作者、参与人和帖内管理权限 |
+| ThreadPermissionsProvider | `src/components/thread/thread-permissions-context.tsx` | 复用详情中的当前成员与 capability 投影，计算楼主、协作者、参与人和管理权限 |
 | MemberManager | `src/components/thread/member-manager.tsx` | 楼主可任免协作者；楼主/协作者可授予/收回玩家 |
 | ManagementPanel | `src/components/thread/management-panel.tsx` | 楼主/协作者统一管理面板：主题帖、子贴、成员三个页签及未保存保护 |
 | SubthreadTree | `src/components/thread/subthread-tree.tsx` | 管理面板左栏子贴目录树（@dnd-kit 拖拽排序） |
@@ -331,7 +332,7 @@
 | useDeletePost | `src/api/hooks/use-delete-post.ts` | 删除楼层/回复（作者或楼主/协作者；BODY 由后端拦截） |
 | useSyncThreadTags | `src/api/hooks/use-sync-thread-tags.ts` | 编辑帖时同步主题帖标签（diff 后添加/移除） |
 | useReplies | `src/api/hooks/use-replies.ts` | 楼中楼回复列表（cursor 分页） |
-| useMembers | `src/api/hooks/use-members.ts` | 参与人列表 |
+| useMembers | `src/api/hooks/use-members.ts` | 仅成员管理页或普通用户订阅候选需要时加载全量参与人列表 |
 | useUpdateMember | `src/api/hooks/use-update-member.ts` | 改参与人角色/玩家标记 |
 | useSubscriptions | `src/api/hooks/use-subscriptions.ts` | 我的订阅列表 |
 
@@ -355,7 +356,7 @@
 └─────────────────────────────────────────────────────┘
 ```
 
-- 「主题帖」页签：复用 `ThreadEditForm` 编辑标题、分区、状态、主题标签和主帖正文；可见性仅楼主可改。保存后刷新详情并停留在管理界面。
+- 「主题帖」页签：复用 `ThreadEditForm` 编辑标题、分区、状态、主题标签和主帖正文；可见性仅楼主可改。保存通过 `PATCH /threads/:id/aggregate` 原子提交后停留在管理界面。
 - 「子贴」页签：左栏目录只展示真实子贴，支持新增、元数据编辑、删除和拖拽排序；右栏编辑所选子贴正文，保存调用 `PUT /subthreads/:id/body`。默认主贴不在此处重复展示，统一由「主题帖」页签管理。
 - 拖拽排序只操作目录中的真实子贴；提交时前端自动把默认子贴补在首位，继续满足默认子贴 `sortOrder=0` 的数据约束。
 - 「成员」页签继续提供协作者与玩家管理。管理面板不做楼层级管理。

@@ -19,7 +19,9 @@ import { useContentDrafts, type DraftItem } from "@/api/hooks/use-content-drafts
 import { useDraftSlots } from "@/api/hooks/use-draft-slots";
 import { useSaveDraft } from "@/api/hooks/use-save-draft";
 import { useDeleteContentDraft } from "@/api/hooks/use-delete-content-draft";
+import { getApiErrorMessage } from "@/api/errors";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-provider";
 import { parseInlineDiceNodes, replaceInlineDiceNodes } from "@/lib/dice-inline";
 
 interface ContentDraftsPanelProps {
@@ -36,11 +38,6 @@ interface ContentDraftsPanelProps {
 
 export interface EditorDraftSnapshot {
   content: string;
-}
-
-function getErrorMessage(error: unknown, fallback: string): string {
-  const e = error as { message?: string };
-  return e.message || fallback;
 }
 
 export function ContentDraftsPanel({
@@ -61,6 +58,7 @@ export function ContentDraftsPanel({
   const { data: slots } = useDraftSlots();
   const saveDraft = useSaveDraft();
   const deleteDraft = useDeleteContentDraft();
+  const confirmAction = useConfirm();
 
   useEffect(() => {
     if (!open) return;
@@ -86,13 +84,18 @@ export function ContentDraftsPanel({
   const currentDiceCount = parseInlineDiceNodes(currentContent).length;
   const hasCurrentSnapshot = !!currentContent;
 
-  const handleRestore = (draft: DraftItem) => {
+  const handleRestore = async (draft: DraftItem) => {
     const currentText = initialContent?.trim();
     if (
       onRestore &&
       hasCurrentSnapshot &&
       currentText !== draft.content.trim() &&
-      !confirm("恢复草稿将覆盖当前编辑器内容，是否继续？")
+      !(await confirmAction({
+        title: "恢复正文草稿",
+        description: "恢复草稿将覆盖当前编辑器内容，是否继续？",
+        confirmLabel: "覆盖并恢复",
+        destructive: true,
+      }))
     ) {
       return;
     }
@@ -112,13 +115,18 @@ export function ContentDraftsPanel({
     const message = deletingAutoSave
       ? "删除槽位 1 会同时关闭当前编辑器的自动保存，是否继续？"
       : "确定要删除这条正文草稿吗？删除后无法恢复。";
-    if (!confirm(message)) return;
+    if (!(await confirmAction({
+      title: "删除正文草稿",
+      description: message,
+      confirmLabel: "删除",
+      destructive: true,
+    }))) return;
     try {
       await deleteDraft.mutateAsync(draft.id);
       if (deletingAutoSave) onAutoSaveChange?.(false);
       toast.success("正文草稿已删除");
     } catch (err) {
-      toast.error(getErrorMessage(err, "删除失败，请稍后重试"));
+      toast.error(getApiErrorMessage(err, "删除失败，请稍后重试"));
     }
   };
 
@@ -126,7 +134,12 @@ export function ContentDraftsPanel({
     const text = currentContent;
     if (!text) return;
     const occupied = slot === undefined ? undefined : draftBySlot.get(slot);
-    if (occupied && !confirm(`确定要覆盖槽位 ${slot} 的正文草稿吗？`)) return;
+    if (occupied && !(await confirmAction({
+      title: `覆盖槽位 ${slot}`,
+      description: `确定要覆盖槽位 ${slot} 的正文草稿吗？`,
+      confirmLabel: "覆盖",
+      destructive: true,
+    }))) return;
     try {
       await saveDraft.mutateAsync({
         content: text,
@@ -135,7 +148,7 @@ export function ContentDraftsPanel({
       });
       toast.success(occupied ? `已覆盖槽位 ${slot}` : "正文草稿已保存");
     } catch (err) {
-      toast.error(getErrorMessage(err, "保存失败，请稍后重试"));
+      toast.error(getApiErrorMessage(err, "保存失败，请稍后重试"));
     }
   };
 
@@ -146,7 +159,11 @@ export function ContentDraftsPanel({
     if (
       next &&
       !!freshSlotOne &&
-      !confirm("开启自动保存后，槽位 1 将由当前编辑器持续覆盖，是否继续？")
+      !(await confirmAction({
+        title: "开启自动保存",
+        description: "开启自动保存后，槽位 1 将由当前编辑器持续覆盖，是否继续？",
+        confirmLabel: "开启并覆盖",
+      }))
     ) {
       return;
     }

@@ -2,6 +2,7 @@
 
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { queryKeys } from "@/api/query-keys";
 import type { components, operations } from "@/api/types";
 
 export type PostAuthor = components["schemas"]["PostAuthorResponseDto"];
@@ -25,7 +26,7 @@ export const FLOORS_STALE_TIME = 30 * 1000;
 
 export function floorsQueryOptions(subthreadId: string) {
   return {
-    queryKey: ["floors", subthreadId] as const,
+    queryKey: queryKeys.floors.list(subthreadId),
     queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
       const queryParams: Record<string, string> = { limit: "20" };
       if (pageParam) queryParams.cursor = pageParam;

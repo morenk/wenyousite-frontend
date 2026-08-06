@@ -2,19 +2,12 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
-import type { SubthreadDetail } from "./use-thread-detail";
 
 interface UpdateSubthreadBody {
   title?: string;
   sortOrder?: number;
   postingPolicy?: "PARTICIPANTS" | "COLLABORATORS" | "PLAYERS";
   version: number;
-}
-
-interface UpdateSubthreadResponse {
-  code: number;
-  message: string;
-  data: SubthreadDetail;
 }
 
 export function useUpdateSubthread() {
@@ -31,7 +24,8 @@ export function useUpdateSubthread() {
         body,
       });
       if (error) throw error;
-      return (data as unknown as UpdateSubthreadResponse).data;
+      if (!data) throw new Error("更新子贴响应为空");
+      return data.data;
     },
   });
 }

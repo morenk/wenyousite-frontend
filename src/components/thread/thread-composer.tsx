@@ -4,19 +4,21 @@
 
 import { useEffect, useRef } from "react";
 import { Check, Loader2, Send, X } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useCreatePost } from "@/api/hooks/use-create-post";
 import { useUpdatePost } from "@/api/hooks/use-update-post";
 import { useUploadImage } from "@/api/hooks/use-upload-image";
+import { API_ERROR_CODE, getApiError } from "@/api/errors";
 import { MilkdownEditor } from "@/components/editor/milkdown-editor";
 import { Button } from "@/components/ui/button";
 import { useThreadComposer } from "@/components/thread/thread-composer-context";
 import { hasVisibleMarkdownContent } from "@/lib/markdown";
 
 function getErrorMessage(error: unknown, fallback: string) {
-  const err = error as { code?: number; message?: string };
-  if (err.code === 40900) return "内容已被修改，请刷新后重试";
+  const err = getApiError(error);
+  if (err.code === API_ERROR_CODE.OPTIMISTIC_LOCK_CONFLICT) {
+    return "内容已被修改，请刷新后重试";
+  }
   if (err.code === 40302) return "该子贴仅限协作者发帖";
   if (err.code === 40303) return "该子贴仅限玩家发帖";
   return err.message || fallback;
@@ -35,7 +37,6 @@ function ThreadComposer() {
   const createPost = useCreatePost();
   const updatePost = useUpdatePost();
   const uploadImage = useUploadImage();
-  const queryClient = useQueryClient();
   const containerRef = useRef<HTMLDivElement>(null);
   const createRequestRef = useRef<{ fingerprint: string; id: string } | null>(null);
 
@@ -50,24 +51,6 @@ function ThreadComposer() {
   const isReply = session.type === "reply";
   const submitLabel = isEdit ? "保存修改" : isReply ? "回复" : "发布";
   const busy = pending || uploadImage.isPending;
-
-  const invalidateAfterSubmit = async () => {
-    const invalidations = [
-      queryClient.invalidateQueries({ queryKey: ["floors", session.subthreadId] }),
-    ];
-    const parentPostId = session.type === "reply"
-      ? session.parentPostId
-      : session.type === "edit"
-        ? session.parentPostId
-        : undefined;
-    if (parentPostId) {
-      invalidations.push(
-        queryClient.invalidateQueries({ queryKey: ["replies", parentPostId] }),
-        queryClient.invalidateQueries({ queryKey: ["post", parentPostId] }),
-      );
-    }
-    await Promise.all(invalidations);
-  };
 
   const handleSubmit = async () => {
     const nextContent = content.trim();
@@ -110,9 +93,8 @@ function ThreadComposer() {
         });
       }
 
-      await invalidateAfterSubmit();
       createRequestRef.current = null;
-      close({ force: true });
+      await close({ force: true });
       toast.success(isEdit ? "已保存" : isReply ? "回复成功" : "发布成功");
     } catch (error: unknown) {
       setPending(false);
@@ -131,7 +113,7 @@ function ThreadComposer() {
           variant="ghost"
           size="sm"
           className="h-7 px-2"
-          onClick={() => close()}
+          onClick={() => void close()}
           disabled={busy}
         >
           <X className="mr-1 h-3.5 w-3.5" />

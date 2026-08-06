@@ -1,7 +1,8 @@
 /** 更新参与人角色/玩家标记 API hook */
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { queryKeys } from "@/api/query-keys";
 
 interface UpdateMemberArgs {
   threadId: string;
@@ -11,6 +12,7 @@ interface UpdateMemberArgs {
 }
 
 export function useUpdateMember() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ threadId, userId, role, playerMarked }: UpdateMemberArgs) => {
       const { data, error } = await apiClient.PATCH(
@@ -23,5 +25,14 @@ export function useUpdateMember() {
       if (error) throw error;
       return data;
     },
+    onSuccess: (_data, variables) =>
+      Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.members.list(variables.threadId),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.threads.detail(variables.threadId),
+        }),
+      ]),
   });
 }

@@ -18,6 +18,7 @@ import {
   useVerifyEmail,
   useResendVerification,
 } from "@/api/hooks/use-auth-actions";
+import { getApiError } from "@/api/errors";
 import { useEmailCode } from "@/hooks/use-email-code";
 import { SendCodeButton } from "@/components/auth/send-code-button";
 import { Button } from "@/components/ui/button";
@@ -59,7 +60,7 @@ export default function VerifyEmailPage() {
       toast.success("邮箱验证成功");
       router.replace("/");
     } catch (error: unknown) {
-      const err = error as { code?: number; message?: string };
+      const err = getApiError(error);
       if (err.code === 40001) {
         toast.error(err.message || "验证码错误或已过期");
       } else {
