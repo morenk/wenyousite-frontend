@@ -87,7 +87,7 @@
 | ThreadDraftPicker | `src/components/thread/thread-draft-picker.tsx` | 草稿选择：标题 + 「新建主题帖」按钮 + 草稿列表 |
 | DraftList | `src/components/user/draft-list.tsx` | 未发布帖列表（复用；空态「没有草稿喔」） |
 | ThreadCreateForm | `src/components/forms/thread-create-form.tsx` | 主题帖创建表单：基础信息 + 默认子贴正文（简洁模式） |
-| EditThreadPage | `src/app/threads/[id]/edit/page.tsx` | 状态感知编辑页：草稿渲染 ThreadCreateForm，已发布帖渲染 ThreadEditForm |
+| EditThreadPage | `src/app/threads/[id]/edit/page.tsx` | 兼容编辑路由：草稿渲染 ThreadCreateForm，已发布帖复用统一 ManagementPanel |
 | MilkdownEditor | `src/components/editor/milkdown-editor.tsx` | @milkdown/crepe WYSIWYG 编辑器（工具栏内骰子弹窗/内联节点/字数统计/图片上传/正文草稿入口） |
 | TagInput | `src/components/forms/tag-input.tsx` | 主题帖标签输入（支持自动补全） |
 | useCreateThread | `src/api/hooks/use-create-thread.ts` | 创建草稿 hook |
@@ -218,7 +218,7 @@ POST /threads 创建草稿
   ↓ 失败 按错误码提示
 点击"放弃" → 确认弹窗 → DELETE /threads/:id → 跳转 /
 ```
-> 多子贴创建/管理入口在发布后的详情页「管理」面板（见 thread-detail.md）
+> 发布后的主题信息、主帖正文、多子贴与成员管理统一使用详情页「管理」面板（见 thread-detail.md）；旧 `/threads/[id]/edit` 链接也会渲染同一管理界面。
 
 ## 10. 验收标准
 

@@ -57,6 +57,7 @@ test.describe("主题帖管理面板", () => {
     // 进入管理面板
     await page.getByRole("button", { name: "管理" }).click();
     await expect(page.getByText("返回浏览")).toBeVisible();
+    await page.getByRole("button", { name: "子贴", exact: true }).click();
     await expect(page.getByText("子贴目录")).toBeVisible();
 
     // 添加子贴
@@ -99,6 +100,7 @@ test.describe("主题帖管理面板", () => {
     // 进入管理面板
     await page.getByRole("button", { name: "管理" }).click();
     await expect(page.getByText("返回浏览")).toBeVisible();
+    await page.getByRole("button", { name: "子贴", exact: true }).click();
 
     const aside = page.locator("aside");
 
@@ -146,6 +148,7 @@ test.describe("主题帖管理面板", () => {
 
     await page.getByRole("button", { name: "管理" }).click();
     await expect(page.getByText("返回浏览")).toBeVisible();
+    await page.getByRole("button", { name: "子贴", exact: true }).click();
 
     const aside = page.locator("aside");
 
@@ -159,7 +162,8 @@ test.describe("主题帖管理面板", () => {
 
     // 记录拖拽前的树顺序
     const treeList = aside.locator("div.overflow-y-auto").first();
-    const orderBefore = await treeList.innerText();
+    const treeNodes = treeList.locator(':scope > div[class*="cursor-pointer"]');
+    const orderBefore = await treeNodes.allTextContents();
 
     // 拖拽"设定区"（第 2 个节点）到主帖位置：主帖不作为落点，应被操作层拦截
     const handle = aside.getByTitle("拖拽排序").nth(1);
@@ -176,8 +180,8 @@ test.describe("主题帖管理面板", () => {
     await page.mouse.up();
 
     // 顺序不变（主帖保持首位）
-    const orderAfter = await treeList.innerText();
-    expect(orderAfter).toBe(orderBefore);
+    const orderAfter = await treeNodes.allTextContents();
+    expect(orderAfter).toEqual(orderBefore);
 
     // 无"不能交换"提示或排序失败提示
     await expect(
@@ -187,15 +191,16 @@ test.describe("主题帖管理面板", () => {
   });
 });
 
-test.describe("已发布帖编辑", () => {
-  test("帖主编辑标题并保存", async ({ page }) => {
+test.describe("已发布帖统一管理", () => {
+  test("帖主在管理界面编辑标题，保存后留在管理界面", async ({ page }) => {
     await loginAndCreatePublishedThread(page);
     const threadUrl = page.url();
 
-    // 进入编辑页
-    await page.getByRole("button", { name: "编辑" }).click();
-    await expect(page).toHaveURL(/\/edit$/);
-    await expect(page.getByText("编辑主题帖")).toBeVisible();
+    // 详情页只保留统一管理入口，默认打开主题帖页签
+    await expect(page.getByRole("button", { name: "编辑" })).not.toBeVisible();
+    await page.getByRole("button", { name: "管理" }).click();
+    await expect(page).toHaveURL(threadUrl);
+    await expect(page.getByRole("button", { name: "主题帖" })).toBeVisible();
 
     // 修改标题
     const titleInput = page.locator("#title");
@@ -206,22 +211,22 @@ test.describe("已发布帖编辑", () => {
     await page.getByRole("button", { name: "保存修改" }).click();
     await expect(page.getByText("修改已保存").first()).toBeVisible({ timeout: 10000 });
 
-    // 回到详情页并显示新标题
+    // 保存后仍在管理界面，返回浏览后显示新标题
     await expect(page).toHaveURL(threadUrl);
+    await expect(page.getByText(`管理帖子：${newTitle}`)).toBeVisible({ timeout: 10000 });
+    await page.getByRole("button", { name: "返回浏览" }).click();
     await expect(page.locator("h1")).toHaveText(newTitle, { timeout: 10000 });
   });
 
-  test("非帖主不能进入编辑页", async ({ page }) => {
+  test("旧编辑链接复用统一管理界面，匿名访问仍跳登录", async ({ page }) => {
     await loginAndCreatePublishedThread(page);
     const threadUrl = page.url();
     const threadId = threadUrl.split("/").pop();
 
-    // 模拟非帖主：用一个普通用户访问编辑页
-    // 直接访问编辑页 URL（当前仍是帖主登录态，改用一个不存在 owner 的 URL 无法模拟，
-    // 因此通过检查"无权编辑"守卫逻辑：先登出再登入另一个账号）
-    // 这里简化为验证编辑页在帖主视角正常 + 登出后跳登录
+    // 已发布帖旧链接进入相同管理面板
     await page.goto(`/threads/${threadId}/edit`);
-    await expect(page.getByText("编辑主题帖")).toBeVisible();
+    await expect(page.getByText(/管理帖子：/)).toBeVisible();
+    await expect(page.getByRole("button", { name: "主题帖" })).toBeVisible();
 
     // 登出后访问应跳转登录
     await page.evaluate(() => localStorage.clear());

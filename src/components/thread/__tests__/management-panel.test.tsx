@@ -5,7 +5,10 @@ import { render, screen, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ManagementPanel } from "@/components/thread/management-panel";
+import {
+  ManagementPanel,
+  type ManagementView,
+} from "@/components/thread/management-panel";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
 
 vi.mock("sonner", () => ({
@@ -20,6 +23,23 @@ vi.mock("@/lib/auth", () => ({
 vi.mock("@/components/thread/member-manager", () => ({
   MemberManager: ({ isOwner }: { isOwner: boolean }) => (
     <div data-testid="member-manager">成员管理 isOwner={String(isOwner)}</div>
+  ),
+}));
+
+vi.mock("@/components/forms/thread-edit-form", () => ({
+  ThreadEditForm: ({
+    isOwner,
+    onDirtyChange,
+  }: {
+    isOwner: boolean;
+    onDirtyChange?: (isDirty: boolean) => void;
+  }) => (
+    <div data-testid="thread-edit-form">
+      主题帖编辑 isOwner={String(isOwner)}
+      <button type="button" onClick={() => onDirtyChange?.(true)}>
+        模拟修改主题帖
+      </button>
+    </div>
   ),
 }));
 
@@ -130,7 +150,7 @@ vi.mock("@/api/hooks/use-upsert-body", () => ({
   useUpsertBody: () => ({ mutateAsync: mockUpsertBodyMutate }),
 }));
 vi.mock("@/api/hooks/use-upload-image", () => ({
-  useUploadImage: () => ({ mutateAsync: mockUploadImageMutate }),
+  useUploadImage: () => ({ mutateAsync: mockUploadImageMutate, isPending: false }),
 }));
 vi.mock("@/api/hooks/use-sync-subthread-tags", () => ({
   useSyncSubthreadTags: () => ({
@@ -216,32 +236,63 @@ const mockThread: ThreadDetail = {
   isLiked: false,
 };
 
-function renderPanel(thread: ThreadDetail = mockThread) {
-  return render(
+function renderPanel(
+  thread: ThreadDetail = mockThread,
+  initialView: ManagementView = "subthreads",
+) {
+  const onExit = vi.fn();
+  const result = render(
     <ManagementPanel
       thread={thread}
-      onExit={vi.fn()}
+      initialView={initialView}
+      onExit={onExit}
       onRefetch={vi.fn().mockResolvedValue({ data: thread })}
     />,
     { wrapper: createWrapper() },
   );
+  return { ...result, onExit };
+}
+
+function renderDefaultPanel(thread: ThreadDetail = mockThread) {
+  const onExit = vi.fn();
+  const result = render(
+    <ManagementPanel
+      thread={thread}
+      onExit={onExit}
+      onRefetch={vi.fn().mockResolvedValue({ data: thread })}
+    />,
+    { wrapper: createWrapper() },
+  );
+  return { ...result, onExit };
 }
 
 describe("ManagementPanel", () => {
   test("渲染返回浏览按钮与帖子标题", () => {
-    renderPanel();
+    renderDefaultPanel();
     expect(screen.getByText("返回浏览")).toBeInTheDocument();
     expect(screen.getByText("管理帖子：测试帖")).toBeInTheDocument();
   });
 
-  test("默认选中默认子贴并回填正文", () => {
-    renderPanel();
-    expect(screen.getByText("正在编辑：主帖")).toBeInTheDocument();
-    expect(screen.getByTestId("milkdown-editor")).toHaveValue("默认正文");
+  test("默认进入主题帖编辑页签", () => {
+    renderDefaultPanel();
+
+    expect(screen.getByTestId("thread-edit-form")).toBeInTheDocument();
+    expect(screen.queryByText("子贴目录")).not.toBeInTheDocument();
   });
 
-  test("渲染发帖权限中文标签", () => {
+  test("子贴页签中的主帖只提供主题帖入口，不重复渲染正文编辑器", () => {
     renderPanel();
+
+    expect(screen.getByText("主帖正文已统一移至“主题帖”页签编辑")).toBeInTheDocument();
+    expect(screen.queryByTestId("milkdown-editor")).not.toBeInTheDocument();
+  });
+
+  test("非默认子贴渲染发帖权限中文标签", async () => {
+    const user = userEvent.setup();
+    renderPanel();
+
+    await user.click(screen.getByText("select-s2"));
+
     expect(screen.getByText("发帖权限：所有人")).toBeInTheDocument();
   });
 
@@ -257,8 +308,20 @@ describe("ManagementPanel", () => {
 
   test("已有正文时保存调用 upsertBody 并传 version", async () => {
     const user = userEvent.setup();
-    renderPanel();
+    const thread = {
+      ...mockThread,
+      subthreads: [
+        mockThread.subthreads[0],
+        makeSub("s2", "设定区", {
+          id: "p2",
+          content: "设定正文",
+          version: 4,
+        }),
+      ],
+    };
+    renderPanel(thread);
 
+    await user.click(screen.getByText("select-s2"));
     const editor = screen.getByTestId("milkdown-editor");
     await user.clear(editor);
     await user.type(editor, "更新后的正文");
@@ -267,9 +330,9 @@ describe("ManagementPanel", () => {
     await vi.waitFor(() => {
       expect(mockUpsertBodyMutate).toHaveBeenCalledWith(
         expect.objectContaining({
-          subthreadId: "s1",
+          subthreadId: "s2",
           content: "更新后的正文",
-          version: 2,
+          version: 4,
         }),
       );
     });
@@ -329,6 +392,16 @@ describe("ManagementPanel", () => {
     expect(screen.getByDisplayValue("设定区")).toBeInTheDocument();
     expect(screen.getByText("编辑子贴")).toBeInTheDocument();
     expect(screen.getByTestId("tag-values")).toHaveTextContent("");
+  });
+
+  test("编辑默认主帖元数据时标题只读", async () => {
+    const user = userEvent.setup();
+    renderPanel();
+
+    await user.click(screen.getByText("edit-s1"));
+
+    expect(screen.getByDisplayValue("主帖")).toHaveAttribute("readonly");
+    expect(screen.getByText("主帖标题请在“主题帖”页签中修改")).toBeInTheDocument();
   });
 
   test("编辑子贴时按现有标签同步变更", async () => {
@@ -433,6 +506,57 @@ describe("ManagementPanel", () => {
 
     expect(screen.getByTestId("member-manager")).toBeInTheDocument();
     expect(screen.getByText("成员管理 isOwner=true")).toBeInTheDocument();
+  });
+
+  test("主题帖有未保存修改时取消切换会停留在当前页签", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("confirm", vi.fn(() => false));
+    renderDefaultPanel();
+
+    await user.click(screen.getByRole("button", { name: "模拟修改主题帖" }));
+    await user.click(screen.getByRole("button", { name: "子贴" }));
+
+    expect(window.confirm).toHaveBeenCalledWith(
+      "当前修改尚未保存，确定要放弃吗？",
+    );
+    expect(screen.getByTestId("thread-edit-form")).toBeInTheDocument();
+  });
+
+  test("确认放弃主题帖修改后可切换页签", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("confirm", vi.fn(() => true));
+    renderDefaultPanel();
+
+    await user.click(screen.getByRole("button", { name: "模拟修改主题帖" }));
+    await user.click(screen.getByRole("button", { name: "子贴" }));
+
+    expect(screen.getByText("子贴目录")).toBeInTheDocument();
+  });
+
+  test("主题帖有未保存修改时返回浏览同样需要确认", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("confirm", vi.fn(() => false));
+    const { onExit } = renderDefaultPanel();
+
+    await user.click(screen.getByRole("button", { name: "模拟修改主题帖" }));
+    await user.click(screen.getByRole("button", { name: "返回浏览" }));
+
+    expect(onExit).not.toHaveBeenCalled();
+  });
+
+  test("非默认子贴有未保存正文时取消切换会保留编辑内容", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("confirm", vi.fn(() => false));
+    renderPanel();
+
+    await user.click(screen.getByText("select-s2"));
+    await user.type(screen.getByTestId("milkdown-editor"), "尚未保存");
+    await user.click(screen.getByText("select-s1"));
+
+    expect(window.confirm).toHaveBeenCalledWith(
+      "当前修改尚未保存，确定要放弃吗？",
+    );
+    expect(screen.getByTestId("milkdown-editor")).toHaveValue("尚未保存");
   });
 
   test("非帖主查看成员 tab 时 isOwner 为 false", async () => {

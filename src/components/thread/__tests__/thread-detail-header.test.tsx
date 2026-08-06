@@ -226,7 +226,7 @@ describe("ThreadDetailHeader", () => {
     expect(screen.getByText("3")).toBeInTheDocument(); // likeCount
   });
 
-  test("OWNER 看到编辑按钮", () => {
+  test("OWNER 只看到统一管理入口，不再显示编辑按钮", () => {
     mockUseAuth.mockReturnValue({
       user: { id: "owner-1", username: "帖主" },
       isInitialized: true,
@@ -235,7 +235,8 @@ describe("ThreadDetailHeader", () => {
     renderWithQC(
       <ThreadDetailHeader thread={baseThread} />,
     );
-    expect(screen.getByText("编辑")).toBeInTheDocument();
+    expect(screen.getByText("管理")).toBeInTheDocument();
+    expect(screen.queryByText("编辑")).not.toBeInTheDocument();
     // OWNER 不应该看到加入/退出按钮
     expect(screen.queryByText("加入")).toBeNull();
     expect(screen.queryByText("退出")).toBeNull();
@@ -253,7 +254,7 @@ describe("ThreadDetailHeader", () => {
     expect(screen.getByText("管理")).toBeInTheDocument();
   });
 
-  test("协作者可编辑和管理，但不可删除整帖或创建订阅", () => {
+  test("协作者可管理主题帖，但不可删除整帖或创建订阅", () => {
     mockUseAuth.mockReturnValue({
       user: { id: "collaborator-1", username: "协作者" },
       isInitialized: true,
@@ -275,8 +276,8 @@ describe("ThreadDetailHeader", () => {
 
     renderWithQC(<ThreadDetailHeader thread={baseThread} onManage={vi.fn()} />);
 
-    expect(screen.getByText("编辑")).toBeInTheDocument();
     expect(screen.getByText("管理")).toBeInTheDocument();
+    expect(screen.queryByText("编辑")).not.toBeInTheDocument();
     expect(screen.queryByTitle("删除主题帖")).not.toBeInTheDocument();
     expect(screen.queryByText("订阅官方更新")).not.toBeInTheDocument();
   });

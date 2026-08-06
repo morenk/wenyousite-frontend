@@ -39,7 +39,7 @@
 | `/threads/[id]` | 主题帖详情页（含子贴、楼层） | 公开（PRIVATE 帖非成员返回 404） |
 | `/threads/[id]?post={postId}` | 精确定位主楼层；未知父楼上下文时兼容识别并转入楼中楼 | 继承主题帖访问权限 |
 | `/threads/[id]/posts/[postId]/replies?post={replyId}` | 独立楼中楼阅读页：原楼层作为讨论正文，楼中楼回复作为连续楼层 | 继承主题帖访问权限 |
-| `/threads/[id]/edit` | 状态感知编辑页：草稿使用 ThreadCreateForm（仅楼主可发布），已发布帖使用 ThreadEditForm | OWNER/COLLABORATOR；草稿仅 OWNER |
+| `/threads/[id]/edit` | 兼容编辑路由：草稿使用 ThreadCreateForm；已发布帖复用统一管理面板并默认进入「主题帖」 | OWNER/COLLABORATOR；草稿仅 OWNER |
 
 ## 3. 涉及 API
 
@@ -289,13 +289,14 @@
 | 点赞状态 | `GET /threads/:id` 的 `isLiked` + `POST/DELETE /threads/:id/like` | useMutation + query invalidation；`likeCount` 仅用于展示总数 |
 | 订阅状态 | `GET /subscriptions` + `GET /threads/:id/members` | THREAD 订阅官方更新；USER 候选仅普通已标记玩家；楼主/协作者隐藏全部订阅控件 |
 | 帖内搜索 | `GET /threads/:threadId/search/posts` | `useThreadSearchPosts` 游标分页；面板开关与待提交输入为详情页/组件本地状态 |
+| 管理视图 | 用户点击管理页签 | `thread / subthreads / members` 本地状态；默认 `thread`，切换前检查未保存内容 |
 
 ## 6. 组件清单
 
 | 组件 | 路径 | 说明 |
 |------|------|------|
 | ThreadDetailPage | `src/app/threads/[id]/page.tsx` | 详情页主逻辑（含管理面板切换） |
-| ThreadDetailHeader | `src/components/thread/thread-detail-header.tsx` | 标题与操作区；提供“搜索本帖”，楼主/协作者可编辑管理，仅楼主可邀请和删除整帖 |
+| ThreadDetailHeader | `src/components/thread/thread-detail-header.tsx` | 标题与操作区；楼主/协作者仅显示统一“管理”入口，仅楼主可邀请和删除整帖 |
 | ThreadPostSearch | `src/components/thread/thread-post-search.tsx` | 内联搜索全部子贴与楼中楼；处理短词、分页及四态 |
 | PostSearchResultList | `src/components/search/post-search-result-list.tsx` | 与全站搜索共用的结果列表、加载更多和精确帖子导航 |
 | SubthreadTabs | `src/components/thread/subthread-tabs.tsx` | 子贴 Tab 切换导航 |
@@ -312,7 +313,7 @@
 | ReplyList | `src/components/thread/reply-list.tsx` | 楼中楼连续列表；作者可编辑，作者或楼主/协作者可删除 |
 | ThreadPermissionsProvider | `src/components/thread/thread-permissions-context.tsx` | 统一加载成员并计算楼主、协作者、参与人和帖内管理权限 |
 | MemberManager | `src/components/thread/member-manager.tsx` | 楼主可任免协作者；楼主/协作者可授予/收回玩家 |
-| ManagementPanel | `src/components/thread/management-panel.tsx` | 楼主/协作者管理面板：左子贴目录树 + 右单例编辑器 |
+| ManagementPanel | `src/components/thread/management-panel.tsx` | 楼主/协作者统一管理面板：主题帖、子贴、成员三个页签及未保存保护 |
 | SubthreadTree | `src/components/thread/subthread-tree.tsx` | 管理面板左栏子贴目录树（@dnd-kit 拖拽排序） |
 | SubthreadForm | `src/components/forms/subthread-form.tsx` | 子贴创建/编辑弹窗（title + postingPolicy + 最多 5 个子贴标签 + Zod 校验） |
 | useFloors | `src/api/hooks/use-floors.ts` | 楼层列表 hook |
@@ -335,29 +336,29 @@
 > 楼层卡片会直接展示 API 返回的前 5 条楼中楼回复；这些回复正文合计超过 500 个字符时，内联区域截断并使用渐变遮罩，点击「展开回复」进入独立楼中楼页面。超过 5 条时仍只展示前 5 条，并通过回复数链接查看完整串。
 | useSubscriptionMutations | `src/api/hooks/use-subscription-mutations.ts` | 创建/取消订阅 |
 | useReadingProgress | `src/api/hooks/use-reading-progress.ts` | 记录阅读进度 + 新回复数 |
-| ThreadEditForm | `src/components/forms/thread-edit-form.tsx` | 已发布帖编辑表单；协作者可改标题/分区/状态/标签/正文，可见性仅楼主 |
-| EditThreadPage | `src/app/threads/[id]/edit/page.tsx` | 加载详情 + OWNER 守卫；按 `published` 分流草稿发布表单与已发布帖修改表单 |
+| ThreadEditForm | `src/components/forms/thread-edit-form.tsx` | 管理面板「主题帖」表单；协作者可改标题/分区/状态/标签/主帖正文，可见性仅楼主；上报脏状态与保存状态 |
+| EditThreadPage | `src/app/threads/[id]/edit/page.tsx` | 兼容路由：未发布草稿继续使用发布表单，已发布帖复用统一管理面板 |
 
 ## 6.1 帖主管理面板
 
-帖主/协作者在头部看到「管理」按钮，点击进入**全页覆盖式管理面板**（左子贴目录树 + 右单例编辑器，VSCode 风格），「返回浏览」切回正常浏览。
+帖主/协作者在头部只看到一个「管理」按钮，点击进入**全页覆盖式管理面板**。面板包含「主题帖 / 子贴 / 成员」三个页签并默认打开「主题帖」；「返回浏览」切回正常浏览。
 
 ```
 ┌─ 管理帖子 ──────────────────────────────────────────┐
-│ [← 返回浏览]  管理：{帖子标题}                       │
-├─ 子贴目录 (260px) ─┬─ 编辑区 ──────────────────────┤
-│ ☰ 主帖 ···  │ 正在编辑：主帖                 │
-│ ☰ 设定区     ···  │ [MilkdownEditor]               │
-│ ☰ 剧情区     ···  │                                │
-│ [+ 添加子贴]       │ 字数: 0/10000                  │
-│                   │            [取消] [保存修改]     │
-└───────────────────┴────────────────────────────────┘
+│ [← 返回浏览]  管理：{帖子标题} [主题帖][子贴][成员] │
+├─────────────────────────────────────────────────────┤
+│ 主题帖：标题/分区/状态/可见性/标签/主帖正文         │
+│ 子贴：目录树 + 非默认子贴正文编辑器                  │
+│ 成员：协作者与玩家管理                               │
+└─────────────────────────────────────────────────────┘
 ```
 
-- 左栏：子贴目录树，节点可**拖拽排序**（`@dnd-kit`，触发 `useReorderSubthreads`）；「编辑」「删除」通过 `SubthreadForm` 弹窗 / confirm
-- 右栏：单例 MilkdownEditor，点击左栏子贴切换编辑目标（`key` 重挂载回填正文），保存调用 `PUT /subthreads/:id/body`（`useUpsertBody`，upsert：无正文创建、有正文乐观锁更新，不再区分 createPost/updatePost）。每个子贴（含剧情区/设定区/管理面板新建的非默认子贴）均有独立的 kind=BODY 正文，重进面板或切换子贴时均能通过 `bodyPost` 正确回填已有正文
-- 只做**子贴级管理**（增删改排 + 正文），不做楼层级管理（参与者回帖后难以管理单个楼层）
-- 默认子贴（**主帖**）不可删除、必须保持 sortOrder=0（排序时始终第一位）：前端在**操作层拦截**——主帖节点禁用拖拽，且自定义碰撞检测（`excludeDroppable`）把主帖从落点候选中剔除，拖其他子贴到主帖区域会吸附到主帖下方首个槽位，不会出现"不能交换"提示；后端仍兜底校验（`ids[0]` 必须为主帖）
+- 「主题帖」页签：复用 `ThreadEditForm` 编辑标题、分区、状态、主题标签和主帖正文；可见性仅楼主可改。保存后刷新详情并停留在管理界面。
+- 「子贴」页签：左栏目录树支持新增、元数据编辑、删除和拖拽排序；右栏只编辑**非默认子贴**正文，保存调用 `PUT /subthreads/:id/body`。默认主帖节点仅作为目录锚点，选中时引导用户返回「主题帖」页签，不重复挂载正文编辑器。
+- 默认主帖不可删除、不可拖拽且必须保持 sortOrder=0；其标题在子贴弹窗中只读并随主题帖标题同步，发帖权限和子贴标签仍可维护。
+- 「成员」页签继续提供协作者与玩家管理。管理面板不做楼层级管理。
+- 主题帖表单或非默认子贴正文有未保存内容时，切换页签、切换子贴或返回浏览均先确认是否放弃；保存或图片上传期间禁止导航。
+- `/threads/[id]/edit` 对已发布帖渲染同一 `ManagementPanel`，用于兼容历史收藏和直达链接；草稿续写/发布流程不变。
 - 子贴较多时：`SubthreadTabs` 为横向滚动条 + 溢出左右箭头 + 选中 Tab 自动滚入视野，支持几十个子贴
 
 ## 7. 发布楼层流程
@@ -422,7 +423,7 @@
 | 帖内搜索 | 公开帖允许匿名；PRIVATE 帖仅成员；未发布草稿仅 OWNER；无权访问返回 404 |
 | 未登录发帖 | apiClient 拦截器自动跳转 /login |
 | 发帖 | 登录且通过主题帖访问校验即可发帖，发帖自动入候选池；OWNER/COLLABORATOR 绕过子贴策略 |
-| 已发布帖 OWNER/COLLABORATOR | 显示 "编辑" 与 "管理"；协作者保存请求不包含 visibility/published |
+| 已发布帖 OWNER/COLLABORATOR | 仅显示统一“管理”入口；协作者可进入三个管理页签，但保存主题帖时不包含 visibility/published |
 | 未发布草稿 OWNER | 从草稿列表进入 `/threads/[id]/edit` 后显示 ThreadCreateForm，可保存草稿或最终发布 |
 | OWNER 删除 | 显示 "删除" 按钮；确认后调用 `DELETE /threads/:id`，成功返回首页 |
 | OWNER/COLLABORATOR 订阅 | 不显示任何订阅控件；自动接收全部帖子动态 |
@@ -457,6 +458,9 @@
 - [x] thread 不存在时显示 404
 - [x] 所有错误状态有 toast 或内联提示
 - [x] 帖主看到「管理」按钮（非帖主不显示）
+- [x] 详情头部不再显示独立「编辑」按钮；管理面板默认进入「主题帖」页签
+- [x] 主题帖保存后停留在管理界面；切页签或返回浏览前保护未保存内容
+- [x] 主帖正文仅在「主题帖」页签编辑，子贴页签不重复挂载主帖编辑器
 - [x] 管理面板：左子贴目录树 + 右单例编辑器（返回浏览可切回）
 - [x] 管理面板：添加/编辑/删除子贴（SubthreadForm 弹窗）
 - [x] 管理面板：子贴拖拽排序（@dnd-kit + useReorderSubthreads）
@@ -495,7 +499,7 @@
 - [x] lint / typecheck / build 通过
 - [x] E2E：管理面板全流程（进入→增删改→正文编辑→排序→返回）+ 拖拽排序验证
 - [x] 主题帖删除：详情头部 OWNER 入口、确认/取消、成功跳转与错误提示
-- [x] 编辑页按发布状态分流：未发布草稿保留发布入口，已发布帖仅保存修改
+- [x] 编辑兼容路由按发布状态分流：未发布草稿保留发布入口，已发布帖复用统一管理面板
 - [x] 单编辑器切片 1：会话控制器测试、实现与文档
 - [x] 单编辑器切片 2：统一 Composer、详情页集成、组件测试与文档
 - [x] 单编辑器切片 3：创建请求幂等 UUID 与重试指纹

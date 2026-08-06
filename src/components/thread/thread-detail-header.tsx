@@ -5,7 +5,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bell, BellOff, Edit3, Heart, Link2, Loader2, Search, Settings, Trash2 } from "lucide-react";
+import { Bell, BellOff, Heart, Link2, Loader2, Search, Settings, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
@@ -396,14 +396,6 @@ export function ThreadDetailHeader({
                   >
                     <Settings className="mr-1 h-4 w-4" />
                     管理
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => router.push(`/threads/${thread.id}/edit`)}
-                  >
-                    <Edit3 className="mr-1 h-4 w-4" />
-                    编辑
                   </Button>
                   {isOwner && (
                     <Button

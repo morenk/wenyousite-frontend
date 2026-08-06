@@ -61,7 +61,7 @@ vi.mock("@/api/hooks/use-sync-thread-tags", () => ({
   useSyncThreadTags: () => ({ mutateAsync: mockSyncTagsMutate }),
 }));
 vi.mock("@/api/hooks/use-upload-image", () => ({
-  useUploadImage: () => ({ mutateAsync: mockUploadImageMutate }),
+  useUploadImage: () => ({ mutateAsync: mockUploadImageMutate, isPending: false }),
 }));
 
 import { toast } from "sonner";
@@ -139,12 +139,20 @@ const mockThread: ThreadDetail = {
 };
 
 function renderForm(isOwner = true) {
-  const onBack = vi.fn();
   const onSaved = vi.fn().mockResolvedValue({ data: mockThread });
-  render(<ThreadEditForm thread={mockThread} isOwner={isOwner} onBack={onBack} onSaved={onSaved} />, {
-    wrapper: createWrapper(),
-  });
-  return { onBack, onSaved };
+  const onDirtyChange = vi.fn();
+  const onSavingChange = vi.fn();
+  render(
+    <ThreadEditForm
+      thread={mockThread}
+      isOwner={isOwner}
+      onSaved={onSaved}
+      onDirtyChange={onDirtyChange}
+      onSavingChange={onSavingChange}
+    />,
+    { wrapper: createWrapper() },
+  );
+  return { onSaved, onDirtyChange, onSavingChange };
 }
 
 describe("ThreadEditForm", () => {
@@ -167,9 +175,9 @@ describe("ThreadEditForm", () => {
     expect(screen.getByDisplayValue("默认正文")).toBeInTheDocument();
   });
 
-  test("保存修改：更新正文、标题、标签并回详情", async () => {
+  test("保存修改：更新正文、标题和标签并停留在表单", async () => {
     const user = userEvent.setup();
-    const { onBack, onSaved } = renderForm();
+    const { onSaved } = renderForm();
 
     await user.clear(screen.getByTestId("milkdown-editor"));
     await user.type(screen.getByTestId("milkdown-editor"), "新正文");
@@ -200,8 +208,8 @@ describe("ThreadEditForm", () => {
       },
     });
     expect(toast.success).toHaveBeenCalledWith("修改已保存");
-    expect(onBack).toHaveBeenCalled();
     expect(onSaved).toHaveBeenCalledTimes(2);
+    expect(screen.getByRole("button", { name: "保存修改" })).toBeInTheDocument();
   });
 
   test("标题变化时同步默认子贴标题", async () => {
@@ -259,13 +267,26 @@ describe("ThreadEditForm", () => {
     expect(toast.success).not.toHaveBeenCalled();
   });
 
-  test("返回按钮不保存直接回详情", async () => {
+  test("修改后上报未保存状态，保存成功后清除", async () => {
     const user = userEvent.setup();
-    const { onBack } = renderForm();
+    const { onDirtyChange } = renderForm();
 
-    await user.click(screen.getByRole("button", { name: "返回" }));
+    await user.clear(screen.getByLabelText("主题帖标题"));
+    await user.type(screen.getByLabelText("主题帖标题"), "新标题");
+    await vi.waitFor(() => {
+      expect(onDirtyChange).toHaveBeenLastCalledWith(true);
+    });
 
-    expect(mockUpdateThreadMutate).not.toHaveBeenCalled();
-    expect(onBack).toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "保存修改" }));
+
+    await vi.waitFor(() => {
+      expect(onDirtyChange).toHaveBeenLastCalledWith(false);
+    });
+  });
+
+  test("管理容器统一提供返回入口，表单不再渲染返回按钮", () => {
+    renderForm();
+
+    expect(screen.queryByRole("button", { name: "返回" })).not.toBeInTheDocument();
   });
 });

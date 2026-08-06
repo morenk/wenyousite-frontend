@@ -136,7 +136,7 @@ pnpm generate:api # 从相邻后端源码离线导出 OpenAPI 并生成类型，
 | `/reset-password` | 重置密码 |
 | `/threads/create` | 创建主题帖 |
 | `/threads/[id]` | 主题帖详情 |
-| `/threads/[id]/edit` | 编辑主题帖 |
+| `/threads/[id]/edit` | 编辑草稿；已发布帖兼容进入统一管理界面 |
 | `/notifications` | 通知 |
 | `/bookmarks` | 我的收藏 |
 | `/search` | 全文搜索 |

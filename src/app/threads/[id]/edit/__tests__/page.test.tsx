@@ -64,8 +64,10 @@ vi.mock("@/components/forms/thread-create-form", () => ({
   ),
 }));
 
-vi.mock("@/components/forms/thread-edit-form", () => ({
-  ThreadEditForm: () => <div>已发布编辑表单</div>,
+vi.mock("@/components/thread/management-panel", () => ({
+  ManagementPanel: ({ initialView }: { initialView?: string }) => (
+    <div>统一管理面板 initialView={initialView}</div>
+  ),
 }));
 
 import EditThreadPage from "../page";
@@ -86,7 +88,7 @@ describe("EditThreadPage", () => {
 
     expect(screen.getByText("继续编辑草稿")).toBeInTheDocument();
     expect(screen.getByText("草稿创建表单")).toBeInTheDocument();
-    expect(screen.queryByText("已发布编辑表单")).not.toBeInTheDocument();
+    expect(screen.queryByText(/统一管理面板/)).not.toBeInTheDocument();
   });
 
   test("草稿发布后跳转主题帖详情页", async () => {
@@ -97,12 +99,11 @@ describe("EditThreadPage", () => {
     expect(mocks.replace).toHaveBeenCalledWith("/threads/thread-1");
   });
 
-  test("已发布帖子仍渲染保存修改表单", () => {
+  test("已发布帖子复用统一管理面板并默认进入主题帖页签", () => {
     mocks.thread.published = true;
     render(<EditThreadPage />);
 
-    expect(screen.getByText("编辑主题帖")).toBeInTheDocument();
-    expect(screen.getByText("已发布编辑表单")).toBeInTheDocument();
+    expect(screen.getByText("统一管理面板 initialView=thread")).toBeInTheDocument();
     expect(screen.queryByText("草稿创建表单")).not.toBeInTheDocument();
   });
 });

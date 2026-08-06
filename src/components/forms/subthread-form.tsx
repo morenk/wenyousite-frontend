@@ -23,6 +23,7 @@ export type SubthreadFormData = z.infer<typeof subthreadFormSchema>;
 interface SubthreadFormProps {
   mode: "create" | "edit";
   defaultValues?: SubthreadFormData;
+  lockTitle?: boolean;
   isSubmitting?: boolean;
   onSubmit: (data: SubthreadFormData) => Promise<void>;
   onCancel: () => void;
@@ -31,6 +32,7 @@ interface SubthreadFormProps {
 export function SubthreadForm({
   mode,
   defaultValues,
+  lockTitle = false,
   isSubmitting = false,
   onSubmit,
   onCancel,
@@ -76,8 +78,14 @@ export function SubthreadForm({
               id="subtitle"
               placeholder="主帖 / 设定区 / 剧情区"
               disabled={isSubmitting}
+              readOnly={lockTitle}
               {...form.register("title")}
             />
+            {lockTitle && (
+              <p className="text-xs text-muted-foreground">
+                主帖标题请在“主题帖”页签中修改
+              </p>
+            )}
             {form.formState.errors.title && (
               <p className="text-xs text-destructive">
                 {form.formState.errors.title.message}

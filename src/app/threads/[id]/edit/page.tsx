@@ -1,4 +1,4 @@
-/** 主题帖编辑页：草稿使用发布表单，已发布帖子使用修改表单 */
+/** 主题帖编辑兼容路由：草稿继续编辑，已发布帖子复用统一管理界面 */
 
 "use client";
 
@@ -9,7 +9,7 @@ import { Loader2, AlertCircle, ShieldAlert } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useThreadDetail } from "@/api/hooks/use-thread-detail";
 import { ThreadCreateForm } from "@/components/forms/thread-create-form";
-import { ThreadEditForm } from "@/components/forms/thread-edit-form";
+import { ManagementPanel } from "@/components/thread/management-panel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -138,23 +138,13 @@ function EditThreadPageContent() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6">
-      <div className="mb-5 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-foreground">编辑主题帖</h1>
-      </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>基本信息</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <ThreadEditForm
-            thread={thread}
-            isOwner={isOwner}
-            onBack={() => router.push(`/threads/${threadId}`)}
-            onSaved={refetch}
-          />
-        </CardContent>
-      </Card>
+    <div className="mx-auto h-[calc(100vh-3.5rem)] max-w-6xl px-4 py-4">
+      <ManagementPanel
+        thread={thread}
+        initialView="thread"
+        onExit={() => router.push(`/threads/${threadId}`)}
+        onRefetch={refetch}
+      />
     </div>
   );
 }
