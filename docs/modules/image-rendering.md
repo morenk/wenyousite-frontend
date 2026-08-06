@@ -6,6 +6,7 @@
 
 **本次迭代范围：**
 - 上传安全契约与后端对齐：仅接受 JPEG / PNG / GIF / WebP / AVIF，拒绝空文件与未经净化的 SVG
+- 页面 CSP 的 `connect-src` 放行 RainS3 媒体源，允许浏览器通过预签名 URL 直接 PUT 上传
 - `upload-done` 由后端核对对象存储实际大小和 MIME，并支持网络超时后的幂等重试；Web/Flutter 都只把 `COMPLETED` 媒体写入正文或头像
 - GIF 动图在正文进入视口并加载后默认播放，不再以静态 `_md.webp` 首帧代替；循环次数遵循文件自身设置
 - 正文图片渲染约束：`max-width: 100%` + `max-height: 50vh` + `height: auto` + `loading="lazy"`，长图不会撑满楼层
@@ -78,6 +79,7 @@
 - [x] 正文高度超过 `120vh` 时折叠为 `80vh`，展开/收起后按当前内容位置跳转
 - [x] `pnpm lint && pnpm typecheck && pnpm test` 通过
 - [x] SVG 与空文件在调用 `upload-url` 前被客户端拒绝
+- [x] CSP 允许连接 RainS3 媒体源，预签名直传不会在发起请求前被浏览器拦截
 - [x] 本站 GIF 正文默认请求原图并播放，不需要先打开 lightbox
 
 ## 6. 子任务

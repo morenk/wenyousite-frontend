@@ -10,7 +10,7 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' data: blob: ${mediaOrigin}`,
   "font-src 'self' data:",
-  `connect-src 'self'${isDevelopment ? " ws: wss:" : ""}`,
+  `connect-src 'self' ${mediaOrigin}${isDevelopment ? " ws: wss:" : ""}`,
   "media-src 'self' blob:",
   "object-src 'none'",
   "base-uri 'self'",

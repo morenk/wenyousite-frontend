@@ -12,6 +12,9 @@ describe("Next.js 安全响应头", () => {
     expect(headers.get("Content-Security-Policy")).toContain(
       "img-src 'self' data: blob: https://cn-nb1.rains3.com",
     );
+    expect(headers.get("Content-Security-Policy")).toContain(
+      "connect-src 'self' https://cn-nb1.rains3.com",
+    );
     expect(headers.get("X-Content-Type-Options")).toBe("nosniff");
     expect(headers.get("X-Frame-Options")).toBe("DENY");
     expect(headers.get("Permissions-Policy")).toContain("camera=()");
