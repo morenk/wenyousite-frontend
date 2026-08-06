@@ -73,4 +73,26 @@ describe("MilkdownEditor 内联骰子", () => {
     expect(markdown).toMatch(/\[\[dice:v1:[0-9a-f-]{36}:1d100\]\]/u);
     expect(markdown).not.toContain("\\[\\[dice:v1:");
   });
+
+  test("父表单重渲染后仍把骰子内容交给最新 onChange", async () => {
+    const client = new QueryClient();
+    const firstOnChange = vi.fn();
+    const latestOnChange = vi.fn();
+    const view = render(
+      <QueryClientProvider client={client}>
+        <MilkdownEditor defaultValue="正文" onChange={firstOnChange} />
+      </QueryClientProvider>,
+    );
+    await screen.findByRole("button", { name: "骰子" });
+
+    view.rerender(
+      <QueryClientProvider client={client}>
+        <MilkdownEditor defaultValue="正文" onChange={latestOnChange} />
+      </QueryClientProvider>,
+    );
+    fireEvent.pointerDown(screen.getByRole("button", { name: "骰子" }));
+    fireEvent.click(await screen.findByRole("button", { name: "d20" }));
+
+    await waitFor(() => expect(latestOnChange).toHaveBeenCalled());
+  });
 });

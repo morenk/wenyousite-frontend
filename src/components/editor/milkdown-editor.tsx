@@ -158,6 +158,7 @@ function EditorHost({
   const [loading] = useInstance();
   const crepeRef = useRef<Crepe | null>(null);
   const hostRef = useRef<HTMLDivElement>(null);
+  const onChangeRef = useRef(onChange);
   const editorDomRef = useRef<HTMLElement | null>(null);
   const editorCleanupRef = useRef<(() => void) | null>(null);
   const mentionMenuRef = useRef<{ from: number; to: number; query: string } | null>(null);
@@ -178,6 +179,10 @@ function EditorHost({
     left: number;
   } | null>(null);
   const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
   const mentionQuery = mentionMenu?.query ?? "";
   const [debouncedMentionQuery] = useDebounce(mentionQuery, 180);
   const {
@@ -236,6 +241,29 @@ function EditorHost({
     selectedMentionIndex,
     Math.max(visibleMentionItems.length - 1, 0),
   );
+
+  const emitSerializedMarkdown = useCallback((markdown: string, view: EditorView) => {
+    const diceNodes: Array<{ nodeId: string; notation: string }> = [];
+    view.state.doc.descendants((node) => {
+      if (node.type.name !== DICE_INLINE_NODE_NAME) return;
+      diceNodes.push({
+        nodeId: String(node.attrs.nodeId),
+        notation: String(node.attrs.notation),
+      });
+    });
+    let serialized = restoreSerializedInlineDiceNodes(markdown, diceNodes);
+    const lastNode = view.state.doc.lastChild;
+    if (lastNode?.type.name === "paragraph" && lastNode.content.size === 0) {
+      serialized = `${serialized.replace(/\s+$/u, "")}\n\n<br />`;
+    }
+    onChangeRef.current?.(sanitizeMilkdownMarkdown(serialized));
+  }, []);
+
+  const emitCurrentMarkdown = useCallback((view: EditorView) => {
+    const markdown = crepeRef.current?.getMarkdown();
+    if (markdown === undefined) return;
+    emitSerializedMarkdown(markdown, view);
+  }, [emitSerializedMarkdown]);
 
   const handleMentionSelect = useCallback((event: ReactMouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -335,11 +363,13 @@ function EditorHost({
     const transaction = view.state.tr.replaceRangeWith(from, to, node);
     transaction.setSelection(TextSelection.near(transaction.doc.resolve(from + node.nodeSize)));
     view.dispatch(transaction);
+    // Milkdown 的 markdownUpdated 固定防抖 200ms；骰子插入后必须立即同步，避免紧接着发布拿到旧正文。
+    emitCurrentMarkdown(view);
     view.focus();
     setDiceNodeCount(diceCount + 1);
     diceSelectionRef.current = null;
     setDicePopover(null);
-  }, []);
+  }, [emitCurrentMarkdown]);
 
   useEditor(
     (root) => {
@@ -437,22 +467,7 @@ function EditorHost({
           if (markdown !== prevMarkdown) {
             // 清理空图片并规范化空段落协议；独占行 <br /> 必须保留以支持艺术化留白。
             const view = ctx.get(editorViewCtx);
-            const diceNodes: Array<{ nodeId: string; notation: string }> = [];
-            view.state.doc.descendants((node) => {
-              if (node.type.name !== DICE_INLINE_NODE_NAME) return;
-              diceNodes.push({
-                nodeId: String(node.attrs.nodeId),
-                notation: String(node.attrs.notation),
-              });
-            });
-            let serialized = restoreSerializedInlineDiceNodes(markdown, diceNodes);
-            // Milkdown 默认省略文档最后一个空段落；该段落是用户按 Enter 产生的有效留白，补回协议标记。
-            const lastNode = view.state.doc.lastChild;
-            if (lastNode?.type.name === "paragraph" && lastNode.content.size === 0) {
-              serialized = `${serialized.replace(/\s+$/u, "")}\n\n<br />`;
-            }
-            const cleaned = sanitizeMilkdownMarkdown(serialized);
-            onChange?.(cleaned);
+            emitSerializedMarkdown(markdown, view);
           }
         });
       });
@@ -884,20 +899,25 @@ function EditorCore({
   const [autoSaveStatus, setAutoSaveStatus] = useState<
     "idle" | "saving" | "saved" | "error"
   >("idle");
+  const externalOnChangeRef = useRef(onChange);
   const latestContentRef = useRef(defaultValue ?? "");
   const autoSaveQueueRef = useRef<Promise<unknown>>(Promise.resolve());
   const autoSaveSequenceRef = useRef(0);
   const autoSaveVersionRef = useRef<number | undefined>(undefined);
   const autoSaveEnabledRef = useRef(false);
 
+  useEffect(() => {
+    externalOnChangeRef.current = onChange;
+  }, [onChange]);
+
   const handleChange = useCallback(
     (value: string) => {
       latestContentRef.current = value;
       setCurrentContent(value);
       if (autoSaveEnabled) setAutoSaveStatus("idle");
-      onChange?.(value);
+      externalOnChangeRef.current?.(value);
     },
-    [autoSaveEnabled, onChange],
+    [autoSaveEnabled],
   );
 
   const handleRestore = useCallback(
@@ -907,10 +927,10 @@ function EditorCore({
       setRestoredValue(content);
       setCurrentContent(content);
       setVersion((v) => v + 1);
-      onChange?.(content);
+      externalOnChangeRef.current?.(content);
       toast.success("已恢复正文草稿");
     },
-    [onChange],
+    [],
   );
 
   const handleOpenDrafts = useCallback(() => {

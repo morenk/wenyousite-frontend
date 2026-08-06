@@ -3,7 +3,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2, Send, Save, Trash2 } from "lucide-react";
@@ -58,6 +58,9 @@ export function ThreadCreateForm({
   const upsertBody = useUpsertBody();
   const uploadImage = useUploadImage();
   const CancelIcon = cancelMode === "back" ? ArrowLeft : Trash2;
+  const [editorContent, setEditorContent] = useState(
+    thread.defaultSubthread.bodyPost?.content ?? "",
+  );
 
   const form = useForm<ThreadCreateFormData>({
     resolver: zodResolver(threadCreateSchema),
@@ -103,7 +106,7 @@ export function ThreadCreateForm({
   }
 
   async function handleSaveDraft() {
-    const values = form.getValues();
+    const values = { ...form.getValues(), content: editorContent };
     const body: ThreadCreateFormData & { version: number } = {
       ...values,
       version: thread.version,
@@ -130,7 +133,7 @@ export function ThreadCreateForm({
   }
 
   async function handlePublish() {
-    const values = form.getValues();
+    const values = { ...form.getValues(), content: editorContent };
     const validationError = validatePublishable(values);
     if (validationError) {
       toast.error(validationError);
@@ -266,13 +269,22 @@ export function ThreadCreateForm({
 
         <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="content">正文</Label>
-          <MilkdownEditor
-            threadId={thread.id}
-            defaultValue={form.getValues("content") ?? ""}
-            onChange={(v) => form.setValue("content", v)}
-            onUploadImage={handleUploadImage}
-            disabled={isSaving || isPublishing}
-            diceRolls={thread.defaultSubthread.bodyPost?.diceRolls}
+          <Controller
+            control={form.control}
+            name="content"
+            render={({ field }) => (
+              <MilkdownEditor
+                threadId={thread.id}
+                defaultValue={field.value ?? ""}
+                onChange={(value) => {
+                  setEditorContent(value);
+                  field.onChange(value);
+                }}
+                onUploadImage={handleUploadImage}
+                disabled={isSaving || isPublishing}
+                diceRolls={thread.defaultSubthread.bodyPost?.diceRolls}
+              />
+            )}
           />
         </div>
       </div>

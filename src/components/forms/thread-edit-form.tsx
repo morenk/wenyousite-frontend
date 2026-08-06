@@ -3,7 +3,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Loader2, Save, ArrowLeft } from "lucide-react";
@@ -62,6 +62,9 @@ export function ThreadEditForm({
   const upsertBody = useUpsertBody();
   const syncTags = useSyncThreadTags();
   const uploadImage = useUploadImage();
+  const [editorContent, setEditorContent] = useState(
+    thread.defaultSubthread.bodyPost?.content ?? "",
+  );
 
   const form = useForm<ThreadCreateFormData>({
     resolver: zodResolver(threadCreateSchema),
@@ -93,7 +96,7 @@ export function ThreadEditForm({
   }
 
   async function handleSave() {
-    const values = form.getValues();
+    const values = { ...form.getValues(), content: editorContent };
     try {
       setIsSaving(true);
 
@@ -234,13 +237,22 @@ export function ThreadEditForm({
 
         <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="content">默认子贴正文</Label>
-          <MilkdownEditor
-            threadId={thread.id}
-            defaultValue={form.getValues("content") ?? ""}
-            onChange={(v) => form.setValue("content", v)}
-            onUploadImage={async (file) => uploadImage.mutateAsync(file)}
-            disabled={isSaving}
-            diceRolls={thread.defaultSubthread.bodyPost?.diceRolls}
+          <Controller
+            control={form.control}
+            name="content"
+            render={({ field }) => (
+              <MilkdownEditor
+                threadId={thread.id}
+                defaultValue={field.value ?? ""}
+                onChange={(value) => {
+                  setEditorContent(value);
+                  field.onChange(value);
+                }}
+                onUploadImage={async (file) => uploadImage.mutateAsync(file)}
+                disabled={isSaving}
+                diceRolls={thread.defaultSubthread.bodyPost?.diceRolls}
+              />
+            )}
           />
         </div>
       </div>
