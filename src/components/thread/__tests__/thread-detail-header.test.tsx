@@ -24,11 +24,12 @@ const { mockPOST, mockDELETE, mockGET } = vi.hoisted(() => ({
   mockDELETE: vi.fn(),
   mockGET: vi.fn(),
 }));
-const { mockDeleteThreadMutate, mockRouterPush, mockClipboardWriteText } = vi.hoisted(() => ({
-  mockDeleteThreadMutate: vi.fn().mockResolvedValue({}),
-  mockRouterPush: vi.fn(),
-  mockClipboardWriteText: vi.fn().mockResolvedValue(undefined),
-}));
+const { mockDeleteThreadMutate, mockRouterPush, mockClipboardWriteText } =
+  vi.hoisted(() => ({
+    mockDeleteThreadMutate: vi.fn().mockResolvedValue({}),
+    mockRouterPush: vi.fn(),
+    mockClipboardWriteText: vi.fn().mockResolvedValue(undefined),
+  }));
 
 vi.mock("@/api/client", () => ({
   apiClient: { POST: mockPOST, DELETE: mockDELETE, GET: mockGET },
@@ -38,7 +39,10 @@ const mockCreateMutate = vi.fn().mockResolvedValue({});
 const mockDeleteMutate = vi.fn().mockResolvedValue({});
 const mockUseSubscriptions = vi.fn(() => ({ data: [], isLoading: false }));
 const mockUseMembers = vi.fn(() => ({ data: [], isLoading: false }));
-const mockUseThreadDetail = vi.fn(() => ({ data: undefined, isLoading: false }));
+const mockUseThreadDetail = vi.fn(() => ({
+  data: undefined,
+  isLoading: false,
+}));
 vi.mock("@/api/hooks/use-subscriptions", () => ({
   useSubscriptions: () => mockUseSubscriptions(),
 }));
@@ -50,17 +54,31 @@ vi.mock("@/api/hooks/use-thread-detail", async () => {
   return { ...actual, useThreadDetail: () => mockUseThreadDetail() };
 });
 vi.mock("@/api/hooks/use-subscription-mutations", () => ({
-  useCreateSubscription: () => ({ mutateAsync: mockCreateMutate, isPending: false }),
-  useDeleteSubscription: () => ({ mutateAsync: mockDeleteMutate, isPending: false }),
+  useCreateSubscription: () => ({
+    mutateAsync: mockCreateMutate,
+    isPending: false,
+  }),
+  useDeleteSubscription: () => ({
+    mutateAsync: mockDeleteMutate,
+    isPending: false,
+  }),
 }));
 
 vi.mock("@/api/hooks/use-delete-thread", () => ({
-  useDeleteThread: () => ({ mutateAsync: mockDeleteThreadMutate, isPending: false }),
+  useDeleteThread: () => ({
+    mutateAsync: mockDeleteThreadMutate,
+    isPending: false,
+  }),
 }));
 
 vi.mock("@tanstack/react-query", async () => {
   const actual = await vi.importActual("@tanstack/react-query");
-  return { ...actual, useQueryClient: () => ({ invalidateQueries: vi.fn().mockResolvedValue(undefined) }) };
+  return {
+    ...actual,
+    useQueryClient: () => ({
+      invalidateQueries: vi.fn().mockResolvedValue(undefined),
+    }),
+  };
 });
 
 vi.mock("next/navigation", () => ({
@@ -68,9 +86,13 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("next/link", () => ({
-  default: ({ children, href }: { children: React.ReactNode; href: string }) => (
-    <a href={href}>{children}</a>
-  ),
+  default: ({
+    children,
+    href,
+  }: {
+    children: React.ReactNode;
+    href: string;
+  }) => <a href={href}>{children}</a>,
 }));
 
 afterEach(() => {
@@ -159,9 +181,7 @@ describe("ThreadDetailHeader", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
     mockPOST.mockResolvedValue({ error: undefined });
 
-    renderWithQC(
-      <ThreadDetailHeader thread={baseThread} />,
-    );
+    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
     expect(screen.getByText("测试主题帖")).toBeInTheDocument();
   });
 
@@ -197,34 +217,30 @@ describe("ThreadDetailHeader", () => {
 
   test("渲染分类和状态中文映射", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
-    renderWithQC(
-      <ThreadDetailHeader thread={baseThread} />,
-    );
+    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
     expect(screen.getByText("RPG")).toBeInTheDocument();
     expect(screen.getByText("招募中")).toBeInTheDocument();
   });
 
   test("渲染标签", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
-    renderWithQC(
-      <ThreadDetailHeader thread={baseThread} />,
-    );
+    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
     expect(screen.getByText("#测试标签")).toBeInTheDocument();
+    expect(screen.getByText("#测试标签").closest("a")).toHaveAttribute(
+      "href",
+      "/tags/tag-1",
+    );
   });
 
   test("渲染作者名", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
-    renderWithQC(
-      <ThreadDetailHeader thread={baseThread} />,
-    );
+    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
     expect(screen.getByText("帖主")).toBeInTheDocument();
   });
 
   test("渲染统计信息", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
-    renderWithQC(
-      <ThreadDetailHeader thread={baseThread} />,
-    );
+    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
     expect(screen.getByText("100 次浏览")).toBeInTheDocument();
     expect(screen.getByText("3 位玩家")).toBeInTheDocument();
     expect(screen.getByText("5 楼")).toBeInTheDocument();
@@ -232,9 +248,7 @@ describe("ThreadDetailHeader", () => {
 
   test("未登录时显示点赞按钮（不可交互）", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
-    renderWithQC(
-      <ThreadDetailHeader thread={baseThread} />,
-    );
+    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
     expect(screen.getByText("3")).toBeInTheDocument(); // likeCount
   });
 
@@ -244,9 +258,7 @@ describe("ThreadDetailHeader", () => {
       isInitialized: true,
     });
     mockPOST.mockResolvedValue({ error: undefined });
-    renderWithQC(
-      <ThreadDetailHeader thread={baseThread} />,
-    );
+    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
     expect(screen.getByText("管理")).toBeInTheDocument();
     expect(screen.queryByText("编辑")).not.toBeInTheDocument();
     // OWNER 不应该看到加入/退出按钮
@@ -260,9 +272,7 @@ describe("ThreadDetailHeader", () => {
       isInitialized: true,
     });
     mockPOST.mockResolvedValue({ error: undefined });
-    renderWithQC(
-      <ThreadDetailHeader thread={baseThread} />,
-    );
+    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
     expect(screen.getByText("管理")).toBeInTheDocument();
   });
 
@@ -299,7 +309,10 @@ describe("ThreadDetailHeader", () => {
 
   test("OWNER 看到删除主题帖按钮，确认后删除并返回首页", async () => {
     const user = userEvent.setup();
-    vi.stubGlobal("confirm", vi.fn(() => true));
+    vi.stubGlobal(
+      "confirm",
+      vi.fn(() => true),
+    );
     mockUseAuth.mockReturnValue({
       user: { id: "owner-1", username: "帖主" },
       isInitialized: true,
@@ -318,7 +331,10 @@ describe("ThreadDetailHeader", () => {
 
   test("取消删除主题帖时不调用删除接口", async () => {
     const user = userEvent.setup();
-    vi.stubGlobal("confirm", vi.fn(() => false));
+    vi.stubGlobal(
+      "confirm",
+      vi.fn(() => false),
+    );
     mockUseAuth.mockReturnValue({
       user: { id: "owner-1", username: "帖主" },
       isInitialized: true,
@@ -345,7 +361,10 @@ describe("ThreadDetailHeader", () => {
 
   test("删除失败显示后端错误", async () => {
     const user = userEvent.setup();
-    vi.stubGlobal("confirm", vi.fn(() => true));
+    vi.stubGlobal(
+      "confirm",
+      vi.fn(() => true),
+    );
     mockDeleteThreadMutate.mockRejectedValueOnce({
       code: 40301,
       message: "仅楼主可删除主题帖",
@@ -368,9 +387,7 @@ describe("ThreadDetailHeader", () => {
       isInitialized: true,
     });
     mockPOST.mockResolvedValue({ error: undefined });
-    renderWithQC(
-      <ThreadDetailHeader thread={baseThread} />,
-    );
+    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
     expect(screen.queryByText("管理")).toBeNull();
   });
 
@@ -383,10 +400,7 @@ describe("ThreadDetailHeader", () => {
     });
     mockPOST.mockResolvedValue({ error: undefined });
     renderWithQC(
-      <ThreadDetailHeader
-        thread={baseThread}
-        onManage={onManage}
-      />,
+      <ThreadDetailHeader thread={baseThread} onManage={onManage} />,
     );
 
     await user.click(screen.getByText("管理"));
@@ -403,9 +417,7 @@ describe("ThreadDetailHeader", () => {
   test("私密帖显示'私密'标签", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
     const privateThread = { ...baseThread, visibility: "PRIVATE" as const };
-    renderWithQC(
-      <ThreadDetailHeader thread={privateThread} />,
-    );
+    renderWithQC(<ThreadDetailHeader thread={privateThread} />);
     expect(screen.getByText("私密")).toBeInTheDocument();
   });
 
@@ -440,7 +452,9 @@ describe("ThreadDetailHeader", () => {
       isInitialized: true,
     });
     renderWithQC(
-      <ThreadDetailHeader thread={{ ...baseThread, likeCount: 7, isLiked: false }} />,
+      <ThreadDetailHeader
+        thread={{ ...baseThread, likeCount: 7, isLiked: false }}
+      />,
     );
 
     await user.click(screen.getByRole("button", { name: /7/ }));
@@ -457,7 +471,9 @@ describe("ThreadDetailHeader", () => {
       isInitialized: true,
     });
     renderWithQC(
-      <ThreadDetailHeader thread={{ ...baseThread, likeCount: 1, isLiked: true }} />,
+      <ThreadDetailHeader
+        thread={{ ...baseThread, likeCount: 1, isLiked: true }}
+      />,
     );
 
     await user.click(screen.getByRole("button", { name: /1/ }));
@@ -580,7 +596,10 @@ describe("ThreadDetailHeader", () => {
     } as never);
 
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
-    await user.selectOptions(screen.getByLabelText("订阅帖内玩家"), "target-user");
+    await user.selectOptions(
+      screen.getByLabelText("订阅帖内玩家"),
+      "target-user",
+    );
     await user.click(screen.getByRole("button", { name: "订阅该玩家" }));
 
     expect(mockCreateMutate).toHaveBeenCalledWith({
@@ -588,8 +607,12 @@ describe("ThreadDetailHeader", () => {
       type: "USER",
       targetUserId: "target-user",
     });
-    expect(screen.queryByRole("option", { name: "帖主" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("option", { name: "未标记参与人" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("option", { name: "帖主" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("option", { name: "未标记参与人" }),
+    ).not.toBeInTheDocument();
   });
 
   test("楼主不显示整帖订阅按钮", () => {
@@ -619,7 +642,9 @@ describe("ThreadDetailHeader", () => {
       <ThreadDetailHeader thread={{ ...baseThread, visibility: "PRIVATE" }} />,
     );
 
-    expect(screen.queryByRole("button", { name: "复制主题帖链接" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "复制主题帖链接" }),
+    ).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "复制邀请链接" }));
     expect(mockPOST).toHaveBeenCalledWith("/api/v1/threads/{id}/invite-link", {
       params: { path: { id: "thread-1" } },
@@ -638,7 +663,9 @@ describe("ThreadDetailHeader", () => {
     });
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
 
-    expect(screen.queryByRole("button", { name: "加入主题帖" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "加入主题帖" }),
+    ).not.toBeInTheDocument();
   });
 
   test("已标记玩家可退出玩家身份", async () => {
@@ -664,8 +691,14 @@ describe("ThreadDetailHeader", () => {
       },
       isLoading: false,
     } as never);
-    mockDELETE.mockResolvedValueOnce({ data: { data: { message: "已退出主题帖" } }, error: undefined });
-    vi.stubGlobal("confirm", vi.fn(() => true));
+    mockDELETE.mockResolvedValueOnce({
+      data: { data: { message: "已退出主题帖" } },
+      error: undefined,
+    });
+    vi.stubGlobal(
+      "confirm",
+      vi.fn(() => true),
+    );
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
 
     await user.click(screen.getByRole("button", { name: "退出玩家身份" }));

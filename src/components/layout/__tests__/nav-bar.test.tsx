@@ -29,6 +29,12 @@ vi.mock("@/api/hooks/use-unread-count", () => ({
   useUnreadCount: () => ({ data: 0 }),
 }));
 
+vi.mock("@/api/hooks/use-direct-conversations", () => ({
+  useDirectUnreadCount: () => ({
+    data: { unreadMessageCount: 0, pendingRequestCount: 0, total: 0 },
+  }),
+}));
+
 vi.mock("@/api/hooks/use-auth-actions", () => ({
   useLogout: () => ({ mutateAsync: mockLogoutMutate }),
 }));
@@ -50,7 +56,7 @@ describe("NavBar", () => {
     render(<NavBar />);
 
     expect(screen.queryByRole("link", { name: "收藏" })).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "通知" })).toHaveAttribute("href", "/notifications");
+    expect(screen.getByRole("link", { name: "消息" })).toHaveAttribute("href", "/notifications");
     expect(screen.getByRole("link", { name: "用户" })).toHaveAttribute("href", "/users/u1");
   });
 

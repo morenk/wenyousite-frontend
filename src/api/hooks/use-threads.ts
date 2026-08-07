@@ -15,27 +15,22 @@ export type ThreadListResponse =
 export type ThreadSort = "recommended" | "newest" | "active";
 export type ThreadStatusFilter = "RECRUITING" | "CLOSED" | "FINISHED";
 
-interface ThreadQueryParams {
-  filter?: "all" | "playing";
-  category?: "DEDUCTION" | "NATION" | "RPG";
-  sort?: ThreadSort;
-  status?: ThreadStatusFilter;
-  tag?: string;
-  limit?: number;
-  cursor?: string;
-}
+export type ThreadQueryParams = NonNullable<
+  operations["ThreadsController_findAll"]["parameters"]["query"]
+>;
 
 export function useThreads(params: ThreadQueryParams = {}) {
   return useInfiniteQuery({
     queryKey: queryKeys.threads.list(params),
     queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
-      const queryParams: Record<string, string> = {};
+      const queryParams: ThreadQueryParams = {};
       if (params.category) queryParams.category = params.category;
       if (params.sort) queryParams.sort = params.sort;
       if (params.status) queryParams.status = params.status;
       if (params.tag) queryParams.tag = params.tag;
+      if (params.tagId) queryParams.tagId = params.tagId;
       if (params.filter) queryParams.filter = params.filter;
-      queryParams.limit = String(params.limit ?? 20);
+      queryParams.limit = params.limit ?? 20;
       if (pageParam) queryParams.cursor = pageParam;
 
       const { data, error } = await apiClient.GET("/api/v1/threads", {

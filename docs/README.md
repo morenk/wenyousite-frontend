@@ -16,6 +16,7 @@
 | [thread-detail](./modules/thread-detail.md) | 主题帖详情与回复 | 已完成 |
 | [profile](./modules/profile.md) | 用户资料与账号安全 | 已完成 |
 | [notifications](./modules/notifications.md) | 通知 | 已完成 |
+| [direct-messages](./modules/direct-messages.md) | 私聊与统一消息中心 | 已完成 |
 | [search](./modules/search.md) | 搜索 | 已完成 |
 | [drafts](./modules/drafts.md) | 草稿箱 | 已完成 |
 | [bookmarks](./modules/bookmarks.md) | 收藏 | 已完成 |

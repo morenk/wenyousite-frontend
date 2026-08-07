@@ -5,7 +5,7 @@
 import Link from "next/link";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { CalendarDays, Users } from "lucide-react";
+import { CalendarDays, MessageCircle, Users } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { FollowButton } from "@/components/user/follow-button";
 import { BlockButton } from "@/components/user/block-button";
@@ -83,6 +83,20 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
               </Link>
             ) : (
               <>
+                {me && (
+                  <Link href={`/messages/new/${user.id}`}>
+                    <button
+                      type="button"
+                      className={cn(
+                        "inline-flex h-8 items-center gap-1.5 rounded-md border border-border px-3 text-sm",
+                        "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      )}
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      私聊
+                    </button>
+                  </Link>
+                )}
                 <FollowButton userId={user.id} isFollowing={!!user.isFollowing} />
                 <BlockButton userId={user.id} isBlocked={!!user.isBlocked} />
               </>

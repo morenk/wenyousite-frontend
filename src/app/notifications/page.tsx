@@ -6,6 +6,7 @@ import { Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { NotificationList } from "@/components/notification/notification-list";
+import { MessageCenterTabs } from "@/components/message/message-center-tabs";
 
 function NotificationsPageInner() {
   const router = useRouter();
@@ -20,9 +21,12 @@ function NotificationsPageInner() {
   );
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6">
-      <h1 className="mb-5 text-xl font-bold text-foreground">通知</h1>
-      <NotificationList type={type} onTypeChange={handleTypeChange} />
+    <div className="mx-auto w-full max-w-4xl px-4 py-6">
+      <h1 className="mb-3 text-xl font-bold text-foreground">消息</h1>
+      <MessageCenterTabs />
+      <div className="mx-auto mt-5 max-w-2xl">
+        <NotificationList type={type} onTypeChange={handleTypeChange} />
+      </div>
     </div>
   );
 }

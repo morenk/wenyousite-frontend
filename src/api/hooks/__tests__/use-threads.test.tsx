@@ -117,7 +117,27 @@ describe("useThreads", () => {
         query: {
           sort: "active",
           status: "CLOSED",
-          limit: "20",
+          limit: 20,
+        },
+      },
+    });
+  });
+
+  test("传递标签 ID 精确筛选参数", async () => {
+    mockGET.mockClear();
+    mockGET.mockResolvedValue({ data: sampleResponse, error: undefined });
+
+    const { result } = renderHook(
+      () => useThreads({ tagId: "cms7rnyij000z7qdyg6zbge8e" }),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockGET).toHaveBeenCalledWith("/api/v1/threads", {
+      params: {
+        query: {
+          tagId: "cms7rnyij000z7qdyg6zbge8e",
+          limit: 20,
         },
       },
     });

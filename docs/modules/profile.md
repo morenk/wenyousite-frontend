@@ -7,7 +7,7 @@
 实现用户主页、关注/拉黑、草稿箱三个子功能，补齐全站所有 `Link href="/users/{id}"` 的死链落点。
 
 **本次迭代范围（Phase 6 MVP）：**
-- `/users/[id]` 用户主页：资料卡（头像/用户名/Bio/注册时间/关注粉丝数）+ 关注/拉黑按钮 + 最近动态（recent-replies）+ 创建的帖子（created-threads）+ 参与的帖子（played-threads）
+- `/users/[id]` 用户主页：资料卡（头像/用户名/Bio/注册时间/关注粉丝数）+ 私聊/关注/拉黑按钮 + 最近动态（recent-replies）+ 创建的帖子（created-threads）+ 参与的帖子（played-threads）
 - 关注/取消关注、拉黑/取消拉黑（仅登录，用户主页操作）
 - 草稿箱：未发布帖列表（进入 `/threads/create` 草稿列表查看，可跳转继续编辑或删除）
 - `/me` 我的资料：邮箱（并入基本信息，脱敏显示 + 邮箱验证状态，未验证可跳转 `/verify-email`）、头像（裁剪上传/移除）、Bio（textarea + 255 字数统计）、隐私开关（用户名需显式进入编辑，默认不修改）

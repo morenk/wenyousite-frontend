@@ -5,7 +5,16 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bell, BellOff, Heart, Link2, Loader2, Search, Settings, Trash2 } from "lucide-react";
+import {
+  Bell,
+  BellOff,
+  Heart,
+  Link2,
+  Loader2,
+  Search,
+  Settings,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
@@ -29,6 +38,7 @@ import { useConfirm } from "@/components/ui/confirm-provider";
 import { BookmarkButton } from "@/components/user/bookmark-button";
 import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
+import { TopicTagLink } from "@/components/thread/topic-tag-link";
 
 const categoryLabel: Record<string, string> = {
   DEDUCTION: "演绎",
@@ -37,7 +47,8 @@ const categoryLabel: Record<string, string> = {
 };
 
 const categoryColor: Record<string, string> = {
-  DEDUCTION: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
+  DEDUCTION:
+    "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
   NATION: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
   RPG: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
 };
@@ -49,7 +60,8 @@ const statusLabel: Record<string, string> = {
 };
 
 const statusColor: Record<string, string> = {
-  RECRUITING: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+  RECRUITING:
+    "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
   CLOSED: "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400",
   FINISHED: "bg-muted text-muted-foreground",
 };
@@ -72,8 +84,12 @@ export function ThreadDetailHeader({
   const { like, unlike } = useLikeThread(thread.id);
   const deleteThread = useDeleteThread();
   const { data: subscriptions } = useSubscriptions(!!user);
-  const { currentMember, isOwner: roleIsOwner, isManager, isThreadManager } =
-    useThreadPermissions();
+  const {
+    currentMember,
+    isOwner: roleIsOwner,
+    isManager,
+    isThreadManager,
+  } = useThreadPermissions();
   const isOwner = roleIsOwner || user?.id === thread.ownerId;
   const canManageThread = isThreadManager || isOwner;
   const hasAutomaticUpdates = isManager || isOwner;
@@ -121,7 +137,10 @@ export function ThreadDetailHeader({
         await deleteSubscription.mutateAsync(mySubscription.id);
         toast.success("已取消订阅");
       } else {
-        await createSubscription.mutateAsync({ threadId: thread.id, type: "THREAD" });
+        await createSubscription.mutateAsync({
+          threadId: thread.id,
+          type: "THREAD",
+        });
         toast.success("已订阅，帖子更新将通知你");
       }
     } catch (error: unknown) {
@@ -152,12 +171,15 @@ export function ThreadDetailHeader({
     const message = thread.published
       ? "确定要删除该主题帖吗？已发布主题帖删除后将无法恢复。"
       : "确定要删除该主题帖吗？草稿删除后将无法恢复。";
-    if (!(await confirmAction({
-      title: "删除主题帖",
-      description: message,
-      confirmLabel: "删除",
-      destructive: true,
-    }))) return;
+    if (
+      !(await confirmAction({
+        title: "删除主题帖",
+        description: message,
+        confirmLabel: "删除",
+        destructive: true,
+      }))
+    )
+      return;
 
     try {
       await deleteThread.mutateAsync(thread.id);
@@ -170,7 +192,9 @@ export function ThreadDetailHeader({
 
   const handleCopyThreadLink = async () => {
     try {
-      await navigator.clipboard.writeText(`${window.location.origin}/threads/${thread.id}`);
+      await navigator.clipboard.writeText(
+        `${window.location.origin}/threads/${thread.id}`,
+      );
       toast.success("链接已复制");
     } catch {
       toast.error("复制失败，请稍后重试");
@@ -180,7 +204,9 @@ export function ThreadDetailHeader({
   const handleCopyInviteLink = async () => {
     try {
       const invite = await createInviteLink.mutateAsync(thread.id);
-      await navigator.clipboard.writeText(`${window.location.origin}/join/${invite.token}`);
+      await navigator.clipboard.writeText(
+        `${window.location.origin}/join/${invite.token}`,
+      );
       toast.success("邀请链接已复制，旧链接已失效");
     } catch (error: unknown) {
       toast.error(getApiErrorMessage(error, "邀请链接生成失败"));
@@ -188,12 +214,15 @@ export function ThreadDetailHeader({
   };
 
   const handleExitPlayer = async () => {
-    if (!(await confirmAction({
-      title: "退出玩家身份",
-      description: "确定退出玩家身份吗？参与记录仍会保留。",
-      confirmLabel: "确认退出",
-      destructive: true,
-    }))) return;
+    if (
+      !(await confirmAction({
+        title: "退出玩家身份",
+        description: "确定退出玩家身份吗？参与记录仍会保留。",
+        confirmLabel: "确认退出",
+        destructive: true,
+      }))
+    )
+      return;
     try {
       await exitThreadPlayer.mutateAsync(thread.id);
       toast.success("已退出玩家身份");
@@ -210,7 +239,8 @@ export function ThreadDetailHeader({
           <span
             className={cn(
               "rounded-full px-2.5 py-0.5 text-xs font-medium",
-              categoryColor[thread.category] ?? "bg-muted text-muted-foreground",
+              categoryColor[thread.category] ??
+                "bg-muted text-muted-foreground",
             )}
           >
             {categoryLabel[thread.category] ?? thread.category}
@@ -242,12 +272,7 @@ export function ThreadDetailHeader({
         {thread.topicTags.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {thread.topicTags.map(({ tag }) => (
-              <span
-                key={tag.id}
-                className="rounded-md border border-border px-2 py-0.5 text-xs text-muted-foreground"
-              >
-                #{tag.name}
-              </span>
+              <TopicTagLink key={tag.id} tag={tag} />
             ))}
           </div>
         )}
@@ -306,14 +331,21 @@ export function ThreadDetailHeader({
               disabled={createInviteLink.isPending}
               title="生成并复制私密帖邀请链接"
             >
-              {createInviteLink.isPending && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
+              {createInviteLink.isPending && (
+                <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+              )}
               复制邀请链接
             </Button>
           )}
           {user ? (
             <>
               {!isOwner && currentMember?.playerMarked && (
-                <Button variant="ghost" size="sm" onClick={handleExitPlayer} disabled={exitThreadPlayer.isPending}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleExitPlayer}
+                  disabled={exitThreadPlayer.isPending}
+                >
                   退出玩家身份
                 </Button>
               )}
@@ -323,9 +355,7 @@ export function ThreadDetailHeader({
                 onClick={handleLike}
                 disabled={like.isPending || unlike.isPending}
                 className={
-                  thread.isLiked
-                    ? "text-rose-500 hover:text-rose-600"
-                    : ""
+                  thread.isLiked ? "text-rose-500 hover:text-rose-600" : ""
                 }
               >
                 {like.isPending || unlike.isPending ? (
@@ -352,10 +382,13 @@ export function ThreadDetailHeader({
                   variant="ghost"
                   size="sm"
                   onClick={handleToggleSubscribe}
-                  disabled={createSubscription.isPending || deleteSubscription.isPending}
+                  disabled={
+                    createSubscription.isPending || deleteSubscription.isPending
+                  }
                   title={mySubscription ? "取消订阅" : "订阅官方更新"}
                 >
-                  {createSubscription.isPending || deleteSubscription.isPending ? (
+                  {createSubscription.isPending ||
+                  deleteSubscription.isPending ? (
                     <Loader2 className="mr-1 h-4 w-4 animate-spin" />
                   ) : mySubscription ? (
                     <BellOff className="mr-1 h-4 w-4" />
@@ -371,7 +404,9 @@ export function ThreadDetailHeader({
                   <select
                     aria-label="订阅帖内玩家"
                     value={selectedTargetUserId}
-                    onChange={(event) => setSelectedTargetUserId(event.target.value)}
+                    onChange={(event) =>
+                      setSelectedTargetUserId(event.target.value)
+                    }
                     className="h-8 max-w-32 rounded-md border border-border bg-background px-2 text-xs"
                   >
                     <option value="">选择玩家</option>
@@ -390,7 +425,9 @@ export function ThreadDetailHeader({
                       createSubscription.isPending ||
                       deleteSubscription.isPending
                     }
-                    aria-label={selectedUserSubscription ? "取消订阅该玩家" : "订阅该玩家"}
+                    aria-label={
+                      selectedUserSubscription ? "取消订阅该玩家" : "订阅该玩家"
+                    }
                   >
                     {selectedUserSubscription ? "取消玩家订阅" : "订阅玩家回复"}
                   </Button>
@@ -399,29 +436,25 @@ export function ThreadDetailHeader({
 
               {canManageThread && (
                 <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={onManage}
-                  >
+                  <Button variant="outline" size="sm" onClick={onManage}>
                     <Settings className="mr-1 h-4 w-4" />
                     管理
                   </Button>
                   {isOwner && (
                     <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-destructive hover:text-destructive"
-                    title="删除主题帖"
-                    onClick={handleDeleteThread}
-                    disabled={deleteThread.isPending}
-                  >
-                    {deleteThread.isPending ? (
-                      <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="mr-1 h-4 w-4" />
-                    )}
-                    删除
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:text-destructive"
+                      title="删除主题帖"
+                      onClick={handleDeleteThread}
+                      disabled={deleteThread.isPending}
+                    >
+                      {deleteThread.isPending ? (
+                        <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="mr-1 h-4 w-4" />
+                      )}
+                      删除
                     </Button>
                   )}
                 </>

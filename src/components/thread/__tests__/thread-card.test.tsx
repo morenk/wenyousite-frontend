@@ -7,8 +7,19 @@ import { ThreadCard } from "@/components/thread/thread-card";
 import type { ThreadCardData } from "@/api/hooks/use-threads";
 
 vi.mock("next/link", () => ({
-  default: ({ children, href, ...props }: { children: React.ReactNode; href: string }) => {
-    return <a href={href} {...props}>{children}</a>;
+  default: ({
+    children,
+    href,
+    ...props
+  }: {
+    children: React.ReactNode;
+    href: string;
+  }) => {
+    return (
+      <a href={href} {...props}>
+        {children}
+      </a>
+    );
   },
 }));
 
@@ -84,13 +95,19 @@ describe("ThreadCard", () => {
 
   test("作者无头像时显示首字符占位", () => {
     renderThreadCard(baseThread);
-    expect(screen.getByTestId("user-avatar-placeholder").textContent).toBe("测");
+    expect(screen.getByTestId("user-avatar-placeholder").textContent).toBe(
+      "测",
+    );
   });
 
   test("作者有头像时渲染缩略图", () => {
     const withAvatar = {
       ...baseThread,
-      owner: { id: "u1", username: "测试作者", avatar: "https://example.com/u.png" },
+      owner: {
+        id: "u1",
+        username: "测试作者",
+        avatar: "https://example.com/u.png",
+      },
     };
     renderThreadCard(withAvatar);
     expect(screen.getByRole("img")).toHaveAttribute(
@@ -103,6 +120,10 @@ describe("ThreadCard", () => {
     renderThreadCard(baseThread);
     expect(screen.getByText("#测试标签")).toBeInTheDocument();
     expect(screen.getByText("#RPG")).toBeInTheDocument();
+    expect(screen.getByText("#测试标签").closest("a")).toHaveAttribute(
+      "href",
+      "/tags/tag-1",
+    );
   });
 
   test("渲染玩家数和楼层数", () => {
@@ -179,7 +200,9 @@ describe("ThreadCard", () => {
       .mockResolvedValue(undefined);
 
     renderThreadCard(baseThread, queryClient);
-    fireEvent.mouseEnter(screen.getByRole("link"));
+    fireEvent.mouseEnter(
+      screen.getByRole("link", { name: "查看主题帖：测试帖子标题" }),
+    );
 
     expect(detailPrefetch).not.toHaveBeenCalled();
     expect(floorPrefetch).toHaveBeenCalledWith(

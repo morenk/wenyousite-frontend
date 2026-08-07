@@ -140,6 +140,7 @@ ESLint 使用 `--max-warnings 0`，warning 与 error 都会阻止质量门禁。
 | `/threads/create` | 创建主题帖 |
 | `/threads/[id]` | 主题帖详情 |
 | `/threads/[id]/edit` | 编辑草稿；已发布帖兼容进入统一管理界面 |
+| `/tags/[id]` | 指定主题帖标签下的公开帖子列表 |
 | `/notifications` | 通知 |
 | `/bookmarks` | 我的收藏 |
 | `/search` | 全文搜索 |

@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { useLogout } from "@/api/hooks/use-auth-actions";
 import { useUnreadCount } from "@/api/hooks/use-unread-count";
+import { useDirectUnreadCount } from "@/api/hooks/use-direct-conversations";
 import { Button } from "@/components/ui/button";
 
 export function NavBar() {
@@ -17,6 +18,8 @@ export function NavBar() {
   const { user, logout } = useAuth();
   const logoutRequest = useLogout();
   const { data: unreadCount } = useUnreadCount(user?.id);
+  const { data: directUnread } = useDirectUnreadCount(user?.id);
+  const totalUnread = (unreadCount ?? 0) + (directUnread?.total ?? 0);
 
   const handleLogout = async () => {
     try {
@@ -52,10 +55,10 @@ export function NavBar() {
                 href="/notifications"
                 className="relative text-sm text-muted-foreground hover:text-foreground"
               >
-                通知
-                {!!unreadCount && unreadCount > 0 && (
+                消息
+                {totalUnread > 0 && (
                   <span className="absolute -right-3 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-white">
-                    {unreadCount > 99 ? "99+" : unreadCount}
+                    {totalUnread > 99 ? "99+" : totalUnread}
                   </span>
                 )}
               </Link>

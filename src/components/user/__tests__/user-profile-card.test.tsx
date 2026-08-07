@@ -76,6 +76,10 @@ describe("UserProfileCard", () => {
 
   test("查看他人时显示关注/拉黑按钮", () => {
     renderWithQC(<UserProfileCard user={sampleUser} />);
+    expect(screen.getByRole("link", { name: "私聊" })).toHaveAttribute(
+      "href",
+      "/messages/new/u2",
+    );
     expect(screen.getByTestId("follow-btn")).toHaveTextContent("u2:false");
     expect(screen.getByTestId("block-btn")).toHaveTextContent("u2:false");
   });

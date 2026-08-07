@@ -664,7 +664,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 主题帖列表（仅已发布帖），支持 sort=recommended|newest|active */
+        /** 主题帖列表（仅已发布帖），支持排序、分区、状态及标签筛选 */
         get: operations["ThreadsController_findAll"];
         put?: never;
         /** 创建主题帖草稿（published=false）。在沙盒内逐步添加子贴/楼层后通过 PATCH 发布 */
@@ -1370,6 +1370,161 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/direct-conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 私聊会话列表（主列表 / 消息请求 / 归档） */
+        get: operations["DirectConversationsController_findAll"];
+        put?: never;
+        /** 向用户发送首条消息；互关直达，否则创建消息请求 */
+        post: operations["DirectConversationsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/direct-conversations/unread": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 私聊未读消息数与待处理请求数 */
+        get: operations["DirectConversationsController_unread"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/direct-conversations/by-user/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 查询与指定用户的现有会话及可联系状态 */
+        get: operations["DirectConversationsController_findByUser"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/direct-conversations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 私聊会话详情 */
+        get: operations["DirectConversationsController_findById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/direct-conversations/{id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 私聊消息历史或轮询增量；响应按时间正序 */
+        get: operations["DirectConversationsController_messages"];
+        put?: never;
+        /** 向已接受的私聊会话发送消息 */
+        post: operations["DirectConversationsController_send"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/direct-conversations/{id}/request": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** 接受或拒绝收到的消息请求；接受要求邮箱已验证 */
+        patch: operations["DirectConversationsController_handleRequest"];
+        trace?: never;
+    };
+    "/api/v1/direct-conversations/{id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** 归档或恢复自己的会话 */
+        patch: operations["DirectConversationsController_archive"];
+        trace?: never;
+    };
+    "/api/v1/direct-conversations/{id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 标记当前用户实际看到的消息为已读，不向发件人暴露回执 */
+        post: operations["DirectConversationsController_markRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/direct-messages/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** 发送者在 10 分钟内撤回消息；待处理首条消息会取消请求 */
+        delete: operations["DirectMessagesController_recall"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2855,6 +3010,115 @@ export interface components {
             /** @description 是否处于异步图片处理阶段 */
             processing: boolean;
         };
+        DirectMessageUserResponseDto: {
+            id: string;
+            username: string;
+            avatar: string | null;
+            isDeactivated: boolean;
+        };
+        DirectMessagePreviewResponseDto: {
+            id: string;
+            senderId: string;
+            contentPreview: string | null;
+            hasImage: boolean;
+            isRecalled: boolean;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        DirectConversationResponseDto: {
+            id: string;
+            /** @enum {string} */
+            status: "PENDING" | "ACCEPTED" | "DECLINED" | "CANCELED";
+            /** @enum {string} */
+            requestDirection: "NONE" | "INCOMING" | "OUTGOING";
+            otherUser: components["schemas"]["DirectMessageUserResponseDto"];
+            lastMessage: components["schemas"]["DirectMessagePreviewResponseDto"] | null;
+            unreadCount: number;
+            /** Format: date-time */
+            archivedAt: string | null;
+            /** Format: date-time */
+            lastMessageAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            canSend: boolean;
+            canAccept: boolean;
+            canDecline: boolean;
+            isBlocked: boolean;
+        };
+        DirectUnreadCountResponseDto: {
+            unreadMessageCount: number;
+            pendingRequestCount: number;
+            total: number;
+        };
+        DirectConversationLookupResponseDto: {
+            /** @enum {string} */
+            contactState: "NEW" | "PENDING" | "ACCEPTED" | "DECLINED" | "CANCELED" | "UNAVAILABLE";
+            canInitiate: boolean;
+            conversation: components["schemas"]["DirectConversationResponseDto"] | null;
+        };
+        CreateDirectConversationDto: {
+            /** @description 纯文字正文，保留换行；与 mediaId 至少提供一项 */
+            content?: string;
+            /** @description 已完成处理且属于发送者的图片 ID；每条最多一张 */
+            mediaId?: string;
+            /**
+             * Format: uuid
+             * @description 客户端幂等键；重试同一次发送时必须复用
+             */
+            clientRequestId: string;
+            /** @description 接收用户 ID */
+            recipientId: string;
+        };
+        DirectMessageMediaResponseDto: {
+            id: string;
+            url: string;
+            contentType: string | null;
+            width: number | null;
+            height: number | null;
+        };
+        DirectMessageResponseDto: {
+            id: string;
+            conversationId: string;
+            senderId: string;
+            recipientId: string;
+            content: string | null;
+            media: components["schemas"]["DirectMessageMediaResponseDto"] | null;
+            /** Format: date-time */
+            recalledAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        DirectConversationStartResponseDto: {
+            conversation: components["schemas"]["DirectConversationResponseDto"];
+            message: components["schemas"]["DirectMessageResponseDto"];
+        };
+        CreateDirectMessageDto: {
+            /** @description 纯文字正文，保留换行；与 mediaId 至少提供一项 */
+            content?: string;
+            /** @description 已完成处理且属于发送者的图片 ID；每条最多一张 */
+            mediaId?: string;
+            /**
+             * Format: uuid
+             * @description 客户端幂等键；重试同一次发送时必须复用
+             */
+            clientRequestId: string;
+        };
+        HandleDirectRequestDto: {
+            /** @enum {string} */
+            action: "ACCEPT" | "DECLINE";
+        };
+        SetDirectConversationArchiveDto: {
+            /** @description true 归档；false 恢复到主列表 */
+            archived: boolean;
+        };
+        MarkDirectConversationReadDto: {
+            /** @description 客户端实际已展示的最后一条消息 ID */
+            throughMessageId: string;
+        };
+        DirectMessageRecallResponseDto: {
+            message: string;
+            conversationCanceled: boolean;
+        };
         ApiPaginationMeta: {
             cursor: string | null;
             hasMore: boolean;
@@ -2873,7 +3137,7 @@ export interface components {
          * @description 稳定业务错误码；名称和值来源于 ErrorCode
          * @enum {integer}
          */
-        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40107 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40300 | 40301 | 40302 | 40303 | 40304 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 42900 | 50000;
+        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40107 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 42900 | 50000;
         ApiErrorEnvelope: {
             code: components["schemas"]["BusinessErrorCode"];
             message: string;
@@ -4884,6 +5148,8 @@ export interface operations {
                 status?: "RECRUITING" | "CLOSED" | "FINISHED";
                 /** @description 按标签名模糊筛选主题帖 */
                 tag?: string;
+                /** @description 按主题帖标签 ID 精确筛选；与 tag 同时传入时优先使用 tagId */
+                tagId?: string;
             };
             header?: never;
             path?: never;
@@ -7414,6 +7680,484 @@ export interface operations {
             };
             /** @description 图片记录不存在或不属于当前用户 */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    DirectConversationsController_findAll: {
+        parameters: {
+            query?: {
+                view?: "INBOX" | "REQUESTS" | "ARCHIVED";
+                /** @description 上一页最后一条会话 ID */
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 游标分页会话列表 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["DirectConversationResponseDto"][];
+                    };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    DirectConversationsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateDirectConversationDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["DirectConversationStartResponseDto"];
+                    };
+                };
+            };
+            /** @description 邮箱未验证、存在拉黑关系或无权再次申请 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 消息请求仍待处理或已被拒绝 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    DirectConversationsController_unread: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["DirectUnreadCountResponseDto"];
+                    };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    DirectConversationsController_findByUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["DirectConversationLookupResponseDto"];
+                    };
+                };
+            };
+            /** @description 目标用户不存在或已注销 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    DirectConversationsController_findById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["DirectConversationResponseDto"];
+                    };
+                };
+            };
+            /** @description 会话不存在或当前用户不是参与者 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    DirectConversationsController_messages: {
+        parameters: {
+            query?: {
+                /** @description 加载此消息之前的历史消息；不能与 after 同时使用 */
+                cursor?: string;
+                /** @description 增量加载此消息之后的新消息；不能与 cursor 同时使用 */
+                after?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 游标分页消息列表 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["DirectMessageResponseDto"][];
+                    };
+                };
+            };
+            /** @description 会话或消息游标不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    DirectConversationsController_send: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateDirectMessageDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["DirectMessageResponseDto"];
+                    };
+                };
+            };
+            /** @description 邮箱未验证、拉黑或会话不可发送 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 请求待处理/已拒绝或图片已被使用 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    DirectConversationsController_handleRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HandleDirectRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["DirectConversationResponseDto"];
+                    };
+                };
+            };
+            /** @description 不是请求接收方或接受时邮箱未验证 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    DirectConversationsController_archive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetDirectConversationArchiveDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["DirectConversationResponseDto"];
+                    };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    DirectConversationsController_markRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MarkDirectConversationReadDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["MessageResponseDto"];
+                    };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    DirectMessagesController_recall: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["DirectMessageRecallResponseDto"];
+                    };
+                };
+            };
+            /** @description 未登录 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 不是发送者或消息当前不可撤回 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 已超过 10 分钟撤回时限 */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

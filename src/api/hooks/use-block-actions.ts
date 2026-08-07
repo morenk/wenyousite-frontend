@@ -9,6 +9,7 @@ export function useBlockActions(userId: string) {
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: queryKeys.users.detail(userId) });
+    queryClient.invalidateQueries({ queryKey: queryKeys.directMessages.all });
   };
 
   const block = useMutation({

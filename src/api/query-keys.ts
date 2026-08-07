@@ -54,8 +54,33 @@ export const queryKeys = {
     unread: (userId: string | undefined) =>
       ["notifications", "unread", userId] as const,
   },
+  directMessages: {
+    all: ["direct-messages"] as const,
+    lists: (userId: string | undefined) =>
+      ["direct-messages", "lists", userId] as const,
+    list: (userId: string | undefined, view: string) =>
+      ["direct-messages", "lists", userId, view] as const,
+    conversation: (
+      userId: string | undefined,
+      conversationId: string | undefined,
+    ) => ["direct-messages", "conversation", userId, conversationId] as const,
+    messages: (
+      userId: string | undefined,
+      conversationId: string | undefined,
+    ) => ["direct-messages", "messages", userId, conversationId] as const,
+    updates: (
+      userId: string | undefined,
+      conversationId: string | undefined,
+      after: string | undefined,
+    ) => ["direct-messages", "updates", userId, conversationId, after] as const,
+    lookup: (userId: string | undefined, otherUserId: string | undefined) =>
+      ["direct-messages", "lookup", userId, otherUserId] as const,
+    unread: (userId: string | undefined) =>
+      ["direct-messages", "unread", userId] as const,
+  },
   subscriptions: ["subscriptions"] as const,
   topicTags: (query: string) => ["tags", query] as const,
+  topicTag: (tagId: string) => ["tag", tagId] as const,
   contentDrafts: ["content-drafts"] as const,
   draftSlots: ["draft-slots"] as const,
   threadDrafts: ["drafts"] as const,
