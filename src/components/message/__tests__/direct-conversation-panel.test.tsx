@@ -206,6 +206,24 @@ describe("DirectConversationPanel", () => {
     expect(scrollTo).toHaveBeenCalledWith({ top: 640, behavior: "smooth" });
   });
 
+  test("连续消息按五分钟间隔合并为居中时间线节点", async () => {
+    vi.spyOn(Date, "now").mockReturnValue(new Date("2026-08-07T15:00:00Z").getTime());
+    const history = mocks.history();
+    mocks.history.mockReturnValue({
+      ...history,
+      messages: [
+        { ...history.messages[0], id: "timeline-1", createdAt: "2026-08-07T14:00:00Z" },
+        { ...history.messages[1], id: "timeline-2", createdAt: "2026-08-07T14:02:00Z" },
+        { ...history.messages[0], id: "timeline-3", createdAt: "2026-08-07T14:07:00Z" },
+      ],
+    });
+    const { container } = render(<DirectConversationPanel conversationId="c1" />);
+
+    await waitFor(() => expect(container.querySelectorAll("time")).toHaveLength(2));
+    expect(container.querySelectorAll("time")[0]).toHaveTextContent("14:00");
+    expect(container.querySelectorAll("time")[1]).toHaveTextContent("14:07");
+  });
+
   test("收到的待处理请求可接受、拒绝且隐藏陌生图片", async () => {
     setConversation({
       status: "PENDING",

@@ -28,12 +28,13 @@ afterEach(() => cleanup());
 
 describe("DirectMessageBubble", () => {
   test("按纯文本展示正文并将链接安全地变为可点击链接", () => {
-    render(<DirectMessageBubble message={message()} mine={false} />);
+    const { container } = render(<DirectMessageBubble message={message()} mine={false} />);
     expect(screen.getByText(/访问/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "https://example.com" })).toHaveAttribute(
       "rel",
       "noopener noreferrer nofollow",
     );
+    expect(container.querySelector("time")).not.toBeInTheDocument();
   });
 
   test("展示旧消息时不保留会撑宽气泡的行尾空白", () => {

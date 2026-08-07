@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { format } from "date-fns";
 import { ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ImageLightbox } from "@/components/shared/image-lightbox";
@@ -133,30 +132,26 @@ export function DirectMessageBubble({
             )}
           />
         )}
-        <div
-          className={cn(
-            "mt-1 flex items-center gap-2 px-1 text-[11px] text-muted-foreground",
-            mine && "justify-end",
-          )}
-        >
-          {sending ? (
-            <span role="status">发送中…</span>
-          ) : (
-            <time dateTime={message.createdAt}>
-              {format(new Date(message.createdAt), "MM-dd HH:mm")}
-            </time>
-          )}
-          {canRecall && !recalled && !sending && (
-            <button
-              type="button"
-              onClick={onRecall}
-              disabled={recalling}
-              className="hover:text-foreground disabled:opacity-50"
-            >
-              {recalling ? "撤回中…" : "撤回"}
-            </button>
-          )}
-        </div>
+        {(sending || canRecall && !recalled) && (
+          <div
+            className={cn(
+              "mt-1 flex items-center gap-2 px-1 text-[11px] text-muted-foreground",
+              mine && "justify-end",
+            )}
+          >
+            {sending && <span role="status">发送中…</span>}
+            {canRecall && !recalled && !sending && (
+              <button
+                type="button"
+                onClick={onRecall}
+                disabled={recalling}
+                className="hover:text-foreground disabled:opacity-50"
+              >
+                {recalling ? "撤回中…" : "撤回"}
+              </button>
+            )}
+          </div>
+        )}
       </div>
       {lightboxOpen && imageUrl && (
         <ImageLightbox

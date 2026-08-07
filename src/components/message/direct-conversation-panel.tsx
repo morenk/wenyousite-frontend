@@ -15,6 +15,10 @@ import { DirectMessageComposer } from "@/components/message/direct-message-compo
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-provider";
+import {
+  formatDirectMessageTime,
+  shouldShowDirectMessageTime,
+} from "@/lib/direct-message-timeline";
 
 export function DirectConversationPanel({ conversationId }: { conversationId: string }) {
   const { user } = useAuth();
@@ -257,20 +261,33 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
           <div className="py-12 text-center text-sm text-muted-foreground">暂无可显示的消息</div>
         ) : (
           <div className="space-y-4">
-            {history.messages.map((message) => {
+            {history.messages.map((message, index) => {
               const mine = message.senderId === user?.id;
               const canRecall = mine && message.deliveryState !== "sending" && !message.recalledAt
                 && now - new Date(message.createdAt).getTime() <= 10 * 60 * 1000;
+              const showTime = shouldShowDirectMessageTime(
+                message.createdAt,
+                history.messages[index - 1]?.createdAt,
+              );
               return (
-                <DirectMessageBubble
-                  key={message.id}
-                  message={message}
-                  mine={mine}
-                  hideRequestImage={requestIncoming && !mine}
-                  canRecall={canRecall}
-                  recalling={actions.recall.isPending}
-                  onRecall={() => void handleRecall(message.id)}
-                />
+                <div key={message.id}>
+                  {showTime && now > 0 && (
+                    <time
+                      dateTime={message.createdAt}
+                      className="mb-3 block text-center text-xs text-muted-foreground"
+                    >
+                      {formatDirectMessageTime(message.createdAt, new Date(now))}
+                    </time>
+                  )}
+                  <DirectMessageBubble
+                    message={message}
+                    mine={mine}
+                    hideRequestImage={requestIncoming && !mine}
+                    canRecall={canRecall}
+                    recalling={actions.recall.isPending}
+                    onRecall={() => void handleRecall(message.id)}
+                  />
+                </div>
               );
             })}
           </div>
