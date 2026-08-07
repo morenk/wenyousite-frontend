@@ -158,7 +158,7 @@ ESLint 使用 `--max-warnings 0`，warning 与 error 都会阻止质量门禁。
 
 | 变量 | 说明 |
 |------|------|
-| `BACKEND_URL` | 服务端/代理用后端地址，如 `http://api:3000` |
+| `BACKEND_URL` | 服务端/代理用后端地址；当前宿主机部署使用 `http://127.0.0.1:3000` |
 
 浏览器固定访问同域 `/api/v1`，由 Next rewrite/Caddy 代理；不要重新引入未被代码读取的 `NEXT_PUBLIC_*` 配置。E2E 变量见 `.env.e2e.example`，必须使用本机后端和可清理的专用测试账号。
 
@@ -166,8 +166,8 @@ ESLint 使用 `--max-warnings 0`，warning 与 error 都会阻止质量门禁。
 
 - Next.js 使用 `output: "standalone"`。
 - 生产运行 `node .next/standalone/server.js`。
-- Caddy 同域路由：`/api/v1/*` → 后端，其余 → 前端。
-- 前端 Docker 服务名为 `web`，监听 `3001`。
+- 宿主机 systemd Caddy 同域路由：`/api/v1/*` → 后端，其余 → 前端。
+- 前端以宿主机 Next.js standalone 进程监听 `3001`；Docker Compose 只管理 PostgreSQL/Redis，不包含前端或后端应用容器。
 
 #### 当前阶段：公网开发快速迭代
 
