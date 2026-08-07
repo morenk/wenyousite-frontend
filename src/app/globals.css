@@ -3,7 +3,7 @@
 @import "tw-animate-css";
 
 :root {
-  /* Misskey-inspired pastel palette */
+  /* Misskey-inspired palette，交互文字与底色满足 WCAG AA 对比度。 */
   --background: #f8f9fb;
   --foreground: #334155;
 
@@ -13,14 +13,14 @@
   --popover: #ffffff;
   --popover-foreground: #334155;
 
-  --primary: #f09fb0;
+  --primary: #b8325a;
   --primary-foreground: #ffffff;
 
   --secondary: #e0e7ff;
   --secondary-foreground: #334155;
 
   --muted: #f1f5f9;
-  --muted-foreground: #64748b;
+  --muted-foreground: #5f6f83;
 
   --accent: #bbf7d0;
   --accent-foreground: #334155;
@@ -30,7 +30,7 @@
 
   --border: #e2e8f0;
   --input: #e2e8f0;
-  --ring: #f09fb0;
+  --ring: #b8325a;
 
   --radius: 0.75rem;
 }

@@ -31,7 +31,10 @@ export function useSaveThreadAggregate() {
       return normalizeThreadDetail(data.data);
     },
     onSuccess: (thread) => {
-      queryClient.setQueryData(queryKeys.threads.detail(thread.id), thread);
+      queryClient.setQueriesData(
+        { queryKey: queryKeys.threads.detail(thread.id) },
+        thread,
+      );
       void queryClient.invalidateQueries({ queryKey: queryKeys.threads.all });
       void queryClient.invalidateQueries({ queryKey: queryKeys.threadDrafts });
     },

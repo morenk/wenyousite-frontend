@@ -10,6 +10,22 @@ const mocks = vi.hoisted(() => ({
   confirm: vi.fn(),
   toastSuccess: vi.fn(),
   toastError: vi.fn(),
+  virtualScrollToEnd: vi.fn(),
+  virtualIsAtEnd: vi.fn(),
+}));
+
+vi.mock("@tanstack/react-virtual", () => ({
+  useVirtualizer: ({ count }: { count: number }) => ({
+    getVirtualItems: () => Array.from({ length: count }, (_, index) => ({
+      index,
+      key: `row-${index}`,
+      start: index * 100,
+    })),
+    getTotalSize: () => count * 100,
+    measureElement: vi.fn(),
+    scrollToEnd: mocks.virtualScrollToEnd,
+    isAtEnd: mocks.virtualIsAtEnd,
+  }),
 }));
 
 vi.mock("next/link", () => ({
@@ -115,6 +131,7 @@ beforeEach(() => {
   mocks.actions.mockReturnValue(actionSet);
   mocks.blockActions.mockReturnValue(blockSet);
   mocks.confirm.mockResolvedValue(true);
+  mocks.virtualIsAtEnd.mockReturnValue(true);
   setConversation();
   mocks.history.mockReturnValue({
     messages: [
@@ -177,14 +194,12 @@ describe("DirectConversationPanel", () => {
     expect(mocks.toastSuccess).toHaveBeenCalledWith("消息已撤回");
   });
 
-  test("最新消息上屏时直接滚动会话容器到底部", () => {
-    const scrollTo = vi.spyOn(HTMLElement.prototype, "scrollTo").mockImplementation(() => undefined);
+  test("首次进入自动定位底部，本人乐观消息上屏时平滑跟随", () => {
     const initialHistory = mocks.history();
     mocks.history.mockReturnValue(initialHistory);
     const view = render(<DirectConversationPanel conversationId="c1" />);
-    const messageLog = screen.getByRole("log", { name: "消息记录" });
-    Object.defineProperty(messageLog, "scrollHeight", { value: 640, configurable: true });
-    scrollTo.mockClear();
+    expect(mocks.virtualScrollToEnd).toHaveBeenCalledWith({ behavior: "auto" });
+    mocks.virtualScrollToEnd.mockClear();
 
     mocks.history.mockReturnValue({
       ...initialHistory,
@@ -203,7 +218,22 @@ describe("DirectConversationPanel", () => {
     });
     view.rerender(<DirectConversationPanel conversationId="c1" />);
 
-    expect(scrollTo).toHaveBeenCalledWith({ top: 640, behavior: "smooth" });
+    expect(mocks.virtualScrollToEnd).toHaveBeenCalledWith({ behavior: "smooth" });
+  });
+
+  test("离开底部时显示返回入口并可平滑回到最新消息", async () => {
+    mocks.virtualIsAtEnd.mockReturnValue(false);
+    render(<DirectConversationPanel conversationId="c1" />);
+    mocks.virtualScrollToEnd.mockClear();
+
+    screen.getByRole("log", { name: "消息记录" }).dispatchEvent(new Event("scroll", {
+      bubbles: true,
+    }));
+
+    const jumpButton = await screen.findByRole("button", { name: "回到最新消息" });
+    await userEvent.click(jumpButton);
+    expect(mocks.virtualScrollToEnd).toHaveBeenCalledWith({ behavior: "smooth" });
+    expect(screen.queryByRole("button", { name: "回到最新消息" })).not.toBeInTheDocument();
   });
 
   test("连续消息按五分钟间隔合并为居中时间线节点", async () => {

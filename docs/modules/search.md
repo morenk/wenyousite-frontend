@@ -92,7 +92,8 @@
 | 用户结果 | `GET /search/users?q=` | `useQuery`，仅用户 Tab 激活时 enabled |
 | 楼层结果 | `GET /search/posts?q=&cursor=` | `useInfiniteQuery`，仅楼层 Tab 激活且关键词不少于 2 字符时 enabled |
 | 帖内楼层结果 | `GET /threads/:threadId/search/posts?q=&cursor=` | `useThreadSearchPosts`；仅提交有效关键词后请求，按 threadId 隔离缓存 |
-| 输入框 | 组件本地 | 受控 ref（`key={q}` 随 URL 同步，提交时 router.replace 更新 URL） |
+| 已提交关键词 | URL `q` | nuqs 类型化字符串状态，URL 为唯一事实源 |
+| 输入框 | 组件本地 | 非受控 ref（`key={q}` 随已提交 URL 关键词重挂载） |
 
 ## 6. 组件清单
 
@@ -108,7 +109,7 @@
 
 ## 7. 交互规则
 
-- 输入框提交 → `router.replace('/search?q=…')`，URL 为唯一事实源
+- 输入框提交 → nuqs 更新 `q`；空白输入移除参数，非空值由适配器统一编码
 - `key={q}` 使输入框随 URL 变化重挂载（含浏览器前进/后退）
 - 三类结果通过 Tab 切换；默认主题帖，仅激活的分类发起请求，已加载结果由 TanStack Query 缓存
 - Tab 数量表示当前已加载条数而非全站总数；达到分类上限或楼层仍有下一页时显示 `+`，不发起昂贵的总数统计

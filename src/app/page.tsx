@@ -2,8 +2,8 @@
 
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryStates } from "nuqs";
 import { Plus } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useThreads } from "@/api/hooks/use-threads";
@@ -13,13 +13,15 @@ import { CategoryTabs } from "@/components/thread/category-tabs";
 import { ThreadFilters } from "@/components/thread/thread-filters";
 import { Button } from "@/components/ui/button";
 import { PageShell } from "@/components/layout/page-shell";
+import { homeFilterParsers } from "@/lib/url-state";
 
 export default function HomePage() {
   const { user } = useAuth();
   const router = useRouter();
-  const [category, setCategory] = useState<string | undefined>();
-  const [sort, setSort] = useState<ThreadSort>("recommended");
-  const [status, setStatus] = useState<ThreadStatusFilter>();
+  const [{ category, sort, status }, setFilters] = useQueryStates(
+    homeFilterParsers,
+    { history: "push", shallow: true },
+  );
 
   const {
     data,
@@ -30,9 +32,9 @@ export default function HomePage() {
     error,
     refetch,
   } = useThreads({
-    category: category as "DEDUCTION" | "NATION" | "RPG" | undefined,
+    category: category ?? undefined,
     sort,
-    status,
+    status: status ?? undefined,
   });
 
   const threads = data?.pages.flatMap((page) => page?.data ?? []) ?? [];
@@ -57,15 +59,20 @@ export default function HomePage() {
 
       {/* 分类筛选 */}
       <div className="mb-5">
-        <CategoryTabs selected={category} onChange={setCategory} />
+        <CategoryTabs
+          selected={category ?? undefined}
+          onChange={(nextCategory) => setFilters({ category: nextCategory ?? null })}
+        />
       </div>
 
       <div className="mb-5">
         <ThreadFilters
           sort={sort}
-          status={status}
-          onSortChange={setSort}
-          onStatusChange={setStatus}
+          status={status ?? undefined}
+          onSortChange={(nextSort: ThreadSort) => setFilters({ sort: nextSort })}
+          onStatusChange={(nextStatus: ThreadStatusFilter | undefined) =>
+            setFilters({ status: nextStatus ?? null })
+          }
         />
       </div>
 

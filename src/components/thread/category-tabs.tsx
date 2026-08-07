@@ -11,9 +11,11 @@ export const categoryOptions = [
   { value: "RPG" as const, label: "RPG" },
 ];
 
+export type ThreadCategory = Exclude<(typeof categoryOptions)[number]["value"], undefined>;
+
 interface CategoryTabsProps {
   selected?: string;
-  onChange: (category: string | undefined) => void;
+  onChange: (category: ThreadCategory | undefined) => void;
 }
 
 export function CategoryTabs({ selected, onChange }: CategoryTabsProps) {

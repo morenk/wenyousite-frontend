@@ -41,9 +41,9 @@
 |------|------|----------|
 | 帖子列表 | `GET /threads` | TanStack Query `useInfiniteQuery` |
 | 当前标签 | `GET /tags/:id` + 路由参数 | TanStack Query `useQuery`；标签 ID 进入主题帖列表 query key |
-| 当前分类 | 用户选择 | useState |
-| 当前排序 | 用户选择 | useState，默认 `recommended` |
-| 当前状态 | 用户选择 | useState，默认全部状态 |
+| 当前分类 | URL `category` | nuqs 类型化解析；非法值回退全部 |
+| 当前排序 | URL `sort` | nuqs 类型化解析；默认 `recommended` 且默认值不写入 URL |
+| 当前状态 | URL `status` | nuqs 类型化解析；非法值回退全部状态 |
 | 分页 cursor | 后端返回 | react-query 自动管理 |
 | 用户信息 | AuthContext | 用于显示"创建"、"草稿箱"等入口 |
 
@@ -86,6 +86,7 @@
 - 排序参数：`newest`=最新创建，`active`=最新回复，`recommended`=智能排序（默认）。
 - 状态参数：不传表示全部状态；`RECRUITING`=招募中，`CLOSED`=已停招，`FINISHED`=已结束。
 - 标签 ID、分类、排序和状态都进入 `useThreads` 的 query key；切换任一筛选条件会得到独立分页缓存。
+- 首页分类、排序与状态使用 nuqs 同步到 URL，并写入浏览历史；链接可分享，刷新以及浏览器前进/后退均能恢复筛选。
 - 公开列表缓存新鲜期为 60 秒；写操作继续通过 query invalidation 主动刷新。主题卡片在悬停/聚焦时预取详情和默认子贴首屏楼层，改善点击后的等待感。
 - 全站字体使用系统中文、圆体和等宽字体栈，不再下载 Google 字体文件；字体资源不会阻塞首屏绘制。
 
@@ -112,6 +113,7 @@
 - [x] 最新创建、最新回复、智能排序可切换列表
 - [x] 全部状态、招募中、已停招、已结束可筛选列表
 - [x] 分类、排序和状态可组合使用
+- [x] 首页筛选同步到 URL，刷新、分享和浏览器前进/后退均可恢复
 - [x] 滚动到底部自动加载更多
 - [x] 空列表显示空状态
 - [x] 网络错误显示重试

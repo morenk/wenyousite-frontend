@@ -7,6 +7,9 @@ import { useAuth } from "@/lib/auth";
 import { clearAuthSession } from "@/lib/auth-store";
 
 vi.mock("sonner", () => ({ Toaster: () => null }));
+vi.mock("nuqs/adapters/next/app", () => ({
+  NuqsAdapter: ({ children }: { children: React.ReactNode }) => children,
+}));
 
 function PrivateQueryProbe() {
   const { user, setAuth, isInitialized } = useAuth();

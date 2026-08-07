@@ -2,7 +2,8 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Archive, ArchiveRestore, Ban, Loader2 } from "lucide-react";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { Archive, ArchiveRestore, ArrowDown, Ban, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { useDirectConversation } from "@/api/hooks/use-direct-conversations";
@@ -29,11 +30,31 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
   const actions = useDirectMessageActions(conversationId, user?.id, otherUserId);
   const blockActions = useBlockActions(otherUserId);
   const [now, setNow] = useState(0);
+  const [showJumpToLatest, setShowJumpToLatest] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const hasScrolledRef = useRef(false);
+  const previousLatestMessageIdRef = useRef<string | undefined>(undefined);
   const markedReadRef = useRef<string | undefined>(undefined);
 
   const conversation = conversationQuery.data;
+  const historyOffset = history.hasNextPage ? 1 : 0;
+  // Virtualizer owns mutable measurement functions; it already performs its own render minimization.
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const messageVirtualizer = useVirtualizer({
+    count: history.messages.length + historyOffset,
+    getScrollElement: () => scrollContainerRef.current,
+    getItemKey: (index) => {
+      if (historyOffset && index === 0) return "load-older-messages";
+      return history.messages[index - historyOffset]?.id ?? index;
+    },
+    estimateSize: (index) => historyOffset && index === 0 ? 48 : 96,
+    overscan: 8,
+    gap: 16,
+    anchorTo: "end",
+    followOnAppend: "auto",
+    scrollEndThreshold: 80,
+    useFlushSync: false,
+  });
 
   useEffect(() => {
     const initial = window.setTimeout(() => setNow(Date.now()), 0);
@@ -44,16 +65,21 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
     };
   }, []);
 
-  const latestMessageId = history.messages.at(-1)?.id;
+  const latestMessage = history.messages.at(-1);
+  const latestMessageId = latestMessage?.id;
   useLayoutEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container || !latestMessageId) return;
-    container.scrollTo({
-      top: container.scrollHeight,
-      behavior: hasScrolledRef.current ? "smooth" : "auto",
-    });
+    if (!latestMessageId) return;
+    const isInitialScroll = !hasScrolledRef.current;
+    const isNewOwnMessage = previousLatestMessageIdRef.current !== latestMessageId
+      && latestMessage?.senderId === user?.id;
+
+    if (isInitialScroll || isNewOwnMessage) {
+      messageVirtualizer.scrollToEnd({ behavior: isInitialScroll ? "auto" : "smooth" });
+      setShowJumpToLatest(false);
+    }
     hasScrolledRef.current = true;
-  }, [latestMessageId]);
+    previousLatestMessageIdRef.current = latestMessageId;
+  }, [latestMessage?.senderId, latestMessageId, messageVirtualizer, user?.id]);
 
   useEffect(() => {
     const latestIncoming = [...history.messages]
@@ -233,64 +259,104 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
         </div>
       )}
 
-      <div
-        ref={scrollContainerRef}
-        role="log"
-        aria-label="消息记录"
-        className="min-h-0 flex-1 overflow-y-auto px-5 py-4"
-      >
-        {history.hasNextPage && (
-          <div className="mb-4 text-center">
-            <Button
-              variant="ghost"
-              size="sm"
-              disabled={history.isFetchingNextPage}
-              onClick={() => history.fetchNextPage()}
+      <div className="relative min-h-0 flex-1">
+        <div
+          ref={scrollContainerRef}
+          role="log"
+          aria-label="消息记录"
+          className="h-full overflow-y-auto px-5 py-4"
+          onScroll={() => setShowJumpToLatest(!messageVirtualizer.isAtEnd(80))}
+        >
+          {history.isLoading ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : history.isError ? (
+            <div className="py-12 text-center text-sm text-muted-foreground">消息加载失败</div>
+          ) : history.messages.length === 0 ? (
+            <div className="py-12 text-center text-sm text-muted-foreground">暂无可显示的消息</div>
+          ) : (
+            <div
+              className="relative w-full"
+              style={{ height: `${messageVirtualizer.getTotalSize()}px` }}
             >
-              {history.isFetchingNextPage ? "加载中…" : "查看更早消息"}
-            </Button>
-          </div>
-        )}
-        {history.isLoading ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-          </div>
-        ) : history.isError ? (
-          <div className="py-12 text-center text-sm text-muted-foreground">消息加载失败</div>
-        ) : history.messages.length === 0 ? (
-          <div className="py-12 text-center text-sm text-muted-foreground">暂无可显示的消息</div>
-        ) : (
-          <div className="space-y-4">
-            {history.messages.map((message, index) => {
-              const mine = message.senderId === user?.id;
-              const canRecall = mine && message.deliveryState !== "sending" && !message.recalledAt
-                && now - new Date(message.createdAt).getTime() <= 10 * 60 * 1000;
-              const showTime = shouldShowDirectMessageTime(
-                message.createdAt,
-                history.messages[index - 1]?.createdAt,
-              );
-              return (
-                <div key={message.id}>
-                  {showTime && now > 0 && (
-                    <time
-                      dateTime={message.createdAt}
-                      className="mb-3 block text-center text-xs text-muted-foreground"
+              {messageVirtualizer.getVirtualItems().map((virtualRow) => {
+                if (historyOffset && virtualRow.index === 0) {
+                  return (
+                    <div
+                      key={virtualRow.key}
+                      data-index={virtualRow.index}
+                      ref={messageVirtualizer.measureElement}
+                      className="absolute left-0 top-0 w-full text-center"
+                      style={{ transform: `translateY(${virtualRow.start}px)` }}
                     >
-                      {formatDirectMessageTime(message.createdAt, new Date(now))}
-                    </time>
-                  )}
-                  <DirectMessageBubble
-                    message={message}
-                    mine={mine}
-                    hideRequestImage={requestIncoming && !mine}
-                    canRecall={canRecall}
-                    recalling={actions.recall.isPending}
-                    onRecall={() => void handleRecall(message.id)}
-                  />
-                </div>
-              );
-            })}
-          </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={history.isFetchingNextPage}
+                        onClick={() => history.fetchNextPage()}
+                      >
+                        {history.isFetchingNextPage ? "加载中…" : "查看更早消息"}
+                      </Button>
+                    </div>
+                  );
+                }
+
+                const messageIndex = virtualRow.index - historyOffset;
+                const message = history.messages[messageIndex];
+                if (!message) return null;
+                const mine = message.senderId === user?.id;
+                const canRecall = mine && message.deliveryState !== "sending" && !message.recalledAt
+                  && now - new Date(message.createdAt).getTime() <= 10 * 60 * 1000;
+                const showTime = shouldShowDirectMessageTime(
+                  message.createdAt,
+                  history.messages[messageIndex - 1]?.createdAt,
+                );
+                return (
+                  <div
+                    key={virtualRow.key}
+                    data-index={virtualRow.index}
+                    ref={messageVirtualizer.measureElement}
+                    className="absolute left-0 top-0 w-full"
+                    style={{ transform: `translateY(${virtualRow.start}px)` }}
+                  >
+                    {showTime && now > 0 && (
+                      <time
+                        dateTime={message.createdAt}
+                        className="mb-3 block text-center text-xs text-muted-foreground"
+                      >
+                        {formatDirectMessageTime(message.createdAt, new Date(now))}
+                      </time>
+                    )}
+                    <DirectMessageBubble
+                      message={message}
+                      mine={mine}
+                      hideRequestImage={requestIncoming && !mine}
+                      canRecall={canRecall}
+                      recalling={actions.recall.isPending}
+                      onRecall={() => void handleRecall(message.id)}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {showJumpToLatest && history.messages.length > 0 && (
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full shadow-md"
+            onClick={() => {
+              messageVirtualizer.scrollToEnd({ behavior: "smooth" });
+              setShowJumpToLatest(false);
+            }}
+          >
+            <ArrowDown className="h-4 w-4" />
+            回到最新消息
+          </Button>
         )}
       </div>
 

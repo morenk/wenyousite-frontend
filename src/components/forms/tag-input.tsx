@@ -25,6 +25,7 @@ export function TagInput({
 }: TagInputProps) {
   const [input, setInput] = useState("");
   const [focused, setFocused] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { data: candidates, isLoading } = useTags(input);
 
@@ -51,7 +52,7 @@ export function TagInput({
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (inputRef.current && !inputRef.current.contains(e.target as Node)) {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
         setFocused(false);
       }
     }
@@ -60,7 +61,7 @@ export function TagInput({
   }, []);
 
   return (
-    <div className={cn("relative", className)} ref={inputRef}>
+    <div className={cn("relative", className)} ref={rootRef}>
       <div
         className={cn(
           "flex min-h-9 flex-wrap items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1.5 transition-colors",
@@ -87,6 +88,7 @@ export function TagInput({
           </span>
         ))}
         <Input
+          ref={inputRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}

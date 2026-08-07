@@ -32,7 +32,7 @@ export const THREAD_STATUS_META: Record<
   },
   CLOSED: {
     label: "已停招",
-    badgeClassName: "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400",
+    badgeClassName: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300",
   },
   FINISHED: {
     label: "已结束",

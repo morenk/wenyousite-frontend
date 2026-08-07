@@ -1,6 +1,7 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "sonner";
 import { useEffect, useRef, useState } from "react";
 import { AuthProvider, useAuth } from "@/lib/auth";
@@ -58,10 +59,12 @@ function IdentityScopedQueries({ children }: { children: React.ReactNode }) {
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <AuthProvider>
-      <IdentityScopedQueries>
-        <ConfirmProvider>{children}</ConfirmProvider>
-      </IdentityScopedQueries>
-    </AuthProvider>
+    <NuqsAdapter>
+      <AuthProvider>
+        <IdentityScopedQueries>
+          <ConfirmProvider>{children}</ConfirmProvider>
+        </IdentityScopedQueries>
+      </AuthProvider>
+    </NuqsAdapter>
   );
 }

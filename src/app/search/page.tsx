@@ -3,7 +3,7 @@
 "use client";
 
 import { Suspense, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useQueryState } from "nuqs";
 import { Search } from "lucide-react";
 import { SearchResults } from "@/components/search/search-results";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -11,17 +11,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageShell } from "@/components/layout/page-shell";
 import { LoadingState } from "@/components/shared/loading-state";
+import { searchQueryParser } from "@/lib/url-state";
 
 function SearchPageInner() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const q = searchParams.get("q") ?? "";
+  const [q, setQuery] = useQueryState("q", searchQueryParser.withOptions({
+    history: "push",
+    shallow: true,
+  }));
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const value = inputRef.current?.value.trim() ?? "";
-    router.replace(value ? `/search?q=${encodeURIComponent(value)}` : "/search");
+    void setQuery(value || null);
   };
 
   return (

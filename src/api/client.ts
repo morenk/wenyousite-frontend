@@ -257,7 +257,9 @@ export function createAuthenticatedFetch(fetchImpl: typeof fetch): typeof fetch 
   };
 }
 
-const authenticatedFetch = createAuthenticatedFetch(globalThis.fetch);
+// 延迟读取全局 fetch，让浏览器补丁与 MSW 测试拦截器都能在运行时生效。
+const authenticatedFetch = createAuthenticatedFetch((input, init) =>
+  globalThis.fetch(input, init));
 
 export const apiClient = createClient<paths>({
   baseUrl: getBaseUrl(),
