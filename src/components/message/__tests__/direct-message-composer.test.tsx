@@ -65,6 +65,22 @@ describe("DirectMessageComposer", () => {
     expect(textarea).toHaveValue("第二条消息");
   });
 
+  test("请求仍在进行时就清空输入框，让乐观消息先行展示", async () => {
+    let resolveSend!: () => void;
+    const onSend = vi.fn().mockReturnValue(new Promise<void>((resolve) => {
+      resolveSend = resolve;
+    }));
+    render(<DirectMessageComposer onSend={onSend} />);
+    const textarea = screen.getByPlaceholderText("输入消息…");
+    await userEvent.type(textarea, "立即显示");
+    await userEvent.click(screen.getByRole("button", { name: "发送" }));
+
+    expect(onSend).toHaveBeenCalled();
+    expect(textarea).toHaveValue("");
+    resolveSend();
+    await waitFor(() => expect(screen.getByRole("button", { name: "发送" })).toBeEnabled());
+  });
+
   test("空消息提示错误，Enter 发送且 Shift+Enter 不发送", async () => {
     const onSend = vi.fn().mockResolvedValue(undefined);
     render(<DirectMessageComposer onSend={onSend} />);
@@ -91,6 +107,15 @@ describe("DirectMessageComposer", () => {
     await waitFor(() => expect(onSend).toHaveBeenCalledWith({
       mediaId: "media1",
       clientRequestId: "99454040-6a52-4bf3-8bad-42683c4d09be",
+      optimisticMedia: {
+        id: "media1",
+        url: "https://cdn.example.com/a.jpg",
+        thumbnailUrl: null,
+        mediumUrl: null,
+        contentType: "image/jpeg",
+        width: null,
+        height: null,
+      },
     }));
     expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:preview");
   });
@@ -130,6 +155,7 @@ describe("DirectMessageComposer", () => {
     fireEvent.change(textarea, { target: { value: "第一次" } });
     await userEvent.click(screen.getByRole("button", { name: "发送" }));
     await waitFor(() => expect(onSend).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(textarea).toHaveValue("第一次"));
     await userEvent.click(screen.getByRole("button", { name: "发送" }));
     await waitFor(() => expect(onSend).toHaveBeenCalledTimes(2));
     expect(onSend.mock.calls[0][0].clientRequestId).toBe(onSend.mock.calls[1][0].clientRequestId);

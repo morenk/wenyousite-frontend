@@ -53,6 +53,7 @@ export function DirectMessageBubble({
   const [imageRevealed, setImageRevealed] = useState(!hideRequestImage);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const recalled = !!message.recalledAt;
+  const sending = message.deliveryState === "sending";
   const normalizedContent = message.content
     ? normalizeDirectMessageContent(message.content)
     : "";
@@ -69,10 +70,13 @@ export function DirectMessageBubble({
 
   return (
     <div className={cn("flex", mine ? "justify-end" : "justify-start")}>
-      <div className={cn("group relative max-w-[72%]", mine ? "items-end" : "items-start")}>
+      <div className={cn(
+        "group relative flex max-w-[72%] flex-col",
+        mine ? "items-end" : "items-start",
+      )}>
         <div
           className={cn(
-            !pureSticker && "rounded-2xl px-3 py-2",
+            !pureSticker && "w-fit max-w-full rounded-2xl px-3 py-2",
             !pureSticker && (mine
               ? "rounded-br-md bg-primary text-primary-foreground"
               : "rounded-bl-md bg-muted text-foreground"),
@@ -120,7 +124,7 @@ export function DirectMessageBubble({
             </>
           )}
         </div>
-        {!recalled && imageUrl && imageRevealed && (
+        {!recalled && !sending && imageUrl && imageRevealed && (
           <SaveStickerButton
             source={{ directMessageId: message.id }}
             className={cn(
@@ -135,10 +139,14 @@ export function DirectMessageBubble({
             mine && "justify-end",
           )}
         >
-          <time dateTime={message.createdAt}>
-            {format(new Date(message.createdAt), "MM-dd HH:mm")}
-          </time>
-          {canRecall && !recalled && (
+          {sending ? (
+            <span role="status">发送中…</span>
+          ) : (
+            <time dateTime={message.createdAt}>
+              {format(new Date(message.createdAt), "MM-dd HH:mm")}
+            </time>
+          )}
+          {canRecall && !recalled && !sending && (
             <button
               type="button"
               onClick={onRecall}

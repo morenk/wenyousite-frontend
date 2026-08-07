@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Archive, ArchiveRestore, Ban, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -21,11 +21,12 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
   const confirmAction = useConfirm();
   const conversationQuery = useDirectConversation(conversationId, user?.id);
   const history = useDirectMessages(conversationId, user?.id);
-  const actions = useDirectMessageActions(conversationId, user?.id);
   const otherUserId = conversationQuery.data?.otherUser.id ?? "";
+  const actions = useDirectMessageActions(conversationId, user?.id, otherUserId);
   const blockActions = useBlockActions(otherUserId);
   const [now, setNow] = useState(0);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const hasScrolledRef = useRef(false);
   const markedReadRef = useRef<string | undefined>(undefined);
 
   const conversation = conversationQuery.data;
@@ -39,9 +40,16 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
     };
   }, []);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [history.messages.length]);
+  const latestMessageId = history.messages.at(-1)?.id;
+  useLayoutEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container || !latestMessageId) return;
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: hasScrolledRef.current ? "smooth" : "auto",
+    });
+    hasScrolledRef.current = true;
+  }, [latestMessageId]);
 
   useEffect(() => {
     const latestIncoming = [...history.messages]
@@ -221,7 +229,12 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
         </div>
       )}
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+      <div
+        ref={scrollContainerRef}
+        role="log"
+        aria-label="消息记录"
+        className="min-h-0 flex-1 overflow-y-auto px-5 py-4"
+      >
         {history.hasNextPage && (
           <div className="mb-4 text-center">
             <Button
@@ -246,7 +259,7 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
           <div className="space-y-4">
             {history.messages.map((message) => {
               const mine = message.senderId === user?.id;
-              const canRecall = mine && !message.recalledAt
+              const canRecall = mine && message.deliveryState !== "sending" && !message.recalledAt
                 && now - new Date(message.createdAt).getTime() <= 10 * 60 * 1000;
               return (
                 <DirectMessageBubble
@@ -260,7 +273,6 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
                 />
               );
             })}
-            <div ref={bottomRef} />
           </div>
         )}
       </div>

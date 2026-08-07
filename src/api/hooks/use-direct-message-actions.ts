@@ -1,21 +1,28 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
-import { appendDirectMessageToCache } from "@/api/hooks/use-direct-messages";
+import {
+  appendDirectMessageToCache,
+  removeDirectMessageFromCache,
+  replaceDirectMessageInCache,
+} from "@/api/hooks/use-direct-messages";
+import type { DirectMessage, DirectMessageSendInput } from "@/lib/direct-message";
 
-interface MessageInput {
-  content?: string;
-  mediaId?: string;
-  stickerAssetId?: string;
-  clientRequestId: string;
+function toMessageBody(input: DirectMessageSendInput) {
+  return {
+    ...(input.content ? { content: input.content } : {}),
+    ...(input.mediaId ? { mediaId: input.mediaId } : {}),
+    ...(input.stickerAssetId ? { stickerAssetId: input.stickerAssetId } : {}),
+    clientRequestId: input.clientRequestId,
+  };
 }
 
 export function useStartDirectConversation(userId?: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (input: MessageInput & { recipientId: string }) => {
+    mutationFn: async (input: DirectMessageSendInput & { recipientId: string }) => {
       const { data, error } = await apiClient.POST("/api/v1/direct-conversations", {
-        body: input,
+        body: { ...toMessageBody(input), recipientId: input.recipientId },
       });
       if (error) throw error;
       if (!data) throw new Error("发起私聊响应为空");
@@ -33,7 +40,11 @@ export function useStartDirectConversation(userId?: string) {
   });
 }
 
-export function useDirectMessageActions(conversationId: string, userId?: string) {
+export function useDirectMessageActions(
+  conversationId: string,
+  userId?: string,
+  recipientId?: string,
+) {
   const queryClient = useQueryClient();
   const invalidateConversation = () => {
     queryClient.invalidateQueries({
@@ -44,17 +55,62 @@ export function useDirectMessageActions(conversationId: string, userId?: string)
   };
 
   const send = useMutation({
-    mutationFn: async (input: MessageInput) => {
+    mutationFn: async (input: DirectMessageSendInput) => {
       const { data, error } = await apiClient.POST(
         "/api/v1/direct-conversations/{id}/messages",
-        { params: { path: { id: conversationId } }, body: input },
+        { params: { path: { id: conversationId } }, body: toMessageBody(input) },
       );
       if (error) throw error;
       if (!data) throw new Error("发送消息响应为空");
       return data.data;
     },
-    onSuccess: (message) => {
-      appendDirectMessageToCache(queryClient, userId, conversationId, [message]);
+    onMutate: async (input) => {
+      await queryClient.cancelQueries({
+        queryKey: queryKeys.directMessages.messages(userId, conversationId),
+      });
+      if (!userId || !recipientId) return undefined;
+      const optimisticId = `optimistic:${input.clientRequestId}`;
+      const optimisticMessage: DirectMessage = {
+        id: optimisticId,
+        conversationId,
+        senderId: userId,
+        recipientId,
+        content: input.content ?? null,
+        media: input.optimisticMedia ?? null,
+        sticker: input.optimisticSticker ?? null,
+        recalledAt: null,
+        createdAt: new Date().toISOString(),
+        deliveryState: "sending",
+      };
+      appendDirectMessageToCache(
+        queryClient,
+        userId,
+        conversationId,
+        [optimisticMessage],
+      );
+      return { optimisticId };
+    },
+    onError: (_error, _input, context) => {
+      if (!context?.optimisticId) return;
+      removeDirectMessageFromCache(
+        queryClient,
+        userId,
+        conversationId,
+        context.optimisticId,
+      );
+    },
+    onSuccess: (message, _input, context) => {
+      if (context?.optimisticId) {
+        replaceDirectMessageInCache(
+          queryClient,
+          userId,
+          conversationId,
+          context.optimisticId,
+          message,
+        );
+      } else {
+        appendDirectMessageToCache(queryClient, userId, conversationId, [message]);
+      }
       invalidateConversation();
       queryClient.invalidateQueries({ queryKey: queryKeys.stickers(userId) });
     },

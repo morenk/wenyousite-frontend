@@ -46,6 +46,27 @@ describe("DirectMessageBubble", () => {
     expect(container.querySelector("p")?.textContent).toBe("第一行\n第二行");
   });
 
+  test("短文本气泡独立于时间行按正文宽度收缩", () => {
+    render(<DirectMessageBubble message={message({ content: "嗨" })} mine />);
+    const bubble = screen.getByText("嗨").parentElement;
+
+    expect(bubble).toHaveClass("w-fit", "max-w-full");
+    expect(bubble?.parentElement).toHaveClass("flex", "flex-col", "items-end");
+  });
+
+  test("乐观消息展示发送状态且不能提前撤回", () => {
+    render(
+      <DirectMessageBubble
+        message={message({ content: "立即显示", deliveryState: "sending" })}
+        mine
+        canRecall
+      />,
+    );
+
+    expect(screen.getByRole("status")).toHaveTextContent("发送中…");
+    expect(screen.queryByRole("button", { name: "撤回" })).not.toBeInTheDocument();
+  });
+
   test("陌生消息请求的图片默认不加载，点击后才展示", () => {
     render(
       <DirectMessageBubble

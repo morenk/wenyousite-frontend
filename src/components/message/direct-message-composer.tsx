@@ -8,13 +8,10 @@ import { getApiErrorMessage } from "@/api/errors";
 import { uploadImageFile, validateImageFile } from "@/lib/upload-image";
 import { normalizeDirectMessageContent } from "@/lib/direct-message-content";
 import { StickerPickerPopover } from "@/components/sticker/sticker-picker-popover";
+import type { DirectMessageSendInput } from "@/lib/direct-message";
+import type { UserSticker } from "@/api/hooks/use-stickers";
 
-export interface DirectMessageComposerValue {
-  content?: string;
-  mediaId?: string;
-  stickerAssetId?: string;
-  clientRequestId: string;
-}
+export type DirectMessageComposerValue = DirectMessageSendInput;
 
 interface DirectMessageComposerProps {
   onSend: (value: DirectMessageComposerValue) => Promise<unknown>;
@@ -83,16 +80,43 @@ export function DirectMessageComposer({
     }
     restoreFocusRef.current = true;
     setIsSending(true);
+    const submittedContent = content;
+    const submittedImage = image;
+    let clearedForOptimisticSend = false;
     try {
       const uploaded = image ? await uploadImageFile(image) : undefined;
-      await onSend({
+      const sendPromise = onSend({
         ...(normalized ? { content: normalized } : {}),
         ...(uploaded ? { mediaId: uploaded.mediaId } : {}),
+        ...(uploaded ? {
+          optimisticMedia: {
+            id: uploaded.mediaId,
+            url: uploaded.url,
+            thumbnailUrl: null,
+            mediumUrl: null,
+            contentType: image?.type ?? null,
+            width: null,
+            height: null,
+          },
+        } : {}),
         clientRequestId: requestIdRef.current ??= crypto.randomUUID(),
       });
+      clearedForOptimisticSend = true;
       setContent("");
-      clearImage();
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+      setImage(null);
+      if (imageInputRef.current) imageInputRef.current.value = "";
+      await sendPromise;
+      requestIdRef.current = null;
     } catch (error) {
+      if (clearedForOptimisticSend) {
+        setContent(submittedContent);
+        if (submittedImage) {
+          setImage(submittedImage);
+          setPreviewUrl(URL.createObjectURL(submittedImage));
+        }
+      }
       toast.error(getApiErrorMessage(error, "发送失败，请稍后重试"));
     } finally {
       setIsSending(false);
@@ -101,10 +125,18 @@ export function DirectMessageComposer({
 
   const isPending = disabled || isSending;
 
-  const handleSticker = async (stickerAssetId: string) => {
+  const handleSticker = async (sticker: UserSticker) => {
     setIsSending(true);
     try {
-      await onSend({ stickerAssetId, clientRequestId: crypto.randomUUID() });
+      await onSend({
+        stickerAssetId: sticker.asset.id,
+        clientRequestId: crypto.randomUUID(),
+        optimisticSticker: {
+          ...sticker.asset,
+          mediumUrl: null,
+          contentType: null,
+        },
+      });
     } finally {
       setIsSending(false);
     }
@@ -178,7 +210,7 @@ export function DirectMessageComposer({
           </Button>
           <StickerPickerPopover
             disabled={isPending}
-            onSelect={(sticker) => handleSticker(sticker.asset.id)}
+            onSelect={handleSticker}
           />
           <span className="text-xs text-muted-foreground">
             {content.length}/1000 · 纯文本 · 支持 GIF

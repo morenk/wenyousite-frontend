@@ -143,7 +143,10 @@ beforeEach(() => {
   });
 });
 
-afterEach(() => cleanup());
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
 
 describe("DirectConversationPanel", () => {
   test("已接受会话展示历史、标记已读并支持发送、加载与归档", async () => {
@@ -172,6 +175,35 @@ describe("DirectConversationPanel", () => {
     expect(mocks.confirm).toHaveBeenCalledWith(expect.objectContaining({ title: "撤回消息" }));
     expect(actionSet.recall.mutateAsync).toHaveBeenCalledWith("m2");
     expect(mocks.toastSuccess).toHaveBeenCalledWith("消息已撤回");
+  });
+
+  test("最新消息上屏时直接滚动会话容器到底部", () => {
+    const scrollTo = vi.spyOn(HTMLElement.prototype, "scrollTo").mockImplementation(() => undefined);
+    const initialHistory = mocks.history();
+    mocks.history.mockReturnValue(initialHistory);
+    const view = render(<DirectConversationPanel conversationId="c1" />);
+    const messageLog = screen.getByRole("log", { name: "消息记录" });
+    Object.defineProperty(messageLog, "scrollHeight", { value: 640, configurable: true });
+    scrollTo.mockClear();
+
+    mocks.history.mockReturnValue({
+      ...initialHistory,
+      messages: [
+        ...initialHistory.messages,
+        {
+          id: "optimistic:client-id",
+          senderId: "u1",
+          recipientId: "u2",
+          content: "立即显示",
+          recalledAt: null,
+          createdAt: new Date().toISOString(),
+          deliveryState: "sending",
+        },
+      ],
+    });
+    view.rerender(<DirectConversationPanel conversationId="c1" />);
+
+    expect(scrollTo).toHaveBeenCalledWith({ top: 640, behavior: "smooth" });
   });
 
   test("收到的待处理请求可接受、拒绝且隐藏陌生图片", async () => {

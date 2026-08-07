@@ -8,9 +8,10 @@ import {
 } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
-import type { components, operations } from "@/api/types";
+import type { operations } from "@/api/types";
+import type { DirectMessage } from "@/lib/direct-message";
 
-export type DirectMessage = components["schemas"]["DirectMessageResponseDto"];
+export type { DirectMessage } from "@/lib/direct-message";
 type DirectMessagesResponse =
   operations["directConversationsMessages"]["responses"][200]["content"]["application/json"];
 
@@ -33,6 +34,51 @@ export function appendDirectMessageToCache(
         data: page.data.map((item) => incomingById.get(item.id) ?? item),
       }));
       pages[0] = { ...pages[0], data: [...pages[0].data, ...next] };
+      return { ...current, pages };
+    },
+  );
+}
+
+export function removeDirectMessageFromCache(
+  queryClient: QueryClient,
+  userId: string | undefined,
+  conversationId: string,
+  messageId: string,
+) {
+  queryClient.setQueryData<InfiniteData<DirectMessagesResponse, string | undefined>>(
+    queryKeys.directMessages.messages(userId, conversationId),
+    (current) => current && ({
+      ...current,
+      pages: current.pages.map((page) => ({
+        ...page,
+        data: page.data.filter((message) => message.id !== messageId),
+      })),
+    }),
+  );
+}
+
+export function replaceDirectMessageInCache(
+  queryClient: QueryClient,
+  userId: string | undefined,
+  conversationId: string,
+  messageId: string,
+  replacement: DirectMessage,
+) {
+  queryClient.setQueryData<InfiniteData<DirectMessagesResponse, string | undefined>>(
+    queryKeys.directMessages.messages(userId, conversationId),
+    (current) => {
+      if (!current || current.pages.length === 0) return current;
+      let replaced = false;
+      const pages = current.pages.map((page) => ({
+        ...page,
+        data: page.data.flatMap((message) => {
+          if (message.id === replacement.id) return [];
+          if (message.id !== messageId) return [message];
+          replaced = true;
+          return [replacement];
+        }),
+      }));
+      if (!replaced) pages[0] = { ...pages[0], data: [...pages[0].data, replacement] };
       return { ...current, pages };
     },
   );
@@ -64,7 +110,7 @@ export function useDirectMessages(conversationId?: string, userId?: string) {
     staleTime: 10_000,
   });
 
-  const messages = useMemo(() => {
+  const messages = useMemo<DirectMessage[]>(() => {
     const pages = history.data?.pages ?? [];
     const seen = new Set<string>();
     return [...pages]
@@ -76,7 +122,7 @@ export function useDirectMessages(conversationId?: string, userId?: string) {
         return true;
       });
   }, [history.data?.pages]);
-  const latestMessageId = messages.at(-1)?.id;
+  const latestMessageId = messages.findLast((message) => message.deliveryState !== "sending")?.id;
   const updates = useQuery({
     queryKey: queryKeys.directMessages.updates(userId, conversationId),
     queryFn: async () => {

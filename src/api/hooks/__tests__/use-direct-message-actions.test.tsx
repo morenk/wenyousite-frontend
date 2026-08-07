@@ -1,11 +1,13 @@
 import React from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, renderHook } from "@testing-library/react";
+import { QueryClient, QueryClientProvider, type InfiniteData } from "@tanstack/react-query";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import {
   useDirectMessageActions,
   useStartDirectConversation,
 } from "@/api/hooks/use-direct-message-actions";
+import { queryKeys } from "@/api/query-keys";
+import type { DirectMessage } from "@/api/hooks/use-direct-messages";
 
 const { mockGET, mockPOST, mockPATCH, mockDELETE } = vi.hoisted(() => ({
   mockGET: vi.fn(),
@@ -33,6 +35,7 @@ const message = {
   recipientId: "u2",
   content: "你好",
   media: null,
+  sticker: null,
   recalledAt: null,
   createdAt: "2026-08-06T20:00:00Z",
 };
@@ -51,6 +54,24 @@ const conversation = {
   canDecline: false,
   isBlocked: false,
 };
+
+function seedHistory(client: QueryClient) {
+  client.setQueryData(queryKeys.directMessages.messages("u1", "c1"), {
+    pages: [{
+      data: [{ ...message, id: "m0", content: "已有消息" }],
+      meta: { cursor: null, hasMore: false },
+    }],
+    pageParams: [undefined],
+  } satisfies InfiniteData<unknown>);
+}
+
+function cachedMessages(client: QueryClient) {
+  return client
+    .getQueryData<InfiniteData<{ data: DirectMessage[] }>>(
+      queryKeys.directMessages.messages("u1", "c1"),
+    )
+    ?.pages.flatMap((page) => page.data) ?? [];
+}
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -136,6 +157,67 @@ describe("direct message action hooks", () => {
     expect(mockDELETE).toHaveBeenCalledWith("/api/v1/direct-messages/{id}", {
       params: { path: { id: "m1" } },
     });
+  });
+
+  test("发送时消息立即乐观上屏，成功后原位替换且预览字段不进入请求", async () => {
+    type PostResult = { data: { data: typeof message }; error: undefined };
+    let resolvePost!: (value: PostResult) => void;
+    mockPOST.mockReturnValueOnce(new Promise<PostResult>((resolve) => {
+      resolvePost = resolve;
+    }));
+    const { result, client } = setup(() => useDirectMessageActions("c1", "u1", "u2"));
+    seedHistory(client);
+    const input = {
+      content: "立即显示",
+      clientRequestId: "99454040-6a52-4bf3-8bad-42683c4d09be",
+      optimisticMedia: {
+        id: "media1",
+        url: "https://cdn.example.com/a.jpg",
+        thumbnailUrl: null,
+        mediumUrl: null,
+        contentType: "image/jpeg",
+        width: null,
+        height: null,
+      },
+    };
+    let request!: Promise<DirectMessage>;
+
+    act(() => {
+      request = result.current.send.mutateAsync(input);
+    });
+    await waitFor(() => {
+      expect(cachedMessages(client).at(-1)).toMatchObject({
+        id: `optimistic:${input.clientRequestId}`,
+        content: "立即显示",
+        deliveryState: "sending",
+      });
+    });
+    expect(mockPOST).toHaveBeenCalledWith(
+      "/api/v1/direct-conversations/{id}/messages",
+      {
+        params: { path: { id: "c1" } },
+        body: { content: "立即显示", clientRequestId: input.clientRequestId },
+      },
+    );
+
+    resolvePost({ data: { data: message }, error: undefined });
+    await act(async () => request);
+    expect(cachedMessages(client).map((item) => item.id)).toEqual(["m0", "m1"]);
+    expect(cachedMessages(client).at(-1)?.deliveryState).toBeUndefined();
+  });
+
+  test("乐观发送失败只移除待发送消息并保留既有缓存", async () => {
+    mockPOST.mockResolvedValueOnce({ error: { message: "send failed" } });
+    const { result, client } = setup(() => useDirectMessageActions("c1", "u1", "u2"));
+    seedHistory(client);
+
+    await act(async () => {
+      await expect(result.current.send.mutateAsync({
+        content: "失败消息",
+        clientRequestId: "99454040-6a52-4bf3-8bad-42683c4d09be",
+      })).rejects.toEqual({ message: "send failed" });
+    });
+    expect(cachedMessages(client).map((item) => item.id)).toEqual(["m0"]);
   });
 
   test("各 mutation 对 API 错误与空成功响应进行防御", async () => {
