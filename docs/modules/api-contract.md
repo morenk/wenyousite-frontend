@@ -2,9 +2,11 @@
 
 ## 1. 目标与范围
 
-本模块固化 Web 与 Flutter 共用的 REST/OpenAPI 契约。后端 Swagger DTO 是结构唯一事实源，Web 不维护影子响应类型。
+本模块固化 Web 与 Flutter 共用的 REST/OpenAPI 契约。后端 Swagger DTO 是源事实，后端评审并提交的 `contracts/openapi.json` 是客户端生成的固定事实源；Web 不维护影子响应类型，也不在构建期间抓取运行中 Swagger。
 
-当前所有用户端模块均由 `src/api/types.ts` 提供请求和成功响应类型；`pnpm contract:check` 会离线重新生成到临时目录并逐字节比较，同时拒绝 hooks 中的 `as unknown as` 和手写 `*Response` interface。
+当前所有用户端模块均由 `src/api/types.ts` 提供请求和成功响应类型；`pnpm contract:check` 会从仓库内固定契约重新生成到临时目录并逐字节比较，同时拒绝 hooks 中的 `as unknown as` 和手写 `*Response` interface。存在相邻后端仓库时还会校验两份审核产物逐字节一致。
+
+契约更新流程是 `pnpm contract:sync && pnpm generate:api`。前者只复制后端已提交产物，后者只读取本仓库固定产物；因此单仓 CI、历史 commit 和客户端发布分支都可重复生成同一类型。
 
 ## 2. 页面与路由
 
@@ -15,11 +17,14 @@
 | 模块 | 端点 |
 |------|------|
 | 提及 | `GET /users/mention-candidates` |
-| 媒体 | `POST /media/upload-url`、`POST /media/upload-done`、`GET /media/:id` |
+| 元数据 | `GET /meta`（契约/Markdown 版本与能力开关） |
+| 媒体 | `POST /media/upload-url`、`POST /media/upload-done`、`GET /media/:id`（具名缩略图/中图 URL） |
 | 草稿 | `/drafts`、`/drafts/slots`、`/drafts/:id` |
 | 帖子 | `/subthreads/:subthreadId/posts`、`/subthreads/:subthreadId/body`、`/posts/:id`、`/posts/:id/replies` |
 
 成功响应统一为 `{ code, message, data, meta? }`。业务 DTO 位于 `data`，cursor 分页位于 `meta`。
+
+`scripts/check-flutter-contract.mjs` 验证 OpenAPI 3.0、稳定 lowerCamel operationId、具名 2xx 响应、非空查询 schema、移动基线端点与错误码 schema。这是快速静态门禁；CI 另用固定版本 OpenAPI Generator 的 `dart-dio` 目标执行真实生成烟雾。
 
 ## 4. 状态管理
 
@@ -57,3 +62,5 @@ HTTP/业务错误由 `src/api/errors.ts` 统一归一化；成功响应不得使
 - [x] 迁移帖子与草稿 hooks
 - [x] 更新测试与质量检查
 - [x] 接入可重复执行的契约门禁
+- [x] 固定 OpenAPI 产物，不再依赖相邻源码或运行中 Swagger
+- [x] 增加 Flutter/Dart 生成兼容门禁

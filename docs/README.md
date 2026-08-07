@@ -22,7 +22,7 @@
 | [drafts](./modules/drafts.md) | 草稿箱 | 已完成 |
 | [bookmarks](./modules/bookmarks.md) | 收藏 | 已完成 |
 | [mentions](./modules/mentions.md) | 帖内提及 | 已完成 |
-| [api-contract](./modules/api-contract.md) | OpenAPI 契约与生成类型 | 已完成 |
+| [api-contract](./modules/api-contract.md) | 固定 OpenAPI 契约、Web 类型与 Flutter 生成兼容 | 已完成 |
 | [image-rendering](./modules/image-rendering.md) | 图片渲染与缩略图规则 | 已完成 |
 | [markdown-content-protocol](./modules/markdown-content-protocol.md) | Markdown 跨端内容协议 | 已完成 |
 | [api-coverage](./api-coverage.md) | 前后端 API 覆盖审计 | 2026-08-07 已复核 |
@@ -39,6 +39,7 @@
 | `wenyousite-backend/src/common/exceptions/error-codes.ts` | 可机器识别的错误码定义 |
 | `wenyousite-backend/docs/data-model.md` | 数据模型 |
 | `wenyousite-backend/docs/api-endpoints.md` | API 端点索引 |
+| `contracts/openapi.json` | Web/Flutter 客户端生成使用的固定机器契约 |
 
 ## 迭代流程
 

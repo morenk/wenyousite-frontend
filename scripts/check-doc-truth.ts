@@ -1,14 +1,10 @@
 /** 文档真实性门禁：模块索引、架构禁语与 API 覆盖数字必须由当前源码推导。 */
 
-import { execFileSync } from "node:child_process";
 import * as fs from "node:fs";
-import * as os from "node:os";
 import * as path from "node:path";
 
 const root = process.cwd();
-const backendRoot = path.resolve(root, "../wenyousite-backend");
-const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "wenyousite-doc-truth-"));
-const openapiPath = path.join(tempRoot, "openapi.json");
+const openapiPath = path.resolve(root, "contracts/openapi.json");
 
 function sourceFiles(directory: string): string[] {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -32,11 +28,7 @@ function operation(method: string, apiPath: string) {
   return `${method.toUpperCase()} ${apiPath}`;
 }
 
-try {
-  execFileSync("pnpm", ["--dir", backendRoot, "openapi:export", openapiPath], {
-    cwd: root,
-    stdio: "pipe",
-  });
+{
   const spec = JSON.parse(fs.readFileSync(openapiPath, "utf8")) as {
     paths: Record<string, Record<string, unknown>>;
   };
@@ -134,6 +126,4 @@ try {
   console.log(
     `Documentation facts match ${allOperations.size} OpenAPI operations and ${directOperations.size} frontend calls`,
   );
-} finally {
-  fs.rmSync(tempRoot, { recursive: true, force: true });
 }

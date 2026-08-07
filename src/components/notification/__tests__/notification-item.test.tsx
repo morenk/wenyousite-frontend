@@ -47,6 +47,7 @@ function baseNotification(
     type: "reply",
     content: "morenk 回复了：内容",
     payload: null,
+    target: { kind: "post", threadId: "t1", postId: "p1", userId: null },
     postId: "p1",
     threadId: "t1",
     fromUserId: "u2",
@@ -82,7 +83,7 @@ describe("NotificationItem", () => {
       <NotificationItem
         notification={baseNotification({
           content: "旧版完整文案",
-          payload: { action: "reply", actorName: "新用户名", preview: "结构化预览" },
+          payload: { schemaVersion: 1, action: "reply", actorName: "新用户名", preview: "结构化预览" },
         })}
       />,
     );
@@ -97,6 +98,7 @@ describe("NotificationItem", () => {
       <NotificationItem
         notification={baseNotification({
           postId: "r1",
+          target: { kind: "post", threadId: "t1", postId: "r1", userId: null },
           post: { id: "r1", floorNumber: null, parentPostId: "p1" },
         })}
       />,
@@ -142,7 +144,7 @@ describe("NotificationItem", () => {
       <NotificationItem
         notification={baseNotification({
           content: "morenk 回复了：1.00",
-          payload: { action: "reply", preview: "1.00" },
+          payload: { schemaVersion: 1, action: "reply", preview: "1.00" },
         })}
       />,
     );
@@ -155,7 +157,7 @@ describe("NotificationItem", () => {
       <NotificationItem
         notification={baseNotification({
           content: "morenk 回复了：![1.00]()\n\n玛～利～亚～",
-          payload: { action: "reply", preview: "![1.00]()\n\n玛～利～亚～" },
+          payload: { schemaVersion: 1, action: "reply", preview: "![1.00]()\n\n玛～利～亚～" },
         })}
       />,
     );
@@ -168,7 +170,7 @@ describe("NotificationItem", () => {
       <NotificationItem
         notification={baseNotification({
           content: "玛利亚666 回复了：\\>",
-          payload: { action: "reply", preview: "\\>" },
+          payload: { schemaVersion: 1, action: "reply", preview: "\\>" },
         })}
       />,
     );
@@ -181,7 +183,7 @@ describe("NotificationItem", () => {
       <NotificationItem
         notification={baseNotification({
           content: "morenk 回复了：\\<div>代码\\</div>",
-          payload: { action: "reply", preview: "\\<div>代码\\</div>" },
+          payload: { schemaVersion: 1, action: "reply", preview: "\\<div>代码\\</div>" },
         })}
       />,
     );
@@ -208,6 +210,7 @@ describe("NotificationItem", () => {
       <NotificationItem
         notification={baseNotification({
           type: "follow",
+          target: { kind: "user", threadId: null, postId: null, userId: "u2" },
           threadId: null,
           postId: null,
           content: "morenk 关注了你",
@@ -222,6 +225,7 @@ describe("NotificationItem", () => {
       <NotificationItem
         notification={baseNotification({
           type: "system",
+          target: { kind: "none", threadId: null, postId: null, userId: null },
           threadId: null,
           postId: null,
           fromUserId: null,
@@ -262,6 +266,7 @@ describe("NotificationItem", () => {
       <NotificationItem
         notification={baseNotification({
           type: "follow",
+          target: { kind: "user", threadId: null, postId: null, userId: "u2" },
           threadId: null,
           postId: null,
           content: "morenk 关注了你",
@@ -322,6 +327,7 @@ describe("NotificationItem", () => {
       <NotificationItem
         notification={baseNotification({
           type: "system",
+          target: { kind: "none", threadId: null, postId: null, userId: null },
           fromUserId: null,
           fromUser: null,
           content: "欢迎使用温油站",

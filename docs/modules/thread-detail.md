@@ -372,7 +372,7 @@
 | 40000 | 字段校验失败 | toast 后端 message |
 | 42900 | 限流 | toast "操作太频繁，请稍后再试" |
 | 网络错误 | fetch 失败 | 显示错误提示 + 重试按钮 |
-| 40900 | clientRequestId 被不同载荷复用 | toast 后端冲突提示，不清空编辑器 |
+| 40912 | clientRequestId 被不同载荷复用 | toast 后端冲突提示，不清空编辑器 |
 | 40003 | 骰子节点格式/表达式非法、nodeId 重复或同 ID 改表达式 | toast 后端 message，保留编辑器内容 |
 | 40004 | 单帖骰子节点超过 20 个 | toast 后端 message，保留编辑器内容 |
 

@@ -9,7 +9,7 @@ import { useViewerScope } from "@/api/use-viewer-scope";
 export type UserBookmarkedThread =
   components["schemas"]["BookmarkThreadResponseDto"];
 export type UserBookmarksResponse =
-  operations["UsersController_getUserBookmarks"]["responses"][200]["content"]["application/json"];
+  operations["usersGetUserBookmarks"]["responses"][200]["content"]["application/json"];
 
 export function useUserBookmarks(userId: string | undefined) {
   const viewerScope = useViewerScope();

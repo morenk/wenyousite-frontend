@@ -12,7 +12,7 @@ export interface paths {
             cookie?: never;
         };
         /** 健康检查，返回各依赖服务状态 */
-        get: operations["HealthController_check"];
+        get: operations["healthCheck"];
         put?: never;
         post?: never;
         delete?: never;
@@ -31,7 +31,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** 注册第一步：请求邮箱验证码（限流 1次/分钟） */
-        post: operations["AuthController_requestCode"];
+        post: operations["authRequestCode"];
         delete?: never;
         options?: never;
         head?: never;
@@ -48,7 +48,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** 注册第二步：验证邮箱 + 设置用户名密码。完成后 emailVerified=true 立即可用 */
-        post: operations["AuthController_verifyAndComplete"];
+        post: operations["authVerifyAndComplete"];
         delete?: never;
         options?: never;
         head?: never;
@@ -65,7 +65,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** 邮箱或用户名 + 密码登录。5 次失败锁定 15 分钟 */
-        post: operations["AuthController_login"];
+        post: operations["authLogin"];
         delete?: never;
         options?: never;
         head?: never;
@@ -82,7 +82,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** 用 refreshToken 轮转换取新双 Token（Cookie 优先，含盗用检测） */
-        post: operations["AuthController_refresh"];
+        post: operations["authRefresh"];
         delete?: never;
         options?: never;
         head?: never;
@@ -99,7 +99,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** 验证当前登录用户的邮箱（6 位验证码，限流 5次/分钟） */
-        post: operations["AuthController_verifyEmail"];
+        post: operations["authVerifyEmail"];
         delete?: never;
         options?: never;
         head?: never;
@@ -116,7 +116,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** 重发验证邮件（限流 1次/分钟） */
-        post: operations["AuthController_resendVerification"];
+        post: operations["authResendVerification"];
         delete?: never;
         options?: never;
         head?: never;
@@ -133,7 +133,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** 修改密码（需旧密码），成功后退出全部登录终端 */
-        post: operations["AuthController_changePassword"];
+        post: operations["authChangePassword"];
         delete?: never;
         options?: never;
         head?: never;
@@ -150,7 +150,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** 忘记密码 — 发送重置邮件（限流 1次/分钟） */
-        post: operations["AuthController_forgotPassword"];
+        post: operations["authForgotPassword"];
         delete?: never;
         options?: never;
         head?: never;
@@ -167,7 +167,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** 用邮箱 + 验证码重置密码，成功后吊销全部 refresh token */
-        post: operations["AuthController_resetPassword"];
+        post: operations["authResetPassword"];
         delete?: never;
         options?: never;
         head?: never;
@@ -184,7 +184,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** 更换邮箱第一步：向新邮箱发送验证码（限流 1次/分钟） */
-        post: operations["AuthController_requestChangeEmailCode"];
+        post: operations["authRequestChangeEmailCode"];
         delete?: never;
         options?: never;
         head?: never;
@@ -201,7 +201,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** 更换邮箱第二步：验证码确认并更新邮箱 */
-        post: operations["AuthController_verifyChangeEmail"];
+        post: operations["authVerifyChangeEmail"];
         delete?: never;
         options?: never;
         head?: never;
@@ -218,7 +218,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** 登出：撤销当前登录终端的 refresh token（Cookie 优先），同时清除客户端 Cookie */
-        post: operations["AuthController_logout"];
+        post: operations["authLogout"];
         delete?: never;
         options?: never;
         head?: never;
@@ -233,7 +233,7 @@ export interface paths {
             cookie?: never;
         };
         /** 获取当前用户的 Web / 移动客户端活跃登录终端（限流 60 次/分钟） */
-        get: operations["AuthController_listSessions"];
+        get: operations["authListSessions"];
         put?: never;
         post?: never;
         delete?: never;
@@ -253,7 +253,7 @@ export interface paths {
         put?: never;
         post?: never;
         /** 退出指定登录终端（限流 60 次/分钟） */
-        delete: operations["AuthController_revokeSession"];
+        delete: operations["authRevokeSession"];
         options?: never;
         head?: never;
         patch?: never;
@@ -267,7 +267,7 @@ export interface paths {
             cookie?: never;
         };
         /** 搜索用户（@提及用） */
-        get: operations["UsersController_search"];
+        get: operations["usersSearch"];
         put?: never;
         post?: never;
         delete?: never;
@@ -284,7 +284,7 @@ export interface paths {
             cookie?: never;
         };
         /** 获取当前主题帖可艾特候选（关注的人 + 帖内标记玩家） */
-        get: operations["UsersController_mentionCandidates"];
+        get: operations["usersMentionCandidates"];
         put?: never;
         post?: never;
         delete?: never;
@@ -301,15 +301,15 @@ export interface paths {
             cookie?: never;
         };
         /** 获取当前登录用户资料 */
-        get: operations["UsersController_getMe"];
+        get: operations["usersGetMe"];
         put?: never;
         post?: never;
         /** 注销当前账号 */
-        delete: operations["UsersController_deleteMe"];
+        delete: operations["usersDeleteMe"];
         options?: never;
         head?: never;
         /** 修改当前登录用户资料（5 次/分钟） */
-        patch: operations["UsersController_updateMe"];
+        patch: operations["usersUpdateMe"];
         trace?: never;
     };
     "/api/v1/users/me/avatar": {
@@ -323,11 +323,11 @@ export interface paths {
         put?: never;
         post?: never;
         /** 移除头像（置空 user.avatar，回到首字母占位） */
-        delete: operations["UsersController_removeAvatar"];
+        delete: operations["usersRemoveAvatar"];
         options?: never;
         head?: never;
         /** 设置头像（传入 mediaId，校验归属和 COMPLETED 状态） */
-        patch: operations["UsersController_setAvatar"];
+        patch: operations["usersSetAvatar"];
         trace?: never;
     };
     "/api/v1/users/{id}/bookmarks": {
@@ -338,7 +338,7 @@ export interface paths {
             cookie?: never;
         };
         /** 查看用户的收藏列表（受 showBookmarks 隐私开关控制） */
-        get: operations["UsersController_getUserBookmarks"];
+        get: operations["usersGetUserBookmarks"];
         put?: never;
         post?: never;
         delete?: never;
@@ -355,7 +355,7 @@ export interface paths {
             cookie?: never;
         };
         /** 查看用户参与的帖子（仅已被授予玩家身份的帖子；他人仅可见公开帖） */
-        get: operations["UsersController_getUserPlayedThreads"];
+        get: operations["usersGetUserPlayedThreads"];
         put?: never;
         post?: never;
         delete?: never;
@@ -372,7 +372,7 @@ export interface paths {
             cookie?: never;
         };
         /** 查看用户创建的主题帖（本人可见全部含私密帖，他人仅见 PUBLIC 已发布帖） */
-        get: operations["UsersController_getUserCreatedThreads"];
+        get: operations["usersGetUserCreatedThreads"];
         put?: never;
         post?: never;
         delete?: never;
@@ -389,7 +389,7 @@ export interface paths {
             cookie?: never;
         };
         /** 查看用户最近 10 条回复（受 showRecentReplies 隐私开关控制） */
-        get: operations["UsersController_getUserRecentReplies"];
+        get: operations["usersGetUserRecentReplies"];
         put?: never;
         post?: never;
         delete?: never;
@@ -406,7 +406,7 @@ export interface paths {
             cookie?: never;
         };
         /** 获取指定用户的公开资料。登录后额外返回关注/拉黑关系 */
-        get: operations["UsersController_getUser"];
+        get: operations["usersGetUser"];
         put?: never;
         post?: never;
         delete?: never;
@@ -425,9 +425,9 @@ export interface paths {
         get?: never;
         put?: never;
         /** 关注用户 */
-        post: operations["UsersFollowController_follow"];
+        post: operations["usersFollowFollow"];
         /** 取消关注 */
-        delete: operations["UsersFollowController_unfollow"];
+        delete: operations["usersFollowUnfollow"];
         options?: never;
         head?: never;
         patch?: never;
@@ -441,7 +441,7 @@ export interface paths {
             cookie?: never;
         };
         /** 我的关注列表 */
-        get: operations["UsersFollowController_following"];
+        get: operations["usersFollowFollowing"];
         put?: never;
         post?: never;
         delete?: never;
@@ -458,7 +458,7 @@ export interface paths {
             cookie?: never;
         };
         /** 我的粉丝列表 */
-        get: operations["UsersFollowController_followers"];
+        get: operations["usersFollowFollowers"];
         put?: never;
         post?: never;
         delete?: never;
@@ -475,7 +475,7 @@ export interface paths {
             cookie?: never;
         };
         /** 指定用户的关注列表 */
-        get: operations["UsersFollowController_userFollowing"];
+        get: operations["usersFollowUserFollowing"];
         put?: never;
         post?: never;
         delete?: never;
@@ -492,7 +492,7 @@ export interface paths {
             cookie?: never;
         };
         /** 指定用户的粉丝列表 */
-        get: operations["UsersFollowController_userFollowers"];
+        get: operations["usersFollowUserFollowers"];
         put?: never;
         post?: never;
         delete?: never;
@@ -511,9 +511,9 @@ export interface paths {
         get?: never;
         put?: never;
         /** 拉黑用户 */
-        post: operations["UsersFollowController_block"];
+        post: operations["usersFollowBlock"];
         /** 取消拉黑 */
-        delete: operations["UsersFollowController_unblock"];
+        delete: operations["usersFollowUnblock"];
         options?: never;
         head?: never;
         patch?: never;
@@ -527,7 +527,7 @@ export interface paths {
             cookie?: never;
         };
         /** 我的黑名单 */
-        get: operations["UsersFollowController_blocks"];
+        get: operations["usersFollowBlocks"];
         put?: never;
         post?: never;
         delete?: never;
@@ -544,7 +544,7 @@ export interface paths {
             cookie?: never;
         };
         /** 通知列表 */
-        get: operations["NotificationsController_findAll"];
+        get: operations["notificationsFindAll"];
         put?: never;
         post?: never;
         delete?: never;
@@ -561,7 +561,7 @@ export interface paths {
             cookie?: never;
         };
         /** 未读通知数 */
-        get: operations["NotificationsController_unreadCount"];
+        get: operations["notificationsUnreadCount"];
         put?: never;
         post?: never;
         delete?: never;
@@ -581,11 +581,11 @@ export interface paths {
         put?: never;
         post?: never;
         /** 删除通知 */
-        delete: operations["NotificationsController_remove"];
+        delete: operations["notificationsRemove"];
         options?: never;
         head?: never;
         /** 标记通知阅读状态 */
-        patch: operations["NotificationsController_setReadStatus"];
+        patch: operations["notificationsSetReadStatus"];
         trace?: never;
     };
     "/api/v1/notifications/read-all": {
@@ -598,8 +598,26 @@ export interface paths {
         get?: never;
         put?: never;
         /** 全部已读 */
-        post: operations["NotificationsController_markAllAsRead"];
+        post: operations["notificationsMarkAllAsRead"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/mobile/devices/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** 注册或更新当前原生移动登录终端的 FCM token */
+        put: operations["mobileDeviceRegister"];
+        post?: never;
+        /** 注销当前原生移动登录终端的推送 */
+        delete: operations["mobileDeviceUnregister"];
         options?: never;
         head?: never;
         patch?: never;
@@ -613,10 +631,10 @@ export interface paths {
             cookie?: never;
         };
         /** 我的收藏列表（Cursor 分页） */
-        get: operations["BookmarksController_findAll"];
+        get: operations["bookmarksFindAll"];
         put?: never;
         /** 收藏主题帖 */
-        post: operations["BookmarksController_create"];
+        post: operations["bookmarksCreate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -634,7 +652,7 @@ export interface paths {
         put?: never;
         post?: never;
         /** 取消收藏 */
-        delete: operations["BookmarksController_remove"];
+        delete: operations["bookmarksRemove"];
         options?: never;
         head?: never;
         patch?: never;
@@ -648,7 +666,7 @@ export interface paths {
             cookie?: never;
         };
         /** 我的草稿箱列表（未发布帖，仅自己可见） */
-        get: operations["ThreadsController_findDrafts"];
+        get: operations["threadsFindDrafts"];
         put?: never;
         post?: never;
         delete?: never;
@@ -665,10 +683,10 @@ export interface paths {
             cookie?: never;
         };
         /** 主题帖列表（仅已发布帖），支持排序、分区、状态及标签筛选 */
-        get: operations["ThreadsController_findAll"];
+        get: operations["threadsFindAll"];
         put?: never;
         /** 创建主题帖草稿（published=false）。在沙盒内逐步添加子贴/楼层后通过 PATCH 发布 */
-        post: operations["ThreadsController_create"];
+        post: operations["threadsCreate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -683,15 +701,15 @@ export interface paths {
             cookie?: never;
         };
         /** 主题帖详情（含 全部子贴列表 + 楼层数 + 参与人数） */
-        get: operations["ThreadsController_findById"];
+        get: operations["threadsFindById"];
         put?: never;
         post?: never;
         /** 删除主题帖。未发布帖硬删除（级联），已发布帖软删除（仅 OWNER） */
-        delete: operations["ThreadsController_remove"];
+        delete: operations["threadsRemove"];
         options?: never;
         head?: never;
         /** 修改/发布主题帖（仅 OWNER/COLLABORATOR）。设置 published=true 发布，带乐观锁 version */
-        patch: operations["ThreadsController_update"];
+        patch: operations["threadsUpdate"];
         trace?: never;
     };
     "/api/v1/threads/{id}/aggregate": {
@@ -708,7 +726,7 @@ export interface paths {
         options?: never;
         head?: never;
         /** 原子保存主题帖元数据、默认子贴标题/正文和标签，可同时发布草稿 */
-        patch: operations["ThreadsController_saveAggregate"];
+        patch: operations["threadsSaveAggregate"];
         trace?: never;
     };
     "/api/v1/threads/{id}/like": {
@@ -721,9 +739,9 @@ export interface paths {
         get?: never;
         put?: never;
         /** 点赞主题帖（幂等，不通知自己） */
-        post: operations["ThreadsController_like"];
+        post: operations["threadsLike"];
         /** 取消点赞主题帖（幂等） */
-        delete: operations["ThreadsController_unlike"];
+        delete: operations["threadsUnlike"];
         options?: never;
         head?: never;
         patch?: never;
@@ -739,7 +757,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** 生成或刷新私密帖邀请链接（仅 OWNER，需已发布 + 私密帖） */
-        post: operations["ThreadsController_createInviteLink"];
+        post: operations["threadsCreateInviteLink"];
         delete?: never;
         options?: never;
         head?: never;
@@ -754,10 +772,10 @@ export interface paths {
             cookie?: never;
         };
         /** 预览邀请链接对应的私密帖信息，并判断当前用户是否已加入 */
-        get: operations["ThreadsController_previewInviteLink"];
+        get: operations["threadsPreviewInviteLink"];
         put?: never;
         /** 通过 16 位邀请 token 幂等加入私密帖（需已发布） */
-        post: operations["ThreadsController_joinByInviteLink"];
+        post: operations["threadsJoinByInviteLink"];
         delete?: never;
         options?: never;
         head?: never;
@@ -772,7 +790,7 @@ export interface paths {
             cookie?: never;
         };
         /** 获取主题帖参与人列表 */
-        get: operations["ThreadMembersController_findAll"];
+        get: operations["threadMembersFindAll"];
         put?: never;
         post?: never;
         delete?: never;
@@ -794,7 +812,7 @@ export interface paths {
          * 自由加入主题帖（兼容旧客户端，Web 已改为发言时自动参与）
          * @deprecated
          */
-        post: operations["ThreadMembersController_join"];
+        post: operations["threadMembersJoin"];
         delete?: never;
         options?: never;
         head?: never;
@@ -815,7 +833,7 @@ export interface paths {
         options?: never;
         head?: never;
         /** 修改参与人角色或玩家标记（仅 OWNER/COLLABORATOR） */
-        patch: operations["ThreadMembersController_updateMember"];
+        patch: operations["threadMembersUpdateMember"];
         trace?: never;
     };
     "/api/v1/threads/{threadId}/members/me": {
@@ -829,7 +847,7 @@ export interface paths {
         put?: never;
         post?: never;
         /** 主动退出主题帖（取消自己的玩家标记） */
-        delete: operations["ThreadMembersController_exitMember"];
+        delete: operations["threadMembersExitMember"];
         options?: never;
         head?: never;
         patch?: never;
@@ -843,10 +861,10 @@ export interface paths {
             cookie?: never;
         };
         /** 获取主题帖关联的标签列表 */
-        get: operations["ThreadTagsController_findAll"];
+        get: operations["threadTagsFindAll"];
         put?: never;
         /** 为主题帖添加标签（仅 OWNER/COLLABORATOR） */
-        post: operations["ThreadTagsController_add"];
+        post: operations["threadTagsAdd"];
         delete?: never;
         options?: never;
         head?: never;
@@ -864,7 +882,7 @@ export interface paths {
         put?: never;
         post?: never;
         /** 移除主题帖的标签（仅 OWNER/COLLABORATOR） */
-        delete: operations["ThreadTagsController_remove"];
+        delete: operations["threadTagsRemove"];
         options?: never;
         head?: never;
         patch?: never;
@@ -878,10 +896,10 @@ export interface paths {
             cookie?: never;
         };
         /** 搜索主题帖标签（不传 q 返回全部） */
-        get: operations["TagsController_search"];
+        get: operations["tagsSearch"];
         put?: never;
         /** 创建主题帖标签 */
-        post: operations["TagsController_create"];
+        post: operations["tagsCreate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -896,7 +914,7 @@ export interface paths {
             cookie?: never;
         };
         /** 获取标签详情 */
-        get: operations["TagsController_getById"];
+        get: operations["tagsGetById"];
         put?: never;
         post?: never;
         delete?: never;
@@ -913,7 +931,7 @@ export interface paths {
             cookie?: never;
         };
         /** 获取当前用户收藏、最近使用和处理中的表情 */
-        get: operations["StickersController_getCollection"];
+        get: operations["stickersGetCollection"];
         put?: never;
         post?: never;
         delete?: never;
@@ -932,7 +950,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** 将自己已上传的站内图片导入表情收藏 */
-        post: operations["StickersController_importMedia"];
+        post: operations["stickersImportMedia"];
         delete?: never;
         options?: never;
         head?: never;
@@ -949,7 +967,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** 收藏私聊消息中的图片或表情 */
-        post: operations["StickersController_importDirectMessage"];
+        post: operations["stickersImportDirectMessage"];
         delete?: never;
         options?: never;
         head?: never;
@@ -966,7 +984,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** 收藏可访问帖子正文中的站内图片或表情 */
-        post: operations["StickersController_importPostImage"];
+        post: operations["stickersImportPostImage"];
         delete?: never;
         options?: never;
         head?: never;
@@ -981,7 +999,7 @@ export interface paths {
             cookie?: never;
         };
         /** 查询单次表情导入处理状态 */
-        get: operations["StickersController_getImport"];
+        get: operations["stickersGetImport"];
         put?: never;
         post?: never;
         delete?: never;
@@ -999,7 +1017,7 @@ export interface paths {
         };
         get?: never;
         /** 按完整 ID 列表手动重排收藏 */
-        put: operations["StickersController_reorder"];
+        put: operations["stickersReorder"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1018,7 +1036,7 @@ export interface paths {
         put?: never;
         post?: never;
         /** 从自己的收藏夹移除表情 */
-        delete: operations["StickersController_remove"];
+        delete: operations["stickersRemove"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1032,10 +1050,10 @@ export interface paths {
             cookie?: never;
         };
         /** 获取主题帖下的子贴列表 */
-        get: operations["SubthreadsController_findAll"];
+        get: operations["subthreadsFindAll"];
         put?: never;
         /** 创建子贴（仅 OWNER/COLLABORATOR） */
-        post: operations["SubthreadsController_create"];
+        post: operations["subthreadsCreate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1050,15 +1068,15 @@ export interface paths {
             cookie?: never;
         };
         /** 获取子贴详情 */
-        get: operations["SubthreadsController_findById"];
+        get: operations["subthreadsFindById"];
         put?: never;
         post?: never;
         /** 删除子贴（仅 OWNER/COLLABORATOR） */
-        delete: operations["SubthreadsController_remove"];
+        delete: operations["subthreadsRemove"];
         options?: never;
         head?: never;
         /** 修改子贴（仅 OWNER/COLLABORATOR） */
-        patch: operations["SubthreadsController_update"];
+        patch: operations["subthreadsUpdate"];
         trace?: never;
     };
     "/api/v1/threads/{threadId}/subthreads/reorder": {
@@ -1070,7 +1088,7 @@ export interface paths {
         };
         get?: never;
         /** 批量重排子贴（拖拽排序）。默认子贴必须在第一位 */
-        put: operations["SubthreadsController_reorder"];
+        put: operations["subthreadsReorder"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1086,10 +1104,10 @@ export interface paths {
             cookie?: never;
         };
         /** 获取子贴的楼层列表（Cursor 分页） */
-        get: operations["PostsController_findFloors"];
+        get: operations["postsFindFloors"];
         put?: never;
         /** 发帖（创建新楼层或楼中楼回复） */
-        post: operations["PostsController_create"];
+        post: operations["postsCreate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1104,7 +1122,7 @@ export interface paths {
             cookie?: never;
         };
         /** 获取楼中楼回复列表（cursor 分页，无限下拉） */
-        get: operations["PostsController_findReplies"];
+        get: operations["postsFindReplies"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1122,7 +1140,7 @@ export interface paths {
         };
         get?: never;
         /** 写入子贴正文（upsert：无正文创建，有正文乐观锁更新）。仅 OWNER/COLLABORATOR */
-        put: operations["PostsController_upsertBody"];
+        put: operations["postsUpsertBody"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1138,15 +1156,15 @@ export interface paths {
             cookie?: never;
         };
         /** 获取帖子详情 */
-        get: operations["PostsController_findById"];
+        get: operations["postsFindById"];
         put?: never;
         post?: never;
         /** 软删除楼层（子贴正文 kind=BODY 不可删除） */
-        delete: operations["PostsController_remove"];
+        delete: operations["postsRemove"];
         options?: never;
         head?: never;
         /** 编辑帖子 */
-        patch: operations["PostsController_update"];
+        patch: operations["postsUpdate"];
         trace?: never;
     };
     "/api/v1/drafts": {
@@ -1157,10 +1175,10 @@ export interface paths {
             cookie?: never;
         };
         /** 当前用户全部草稿 */
-        get: operations["DraftsController_findAll"];
+        get: operations["draftsFindAll"];
         put?: never;
         /** 保存草稿（不传 slot 自动选空闲位） */
-        post: operations["DraftsController_create"];
+        post: operations["draftsCreate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1175,7 +1193,7 @@ export interface paths {
             cookie?: never;
         };
         /** 草稿位使用情况（5 槽已用数） */
-        get: operations["DraftsController_slotUsage"];
+        get: operations["draftsSlotUsage"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1192,15 +1210,15 @@ export interface paths {
             cookie?: never;
         };
         /** 获取单条草稿 */
-        get: operations["DraftsController_findById"];
+        get: operations["draftsFindById"];
         put?: never;
         post?: never;
         /** 删除草稿 */
-        delete: operations["DraftsController_remove"];
+        delete: operations["draftsRemove"];
         options?: never;
         head?: never;
         /** 更新草稿内容 */
-        patch: operations["DraftsController_update"];
+        patch: operations["draftsUpdate"];
         trace?: never;
     };
     "/api/v1/subscriptions": {
@@ -1211,10 +1229,10 @@ export interface paths {
             cookie?: never;
         };
         /** 我的订阅列表 */
-        get: operations["SubscriptionsController_findAll"];
+        get: operations["subscriptionsFindAll"];
         put?: never;
         /** 创建官方更新或玩家发言订阅 */
-        post: operations["SubscriptionsController_create"];
+        post: operations["subscriptionsCreate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1232,7 +1250,7 @@ export interface paths {
         put?: never;
         post?: never;
         /** 取消订阅 */
-        delete: operations["SubscriptionsController_remove"];
+        delete: operations["subscriptionsRemove"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1246,10 +1264,10 @@ export interface paths {
             cookie?: never;
         };
         /** 举报列表（管理员） */
-        get: operations["ReportsController_findAll"];
+        get: operations["reportsFindAll"];
         put?: never;
         /** 提交举报 */
-        post: operations["ReportsController_create"];
+        post: operations["reportsCreate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1270,7 +1288,7 @@ export interface paths {
         options?: never;
         head?: never;
         /** 处理举报（管理员） */
-        patch: operations["ReportsController_handle"];
+        patch: operations["reportsHandle"];
         trace?: never;
     };
     "/api/v1/admin": {
@@ -1281,7 +1299,7 @@ export interface paths {
             cookie?: never;
         };
         /** 管理后台入口 */
-        get: operations["AdminController_index"];
+        get: operations["adminIndex"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1300,7 +1318,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** 发送系统通知（管理员，手动指定 / 条件筛选 / 全站广播） */
-        post: operations["AdminController_sendSystemNotification"];
+        post: operations["adminSendSystemNotification"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1317,7 +1335,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** 预览系统通知接收者人数 */
-        post: operations["AdminController_previewRecipients"];
+        post: operations["adminPreviewRecipients"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1332,7 +1350,7 @@ export interface paths {
             cookie?: never;
         };
         /** 系统通知发送历史 */
-        get: operations["AdminController_getHistory"];
+        get: operations["adminGetHistory"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1349,7 +1367,7 @@ export interface paths {
             cookie?: never;
         };
         /** 用户搜索（管理员用） */
-        get: operations["AdminController_searchUsers"];
+        get: operations["adminSearchUsers"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1366,7 +1384,7 @@ export interface paths {
             cookie?: never;
         };
         /** 按标题搜索公开主题帖 */
-        get: operations["SearchController_searchThreads"];
+        get: operations["searchSearchThreads"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1383,7 +1401,7 @@ export interface paths {
             cookie?: never;
         };
         /** 按用户名搜索未注销用户 */
-        get: operations["SearchController_searchUsers"];
+        get: operations["searchSearchUsers"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1400,7 +1418,7 @@ export interface paths {
             cookie?: never;
         };
         /** 按正文搜索公开楼层与楼中楼 */
-        get: operations["SearchController_searchPosts"];
+        get: operations["searchSearchPosts"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1417,7 +1435,7 @@ export interface paths {
             cookie?: never;
         };
         /** 兼容聚合搜索（用户名 + 主题帖标题 + 楼层内容） */
-        get: operations["SearchController_search"];
+        get: operations["searchSearch"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1434,7 +1452,7 @@ export interface paths {
             cookie?: never;
         };
         /** 按正文搜索单个主题帖内的楼层与楼中楼 */
-        get: operations["ThreadSearchController_searchPosts"];
+        get: operations["threadSearchSearchPosts"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1453,7 +1471,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** 获取临时上传 URL + mediaId（有效期 10 分钟，预建 UPLOADING 记录） */
-        post: operations["MediaController_getUploadUrl"];
+        post: operations["mediaGetUploadUrl"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1470,7 +1488,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** 确认上传完成（校验归属 + S3，入队异步图片处理） */
-        post: operations["MediaController_confirmUpload"];
+        post: operations["mediaConfirmUpload"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1485,7 +1503,7 @@ export interface paths {
             cookie?: never;
         };
         /** 查询图片处理状态（UPLOADING / PROCESSING / COMPLETED / FAILED） */
-        get: operations["MediaController_getMedia"];
+        get: operations["mediaGetMedia"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1502,10 +1520,10 @@ export interface paths {
             cookie?: never;
         };
         /** 私聊会话列表（主列表 / 消息请求 / 归档） */
-        get: operations["DirectConversationsController_findAll"];
+        get: operations["directConversationsFindAll"];
         put?: never;
         /** 向用户发送首条消息；互关直达，否则创建消息请求 */
-        post: operations["DirectConversationsController_create"];
+        post: operations["directConversationsCreate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1520,7 +1538,7 @@ export interface paths {
             cookie?: never;
         };
         /** 私聊未读消息数与待处理请求数 */
-        get: operations["DirectConversationsController_unread"];
+        get: operations["directConversationsUnread"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1537,7 +1555,7 @@ export interface paths {
             cookie?: never;
         };
         /** 查询与指定用户的现有会话及可联系状态 */
-        get: operations["DirectConversationsController_findByUser"];
+        get: operations["directConversationsFindByUser"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1554,7 +1572,7 @@ export interface paths {
             cookie?: never;
         };
         /** 私聊会话详情 */
-        get: operations["DirectConversationsController_findById"];
+        get: operations["directConversationsFindById"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1571,10 +1589,10 @@ export interface paths {
             cookie?: never;
         };
         /** 私聊消息历史或轮询增量；响应按时间正序 */
-        get: operations["DirectConversationsController_messages"];
+        get: operations["directConversationsMessages"];
         put?: never;
         /** 向已接受的私聊会话发送消息 */
-        post: operations["DirectConversationsController_send"];
+        post: operations["directConversationsSend"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1595,7 +1613,7 @@ export interface paths {
         options?: never;
         head?: never;
         /** 接受或拒绝收到的消息请求；接受要求邮箱已验证 */
-        patch: operations["DirectConversationsController_handleRequest"];
+        patch: operations["directConversationsHandleRequest"];
         trace?: never;
     };
     "/api/v1/direct-conversations/{id}/archive": {
@@ -1612,7 +1630,7 @@ export interface paths {
         options?: never;
         head?: never;
         /** 归档或恢复自己的会话 */
-        patch: operations["DirectConversationsController_archive"];
+        patch: operations["directConversationsArchive"];
         trace?: never;
     };
     "/api/v1/direct-conversations/{id}/read": {
@@ -1625,7 +1643,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** 标记当前用户实际看到的消息为已读，不向发件人暴露回执 */
-        post: operations["DirectConversationsController_markRead"];
+        post: operations["directConversationsMarkRead"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1643,7 +1661,23 @@ export interface paths {
         put?: never;
         post?: never;
         /** 发送者在 10 分钟内撤回消息；待处理首条消息会取消请求 */
-        delete: operations["DirectMessagesController_recall"];
+        delete: operations["directMessagesRecall"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/meta": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["metaGetMeta"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -2132,6 +2166,29 @@ export interface components {
             createdAt: string;
             blocked: components["schemas"]["PostAuthorResponseDto"];
         };
+        NotificationLikerResponseDto: {
+            userId: string;
+            username: string;
+        };
+        NotificationPayloadResponseDto: {
+            /** @enum {number} */
+            schemaVersion: 1;
+            action?: string | null;
+            actorId?: string | null;
+            actorName?: string | null;
+            preview?: string | null;
+            subthreadTitle?: string | null;
+            threadTitle?: string | null;
+            totalCount?: number | null;
+            likers?: components["schemas"]["NotificationLikerResponseDto"][];
+        };
+        NotificationTargetResponseDto: {
+            /** @enum {string} */
+            kind: "post" | "thread" | "user" | "none";
+            threadId: string | null;
+            postId: string | null;
+            userId: string | null;
+        };
         NotificationPostResponseDto: {
             id: string;
             floorNumber: number | null;
@@ -2158,9 +2215,8 @@ export interface components {
             /** @enum {string} */
             type: "reply" | "mention" | "new_floor" | "subthread_created" | "new_post" | "thread_created" | "follow" | "like" | "system";
             content: string | null;
-            payload: {
-                [key: string]: unknown;
-            } | null;
+            payload: components["schemas"]["NotificationPayloadResponseDto"] | null;
+            target: components["schemas"]["NotificationTargetResponseDto"];
             postId: string | null;
             threadId: string | null;
             fromUserId: string | null;
@@ -2178,6 +2234,25 @@ export interface components {
         SetReadStatusDto: {
             /** @description 阅读状态（true=已读，false=未读） */
             isRead: boolean;
+        };
+        RegisterMobileDeviceDto: {
+            /** @description Firebase Cloud Messaging registration token */
+            pushToken: string;
+            /** @enum {string} */
+            platform: "android" | "ios";
+            appVersion?: string;
+            /** @example zh-CN */
+            locale?: string;
+        };
+        MobileDeviceResponseDto: {
+            id: string;
+            /** @enum {string} */
+            platform: "android" | "ios";
+            appVersion: string | null;
+            locale: string | null;
+            enabled: boolean;
+            /** Format: date-time */
+            lastSeenAt: string;
         };
         OwnBookmarkThreadResponseDto: {
             id: string;
@@ -2269,6 +2344,11 @@ export interface components {
             preview?: string;
         };
         CreateThreadDto: {
+            /**
+             * Format: uuid
+             * @description 客户端创建幂等键；同一次提交和网络重试必须复用
+             */
+            clientRequestId?: string;
             /**
              * @description 主题帖标题（可为空，发布时校验）
              * @example 我的第一个主题帖
@@ -2673,6 +2753,11 @@ export interface components {
         };
         CreateSubthreadDto: {
             /**
+             * Format: uuid
+             * @description 客户端创建幂等键；同一次提交和网络重试必须复用
+             */
+            clientRequestId?: string;
+            /**
              * @description 子贴标题
              * @example 设定区
              */
@@ -3018,12 +3103,31 @@ export interface components {
             /** @description 举报原因 */
             reason: string;
         };
+        ReportResponseDto: {
+            id: string;
+            reporterId: string;
+            targetType: string;
+            targetId: string;
+            reason: string;
+            /** @enum {string} */
+            status: "PENDING" | "RESOLVED" | "DISMISSED";
+            handledBy: string | null;
+            /** Format: date-time */
+            handledAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
         HandleReportDto: {
             /**
              * @description 处理状态
              * @enum {string}
              */
             status: "RESOLVED" | "DISMISSED";
+        };
+        AdminStatusResponseDto: {
+            name: string;
+            status: string;
+            docs: string;
         };
         UserConditionDto: {
             /** @description 角色筛选（USER / ADMIN / SUPER_ADMIN） */
@@ -3046,6 +3150,47 @@ export interface components {
             conditions?: components["schemas"]["UserConditionDto"];
             /** @description 关联主题帖 ID（可选，前端跳转用） */
             threadId?: string;
+        };
+        AdminRecipientCountResponseDto: {
+            recipientCount: number;
+            estimatedCount?: number;
+        };
+        AdminNotificationUserResponseDto: {
+            id: string;
+            username: string;
+            /** Format: date-time */
+            deletedAt: string | null;
+        };
+        AdminSystemNotificationHistoryItemDto: {
+            id: string;
+            userId: string;
+            content: string | null;
+            payload: {
+                [key: string]: unknown;
+            } | null;
+            threadId: string | null;
+            isRead: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            user: components["schemas"]["AdminNotificationUserResponseDto"];
+        };
+        AdminSystemNotificationHistoryResponseDto: {
+            data: components["schemas"]["AdminSystemNotificationHistoryItemDto"][];
+            cursor: string | null;
+            hasMore: boolean;
+        };
+        AdminUserSearchItemDto: {
+            id: string;
+            username: string;
+            email: string;
+            /** @enum {string} */
+            role: "USER" | "ADMIN" | "SUPER_ADMIN";
+            emailVerified: boolean;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        AdminUserSearchResponseDto: {
+            data: components["schemas"]["AdminUserSearchItemDto"][];
         };
         SearchThreadOwnerResponseDto: {
             /** @description 用户 ID */
@@ -3180,6 +3325,10 @@ export interface components {
             userId: string;
             /** @description 原图公开访问地址 */
             url: string;
+            /** @description 处理完成后的 300px WebP 缩略图地址 */
+            thumbnailUrl: string | null;
+            /** @description 处理完成后的 800px WebP 中图地址 */
+            mediumUrl: string | null;
             /** @description 对象存储 key */
             key: string;
             /** @description 经对象存储确认的 MIME 类型；历史记录可能为空 */
@@ -3263,6 +3412,8 @@ export interface components {
         DirectMessageMediaResponseDto: {
             id: string;
             url: string;
+            thumbnailUrl: string | null;
+            mediumUrl: string | null;
             contentType: string | null;
             width: number | null;
             height: number | null;
@@ -3270,10 +3421,11 @@ export interface components {
         DirectMessageStickerResponseDto: {
             id: string;
             url: string;
+            thumbnailUrl: string | null;
+            mediumUrl: string | null;
             contentType: string | null;
             width: number | null;
             height: number | null;
-            thumbnailUrl: string;
             animated: boolean;
             frameCount: number;
             durationMs: number;
@@ -3324,6 +3476,18 @@ export interface components {
             message: string;
             conversationCanceled: boolean;
         };
+        ApiCapabilitiesResponseDto: {
+            stickers: boolean;
+            directMessages: boolean;
+            pushNotifications: boolean;
+        };
+        ApiMetaResponseDto: {
+            contractVersion: string;
+            buildSha: string | null;
+            /** @example 2 */
+            markdownContractVersion: number;
+            capabilities: components["schemas"]["ApiCapabilitiesResponseDto"];
+        };
         ApiPaginationMeta: {
             cursor: string | null;
             hasMore: boolean;
@@ -3336,13 +3500,429 @@ export interface components {
             code: 0;
             /** @example ok */
             message: string;
-            meta?: components["schemas"]["ApiPaginationMeta"];
+        };
+        ApiPaginatedSuccessEnvelope: components["schemas"]["ApiSuccessEnvelope"] & {
+            meta: components["schemas"]["ApiPaginationMeta"];
+        };
+        HealthCheck200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: {
+                /** @example ok */
+                status?: string;
+                /**
+                 * @example {
+                 *       "database": {
+                 *         "status": "up"
+                 *       }
+                 *     }
+                 */
+                info?: {
+                    [key: string]: {
+                        status: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                } | null;
+                /** @example {} */
+                error?: {
+                    [key: string]: {
+                        status: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                } | null;
+                /**
+                 * @example {
+                 *       "database": {
+                 *         "status": "up"
+                 *       }
+                 *     }
+                 */
+                details?: {
+                    [key: string]: {
+                        status: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+        AuthRequestCode200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["RegisterCodeResponseDto"];
+        };
+        AuthVerifyAndComplete200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AuthResponseDto"];
+        };
+        AuthLogin200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AuthResponseDto"];
+        };
+        AuthRefresh200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AuthResponseDto"];
+        };
+        AuthVerifyEmail200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        AuthResendVerification200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        AuthChangePassword200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        AuthForgotPassword200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        AuthResetPassword200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        AuthRequestChangeEmailCode200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        AuthVerifyChangeEmail200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        AuthLogout200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        AuthListSessions200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["SessionResponseDto"][];
+        };
+        AuthRevokeSession200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["RevokeSessionResponseDto"];
+        };
+        UsersSearch200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["PostAuthorResponseDto"][];
+        };
+        UsersMentionCandidates200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MentionCandidatesResponseDto"];
+        };
+        UsersGetMe200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["CurrentUserResponseDto"];
+        };
+        UsersDeleteMe200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        UsersUpdateMe200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["PrivateUserResponseDto"];
+        };
+        UsersRemoveAvatar200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["PrivateUserResponseDto"];
+        };
+        UsersSetAvatar200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["PrivateUserResponseDto"];
+        };
+        UsersGetUserBookmarks200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["BookmarkThreadResponseDto"][];
+        };
+        UsersGetUserPlayedThreads200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["ThreadListItemResponseDto"][];
+        };
+        UsersGetUserCreatedThreads200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["ThreadListItemResponseDto"][];
+        };
+        UsersGetUserRecentReplies200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["RecentReplyResponseDto"][];
+        };
+        UsersGetUser200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["PublicUserResponseDto"];
+        };
+        UsersFollowFollow200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        UsersFollowUnfollow200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        UsersFollowFollowing200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["UserFollowRecordResponseDto"][];
+        };
+        UsersFollowFollowers200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["UserFollowRecordResponseDto"][];
+        };
+        UsersFollowUserFollowing200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["UserFollowRecordResponseDto"][];
+        };
+        UsersFollowUserFollowers200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["UserFollowRecordResponseDto"][];
+        };
+        UsersFollowBlock200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        UsersFollowUnblock200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        UsersFollowBlocks200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["BlockedUserRecordResponseDto"][];
+        };
+        NotificationsFindAll200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["NotificationResponseDto"][];
+        };
+        NotificationsUnreadCount200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["UnreadNotificationCountResponseDto"];
+        };
+        NotificationsRemove200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        NotificationsSetReadStatus200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        NotificationsMarkAllAsRead200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        MobileDeviceRegister200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MobileDeviceResponseDto"];
+        };
+        MobileDeviceUnregister200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        BookmarksFindAll200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["OwnBookmarkThreadResponseDto"][];
+        };
+        BookmarksCreate201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["BookmarkResponseDto"];
+        };
+        BookmarksRemove200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        ThreadsFindDrafts200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["DraftThreadResponseDto"][];
+        };
+        ThreadsFindAll200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["HomeThreadListItemResponseDto"][];
+        };
+        ThreadsCreate201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ThreadDetailResponseDto"];
+        };
+        ThreadsFindById200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ThreadDetailResponseDto"];
+        };
+        ThreadsRemove200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        ThreadsUpdate200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ThreadDetailResponseDto"];
+        };
+        ThreadsSaveAggregate200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ThreadDetailResponseDto"];
+        };
+        ThreadsLike201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ThreadLikeResponseDto"];
+        };
+        ThreadsUnlike200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ThreadLikeResponseDto"];
+        };
+        ThreadsCreateInviteLink200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["InviteLinkResponseDto"];
+        };
+        ThreadsPreviewInviteLink200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["InvitePreviewResponseDto"];
+        };
+        ThreadsJoinByInviteLink200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["JoinedThreadMemberResponseDto"];
+        };
+        ThreadMembersFindAll200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ThreadMemberResponseDto"][];
+        };
+        ThreadMembersJoin201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ThreadMemberResponseDto"];
+        };
+        ThreadMembersUpdateMember200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ThreadMemberResponseDto"];
+        };
+        ThreadMembersExitMember200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        ThreadTagsFindAll200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ThreadTagRelationResponseDto"][];
+        };
+        ThreadTagsAdd201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ThreadTagResponseDto"];
+        };
+        ThreadTagsRemove200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        TagsSearch200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["TagResponseDto"][];
+        };
+        TagsCreate200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["TagResponseDto"];
+        };
+        TagsGetById200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["TagResponseDto"];
+        };
+        StickersGetCollection200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["StickerCollectionResponseDto"];
+        };
+        StickersImportMedia201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["StickerImportResponseDto"];
+        };
+        StickersImportDirectMessage201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["StickerImportResponseDto"];
+        };
+        StickersImportPostImage201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["StickerImportResponseDto"];
+        };
+        StickersGetImport200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["StickerImportResponseDto"];
+        };
+        StickersReorder200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["StickerCollectionResponseDto"];
+        };
+        StickersRemove200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["StickerCollectionResponseDto"];
+        };
+        SubthreadsFindAll200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["SubthreadResponseDto"][];
+        };
+        SubthreadsCreate201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["SubthreadResponseDto"];
+        };
+        SubthreadsFindById200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["SubthreadResponseDto"];
+        };
+        SubthreadsRemove200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        SubthreadsUpdate200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["SubthreadResponseDto"];
+        };
+        SubthreadsReorder200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ReorderedSubthreadResponseDto"][];
+        };
+        PostsFindFloors200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["FloorResponseDto"][];
+        };
+        PostsCreate201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["PostResponseDto"];
+        };
+        PostsFindReplies200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["ReplyResponseDto"][];
+        };
+        PostsUpsertBody200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["PostResponseDto"];
+        };
+        PostsFindById200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["PostDetailResponseDto"];
+        };
+        PostsRemove200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        PostsUpdate200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["PostResponseDto"];
+        };
+        DraftsFindAll200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["DraftResponseDto"][];
+        };
+        DraftsCreate201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["DraftResponseDto"];
+        };
+        DraftsSlotUsage200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["DraftSlotUsageResponseDto"];
+        };
+        DraftsFindById200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["DraftResponseDto"];
+        };
+        DraftsRemove200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["DeleteDraftResponseDto"];
+        };
+        DraftsUpdate200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["DraftResponseDto"];
+        };
+        SubscriptionsFindAll200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["SubscriptionResponseDto"][];
+        };
+        SubscriptionsCreate201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["SubscriptionResponseDto"];
+        };
+        SubscriptionsRemove200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        ReportsFindAll200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ReportResponseDto"][];
+        };
+        ReportsCreate201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ReportResponseDto"];
+        };
+        ReportsHandle200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ReportResponseDto"];
+        };
+        AdminIndex200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminStatusResponseDto"];
+        };
+        AdminSendSystemNotification201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminRecipientCountResponseDto"];
+        };
+        AdminPreviewRecipients201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminRecipientCountResponseDto"];
+        };
+        AdminGetHistory200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminSystemNotificationHistoryResponseDto"];
+        };
+        AdminSearchUsers200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminUserSearchResponseDto"];
+        };
+        SearchSearchThreads200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["SearchThreadResponseDto"][];
+        };
+        SearchSearchUsers200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["SearchUserResponseDto"][];
+        };
+        SearchSearchPosts200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["SearchPostResponseDto"][];
+        };
+        SearchSearch200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["SearchResultResponseDto"];
+        };
+        ThreadSearchSearchPosts200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["SearchPostResponseDto"][];
+        };
+        MediaGetUploadUrl201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["UploadUrlResponseDto"];
+        };
+        MediaConfirmUpload200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ConfirmUploadResponseDto"];
+        };
+        MediaGetMedia200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MediaResponseDto"];
+        };
+        DirectConversationsFindAll200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["DirectConversationResponseDto"][];
+        };
+        DirectConversationsCreate201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["DirectConversationStartResponseDto"];
+        };
+        DirectConversationsUnread200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["DirectUnreadCountResponseDto"];
+        };
+        DirectConversationsFindByUser200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["DirectConversationLookupResponseDto"];
+        };
+        DirectConversationsFindById200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["DirectConversationResponseDto"];
+        };
+        DirectConversationsMessages200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["DirectMessageResponseDto"][];
+        };
+        DirectConversationsSend201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["DirectMessageResponseDto"];
+        };
+        DirectConversationsHandleRequest200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["DirectConversationResponseDto"];
+        };
+        DirectConversationsArchive200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["DirectConversationResponseDto"];
+        };
+        DirectConversationsMarkRead200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        DirectMessagesRecall200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["DirectMessageRecallResponseDto"];
+        };
+        MetaGetMeta200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ApiMetaResponseDto"];
         };
         /**
          * @description 稳定业务错误码；名称和值来源于 ErrorCode
          * @enum {integer}
          */
-        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40107 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 42900 | 50000;
+        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40007 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40107 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 40912 | 42900 | 50000;
         ApiErrorEnvelope: {
             code: components["schemas"]["BusinessErrorCode"];
             message: string;
@@ -3358,7 +3938,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    HealthController_check: {
+    healthCheck: {
         parameters: {
             query?: never;
             header?: never;
@@ -3377,48 +3957,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: {
-                            /** @example ok */
-                            status?: string;
-                            /**
-                             * @example {
-                             *       "database": {
-                             *         "status": "up"
-                             *       }
-                             *     }
-                             */
-                            info?: {
-                                [key: string]: {
-                                    status: string;
-                                } & {
-                                    [key: string]: unknown;
-                                };
-                            } | null;
-                            /** @example {} */
-                            error?: {
-                                [key: string]: {
-                                    status: string;
-                                } & {
-                                    [key: string]: unknown;
-                                };
-                            } | null;
-                            /**
-                             * @example {
-                             *       "database": {
-                             *         "status": "up"
-                             *       }
-                             *     }
-                             */
-                            details?: {
-                                [key: string]: {
-                                    status: string;
-                                } & {
-                                    [key: string]: unknown;
-                                };
-                            };
-                        };
-                    };
+                    "application/json": components["schemas"]["HealthCheck200Response"];
                 };
             };
             /** @description The Health Check is not successful */
@@ -3441,7 +3980,7 @@ export interface operations {
             };
         };
     };
-    AuthController_requestCode: {
+    authRequestCode: {
         parameters: {
             query?: never;
             header?: never;
@@ -3460,9 +3999,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["RegisterCodeResponseDto"];
-                    };
+                    "application/json": components["schemas"]["AuthRequestCode200Response"];
                 };
             };
             /** @description 请求频繁，请稍后重试（1 分钟 1 次） */
@@ -3485,7 +4022,7 @@ export interface operations {
             };
         };
     };
-    AuthController_verifyAndComplete: {
+    authVerifyAndComplete: {
         parameters: {
             query?: never;
             header?: {
@@ -3507,9 +4044,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["AuthResponseDto"];
-                    };
+                    "application/json": components["schemas"]["AuthVerifyAndComplete200Response"];
                 };
             };
             /** @description 验证码错误或过期 */
@@ -3541,7 +4076,7 @@ export interface operations {
             };
         };
     };
-    AuthController_login: {
+    authLogin: {
         parameters: {
             query?: never;
             header?: {
@@ -3563,9 +4098,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["AuthResponseDto"];
-                    };
+                    "application/json": components["schemas"]["AuthLogin200Response"];
                 };
             };
             /** @description 账号或密码错误 或 账号被锁定 */
@@ -3588,7 +4121,7 @@ export interface operations {
             };
         };
     };
-    AuthController_refresh: {
+    authRefresh: {
         parameters: {
             query?: never;
             header?: never;
@@ -3607,9 +4140,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["AuthResponseDto"];
-                    };
+                    "application/json": components["schemas"]["AuthRefresh200Response"];
                 };
             };
             /** @description refreshToken 无效/过期/已被盗用（确认重放时对应登录终端退出） */
@@ -3632,7 +4163,7 @@ export interface operations {
             };
         };
     };
-    AuthController_verifyEmail: {
+    authVerifyEmail: {
         parameters: {
             query?: never;
             header?: never;
@@ -3651,9 +4182,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["MessageResponseDto"];
-                    };
+                    "application/json": components["schemas"]["AuthVerifyEmail200Response"];
                 };
             };
             /** @description 验证码错误 */
@@ -3685,7 +4214,7 @@ export interface operations {
             };
         };
     };
-    AuthController_resendVerification: {
+    authResendVerification: {
         parameters: {
             query?: never;
             header?: never;
@@ -3704,9 +4233,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["MessageResponseDto"];
-                    };
+                    "application/json": components["schemas"]["AuthResendVerification200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -3720,7 +4247,7 @@ export interface operations {
             };
         };
     };
-    AuthController_changePassword: {
+    authChangePassword: {
         parameters: {
             query?: never;
             header?: never;
@@ -3739,9 +4266,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["MessageResponseDto"];
-                    };
+                    "application/json": components["schemas"]["AuthChangePassword200Response"];
                 };
             };
             /** @description 未登录或旧密码错误 */
@@ -3764,7 +4289,7 @@ export interface operations {
             };
         };
     };
-    AuthController_forgotPassword: {
+    authForgotPassword: {
         parameters: {
             query?: never;
             header?: never;
@@ -3783,9 +4308,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["MessageResponseDto"];
-                    };
+                    "application/json": components["schemas"]["AuthForgotPassword200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -3799,7 +4322,7 @@ export interface operations {
             };
         };
     };
-    AuthController_resetPassword: {
+    authResetPassword: {
         parameters: {
             query?: never;
             header?: never;
@@ -3818,9 +4341,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["MessageResponseDto"];
-                    };
+                    "application/json": components["schemas"]["AuthResetPassword200Response"];
                 };
             };
             /** @description 验证码错误 或 密码格式不符合要求 */
@@ -3843,7 +4364,7 @@ export interface operations {
             };
         };
     };
-    AuthController_requestChangeEmailCode: {
+    authRequestChangeEmailCode: {
         parameters: {
             query?: never;
             header?: never;
@@ -3862,9 +4383,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["MessageResponseDto"];
-                    };
+                    "application/json": components["schemas"]["AuthRequestChangeEmailCode200Response"];
                 };
             };
             /** @description 未登录 */
@@ -3896,7 +4415,7 @@ export interface operations {
             };
         };
     };
-    AuthController_verifyChangeEmail: {
+    authVerifyChangeEmail: {
         parameters: {
             query?: never;
             header?: never;
@@ -3915,9 +4434,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["MessageResponseDto"];
-                    };
+                    "application/json": components["schemas"]["AuthVerifyChangeEmail200Response"];
                 };
             };
             /** @description 验证码错误或过期 */
@@ -3949,7 +4466,7 @@ export interface operations {
             };
         };
     };
-    AuthController_logout: {
+    authLogout: {
         parameters: {
             query?: never;
             header?: never;
@@ -3968,9 +4485,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["MessageResponseDto"];
-                    };
+                    "application/json": components["schemas"]["AuthLogout200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -3984,7 +4499,7 @@ export interface operations {
             };
         };
     };
-    AuthController_listSessions: {
+    authListSessions: {
         parameters: {
             query?: never;
             header?: never;
@@ -3999,9 +4514,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["SessionResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["AuthListSessions200Response"];
                 };
             };
             /** @description 请求频繁，请稍后重试（登录终端列表独立限流 60 次/分钟） */
@@ -4024,7 +4537,7 @@ export interface operations {
             };
         };
     };
-    AuthController_revokeSession: {
+    authRevokeSession: {
         parameters: {
             query?: never;
             header?: never;
@@ -4041,9 +4554,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["RevokeSessionResponseDto"];
-                    };
+                    "application/json": components["schemas"]["AuthRevokeSession200Response"];
                 };
             };
             /** @description 登录终端不存在或已失效 */
@@ -4075,7 +4586,7 @@ export interface operations {
             };
         };
     };
-    UsersController_search: {
+    usersSearch: {
         parameters: {
             query: {
                 /** @description 用户名搜索关键词 */
@@ -4093,9 +4604,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["PostAuthorResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["UsersSearch200Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -4118,7 +4627,7 @@ export interface operations {
             };
         };
     };
-    UsersController_mentionCandidates: {
+    usersMentionCandidates: {
         parameters: {
             query: {
                 /** @description 主题帖 ID */
@@ -4138,9 +4647,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["MentionCandidatesResponseDto"];
-                    };
+                    "application/json": components["schemas"]["UsersMentionCandidates200Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -4163,7 +4670,7 @@ export interface operations {
             };
         };
     };
-    UsersController_getMe: {
+    usersGetMe: {
         parameters: {
             query?: never;
             header?: never;
@@ -4178,9 +4685,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["CurrentUserResponseDto"];
-                    };
+                    "application/json": components["schemas"]["UsersGetMe200Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -4203,7 +4708,7 @@ export interface operations {
             };
         };
     };
-    UsersController_deleteMe: {
+    usersDeleteMe: {
         parameters: {
             query?: never;
             header?: never;
@@ -4218,9 +4723,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["MessageResponseDto"];
-                    };
+                    "application/json": components["schemas"]["UsersDeleteMe200Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -4243,7 +4746,7 @@ export interface operations {
             };
         };
     };
-    UsersController_updateMe: {
+    usersUpdateMe: {
         parameters: {
             query?: never;
             header?: never;
@@ -4262,9 +4765,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["PrivateUserResponseDto"];
-                    };
+                    "application/json": components["schemas"]["UsersUpdateMe200Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -4296,7 +4797,7 @@ export interface operations {
             };
         };
     };
-    UsersController_removeAvatar: {
+    usersRemoveAvatar: {
         parameters: {
             query?: never;
             header?: never;
@@ -4311,9 +4812,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["PrivateUserResponseDto"];
-                    };
+                    "application/json": components["schemas"]["UsersRemoveAvatar200Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -4336,7 +4835,7 @@ export interface operations {
             };
         };
     };
-    UsersController_setAvatar: {
+    usersSetAvatar: {
         parameters: {
             query?: never;
             header?: never;
@@ -4355,9 +4854,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["PrivateUserResponseDto"];
-                    };
+                    "application/json": components["schemas"]["UsersSetAvatar200Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -4389,13 +4886,13 @@ export interface operations {
             };
         };
     };
-    UsersController_getUserBookmarks: {
+    usersGetUserBookmarks: {
         parameters: {
             query?: {
+                /** @description 服务端返回的不透明分页游标；首次请求不传，后续必须原样回传 */
+                cursor?: string;
                 /** @description 每页条数（默认 20，最大 50） */
-                limit?: unknown;
-                /** @description 分页游标（上一页最后一条记录 ID） */
-                cursor?: unknown;
+                limit?: number;
             };
             header?: never;
             path: {
@@ -4411,9 +4908,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["BookmarkThreadResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["UsersGetUserBookmarks200Response"];
                 };
             };
             /** @description 用户不存在或未公开收藏 */
@@ -4436,10 +4931,10 @@ export interface operations {
             };
         };
     };
-    UsersController_getUserPlayedThreads: {
+    usersGetUserPlayedThreads: {
         parameters: {
             query?: {
-                /** @description 分页游标（上一页最后一条记录的 ID），首次请求不传 */
+                /** @description 服务端返回的不透明分页游标；首次请求不传，后续必须原样回传 */
                 cursor?: string;
                 /** @description 每页条数（默认 20，最大 50） */
                 limit?: number;
@@ -4460,9 +4955,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["ThreadListItemResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["UsersGetUserPlayedThreads200Response"];
                 };
             };
             /** @description 用户不存在或未公开参与的帖子 */
@@ -4485,13 +4978,13 @@ export interface operations {
             };
         };
     };
-    UsersController_getUserCreatedThreads: {
+    usersGetUserCreatedThreads: {
         parameters: {
             query?: {
+                /** @description 服务端返回的不透明分页游标；首次请求不传，后续必须原样回传 */
+                cursor?: string;
                 /** @description 每页条数（默认 20，最大 50） */
-                limit?: unknown;
-                /** @description 分页游标（上一页最后一条记录 ID） */
-                cursor?: unknown;
+                limit?: number;
             };
             header?: never;
             path: {
@@ -4507,9 +5000,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["ThreadListItemResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["UsersGetUserCreatedThreads200Response"];
                 };
             };
             /** @description 用户不存在 */
@@ -4532,7 +5023,7 @@ export interface operations {
             };
         };
     };
-    UsersController_getUserRecentReplies: {
+    usersGetUserRecentReplies: {
         parameters: {
             query?: never;
             header?: never;
@@ -4549,9 +5040,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["RecentReplyResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["UsersGetUserRecentReplies200Response"];
                 };
             };
             /** @description 用户不存在或未公开最近动态 */
@@ -4574,7 +5063,7 @@ export interface operations {
             };
         };
     };
-    UsersController_getUser: {
+    usersGetUser: {
         parameters: {
             query?: never;
             header?: never;
@@ -4591,9 +5080,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["PublicUserResponseDto"];
-                    };
+                    "application/json": components["schemas"]["UsersGetUser200Response"];
                 };
             };
             /** @description 用户不存在 */
@@ -4616,7 +5103,7 @@ export interface operations {
             };
         };
     };
-    UsersFollowController_follow: {
+    usersFollowFollow: {
         parameters: {
             query?: never;
             header?: never;
@@ -4633,9 +5120,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["MessageResponseDto"];
-                    };
+                    "application/json": components["schemas"]["UsersFollowFollow200Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -4667,7 +5152,7 @@ export interface operations {
             };
         };
     };
-    UsersFollowController_unfollow: {
+    usersFollowUnfollow: {
         parameters: {
             query?: never;
             header?: never;
@@ -4684,9 +5169,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["MessageResponseDto"];
-                    };
+                    "application/json": components["schemas"]["UsersFollowUnfollow200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -4700,7 +5183,7 @@ export interface operations {
             };
         };
     };
-    UsersFollowController_following: {
+    usersFollowFollowing: {
         parameters: {
             query?: never;
             header?: never;
@@ -4715,9 +5198,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["UserFollowRecordResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["UsersFollowFollowing200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -4731,7 +5212,7 @@ export interface operations {
             };
         };
     };
-    UsersFollowController_followers: {
+    usersFollowFollowers: {
         parameters: {
             query?: never;
             header?: never;
@@ -4746,9 +5227,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["UserFollowRecordResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["UsersFollowFollowers200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -4762,7 +5241,7 @@ export interface operations {
             };
         };
     };
-    UsersFollowController_userFollowing: {
+    usersFollowUserFollowing: {
         parameters: {
             query?: never;
             header?: never;
@@ -4779,9 +5258,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["UserFollowRecordResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["UsersFollowUserFollowing200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -4795,7 +5272,7 @@ export interface operations {
             };
         };
     };
-    UsersFollowController_userFollowers: {
+    usersFollowUserFollowers: {
         parameters: {
             query?: never;
             header?: never;
@@ -4812,9 +5289,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["UserFollowRecordResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["UsersFollowUserFollowers200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -4828,7 +5303,7 @@ export interface operations {
             };
         };
     };
-    UsersFollowController_block: {
+    usersFollowBlock: {
         parameters: {
             query?: never;
             header?: never;
@@ -4845,9 +5320,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["MessageResponseDto"];
-                    };
+                    "application/json": components["schemas"]["UsersFollowBlock200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -4861,7 +5334,7 @@ export interface operations {
             };
         };
     };
-    UsersFollowController_unblock: {
+    usersFollowUnblock: {
         parameters: {
             query?: never;
             header?: never;
@@ -4878,9 +5351,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["MessageResponseDto"];
-                    };
+                    "application/json": components["schemas"]["UsersFollowUnblock200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -4894,7 +5365,7 @@ export interface operations {
             };
         };
     };
-    UsersFollowController_blocks: {
+    usersFollowBlocks: {
         parameters: {
             query?: never;
             header?: never;
@@ -4909,9 +5380,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["BlockedUserRecordResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["UsersFollowBlocks200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -4925,7 +5394,7 @@ export interface operations {
             };
         };
     };
-    NotificationsController_findAll: {
+    notificationsFindAll: {
         parameters: {
             query?: {
                 /** @description 分页游标（上一页最后一条通知 ID） */
@@ -4945,9 +5414,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["NotificationResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["NotificationsFindAll200Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -4970,7 +5437,7 @@ export interface operations {
             };
         };
     };
-    NotificationsController_unreadCount: {
+    notificationsUnreadCount: {
         parameters: {
             query?: never;
             header?: never;
@@ -4985,9 +5452,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["UnreadNotificationCountResponseDto"];
-                    };
+                    "application/json": components["schemas"]["NotificationsUnreadCount200Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -5010,7 +5475,7 @@ export interface operations {
             };
         };
     };
-    NotificationsController_remove: {
+    notificationsRemove: {
         parameters: {
             query?: never;
             header?: never;
@@ -5027,9 +5492,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["MessageResponseDto"];
-                    };
+                    "application/json": components["schemas"]["NotificationsRemove200Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -5052,7 +5515,7 @@ export interface operations {
             };
         };
     };
-    NotificationsController_setReadStatus: {
+    notificationsSetReadStatus: {
         parameters: {
             query?: never;
             header?: never;
@@ -5073,9 +5536,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["MessageResponseDto"];
-                    };
+                    "application/json": components["schemas"]["NotificationsSetReadStatus200Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -5098,7 +5559,7 @@ export interface operations {
             };
         };
     };
-    NotificationsController_markAllAsRead: {
+    notificationsMarkAllAsRead: {
         parameters: {
             query?: never;
             header?: never;
@@ -5113,9 +5574,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["MessageResponseDto"];
-                    };
+                    "application/json": components["schemas"]["NotificationsMarkAllAsRead200Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -5138,10 +5597,70 @@ export interface operations {
             };
         };
     };
-    BookmarksController_findAll: {
+    mobileDeviceRegister: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterMobileDeviceDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MobileDeviceRegister200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    mobileDeviceUnregister: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MobileDeviceUnregister200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    bookmarksFindAll: {
         parameters: {
             query?: {
-                /** @description 分页游标（上一页最后一条记录的 ID），首次请求不传 */
+                /** @description 服务端返回的不透明分页游标；首次请求不传，后续必须原样回传 */
                 cursor?: string;
                 /** @description 每页条数（默认 20，最大 50） */
                 limit?: number;
@@ -5158,9 +5677,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["OwnBookmarkThreadResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["BookmarksFindAll200Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -5183,7 +5700,7 @@ export interface operations {
             };
         };
     };
-    BookmarksController_create: {
+    bookmarksCreate: {
         parameters: {
             query?: never;
             header?: never;
@@ -5202,9 +5719,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["BookmarkResponseDto"];
-                    };
+                    "application/json": components["schemas"]["BookmarksCreate201Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -5245,7 +5760,7 @@ export interface operations {
             };
         };
     };
-    BookmarksController_remove: {
+    bookmarksRemove: {
         parameters: {
             query?: never;
             header?: never;
@@ -5262,9 +5777,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["MessageResponseDto"];
-                    };
+                    "application/json": components["schemas"]["BookmarksRemove200Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -5296,7 +5809,7 @@ export interface operations {
             };
         };
     };
-    ThreadsController_findDrafts: {
+    threadsFindDrafts: {
         parameters: {
             query?: never;
             header?: never;
@@ -5311,9 +5824,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["DraftThreadResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["ThreadsFindDrafts200Response"];
                 };
             };
             /** @description 未登录 */
@@ -5336,10 +5847,10 @@ export interface operations {
             };
         };
     };
-    ThreadsController_findAll: {
+    threadsFindAll: {
         parameters: {
             query?: {
-                /** @description 分页游标（上一页最后一条记录的 ID），首次请求不传 */
+                /** @description 服务端返回的不透明分页游标；首次请求不传，后续必须原样回传 */
                 cursor?: string;
                 /** @description 每页条数（默认 20，最大 50） */
                 limit?: number;
@@ -5368,9 +5879,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["HomeThreadListItemResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["ThreadsFindAll200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -5384,7 +5893,7 @@ export interface operations {
             };
         };
     };
-    ThreadsController_create: {
+    threadsCreate: {
         parameters: {
             query?: never;
             header?: never;
@@ -5403,9 +5912,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["ThreadDetailResponseDto"];
-                    };
+                    "application/json": components["schemas"]["ThreadsCreate201Response"];
                 };
             };
             /** @description 未登录或邮箱未验证 */
@@ -5428,7 +5935,7 @@ export interface operations {
             };
         };
     };
-    ThreadsController_findById: {
+    threadsFindById: {
         parameters: {
             query?: never;
             header?: never;
@@ -5445,9 +5952,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["ThreadDetailResponseDto"];
-                    };
+                    "application/json": components["schemas"]["ThreadsFindById200Response"];
                 };
             };
             /** @description 主题帖不存在或已删除（PRIVATE 帖非成员也返回 404） */
@@ -5470,7 +5975,7 @@ export interface operations {
             };
         };
     };
-    ThreadsController_remove: {
+    threadsRemove: {
         parameters: {
             query?: never;
             header?: never;
@@ -5487,9 +5992,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["MessageResponseDto"];
-                    };
+                    "application/json": components["schemas"]["ThreadsRemove200Response"];
                 };
             };
             /** @description 未登录或邮箱未验证 */
@@ -5530,7 +6033,7 @@ export interface operations {
             };
         };
     };
-    ThreadsController_update: {
+    threadsUpdate: {
         parameters: {
             query?: never;
             header?: never;
@@ -5551,9 +6054,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["ThreadDetailResponseDto"];
-                    };
+                    "application/json": components["schemas"]["ThreadsUpdate200Response"];
                 };
             };
             /** @description 未登录或邮箱未验证 */
@@ -5603,7 +6104,7 @@ export interface operations {
             };
         };
     };
-    ThreadsController_saveAggregate: {
+    threadsSaveAggregate: {
         parameters: {
             query?: never;
             header?: never;
@@ -5624,9 +6125,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["ThreadDetailResponseDto"];
-                    };
+                    "application/json": components["schemas"]["ThreadsSaveAggregate200Response"];
                 };
             };
             /** @description 未登录或邮箱未验证 */
@@ -5676,7 +6175,7 @@ export interface operations {
             };
         };
     };
-    ThreadsController_like: {
+    threadsLike: {
         parameters: {
             query?: never;
             header?: never;
@@ -5693,9 +6192,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["ThreadLikeResponseDto"];
-                    };
+                    "application/json": components["schemas"]["ThreadsLike201Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -5709,7 +6206,7 @@ export interface operations {
             };
         };
     };
-    ThreadsController_unlike: {
+    threadsUnlike: {
         parameters: {
             query?: never;
             header?: never;
@@ -5726,9 +6223,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["ThreadLikeResponseDto"];
-                    };
+                    "application/json": components["schemas"]["ThreadsUnlike200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -5742,7 +6237,7 @@ export interface operations {
             };
         };
     };
-    ThreadsController_createInviteLink: {
+    threadsCreateInviteLink: {
         parameters: {
             query?: never;
             header?: never;
@@ -5759,9 +6254,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["InviteLinkResponseDto"];
-                    };
+                    "application/json": components["schemas"]["ThreadsCreateInviteLink200Response"];
                 };
             };
             /** @description 未登录或邮箱未验证 */
@@ -5793,7 +6286,7 @@ export interface operations {
             };
         };
     };
-    ThreadsController_previewInviteLink: {
+    threadsPreviewInviteLink: {
         parameters: {
             query?: never;
             header?: never;
@@ -5810,9 +6303,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["InvitePreviewResponseDto"];
-                    };
+                    "application/json": components["schemas"]["ThreadsPreviewInviteLink200Response"];
                 };
             };
             /** @description 未登录 */
@@ -5844,7 +6335,7 @@ export interface operations {
             };
         };
     };
-    ThreadsController_joinByInviteLink: {
+    threadsJoinByInviteLink: {
         parameters: {
             query?: never;
             header?: never;
@@ -5861,9 +6352,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["JoinedThreadMemberResponseDto"];
-                    };
+                    "application/json": components["schemas"]["ThreadsJoinByInviteLink200Response"];
                 };
             };
             /** @description 未登录或邮箱未验证 */
@@ -5895,7 +6384,7 @@ export interface operations {
             };
         };
     };
-    ThreadMembersController_findAll: {
+    threadMembersFindAll: {
         parameters: {
             query?: never;
             header?: never;
@@ -5911,9 +6400,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["ThreadMemberResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["ThreadMembersFindAll200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -5927,7 +6414,7 @@ export interface operations {
             };
         };
     };
-    ThreadMembersController_join: {
+    threadMembersJoin: {
         parameters: {
             query?: never;
             header?: never;
@@ -5943,9 +6430,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["ThreadMemberResponseDto"];
-                    };
+                    "application/json": components["schemas"]["ThreadMembersJoin201Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -5959,7 +6444,7 @@ export interface operations {
             };
         };
     };
-    ThreadMembersController_updateMember: {
+    threadMembersUpdateMember: {
         parameters: {
             query?: never;
             header?: never;
@@ -5984,9 +6469,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["ThreadMemberResponseDto"];
-                    };
+                    "application/json": components["schemas"]["ThreadMembersUpdateMember200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -6000,7 +6483,7 @@ export interface operations {
             };
         };
     };
-    ThreadMembersController_exitMember: {
+    threadMembersExitMember: {
         parameters: {
             query?: never;
             header?: never;
@@ -6017,9 +6500,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["MessageResponseDto"];
-                    };
+                    "application/json": components["schemas"]["ThreadMembersExitMember200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -6033,7 +6514,7 @@ export interface operations {
             };
         };
     };
-    ThreadTagsController_findAll: {
+    threadTagsFindAll: {
         parameters: {
             query?: never;
             header?: never;
@@ -6049,9 +6530,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["ThreadTagRelationResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["ThreadTagsFindAll200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -6065,7 +6544,7 @@ export interface operations {
             };
         };
     };
-    ThreadTagsController_add: {
+    threadTagsAdd: {
         parameters: {
             query?: never;
             header?: never;
@@ -6085,9 +6564,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["ThreadTagResponseDto"];
-                    };
+                    "application/json": components["schemas"]["ThreadTagsAdd201Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -6101,7 +6578,7 @@ export interface operations {
             };
         };
     };
-    ThreadTagsController_remove: {
+    threadTagsRemove: {
         parameters: {
             query?: never;
             header?: never;
@@ -6119,9 +6596,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["MessageResponseDto"];
-                    };
+                    "application/json": components["schemas"]["ThreadTagsRemove200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -6135,7 +6610,7 @@ export interface operations {
             };
         };
     };
-    TagsController_search: {
+    tagsSearch: {
         parameters: {
             query?: {
                 /** @description 标签名称模糊搜索关键词 */
@@ -6153,9 +6628,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["TagResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["TagsSearch200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -6169,7 +6642,7 @@ export interface operations {
             };
         };
     };
-    TagsController_create: {
+    tagsCreate: {
         parameters: {
             query?: never;
             header?: never;
@@ -6188,9 +6661,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["TagResponseDto"];
-                    };
+                    "application/json": components["schemas"]["TagsCreate200Response"];
                 };
             };
             /** @description 未登录或邮箱未验证 */
@@ -6222,7 +6693,7 @@ export interface operations {
             };
         };
     };
-    TagsController_getById: {
+    tagsGetById: {
         parameters: {
             query?: never;
             header?: never;
@@ -6239,9 +6710,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["TagResponseDto"];
-                    };
+                    "application/json": components["schemas"]["TagsGetById200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -6255,7 +6724,7 @@ export interface operations {
             };
         };
     };
-    StickersController_getCollection: {
+    stickersGetCollection: {
         parameters: {
             query?: never;
             header?: never;
@@ -6269,9 +6738,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["StickerCollectionResponseDto"];
-                    };
+                    "application/json": components["schemas"]["StickersGetCollection200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -6285,7 +6752,7 @@ export interface operations {
             };
         };
     };
-    StickersController_importMedia: {
+    stickersImportMedia: {
         parameters: {
             query?: never;
             header?: never;
@@ -6303,9 +6770,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["StickerImportResponseDto"];
-                    };
+                    "application/json": components["schemas"]["StickersImportMedia201Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -6319,7 +6784,7 @@ export interface operations {
             };
         };
     };
-    StickersController_importDirectMessage: {
+    stickersImportDirectMessage: {
         parameters: {
             query?: never;
             header?: never;
@@ -6337,9 +6802,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["StickerImportResponseDto"];
-                    };
+                    "application/json": components["schemas"]["StickersImportDirectMessage201Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -6353,7 +6816,7 @@ export interface operations {
             };
         };
     };
-    StickersController_importPostImage: {
+    stickersImportPostImage: {
         parameters: {
             query?: never;
             header?: never;
@@ -6371,9 +6834,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["StickerImportResponseDto"];
-                    };
+                    "application/json": components["schemas"]["StickersImportPostImage201Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -6387,7 +6848,7 @@ export interface operations {
             };
         };
     };
-    StickersController_getImport: {
+    stickersGetImport: {
         parameters: {
             query?: never;
             header?: never;
@@ -6403,9 +6864,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["StickerImportResponseDto"];
-                    };
+                    "application/json": components["schemas"]["StickersGetImport200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -6419,7 +6878,7 @@ export interface operations {
             };
         };
     };
-    StickersController_reorder: {
+    stickersReorder: {
         parameters: {
             query?: never;
             header?: never;
@@ -6437,9 +6896,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["StickerCollectionResponseDto"];
-                    };
+                    "application/json": components["schemas"]["StickersReorder200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -6453,7 +6910,7 @@ export interface operations {
             };
         };
     };
-    StickersController_remove: {
+    stickersRemove: {
         parameters: {
             query?: never;
             header?: never;
@@ -6469,9 +6926,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["StickerCollectionResponseDto"];
-                    };
+                    "application/json": components["schemas"]["StickersRemove200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -6485,7 +6940,7 @@ export interface operations {
             };
         };
     };
-    SubthreadsController_findAll: {
+    subthreadsFindAll: {
         parameters: {
             query?: never;
             header?: never;
@@ -6501,9 +6956,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["SubthreadResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["SubthreadsFindAll200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -6517,7 +6970,7 @@ export interface operations {
             };
         };
     };
-    SubthreadsController_create: {
+    subthreadsCreate: {
         parameters: {
             query?: never;
             header?: never;
@@ -6537,9 +6990,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["SubthreadResponseDto"];
-                    };
+                    "application/json": components["schemas"]["SubthreadsCreate201Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -6553,7 +7004,7 @@ export interface operations {
             };
         };
     };
-    SubthreadsController_findById: {
+    subthreadsFindById: {
         parameters: {
             query?: never;
             header?: never;
@@ -6569,9 +7020,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["SubthreadResponseDto"];
-                    };
+                    "application/json": components["schemas"]["SubthreadsFindById200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -6585,7 +7034,7 @@ export interface operations {
             };
         };
     };
-    SubthreadsController_remove: {
+    subthreadsRemove: {
         parameters: {
             query?: never;
             header?: never;
@@ -6602,9 +7051,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["MessageResponseDto"];
-                    };
+                    "application/json": components["schemas"]["SubthreadsRemove200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -6618,7 +7065,7 @@ export interface operations {
             };
         };
     };
-    SubthreadsController_update: {
+    subthreadsUpdate: {
         parameters: {
             query?: never;
             header?: never;
@@ -6638,9 +7085,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["SubthreadResponseDto"];
-                    };
+                    "application/json": components["schemas"]["SubthreadsUpdate200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -6654,7 +7099,7 @@ export interface operations {
             };
         };
     };
-    SubthreadsController_reorder: {
+    subthreadsReorder: {
         parameters: {
             query?: never;
             header?: never;
@@ -6674,9 +7119,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["ReorderedSubthreadResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["SubthreadsReorder200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -6690,7 +7133,7 @@ export interface operations {
             };
         };
     };
-    PostsController_findFloors: {
+    postsFindFloors: {
         parameters: {
             query?: {
                 /** @description 分页游标 */
@@ -6712,9 +7155,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["FloorResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["PostsFindFloors200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -6728,7 +7169,7 @@ export interface operations {
             };
         };
     };
-    PostsController_create: {
+    postsCreate: {
         parameters: {
             query?: never;
             header?: never;
@@ -6749,9 +7190,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["PostResponseDto"];
-                    };
+                    "application/json": components["schemas"]["PostsCreate201Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -6792,7 +7231,7 @@ export interface operations {
             };
         };
     };
-    PostsController_findReplies: {
+    postsFindReplies: {
         parameters: {
             query?: {
                 /** @description 分页游标（上一页最后一条记录 ID） */
@@ -6814,9 +7253,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["ReplyResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["PostsFindReplies200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -6830,7 +7267,7 @@ export interface operations {
             };
         };
     };
-    PostsController_upsertBody: {
+    postsUpsertBody: {
         parameters: {
             query?: never;
             header?: never;
@@ -6851,9 +7288,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["PostResponseDto"];
-                    };
+                    "application/json": components["schemas"]["PostsUpsertBody200Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -6894,7 +7329,7 @@ export interface operations {
             };
         };
     };
-    PostsController_findById: {
+    postsFindById: {
         parameters: {
             query?: never;
             header?: never;
@@ -6911,9 +7346,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["PostDetailResponseDto"];
-                    };
+                    "application/json": components["schemas"]["PostsFindById200Response"];
                 };
             };
             /** @description 帖子不存在 */
@@ -6936,7 +7369,7 @@ export interface operations {
             };
         };
     };
-    PostsController_remove: {
+    postsRemove: {
         parameters: {
             query?: never;
             header?: never;
@@ -6953,9 +7386,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["MessageResponseDto"];
-                    };
+                    "application/json": components["schemas"]["PostsRemove200Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -6996,7 +7427,7 @@ export interface operations {
             };
         };
     };
-    PostsController_update: {
+    postsUpdate: {
         parameters: {
             query?: never;
             header?: never;
@@ -7017,9 +7448,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["PostResponseDto"];
-                    };
+                    "application/json": components["schemas"]["PostsUpdate200Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -7060,7 +7489,7 @@ export interface operations {
             };
         };
     };
-    DraftsController_findAll: {
+    draftsFindAll: {
         parameters: {
             query?: never;
             header?: never;
@@ -7075,9 +7504,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["DraftResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["DraftsFindAll200Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -7100,7 +7527,7 @@ export interface operations {
             };
         };
     };
-    DraftsController_create: {
+    draftsCreate: {
         parameters: {
             query?: never;
             header?: never;
@@ -7119,9 +7546,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["DraftResponseDto"];
-                    };
+                    "application/json": components["schemas"]["DraftsCreate201Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -7153,7 +7578,7 @@ export interface operations {
             };
         };
     };
-    DraftsController_slotUsage: {
+    draftsSlotUsage: {
         parameters: {
             query?: never;
             header?: never;
@@ -7168,9 +7593,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["DraftSlotUsageResponseDto"];
-                    };
+                    "application/json": components["schemas"]["DraftsSlotUsage200Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -7193,7 +7616,7 @@ export interface operations {
             };
         };
     };
-    DraftsController_findById: {
+    draftsFindById: {
         parameters: {
             query?: never;
             header?: never;
@@ -7210,9 +7633,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["DraftResponseDto"];
-                    };
+                    "application/json": components["schemas"]["DraftsFindById200Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -7244,7 +7665,7 @@ export interface operations {
             };
         };
     };
-    DraftsController_remove: {
+    draftsRemove: {
         parameters: {
             query?: never;
             header?: never;
@@ -7261,9 +7682,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["DeleteDraftResponseDto"];
-                    };
+                    "application/json": components["schemas"]["DraftsRemove200Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -7295,7 +7714,7 @@ export interface operations {
             };
         };
     };
-    DraftsController_update: {
+    draftsUpdate: {
         parameters: {
             query?: never;
             header?: never;
@@ -7316,9 +7735,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["DraftResponseDto"];
-                    };
+                    "application/json": components["schemas"]["DraftsUpdate200Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -7359,7 +7776,7 @@ export interface operations {
             };
         };
     };
-    SubscriptionsController_findAll: {
+    subscriptionsFindAll: {
         parameters: {
             query?: never;
             header?: never;
@@ -7374,9 +7791,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["SubscriptionResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["SubscriptionsFindAll200Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -7399,7 +7814,7 @@ export interface operations {
             };
         };
     };
-    SubscriptionsController_create: {
+    subscriptionsCreate: {
         parameters: {
             query?: never;
             header?: never;
@@ -7418,9 +7833,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["SubscriptionResponseDto"];
-                    };
+                    "application/json": components["schemas"]["SubscriptionsCreate201Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -7443,7 +7856,7 @@ export interface operations {
             };
         };
     };
-    SubscriptionsController_remove: {
+    subscriptionsRemove: {
         parameters: {
             query?: never;
             header?: never;
@@ -7460,9 +7873,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["MessageResponseDto"];
-                    };
+                    "application/json": components["schemas"]["SubscriptionsRemove200Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -7494,7 +7905,7 @@ export interface operations {
             };
         };
     };
-    ReportsController_findAll: {
+    reportsFindAll: {
         parameters: {
             query: {
                 status: string;
@@ -7510,9 +7921,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
-                    };
+                    "application/json": components["schemas"]["ReportsFindAll200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -7526,7 +7935,7 @@ export interface operations {
             };
         };
     };
-    ReportsController_create: {
+    reportsCreate: {
         parameters: {
             query?: never;
             header?: never;
@@ -7544,9 +7953,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
-                    };
+                    "application/json": components["schemas"]["ReportsCreate201Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -7560,7 +7967,7 @@ export interface operations {
             };
         };
     };
-    ReportsController_handle: {
+    reportsHandle: {
         parameters: {
             query?: never;
             header?: never;
@@ -7580,9 +7987,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
-                    };
+                    "application/json": components["schemas"]["ReportsHandle200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -7596,7 +8001,7 @@ export interface operations {
             };
         };
     };
-    AdminController_index: {
+    adminIndex: {
         parameters: {
             query?: never;
             header?: never;
@@ -7610,9 +8015,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
-                    };
+                    "application/json": components["schemas"]["AdminIndex200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -7626,7 +8029,7 @@ export interface operations {
             };
         };
     };
-    AdminController_sendSystemNotification: {
+    adminSendSystemNotification: {
         parameters: {
             query?: never;
             header?: never;
@@ -7644,9 +8047,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
-                    };
+                    "application/json": components["schemas"]["AdminSendSystemNotification201Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -7660,7 +8061,7 @@ export interface operations {
             };
         };
     };
-    AdminController_previewRecipients: {
+    adminPreviewRecipients: {
         parameters: {
             query?: never;
             header?: never;
@@ -7678,9 +8079,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
-                    };
+                    "application/json": components["schemas"]["AdminPreviewRecipients201Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -7694,7 +8093,7 @@ export interface operations {
             };
         };
     };
-    AdminController_getHistory: {
+    adminGetHistory: {
         parameters: {
             query?: {
                 /** @description 分页游标 */
@@ -7711,9 +8110,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
-                    };
+                    "application/json": components["schemas"]["AdminGetHistory200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -7727,7 +8124,7 @@ export interface operations {
             };
         };
     };
-    AdminController_searchUsers: {
+    adminSearchUsers: {
         parameters: {
             query: {
                 /** @description 用户名或邮箱关键词 */
@@ -7744,9 +8141,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: unknown;
-                    };
+                    "application/json": components["schemas"]["AdminSearchUsers200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -7760,7 +8155,7 @@ export interface operations {
             };
         };
     };
-    SearchController_searchThreads: {
+    searchSearchThreads: {
         parameters: {
             query: {
                 /** @description 搜索关键词，首尾空白会被移除 */
@@ -7778,9 +8173,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["SearchThreadResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["SearchSearchThreads200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -7794,7 +8187,7 @@ export interface operations {
             };
         };
     };
-    SearchController_searchUsers: {
+    searchSearchUsers: {
         parameters: {
             query: {
                 /** @description 搜索关键词，首尾空白会被移除 */
@@ -7812,9 +8205,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["SearchUserResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["SearchSearchUsers200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -7828,7 +8219,7 @@ export interface operations {
             };
         };
     };
-    SearchController_searchPosts: {
+    searchSearchPosts: {
         parameters: {
             query: {
                 /** @description 搜索关键词，首尾空白会被移除 */
@@ -7850,9 +8241,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["SearchPostResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["SearchSearchPosts200Response"];
                 };
             };
             /** @description 关键词不足 2 个字符或游标无效 */
@@ -7875,7 +8264,7 @@ export interface operations {
             };
         };
     };
-    SearchController_search: {
+    searchSearch: {
         parameters: {
             query: {
                 /** @description 搜索关键词，首尾空白会被移除 */
@@ -7893,9 +8282,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["SearchResultResponseDto"];
-                    };
+                    "application/json": components["schemas"]["SearchSearch200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -7909,7 +8296,7 @@ export interface operations {
             };
         };
     };
-    ThreadSearchController_searchPosts: {
+    threadSearchSearchPosts: {
         parameters: {
             query: {
                 /** @description 搜索关键词，首尾空白会被移除 */
@@ -7933,9 +8320,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["SearchPostResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["ThreadSearchSearchPosts200Response"];
                 };
             };
             /** @description 关键词不足 2 个字符或游标无效 */
@@ -7967,7 +8352,7 @@ export interface operations {
             };
         };
     };
-    MediaController_getUploadUrl: {
+    mediaGetUploadUrl: {
         parameters: {
             query?: never;
             header?: never;
@@ -7986,9 +8371,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["UploadUrlResponseDto"];
-                    };
+                    "application/json": components["schemas"]["MediaGetUploadUrl201Response"];
                 };
             };
             /** @description 文件类型不支持或超过大小限制 */
@@ -8029,7 +8412,7 @@ export interface operations {
             };
         };
     };
-    MediaController_confirmUpload: {
+    mediaConfirmUpload: {
         parameters: {
             query?: never;
             header?: never;
@@ -8048,9 +8431,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["ConfirmUploadResponseDto"];
-                    };
+                    "application/json": components["schemas"]["MediaConfirmUpload200Response"];
                 };
             };
             /** @description 文件不存在或不属于当前用户 */
@@ -8082,7 +8463,7 @@ export interface operations {
             };
         };
     };
-    MediaController_getMedia: {
+    mediaGetMedia: {
         parameters: {
             query?: never;
             header?: never;
@@ -8099,9 +8480,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["MediaResponseDto"];
-                    };
+                    "application/json": components["schemas"]["MediaGetMedia200Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -8133,7 +8512,7 @@ export interface operations {
             };
         };
     };
-    DirectConversationsController_findAll: {
+    directConversationsFindAll: {
         parameters: {
             query?: {
                 view?: "INBOX" | "REQUESTS" | "ARCHIVED";
@@ -8153,9 +8532,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["DirectConversationResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["DirectConversationsFindAll200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -8169,7 +8546,7 @@ export interface operations {
             };
         };
     };
-    DirectConversationsController_create: {
+    directConversationsCreate: {
         parameters: {
             query?: never;
             header?: never;
@@ -8187,9 +8564,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["DirectConversationStartResponseDto"];
-                    };
+                    "application/json": components["schemas"]["DirectConversationsCreate201Response"];
                 };
             };
             /** @description 邮箱未验证、存在拉黑关系或无权再次申请 */
@@ -8221,7 +8596,7 @@ export interface operations {
             };
         };
     };
-    DirectConversationsController_unread: {
+    directConversationsUnread: {
         parameters: {
             query?: never;
             header?: never;
@@ -8235,9 +8610,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["DirectUnreadCountResponseDto"];
-                    };
+                    "application/json": components["schemas"]["DirectConversationsUnread200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -8251,7 +8624,7 @@ export interface operations {
             };
         };
     };
-    DirectConversationsController_findByUser: {
+    directConversationsFindByUser: {
         parameters: {
             query?: never;
             header?: never;
@@ -8267,9 +8640,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["DirectConversationLookupResponseDto"];
-                    };
+                    "application/json": components["schemas"]["DirectConversationsFindByUser200Response"];
                 };
             };
             /** @description 目标用户不存在或已注销 */
@@ -8292,7 +8663,7 @@ export interface operations {
             };
         };
     };
-    DirectConversationsController_findById: {
+    directConversationsFindById: {
         parameters: {
             query?: never;
             header?: never;
@@ -8308,9 +8679,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["DirectConversationResponseDto"];
-                    };
+                    "application/json": components["schemas"]["DirectConversationsFindById200Response"];
                 };
             };
             /** @description 会话不存在或当前用户不是参与者 */
@@ -8333,7 +8702,7 @@ export interface operations {
             };
         };
     };
-    DirectConversationsController_messages: {
+    directConversationsMessages: {
         parameters: {
             query?: {
                 /** @description 加载此消息之前的历史消息；不能与 after 同时使用 */
@@ -8356,9 +8725,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["DirectMessageResponseDto"][];
-                    };
+                    "application/json": components["schemas"]["DirectConversationsMessages200Response"];
                 };
             };
             /** @description 会话或消息游标不存在 */
@@ -8381,7 +8748,7 @@ export interface operations {
             };
         };
     };
-    DirectConversationsController_send: {
+    directConversationsSend: {
         parameters: {
             query?: never;
             header?: never;
@@ -8401,9 +8768,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["DirectMessageResponseDto"];
-                    };
+                    "application/json": components["schemas"]["DirectConversationsSend201Response"];
                 };
             };
             /** @description 邮箱未验证、拉黑或会话不可发送 */
@@ -8435,7 +8800,7 @@ export interface operations {
             };
         };
     };
-    DirectConversationsController_handleRequest: {
+    directConversationsHandleRequest: {
         parameters: {
             query?: never;
             header?: never;
@@ -8455,9 +8820,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["DirectConversationResponseDto"];
-                    };
+                    "application/json": components["schemas"]["DirectConversationsHandleRequest200Response"];
                 };
             };
             /** @description 不是请求接收方或接受时邮箱未验证 */
@@ -8480,7 +8843,7 @@ export interface operations {
             };
         };
     };
-    DirectConversationsController_archive: {
+    directConversationsArchive: {
         parameters: {
             query?: never;
             header?: never;
@@ -8500,9 +8863,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["DirectConversationResponseDto"];
-                    };
+                    "application/json": components["schemas"]["DirectConversationsArchive200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -8516,7 +8877,7 @@ export interface operations {
             };
         };
     };
-    DirectConversationsController_markRead: {
+    directConversationsMarkRead: {
         parameters: {
             query?: never;
             header?: never;
@@ -8536,9 +8897,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["MessageResponseDto"];
-                    };
+                    "application/json": components["schemas"]["DirectConversationsMarkRead200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -8552,7 +8911,7 @@ export interface operations {
             };
         };
     };
-    DirectMessagesController_recall: {
+    directMessagesRecall: {
         parameters: {
             query?: never;
             header?: never;
@@ -8568,9 +8927,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
-                        data: components["schemas"]["DirectMessageRecallResponseDto"];
-                    };
+                    "application/json": components["schemas"]["DirectMessagesRecall200Response"];
                 };
             };
             /** @description 未登录 */
@@ -8598,6 +8955,34 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    metaGetMeta: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaGetMeta200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */

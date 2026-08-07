@@ -7,7 +7,7 @@ import type { operations } from "@/api/types";
 import { normalizeThreadDetail } from "./use-thread-detail";
 
 export type SaveThreadAggregateBody =
-  operations["ThreadsController_saveAggregate"]["requestBody"]["content"]["application/json"];
+  operations["threadsSaveAggregate"]["requestBody"]["content"]["application/json"];
 
 export function useSaveThreadAggregate() {
   const queryClient = useQueryClient();

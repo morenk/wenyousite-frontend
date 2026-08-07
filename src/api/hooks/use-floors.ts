@@ -20,7 +20,7 @@ export type FloorDisplayData = CompatiblePost<components["schemas"]["PostRespons
 export type ReplyDisplayData = CompatiblePost<components["schemas"]["PostResponseDto"]> & {
   replyToPost?: ReplyData["replyToPost"];
 };
-export type FloorListResponse = operations["PostsController_findFloors"]["responses"][200]["content"]["application/json"];
+export type FloorListResponse = operations["postsFindFloors"]["responses"][200]["content"]["application/json"];
 
 export const FLOORS_STALE_TIME = 30 * 1000;
 

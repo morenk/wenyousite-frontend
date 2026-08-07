@@ -5,7 +5,7 @@ import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
 import type { operations } from "@/api/types";
 
-export type ReplyListResponse = operations["PostsController_findReplies"]["responses"][200]["content"]["application/json"];
+export type ReplyListResponse = operations["postsFindReplies"]["responses"][200]["content"]["application/json"];
 
 export function useReplies(postId: string | undefined) {
   return useInfiniteQuery({

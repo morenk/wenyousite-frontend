@@ -12,7 +12,7 @@ import type { components, operations } from "@/api/types";
 
 export type DirectMessage = components["schemas"]["DirectMessageResponseDto"];
 type DirectMessagesResponse =
-  operations["DirectConversationsController_messages"]["responses"][200]["content"]["application/json"];
+  operations["directConversationsMessages"]["responses"][200]["content"]["application/json"];
 
 export function appendDirectMessageToCache(
   queryClient: QueryClient,

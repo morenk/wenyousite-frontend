@@ -51,12 +51,24 @@ describe("useCreateSubthread", () => {
 
     result.current.mutate({
       threadId: "thread-1",
-      body: { title: "新子贴", postingPolicy: "PARTICIPANTS" as const },
+      body: {
+        title: "新子贴",
+        postingPolicy: "PARTICIPANTS" as const,
+        clientRequestId: "99454040-6a52-4bf3-8bad-42683c4d09be",
+      },
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data?.id).toBe("sub-1");
     expect(result.current.data?.title).toBe("新子贴");
+    expect(mockPOST).toHaveBeenCalledWith(
+      "/api/v1/threads/{threadId}/subthreads",
+      expect.objectContaining({
+        body: expect.objectContaining({
+          clientRequestId: "99454040-6a52-4bf3-8bad-42683c4d09be",
+        }),
+      }),
+    );
   });
 
   test("创建子贴时可指定发帖权限", async () => {
@@ -72,7 +84,11 @@ describe("useCreateSubthread", () => {
 
     result.current.mutate({
       threadId: "thread-1",
-      body: { title: "设定区", postingPolicy: "COLLABORATORS" },
+      body: {
+        title: "设定区",
+        postingPolicy: "COLLABORATORS",
+        clientRequestId: "99454040-6a52-4bf3-8bad-42683c4d09be",
+      },
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -88,7 +104,11 @@ describe("useCreateSubthread", () => {
 
     result.current.mutate({
       threadId: "thread-1",
-      body: { title: "新子贴", postingPolicy: "PARTICIPANTS" as const },
+      body: {
+        title: "新子贴",
+        postingPolicy: "PARTICIPANTS" as const,
+        clientRequestId: "99454040-6a52-4bf3-8bad-42683c4d09be",
+      },
     });
 
     await waitFor(() => expect(result.current.isError).toBe(true));

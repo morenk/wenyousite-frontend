@@ -73,7 +73,8 @@ pnpm test:watch   # vitest watch 模式
 pnpm test:e2e     # Playwright E2E（需 E2E_ENV=test + 专用 E2E_EMAIL/E2E_PASSWORD，独立 3101 端口）
 pnpm check        # 唯一质量门禁：lint + typecheck + 契约/架构 + 覆盖率 + 快照/文档 + build
 pnpm check:full   # 发布前完整门禁：check + 本机 E2E
-pnpm generate:api # 从相邻后端源码离线导出 OpenAPI 并生成类型，无需启动服务
+pnpm contract:sync # 从相邻后端同步已审核的固定 OpenAPI 产物
+pnpm generate:api # 从 contracts/openapi.json 生成类型，无需后端源码或运行中服务
 ```
 
 ESLint 使用 `--max-warnings 0`，warning 与 error 都会阻止质量门禁。Vitest 覆盖率阈值以当前全量基线建立债务棘轮，新增代码不得让 statements/branches/functions/lines 低于配置值。
@@ -84,7 +85,7 @@ ESLint 使用 `--max-warnings 0`，warning 与 error 都会阻止质量门禁。
 
 - 统一使用 `src/api/client.ts` 中的 `apiClient`。
 - 不要在页面里直接调用 `fetch`，统一走 TanStack Query hooks。
-- 执行 `pnpm generate:api` 从相邻后端源码离线导出 OpenAPI 并生成 `src/api/types.ts`，无需启动后端或连接数据库/Redis。
+- 后端契约评审完成后执行 `pnpm contract:sync && pnpm generate:api`，从固定的 `contracts/openapi.json` 生成 `src/api/types.ts`；构建和 CI 不访问运行中服务，也不依赖相邻后端源码。
 - 错误码和前端行为按后端仓库 `wenyousite-backend/docs/frontend-guide.md` 与 `wenyousite-backend/src/common/exceptions/error-codes.ts` 对齐。
 - **OpenAPI 是 API 结构契约的唯一事实源**：请求、成功响应、错误 envelope、可选字段、nullability 和枚举必须由 Swagger DTO 描述，并通过 `openapi-typescript` 生成。不得重复手写已经存在的生成类型。
 - **运行时快照是验证样例，不是类型定义**：用于发现 Swagger 与真实实现不一致、记录关键状态样例；快照缺少某字段不代表字段不存在。
@@ -96,7 +97,7 @@ ESLint 使用 `--max-warnings 0`，warning 与 error 都会阻止质量门禁。
 - `accessToken` 只存在模块内存；刷新页面后由后端 httpOnly refresh cookie 恢复，生产代码门禁禁止写入 `localStorage.accessToken`。
 - `localStorage` 只允许保存不含凭证的会话用户 ID/修订号标记，用于跨标签页登录/登出通知。
 - 使用 `useAuth()` 获取用户状态：`const { user, isInitialized } = useAuth()`。
-- 401 时自动刷新，刷新失败则清除 token 并跳转 `/login`。
+- 仅当响应为 `40101 TOKEN_EXPIRED` 时自动刷新；其他 401xx 是可判定的业务/会话错误，交由页面或登录守卫处理。刷新失败则清除 token 并跳转 `/login`。
 - 受保护路由优先在对应 `layout.tsx` 使用 `RequireAuth`；组件内仍需登录分支时必须等待 `isInitialized`，避免 refresh cookie 恢复前误判：
 
   ```tsx
@@ -381,7 +382,7 @@ feat: 实现登录页面
 #### 错误处理
 
 - 统一用 `sonner` toast。
-- 401 自动处理（apiClient 拦截器），页面不需重复。
+- `40101 TOKEN_EXPIRED` 由 apiClient 拦截器自动刷新；其他 401xx 按业务错误码处理，页面不得把所有 401 一律视为 token 过期。
 - 业务错误按后端 `docs/frontend-guide.md` 的错误码速查和模块文档映射。
 - 兜底错误文案："操作失败，请稍后重试"。
 

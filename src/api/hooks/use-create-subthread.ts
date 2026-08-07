@@ -5,6 +5,7 @@ import { apiClient } from "@/api/client";
 import type { components } from "@/api/types";
 
 interface CreateSubthreadBody {
+  clientRequestId: string;
   title: string;
   content?: string;
   sortOrder?: number;

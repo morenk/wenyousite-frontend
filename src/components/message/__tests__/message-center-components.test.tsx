@@ -192,8 +192,16 @@ describe("DirectMessagesFrame", () => {
   test("从会话路径提取选中 ID 并展示子页面", () => {
     mockPathname.mockReturnValue("/messages/c1");
     mockConversations.mockReturnValue(query());
-    render(<DirectMessagesFrame><div>会话内容</div></DirectMessagesFrame>);
+    const { container } = render(
+      <DirectMessagesFrame><div>会话内容</div></DirectMessagesFrame>,
+    );
     expect(screen.getByRole("heading", { name: "消息" })).toBeInTheDocument();
     expect(screen.getByText("会话内容")).toBeInTheDocument();
+    expect(container.firstElementChild).toHaveClass(
+      "h-[calc(100dvh-3.5rem)]",
+      "min-h-0",
+      "overflow-hidden",
+    );
+    expect(screen.getByText("会话内容").parentElement).toHaveClass("min-h-0", "flex-1");
   });
 });

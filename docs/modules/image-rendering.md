@@ -18,7 +18,8 @@
 - 收藏表情的版本化 title 标记渲染为最大 128px 的内联图片；可访问帖子中的站内图片和表情在悬停/聚焦时显示快速收藏按钮
 
 **设计决策（与后端派生图方案对齐）：**
-- **Markdown 存原图 URL**（`upload-image.ts` 插入的即为原图），渲染时识别本站上传图后显示中图。相比"插入时直接换成 `_md.webp`"，此方案：历史内容零迁移即可生效；lightbox 无需从 `_md.webp` 反推原图扩展名（.jpg/.png/.avif 有歧义）。
+- **Markdown 存原图 URL**（`upload-image.ts` 插入的即为原图）。既有 Markdown 没有 media ID/结构化变体字段，Web 渲染器仅为兼容历史正文而识别本站 URL 并显示中图；lightbox 始终使用 Markdown 原图 URL。
+- **结构化媒体不猜 URL**：`GET /media/:id`、上传确认和私聊消息里的媒体对象显式返回 `url`、`thumbnailUrl`、`mediumUrl`，派生图未就绪时为 `null`。新 Web/Flutter 场景必须消费这些字段，不得复制 `_md.webp` / `_thumb.webp` 文件名规则。
 - **GIF 正文使用原图**：现有 sharp 派生链路生成的是静态 WebP 首帧，无法满足默认播放；因此 `.gif`（扩展名大小写不敏感，允许 URL query/hash）跳过中图替换。仍保留 `loading="lazy"`，避免未进入视口的长页面动图提前消耗带宽。
 - 后端仍保留派生图生成（sharp：300×300 cover `_thumb.webp` q80 / 800px 等比 `_md.webp` q85）；上传完成确认会在入队前复核预签名阶段固化的大小与 MIME。
 
@@ -44,6 +45,7 @@
 | MarkdownContent | `src/components/thread/markdown-content.tsx` | 共享 markdown 渲染：图片约束 + 懒加载 + 中图替换 + lightbox |
 | ImageLightbox | `src/components/thread/image-lightbox.tsx` | 原图查看器：适应屏幕 / 1:1 / 滚轮缩放 / 拖拽 / Esc / 点背景关闭 |
 | getImageUrlBySize | `src/lib/upload-image.ts` | 静态原图 URL → `_md.webp` / `_thumb.webp` 派生图 URL（历史 SVG 原样返回） |
+| DirectMessageBubble | `src/components/message/direct-message-bubble.tsx` | 私聊静态图消费 `media.mediumUrl`，GIF 使用 `media.url`，不推导对象存储 key |
 
 **接入点：**
 - `src/components/thread/floor-card.tsx` — 楼层正文

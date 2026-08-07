@@ -7,7 +7,7 @@ import type { operations } from "@/api/types";
 import { useViewerScope } from "@/api/use-viewer-scope";
 
 export type CreatedThreadsResponse =
-  operations["UsersController_getUserCreatedThreads"]["responses"][200]["content"]["application/json"];
+  operations["usersGetUserCreatedThreads"]["responses"][200]["content"]["application/json"];
 
 export function useUserCreatedThreads(userId: string | undefined) {
   const viewerScope = useViewerScope();

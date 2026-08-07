@@ -18,6 +18,7 @@ vi.mock("sonner", () => ({ toast: { error: mockToastError } }));
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockRandomUUID.mockReset();
   mockValidate.mockReturnValue(null);
   mockUpload.mockResolvedValue({ url: "https://cdn.example.com/a.jpg", mediaId: "media1" });
   mockRandomUUID
@@ -36,18 +37,32 @@ afterEach(() => {
 });
 
 describe("DirectMessageComposer", () => {
-  test("纯文本发送会 trim 正文并在成功后清空", async () => {
+  test("纯文本发送会清理正文与每一行的尾部空白并在成功后清空", async () => {
     const onSend = vi.fn().mockResolvedValue(undefined);
     render(<DirectMessageComposer onSend={onSend} requestHint />);
     expect(screen.getByText(/这是首条消息/)).toBeInTheDocument();
-    await userEvent.type(screen.getByPlaceholderText("输入消息…"), "  你好  ");
+    fireEvent.change(screen.getByPlaceholderText("输入消息…"), {
+      target: { value: "  第一行  \r\n第二行\t  " },
+    });
     await userEvent.click(screen.getByRole("button", { name: "发送" }));
 
     await waitFor(() => expect(onSend).toHaveBeenCalledWith({
-      content: "你好",
+      content: "第一行\n第二行",
       clientRequestId: "99454040-6a52-4bf3-8bad-42683c4d09be",
     }));
     expect(screen.getByPlaceholderText("输入消息…")).toHaveValue("");
+  });
+
+  test("发送完成后输入框恢复焦点，可直接继续输入", async () => {
+    const onSend = vi.fn().mockResolvedValue(undefined);
+    render(<DirectMessageComposer onSend={onSend} />);
+    const textarea = screen.getByPlaceholderText("输入消息…");
+    await userEvent.type(textarea, "第一条消息");
+    await userEvent.click(screen.getByRole("button", { name: "发送" }));
+
+    await waitFor(() => expect(textarea).toHaveFocus());
+    await userEvent.type(textarea, "第二条消息");
+    expect(textarea).toHaveValue("第二条消息");
   });
 
   test("空消息提示错误，Enter 发送且 Shift+Enter 不发送", async () => {

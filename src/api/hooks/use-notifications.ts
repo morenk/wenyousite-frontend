@@ -29,7 +29,7 @@ export type NotificationItem = Omit<
 };
 export type NotificationFromUser = NonNullable<NotificationItem["fromUser"]>;
 export type NotificationsResponse =
-  operations["NotificationsController_findAll"]["responses"][200]["content"]["application/json"];
+  operations["notificationsFindAll"]["responses"][200]["content"]["application/json"];
 
 interface UseNotificationsParams {
   type?: string;

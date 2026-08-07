@@ -57,7 +57,8 @@
       "id": "cmsxxx",
       "type": "reply",
       "content": "morenk 回复了：楼中楼回复内容",
-      "payload": { "actorName": "morenk", "action": "reply", "preview": "楼中楼回复内容" },
+      "payload": { "schemaVersion": 1, "actorName": "morenk", "action": "reply", "preview": "楼中楼回复内容" },
+      "target": { "kind": "post", "threadId": "cmsttt", "postId": "cmsppp", "userId": null },
       "postId": "cmsppp",
       "threadId": "cmsttt",
       "fromUserId": "cmsuuu",
@@ -72,7 +73,7 @@
 }
 ```
 
-> **内容字段**：`content` 为后端生成的完整中文文案（`xxx 回复了：…` / `xxx 关注了你` / `A、B 赞了你的主题帖` 等），前端直接渲染即可，无需拼接。系统通知 `fromUserId: null`。
+> **内容与导航字段**：新通知的 `payload.schemaVersion` 固定为 `1`，结构化字段用于展示；`content` 只承担旧数据和未知类型降级。客户端导航只读取必有的 `target.kind` 与对应 ID，不再从通知类型或可空关联字段猜测目的地。系统通知通常为 `target.kind: "none"`、`fromUserId: null`。
 
 ### GET /notifications/unread
 
@@ -109,7 +110,7 @@
 
 ## 7. 跳转与交互规则
 
-- 跳转优先级：有 `postId` → 通过共享 `getPostHref` 定位主楼层或直达楼中楼回复；否则有 `threadId` → `/threads/{threadId}`；否则有 `fromUserId`（follow）→ `/users/{fromUserId}`；system（均无）不可点
+- 跳转以 `target.kind` 为唯一分支：`post` → 通过共享 `getPostHref` 精确定位楼层/楼中楼；`thread` → `/threads/{threadId}`；`user` → `/users/{userId}`；`none` 不可点。顶层 `postId/threadId/fromUserId` 与关联对象仅保留展示、删除状态和旧数据兼容用途。
 - **跳转对象已删除不跳转**：列表接口返回 thread/post/fromUser 的 `deletedAt`；目标已删除时该通知不渲染链接，行内显示提示（帖子/楼层 →「该内容已删除」，用户 →「该用户已注销」），点击仅标记已读并 toast 提示，不导航
 - 详情页读取 `post` 参数后通过 `GET /posts/:id` 查询目标上下文：切换子贴并立即滚动到目标楼层；楼中楼采用二阶段定位，在父楼展开且回复渲染完成后立即滚动到目标回复。定位不使用平滑移动动画；高亮只加在目标楼层/回复卡片本身，父楼层和列表容器不高亮。已删除内容维持后端列表过滤策略。
 - 点击通知（有跳转目标）：若未读，立即乐观标记为已读并异步提交，不阻塞跳转

@@ -9,7 +9,7 @@
 - 草稿列表：未发布帖（标题/分类/更新时间/继续编辑/删除），空态「没有草稿喔」
 - 草稿列表「继续编辑」进入 `/threads/:id/edit` 时按 `published` 分流：未发布草稿仍使用 `ThreadCreateForm`，保留「保存草稿」与最终「发布」按钮；不能误用仅有「保存修改」的已发布帖表单
 - 点「新建主题帖」后自动创建沙盒草稿（方案 A）
-- 草稿创建只允许由「新建主题帖」点击处理函数直接发起，并使用同步点击锁；渲染和 effect 均不发起 `POST /threads`，避免重渲染、Strict Mode effect 重放或连点生成重复草稿并触发 429 限流。
+- 草稿创建只允许由「新建主题帖」点击处理函数直接发起，并使用同步点击锁；渲染和 effect 均不发起 `POST /threads`。同一次点击及网络失败后的人工重试复用同一个 UUID `clientRequestId`，成功或返回草稿列表后才清除，避免响应丢失、Strict Mode 重放或连点生成重复草稿。
 - 表单编辑：标题、分区、可见性、主题帖标签，以及可混排内联骰子节点的默认子贴正文
 - Milkdown Crepe WYSIWYG 编辑器（可见工具栏 + 所见即所得渲染 + 字数统计 + 正文草稿入口）
 - Milkdown 输出协议：代码块外独占行 `<br />`（含历史变体）规范化并原样保存，用于精确保留手动空行；空图片语法清理，围栏代码块和 Shift+Enter 硬换行保持原样
@@ -75,7 +75,7 @@
 
 **草稿生命周期：**
 - 进入 `/threads/create` 默认展示**草稿列表**（`picker` 模式），含「新建主题帖」按钮；无草稿时显示空态「没有草稿喔」。
-- 点「新建主题帖」切到 `editor` 模式并 `POST /threads`（可传空对象，前端不发送空 `title`，避免触发后端 `@MinLength(1)` 校验），拿到 `threadId` + `defaultSubthreadId` + `version`。
+- 点「新建主题帖」切到 `editor` 模式并 `POST /threads`，请求携带默认分区/可见性和稳定 UUID `clientRequestId`，前端不发送空 `title`，拿到 `threadId` + `defaultSubthreadId` + `version`。
 - 用户每次修改后通过提交按钮保存，或最终发布时一次性提交。
 - 离开编辑器时如果未发布且未保存，草稿保留在 `GET /threads/draft` 中，用户下次进入创建页可在列表继续编辑。
 - 从草稿列表继续编辑时，`/threads/:id/edit` 加载详情并依据 `published=false` 渲染发布表单；返回操作仅回到草稿列表，不删除已有草稿。
@@ -183,11 +183,13 @@ const threadCreateSchema = z.object({
 
 | 错误码 | 场景 | UI 行为 |
 |--------|------|---------|
-| 40100 | 未登录 / token 失效 | 自动跳转 `/login`（apiClient 拦截器） |
+| 40100 | 未登录 / 缺少认证凭证 | 登录守卫跳转 `/login` |
+| 40101 | access token 过期 | apiClient 自动刷新并重放创建请求，保留同一 `clientRequestId` |
 | 40300 | 邮箱未验证 | toast "请先验证邮箱后再发布" 并跳转 `/verify-email` |
 | 40000 | 字段长度/格式校验失败 | 按字段显示 inline error |
 | 40001 | 发布校验失败（缺标题/分区/正文） | toast 后端 message |
 | 40900 | 乐观锁冲突 | toast "内容已被修改，请刷新后重试" 并重新获取详情 |
+| 40912 | `clientRequestId` 被不同创建载荷复用 | toast 后端冲突提示并返回草稿列表；不得换新键盲重试 |
 | 42900（发帖/保存） | 限流 | toast "操作太频繁，请稍后再试" |
 | 42900（图片上传） | 每用户小时上传配额超限 / 全局限流 | `uploadImageFile` 显式映射为 toast "上传图片太频繁，请稍后再试"，编辑器与头像上传统一复用 |
 | 网络错误 | fetch 失败 | toast "网络连接失败，请检查网络后重试" |

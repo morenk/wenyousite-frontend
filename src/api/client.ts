@@ -8,6 +8,7 @@ import {
   isAuthUser,
   setAuthSession,
 } from "@/lib/auth-store";
+import { API_ERROR_CODE } from "@/api/errors";
 
 interface RefreshEnvelope {
   data?: {
@@ -52,8 +53,39 @@ export function isSessionExpired401(
   status: number,
   schemaPath: string,
   authHeader: string | null,
+  errorCode?: number,
 ): boolean {
-  return status === 401 && !BUSINESS_401_PATHS.has(schemaPath) && authHeader !== null;
+  return status === 401 &&
+    errorCode === API_ERROR_CODE.TOKEN_EXPIRED &&
+    !BUSINESS_401_PATHS.has(schemaPath) &&
+    authHeader !== null;
+}
+
+const TERMINAL_SESSION_CODES = new Set<number>([
+  API_ERROR_CODE.TOKEN_INVALID,
+  API_ERROR_CODE.TOKEN_REVOKED,
+  API_ERROR_CODE.TOKEN_THEFT_DETECTED,
+  API_ERROR_CODE.ACCOUNT_LOCKED,
+  API_ERROR_CODE.ACCOUNT_DEACTIVATED,
+]);
+
+export function isTerminalSession401(
+  status: number,
+  authHeader: string | null,
+  errorCode?: number,
+): boolean {
+  return status === 401 && authHeader !== null &&
+    errorCode !== undefined && TERMINAL_SESSION_CODES.has(errorCode);
+}
+
+async function readErrorCode(response: Response): Promise<number | undefined> {
+  if (response.status !== 401) return undefined;
+  try {
+    const body = await response.clone().json() as { code?: unknown };
+    return typeof body.code === "number" ? body.code : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 /** 清除本地认证状态；仅浏览器执行。 */
@@ -170,11 +202,22 @@ export function createAuthenticatedFetch(fetchImpl: typeof fetch): typeof fetch 
     if (typeof window === "undefined") return response;
 
     const schemaPath = new URL(request.url).pathname;
+    const errorCode = await readErrorCode(response);
+    const authorization = request.headers.get("Authorization");
+    if (
+      isTerminalSession401(response.status, authorization, errorCode) &&
+      getKnownUserId() === userIdAtRequest
+    ) {
+      clearStoredAuth();
+      window.location.href = "/login";
+      return response;
+    }
     if (
       !isSessionExpired401(
         response.status,
         schemaPath,
-        request.headers.get("Authorization"),
+        authorization,
+        errorCode,
       )
     ) {
       return response;

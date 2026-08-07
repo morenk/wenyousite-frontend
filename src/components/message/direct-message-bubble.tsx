@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import { ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ImageLightbox } from "@/components/shared/image-lightbox";
-import { getImageUrlBySize } from "@/lib/upload-image";
+import { normalizeDirectMessageContent } from "@/lib/direct-message-content";
 import { cn } from "@/lib/utils";
 import type { DirectMessage } from "@/api/hooks/use-direct-messages";
 import { SaveStickerButton } from "@/components/sticker/save-sticker-button";
@@ -53,14 +53,17 @@ export function DirectMessageBubble({
   const [imageRevealed, setImageRevealed] = useState(!hideRequestImage);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const recalled = !!message.recalledAt;
-  const pureSticker = !!message.sticker && !message.content && !recalled;
+  const normalizedContent = message.content
+    ? normalizeDirectMessageContent(message.content)
+    : "";
+  const pureSticker = !!message.sticker && !normalizedContent && !recalled;
   const imageUrl = message.sticker?.url ?? message.media?.url;
   const isAnimatedGif = message.media?.contentType?.toLowerCase() === "image/gif"
     || !!imageUrl && /\.gif(?:[?#]|$)/iu.test(imageUrl);
   const displayImageUrl = imageUrl
     ? message.sticker
       ? imageUrl
-      : isAnimatedGif ? imageUrl : getImageUrlBySize(imageUrl, "md")
+      : isAnimatedGif ? imageUrl : message.media?.mediumUrl ?? imageUrl
     : undefined;
 
 
@@ -80,9 +83,9 @@ export function DirectMessageBubble({
             <p className="text-sm">{mine ? "你撤回了一条消息" : "对方撤回了一条消息"}</p>
           ) : (
             <>
-              {message.content && <PlainTextWithLinks content={message.content} />}
+              {normalizedContent && <PlainTextWithLinks content={normalizedContent} />}
               {imageUrl && (
-                <div className={cn(message.content && "mt-2")}>
+                <div className={cn(normalizedContent && "mt-2")}>
                   {!imageRevealed ? (
                     <Button
                       type="button"

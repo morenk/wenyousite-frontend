@@ -25,7 +25,8 @@ function createWrapper() {
   return Wrapper;
 }
 
-const validBody: ThreadCreateFormData = {
+const validBody: ThreadCreateFormData & { clientRequestId: string } = {
+  clientRequestId: "99454040-6a52-4bf3-8bad-42683c4d09be",
   title: "测试帖",
   category: "RPG",
   visibility: "PUBLIC",
@@ -90,6 +91,12 @@ describe("useCreateThread", () => {
     expect(result.current.data?.id).toBe("t-new-1");
     expect(result.current.data?.defaultSubthread.id).toBe("s1");
     expect(result.current.data?.title).toBe("测试帖");
+    expect(mockPOST).toHaveBeenCalledWith(
+      "/api/v1/threads",
+      expect.objectContaining({
+        body: expect.objectContaining({ clientRequestId: validBody.clientRequestId }),
+      }),
+    );
   });
 
   test("创建草稿时传空 title 也成功", async () => {
@@ -102,7 +109,7 @@ describe("useCreateThread", () => {
       wrapper: createWrapper(),
     });
 
-    const bodyNoTitle: ThreadCreateFormData = {
+    const bodyNoTitle: ThreadCreateFormData & { clientRequestId: string } = {
       ...validBody,
       title: undefined,
     };

@@ -28,6 +28,7 @@ export default function CreateThreadPage() {
   const confirmAction = useConfirm();
   // 点击入口同步上锁，直到离开创建流程；创建请求不得由渲染/effect 驱动。
   const isDraftCreationStarted = useRef(false);
+  const createRequestIdRef = useRef<string | null>(null);
 
   const createThread = useCreateThread();
   const deleteThread = useDeleteThread();
@@ -54,6 +55,7 @@ export default function CreateThreadPage() {
     if (!isInitialized || !user?.emailVerified) return;
     if (isDraftCreationStarted.current) return;
     isDraftCreationStarted.current = true;
+    createRequestIdRef.current ??= crypto.randomUUID();
     setCreateError(null);
     setCreatedThreadId(null);
     setCreating(true);
@@ -63,7 +65,9 @@ export default function CreateThreadPage() {
       const thread = await createThread.mutateAsync({
         category: "DEDUCTION",
         visibility: "PUBLIC",
+        clientRequestId: createRequestIdRef.current,
       });
+      createRequestIdRef.current = null;
       setCreatedThreadId(thread.id);
     } catch (error: unknown) {
       const err = getApiError(error);
@@ -72,6 +76,7 @@ export default function CreateThreadPage() {
         return;
       }
       setCreateError(err.message || "创建草稿失败，请检查网络后重试");
+      isDraftCreationStarted.current = false;
     } finally {
       setCreating(false);
     }
@@ -79,6 +84,7 @@ export default function CreateThreadPage() {
 
   function handleReturnToPicker() {
     isDraftCreationStarted.current = false;
+    createRequestIdRef.current = null;
     setCreateError(null);
     setCreatedThreadId(null);
     setMode("picker");
@@ -145,7 +151,7 @@ export default function CreateThreadPage() {
               {createError && (
                 <Button
                   variant="outline"
-                  onClick={() => window.location.reload()}
+                  onClick={() => void handleCreateNew()}
                 >
                   重试
                 </Button>

@@ -7,12 +7,12 @@ import type { operations } from "@/api/types";
 import { useViewerScope } from "@/api/use-viewer-scope";
 
 type PlayedThreadsQuery = NonNullable<
-  operations["UsersController_getUserPlayedThreads"]["parameters"]["query"]
+  operations["usersGetUserPlayedThreads"]["parameters"]["query"]
 >;
 export type PlayedThreadVisibility = NonNullable<PlayedThreadsQuery["visibility"]>;
 
 export type PlayedThreadsResponse =
-  operations["UsersController_getUserPlayedThreads"]["responses"][200]["content"]["application/json"];
+  operations["usersGetUserPlayedThreads"]["responses"][200]["content"]["application/json"];
 
 export function useUserPlayedThreads(
   userId: string | undefined,

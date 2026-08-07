@@ -10,13 +10,13 @@ export type ThreadTag = components["schemas"]["ThreadTagResponseDto"];
 export type ThreadCardData =
   components["schemas"]["HomeThreadListItemResponseDto"];
 export type ThreadListResponse =
-  operations["ThreadsController_findAll"]["responses"][200]["content"]["application/json"];
+  operations["threadsFindAll"]["responses"][200]["content"]["application/json"];
 
 export type ThreadSort = "recommended" | "newest" | "active";
 export type ThreadStatusFilter = "RECRUITING" | "CLOSED" | "FINISHED";
 
 export type ThreadQueryParams = NonNullable<
-  operations["ThreadsController_findAll"]["parameters"]["query"]
+  operations["threadsFindAll"]["parameters"]["query"]
 >;
 
 export function useThreads(params: ThreadQueryParams = {}) {

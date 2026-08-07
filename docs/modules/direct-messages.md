@@ -50,6 +50,7 @@ Web 端提供低频轮询的一对一私聊。入口只位于用户主页，不�
 - 正文使用 React 文本节点和 `whitespace-pre-wrap` 渲染，不使用 `dangerouslySetInnerHTML`，不解析 Markdown。
 - 仅把 `http/https` 片段转换为新窗口链接，并设置 `noopener noreferrer nofollow`。
 - 图片复用媒体上传管线。发送前显示“公开 URL、不要发送敏感内容”的提示；预览对象 URL 在替换、清空和卸载时释放。
+- 消息响应的 `media` 始终显式返回 `url`、`thumbnailUrl`、`mediumUrl`（派生图未就绪时后二者为 `null`）。普通静态图优先显示 `mediumUrl`，GIF 使用 `url` 原图；Web/Flutter 均不得通过文件名拼接派生图地址。
 - GIF 可在选择预览和消息气泡中播放。气泡直接请求 GIF 原图，不替换为只含首帧的 `_md.webp`；陌生消息请求仍需用户点击后才加载。
 - 编辑器内可打开最近/收藏表情面板；点选后立即发送独立 `stickerAssetId`，不清空已输入文字或待发图片。纯表情气泡最大 180px、无背景；普通消息图片和表情都可悬停或聚焦后收藏。
 - 每次发送生成 UUID v4 `clientRequestId`；请求失败且输入未变化时复用同一键，避免响应丢失造成重复消息。用户修改正文或图片后才生成新键。

@@ -12,11 +12,11 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
 const frontendRoot = process.cwd();
-const backendRoot = resolve(frontendRoot, "../wenyousite-backend");
+const backendContract = resolve(frontendRoot, "../wenyousite-backend/contracts/openapi.json");
+const trackedContract = resolve(frontendRoot, "contracts/openapi.json");
 const trackedTypes = resolve(frontendRoot, "src/api/types.ts");
 const hooksRoot = resolve(frontendRoot, "src/api/hooks");
 const tempRoot = mkdtempSync(join(tmpdir(), "wenyousite-api-contract-"));
-const openapiPath = join(tempRoot, "openapi.json");
 const generatedTypes = join(tempRoot, "types.ts");
 
 function sourceFiles(directory) {
@@ -30,20 +30,21 @@ function sourceFiles(directory) {
 }
 
 try {
-  execFileSync(
-    "pnpm",
-    ["--dir", backendRoot, "openapi:export", openapiPath],
-    { cwd: frontendRoot, stdio: "inherit" },
-  );
+  if (statSync(backendContract, { throwIfNoEntry: false })?.isFile() &&
+      readFileSync(backendContract, "utf8") !== readFileSync(trackedContract, "utf8")) {
+    throw new Error(
+      "contracts/openapi.json 与相邻后端已审核产物不一致；请运行 pnpm contract:sync。",
+    );
+  }
   execFileSync(
     resolve(frontendRoot, "node_modules/.bin/openapi-typescript"),
-    [openapiPath, "-o", generatedTypes],
+    [trackedContract, "-o", generatedTypes],
     { cwd: frontendRoot, stdio: "inherit" },
   );
 
   if (readFileSync(trackedTypes, "utf8") !== readFileSync(generatedTypes, "utf8")) {
     throw new Error(
-      "src/api/types.ts 与后端 OpenAPI 不一致；请运行 pnpm generate:api 并提交结果。",
+      "src/api/types.ts 与固定 OpenAPI 不一致；请运行 pnpm generate:api 并提交结果。",
     );
   }
 

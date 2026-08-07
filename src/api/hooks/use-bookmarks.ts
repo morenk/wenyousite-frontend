@@ -8,7 +8,7 @@ import type { components, operations } from "@/api/types";
 export type BookmarkedThread =
   components["schemas"]["OwnBookmarkThreadResponseDto"];
 export type BookmarksResponse =
-  operations["BookmarksController_findAll"]["responses"][200]["content"]["application/json"];
+  operations["bookmarksFindAll"]["responses"][200]["content"]["application/json"];
 
 export function useBookmarks() {
   return useInfiniteQuery({

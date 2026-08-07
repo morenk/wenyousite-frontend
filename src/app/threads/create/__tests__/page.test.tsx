@@ -74,6 +74,23 @@ describe("CreateThreadPage", () => {
     expect(mutateAsync).toHaveBeenCalledWith({
       category: "DEDUCTION",
       visibility: "PUBLIC",
+      clientRequestId: expect.any(String),
     });
+  });
+
+  test("创建响应失败后重试复用同一 clientRequestId", async () => {
+    mutateAsync
+      .mockRejectedValueOnce(new Error("network down"))
+      .mockImplementationOnce(() => new Promise(() => undefined));
+    const user = userEvent.setup();
+    render(<CreateThreadPage />);
+
+    await user.click(screen.getByRole("button", { name: "新建主题帖" }));
+    await user.click(await screen.findByRole("button", { name: "重试" }));
+
+    await waitFor(() => expect(mutateAsync).toHaveBeenCalledTimes(2));
+    expect(mutateAsync.mock.calls[1][0].clientRequestId).toBe(
+      mutateAsync.mock.calls[0][0].clientRequestId,
+    );
   });
 });

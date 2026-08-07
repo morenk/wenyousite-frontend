@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { getApiErrorMessage } from "@/api/errors";
 import { uploadImageFile, validateImageFile } from "@/lib/upload-image";
+import { normalizeDirectMessageContent } from "@/lib/direct-message-content";
 import { StickerPickerPopover } from "@/components/sticker/sticker-picker-popover";
 
 export interface DirectMessageComposerValue {
@@ -34,8 +35,10 @@ export function DirectMessageComposer({
   const [image, setImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const requestIdRef = useRef<string | null>(null);
+  const restoreFocusRef = useRef(false);
 
   useEffect(() => {
     return () => {
@@ -43,11 +46,17 @@ export function DirectMessageComposer({
     };
   }, [previewUrl]);
 
+  useEffect(() => {
+    if (isSending || disabled || !restoreFocusRef.current) return;
+    restoreFocusRef.current = false;
+    textareaRef.current?.focus();
+  }, [disabled, isSending]);
+
   const clearImage = () => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(null);
     setImage(null);
-    if (inputRef.current) inputRef.current.value = "";
+    if (imageInputRef.current) imageInputRef.current.value = "";
     requestIdRef.current = null;
   };
 
@@ -56,7 +65,7 @@ export function DirectMessageComposer({
     const error = validateImageFile(file);
     if (error) {
       toast.error(error);
-      if (inputRef.current) inputRef.current.value = "";
+      if (imageInputRef.current) imageInputRef.current.value = "";
       return;
     }
     if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -66,11 +75,13 @@ export function DirectMessageComposer({
   };
 
   const handleSubmit = async () => {
-    const normalized = content.trim();
+    if (disabled || isSending) return;
+    const normalized = normalizeDirectMessageContent(content);
     if (!normalized && !image) {
       toast.error("请输入消息或选择一张图片");
       return;
     }
+    restoreFocusRef.current = true;
     setIsSending(true);
     try {
       const uploaded = image ? await uploadImageFile(image) : undefined;
@@ -128,6 +139,7 @@ export function DirectMessageComposer({
         </div>
       )}
       <textarea
+        ref={textareaRef}
         value={content}
         onChange={(event) => {
           setContent(event.target.value.slice(0, 1000));
@@ -148,7 +160,7 @@ export function DirectMessageComposer({
       <div className="mt-2 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <input
-            ref={inputRef}
+            ref={imageInputRef}
             type="file"
             accept="image/jpeg,image/png,image/gif,image/webp,image/avif"
             className="hidden"
@@ -159,7 +171,7 @@ export function DirectMessageComposer({
             variant="ghost"
             size="sm"
             disabled={isPending || !!image}
-            onClick={() => inputRef.current?.click()}
+            onClick={() => imageInputRef.current?.click()}
           >
             <ImagePlus className="h-4 w-4" />
             图片

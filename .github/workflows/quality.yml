@@ -1,0 +1,41 @@
+name: quality
+
+on:
+  pull_request:
+  push:
+    branches: [dev]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.17.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+
+  flutter-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate dart-dio client from the pinned contract
+        run: |
+          mkdir -p /tmp/wenyou-dart-client
+          docker run --rm \
+            -v "${{ github.workspace }}/contracts/openapi.json:/local/openapi.json:ro" \
+            -v "/tmp/wenyou-dart-client:/local/out" \
+            openapitools/openapi-generator-cli:v7.15.0 generate \
+            -i /local/openapi.json \
+            -g dart-dio \
+            -o /local/out \
+            --additional-properties=pubName=wenyou_api,pubVersion=3.0.0
+          test -f /tmp/wenyou-dart-client/pubspec.yaml
+          test -d /tmp/wenyou-dart-client/lib

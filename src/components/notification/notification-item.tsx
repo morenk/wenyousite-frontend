@@ -34,16 +34,17 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const displayContent = sanitizeNotificationContent(notification);
   const structuredContent = getStructuredNotificationContent(notification);
   const deletedHint = getDeletedHint(notification);
-  const href = notification.postId && notification.threadId
+  const href = notification.target.kind === "post" &&
+    notification.target.postId && notification.target.threadId
     ? getPostHref({
-        threadId: notification.threadId,
-        postId: notification.postId,
+        threadId: notification.target.threadId,
+        postId: notification.target.postId,
         parentPostId: notification.post?.parentPostId,
       })
-    : notification.threadId
-      ? `/threads/${notification.threadId}`
-    : notification.fromUserId
-      ? `/users/${notification.fromUserId}`
+    : notification.target.kind === "thread" && notification.target.threadId
+      ? `/threads/${notification.target.threadId}`
+    : notification.target.kind === "user" && notification.target.userId
+      ? `/users/${notification.target.userId}`
       : null;
 
   const handleOpen = () => {

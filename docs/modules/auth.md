@@ -62,7 +62,7 @@
 | 表单状态 | react-hook-form | 组件本地 |
 | 提交 loading | useState | 组件本地 |
 
-**刷新与缓存策略：** 注册/登录成功后把 access token 与 user 写入模块内存，绝不把 access token 写入 Web Storage。刷新页面时 `AuthProvider` 先调用 `/auth/refresh`，用 httpOnly cookie 恢复内存会话，完成后才把 `isInitialized` 置为 true。单个标签页内的并发 401 共享一个刷新 Promise；不同标签页通过名为 `wenyousite-auth-refresh` 的 Web Lock 串行轮换。登录/登出的会话标记变化会通知其他标签页重新恢复或清空，但标记本身不含凭证。确认刷新失败才清理登录态并跳转登录页。
+**刷新与缓存策略：** 注册/登录成功后把 access token 与 user 写入模块内存，绝不把 access token 写入 Web Storage。刷新页面时 `AuthProvider` 先调用 `/auth/refresh`，用 httpOnly cookie 恢复内存会话，完成后才把 `isInitialized` 置为 true。仅 `40101 TOKEN_EXPIRED` 触发刷新；单个标签页内的并发过期请求共享一个刷新 Promise，不会把登录失败、验证码错误或无效 token 等其他 401xx 错当成 access token 过期。不同标签页通过名为 `wenyousite-auth-refresh` 的 Web Lock 串行轮换。登录/登出的会话标记变化会通知其他标签页重新恢复或清空，但标记本身不含凭证。确认刷新失败才清理登录态并跳转登录页。
 
 TanStack Query 容器由当前认证身份隔离；首次 AuthContext hydration 只记录当前身份，不重复创建 QueryClient，避免公共首页请求两次。此后登录、登出或账号切换才重新创建 QueryClient。登录终端、黑名单等敏感 hook 还会把用户 ID 放入 query key。主题帖、帖子和用户主页等 OptionalAuth 查询使用 `useViewerScope` 把当前查看者 ID 放入 query key；页面从匿名启动恢复为登录态时会自动切换缓存维度并重新查询关系、权限和私密可见内容。
 
@@ -180,7 +180,13 @@ const verifyEmailSchema = z.object({
 
 | 错误码 | 场景 | UI 行为 |
 |--------|------|---------|
-| 40100 | 账号或密码错误 / 未登录 | toast "账号或密码错误" |
+| 40100 | 未携带认证凭证 | 受保护路由跳转登录；业务页面展示后端 message |
+| 40101 | access token 过期 | apiClient 单飞刷新并重放原请求 |
+| 40102–40104 | token 无效、已撤销或触发盗用检测 | 不刷新；清理当前会话并要求重新登录 |
+| 40105–40107 | 账号锁定、账号注销或邮箱未验证 | 展示后端 message；邮箱未验证跳 `/verify-email` |
+| 40110 | 登录凭据错误 | toast "账号或密码错误" |
+| 40111–40114 | 验证码过期、错误、超限或不存在 | 展示后端 message，按提示重新获取验证码 |
+| 40115–40116 | 会话不存在或旧密码错误 | 展示后端 message，不触发 token 刷新 |
 | 40001 | 验证码错误 / 过期 / 业务校验 | toast 后端 message |
 | 40300 | 邮箱未验证 | toast "请先验证邮箱" |
 | 40900 | 用户名被占用 / 邮箱已注册 | toast "用户名已被占用" / "该邮箱已注册" |
@@ -197,7 +203,7 @@ if (error) {
 // 处理 data
 ```
 
-> **401 拦截器例外**：`apiClient` 对携带 accessToken 的请求遇到 401 会先单飞调用 `/auth/refresh`，成功后重放原请求；刷新失败才清除登录态并跳转 `/login`。登录/注册/重置/验证码/改密/换邮箱等「业务 401」端点（`client.ts` 的 `BUSINESS_401_PATHS`）由页面自行 toast 提示，不触发刷新或跳转。
+> **401 拦截规则**：`apiClient` 只对“携带 accessToken 且错误码为 `40101 TOKEN_EXPIRED`”的请求单飞调用 `/auth/refresh`，成功后重放原请求。其余 401xx 不触发刷新；登录/注册/重置/验证码/改密/换邮箱等端点由页面根据错误码和 message 提示。这样 Web 与 Flutter 可以共享同一套确定性的会话状态机。
 
 ## 8. 权限与访问控制
 

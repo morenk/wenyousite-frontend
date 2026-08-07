@@ -36,12 +36,24 @@ describe("DirectMessageBubble", () => {
     );
   });
 
+  test("展示旧消息时不保留会撑宽气泡的行尾空白", () => {
+    const { container } = render(
+      <DirectMessageBubble
+        message={message({ content: "第一行   \r\n第二行\t  " })}
+        mine={false}
+      />,
+    );
+    expect(container.querySelector("p")?.textContent).toBe("第一行\n第二行");
+  });
+
   test("陌生消息请求的图片默认不加载，点击后才展示", () => {
     render(
       <DirectMessageBubble
         message={message({ content: null, media: {
           id: "media1",
           url: "https://cdn.example.com/image.jpg",
+          thumbnailUrl: null,
+          mediumUrl: "https://cdn.example.com/image_md.webp",
           contentType: "image/jpeg",
           width: 100,
           height: 100,
@@ -68,6 +80,8 @@ describe("DirectMessageBubble", () => {
         message={message({ media: {
           id: "media1",
           url: "https://cdn.example.com/image.jpg",
+          thumbnailUrl: null,
+          mediumUrl: null,
           contentType: "image/jpeg",
           width: null,
           height: null,
@@ -91,6 +105,8 @@ describe("DirectMessageBubble", () => {
         message={message({ media: {
           id: "media1",
           url: gifUrl,
+          thumbnailUrl: "https://cdn.example.com/animated_thumb.webp",
+          mediumUrl: "https://cdn.example.com/animated_md.webp",
           contentType: "image/gif",
           width: 320,
           height: 180,
@@ -100,5 +116,27 @@ describe("DirectMessageBubble", () => {
     );
 
     expect(screen.getByRole("img", { name: "私聊图片" })).toHaveAttribute("src", gifUrl);
+  });
+
+  test("普通图片优先使用后端返回的中图 URL，不猜测对象键", () => {
+    render(
+      <DirectMessageBubble
+        message={message({ media: {
+          id: "media1",
+          url: "https://cdn.example.com/original.jpeg",
+          thumbnailUrl: "https://images.example.com/thumb.webp",
+          mediumUrl: "https://images.example.com/mobile-safe-medium.webp",
+          contentType: "image/jpeg",
+          width: 1600,
+          height: 900,
+        } })}
+        mine={false}
+      />,
+    );
+
+    expect(screen.getByRole("img", { name: "私聊图片" })).toHaveAttribute(
+      "src",
+      "https://images.example.com/mobile-safe-medium.webp",
+    );
   });
 });

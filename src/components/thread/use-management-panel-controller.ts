@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducer } from "react";
+import { useReducer, useRef } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { useCreateSubthread } from "@/api/hooks/use-create-subthread";
@@ -125,6 +125,7 @@ export function useManagementPanelController({
   });
 
   const createSubthread = useCreateSubthread();
+  const createSubthreadRequestRef = useRef<{ fingerprint: string; id: string } | null>(null);
   const updateSubthread = useUpdateSubthread();
   const deleteSubthread = useDeleteSubthread();
   const reorderSubthreads = useReorderSubthreads();
@@ -199,11 +200,24 @@ export function useManagementPanelController({
   };
 
   const handleCreateSubthread = async (data: SubthreadFormData) => {
+    const fingerprint = JSON.stringify({
+      threadId: thread.id,
+      title: data.title,
+      postingPolicy: data.postingPolicy,
+    });
+    if (createSubthreadRequestRef.current?.fingerprint !== fingerprint) {
+      createSubthreadRequestRef.current = { fingerprint, id: crypto.randomUUID() };
+    }
     try {
       await createSubthread.mutateAsync({
         threadId: thread.id,
-        body: { title: data.title, postingPolicy: data.postingPolicy },
+        body: {
+          title: data.title,
+          postingPolicy: data.postingPolicy,
+          clientRequestId: createSubthreadRequestRef.current.id,
+        },
       });
+      createSubthreadRequestRef.current = null;
       await onRefetch();
       dispatch({ type: "form", mode: null });
       toast.success("子贴已创建");

@@ -9,10 +9,10 @@ export function DirectMessagesFrame({ children }: { children: React.ReactNode })
   const selectedId = pathname.match(/^\/messages\/([^/]+)$/)?.[1];
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 py-5">
+    <div className="mx-auto flex h-[calc(100dvh-3.5rem)] min-h-0 w-full max-w-6xl flex-col overflow-hidden px-4 py-5">
       <h1 className="mb-3 text-xl font-bold text-foreground">消息</h1>
       <MessageCenterTabs />
-      <div className="mt-4 grid min-h-[620px] flex-1 grid-cols-[320px_minmax(0,1fr)] overflow-hidden rounded-xl border border-border bg-card">
+      <div className="mt-4 grid min-h-0 flex-1 grid-cols-[320px_minmax(0,1fr)] overflow-hidden rounded-xl border border-border bg-card">
         <DirectConversationList selectedId={selectedId} />
         {children}
       </div>
