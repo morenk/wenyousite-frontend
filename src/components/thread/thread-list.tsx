@@ -6,7 +6,8 @@ import { Loader2 } from "lucide-react";
 import type { ThreadCardData } from "@/api/hooks/use-threads";
 import { ThreadCard } from "./thread-card";
 import { EmptyState } from "@/components/shared/empty-state";
-import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { LoadError } from "@/components/shared/load-error";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 
 interface ThreadListProps {
@@ -35,24 +36,17 @@ export function ThreadList({
   });
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <ThreadListSkeleton />;
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 py-20">
-        <EmptyState
-          title="加载失败"
-          description="请检查网络连接后重试"
-        />
-        <Button variant="outline" size="sm" onClick={onRetry}>
-          重试
-        </Button>
-      </div>
+      <LoadError
+        title="加载失败"
+        description="请检查网络连接后重试"
+        onRetry={onRetry}
+        className="py-20"
+      />
     );
   }
 
@@ -80,6 +74,28 @@ export function ThreadList({
           <p className="text-xs text-muted-foreground">没有更多了</p>
         )}
       </div>
+    </div>
+  );
+}
+
+function ThreadListSkeleton() {
+  return (
+    <div className="flex flex-col gap-4" role="status" aria-label="正在加载主题帖">
+      {Array.from({ length: 3 }, (_, index) => (
+        <div key={index} className="rounded-xl border border-border bg-card p-5">
+          <div className="flex gap-2">
+            <Skeleton className="h-5 w-14 rounded-full" />
+            <Skeleton className="h-5 w-16 rounded-full" />
+          </div>
+          <Skeleton className="mt-4 h-5 w-2/3" />
+          <Skeleton className="mt-3 h-4 w-full" />
+          <Skeleton className="mt-2 h-4 w-4/5" />
+          <div className="mt-5 flex justify-between">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

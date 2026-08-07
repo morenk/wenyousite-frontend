@@ -115,7 +115,7 @@
 
 > 已注销用户的公开主页被屏蔽为 `{ id, username: "已注销用户", isDeactivated: true }`；帖子作者、楼主、成员、关注列表、收藏、搜索和通知中的用户摘要也统一显示“已注销用户”与灰色用户图标，不显示内部墓碑用户名或旧头像。注销事务清空头像引用后，后端确认该 URL 未被正文、草稿或其他头像引用时立即删除原图和派生图；失败由每日孤儿回收兜底。
 
-用户公开资料、最近动态、创建帖、收藏、参与帖和关注列表使用 60 秒新鲜期，返回上一页面时优先复用缓存；关注、收藏、资料修改等写操作仍主动失效对应查询。
+用户公开资料、最近动态、创建帖、收藏、参与帖和关注列表使用 60 秒新鲜期，返回上一页面时优先复用缓存；其中会随身份变化的 OptionalAuth 数据在 query key 中加入查看者 ID，认证恢复或账号切换后不会复用匿名/其他账号的权限结果。关注、收藏、资料修改等写操作仍主动失效对应查询。
 
 ### GET /users/:id/recent-replies → RecentReply[]
 
@@ -211,7 +211,7 @@
 
 | 状态 | 来源 | 管理方式 |
 |------|------|----------|
-| 用户资料 | `GET /users/:id` | TanStack Query `useQuery`（`queryKeys.users.detail(id)`） |
+| 用户资料 | `GET /users/:id` | TanStack Query `useQuery`（`queryKeys.users.detailForViewer(id, viewerScope)`） |
 | 最近动态 | `GET /users/:id/recent-replies` | TanStack Query `useQuery` |
 | 创建的帖子 | `GET /users/:id/created-threads` | `useInfiniteQuery`（cursor 分页） |
 | 参与的帖子 | `GET /users/:id/played-threads` | `useInfiniteQuery`（cursor 分页；query key 含 PUBLIC/PRIVATE/ALL 分类） |

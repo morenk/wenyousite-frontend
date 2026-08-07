@@ -12,6 +12,7 @@ import { ThreadList } from "@/components/thread/thread-list";
 import { CategoryTabs } from "@/components/thread/category-tabs";
 import { ThreadFilters } from "@/components/thread/thread-filters";
 import { Button } from "@/components/ui/button";
+import { PageShell } from "@/components/layout/page-shell";
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -37,7 +38,7 @@ export default function HomePage() {
   const threads = data?.pages.flatMap((page) => page?.data ?? []) ?? [];
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6">
+    <PageShell>
       {/* 顶部操作栏 */}
       <div className="mb-5 flex items-center justify-between">
         <h1 className="text-xl font-bold text-foreground">发现</h1>
@@ -78,6 +79,6 @@ export default function HomePage() {
         onLoadMore={() => fetchNextPage()}
         onRetry={() => refetch()}
       />
-    </div>
+    </PageShell>
   );
 }

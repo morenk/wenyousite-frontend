@@ -7,20 +7,9 @@ import { Loader2, ChevronDown, LockKeyhole } from "lucide-react";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { THREAD_CATEGORY_META, THREAD_STATUS_META } from "@/lib/thread-presentation";
 import type { ThreadCardData } from "@/api/hooks/use-threads";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
-
-const categoryLabel: Record<string, string> = {
-  DEDUCTION: "演绎",
-  NATION: "国策",
-  RPG: "RPG",
-};
-
-const statusLabel: Record<string, string> = {
-  RECRUITING: "招募中",
-  CLOSED: "已停招",
-  FINISHED: "已结束",
-};
 
 interface UserThreadListProps {
   threads: ThreadCardData[];
@@ -73,18 +62,18 @@ export function UserThreadList({
             <span
               className={cn(
                 "rounded-full px-2.5 py-0.5 text-xs font-medium",
-                categoryColor(thread.category),
+                THREAD_CATEGORY_META[thread.category].badgeClassName,
               )}
             >
-              {categoryLabel[thread.category] ?? thread.category}
+              {THREAD_CATEGORY_META[thread.category].label}
             </span>
             <span
               className={cn(
                 "rounded-full px-2.5 py-0.5 text-xs font-medium",
-                statusColor(thread.status),
+                THREAD_STATUS_META[thread.status].badgeClassName,
               )}
             >
-              {statusLabel[thread.status] ?? thread.status}
+              {THREAD_STATUS_META[thread.status].label}
             </span>
             {thread.visibility === "PRIVATE" && (
               <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
@@ -120,22 +109,4 @@ export function UserThreadList({
       </div>
     </div>
   );
-}
-
-function categoryColor(category: string): string {
-  const map: Record<string, string> = {
-    DEDUCTION: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
-    NATION: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-    RPG: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
-  };
-  return map[category] ?? "bg-muted text-muted-foreground";
-}
-
-function statusColor(status: string): string {
-  const map: Record<string, string> = {
-    RECRUITING: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-    CLOSED: "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400",
-    FINISHED: "bg-muted text-muted-foreground",
-  };
-  return map[status] ?? "bg-muted text-muted-foreground";
 }

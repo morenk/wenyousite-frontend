@@ -9,6 +9,7 @@ export interface ApiErrorInfo {
 export const API_ERROR_CODE = {
   BAD_REQUEST: 40001,
   OPTIMISTIC_LOCK_CONFLICT: 40002,
+  UNAUTHORIZED: 40100,
   CONFLICT: 40900,
   RATE_LIMITED: 42900,
 } as const;

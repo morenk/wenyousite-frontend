@@ -48,7 +48,7 @@ const sampleThread: ThreadCardData = {
 };
 
 describe("ThreadList", () => {
-  test("loading 状态显示 spinner", () => {
+  test("loading 状态显示骨架屏", () => {
     render(
       <ThreadList
         threads={[]}
@@ -60,9 +60,8 @@ describe("ThreadList", () => {
         onRetry={() => {}}
       />,
     );
-    expect(
-      document.querySelector(".lucide-loader-circle"),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "正在加载主题帖" })).toBeInTheDocument();
+    expect(document.querySelectorAll("[data-slot='skeleton']")).toHaveLength(21);
   });
 
   test("空列表显示 EmptyState", () => {

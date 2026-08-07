@@ -4,7 +4,7 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ImageLightbox } from "@/components/thread/image-lightbox";
+import { ImageLightbox } from "@/components/shared/image-lightbox";
 import { getImageUrlBySize } from "@/lib/upload-image";
 import { cn } from "@/lib/utils";
 import type { DirectMessage } from "@/api/hooks/use-direct-messages";

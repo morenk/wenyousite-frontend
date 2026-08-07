@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
 import type { components } from "@/api/types";
+import { useViewerScope } from "@/api/use-viewer-scope";
 
 type GeneratedUserPublic =
   components["schemas"]["PublicUserResponseDto"];
@@ -58,8 +59,9 @@ function normalizeUserPublic(user: GeneratedUserPublic): UserPublic {
 }
 
 export function useUserProfile(userId: string | undefined) {
+  const viewerScope = useViewerScope();
   return useQuery({
-    queryKey: queryKeys.users.detail(userId),
+    queryKey: queryKeys.users.detailForViewer(userId, viewerScope),
     queryFn: async () => {
       if (!userId) throw new Error("缺少用户 ID");
       const { data, error } = await apiClient.GET("/api/v1/users/{id}", {

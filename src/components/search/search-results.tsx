@@ -14,22 +14,11 @@ import {
   useSearchUsers,
 } from "@/api/hooks/use-search";
 import { cn } from "@/lib/utils";
+import { THREAD_CATEGORY_META } from "@/lib/thread-presentation";
 import { EmptyState } from "@/components/shared/empty-state";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Button } from "@/components/ui/button";
 import { PostSearchResultList } from "@/components/search/post-search-result-list";
-
-const categoryLabel: Record<string, string> = {
-  DEDUCTION: "演绎",
-  NATION: "国策",
-  RPG: "RPG",
-};
-
-const categoryColor: Record<string, string> = {
-  DEDUCTION: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
-  NATION: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  RPG: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
-};
 
 type SearchTab = "threads" | "posts" | "users";
 
@@ -185,11 +174,10 @@ export function SearchResults({ keyword }: SearchResultsProps) {
                     <span
                       className={cn(
                         "rounded-full px-2.5 py-0.5 text-xs font-medium",
-                        categoryColor[thread.category]
-                          ?? "bg-muted text-muted-foreground",
+                        THREAD_CATEGORY_META[thread.category].badgeClassName,
                       )}
                     >
-                      {categoryLabel[thread.category] ?? thread.category}
+                      {THREAD_CATEGORY_META[thread.category].label}
                     </span>
                   </div>
                   <h3 className="text-sm font-semibold text-foreground line-clamp-1">

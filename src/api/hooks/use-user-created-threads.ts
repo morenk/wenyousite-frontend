@@ -4,13 +4,15 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
 import type { operations } from "@/api/types";
+import { useViewerScope } from "@/api/use-viewer-scope";
 
 export type CreatedThreadsResponse =
   operations["UsersController_getUserCreatedThreads"]["responses"][200]["content"]["application/json"];
 
 export function useUserCreatedThreads(userId: string | undefined) {
+  const viewerScope = useViewerScope();
   return useInfiniteQuery({
-    queryKey: queryKeys.users.createdThreads(userId),
+    queryKey: queryKeys.users.createdThreadsForViewer(userId, viewerScope),
     queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
       if (!userId) throw new Error("缺少用户 ID");
       const queryParams: Record<string, string> = { limit: "10" };

@@ -48,7 +48,7 @@ function ThreadDetailPageContent() {
   const router = useRouter();
   const threadId = params.id as string;
   const targetPostId = searchParams.get("post") ?? undefined;
-  const { user } = useAuth();
+  const { user, isInitialized } = useAuth();
   const { close: closeComposer } = useThreadComposer();
 
   const {
@@ -98,7 +98,7 @@ function ThreadDetailPageContent() {
   const canManageThread = isThreadManager || user?.id === thread?.ownerId;
 
   // Loading
-  if (isLoading) {
+  if (isLoading || (!isInitialized && error)) {
     return (
       <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
         <div className="flex items-center gap-2 text-muted-foreground">

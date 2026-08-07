@@ -2,13 +2,12 @@
 
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
 
 import { useAuth } from "@/lib/auth";
 import {
@@ -17,20 +16,16 @@ import {
   type RegisterStep2FormData,
 } from "@/lib/validations/auth";
 import { useSendRegisterCode, useRegisterComplete } from "@/api/hooks/use-register";
-import { getApiError } from "@/api/errors";
+import { API_ERROR_CODE, getApiError } from "@/api/errors";
 import { useEmailCode } from "@/hooks/use-email-code";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
+import { AuthPageShell } from "@/components/auth/auth-page-shell";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { user, setAuth, isInitialized } = useAuth();
+  const { setAuth } = useAuth();
   const [step, setStep] = useState<"email" | "register">("email");
   const [email, setEmail] = useState("");
   const emailRef = useRef<HTMLInputElement>(null);
@@ -45,13 +40,6 @@ export default function RegisterPage() {
   } = useForm<RegisterStep2FormData>({
     resolver: zodResolver(registerStep2Schema),
   });
-
-  useEffect(() => {
-    if (!isInitialized) return;
-    if (user) {
-      router.replace("/");
-    }
-  }, [user, router, isInitialized]);
 
   const handleSendCode = async () => {
     const inputEmail = emailRef.current?.value || email;
@@ -79,9 +67,9 @@ export default function RegisterPage() {
       setStep("register");
     } catch (error: unknown) {
       const err = getApiError(error);
-      if (err.code === 40900) {
+      if (err.code === API_ERROR_CODE.CONFLICT) {
         toast.error("该邮箱已注册");
-      } else if (err.code === 42900) {
+      } else if (err.code === API_ERROR_CODE.RATE_LIMITED) {
         toast.warning("操作太频繁，请稍后再试");
       } else {
         toast.error(err.message || "发送验证码失败");
@@ -111,9 +99,9 @@ export default function RegisterPage() {
       }
     } catch (error: unknown) {
       const err = getApiError(error);
-      if (err.code === 40001) {
+      if (err.code === API_ERROR_CODE.BAD_REQUEST) {
         toast.error(err.message || "验证码错误或已过期");
-      } else if (err.code === 40900) {
+      } else if (err.code === API_ERROR_CODE.CONFLICT) {
         toast.error("用户名已被占用");
       } else {
         toast.error(err.message || "注册失败");
@@ -121,99 +109,75 @@ export default function RegisterPage() {
     }
   };
 
-  if (!isInitialized) {
-    return (
-      <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
-  if (user) return null;
-
-  const inputClass =
-    "h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm dark:bg-input/30";
-  const btnClass =
-    "inline-flex shrink-0 h-9 w-full items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-medium whitespace-nowrap transition-all outline-none select-none hover:bg-primary/80 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50";
-
   return (
-    <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-center text-xl">注册温油站</CardTitle>
-            <CardDescription className="text-center">
-              创建账号，加入共同创作
-            </CardDescription>
-          </CardHeader>
-
-          {step === "email" ? (
-            <CardContent>
+    <AuthPageShell
+      title="注册温油站"
+      description="创建账号，加入共同创作"
+      footer={(
+        <p className="text-sm text-muted-foreground">
+          已有账号？{" "}
+          <Link
+            href="/login"
+            className="font-medium text-primary hover:underline underline-offset-2"
+          >
+            去登录
+          </Link>
+        </p>
+      )}
+    >
+      {step === "email" ? (
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label
-                    htmlFor="email"
-                    className="flex items-center gap-2 text-sm leading-none font-medium select-none"
-                  >
-                    邮箱
-                  </label>
-                  <input
+                  <Label htmlFor="email">邮箱</Label>
+                  <Input
                     ref={emailRef}
                     id="email"
                     type="email"
                     placeholder="your@email.com"
                     autoComplete="email"
-                    className={inputClass}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") handleSendCode();
                     }}
                   />
                 </div>
 
-                <button
+                <Button
                   type="button"
+                  size="lg"
                   onClick={handleSendCode}
                   disabled={sending}
-                  className={btnClass}
+                  className="w-full"
                 >
                   {sending ? "发送中..." : "获取验证码"}
-                </button>
+                </Button>
               </div>
-            </CardContent>
           ) : (
-            <CardContent>
               <form
                 onSubmit={handleSubmit(onSubmit)}
                 className="flex flex-col gap-4"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <label className="flex items-center gap-2 text-sm leading-none font-medium select-none">
-                    邮箱
-                  </label>
-                  <button
+                  <Label>邮箱</Label>
+                  <Button
                     type="button"
+                    variant="link"
+                    size="xs"
                     onClick={handleChangeEmail}
-                    className="text-xs text-primary hover:underline"
+                    className="h-auto p-0"
                   >
                     换个邮箱
-                  </button>
+                  </Button>
                 </div>
                 <p className="text-sm text-muted-foreground">{email}</p>
 
                 <div className="flex flex-col gap-1.5">
-                  <label
-                    htmlFor="code"
-                    className="flex items-center gap-2 text-sm leading-none font-medium select-none"
-                  >
-                    验证码
-                  </label>
-                  <input
+                  <Label htmlFor="code">验证码</Label>
+                  <Input
                     id="code"
                     placeholder="6 位数字"
                     maxLength={6}
                     inputMode="numeric"
                     autoComplete="one-time-code"
-                    className={inputClass}
                     {...rhfRegister("code")}
                   />
                   {errors.code && (
@@ -225,29 +189,25 @@ export default function RegisterPage() {
                     {countdown > 0
                       ? `${countdown} 秒后可重新发送`
                       : countdown === 0 && !sending && (
-                          <button
+                          <Button
                             type="button"
-                            className="text-primary hover:underline"
+                            variant="link"
+                            size="xs"
+                            className="h-auto p-0 align-baseline"
                             onClick={handleSendCode}
                           >
                             重新发送验证码
-                          </button>
+                          </Button>
                         )}
                   </p>
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label
-                    htmlFor="username"
-                    className="flex items-center gap-2 text-sm leading-none font-medium select-none"
-                  >
-                    用户名
-                  </label>
-                  <input
+                  <Label htmlFor="username">用户名</Label>
+                  <Input
                     id="username"
                     placeholder="2-24 位，字母、数字、中文"
                     autoComplete="username"
-                    className={inputClass}
                     {...rhfRegister("username")}
                   />
                   {errors.username && (
@@ -258,18 +218,12 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label
-                    htmlFor="password"
-                    className="flex items-center gap-2 text-sm leading-none font-medium select-none"
-                  >
-                    密码
-                  </label>
-                  <input
+                  <Label htmlFor="password">密码</Label>
+                  <Input
                     id="password"
                     type="password"
                     placeholder="至少 8 位，含字母和数字"
                     autoComplete="new-password"
-                    className={inputClass}
                     {...rhfRegister("password")}
                   />
                   {errors.password && (
@@ -280,18 +234,12 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label
-                    htmlFor="confirm-password"
-                    className="flex items-center gap-2 text-sm leading-none font-medium select-none"
-                  >
-                    确认密码
-                  </label>
-                  <input
+                  <Label htmlFor="confirm-password">确认密码</Label>
+                  <Input
                     id="confirm-password"
                     type="password"
                     placeholder="再次输入密码"
                     autoComplete="new-password"
-                    className={inputClass}
                     {...rhfRegister("confirmPassword")}
                   />
                   {errors.confirmPassword && (
@@ -301,30 +249,16 @@ export default function RegisterPage() {
                   )}
                 </div>
 
-                <button
+                <Button
                   type="submit"
+                  size="lg"
                   disabled={registerMutation.isPending}
-                  className={btnClass}
+                  className="w-full"
                 >
                   {registerMutation.isPending ? "注册中..." : "注册"}
-                </button>
+                </Button>
               </form>
-            </CardContent>
           )}
-
-          <CardFooter className="justify-center">
-            <p className="text-sm text-muted-foreground">
-              已有账号？{" "}
-              <Link
-                href="/login"
-                className="font-medium text-primary hover:underline underline-offset-2"
-              >
-                去登录
-              </Link>
-            </p>
-          </CardFooter>
-        </Card>
-      </div>
-    </div>
+    </AuthPageShell>
   );
 }

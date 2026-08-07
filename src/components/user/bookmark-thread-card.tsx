@@ -7,25 +7,14 @@ import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { Loader2, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { THREAD_CATEGORY_META, type ThreadCategory } from "@/lib/thread-presentation";
 import type { ThreadOwner } from "@/api/hooks/use-threads";
-
-const categoryLabel: Record<string, string> = {
-  DEDUCTION: "演绎",
-  NATION: "国策",
-  RPG: "RPG",
-};
-
-const categoryColor: Record<string, string> = {
-  DEDUCTION: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
-  NATION: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  RPG: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
-};
 
 interface BookmarkThreadCardProps {
   thread: {
     id: string;
     title: string;
-    category: string;
+    category: ThreadCategory;
     createdAt: string;
     owner: ThreadOwner;
     bookmarkId?: string;
@@ -46,10 +35,10 @@ export function BookmarkThreadCard({
           <span
             className={cn(
               "rounded-full px-2.5 py-0.5 text-xs font-medium",
-              categoryColor[thread.category] ?? "bg-muted text-muted-foreground",
+              THREAD_CATEGORY_META[thread.category].badgeClassName,
             )}
           >
-            {categoryLabel[thread.category] ?? thread.category}
+            {THREAD_CATEGORY_META[thread.category].label}
           </span>
         </div>
         <h3 className="text-sm font-semibold text-foreground line-clamp-1">

@@ -5,6 +5,8 @@ export const queryKeys = {
     all: ["threads"] as const,
     list: (params: object) => ["threads", params] as const,
     detail: (threadId: string) => ["thread", threadId] as const,
+    detailForViewer: (threadId: string, viewerScope: string) =>
+      ["thread", threadId, "viewer", viewerScope] as const,
   },
   floors: {
     all: ["floors"] as const,
@@ -16,6 +18,8 @@ export const queryKeys = {
   },
   posts: {
     detail: (postId: string | undefined) => ["post", postId] as const,
+    detailForViewer: (postId: string | undefined, viewerScope: string) =>
+      ["post", postId, "viewer", viewerScope] as const,
   },
   members: {
     all: ["members"] as const,
@@ -24,18 +28,31 @@ export const queryKeys = {
   users: {
     all: ["user"] as const,
     detail: (userId: string | undefined) => ["user", userId] as const,
+    detailForViewer: (userId: string | undefined, viewerScope: string) =>
+      ["user", userId, "viewer", viewerScope] as const,
     bookmarks: (userId?: string) =>
       userId === undefined
         ? (["user", "bookmarks"] as const)
         : (["user", "bookmarks", userId] as const),
     createdThreads: (userId: string | undefined) =>
       ["user", "created-threads", userId] as const,
+    createdThreadsForViewer: (userId: string | undefined, viewerScope: string) =>
+      ["user", "created-threads", userId, "viewer", viewerScope] as const,
     playedThreads: (userId?: string, visibility: string = "ALL") =>
       userId === undefined
         ? (["user", "played-threads"] as const)
-        : (["user", "played-threads", userId, visibility] as const),
+          : (["user", "played-threads", userId, visibility] as const),
+    playedThreadsForViewer: (
+      userId: string | undefined,
+      visibility: string,
+      viewerScope: string,
+    ) => ["user", "played-threads", userId, visibility, "viewer", viewerScope] as const,
     recentReplies: (userId: string | undefined) =>
       ["user", "recent-replies", userId] as const,
+    recentRepliesForViewer: (userId: string | undefined, viewerScope: string) =>
+      ["user", "recent-replies", userId, "viewer", viewerScope] as const,
+    bookmarksForViewer: (userId: string | undefined, viewerScope: string) =>
+      ["user", "bookmarks", userId, "viewer", viewerScope] as const,
     followLists: (kind?: "following" | "followers", userId?: string) =>
       kind === undefined
         ? (["user"] as const)
@@ -68,11 +85,12 @@ export const queryKeys = {
       userId: string | undefined,
       conversationId: string | undefined,
     ) => ["direct-messages", "messages", userId, conversationId] as const,
-    updates: (
+    updates: (userId: string | undefined, conversationId: string | undefined) =>
+      ["direct-messages", "updates", userId, conversationId] as const,
+    reconciliation: (
       userId: string | undefined,
       conversationId: string | undefined,
-      after: string | undefined,
-    ) => ["direct-messages", "updates", userId, conversationId, after] as const,
+    ) => ["direct-messages", "reconciliation", userId, conversationId] as const,
     lookup: (userId: string | undefined, otherUserId: string | undefined) =>
       ["direct-messages", "lookup", userId, otherUserId] as const,
     unread: (userId: string | undefined) =>

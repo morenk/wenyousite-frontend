@@ -9,36 +9,11 @@ import { zhCN } from "date-fns/locale";
 import { Users, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatMarkdownPreview } from "@/lib/markdown-preview";
+import { THREAD_CATEGORY_META, THREAD_STATUS_META } from "@/lib/thread-presentation";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import type { ThreadCardData } from "@/api/hooks/use-threads";
 import { floorsQueryOptions } from "@/api/hooks/use-floors";
 import { TopicTagLink } from "./topic-tag-link";
-
-const categoryLabel: Record<string, string> = {
-  DEDUCTION: "演绎",
-  NATION: "国策",
-  RPG: "RPG",
-};
-
-const categoryColor: Record<string, string> = {
-  DEDUCTION:
-    "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
-  NATION: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  RPG: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
-};
-
-const statusLabel: Record<string, string> = {
-  RECRUITING: "招募中",
-  CLOSED: "已停招",
-  FINISHED: "已结束",
-};
-
-const statusColor: Record<string, string> = {
-  RECRUITING:
-    "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  CLOSED: "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400",
-  FINISHED: "bg-muted text-muted-foreground",
-};
 
 interface ThreadCardProps {
   thread: ThreadCardData;
@@ -63,19 +38,18 @@ export function ThreadCard({ thread }: ThreadCardProps) {
           <span
             className={cn(
               "rounded-full px-2.5 py-0.5 text-xs font-medium",
-              categoryColor[thread.category] ??
-                "bg-muted text-muted-foreground",
+              THREAD_CATEGORY_META[thread.category].badgeClassName,
             )}
           >
-            {categoryLabel[thread.category] ?? thread.category}
+            {THREAD_CATEGORY_META[thread.category].label}
           </span>
           <span
             className={cn(
               "rounded-full px-2.5 py-0.5 text-xs font-medium",
-              statusColor[thread.status] ?? "bg-muted text-muted-foreground",
+              THREAD_STATUS_META[thread.status].badgeClassName,
             )}
           >
-            {statusLabel[thread.status] ?? thread.status}
+            {THREAD_STATUS_META[thread.status].label}
           </span>
           {thread.pinned && (
             <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">

@@ -6,23 +6,11 @@ import { Label } from "@/components/ui/label";
 import { TagInput } from "@/components/forms/tag-input";
 import type { ThreadCreateFormData } from "@/lib/validations/thread-create";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
-
-const CATEGORY_OPTIONS = [
-  { value: "DEDUCTION", label: "演绎" },
-  { value: "NATION", label: "国策" },
-  { value: "RPG", label: "角色扮演" },
-] as const;
-
-const VISIBILITY_OPTIONS = [
-  { value: "PUBLIC", label: "公开" },
-  { value: "PRIVATE", label: "私密" },
-] as const;
-
-const STATUS_OPTIONS = [
-  { value: "RECRUITING", label: "招募中" },
-  { value: "CLOSED", label: "已停招" },
-  { value: "FINISHED", label: "已结束" },
-] as const;
+import {
+  THREAD_CATEGORY_OPTIONS,
+  THREAD_STATUS_OPTIONS,
+  THREAD_VISIBILITY_OPTIONS,
+} from "@/lib/thread-presentation";
 
 export function ThreadMetadataFields({
   form,
@@ -79,7 +67,7 @@ export function ThreadMetadataFields({
           aria-invalid={Boolean(form.formState.errors.category)}
           className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-60"
         >
-          {CATEGORY_OPTIONS.map((option) => (
+          {THREAD_CATEGORY_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>{option.label}</option>
           ))}
         </select>
@@ -97,7 +85,7 @@ export function ThreadMetadataFields({
             disabled={disabled}
             className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-60"
           >
-            {STATUS_OPTIONS.map((option) => (
+            {THREAD_STATUS_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>{option.label}</option>
             ))}
           </select>
@@ -120,7 +108,7 @@ export function ThreadMetadataFields({
             disabled={disabled}
             className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-60"
           >
-            {VISIBILITY_OPTIONS.map((option) => (
+            {THREAD_VISIBILITY_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>{option.label}</option>
             ))}
           </select>

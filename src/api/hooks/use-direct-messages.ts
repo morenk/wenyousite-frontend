@@ -76,10 +76,37 @@ export function useDirectMessages(conversationId?: string, userId?: string) {
         return true;
       });
   }, [history.data?.pages]);
+  const latestMessageId = messages.at(-1)?.id;
   const updates = useQuery({
-    queryKey: queryKeys.directMessages.updates(userId, conversationId, undefined),
+    queryKey: queryKeys.directMessages.updates(userId, conversationId),
     queryFn: async () => {
-      if (!conversationId) return [] as DirectMessage[];
+      if (!conversationId || !latestMessageId) {
+        throw new Error("缺少增量消息游标");
+      }
+      const { data, error } = await apiClient.GET(
+        "/api/v1/direct-conversations/{id}/messages",
+        {
+          params: {
+            path: { id: conversationId },
+            query: { limit: 50, after: latestMessageId },
+          },
+        },
+      );
+      if (error) throw error;
+      if (!data) throw new Error("增量消息响应为空");
+      return data;
+    },
+    enabled: history.isSuccess && !!conversationId && !!userId && !!latestMessageId,
+    refetchInterval: (query) => query.state.data?.meta?.hasMore ? 1_000 : 10_000,
+    refetchIntervalInBackground: false,
+    staleTime: 0,
+  });
+
+  // after 只返回新消息，不能感知旧消息被对方撤回；低频刷新最近一页用于状态对账。
+  const reconciliation = useQuery({
+    queryKey: queryKeys.directMessages.reconciliation(userId, conversationId),
+    queryFn: async () => {
+      if (!conversationId) throw new Error("缺少会话 ID");
       const { data, error } = await apiClient.GET(
         "/api/v1/direct-conversations/{id}/messages",
         {
@@ -92,16 +119,26 @@ export function useDirectMessages(conversationId?: string, userId?: string) {
       if (error) throw error;
       return data?.data ?? [];
     },
-    enabled: !!conversationId && !!userId,
-    refetchInterval: conversationId && userId ? 10_000 : false,
+    enabled: history.isSuccess && !!conversationId && !!userId,
+    initialData: [] as DirectMessage[],
+    staleTime: 60_000,
+    refetchInterval: 60_000,
     refetchIntervalInBackground: false,
-    staleTime: 0,
   });
 
   useEffect(() => {
-    if (!conversationId || !updates.data?.length) return;
-    appendDirectMessageToCache(queryClient, userId, conversationId, updates.data);
+    if (!conversationId || !updates.data?.data.length) return;
+    appendDirectMessageToCache(queryClient, userId, conversationId, updates.data.data);
   }, [conversationId, queryClient, updates.data, userId]);
 
-  return { ...history, messages, updatesError: updates.isError };
+  useEffect(() => {
+    if (!conversationId || reconciliation.data.length === 0) return;
+    appendDirectMessageToCache(queryClient, userId, conversationId, reconciliation.data);
+  }, [conversationId, queryClient, reconciliation.data, userId]);
+
+  return {
+    ...history,
+    messages,
+    updatesError: updates.isError || reconciliation.isError,
+  };
 }

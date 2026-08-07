@@ -4,6 +4,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
 import type { operations } from "@/api/types";
+import { useViewerScope } from "@/api/use-viewer-scope";
 
 type PlayedThreadsQuery = NonNullable<
   operations["UsersController_getUserPlayedThreads"]["parameters"]["query"]
@@ -17,8 +18,13 @@ export function useUserPlayedThreads(
   userId: string | undefined,
   visibility?: PlayedThreadVisibility,
 ) {
+  const viewerScope = useViewerScope();
   return useInfiniteQuery({
-    queryKey: queryKeys.users.playedThreads(userId, visibility ?? "ALL"),
+    queryKey: queryKeys.users.playedThreadsForViewer(
+      userId,
+      visibility ?? "ALL",
+      viewerScope,
+    ),
     queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
       if (!userId) throw new Error("缺少用户 ID");
       const queryParams: PlayedThreadsQuery = { limit: 10 };

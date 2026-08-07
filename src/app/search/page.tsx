@@ -4,11 +4,13 @@
 
 import { Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { SearchResults } from "@/components/search/search-results";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PageShell } from "@/components/layout/page-shell";
+import { LoadingState } from "@/components/shared/loading-state";
 
 function SearchPageInner() {
   const router = useRouter();
@@ -23,7 +25,7 @@ function SearchPageInner() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6">
+    <PageShell width="md">
       <form onSubmit={handleSubmit} className="mb-6 flex items-center gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -43,7 +45,7 @@ function SearchPageInner() {
       ) : (
         <SearchResults key={q} keyword={q} />
       )}
-    </div>
+    </PageShell>
   );
 }
 
@@ -51,9 +53,7 @@ export default function SearchPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-[50vh] items-center justify-center">
-          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-        </div>
+        <LoadingState className="min-h-[50vh]" label="" />
       }
     >
       <SearchPageInner />

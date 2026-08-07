@@ -2,8 +2,7 @@
 
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
-import { createPortal } from "react-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Milkdown, MilkdownProvider, useEditor, useInstance } from "@milkdown/react";
 import { CrepeBuilder } from "@milkdown/crepe/builder";
 import { cursor } from "@milkdown/crepe/feature/cursor";
@@ -15,7 +14,7 @@ import { topBar } from "@milkdown/crepe/feature/top-bar";
 import { editorViewCtx } from "@milkdown/core";
 import { TextSelection } from "@milkdown/kit/prose/state";
 import type { EditorView } from "@milkdown/kit/prose/view";
-import { AtSign, Loader2, UsersRound } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useDebounce } from "use-debounce";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -28,17 +27,23 @@ import {
   type InlineDiceRoll,
 } from "@/lib/dice-inline";
 import { getDiceNotationError, MAX_DICE_ROLLS_PER_POST } from "@/lib/dice";
-import { getMentionUserId, markEditorMentionAnchors } from "@/lib/mention";
 import { syncMilkdownToolbarVisibility } from "@/lib/milkdown-toolbar";
 import { getApiErrorMessage } from "@/api/errors";
 import { useMentionCandidates } from "@/api/hooks/use-mention-candidates";
 import {
   ContentDraftsPanel,
-} from "@/components/user/content-drafts-panel";
+} from "@/components/editor/content-drafts-panel";
 import { useEditorDraftController } from "@/components/editor/use-editor-draft-controller";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { createDiceInlineEditorPlugins } from "@/components/editor/dice-inline-plugin";
+import { DiceInsertPopover } from "@/components/editor/dice-insert-popover";
+import {
+  MentionCandidateMenu,
+  type MentionMenuItem,
+} from "@/components/editor/mention-candidate-menu";
+import {
+  useEditorMentionController,
+  type EditorMentionMenu,
+} from "@/components/editor/use-editor-mention-controller";
 import "@/components/editor/milkdown-editor.css";
 
 const MAX_CHARS = 10000;
@@ -105,14 +110,6 @@ export interface MilkdownEditorProps {
   diceRolls?: InlineDiceRoll[];
 }
 
-interface MentionMenuItem {
-  id: string;
-  label: string;
-  username?: string;
-  relation?: "FOLLOWING" | "PLAYER";
-  isGroup?: boolean;
-}
-
 const CN_HEADING_OPTIONS = [
   { label: "正文", level: null as number | null },
   { label: "标题 1", level: 1 },
@@ -163,26 +160,14 @@ function EditorHost({
   const crepeRef = useRef<CrepeBuilder | null>(null);
   const hostRef = useRef<HTMLDivElement>(null);
   const onChangeRef = useRef(onChange);
-  const editorDomRef = useRef<HTMLElement | null>(null);
-  const editorCleanupRef = useRef<(() => void) | null>(null);
   const toolbarLabelsRef = useRef<string[]>([]);
-  const mentionMenuRef = useRef<{ from: number; to: number; query: string } | null>(null);
-  const mentionItemsRef = useRef<MentionMenuItem[]>([]);
-  const selectedMentionIndexRef = useRef(0);
-  const isComposingRef = useRef(false);
   const diceSelectionRef = useRef<{ from: number; to: number } | null>(null);
   const [dicePopover, setDicePopover] = useState<{ top: number; left: number } | null>(null);
   const [diceNodeCount, setDiceNodeCount] = useState(
     () => parseInlineDiceNodes(initialValue).length,
   );
   const [customDiceNotation, setCustomDiceNotation] = useState("1d20");
-  const [mentionMenu, setMentionMenu] = useState<{
-    from: number;
-    to: number;
-    query: string;
-    top: number;
-    left: number;
-  } | null>(null);
+  const [mentionMenu, setMentionMenu] = useState<EditorMentionMenu | null>(null);
   const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
 
   useEffect(() => {
@@ -224,14 +209,16 @@ function EditorHost({
     () => (mentionQueryPending ? [] : mentionItems),
     [mentionItems, mentionQueryPending],
   );
-
-  useEffect(() => {
-    mentionItemsRef.current = visibleMentionItems;
-    selectedMentionIndexRef.current = Math.min(
-      selectedMentionIndexRef.current,
-      Math.max(visibleMentionItems.length - 1, 0),
-    );
-  }, [visibleMentionItems]);
+  const { handleMentionSelect } = useEditorMentionController({
+    hostRef,
+    crepeRef,
+    disabled,
+    loading,
+    threadId,
+    items: visibleMentionItems,
+    setMenu: setMentionMenu,
+    setSelectedIndex: setSelectedMentionIndex,
+  });
 
   const activeMentionIndex = Math.min(
     selectedMentionIndex,
@@ -260,33 +247,6 @@ function EditorHost({
     if (markdown === undefined) return;
     emitSerializedMarkdown(markdown, view);
   }, [emitSerializedMarkdown]);
-
-  const handleMentionSelect = useCallback((event: ReactMouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    const itemId = event.currentTarget.dataset.mentionId;
-    const item = mentionItemsRef.current.find((candidate) => candidate.id === itemId);
-    if (!item) return;
-    const view = crepeRef.current?.editor.action((ctx) => ctx.get(editorViewCtx));
-    const range = mentionMenuRef.current;
-    if (!view || !range) return;
-    if (item.isGroup) {
-      view.dispatch(view.state.tr.insertText("@全体玩家 ", range.from, range.to));
-    } else {
-      const linkMarkType = view.state.schema.marks.link;
-      if (!linkMarkType || !item.username) return;
-      const linkMark = linkMarkType.create({
-        href: `/users/${item.id}`,
-        title: null,
-      });
-      const mentionNode = view.state.schema.text(`@${item.username}`, [linkMark]);
-      const transaction = view.state.tr.replaceWith(range.from, range.to, mentionNode);
-      transaction.insertText(" ", range.from + mentionNode.nodeSize);
-      view.dispatch(transaction);
-    }
-    view.focus();
-    mentionMenuRef.current = null;
-    setMentionMenu(null);
-  }, []);
 
   /** 上传失败时统一弹 toast（Milkdown 内部会静默吞掉 onUpload 的 reject） */
   const handleUpload = useCallback(
@@ -509,212 +469,6 @@ function EditorHost({
 
   useEffect(() => {
     const host = hostRef.current;
-    if (!host || !threadId) return;
-
-    const viewForInsert = () =>
-      crepeRef.current?.editor.action((ctx) => ctx.get(editorViewCtx)) ?? null;
-
-    const isMentionNode = (node: unknown): node is { isText: boolean; nodeSize: number; text: string; marks: Array<{ type: { name: string }; attrs: { href?: string } }> } => {
-      if (!node || typeof node !== "object") return false;
-      const candidate = node as {
-        isText?: boolean;
-        nodeSize?: number;
-        text?: string;
-        marks?: Array<{ type: { name: string }; attrs: { href?: string } }>;
-      };
-      return Boolean(
-        candidate.isText &&
-          candidate.nodeSize &&
-          candidate.text &&
-          candidate.marks?.some(
-            (mark) =>
-              mark.type.name === "link" &&
-              getMentionUserId(mark.attrs.href, candidate.text),
-          ),
-      );
-    };
-
-    const findMentionRangeAt = (
-      view: ReturnType<typeof viewForInsert>,
-      position: number,
-      direction: "back" | "delete",
-    ): { from: number; to: number } | null => {
-      if (!view) return null;
-      const resolved = view.state.doc.resolve(position);
-      const parentStart = resolved.start();
-      let result: { from: number; to: number } | null = null;
-      resolved.parent.forEach((node, offset) => {
-        if (!isMentionNode(node)) return;
-        const from = parentStart + offset;
-        const to = from + node.nodeSize;
-        const matches = direction === "back"
-          ? position > from && position <= to
-          : position >= from && position < to;
-        if (matches) result = { from, to };
-      });
-      return result;
-    };
-
-    const updateMentionMenu = () => {
-      const view = crepeRef.current?.editor.action((ctx) => ctx.get(editorViewCtx));
-      const editor = editorDomRef.current;
-      if (!view || !editor || disabled || isComposingRef.current) return;
-      const { from, empty } = view.state.selection;
-      if (!empty) {
-        mentionMenuRef.current = null;
-        setMentionMenu(null);
-        return;
-      }
-      const resolved = view.state.doc.resolve(from);
-      const textBefore = resolved.parent.textBetween(0, resolved.parentOffset, "\n", "\n");
-      const match = /(^|[\s([>])@([a-zA-Z0-9_\u4e00-\u9fff]{0,24})$/u.exec(textBefore);
-      if (!match) {
-        mentionMenuRef.current = null;
-        setMentionMenu(null);
-        return;
-      }
-      const range = {
-        from: from - match[0].length + match[1].length,
-        to: from,
-        query: match[2] ?? "",
-      };
-      const coords = view.coordsAtPos(from);
-      const hostRect = host.getBoundingClientRect();
-      const menuWidth = Math.min(288, Math.max(224, window.innerWidth - 16));
-      const menuHeight = 240;
-      const maxLeft = Math.max(8, host.clientWidth - menuWidth - 8);
-      const belowTop = coords.bottom - hostRect.top + 4;
-      const aboveTop = coords.top - hostRect.top - menuHeight - 4;
-      const top = coords.bottom + menuHeight > window.innerHeight && aboveTop > 8
-        ? aboveTop
-        : belowTop;
-      mentionMenuRef.current = range;
-      setMentionMenu({
-        ...range,
-        top,
-        left: Math.min(maxLeft, Math.max(8, coords.left - hostRect.left)),
-      });
-    };
-
-    const attach = () => {
-      const editor = host.querySelector<HTMLElement>(".ProseMirror");
-      if (!editor) return;
-      markEditorMentionAnchors(editor);
-      if (editorDomRef.current === editor) return;
-      editorDomRef.current = editor;
-      const handleCompositionStart = () => {
-        isComposingRef.current = true;
-      };
-      const handleCompositionEnd = () => {
-        isComposingRef.current = false;
-        window.requestAnimationFrame(() => {
-          markEditorMentionAnchors(editor);
-          updateMentionMenu();
-        });
-      };
-      const handleInput = () => {
-        markEditorMentionAnchors(editor);
-        updateMentionMenu();
-      };
-      const handleKeyDown = (event: KeyboardEvent) => {
-        if (isComposingRef.current || event.isComposing) return;
-        const view = viewForInsert();
-        if (!view) return;
-
-        if (event.key === "Backspace" || event.key === "Delete") {
-          const direction: "back" | "delete" = event.key === "Backspace" ? "back" : "delete";
-          let range = findMentionRangeAt(view, view.state.selection.from, direction);
-          if (
-            event.key === "Backspace" &&
-            !range &&
-            view.state.selection.empty &&
-            view.state.selection.from > 0 &&
-            view.state.doc.resolve(view.state.selection.from).nodeBefore?.text?.endsWith(" ")
-          ) {
-            range = findMentionRangeAt(view, view.state.selection.from - 1, "back");
-            if (range) range.to = view.state.selection.from;
-          }
-          if (range) {
-            event.preventDefault();
-            view.dispatch(view.state.tr.delete(range.from, range.to).scrollIntoView());
-            window.requestAnimationFrame(updateMentionMenu);
-            return;
-          }
-        }
-
-        const menu = mentionMenuRef.current;
-        const items = mentionItemsRef.current;
-        if (!menu || items.length === 0) return;
-        if (event.key === "ArrowDown") {
-          event.preventDefault();
-          const next = (selectedMentionIndexRef.current + 1) % items.length;
-          selectedMentionIndexRef.current = next;
-          setSelectedMentionIndex(next);
-        } else if (event.key === "ArrowUp") {
-          event.preventDefault();
-          const next = (selectedMentionIndexRef.current - 1 + items.length) % items.length;
-          selectedMentionIndexRef.current = next;
-          setSelectedMentionIndex(next);
-        } else if (event.key === "Escape") {
-          event.preventDefault();
-          mentionMenuRef.current = null;
-          setMentionMenu(null);
-        } else if (event.key === "Enter" || event.key === "Tab") {
-          event.preventDefault();
-          const item = items[selectedMentionIndexRef.current] ?? items[0];
-          if (item.isGroup) {
-            view.dispatch(view.state.tr.insertText("@全体玩家 ", menu.from, menu.to));
-          } else {
-            const linkMarkType = view.state.schema.marks.link;
-            if (!linkMarkType || !item.username) return;
-            const linkMark = linkMarkType.create({
-              href: `/users/${item.id}`,
-              title: null,
-            });
-            const mentionNode = view.state.schema.text(`@${item.username}`, [linkMark]);
-            const transaction = view.state.tr.replaceWith(menu.from, menu.to, mentionNode);
-            transaction.insertText(" ", menu.from + mentionNode.nodeSize);
-            view.dispatch(transaction);
-          }
-          view.focus();
-          mentionMenuRef.current = null;
-          setMentionMenu(null);
-        }
-      };
-      editor.addEventListener("compositionstart", handleCompositionStart);
-      editor.addEventListener("compositionend", handleCompositionEnd);
-      editor.addEventListener("input", handleInput);
-      editor.addEventListener("keyup", updateMentionMenu);
-      editor.addEventListener("keydown", handleKeyDown);
-      editorCleanupRef.current = () => {
-        editor.removeEventListener("compositionstart", handleCompositionStart);
-        editor.removeEventListener("compositionend", handleCompositionEnd);
-        editor.removeEventListener("input", handleInput);
-        editor.removeEventListener("keyup", updateMentionMenu);
-        editor.removeEventListener("keydown", handleKeyDown);
-        editorDomRef.current = null;
-      };
-      updateMentionMenu();
-    };
-
-    const observer = new MutationObserver(attach);
-    observer.observe(host, { childList: true, subtree: true });
-    window.addEventListener("resize", updateMentionMenu);
-    window.addEventListener("scroll", updateMentionMenu, true);
-    attach();
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", updateMentionMenu);
-      window.removeEventListener("scroll", updateMentionMenu, true);
-      editorCleanupRef.current?.();
-      editorCleanupRef.current = null;
-      mentionMenuRef.current = null;
-      setMentionMenu(null);
-    };
-  }, [disabled, loading, threadId]);
-
-  useEffect(() => {
-    const host = hostRef.current;
     if (!host) return;
     const syncTopBar = () => {
       injectToolbarTooltips(host, toolbarLabelsRef.current);
@@ -757,113 +511,24 @@ function EditorHost({
           编辑器加载中…
         </div>
       )}
-      {dicePopover && createPortal(
-        <div
-          data-dice-popover
-          role="dialog"
-          aria-label="插入骰子"
-          className="fixed z-[100] w-72 rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-lg"
-          style={{ top: dicePopover.top, left: dicePopover.left }}
-        >
-          <div className="mb-2 flex items-center justify-between gap-3 text-sm font-medium">
-            <span>插入骰子</span>
-            <span className="text-xs font-normal text-muted-foreground">
-              {diceNodeCount}/{MAX_DICE_ROLLS_PER_POST}
-            </span>
-          </div>
-          <div className="mb-2 flex flex-wrap gap-1.5">
-            {QUICK_DICE_SIDES.map((sides) => (
-              <Button
-                key={sides}
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-7 px-2 text-xs"
-                disabled={diceNodeCount >= MAX_DICE_ROLLS_PER_POST}
-                onClick={() => handleInsertDice(`1d${sides}`)}
-              >
-                d{sides}
-              </Button>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <Input
-              autoFocus
-              value={customDiceNotation}
-              onChange={(event) => setCustomDiceNotation(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key !== "Enter") return;
-                event.preventDefault();
-                handleInsertDice(customDiceNotation);
-              }}
-              className="h-8"
-              aria-label="自定义骰子表达式"
-              placeholder="例如 2d6+3"
-            />
-            <Button
-              type="button"
-              size="sm"
-              className="h-8 px-3"
-              disabled={diceNodeCount >= MAX_DICE_ROLLS_PER_POST}
-              onClick={() => handleInsertDice(customDiceNotation)}
-            >
-              插入
-            </Button>
-          </div>
-          <p className="mt-2 text-xs text-muted-foreground">提交后由服务器生成结果</p>
-        </div>,
-        document.body,
-      )}
-      {mentionMenu && (
-        <div
-          role="listbox"
-          aria-label="艾特候选"
-          className="absolute z-50 w-[min(18rem,calc(100vw-1rem))] overflow-hidden rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-lg"
-          style={{ top: mentionMenu.top, left: mentionMenu.left }}
-        >
-          {(mentionQueryPending || isMentionFetching) && (
-            <div className="flex items-center gap-2 px-2.5 py-2 text-sm text-muted-foreground" role="status">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              正在查找可艾特用户…
-            </div>
-          )}
-          {!mentionQueryPending && !isMentionFetching && isMentionError && (
-            <button
-              type="button"
-              className="flex w-full items-center justify-center rounded-md px-2.5 py-2 text-sm text-destructive hover:bg-accent/60"
-              onMouseDown={(event) => {
-                event.preventDefault();
-                void refetchMentionCandidates();
-              }}
-            >
-              加载失败，点击重试
-            </button>
-          )}
-          {!mentionQueryPending && !isMentionFetching && !isMentionError && visibleMentionItems.length === 0 && (
-            <div className="px-2.5 py-2 text-sm text-muted-foreground">暂无可艾特用户</div>
-          )}
-          {!mentionQueryPending && !isMentionFetching && visibleMentionItems.map((item, index) => (
-            <button
-              key={item.id}
-              type="button"
-              role="option"
-              aria-selected={index === activeMentionIndex}
-              className={cn(
-                "flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm",
-                index === activeMentionIndex ? "bg-accent text-accent-foreground" : "hover:bg-accent/60",
-              )}
-              data-mention-id={item.id}
-              onMouseDown={handleMentionSelect}
-            >
-              {item.isGroup ? <UsersRound className="h-4 w-4" /> : <AtSign className="h-4 w-4" />}
-              <span className="min-w-0 flex-1 truncate">{item.label}</span>
-              <span className="text-xs text-muted-foreground">
-                {item.isGroup ? "仅楼主/协作者" : item.relation === "PLAYER" ? "帖内玩家" : "我关注的人"}
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
+      <DiceInsertPopover
+        position={dicePopover}
+        count={diceNodeCount}
+        maxCount={MAX_DICE_ROLLS_PER_POST}
+        quickSides={QUICK_DICE_SIDES}
+        notation={customDiceNotation}
+        onNotationChange={setCustomDiceNotation}
+        onInsert={handleInsertDice}
+      />
+      <MentionCandidateMenu
+        position={mentionMenu}
+        items={visibleMentionItems}
+        activeIndex={activeMentionIndex}
+        pending={mentionQueryPending || isMentionFetching}
+        error={isMentionError}
+        onRetry={() => void refetchMentionCandidates()}
+        onSelect={handleMentionSelect}
+      />
     </div>
   );
 }

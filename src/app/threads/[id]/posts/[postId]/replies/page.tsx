@@ -9,6 +9,7 @@ import { ReplyDiscussion } from "@/components/thread/reply-discussion";
 import { ThreadComposerProvider } from "@/components/thread/thread-composer-context";
 import { ThreadPermissionsProvider } from "@/components/thread/thread-permissions-context";
 import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/lib/auth";
 
 export default function ReplyDiscussionPage() {
   const params = useParams<{ id: string }>();
@@ -24,11 +25,12 @@ export default function ReplyDiscussionPage() {
 function ReplyDiscussionPageContent() {
   const params = useParams<{ id: string; postId: string }>();
   const searchParams = useSearchParams();
+  const { isInitialized } = useAuth();
   const focusedReplyId = searchParams.get("post") ?? undefined;
   const { data: rootPost, isLoading, error } = usePost(params.postId);
   const { data: focusedReply } = usePost(focusedReplyId);
 
-  if (isLoading) {
+  if (isLoading || (!isInitialized && error)) {
     return (
       <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center text-muted-foreground">
         <Loader2 className="mr-2 h-5 w-5 animate-spin" />

@@ -20,7 +20,7 @@ import {
   formatInlineDiceRoll,
   type InlineDiceRoll,
 } from "@/lib/dice-inline";
-import { ImageLightbox } from "@/components/thread/image-lightbox";
+import { ImageLightbox } from "@/components/shared/image-lightbox";
 
 /** 判断是否为本站上传图片（objectKey 统一以 uploads/ 开头）且非派生图 */
 function isUploadedMediaUrl(url: string): boolean {

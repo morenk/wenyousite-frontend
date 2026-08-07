@@ -88,9 +88,10 @@ function ConversationLink({
 export function DirectConversationList({ selectedId }: { selectedId?: string }) {
   const { user } = useAuth();
   const [showArchived, setShowArchived] = useState(false);
-  const inboxQuery = useDirectConversations("INBOX", user?.id);
-  const requestsQuery = useDirectConversations("REQUESTS", user?.id);
-  const archivedQuery = useDirectConversations("ARCHIVED", user?.id);
+  const inboxQuery = useDirectConversations("INBOX", user?.id, { poll: !showArchived });
+  const requestsQuery = useDirectConversations("REQUESTS", user?.id, { poll: !showArchived });
+  // 隐藏时仍首查一次以决定是否展示“已归档”入口，但不持续轮询。
+  const archivedQuery = useDirectConversations("ARCHIVED", user?.id, { poll: showArchived });
   const inboxConversations = useMemo(
     () => inboxQuery.data?.pages.flatMap((page) => page.data) ?? [],
     [inboxQuery.data?.pages],

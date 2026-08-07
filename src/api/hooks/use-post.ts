@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
 import type { components } from "@/api/types";
+import { useViewerScope } from "@/api/use-viewer-scope";
 
 type GeneratedPostDetail = components["schemas"]["PostDetailResponseDto"];
 export type PostDetail = Omit<GeneratedPostDetail, "diceRolls"> & {
@@ -12,8 +13,9 @@ export type PostDetail = Omit<GeneratedPostDetail, "diceRolls"> & {
 
 /** 查询一个未删除且当前用户可访问的帖子 */
 export function usePost(id?: string) {
+  const viewerScope = useViewerScope();
   return useQuery({
-    queryKey: queryKeys.posts.detail(id),
+    queryKey: queryKeys.posts.detailForViewer(id, viewerScope),
     queryFn: async () => {
       if (!id) throw new Error("缺少帖子 ID");
       const { data, error } = await apiClient.GET("/api/v1/posts/{id}", {

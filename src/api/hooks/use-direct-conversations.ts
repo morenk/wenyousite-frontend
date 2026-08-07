@@ -6,7 +6,16 @@ import type { components } from "@/api/types";
 export type DirectConversation = components["schemas"]["DirectConversationResponseDto"];
 export type DirectConversationView = "INBOX" | "REQUESTS" | "ARCHIVED";
 
-export function useDirectConversations(view: DirectConversationView, userId?: string) {
+interface DirectConversationQueryOptions {
+  enabled?: boolean;
+  poll?: boolean;
+}
+
+export function useDirectConversations(
+  view: DirectConversationView,
+  userId?: string,
+  options: DirectConversationQueryOptions = {},
+) {
   return useInfiniteQuery({
     queryKey: queryKeys.directMessages.list(userId, view),
     queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
@@ -26,9 +35,9 @@ export function useDirectConversations(view: DirectConversationView, userId?: st
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) =>
       lastPage.meta?.hasMore ? lastPage.meta.cursor ?? undefined : undefined,
-    enabled: !!userId,
+    enabled: !!userId && options.enabled !== false,
     staleTime: 10_000,
-    refetchInterval: userId ? 30_000 : false,
+    refetchInterval: userId && options.poll !== false ? 30_000 : false,
     refetchIntervalInBackground: false,
   });
 }

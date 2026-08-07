@@ -61,9 +61,14 @@ describe("direct message history", () => {
     expect(client.getQueryData(queryKeys.directMessages.messages("u1", "c1"))).toBeUndefined();
   });
 
-  test("加载历史并把分页按时间正序合并", async () => {
-    mockGET.mockImplementation(async (_path: string, options: { params: { query: { cursor?: string } } }) => {
-      const cursor = options.params.query.cursor;
+  test("加载历史、按 after 增量同步并把分页按时间正序合并", async () => {
+    mockGET.mockImplementation(async (_path: string, options: {
+      params: { query: { cursor?: string; after?: string } };
+    }) => {
+      const { cursor, after } = options.params.query;
+      if (after) {
+        return { data: { data: [makeMessage("m2")], meta: { cursor: null, hasMore: false } } };
+      }
       return cursor
         ? { data: { data: [makeMessage("m0")], meta: { cursor: null, hasMore: false } } }
         : { data: { data: [makeMessage("m1")], meta: { cursor: "m1", hasMore: true } } };
@@ -72,11 +77,53 @@ describe("direct message history", () => {
     const { result } = renderHook(() => useDirectMessages("c1", "u1"), { wrapper: Wrapper });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.messages.map((item) => item.id)).toEqual(["m1"]);
+    await waitFor(() => expect(result.current.messages.map((item) => item.id)).toEqual(["m1", "m2"]));
+    expect(mockGET).toHaveBeenCalledWith(
+      "/api/v1/direct-conversations/{id}/messages",
+      expect.objectContaining({
+        params: expect.objectContaining({
+          query: { limit: 50, after: "m1" },
+        }),
+      }),
+    );
     await act(async () => {
       await result.current.fetchNextPage();
     });
-    await waitFor(() => expect(result.current.messages.map((item) => item.id)).toEqual(["m0", "m1"]));
+    await waitFor(() => expect(result.current.messages.map((item) => item.id)).toEqual([
+      "m0",
+      "m1",
+      "m2",
+    ]));
+  });
+
+  test("低频对账会替换最近一页中已撤回的旧消息", async () => {
+    mockGET.mockImplementation(async (_path: string, options: {
+      params: { query: { limit: number; after?: string } };
+    }) => {
+      const { limit, after } = options.params.query;
+      if (after) {
+        return { data: { data: [], meta: { cursor: null, hasMore: false } } };
+      }
+      if (limit === 50) {
+        return {
+          data: {
+            data: [makeMessage("m1", { content: null, recalledAt: "2026-08-06T20:01:00Z" })],
+            meta: { cursor: null, hasMore: false },
+          },
+        };
+      }
+      return { data: { data: [makeMessage("m1")], meta: { cursor: null, hasMore: false } } };
+    });
+    const { client, Wrapper } = setup();
+    const { result } = renderHook(() => useDirectMessages("c1", "u1"), { wrapper: Wrapper });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    await act(async () => {
+      await client.invalidateQueries({
+        queryKey: queryKeys.directMessages.reconciliation("u1", "c1"),
+      });
+    });
+    await waitFor(() => expect(result.current.messages[0]?.recalledAt).not.toBeNull());
   });
 
   test("缺少会话 ID、API 错误与空响应均可识别", async () => {

@@ -64,7 +64,7 @@
 
 **刷新与缓存策略：** 注册/登录成功后把 access token 与 user 写入模块内存，绝不把 access token 写入 Web Storage。刷新页面时 `AuthProvider` 先调用 `/auth/refresh`，用 httpOnly cookie 恢复内存会话，完成后才把 `isInitialized` 置为 true。单个标签页内的并发 401 共享一个刷新 Promise；不同标签页通过名为 `wenyousite-auth-refresh` 的 Web Lock 串行轮换。登录/登出的会话标记变化会通知其他标签页重新恢复或清空，但标记本身不含凭证。确认刷新失败才清理登录态并跳转登录页。
 
-TanStack Query 容器由当前认证身份隔离；首次 AuthContext hydration 只记录当前身份，不重复创建 QueryClient，避免公共首页请求两次。此后登录、登出或账号切换才重新创建 QueryClient。登录终端、黑名单等敏感 hook 还会把用户 ID 放入 query key，双层避免私有数据跨账号短暂复用。
+TanStack Query 容器由当前认证身份隔离；首次 AuthContext hydration 只记录当前身份，不重复创建 QueryClient，避免公共首页请求两次。此后登录、登出或账号切换才重新创建 QueryClient。登录终端、黑名单等敏感 hook 还会把用户 ID 放入 query key。主题帖、帖子和用户主页等 OptionalAuth 查询使用 `useViewerScope` 把当前查看者 ID 放入 query key；页面从匿名启动恢复为登录态时会自动切换缓存维度并重新查询关系、权限和私密可见内容。
 
 ## 5. 组件清单
 
@@ -75,6 +75,8 @@ TanStack Query 容器由当前认证身份隔离；首次 AuthContext hydration 
 | ForgotPasswordPage | `src/app/forgot-password/page.tsx` | 忘记密码页面 |
 | ResetPasswordPage | `src/app/reset-password/page.tsx` | 重置密码页面 |
 | VerifyEmailPage | `src/app/verify-email/page.tsx` | 邮箱验证页面 |
+| GuestRoute / GuestOnly | `src/components/auth/guest-route.tsx` | 登录、注册和找回密码路由共享的访客边界与认证恢复等待 |
+| AuthPageShell | `src/components/auth/auth-page-shell.tsx` | 认证流程统一桌面卡片布局 |
 | NavBar | `src/components/layout/nav-bar.tsx` | 全局导航栏 |
 | Button | `src/components/ui/button.tsx` | shadcn Button |
 | Input | `src/components/ui/input.tsx` | shadcn Input |
@@ -201,7 +203,7 @@ if (error) {
 
 | 场景 | 处理 |
 |------|------|
-| 已登录用户访问 `/login`、`/register` 等 | `useEffect` 检测 user 存在，`router.replace("/")` |
+| 已登录用户访问 `/login`、`/register` 等 | 路由 `layout.tsx` 统一挂载 `GuestRoute`；等待会话恢复后跳转 `next` 或 `/` |
 | 未登录用户访问需登录页面 | 受保护路由的 `layout.tsx` 统一挂载 `RequireAuth`，等待启动恢复后保留 `next` 路径跳登录 |
 | 需验证邮箱的写入口 | 创建、编辑、邀请加入布局统一传 `requireVerifiedEmail`，未验证跳 `/verify-email` |
 | 登出 | 调 `POST /auth/logout`；服务端成功后清除内存会话和无凭证标记并跳首页，失败则保留登录态并提示重试 |

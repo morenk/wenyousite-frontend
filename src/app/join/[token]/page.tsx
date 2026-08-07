@@ -11,8 +11,7 @@ import { useInvitePreview, useJoinThreadByInvite } from "@/api/hooks/use-thread-
 import { getApiErrorMessage } from "@/api/errors";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-const categoryLabel = { DEDUCTION: "演绎", NATION: "国策", RPG: "RPG" } as const;
+import { THREAD_CATEGORY_META } from "@/lib/thread-presentation";
 
 export default function JoinByInvitePage() {
   const { token } = useParams<{ token: string }>();
@@ -60,7 +59,7 @@ export default function JoinByInvitePage() {
           <div>
             <h1 className="text-lg font-semibold">{thread.title}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {categoryLabel[thread.category]} · 楼主 {thread.owner.username} · {thread.memberCount} 位参与人
+              {THREAD_CATEGORY_META[thread.category].label} · 楼主 {thread.owner.username} · {thread.memberCount} 位参与人
             </p>
           </div>
           <Button className="w-full" disabled={join.isPending} onClick={handleJoin}>

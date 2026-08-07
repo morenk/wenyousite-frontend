@@ -2,12 +2,10 @@
 
 "use client";
 
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
 
 import { useAuth } from "@/lib/auth";
 import {
@@ -18,23 +16,17 @@ import {
   useVerifyEmail,
   useResendVerification,
 } from "@/api/hooks/use-auth-actions";
-import { getApiError } from "@/api/errors";
+import { API_ERROR_CODE, getApiError } from "@/api/errors";
 import { useEmailCode } from "@/hooks/use-email-code";
 import { SendCodeButton } from "@/components/auth/send-code-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
+import { AuthPageShell } from "@/components/auth/auth-page-shell";
 
 export default function VerifyEmailPage() {
   const router = useRouter();
-  const { user, isInitialized } = useAuth();
+  const { user } = useAuth();
   const verifyMutation = useVerifyEmail();
   const resendMutation = useResendVerification();
   const { countdown, sending, send } = useEmailCode();
@@ -47,13 +39,6 @@ export default function VerifyEmailPage() {
     resolver: zodResolver(verifyEmailSchema),
   });
 
-  useEffect(() => {
-    if (!isInitialized) return;
-    if (!user) {
-      router.replace("/login");
-    }
-  }, [user, router, isInitialized]);
-
   const onSubmit = async (formData: VerifyEmailFormData) => {
     try {
       await verifyMutation.mutateAsync(formData.token);
@@ -61,7 +46,7 @@ export default function VerifyEmailPage() {
       router.replace("/");
     } catch (error: unknown) {
       const err = getApiError(error);
-      if (err.code === 40001) {
+      if (err.code === API_ERROR_CODE.BAD_REQUEST) {
         toast.error(err.message || "验证码错误或已过期");
       } else {
         toast.error(err.message || "验证失败，请稍后重试");
@@ -84,29 +69,11 @@ export default function VerifyEmailPage() {
     }
   };
 
-  if (!isInitialized) {
-    return (
-      <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
   if (!user) return null;
 
   return (
-    <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-center text-xl">验证邮箱</CardTitle>
-            <CardDescription className="text-center">
-              已发送验证码至 {user.email}
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+    <AuthPageShell title="验证邮箱" description={`已发送验证码至 ${user.email}`}>
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="token">验证码</Label>
                 <Input
@@ -141,10 +108,7 @@ export default function VerifyEmailPage() {
                 initialLabel="发送验证码"
                 className="w-full"
               />
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+      </form>
+    </AuthPageShell>
   );
 }

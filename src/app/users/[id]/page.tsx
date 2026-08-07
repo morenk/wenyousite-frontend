@@ -3,7 +3,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { Loader2, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { useUserProfile } from "@/api/hooks/use-user-profile";
 import { useUserRecentReplies } from "@/api/hooks/use-user-recent-replies";
 import { UserProfileCard } from "@/components/user/user-profile-card";
@@ -15,6 +15,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
 import { useAuth } from "@/lib/auth";
+import { PageShell } from "@/components/layout/page-shell";
+import { LoadingState } from "@/components/shared/loading-state";
 
 export default function UserProfilePage() {
   const params = useParams();
@@ -36,18 +38,13 @@ export default function UserProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          加载中…
-        </div>
-      </div>
+      <LoadingState variant="page" />
     );
   }
 
   if (error || !profile) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-12">
+      <PageShell className="py-12">
         <Card>
           <CardContent className="pt-6">
             <div className="flex flex-col items-center gap-4 py-8">
@@ -64,13 +61,13 @@ export default function UserProfilePage() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </PageShell>
     );
   }
 
   if (profile.isDeactivated) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-12">
+      <PageShell className="py-12">
         <Card>
           <CardContent className="pt-6">
             <EmptyState
@@ -79,12 +76,12 @@ export default function UserProfilePage() {
             />
           </CardContent>
         </Card>
-      </div>
+      </PageShell>
     );
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6">
+    <PageShell>
       <div className="space-y-5">
         <UserProfileCard user={profile} />
 
@@ -128,6 +125,6 @@ export default function UserProfilePage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </PageShell>
   );
 }

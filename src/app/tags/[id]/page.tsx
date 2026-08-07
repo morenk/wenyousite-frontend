@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { useTag } from "@/api/hooks/use-tags";
 import {
@@ -16,6 +16,8 @@ import { CategoryTabs } from "@/components/thread/category-tabs";
 import { ThreadFilters } from "@/components/thread/thread-filters";
 import { ThreadList } from "@/components/thread/thread-list";
 import { EmptyState } from "@/components/shared/empty-state";
+import { PageShell } from "@/components/layout/page-shell";
+import { LoadingState } from "@/components/shared/loading-state";
 
 export default function TagThreadsPage() {
   const { id: tagId } = useParams<{ id: string }>();
@@ -34,15 +36,13 @@ export default function TagThreadsPage() {
 
   if (tagQuery.isLoading) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
+      <LoadingState className="min-h-[50vh]" label="" />
     );
   }
 
   if (tagQuery.error || !tagQuery.data) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-10">
+      <PageShell className="py-10">
         <EmptyState
           title="标签不存在"
           description="该标签可能已被删除或链接有误"
@@ -52,12 +52,12 @@ export default function TagThreadsPage() {
             返回发现
           </Link>
         </div>
-      </div>
+      </PageShell>
     );
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6">
+    <PageShell>
       <Link
         href="/"
         className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
@@ -95,6 +95,6 @@ export default function TagThreadsPage() {
         onLoadMore={() => threadsQuery.fetchNextPage()}
         onRetry={() => threadsQuery.refetch()}
       />
-    </div>
+    </PageShell>
   );
 }

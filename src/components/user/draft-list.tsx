@@ -13,12 +13,7 @@ import { getApiErrorMessage } from "@/api/errors";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
 import { useConfirm } from "@/components/ui/confirm-provider";
-
-const categoryLabel: Record<string, string> = {
-  DEDUCTION: "演绎",
-  NATION: "国策",
-  RPG: "RPG",
-};
+import { THREAD_CATEGORY_META } from "@/lib/thread-presentation";
 
 export function DraftList() {
   const { data: drafts, isLoading, error, refetch } = useDrafts();
@@ -78,7 +73,7 @@ export function DraftList() {
           <div className="min-w-0">
             <div className="mb-1 flex items-center gap-2">
               <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                {categoryLabel[draft.category] ?? draft.category}
+                {THREAD_CATEGORY_META[draft.category].label}
               </span>
               {draft._count.posts > 0 && (
                 <span className="text-xs text-muted-foreground">

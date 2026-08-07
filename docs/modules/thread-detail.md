@@ -241,7 +241,7 @@
 
 | 状态 | 来源 | 管理方式 |
 |------|------|----------|
-| 主题帖详情 | `GET /threads/:id` | TanStack Query `useQuery` |
+| 主题帖详情 | `GET /threads/:id` | TanStack Query `useQuery`；query key 含查看者 ID，认证恢复后重新读取权限字段 |
 | 楼层列表 | `GET /subthreads/:subthreadId/posts` | TanStack Query `useInfiniteQuery` |
 | 当前选中子贴 | 用户点击 Tab | useState（默认 defaultSubthreadId） |
 | 当前编辑会话 | 用户点击发表/回复/编辑 | `ThreadComposerProvider`（全页唯一 session + content + pending） |
@@ -257,6 +257,7 @@
 |------|------|------|
 | ThreadDetailPage | `src/app/threads/[id]/page.tsx` | 详情页主逻辑（含管理面板切换） |
 | ThreadDetailHeader | `src/components/thread/thread-detail-header.tsx` | 标题与操作区；楼主/协作者仅显示统一“管理”入口，仅楼主可邀请和删除整帖 |
+| ThreadSubscriptionControls | `src/components/thread/thread-subscription-controls.tsx` | 普通用户的主题/玩家订阅、成员候选查询与退出玩家身份交互 |
 | ThreadPostSearch | `src/components/thread/thread-post-search.tsx` | 内联搜索全部子贴与楼中楼；处理短词、分页及四态 |
 | PostSearchResultList | `src/components/search/post-search-result-list.tsx` | 与全站搜索共用的结果列表、加载更多和精确帖子导航 |
 | SubthreadTabs | `src/components/thread/subthread-tabs.tsx` | 子贴 Tab 切换导航 |
@@ -274,6 +275,7 @@
 | ThreadPermissionsProvider | `src/components/thread/thread-permissions-context.tsx` | 复用详情中的当前成员与 capability 投影，计算楼主、协作者、参与人和管理权限 |
 | MemberManager | `src/components/thread/member-manager.tsx` | 楼主可任免协作者；楼主/协作者可授予/收回玩家 |
 | ManagementPanel | `src/components/thread/management-panel.tsx` | 楼主/协作者统一管理面板：主题帖、子贴、成员三个页签及未保存保护 |
+| useManagementPanelController | `src/components/thread/use-management-panel-controller.ts` | 管理面板 reducer、脏状态保护、mutation 与提示编排 |
 | SubthreadTree | `src/components/thread/subthread-tree.tsx` | 管理面板左栏子贴目录树（@dnd-kit 拖拽排序） |
 | SubthreadForm | `src/components/forms/subthread-form.tsx` | 子贴创建/编辑弹窗（title + postingPolicy + Zod 校验） |
 | useFloors | `src/api/hooks/use-floors.ts` | 楼层列表 hook |
@@ -296,6 +298,7 @@
 | useSubscriptionMutations | `src/api/hooks/use-subscription-mutations.ts` | 创建/取消订阅 |
 | ThreadEditForm | `src/components/forms/thread-edit-form.tsx` | 管理面板「主题帖」表单；协作者可改标题/分区/状态/标签/主帖正文，可见性仅楼主；上报脏状态与保存状态 |
 | EditThreadPage | `src/app/threads/[id]/edit/page.tsx` | 兼容路由：未发布草稿继续使用发布表单，已发布帖复用统一管理面板 |
+| useEditorMentionController | `src/components/editor/use-editor-mention-controller.ts` | Milkdown 的提及 DOM 监听、键盘导航、原子删除与插入事务 |
 
 ## 6.1 帖主管理面板
 

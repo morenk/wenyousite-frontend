@@ -3,7 +3,7 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { DirectMessageBubble } from "@/components/message/direct-message-bubble";
 import type { DirectMessage } from "@/api/hooks/use-direct-messages";
 
-vi.mock("@/components/thread/image-lightbox", () => ({
+vi.mock("@/components/shared/image-lightbox", () => ({
   ImageLightbox: ({ onClose }: { onClose: () => void }) => (
     <button type="button" onClick={onClose}>原图遮罩</button>
   ),

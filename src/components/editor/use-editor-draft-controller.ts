@@ -7,7 +7,7 @@ import { getApiErrorMessage } from "@/api/errors";
 import { useSaveDraft } from "@/api/hooks/use-save-draft";
 import { queryKeys } from "@/api/query-keys";
 import { useAuth } from "@/lib/auth";
-import type { EditorDraftSnapshot } from "@/components/user/content-drafts-panel";
+import type { EditorDraftSnapshot } from "@/components/editor/content-drafts-panel";
 
 export type EditorAutoSaveStatus = "idle" | "saving" | "saved" | "error";
 

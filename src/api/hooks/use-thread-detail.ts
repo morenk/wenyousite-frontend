@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
 import type { components } from "@/api/types";
+import { useViewerScope } from "@/api/use-viewer-scope";
 
 export const THREAD_DETAIL_STALE_TIME = 30 * 1000;
 
@@ -56,9 +57,9 @@ export function normalizeThreadDetail(raw: RawThreadDetail): ThreadDetail {
   };
 }
 
-export function threadDetailQueryOptions(threadId: string) {
+export function threadDetailQueryOptions(threadId: string, viewerScope = "anonymous") {
   return {
-    queryKey: queryKeys.threads.detail(threadId),
+    queryKey: queryKeys.threads.detailForViewer(threadId, viewerScope),
     queryFn: async () => {
       const { data, error } = await apiClient.GET("/api/v1/threads/{id}", {
         params: { path: { id: threadId } },
@@ -72,8 +73,9 @@ export function threadDetailQueryOptions(threadId: string) {
 }
 
 export function useThreadDetail(threadId: string | undefined) {
+  const viewerScope = useViewerScope();
   return useQuery({
-    ...threadDetailQueryOptions(threadId ?? ""),
+    ...threadDetailQueryOptions(threadId ?? "", viewerScope),
     enabled: !!threadId,
   });
 }

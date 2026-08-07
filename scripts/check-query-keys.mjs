@@ -42,12 +42,12 @@ const failures = sourceFiles(sourceRoot).flatMap((file) => {
 for (const layer of ["app", "components"]) {
   for (const file of sourceFiles(resolve(sourceRoot, layer))) {
     const source = readFileSync(file, "utf8");
+    const uiPath = relative(root, file);
     if (/from\s+["']@\/api\/client["']/.test(source)) {
       failures.push(
         `${relative(root, file)}: UI 层直接依赖 apiClient，请下沉到 API hook`,
       );
     }
-    const uiPath = relative(root, file);
     const queryClientUiAllowlist = new Set([
       "src/components/editor/use-editor-draft-controller.ts",
       "src/components/thread/thread-card.tsx",
@@ -56,6 +56,24 @@ for (const layer of ["app", "components"]) {
       failures.push(
         `${uiPath}: UI mutation 不应编排缓存，请在领域 hook 的 onSuccess 中处理`,
       );
+    }
+    if (
+      /src\/components\/(?:ui|shared)\//.test(uiPath) &&
+      /from\s+["']@\/(?:api\/hooks|components\/(?:editor|forms|message|thread|user))\//.test(source)
+    ) {
+      failures.push(`${uiPath}: 通用组件不得反向依赖业务模块`);
+    }
+    if (
+      uiPath.startsWith("src/components/editor/") &&
+      /from\s+["']@\/components\/user\//.test(source)
+    ) {
+      failures.push(`${uiPath}: 编辑器模块不得依赖用户展示模块`);
+    }
+    if (
+      uiPath.startsWith("src/components/message/") &&
+      /from\s+["']@\/components\/thread\//.test(source)
+    ) {
+      failures.push(`${uiPath}: 私聊模块不得依赖主题帖展示模块`);
     }
   }
 }
@@ -66,4 +84,4 @@ if (failures.length > 0) {
   );
 }
 
-console.log("Query keys, UI API access, and mutation cache orchestration follow layer boundaries");
+console.log("Query keys, UI API access, cache orchestration, and component imports follow layer boundaries");

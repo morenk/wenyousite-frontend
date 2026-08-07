@@ -121,6 +121,9 @@ describe("DirectConversationList", () => {
       }], meta: { cursor: null, hasMore: false } }] },
     }) : query());
     render(<DirectConversationList selectedId="c1" />);
+    expect(mockConversations).toHaveBeenCalledWith("INBOX", "u1", { poll: true });
+    expect(mockConversations).toHaveBeenCalledWith("REQUESTS", "u1", { poll: true });
+    expect(mockConversations).toHaveBeenCalledWith("ARCHIVED", "u1", { poll: false });
     expect(screen.getByRole("link", { name: /用户二/ })).toHaveAttribute("href", "/messages/c1");
     expect(screen.getByRole("link", { name: /请求用户/ })).toHaveAttribute("href", "/messages/c2");
     expect(screen.getByText(/等待接受/)).toHaveTextContent("[图片]");

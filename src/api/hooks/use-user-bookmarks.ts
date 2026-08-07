@@ -4,6 +4,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
 import type { components, operations } from "@/api/types";
+import { useViewerScope } from "@/api/use-viewer-scope";
 
 export type UserBookmarkedThread =
   components["schemas"]["BookmarkThreadResponseDto"];
@@ -11,8 +12,9 @@ export type UserBookmarksResponse =
   operations["UsersController_getUserBookmarks"]["responses"][200]["content"]["application/json"];
 
 export function useUserBookmarks(userId: string | undefined) {
+  const viewerScope = useViewerScope();
   return useInfiniteQuery({
-    queryKey: queryKeys.users.bookmarks(userId),
+    queryKey: queryKeys.users.bookmarksForViewer(userId, viewerScope),
     queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
       if (!userId) throw new Error("缺少用户 ID");
       const queryParams: Record<string, string> = { limit: "10" };
