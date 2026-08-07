@@ -20,6 +20,7 @@ function makeMessage(id: string, overrides: Partial<DirectMessage> = {}): Direct
     recipientId: "u2",
     content: id,
     media: null,
+    sticker: null,
     recalledAt: null,
     createdAt: `2026-08-06T20:00:0${id.slice(-1)}Z`,
     ...overrides,

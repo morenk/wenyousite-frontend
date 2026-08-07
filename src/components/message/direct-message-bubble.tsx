@@ -8,6 +8,7 @@ import { ImageLightbox } from "@/components/shared/image-lightbox";
 import { getImageUrlBySize } from "@/lib/upload-image";
 import { cn } from "@/lib/utils";
 import type { DirectMessage } from "@/api/hooks/use-direct-messages";
+import { SaveStickerButton } from "@/components/sticker/save-sticker-button";
 
 function PlainTextWithLinks({ content }: { content: string }) {
   const parts = content.split(/(https?:\/\/[^\s]+)/g);
@@ -52,22 +53,26 @@ export function DirectMessageBubble({
   const [imageRevealed, setImageRevealed] = useState(!hideRequestImage);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const recalled = !!message.recalledAt;
-  const imageUrl = message.media?.url;
+  const pureSticker = !!message.sticker && !message.content && !recalled;
+  const imageUrl = message.sticker?.url ?? message.media?.url;
   const isAnimatedGif = message.media?.contentType?.toLowerCase() === "image/gif"
     || !!imageUrl && /\.gif(?:[?#]|$)/iu.test(imageUrl);
   const displayImageUrl = imageUrl
-    ? isAnimatedGif ? imageUrl : getImageUrlBySize(imageUrl, "md")
+    ? message.sticker
+      ? imageUrl
+      : isAnimatedGif ? imageUrl : getImageUrlBySize(imageUrl, "md")
     : undefined;
+
 
   return (
     <div className={cn("flex", mine ? "justify-end" : "justify-start")}>
-      <div className={cn("max-w-[72%]", mine ? "items-end" : "items-start")}>
+      <div className={cn("group relative max-w-[72%]", mine ? "items-end" : "items-start")}>
         <div
           className={cn(
-            "rounded-2xl px-3 py-2",
-            mine
+            !pureSticker && "rounded-2xl px-3 py-2",
+            !pureSticker && (mine
               ? "rounded-br-md bg-primary text-primary-foreground"
-              : "rounded-bl-md bg-muted text-foreground",
+              : "rounded-bl-md bg-muted text-foreground"),
             recalled && "italic text-muted-foreground",
           )}
         >
@@ -76,7 +81,7 @@ export function DirectMessageBubble({
           ) : (
             <>
               {message.content && <PlainTextWithLinks content={message.content} />}
-              {message.media && (
+              {imageUrl && (
                 <div className={cn(message.content && "mt-2")}>
                   {!imageRevealed ? (
                     <Button
@@ -97,10 +102,13 @@ export function DirectMessageBubble({
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={displayImageUrl}
-                        alt="私聊图片"
+                        alt={message.sticker ? "私聊表情" : "私聊图片"}
                         loading="lazy"
                         decoding="async"
-                        className="max-h-80 max-w-full object-contain"
+                        className={cn(
+                          "max-w-full object-contain",
+                          message.sticker ? "max-h-[180px] max-w-[180px]" : "max-h-80",
+                        )}
                       />
                     </button>
                   )}
@@ -109,6 +117,15 @@ export function DirectMessageBubble({
             </>
           )}
         </div>
+        {!recalled && imageUrl && imageRevealed && (
+          <SaveStickerButton
+            source={{ directMessageId: message.id }}
+            className={cn(
+              "absolute -top-2 opacity-0 shadow-sm transition-opacity group-hover:opacity-100 group-focus-within:opacity-100",
+              mine ? "-left-7" : "-right-7",
+            )}
+          />
+        )}
         <div
           className={cn(
             "mt-1 flex items-center gap-2 px-1 text-[11px] text-muted-foreground",
@@ -130,10 +147,10 @@ export function DirectMessageBubble({
           )}
         </div>
       </div>
-      {lightboxOpen && message.media && (
+      {lightboxOpen && imageUrl && (
         <ImageLightbox
-          src={message.media.url}
-          alt="私聊图片原图"
+          src={imageUrl}
+          alt={message.sticker ? "私聊表情" : "私聊图片原图"}
           onClose={() => setLightboxOpen(false)}
         />
       )}

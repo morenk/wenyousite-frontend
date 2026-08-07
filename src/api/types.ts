@@ -905,6 +905,125 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stickers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取当前用户收藏、最近使用和处理中的表情 */
+        get: operations["StickersController_getCollection"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stickers/imports/media": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 将自己已上传的站内图片导入表情收藏 */
+        post: operations["StickersController_importMedia"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stickers/imports/direct-message": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 收藏私聊消息中的图片或表情 */
+        post: operations["StickersController_importDirectMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stickers/imports/post-image": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 收藏可访问帖子正文中的站内图片或表情 */
+        post: operations["StickersController_importPostImage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stickers/imports/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 查询单次表情导入处理状态 */
+        get: operations["StickersController_getImport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stickers/reorder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** 按完整 ID 列表手动重排收藏 */
+        put: operations["StickersController_reorder"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stickers/{favoriteId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** 从自己的收藏夹移除表情 */
+        delete: operations["StickersController_remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/threads/{threadId}/subthreads": {
         parameters: {
             query?: never;
@@ -2456,6 +2575,75 @@ export interface components {
              */
             color?: string;
         };
+        StickerAssetResponseDto: {
+            id: string;
+            url: string;
+            thumbnailUrl: string;
+            width: number;
+            height: number;
+            animated: boolean;
+            frameCount: number;
+            durationMs: number;
+        };
+        UserStickerResponseDto: {
+            id: string;
+            position: number;
+            /** Format: date-time */
+            lastUsedAt?: string | null;
+            asset: components["schemas"]["StickerAssetResponseDto"];
+            /** @description 插入编辑器时使用的标准 Markdown */
+            markdown: string;
+        };
+        StickerImportResponseDto: {
+            id: string;
+            /** @enum {string} */
+            status: "PROCESSING" | "COMPLETED" | "FAILED";
+            favorite?: components["schemas"]["UserStickerResponseDto"] | null;
+            failureCode?: string | null;
+            failureMessage?: string | null;
+            alreadySaved: boolean;
+        };
+        StickerCollectionResponseDto: {
+            version: number;
+            limit: number;
+            items: components["schemas"]["UserStickerResponseDto"][];
+            recent: components["schemas"]["UserStickerResponseDto"][];
+            pendingImports: components["schemas"]["StickerImportResponseDto"][];
+        };
+        ImportStickerMediaDto: {
+            /** @description 已处理完成、且属于当前用户的媒体 ID */
+            mediaId: string;
+            /**
+             * Format: uuid
+             * @description 导入幂等键
+             */
+            clientRequestId: string;
+        };
+        ImportStickerDirectMessageDto: {
+            /** @description 当前用户参与的、尚未撤回的私聊消息 ID */
+            directMessageId: string;
+            /**
+             * Format: uuid
+             * @description 导入幂等键
+             */
+            clientRequestId: string;
+        };
+        ImportStickerPostImageDto: {
+            /** @description 当前用户可访问的帖子 ID */
+            postId: string;
+            /** @description 帖子正文中图片的完整 URL */
+            imageUrl: string;
+            /**
+             * Format: uuid
+             * @description 导入幂等键
+             */
+            clientRequestId: string;
+        };
+        ReorderStickersDto: {
+            /** @description GET /stickers 返回的收藏夹版本 */
+            version: number;
+            favoriteIds: string[];
+        };
         SubthreadCountResponseDto: {
             posts: number;
         };
@@ -3021,6 +3209,7 @@ export interface components {
             senderId: string;
             contentPreview: string | null;
             hasImage: boolean;
+            hasSticker: boolean;
             isRecalled: boolean;
             /** Format: date-time */
             createdAt: string;
@@ -3057,10 +3246,12 @@ export interface components {
             conversation: components["schemas"]["DirectConversationResponseDto"] | null;
         };
         CreateDirectConversationDto: {
-            /** @description 纯文字正文，保留换行；与 mediaId 至少提供一项 */
+            /** @description 纯文字正文，保留换行；与 mediaId 至少提供一项；不能和 stickerAssetId 同时提供 */
             content?: string;
             /** @description 已完成处理且属于发送者的图片 ID；每条最多一张 */
             mediaId?: string;
+            /** @description 当前收藏夹中的表情资产 ID；必须作为独立消息发送 */
+            stickerAssetId?: string;
             /**
              * Format: uuid
              * @description 客户端幂等键；重试同一次发送时必须复用
@@ -3076,6 +3267,17 @@ export interface components {
             width: number | null;
             height: number | null;
         };
+        DirectMessageStickerResponseDto: {
+            id: string;
+            url: string;
+            contentType: string | null;
+            width: number | null;
+            height: number | null;
+            thumbnailUrl: string;
+            animated: boolean;
+            frameCount: number;
+            durationMs: number;
+        };
         DirectMessageResponseDto: {
             id: string;
             conversationId: string;
@@ -3083,6 +3285,7 @@ export interface components {
             recipientId: string;
             content: string | null;
             media: components["schemas"]["DirectMessageMediaResponseDto"] | null;
+            sticker: components["schemas"]["DirectMessageStickerResponseDto"] | null;
             /** Format: date-time */
             recalledAt: string | null;
             /** Format: date-time */
@@ -3093,10 +3296,12 @@ export interface components {
             message: components["schemas"]["DirectMessageResponseDto"];
         };
         CreateDirectMessageDto: {
-            /** @description 纯文字正文，保留换行；与 mediaId 至少提供一项 */
+            /** @description 纯文字正文，保留换行；与 mediaId 至少提供一项；不能和 stickerAssetId 同时提供 */
             content?: string;
             /** @description 已完成处理且属于发送者的图片 ID；每条最多一张 */
             mediaId?: string;
+            /** @description 当前收藏夹中的表情资产 ID；必须作为独立消息发送 */
+            stickerAssetId?: string;
             /**
              * Format: uuid
              * @description 客户端幂等键；重试同一次发送时必须复用
@@ -3137,7 +3342,7 @@ export interface components {
          * @description 稳定业务错误码；名称和值来源于 ErrorCode
          * @enum {integer}
          */
-        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40107 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 42900 | 50000;
+        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40107 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 42900 | 50000;
         ApiErrorEnvelope: {
             code: components["schemas"]["BusinessErrorCode"];
             message: string;
@@ -6036,6 +6241,236 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
                         data: components["schemas"]["TagResponseDto"];
+                    };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    StickersController_getCollection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["StickerCollectionResponseDto"];
+                    };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    StickersController_importMedia: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportStickerMediaDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["StickerImportResponseDto"];
+                    };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    StickersController_importDirectMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportStickerDirectMessageDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["StickerImportResponseDto"];
+                    };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    StickersController_importPostImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportStickerPostImageDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["StickerImportResponseDto"];
+                    };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    StickersController_getImport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["StickerImportResponseDto"];
+                    };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    StickersController_reorder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReorderStickersDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["StickerCollectionResponseDto"];
+                    };
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    StickersController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                favoriteId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessEnvelope"] & {
+                        data: components["schemas"]["StickerCollectionResponseDto"];
                     };
                 };
             };

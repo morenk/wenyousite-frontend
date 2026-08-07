@@ -15,6 +15,7 @@
 - 共享渲染组件 `MarkdownContent` 接入楼层正文与子贴正文
 - `MarkdownContent` 兼容 Milkdown 空段落协议：代码块外独占一行的 `<br />`（及历史变体）转换为安全的 Markdown break，保留用户手动输入的空行；其他原始 HTML 仍通过 `skipHtml` 忽略
 - 正文实际渲染高度超过视口 1.2 倍时折叠为 `80vh`，楼层、子贴和回复共享“展开全文/收起”交互
+- 收藏表情的版本化 title 标记渲染为最大 128px 的内联图片；可访问帖子中的站内图片和表情在悬停/聚焦时显示快速收藏按钮
 
 **设计决策（与后端派生图方案对齐）：**
 - **Markdown 存原图 URL**（`upload-image.ts` 插入的即为原图），渲染时识别本站上传图后显示中图。相比"插入时直接换成 `_md.webp`"，此方案：历史内容零迁移即可生效；lightbox 无需从 `_md.webp` 反推原图扩展名（.jpg/.png/.avif 有歧义）。
@@ -57,6 +58,7 @@
 | 本站 GIF（`.gif`，大小写不敏感） | 直接显示原图，加载后自动播放；保留懒加载和正文尺寸约束，循环策略由 GIF 自身决定 |
 | 站外图片 / SVG / 已是派生图 URL | 原样显示，仅做尺寸约束 |
 | 所有正文图片 | `max-width:100%` + `max-height:50vh` + `height:auto` + `loading="lazy"` + 居中圆角 |
+| 收藏表情 | title 为 `wenyousite-sticker:v1:<assetId>`；最大 128px、原子显示，点击仍可打开 lightbox |
 | 点击正文图片 | 打开 lightbox，并直接请求 Markdown 中保存的原图 URL |
 | lightbox 默认状态 | 在不放大小图的前提下适应视口；缩放尺寸以图片自然像素为基准，不继承正文图片的宽度约束 |
 | lightbox 图片单击 | 在适应屏幕与 1:1 原图之间切换；事件不会冒泡触发遮罩关闭 |

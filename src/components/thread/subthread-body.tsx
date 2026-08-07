@@ -26,7 +26,7 @@ export function SubthreadBody({ subthread, isDefault = false }: SubthreadBodyPro
 
       {content ? (
         <div className="mt-3 border-t border-border pt-3">
-          <MarkdownContent content={content} diceRolls={subthread.bodyPost?.diceRolls} />
+          <MarkdownContent content={content} diceRolls={subthread.bodyPost?.diceRolls} sourcePostId={subthread.bodyPost?.id} />
         </div>
       ) : (
         <p className="mt-3 border-t border-border pt-3 text-sm text-muted-foreground">

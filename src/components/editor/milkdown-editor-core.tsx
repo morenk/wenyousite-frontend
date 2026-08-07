@@ -36,6 +36,9 @@ import {
 import { useEditorDraftController } from "@/components/editor/use-editor-draft-controller";
 import { createDiceInlineEditorPlugins } from "@/components/editor/dice-inline-plugin";
 import { DiceInsertPopover } from "@/components/editor/dice-insert-popover";
+import { createStickerInlineEditorPlugins } from "@/components/editor/sticker-inline-plugin";
+import { StickerPickerPopover } from "@/components/sticker/sticker-picker-popover";
+import { MAX_STICKERS_PER_POST, STICKER_INLINE_NODE_NAME } from "@/lib/sticker-inline";
 import {
   MentionCandidateMenu,
   type MentionMenuItem,
@@ -124,11 +127,11 @@ function getImageBlockConfig(onUploadImage: (file: File) => Promise<string>) {
   return {
     onUpload: onUploadImage,
     inlineUploadButton: "上传",
-    inlineUploadPlaceholderText: "或粘贴链接",
+    inlineUploadPlaceholderText: "仅支持上传文件",
     blockUploadButton: "上传文件",
     blockConfirmButton: "确认",
     blockCaptionPlaceholderText: "输入图片说明",
-    blockUploadPlaceholderText: "或粘贴链接",
+    blockUploadPlaceholderText: "仅支持上传文件",
   };
 }
 
@@ -327,6 +330,31 @@ function EditorHost({
     setDicePopover(null);
   }, [emitCurrentMarkdown]);
 
+  const handleInsertSticker = useCallback((sticker: { asset: { id: string; url: string } }) => {
+    if (disabled) return;
+    const view = crepeRef.current?.editor.action((ctx) => ctx.get(editorViewCtx));
+    if (!view) return;
+    let count = 0;
+    view.state.doc.descendants((node) => {
+      if (node.type.name === STICKER_INLINE_NODE_NAME) count++;
+    });
+    if (count >= MAX_STICKERS_PER_POST) {
+      throw new Error(`每个帖子最多包含 ${MAX_STICKERS_PER_POST} 个表情`);
+    }
+    const nodeType = view.state.schema.nodes[STICKER_INLINE_NODE_NAME];
+    if (!nodeType) throw new Error("编辑器表情节点尚未就绪");
+    const node = nodeType.create({
+      assetId: sticker.asset.id,
+      src: sticker.asset.url,
+      alt: "表情",
+    });
+    const transaction = view.state.tr.replaceSelectionWith(node);
+    transaction.setSelection(TextSelection.near(transaction.doc.resolve(transaction.selection.to)));
+    view.dispatch(transaction);
+    emitCurrentMarkdown(view);
+    view.focus();
+  }, [disabled, emitCurrentMarkdown]);
+
   useEditor(
     (root) => {
       const crepe = new CrepeBuilder({
@@ -407,10 +435,13 @@ function EditorHost({
       });
 
       const dicePlugins = createDiceInlineEditorPlugins(diceRolls);
+      const stickerPlugins = createStickerInlineEditorPlugins();
       crepe.editor
         .use(dicePlugins.remarkDiceInline)
         .use(dicePlugins.diceInlineSchema)
-        .use(dicePlugins.clonePastedDice);
+        .use(dicePlugins.clonePastedDice)
+        .use(stickerPlugins.remarkStickerInline)
+        .use(stickerPlugins.stickerInlineSchema);
 
       crepeRef.current = crepe;
 
@@ -505,6 +536,15 @@ function EditorHost({
   return (
     <div ref={hostRef} className="milkdown-editor relative">
       <Milkdown />
+      {!loading && (
+        <div className="absolute bottom-2 left-2 z-20 rounded-lg border border-border bg-background/95 shadow-sm backdrop-blur">
+          <StickerPickerPopover
+            disabled={disabled}
+            label="表情"
+            onSelect={handleInsertSticker}
+          />
+        </div>
+      )}
       {loading && (
         <div className="flex items-center justify-center py-12 text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin mr-2" />

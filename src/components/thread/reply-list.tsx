@@ -239,7 +239,7 @@ export function ReplyList({ postId, focusedReply, variant = "embedded" }: ReplyL
             </div>
             {!isEditing && (
               <>
-                <MarkdownContent content={reply.content} diceRolls={reply.diceRolls} />
+                <MarkdownContent content={reply.content} diceRolls={reply.diceRolls} sourcePostId={reply.id} />
               </>
             )}
             <ThreadComposerOutlet anchorId={anchorId} />

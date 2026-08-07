@@ -9,7 +9,8 @@ import {
   useState,
   type ComponentProps,
 } from "react";
-import ReactMarkdown, { type Components, type ExtraProps } from "react-markdown";
+import ReactMarkdown, { type ExtraProps } from "react-markdown";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import remarkGfm from "remark-gfm";
 import { getImageUrlBySize } from "@/lib/upload-image";
@@ -21,6 +22,8 @@ import {
   type InlineDiceRoll,
 } from "@/lib/dice-inline";
 import { ImageLightbox } from "@/components/shared/image-lightbox";
+import { cn } from "@/lib/utils";
+import { SaveStickerButton } from "@/components/sticker/save-sticker-button";
 
 /** 判断是否为本站上传图片（objectKey 统一以 uploads/ 开头）且非派生图 */
 function isUploadedMediaUrl(url: string): boolean {
@@ -64,8 +67,9 @@ function MarkdownLink({ href, children, ...props }: AnchorProps) {
 }
 
 /** 图片组件：本站静态图显示中图，GIF 默认播放原图；点击打开原图 lightbox */
-function MarkdownImage({ src, alt }: ImageProps) {
+function MarkdownImage({ src, alt, title, sourcePostId }: ImageProps & { sourcePostId?: string }) {
   const originalUrl = typeof src === "string" ? src : "";
+  const sticker = typeof title === "string" && title.startsWith("wenyousite-sticker:v1:");
   const mediumUrl = isUploadedMediaUrl(originalUrl) && !isGifUrl(originalUrl)
     ? getImageUrlBySize(originalUrl, "md")
     : originalUrl;
@@ -77,35 +81,46 @@ function MarkdownImage({ src, alt }: ImageProps) {
   // 空 URL 图片（历史脏数据如 ![1.00]()）直接不渲染，避免破图图标 + alt 泄漏
   if (!originalUrl) return null;
 
+  const canSave = !!sourcePostId && (isUploadedMediaUrl(originalUrl) || originalUrl.includes("/stickers/"));
+
   return (
     <>
-      {/* eslint-disable-next-line @next/next/no-img-element -- COS 远程图 + onError 回退 + lightbox，用原生 img */}
-      <img
-        src={displaySrc}
-        alt={alt ?? ""}
-        loading="lazy"
-        className="mx-auto my-2 block max-w-full cursor-zoom-in rounded-lg"
-        style={{ maxWidth: "100%", maxHeight: "50vh", height: "auto" }}
-        onError={() => {
-          if (mediumUrl !== originalUrl) setFailed(true);
-        }}
-        onClick={() => setLightboxOpen(true)}
-      />
-      {lightboxOpen && (
+      <span className={cn("group/sticker-image relative", sticker ? "mx-0.5 inline-flex align-middle" : "mx-auto my-2 block w-fit max-w-full")}>
+        {/* eslint-disable-next-line @next/next/no-img-element -- COS 远程图 + onError 回退 + lightbox，用原生 img */}
+        <img
+          src={displaySrc}
+          alt={alt ?? ""}
+          loading="lazy"
+          className={cn(
+            "cursor-zoom-in object-contain",
+            sticker ? "inline-block max-h-32 max-w-32 rounded" : "block max-w-full rounded-lg",
+          )}
+          style={sticker
+            ? { width: "auto", height: "auto" }
+            : { maxWidth: "100%", maxHeight: "50vh", height: "auto" }}
+          onError={() => {
+            if (mediumUrl !== originalUrl) setFailed(true);
+          }}
+          onClick={() => setLightboxOpen(true)}
+        />
+        {canSave && (
+          <SaveStickerButton
+            source={{ postId: sourcePostId!, imageUrl: originalUrl }}
+            className="absolute right-1 top-1 opacity-0 shadow-sm transition-opacity group-hover/sticker-image:opacity-100 group-focus-within/sticker-image:opacity-100"
+          />
+        )}
+      </span>
+      {lightboxOpen && typeof document !== "undefined" && createPortal(
         <ImageLightbox
           src={originalUrl}
           alt={alt}
           onClose={() => setLightboxOpen(false)}
-        />
+        />,
+        document.body,
       )}
     </>
   );
 }
-
-const components: Components = {
-  img: MarkdownImage,
-  a: MarkdownLink,
-};
 
 type MarkdownNode = {
   type?: string;
@@ -194,9 +209,10 @@ const COLLAPSE_TRIGGER_VIEWPORT_RATIO = 1.2;
 interface CollapsibleMarkdownProps {
   content: string;
   diceRolls?: InlineDiceRoll[];
+  sourcePostId?: string;
 }
 
-function CollapsibleMarkdown({ content, diceRolls = [] }: CollapsibleMarkdownProps) {
+function CollapsibleMarkdown({ content, diceRolls = [], sourcePostId }: CollapsibleMarkdownProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const collapseButtonRef = useRef<HTMLButtonElement>(null);
   const [tooTall, setTooTall] = useState(false);
@@ -253,7 +269,10 @@ function CollapsibleMarkdown({ content, diceRolls = [] }: CollapsibleMarkdownPro
       >
         <ReactMarkdown
           remarkPlugins={[remarkGfm, remarkMilkdownEmptyParagraphs, remarkInlineDice(diceRolls)]}
-          components={components}
+          components={{
+            a: MarkdownLink,
+            img: (props) => <MarkdownImage {...props} sourcePostId={sourcePostId} />,
+          }}
           skipHtml
         >
           {normalizedContent}
@@ -286,8 +305,9 @@ function CollapsibleMarkdown({ content, diceRolls = [] }: CollapsibleMarkdownPro
 interface MarkdownContentProps {
   content: string;
   diceRolls?: InlineDiceRoll[];
+  sourcePostId?: string;
 }
 
-export function MarkdownContent({ content, diceRolls }: MarkdownContentProps) {
-  return <CollapsibleMarkdown content={content} diceRolls={diceRolls} />;
+export function MarkdownContent({ content, diceRolls, sourcePostId }: MarkdownContentProps) {
+  return <CollapsibleMarkdown content={content} diceRolls={diceRolls} sourcePostId={sourcePostId} />;
 }

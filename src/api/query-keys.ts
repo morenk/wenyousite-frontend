@@ -96,6 +96,7 @@ export const queryKeys = {
     unread: (userId: string | undefined) =>
       ["direct-messages", "unread", userId] as const,
   },
+  stickers: (userId: string | undefined) => ["stickers", userId] as const,
   subscriptions: ["subscriptions"] as const,
   topicTags: (query: string) => ["tags", query] as const,
   topicTag: (tagId: string) => ["tag", tagId] as const,

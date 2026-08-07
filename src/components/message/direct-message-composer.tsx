@@ -6,10 +6,12 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { getApiErrorMessage } from "@/api/errors";
 import { uploadImageFile, validateImageFile } from "@/lib/upload-image";
+import { StickerPickerPopover } from "@/components/sticker/sticker-picker-popover";
 
 export interface DirectMessageComposerValue {
   content?: string;
   mediaId?: string;
+  stickerAssetId?: string;
   clientRequestId: string;
 }
 
@@ -88,6 +90,15 @@ export function DirectMessageComposer({
 
   const isPending = disabled || isSending;
 
+  const handleSticker = async (stickerAssetId: string) => {
+    setIsSending(true);
+    try {
+      await onSend({ stickerAssetId, clientRequestId: crypto.randomUUID() });
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   return (
     <div className="border-t border-border bg-background p-4">
       {requestHint && (
@@ -153,6 +164,10 @@ export function DirectMessageComposer({
             <ImagePlus className="h-4 w-4" />
             图片
           </Button>
+          <StickerPickerPopover
+            disabled={isPending}
+            onSelect={(sticker) => handleSticker(sticker.asset.id)}
+          />
           <span className="text-xs text-muted-foreground">
             {content.length}/1000 · 纯文本 · 支持 GIF
           </span>

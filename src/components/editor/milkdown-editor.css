@@ -29,6 +29,29 @@
   outline-offset: 1px;
 }
 
+.milkdown .ProseMirror .sticker-inline {
+  display: inline-block;
+  width: auto;
+  height: auto;
+  max-width: 128px;
+  max-height: 128px;
+  margin: 0 0.125rem;
+  vertical-align: middle;
+  object-fit: contain;
+  border-radius: 0.375rem;
+}
+
+.milkdown .ProseMirror .sticker-inline.ProseMirror-selectednode {
+  outline: 2px solid color-mix(in srgb, var(--primary) 55%, transparent);
+  outline-offset: 2px;
+}
+
+/* 图片只允许本地文件上传；不展示 Crepe 的 URL 输入入口。 */
+.milkdown .milkdown-image-inline .link-input-area input,
+.milkdown .milkdown-image-block .link-input-area input {
+  display: none;
+}
+
 .milkdown .milkdown-top-bar .top-bar-heading-button .top-bar-heading-label {
   min-width: 40px;
 }

@@ -177,7 +177,7 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
         <ThreadComposerOutlet anchorId={editAnchorId} />
       ) : (
         <>
-          <MarkdownContent content={floor.content} diceRolls={floor.diceRolls} />
+          <MarkdownContent content={floor.content} diceRolls={floor.diceRolls} sourcePostId={floor.id} />
         </>
       )}
 
@@ -217,7 +217,7 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
                     })}
                   </span>
                 </div>
-                <MarkdownContent content={reply.content} diceRolls={reply.diceRolls} />
+                <MarkdownContent content={reply.content} diceRolls={reply.diceRolls} sourcePostId={reply.id} />
               </div>
             ))}
           </div>

@@ -6,6 +6,7 @@ import { appendDirectMessageToCache } from "@/api/hooks/use-direct-messages";
 interface MessageInput {
   content?: string;
   mediaId?: string;
+  stickerAssetId?: string;
   clientRequestId: string;
 }
 
@@ -55,6 +56,7 @@ export function useDirectMessageActions(conversationId: string, userId?: string)
     onSuccess: (message) => {
       appendDirectMessageToCache(queryClient, userId, conversationId, [message]);
       invalidateConversation();
+      queryClient.invalidateQueries({ queryKey: queryKeys.stickers(userId) });
     },
   });
 

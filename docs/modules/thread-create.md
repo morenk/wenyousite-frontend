@@ -14,6 +14,7 @@
 - Milkdown Crepe WYSIWYG 编辑器（可见工具栏 + 所见即所得渲染 + 字数统计 + 正文草稿入口）
 - Milkdown 输出协议：代码块外独占行 `<br />`（含历史变体）规范化并原样保存，用于精确保留手动空行；空图片语法清理，围栏代码块和 Shift+Enter 硬换行保持原样
 - 图片上传期间仅锁定提交/取消操作，不把编辑器切换为只读，避免 Crepe 重建顶栏；若第三方内部仍替换顶栏节点，当前编辑器宿主会重新同步可见性与中文标签，多编辑器页面之间互不影响
+- 编辑器支持私有表情面板，在当前光标插入最大 128px 的原子节点；普通图片只允许选择本地文件上传，隐藏外部图片 URL 输入
 - 发布校验：纯空白、仅空段落或仅分隔线不可发布；图片、代码块、列表、裸 HTTP(S) URL、CommonMark 自动链接等非空内容可发布，禁止任意 HTML
 - 保存草稿与发布统一调用聚合端点（`PATCH /threads/:id/aggregate`），元数据、默认子贴标题/正文、标签和发布状态在同一数据库事务中提交
 - 正文内联骰子节点由服务端在同一发布事务中统一结算
@@ -89,7 +90,7 @@
 | DraftList | `src/components/user/draft-list.tsx` | 未发布帖列表（复用；空态「没有草稿喔」） |
 | ThreadCreateForm | `src/components/forms/thread-create-form.tsx` | 主题帖创建表单：基础信息 + 默认子贴正文（简洁模式） |
 | EditThreadPage | `src/app/threads/[id]/edit/page.tsx` | 兼容编辑路由：草稿渲染 ThreadCreateForm，已发布帖复用统一 ManagementPanel |
-| MilkdownEditor | `src/components/editor/milkdown-editor.tsx` | @milkdown/crepe WYSIWYG 编辑器（工具栏内骰子弹窗/内联节点/字数统计/图片上传/正文草稿入口） |
+| MilkdownEditor | `src/components/editor/milkdown-editor.tsx` | @milkdown/crepe WYSIWYG 编辑器（骰子/表情内联节点、字数统计、本地图片上传、正文草稿入口） |
 | TagInput | `src/components/forms/tag-input.tsx` | 主题帖标签输入（支持自动补全） |
 | useCreateThread | `src/api/hooks/use-create-thread.ts` | 创建草稿 hook |
 | useThreadDetail | `src/api/hooks/use-thread-detail.ts` | 获取详情 hook |
@@ -116,7 +117,7 @@
 | Toolbar | ✅ | 选区浮动工具栏：粗体/斜体/删除线/行内代码/链接 |
 | BlockEdit | ❌ | 禁用（以间接编辑为主，移除左侧 +/拖拽按钮） |
 | LinkTooltip | ✅ | 链接悬停编辑弹窗，输入框占位符"粘贴链接…" |
-| ImageBlock | ✅ | 图片上传，按钮/占位符全中文化（上传/上传文件/确认/输入图片说明/或粘贴链接） |
+| ImageBlock | ✅ | 仅允许本地图片上传，按钮/占位符全中文化；外部图片 URL 输入隐藏 |
 | CodeMirror | ❌ | 禁用（取消代码块功能，顶栏无代码块按钮；历史含代码块的正文仍可正常渲染） |
 | ListItem | ✅ | 有序/无序列表 |
 | Placeholder | ✅ | "开始输入…"（可通过 props 自定义） |

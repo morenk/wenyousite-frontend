@@ -71,7 +71,7 @@ export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps
           </div>
         </div>
         <div className="px-5 py-5">
-          <MarkdownContent content={rootPost.content} diceRolls={rootPost.diceRolls} />
+          <MarkdownContent content={rootPost.content} diceRolls={rootPost.diceRolls} sourcePostId={rootPost.id} />
         </div>
       </section>
 

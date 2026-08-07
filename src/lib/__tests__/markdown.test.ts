@@ -6,20 +6,20 @@ import {
   hasVisibleMarkdownContent,
   sanitizeMilkdownMarkdown,
 } from "@/lib/markdown";
-import markdownV1Fixtures from "../../../contracts/markdown-v1-fixtures.json";
+import markdownV2Fixtures from "../../../contracts/markdown-v2-fixtures.json";
 
-type MarkdownFixture = (typeof markdownV1Fixtures.cases)[number];
+type MarkdownFixture = (typeof markdownV2Fixtures.cases)[number];
 
-describe("Markdown v1 黄金语料", () => {
+describe("Markdown v2 黄金语料", () => {
   test("协议版本正确且 case id 唯一", () => {
-    expect(markdownV1Fixtures.contract).toBe("wenyousite-markdown");
-    expect(markdownV1Fixtures.version).toBe(1);
-    expect(new Set(markdownV1Fixtures.cases.map(({ id }) => id)).size).toBe(
-      markdownV1Fixtures.cases.length,
+    expect(markdownV2Fixtures.contract).toBe("wenyousite-markdown");
+    expect(markdownV2Fixtures.version).toBe(2);
+    expect(new Set(markdownV2Fixtures.cases.map(({ id }) => id)).size).toBe(
+      markdownV2Fixtures.cases.length,
     );
   });
 
-  test.each(markdownV1Fixtures.cases)(
+  test.each(markdownV2Fixtures.cases)(
     "$id 规范化为 canonical 且保持幂等",
     ({ input, canonical }: MarkdownFixture) => {
       expect(sanitizeMilkdownMarkdown(input)).toBe(canonical);
@@ -27,7 +27,7 @@ describe("Markdown v1 黄金语料", () => {
     },
   );
 
-  test.each(markdownV1Fixtures.cases)(
+  test.each(markdownV2Fixtures.cases)(
     "$id 的发布可见性符合协议",
     ({ input, canonical, visible }: MarkdownFixture) => {
       expect(hasVisibleMarkdownContent(input)).toBe(visible);

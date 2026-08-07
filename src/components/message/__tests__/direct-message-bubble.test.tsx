@@ -17,6 +17,7 @@ function message(overrides: Partial<DirectMessage> = {}): DirectMessage {
     recipientId: "u2",
     content: "访问 https://example.com 了解详情",
     media: null,
+    sticker: null,
     recalledAt: null,
     createdAt: "2026-08-06T20:00:00.000Z",
     ...overrides,
