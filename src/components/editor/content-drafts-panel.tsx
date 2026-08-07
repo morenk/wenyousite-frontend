@@ -80,16 +80,16 @@ export function ContentDraftsPanel({
   const usedSlots = slots?.usedSlots ?? 0;
   const maxSlots = slots?.maxSlots ?? 5;
   const draftBySlot = new Map(drafts.map((d) => [d.slot, d]));
-  const currentContent = initialContent?.trim() ?? "";
+  const currentContent = initialContent ?? "";
   const currentDiceCount = parseInlineDiceNodes(currentContent).length;
-  const hasCurrentSnapshot = !!currentContent;
+  const hasCurrentSnapshot = currentContent.trim().length > 0;
 
   const handleRestore = async (draft: DraftItem) => {
-    const currentText = initialContent?.trim();
+    const currentText = initialContent ?? "";
     if (
       onRestore &&
       hasCurrentSnapshot &&
-      currentText !== draft.content.trim() &&
+      currentText !== draft.content &&
       !(await confirmAction({
         title: "恢复正文草稿",
         description: "恢复草稿将覆盖当前编辑器内容，是否继续？",
@@ -132,7 +132,7 @@ export function ContentDraftsPanel({
 
   const handleSave = async (slot?: number) => {
     const text = currentContent;
-    if (!text) return;
+    if (!text.trim()) return;
     const occupied = slot === undefined ? undefined : draftBySlot.get(slot);
     if (occupied && !(await confirmAction({
       title: `覆盖槽位 ${slot}`,
@@ -141,11 +141,14 @@ export function ContentDraftsPanel({
       destructive: true,
     }))) return;
     try {
-      await saveDraft.mutateAsync({
+      const savedDraft = await saveDraft.mutateAsync({
         content: text,
         ...(slot ? { slot } : {}),
         ...(occupied ? { version: occupied.version } : {}),
       });
+      if (slot === 1 && autoSaveEnabled) {
+        onAutoSaveChange?.(true, savedDraft.version);
+      }
       toast.success(occupied ? `已覆盖槽位 ${slot}` : "正文草稿已保存");
     } catch (err) {
       toast.error(getApiErrorMessage(err, "保存失败，请稍后重试"));
@@ -207,12 +210,12 @@ export function ContentDraftsPanel({
               <div>
                 <p className="text-xs font-medium text-foreground">槽位 1 自动保存</p>
                 <p className="mt-0.5 text-[11px] text-muted-foreground">
-                  {autoSaveEnabled
+                  {autoSaveStatus === "error"
+                    ? "自动保存失败并已关闭，请重新开启"
+                    : autoSaveEnabled
                     ? autoSaveStatus === "saving"
                       ? "正在保存当前编辑器内容…"
-                      : autoSaveStatus === "error"
-                        ? "自动保存失败，将在下次编辑时重试"
-                        : autoSaveStatus === "saved"
+                      : autoSaveStatus === "saved"
                           ? "当前内容已自动保存"
                           : "编辑后将自动更新到槽位 1"
                     : "开启后，当前编辑器全文会自动更新到槽位 1"}
@@ -237,7 +240,7 @@ export function ContentDraftsPanel({
               </button>
             </div>
             <p className="mt-2 border-t border-border pt-2 text-[11px] text-muted-foreground">
-              当前编辑器：{currentContent ? `${currentContent.length} 个字符` : "无正文"}
+              当前编辑器：{hasCurrentSnapshot ? `${currentContent.length} 个字符` : "无正文"}
               {currentDiceCount > 0 ? ` · ${currentDiceCount} 个待掷节点` : ""}
             </p>
           </div>

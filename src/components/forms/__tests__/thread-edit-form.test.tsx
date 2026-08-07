@@ -220,6 +220,21 @@ describe("ThreadEditForm", () => {
     expect(screen.getByRole("button", { name: "保存修改" })).toBeInTheDocument();
   });
 
+  test("保存修改时保留正文首尾内容", async () => {
+    const user = userEvent.setup();
+    renderForm();
+    const content = "  正文\n\n<br />\n";
+
+    await user.clear(screen.getByTestId("milkdown-editor"));
+    await user.type(screen.getByTestId("milkdown-editor"), content);
+    await user.click(screen.getByRole("button", { name: "保存修改" }));
+
+    expect(mockSaveThreadMutate).toHaveBeenCalledWith({
+      threadId: "t1",
+      body: expect.objectContaining({ content }),
+    });
+  });
+
   test("标题变化通过聚合端点同步默认子贴标题", async () => {
     const user = userEvent.setup();
     renderForm();

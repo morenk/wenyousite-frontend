@@ -221,6 +221,20 @@ describe("ContentDraftsPanel", () => {
     });
   });
 
+  test("手动保存完整保留正文首尾内容", async () => {
+    const user = userEvent.setup();
+    const saveMutate = vi.fn().mockResolvedValue({ ...sampleDraft, slot: 2 });
+    mockUseSaveDraft.mockReturnValue({ isPending: false, mutateAsync: saveMutate });
+    renderPanel({ initialContent: "  正文\n\n<br />\n" });
+
+    await user.click(screen.getAllByText("保存到此处")[0]!);
+
+    expect(saveMutate).toHaveBeenCalledWith({
+      content: "  正文\n\n<br />\n",
+      slot: 2,
+    });
+  });
+
   test("覆盖已用槽位前要求确认", async () => {
     const user = userEvent.setup();
     const saveMutate = vi.fn().mockResolvedValue(sampleDraft);
@@ -264,6 +278,29 @@ describe("ContentDraftsPanel", () => {
   test("显示自动保存完成状态", () => {
     renderPanel({ autoSaveEnabled: true, autoSaveStatus: "saved" });
     expect(screen.getByText("当前内容已自动保存")).toBeInTheDocument();
+  });
+
+  test("自动保存失败后明确显示已关闭", () => {
+    renderPanel({ autoSaveEnabled: false, autoSaveStatus: "error" });
+    expect(screen.getByText("自动保存失败并已关闭，请重新开启")).toBeInTheDocument();
+  });
+
+  test("自动保存开启时手动覆盖槽位 1 会同步新版本", async () => {
+    const user = userEvent.setup();
+    const onAutoSaveChange = vi.fn();
+    const saved = { ...sampleDraft, version: 3, content: "最新正文" };
+    const saveMutate = vi.fn().mockResolvedValue(saved);
+    mockUseSaveDraft.mockReturnValue({ isPending: false, mutateAsync: saveMutate });
+    vi.stubGlobal("confirm", vi.fn(() => true));
+    renderPanel({
+      initialContent: "最新正文",
+      autoSaveEnabled: true,
+      onAutoSaveChange,
+    });
+
+    await user.click(screen.getByRole("button", { name: "覆盖槽位 1" }));
+
+    expect(onAutoSaveChange).toHaveBeenCalledWith(true, 3);
   });
 
   test("恢复草稿覆盖当前正文前要求确认，取消时不恢复", async () => {

@@ -102,7 +102,7 @@ export function ThreadEditForm({
   async function handleSave(values: ThreadCreateFormData) {
     try {
       setIsSaving(true);
-      const content = values.content?.trim() ?? "";
+      const content = values.content ?? "";
       const savedThread = await saveThread.mutateAsync({
         threadId: thread.id,
         body: {

@@ -9,6 +9,7 @@ import { useDeleteSubthread } from "@/api/hooks/use-delete-subthread";
 import { useReorderSubthreads } from "@/api/hooks/use-reorder-subthreads";
 import { useUpsertBody } from "@/api/hooks/use-upsert-body";
 import { useUploadImage } from "@/api/hooks/use-upload-image";
+import { hasVisibleMarkdownContent } from "@/lib/markdown";
 import { getApiError, getApiErrorMessage } from "@/api/errors";
 import type { ThreadDetail, SubthreadDetail } from "@/api/hooks/use-thread-detail";
 import type { SubthreadFormData } from "@/components/forms/subthread-form";
@@ -177,8 +178,8 @@ export function useManagementPanelController({
 
   const handleSave = async () => {
     if (!selectedSub) return;
-    const content = state.content.trim();
-    if (!content) {
+    const content = state.content;
+    if (!hasVisibleMarkdownContent(content)) {
       toast.error("请输入正文内容");
       return;
     }

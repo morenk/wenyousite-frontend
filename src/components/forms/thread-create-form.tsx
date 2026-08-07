@@ -67,7 +67,7 @@ export function ThreadCreateForm({
           version: thread.version,
           defaultSubthreadVersion: thread.defaultSubthread.version,
           bodyVersion: thread.defaultSubthread.bodyPost?.version,
-          content: values.content?.trim() ?? "",
+          content: values.content ?? "",
           tagNames: values.tagNames ?? [],
         },
       });
@@ -99,7 +99,7 @@ export function ThreadCreateForm({
           version: thread.version,
           defaultSubthreadVersion: thread.defaultSubthread.version,
           bodyVersion: thread.defaultSubthread.bodyPost?.version,
-          content: values.content?.trim() ?? "",
+          content: values.content ?? "",
           tagNames: values.tagNames ?? [],
         },
       });

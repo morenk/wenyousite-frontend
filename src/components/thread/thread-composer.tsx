@@ -53,7 +53,7 @@ function ThreadComposer() {
   const busy = pending || uploadImage.isPending;
 
   const handleSubmit = async () => {
-    const nextContent = content.trim();
+    const nextContent = content;
     if (busy) return;
     if (!hasVisibleMarkdownContent(nextContent)) {
       toast.error("正文和骰子不能同时为空");

@@ -333,6 +333,21 @@ describe("ManagementPanel", () => {
     });
   });
 
+  test("保存子贴正文时保留首尾内容", async () => {
+    const user = userEvent.setup();
+    renderPanel();
+    await user.click(screen.getByText("select-s2"));
+    const content = "  设定正文\n\n<br />\n";
+    await user.type(screen.getByTestId("milkdown-editor"), content);
+    await user.click(screen.getByText("保存修改"));
+
+    await vi.waitFor(() => {
+      expect(mockUpsertBodyMutate).toHaveBeenCalledWith(
+        expect.objectContaining({ content }),
+      );
+    });
+  });
+
   test("点击添加子贴打开表单并提交调用 createSubthread", async () => {
     const user = userEvent.setup();
     renderPanel();

@@ -1,6 +1,10 @@
 import { $nodeSchema, $remark } from "@milkdown/kit/utils";
 import type { Node as ProseNode } from "@milkdown/kit/prose/model";
-import { STICKER_INLINE_NODE_NAME, STICKER_MARKER_PREFIX } from "@/lib/sticker-inline";
+import {
+  parseStickerAssetId,
+  STICKER_INLINE_NODE_NAME,
+  STICKER_MARKER_PREFIX,
+} from "@/lib/sticker-inline";
 
 type MarkdownNode = {
   type: string;
@@ -14,13 +18,10 @@ type MarkdownNode = {
 function transformStickerImages(node: MarkdownNode) {
   if (!node.children) return;
   for (const child of node.children) {
-    if (
-      child.type === "image"
-      && typeof child.title === "string"
-      && child.title.startsWith(STICKER_MARKER_PREFIX)
-    ) {
+    const assetId = child.type === "image" ? parseStickerAssetId(child.title) : null;
+    if (assetId) {
       child.type = "stickerInline";
-      child.assetId = child.title.slice(STICKER_MARKER_PREFIX.length);
+      child.assetId = assetId;
     } else {
       transformStickerImages(child);
     }

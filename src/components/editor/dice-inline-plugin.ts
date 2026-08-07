@@ -60,13 +60,22 @@ function mapPastedFragment(
   fragment.forEach((node) => {
     if (node.type.name === DICE_INLINE_NODE_NAME) {
       const oldNodeId = String(node.attrs.nodeId);
-      const nodeId = movedNodeIds.has(oldNodeId) ? oldNodeId : crypto.randomUUID();
+      const nodeId = resolvePastedDiceNodeId(oldNodeId, movedNodeIds);
       children.push(node.type.create({ ...node.attrs, nodeId }, null, node.marks));
       return;
     }
     children.push(node.content.size > 0 ? node.copy(mapPastedFragment(node.content, movedNodeIds)) : node);
   });
   return Fragment.fromArray(children);
+}
+
+/** 复制骰子创建新身份；剪切后粘贴保留原身份，避免已结算结果错配或重复。 */
+export function resolvePastedDiceNodeId(
+  nodeId: string,
+  movedNodeIds: ReadonlySet<string>,
+  createId: () => string = () => crypto.randomUUID(),
+): string {
+  return movedNodeIds.has(nodeId) ? nodeId : createId();
 }
 
 export function createDiceInlineEditorPlugins(rolls: InlineDiceRoll[] = []) {

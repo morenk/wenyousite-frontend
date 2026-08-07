@@ -43,10 +43,10 @@
 |--------|------|-------|------|
 | GET | `/drafts/slots` | AuthRead | 槽位使用情况（usedSlots / maxSlots=5 / slots[]） |
 | GET | `/drafts` | AuthRead | 当前用户全部草稿（按 slot 排序） |
-| POST | `/drafts` | AuthRead | 保存草稿（指定 slot 覆盖；不指定自动分配空闲位） |
+| POST | `/drafts` | Auth | 保存草稿（指定 slot 覆盖；不指定自动分配空闲位） |
 | GET | `/drafts/:id` | AuthRead | 单条草稿 |
-| PATCH | `/drafts/:id` | AuthRead | 更新草稿内容 |
-| DELETE | `/drafts/:id` | AuthRead | 删除草稿（硬删除） |
+| PATCH | `/drafts/:id` | Auth | 更新草稿内容 |
+| DELETE | `/drafts/:id` | Auth | 删除草稿（硬删除） |
 
 **API 响应快照（脱敏运行时样例）**：`docs/snapshots/drafts.snapshot.json`。结构契约以生成 OpenAPI 类型为准。
 
@@ -70,7 +70,7 @@ interface DraftItem {
 - `GET/PATCH /drafts/:id` → `data: DraftItem`
 - `DELETE /drafts/:id` → `data: { message: "草稿已删除" }`
 
-> **内容存储策略（全站统一）**：content 按 **Markdown 存储**，后端不做 HTML 转义（曾用 sanitize-html 转义导致 `>` 变 `&gt;`，已修复并清理存量数据）。Web 编辑器在输出时只清理 Milkdown 自身产生的空图片和独占行空段落 `<br />`，不改动行内文本、围栏代码块或正常硬换行。XSS 由渲染层净化：web 端 react-markdown 启用 `skipHtml`，移动端需使用安全的 markdown 渲染器。
+> **内容存储策略（全站统一）**：content 按 **Markdown 存储**，后端不做 HTML 转义（曾用 sanitize-html 转义导致 `>` 变 `&gt;`，已修复并清理存量数据）。Web 编辑器在输出时只清理 Milkdown 自身产生的空图片和规范化独占行空段落 `<br />`，提交和保存链路不做全局 `trim()`，因此首尾空段落及空白可原样保留。XSS 由渲染层净化：web 端 react-markdown 启用 `skipHtml`，移动端需使用安全的 markdown 渲染器。
 
 ## 4. 状态管理
 
@@ -80,14 +80,14 @@ interface DraftItem {
 | 槽位使用 | `GET /drafts/slots` | TanStack Query `useQuery`（`queryKeys.draftSlots`） |
 | 保存/删除 | mutation | `useMutation`，成功后 invalidate 列表与槽位 |
 | 面板开关 | 编辑器工具栏入口 | useState（MilkdownEditor 持有） |
-| 自动保存 | 当前编辑器状态 | 800ms 防抖串行写入完整 content 到 slot 1；成功后推进 version，409 时关闭自动保存 |
+| 自动保存 | 当前编辑器状态 | 800ms 防抖串行写入完整 content 到 slot 1；成功后推进 version，409 或保存失败时关闭自动保存并保持错误状态可见 |
 
 ## 5. 组件清单
 
 | 组件 | 路径 | 说明 |
 |------|------|------|
-| ContentDraftsPanel | `src/components/user/content-drafts-panel.tsx` | 5 槽位卡片；当前编辑器全文保存/覆盖/恢复/删除；槽位 1 自动保存开关 |
-| 编辑器入口 | `src/components/editor/milkdown-editor.tsx` | 顶部工具栏按钮、面板挂载、恢复回填及 slot 1 防抖自动保存 |
+| ContentDraftsPanel | `src/components/editor/content-drafts-panel.tsx` | 5 槽位卡片；当前编辑器全文保存/覆盖/恢复/删除；槽位 1 自动保存开关 |
+| 编辑器入口 | `src/components/editor/milkdown-editor-core.tsx` | 顶部工具栏按钮、面板挂载、恢复回填及 slot 1 防抖自动保存 |
 | useContentDrafts | `src/api/hooks/use-content-drafts.ts` | 草稿列表 hook（集中式 query key） |
 | useDraftSlots | `src/api/hooks/use-draft-slots.ts` | 槽位使用 hook（集中式 query key） |
 | useSaveDraft | `src/api/hooks/use-save-draft.ts` | 保存草稿 hook（成功 invalidate 列表+槽位） |
@@ -129,6 +129,9 @@ interface DraftItem {
 - [x] 当前正文可保存到指定空槽位，或经确认后覆盖指定已用槽位
 - [x] 面板不要求再次粘贴或输入内容，所有保存操作直接使用当前编辑器全文
 - [x] 自动保存开启后，当前编辑器完整 content 经防抖原子更新到槽位 1，并显示保存状态
+- [x] 手动覆盖槽位 1 后立即同步响应 version，后续自动保存继续使用最新乐观锁版本
+- [x] 自动保存失败时关闭开关并持续显示错误状态，直到用户重新开启
+- [x] 手动保存和自动保存均保留首尾 Markdown 内容，不做全局 `trim()`
 - [x] 恢复草稿会覆盖非空当前正文时要求二次确认
 - [x] 删除草稿确认后调用 DELETE，成功后列表刷新
 - [x] 与主题帖草稿在入口/命名/视觉/数据上完全隔离

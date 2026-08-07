@@ -120,6 +120,21 @@ function operation(method: string, apiPath: string) {
     }
   }
 
+  const backendRoot = path.resolve(root, "../wenyousite-backend");
+  for (const fixtureName of [
+    "markdown-v2-fixtures.json",
+    "markdown-v2-nodes-fixtures.json",
+  ]) {
+    const frontendFixture = path.resolve(root, "contracts", fixtureName);
+    const backendFixture = path.resolve(backendRoot, "contracts", fixtureName);
+    if (
+      fs.existsSync(backendFixture) &&
+      fs.readFileSync(frontendFixture, "utf8") !== fs.readFileSync(backendFixture, "utf8")
+    ) {
+      failures.push(`前后端 ${fixtureName} 不一致`);
+    }
+  }
+
   if (failures.length > 0) {
     throw new Error(`文档真实性检查失败：\n${failures.join("\n")}`);
   }

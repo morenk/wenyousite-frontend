@@ -212,17 +212,6 @@ function EditorHost({
     () => (mentionQueryPending ? [] : mentionItems),
     [mentionItems, mentionQueryPending],
   );
-  const { handleMentionSelect } = useEditorMentionController({
-    hostRef,
-    crepeRef,
-    disabled,
-    loading,
-    threadId,
-    items: visibleMentionItems,
-    setMenu: setMentionMenu,
-    setSelectedIndex: setSelectedMentionIndex,
-  });
-
   const activeMentionIndex = Math.min(
     selectedMentionIndex,
     Math.max(visibleMentionItems.length - 1, 0),
@@ -250,6 +239,18 @@ function EditorHost({
     if (markdown === undefined) return;
     emitSerializedMarkdown(markdown, view);
   }, [emitSerializedMarkdown]);
+
+  const { handleMentionSelect } = useEditorMentionController({
+    hostRef,
+    crepeRef,
+    disabled,
+    loading,
+    threadId,
+    items: visibleMentionItems,
+    setMenu: setMentionMenu,
+    setSelectedIndex: setSelectedMentionIndex,
+    onDocumentChange: emitCurrentMarkdown,
+  });
 
   /** 上传失败时统一弹 toast（Milkdown 内部会静默吞掉 onUpload 的 reject） */
   const handleUpload = useCallback(
@@ -408,6 +409,8 @@ function EditorHost({
                     const node = nodeType.createAndFill({ src: url });
                     if (!node) return;
                     view.dispatch(view.state.tr.replaceSelectionWith(node));
+                    emitCurrentMarkdown(view);
+                    view.focus();
                   })
                   .catch(() => {});
               };
@@ -640,7 +643,7 @@ function EditorCore({
           支持 Markdown，粘贴或拖拽图片上传
         </span>
         <div className="flex items-center gap-3">
-          {autoSaveEnabled && (
+          {(autoSaveEnabled || autoSaveStatus === "error") && (
             <span
               className={cn(
                 "text-xs",

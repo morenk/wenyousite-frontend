@@ -62,4 +62,13 @@ describe("SubthreadBody", () => {
     render(<SubthreadBody subthread={emptyBody} />);
     expect(screen.getByText("暂无正文")).toBeInTheDocument();
   });
+
+  test("仅包含空段落协议时显示占位文案", () => {
+    const emptyBody = {
+      ...baseSubthread,
+      bodyPost: { id: "post-1", content: "<br />\n<br />", version: 1, diceRolls: [] },
+    };
+    render(<SubthreadBody subthread={emptyBody} />);
+    expect(screen.getByText("暂无正文")).toBeInTheDocument();
+  });
 });

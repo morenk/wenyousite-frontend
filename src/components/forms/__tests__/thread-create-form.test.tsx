@@ -264,6 +264,21 @@ describe("ThreadCreateForm", () => {
     });
   });
 
+  test("保存草稿时保留正文首尾内容", async () => {
+    const user = userEvent.setup();
+    renderForm();
+    const content = "  正文\n\n<br />\n";
+    await user.type(screen.getByTestId("milkdown-editor"), content);
+    await user.click(screen.getByText("保存草稿"));
+
+    await vi.waitFor(() => {
+      expect(mockSaveThreadMutate).toHaveBeenCalledWith({
+        threadId: "t1",
+        body: expect.objectContaining({ content }),
+      });
+    });
+  });
+
   test("标题变更与默认子贴标题在同一聚合请求中保存", async () => {
     const user = userEvent.setup();
     renderForm();

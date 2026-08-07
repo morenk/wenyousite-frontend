@@ -75,7 +75,7 @@ describe("useEditorDraftController", () => {
     expect(refetch).toHaveBeenCalledWith({ queryKey: queryKeys.draftSlots });
   });
 
-  test("自动保存去除首尾空白并串接服务端版本", async () => {
+  test("自动保存完整保留首尾内容并串接服务端版本", async () => {
     mockSaveDraft
       .mockResolvedValueOnce({ id: "d1", version: 3, content: "第一版" })
       .mockResolvedValueOnce({ id: "d1", version: 4, content: "第二版" });
@@ -88,7 +88,7 @@ describe("useEditorDraftController", () => {
     act(() => result.current.handleAutoSaveChange(true));
     act(() => result.current.handleChange("  第一版  "));
     await flushAutoSave();
-    expect(mockSaveDraft).toHaveBeenNthCalledWith(1, { content: "第一版", slot: 1 });
+    expect(mockSaveDraft).toHaveBeenNthCalledWith(1, { content: "  第一版  ", slot: 1 });
     expect(result.current.autoSaveStatus).toBe("saved");
 
     act(() => result.current.handleChange("第二版"));

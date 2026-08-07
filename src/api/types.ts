@@ -3933,7 +3933,14 @@ export interface components {
     responses: never;
     parameters: never;
     requestBodies: never;
-    headers: never;
+    headers: {
+        /** @description 请求跟踪 ID；可随崩溃报告记录，不得与凭证一同记录 */
+        XRequestId: string;
+        /** @description 处理该请求的 API 契约版本 */
+        XApiContractVersion: string;
+        /** @description 建议客户端等待的秒数 */
+        RetryAfter: number;
+    };
     pathItems: never;
 }
 export type $defs = Record<string, never>;
@@ -3954,6 +3961,8 @@ export interface operations {
              */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3963,6 +3972,8 @@ export interface operations {
             /** @description The Health Check is not successful */
             503: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3972,6 +3983,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -3996,6 +4009,8 @@ export interface operations {
             /** @description 验证码已发送 { emailSent, codeExpiresIn: 900 } */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4005,6 +4020,9 @@ export interface operations {
             /** @description 请求频繁，请稍后重试（1 分钟 1 次） */
             429: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    "Retry-After": components["headers"]["RetryAfter"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4014,6 +4032,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4041,6 +4061,8 @@ export interface operations {
             /** @description 注册成功；Web 通过 httpOnly Cookie 接收 refresh token，移动客户端从响应体接收 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4050,6 +4072,8 @@ export interface operations {
             /** @description 验证码错误或过期 */
             400: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4059,6 +4083,8 @@ export interface operations {
             /** @description 用户名已被占用 */
             409: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4068,6 +4094,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4095,6 +4123,8 @@ export interface operations {
             /** @description 登录成功；Web 通过 httpOnly Cookie 接收 refresh token，移动客户端从响应体接收 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4104,6 +4134,8 @@ export interface operations {
             /** @description 账号或密码错误 或 账号被锁定 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4113,6 +4145,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4137,6 +4171,8 @@ export interface operations {
             /** @description 刷新成功；平台沿用服务端会话记录，不信任请求头 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4146,6 +4182,8 @@ export interface operations {
             /** @description refreshToken 无效/过期/已被盗用（确认重放时对应登录终端退出） */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4155,6 +4193,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4179,6 +4219,8 @@ export interface operations {
             /** @description 验证成功 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4188,6 +4230,8 @@ export interface operations {
             /** @description 验证码错误 */
             400: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4197,6 +4241,8 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4206,6 +4252,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4230,6 +4278,8 @@ export interface operations {
             /** @description 验证邮件已重新发送 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4239,6 +4289,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4263,6 +4315,8 @@ export interface operations {
             /** @description 密码修改成功 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4272,6 +4326,8 @@ export interface operations {
             /** @description 未登录或旧密码错误 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4281,6 +4337,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4305,6 +4363,8 @@ export interface operations {
             /** @description 密码重置邮件已发送 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4314,6 +4374,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4338,6 +4400,8 @@ export interface operations {
             /** @description 密码重置成功 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4347,6 +4411,8 @@ export interface operations {
             /** @description 验证码错误 或 密码格式不符合要求 */
             400: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4356,6 +4422,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4380,6 +4448,8 @@ export interface operations {
             /** @description 验证码已发送 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4389,6 +4459,8 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4398,6 +4470,8 @@ export interface operations {
             /** @description 新邮箱已被占用 */
             409: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4407,6 +4481,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4431,6 +4507,8 @@ export interface operations {
             /** @description 邮箱更换成功 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4440,6 +4518,8 @@ export interface operations {
             /** @description 验证码错误或过期 */
             400: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4449,6 +4529,8 @@ export interface operations {
             /** @description 未登录或邮箱未验证 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4458,6 +4540,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4482,6 +4566,8 @@ export interface operations {
             /** @description 登出成功，refreshToken 被撤销，Cookie 被清除 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4491,6 +4577,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4511,6 +4599,8 @@ export interface operations {
             /** @description 最多返回 Web 与移动客户端各一个活跃登录终端 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4520,6 +4610,9 @@ export interface operations {
             /** @description 请求频繁，请稍后重试（登录终端列表独立限流 60 次/分钟） */
             429: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    "Retry-After": components["headers"]["RetryAfter"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4529,6 +4622,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4551,6 +4646,8 @@ export interface operations {
             /** @description 指定登录终端已退出 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4560,6 +4657,8 @@ export interface operations {
             /** @description 登录终端不存在或已失效 */
             400: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4569,6 +4668,9 @@ export interface operations {
             /** @description 请求频繁，请稍后重试（退出登录终端独立限流 60 次/分钟） */
             429: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    "Retry-After": components["headers"]["RetryAfter"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4578,6 +4680,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4601,6 +4705,8 @@ export interface operations {
             /** @description 匹配的用户列表（最多 10 条），含 id/username/avatar */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4610,6 +4716,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4619,6 +4727,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4644,6 +4754,8 @@ export interface operations {
             /** @description 最多返回 20 个可艾特用户，并返回是否允许 @全体玩家 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4653,6 +4765,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4662,6 +4776,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4682,6 +4798,8 @@ export interface operations {
             /** @description 含 email / 隐私设置 / _count.following / _count.followers */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4691,6 +4809,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4700,6 +4820,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4720,6 +4842,8 @@ export interface operations {
             /** @description 账号已注销 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4729,6 +4853,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4738,6 +4864,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4762,6 +4890,8 @@ export interface operations {
             /** @description 更新后的用户资料 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4771,6 +4901,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4780,6 +4912,8 @@ export interface operations {
             /** @description 用户名已被占用 */
             409: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4789,6 +4923,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4809,6 +4945,8 @@ export interface operations {
             /** @description 更新后的用户资料（avatar 为 null） */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4818,6 +4956,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4827,6 +4967,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4851,6 +4993,8 @@ export interface operations {
             /** @description 更新后的用户资料（含新头像） */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4860,6 +5004,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4869,6 +5015,8 @@ export interface operations {
             /** @description mediaId 不存在或未完成处理 */
             404: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4878,6 +5026,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4905,6 +5055,8 @@ export interface operations {
             /** @description 用户的收藏列表（cursor 分页，含帖子摘要） */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4914,6 +5066,8 @@ export interface operations {
             /** @description 用户不存在或未公开收藏 */
             404: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4923,6 +5077,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4952,6 +5108,8 @@ export interface operations {
             /** @description 用户参与的帖子列表（cursor 分页） */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4961,6 +5119,8 @@ export interface operations {
             /** @description 用户不存在或未公开参与的帖子 */
             404: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4970,6 +5130,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -4997,6 +5159,8 @@ export interface operations {
             /** @description 用户创建的主题帖列表（cursor 分页） */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5006,6 +5170,8 @@ export interface operations {
             /** @description 用户不存在 */
             404: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5015,6 +5181,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5037,6 +5205,8 @@ export interface operations {
             /** @description 用户最近 10 条回复（含预览截断、所属帖子/子贴信息） */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5046,6 +5216,8 @@ export interface operations {
             /** @description 用户不存在或未公开最近动态 */
             404: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5055,6 +5227,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5077,6 +5251,8 @@ export interface operations {
             /** @description 公开资料。登录后附加 isFollowing/isFollowedBy/isBlocked/isBlockedBy */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5086,6 +5262,8 @@ export interface operations {
             /** @description 用户不存在 */
             404: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5095,6 +5273,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5117,6 +5297,8 @@ export interface operations {
             /** @description 关注结果（成功 / 已关注 / 不能关注自己） */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5126,6 +5308,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5135,6 +5319,8 @@ export interface operations {
             /** @description 目标用户不存在 */
             404: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5144,6 +5330,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5166,6 +5354,8 @@ export interface operations {
             /** @description 已取消关注 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5175,6 +5365,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5195,6 +5387,8 @@ export interface operations {
             /** @description 我的关注用户列表 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5204,6 +5398,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5224,6 +5420,8 @@ export interface operations {
             /** @description 我的粉丝列表 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5233,6 +5431,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5255,6 +5455,8 @@ export interface operations {
             /** @description 指定用户的关注列表 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5264,6 +5466,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5286,6 +5490,8 @@ export interface operations {
             /** @description 指定用户的粉丝列表 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5295,6 +5501,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5317,6 +5525,8 @@ export interface operations {
             /** @description 拉黑结果 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5326,6 +5536,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5348,6 +5560,8 @@ export interface operations {
             /** @description 已取消拉黑 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5357,6 +5571,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5377,6 +5593,8 @@ export interface operations {
             /** @description 我的黑名单列表 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5386,6 +5604,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5411,6 +5631,8 @@ export interface operations {
             /** @description 通知列表（cursor 分页，按时间倒序） */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5420,6 +5642,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5429,6 +5653,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5449,6 +5675,8 @@ export interface operations {
             /** @description { unreadCount: number } */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5458,6 +5686,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5467,6 +5697,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5489,6 +5721,8 @@ export interface operations {
             /** @description 已删除 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5498,6 +5732,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5507,6 +5743,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5533,6 +5771,8 @@ export interface operations {
             /** @description 标记结果（已标记为已读 / 已标记为未读） */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5542,6 +5782,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5551,6 +5793,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5571,6 +5815,8 @@ export interface operations {
             /** @description 全部已标记为已读 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5580,6 +5826,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5589,6 +5837,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5612,6 +5862,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5621,6 +5873,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5640,6 +5894,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5649,6 +5905,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5674,6 +5932,8 @@ export interface operations {
             /** @description 我的收藏列表（cursor 分页，含帖子摘要） */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5683,6 +5943,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5692,6 +5954,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5716,6 +5980,8 @@ export interface operations {
             /** @description 创建的收藏记录 */
             201: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5725,6 +5991,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5734,6 +6002,8 @@ export interface operations {
             /** @description 帖子不存在 */
             404: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5743,6 +6013,8 @@ export interface operations {
             /** @description 重复收藏 */
             409: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5752,6 +6024,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5774,6 +6048,8 @@ export interface operations {
             /** @description 已取消收藏 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5783,6 +6059,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5792,6 +6070,8 @@ export interface operations {
             /** @description 收藏不存在 */
             404: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5801,6 +6081,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5821,6 +6103,8 @@ export interface operations {
             /** @description 草稿列表，每个含子贴标题和标签 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5830,6 +6114,8 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5839,6 +6125,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5876,6 +6164,8 @@ export interface operations {
             /** @description 分页列表，meta 含 cursor/hasMore。每个帖含 owner/subthreads/bodyPost.content(正文预览)/topicTags/_count */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5885,6 +6175,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5909,6 +6201,8 @@ export interface operations {
             /** @description 草稿创建成功，返回完整 Thread 对象（含正文待掷骰子） */
             201: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5918,6 +6212,8 @@ export interface operations {
             /** @description 未登录或邮箱未验证 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5927,6 +6223,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5949,6 +6247,8 @@ export interface operations {
             /** @description Thread 完整对象（含 bodyPost 的待掷与正式骰子结果）。viewCount 异步 +1 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5958,6 +6258,8 @@ export interface operations {
             /** @description 主题帖不存在或已删除（PRIVATE 帖非成员也返回 404） */
             404: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5967,6 +6269,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5989,6 +6293,8 @@ export interface operations {
             /** @description 主题帖已删除 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -5998,6 +6304,8 @@ export interface operations {
             /** @description 未登录或邮箱未验证 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6007,6 +6315,8 @@ export interface operations {
             /** @description 非 OWNER 不可删除 */
             403: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6016,6 +6326,8 @@ export interface operations {
             /** @description 主题帖不存在 */
             404: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6025,6 +6337,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6051,6 +6365,8 @@ export interface operations {
             /** @description 更新成功返回 Thread 完整对象。发布时原子结算全部待掷骰子 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6060,6 +6376,8 @@ export interface operations {
             /** @description 未登录或邮箱未验证 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6069,6 +6387,8 @@ export interface operations {
             /** @description 无管理权限（非 OWNER/COLLABORATOR） */
             403: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6078,6 +6398,8 @@ export interface operations {
             /** @description 主题帖不存在 */
             404: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6087,6 +6409,8 @@ export interface operations {
             /** @description 乐观锁冲突（version 过期）或已发布帖重复发布 */
             409: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6096,6 +6420,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6122,6 +6448,8 @@ export interface operations {
             /** @description 全部字段在同一事务内保存，返回最新完整主题帖 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6131,6 +6459,8 @@ export interface operations {
             /** @description 未登录或邮箱未验证 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6140,6 +6470,8 @@ export interface operations {
             /** @description 无管理权限或协作者尝试修改楼主专属字段 */
             403: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6149,6 +6481,8 @@ export interface operations {
             /** @description 主题帖或默认子贴不存在 */
             404: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6158,6 +6492,8 @@ export interface operations {
             /** @description 主题帖、默认子贴或正文乐观锁冲突 */
             409: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6167,6 +6503,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6189,6 +6527,8 @@ export interface operations {
             /** @description 主题帖 ID 与最新点赞数 */
             201: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6198,6 +6538,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6220,6 +6562,8 @@ export interface operations {
             /** @description 主题帖 ID 与最新点赞数 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6229,6 +6573,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6251,6 +6597,8 @@ export interface operations {
             /** @description 邀请链接对象（threadId / token）。已存在则刷新 token */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6260,6 +6608,8 @@ export interface operations {
             /** @description 未登录或邮箱未验证 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6269,6 +6619,8 @@ export interface operations {
             /** @description 仅 OWNER / 未发布 / 非私密帖 */
             403: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6278,6 +6630,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6300,6 +6654,8 @@ export interface operations {
             /** @description 帖子概要和 alreadyJoined 状态 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6309,6 +6665,8 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6318,6 +6676,8 @@ export interface operations {
             /** @description 邀请链接无效或已失效 */
             404: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6327,6 +6687,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6349,6 +6711,8 @@ export interface operations {
             /** @description 加入成功或已加入时返回成员记录（thread.title / user 基本信息） */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6358,6 +6722,8 @@ export interface operations {
             /** @description 未登录或邮箱未验证 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6367,6 +6733,8 @@ export interface operations {
             /** @description 邀请链接无效或已失效 */
             404: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6376,6 +6744,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6397,6 +6767,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6406,6 +6778,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6427,6 +6801,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6436,6 +6812,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6466,6 +6844,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6475,6 +6855,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6497,6 +6879,8 @@ export interface operations {
             /** @description 已退出主题帖 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6506,6 +6890,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6527,6 +6913,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6536,6 +6924,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6561,6 +6951,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6570,6 +6962,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6593,6 +6987,8 @@ export interface operations {
             /** @description 标签已移除 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6602,6 +6998,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6625,6 +7023,8 @@ export interface operations {
             /** @description 标签列表（按名称排序），数量少时不缓存直接查库 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6634,6 +7034,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6658,6 +7060,8 @@ export interface operations {
             /** @description 创建成功返回标签对象（含 id / name / color / createdAt） */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6667,6 +7071,8 @@ export interface operations {
             /** @description 未登录或邮箱未验证 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6676,6 +7082,8 @@ export interface operations {
             /** @description 标签名已存在 */
             409: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6685,6 +7093,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6707,6 +7117,8 @@ export interface operations {
             /** @description 标签详情对象（id / name / color / createdAt） */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6716,6 +7128,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6735,6 +7149,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6744,6 +7160,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6767,6 +7185,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6776,6 +7196,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6799,6 +7221,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6808,6 +7232,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6831,6 +7257,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6840,6 +7268,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6861,6 +7291,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6870,6 +7302,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6893,6 +7327,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6902,6 +7338,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6923,6 +7361,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6932,6 +7372,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6953,6 +7395,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6962,6 +7406,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6987,6 +7433,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -6996,6 +7444,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7017,6 +7467,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7026,6 +7478,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7048,6 +7502,8 @@ export interface operations {
             /** @description 子贴已删除 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7057,6 +7513,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7082,6 +7540,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7091,6 +7551,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7116,6 +7578,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7125,6 +7589,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7152,6 +7618,8 @@ export interface operations {
             /** @description 楼层列表（含楼中楼内联回复），cursor 分页 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7161,6 +7629,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7187,6 +7657,8 @@ export interface operations {
             /** @description 创建的帖子（含楼层号或 parentPostId） */
             201: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7196,6 +7668,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7205,6 +7679,8 @@ export interface operations {
             /** @description 无发帖权限（未加入子贴或权限不足） */
             403: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7214,6 +7690,8 @@ export interface operations {
             /** @description clientRequestId 已用于不同发帖载荷 */
             409: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7223,6 +7701,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7250,6 +7730,8 @@ export interface operations {
             /** @description 楼中楼回复列表（平级挂载，含 replyToPostId 追踪回复目标），cursor 分页 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7259,6 +7741,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7285,6 +7769,8 @@ export interface operations {
             /** @description 正文帖子（kind=BODY，不占楼层号） */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7294,6 +7780,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7303,6 +7791,8 @@ export interface operations {
             /** @description 无管理权限 */
             403: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7312,6 +7802,8 @@ export interface operations {
             /** @description 子贴不存在 */
             404: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7321,6 +7813,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7343,6 +7837,8 @@ export interface operations {
             /** @description 帖子详情（含作者和导航上下文） */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7352,6 +7848,8 @@ export interface operations {
             /** @description 帖子不存在 */
             404: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7361,6 +7859,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7383,6 +7883,8 @@ export interface operations {
             /** @description 帖子已删除 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7392,6 +7894,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7401,6 +7905,8 @@ export interface operations {
             /** @description 非本人帖子，无权删除 */
             403: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7410,6 +7916,8 @@ export interface operations {
             /** @description 帖子不存在 */
             404: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7419,6 +7927,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7445,6 +7955,8 @@ export interface operations {
             /** @description 更新后的帖子 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7454,6 +7966,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7463,6 +7977,8 @@ export interface operations {
             /** @description 非本人帖子，无权编辑 */
             403: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7472,6 +7988,8 @@ export interface operations {
             /** @description 帖子不存在 */
             404: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7481,6 +7999,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7501,6 +8021,8 @@ export interface operations {
             /** @description 当前用户全部草稿 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7510,6 +8032,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7519,6 +8043,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7543,6 +8069,8 @@ export interface operations {
             /** @description 创建的草稿 */
             201: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7552,6 +8080,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7561,6 +8091,8 @@ export interface operations {
             /** @description 覆盖已有槽位时 version 缺失或已过期 */
             409: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7570,6 +8102,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7590,6 +8124,8 @@ export interface operations {
             /** @description 草稿位使用情况（5 槽已用数） */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7599,6 +8135,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7608,6 +8146,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7630,6 +8170,8 @@ export interface operations {
             /** @description 草稿详情 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7639,6 +8181,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7648,6 +8192,8 @@ export interface operations {
             /** @description 草稿不存在 */
             404: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7657,6 +8203,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7679,6 +8227,8 @@ export interface operations {
             /** @description 草稿已删除 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7688,6 +8238,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7697,6 +8249,8 @@ export interface operations {
             /** @description 草稿不存在 */
             404: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7706,6 +8260,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7732,6 +8288,8 @@ export interface operations {
             /** @description 更新后的草稿 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7741,6 +8299,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7750,6 +8310,8 @@ export interface operations {
             /** @description 草稿不存在 */
             404: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7759,6 +8321,8 @@ export interface operations {
             /** @description version 已过期 */
             409: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7768,6 +8332,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7788,6 +8354,8 @@ export interface operations {
             /** @description 我的订阅列表（含订阅类型和关联信息） */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7797,6 +8365,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7806,6 +8376,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7830,6 +8402,8 @@ export interface operations {
             /** @description 创建的订阅记录 */
             201: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7839,6 +8413,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7848,6 +8424,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7870,6 +8448,8 @@ export interface operations {
             /** @description 已取消订阅 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7879,6 +8459,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7888,6 +8470,8 @@ export interface operations {
             /** @description 订阅不存在 */
             404: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7897,6 +8481,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7918,6 +8504,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7927,6 +8515,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7950,6 +8540,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7959,6 +8551,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7984,6 +8578,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7993,6 +8589,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8012,6 +8610,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8021,6 +8621,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8044,6 +8646,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8053,6 +8657,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8076,6 +8682,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8085,6 +8693,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8107,6 +8717,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8116,6 +8728,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8138,6 +8752,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8147,6 +8763,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8170,6 +8788,8 @@ export interface operations {
             /** @description 主题帖结果，最多 50 条 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8179,6 +8799,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8202,6 +8824,8 @@ export interface operations {
             /** @description 用户结果，最多 20 条 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8211,6 +8835,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8238,6 +8864,8 @@ export interface operations {
             /** @description 相关度游标分页；meta 含 cursor/hasMore */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8247,6 +8875,8 @@ export interface operations {
             /** @description 关键词不足 2 个字符或游标无效 */
             400: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8256,6 +8886,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8279,6 +8911,8 @@ export interface operations {
             /** @description 兼容旧客户端的聚合搜索结果 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8288,6 +8922,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8317,6 +8953,8 @@ export interface operations {
             /** @description 相关度游标分页；搜索全部子贴，不限制单帖结果数量 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8326,6 +8964,8 @@ export interface operations {
             /** @description 关键词不足 2 个字符或游标无效 */
             400: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8335,6 +8975,8 @@ export interface operations {
             /** @description 主题帖不存在，或当前用户无权访问私密帖 */
             404: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8344,6 +8986,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8368,6 +9012,8 @@ export interface operations {
             /** @description 预签名 URL 和 mediaId（UPLOADING 状态） */
             201: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8377,6 +9023,8 @@ export interface operations {
             /** @description 文件类型不支持或超过大小限制 */
             400: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8386,6 +9034,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8395,6 +9045,9 @@ export interface operations {
             /** @description 每用户小时上传配额超限（默认 60 次） */
             429: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    "Retry-After": components["headers"]["RetryAfter"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8404,6 +9057,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8428,6 +9083,8 @@ export interface operations {
             /** @description 确认结果（转 PROCESSING 状态） */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8437,6 +9094,8 @@ export interface operations {
             /** @description 文件不存在或不属于当前用户 */
             400: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8446,6 +9105,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8455,6 +9116,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8477,6 +9140,8 @@ export interface operations {
             /** @description 图片处理状态（UPLOADING / PROCESSING / COMPLETED / FAILED） */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8486,6 +9151,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8495,6 +9162,8 @@ export interface operations {
             /** @description 图片记录不存在或不属于当前用户 */
             404: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8504,6 +9173,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8529,6 +9200,8 @@ export interface operations {
             /** @description 游标分页会话列表 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8538,6 +9211,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8561,6 +9236,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8570,6 +9247,8 @@ export interface operations {
             /** @description 邮箱未验证、存在拉黑关系或无权再次申请 */
             403: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8579,6 +9258,8 @@ export interface operations {
             /** @description 消息请求仍待处理或已被拒绝 */
             409: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8588,6 +9269,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8607,6 +9290,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8616,6 +9301,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8637,6 +9324,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8646,6 +9335,8 @@ export interface operations {
             /** @description 目标用户不存在或已注销 */
             404: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8655,6 +9346,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8676,6 +9369,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8685,6 +9380,8 @@ export interface operations {
             /** @description 会话不存在或当前用户不是参与者 */
             404: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8694,6 +9391,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8722,6 +9421,8 @@ export interface operations {
             /** @description 游标分页消息列表 */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8731,6 +9432,8 @@ export interface operations {
             /** @description 会话或消息游标不存在 */
             404: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8740,6 +9443,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8765,6 +9470,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8774,6 +9481,8 @@ export interface operations {
             /** @description 邮箱未验证、拉黑或会话不可发送 */
             403: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8783,6 +9492,8 @@ export interface operations {
             /** @description 请求待处理/已拒绝或图片已被使用 */
             409: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8792,6 +9503,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8817,6 +9530,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8826,6 +9541,8 @@ export interface operations {
             /** @description 不是请求接收方或接受时邮箱未验证 */
             403: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8835,6 +9552,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8860,6 +9579,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8869,6 +9590,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8894,6 +9617,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8903,6 +9628,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8924,6 +9651,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8933,6 +9662,8 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8942,6 +9673,8 @@ export interface operations {
             /** @description 不是发送者或消息当前不可撤回 */
             403: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8951,6 +9684,8 @@ export interface operations {
             /** @description 已超过 10 分钟撤回时限 */
             409: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8960,6 +9695,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8979,6 +9716,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -8988,6 +9727,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
                 };
                 content: {

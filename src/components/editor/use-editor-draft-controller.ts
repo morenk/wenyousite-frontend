@@ -76,8 +76,8 @@ export function useEditorDraftController({
 
   useEffect(() => {
     if (!autoSaveEnabled) return;
-    const content = currentContent.trim();
-    if (!content) return;
+    const content = currentContent;
+    if (!content.trim()) return;
 
     const sequence = ++autoSaveSequenceRef.current;
     const timer = window.setTimeout(() => {

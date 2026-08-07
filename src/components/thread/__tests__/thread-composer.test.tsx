@@ -171,6 +171,22 @@ describe("ThreadComposer", () => {
     expect(mocks.error).not.toHaveBeenCalled();
   });
 
+  test("发布时保留正文首尾内容", async () => {
+    const user = userEvent.setup();
+    renderHarness();
+    await user.click(screen.getByRole("button", { name: "发表入口" }));
+    fireEvent.change(screen.getByTestId("milkdown-editor"), {
+      target: { value: "  正文\n\n<br />\n" },
+    });
+    await user.click(screen.getByRole("button", { name: "发布" }));
+
+    await waitFor(() => expect(mocks.create).toHaveBeenCalledWith({
+      subthreadId: "s1",
+      content: "  正文\n\n<br />\n",
+      clientRequestId: REQUEST_ID,
+    }));
+  });
+
   test("楼层可以只提交正文内的骰子节点，正式结果由服务端生成", async () => {
     const user = userEvent.setup();
     renderHarness();

@@ -4,6 +4,7 @@
 
 import { MarkdownContent } from "@/components/thread/markdown-content";
 import type { SubthreadDetail } from "@/api/hooks/use-thread-detail";
+import { hasVisibleMarkdownContent } from "@/lib/markdown";
 
 interface SubthreadBodyProps {
   subthread: SubthreadDetail;
@@ -11,7 +12,7 @@ interface SubthreadBodyProps {
 }
 
 export function SubthreadBody({ subthread, isDefault = false }: SubthreadBodyProps) {
-  const content = subthread.bodyPost?.content?.trim();
+  const content = subthread.bodyPost?.content ?? "";
 
   return (
     <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
@@ -24,7 +25,7 @@ export function SubthreadBody({ subthread, isDefault = false }: SubthreadBodyPro
         )}
       </div>
 
-      {content ? (
+      {hasVisibleMarkdownContent(content) ? (
         <div className="mt-3 border-t border-border pt-3">
           <MarkdownContent content={content} diceRolls={subthread.bodyPost?.diceRolls} sourcePostId={subthread.bodyPost?.id} />
         </div>

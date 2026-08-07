@@ -8,6 +8,13 @@ const spec = JSON.parse(readFileSync(contractPath, "utf8"));
 const failures = [];
 const operationIds = new Set();
 const methods = ["get", "post", "put", "patch", "delete"];
+const requestIdHeaderRef = "#/components/headers/XRequestId";
+const contractVersionHeaderRef = "#/components/headers/XApiContractVersion";
+const retryAfterHeaderRef = "#/components/headers/RetryAfter";
+
+function usesHeader(response, name, reference) {
+  return response?.headers?.[name]?.$ref === reference;
+}
 
 if (!/^3\.0\./.test(spec.openapi ?? "")) {
   failures.push(`需要 OpenAPI 3.0.x，实际为 ${spec.openapi ?? "missing"}`);
@@ -29,6 +36,15 @@ for (const [apiPath, pathItem] of Object.entries(spec.paths ?? {})) {
       operationIds.add(operation.operationId);
     }
     for (const [status, response] of Object.entries(operation.responses ?? {})) {
+      if (!usesHeader(response, "X-Request-ID", requestIdHeaderRef)) {
+        failures.push(`${label} ${status} 缺少 X-Request-ID 响应头`);
+      }
+      if (!usesHeader(response, "X-API-Contract-Version", contractVersionHeaderRef)) {
+        failures.push(`${label} ${status} 缺少 X-API-Contract-Version 响应头`);
+      }
+      if (status === "429" && !usesHeader(response, "Retry-After", retryAfterHeaderRef)) {
+        failures.push(`${label} 429 缺少 Retry-After 响应头`);
+      }
       if (!/^2\d\d$/.test(status) || status === "204" || status === "205") continue;
       const schema = response?.content?.["application/json"]?.schema;
       if (!schema?.$ref?.startsWith("#/components/schemas/")) {
@@ -40,6 +56,21 @@ for (const [apiPath, pathItem] of Object.entries(spec.paths ?? {})) {
         failures.push(`${label} 查询参数 ${parameter.name} 的 schema 为空`);
       }
     }
+  }
+}
+
+for (const [apiPath, method] of [
+  ["/api/v1/auth/login", "post"],
+  ["/api/v1/auth/register/verify-and-complete", "post"],
+]) {
+  const operation = spec.paths?.[apiPath]?.[method];
+  const platformHeader = operation?.parameters?.find(
+    (parameter) =>
+      parameter?.in === "header" && parameter?.name?.toLowerCase() === "x-client-platform",
+  );
+  const values = platformHeader?.schema?.enum;
+  if (!Array.isArray(values) || !values.includes("web") || !values.includes("mobile")) {
+    failures.push(`${method.toUpperCase()} ${apiPath} 缺少 web/mobile X-Client-Platform 契约`);
   }
 }
 
@@ -58,4 +89,4 @@ if (!spec.components?.schemas?.BusinessErrorCode) {
 if (failures.length > 0) {
   throw new Error(`Flutter 契约兼容检查失败：\n${failures.join("\n")}`);
 }
-console.log(`Flutter contract is generator-ready (${operationIds.size} operations)`);
+console.log(`Flutter contract shape is valid (${operationIds.size} operations)`);
