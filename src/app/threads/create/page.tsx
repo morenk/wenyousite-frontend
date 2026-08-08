@@ -17,6 +17,8 @@ import { ThreadDraftPicker } from "@/components/thread/thread-draft-picker";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useConfirm } from "@/components/ui/confirm-provider";
+import { PageHeader } from "@/components/layout/page-header";
+import { PageShell } from "@/components/layout/page-shell";
 
 export default function CreateThreadPage() {
   const router = useRouter();
@@ -63,7 +65,6 @@ export default function CreateThreadPage() {
 
     try {
       const thread = await createThread.mutateAsync({
-        category: "DEDUCTION",
         visibility: "PUBLIC",
         clientRequestId: createRequestIdRef.current,
       });
@@ -120,7 +121,7 @@ export default function CreateThreadPage() {
 
   if (!isInitialized) {
     return (
-      <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center">
         <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin" />
           加载中…
@@ -131,7 +132,7 @@ export default function CreateThreadPage() {
 
   if (createError || threadError) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-12">
+      <PageShell width="content" className="py-12">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-destructive">
@@ -159,7 +160,7 @@ export default function CreateThreadPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </PageShell>
     );
   }
 
@@ -175,7 +176,7 @@ export default function CreateThreadPage() {
 
   if (creating || isThreadLoading) {
     return (
-      <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center">
         <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin" />
           正在创建草稿…
@@ -187,10 +188,8 @@ export default function CreateThreadPage() {
   if (!thread) return null;
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6">
-      <div className="mb-5 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-foreground">创建主题帖</h1>
-      </div>
+    <PageShell width="workspace">
+      <PageHeader title="创建主题帖" />
       <Card>
         <CardContent className="pt-6">
           <ThreadCreateForm
@@ -200,6 +199,6 @@ export default function CreateThreadPage() {
             />
         </CardContent>
       </Card>
-    </div>
+    </PageShell>
   );
 }

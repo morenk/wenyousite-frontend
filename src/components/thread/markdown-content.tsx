@@ -48,7 +48,7 @@ function MarkdownLink({ href, children, ...props }: AnchorProps) {
     return (
       <Link
         href={`/users/${userMatch[1]}`}
-        className="font-medium text-primary no-underline hover:underline"
+        className="font-medium text-brand-strong no-underline hover:underline"
       >
         {children}
       </Link>
@@ -210,9 +210,15 @@ interface CollapsibleMarkdownProps {
   content: string;
   diceRolls?: InlineDiceRoll[];
   sourcePostId?: string;
+  size?: "reading" | "compact";
 }
 
-function CollapsibleMarkdown({ content, diceRolls = [], sourcePostId }: CollapsibleMarkdownProps) {
+function CollapsibleMarkdown({
+  content,
+  diceRolls = [],
+  sourcePostId,
+  size = "reading",
+}: CollapsibleMarkdownProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const collapseButtonRef = useRef<HTMLButtonElement>(null);
   const [tooTall, setTooTall] = useState(false);
@@ -264,7 +270,12 @@ function CollapsibleMarkdown({ content, diceRolls = [], sourcePostId }: Collapsi
       <div
         ref={contentRef}
         id={contentId}
-        className="prose prose-sm max-w-none dark:prose-invert"
+        data-slot="markdown-content"
+        data-size={size}
+        className={cn(
+          "prose wenyou-prose prose-headings:font-display prose-headings:text-foreground prose-a:text-brand-strong",
+          size === "compact" && "wenyou-prose-compact",
+        )}
         style={collapsed ? { maxHeight: "80vh", overflow: "hidden" } : undefined}
       >
         <ReactMarkdown
@@ -306,8 +317,16 @@ interface MarkdownContentProps {
   content: string;
   diceRolls?: InlineDiceRoll[];
   sourcePostId?: string;
+  size?: "reading" | "compact";
 }
 
-export function MarkdownContent({ content, diceRolls, sourcePostId }: MarkdownContentProps) {
-  return <CollapsibleMarkdown content={content} diceRolls={diceRolls} sourcePostId={sourcePostId} />;
+export function MarkdownContent({ content, diceRolls, sourcePostId, size }: MarkdownContentProps) {
+  return (
+    <CollapsibleMarkdown
+      content={content}
+      diceRolls={diceRolls}
+      sourcePostId={sourcePostId}
+      size={size}
+    />
+  );
 }

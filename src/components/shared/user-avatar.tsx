@@ -46,7 +46,7 @@ export function UserAvatar({ name, src, className, textClassName = "text-sm" }: 
     <div
       data-testid="user-avatar-placeholder"
       className={cn(
-        "flex shrink-0 items-center justify-center rounded-full bg-primary/10 font-bold text-primary",
+        "flex shrink-0 items-center justify-center rounded-full bg-accent font-display font-bold text-brand-strong",
         textClassName,
         className,
       )}

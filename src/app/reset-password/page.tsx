@@ -91,7 +91,7 @@ export default function ResetPasswordPage() {
         <p className="text-sm text-muted-foreground">
           <Link
             href="/login"
-            className="font-medium text-primary hover:underline underline-offset-2"
+            className="font-medium text-brand-strong hover:underline underline-offset-2"
           >
             返回登录
           </Link>

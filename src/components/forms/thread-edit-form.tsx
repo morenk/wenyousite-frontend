@@ -30,7 +30,7 @@ interface ThreadEditFormProps {
 
 interface ThreadEditBaseline {
   title: string;
-  category: ThreadDetail["category"];
+  category: string | undefined;
   visibility: ThreadDetail["visibility"];
   status: ThreadDetail["status"];
   tagNames: string[];
@@ -40,7 +40,7 @@ interface ThreadEditBaseline {
 function getThreadEditBaseline(thread: ThreadDetail): ThreadEditBaseline {
   return {
     title: thread.title,
-    category: thread.category,
+    category: thread.category ?? undefined,
     visibility: thread.visibility,
     status: thread.status,
     tagNames: thread.topicTags.map((item) => item.tag.name),
@@ -70,7 +70,7 @@ export function ThreadEditForm({
     resolver: zodResolver(threadCreateSchema),
     defaultValues: {
       title: thread.title,
-      category: thread.category,
+      category: thread.category ?? undefined,
       visibility: thread.visibility,
       tagNames: thread.topicTags.map((t) => t.tag.name),
       content: thread.defaultSubthread.bodyPost?.content ?? "",
@@ -107,7 +107,9 @@ export function ThreadEditForm({
         threadId: thread.id,
         body: {
           title: values.title?.trim(),
-          category: values.category,
+          ...(values.category && values.category !== baseline.category
+            ? { category: values.category }
+            : {}),
           status,
           ...(isOwner ? { visibility: values.visibility } : {}),
           version: thread.version,

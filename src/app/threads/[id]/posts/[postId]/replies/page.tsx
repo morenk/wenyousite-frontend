@@ -10,6 +10,7 @@ import { ThreadComposerProvider } from "@/components/thread/thread-composer-cont
 import { ThreadPermissionsProvider } from "@/components/thread/thread-permissions-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth";
+import { PageShell } from "@/components/layout/page-shell";
 
 export default function ReplyDiscussionPage() {
   const params = useParams<{ id: string }>();
@@ -32,7 +33,7 @@ function ReplyDiscussionPageContent() {
 
   if (isLoading || (!isInitialized && error)) {
     return (
-      <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center text-muted-foreground">
+      <div className="flex min-h-screen items-center justify-center text-muted-foreground">
         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
         正在进入讨论…
       </div>
@@ -47,7 +48,7 @@ function ReplyDiscussionPageContent() {
 
   if (error || invalidRoot) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-12">
+      <PageShell width="content" className="py-12">
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
             <AlertCircle className="h-9 w-9 text-muted-foreground" />
@@ -55,7 +56,7 @@ function ReplyDiscussionPageContent() {
             <p className="text-sm text-muted-foreground">原楼层可能已删除，或你没有查看该主题帖的权限。</p>
           </CardContent>
         </Card>
-      </div>
+      </PageShell>
     );
   }
 

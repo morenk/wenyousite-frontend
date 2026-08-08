@@ -86,6 +86,7 @@ describe("MilkdownEditor 内联骰子", () => {
     const markdown = onChange.mock.calls.at(-1)?.[0] as string;
     expect(markdown).toContain("玛利亚发财的概率：");
     expect(markdown).toMatch(/\[\[dice:v1:[0-9a-f-]{36}:1d100\]\]/u);
+    expect(markdown).not.toMatch(/\n$/u);
     expect(markdown).not.toContain("\\[\\[dice:v1:");
   });
 

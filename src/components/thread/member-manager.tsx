@@ -91,7 +91,7 @@ export function MemberManager({ threadId, isOwner, isCollaborator }: MemberManag
             <div className="flex min-w-0 items-center gap-3">
               <Link
                 href={`/users/${m.userId}`}
-                className="truncate text-sm font-medium text-foreground hover:text-primary"
+                className="truncate text-sm font-medium text-foreground hover:text-brand-strong"
               >
                 {m.user.username}
               </Link>
@@ -99,16 +99,16 @@ export function MemberManager({ threadId, isOwner, isCollaborator }: MemberManag
                 className={cn(
                   "rounded-full px-2 py-0.5 text-xs",
                   m.role === "OWNER"
-                    ? "bg-primary/10 text-primary"
+                    ? "bg-primary/10 text-brand-strong"
                     : m.role === "COLLABORATOR"
-                      ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
+                      ? "bg-info-soft text-info"
                       : "bg-muted text-muted-foreground",
                 )}
               >
                 {ROLE_LABEL[m.role] ?? m.role}
               </span>
               {m.playerMarked && (
-                <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                <span className="rounded-full bg-success-soft px-2 py-0.5 text-xs text-success">
                   玩家
                 </span>
               )}

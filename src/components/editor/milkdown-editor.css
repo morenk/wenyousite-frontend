@@ -15,7 +15,67 @@
 }
 
 .milkdown .ProseMirror {
+  width: 100%;
+  max-width: 46rem;
+  margin-inline: auto;
   padding: 20px 32px;
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  font-synthesis: none;
+  line-break: strict;
+  line-height: 1.9;
+  letter-spacing: 0.008em;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.milkdown .ProseMirror p {
+  padding-block: 0.32em;
+  font-size: 1em;
+  line-height: 1.9;
+}
+
+.milkdown .ProseMirror strong {
+  font-weight: 700;
+  letter-spacing: 0.018em;
+}
+
+.milkdown .ProseMirror em {
+  color: var(--brand-strong);
+  font-family: var(--font-display);
+  font-style: normal;
+  font-weight: 500;
+  letter-spacing: 0.035em;
+}
+
+.milkdown .ProseMirror :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.015em;
+}
+
+.milkdown .ProseMirror h1 {
+  margin-top: 1.15em;
+  font-size: 1.65em;
+  line-height: 1.4;
+}
+
+.milkdown .ProseMirror h2 {
+  margin-top: 1.15em;
+  font-size: 1.35em;
+  line-height: 1.45;
+}
+
+.milkdown .ProseMirror :is(h3, h4, h5, h6) {
+  margin-top: 1em;
+  font-size: 1.12em;
+  line-height: 1.55;
+}
+
+.milkdown .ProseMirror blockquote {
+  border-color: var(--primary);
+  background: var(--muted);
+  font-style: normal;
 }
 
 .milkdown-editor .ProseMirror {

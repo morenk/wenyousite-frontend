@@ -185,7 +185,7 @@ test.describe("已发布帖统一管理", () => {
     // 详情页只保留统一管理入口，默认打开主题帖页签
     await expect(page.getByRole("button", { name: "编辑" })).not.toBeVisible();
     await page.getByRole("button", { name: "管理" }).click();
-    await expect(page).toHaveURL(threadUrl);
+    await expect(page).toHaveURL(`${threadUrl}/edit`);
     await expect(page.getByRole("button", { name: "主题帖" })).toBeVisible();
 
     // 修改标题
@@ -198,7 +198,7 @@ test.describe("已发布帖统一管理", () => {
     await expect(page.getByText("修改已保存").first()).toBeVisible({ timeout: 10000 });
 
     // 保存后仍在管理界面，返回浏览后显示新标题
-    await expect(page).toHaveURL(threadUrl);
+    await expect(page).toHaveURL(`${threadUrl}/edit`);
     await expect(page.getByText(`管理帖子：${newTitle}`)).toBeVisible({ timeout: 10000 });
     await page.getByRole("button", { name: "返回浏览" }).click();
     await expect(page.locator("h1")).toHaveText(newTitle, { timeout: 10000 });

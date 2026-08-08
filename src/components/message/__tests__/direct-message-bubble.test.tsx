@@ -35,6 +35,7 @@ describe("DirectMessageBubble", () => {
       "noopener noreferrer nofollow",
     );
     expect(container.querySelector("time")).not.toBeInTheDocument();
+    expect(container.querySelector("p")).toHaveClass("text-base", "leading-7");
   });
 
   test("展示旧消息时不保留会撑宽气泡的行尾空白", () => {

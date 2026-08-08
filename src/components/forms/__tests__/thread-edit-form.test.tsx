@@ -120,7 +120,7 @@ const mockThread: ThreadDetail = {
       id: "relation-1",
       threadId: "thread-1",
       tagId: "tag-1",
-      tag: { id: "tag-1", name: "保留", color: null },
+      tag: { id: "tag-1", name: "保留", color: null, description: null, sortOrder: 10, isActive: true },
     },
   ],
   _count: { members: 1, players: 1, posts: 1 },
@@ -207,7 +207,6 @@ describe("ThreadEditForm", () => {
       threadId: "t1",
       body: {
         title: "新标题",
-        category: "RPG",
         status: "RECRUITING",
         visibility: "PUBLIC",
         version: 3,
@@ -264,7 +263,6 @@ describe("ThreadEditForm", () => {
       threadId: "t1",
       body: {
         title: "测试帖",
-        category: "RPG",
         status: "RECRUITING",
         version: 3,
         defaultSubthreadVersion: 1,

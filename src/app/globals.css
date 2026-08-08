@@ -3,36 +3,70 @@
 @import "tw-animate-css";
 
 :root {
-  /* Misskey-inspired palette，交互文字与底色满足 WCAG AA 对比度。 */
-  --background: #f8f9fb;
-  --foreground: #334155;
+  /* 页面画布永远纯白；柔和色只表达品牌、玩法和状态。 */
+  --background: #ffffff;
+  --foreground: #342f3e;
 
   --card: #ffffff;
-  --card-foreground: #334155;
+  --card-foreground: #342f3e;
 
   --popover: #ffffff;
-  --popover-foreground: #334155;
+  --popover-foreground: #342f3e;
 
-  --primary: #b8325a;
-  --primary-foreground: #ffffff;
+  --primary: #f3c6dd;
+  --primary-foreground: #704c65;
+  --brand-strong: #704c65;
 
-  --secondary: #e0e7ff;
-  --secondary-foreground: #334155;
+  --secondary: #c7ccff;
+  --secondary-foreground: #4b527c;
 
-  --muted: #f1f5f9;
-  --muted-foreground: #5f6f83;
+  --muted: #f7f5f8;
+  --muted-foreground: #6d6775;
 
-  --accent: #bbf7d0;
-  --accent-foreground: #334155;
+  --accent: #f7dbea;
+  --accent-foreground: #68455d;
 
-  --destructive: #f87171;
+  --destructive: #8a3f50;
   --destructive-foreground: #ffffff;
 
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #b8325a;
+  --success: #3d6650;
+  --success-soft: #c8e8d6;
+  --warning: #6b5a19;
+  --warning-soft: #f7e7a9;
+  --destructive-soft: #f8d2d8;
+  --info: #4b527c;
+  --info-soft: #c7ccff;
 
-  --radius: 0.75rem;
+  --category-deduction: #7b5d22;
+  --category-deduction-soft: #faedbb;
+  --category-nation: #4b527c;
+  --category-nation-soft: #dde0ff;
+  --category-rpg: #704c65;
+  --category-rpg-soft: #f7dbea;
+
+  --border: #e8e3eb;
+  --input: #dcd5e0;
+  --ring: #704c65;
+
+  --radius-compact: 0.625rem;
+  --radius-control: 0.75rem;
+  --radius-panel: 1rem;
+  --radius: var(--radius-control);
+
+  --layout-narrow: 30rem;
+  --layout-feed: 42rem;
+  --layout-content: 48rem;
+  --layout-workspace: 72rem;
+
+  --wenyou-shadow-popover: 0 12px 32px rgb(52 47 62 / 12%);
+  --wenyou-shadow-dialog: 0 24px 64px rgb(52 47 62 / 16%);
+  --wenyou-shadow-floating: 0 10px 28px rgb(52 47 62 / 14%);
+
+  --motion-fast: 120ms;
+  --motion-standard: 180ms;
+  --motion-slow: 240ms;
+  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
 }
 
 @theme inline {
@@ -44,6 +78,7 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-brand-strong: var(--brand-strong);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -52,17 +87,41 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-soft: var(--destructive-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-category-deduction: var(--category-deduction);
+  --color-category-deduction-soft: var(--category-deduction-soft);
+  --color-category-nation: var(--category-nation);
+  --color-category-nation-soft: var(--category-nation-soft);
+  --color-category-rpg: var(--category-rpg);
+  --color-category-rpg-soft: var(--category-rpg-soft);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-sm: var(--radius-compact);
+  --radius-md: var(--radius-compact);
+  --radius-lg: var(--radius-control);
+  --radius-xl: var(--radius-panel);
 
-  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
-  --font-rounded: ui-rounded, "Hiragino Maru Gothic ProN", "PingFang SC", "Microsoft YaHei", ui-sans-serif, system-ui, sans-serif;
+  --container-narrow: var(--layout-narrow);
+  --container-feed: var(--layout-feed);
+  --container-content: var(--layout-content);
+  --container-workspace: var(--layout-workspace);
+
+  --shadow-popover: var(--wenyou-shadow-popover);
+  --shadow-dialog: var(--wenyou-shadow-dialog);
+  --shadow-floating: var(--wenyou-shadow-floating);
+
+  --font-sans: "Noto Sans SC Variable", "Noto Sans SC", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "LXGW WenKai", "Noto Sans SC Variable", "Noto Sans SC", ui-sans-serif, system-ui, sans-serif;
+  --font-rounded: "Nunito Variable", ui-rounded, "PingFang SC", "Microsoft YaHei", ui-sans-serif, system-ui, sans-serif;
+  --font-utility: "Nunito Variable", "Noto Sans SC Variable", "Noto Sans SC", ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
 
@@ -70,10 +129,189 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-utility {
+  font-family: var(--font-utility);
+}
+
+::placeholder {
+  color: color-mix(in srgb, var(--muted-foreground) 78%, white);
 }
 
 ::selection {
-  background-color: color-mix(in srgb, var(--primary) 30%, transparent);
+  background-color: var(--primary);
+  color: var(--foreground);
+}
+
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/*
+ * 帖子阅读排版：以全角字宽而不是通用内容宽度控制行长。
+ * 17px 正文在 feed 内约为 35–37 个汉字/行；嵌套回复约为 32–35 个。
+ */
+.wenyou-prose {
+  --tw-prose-body: var(--foreground);
+  --tw-prose-headings: var(--foreground);
+  --tw-prose-lead: var(--foreground);
+  --tw-prose-links: var(--brand-strong);
+  --tw-prose-bold: var(--foreground);
+  --tw-prose-counters: var(--muted-foreground);
+  --tw-prose-bullets: var(--brand-strong);
+  --tw-prose-hr: var(--border);
+  --tw-prose-quotes: var(--foreground);
+  --tw-prose-quote-borders: var(--primary);
+  --tw-prose-captions: var(--muted-foreground);
+  --tw-prose-code: var(--foreground);
+  --tw-prose-pre-code: var(--foreground);
+  --tw-prose-pre-bg: var(--muted);
+  --tw-prose-th-borders: var(--border);
+  --tw-prose-td-borders: var(--border);
+  width: 100%;
+  max-width: 40em;
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  font-synthesis: none;
+  font-weight: 400;
+  line-height: 1.9;
+  line-break: strict;
+  letter-spacing: 0.008em;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.wenyou-prose-compact {
+  max-width: 38em;
+  font-size: 1rem;
+  line-height: 1.85;
+}
+
+.wenyou-prose > :first-child {
+  margin-block-start: 0;
+}
+
+.wenyou-prose > :last-child {
+  margin-block-end: 0;
+}
+
+.wenyou-prose p {
+  margin-block: 0.78em;
+}
+
+.wenyou-prose strong {
+  color: var(--foreground);
+  font-weight: 700;
+  letter-spacing: 0.018em;
+}
+
+/* 中文没有可靠的原生斜体；用文楷强调，避免浏览器合成斜体挤压笔画。 */
+.wenyou-prose em {
+  color: var(--brand-strong);
+  font-family: var(--font-display);
+  font-style: normal;
+  font-weight: 500;
+  letter-spacing: 0.035em;
+}
+
+.wenyou-prose strong em,
+.wenyou-prose em strong {
+  font-weight: 700;
+}
+
+.wenyou-prose :is(h1, h2, h3, h4) {
+  letter-spacing: 0.015em;
+}
+
+.wenyou-prose h1 {
+  font-size: 1.65em;
+  line-height: 1.4;
+  margin-block: 1.15em 0.65em;
+}
+
+.wenyou-prose h2 {
+  font-size: 1.35em;
+  line-height: 1.45;
+  margin-block: 1.15em 0.6em;
+}
+
+.wenyou-prose h3,
+.wenyou-prose h4 {
+  font-size: 1.12em;
+  line-height: 1.55;
+  margin-block: 1em 0.5em;
+}
+
+.wenyou-prose blockquote {
+  margin-block: 1em;
+  border-inline-start-width: 3px;
+  border-color: var(--primary);
+  border-radius: 0 var(--radius-compact) var(--radius-compact) 0;
+  background: var(--muted);
+  padding: 0.75em 1em;
+  color: var(--foreground);
+  font-style: normal;
+  font-weight: 400;
+}
+
+.wenyou-prose blockquote p:first-of-type::before,
+.wenyou-prose blockquote p:last-of-type::after {
+  content: none;
+}
+
+.wenyou-prose :is(ul, ol) {
+  margin-block: 0.8em;
+}
+
+.wenyou-prose li {
+  margin-block: 0.25em;
+  padding-inline-start: 0.2em;
+}
+
+.wenyou-prose a {
+  font-weight: 600;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+.wenyou-prose :not(pre) > code {
+  border-radius: 0.35em;
+  background: var(--muted);
+  padding: 0.12em 0.35em;
+  font-size: 0.88em;
+  font-weight: 500;
+}
+
+.wenyou-prose :not(pre) > code::before,
+.wenyou-prose :not(pre) > code::after {
+  content: none;
+}
+
+.wenyou-prose pre,
+.wenyou-prose table {
+  font-size: 0.88em;
+  line-height: 1.7;
 }
 
 /* 骰子是正文内联原子节点：继承周围文字，只用底色区分待掷与正式结果。 */
@@ -93,7 +331,7 @@ body {
 }
 
 .dice-inline-pending {
-  background: color-mix(in srgb, #f59e0b 18%, transparent);
+  background: var(--warning-soft);
 }
 
 /* 正文图片兜底：任何 markdown 内容图片都不超出容器宽度 */

@@ -45,8 +45,8 @@ function ConversationLink({
     <Link
       href={`/messages/${conversation.id}`}
       className={cn(
-        "flex gap-3 px-4 py-3 transition-colors hover:bg-muted/60",
-        selected && "bg-muted",
+        "flex gap-3 px-4 py-3 transition-colors hover:bg-accent/25",
+        selected && "bg-accent/45",
       )}
     >
       <UserAvatar
@@ -56,11 +56,11 @@ function ConversationLink({
       />
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
-          <span className="truncate text-sm font-medium">
+          <span className="truncate text-sm font-bold">
             {conversation.otherUser.username}
           </span>
           {conversation.lastMessageAt && (
-            <time className="shrink-0 text-[10px] text-muted-foreground">
+            <time className="shrink-0 font-utility text-[10px] text-muted-foreground">
               {format(new Date(conversation.lastMessageAt), "MM-dd HH:mm")}
             </time>
           )}
@@ -75,7 +75,7 @@ function ConversationLink({
             {previewText(conversation)}
           </p>
           {conversation.unreadCount > 0 && (
-            <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-white">
+            <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 font-utility text-[10px] font-bold text-white">
               {conversation.unreadCount > 99 ? "99+" : conversation.unreadCount}
             </span>
           )}
@@ -129,7 +129,7 @@ export function DirectConversationList({ selectedId }: { selectedId?: string }) 
   };
 
   return (
-    <aside className="flex min-h-0 flex-col border-r border-border bg-background">
+    <aside className="flex min-h-0 flex-col border-r border-border bg-card">
       {showArchived && (
         <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border px-2">
           <Button

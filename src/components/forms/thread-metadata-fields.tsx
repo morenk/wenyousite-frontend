@@ -6,8 +6,8 @@ import { Label } from "@/components/ui/label";
 import { TagInput } from "@/components/forms/tag-input";
 import type { ThreadCreateFormData } from "@/lib/validations/thread-create";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
+import { useThreadCategoriesContext } from "@/components/thread/thread-categories-provider";
 import {
-  THREAD_CATEGORY_OPTIONS,
   THREAD_STATUS_OPTIONS,
   THREAD_VISIBILITY_OPTIONS,
 } from "@/lib/thread-presentation";
@@ -25,12 +25,21 @@ export function ThreadMetadataFields({
   status?: ThreadDetail["status"];
   onStatusChange?: (status: ThreadDetail["status"]) => void;
 }) {
+  const {
+    categories,
+    isLoading: categoriesLoading,
+    isError: categoriesError,
+    refetch: refetchCategories,
+  } = useThreadCategoriesContext();
   const category = useWatch({ control: form.control, name: "category" });
   const visibility = useWatch({ control: form.control, name: "visibility" });
   const tagNames = useWatch({ control: form.control, name: "tagNames" });
   const tagError =
     form.formState.errors.tagNames?.message ??
     form.formState.errors.tagNames?.[0]?.message;
+  const currentCategoryUnavailable = Boolean(
+    category && !categories.some((option) => option.slug === category),
+  );
 
   return (
     <>
@@ -55,7 +64,7 @@ export function ThreadMetadataFields({
         <Label htmlFor="category">分区</Label>
         <select
           id="category"
-          value={category}
+          value={category ?? ""}
           onChange={(event) =>
             form.setValue(
               "category",
@@ -63,14 +72,36 @@ export function ThreadMetadataFields({
               { shouldDirty: true, shouldValidate: true },
             )
           }
-          disabled={disabled}
+          disabled={disabled || categoriesLoading || categoriesError}
           aria-invalid={Boolean(form.formState.errors.category)}
           className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-60"
         >
-          {THREAD_CATEGORY_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>{option.label}</option>
+          <option value="">
+            {categoriesLoading ? "正在加载分区…" : "请选择分区"}
+          </option>
+          {currentCategoryUnavailable ? (
+            <option value={category} disabled>{category}（已停用或不可用）</option>
+          ) : null}
+          {categories.map((option) => (
+            <option key={option.id} value={option.slug}>{option.name}</option>
           ))}
         </select>
+        {categoriesError ? (
+          <p className="text-sm text-destructive">
+            分区加载失败。{" "}
+            <button type="button" className="font-semibold underline" onClick={refetchCategories}>
+              重试
+            </button>
+          </p>
+        ) : null}
+        {!categoriesLoading && !categoriesError && categories.length === 0 ? (
+          <p className="text-sm text-muted-foreground">当前没有可用分区。</p>
+        ) : null}
+        {form.formState.errors.category?.message ? (
+          <p className="text-sm text-destructive">
+            {form.formState.errors.category.message}
+          </p>
+        ) : null}
       </div>
 
       {status !== undefined && onStatusChange && (

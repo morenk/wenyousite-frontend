@@ -70,6 +70,45 @@ test("编辑器骰子按钮在真实浏览器中打开可见弹窗", async ({ pa
       json: { code: 0, message: "ok", data: { unreadCount: 0 } },
     }),
   );
+  await page.route("**/api/v1/direct-conversations/unread", (route) =>
+    route.fulfill({
+      json: {
+        code: 0,
+        message: "ok",
+        data: { unreadMessageCount: 0, pendingRequestCount: 0, total: 0 },
+      },
+    }),
+  );
+  await page.route("**/api/v1/wallet", (route) =>
+    route.fulfill({
+      json: {
+        code: 0,
+        message: "ok",
+        data: { balance: "0", receivedTipTotal: "0", receivedTipCount: 0 },
+      },
+    }),
+  );
+  await page.route("**/api/v1/wallet/check-in", (route) =>
+    route.fulfill({
+      json: {
+        code: 0,
+        message: "ok",
+        data: {
+          claimedNow: false,
+          date: "2026-08-08",
+          rewardAmount: "3",
+          experienceAwarded: 0,
+          balance: "0",
+          progression: {
+            level: 1,
+            experience: 0,
+            currentLevelExperience: 0,
+            nextLevelExperience: 50,
+          },
+        },
+      },
+    }),
+  );
   await page.route("**/api/v1/threads", async (route) => {
     if (route.request().method() !== "POST") return route.continue();
     await route.fulfill({ json: { code: 0, message: "ok", data: thread } });

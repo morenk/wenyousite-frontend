@@ -13,7 +13,8 @@ import { getApiErrorMessage } from "@/api/errors";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
 import { useConfirm } from "@/components/ui/confirm-provider";
-import { THREAD_CATEGORY_META } from "@/lib/thread-presentation";
+import { buttonVariants } from "@/components/ui/button";
+import { ThreadCategoryLabel } from "@/components/thread/thread-category";
 
 export function DraftList() {
   const { data: drafts, isLoading, error, refetch } = useDrafts();
@@ -57,8 +58,8 @@ export function DraftList() {
   if (!drafts || drafts.length === 0) {
     return (
       <EmptyState
-        title="没有草稿喔"
-        description="还没有未发布的主题帖，点右上角「新建主题帖」开始创作吧"
+        title="还没有主题帖草稿"
+        description="点击「新建主题帖」创建草稿。"
       />
     );
   }
@@ -68,12 +69,12 @@ export function DraftList() {
       {drafts.map((draft) => (
         <div
           key={draft.id}
-          className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card p-4"
+          className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4"
         >
           <div className="min-w-0">
             <div className="mb-1 flex items-center gap-2">
               <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                {THREAD_CATEGORY_META[draft.category].label}
+                <ThreadCategoryLabel category={draft.category} />
               </span>
               {draft._count.posts > 0 && (
                 <span className="text-xs text-muted-foreground">
@@ -83,7 +84,7 @@ export function DraftList() {
             </div>
             <Link
               href={`/threads/${draft.id}/edit`}
-              className="block truncate text-sm font-semibold text-foreground hover:text-primary"
+              className="block truncate font-display text-base font-bold text-foreground hover:text-brand-strong"
             >
               {draft.title || "未命名草稿"}
             </Link>
@@ -98,11 +99,12 @@ export function DraftList() {
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
-            <Link href={`/threads/${draft.id}/edit`}>
-              <Button variant="outline" size="sm">
+            <Link
+              href={`/threads/${draft.id}/edit`}
+              className={buttonVariants({ variant: "outline", size: "compact" })}
+            >
                 <FileEdit className="mr-1.5 h-3.5 w-3.5" />
                 继续编辑
-              </Button>
             </Link>
             <Button
               variant="ghost"

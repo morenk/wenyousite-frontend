@@ -2,9 +2,9 @@
 
 "use client";
 
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { ChangeEmailForm } from "@/components/user/change-email-form";
+import { PageHeader } from "@/components/layout/page-header";
+import { PageShell } from "@/components/layout/page-shell";
 import {
   Card,
   CardContent,
@@ -15,14 +15,8 @@ import {
 
 export default function ChangeEmailPage() {
   return (
-    <div className="mx-auto max-w-md px-4 py-8">
-      <Link
-        href="/me"
-        className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        返回资料设置
-      </Link>
+    <PageShell width="narrow">
+      <PageHeader title="更换邮箱" backHref="/me" backLabel="返回资料设置" />
       <Card>
         <CardHeader>
           <CardTitle>更换邮箱</CardTitle>
@@ -32,6 +26,6 @@ export default function ChangeEmailPage() {
           <ChangeEmailForm />
         </CardContent>
       </Card>
-    </div>
+    </PageShell>
   );
 }

@@ -6,8 +6,9 @@ import Link from "next/link";
 import { Loader2, ChevronDown, LockKeyhole } from "lucide-react";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { THREAD_CATEGORY_META, THREAD_STATUS_META } from "@/lib/thread-presentation";
+import { Badge } from "@/components/ui/badge";
+import { THREAD_STATUS_META } from "@/lib/thread-presentation";
+import { ThreadCategoryBadge } from "@/components/thread/thread-category";
 import type { ThreadCardData } from "@/api/hooks/use-threads";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 
@@ -56,33 +57,21 @@ export function UserThreadList({
         <Link
           key={thread.id}
           href={`/threads/${thread.id}`}
-          className="block rounded-lg border border-border bg-card p-4 transition-shadow hover:shadow-md"
+          className="block rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-accent/20"
         >
           <div className="mb-2 flex items-center gap-2">
-            <span
-              className={cn(
-                "rounded-full px-2.5 py-0.5 text-xs font-medium",
-                THREAD_CATEGORY_META[thread.category].badgeClassName,
-              )}
-            >
-              {THREAD_CATEGORY_META[thread.category].label}
-            </span>
-            <span
-              className={cn(
-                "rounded-full px-2.5 py-0.5 text-xs font-medium",
-                THREAD_STATUS_META[thread.status].badgeClassName,
-              )}
-            >
+            <ThreadCategoryBadge category={thread.category} />
+            <Badge tone={THREAD_STATUS_META[thread.status].badgeTone}>
               {THREAD_STATUS_META[thread.status].label}
-            </span>
+            </Badge>
             {thread.visibility === "PRIVATE" && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+              <Badge tone="warning" className="gap-1">
                 <LockKeyhole className="h-3 w-3" />
                 私密帖
-              </span>
+              </Badge>
             )}
           </div>
-          <h3 className="text-sm font-semibold text-foreground line-clamp-1">
+          <h3 className="font-display text-base font-bold text-foreground line-clamp-1">
             {thread.title}
           </h3>
         </Link>

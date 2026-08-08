@@ -33,6 +33,7 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
   const [showJumpToLatest, setShowJumpToLatest] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const hasScrolledRef = useRef(false);
+  const activeConversationIdRef = useRef(conversationId);
   const previousLatestMessageIdRef = useRef<string | undefined>(undefined);
   const markedReadRef = useRef<string | undefined>(undefined);
 
@@ -68,6 +69,13 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
   const latestMessage = history.messages.at(-1);
   const latestMessageId = latestMessage?.id;
   useLayoutEffect(() => {
+    if (activeConversationIdRef.current !== conversationId) {
+      activeConversationIdRef.current = conversationId;
+      hasScrolledRef.current = false;
+      previousLatestMessageIdRef.current = undefined;
+      markedReadRef.current = undefined;
+      setShowJumpToLatest(false);
+    }
     if (!latestMessageId) return;
     const isInitialScroll = !hasScrolledRef.current;
     const isNewOwnMessage = previousLatestMessageIdRef.current !== latestMessageId
@@ -79,7 +87,7 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
     }
     hasScrolledRef.current = true;
     previousLatestMessageIdRef.current = latestMessageId;
-  }, [latestMessage?.senderId, latestMessageId, messageVirtualizer, user?.id]);
+  }, [conversationId, latestMessage?.senderId, latestMessageId, messageVirtualizer, user?.id]);
 
   useEffect(() => {
     const latestIncoming = [...history.messages]
@@ -191,7 +199,7 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
             : null;
 
   return (
-    <section className="flex min-h-0 flex-col bg-background">
+    <section className="flex min-h-0 flex-col bg-card">
       <header className="flex h-16 shrink-0 items-center justify-between border-b border-border px-4">
         <Link href={`/users/${conversation.otherUser.id}`} className="flex min-w-0 items-center gap-3">
           <UserAvatar
@@ -237,7 +245,7 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
       </header>
 
       {requestIncoming && (
-        <div className="flex items-center justify-between gap-4 border-b border-border bg-amber-50 px-4 py-3 text-sm dark:bg-amber-950/20">
+        <div className="flex items-center justify-between gap-4 border-b border-border bg-warning-soft/55 px-4 py-3 text-sm text-warning">
           <p>接受后双方可以继续聊天；拒绝会删除这条请求消息。</p>
           <div className="flex shrink-0 gap-2">
             <Button
@@ -265,7 +273,11 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
           role="log"
           aria-label="消息记录"
           className="h-full overflow-y-auto px-5 py-4"
-          onScroll={() => setShowJumpToLatest(!messageVirtualizer.isAtEnd(80))}
+          onScroll={(event) => {
+            const container = event.currentTarget;
+            const distanceToEnd = container.scrollHeight - container.clientHeight - container.scrollTop;
+            setShowJumpToLatest(distanceToEnd > 80);
+          }}
         >
           {history.isLoading ? (
             <div className="flex justify-center py-12">
@@ -350,8 +362,11 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
             size="sm"
             className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full shadow-md"
             onClick={() => {
-              messageVirtualizer.scrollToEnd({ behavior: "smooth" });
+              // Dynamic message heights make a long smooth virtual scroll repeatedly
+              // correct its target. Land once, then let appended messages follow at end.
+              messageVirtualizer.scrollToEnd({ behavior: "auto" });
               setShowJumpToLatest(false);
+              void history.refetchLatest();
             }}
           >
             <ArrowDown className="h-4 w-4" />

@@ -32,6 +32,7 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  devIndicators: process.env.DISABLE_NEXT_DEV_INDICATORS === "true" ? false : undefined,
   allowedDevOrigins: ["wenyou.site", "127.0.0.1", "localhost"],
   images: {
     unoptimized: true,

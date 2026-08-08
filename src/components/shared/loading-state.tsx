@@ -18,7 +18,7 @@ export function LoadingState({
       role="status"
       className={cn(
         "flex items-center justify-center text-muted-foreground",
-        variant === "page" && "min-h-[calc(100vh-3.5rem)]",
+        variant === "page" && "min-h-screen",
         variant === "section" && "min-h-40 py-12",
         variant === "inline" && "gap-2",
         className,

@@ -154,17 +154,17 @@ export function ProfileEditForm() {
                 </p>
               </div>
               {me?.emailVerified ? (
-                <span className="shrink-0 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                <span className="shrink-0 rounded-full bg-success-soft px-2.5 py-0.5 text-xs font-medium text-success">
                   已认证
                 </span>
               ) : (
                 <div className="flex shrink-0 items-center gap-2">
-                  <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                  <span className="rounded-full bg-warning-soft px-2.5 py-0.5 text-xs font-medium text-warning">
                     未认证
                   </span>
                   <Link
                     href="/verify-email"
-                    className="text-xs font-medium text-primary hover:underline"
+                    className="text-xs font-medium text-brand-strong hover:underline"
                   >
                     去验证
                   </Link>
@@ -183,7 +183,7 @@ export function ProfileEditForm() {
                 placeholder="介绍一下自己（可选）"
                 rows={3}
                 maxLength={255}
-                className="w-full min-w-0 resize-y rounded-lg border border-input bg-transparent px-2.5 py-2 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive dark:bg-input/30 md:text-sm"
+                className="w-full min-w-0 resize-y rounded-xl border border-input bg-card px-3 py-2 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive md:text-sm"
                 {...register("bio")}
               />
               {errors.bio && (

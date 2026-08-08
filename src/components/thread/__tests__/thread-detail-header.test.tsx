@@ -168,7 +168,7 @@ const baseThread: ThreadDetail = {
       id: "relation-1",
       threadId: "thread-1",
       tagId: "tag-1",
-      tag: { id: "tag-1", name: "测试标签", color: null },
+      tag: { id: "tag-1", name: "测试标签", color: null, description: null, sortOrder: 10, isActive: true },
     },
   ],
   _count: { members: 10, players: 3, posts: 5 },

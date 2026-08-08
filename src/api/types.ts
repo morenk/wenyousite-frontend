@@ -1042,6 +1042,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/thread-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取管理员配置的可用主题帖分类 */
+        get: operations["threadCategoriesList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/threads/{threadId}/subthreads": {
         parameters: {
             query?: never;
@@ -1263,10 +1280,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 举报列表（管理员） */
-        get: operations["reportsFindAll"];
+        get?: never;
         put?: never;
-        /** 提交举报 */
+        /** 提交公开社区目标举报 */
         post: operations["reportsCreate"];
         delete?: never;
         options?: never;
@@ -1274,7 +1290,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/reports/{id}/handle": {
+    "/api/v1/admin/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 管理员举报队列 */
+        get: operations["adminReportsFindAll"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/reports/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 管理员举报详情 */
+        get: operations["adminReportsFindOne"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/reports/{id}/resolve": {
         parameters: {
             query?: never;
             header?: never;
@@ -1283,12 +1333,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post?: never;
+        /** 原子结案并可选执行治理动作 */
+        post: operations["adminReportsResolve"];
         delete?: never;
         options?: never;
         head?: never;
-        /** 处理举报（管理员） */
-        patch: operations["reportsHandle"];
+        patch?: never;
         trace?: never;
     };
     "/api/v1/admin": {
@@ -1298,7 +1348,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 管理后台入口 */
+        /** 当前管理员能力 */
         get: operations["adminIndex"];
         put?: never;
         post?: never;
@@ -1374,6 +1424,263 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 管理员用户列表 */
+        get: operations["adminModerationListUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 管理员用户详情 */
+        get: operations["adminModerationGetUser"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{id}/sanctions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 暂停或永久封禁用户 */
+        post: operations["adminModerationSanctionUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{id}/sanctions/current/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 解除用户当前处罚 */
+        post: operations["adminModerationRevokeSanction"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{id}/role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** 授予或撤销管理员角色（超级管理员） */
+        patch: operations["adminModerationUpdateRole"];
+        trace?: never;
+    };
+    "/api/v1/admin/content/{type}/{id}/hide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 隐藏主题帖或帖子 */
+        post: operations["adminModerationHideContent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/content/{type}/{id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 恢复由管理员隐藏的主题帖或帖子 */
+        post: operations["adminModerationRestoreContent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/audit-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 管理员审计日志 */
+        get: operations["adminModerationListAuditLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/dashboard/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 管理看板概览、环比区间和 DAU/WAU/MAU */
+        get: operations["adminDashboardOverview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/dashboard/timeseries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 管理看板按日时间序列 */
+        get: operations["adminDashboardTimeseries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/dashboard/distributions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 用户、举报、内容和处罚分布 */
+        get: operations["adminDashboardDistributions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/thread-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 管理员主题帖分类列表（含停用项） */
+        get: operations["adminTaxonomyListCategories"];
+        put?: never;
+        /** 新增主题帖分类 */
+        post: operations["adminTaxonomyCreateCategory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/thread-categories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** 编辑、排序或停用主题帖分类 */
+        patch: operations["adminTaxonomyUpdateCategory"];
+        trace?: never;
+    };
+    "/api/v1/admin/tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 管理员标签列表（含停用项） */
+        get: operations["adminTaxonomyListTags"];
+        put?: never;
+        /** 新增平台标签 */
+        post: operations["adminTaxonomyCreateTag"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/tags/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** 编辑、排序或停用平台标签 */
+        patch: operations["adminTaxonomyUpdateTag"];
         trace?: never;
     };
     "/api/v1/search/threads": {
@@ -2138,8 +2445,11 @@ export interface components {
         BookmarkThreadResponseDto: {
             id: string;
             title: string;
-            /** @enum {string} */
-            category: "DEDUCTION" | "NATION" | "RPG";
+            /**
+             * @description 动态分类 slug
+             * @example DEDUCTION
+             */
+            category: string | null;
             /** @enum {string} */
             status: "RECRUITING" | "CLOSED" | "FINISHED";
             /** @enum {string} */
@@ -2169,6 +2479,9 @@ export interface components {
             id: string;
             name: string;
             color: string | null;
+            description: string | null;
+            sortOrder: number;
+            isActive: boolean;
         };
         ThreadTagRelationResponseDto: {
             id: string;
@@ -2184,8 +2497,11 @@ export interface components {
         ThreadListItemResponseDto: {
             id: string;
             title: string;
-            /** @enum {string} */
-            category: "DEDUCTION" | "NATION" | "RPG";
+            /**
+             * @description 动态分类 slug
+             * @example DEDUCTION
+             */
+            category: string | null;
             /** @enum {string} */
             status: "RECRUITING" | "CLOSED" | "FINISHED";
             /** @enum {string} */
@@ -2370,8 +2686,11 @@ export interface components {
         OwnBookmarkThreadResponseDto: {
             id: string;
             title: string;
-            /** @enum {string} */
-            category: "DEDUCTION" | "NATION" | "RPG";
+            /**
+             * @description 动态分类 slug
+             * @example DEDUCTION
+             */
+            category: string | null;
             /** @enum {string} */
             status: "RECRUITING" | "CLOSED" | "FINISHED";
             /** @enum {string} */
@@ -2416,8 +2735,11 @@ export interface components {
         DraftThreadResponseDto: {
             id: string;
             title: string;
-            /** @enum {string} */
-            category: "DEDUCTION" | "NATION" | "RPG";
+            /**
+             * @description 动态分类 slug
+             * @example DEDUCTION
+             */
+            category: string | null;
             /** @enum {string} */
             status: "RECRUITING" | "CLOSED" | "FINISHED";
             /** @enum {string} */
@@ -2437,8 +2759,11 @@ export interface components {
         HomeThreadListItemResponseDto: {
             id: string;
             title: string;
-            /** @enum {string} */
-            category: "DEDUCTION" | "NATION" | "RPG";
+            /**
+             * @description 动态分类 slug
+             * @example DEDUCTION
+             */
+            category: string | null;
             /** @enum {string} */
             status: "RECRUITING" | "CLOSED" | "FINISHED";
             /** @enum {string} */
@@ -2472,11 +2797,10 @@ export interface components {
              */
             title?: string;
             /**
-             * @description 分区
-             * @default DEDUCTION
-             * @enum {string}
+             * @description 管理员配置的主题帖分类 slug；草稿可暂不选择
+             * @example DEDUCTION
              */
-            category: "DEDUCTION" | "NATION" | "RPG";
+            category?: string;
             /**
              * @description 默认子贴正文（kind=BODY，可选，留空仅创建空子贴）
              * @example 这里是开场白...
@@ -2577,8 +2901,11 @@ export interface components {
             id: string;
             title: string | null;
             ownerId: string;
-            /** @enum {string} */
-            category: "DEDUCTION" | "NATION" | "RPG";
+            /**
+             * @description 动态分类 slug
+             * @example DEDUCTION
+             */
+            category: string | null;
             /** @enum {string} */
             status: "RECRUITING" | "CLOSED" | "FINISHED";
             /** @enum {string} */
@@ -2616,10 +2943,10 @@ export interface components {
             /** @example 奇幻大陆·重置版 */
             title?: string;
             /**
+             * @description 管理员配置的分类 slug
              * @example DEDUCTION
-             * @enum {string}
              */
-            category?: "DEDUCTION" | "NATION" | "RPG";
+            category?: string;
             /**
              * @example CLOSED
              * @enum {string}
@@ -2644,8 +2971,11 @@ export interface components {
         };
         SaveThreadAggregateDto: {
             title?: string;
-            /** @enum {string} */
-            category?: "DEDUCTION" | "NATION" | "RPG";
+            /**
+             * @description 管理员配置的分类 slug
+             * @example DEDUCTION
+             */
+            category?: string;
             /** @enum {string} */
             status?: "RECRUITING" | "CLOSED" | "FINISHED";
             /** @enum {string} */
@@ -2696,10 +3026,10 @@ export interface components {
             /** @description 主题帖标题 */
             title: string;
             /**
-             * @description 主题帖分区
-             * @enum {string}
+             * @description 动态分类 slug
+             * @example DEDUCTION
              */
-            category: "DEDUCTION" | "NATION" | "RPG";
+            category: string | null;
             /**
              * @description 主题帖状态
              * @enum {string}
@@ -2759,8 +3089,13 @@ export interface components {
             id: string;
             name: string;
             color: string | null;
+            description: string | null;
+            sortOrder: number;
+            isActive: boolean;
             /** Format: date-time */
             createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
         };
         CreateTagDto: {
             /**
@@ -2842,6 +3177,24 @@ export interface components {
             /** @description GET /stickers 返回的收藏夹版本 */
             version: number;
             favoriteIds: string[];
+        };
+        ThreadCategoryResponseDto: {
+            id: string;
+            /** @example MYSTERY */
+            slug: string;
+            /** @example 悬疑推理 */
+            name: string;
+            description: string | null;
+            /** @example #7C3AED */
+            color: string | null;
+            /** @example search */
+            icon: string | null;
+            sortOrder: number;
+            isActive: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
         };
         SubthreadCountResponseDto: {
             posts: number;
@@ -3182,8 +3535,11 @@ export interface components {
         SubscriptionThreadResponseDto: {
             id: string;
             title: string;
-            /** @enum {string} */
-            category: "DEDUCTION" | "NATION" | "RPG";
+            /**
+             * @description 动态分类 slug
+             * @example DEDUCTION
+             */
+            category: string | null;
         };
         SubscriptionResponseDto: {
             id: string;
@@ -3215,38 +3571,91 @@ export interface components {
             targetUserId?: string;
         };
         CreateReportDto: {
-            /** @description 举报目标类型 */
-            targetType: string;
-            /** @description 举报目标 ID */
+            /** @enum {string} */
+            targetType: "USER" | "THREAD" | "POST";
             targetId: string;
-            /** @description 举报原因 */
-            reason: string;
+            /** @enum {string} */
+            reasonCode: "SPAM" | "HARASSMENT" | "HATE_OR_THREATS" | "SEXUAL_CONTENT" | "VIOLENT_CONTENT" | "PERSONAL_INFORMATION" | "ILLEGAL_CONTENT" | "OTHER";
+            /** @description 选择 OTHER 时必填 */
+            details?: string;
         };
         ReportResponseDto: {
             id: string;
-            reporterId: string;
-            targetType: string;
+            reporterId: string | null;
+            /** @enum {string} */
+            targetType: "USER" | "THREAD" | "POST";
             targetId: string;
-            reason: string;
+            /** @enum {string} */
+            reasonCode: "SPAM" | "HARASSMENT" | "HATE_OR_THREATS" | "SEXUAL_CONTENT" | "VIOLENT_CONTENT" | "PERSONAL_INFORMATION" | "ILLEGAL_CONTENT" | "OTHER";
+            details: string | null;
+            targetSnapshot: {
+                [key: string]: unknown;
+            } | null;
             /** @enum {string} */
             status: "PENDING" | "RESOLVED" | "DISMISSED";
             handledBy: string | null;
             /** Format: date-time */
             handledAt: string | null;
+            resolutionNote: string | null;
             /** Format: date-time */
             createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
         };
-        HandleReportDto: {
+        ReportUserSummaryDto: {
+            id: string;
+            username: string;
+            /** @enum {string} */
+            role: "USER" | "ADMIN" | "SUPER_ADMIN";
+        };
+        AdminReportResponseDto: {
+            id: string;
+            reporterId: string | null;
+            /** @enum {string} */
+            targetType: "USER" | "THREAD" | "POST";
+            targetId: string;
+            /** @enum {string} */
+            reasonCode: "SPAM" | "HARASSMENT" | "HATE_OR_THREATS" | "SEXUAL_CONTENT" | "VIOLENT_CONTENT" | "PERSONAL_INFORMATION" | "ILLEGAL_CONTENT" | "OTHER";
+            details: string | null;
+            targetSnapshot: {
+                [key: string]: unknown;
+            } | null;
+            /** @enum {string} */
+            status: "PENDING" | "RESOLVED" | "DISMISSED";
+            handledBy: string | null;
+            /** Format: date-time */
+            handledAt: string | null;
+            resolutionNote: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            reporter: components["schemas"]["ReportUserSummaryDto"] | null;
+            handler: components["schemas"]["ReportUserSummaryDto"] | null;
+            targetState?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        ResolveReportDto: {
+            /** @enum {string} */
+            outcome: "RESOLVED" | "DISMISSED";
+            /** @description 同时作为关联处罚的理由 */
+            note: string;
             /**
-             * @description 处理状态
+             * @default NONE
              * @enum {string}
              */
-            status: "RESOLVED" | "DISMISSED";
+            action: "NONE" | "HIDE_CONTENT" | "SUSPEND_USER" | "BAN_USER";
+            /**
+             * Format: date-time
+             * @description SUSPEND_USER 时必填
+             */
+            suspendUntil?: string;
         };
-        AdminStatusResponseDto: {
-            name: string;
-            status: string;
-            docs: string;
+        AdminCapabilityResponseDto: {
+            /** @enum {string} */
+            role: "ADMIN" | "SUPER_ADMIN";
+            capabilities: string[];
         };
         UserConditionDto: {
             /** @description 角色筛选（USER / ADMIN / SUPER_ADMIN） */
@@ -3311,6 +3720,224 @@ export interface components {
         AdminUserSearchResponseDto: {
             data: components["schemas"]["AdminUserSearchItemDto"][];
         };
+        AdminUserSanctionResponseDto: {
+            id: string;
+            /** @enum {string} */
+            type: "SUSPENSION" | "BAN";
+            reason: string;
+            /** Format: date-time */
+            startsAt: string;
+            /** Format: date-time */
+            endsAt: string | null;
+            reportId: string | null;
+        };
+        AdminUserModerationResponseDto: {
+            id: string;
+            /** Format: email */
+            email: string;
+            username: string;
+            /** @enum {string} */
+            role: "USER" | "ADMIN" | "SUPER_ADMIN";
+            emailVerified: boolean;
+            /** @enum {string} */
+            moderationStatus: "ACTIVE" | "SUSPENDED" | "BANNED";
+            currentSanction?: components["schemas"]["AdminUserSanctionResponseDto"] | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        SanctionUserDto: {
+            /** @enum {string} */
+            type: "SUSPENSION" | "BAN";
+            reason: string;
+            /**
+             * Format: date-time
+             * @description 暂停结束时间；永久封禁时不得传入
+             */
+            endsAt?: string;
+        };
+        RevokeSanctionDto: {
+            reason: string;
+        };
+        UpdateAdminRoleDto: {
+            /** @enum {string} */
+            role: "USER" | "ADMIN";
+            reason: string;
+        };
+        ModerateContentDto: {
+            reason: string;
+        };
+        AdminContentModerationResponseDto: {
+            /** @enum {string} */
+            targetType: "THREAD" | "POST";
+            targetId: string;
+            hidden: boolean;
+            /** Format: date-time */
+            deletedAt: string | null;
+        };
+        AdminAuditActorResponseDto: {
+            id: string;
+            username: string;
+            /** @enum {string} */
+            role: "USER" | "ADMIN" | "SUPER_ADMIN";
+        };
+        AdminAuditLogResponseDto: {
+            id: string;
+            /** @enum {string} */
+            action: "SUPER_ADMIN_BOOTSTRAPPED" | "ADMIN_ROLE_GRANTED" | "ADMIN_ROLE_REVOKED" | "USER_SUSPENDED" | "USER_BANNED" | "USER_SANCTION_REVOKED" | "CONTENT_HIDDEN" | "CONTENT_RESTORED" | "REPORT_RESOLVED" | "REPORT_DISMISSED" | "SYSTEM_NOTIFICATION_SENT" | "THREAD_CATEGORY_CREATED" | "THREAD_CATEGORY_UPDATED" | "TAG_CREATED" | "TAG_UPDATED";
+            /** @enum {string} */
+            targetType: "USER" | "THREAD" | "POST" | "REPORT" | "SYSTEM_NOTIFICATION" | "THREAD_CATEGORY" | "TAG";
+            targetId: string | null;
+            reportId: string | null;
+            reason: string | null;
+            metadata: {
+                [key: string]: unknown;
+            } | null;
+            actor: components["schemas"]["AdminAuditActorResponseDto"] | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        AdminDashboardRangeResponseDto: {
+            /** @example 2026-08-01 */
+            from: string;
+            /** @example 2026-08-08 */
+            to: string;
+            /** @example 2026-07-24 */
+            previousFrom: string;
+            /** @example 2026-07-31 */
+            previousTo: string;
+            /** @example Asia/Shanghai */
+            timezone: string;
+        };
+        AdminDashboardActivityMetricsDto: {
+            /** @example 42 */
+            dau: number;
+            /** @example 173 */
+            wau: number;
+            /** @example 486 */
+            mau: number;
+        };
+        AdminDashboardPeriodMetricsDto: {
+            /**
+             * @description 区间内至少活跃一天的去重普通用户数
+             * @example 128
+             */
+            activeUsers: number;
+            /** @example 17 */
+            newUsers: number;
+            /** @example 12 */
+            publishedThreads: number;
+            /**
+             * @description 新增楼层数，不包含主题正文 BODY
+             * @example 86
+             */
+            newPosts: number;
+            /** @example 9 */
+            reportsReceived: number;
+            /** @example 7 */
+            reportsHandled: number;
+        };
+        AdminDashboardSnapshotDto: {
+            /** @example 1024 */
+            totalUsers: number;
+            /** @example 4 */
+            pendingReports: number;
+            /** @example 3 */
+            activeSuspensions: number;
+            /** @example 2 */
+            activeBans: number;
+        };
+        AdminDashboardOverviewResponseDto: {
+            range: components["schemas"]["AdminDashboardRangeResponseDto"];
+            activity: components["schemas"]["AdminDashboardActivityMetricsDto"];
+            current: components["schemas"]["AdminDashboardPeriodMetricsDto"];
+            previous: components["schemas"]["AdminDashboardPeriodMetricsDto"];
+            snapshot: components["schemas"]["AdminDashboardSnapshotDto"];
+        };
+        AdminDashboardTimeseriesPointDto: {
+            /** @example 2026-08-08 */
+            date: string;
+            /** @example 42 */
+            dau: number;
+            /** @example 5 */
+            newUsers: number;
+            /** @example 3 */
+            publishedThreads: number;
+            /** @example 18 */
+            newPosts: number;
+            /** @example 2 */
+            reportsReceived: number;
+            /** @example 1 */
+            reportsHandled: number;
+        };
+        AdminDashboardTimeseriesResponseDto: {
+            range: components["schemas"]["AdminDashboardRangeResponseDto"];
+            items: components["schemas"]["AdminDashboardTimeseriesPointDto"][];
+        };
+        AdminDashboardDistributionItemDto: {
+            /** @example USER */
+            key: string;
+            /** @example 42 */
+            count: number;
+        };
+        AdminDashboardDistributionsResponseDto: {
+            usersByRole: components["schemas"]["AdminDashboardDistributionItemDto"][];
+            reportsByStatus: components["schemas"]["AdminDashboardDistributionItemDto"][];
+            reportsByReason: components["schemas"]["AdminDashboardDistributionItemDto"][];
+            threadsByCategory: components["schemas"]["AdminDashboardDistributionItemDto"][];
+            activeSanctionsByType: components["schemas"]["AdminDashboardDistributionItemDto"][];
+        };
+        CreateThreadCategoryDto: {
+            /**
+             * @description 稳定机器标识，创建后不可修改
+             * @example MYSTERY
+             */
+            slug: string;
+            /** @example 悬疑推理 */
+            name: string;
+            description?: string;
+            /** @example #7C3AED */
+            color?: string;
+            /** @example search */
+            icon?: string;
+            /** @default 0 */
+            sortOrder: number;
+            /** @default true */
+            isActive: boolean;
+            /** @description 管理员审计原因 */
+            reason?: string;
+        };
+        UpdateThreadCategoryDto: {
+            name?: string;
+            description?: Record<string, never> | null;
+            /** @example #7C3AED */
+            color?: Record<string, never> | null;
+            icon?: Record<string, never> | null;
+            sortOrder?: number;
+            isActive?: boolean;
+            /** @description 管理员审计原因 */
+            reason?: string;
+        };
+        CreateManagedTagDto: {
+            /** @example 无限流 */
+            name: string;
+            /** @example #FF6B6B */
+            color?: string;
+            description?: string;
+            /** @default 0 */
+            sortOrder: number;
+            /** @default true */
+            isActive: boolean;
+            reason?: string;
+        };
+        UpdateManagedTagDto: {
+            name?: string;
+            /** @example #FF6B6B */
+            color?: Record<string, never> | null;
+            description?: Record<string, never> | null;
+            sortOrder?: number;
+            isActive?: boolean;
+            reason?: string;
+        };
         SearchThreadOwnerResponseDto: {
             /** @description 用户 ID */
             id: string;
@@ -3333,10 +3960,10 @@ export interface components {
             /** @description 主题帖标题 */
             title: string;
             /**
-             * @description 主题帖分区
-             * @enum {string}
+             * @description 动态分类 slug
+             * @example DEDUCTION
              */
-            category: "DEDUCTION" | "NATION" | "RPG";
+            category: string | null;
             /**
              * Format: date-time
              * @description 创建时间
@@ -3960,6 +4587,9 @@ export interface components {
         StickersRemove200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["StickerCollectionResponseDto"];
         };
+        ThreadCategoriesList200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ThreadCategoryResponseDto"][];
+        };
         SubthreadsFindAll200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["SubthreadResponseDto"][];
         };
@@ -4026,17 +4656,20 @@ export interface components {
         SubscriptionsRemove200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["MessageResponseDto"];
         };
-        ReportsFindAll200Response: components["schemas"]["ApiSuccessEnvelope"] & {
-            data: components["schemas"]["ReportResponseDto"][];
-        };
         ReportsCreate201Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["ReportResponseDto"];
         };
-        ReportsHandle200Response: components["schemas"]["ApiSuccessEnvelope"] & {
-            data: components["schemas"]["ReportResponseDto"];
+        AdminReportsFindAll200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["AdminReportResponseDto"][];
+        };
+        AdminReportsFindOne200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminReportResponseDto"];
+        };
+        AdminReportsResolve200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminReportResponseDto"];
         };
         AdminIndex200Response: components["schemas"]["ApiSuccessEnvelope"] & {
-            data: components["schemas"]["AdminStatusResponseDto"];
+            data: components["schemas"]["AdminCapabilityResponseDto"];
         };
         AdminSendSystemNotification201Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["AdminRecipientCountResponseDto"];
@@ -4049,6 +4682,57 @@ export interface components {
         };
         AdminSearchUsers200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["AdminUserSearchResponseDto"];
+        };
+        AdminModerationListUsers200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["AdminUserModerationResponseDto"][];
+        };
+        AdminModerationGetUser200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminUserModerationResponseDto"];
+        };
+        AdminModerationSanctionUser201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminUserSanctionResponseDto"];
+        };
+        AdminModerationRevokeSanction200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminUserSanctionResponseDto"];
+        };
+        AdminModerationUpdateRole200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminUserModerationResponseDto"];
+        };
+        AdminModerationHideContent200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminContentModerationResponseDto"];
+        };
+        AdminModerationRestoreContent200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminContentModerationResponseDto"];
+        };
+        AdminModerationListAuditLogs200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["AdminAuditLogResponseDto"][];
+        };
+        AdminDashboardOverview200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminDashboardOverviewResponseDto"];
+        };
+        AdminDashboardTimeseries200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminDashboardTimeseriesResponseDto"];
+        };
+        AdminDashboardDistributions200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminDashboardDistributionsResponseDto"];
+        };
+        AdminTaxonomyListCategories200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ThreadCategoryResponseDto"][];
+        };
+        AdminTaxonomyCreateCategory201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ThreadCategoryResponseDto"];
+        };
+        AdminTaxonomyUpdateCategory200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ThreadCategoryResponseDto"];
+        };
+        AdminTaxonomyListTags200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["TagResponseDto"][];
+        };
+        AdminTaxonomyCreateTag201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["TagResponseDto"];
+        };
+        AdminTaxonomyUpdateTag200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["TagResponseDto"];
         };
         SearchSearchThreads200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["SearchThreadResponseDto"][];
@@ -4129,7 +4813,7 @@ export interface components {
          * @description 稳定业务错误码；名称和值来源于 ErrorCode
          * @enum {integer}
          */
-        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40007 | 40008 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40107 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40307 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 40912 | 40913 | 42900 | 50000;
+        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40007 | 40008 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40107 | 40108 | 40109 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40307 | 40308 | 40309 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40414 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 40912 | 40913 | 40914 | 40915 | 40916 | 40917 | 40918 | 40919 | 42900 | 50000;
         ApiErrorEnvelope: {
             code: components["schemas"]["BusinessErrorCode"];
             message: string;
@@ -6351,8 +7035,8 @@ export interface operations {
                 limit?: number;
                 /** @description all=全部公开帖, playing=我参与的帖（playerMarked=true，需登录） */
                 filter?: "all" | "playing";
-                /** @description 分区筛选 */
-                category?: "DEDUCTION" | "NATION" | "RPG";
+                /** @description 按动态分类 slug 筛选 */
+                category?: string;
                 /** @description recommended=智能排序, newest=最新创建, active=最新回复 */
                 sort?: "recommended" | "newest" | "active";
                 /** @description 主题帖状态筛选：招募中、已停招、已结束 */
@@ -7589,6 +8273,38 @@ export interface operations {
             };
         };
     };
+    threadCategoriesList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThreadCategoriesList200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
     subthreadsFindAll: {
         parameters: {
             query?: never;
@@ -8698,40 +9414,6 @@ export interface operations {
             };
         };
     };
-    reportsFindAll: {
-        parameters: {
-            query: {
-                status: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    "X-Request-ID": components["headers"]["XRequestId"];
-                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ReportsFindAll200Response"];
-                };
-            };
-            /** @description 未在此操作中单独列出的错误响应 */
-            default: {
-                headers: {
-                    "X-Request-ID": components["headers"]["XRequestId"];
-                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelope"];
-                };
-            };
-        };
-    };
     reportsCreate: {
         parameters: {
             query?: never;
@@ -8755,6 +9437,17 @@ export interface operations {
                     "application/json": components["schemas"]["ReportsCreate201Response"];
                 };
             };
+            /** @description 已存在相同待处理举报 */
+            409: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
@@ -8768,7 +9461,82 @@ export interface operations {
             };
         };
     };
-    reportsHandle: {
+    adminReportsFindAll: {
+        parameters: {
+            query?: {
+                /** @description 服务端返回的不透明分页游标；首次请求不传，后续必须原样回传 */
+                cursor?: string;
+                /** @description 每页条数（默认 20，最大 50） */
+                limit?: number;
+                status?: "PENDING" | "RESOLVED" | "DISMISSED";
+                targetType?: "USER" | "THREAD" | "POST";
+                reasonCode?: "SPAM" | "HARASSMENT" | "HATE_OR_THREATS" | "SEXUAL_CONTENT" | "VIOLENT_CONTENT" | "PERSONAL_INFORMATION" | "ILLEGAL_CONTENT" | "OTHER";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 管理员举报队列 */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminReportsFindAll200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminReportsFindOne: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminReportsFindOne200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminReportsResolve: {
         parameters: {
             query?: never;
             header?: never;
@@ -8779,7 +9547,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["HandleReportDto"];
+                "application/json": components["schemas"]["ResolveReportDto"];
             };
         };
         responses: {
@@ -8790,7 +9558,18 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ReportsHandle200Response"];
+                    "application/json": components["schemas"]["AdminReportsResolve200Response"];
+                };
+            };
+            /** @description 举报已结案或目标状态冲突 */
+            409: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -8965,6 +9744,636 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminSearchUsers200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminModerationListUsers: {
+        parameters: {
+            query?: {
+                /** @description 服务端返回的不透明分页游标；首次请求不传，后续必须原样回传 */
+                cursor?: string;
+                /** @description 每页条数（默认 20，最大 50） */
+                limit?: number;
+                /** @description 用户名或邮箱关键词 */
+                q?: string;
+                role?: "USER" | "ADMIN" | "SUPER_ADMIN";
+                status?: "ACTIVE" | "SUSPENDED" | "BANNED";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 管理员用户列表 */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminModerationListUsers200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminModerationGetUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminModerationGetUser200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminModerationSanctionUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SanctionUserDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminModerationSanctionUser201Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminModerationRevokeSanction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevokeSanctionDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminModerationRevokeSanction200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminModerationUpdateRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateAdminRoleDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminModerationUpdateRole200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminModerationHideContent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                type: "thread" | "post";
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModerateContentDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminModerationHideContent200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminModerationRestoreContent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                type: "thread" | "post";
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModerateContentDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminModerationRestoreContent200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminModerationListAuditLogs: {
+        parameters: {
+            query?: {
+                /** @description 服务端返回的不透明分页游标；首次请求不传，后续必须原样回传 */
+                cursor?: string;
+                /** @description 每页条数（默认 20，最大 50） */
+                limit?: number;
+                action?: "SUPER_ADMIN_BOOTSTRAPPED" | "ADMIN_ROLE_GRANTED" | "ADMIN_ROLE_REVOKED" | "USER_SUSPENDED" | "USER_BANNED" | "USER_SANCTION_REVOKED" | "CONTENT_HIDDEN" | "CONTENT_RESTORED" | "REPORT_RESOLVED" | "REPORT_DISMISSED" | "SYSTEM_NOTIFICATION_SENT" | "THREAD_CATEGORY_CREATED" | "THREAD_CATEGORY_UPDATED" | "TAG_CREATED" | "TAG_UPDATED";
+                targetType?: "USER" | "THREAD" | "POST" | "REPORT" | "SYSTEM_NOTIFICATION" | "THREAD_CATEGORY" | "TAG";
+                targetId?: string;
+                actorId?: string;
+                createdAfter?: string;
+                createdBefore?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 不可变管理员审计日志 */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminModerationListAuditLogs200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminDashboardOverview: {
+        parameters: {
+            query?: {
+                /** @description 北京时间起始日期（含） */
+                from?: string;
+                /** @description 北京时间结束日期（含） */
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminDashboardOverview200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminDashboardTimeseries: {
+        parameters: {
+            query?: {
+                /** @description 北京时间起始日期（含） */
+                from?: string;
+                /** @description 北京时间结束日期（含） */
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminDashboardTimeseries200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminDashboardDistributions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminDashboardDistributions200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminTaxonomyListCategories: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTaxonomyListCategories200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminTaxonomyCreateCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateThreadCategoryDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTaxonomyCreateCategory201Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminTaxonomyUpdateCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateThreadCategoryDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTaxonomyUpdateCategory200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminTaxonomyListTags: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTaxonomyListTags200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminTaxonomyCreateTag: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateManagedTagDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTaxonomyCreateTag201Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminTaxonomyUpdateTag: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateManagedTagDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTaxonomyUpdateTag200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */

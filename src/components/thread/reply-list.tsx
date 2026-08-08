@@ -138,7 +138,7 @@ export function ReplyList({ postId, focusedReply, variant = "embedded" }: ReplyL
                 />
                 <Link
                   href={`/users/${reply.authorId}`}
-                  className="text-xs font-medium text-foreground hover:text-primary"
+                  className="text-xs font-medium text-foreground hover:text-brand-strong"
                 >
                   {reply.author.username}
                 </Link>
@@ -151,7 +151,7 @@ export function ReplyList({ postId, focusedReply, variant = "embedded" }: ReplyL
                     回复{" "}
                     <Link
                       href={`/users/${reply.replyToPost?.authorId ?? ""}`}
-                      className="text-muted-foreground hover:text-primary"
+                      className="text-muted-foreground hover:text-brand-strong"
                     >
                       @{replyToUser}
                     </Link>

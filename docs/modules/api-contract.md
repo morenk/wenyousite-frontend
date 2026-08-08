@@ -18,6 +18,7 @@
 |------|------|
 | 提及 | `GET /users/mention-candidates` |
 | 元数据 | `GET /meta`（契约/Markdown 版本与能力开关） |
+| 动态分类 | `GET /thread-categories`（管理员配置的启用分类；客户端保存稳定 slug） |
 | 媒体 | `POST /media/upload-url`、`POST /media/upload-done`、`GET /media/:id`（具名缩略图/中图 URL） |
 | 草稿 | `/drafts`、`/drafts/slots`、`/drafts/:id` |
 | 帖子 | `/subthreads/:subthreadId/posts`、`/subthreads/:subthreadId/body`、`/posts/:id`、`/posts/:id/replies` |
@@ -25,6 +26,8 @@
 成功响应统一为 `{ code, message, data, meta? }`。业务 DTO 位于 `data`，cursor 分页位于 `meta`。
 
 `scripts/check-flutter-contract.mjs` 验证 OpenAPI 3.0、稳定 lowerCamel operationId、具名 2xx 响应、非空查询 schema、移动基线端点与错误码 schema。这是快速静态门禁；CI 另用固定版本 OpenAPI Generator 的 `dart-dio` 目标执行真实生成烟雾。
+
+当前固定契约主版本为 4。主题帖分类字段是可空字符串而非封闭枚举：草稿可为 `null`，发布必须使用 `GET /thread-categories` 返回的启用 slug。Web 与 Flutter 均不得复制 `DEDUCTION / NATION / RPG` 为穷举类型；未知 slug 必须安全显示，未知响应字段必须忽略。
 
 ## 4. 状态管理
 

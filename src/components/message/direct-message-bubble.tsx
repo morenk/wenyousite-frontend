@@ -12,7 +12,7 @@ import { SaveStickerButton } from "@/components/sticker/save-sticker-button";
 function PlainTextWithLinks({ content }: { content: string }) {
   const parts = content.split(/(https?:\/\/[^\s]+)/g);
   return (
-    <p className="whitespace-pre-wrap break-words text-sm leading-6">
+    <p className="whitespace-pre-wrap break-words text-base leading-7">
       {parts.map((part, index) =>
         /^https?:\/\//.test(part) ? (
           <a
@@ -79,7 +79,7 @@ export function DirectMessageBubble({
             !pureSticker && (mine
               ? "rounded-br-md bg-primary text-primary-foreground"
               : "rounded-bl-md bg-muted text-foreground"),
-            recalled && "italic text-muted-foreground",
+            recalled && "text-muted-foreground",
           )}
         >
           {recalled ? (

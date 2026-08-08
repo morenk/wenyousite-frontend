@@ -14,7 +14,7 @@ import {
   useSearchUsers,
 } from "@/api/hooks/use-search";
 import { cn } from "@/lib/utils";
-import { THREAD_CATEGORY_META } from "@/lib/thread-presentation";
+import { ThreadCategoryBadge } from "@/components/thread/thread-category";
 import { EmptyState } from "@/components/shared/empty-state";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Button } from "@/components/ui/button";
@@ -133,7 +133,7 @@ export function SearchResults({ keyword }: SearchResultsProps) {
               className={cn(
                 "flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-medium transition-colors sm:text-sm",
                 isActive
-                  ? "bg-background text-foreground shadow-sm"
+                  ? "bg-background text-foreground ring-1 ring-border"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
@@ -168,19 +168,12 @@ export function SearchResults({ keyword }: SearchResultsProps) {
                 <Link
                   key={thread.id}
                   href={`/threads/${thread.id}`}
-                  className="block rounded-xl border border-border bg-card p-4 transition-shadow hover:shadow-md"
+                  className="block rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-accent/20"
                 >
                   <div className="mb-1.5 flex items-center gap-2">
-                    <span
-                      className={cn(
-                        "rounded-full px-2.5 py-0.5 text-xs font-medium",
-                        THREAD_CATEGORY_META[thread.category].badgeClassName,
-                      )}
-                    >
-                      {THREAD_CATEGORY_META[thread.category].label}
-                    </span>
+                    <ThreadCategoryBadge category={thread.category} />
                   </div>
-                  <h3 className="text-sm font-semibold text-foreground line-clamp-1">
+                  <h3 className="font-display text-base font-bold text-foreground line-clamp-1">
                     {thread.title}
                   </h3>
                   <p className="mt-1 text-xs text-muted-foreground">
@@ -231,7 +224,7 @@ export function SearchResults({ keyword }: SearchResultsProps) {
                 <Link
                   key={user.id}
                   href={`/users/${user.id}`}
-                  className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-shadow hover:shadow-md"
+                  className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-accent/20"
                 >
                   <UserAvatar
                     name={user.username}

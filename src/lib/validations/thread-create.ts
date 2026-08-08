@@ -8,9 +8,7 @@ export const threadCreateSchema = z.object({
     .string()
     .max(100, "标题最多 100 个字符")
     .optional(),
-  category: z.enum(["DEDUCTION", "NATION", "RPG"], {
-    message: "请选择分区",
-  }),
+  category: z.string().trim().min(1, "请选择分区").optional(),
   visibility: z.enum(["PUBLIC", "PRIVATE"], {
     message: "请选择可见性",
   }),

@@ -11,7 +11,8 @@ import { useInvitePreview, useJoinThreadByInvite } from "@/api/hooks/use-thread-
 import { getApiErrorMessage } from "@/api/errors";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { THREAD_CATEGORY_META } from "@/lib/thread-presentation";
+import { ThreadCategoryLabel } from "@/components/thread/thread-category";
+import { PageShell } from "@/components/layout/page-shell";
 
 export default function JoinByInvitePage() {
   const { token } = useParams<{ token: string }>();
@@ -52,14 +53,14 @@ export default function JoinByInvitePage() {
 
   const thread = preview.data.thread;
   return (
-    <main className="mx-auto max-w-lg px-4 py-16">
+    <PageShell width="narrow" className="py-16">
       <Card>
         <CardHeader><CardTitle>私密主题帖邀请</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <h1 className="text-lg font-semibold">{thread.title}</h1>
+            <h1 className="font-display text-xl font-bold">{thread.title}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {THREAD_CATEGORY_META[thread.category].label} · 楼主 {thread.owner.username} · {thread.memberCount} 位参与人
+              <ThreadCategoryLabel category={thread.category} /> · 楼主 {thread.owner.username} · {thread.memberCount} 位参与人
             </p>
           </div>
           <Button className="w-full" disabled={join.isPending} onClick={handleJoin}>
@@ -68,6 +69,6 @@ export default function JoinByInvitePage() {
           </Button>
         </CardContent>
       </Card>
-    </main>
+    </PageShell>
   );
 }

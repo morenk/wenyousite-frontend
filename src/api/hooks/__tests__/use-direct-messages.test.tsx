@@ -97,6 +97,38 @@ describe("direct message history", () => {
     ]));
   });
 
+  test("增量合并后立即使用新的消息游标继续追到真正最新", async () => {
+    mockGET.mockImplementation(async (_path: string, options: {
+      params: { query: { after?: string } };
+    }) => {
+      const { after } = options.params.query;
+      if (!after) {
+        return { data: { data: [makeMessage("m1")], meta: { cursor: null, hasMore: false } } };
+      }
+      if (after === "m1") {
+        return { data: { data: [makeMessage("m2")], meta: { cursor: null, hasMore: false } } };
+      }
+      if (after === "m2") {
+        return { data: { data: [makeMessage("m3")], meta: { cursor: null, hasMore: false } } };
+      }
+      return { data: { data: [], meta: { cursor: null, hasMore: false } } };
+    });
+    const { Wrapper } = setup();
+    const { result } = renderHook(() => useDirectMessages("c1", "u1"), { wrapper: Wrapper });
+
+    await waitFor(() => expect(result.current.messages.map((item) => item.id)).toEqual([
+      "m1",
+      "m2",
+      "m3",
+    ]));
+    expect(mockGET).toHaveBeenCalledWith(
+      "/api/v1/direct-conversations/{id}/messages",
+      expect.objectContaining({
+        params: expect.objectContaining({ query: { limit: 50, after: "m2" } }),
+      }),
+    );
+  });
+
   test("低频对账会替换最近一页中已撤回的旧消息", async () => {
     mockGET.mockImplementation(async (_path: string, options: {
       params: { query: { limit: number; after?: string } };

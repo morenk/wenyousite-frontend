@@ -114,7 +114,7 @@ export function AccountSecurityPanel() {
                     <div>
                       <p className="text-sm font-medium">
                         {getLoginTerminalLabel(session.platform)}
-                        {session.isCurrent && <span className="ml-2 text-xs text-primary">当前终端</span>}
+                        {session.isCurrent && <span className="ml-2 text-xs text-brand-strong">当前终端</span>}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         登录于 {formatTime(session.signedInAt ?? session.createdAt)} · 最近活动 {formatTime(session.lastActiveAt ?? session.createdAt)}
@@ -154,7 +154,7 @@ export function AccountSecurityPanel() {
             <ul className="divide-y divide-border">
               {blockedUsers.data.map(({ id, blocked }) => (
                 <li key={id} className="flex items-center justify-between gap-4 py-3">
-                  <Link href={`/users/${blocked.id}`} className="flex items-center gap-3 hover:text-primary">
+                  <Link href={`/users/${blocked.id}`} className="flex items-center gap-3 hover:text-brand-strong">
                     <UserAvatar name={blocked.username} src={blocked.avatar} className="h-8 w-8" />
                     <span className="text-sm font-medium">{blocked.username}</span>
                   </Link>

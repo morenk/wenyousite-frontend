@@ -188,7 +188,7 @@ export function ContentDraftsPanel({
         <div className="flex items-start justify-between border-b border-border px-4 py-3">
           <div>
             <h2 className="flex items-center gap-1.5 text-sm font-bold text-foreground">
-              <StickyNote className="h-4 w-4 text-primary" />
+              <StickyNote className="h-4 w-4 text-brand-strong" />
               正文草稿
             </h2>
             <p className="mt-0.5 text-xs text-muted-foreground">

@@ -3,14 +3,10 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { NuqsTestingAdapter, type UrlUpdateEvent } from "nuqs/adapters/testing";
 
-const { mockPush, mockUseAuth, mockUseThreads } = vi.hoisted(() => ({
-  mockPush: vi.fn(),
-  mockUseAuth: vi.fn(),
+const { mockUseThreads } = vi.hoisted(() => ({
   mockUseThreads: vi.fn(),
 }));
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: mockPush }) }));
-vi.mock("@/lib/auth", () => ({ useAuth: () => mockUseAuth() }));
 vi.mock("@/api/hooks/use-threads", () => ({
   useThreads: (...args: unknown[]) => mockUseThreads(...args),
 }));
@@ -77,7 +73,6 @@ function renderPage({
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockUseAuth.mockReturnValue({ user: null });
   mockUseThreads.mockReturnValue({
     data: { pages: [{ data: [{ id: "t1" }] }, { data: [{ id: "t2" }] }] },
     fetchNextPage,
@@ -95,7 +90,7 @@ describe("首页", () => {
   test("访客不显示创建入口且合并分页帖子", () => {
     renderPage();
 
-    expect(screen.queryByRole("button", { name: "创建主题帖" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "创建主题帖" })).not.toBeInTheDocument();
     expect(screen.getByText("帖子:t1,t2")).toBeInTheDocument();
     expect(mockUseThreads).toHaveBeenLastCalledWith({
       category: undefined,
@@ -104,13 +99,10 @@ describe("首页", () => {
     });
   });
 
-  test("登录用户可进入创建页", async () => {
-    const user = userEvent.setup();
-    mockUseAuth.mockReturnValue({ user: { id: "u1" } });
+  test("首页内容流不重复全局创建入口", () => {
     renderPage();
 
-    await user.click(screen.getByRole("button", { name: "创建主题帖" }));
-    expect(mockPush).toHaveBeenCalledWith("/threads/create");
+    expect(screen.queryByRole("link", { name: "创建主题帖" })).not.toBeInTheDocument();
   });
 
   test("分类、排序和状态变化同步到查询参数", async () => {

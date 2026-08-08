@@ -6,6 +6,12 @@
 
 ## 导航
 
+### 设计系统
+
+| 文档 | 内容 | 状态 |
+|------|------|------|
+| [Web 视觉设计系统](./design-system.md) | Web 品牌 Token、应用壳、页面宽度、共享组件与视觉验收规则 | active |
+
 ### 模块设计文档
 
 | 文档 | 模块 | 状态 |
@@ -37,6 +43,8 @@
 | 文档 | 内容 |
 |------|------|
 | `wenyousite-backend/docs/frontend-guide.md` | 认证、分页、业务流程和错误码 |
+| `wenyousite-backend/docs/mobile-client-guide.md` | Flutter 的 API、安全存储、幂等、Markdown 与推送契约 |
+| `wenyousite-backend/docs/mobile-ui-contract.md` | Flutter 的排版、文字缩放、阅读列、导航和视觉验收契约 |
 | `wenyousite-backend/src/common/exceptions/error-codes.ts` | 可机器识别的错误码定义 |
 | `wenyousite-backend/docs/data-model.md` | 数据模型 |
 | `wenyousite-backend/docs/api-endpoints.md` | API 端点索引 |

@@ -143,7 +143,7 @@ export function DirectMessageComposer({
   };
 
   return (
-    <div className="border-t border-border bg-background p-4">
+    <div className="border-t border-border bg-muted/35 p-4">
       {requestHint && (
         <p className="mb-2 text-xs text-muted-foreground">
           {typeof requestHint === "string"
@@ -187,7 +187,7 @@ export function DirectMessageComposer({
         rows={3}
         disabled={isPending}
         placeholder={placeholder}
-        className="w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/15 disabled:opacity-60"
+        className="w-full resize-none rounded-xl border border-input bg-card px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20 disabled:opacity-60"
       />
       <div className="mt-2 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
@@ -226,7 +226,7 @@ export function DirectMessageComposer({
         </Button>
       </div>
       {image && (
-        <p className="mt-2 text-xs text-amber-700 dark:text-amber-400">
+        <p className="mt-2 text-xs text-warning">
           {image.type === "image/gif" && "GIF 动图会保留动画效果；"}
           图片将使用可公开访问的链接，请勿发送敏感内容。
         </p>

@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 function CountBadge({ count }: { count: number }) {
   if (count < 1) return null;
   return (
-    <span className="rounded-full bg-destructive px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">
+    <span className="rounded-full bg-destructive px-1.5 py-0.5 font-utility text-[10px] font-bold leading-none text-white">
       {count > 99 ? "99+" : count}
     </span>
   );
@@ -43,9 +43,9 @@ export function MessageCenterTabs() {
           key={tab.href}
           href={tab.href}
           className={cn(
-            "flex h-10 items-center gap-1.5 border-b-2 px-4 text-sm transition-colors",
+            "flex h-10 items-center gap-1.5 border-b-[3px] px-4 text-sm font-semibold transition-colors",
             tab.active
-              ? "border-primary font-medium text-foreground"
+              ? "border-brand-strong text-foreground"
               : "border-transparent text-muted-foreground hover:text-foreground",
           )}
         >

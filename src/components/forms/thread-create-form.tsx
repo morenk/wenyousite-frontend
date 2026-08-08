@@ -45,7 +45,7 @@ export function ThreadCreateForm({
     resolver: zodResolver(threadCreateSchema),
     defaultValues: {
       title: thread.title === "未命名草稿" ? "" : thread.title,
-      category: thread.category,
+      category: thread.category ?? undefined,
       visibility: thread.visibility,
       tagNames: thread.topicTags.map((t) => t.tag.name),
       subthreadTitle: thread.defaultSubthread.title,
@@ -62,7 +62,9 @@ export function ThreadCreateForm({
         threadId: thread.id,
         body: {
           ...(title ? { title } : {}),
-          category: values.category,
+          ...(values.category && values.category !== thread.category
+            ? { category: values.category }
+            : {}),
           visibility: values.visibility,
           version: thread.version,
           defaultSubthreadVersion: thread.defaultSubthread.version,
@@ -93,7 +95,9 @@ export function ThreadCreateForm({
         threadId: thread.id,
         body: {
           title: values.title?.trim(),
-          category: values.category,
+          ...(values.category && values.category !== thread.category
+            ? { category: values.category }
+            : {}),
           visibility: values.visibility,
           published: true,
           version: thread.version,

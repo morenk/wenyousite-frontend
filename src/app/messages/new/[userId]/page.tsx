@@ -79,7 +79,7 @@ export default function NewDirectConversationPage() {
           <p className="font-medium text-foreground">{entryCopy.title}</p>
           <p>{entryCopy.description}</p>
         </div>
-        <Link href={`/users/${params.userId}`} className="text-primary hover:underline">
+        <Link href={`/users/${params.userId}`} className="text-brand-strong hover:underline">
           返回用户主页
         </Link>
       </div>

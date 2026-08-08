@@ -60,13 +60,13 @@ const baseThread: ThreadCardData = {
       id: "relation-1",
       threadId: "thread-1",
       tagId: "tag-1",
-      tag: { id: "tag-1", name: "测试标签", color: null },
+      tag: { id: "tag-1", name: "测试标签", color: null, description: null, sortOrder: 10, isActive: true },
     },
     {
       id: "relation-2",
       threadId: "thread-1",
       tagId: "tag-2",
-      tag: { id: "tag-2", name: "RPG", color: null },
+      tag: { id: "tag-2", name: "RPG", color: null, description: null, sortOrder: 20, isActive: true },
     },
   ],
   _count: { members: 5, players: 2, posts: 12 },
@@ -208,6 +208,26 @@ describe("ThreadCard", () => {
 
     renderThreadCard(baseThread, queryClient);
     fireEvent.mouseEnter(
+      screen.getByRole("link", { name: "查看主题帖：测试帖子标题" }),
+    );
+
+    expect(detailPrefetch).not.toHaveBeenCalled();
+    expect(floorPrefetch).toHaveBeenCalledWith(
+      expect.objectContaining({ queryKey: ["floors", "s1"] }),
+    );
+  });
+
+  test("按下主题链接时也只预取无副作用的首屏楼层", () => {
+    const queryClient = new QueryClient();
+    const detailPrefetch = vi
+      .spyOn(queryClient, "prefetchQuery")
+      .mockResolvedValue(undefined);
+    const floorPrefetch = vi
+      .spyOn(queryClient, "prefetchInfiniteQuery")
+      .mockResolvedValue(undefined);
+
+    renderThreadCard(baseThread, queryClient);
+    fireEvent.pointerDown(
       screen.getByRole("link", { name: "查看主题帖：测试帖子标题" }),
     );
 

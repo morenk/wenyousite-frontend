@@ -112,13 +112,13 @@ export default function RegisterPage() {
   return (
     <AuthPageShell
       title="注册温油站"
-      description="创建账号，加入共同创作"
+      description="设置邮箱、用户名和密码。"
       footer={(
         <p className="text-sm text-muted-foreground">
           已有账号？{" "}
           <Link
             href="/login"
-            className="font-medium text-primary hover:underline underline-offset-2"
+            className="font-medium text-brand-strong hover:underline underline-offset-2"
           >
             去登录
           </Link>

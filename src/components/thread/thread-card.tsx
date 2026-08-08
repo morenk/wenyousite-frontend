@@ -7,15 +7,18 @@ import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { Gift, Users, MessageSquare } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { formatMarkdownPreview } from "@/lib/markdown-preview";
-import { THREAD_CATEGORY_META, THREAD_STATUS_META } from "@/lib/thread-presentation";
+import { THREAD_STATUS_META } from "@/lib/thread-presentation";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import type { ThreadCardData } from "@/api/hooks/use-threads";
 import { floorsQueryOptions } from "@/api/hooks/use-floors";
 import { TopicTagLink } from "./topic-tag-link";
 import { LevelBadge } from "@/components/shared/level-badge";
 import { formatWenyou } from "@/lib/wenyou";
+import { Badge } from "@/components/ui/badge";
+import { stackListRowVariants } from "@/components/ui/stack-list";
+import { cn } from "@/lib/utils";
+import { ThreadCategoryBadge, ThreadCategoryMarker } from "./thread-category";
 
 interface ThreadCardProps {
   thread: ThreadCardData;
@@ -33,65 +36,85 @@ export function ThreadCard({ thread }: ThreadCardProps) {
   };
 
   return (
-    <article className="relative rounded-xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md">
-      <div className="flex flex-col gap-3">
-        {/* 第一行：分类 + 状态 */}
-        <div className="flex items-center gap-2">
-          <span
-            className={cn(
-              "rounded-full px-2.5 py-0.5 text-xs font-medium",
-              THREAD_CATEGORY_META[thread.category].badgeClassName,
-            )}
-          >
-            {THREAD_CATEGORY_META[thread.category].label}
-          </span>
-          <span
-            className={cn(
-              "rounded-full px-2.5 py-0.5 text-xs font-medium",
-              THREAD_STATUS_META[thread.status].badgeClassName,
-            )}
-          >
-            {THREAD_STATUS_META[thread.status].label}
-          </span>
-          {thread.pinned && (
-            <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
-              置顶
-            </span>
-          )}
-        </div>
+    <article
+      data-category={thread.category}
+      className={cn(stackListRowVariants(), "group/thread overflow-hidden pl-6")}
+    >
+      <ThreadCategoryMarker
+        category={thread.category}
+        className="absolute inset-y-4 left-0 w-1 rounded-r-full transition-[width] duration-[var(--motion-fast)] group-hover/thread:w-1.5"
+      />
+      <div className="flex gap-3.5">
+        <UserAvatar
+          name={thread.owner.username}
+          src={thread.owner.avatar}
+          className="mt-0.5 h-11 w-11 ring-2 ring-white outline outline-1 outline-border"
+          textClassName="text-sm"
+        />
 
-        {/* 标题 */}
-        <h3 className="text-base font-semibold leading-snug text-foreground line-clamp-1">
-          <Link
-            href={`/threads/${thread.id}`}
-            aria-label={`查看主题帖：${thread.title}`}
-            onMouseEnter={prefetchThread}
-            onFocus={prefetchThread}
-            className="after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-ring"
-          >
-            {thread.title}
-          </Link>
-        </h3>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-1.5 font-utility text-xs text-muted-foreground">
+              <span className="truncate font-semibold text-foreground">
+                {thread.owner.username}
+              </span>
+              <LevelBadge level={thread.owner.level} />
+              <span aria-hidden="true">·</span>
+              <time dateTime={thread.updatedAt} className="shrink-0">
+                {formatDistanceToNow(new Date(thread.updatedAt), {
+                  addSuffix: true,
+                  locale: zhCN,
+                })}
+              </time>
+            </div>
 
-        {/* 预览摘要 */}
-        {thread.preview && (
-          <p className="text-sm leading-relaxed text-muted-foreground line-clamp-2">
-            {formatMarkdownPreview(thread.preview)}
-          </p>
-        )}
-
-        {/* 标签 */}
-        {thread.topicTags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {thread.topicTags.map(({ tag }) => (
-              <TopicTagLink key={tag.id} tag={tag} className="relative z-10" />
-            ))}
+            <div className="relative z-10 flex shrink-0 flex-wrap items-center justify-end gap-1.5">
+              <ThreadCategoryBadge
+                category={thread.category}
+                className="min-h-5 px-2 py-0 leading-4"
+              />
+              <Badge
+                tone={THREAD_STATUS_META[thread.status].badgeTone}
+                className="min-h-5 px-2 py-0 leading-4"
+              >
+                {THREAD_STATUS_META[thread.status].label}
+              </Badge>
+              {thread.pinned && (
+                <Badge tone="brand" className="min-h-5 px-2 py-0 leading-4">
+                  置顶
+                </Badge>
+              )}
+            </div>
           </div>
-        )}
 
-        {/* 底部信息 */}
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <div className="flex items-center gap-3">
+          <h3 className="mt-2 font-display text-[1.0625rem] leading-6 font-bold tracking-[0.01em] text-foreground line-clamp-2">
+            <Link
+              href={`/threads/${thread.id}`}
+              aria-label={`查看主题帖：${thread.title}`}
+              onMouseEnter={prefetchThread}
+              onFocus={prefetchThread}
+              onPointerDown={prefetchThread}
+              className="after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-inset focus-visible:after:ring-ring/40"
+            >
+              {thread.title}
+            </Link>
+          </h3>
+
+          {thread.preview && (
+            <p className="mt-1.5 text-sm leading-6 text-muted-foreground line-clamp-2">
+              {formatMarkdownPreview(thread.preview)}
+            </p>
+          )}
+
+          {thread.topicTags.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {thread.topicTags.map(({ tag }) => (
+                <TopicTagLink key={tag.id} tag={tag} className="relative z-10" />
+              ))}
+            </div>
+          )}
+
+          <div className="mt-3 flex flex-wrap items-center gap-3 font-utility text-xs font-semibold text-muted-foreground">
             <span className="flex items-center gap-1">
               <Users className="h-3.5 w-3.5" />
               {thread._count.players}
@@ -103,24 +126,6 @@ export function ThreadCard({ thread }: ThreadCardProps) {
             <span className="flex items-center gap-1" title="累计获得温油">
               <Gift className="h-3.5 w-3.5" />
               {formatWenyou(thread.tipTotal)} 升
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1.5">
-              <UserAvatar
-                name={thread.owner.username}
-                src={thread.owner.avatar}
-                className="h-6 w-6"
-                textClassName="text-[10px]"
-              />
-              {thread.owner.username}
-              <LevelBadge level={thread.owner.level} />
-            </span>
-            <span>
-              {formatDistanceToNow(new Date(thread.updatedAt), {
-                addSuffix: true,
-                locale: zhCN,
-              })}
             </span>
           </div>
         </div>

@@ -11,7 +11,7 @@ export function LevelBadge({
   return (
     <span
       className={cn(
-        "inline-flex h-5 items-center rounded-md border border-primary/20 bg-primary/8 px-1.5 text-[10px] font-semibold tabular-nums text-primary",
+        "inline-flex min-h-5 items-center rounded-md bg-accent px-1.5 font-utility text-[0.6875rem] leading-5 font-bold tabular-nums text-accent-foreground",
         className,
       )}
       title={`用户等级 Lv.${level}`}

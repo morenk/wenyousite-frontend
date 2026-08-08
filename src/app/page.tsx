@@ -2,22 +2,18 @@
 
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useQueryStates } from "nuqs";
-import { Plus } from "lucide-react";
-import { useAuth } from "@/lib/auth";
 import { useThreads } from "@/api/hooks/use-threads";
 import type { ThreadSort, ThreadStatusFilter } from "@/api/hooks/use-threads";
 import { ThreadList } from "@/components/thread/thread-list";
 import { CategoryTabs } from "@/components/thread/category-tabs";
 import { ThreadFilters } from "@/components/thread/thread-filters";
-import { Button } from "@/components/ui/button";
 import { PageShell } from "@/components/layout/page-shell";
+import { PageHeader } from "@/components/layout/page-header";
+import { Panel } from "@/components/ui/panel";
 import { homeFilterParsers } from "@/lib/url-state";
 
 export default function HomePage() {
-  const { user } = useAuth();
-  const router = useRouter();
   const [{ category, sort, status }, setFilters] = useQueryStates(
     homeFilterParsers,
     { history: "push", shallow: true },
@@ -40,52 +36,42 @@ export default function HomePage() {
   const threads = data?.pages.flatMap((page) => page?.data ?? []) ?? [];
 
   return (
-    <PageShell>
-      {/* 顶部操作栏 */}
-      <div className="mb-5 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-foreground">发现</h1>
-        {user && (
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              onClick={() => router.push("/threads/create")}
-            >
-              <Plus className="h-4 w-4" />
-              创建主题帖
-            </Button>
-          </div>
-        )}
-      </div>
+    <PageShell width="feed" className="py-5">
+      <main data-slot="home-feed" className="min-w-0">
+        <Panel padding="none" className="overflow-hidden">
+          <PageHeader
+            title="发现主题帖"
+            description="按玩法、状态和活跃度筛选公开主题帖。"
+            className="mb-0 px-5 pt-6 pb-5"
+          />
 
-      {/* 分类筛选 */}
-      <div className="mb-5">
-        <CategoryTabs
-          selected={category ?? undefined}
-          onChange={(nextCategory) => setFilters({ category: nextCategory ?? null })}
-        />
-      </div>
+          <CategoryTabs
+            selected={category ?? undefined}
+            onChange={(nextCategory) => setFilters({ category: nextCategory ?? null })}
+          />
 
-      <div className="mb-5">
-        <ThreadFilters
-          sort={sort}
-          status={status ?? undefined}
-          onSortChange={(nextSort: ThreadSort) => setFilters({ sort: nextSort })}
-          onStatusChange={(nextStatus: ThreadStatusFilter | undefined) =>
-            setFilters({ status: nextStatus ?? null })
-          }
-        />
-      </div>
+          <ThreadFilters
+            sort={sort}
+            status={status ?? undefined}
+            onSortChange={(nextSort: ThreadSort) => setFilters({ sort: nextSort })}
+            onStatusChange={(nextStatus: ThreadStatusFilter | undefined) =>
+              setFilters({ status: nextStatus ?? null })
+            }
+          />
+        </Panel>
 
-      {/* 帖列表 */}
-      <ThreadList
-        threads={threads}
-        hasNextPage={!!hasNextPage}
-        isFetchingNextPage={isFetchingNextPage}
-        isLoading={isLoading}
-        error={error}
-        onLoadMore={() => fetchNextPage()}
-        onRetry={() => refetch()}
-      />
+        <div className="mt-4">
+          <ThreadList
+            threads={threads}
+            hasNextPage={!!hasNextPage}
+            isFetchingNextPage={isFetchingNextPage}
+            isLoading={isLoading}
+            error={error}
+            onLoadMore={() => fetchNextPage()}
+            onRetry={() => refetch()}
+          />
+        </div>
+      </main>
     </PageShell>
   );
 }

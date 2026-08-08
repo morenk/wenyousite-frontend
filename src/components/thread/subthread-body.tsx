@@ -15,11 +15,11 @@ export function SubthreadBody({ subthread, isDefault = false }: SubthreadBodyPro
   const content = subthread.bodyPost?.content ?? "";
 
   return (
-    <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+    <div className="rounded-2xl border border-border bg-card p-5">
       <div className="flex items-center gap-2">
-        <h2 className="text-lg font-bold text-foreground">{subthread.title}</h2>
+        <h2 className="font-display text-xl font-bold text-foreground">{subthread.title}</h2>
         {isDefault && (
-          <span className="rounded bg-primary/10 px-1.5 py-0.5 text-xs text-primary">
+          <span className="rounded-md bg-accent px-1.5 py-0.5 font-utility text-xs font-bold text-brand-strong">
             主帖
           </span>
         )}

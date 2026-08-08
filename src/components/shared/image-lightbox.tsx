@@ -205,7 +205,7 @@ export function ImageLightbox({ src, alt, onClose }: ImageLightboxProps) {
         </Button>
         <button
           type="button"
-          className="min-w-12 px-1 text-center text-xs tabular-nums hover:text-primary"
+          className="min-w-12 px-1 text-center text-xs tabular-nums hover:text-brand-strong"
           onClick={toggleZoom}
           aria-label="切换 1:1 显示"
         >

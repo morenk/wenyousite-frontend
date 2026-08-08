@@ -63,13 +63,13 @@ export default function LoginPage() {
   return (
     <AuthPageShell
       title="登录温油站"
-      description="登录你的账号，开始共同创作"
+      description="使用用户名或邮箱登录。"
       footer={(
         <p className="text-sm text-muted-foreground">
           还没有账号？{" "}
           <Link
             href="/register"
-            className="font-medium text-primary hover:underline underline-offset-2"
+            className="font-medium text-brand-strong hover:underline underline-offset-2"
           >
             立即注册
           </Link>
@@ -96,7 +96,7 @@ export default function LoginPage() {
                   <Label htmlFor="password">密码</Label>
                   <Link
                     href="/forgot-password"
-                    className="text-xs text-muted-foreground hover:text-primary underline-offset-2 hover:underline"
+                    className="text-xs text-muted-foreground hover:text-brand-strong underline-offset-2 hover:underline"
                   >
                     忘记密码？
                   </Link>

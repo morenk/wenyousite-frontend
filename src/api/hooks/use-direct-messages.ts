@@ -124,7 +124,9 @@ export function useDirectMessages(conversationId?: string, userId?: string) {
   }, [history.data?.pages]);
   const latestMessageId = messages.findLast((message) => message.deliveryState !== "sending")?.id;
   const updates = useQuery({
-    queryKey: queryKeys.directMessages.updates(userId, conversationId),
+    // The cursor is part of the query identity: once a batch is merged, start a
+    // fresh request from the new tail instead of reusing data fetched for an old tail.
+    queryKey: queryKeys.directMessages.updates(userId, conversationId, latestMessageId),
     queryFn: async () => {
       if (!conversationId || !latestMessageId) {
         throw new Error("缺少增量消息游标");
@@ -145,6 +147,7 @@ export function useDirectMessages(conversationId?: string, userId?: string) {
     enabled: history.isSuccess && !!conversationId && !!userId && !!latestMessageId,
     refetchInterval: (query) => query.state.data?.meta?.hasMore ? 1_000 : 10_000,
     refetchIntervalInBackground: false,
+    refetchOnWindowFocus: "always",
     staleTime: 0,
   });
 
@@ -185,6 +188,7 @@ export function useDirectMessages(conversationId?: string, userId?: string) {
   return {
     ...history,
     messages,
+    refetchLatest: updates.refetch,
     updatesError: updates.isError || reconciliation.isError,
   };
 }

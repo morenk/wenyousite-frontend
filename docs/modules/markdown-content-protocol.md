@@ -5,8 +5,8 @@ Web 与 Flutter 共用数据库中的 Markdown 字符串，不修改既有字段
 ## 协议事实源
 
 - 协议标识为 `wenyousite-markdown`，当前版本为 `2`。
-- Web 仓库中的 `contracts/markdown-v2-fixtures.json` 是后端同名黄金语料的同步副本；两端必须逐条验证 `canonical` 和 `visible`。
-- 后端是写入与发布校验的最终权威；Web 在提交前执行同版本规则以即时反馈，Flutter 后续必须复用同一份语言无关 JSON 语料。
+- Web 仓库中的 `contracts/markdown-v2-fixtures.json` 与 `contracts/markdown-v2-nodes-fixtures.json` 是后端同名黄金语料的同步副本。前者固定 `canonical` / `visible`，后者固定提及、骰子、表情和图片节点的 parse / serialize / round-trip 与复制身份。
+- 后端是写入与发布校验的最终权威；Web 在提交前执行同版本规则以即时反馈，Flutter 必须把两份语言无关 JSON 语料纳入单元测试。
 - 规则变更必须先修改黄金语料并提升协议版本，禁止单独修改某一端正则。
 - Web 的发布、回复、编辑和草稿入口传递完整规范正文，不做全局 `trim()`；`trim()` 只允许用于空内容判断，首尾空段落及空白必须保留。
 
@@ -31,11 +31,12 @@ Web 与 Flutter 共用数据库中的 Markdown 字符串，不修改既有字段
 
 搜索结果、主题卡片、用户动态和通知等不渲染完整 Markdown 的界面统一使用纯文本预览转换：骰子协议标记显示为 `[骰子表达式]`（例如 `[2d50]`），表情显示为 `[表情]`，带标签链接显示为 `[标签]`，裸链接与自动链接显示为 `[链接]`，其他图片显示为 `[图片]`。转换只影响摘要和预览，正文仍按完整 Markdown 与骰子协议渲染。
 
-Flutter 端应遵循同一存储与校验规则，并将独占 `<br />` 渲染为空段落而不是 HTML。
+Flutter 端必须遵循同一存储与校验规则，将独占 `<br />` 渲染为空段落而不是 HTML，并对未知扩展节点安全降级为可读文本。
 
 ## 本切片验收标准
 
 - [x] Web 黄金语料与后端 Markdown v2 语料一致
+- [x] Web 扩展节点语料与后端 `markdown-v2-nodes-fixtures.json` 一致
 - [x] Web 规范化逐条输出预期 `canonical`，且结果幂等
 - [x] Web 可见性判断逐条输出预期 `visible`
 - [x] Web 纯文本预览隐藏骰子协议和链接地址，并保留可读方括号占位

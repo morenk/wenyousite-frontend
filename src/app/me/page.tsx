@@ -4,11 +4,12 @@
 
 import { ProfileEditForm } from "@/components/user/profile-edit-form";
 import { PageShell } from "@/components/layout/page-shell";
+import { PageHeader } from "@/components/layout/page-header";
 
 export default function MePage() {
   return (
-    <PageShell width="md">
-      <h1 className="mb-5 text-xl font-bold text-foreground">我的资料</h1>
+    <PageShell width="feed">
+      <PageHeader title="我的资料" description="更新公开资料、头像和账号设置。" />
       <ProfileEditForm />
     </PageShell>
   );

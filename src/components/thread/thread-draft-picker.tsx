@@ -5,6 +5,8 @@
 import { Plus } from "lucide-react";
 import { DraftList } from "@/components/user/draft-list";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/layout/page-header";
+import { PageShell } from "@/components/layout/page-shell";
 
 interface ThreadDraftPickerProps {
   /** 点击「新建主题帖」回调 */
@@ -13,15 +15,15 @@ interface ThreadDraftPickerProps {
 
 export function ThreadDraftPicker({ onCreateNew }: ThreadDraftPickerProps) {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6">
-      <div className="mb-5 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-foreground">创建主题帖</h1>
-        <Button size="sm" onClick={onCreateNew}>
+    <PageShell width="content">
+      <PageHeader
+        title="创建主题帖"
+        actions={<Button size="compact" onClick={onCreateNew}>
           <Plus className="mr-1.5 h-4 w-4" />
           新建主题帖
-        </Button>
-      </div>
+        </Button>}
+      />
       <DraftList />
-    </div>
+    </PageShell>
   );
 }

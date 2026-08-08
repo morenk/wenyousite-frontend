@@ -1,4 +1,4 @@
-/** 主题帖详情头部：页面顶层独立标题区（非卡片）——徽章、标题、作者、标签、操作按钮 */
+/** 主题帖详情头部：玩法线路、徽章、标题、作者、标签与操作按钮。 */
 
 "use client";
 
@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { THREAD_CATEGORY_META, THREAD_STATUS_META } from "@/lib/thread-presentation";
+import { THREAD_STATUS_META } from "@/lib/thread-presentation";
 import { useAuth } from "@/lib/auth";
 import { useLikeThread } from "@/api/hooks/use-like-thread";
 import { useDeleteThread } from "@/api/hooks/use-delete-thread";
@@ -34,8 +34,10 @@ import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
 import { TopicTagLink } from "@/components/thread/topic-tag-link";
 import { ThreadSubscriptionControls } from "@/components/thread/thread-subscription-controls";
 import { LevelBadge } from "@/components/shared/level-badge";
+import { Badge } from "@/components/ui/badge";
 import { WenyouTipButton } from "@/components/economy/wenyou-tip-button";
 import { formatWenyou } from "@/lib/wenyou";
+import { ThreadCategoryBadge, ThreadCategoryMarker } from "@/components/thread/thread-category";
 
 interface ThreadDetailHeaderProps {
   thread: ThreadDetail;
@@ -142,40 +144,28 @@ export function ThreadDetailHeader({
   };
 
   return (
-    <div className="border-b border-border pb-5">
+    <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-5">
+      <ThreadCategoryMarker
+        category={thread.category}
+        className="absolute inset-y-0 left-0 w-1.5"
+      />
       <div className="flex flex-col gap-4">
         {/* 分类 + 状态 */}
         <div className="flex items-center gap-2">
-          <span
-            className={cn(
-              "rounded-full px-2.5 py-0.5 text-xs font-medium",
-              THREAD_CATEGORY_META[thread.category].badgeClassName,
-            )}
-          >
-            {THREAD_CATEGORY_META[thread.category].label}
-          </span>
-          <span
-            className={cn(
-              "rounded-full px-2.5 py-0.5 text-xs font-medium",
-              THREAD_STATUS_META[thread.status].badgeClassName,
-            )}
-          >
+          <ThreadCategoryBadge category={thread.category} />
+          <Badge tone={THREAD_STATUS_META[thread.status].badgeTone}>
             {THREAD_STATUS_META[thread.status].label}
-          </span>
+          </Badge>
           {thread.visibility === "PRIVATE" && (
-            <span className="rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
-              私密
-            </span>
+            <Badge tone="warning">私密</Badge>
           )}
           {thread.pinned && (
-            <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
-              置顶
-            </span>
+            <Badge tone="brand">置顶</Badge>
           )}
         </div>
 
         {/* 标题 */}
-        <h1 className="text-xl font-bold text-foreground">{thread.title}</h1>
+        <h1 className="font-display text-[1.75rem] leading-9 font-bold tracking-[0.01em] text-foreground">{thread.title}</h1>
 
         {/* 标签 */}
         {thread.topicTags.length > 0 && (
@@ -187,10 +177,10 @@ export function ThreadDetailHeader({
         )}
 
         {/* 作者 + 时间 + 统计 */}
-        <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-3 font-utility text-xs text-muted-foreground">
           <Link
             href={`/users/${thread.ownerId}`}
-            className="font-medium text-foreground hover:text-primary"
+            className="font-medium text-foreground hover:text-brand-strong"
           >
             {thread.owner.username}
           </Link>
@@ -211,7 +201,7 @@ export function ThreadDetailHeader({
         </div>
 
         {/* 操作按钮 */}
-        <div className="flex items-center gap-2 border-t border-border pt-3">
+        <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
           {onSearch && (
             <Button
               variant="ghost"
@@ -269,7 +259,7 @@ export function ThreadDetailHeader({
                 onClick={handleLike}
                 disabled={like.isPending || unlike.isPending}
                 className={
-                  thread.isLiked ? "text-rose-500 hover:text-rose-600" : ""
+                  thread.isLiked ? "text-destructive hover:text-destructive" : ""
                 }
               >
                 {like.isPending || unlike.isPending ? (

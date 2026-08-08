@@ -230,6 +230,9 @@ function EditorHost({
     const lastNode = view.state.doc.lastChild;
     if (lastNode?.type.name === "paragraph" && lastNode.content.size === 0) {
       serialized = `${serialized.replace(/\s+$/u, "")}\n\n<br />`;
+    } else {
+      // Milkdown 的序列化器会附加一个格式化换行；用户显式空段落由上面的 br 协议表达。
+      serialized = serialized.replace(/\n$/u, "");
     }
     onChangeRef.current?.(sanitizeMilkdownMarkdown(serialized));
   }, []);
@@ -609,7 +612,7 @@ function EditorCore({
     charCount > MAX_CHARS * 0.9
       ? "text-destructive"
       : charCount > MAX_CHARS * 0.7
-        ? "text-amber-500"
+        ? "text-warning"
         : "text-muted-foreground";
 
   return (

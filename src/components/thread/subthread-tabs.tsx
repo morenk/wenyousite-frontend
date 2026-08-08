@@ -95,7 +95,7 @@ export function SubthreadTabs({
             className={cn(
               "shrink-0 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors",
               selectedId === sub.id
-                ? "border-primary text-primary"
+                ? "border-primary text-brand-strong"
                 : "border-transparent text-muted-foreground hover:text-foreground",
             )}
           >

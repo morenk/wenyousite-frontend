@@ -55,7 +55,7 @@ describe("MessageCenterTabs", () => {
     render(<MessageCenterTabs />);
     expect(screen.getByRole("link", { name: "私聊 3" })).toHaveAttribute("href", "/messages");
     expect(screen.getByRole("link", { name: "通知 4" })).toHaveAttribute("href", "/notifications");
-    expect(screen.getByRole("link", { name: "私聊 3" })).toHaveClass("border-primary");
+    expect(screen.getByRole("link", { name: "私聊 3" })).toHaveClass("border-brand-strong");
   });
 
   test("通知页签激活且 99 以上显示 99+", () => {
@@ -64,7 +64,7 @@ describe("MessageCenterTabs", () => {
     mockDirectUnread.mockReturnValue({ data: undefined });
     render(<MessageCenterTabs />);
     expect(screen.getByText("99+")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "通知 99+" })).toHaveClass("border-primary");
+    expect(screen.getByRole("link", { name: "通知 99+" })).toHaveClass("border-brand-strong");
   });
 });
 
@@ -195,10 +195,10 @@ describe("DirectMessagesFrame", () => {
     const { container } = render(
       <DirectMessagesFrame><div>会话内容</div></DirectMessagesFrame>,
     );
-    expect(screen.getByRole("heading", { name: "消息" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "私聊" })).toBeInTheDocument();
     expect(screen.getByText("会话内容")).toBeInTheDocument();
     expect(container.firstElementChild).toHaveClass(
-      "h-[calc(100dvh-3.5rem)]",
+      "h-screen",
       "min-h-0",
       "overflow-hidden",
     );

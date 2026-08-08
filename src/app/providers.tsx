@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { ConfirmProvider } from "@/components/ui/confirm-provider";
 import { DailyCheckInBootstrap } from "@/components/economy/daily-check-in-bootstrap";
+import { ThreadCategoriesProvider } from "@/components/thread/thread-categories-provider";
 
 function createQueryClient() {
   return new QueryClient({
@@ -45,15 +46,17 @@ function IdentityScopedQueries({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider key={queryScope.version} client={queryScope.client}>
-      {children}
-      <Toaster
-        position="top-center"
-        richColors
-        closeButton
-        toastOptions={{
-          className: "rounded-xl border-border shadow-lg",
-        }}
-      />
+      <ThreadCategoriesProvider>
+        {children}
+        <Toaster
+          position="top-center"
+          richColors
+          closeButton
+          toastOptions={{
+            className: "rounded-lg border-border bg-popover text-popover-foreground shadow-popover",
+          }}
+        />
+      </ThreadCategoriesProvider>
     </QueryClientProvider>
   );
 }

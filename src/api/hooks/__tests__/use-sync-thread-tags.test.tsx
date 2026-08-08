@@ -27,8 +27,8 @@ function createWrapper() {
 }
 
 const existingTags: ThreadTag[] = [
-  { id: "tag-1", name: "已有", color: null },
-  { id: "tag-2", name: "保留", color: null },
+  { id: "tag-1", name: "已有", color: null, description: null, sortOrder: 10, isActive: true },
+  { id: "tag-2", name: "保留", color: null, description: null, sortOrder: 20, isActive: true },
 ];
 
 describe("useSyncThreadTags", () => {

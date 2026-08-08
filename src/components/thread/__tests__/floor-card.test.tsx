@@ -241,11 +241,11 @@ describe("FloorCard", () => {
     );
   });
 
-  test("偶数索引有 bg-muted 样式", () => {
+  test("偶数索引有轻量交替底色", () => {
     const { container } = renderWithQC(
       <FloorCard floor={baseFloor} isEven={true} />,
     );
-    expect(container.firstChild as HTMLElement).toHaveClass("bg-muted/30");
+    expect(container.firstChild as HTMLElement).toHaveClass("bg-muted/20");
   });
 
   test("未登录不显示编辑/删除按钮", () => {

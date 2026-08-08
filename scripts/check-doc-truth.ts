@@ -49,6 +49,12 @@ function operation(method: string, apiPath: string) {
   const userOperations = new Set(
     [...allOperations].filter((item) => !excluded.has(item)),
   );
+  const reportOperations = [...allOperations].filter((item) =>
+    item.includes(" /api/v1/reports"),
+  );
+  const adminOperations = [...allOperations].filter((item) =>
+    item.includes(" /api/v1/admin"),
+  );
 
   const directOperations = new Set<string>();
   const callPattern =
@@ -79,7 +85,7 @@ function operation(method: string, apiPath: string) {
 
   const expectedFacts = [
     `后端总量：${Object.keys(spec.paths).length} 个路径、${allOperations.size} 个操作`,
-    `本轮明确搁置：举报 3 个操作、管理后台 5 个操作`,
+    `本轮明确搁置：举报 ${reportOperations.length} 个操作、管理后台 ${adminOperations.length} 个操作`,
     `用户端审计范围：${userOperations.size} 个操作`,
     `前端直接调用：${directOperations.size} 个操作；其余 ${missing.length} 个操作`,
   ];
@@ -110,12 +116,48 @@ function operation(method: string, apiPath: string) {
     /`accessToken` 存在 `localStorage`/,
     /暂不拦截（后续用 middleware）/,
     /queryKey\s+`\[/,
+    /没有草稿喔/,
+    /顶栏入口统一改名为“消息”/,
+    /全局导航栏不展示收藏入口/,
+    /Flutter 后续必须/,
+    /z\.enum\(\["DEDUCTION", "NATION", "RPG"\]\)/,
   ];
   for (const file of architectureDocs) {
     const source = fs.readFileSync(file, "utf8");
     for (const claim of forbiddenClaims) {
       if (claim.test(source)) {
         failures.push(`${path.relative(root, file)} 仍包含历史架构表述：${claim}`);
+      }
+    }
+  }
+
+  const requiredClaims = new Map<string, string[]>([
+    ["docs/modules/thread-create.md", [
+      "GET /thread-categories",
+      "草稿允许暂不选择分类",
+      "17px / 1.9",
+    ]],
+    ["docs/modules/direct-messages.md", [
+      "固定为 72px 图标轨道",
+      "16px / 28px",
+      "分别提供通知和私聊入口",
+    ]],
+    ["docs/modules/bookmarks.md", ["全局导航栏显示收藏入口"]],
+    ["docs/modules/markdown-content-protocol.md", [
+      "markdown-v2-fixtures.json",
+      "markdown-v2-nodes-fixtures.json",
+      "Flutter 必须",
+    ]],
+    ["docs/design-system.md", [
+      "GET /thread-categories",
+      "wenyousite-backend/docs/mobile-ui-contract.md",
+    ]],
+  ]);
+  for (const [relativePath, claims] of requiredClaims) {
+    const source = fs.readFileSync(path.resolve(root, relativePath), "utf8");
+    for (const claim of claims) {
+      if (!source.includes(claim)) {
+        failures.push(`${relativePath} 缺少当前实现约束：${claim}`);
       }
     }
   }

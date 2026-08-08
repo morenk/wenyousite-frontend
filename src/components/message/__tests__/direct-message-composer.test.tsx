@@ -15,6 +15,35 @@ vi.mock("@/lib/upload-image", () => ({
   validateImageFile: mockValidate,
 }));
 vi.mock("sonner", () => ({ toast: { error: mockToastError } }));
+vi.mock("@/components/sticker/sticker-picker-popover", () => ({
+  StickerPickerPopover: ({
+    disabled,
+    onSelect,
+  }: {
+    disabled: boolean;
+    onSelect: (sticker: Record<string, unknown>) => Promise<unknown>;
+  }) => (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={() => void onSelect({
+        id: "favorite1",
+        asset: {
+          id: "sticker1",
+          url: "https://cdn.example.com/sticker.webp",
+          thumbnailUrl: "https://cdn.example.com/sticker-thumb.webp",
+          animated: false,
+          frameCount: 1,
+          durationMs: null,
+          width: 256,
+          height: 256,
+        },
+      })}
+    >
+      测试表情
+    </button>
+  ),
+}));
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -132,6 +161,26 @@ describe("DirectMessageComposer", () => {
     );
   });
 
+  test("图片消息发送失败时恢复待发图片并保留重试入口", async () => {
+    const onSend = vi.fn().mockRejectedValue(new Error("图片发送失败"));
+    const { container } = render(<DirectMessageComposer onSend={onSend} />);
+    const file = new File(["image"], "photo.jpg", { type: "image/jpeg" });
+    fireEvent.change(container.querySelector("input[type=file]")!, { target: { files: [file] } });
+
+    await userEvent.click(screen.getByRole("button", { name: "发送" }));
+
+    await waitFor(() => expect(onSend).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(screen.getByRole("img", { name: "待发送图片预览" })).toHaveAttribute(
+        "src",
+        "blob:preview",
+      ),
+    );
+    expect(URL.createObjectURL).toHaveBeenCalledTimes(2);
+    expect(screen.getByRole("button", { name: "发送" })).toBeEnabled();
+    expect(mockToastError).toHaveBeenCalledWith("图片发送失败");
+  });
+
   test("无效图片提示错误，已选图片可移除", async () => {
     const { container } = render(<DirectMessageComposer onSend={vi.fn()} />);
     const input = container.querySelector("input[type=file]")!;
@@ -164,6 +213,30 @@ describe("DirectMessageComposer", () => {
     await userEvent.click(screen.getByRole("button", { name: "发送" }));
     await waitFor(() => expect(onSend).toHaveBeenCalledTimes(3));
     expect(onSend.mock.calls[2][0].clientRequestId).not.toBe(onSend.mock.calls[1][0].clientRequestId);
+  });
+
+  test("收藏表情作为独立消息发送，并在请求期间锁定编辑器", async () => {
+    let resolveSend!: () => void;
+    const onSend = vi.fn().mockReturnValue(new Promise<void>((resolve) => {
+      resolveSend = resolve;
+    }));
+    render(<DirectMessageComposer onSend={onSend} />);
+
+    await userEvent.click(screen.getByRole("button", { name: "测试表情" }));
+    expect(onSend).toHaveBeenCalledWith({
+      stickerAssetId: "sticker1",
+      clientRequestId: "99454040-6a52-4bf3-8bad-42683c4d09be",
+      optimisticSticker: expect.objectContaining({
+        id: "sticker1",
+        mediumUrl: null,
+        contentType: null,
+      }),
+    });
+    expect(screen.getByPlaceholderText("输入消息…")).toBeDisabled();
+    expect(screen.getByRole("button", { name: "测试表情" })).toBeDisabled();
+
+    resolveSend();
+    await waitFor(() => expect(screen.getByPlaceholderText("输入消息…")).toBeEnabled());
   });
 
   test("disabled 状态禁用输入和发送", () => {

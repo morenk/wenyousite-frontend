@@ -65,16 +65,16 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
         }}
       >
         <AlertDialog.Portal>
-          <AlertDialog.Backdrop className="fixed inset-0 z-[80] bg-black/45 backdrop-blur-[1px]" />
-          <AlertDialog.Viewport className="fixed inset-0 z-[81] flex items-center justify-center p-4">
-            <AlertDialog.Popup className="w-full max-w-md rounded-xl border border-border bg-background p-5 shadow-xl outline-none">
+          <AlertDialog.Backdrop className="fixed inset-0 z-[80] bg-[rgb(53_39_44/40%)]" />
+          <AlertDialog.Viewport className="fixed inset-0 z-[81] flex items-center justify-center p-6">
+            <AlertDialog.Popup className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-dialog outline-none">
               <AlertDialog.Title className="text-base font-semibold">
                 {request?.title ?? "请确认操作"}
               </AlertDialog.Title>
               <AlertDialog.Description className="mt-2 text-sm leading-6 text-muted-foreground">
                 {request?.description}
               </AlertDialog.Description>
-              <div className="mt-5 flex justify-end gap-2">
+              <div className="mt-6 flex justify-end gap-2">
                 <AlertDialog.Close className={buttonVariants({ variant: "outline" })}>
                   {request?.cancelLabel ?? "取消"}
                 </AlertDialog.Close>

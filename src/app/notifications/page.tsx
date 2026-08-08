@@ -8,6 +8,8 @@ import { Loader2 } from "lucide-react";
 import { NotificationList } from "@/components/notification/notification-list";
 import { MessageCenterTabs } from "@/components/message/message-center-tabs";
 import { notificationTypeParser } from "@/lib/url-state";
+import { PageHeader } from "@/components/layout/page-header";
+import { PageShell } from "@/components/layout/page-shell";
 
 function NotificationsPageInner() {
   const [type, setType] = useQueryState("type", notificationTypeParser.withOptions({
@@ -23,13 +25,13 @@ function NotificationsPageInner() {
   );
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-6">
-      <h1 className="mb-3 text-xl font-bold text-foreground">消息</h1>
+    <PageShell width="feed">
+      <PageHeader title="通知" description="与你的创作、互动和账号有关的最新消息。" />
       <MessageCenterTabs />
-      <div className="mx-auto mt-5 max-w-2xl">
+      <div className="mt-5">
         <NotificationList type={type ?? undefined} onTypeChange={handleTypeChange} />
       </div>
-    </div>
+    </PageShell>
   );
 }
 
@@ -37,7 +39,7 @@ export default function NotificationsPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
+        <div className="flex min-h-screen items-center justify-center">
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
       }

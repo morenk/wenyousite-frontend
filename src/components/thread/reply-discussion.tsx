@@ -14,6 +14,7 @@ import { LevelBadge } from "@/components/shared/level-badge";
 import { getPostHref } from "@/lib/post-navigation";
 import type { ReplyDisplayData } from "@/api/hooks/use-floors";
 import type { PostDetail } from "@/api/hooks/use-post";
+import { PageShell } from "@/components/layout/page-shell";
 
 interface ReplyDiscussionProps {
   rootPost: PostDetail;
@@ -27,7 +28,7 @@ export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps
   });
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-4 py-6">
+    <PageShell width="feed">
       <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
         <Link href={originalFloorHref} className="inline-flex items-center gap-1 hover:text-foreground">
           <ArrowLeft className="h-4 w-4" />
@@ -57,7 +58,7 @@ export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps
               <div>
                 <Link
                   href={`/users/${rootPost.authorId}`}
-                  className="text-sm font-medium text-foreground hover:text-primary"
+                  className="text-sm font-medium text-foreground hover:text-brand-strong"
                 >
                   {rootPost.author.username}
                 </Link>
@@ -79,7 +80,7 @@ export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps
 
       <section className="mt-6">
         <div className="mb-3 flex items-center justify-between">
-          <h1 className="text-base font-semibold text-foreground">楼中楼讨论</h1>
+          <h1 className="font-display text-lg font-bold text-foreground">楼中楼讨论</h1>
           <span className="text-sm text-muted-foreground">
             共 {rootPost._count.replies} 条回复
           </span>
@@ -94,6 +95,6 @@ export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps
           />
         </div>
       </section>
-    </main>
+    </PageShell>
   );
 }

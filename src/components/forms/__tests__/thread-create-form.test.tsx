@@ -86,7 +86,7 @@ const mockThread: ThreadDetail = {
   id: "t1",
   title: "未命名草稿",
   ownerId: "u1",
-  category: "DEDUCTION",
+  category: null,
   status: "RECRUITING",
   visibility: "PUBLIC",
   published: false,
@@ -155,6 +155,20 @@ describe("ThreadCreateForm", () => {
       expect(mockSaveThreadMutate).toHaveBeenCalledWith({
         threadId: "t1",
         body: expect.objectContaining({ tagNames: ["剧情", "招募"] }),
+      });
+    });
+  });
+
+  test("未选分区的草稿可以保存且请求不写入 category", async () => {
+    const user = userEvent.setup();
+    renderForm();
+
+    await user.click(screen.getByRole("button", { name: "保存草稿" }));
+
+    await vi.waitFor(() => {
+      expect(mockSaveThreadMutate).toHaveBeenCalledWith({
+        threadId: "t1",
+        body: expect.not.objectContaining({ category: expect.anything() }),
       });
     });
   });

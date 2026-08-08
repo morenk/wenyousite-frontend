@@ -1,7 +1,7 @@
 import { parseAsString, parseAsStringLiteral } from "nuqs";
 
 export const homeFilterParsers = {
-  category: parseAsStringLiteral(["DEDUCTION", "NATION", "RPG"] as const),
+  category: parseAsString,
   sort: parseAsStringLiteral(["recommended", "newest", "active"] as const)
     .withDefault("recommended"),
   status: parseAsStringLiteral(["RECRUITING", "CLOSED", "FINISHED"] as const),

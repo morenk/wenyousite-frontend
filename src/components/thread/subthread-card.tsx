@@ -61,7 +61,7 @@ export function SubthreadCard({
               {subthread.title}
             </span>
             {isDefault && (
-              <span className="shrink-0 rounded bg-primary/10 px-1.5 py-0.5 text-xs text-primary">
+              <span className="shrink-0 rounded bg-primary/10 px-1.5 py-0.5 text-xs text-brand-strong">
                 主帖
               </span>
             )}

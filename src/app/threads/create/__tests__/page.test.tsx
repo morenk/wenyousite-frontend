@@ -72,7 +72,6 @@ describe("CreateThreadPage", () => {
 
     await waitFor(() => expect(mutateAsync).toHaveBeenCalledTimes(1));
     expect(mutateAsync).toHaveBeenCalledWith({
-      category: "DEDUCTION",
       visibility: "PUBLIC",
       clientRequestId: expect.any(String),
     });

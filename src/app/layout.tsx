@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
+import "@fontsource/lxgw-wenkai/500.css";
+import "@fontsource/lxgw-wenkai/700.css";
+import "@fontsource-variable/noto-sans-sc/wght.css";
+import "@fontsource-variable/nunito/wght.css";
 import "./globals.css";
 import { Providers } from "./providers";
-import { NavBar } from "@/components/layout/nav-bar";
+import { AppChrome } from "@/components/layout/app-chrome";
 
 export const metadata: Metadata = {
   title: "温油站",
-  description: "文字接力、角色扮演、国策等自由玩法的共同创作社区",
+  description: "演绎、国策与 RPG 主题帖社区",
 };
 
 export default function RootLayout({
@@ -15,10 +19,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN" className="h-full antialiased">
-      <body className="min-h-screen flex flex-col">
+      <body className="min-h-screen">
         <Providers>
-          <NavBar />
-          <main className="flex-1 flex flex-col">{children}</main>
+          <AppChrome>{children}</AppChrome>
         </Providers>
       </body>
     </html>

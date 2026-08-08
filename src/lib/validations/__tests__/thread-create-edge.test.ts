@@ -136,9 +136,9 @@ describe("threadCreateSchema 边界", () => {
     ).toBe(true);
   });
 
-  test("category 为 NATION 通过", () => {
+  test("category 为动态 slug 通过", () => {
     expect(
-      threadCreateSchema.safeParse({ ...base, category: "NATION" }).success,
+      threadCreateSchema.safeParse({ ...base, category: "MYSTERY" }).success,
     ).toBe(true);
   });
 

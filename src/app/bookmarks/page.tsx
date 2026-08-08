@@ -3,12 +3,14 @@
 "use client";
 
 import { BookmarkList } from "@/components/user/bookmark-list";
+import { PageHeader } from "@/components/layout/page-header";
+import { PageShell } from "@/components/layout/page-shell";
 
 export default function BookmarksPage() {
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6">
-      <h1 className="mb-5 text-xl font-bold text-foreground">我的收藏</h1>
+    <PageShell width="feed">
+      <PageHeader title="我的收藏" description="稍后继续阅读或参与的主题帖。" />
       <BookmarkList />
-    </div>
+    </PageShell>
   );
 }

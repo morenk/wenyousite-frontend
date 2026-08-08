@@ -96,9 +96,9 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
       ref={cardRef}
       id={`post-${floor.id}`}
       className={cn(
-        "rounded-xl border border-border p-4 transition-colors",
-        isEven ? "bg-muted/30" : "bg-card",
-        focused && "border-primary bg-primary/[0.06] ring-2 ring-primary/20",
+        "rounded-2xl border border-border bg-card p-4 transition-colors",
+        isEven && "bg-muted/20",
+        focused && "border-primary bg-accent/30 ring-2 ring-primary/20",
       )}
     >
       {/* 楼层头部 */}
@@ -112,7 +112,7 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
           />
           <Link
             href={`/users/${floor.authorId}`}
-            className="text-sm font-medium text-foreground hover:text-primary"
+            className="text-sm font-medium text-foreground hover:text-brand-strong"
           >
             {floor.author.username}
           </Link>
@@ -208,7 +208,7 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
                   />
                   <Link
                     href={`/users/${reply.authorId}`}
-                    className="font-medium text-foreground hover:text-primary"
+                    className="font-medium text-foreground hover:text-brand-strong"
                   >
                     {reply.author.username}
                   </Link>
@@ -220,7 +220,12 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
                     })}
                   </span>
                 </div>
-                <MarkdownContent content={reply.content} diceRolls={reply.diceRolls} sourcePostId={reply.id} />
+                <MarkdownContent
+                  content={reply.content}
+                  diceRolls={reply.diceRolls}
+                  sourcePostId={reply.id}
+                  size="compact"
+                />
               </div>
             ))}
           </div>

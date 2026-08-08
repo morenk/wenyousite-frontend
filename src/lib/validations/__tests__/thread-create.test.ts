@@ -39,12 +39,12 @@ describe("threadCreateSchema", () => {
     ).toBe(true);
   });
 
-  test("category 非法值", () => {
+  test("category 接受服务端下发的动态 slug", () => {
     const result = threadCreateSchema.safeParse({
       ...validData,
-      category: "INVALID",
+      category: "MYSTERY",
     });
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
   });
 
   test("visibility 非法值", () => {
@@ -118,9 +118,9 @@ describe("validatePublishable", () => {
     ).toMatch(/正文/);
   });
 
-  test("category 未设置时仍在 schema 层拒绝", () => {
-    const data = { ...validData, category: "INVALID" as never };
-    const result = threadCreateSchema.safeParse(data);
-    expect(result.success).toBe(false);
+  test("草稿可不设置 category，但发布校验会拒绝", () => {
+    const data = { ...validData, category: undefined };
+    expect(threadCreateSchema.safeParse(data).success).toBe(true);
+    expect(validatePublishable(data)).toMatch(/分区/);
   });
 });

@@ -37,7 +37,7 @@ export function PostSearchResultList({
             parentPostId: post.parentPostId,
           })}
           onClick={onSelect}
-          className="block rounded-xl border border-border bg-card p-4 transition-shadow hover:shadow-md"
+          className="block rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-accent/20"
         >
           <p className="mb-1.5 line-clamp-2 text-sm text-foreground/90">
             {formatMarkdownPreview(post.content)}

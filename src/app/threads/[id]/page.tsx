@@ -17,7 +17,6 @@ import { SubthreadTabs } from "@/components/thread/subthread-tabs";
 import { SubthreadBody } from "@/components/thread/subthread-body";
 import { FloorList } from "@/components/thread/floor-list";
 import { FloorForm } from "@/components/thread/floor-form";
-import { ManagementPanel } from "@/components/thread/management-panel";
 import {
   ThreadComposerProvider,
   useThreadComposer,
@@ -29,6 +28,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
+import { PageShell } from "@/components/layout/page-shell";
 
 export default function ThreadDetailPage() {
   const params = useParams();
@@ -59,7 +59,6 @@ function ThreadDetailPageContent() {
   } = useThreadDetail(threadId);
 
   const [selectedSubthreadId, setSelectedSubthreadId] = useState<string>();
-  const [isManaging, setIsManaging] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const { data: targetPost } = usePost(targetPostId);
   const targetFloorId = targetPost?.parentPostId ?? targetPost?.id;
@@ -114,7 +113,7 @@ function ThreadDetailPageContent() {
     const err = error as { code?: number };
     const is404 = err?.code === 40400;
     return (
-      <div className="mx-auto max-w-3xl px-4 py-12">
+      <PageShell width="feed" className="py-12">
         <Card>
           <CardContent className="pt-6">
             <div className="flex flex-col items-center gap-4 py-8">
@@ -138,34 +137,21 @@ function ThreadDetailPageContent() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </PageShell>
     );
   }
 
   if (!thread) return null;
 
-  // 管理面板（帖主全页覆盖）
-  if (isManaging) {
-    return (
-      <div className="mx-auto h-[calc(100vh-3.5rem)] max-w-6xl px-4 py-4">
-        <ManagementPanel
-          thread={thread}
-          onExit={() => setIsManaging(false)}
-          onRefetch={refetch}
-        />
-      </div>
-    );
-  }
-
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6">
+    <PageShell width="feed">
       {/* 头部 */}
       <ThreadDetailHeader
         thread={thread}
         isSearchOpen={isSearching}
         onSearch={() => setIsSearching((open) => !open)}
         onManage={canManageThread ? async () => {
-          if (await closeComposer()) setIsManaging(true);
+          if (await closeComposer()) router.push(`/threads/${thread.id}/edit`);
         } : undefined}
       />
 
@@ -222,6 +208,6 @@ function ThreadDetailPageContent() {
           />
         )}
       </div>
-    </div>
+    </PageShell>
   );
 }

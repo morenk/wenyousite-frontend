@@ -51,6 +51,7 @@
 
 | Method | Path | Guard | 用途 |
 |--------|------|-------|------|
+| GET | `/thread-categories` | Public | 解析动态分类 slug 的名称、顺序和可选颜色 |
 | GET | `/threads/:id` | OptionalAuth | 主题帖详情（含子贴列表、owner、_count；登录时附加 isBookmarked/isLiked） |
 | GET | `/threads/:threadId/search/posts` | OptionalAuth | 帖内楼层搜索（至少 2 字符，相关度游标分页，继承主题帖权限） |
 | DELETE | `/threads/:id` | Auth | 删除主题帖：未发布帖硬删除，已发布帖软删除，仅 OWNER |
@@ -78,6 +79,8 @@
 > **候选池管理**：参与人记录只表示用户曾回复过主题帖，用于楼主选定玩家；管理操作不会删除参与人记录，仅通过角色字段管理协作者身份、通过 `playerMarked` 管理玩家标记。
 
 > **ID 校验说明**：后端所有 ID 为 Prisma `cuid()` 生成的 CUID（非 UUID），DTO 校验统一使用 `@IsCuid`（替代 `@IsUUID`，后者会因 CUID 不含连字符而拒绝请求）。
+
+> **分类显示契约**：`thread.category` 是可空的动态 slug，不再是封闭枚举。详情通过 `GET /thread-categories` 显示管理员配置的名称和颜色；未知 slug 显示原 slug，空值显示“未分类”，不能导致页面崩溃。
 
 > **通知精确定位**：主楼层仍使用详情页 `?post=` 注入并立即定位；楼中楼通知直接进入 `/threads/{threadId}/posts/{parentPostId}/replies?post={replyId}`，在独立阅读页立即定位并高亮目标回复。定位不使用平滑移动动画；高亮只作用于目标楼层/回复卡片本身，父楼层和列表容器不高亮。兼容旧链接：详情页发现目标是楼中楼时立即重定向到独立阅读页，重定向期间不高亮父楼层。
 
@@ -252,13 +255,14 @@
 | 当前用户帖内权限 | `GET /threads/:id` 的 `currentMembership` + `capabilities` | 与详情共用缓存，只查询当前用户成员关系；不为权限判断预取全量成员 |
 | 帖内搜索 | `GET /threads/:threadId/search/posts` | `useThreadSearchPosts` 游标分页；面板开关与待提交输入为详情页/组件本地状态 |
 | 表情收藏 | `GET /stickers` 与导入/排序/删除端点 | `useStickers` 用户级缓存；编辑器点选插入，正文图片可快速收藏 |
-| 管理视图 | 用户点击管理页签 | `thread / subthreads / members` 本地状态；默认 `thread`，切换前检查未保存内容 |
+| 动态分类 | `GET /thread-categories` | 全局 Query 缓存；详情、列表和管理表单共用同一 slug → 展示映射 |
+| 管理视图 | `/threads/[id]/edit` | `thread / subthreads / members` 本地状态；默认 `thread`，切换前检查未保存内容 |
 
 ## 6. 组件清单
 
 | 组件 | 路径 | 说明 |
 |------|------|------|
-| ThreadDetailPage | `src/app/threads/[id]/page.tsx` | 详情页主逻辑（含管理面板切换） |
+| ThreadDetailPage | `src/app/threads/[id]/page.tsx` | 详情页主逻辑；管理入口关闭当前编辑器后导航到 workspace 编辑路由 |
 | ThreadDetailHeader | `src/components/thread/thread-detail-header.tsx` | 标题与操作区；楼主/协作者仅显示统一“管理”入口，仅楼主可邀请和删除整帖 |
 | ThreadSubscriptionControls | `src/components/thread/thread-subscription-controls.tsx` | 普通用户的主题/玩家订阅、成员候选查询与退出玩家身份交互 |
 | ThreadPostSearch | `src/components/thread/thread-post-search.tsx` | 内联搜索全部子贴与楼中楼；处理短词、分页及四态 |
@@ -305,7 +309,7 @@
 
 ## 6.1 帖主管理面板
 
-帖主/协作者在头部只看到一个「管理」按钮，点击进入**全页覆盖式管理面板**。面板包含「主题帖 / 子贴 / 成员」三个页签并默认打开「主题帖」；「返回浏览」切回正常浏览。
+帖主/协作者在头部只看到一个「管理」按钮，点击进入 `/threads/[id]/edit` 的 **workspace 管理面板**。该路由固定使用 72px 图标导航且不显示右侧信息栏，避免管理区被社区三栏壳压缩。面板包含「主题帖 / 子贴 / 成员」三个页签并默认打开「主题帖」；「返回浏览」回到主题帖详情。
 
 ```
 ┌─ 管理帖子 ──────────────────────────────────────────┐
@@ -322,8 +326,12 @@
 - 拖拽排序只操作目录中的真实子贴；提交时前端自动把默认子贴补在首位，继续满足默认子贴 `sortOrder=0` 的数据约束。
 - 「成员」页签继续提供协作者与玩家管理。管理面板不做楼层级管理。
 - 主题帖表单或子贴正文有未保存内容时，切换页签、切换子贴或返回浏览均先确认是否放弃；保存或图片上传期间禁止导航。
-- `/threads/[id]/edit` 对已发布帖渲染同一 `ManagementPanel`，用于兼容历史收藏和直达链接；草稿续写/发布流程不变。
+- `/threads/[id]/edit` 是已发布帖管理的唯一页面入口，同时兼容历史收藏和直达链接；草稿续写/发布流程不变。
 - 子贴较多时：`SubthreadTabs` 为横向滚动条 + 溢出左右箭头 + 选中 Tab 自动滚入视野，支持几十个子贴
+
+## 6.2 阅读排版
+
+主题帖正文、楼层和独立回复统一使用 `docs/design-system.md` 的“帖子阅读排版”契约：主阅读正文为 `17px / 约 32px`、最大 40 个全角字宽，默认缩放目标每行约 35–37 个汉字；嵌套回复为 `16px / 1.85`。粗体使用真实 700 字重，中文强调使用 LXGW WenKai 正体，引用不继承合成斜体。Milkdown 编辑区使用同一套字号、行距和强调映射。
 
 ## 7. 发布楼层流程
 
@@ -343,7 +351,7 @@
 
 > **子贴正文 vs 回复串：** 子贴正文（kind=BODY）与楼层/回复串（kind=FLOOR）定位不同——正文由子贴生命周期管理（管理面板 upsert，删除帖子接口对 BODY 返回 403 拦截），**楼层列表中的楼层（含 #1）作者均可删除/编辑**，不存在「首楼禁删」。
 
-**页面布局：** 主题帖标题区为页面顶层独立标题区（非卡片，`ThreadDetailHeader`，含徽章/标题/作者/标签/操作按钮）→ 子贴 Tab → 子贴卡（`SubthreadBody`：子贴标题 + 正文同卡）→ 楼层列表 → 轻量发布入口。
+**页面布局：** 主题帖标题区为带玩法线路色的独立信息面板（`ThreadDetailHeader`，含徽章/标题/作者/标签/操作按钮）→ 子贴 Tab → 子贴卡（`SubthreadBody`：子贴标题 + 正文同卡）→ 楼层列表 → 轻量发布入口。
 
 ```
 用户点击 FloorForm 的「发表回复」入口
@@ -400,10 +408,10 @@
 ## 10. 验收标准
 
 - [x] 详情页正确展示帖子头部信息
-- [x] 头部分类/状态/标签徽章正确映射为中文
+- [x] 头部分类从公开分类接口解析；未知或空分类安全降级
 - [x] 子贴 Tab 可切换，选中 Tab 高亮
 - [x] 子贴标题与正文（kind=BODY）同容器渲染（SubthreadBody），正文不进入楼层列表
-- [x] 主题帖标题区独立置顶（非卡片，ThreadDetailHeader），子贴标题取代原卡片内标题位置
+- [x] 主题帖标题区独立置顶（ThreadDetailHeader），子贴标题取代原卡片内标题位置
 - [x] OWNER 可删除主题帖：已发布帖软删除，草稿硬删除，成功后返回首页
 - [x] 楼层列表按 floorNumber 排序，分页加载（楼层从 #1 开始）
 - [x] 楼层卡片正确渲染 Markdown 内容
@@ -421,7 +429,7 @@
 - [x] thread 不存在时显示 404
 - [x] 所有错误状态有 toast 或内联提示
 - [x] 帖主看到「管理」按钮（非帖主不显示）
-- [x] 详情头部不再显示独立「编辑」按钮；管理面板默认进入「主题帖」页签
+- [x] 详情头部不再显示独立「编辑」按钮；管理入口进入 `/threads/[id]/edit` workspace 并默认打开「主题帖」页签
 - [x] 主题帖保存后停留在管理界面；切页签或返回浏览前保护未保存内容
 - [x] 主帖正文仅在「主题帖」页签编辑，子贴页签不重复挂载主帖编辑器
 - [x] 管理面板：左子贴目录树 + 右单例编辑器（返回浏览可切回）
@@ -455,7 +463,7 @@
 - [x] 元数据玩家数改用 `_count.players`（ThreadDetailHeader / ThreadCard）
 - [x] 子贴目录排序只处理真实子贴，提交时补回默认子贴首位
 - [x] 实现 `SubthreadTree`（@dnd-kit 拖拽排序）与 `ManagementPanel`（左树右编辑）
-- [x] 实现 `/threads/[id]` 页面（含管理面板切换）
+- [x] 实现 `/threads/[id]` 浏览页与 `/threads/[id]/edit` workspace 管理页
 - [x] 创建页移除沙盒多子贴/楼层管理，子贴管理移至详情页管理面板
 - [x] 后端读端点 `@Public()` → `@OptionalAuth()` 修复（草稿帖楼层/子贴可查询）
 - [x] lint / typecheck / build 通过

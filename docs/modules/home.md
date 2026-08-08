@@ -14,7 +14,7 @@
 - 状态筛选（全部状态、招募中、已停招、已结束）
 - 主题帖标签可点击，并通过稳定标签 ID 查看该标签下的帖子
 - PC Web 布局
-- 登录状态下的快捷入口（创建帖、草稿箱）
+- 全局应用壳中的创建、收藏与账户快捷入口
 
 **后续迭代：**
 - 搜索栏集成
@@ -52,9 +52,11 @@
 | 组件 | 路径 | 说明 |
 |------|------|------|
 | HomePage | `src/app/page.tsx` | 首页主逻辑 |
+| AppChrome | `src/components/layout/app-chrome.tsx` | 根据路由切换社区三栏、工作区双栏和认证页布局 |
+| AppContextRail | `src/components/layout/app-context-rail.tsx` | 宽屏账户、钱包、玩法分类和访客功能入口 |
 | TagThreadsPage | `src/app/tags/[id]/page.tsx` | 指定标签主题帖列表，复用首页筛选和无限滚动 |
-| ThreadList | `src/components/thread/thread-list.tsx` | 列表容器 |
-| ThreadCard | `src/components/thread/thread-card.tsx` | 主题帖卡片 |
+| ThreadList | `src/components/thread/thread-list.tsx` | 单一 Panel 外框、行分隔、四态与无限滚动 |
+| ThreadCard | `src/components/thread/thread-card.tsx` | 连续主题列表中的单行内容 |
 | TopicTagLink | `src/components/thread/topic-tag-link.tsx` | 卡片与详情页共用的标签浏览入口 |
 | CategoryTabs | `src/components/thread/category-tabs.tsx` | 分类筛选 Tab |
 | ThreadFilters | `src/components/thread/thread-filters.tsx` | 排序与状态下拉筛选栏 |
@@ -64,10 +66,12 @@
 
 每张卡片展示：
 
+首页使用社区应用壳：1024px 起显示 72px 紧凑导航和最大 672px feed；1280px 起切换为 208px 完整导航、672px feed 与 272px 上下文栏。主题帖以单一白色面板内的连续列表行展示，左侧线路色标识玩法；作者、时间、分类和状态位于紧凑元数据区，列表行之间使用细分隔线，不为每行重复常驻阴影。
+
 | 字段 | 来源 | 格式 |
 |------|------|------|
 | 标题 | thread.title | 文本 |
-| 分类 | thread.category | 枚举 → 中文（演绎/国策/RPG） |
+| 分类 | thread.category + `GET /thread-categories` | 动态 slug → 管理员配置的名称、顺序和可选颜色；空值/未知值安全降级 |
 | 正文预览 | 默认子贴正文（kind=BODY） | Markdown 纯文本截断（~120 字） |
 | 标签 | thread.topicTags[] | 可点击标签徽章，进入 `/tags/{tag.id}` |
 | 状态 | thread.status | 招募中/已停招/已结束 |
@@ -88,8 +92,8 @@
 - 状态参数：不传表示全部状态；`RECRUITING`=招募中，`CLOSED`=已停招，`FINISHED`=已结束。
 - 标签 ID、分类、排序和状态都进入 `useThreads` 的 query key；切换任一筛选条件会得到独立分页缓存。
 - 首页分类、排序与状态使用 nuqs 同步到 URL，并写入浏览历史；链接可分享，刷新以及浏览器前进/后退均能恢复筛选。
-- 公开列表缓存新鲜期为 60 秒；写操作继续通过 query invalidation 主动刷新。主题卡片在悬停/聚焦时预取详情和默认子贴首屏楼层，改善点击后的等待感。
-- 全站字体使用系统中文、圆体和等宽字体栈，不再下载 Google 字体文件；字体资源不会阻塞首屏绘制。
+- 公开列表缓存新鲜期为 60 秒；写操作继续通过 query invalidation 主动刷新。主题卡片在悬停/聚焦时只预取无浏览计数副作用的默认子贴首屏楼层，改善点击后的等待感。
+- 中文标题使用本地打包的 LXGW WenKai，界面正文使用 Noto Sans SC Variable，数字与短标签使用 Nunito Variable；运行时不请求外部字体服务。
 
 ## 8. 错误处理
 
@@ -104,7 +108,7 @@
 | 场景 | 处理 |
 |------|------|
 | 未登录 | 正常浏览列表，隐藏"创建"入口 |
-| 已登录 | 显示顶部"创建主题帖"和"草稿箱"入口 |
+| 已登录 | 侧栏显示"创建主题帖"和"收藏"入口 |
 
 ## 10. 验收标准
 
@@ -122,6 +126,8 @@
 - [x] 卡片和详情页标签可进入稳定标签路由
 - [x] 标签页仅展示精确关联该标签的公开已发布主题帖，并可继续组合筛选
 - [x] 标签不存在时显示明确错误状态
+- [x] 首页与标签页使用纯白阅读表面、玩法线路色、语义 PageShell 和连续信息列表
+- [x] 1024/1440px 具有确定性 Playwright 视觉基线，1920px 保持 208px 导航 + 672px feed + 272px 上下文栏
 - [x] `pnpm lint && pnpm typecheck && pnpm build` 通过
 
 ## 11. 子任务

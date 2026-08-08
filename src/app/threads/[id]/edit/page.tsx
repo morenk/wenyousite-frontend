@@ -13,6 +13,8 @@ import { ManagementPanel } from "@/components/thread/management-panel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
+import { PageHeader } from "@/components/layout/page-header";
+import { PageShell } from "@/components/layout/page-shell";
 import {
   ThreadPermissionsProvider,
   useThreadPermissions,
@@ -54,7 +56,7 @@ function EditThreadPageContent() {
 
   if (!isInitialized || isLoading || isPermissionsLoading) {
     return (
-      <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center">
         <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin" />
           加载中…
@@ -65,7 +67,7 @@ function EditThreadPageContent() {
 
   if (error) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-12">
+      <PageShell width="content" className="py-12">
         <Card>
           <CardContent className="pt-6">
             <div className="flex flex-col items-center gap-4 py-8">
@@ -80,7 +82,7 @@ function EditThreadPageContent() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </PageShell>
     );
   }
 
@@ -88,7 +90,7 @@ function EditThreadPageContent() {
 
   if (!canEdit) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-12">
+      <PageShell width="content" className="py-12">
         <Card>
           <CardContent className="pt-6">
             <div className="flex flex-col items-center gap-4 py-8">
@@ -107,16 +109,14 @@ function EditThreadPageContent() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </PageShell>
     );
   }
 
   if (!thread.published && isOwner) {
     return (
-      <div className="mx-auto max-w-5xl px-4 py-6">
-        <div className="mb-5 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-foreground">继续编辑草稿</h1>
-        </div>
+      <PageShell width="workspace">
+        <PageHeader title="继续编辑草稿" />
         <Card>
           <CardHeader>
             <CardTitle>草稿内容</CardTitle>
@@ -132,12 +132,12 @@ function EditThreadPageContent() {
             />
           </CardContent>
         </Card>
-      </div>
+      </PageShell>
     );
   }
 
   return (
-    <div className="mx-auto h-[calc(100vh-3.5rem)] max-w-6xl px-4 py-4">
+    <div className="h-screen w-full px-2 py-4 sm:px-4">
       <ManagementPanel
         thread={thread}
         initialView="thread"

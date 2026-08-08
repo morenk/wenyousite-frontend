@@ -90,8 +90,11 @@ export const queryKeys = {
       userId: string | undefined,
       conversationId: string | undefined,
     ) => ["direct-messages", "messages", userId, conversationId] as const,
-    updates: (userId: string | undefined, conversationId: string | undefined) =>
-      ["direct-messages", "updates", userId, conversationId] as const,
+    updates: (
+      userId: string | undefined,
+      conversationId: string | undefined,
+      afterMessageId: string | undefined,
+    ) => ["direct-messages", "updates", userId, conversationId, afterMessageId] as const,
     reconciliation: (
       userId: string | undefined,
       conversationId: string | undefined,
@@ -103,6 +106,7 @@ export const queryKeys = {
   },
   stickers: (userId: string | undefined) => ["stickers", userId] as const,
   subscriptions: ["subscriptions"] as const,
+  threadCategories: ["thread-categories"] as const,
   topicTags: (query: string) => ["tags", query] as const,
   topicTag: (tagId: string) => ["tag", tagId] as const,
   contentDrafts: ["content-drafts"] as const,

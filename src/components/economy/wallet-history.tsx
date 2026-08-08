@@ -44,13 +44,13 @@ export function WalletHistory() {
                 </Button>
               </div>
             ) : (
-              <p className="mt-1 text-3xl font-bold tabular-nums text-foreground">
+              <p className="mt-1 font-utility text-3xl font-bold tabular-nums text-foreground">
                 {wallet.data ? formatWenyou(wallet.data.balance) : "—"}
                 <span className="ml-1 text-sm font-medium text-muted-foreground">升</span>
               </p>
             )}
           </div>
-          <WalletCards className="h-10 w-10 text-primary/70" />
+          <WalletCards className="h-10 w-10 text-brand-strong/70" />
         </CardContent>
       </Card>
 
@@ -89,8 +89,8 @@ export function WalletHistory() {
                   </div>
                   <div className="shrink-0 text-right">
                     <p className={transaction.direction === "INCOME"
-                      ? "font-semibold tabular-nums text-emerald-600 dark:text-emerald-400"
-                      : "font-semibold tabular-nums text-foreground"
+                      ? "font-utility font-bold tabular-nums text-success"
+                      : "font-utility font-bold tabular-nums text-foreground"
                     }>
                       {transaction.direction === "INCOME" ? "+" : "−"}
                       {formatWenyou(transaction.amount)} 升

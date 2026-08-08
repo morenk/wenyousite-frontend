@@ -89,7 +89,7 @@ export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
         ) : (
           <div
             data-testid="avatar-placeholder"
-            className="flex h-full w-full items-center justify-center text-3xl font-bold text-primary"
+            className="flex h-full w-full items-center justify-center text-3xl font-bold text-brand-strong"
           >
             {username.slice(0, 1).toUpperCase()}
           </div>

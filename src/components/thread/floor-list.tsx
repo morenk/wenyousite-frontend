@@ -62,7 +62,7 @@ export function FloorList({
     return (
       <EmptyState
         title="暂无回复"
-        description="来发第一帖吧"
+        description="当前子贴还没有楼层。"
       />
     );
   }

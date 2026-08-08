@@ -32,7 +32,7 @@ export function RequireAuth({
   if (!isInitialized || !user || (requireVerifiedEmail && !user.emailVerified)) {
     return (
       <div
-        className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center"
+        className="flex min-h-screen items-center justify-center"
         role="status"
         aria-label="正在验证登录状态"
       >

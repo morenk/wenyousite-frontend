@@ -6,7 +6,7 @@
 
 **本次迭代范围（Phase 4）：**
 - 创建主题帖页面 `/threads/create`（**双模式：先草稿列表，点「新建」再进编辑器**）
-- 草稿列表：未发布帖（标题/分类/更新时间/继续编辑/删除），空态「没有草稿喔」
+- 草稿列表：未发布帖（标题/分类/更新时间/继续编辑/删除），空态「还没有主题帖草稿」并说明如何新建
 - 草稿列表「继续编辑」进入 `/threads/:id/edit` 时按 `published` 分流：未发布草稿仍使用 `ThreadCreateForm`，保留「保存草稿」与最终「发布」按钮；不能误用仅有「保存修改」的已发布帖表单
 - 点「新建主题帖」后自动创建沙盒草稿（方案 A）
 - 草稿创建只允许由「新建主题帖」点击处理函数直接发起，并使用同步点击锁；渲染和 effect 均不发起 `POST /threads`。同一次点击及网络失败后的人工重试复用同一个 UUID `clientRequestId`，成功或返回草稿列表后才清除，避免响应丢失、Strict Mode 重放或连点生成重复草稿。
@@ -48,6 +48,7 @@
 | PATCH | `/threads/:id/aggregate` | Auth | 原子保存元数据、默认子贴标题/正文、标签和发布状态 |
 | PATCH | `/threads/:id` | Auth | 细粒度元数据更新（其他管理入口兼容；创建表单不再使用） |
 | DELETE | `/threads/:id` | Auth | 放弃创建，删除草稿 |
+| GET | `/thread-categories` | Public | 获取管理员配置并排序的启用分类；表单保存稳定 `slug` |
 | PUT | `/subthreads/:subthreadId/body` | Auth | 非默认子贴管理时单独 upsert 正文；创建表单改用聚合端点 |
 | GET | `/tags?q=` | Public | 标签自动补全 |
 | POST | `/media/upload-url` | Auth | 获取 S3 预签名 URL；**每用户小时配额（默认 60 次）**，超限返回 429 |
@@ -70,12 +71,13 @@
 | 草稿 Thread | `POST /threads` | 页面本地 state，进入 editor 模式后创建并持久化 threadId |
 | 表单字段 | 用户输入 | react-hook-form |
 | 标签候选 | `GET /tags?q=` | TanStack Query + 本地 debounce |
+| 可用分类 | `GET /thread-categories` | 全局 Query 缓存 5 分钟；按服务端顺序显示，未知/停用值只作历史降级 |
 | 发布 loading | 提交中 | useState |
 | 编辑器完整 Markdown | Milkdown listener + 内联骰子节点插件 | 单一 content 受控状态，正文与节点共同保存 |
 
 **草稿生命周期：**
-- 进入 `/threads/create` 默认展示**草稿列表**（`picker` 模式），含「新建主题帖」按钮；无草稿时显示空态「没有草稿喔」。
-- 点「新建主题帖」切到 `editor` 模式并 `POST /threads`，请求携带默认分区/可见性和稳定 UUID `clientRequestId`，前端不发送空 `title`，拿到 `threadId` + `defaultSubthreadId` + `version`。
+- 进入 `/threads/create` 默认展示**草稿列表**（`picker` 模式），含「新建主题帖」按钮；无草稿时显示「还没有主题帖草稿」和新建操作说明。
+- 点「新建主题帖」切到 `editor` 模式并 `POST /threads`，请求只携带默认可见性和稳定 UUID `clientRequestId`，不预选分类、不发送空 `title`；草稿可在后续编辑时选择管理员当前启用的分类。
 - 用户每次修改后通过提交按钮保存，或最终发布时一次性提交。
 - 离开编辑器时如果未发布且未保存，草稿保留在 `GET /threads/draft` 中，用户下次进入创建页可在列表继续编辑。
 - 从草稿列表继续编辑时，`/threads/:id/edit` 加载详情并依据 `published=false` 渲染发布表单；返回操作仅回到草稿列表，不删除已有草稿。
@@ -87,12 +89,13 @@
 |------|------|------|
 | CreateThreadPage | `src/app/threads/create/page.tsx` | 创建页主逻辑（picker/editor 双模式） |
 | ThreadDraftPicker | `src/components/thread/thread-draft-picker.tsx` | 草稿选择：标题 + 「新建主题帖」按钮 + 草稿列表 |
-| DraftList | `src/components/user/draft-list.tsx` | 未发布帖列表（复用；空态「没有草稿喔」） |
+| DraftList | `src/components/user/draft-list.tsx` | 未发布帖列表（复用；空态说明如何新建） |
 | ThreadCreateForm | `src/components/forms/thread-create-form.tsx` | 主题帖创建表单：基础信息 + 默认子贴正文（简洁模式） |
 | EditThreadPage | `src/app/threads/[id]/edit/page.tsx` | 兼容编辑路由：草稿渲染 ThreadCreateForm，已发布帖复用统一 ManagementPanel |
 | MilkdownEditor | `src/components/editor/milkdown-editor.tsx` | @milkdown/crepe WYSIWYG 编辑器（骰子/表情内联节点、字数统计、本地图片上传、正文草稿入口） |
 | TagInput | `src/components/forms/tag-input.tsx` | 主题帖标签输入（支持自动补全） |
 | useCreateThread | `src/api/hooks/use-create-thread.ts` | 创建草稿 hook |
+| useThreadCategories | `src/api/hooks/use-thread-categories.ts` | 公开动态分类查询；Web 与 Flutter 均消费稳定 slug |
 | useThreadDetail | `src/api/hooks/use-thread-detail.ts` | 获取详情 hook |
 | useSaveThreadAggregate | `src/api/hooks/use-save-thread-aggregate.ts` | 单请求原子保存/发布主题帖聚合 |
 | useUpdateThread | `src/api/hooks/use-update-thread.ts` | 细粒度元数据更新兼容 hook |
@@ -128,13 +131,13 @@
 **中文本地化策略：** 通过 `Crepe` 构造函数的 `featureConfigs` 覆盖所有英文 UI 字符串。
 Milkdown Crepe v7 不支持 i18n 插件，所有文本通过各 feature 的 config 对象逐项覆盖。
 
-**中文字体：** `globals.css` 中覆盖 Milkdown Crepe 的 CSS 自定义属性 `--crepe-font-default`、`--crepe-font-title`、`--crepe-font-code`，插入 Noto Sans SC / M PLUS Rounded 1c / JetBrains Mono。
+**中文字体与阅读列：** `src/components/editor/milkdown-editor.css` 使用自托管 Noto Sans SC Variable 作为输入正文、LXGW WenKai 作为标题与中文强调、系统等宽字体作为代码字体。正文为 `17px / 1.9`，真实粗体使用 700 字重，中文强调使用文楷正体而非浏览器合成斜体；实际输入列与发布结果一致，限制在约 40 个全角字宽。
 
 字数统计：底部实时显示 `{已输入}/10000`，70% 黄色警告，90% 红色警告。
 
 **内容区高度与滚动：** `.ProseMirror` 内容区通过 CSS 变量 `--editor-min-height`（默认 280px）/ `--editor-max-height`（默认 400px）控制：min-height 撑开可视区，使空白处点击可将光标落到文档末尾（ProseMirror 原生 clamp，记事本式落位）；超过 max-height 后内容区出现滚动条，顶部工具栏 fixed 不滚动。编辑器保留 Crepe 的拖拽落点能力，但关闭会重复计算滚动偏移的虚拟光标，统一使用浏览器原生输入光标。组件提供 `maxHeight`/`minHeight` props 按场景覆盖（创建/编辑/管理面板默认 400，发布/编辑楼层传 300）。
 
-编辑区内边距通过 `globals.css` 覆盖 `.milkdown .ProseMirror { padding: 20px 32px }`（Nord 主题默认 60px 120px 过宽）。
+编辑区内边距与阅读排版统一位于 `src/components/editor/milkdown-editor.css`；`.milkdown .ProseMirror` 使用 `padding: 20px 32px`，窄工作区再通过媒体规则收紧。
 
 顶栏按钮 tooltip：Milkdown Crepe v7 TopBar 不支持 tooltip 配置，通过 `injectToolbarTooltips()` 函数在 DOM 就绪后给 `.top-bar-item` 和 `.top-bar-heading-button` 注入 `title` 属性，利用浏览器原生 tooltip 实现中文本地化悬浮提示。
 
@@ -150,9 +153,7 @@ const threadCreateSchema = z.object({
     .string()
     .max(100, "标题最多 100 个字符")
     .optional(),
-  category: z.enum(["DEDUCTION", "NATION", "RPG"], {
-    message: "请选择分区",
-  }),
+  category: z.string().trim().min(1, "请选择分区").optional(),
   visibility: z.enum(["PUBLIC", "PRIVATE"], {
     message: "请选择可见性",
   }),
@@ -174,7 +175,7 @@ const threadCreateSchema = z.object({
 
 **发布前预校验（前端）：**
 - 标题非空且不是 `"未命名草稿"`
-- category 已选择
+- category 已选择，且 slug 仍存在并处于启用状态
 - 正文非空
 
 后端在 `PATCH { published: true }` 时做最终校验，前端以 toast 展示后端 message。
@@ -190,6 +191,8 @@ const threadCreateSchema = z.object({
 | 40001 | 发布校验失败（缺标题/分区/正文） | toast 后端 message |
 | 40900 | 乐观锁冲突 | toast "内容已被修改，请刷新后重试" 并重新获取详情 |
 | 40912 | `clientRequestId` 被不同创建载荷复用 | toast 后端冲突提示并返回草稿列表；不得换新键盲重试 |
+| 40414 | 所选分类不存在 | 重新加载分类并要求用户重新选择 |
+| 40919 | 所选分类或标签已停用 | 保留正文和其他字段，重新加载可用选项 |
 | 42900（发帖/保存） | 限流 | toast "操作太频繁，请稍后再试" |
 | 42900（图片上传） | 每用户小时上传配额超限 / 全局限流 | `uploadImageFile` 显式映射为 toast "上传图片太频繁，请稍后再试"，编辑器与头像上传统一复用 |
 | 网络错误 | fetch 失败 | toast "网络连接失败，请检查网络后重试" |
@@ -235,7 +238,9 @@ POST /threads 创建草稿
 - [x] 创建页保持简洁：不承载多子贴/楼层管理（移至详情页管理面板）
 - [x] 标签输入支持自动补全和新建
 - [x] 编辑器支持 WYSIWYG 渲染与可见工具栏
-- [x] 编辑器功能：粗体/斜体/删除线/行内代码/链接/标题/列表/引用/代码块
+- [x] 编辑器功能：粗体/斜体/删除线/行内代码/链接/标题/列表/引用；历史代码块可渲染和校验，但编辑器不提供代码块入口
+- [x] 草稿允许暂不选择分类；发布必须使用 `GET /thread-categories` 返回的启用 slug
+- [x] 编辑器正文排版与发布结果一致，默认缩放下使用 17px 正文和真实字重
 - [x] 编辑器支持图片上传并插入 Markdown
 - [x] 编辑器支持字数统计（70% 黄色 / 90% 红色阈值提示）
 - [x] 编辑器不可见空段落不会在发布后显示为字面 `<br />`，代码块中的 `<br />` 示例不被误删

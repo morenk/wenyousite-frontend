@@ -18,6 +18,7 @@ vi.mock("next/link", () => ({
 }));
 
 vi.mock("next/navigation", () => ({
+  usePathname: () => "/",
   useRouter: () => ({ replace: vi.fn(), refresh: vi.fn() }),
 }));
 
@@ -55,13 +56,14 @@ beforeEach(() => {
 afterEach(() => cleanup());
 
 describe("NavBar", () => {
-  test("登录后不在全局导航栏展示收藏入口", () => {
+  test("登录后展示创作与个人导航入口", () => {
     mockUseAuth.mockReturnValue({ user: { id: "u1", username: "用户" }, logout: vi.fn() });
     render(<NavBar />);
 
-    expect(screen.queryByRole("link", { name: "收藏" })).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "8 升" })).toHaveAttribute("href", "/wallet");
-    expect(screen.getByRole("link", { name: "消息" })).toHaveAttribute("href", "/notifications");
+    expect(screen.getByRole("link", { name: "创建主题帖" })).toHaveAttribute("href", "/threads/create");
+    expect(screen.getByRole("link", { name: "收藏" })).toHaveAttribute("href", "/bookmarks");
+    expect(screen.getByRole("link", { name: "通知" })).toHaveAttribute("href", "/notifications");
+    expect(screen.getByRole("link", { name: "私聊" })).toHaveAttribute("href", "/messages");
     expect(screen.getByRole("link", { name: "用户" })).toHaveAttribute("href", "/users/u1");
   });
 
@@ -71,7 +73,20 @@ describe("NavBar", () => {
 
     expect(screen.getByRole("link", { name: "登录" })).toHaveAttribute("href", "/login");
     expect(screen.getByRole("link", { name: "注册" })).toHaveAttribute("href", "/register");
-    expect(screen.queryByTitle("我的温油")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "创建主题帖" })).not.toBeInTheDocument();
+  });
+
+  test("工作区紧凑模式在宽屏也不展开文字标签", () => {
+    mockUseAuth.mockReturnValue({ user: { id: "u1", username: "用户" }, logout: vi.fn() });
+    render(<NavBar compact />);
+
+    expect(screen.getByRole("complementary", { name: "全局导航" })).toHaveAttribute(
+      "data-compact",
+      "true",
+    );
+    expect(screen.getByText("温油站")).not.toHaveClass("xl:block");
+    expect(screen.getByText("发现")).not.toHaveClass("xl:inline");
+    expect(screen.getByText("创建主题帖")).not.toHaveClass("xl:inline");
   });
 
   test("服务端未能撤销终端时保留本地登录态并提示重试", async () => {

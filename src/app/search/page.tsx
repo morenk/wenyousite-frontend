@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { PageShell } from "@/components/layout/page-shell";
 import { LoadingState } from "@/components/shared/loading-state";
 import { searchQueryParser } from "@/lib/url-state";
+import { PageHeader } from "@/components/layout/page-header";
 
 function SearchPageInner() {
   const [q, setQuery] = useQueryState("q", searchQueryParser.withOptions({
@@ -27,7 +28,8 @@ function SearchPageInner() {
   };
 
   return (
-    <PageShell width="md">
+    <PageShell width="feed">
+      <PageHeader title="搜索" description="查找用户、主题帖和公开楼层内容。" />
       <form onSubmit={handleSubmit} className="mb-6 flex items-center gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

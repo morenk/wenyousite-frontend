@@ -11,7 +11,7 @@ import { FollowButton } from "@/components/user/follow-button";
 import { BlockButton } from "@/components/user/block-button";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Card, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { buttonVariants } from "@/components/ui/button";
 import type { ActiveUserPublic } from "@/api/hooks/use-user-profile";
 import { LevelBadge } from "@/components/shared/level-badge";
 import { WenyouTipButton } from "@/components/economy/wenyou-tip-button";
@@ -26,19 +26,20 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
   const isSelf = !!me && me.id === user.id;
 
   return (
-    <Card>
+    <Card className="relative">
+      <div className="absolute inset-x-0 top-0 h-1 bg-primary" aria-hidden="true" />
       <CardContent className="pt-6">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-4">
             <UserAvatar
               name={user.username}
               src={user.avatar}
-              className="h-16 w-16"
+              className="h-16 w-16 ring-4 ring-white outline outline-1 outline-border"
               textClassName="text-2xl"
             />
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-lg font-bold text-foreground">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="truncate font-display text-2xl font-bold text-foreground">
                   {user.username}
                 </h1>
                 <LevelBadge level={user.level} />
@@ -48,17 +49,17 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
                   </span>
                 )}
               </div>
-              <div className="mt-1 flex items-center gap-4 text-xs text-muted-foreground">
+              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-utility text-xs text-muted-foreground">
                 <Link
                   href={`/users/${user.id}/following`}
-                  className="flex items-center gap-1 hover:text-primary"
+                  className="flex items-center gap-1 hover:text-brand-strong"
                 >
                   <Users className="h-3.5 w-3.5" />
                   关注 {user._count.following}
                 </Link>
                 <Link
                   href={`/users/${user.id}/followers`}
-                  className="flex items-center gap-1 hover:text-primary"
+                  className="flex items-center gap-1 hover:text-brand-strong"
                 >
                   粉丝 {user._count.followers}
                 </Link>
@@ -76,18 +77,10 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="relative z-10 flex flex-wrap items-center gap-2">
             {isSelf ? (
-              <Link href="/me">
-                <button
-                  type="button"
-                  className={cn(
-                    "inline-flex h-8 items-center rounded-md border border-border px-3 text-sm",
-                    "text-muted-foreground hover:bg-muted",
-                  )}
-                >
-                  编辑资料
-                </button>
+              <Link href="/me" className={buttonVariants({ variant: "outline", size: "compact" })}>
+                编辑资料
               </Link>
             ) : (
               <>
@@ -97,17 +90,12 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
                       target={{ type: "USER", id: user.id }}
                       recipientName={user.username}
                     />
-                    <Link href={`/messages/new/${user.id}`}>
-                      <button
-                        type="button"
-                        className={cn(
-                          "inline-flex h-8 items-center gap-1.5 rounded-md border border-border px-3 text-sm",
-                          "text-muted-foreground hover:bg-muted hover:text-foreground",
-                        )}
-                      >
-                        <MessageCircle className="h-4 w-4" />
-                        私聊
-                      </button>
+                    <Link
+                      href={`/messages/new/${user.id}`}
+                      className={buttonVariants({ variant: "outline", size: "compact" })}
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      私聊
                     </Link>
                   </>
                 )}
@@ -119,7 +107,7 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
         </div>
 
         {user.bio && (
-          <p className="mt-4 whitespace-pre-wrap text-sm text-foreground/90">
+          <p className="mt-5 whitespace-pre-wrap border-t border-border pt-4 text-sm leading-7 text-foreground/90">
             {user.bio}
           </p>
         )}

@@ -19,6 +19,19 @@ describe("MarkdownContent", () => {
     render(<MarkdownContent content={"# 标题\n\n正文内容"} />);
     expect(screen.getByRole("heading", { name: "标题" })).toBeInTheDocument();
     expect(screen.getByText("正文内容")).toBeInTheDocument();
+    expect(document.querySelector('[data-slot="markdown-content"]')).toHaveClass(
+      "wenyou-prose",
+    );
+    expect(document.querySelector('[data-slot="markdown-content"]')).not.toHaveClass(
+      "prose-sm",
+    );
+  });
+
+  test("嵌套回复使用稍紧凑但不缩小到小号正文的排版", () => {
+    render(<MarkdownContent content="回复正文" size="compact" />);
+    const content = document.querySelector('[data-slot="markdown-content"]');
+    expect(content).toHaveAttribute("data-size", "compact");
+    expect(content).toHaveClass("wenyou-prose-compact");
   });
 
   test("骰子结果以和文字混排的背景色标签显示", () => {

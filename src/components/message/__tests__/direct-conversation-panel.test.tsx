@@ -11,7 +11,6 @@ const mocks = vi.hoisted(() => ({
   toastSuccess: vi.fn(),
   toastError: vi.fn(),
   virtualScrollToEnd: vi.fn(),
-  virtualIsAtEnd: vi.fn(),
 }));
 
 vi.mock("@tanstack/react-virtual", () => ({
@@ -24,7 +23,6 @@ vi.mock("@tanstack/react-virtual", () => ({
     getTotalSize: () => count * 100,
     measureElement: vi.fn(),
     scrollToEnd: mocks.virtualScrollToEnd,
-    isAtEnd: mocks.virtualIsAtEnd,
   }),
 }));
 
@@ -131,7 +129,6 @@ beforeEach(() => {
   mocks.actions.mockReturnValue(actionSet);
   mocks.blockActions.mockReturnValue(blockSet);
   mocks.confirm.mockResolvedValue(true);
-  mocks.virtualIsAtEnd.mockReturnValue(true);
   setConversation();
   mocks.history.mockReturnValue({
     messages: [
@@ -157,6 +154,7 @@ beforeEach(() => {
     hasNextPage: true,
     isFetchingNextPage: false,
     fetchNextPage: vi.fn(),
+    refetchLatest: vi.fn(),
   });
 });
 
@@ -221,19 +219,43 @@ describe("DirectConversationPanel", () => {
     expect(mocks.virtualScrollToEnd).toHaveBeenCalledWith({ behavior: "smooth" });
   });
 
-  test("离开底部时显示返回入口并可平滑回到最新消息", async () => {
-    mocks.virtualIsAtEnd.mockReturnValue(false);
+  test("离开底部时返回入口会刷新并一次定位到最新消息", async () => {
+    const history = mocks.history();
+    mocks.history.mockReturnValue(history);
     render(<DirectConversationPanel conversationId="c1" />);
     mocks.virtualScrollToEnd.mockClear();
 
-    screen.getByRole("log", { name: "消息记录" }).dispatchEvent(new Event("scroll", {
+    const messageLog = screen.getByRole("log", { name: "消息记录" });
+    Object.defineProperties(messageLog, {
+      scrollHeight: { configurable: true, value: 1_000 },
+      clientHeight: { configurable: true, value: 400 },
+      scrollTop: { configurable: true, writable: true, value: 100 },
+    });
+    messageLog.dispatchEvent(new Event("scroll", {
       bubbles: true,
     }));
 
     const jumpButton = await screen.findByRole("button", { name: "回到最新消息" });
     await userEvent.click(jumpButton);
-    expect(mocks.virtualScrollToEnd).toHaveBeenCalledWith({ behavior: "smooth" });
+    expect(mocks.virtualScrollToEnd).toHaveBeenCalledWith({ behavior: "auto" });
+    expect(history.refetchLatest).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole("button", { name: "回到最新消息" })).not.toBeInTheDocument();
+
+    messageLog.scrollTop = 600;
+    messageLog.dispatchEvent(new Event("scroll", { bubbles: true }));
+    expect(screen.queryByRole("button", { name: "回到最新消息" })).not.toBeInTheDocument();
+  });
+
+  test("切换会话时重新按首次进入定位到底部", () => {
+    const history = mocks.history();
+    mocks.history.mockReturnValue(history);
+    const view = render(<DirectConversationPanel conversationId="c1" />);
+    expect(mocks.virtualScrollToEnd).toHaveBeenCalledWith({ behavior: "auto" });
+    mocks.virtualScrollToEnd.mockClear();
+
+    view.rerender(<DirectConversationPanel conversationId="c2" />);
+
+    expect(mocks.virtualScrollToEnd).toHaveBeenCalledWith({ behavior: "auto" });
   });
 
   test("连续消息按五分钟间隔合并为居中时间线节点", async () => {
@@ -347,5 +369,47 @@ describe("DirectConversationPanel", () => {
     render(<DirectConversationPanel conversationId="c1" />);
     await userEvent.click(screen.getByTitle("归档"));
     expect(mocks.toastError).toHaveBeenCalledWith("archive failed");
+  });
+
+  test("已读失败后允许重试，不会把本地失败误当成已读", async () => {
+    const history = mocks.history();
+    mocks.history.mockReturnValue(history);
+    const view = render(<DirectConversationPanel conversationId="c1" />);
+
+    await waitFor(() => expect(actionSet.markRead.mutate).toHaveBeenCalledTimes(1));
+    const options = actionSet.markRead.mutate.mock.calls[0][1] as { onError: () => void };
+    options.onError();
+    mocks.history.mockReturnValue({ ...history, messages: [...history.messages] });
+    view.rerender(<DirectConversationPanel conversationId="c1" />);
+
+    await waitFor(() => expect(actionSet.markRead.mutate).toHaveBeenCalledTimes(2));
+  });
+
+  test("接受、拉黑和撤回失败时展示后端错误且不提示成功", async () => {
+    setConversation({
+      status: "PENDING",
+      requestDirection: "INCOMING",
+      canSend: false,
+      canAccept: true,
+      canDecline: true,
+    });
+    actionSet.handleRequest.mutateAsync.mockRejectedValueOnce({ message: "accept failed" });
+    const pending = render(<DirectConversationPanel conversationId="c1" />);
+    await userEvent.click(screen.getByRole("button", { name: "接受" }));
+    expect(mocks.toastError).toHaveBeenCalledWith("accept failed");
+    expect(mocks.toastSuccess).not.toHaveBeenCalledWith("已接受消息请求");
+    pending.unmount();
+
+    setConversation();
+    blockSet.block.mutateAsync.mockRejectedValueOnce({ message: "block failed" });
+    const accepted = render(<DirectConversationPanel conversationId="c1" />);
+    await userEvent.click(screen.getByRole("button", { name: "拉黑" }));
+    expect(mocks.toastError).toHaveBeenCalledWith("block failed");
+
+    actionSet.recall.mutateAsync.mockRejectedValueOnce({ message: "recall failed" });
+    await userEvent.click(await screen.findByRole("button", { name: "撤回 m2" }));
+    expect(mocks.toastError).toHaveBeenCalledWith("recall failed");
+    expect(mocks.toastSuccess).not.toHaveBeenCalledWith("消息已撤回");
+    accepted.unmount();
   });
 });

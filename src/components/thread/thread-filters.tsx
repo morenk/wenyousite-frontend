@@ -3,6 +3,13 @@
 "use client";
 
 import type { ThreadSort, ThreadStatusFilter } from "@/api/hooks/use-threads";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const sortOptions: { value: ThreadSort; label: string }[] = [
   { value: "newest", label: "最新创建" },
@@ -10,8 +17,8 @@ const sortOptions: { value: ThreadSort; label: string }[] = [
   { value: "recommended", label: "智能排序" },
 ];
 
-const statusOptions: { value: ThreadStatusFilter | ""; label: string }[] = [
-  { value: "", label: "全部状态" },
+const statusOptions: { value: ThreadStatusFilter | "ALL"; label: string }[] = [
+  { value: "ALL", label: "全部状态" },
   { value: "RECRUITING", label: "招募中" },
   { value: "CLOSED", label: "已停招" },
   { value: "FINISHED", label: "已结束" },
@@ -31,40 +38,48 @@ export function ThreadFilters({
   onStatusChange,
 }: ThreadFiltersProps) {
   return (
-    <div className="flex items-center gap-5 rounded-xl border border-border bg-card p-3">
-      <label className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-        排序
-        <select
-          aria-label="排序"
+    <div className="flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-border bg-muted/55 px-4 py-3">
+      <div className="flex items-center gap-2">
+        <span className="font-utility text-xs font-bold tracking-wide text-muted-foreground">排序</span>
+        <Select
+          items={sortOptions}
           value={sort}
-          onChange={(event) => onSortChange(event.target.value as ThreadSort)}
-          className="h-9 min-w-32 rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+          onValueChange={(value) => onSortChange(value as ThreadSort)}
         >
-          {sortOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </label>
+          <SelectTrigger size="compact" aria-label="排序" className="min-w-36">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {sortOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-      <label className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-        状态
-        <select
-          aria-label="状态"
-          value={status ?? ""}
-          onChange={(event) =>
-            onStatusChange((event.target.value || undefined) as ThreadStatusFilter | undefined)
+      <div className="flex items-center gap-2">
+        <span className="font-utility text-xs font-bold tracking-wide text-muted-foreground">状态</span>
+        <Select
+          items={statusOptions}
+          value={status ?? "ALL"}
+          onValueChange={(value) =>
+            onStatusChange(value === "ALL" ? undefined : value as ThreadStatusFilter)
           }
-          className="h-9 min-w-32 rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
         >
-          {statusOptions.map((option) => (
-            <option key={option.value || "all"} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </label>
+          <SelectTrigger size="compact" aria-label="状态" className="min-w-36">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {statusOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 }
