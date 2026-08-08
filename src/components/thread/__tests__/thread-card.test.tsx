@@ -71,6 +71,7 @@ const baseThread: ThreadCardData = {
   ],
   _count: { members: 5, players: 2, posts: 12 },
   preview: "这是帖子摘要预览...",
+  coverImages: [],
 };
 
 describe("ThreadCard", () => {
@@ -143,6 +144,24 @@ describe("ThreadCard", () => {
   test("渲染预览摘要", () => {
     renderThreadCard(baseThread);
     expect(screen.getByText("这是帖子摘要预览...")).toBeInTheDocument();
+  });
+
+  test("封面位于标题下并清理摘要中的图片占位", () => {
+    const { container } = renderThreadCard({
+      ...baseThread,
+      coverImages: [
+        "https://cdn.example.com/uploads/one.jpg",
+        "https://cdn.example.com/uploads/two.jpg",
+      ],
+      preview: "正文 [图片] 后续",
+    });
+    const title = screen.getByText("测试帖子标题").closest("h3");
+    const covers = container.querySelector("[data-image-count='2']");
+
+    expect(covers).toBeInTheDocument();
+    expect(title?.nextElementSibling).toBe(covers);
+    expect(screen.getByText("正文 后续")).toBeInTheDocument();
+    expect(screen.queryByText(/\[图片\]/u)).not.toBeInTheDocument();
   });
 
   test("预览摘要隐藏骰子协议和链接地址", () => {

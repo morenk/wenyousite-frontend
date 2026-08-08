@@ -46,6 +46,7 @@ const sampleThread: ThreadCardData = {
   topicTags: [],
   _count: { members: 1, players: 1, posts: 1 },
   preview: "预览内容",
+  coverImages: [],
 };
 
 describe("ThreadList", () => {

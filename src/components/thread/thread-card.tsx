@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { stackListRowVariants } from "@/components/ui/stack-list";
 import { cn } from "@/lib/utils";
 import { ThreadCategoryBadge, ThreadCategoryMarker } from "./thread-category";
+import { ThreadCoverGrid } from "./thread-cover-grid";
 
 interface ThreadCardProps {
   thread: ThreadCardData;
@@ -26,6 +27,11 @@ interface ThreadCardProps {
 
 export function ThreadCard({ thread }: ThreadCardProps) {
   const queryClient = useQueryClient();
+  const coverImages = thread.coverImages ?? [];
+  const formattedPreview = formatMarkdownPreview(thread.preview ?? "");
+  const preview = coverImages.length > 0
+    ? formattedPreview.replace(/\[图片\]/gu, " ").replace(/\s{2,}/gu, " ").trim()
+    : formattedPreview;
   const prefetchThread = () => {
     // 详情接口会记录浏览量，不能在悬停/聚焦时调用；楼层列表是无副作用查询。
     if (thread.defaultSubthread?.id) {
@@ -101,9 +107,11 @@ export function ThreadCard({ thread }: ThreadCardProps) {
             </Link>
           </h3>
 
-          {thread.preview && (
+          <ThreadCoverGrid images={coverImages} />
+
+          {preview && (
             <p className="mt-1.5 text-sm leading-6 text-muted-foreground line-clamp-2">
-              {formatMarkdownPreview(thread.preview)}
+              {preview}
             </p>
           )}
 
