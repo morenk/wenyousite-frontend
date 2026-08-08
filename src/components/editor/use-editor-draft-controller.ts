@@ -26,7 +26,6 @@ export function useEditorDraftController({
   const [version, setVersion] = useState(0);
   const [currentContent, setCurrentContent] = useState(defaultValue);
   const [draftOpen, setDraftOpen] = useState(false);
-  const [draftInitialContent, setDraftInitialContent] = useState("");
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<EditorAutoSaveStatus>("idle");
   const externalOnChangeRef = useRef(onChange);
@@ -60,7 +59,6 @@ export function useEditorDraftController({
   }, []);
 
   const handleOpenDrafts = useCallback(() => {
-    setDraftInitialContent(latestContentRef.current);
     setDraftOpen(true);
   }, []);
 
@@ -125,7 +123,6 @@ export function useEditorDraftController({
     currentContent,
     draftOpen,
     setDraftOpen,
-    draftInitialContent,
     autoSaveEnabled,
     autoSaveStatus,
     handleChange,

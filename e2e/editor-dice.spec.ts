@@ -40,7 +40,7 @@ const thread = {
   _count: { members: 1, players: 1, posts: 0 },
 };
 
-test("编辑器骰子按钮在真实浏览器中打开可见弹窗", async ({ page }) => {
+test("编辑器骰子与正文草稿工具在真实浏览器中正常工作", async ({ page }) => {
   let submittedBody = "";
   await page.route("**/api/v1/auth/refresh", (route) =>
     route.fulfill({
@@ -64,6 +64,32 @@ test("编辑器骰子按钮在真实浏览器中打开可见弹窗", async ({ pa
 
   await page.route("**/api/v1/threads/draft", (route) =>
     route.fulfill({ json: { code: 0, message: "ok", data: [] } }),
+  );
+  await page.route("**/api/v1/drafts/slots", (route) =>
+    route.fulfill({
+      json: {
+        code: 0,
+        message: "ok",
+        data: { usedSlots: 1, maxSlots: 5, slots: [1] },
+      },
+    }),
+  );
+  await page.route("**/api/v1/drafts", (route) =>
+    route.fulfill({
+      json: {
+        code: 0,
+        message: "ok",
+        data: [{
+          id: "draft-editor-e2e",
+          userId: "u-dice-e2e",
+          slot: 1,
+          content: "浏览器内的正文草稿",
+          version: 1,
+          createdAt: "2026-08-08T00:00:00.000Z",
+          updatedAt: "2026-08-08T00:00:00.000Z",
+        }],
+      },
+    }),
   );
   await page.route("**/api/v1/notifications/unread", (route) =>
     route.fulfill({
@@ -142,6 +168,17 @@ test("编辑器骰子按钮在真实浏览器中打开可见弹窗", async ({ pa
   await expect(page.getByRole("note", { name: "骰子 1d100，待掷" })).toHaveText(
     "1d100 = ?",
   );
+
+  await page.getByRole("button", { name: "正文草稿" }).click();
+  const draftPanel = page.getByRole("region", { name: "正文草稿" });
+  await expect(draftPanel).toBeVisible();
+  await expect(draftPanel).toContainText("浏览器内的正文草稿");
+  await draftPanel.scrollIntoViewIfNeeded();
+  expect(await draftPanel.evaluate((element) => getComputedStyle(element).position)).not.toBe("fixed");
+  await expect(page.getByRole("dialog", { name: "正文草稿" })).toHaveCount(0);
+  await page.getByRole("button", { name: "收起正文草稿" }).click();
+  await expect(draftPanel).toHaveCount(0);
+  await expect(editor).toBeVisible();
 
   await page.getByLabel("主题帖标题").fill("骰子发布载荷测试");
   await page.getByRole("button", { name: "发布", exact: true }).click();

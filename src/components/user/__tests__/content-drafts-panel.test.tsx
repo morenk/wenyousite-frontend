@@ -92,6 +92,16 @@ describe("ContentDraftsPanel", () => {
         <ContentDraftsPanel open={false} onClose={vi.fn()} />
       </QueryClientProvider>,
     );
+    expect(screen.queryByRole("region", { name: "正文草稿" })).toBeNull();
+  });
+
+  test("作为当前编辑器的内嵌托盘渲染，不再创建全屏遮罩", () => {
+    renderPanel();
+
+    const panel = screen.getByRole("region", { name: "正文草稿" });
+    expect(panel).toHaveAttribute("data-slot", "content-drafts-panel");
+    expect(panel).not.toHaveClass("fixed", "inset-0", "z-50");
+    expect(panel).not.toHaveAttribute("aria-modal");
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
@@ -124,9 +134,13 @@ describe("ContentDraftsPanel", () => {
   test("渲染 5 槽位与草稿内容，空闲槽位显示占位", () => {
     renderPanel();
     expect(screen.getByText("这是槽位 1 的正文草稿")).toBeInTheDocument();
-    expect(screen.getByText("槽位 2 空闲")).toBeInTheDocument();
-    expect(screen.getByText("槽位 5 空闲")).toBeInTheDocument();
-    expect(screen.getByText(/已用 1\/5 槽位/)).toBeInTheDocument();
+    expect(screen.getByText("01")).toBeInTheDocument();
+    expect(screen.getByText("02")).toBeInTheDocument();
+    expect(screen.getByText("05")).toBeInTheDocument();
+    expect(screen.getAllByText("空闲槽位")).toHaveLength(4);
+    expect(screen.getByRole("region", { name: "正文草稿" })).toHaveTextContent(
+      "当前编辑器的临时书架 · 已用 1/5",
+    );
   });
 
   test("恢复草稿调用 onRestore 并关闭面板", async () => {
@@ -166,7 +180,7 @@ describe("ContentDraftsPanel", () => {
     mockUseSaveDraft.mockReturnValue({ isPending: false, mutateAsync: saveMutate });
     renderPanel({ initialContent: DICE_MARKER });
 
-    await user.click(screen.getAllByText("保存到此处")[0]!);
+    await user.click(screen.getAllByText("保存当前正文")[0]!);
     expect(saveMutate).toHaveBeenCalledWith({
       content: DICE_MARKER,
       slot: 2,
@@ -205,7 +219,7 @@ describe("ContentDraftsPanel", () => {
 
   test("直接显示当前编辑器内容字数，不渲染二次输入框", () => {
     renderPanel({ initialContent: "编辑器里正在写的内容" });
-    expect(screen.getByText("当前编辑器：10 个字符")).toBeInTheDocument();
+    expect(screen.getByText("当前正文 10 字")).toBeInTheDocument();
     expect(screen.queryByRole("textbox")).toBeNull();
   });
 
@@ -214,7 +228,7 @@ describe("ContentDraftsPanel", () => {
     const saveMutate = vi.fn().mockResolvedValue({ ...sampleDraft, slot: 2 });
     mockUseSaveDraft.mockReturnValue({ isPending: false, mutateAsync: saveMutate });
     renderPanel({ initialContent: "编辑器正文" });
-    await user.click(screen.getAllByText("保存到此处")[0]!);
+    await user.click(screen.getAllByText("保存当前正文")[0]!);
     expect(saveMutate).toHaveBeenCalledWith({
       content: "编辑器正文",
       slot: 2,
@@ -227,7 +241,7 @@ describe("ContentDraftsPanel", () => {
     mockUseSaveDraft.mockReturnValue({ isPending: false, mutateAsync: saveMutate });
     renderPanel({ initialContent: "  正文\n\n<br />\n" });
 
-    await user.click(screen.getAllByText("保存到此处")[0]!);
+    await user.click(screen.getAllByText("保存当前正文")[0]!);
 
     expect(saveMutate).toHaveBeenCalledWith({
       content: "  正文\n\n<br />\n",

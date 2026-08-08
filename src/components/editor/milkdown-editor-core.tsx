@@ -597,7 +597,6 @@ function EditorCore({
     currentContent,
     draftOpen,
     setDraftOpen,
-    draftInitialContent,
     autoSaveEnabled,
     autoSaveStatus,
     handleChange,
@@ -675,7 +674,7 @@ function EditorCore({
           open
           onClose={() => setDraftOpen(false)}
           onRestore={handleRestore}
-          initialContent={draftInitialContent}
+          initialContent={currentContent}
           autoSaveEnabled={autoSaveEnabled}
           autoSaveStatus={autoSaveStatus}
           onAutoSaveChange={handleAutoSaveChange}

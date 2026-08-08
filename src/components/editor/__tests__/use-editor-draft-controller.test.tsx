@@ -51,8 +51,10 @@ describe("useEditorDraftController", () => {
     act(() => result.current.handleChange("当前正文"));
     act(() => result.current.handleOpenDrafts());
     expect(result.current.currentContent).toBe("当前正文");
-    expect(result.current.draftInitialContent).toBe("当前正文");
     expect(result.current.draftOpen).toBe(true);
+
+    act(() => result.current.handleChange("托盘打开后继续写"));
+    expect(result.current.currentContent).toBe("托盘打开后继续写");
 
     act(() => result.current.handleRestore({
       content: "恢复正文",

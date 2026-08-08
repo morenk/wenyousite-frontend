@@ -29,7 +29,7 @@ interface ContentDraftsPanelProps {
   onClose: () => void;
   /** 恢复草稿：把内容回填给调用方（楼层/回复编辑器）；缺省时复制到剪贴板 */
   onRestore?: (snapshot: EditorDraftSnapshot) => void;
-  /** 打开面板时的当前编辑器全文，所有手动保存操作直接使用该内容 */
+  /** 当前编辑器全文；托盘打开期间继续编辑时，保存操作始终使用最新内容 */
   initialContent?: string;
   autoSaveEnabled?: boolean;
   autoSaveStatus?: "idle" | "saving" | "saved" | "error";
@@ -174,175 +174,173 @@ export function ContentDraftsPanel({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black/50"
-      role="dialog"
-      aria-modal="true"
+    <section
+      data-slot="content-drafts-panel"
+      className="border-t border-border bg-muted/20"
+      role="region"
       aria-label="正文草稿"
-      onClick={onClose}
     >
-      <div
-        className="absolute right-0 top-0 flex h-full w-80 max-w-[85vw] flex-col border-l border-border bg-background shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-start justify-between border-b border-border px-4 py-3">
-          <div>
-            <h2 className="flex items-center gap-1.5 text-sm font-bold text-foreground">
-              <StickyNote className="h-4 w-4 text-brand-strong" />
-              正文草稿
-            </h2>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              全局 {maxSlots} 槽位 · 楼层/回复内容暂存
+      <div className="flex items-start justify-between gap-3 px-3 py-2.5">
+        <div className="flex min-w-0 items-start gap-2.5">
+          <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-brand-strong shadow-sm">
+            <StickyNote className="size-4" />
+          </span>
+          <div className="min-w-0">
+            <h2 className="text-sm font-bold text-foreground">正文草稿</h2>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">
+              当前编辑器的临时书架 · 已用 {usedSlots}/{maxSlots}
             </p>
           </div>
-          <button
-            onClick={onClose}
-            aria-label="关闭"
-            className="rounded-md p-1 text-muted-foreground hover:text-foreground"
-          >
-            <X className="h-4 w-4" />
-          </button>
         </div>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="收起正文草稿"
+          className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+        >
+          <X className="size-4" />
+        </button>
+      </div>
 
-        <div className="flex-1 overflow-y-auto p-3">
-          <div className="mb-3 rounded-lg border border-border bg-muted/30 p-3">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-medium text-foreground">槽位 1 自动保存</p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">
-                  {autoSaveStatus === "error"
-                    ? "自动保存失败并已关闭，请重新开启"
-                    : autoSaveEnabled
-                    ? autoSaveStatus === "saving"
-                      ? "正在保存当前编辑器内容…"
-                      : autoSaveStatus === "saved"
-                          ? "当前内容已自动保存"
-                          : "编辑后将自动更新到槽位 1"
-                    : "开启后，当前编辑器全文会自动更新到槽位 1"}
-                </p>
-              </div>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={autoSaveEnabled}
-                aria-label="槽位 1 自动保存"
-                onClick={() => void handleAutoSaveToggle()}
-                disabled={!onAutoSaveChange || isLoading}
-                className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-                  autoSaveEnabled ? "bg-primary" : "bg-muted-foreground/30"
-                }`}
-              >
-                <span
-                  className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-                    autoSaveEnabled ? "translate-x-5" : "translate-x-0.5"
-                  }`}
-                />
-              </button>
-            </div>
-            <p className="mt-2 border-t border-border pt-2 text-[11px] text-muted-foreground">
-              当前编辑器：{hasCurrentSnapshot ? `${currentContent.length} 个字符` : "无正文"}
+      <div className="max-h-[min(22rem,52vh)] overflow-y-auto border-t border-border px-3 py-3 overscroll-contain">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-background px-3 py-2.5">
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-foreground">槽位 1 自动保存</p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">
+              {autoSaveStatus === "error"
+                ? "自动保存失败并已关闭，请重新开启"
+                : autoSaveEnabled
+                ? autoSaveStatus === "saving"
+                  ? "正在保存当前编辑器内容…"
+                  : autoSaveStatus === "saved"
+                      ? "当前内容已自动保存"
+                      : "编辑后将自动更新到槽位 1"
+                : "开启后，当前编辑器全文会自动更新到槽位 1"}
+            </p>
+            <p className="mt-1 text-[11px] tabular-nums text-muted-foreground">
+              当前正文 {hasCurrentSnapshot ? `${currentContent.length} 字` : "为空"}
               {currentDiceCount > 0 ? ` · ${currentDiceCount} 个待掷节点` : ""}
             </p>
           </div>
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-            </div>
-          ) : error ? (
-            <div className="flex flex-col items-center gap-3 py-12">
-              <Inbox className="h-10 w-10 text-muted-foreground/50" />
-              <p className="text-sm text-muted-foreground">草稿加载失败</p>
-              <Button variant="outline" size="sm" onClick={() => refetch()}>
-                重试
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {Array.from({ length: maxSlots }, (_, i) => i + 1).map((slot) => {
-                const draft = draftBySlot.get(slot);
-                if (!draft) {
-                  return (
-                    <div
-                      key={slot}
-                      className="flex items-center justify-between rounded-lg border border-dashed border-border px-3 py-2.5"
-                    >
-                      <span className="text-xs text-muted-foreground">
-                        槽位 {slot} 空闲
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 px-2 text-xs"
-                        onClick={() => handleSave(slot)}
-                        disabled={!hasCurrentSnapshot || saveDraft.isPending}
-                      >
-                        保存到此处
-                      </Button>
-                    </div>
-                  );
-                }
-                return (
-                  <div
-                    key={draft.id}
-                    className="rounded-lg border border-border bg-card p-3"
-                  >
-                    <div className="mb-1 flex items-center justify-between">
-                      <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
-                        槽位 {slot}
-                      </span>
-                      <span className="text-[11px] text-muted-foreground">
-                        {formatDistanceToNow(new Date(draft.updatedAt), {
-                          addSuffix: true,
-                          locale: zhCN,
-                        })}
-                      </span>
-                    </div>
-                    <p className="mb-2 line-clamp-3 whitespace-pre-wrap break-words text-xs text-foreground">
-                      {replaceInlineDiceNodes(draft.content, (node) => `${node.notation} = ?`) || "（无正文）"}
-                    </p>
-                    <div className="flex items-center gap-1.5">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 px-2 text-xs"
-                        onClick={() => handleRestore(draft)}
-                      >
-                        <RotateCcw className="mr-1 h-3 w-3" />
-                        恢复
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 px-2 text-xs"
-                        onClick={() => handleSave(slot)}
-                        disabled={!hasCurrentSnapshot || saveDraft.isPending}
-                        aria-label={`覆盖槽位 ${slot}`}
-                      >
-                        <Save className="mr-1 h-3 w-3" />
-                        覆盖
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 px-2 text-xs text-destructive hover:text-destructive"
-                        onClick={() => handleDelete(draft)}
-                        disabled={deleteDraft.isPending}
-                        aria-label="删除草稿"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          <button
+            type="button"
+            role="switch"
+            aria-checked={autoSaveEnabled}
+            aria-label="槽位 1 自动保存"
+            onClick={() => void handleAutoSaveToggle()}
+            disabled={!onAutoSaveChange || isLoading}
+            className={`relative h-6 w-11 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 ${
+              autoSaveEnabled ? "bg-primary" : "bg-muted-foreground/30"
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                autoSaveEnabled ? "translate-x-5" : "translate-x-0.5"
+              }`}
+            />
+          </button>
         </div>
 
-        <div className="border-t border-border px-3 py-2 text-xs text-muted-foreground">
-          已用 {usedSlots}/{maxSlots} 槽位 · 正文与内联骰子节点作为一个版本保存
-        </div>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center gap-3 py-10">
+            <Inbox className="h-9 w-9 text-muted-foreground/50" />
+            <p className="text-sm text-muted-foreground">草稿加载失败</p>
+            <Button variant="outline" size="sm" onClick={() => refetch()}>
+              重试
+            </Button>
+          </div>
+        ) : (
+          <ol className="grid gap-2 sm:grid-cols-2">
+            {Array.from({ length: maxSlots }, (_, i) => i + 1).map((slot) => {
+              const draft = draftBySlot.get(slot);
+              if (!draft) {
+                return (
+                  <li
+                    key={slot}
+                    className="group flex min-h-20 items-center gap-3 rounded-lg border border-dashed border-border bg-background/60 px-3 py-2.5"
+                  >
+                    <span className="font-display text-xl font-bold tabular-nums text-muted-foreground/45">
+                      {String(slot).padStart(2, "0")}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs text-muted-foreground">空闲槽位</p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="mt-1 h-7 px-0 text-xs hover:bg-transparent hover:text-brand-strong"
+                        onClick={() => handleSave(slot)}
+                        disabled={!hasCurrentSnapshot || saveDraft.isPending}
+                      >
+                        保存当前正文
+                      </Button>
+                    </div>
+                  </li>
+                );
+              }
+              return (
+                <li
+                  key={draft.id}
+                  className="relative min-h-28 overflow-hidden rounded-lg border border-border bg-background px-3 py-2.5 pl-12"
+                >
+                  <span className="absolute inset-y-0 left-0 flex w-9 items-start justify-center border-r border-border bg-muted/35 pt-2.5 font-display text-base font-bold tabular-nums text-brand-strong">
+                    {String(slot).padStart(2, "0")}
+                  </span>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-medium text-muted-foreground">
+                      {slot === 1 && autoSaveEnabled ? "自动保存中" : "正文快照"}
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">
+                      {formatDistanceToNow(new Date(draft.updatedAt), {
+                        addSuffix: true,
+                        locale: zhCN,
+                      })}
+                    </span>
+                  </div>
+                  <p className="mt-1 line-clamp-2 min-h-8 whitespace-pre-wrap break-words text-xs leading-4 text-foreground">
+                    {replaceInlineDiceNodes(draft.content, (node) => `${node.notation} = ?`) || "（无正文）"}
+                  </p>
+                  <div className="mt-2 flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      onClick={() => handleRestore(draft)}
+                    >
+                      <RotateCcw className="mr-1 h-3 w-3" />
+                      恢复
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      onClick={() => handleSave(slot)}
+                      disabled={!hasCurrentSnapshot || saveDraft.isPending}
+                      aria-label={`覆盖槽位 ${slot}`}
+                    >
+                      <Save className="mr-1 h-3 w-3" />
+                      覆盖
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="ml-auto h-7 px-2 text-xs text-destructive hover:text-destructive"
+                      onClick={() => handleDelete(draft)}
+                      disabled={deleteDraft.isPending}
+                      aria-label="删除草稿"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        )}
       </div>
-    </div>
+    </section>
   );
 }
