@@ -22,6 +22,10 @@ describe("MentionCandidateMenu", () => {
 
   test("区分加载、错误和空态", () => {
     const loading = render(<MentionCandidateMenu {...baseProps} pending />);
+    const menu = screen.getByRole("listbox", { name: "艾特候选" });
+    expect(menu.parentElement).toBe(document.body);
+    expect(menu).toHaveClass("fixed", "z-[100]");
+    expect(menu).toHaveStyle({ top: "20px", left: "30px" });
     expect(screen.getByRole("status")).toHaveTextContent("正在查找可艾特用户");
     loading.unmount();
 

@@ -1,6 +1,7 @@
 "use client";
 
 import type { MouseEvent as ReactMouseEvent } from "react";
+import { createPortal } from "react-dom";
 import { AtSign, Loader2, UsersRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -33,11 +34,11 @@ export function MentionCandidateMenu({
   onSelect,
 }: MentionCandidateMenuProps) {
   if (!position) return null;
-  return (
+  return createPortal(
     <div
       role="listbox"
       aria-label="艾特候选"
-      className="absolute z-50 w-[min(18rem,calc(100vw-1rem))] overflow-hidden rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-lg"
+      className="fixed z-[100] w-[min(18rem,calc(100vw-1rem))] overflow-hidden rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-lg"
       style={{ top: position.top, left: position.left }}
     >
       {pending && (
@@ -87,6 +88,7 @@ export function MentionCandidateMenu({
           </span>
         </button>
       ))}
-    </div>
+    </div>,
+    document.body,
   );
 }

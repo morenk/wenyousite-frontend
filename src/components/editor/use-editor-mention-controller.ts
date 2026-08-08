@@ -173,12 +173,11 @@ export function useEditorMentionController({
         query: match[2] ?? "",
       };
       const coords = view.coordsAtPos(from);
-      const hostRect = host.getBoundingClientRect();
       const menuWidth = Math.min(288, Math.max(224, window.innerWidth - 16));
       const menuHeight = 240;
-      const maxLeft = Math.max(8, host.clientWidth - menuWidth - 8);
-      const belowTop = coords.bottom - hostRect.top + 4;
-      const aboveTop = coords.top - hostRect.top - menuHeight - 4;
+      const maxLeft = Math.max(8, window.innerWidth - menuWidth - 8);
+      const belowTop = coords.bottom + 4;
+      const aboveTop = coords.top - menuHeight - 4;
       const top = coords.bottom + menuHeight > window.innerHeight && aboveTop > 8
         ? aboveTop
         : belowTop;
@@ -186,7 +185,7 @@ export function useEditorMentionController({
       setMenu({
         ...range,
         top,
-        left: Math.min(maxLeft, Math.max(8, coords.left - hostRect.left)),
+        left: Math.min(maxLeft, Math.max(8, coords.left)),
       });
     };
 

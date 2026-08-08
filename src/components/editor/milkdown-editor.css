@@ -10,7 +10,7 @@
 
 .milkdown {
   --crepe-font-default: var(--font-sans);
-  --crepe-font-title: var(--font-rounded);
+  --crepe-font-title: var(--font-sans);
   --crepe-font-code: var(--font-mono);
 }
 
@@ -41,15 +41,13 @@
 }
 
 .milkdown .ProseMirror em {
-  color: var(--brand-strong);
-  font-family: var(--font-display);
-  font-style: normal;
-  font-weight: 500;
-  letter-spacing: 0.035em;
+  font-family: var(--font-sans);
+  font-style: italic;
+  font-synthesis: style;
 }
 
 .milkdown .ProseMirror :is(h1, h2, h3, h4, h5, h6) {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-weight: 700;
   letter-spacing: 0.015em;
 }
@@ -75,7 +73,8 @@
 .milkdown .ProseMirror blockquote {
   border-color: var(--primary);
   background: var(--muted);
-  font-style: normal;
+  font-style: italic;
+  font-synthesis: style;
 }
 
 .milkdown-editor .ProseMirror {

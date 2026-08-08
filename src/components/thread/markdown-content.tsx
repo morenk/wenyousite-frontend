@@ -273,7 +273,7 @@ function CollapsibleMarkdown({
         data-slot="markdown-content"
         data-size={size}
         className={cn(
-          "prose wenyou-prose prose-headings:font-display prose-headings:text-foreground prose-a:text-brand-strong",
+          "prose wenyou-prose prose-headings:text-foreground prose-a:text-brand-strong",
           size === "compact" && "wenyou-prose-compact",
         )}
         style={collapsed ? { maxHeight: "80vh", overflow: "hidden" } : undefined}

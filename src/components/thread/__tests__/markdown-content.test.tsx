@@ -24,6 +24,7 @@ describe("MarkdownContent", () => {
     );
     expect(document.querySelector('[data-slot="markdown-content"]')).not.toHaveClass(
       "prose-sm",
+      "prose-headings:font-display",
     );
   });
 
