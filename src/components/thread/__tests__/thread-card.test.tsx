@@ -77,6 +77,7 @@ describe("ThreadCard", () => {
   test("渲染标题", () => {
     renderThreadCard(baseThread);
     expect(screen.getByText("测试帖子标题")).toBeInTheDocument();
+    expect(screen.getByRole("listitem")).toBeInTheDocument();
   });
 
   test("渲染分类（中文映射）", () => {

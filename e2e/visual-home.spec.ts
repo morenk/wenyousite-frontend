@@ -89,6 +89,53 @@ async function mockHome(page: Page) {
       body: JSON.stringify({ code: 1001, message: "unauthorized" }),
     }),
   );
+  await page.route("**/api/v1/thread-categories", (route) =>
+    route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        code: 0,
+        message: "ok",
+        data: [
+          {
+            id: "visual-category-deduction",
+            slug: "DEDUCTION",
+            name: "演绎",
+            description: null,
+            color: null,
+            icon: null,
+            sortOrder: 10,
+            isActive: true,
+            createdAt: "2026-08-01T00:00:00Z",
+            updatedAt: "2026-08-01T00:00:00Z",
+          },
+          {
+            id: "visual-category-nation",
+            slug: "NATION",
+            name: "国策",
+            description: null,
+            color: null,
+            icon: null,
+            sortOrder: 20,
+            isActive: true,
+            createdAt: "2026-08-01T00:00:00Z",
+            updatedAt: "2026-08-01T00:00:00Z",
+          },
+          {
+            id: "visual-category-rpg",
+            slug: "RPG",
+            name: "RPG",
+            description: null,
+            color: null,
+            icon: null,
+            sortOrder: 30,
+            isActive: true,
+            createdAt: "2026-08-01T00:00:00Z",
+            updatedAt: "2026-08-01T00:00:00Z",
+          },
+        ],
+      }),
+    }),
+  );
   await page.route("**/api/v1/threads?**", (route) =>
     route.fulfill({
       contentType: "application/json",

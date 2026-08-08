@@ -119,6 +119,8 @@ type PanelTone = "plain" | "soft" | "accent" | "floating";
 | `motionSlow` | 240ms | Dialog、Drawer |
 
 - 常规反馈不使用弹跳、卡片上浮、持续背景动画或视差。
+- 公开浏览路由加载时保持 `AppChrome` 不变，内容区使用与目标页面结构一致的骨架；不要对整页做淡入淡出。
+- 顶部 2px 品牌进度线延迟 `motionFast`（120ms）后出现，快速导航不闪烁；列表筛选请求期间保留旧内容并在列表顶部显示细更新线。
 - `prefers-reduced-motion: reduce` 下关闭非必要位移、缩放和循环动画。
 - 键盘焦点始终可见；颜色不能成为状态的唯一信号。
 - 默认控件命中区域不小于 40px；紧凑工具栏不小于 32px。

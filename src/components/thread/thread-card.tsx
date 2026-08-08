@@ -37,6 +37,7 @@ export function ThreadCard({ thread }: ThreadCardProps) {
 
   return (
     <article
+      role="listitem"
       data-category={thread.category}
       className={cn(stackListRowVariants(), "group/thread overflow-hidden pl-6")}
     >

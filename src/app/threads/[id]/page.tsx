@@ -4,7 +4,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { Loader2, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 
 import { useAuth } from "@/lib/auth";
 import { getPostHref } from "@/lib/post-navigation";
@@ -29,6 +29,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageShell } from "@/components/layout/page-shell";
+import { PageRouteFallback } from "@/components/layout/page-route-fallback";
 
 export default function ThreadDetailPage() {
   const params = useParams();
@@ -98,14 +99,7 @@ function ThreadDetailPageContent() {
 
   // Loading
   if (isLoading || (!isInitialized && error)) {
-    return (
-      <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          加载中…
-        </div>
-      </div>
-    );
+    return <PageRouteFallback variant="detail" />;
   }
 
   // 404

@@ -19,6 +19,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Button } from "@/components/ui/button";
 import { PostSearchResultList } from "@/components/search/post-search-result-list";
+import { ListRefreshIndicator } from "@/components/shared/list-refresh-indicator";
 
 type SearchTab = "threads" | "posts" | "users";
 
@@ -61,6 +62,11 @@ export function SearchResults({ keyword }: SearchResultsProps) {
     activeTab === "posts" && postKeywordValid,
   );
   const posts = postsQuery.data?.pages.flatMap((page) => page.data) ?? [];
+  const isRefreshing = activeTab === "threads"
+    ? threadsQuery.isPlaceholderData
+    : activeTab === "users"
+      ? usersQuery.isPlaceholderData
+      : postsQuery.isPlaceholderData;
 
   const tabs = [
     {
@@ -106,7 +112,8 @@ export function SearchResults({ keyword }: SearchResultsProps) {
   };
 
   return (
-    <div>
+    <div className="relative" aria-busy={isRefreshing || undefined}>
+      {isRefreshing && <ListRefreshIndicator />}
       <div
         role="tablist"
         aria-label="搜索结果分类"
@@ -204,8 +211,8 @@ export function SearchResults({ keyword }: SearchResultsProps) {
           ) : (
             <PostSearchResultList
               posts={posts}
-              hasNextPage={!!postsQuery.hasNextPage}
-              isFetchingNextPage={postsQuery.isFetchingNextPage}
+              hasNextPage={!isRefreshing && !!postsQuery.hasNextPage}
+              isFetchingNextPage={!isRefreshing && postsQuery.isFetchingNextPage}
               onLoadMore={() => void postsQuery.fetchNextPage()}
             />
           )

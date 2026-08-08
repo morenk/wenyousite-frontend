@@ -1,7 +1,7 @@
 /** useThreads hook 测试 */
 
 import { describe, test, expect, vi } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useThreads } from "@/api/hooks/use-threads";
 
@@ -141,5 +141,42 @@ describe("useThreads", () => {
         },
       },
     });
+  });
+
+  test("筛选变化时保留旧分页直到新结果返回", async () => {
+    let resolveFiltered: ((value: { data: typeof sampleResponse; error: undefined }) => void) | undefined;
+    mockGET
+      .mockResolvedValueOnce({ data: sampleResponse, error: undefined })
+      .mockImplementationOnce(() => new Promise((resolve) => {
+        resolveFiltered = resolve;
+      }));
+
+    const { result, rerender } = renderHook(
+      ({ sort }: { sort: "recommended" | "active" }) => useThreads({ sort }),
+      {
+        wrapper: createWrapper(),
+        initialProps: { sort: "recommended" } as {
+          sort: "recommended" | "active";
+        },
+      },
+    );
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    rerender({ sort: "active" });
+
+    await waitFor(() => expect(result.current.isPlaceholderData).toBe(true));
+    expect(result.current.data?.pages[0]?.data[0]?.title).toBe("测试帖");
+
+    await act(async () => {
+      resolveFiltered?.({
+        data: {
+          ...sampleResponse,
+          data: [{ ...sampleResponse.data[0], id: "t2", title: "活跃排序结果" }],
+        },
+        error: undefined,
+      });
+    });
+    await waitFor(() => expect(result.current.isPlaceholderData).toBe(false));
+    expect(result.current.data?.pages[0]?.data[0]?.title).toBe("活跃排序结果");
   });
 });

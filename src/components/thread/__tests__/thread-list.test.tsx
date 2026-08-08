@@ -144,6 +144,29 @@ describe("ThreadList", () => {
     expect(spinners.length).toBeGreaterThanOrEqual(1);
   });
 
+  test("筛选刷新时保留旧内容并暂停旧分页提示", () => {
+    render(
+      <ThreadList
+        threads={[sampleThread]}
+        hasNextPage={true}
+        isFetchingNextPage={false}
+        isLoading={false}
+        isRefreshing
+        error={null}
+        onLoadMore={() => {}}
+        onRetry={() => {}}
+      />,
+    );
+
+    expect(screen.getByText("测试帖")).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "正在更新列表" })).toBeInTheDocument();
+    expect(screen.getByRole("list", { name: "主题帖列表" }).parentElement).toHaveAttribute(
+      "aria-busy",
+      "true",
+    );
+    expect(screen.queryByText("没有更多了")).not.toBeInTheDocument();
+  });
+
   test("点击重试按钮调用 onRetry", () => {
     const onRetry = vi.fn();
     render(

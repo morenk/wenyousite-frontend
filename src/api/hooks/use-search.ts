@@ -1,7 +1,8 @@
 /** 分类搜索 hooks：各 Tab 独立请求，楼层正文使用游标分页。 */
 
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { BROWSING_RETURN_GC_TIME } from "@/api/query-policy";
 import { queryKeys } from "@/api/query-keys";
 import type { components } from "@/api/types";
 
@@ -27,7 +28,9 @@ function usePostSearchPages(
     getNextPageParam: (lastPage) =>
       lastPage.meta.hasMore ? (lastPage.meta.cursor ?? undefined) : undefined,
     enabled,
+    placeholderData: keepPreviousData,
     staleTime: 30 * 1000,
+    gcTime: BROWSING_RETURN_GC_TIME,
   });
 }
 
@@ -46,7 +49,9 @@ export function useSearchThreads(q: string, enabled: boolean) {
       return data?.data ?? [];
     },
     enabled: enabled && keyword.length > 0,
+    placeholderData: keepPreviousData,
     staleTime: 30 * 1000,
+    gcTime: BROWSING_RETURN_GC_TIME,
   });
 }
 
@@ -62,7 +67,9 @@ export function useSearchUsers(q: string, enabled: boolean) {
       return data?.data ?? [];
     },
     enabled: enabled && keyword.length > 0,
+    placeholderData: keepPreviousData,
     staleTime: 30 * 1000,
+    gcTime: BROWSING_RETURN_GC_TIME,
   });
 }
 

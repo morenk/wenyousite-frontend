@@ -167,6 +167,55 @@ select {
   outline-offset: 2px;
 }
 
+/* 慢导航的唯一强调动效：120ms 后才出现，避免快速切页闪烁。 */
+.navigation-progress {
+  opacity: 0;
+  animation: navigation-progress-reveal 1ms linear var(--motion-fast) forwards;
+}
+
+.navigation-progress::after {
+  position: absolute;
+  inset-block: 0;
+  width: 38%;
+  border-radius: 999px;
+  background: var(--brand-strong);
+  content: "";
+  transform: translateX(-110%);
+  animation: navigation-progress-travel 900ms var(--ease-standard) var(--motion-fast) infinite;
+}
+
+@keyframes navigation-progress-reveal {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes navigation-progress-travel {
+  to {
+    transform: translateX(365%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .navigation-progress::after {
+    width: 100%;
+    transform: none;
+  }
+}
+
 /*
  * 帖子阅读排版：以全角字宽而不是通用内容宽度控制行长。
  * 17px 正文在 feed 内约为 35–37 个汉字/行；嵌套回复约为 32–35 个。

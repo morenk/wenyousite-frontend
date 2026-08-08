@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { BROWSING_RETURN_GC_TIME } from "@/api/query-policy";
 import { queryKeys } from "@/api/query-keys";
 import type { components } from "@/api/types";
 
@@ -38,5 +39,6 @@ export function useTag(tagId: string) {
     },
     enabled: !!tagId,
     staleTime: 5 * 60 * 1000,
+    gcTime: BROWSING_RETURN_GC_TIME,
   });
 }

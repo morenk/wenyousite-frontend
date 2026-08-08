@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
 import { useAuth } from "@/lib/auth";
 import { PageShell } from "@/components/layout/page-shell";
-import { LoadingState } from "@/components/shared/loading-state";
+import { PageRouteFallback } from "@/components/layout/page-route-fallback";
 
 export default function UserProfilePage() {
   const params = useParams();
@@ -37,9 +37,7 @@ export default function UserProfilePage() {
   } = useUserRecentReplies(userId);
 
   if (isLoading) {
-    return (
-      <LoadingState variant="page" />
-    );
+    return <PageRouteFallback variant="profile" />;
   }
 
   if (error || !profile) {

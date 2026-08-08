@@ -25,6 +25,7 @@ export default function HomePage() {
     hasNextPage,
     isFetchingNextPage,
     isLoading,
+    isPlaceholderData,
     error,
     refetch,
   } = useThreads({
@@ -66,6 +67,7 @@ export default function HomePage() {
             hasNextPage={!!hasNextPage}
             isFetchingNextPage={isFetchingNextPage}
             isLoading={isLoading}
+            isRefreshing={isPlaceholderData}
             error={error}
             onLoadMore={() => fetchNextPage()}
             onRetry={() => refetch()}

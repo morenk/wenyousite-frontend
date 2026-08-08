@@ -2,10 +2,8 @@
 
 "use client";
 
-import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-import { useState } from "react";
+import { useQueryStates } from "nuqs";
 import { useTag } from "@/api/hooks/use-tags";
 import {
   useThreads,
@@ -17,38 +15,42 @@ import { ThreadFilters } from "@/components/thread/thread-filters";
 import { ThreadList } from "@/components/thread/thread-list";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageShell } from "@/components/layout/page-shell";
-import { LoadingState } from "@/components/shared/loading-state";
+import { PageRouteFallback } from "@/components/layout/page-route-fallback";
+import { PageHeader } from "@/components/layout/page-header";
+import { buttonVariants } from "@/components/ui/button";
+import { Panel } from "@/components/ui/panel";
+import Link from "next/link";
+import { homeFilterParsers } from "@/lib/url-state";
 
 export default function TagThreadsPage() {
   const { id: tagId } = useParams<{ id: string }>();
-  const [category, setCategory] = useState<string | undefined>();
-  const [sort, setSort] = useState<ThreadSort>("recommended");
-  const [status, setStatus] = useState<ThreadStatusFilter>();
+  const [{ category, sort, status }, setFilters] = useQueryStates(
+    homeFilterParsers,
+    { history: "push", shallow: true },
+  );
   const tagQuery = useTag(tagId);
   const threadsQuery = useThreads({
     tagId,
-    category: category as "DEDUCTION" | "NATION" | "RPG" | undefined,
+    category: category ?? undefined,
     sort,
-    status,
+    status: status ?? undefined,
   });
   const threads =
     threadsQuery.data?.pages.flatMap((page) => page?.data ?? []) ?? [];
 
   if (tagQuery.isLoading) {
-    return (
-      <LoadingState className="min-h-[50vh]" label="" />
-    );
+    return <PageRouteFallback variant="feed" />;
   }
 
   if (tagQuery.error || !tagQuery.data) {
     return (
-      <PageShell className="py-10">
+      <PageShell width="feed" className="py-10">
         <EmptyState
           title="标签不存在"
           description="该标签可能已被删除或链接有误"
         />
         <div className="mt-4 text-center">
-          <Link href="/" className="text-sm text-primary hover:underline">
+          <Link href="/" className={buttonVariants({ variant: "outline" })}>
             返回发现
           </Link>
         </div>
@@ -57,40 +59,35 @@ export default function TagThreadsPage() {
   }
 
   return (
-    <PageShell>
-      <Link
-        href="/"
-        className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        返回发现
-      </Link>
+    <PageShell width="feed">
+      <PageHeader
+        title={`#${tagQuery.data.name}`}
+        description="主题帖标签"
+        backHref="/"
+        backLabel="返回发现"
+      />
 
-      <div className="mb-5">
-        <p className="text-sm text-muted-foreground">主题帖标签</p>
-        <h1 className="mt-1 text-xl font-bold text-foreground">
-          #{tagQuery.data.name}
-        </h1>
-      </div>
-
-      <div className="mb-5">
-        <CategoryTabs selected={category} onChange={setCategory} />
-      </div>
-
-      <div className="mb-5">
+      <Panel padding="none" className="mb-4 overflow-hidden">
+        <CategoryTabs
+          selected={category ?? undefined}
+          onChange={(nextCategory) => setFilters({ category: nextCategory ?? null })}
+        />
         <ThreadFilters
           sort={sort}
-          status={status}
-          onSortChange={setSort}
-          onStatusChange={setStatus}
+          status={status ?? undefined}
+          onSortChange={(nextSort: ThreadSort) => setFilters({ sort: nextSort })}
+          onStatusChange={(nextStatus: ThreadStatusFilter | undefined) =>
+            setFilters({ status: nextStatus ?? null })
+          }
         />
-      </div>
+      </Panel>
 
       <ThreadList
         threads={threads}
         hasNextPage={!!threadsQuery.hasNextPage}
         isFetchingNextPage={threadsQuery.isFetchingNextPage}
         isLoading={threadsQuery.isLoading}
+        isRefreshing={threadsQuery.isPlaceholderData}
         error={threadsQuery.error}
         onLoadMore={() => threadsQuery.fetchNextPage()}
         onRetry={() => threadsQuery.refetch()}

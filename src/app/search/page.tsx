@@ -10,7 +10,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageShell } from "@/components/layout/page-shell";
-import { LoadingState } from "@/components/shared/loading-state";
+import { PageRouteFallback } from "@/components/layout/page-route-fallback";
 import { searchQueryParser } from "@/lib/url-state";
 import { PageHeader } from "@/components/layout/page-header";
 
@@ -47,7 +47,7 @@ function SearchPageInner() {
       {!q.trim() ? (
         <EmptyState title="输入关键词开始搜索" description="支持用户名、主题帖标题与楼层内容" />
       ) : (
-        <SearchResults key={q} keyword={q} />
+        <SearchResults keyword={q} />
       )}
     </PageShell>
   );
@@ -56,9 +56,7 @@ function SearchPageInner() {
 export default function SearchPage() {
   return (
     <Suspense
-      fallback={
-        <LoadingState className="min-h-[50vh]" label="" />
-      }
+      fallback={<PageRouteFallback variant="feed" />}
     >
       <SearchPageInner />
     </Suspense>

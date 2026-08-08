@@ -143,4 +143,17 @@ describe("SearchResults", () => {
     expect(screen.getByText("楼层内容搜索至少需要 2 个字符")).toBeInTheDocument();
     expect(screen.queryByText("这是匹配的楼层内容")).not.toBeInTheDocument();
   });
+
+  test("关键词变化时保留旧结果并标记列表正在更新", () => {
+    mockUseSearchThreads.mockReturnValue({
+      ...idleQuery,
+      data: [thread],
+      isPlaceholderData: true,
+    });
+
+    render(<SearchResults keyword="新关键词" />);
+
+    expect(screen.getByRole("link", { name: /测试帖子/ })).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "正在更新列表" })).toBeInTheDocument();
+  });
 });
