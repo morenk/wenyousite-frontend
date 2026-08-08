@@ -4,11 +4,14 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import type { ReactNode } from "react";
 import {
   Heart,
   Gift,
+  KeyRound,
   Link2,
   Loader2,
+  LogOut,
   Search,
   Settings,
   Trash2,
@@ -45,6 +48,31 @@ interface ThreadDetailHeaderProps {
   onSearch?: () => void;
   isSearchOpen?: boolean;
 }
+
+function ThreadActionGroup({
+  label,
+  children,
+  className,
+}: {
+  label: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      role="group"
+      aria-label={label}
+      className={cn(
+        "flex shrink-0 items-center gap-1",
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+const actionButtonClassName = "rounded-lg text-muted-foreground hover:text-foreground";
 
 export function ThreadDetailHeader({
   thread,
@@ -200,82 +228,46 @@ export function ThreadDetailHeader({
           </span>
         </div>
 
-        {/* 操作按钮 */}
-        <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
-          {onSearch && (
-            <Button
-              variant="ghost"
-              size="sm"
-              aria-label="搜索本帖楼层"
-              title="搜索本帖楼层"
-              aria-expanded={isSearchOpen}
-              onClick={onSearch}
-            >
-              <Search className="mr-1 h-4 w-4" />
-              搜索本帖
-            </Button>
-          )}
-          {thread.visibility === "PUBLIC" && (
-            <Button
-              variant="ghost"
-              size="sm"
-              aria-label="复制主题帖链接"
-              title="复制主题帖链接"
-              onClick={handleCopyThreadLink}
-            >
-              <Link2 className="mr-1 h-4 w-4" />
-              复制链接
-            </Button>
-          )}
-          {isOwner && thread.published && thread.visibility === "PRIVATE" && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleCopyInviteLink}
-              disabled={createInviteLink.isPending}
-              title="生成并复制私密帖邀请链接"
-            >
-              {createInviteLink.isPending && (
-                <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-              )}
-              复制邀请链接
-            </Button>
-          )}
-          {user ? (
-            <>
-              {!isOwner && currentMember?.playerMarked && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleExitPlayer}
-                  disabled={exitThreadPlayer.isPending}
-                >
-                  退出玩家身份
-                </Button>
-              )}
+        {/* 单行操作工具轨：互动、浏览工具与管理职责分组。 */}
+        <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
+          <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <ThreadActionGroup label="互动操作">
               <Button
                 variant="ghost"
-                size="sm"
-                onClick={handleLike}
+                size="icon-sm"
+                onClick={user ? handleLike : () => router.push("/login")}
                 disabled={like.isPending || unlike.isPending}
-                className={
-                  thread.isLiked ? "text-destructive hover:text-destructive" : ""
-                }
+                aria-label={thread.isLiked
+                  ? `取消点赞，当前 ${thread.likeCount} 个赞`
+                  : `点赞，当前 ${thread.likeCount} 个赞`}
+                title={thread.isLiked
+                  ? `取消点赞（当前 ${thread.likeCount}）`
+                  : `点赞（当前 ${thread.likeCount}）`}
+                className={cn(
+                  actionButtonClassName,
+                  thread.isLiked && "bg-destructive-soft text-destructive hover:text-destructive",
+                )}
               >
                 {like.isPending || unlike.isPending ? (
-                  <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  <Heart
-                    className={cn(
-                      "mr-1 h-4 w-4",
-                      thread.isLiked && "fill-current",
-                    )}
-                  />
+                  <Heart className={cn("h-4 w-4", thread.isLiked && "fill-current")} />
                 )}
-                {thread.likeCount > 0 ? thread.likeCount : "点赞"}
               </Button>
 
-              {!isOwner && thread.published && (
+              {user && (
+                <BookmarkButton
+                  threadId={thread.id}
+                  isBookmarked={thread.isBookmarked}
+                  bookmarkId={thread.bookmarkId}
+                  iconOnly
+                  className={actionButtonClassName}
+                />
+              )}
+
+              {user && <ThreadSubscriptionControls thread={thread} />}
+
+              {user && !isOwner && thread.published && (
                 <WenyouTipButton
                   target={{
                     type: "THREAD",
@@ -283,52 +275,115 @@ export function ThreadDetailHeader({
                     recipientUserId: thread.ownerId,
                   }}
                   recipientName={`主题帖「${thread.title}」`}
+                  variant="ghost"
+                  iconOnly
+                  className={actionButtonClassName}
                 />
               )}
+            </ThreadActionGroup>
 
-              <BookmarkButton
-                threadId={thread.id}
-                isBookmarked={thread.isBookmarked}
-                bookmarkId={thread.bookmarkId}
-              />
-
-              <ThreadSubscriptionControls thread={thread} />
-
-              {canManageThread && (
-                <>
-                  <Button variant="outline" size="sm" onClick={onManage}>
-                    <Settings className="mr-1 h-4 w-4" />
-                    管理
+            {(onSearch
+              || thread.visibility === "PUBLIC"
+              || isOwner && thread.published && thread.visibility === "PRIVATE") && (
+              <ThreadActionGroup label="浏览工具">
+                {onSearch && (
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label="搜索本帖楼层"
+                    title="搜索本帖楼层"
+                    aria-expanded={isSearchOpen}
+                    onClick={onSearch}
+                    className={cn(actionButtonClassName, isSearchOpen && "bg-accent text-foreground")}
+                  >
+                    <Search className="h-4 w-4" />
                   </Button>
-                  {isOwner && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive hover:text-destructive"
-                      title="删除主题帖"
-                      onClick={handleDeleteThread}
-                      disabled={deleteThread.isPending}
-                    >
-                      {deleteThread.isPending ? (
-                        <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                      ) : (
-                        <Trash2 className="mr-1 h-4 w-4" />
-                      )}
-                      删除
-                    </Button>
+                )}
+                {thread.visibility === "PUBLIC" && (
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label="复制主题帖链接"
+                    title="复制主题帖链接"
+                    onClick={handleCopyThreadLink}
+                    className={actionButtonClassName}
+                  >
+                    <Link2 className="h-4 w-4" />
+                  </Button>
+                )}
+                {isOwner && thread.published && thread.visibility === "PRIVATE" && (
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={handleCopyInviteLink}
+                    disabled={createInviteLink.isPending}
+                    aria-label="生成并复制私密帖邀请链接"
+                    title="生成并复制私密帖邀请链接"
+                    className={actionButtonClassName}
+                  >
+                    {createInviteLink.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <KeyRound className="h-4 w-4" />
+                    )}
+                  </Button>
+                )}
+              </ThreadActionGroup>
+            )}
+          </div>
+
+          {user && (
+            !isOwner && currentMember?.playerMarked
+            || canManageThread && (!!onManage || isOwner)
+          ) && (
+            <ThreadActionGroup label="管理操作" className="ml-auto">
+              {!isOwner && currentMember?.playerMarked && (
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={handleExitPlayer}
+                  disabled={exitThreadPlayer.isPending}
+                  aria-label="退出玩家身份"
+                  title="退出玩家身份"
+                  className={actionButtonClassName}
+                >
+                  {exitThreadPlayer.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <LogOut className="h-4 w-4" />
                   )}
-                </>
+                </Button>
               )}
-            </>
-          ) : (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.push("/login")}
-            >
-              <Heart className="mr-1 h-4 w-4" />
-              {thread.likeCount > 0 ? thread.likeCount : "点赞"}
-            </Button>
+              {canManageThread && onManage && (
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={onManage}
+                  aria-label="管理主题帖"
+                  title="管理主题帖"
+                  className={actionButtonClassName}
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+              )}
+              {canManageThread && isOwner && (
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className="rounded-lg text-destructive hover:bg-destructive-soft hover:text-destructive"
+                  aria-label="删除主题帖"
+                  title="删除主题帖"
+                  onClick={handleDeleteThread}
+                  disabled={deleteThread.isPending}
+                >
+                  {deleteThread.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
+                </Button>
+              )}
+            </ThreadActionGroup>
           )}
         </div>
       </div>

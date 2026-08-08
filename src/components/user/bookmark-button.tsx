@@ -6,17 +6,24 @@ import { Bookmark, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useBookmarkActions } from "@/api/hooks/use-bookmark-actions";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface BookmarkButtonProps {
   threadId: string;
   isBookmarked: boolean;
   bookmarkId: string | null;
+  iconOnly?: boolean;
+  variant?: "outline" | "ghost";
+  className?: string;
 }
 
 export function BookmarkButton({
   threadId,
   isBookmarked,
   bookmarkId,
+  iconOnly = false,
+  variant = "ghost",
+  className,
 }: BookmarkButtonProps) {
   const { add, remove } = useBookmarkActions(threadId);
   const isPending = add.isPending || remove.isPending;
@@ -36,20 +43,27 @@ export function BookmarkButton({
     }
   };
 
+  const label = isBookmarked ? "取消收藏" : "收藏帖子";
+
   return (
     <Button
-      variant="ghost"
-      size="sm"
+      variant={variant}
+      size={iconOnly ? "icon-sm" : "sm"}
       onClick={handleClick}
       disabled={isPending}
-      title={isBookmarked ? "取消收藏" : "收藏帖子"}
+      aria-label={iconOnly ? label : undefined}
+      title={label}
+      className={cn(
+        isBookmarked && iconOnly && "bg-accent text-brand-strong hover:text-brand-strong",
+        className,
+      )}
     >
       {isPending ? (
-        <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+        <Loader2 className={cn("h-4 w-4 animate-spin", !iconOnly && "mr-1")} />
       ) : (
-        <Bookmark className={isBookmarked ? "mr-1 h-4 w-4 fill-current" : "mr-1 h-4 w-4"} />
+        <Bookmark className={cn("h-4 w-4", !iconOnly && "mr-1", isBookmarked && "fill-current")} />
       )}
-      {isBookmarked ? "已收藏" : "收藏"}
+      {!iconOnly && (isBookmarked ? "已收藏" : "收藏")}
     </Button>
   );
 }

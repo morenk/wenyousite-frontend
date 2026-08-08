@@ -79,7 +79,7 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
 
           <div className="relative z-10 flex flex-wrap items-center gap-2">
             {isSelf ? (
-              <Link href="/me" className={buttonVariants({ variant: "outline", size: "compact" })}>
+              <Link href="/me" className={buttonVariants({ variant: "ghost", size: "compact" })}>
                 编辑资料
               </Link>
             ) : (
@@ -92,7 +92,7 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
                     />
                     <Link
                       href={`/messages/new/${user.id}`}
-                      className={buttonVariants({ variant: "outline", size: "compact" })}
+                      className={buttonVariants({ variant: "ghost", size: "compact" })}
                     >
                       <MessageCircle className="h-4 w-4" />
                       私聊

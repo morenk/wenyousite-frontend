@@ -57,7 +57,7 @@ const rootPost: PostDetail = {
 };
 
 describe("ReplyDiscussion", () => {
-  test("回复入口位于回复列表底部，不在主题右上角显示参与讨论", () => {
+  test("回复入口语义上位于列表底部，但使用浮动输入坞持续可达", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
     render(
       <ThreadComposerProvider>
@@ -68,12 +68,24 @@ describe("ReplyDiscussion", () => {
     expect(screen.getByText("原楼层长文")).toBeInTheDocument();
     expect(screen.getByText("原子贴 #12 楼", { exact: false })).toBeInTheDocument();
     expect(screen.getByText("共 87 条回复")).toBeInTheDocument();
-    expect(screen.getByTestId("reply-list")).toHaveTextContent("p1:discussion");
+    const list = screen.getByTestId("reply-list");
+    const anchor = document.querySelector<HTMLElement>(
+      '[data-slot="floating-composer-anchor"]',
+    );
+    const dock = document.querySelector<HTMLElement>(
+      '[data-slot="floating-composer-dock"]',
+    );
+    expect(list).toHaveTextContent("p1:discussion");
+    expect(dock).toHaveClass("fixed", "bottom-4", "z-30");
+    expect(dock?.parentElement).toBe(document.body);
+    expect(
+      list.compareDocumentPosition(anchor!) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     expect(screen.queryByRole("button", { name: "参与讨论" })).not.toBeInTheDocument();
     expect(screen.getByText("登录后即可参与讨论")).toBeInTheDocument();
   });
 
-  test("登录用户在回复列表下方看到发表回复入口", () => {
+  test("登录用户在浮动输入坞中看到发表回复入口", () => {
     mockUseAuth.mockReturnValue({ user: { id: "u2" }, isInitialized: true });
     render(
       <ThreadComposerProvider>

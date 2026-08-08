@@ -225,6 +225,28 @@ describe("FloorCard", () => {
     expect(screen.queryByText("回复 reply-6")).not.toBeInTheDocument();
   });
 
+  test("发布时间与回复入口位于楼中楼预览上方且没有分割线", () => {
+    const withReplies = {
+      ...baseFloor,
+      _count: { replies: 1 },
+      replies: [inlineReply("reply-1")],
+    };
+    mockUseAuth.mockReturnValue({
+      user: { id: "u1", username: "测试用户", emailVerified: true },
+      isInitialized: true,
+    });
+    renderWithQC(<FloorCard floor={withReplies} isEven={false} />);
+
+    const meta = screen.getByTestId("floor-card-meta");
+    const preview = screen.getByTestId("inline-replies");
+    const publishedAt = meta.querySelector("time");
+
+    expect(publishedAt).toHaveAttribute("dateTime", baseFloor.createdAt);
+    expect(meta).toContainElement(screen.getByRole("link", { name: "回复" }));
+    expect(meta.nextElementSibling).toBe(preview);
+    expect(meta).not.toHaveClass("border-t");
+  });
+
   test("内联回复正文合计超过限制时显示截断预览、渐变遮罩和展开入口", () => {
     const withReplies = {
       ...baseFloor,
@@ -398,6 +420,15 @@ describe("FloorCard", () => {
     );
   });
 
+  test("无楼中楼回复时不显示占位，未登录不保留空操作栏", () => {
+    mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
+    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+
+    expect(screen.queryByText("暂无回复")).toBeNull();
+    expect(screen.getByTestId("floor-card-meta").querySelector("time")).toBeInTheDocument();
+    expect(screen.queryByTestId("floor-card-actions")).toBeNull();
+  });
+
   test("回复按钮进入独立楼中楼阅读页", () => {
     mockUseAuth.mockReturnValue({
       user: { id: "u1", username: "测试用户", emailVerified: true },
@@ -405,6 +436,8 @@ describe("FloorCard", () => {
     });
     renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
 
+    expect(screen.queryByText("暂无回复")).toBeNull();
+    expect(screen.getByTestId("floor-card-actions")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "回复" })).toHaveAttribute(
       "href",
       "/threads/t1/posts/post-1/replies",

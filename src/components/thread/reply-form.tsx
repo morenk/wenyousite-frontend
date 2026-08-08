@@ -1,4 +1,4 @@
-/** 楼中楼底部回复入口：登录后按需挂载统一 Markdown 编辑器 */
+/** 楼中楼回复入口：登录后按需挂载统一 Markdown 编辑器 */
 
 "use client";
 
@@ -16,6 +16,10 @@ interface ReplyFormProps {
   label: string;
 }
 
+export function getReplyComposerAnchorId(parentPostId: string) {
+  return `create-reply:${parentPostId}`;
+}
+
 export function ReplyForm({
   subthreadId,
   parentPostId,
@@ -25,7 +29,7 @@ export function ReplyForm({
   const { user } = useAuth();
   const router = useRouter();
   const { session, open } = useThreadComposer();
-  const anchorId = `create-reply:${parentPostId}`;
+  const anchorId = getReplyComposerAnchorId(parentPostId);
   const isActive = session?.anchorId === anchorId;
 
   if (!user) {

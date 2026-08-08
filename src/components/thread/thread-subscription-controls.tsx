@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, BellOff, Loader2 } from "lucide-react";
+import { Popover } from "@base-ui/react/popover";
+import { Bell, BellOff, Loader2, UsersRound } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { getApiErrorMessage } from "@/api/errors";
@@ -28,6 +29,7 @@ export function ThreadSubscriptionControls({ thread }: { thread: ThreadDetail })
   const createSubscription = useCreateSubscription();
   const deleteSubscription = useDeleteSubscription();
   const [selectedTargetUserId, setSelectedTargetUserId] = useState("");
+  const [playerPopoverOpen, setPlayerPopoverOpen] = useState(false);
 
   if (!user || hasAutomaticUpdates) return null;
 
@@ -74,6 +76,7 @@ export function ThreadSubscriptionControls({ thread }: { thread: ThreadDetail })
         });
         toast.success("已订阅该用户在本帖的发言");
       }
+      setPlayerPopoverOpen(false);
     } catch (error: unknown) {
       toast.error(getApiErrorMessage(error, "操作失败，请稍后重试"));
     }
@@ -83,46 +86,73 @@ export function ThreadSubscriptionControls({ thread }: { thread: ThreadDetail })
     <>
       <Button
         variant="ghost"
-        size="sm"
+        size="icon-sm"
         onClick={() => void handleToggleThread()}
         disabled={isPending}
-        title={threadSubscription ? "取消订阅" : "订阅官方更新"}
+        aria-label={threadSubscription ? "取消订阅官方更新" : "订阅官方更新"}
+        title={threadSubscription ? "取消订阅官方更新" : "订阅官方更新"}
+        className={threadSubscription ? "bg-accent text-brand-strong hover:text-brand-strong" : undefined}
       >
         {isPending ? (
-          <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+          <Loader2 className="h-4 w-4 animate-spin" />
         ) : threadSubscription ? (
-          <BellOff className="mr-1 h-4 w-4" />
+          <BellOff className="h-4 w-4" />
         ) : (
-          <Bell className="mr-1 h-4 w-4" />
+          <Bell className="h-4 w-4" />
         )}
-        {threadSubscription ? "已订阅官方更新" : "订阅官方更新"}
       </Button>
 
       {candidateMembers.length > 0 && (
-        <div className="flex items-center gap-1">
-          <select
-            aria-label="订阅帖内玩家"
-            value={selectedTargetUserId}
-            onChange={(event) => setSelectedTargetUserId(event.target.value)}
-            className="h-8 max-w-32 rounded-md border border-border bg-background px-2 text-xs"
+        <Popover.Root open={playerPopoverOpen} onOpenChange={setPlayerPopoverOpen}>
+          <Popover.Trigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label="订阅玩家发言"
+                title="订阅玩家发言"
+              />
+            }
           >
-            <option value="">选择玩家</option>
-            {candidateMembers.map((member) => (
-              <option key={member.userId} value={member.userId}>
-                {member.user.username}
-              </option>
-            ))}
-          </select>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => void handleToggleUser()}
-            disabled={!selectedTargetUserId || isPending}
-            aria-label={selectedUserSubscription ? "取消订阅该玩家" : "订阅该玩家"}
-          >
-            {selectedUserSubscription ? "取消玩家订阅" : "订阅玩家回复"}
-          </Button>
-        </div>
+            <UsersRound className="h-4 w-4" />
+          </Popover.Trigger>
+          <Popover.Portal>
+            <Popover.Positioner side="bottom" align="end" sideOffset={8} className="z-[70]">
+              <Popover.Popup className="w-64 rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-lg outline-none">
+                <Popover.Title className="text-sm font-semibold">订阅玩家发言</Popover.Title>
+                <Popover.Description className="mt-1 text-xs leading-5 text-muted-foreground">
+                  选择一名玩家，订阅其在本帖中的新发言。
+                </Popover.Description>
+                <div className="mt-3 space-y-2">
+                  <select
+                    aria-label="订阅帖内玩家"
+                    value={selectedTargetUserId}
+                    onChange={(event) => setSelectedTargetUserId(event.target.value)}
+                    className="h-9 w-full rounded-lg border border-input bg-card px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20"
+                  >
+                    <option value="">选择玩家</option>
+                    {candidateMembers.map((member) => (
+                      <option key={member.userId} value={member.userId}>
+                        {member.user.username}
+                      </option>
+                    ))}
+                  </select>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => void handleToggleUser()}
+                    disabled={!selectedTargetUserId || isPending}
+                    aria-label={selectedUserSubscription ? "取消订阅该玩家" : "订阅该玩家"}
+                  >
+                    {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                    {selectedUserSubscription ? "取消订阅" : "订阅发言"}
+                  </Button>
+                </div>
+              </Popover.Popup>
+            </Popover.Positioner>
+          </Popover.Portal>
+        </Popover.Root>
       )}
     </>
   );

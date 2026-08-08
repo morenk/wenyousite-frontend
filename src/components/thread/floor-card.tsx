@@ -124,12 +124,6 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
           )}
         </div>
         <div className="flex items-center gap-1">
-          <span className="text-xs text-muted-foreground">
-            {formatDistanceToNow(new Date(floor.createdAt), {
-              addSuffix: true,
-              locale: zhCN,
-            })}
-          </span>
           {!isEditing && (
             <Button
               variant="ghost"
@@ -183,12 +177,54 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
         </>
       )}
 
+      {/* 发布时间与回复入口：承接正文，并保持在楼中楼预览上方。 */}
+      <div
+        data-testid="floor-card-meta"
+        className="mt-3 flex min-h-6 items-center justify-between gap-3"
+      >
+        <time
+          dateTime={floor.createdAt}
+          className="text-xs text-muted-foreground"
+        >
+          {formatDistanceToNow(new Date(floor.createdAt), {
+            addSuffix: true,
+            locale: zhCN,
+          })}
+        </time>
+        {!isEditing && (floor._count.replies > 0 || (user && floor.floorNumber != null)) && (
+          <div data-testid="floor-card-actions" className="ml-auto flex items-center gap-1">
+            {floor._count.replies > 0 && (
+              <Link
+                href={discussionHref}
+                className="flex items-center gap-1 px-2 text-xs text-muted-foreground hover:text-foreground"
+              >
+                <MessageSquare className="h-3.5 w-3.5" />
+                {floor._count.replies} 条回复
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            )}
+            {user && floor.floorNumber != null && (
+              <Link
+                href={discussionHref}
+                className={cn(
+                  buttonVariants({ variant: "ghost", size: "sm" }),
+                  "h-6 px-2 text-xs",
+                )}
+              >
+                <MessageSquare className="mr-1 h-3.5 w-3.5" />
+                回复
+              </Link>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* 楼中楼预览：只展示前五条，正文合计过长时截断并用渐变遮罩。 */}
       {!isEditing && inlineReplies.length > 0 && (
         <div
           data-testid="inline-replies"
           className={cn(
-            "relative mt-3 border-l-2 border-border pl-3",
+            "relative mt-2 border-l-2 border-border pl-3",
             inlineRepliesOverflow && "max-h-96 overflow-hidden",
           )}
         >
@@ -243,33 +279,6 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
                 <ArrowRight className="ml-1 h-3.5 w-3.5" />
               </Link>
             </>
-          )}
-        </div>
-      )}
-
-      {/* 回复数 / 回复按钮 */}
-      {!isEditing && (
-        <div className="mt-3 flex items-center justify-between border-t border-border pt-2">
-          {floor._count.replies > 0 ? (
-            <Link
-              href={discussionHref}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-            >
-              <MessageSquare className="h-3.5 w-3.5" />
-              {floor._count.replies} 条回复
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          ) : (
-            <span className="text-xs text-muted-foreground">暂无回复</span>
-          )}
-          {user && floor.floorNumber != null && (
-            <Link
-              href={discussionHref}
-              className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "h-6 px-2 text-xs")}
-            >
-              <MessageSquare className="mr-1 h-3.5 w-3.5" />
-              回复
-            </Link>
           )}
         </div>
       )}

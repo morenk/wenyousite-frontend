@@ -16,7 +16,11 @@ import { ThreadPostSearch } from "@/components/thread/thread-post-search";
 import { SubthreadTabs } from "@/components/thread/subthread-tabs";
 import { SubthreadBody } from "@/components/thread/subthread-body";
 import { FloorList } from "@/components/thread/floor-list";
-import { FloorForm } from "@/components/thread/floor-form";
+import {
+  FloorForm,
+  getFloorComposerAnchorId,
+} from "@/components/thread/floor-form";
+import { FloatingComposerDock } from "@/components/thread/floating-composer-dock";
 import {
   ThreadComposerProvider,
   useThreadComposer,
@@ -197,9 +201,13 @@ function ThreadDetailPageContent() {
 
         {/* 发布楼层 */}
         {effectiveSubthreadId && thread.published && (
-          <FloorForm
-            subthreadId={effectiveSubthreadId}
-          />
+          <FloatingComposerDock
+            sessionAnchorId={getFloorComposerAnchorId(effectiveSubthreadId)}
+          >
+            <FloorForm
+              subthreadId={effectiveSubthreadId}
+            />
+          </FloatingComposerDock>
         )}
       </div>
     </PageShell>

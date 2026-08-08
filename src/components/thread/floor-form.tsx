@@ -13,11 +13,15 @@ interface FloorFormProps {
   subthreadId: string;
 }
 
+export function getFloorComposerAnchorId(subthreadId: string) {
+  return `create-floor:${subthreadId}`;
+}
+
 export function FloorForm({ subthreadId }: FloorFormProps) {
   const { user } = useAuth();
   const router = useRouter();
   const { session, open } = useThreadComposer();
-  const anchorId = `create-floor:${subthreadId}`;
+  const anchorId = getFloorComposerAnchorId(subthreadId);
   const isActive = session?.anchorId === anchorId;
 
   if (!user) {

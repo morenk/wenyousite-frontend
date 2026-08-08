@@ -8,7 +8,11 @@ import { zhCN } from "date-fns/locale";
 import { ArrowLeft } from "lucide-react";
 import { MarkdownContent } from "@/components/thread/markdown-content";
 import { ReplyList } from "@/components/thread/reply-list";
-import { ReplyForm } from "@/components/thread/reply-form";
+import {
+  getReplyComposerAnchorId,
+  ReplyForm,
+} from "@/components/thread/reply-form";
+import { FloatingComposerDock } from "@/components/thread/floating-composer-dock";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { LevelBadge } from "@/components/shared/level-badge";
 import { getPostHref } from "@/lib/post-navigation";
@@ -26,6 +30,7 @@ export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps
     threadId: rootPost.thread.id,
     postId: rootPost.id,
   });
+  const composerAnchorId = getReplyComposerAnchorId(rootPost.id);
 
   return (
     <PageShell width="feed">
@@ -85,15 +90,20 @@ export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps
             共 {rootPost._count.replies} 条回复
           </span>
         </div>
-        <ReplyList postId={rootPost.id} focusedReply={focusedReply} variant="discussion" />
-        <div className="mt-4">
+        <ReplyList
+          postId={rootPost.id}
+          threadId={rootPost.thread.id}
+          focusedReply={focusedReply}
+          variant="discussion"
+        />
+        <FloatingComposerDock sessionAnchorId={composerAnchorId}>
           <ReplyForm
             subthreadId={rootPost.subthreadId}
             parentPostId={rootPost.id}
             replyToPostId={rootPost.id}
             label={`回复 #${rootPost.floorNumber} ${rootPost.author.username}`}
           />
-        </div>
+        </FloatingComposerDock>
       </section>
     </PageShell>
   );

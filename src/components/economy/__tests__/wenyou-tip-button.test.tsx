@@ -47,11 +47,15 @@ describe("WenyouTipButton", () => {
         recipientName="作者"
       />,
     );
-    await user.click(screen.getByRole("button", { name: "投入温油" }));
+    const trigger = screen.getByRole("button", { name: "加油" });
+    expect(trigger).not.toHaveClass("bg-primary");
+    expect(trigger).not.toHaveClass("border-border");
+    await user.click(trigger);
+    expect(screen.getByRole("button", { name: "取消" })).not.toHaveClass("border-border");
     const input = screen.getByLabelText("投入升数");
     await user.clear(input);
     await user.type(input, "10");
-    await user.click(screen.getByRole("button", { name: "确认投入" }));
+    await user.click(screen.getByRole("button", { name: "确认加油" }));
 
     expect(mockMutateAsync).toHaveBeenCalledWith({
       amount: "10",
@@ -68,11 +72,11 @@ describe("WenyouTipButton", () => {
         recipientName="作者"
       />,
     );
-    await user.click(screen.getByRole("button", { name: "投入温油" }));
+    await user.click(screen.getByRole("button", { name: "加油" }));
     const input = screen.getByLabelText("投入升数");
     await user.clear(input);
     await user.type(input, "1");
-    await user.click(screen.getByRole("button", { name: "确认投入" }));
+    await user.click(screen.getByRole("button", { name: "确认加油" }));
     expect(await screen.findByText("最低投入 2 升，且只能填写整数")).toBeInTheDocument();
     expect(mockMutateAsync).not.toHaveBeenCalled();
   });
@@ -90,16 +94,16 @@ describe("WenyouTipButton", () => {
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: "投入温油" }));
+    await user.click(screen.getByRole("button", { name: "加油" }));
     const input = screen.getByLabelText("投入升数");
     await user.clear(input);
     await user.type(input, "10");
-    await user.click(screen.getByRole("button", { name: "确认投入" }));
+    await user.click(screen.getByRole("button", { name: "确认加油" }));
     await waitFor(() => {
       expect(mockToastError).toHaveBeenCalledWith("网络暂时不可用");
     });
 
-    await user.click(screen.getByRole("button", { name: "确认投入" }));
+    await user.click(screen.getByRole("button", { name: "确认加油" }));
     await waitFor(() => expect(mockMutateAsync).toHaveBeenCalledTimes(2));
     expect(mockMutateAsync.mock.calls[0][0].clientRequestId).toBe(
       "11111111-1111-4111-8111-111111111111",
@@ -125,15 +129,15 @@ describe("WenyouTipButton", () => {
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: "投入温油" }));
+    await user.click(screen.getByRole("button", { name: "加油" }));
     const input = screen.getByLabelText("投入升数");
     await user.clear(input);
     await user.type(input, "10");
-    await user.click(screen.getByRole("button", { name: "确认投入" }));
+    await user.click(screen.getByRole("button", { name: "确认加油" }));
     await waitFor(() => expect(mockToastError).toHaveBeenCalled());
     await user.clear(input);
     await user.type(input, "11");
-    await user.click(screen.getByRole("button", { name: "确认投入" }));
+    await user.click(screen.getByRole("button", { name: "确认加油" }));
 
     await waitFor(() => expect(mockMutateAsync).toHaveBeenCalledTimes(2));
     expect(mockMutateAsync.mock.calls.map(([request]) => request.clientRequestId)).toEqual([
@@ -155,13 +159,13 @@ describe("WenyouTipButton", () => {
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: "投入温油" }));
-    await user.click(screen.getByRole("button", { name: "确认投入" }));
+    await user.click(screen.getByRole("button", { name: "加油" }));
+    await user.click(screen.getByRole("button", { name: "确认加油" }));
     await waitFor(() => {
-      expect(screen.queryByRole("button", { name: "确认投入" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "确认加油" })).not.toBeInTheDocument();
     });
-    await user.click(screen.getByRole("button", { name: "投入温油" }));
-    await user.click(screen.getByRole("button", { name: "确认投入" }));
+    await user.click(screen.getByRole("button", { name: "加油" }));
+    await user.click(screen.getByRole("button", { name: "确认加油" }));
 
     await waitFor(() => expect(mockMutateAsync).toHaveBeenCalledTimes(2));
     expect(mockMutateAsync.mock.calls.map(([request]) => request.clientRequestId)).toEqual([
@@ -184,8 +188,8 @@ describe("WenyouTipButton", () => {
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: "投入温油" }));
-    await user.dblClick(screen.getByRole("button", { name: "确认投入" }));
+    await user.click(screen.getByRole("button", { name: "加油" }));
+    await user.dblClick(screen.getByRole("button", { name: "确认加油" }));
     expect(mockMutateAsync).toHaveBeenCalledTimes(1);
 
     await act(async () => {

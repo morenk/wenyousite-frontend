@@ -66,6 +66,8 @@ describe("FollowButton", () => {
 
     renderWithQC(<FollowButton userId="u2" isFollowing={false} />);
     const btn = screen.getByRole("button", { name: "关注" });
+    expect(btn).not.toHaveClass("bg-primary");
+    expect(btn).not.toHaveClass("border-border");
     await user.click(btn);
 
     expect(followMutate).toHaveBeenCalled();
@@ -83,6 +85,8 @@ describe("FollowButton", () => {
 
     renderWithQC(<FollowButton userId="u2" isFollowing={true} />);
     const btn = screen.getByRole("button", { name: "已关注" });
+    expect(btn).not.toHaveClass("bg-primary");
+    expect(btn).not.toHaveClass("border-border");
     await user.click(btn);
 
     expect(unfollowMutate).toHaveBeenCalled();

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { useFollowActions } from "@/api/hooks/use-follow-actions";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface FollowButtonProps {
   userId: string;
@@ -41,11 +42,14 @@ export function FollowButton({ userId, isFollowing }: FollowButtonProps) {
 
   return (
     <Button
-      variant={isFollowing ? "outline" : "default"}
+      variant="ghost"
       size="sm"
       onClick={handleClick}
       disabled={isPending}
-      className="min-w-20"
+      className={cn(
+        "min-w-20",
+        isFollowing && "text-brand-strong hover:text-brand-strong",
+      )}
     >
       {isPending ? (
         <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
