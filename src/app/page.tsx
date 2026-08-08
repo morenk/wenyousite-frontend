@@ -46,19 +46,23 @@ export default function HomePage() {
             className="mb-0 px-5 pt-6 pb-5"
           />
 
-          <CategoryTabs
-            selected={category ?? undefined}
-            onChange={(nextCategory) => setFilters({ category: nextCategory ?? null })}
-          />
+          <div className="border-t border-border bg-muted/35 p-3">
+            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
+              <CategoryTabs
+                selected={category ?? undefined}
+                onChange={(nextCategory) => setFilters({ category: nextCategory ?? null })}
+              />
 
-          <ThreadFilters
-            sort={sort}
-            status={status ?? undefined}
-            onSortChange={(nextSort: ThreadSort) => setFilters({ sort: nextSort })}
-            onStatusChange={(nextStatus: ThreadStatusFilter | undefined) =>
-              setFilters({ status: nextStatus ?? null })
-            }
-          />
+              <ThreadFilters
+                sort={sort}
+                status={status ?? undefined}
+                onSortChange={(nextSort: ThreadSort) => setFilters({ sort: nextSort })}
+                onStatusChange={(nextStatus: ThreadStatusFilter | undefined) =>
+                  setFilters({ status: nextStatus ?? null })
+                }
+              />
+            </div>
+          </div>
         </Panel>
 
         <div className="mt-4">

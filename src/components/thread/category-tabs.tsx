@@ -23,27 +23,26 @@ export function CategoryTabs({ selected, onChange }: CategoryTabsProps) {
       onValueChange={(value) =>
         onChange(value === "ALL" ? undefined : value)
       }
-      className="gap-0 border-t border-border"
+      className="min-w-0 flex-1 gap-0"
     >
       <TabsList
-        variant="line"
         aria-label="主题帖分类"
-        className="relative h-14 w-full justify-start gap-1 overflow-x-auto px-3 before:absolute before:inset-x-5 before:bottom-[0.6875rem] before:h-px before:bg-border"
+        className="h-10 w-full justify-start gap-0.5 overflow-x-auto overflow-y-hidden rounded-xl bg-muted/85 p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         <TabsTrigger
           value="ALL"
-          className="group/category h-14 shrink-0 flex-none rounded-none border-0 px-3 pb-4 after:bottom-[0.5rem] after:inset-x-3 after:h-[3px]"
+          className="group/category h-8 shrink-0 flex-none rounded-lg border-0 px-3 py-1 text-[0.8125rem] font-medium after:hidden hover:bg-card/60 data-active:bg-card data-active:font-bold data-active:shadow-[0_1px_2px_rgb(52_47_62_/_0.08)]"
         >
-          <span className="size-2 rounded-full bg-foreground ring-2 ring-white" aria-hidden="true" />
+          <span className="size-2 rounded-full bg-brand-strong/80 ring-2 ring-card" aria-hidden="true" />
           全部
         </TabsTrigger>
         {categories.map((category) => (
           <TabsTrigger
             key={category.id}
             value={category.slug}
-            className="group/category h-14 shrink-0 flex-none rounded-none border-0 px-3 pb-4 after:bottom-[0.5rem] after:inset-x-3 after:h-[3px]"
+            className="group/category h-8 shrink-0 flex-none rounded-lg border-0 px-3 py-1 text-[0.8125rem] font-medium after:hidden hover:bg-card/60 data-active:bg-card data-active:font-bold data-active:shadow-[0_1px_2px_rgb(52_47_62_/_0.08)]"
           >
-            <ThreadCategoryMarker category={category.slug} className="size-2 rounded-full ring-2 ring-white" />
+            <ThreadCategoryMarker category={category.slug} className="size-2 rounded-full ring-2 ring-card" />
             {category.name}
           </TabsTrigger>
         ))}
@@ -51,19 +50,19 @@ export function CategoryTabs({ selected, onChange }: CategoryTabsProps) {
           <TabsTrigger
             value={selected!}
             disabled
-            className="h-14 shrink-0 flex-none rounded-none border-0 px-3 pb-4"
+            className="h-8 shrink-0 flex-none rounded-lg border-0 px-3 py-1 text-[0.8125rem] after:hidden"
           >
             不可用分类
           </TabsTrigger>
         ) : null}
         {isLoading ? (
-          <span className="px-3 text-xs text-muted-foreground">正在加载分类…</span>
+          <span className="shrink-0 px-3 text-xs text-muted-foreground">正在加载分类…</span>
         ) : null}
         {isError ? (
           <button
             type="button"
             onClick={refetch}
-            className="px-3 text-xs font-semibold text-brand-strong hover:underline"
+            className="shrink-0 rounded-lg px-3 text-xs font-semibold text-brand-strong hover:bg-card/60"
           >
             重新加载分类
           </button>

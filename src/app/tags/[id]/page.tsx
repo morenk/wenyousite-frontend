@@ -68,18 +68,22 @@ export default function TagThreadsPage() {
       />
 
       <Panel padding="none" className="mb-4 overflow-hidden">
-        <CategoryTabs
-          selected={category ?? undefined}
-          onChange={(nextCategory) => setFilters({ category: nextCategory ?? null })}
-        />
-        <ThreadFilters
-          sort={sort}
-          status={status ?? undefined}
-          onSortChange={(nextSort: ThreadSort) => setFilters({ sort: nextSort })}
-          onStatusChange={(nextStatus: ThreadStatusFilter | undefined) =>
-            setFilters({ status: nextStatus ?? null })
-          }
-        />
+        <div className="bg-muted/35 p-3">
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
+            <CategoryTabs
+              selected={category ?? undefined}
+              onChange={(nextCategory) => setFilters({ category: nextCategory ?? null })}
+            />
+            <ThreadFilters
+              sort={sort}
+              status={status ?? undefined}
+              onSortChange={(nextSort: ThreadSort) => setFilters({ sort: nextSort })}
+              onStatusChange={(nextStatus: ThreadStatusFilter | undefined) =>
+                setFilters({ status: nextStatus ?? null })
+              }
+            />
+          </div>
+        </div>
       </Panel>
 
       <ThreadList

@@ -29,6 +29,9 @@ afterEach(() => cleanup());
 describe("CategoryTabs", () => {
   test("渲染全部和服务端返回的动态分类", () => {
     render(<CategoryTabs onChange={() => {}} />);
+    expect(screen.getByRole("tablist", { name: "主题帖分类" })).toHaveClass(
+      "overflow-y-hidden",
+    );
     expect(screen.getByText("全部")).toBeInTheDocument();
     expect(screen.getByText("演绎")).toBeInTheDocument();
     expect(screen.getByText("国策")).toBeInTheDocument();

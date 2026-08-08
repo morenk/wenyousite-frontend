@@ -18,6 +18,8 @@ describe("ThreadFilters", () => {
 
     expect(screen.getByRole("combobox", { name: "排序" })).toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "状态" })).toBeInTheDocument();
+    expect(screen.queryByText("排序")).not.toBeInTheDocument();
+    expect(screen.queryByText("状态")).not.toBeInTheDocument();
     await user.click(screen.getByRole("combobox", { name: "排序" }));
     expect(screen.getByRole("option", { name: "最新创建" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "最新回复" })).toBeInTheDocument();
