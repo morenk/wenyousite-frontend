@@ -4,16 +4,23 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
 import type { operations } from "@/api/types";
+import type { ReplyFilters } from "@/api/reply-query";
 
 export type ReplyListResponse = operations["postsFindReplies"]["responses"][200]["content"]["application/json"];
 
-export function useReplies(postId: string | undefined) {
+const defaultFilters: ReplyFilters = { order: "OLDEST" };
+
+export function useReplies(postId: string | undefined, filters: ReplyFilters = defaultFilters) {
   return useInfiniteQuery({
-    queryKey: queryKeys.replies.list(postId),
+    queryKey: queryKeys.replies.list(postId, filters),
     queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
       if (!postId) throw new Error("缺少楼层 ID");
-      const queryParams: Record<string, string> = { limit: "20" };
-      if (pageParam) queryParams.cursor = pageParam;
+      const queryParams = {
+        limit: 20,
+        order: filters.order,
+        ...(filters.authorId ? { authorId: filters.authorId } : {}),
+        ...(pageParam ? { cursor: pageParam } : {}),
+      };
 
       const { data, error } = await apiClient.GET("/api/v1/posts/{id}/replies", {
         params: { path: { id: postId }, query: queryParams },

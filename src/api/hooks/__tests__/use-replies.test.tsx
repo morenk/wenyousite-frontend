@@ -62,6 +62,29 @@ describe("useReplies", () => {
     const pages = result.current.data?.pages ?? [];
     expect(pages[0]?.data[0].content).toBe("楼中楼回复内容");
     expect(pages[0]?.data[0].parentPostId).toBe("post-1");
+    expect(mockGET).toHaveBeenCalledWith("/api/v1/posts/{id}/replies", {
+      params: {
+        path: { id: "post-1" },
+        query: { limit: 20, order: "OLDEST" },
+      },
+    });
+  });
+
+  test("把倒序和玩家作者筛选带入分页请求", async () => {
+    mockGET.mockResolvedValue({ data: sampleResponse, error: undefined });
+
+    const { result } = renderHook(
+      () => useReplies("post-1", { order: "NEWEST", authorId: "u2" }),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockGET).toHaveBeenCalledWith("/api/v1/posts/{id}/replies", {
+      params: {
+        path: { id: "post-1" },
+        query: { limit: 20, order: "NEWEST", authorId: "u2" },
+      },
+    });
   });
 
   test("postId 为 undefined 时不请求", () => {

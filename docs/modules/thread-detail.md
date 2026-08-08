@@ -18,13 +18,13 @@
 
 **本次迭代范围（Phase 5 MVP）：**
 - 主题帖详情页 `/threads/[id]`
-- 详情头部（标题/分类/状态/作者/时间/操作按钮）
+- 详情头部（标题/分类/状态/作者/时间/单行分组图标工具栏；按钮通过悬浮说明与无障碍名称表达用途）
 - 子贴 Tab 切换
 - 楼层列表（cursor 分页 + 滚动加载）
 - 楼层 Markdown 渲染（react-markdown + remark-gfm）
 - 发布新楼层（简易 textarea）
 - 点赞/取消点赞主题帖
-- 公开主题帖累计获得温油，登录且非楼主用户可输入整数升数投入
+- 公开主题帖累计获得温油，登录且非楼主用户可通过“加油”输入整数升数投入
 - 当前用户点赞状态 `isLiked`，不得使用全站 `likeCount` 推断
 - Loading / Error / Empty / 404 状态
 - 头部“搜索本帖”内联面板：检索全部子贴的楼层与楼中楼并精确定位
@@ -34,7 +34,7 @@
 - ~~楼层编辑与删除~~ → 已实现（作者可编辑，作者或楼主/协作者可删除；子贴正文由后端拦截）
 - ~~玩家管理（楼主在候选池中授予/收回玩家身份）~~ → 已实现（管理面板「成员」tab）
 - ~~订阅通知~~ → 已实现（ThreadDetailHeader 订阅/取消订阅）
-- 帖内订阅：THREAD 为楼主/协作者官方更新；USER 仅可选择 `PARTICIPANT + playerMarked=true` 的普通玩家
+- 帖内订阅：THREAD 为楼主/协作者官方更新；USER 从头部图标弹层中选择 `PARTICIPANT + playerMarked=true` 的普通玩家
 - 私密帖邀请：楼主生成/刷新邀请链接，受邀用户在 `/join/[token]` 预览并加入；已加入用户再次打开同一邀请会直接进入主题帖
 - 公开帖发言即参与，不提供手动加入入口；已标记玩家可退出玩家身份
 
@@ -57,7 +57,7 @@
 | DELETE | `/threads/:id` | Auth | 删除主题帖：未发布帖硬删除，已发布帖软删除，仅 OWNER |
 | GET | `/subthreads/:subthreadId/posts` | Public | 楼层列表（cursor 分页，含最多 5 条内联 replies） |
 | POST | `/subthreads/:subthreadId/posts` | Auth | 发布新楼层/楼中楼回复（kind=FLOOR，发帖自动成为参与人=玩家候选池；楼中楼带 parentPostId/replyToPostId） |
-| GET | `/posts/:id/replies` | Public | 楼中楼回复列表（cursor 分页） |
+| GET | `/posts/:id/replies` | Public | 楼中楼回复列表（cursor 分页，支持正/倒序与玩家、楼主、协作者作者筛选） |
 | GET | `/posts/:id` | Public | 查询通知目标帖的主题、子贴与父楼上下文 |
 | PUT | `/subthreads/:subthreadId/body` | Auth | upsert 子贴正文（管理面板保存正文：无正文创建 kind=BODY，有正文乐观锁更新） |
 | POST | `/threads/:id/like` | Auth | 点赞主题帖（幂等） |
@@ -251,7 +251,7 @@
 | 当前选中子贴 | 用户点击 Tab | useState（默认 defaultSubthreadId） |
 | 当前编辑会话 | 用户点击发表/回复/编辑 | `ThreadComposerProvider`（全页唯一 session + content + pending） |
 | 点赞状态 | `GET /threads/:id` 的 `isLiked` + `POST/DELETE /threads/:id/like` | useMutation + query invalidation；`likeCount` 仅用于展示总数 |
-| 订阅状态 | `GET /subscriptions` + `GET /threads/:id/members` | THREAD 订阅官方更新；USER 候选仅普通已标记玩家；楼主/协作者隐藏全部订阅控件 |
+| 订阅状态 | `GET /subscriptions` + `GET /threads/:id/members` | THREAD 通过单个图标切换官方更新；USER 在弹层中选择普通已标记玩家；楼主/协作者隐藏全部订阅控件 |
 | 当前用户帖内权限 | `GET /threads/:id` 的 `currentMembership` + `capabilities` | 与详情共用缓存，只查询当前用户成员关系；不为权限判断预取全量成员 |
 | 帖内搜索 | `GET /threads/:threadId/search/posts` | `useThreadSearchPosts` 游标分页；面板开关与待提交输入为详情页/组件本地状态 |
 | 表情收藏 | `GET /stickers` 与导入/排序/删除端点 | `useStickers` 用户级缓存；编辑器点选插入，正文图片可快速收藏 |
@@ -263,8 +263,8 @@
 | 组件 | 路径 | 说明 |
 |------|------|------|
 | ThreadDetailPage | `src/app/threads/[id]/page.tsx` | 详情页主逻辑；管理入口关闭当前编辑器后导航到 workspace 编辑路由 |
-| ThreadDetailHeader | `src/components/thread/thread-detail-header.tsx` | 标题与操作区；楼主/协作者仅显示统一“管理”入口，仅楼主可邀请和删除整帖 |
-| ThreadSubscriptionControls | `src/components/thread/thread-subscription-controls.tsx` | 普通用户的主题/玩家订阅、成员候选查询与退出玩家身份交互 |
+| ThreadDetailHeader | `src/components/thread/thread-detail-header.tsx` | 标题与单行操作工具栏；按互动、浏览、管理分组，点赞与收藏相邻；分组不绘制外框，按钮统一为无常驻边框/填充的图标按钮并提供悬浮说明 |
+| ThreadSubscriptionControls | `src/components/thread/thread-subscription-controls.tsx` | 普通用户的官方更新图标开关与玩家订阅弹层、成员候选查询 |
 | ThreadPostSearch | `src/components/thread/thread-post-search.tsx` | 内联搜索全部子贴与楼中楼；处理短词、分页及四态 |
 | PostSearchResultList | `src/components/search/post-search-result-list.tsx` | 与全站搜索共用的结果列表、加载更多和精确帖子导航 |
 | SubthreadTabs | `src/components/thread/subthread-tabs.tsx` | 子贴 Tab 切换导航 |
@@ -274,11 +274,12 @@
 | ThreadComposerProvider | `src/components/thread/thread-composer-context.tsx` | 全页唯一编辑会话；统一处理目标切换、脏内容确认和提交锁 |
 | ThreadComposer | `src/components/thread/thread-composer.tsx` | 按当前会话创建楼层、回复或编辑帖子；唯一挂载 MilkdownEditor |
 | ThreadComposerOutlet | `src/components/thread/thread-composer.tsx` | 放置在楼层/回复上下文中的轻量插槽，仅活动目标渲染编辑器 |
-| FloorForm | `src/components/thread/floor-form.tsx` | 新楼层轻量入口；点击后才在底部展开唯一编辑器 |
-| ReplyDiscussion | `src/components/thread/reply-discussion.tsx` | 独立楼中楼阅读主体：原楼层作为讨论正文、导航回原楼层、回复列表与底部回复输入框 |
+| FloorForm | `src/components/thread/floor-form.tsx` | 新楼层轻量入口；点击后才在底部浮层中展开唯一编辑器 |
+| FloatingComposerDock | `src/components/thread/floating-composer-dock.tsx` | 主回复串与楼中楼共用的视口底部浮动输入坞；对齐内容列、自动留白、其他卡片编辑时隐藏 |
+| ReplyDiscussion | `src/components/thread/reply-discussion.tsx` | 独立楼中楼阅读主体：原楼层作为讨论正文、导航回原楼层、回复列表与共享浮动输入坞 |
 | getPostHref / getPostDiscussionHref | `src/lib/post-navigation.ts` | 共享帖子导航契约：统一主楼层定位、楼中楼直达及 URL 编码 |
-| ReplyForm | `src/components/thread/reply-form.tsx` | 楼中楼底部回复入口：登录用户按需打开统一编辑器，未登录显示登录提示 |
-| ReplyList | `src/components/thread/reply-list.tsx` | 楼中楼连续列表；作者可编辑，作者或楼主/协作者可删除 |
+| ReplyForm | `src/components/thread/reply-form.tsx` | 楼中楼浮动回复入口：登录用户按需打开统一编辑器，未登录显示登录提示 |
+| ReplyList | `src/components/thread/reply-list.tsx` | 楼中楼连续列表；独立阅读时可切换最早/最新在前，并只看帖内玩家、楼主或协作者；作者可编辑，作者或楼主/协作者可删除 |
 | ThreadPermissionsProvider | `src/components/thread/thread-permissions-context.tsx` | 复用详情中的当前成员与 capability 投影，计算楼主、协作者、参与人和管理权限 |
 | MemberManager | `src/components/thread/member-manager.tsx` | 楼主可任免协作者；楼主/协作者可授予/收回玩家 |
 | ManagementPanel | `src/components/thread/management-panel.tsx` | 楼主/协作者统一管理面板：主题帖、子贴、成员三个页签及未保存保护 |
@@ -296,12 +297,12 @@
 | useUpdatePost | `src/api/hooks/use-update-post.ts` | 编辑楼层正文（乐观锁 version） |
 | useDeletePost | `src/api/hooks/use-delete-post.ts` | 删除楼层/回复（作者或楼主/协作者；BODY 由后端拦截） |
 | useSyncThreadTags | `src/api/hooks/use-sync-thread-tags.ts` | 编辑帖时同步主题帖标签（diff 后添加/移除） |
-| useReplies | `src/api/hooks/use-replies.ts` | 楼中楼回复列表（cursor 分页） |
+| useReplies | `src/api/hooks/use-replies.ts` | 楼中楼回复列表（排序、作者筛选条件进入 query key 与 cursor 分页请求） |
 | useMembers | `src/api/hooks/use-members.ts` | 仅成员管理页或普通用户订阅候选需要时加载全量参与人列表 |
 | useUpdateMember | `src/api/hooks/use-update-member.ts` | 改参与人角色/玩家标记 |
 | useSubscriptions | `src/api/hooks/use-subscriptions.ts` | 我的订阅列表 |
 
-> 楼层卡片会直接展示 API 返回的前 5 条楼中楼回复；这些回复正文合计超过 500 个字符时，内联区域截断并使用渐变遮罩，点击「展开回复」进入独立楼中楼页面。超过 5 条时仍只展示前 5 条，并通过回复数链接查看完整串。
+> 楼层卡片会直接展示 API 返回的前 5 条楼中楼回复；发布时间与回复入口位于正文和预览之间，使用留白而非分割线组织层级。回复正文合计超过 500 个字符时，内联区域截断并使用渐变遮罩，点击「展开回复」进入独立楼中楼页面。超过 5 条时仍只展示前 5 条，并通过回复数链接查看完整串；没有楼中楼回复时不显示空状态文案。
 | useSubscriptionMutations | `src/api/hooks/use-subscription-mutations.ts` | 创建/取消订阅 |
 | ThreadEditForm | `src/components/forms/thread-edit-form.tsx` | 管理面板「主题帖」表单；协作者可改标题/分区/状态/标签/主帖正文，可见性仅楼主；上报脏状态与保存状态 |
 | EditThreadPage | `src/app/threads/[id]/edit/page.tsx` | 兼容路由：未发布草稿继续使用发布表单，已发布帖复用统一管理面板 |
@@ -309,7 +310,7 @@
 
 ## 6.1 帖主管理面板
 
-帖主/协作者在头部只看到一个「管理」按钮，点击进入 `/threads/[id]/edit` 的 **workspace 管理面板**。该路由固定使用 72px 图标导航且不显示右侧信息栏，避免管理区被社区三栏壳压缩。面板包含「主题帖 / 子贴 / 成员」三个页签并默认打开「主题帖」；「返回浏览」回到主题帖详情。
+帖主/协作者在头部只看到一个「管理」按钮，点击进入 `/threads/[id]/edit` 的 **workspace 管理面板**。该路由固定使用 72px 图标导航且不显示右侧信息栏，避免管理区被社区三栏壳压缩；压缩只改变宽度与文字标签，不在宽屏额外增加个人快捷按钮。面板包含「主题帖 / 子贴 / 成员」三个页签并默认打开「主题帖」；「返回浏览」回到主题帖详情。
 
 ```
 ┌─ 管理帖子 ──────────────────────────────────────────┐
@@ -351,7 +352,7 @@
 
 > **子贴正文 vs 回复串：** 子贴正文（kind=BODY）与楼层/回复串（kind=FLOOR）定位不同——正文由子贴生命周期管理（管理面板 upsert，删除帖子接口对 BODY 返回 403 拦截），**楼层列表中的楼层（含 #1）作者均可删除/编辑**，不存在「首楼禁删」。
 
-**页面布局：** 主题帖标题区为带玩法线路色的独立信息面板（`ThreadDetailHeader`，含徽章/标题/作者/标签/操作按钮）→ 子贴 Tab → 子贴卡（`SubthreadBody`：子贴标题 + 正文同卡）→ 楼层列表 → 轻量发布入口。
+**页面布局：** 主题帖标题区为带玩法线路色的独立信息面板（`ThreadDetailHeader`，含徽章/标题/作者/标签/操作按钮）→ 子贴 Tab → 子贴卡（`SubthreadBody`：子贴标题 + 正文同卡）→ 楼层列表 → 语义上位于列表底部、视觉上浮在视口底部的轻量发布入口。
 
 ```
 用户点击 FloorForm 的「发表回复」入口
@@ -367,6 +368,10 @@
 > **楼层编辑**：作者点击 FloorCard 的编辑按钮后，唯一编辑器在正文位置回填 `floor.content`，保存调用 `useUpdatePost`（乐观锁 version）。原正文仅在该楼层为当前编辑目标时隐藏。
 
 > **楼中楼独立阅读**：详情页不再原地展开长回复串。点击回复数或“回复”进入独立页面；页面顶部保留主题帖/子贴/原楼层上下文，原楼层在视觉上作为讨论正文，回复按普通楼层密度连续排列。存储语义不变，创建仍传 `parentPostId=主楼层 id`、`replyToPostId=目标 id`；编辑、删除和无限分页复用原有 hooks。
+
+> **回复串阅读筛选**：独立楼中楼页在回复列表前提供“最早回复在前 / 最新回复在前”和“只看某人”。作者候选只取当前 `playerMarked=true` 的玩家以及 `OWNER / COLLABORATOR`；普通参与人候选不出现。切换条件会使用新的查询缓存与第一页游标，避免只重排当前已加载数据。
+
+> **长回复串浮动入口**：主题帖楼层串与独立楼中楼页共用 `FloatingComposerDock`。入口在 DOM 与阅读语义上仍位于列表底部，但视觉上固定浮在当前内容列的视口底部，用户无需滚到最后即可打开统一编辑器。浮层依实际高度为列表尾部留白，避免遮住最后一条；点击某条回复的“回复”或“编辑”时，通用浮层暂时隐藏，编辑器仍在目标卡片内挂载。
 
 > **编辑器图片上传状态**：楼层/楼中楼按需编辑器上传图片时仅锁定提交和取消按钮，编辑器本身保持可编辑，避免 Crepe 在只读切换中重建并丢失顶栏。E2E 分别覆盖创建页和独立楼中楼编辑器上传完成后的工具栏可见性。
 
@@ -395,11 +400,11 @@
 | 帖内搜索 | 公开帖允许匿名；PRIVATE 帖仅成员；未发布草稿仅 OWNER；无权访问返回 404 |
 | 未登录发帖 | apiClient 拦截器自动跳转 /login |
 | 发帖 | 登录且通过主题帖访问校验即可发帖，发帖自动入候选池；OWNER/COLLABORATOR 绕过子贴策略 |
-| 已发布帖 OWNER/COLLABORATOR | 仅显示统一“管理”入口；协作者可进入三个管理页签，但保存主题帖时不包含 visibility/published |
+| 已发布帖 OWNER/COLLABORATOR | 管理类操作集中在独立图标组；协作者可进入三个管理页签，但保存主题帖时不包含 visibility/published |
 | 未发布草稿 OWNER | 从草稿列表进入 `/threads/[id]/edit` 后显示 ThreadCreateForm，可保存草稿或最终发布 |
 | OWNER 删除 | 显示 "删除" 按钮；确认后调用 `DELETE /threads/:id`，成功返回首页 |
 | OWNER/COLLABORATOR 订阅 | 不显示任何订阅控件；自动接收全部帖子动态 |
-| 普通用户订阅 | THREAD 显示“订阅官方更新”；USER 候选仅 `PARTICIPANT + playerMarked=true` 普通玩家 |
+| 普通用户订阅 | THREAD 使用铃铛图标切换官方更新；USER 通过玩家图标弹层选择 `PARTICIPANT + playerMarked=true` 普通玩家；用途由悬浮说明展示 |
 | PRIVATE OWNER | 只显示“复制邀请链接”，不显示无授权能力的普通链接；每次调用都会刷新旧 token |
 | PRIVATE 其他成员 | 不显示普通复制链接或邀请链接 |
 | PUBLIC 非成员 | 不显示手动加入；首次发言自动建立参与人记录 |

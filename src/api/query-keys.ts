@@ -14,7 +14,10 @@ export const queryKeys = {
   },
   replies: {
     all: ["replies"] as const,
-    list: (postId: string | undefined) => ["replies", postId] as const,
+    list: (postId: string | undefined, filters?: object) =>
+      filters === undefined
+        ? (["replies", postId] as const)
+        : (["replies", postId, filters] as const),
   },
   posts: {
     detail: (postId: string | undefined) => ["post", postId] as const,
