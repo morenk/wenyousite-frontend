@@ -81,11 +81,12 @@ const mockThread: ThreadDetail = {
   viewCount: 0,
   version: 3,
   likeCount: 0,
+  tipTotal: "0",
   defaultSubthreadId: "s1",
   createdAt: "2026-01-01T00:00:00Z",
   updatedAt: "2026-01-01T00:00:00Z",
   deletedAt: null,
-  owner: { id: "u1", username: "test", avatar: null },
+  owner: { id: "u1", username: "test", avatar: null, level: 1 },
   subthreads: [
     {
       id: "s1",

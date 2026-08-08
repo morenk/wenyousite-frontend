@@ -9,6 +9,7 @@ export interface FollowUser {
   id: string;
   username: string;
   avatar: string | null;
+  level: number;
 }
 
 export type FollowListKind = "following" | "followers";

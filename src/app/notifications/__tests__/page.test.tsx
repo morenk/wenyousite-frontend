@@ -41,6 +41,16 @@ describe("通知页 URL 筛选", () => {
     expect(screen.getByText("类型:全部")).toBeInTheDocument();
   });
 
+  test("从 URL 恢复温油与等级通知类型", () => {
+    render(
+      <NuqsTestingAdapter searchParams="?type=tip%2Clevel_up">
+        <NotificationsPage />
+      </NuqsTestingAdapter>,
+    );
+
+    expect(screen.getByText("类型:tip,level_up")).toBeInTheDocument();
+  });
+
   test("切换和清空类型会更新 URL", async () => {
     const user = userEvent.setup();
     const onUrlUpdate = vi.fn<(event: UrlUpdateEvent) => void>();

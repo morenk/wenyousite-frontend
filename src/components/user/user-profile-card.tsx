@@ -5,7 +5,7 @@
 import Link from "next/link";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { CalendarDays, MessageCircle, Users } from "lucide-react";
+import { CalendarDays, Gift, MessageCircle, Users } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { FollowButton } from "@/components/user/follow-button";
 import { BlockButton } from "@/components/user/block-button";
@@ -13,6 +13,9 @@ import { UserAvatar } from "@/components/shared/user-avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { ActiveUserPublic } from "@/api/hooks/use-user-profile";
+import { LevelBadge } from "@/components/shared/level-badge";
+import { WenyouTipButton } from "@/components/economy/wenyou-tip-button";
+import { formatWenyou } from "@/lib/wenyou";
 
 interface UserProfileCardProps {
   user: ActiveUserPublic;
@@ -38,6 +41,7 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
                 <h1 className="text-lg font-bold text-foreground">
                   {user.username}
                 </h1>
+                <LevelBadge level={user.level} />
                 {user.role === "ADMIN" && (
                   <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                     管理员
@@ -64,6 +68,10 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
                     locale: zhCN,
                   })}
                 </span>
+                <span className="flex items-center gap-1" title="累计收到的用户投入总额与次数">
+                  <Gift className="h-3.5 w-3.5" />
+                  获得 {formatWenyou(user.receivedTipTotal)} 升 · {user.receivedTipCount} 次
+                </span>
               </div>
             </div>
           </div>
@@ -84,18 +92,24 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
             ) : (
               <>
                 {me && (
-                  <Link href={`/messages/new/${user.id}`}>
-                    <button
-                      type="button"
-                      className={cn(
-                        "inline-flex h-8 items-center gap-1.5 rounded-md border border-border px-3 text-sm",
-                        "text-muted-foreground hover:bg-muted hover:text-foreground",
-                      )}
-                    >
-                      <MessageCircle className="h-4 w-4" />
-                      私聊
-                    </button>
-                  </Link>
+                  <>
+                    <WenyouTipButton
+                      target={{ type: "USER", id: user.id }}
+                      recipientName={user.username}
+                    />
+                    <Link href={`/messages/new/${user.id}`}>
+                      <button
+                        type="button"
+                        className={cn(
+                          "inline-flex h-8 items-center gap-1.5 rounded-md border border-border px-3 text-sm",
+                          "text-muted-foreground hover:bg-muted hover:text-foreground",
+                        )}
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                        私聊
+                      </button>
+                    </Link>
+                  </>
                 )}
                 <FollowButton userId={user.id} isFollowing={!!user.isFollowing} />
                 <BlockButton userId={user.id} isBlocked={!!user.isBlocked} />

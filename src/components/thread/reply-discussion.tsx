@@ -10,6 +10,7 @@ import { MarkdownContent } from "@/components/thread/markdown-content";
 import { ReplyList } from "@/components/thread/reply-list";
 import { ReplyForm } from "@/components/thread/reply-form";
 import { UserAvatar } from "@/components/shared/user-avatar";
+import { LevelBadge } from "@/components/shared/level-badge";
 import { getPostHref } from "@/lib/post-navigation";
 import type { ReplyDisplayData } from "@/api/hooks/use-floors";
 import type { PostDetail } from "@/api/hooks/use-post";
@@ -60,6 +61,7 @@ export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps
                 >
                   {rootPost.author.username}
                 </Link>
+                <LevelBadge level={rootPost.author.level} />
                 <p className="text-xs text-muted-foreground">
                   原子贴 #{rootPost.floorNumber} 楼 · {formatDistanceToNow(new Date(rootPost.createdAt), {
                     addSuffix: true,

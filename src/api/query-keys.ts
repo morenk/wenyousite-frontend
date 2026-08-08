@@ -61,6 +61,11 @@ export const queryKeys = {
           : (["user", kind, userId] as const),
   },
   me: ["me"] as const,
+  wallet: {
+    detail: (userId: string | undefined) => ["wallet", userId] as const,
+    transactions: (userId: string | undefined) =>
+      ["wallet", userId, "transactions"] as const,
+  },
   bookmarks: {
     all: ["bookmarks"] as const,
   },

@@ -24,6 +24,7 @@
 - 楼层 Markdown 渲染（react-markdown + remark-gfm）
 - 发布新楼层（简易 textarea）
 - 点赞/取消点赞主题帖
+- 公开主题帖累计获得温油，登录且非楼主用户可输入整数升数投入
 - 当前用户点赞状态 `isLiked`，不得使用全站 `likeCount` 推断
 - Loading / Error / Empty / 404 状态
 - 头部“搜索本帖”内联面板：检索全部子贴的楼层与楼中楼并精确定位
@@ -60,6 +61,7 @@
 | PUT | `/subthreads/:subthreadId/body` | Auth | upsert 子贴正文（管理面板保存正文：无正文创建 kind=BODY，有正文乐观锁更新） |
 | POST | `/threads/:id/like` | Auth | 点赞主题帖（幂等） |
 | DELETE | `/threads/:id/like` | Auth | 取消点赞 |
+| POST | `/threads/:id/tips` | Auth | 向主题帖楼主投入不少于 2 升温油（UUID 幂等） |
 | GET | `/threads/:threadId/members` | OptionalAuth | 参与人列表；按主题帖可见性校验 |
 | PATCH | `/threads/:threadId/members/:userId` | Auth | 楼主任免协作者；楼主/协作者管理玩家标记 |
 | POST | `/threads/:threadId/members/join` | Auth | 旧客户端兼容端点（deprecated；Web 不调用） |

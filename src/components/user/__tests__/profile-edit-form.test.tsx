@@ -4,6 +4,7 @@ import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
+import type { UserMe } from "@/api/hooks/use-me";
 
 const { mockMe } = vi.hoisted(() => ({
   mockMe: vi.fn(),
@@ -51,7 +52,13 @@ const baseMe = {
   username: "alice",
   avatar: null,
   bio: "",
-  role: "USER",
+  role: "USER" as const,
+  level: 3,
+  experience: 120,
+  currentLevelExperience: 100,
+  nextLevelExperience: 200,
+  receivedTipTotal: "9007199254740993",
+  receivedTipCount: 7,
   showRecentReplies: true,
   showPlayerBadges: true,
   showBookmarks: true,
@@ -60,7 +67,7 @@ const baseMe = {
   createdAt: "2026-01-01T00:00:00Z",
   updatedAt: "2026-01-01T00:00:00Z",
   _count: { following: 0, followers: 0 },
-};
+} satisfies UserMe;
 
 function createWrapper() {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -93,6 +100,25 @@ describe("ProfileEditForm", () => {
       "href",
       "/verify-email",
     );
+  });
+
+  test("展示当前等级、经验进度和精确累计收款", () => {
+    render(<ProfileEditForm />, { wrapper: createWrapper() });
+    expect(screen.getByText("Lv.3")).toBeInTheDocument();
+    expect(screen.getByText("120 经验")).toBeInTheDocument();
+    expect(screen.getByText("下一级 200")).toBeInTheDocument();
+    expect(screen.getByText("累计收到 9,007,199,254,740,993 升温油，共 7 次投入")).toBeInTheDocument();
+  });
+
+  test("最高等级显示已达最高等级", () => {
+    mockMe.mockReturnValue({
+      data: { ...baseMe, level: 9, nextLevelExperience: null },
+      isLoading: false,
+      error: null,
+    });
+    render(<ProfileEditForm />, { wrapper: createWrapper() });
+    expect(screen.getByText("Lv.9")).toBeInTheDocument();
+    expect(screen.getByText("已达最高等级")).toBeInTheDocument();
   });
 
   test("已认证时显示已认证徽章，无去验证链接", () => {

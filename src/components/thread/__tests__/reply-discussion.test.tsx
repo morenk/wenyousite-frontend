@@ -49,7 +49,7 @@ const rootPost: PostDetail = {
   createdAt: "2026-08-01T00:00:00Z",
   updatedAt: "2026-08-01T00:00:00Z",
   deletedAt: null,
-  author: { id: "u1", username: "作者", avatar: null },
+  author: { id: "u1", username: "作者", avatar: null, level: 1 },
   _count: { replies: 87 },
   thread: { id: "t1", title: "主题帖" },
   subthread: { id: "s1", title: "剧情子贴" },

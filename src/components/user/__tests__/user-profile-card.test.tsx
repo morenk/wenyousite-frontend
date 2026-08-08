@@ -41,6 +41,9 @@ const sampleUser = {
   avatar: null,
   bio: "你好",
   role: "USER" as const,
+  level: 3,
+  receivedTipTotal: "12",
+  receivedTipCount: 2,
   showRecentReplies: true,
   showPlayerBadges: true,
   showBookmarks: true,
@@ -76,6 +79,8 @@ describe("UserProfileCard", () => {
 
   test("查看他人时显示关注/拉黑按钮", () => {
     renderWithQC(<UserProfileCard user={sampleUser} />);
+    expect(screen.getByText("获得 12 升 · 2 次")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "投入温油" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "私聊" })).toHaveAttribute(
       "href",
       "/messages/new/u2",
@@ -88,6 +93,13 @@ describe("UserProfileCard", () => {
     mockUseAuth.mockReturnValue({ user: { id: "u2" } });
     renderWithQC(<UserProfileCard user={sampleUser} />);
     expect(screen.getByRole("link", { name: "编辑资料" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "投入温油" })).not.toBeInTheDocument();
     expect(screen.queryByTestId("follow-btn")).not.toBeInTheDocument();
+  });
+
+  test("访客查看他人资料时不显示投入入口", () => {
+    mockUseAuth.mockReturnValue({ user: null });
+    renderWithQC(<UserProfileCard user={sampleUser} />);
+    expect(screen.queryByRole("button", { name: "投入温油" })).not.toBeInTheDocument();
   });
 });

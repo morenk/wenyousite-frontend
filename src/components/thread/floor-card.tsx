@@ -21,6 +21,7 @@ import { UserAvatar } from "@/components/shared/user-avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-provider";
 import type { FloorDisplayData } from "@/api/hooks/use-floors";
+import { LevelBadge } from "@/components/shared/level-badge";
 
 interface FloorCardProps {
   floor: FloorDisplayData;
@@ -115,6 +116,7 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
           >
             {floor.author.username}
           </Link>
+          <LevelBadge level={floor.author.level} />
           {floor.floorNumber != null && (
             <span className="text-xs text-muted-foreground">
               #{floor.floorNumber}
@@ -210,6 +212,7 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
                   >
                     {reply.author.username}
                   </Link>
+                  <LevelBadge level={reply.author.level} />
                   <span>
                     {formatDistanceToNow(new Date(reply.createdAt), {
                       addSuffix: true,

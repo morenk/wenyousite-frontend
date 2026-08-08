@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Heart,
+  Gift,
   Link2,
   Loader2,
   Search,
@@ -32,6 +33,9 @@ import { useThreadPermissions } from "@/components/thread/thread-permissions-con
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
 import { TopicTagLink } from "@/components/thread/topic-tag-link";
 import { ThreadSubscriptionControls } from "@/components/thread/thread-subscription-controls";
+import { LevelBadge } from "@/components/shared/level-badge";
+import { WenyouTipButton } from "@/components/economy/wenyou-tip-button";
+import { formatWenyou } from "@/lib/wenyou";
 
 interface ThreadDetailHeaderProps {
   thread: ThreadDetail;
@@ -190,6 +194,7 @@ export function ThreadDetailHeader({
           >
             {thread.owner.username}
           </Link>
+          <LevelBadge level={thread.owner.level} />
           <span>
             {formatDistanceToNow(new Date(thread.createdAt), {
               addSuffix: true,
@@ -199,6 +204,10 @@ export function ThreadDetailHeader({
           <span>{thread.viewCount} 次浏览</span>
           <span>{thread._count.players} 位玩家</span>
           <span>{thread._count.posts} 楼</span>
+          <span className="flex items-center gap-1" title="累计获得温油">
+            <Gift className="h-3.5 w-3.5" />
+            {formatWenyou(thread.tipTotal)} 升温油
+          </span>
         </div>
 
         {/* 操作按钮 */}
@@ -275,6 +284,17 @@ export function ThreadDetailHeader({
                 )}
                 {thread.likeCount > 0 ? thread.likeCount : "点赞"}
               </Button>
+
+              {!isOwner && thread.published && (
+                <WenyouTipButton
+                  target={{
+                    type: "THREAD",
+                    id: thread.id,
+                    recipientUserId: thread.ownerId,
+                  }}
+                  recipientName={`主题帖「${thread.title}」`}
+                />
+              )}
 
               <BookmarkButton
                 threadId={thread.id}

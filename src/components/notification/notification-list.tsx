@@ -141,5 +141,6 @@ const NOTIFICATION_FILTERS = [
   { label: "回复与提及", value: "reply,mention" },
   { label: "主题更新", value: "new_post,thread_created" },
   { label: "关注与点赞", value: "follow,like" },
+  { label: "温油与等级", value: "tip,level_up" },
   { label: "系统", value: "system" },
 ] as const;

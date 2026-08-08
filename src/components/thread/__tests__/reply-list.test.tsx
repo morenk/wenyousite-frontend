@@ -121,7 +121,7 @@ function baseReply(overrides: Partial<ReplyData> = {}): ReplyData {
     createdAt: "2026-01-01T00:00:00Z",
     updatedAt: "2026-01-01T00:00:00Z",
     deletedAt: null,
-    author: { id: "u2", username: "replier", avatar: null },
+    author: { id: "u2", username: "replier", avatar: null, level: 1 },
     ...overrides,
   };
 }
@@ -200,7 +200,7 @@ describe("ReplyList", () => {
   test("作者有头像时渲染缩略图", () => {
     mockUseReplies.mockReturnValue(
       dataWithReplies([
-        baseReply({ author: { id: "u2", username: "replier", avatar: "https://example.com/r.png" } }),
+        baseReply({ author: { id: "u2", username: "replier", avatar: "https://example.com/r.png", level: 1 } }),
       ]),
     );
     render(<ReplyList postId="post-1" />, { wrapper: createWrapper() });
@@ -227,7 +227,7 @@ describe("ReplyList", () => {
   test("登录后点击回复按钮才按需挂载目标编辑器", async () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({ user: { id: "u1" } });
-    const reply = baseReply({ id: "reply-2", author: { id: "u3", username: "小明", avatar: null } });
+    const reply = baseReply({ id: "reply-2", author: { id: "u3", username: "小明", avatar: null, level: 1 } });
     mockUseReplies.mockReturnValue(dataWithReplies([reply]));
 
     render(<ReplyList postId="post-1" />, { wrapper: createWrapper() });
@@ -263,7 +263,7 @@ describe("ReplyList", () => {
       replyToPost: {
         id: "reply-1",
         authorId: "u2",
-        author: { id: "u2", username: "replier", avatar: null },
+        author: { id: "u2", username: "replier", avatar: null, level: 1 },
       },
     });
     mockUseReplies.mockReturnValue(dataWithReplies([reply]));

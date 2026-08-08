@@ -143,11 +143,12 @@ const baseThread: ThreadDetail = {
   viewCount: 100,
   version: 1,
   likeCount: 3,
+  tipTotal: "0",
   defaultSubthreadId: "s1",
   createdAt: "2026-01-01T00:00:00Z",
   updatedAt: "2026-01-01T00:00:00Z",
   deletedAt: null,
-  owner: { id: "owner-1", username: "帖主", avatar: null },
+  owner: { id: "owner-1", username: "帖主", avatar: null, level: 1 },
   subthreads: [],
   defaultSubthread: {
     id: "s1",
@@ -244,6 +245,32 @@ describe("ThreadDetailHeader", () => {
     expect(screen.getByText("100 次浏览")).toBeInTheDocument();
     expect(screen.getByText("3 位玩家")).toBeInTheDocument();
     expect(screen.getByText("5 楼")).toBeInTheDocument();
+    expect(screen.getByText("0 升温油")).toBeInTheDocument();
+  });
+
+  test("仅登录的非楼主用户可向已发布主题帖投入", () => {
+    mockUseAuth.mockReturnValue({
+      user: { id: "other-user", username: "别人" },
+      isInitialized: true,
+    });
+    const view = renderWithQC(<ThreadDetailHeader thread={baseThread} />);
+    expect(screen.getByRole("button", { name: "投入温油" })).toBeInTheDocument();
+
+    view.unmount();
+    mockUseAuth.mockReturnValue({
+      user: { id: "owner-1", username: "帖主" },
+      isInitialized: true,
+    });
+    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
+    expect(screen.queryByRole("button", { name: "投入温油" })).not.toBeInTheDocument();
+
+    cleanup();
+    mockUseAuth.mockReturnValue({
+      user: { id: "other-user", username: "别人" },
+      isInitialized: true,
+    });
+    renderWithQC(<ThreadDetailHeader thread={{ ...baseThread, published: false }} />);
+    expect(screen.queryByRole("button", { name: "投入温油" })).not.toBeInTheDocument();
   });
 
   test("未登录时显示点赞按钮（不可交互）", () => {

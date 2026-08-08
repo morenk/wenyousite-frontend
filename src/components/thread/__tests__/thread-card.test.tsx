@@ -52,7 +52,8 @@ const baseThread: ThreadCardData = {
   createdAt: "2026-01-01T00:00:00Z",
   updatedAt: "2026-01-01T00:00:00Z",
   deletedAt: null,
-  owner: { id: "u1", username: "测试作者", avatar: null },
+  tipTotal: "0",
+  owner: { id: "u1", username: "测试作者", avatar: null, level: 1 },
   defaultSubthread: { id: "s1", title: "主帖", lastPostAt: null },
   topicTags: [
     {
@@ -107,6 +108,7 @@ describe("ThreadCard", () => {
         id: "u1",
         username: "测试作者",
         avatar: "https://example.com/u.png",
+        level: 1,
       },
     };
     renderThreadCard(withAvatar);
@@ -130,6 +132,11 @@ describe("ThreadCard", () => {
     renderThreadCard(baseThread);
     expect(screen.getByText("2")).toBeInTheDocument();
     expect(screen.getByText("12")).toBeInTheDocument();
+  });
+
+  test("以大整数精度展示累计获得温油", () => {
+    renderThreadCard({ ...baseThread, tipTotal: "9007199254740993" });
+    expect(screen.getByText("9,007,199,254,740,993 升")).toBeInTheDocument();
   });
 
   test("渲染预览摘要", () => {

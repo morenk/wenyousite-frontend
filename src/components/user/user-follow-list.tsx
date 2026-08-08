@@ -8,6 +8,7 @@ import { useUserFollowList, type FollowListKind } from "@/api/hooks/use-user-fol
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
+import { LevelBadge } from "@/components/shared/level-badge";
 
 interface UserFollowListProps {
   userId: string;
@@ -52,6 +53,7 @@ export function UserFollowList({ userId, kind }: UserFollowListProps) {
           <span className="text-sm font-medium text-foreground">
             {user.username}
           </span>
+          <LevelBadge level={user.level} />
         </Link>
       ))}
     </div>

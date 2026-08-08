@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search } from "lucide-react";
+import { Search, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/lib/auth";
@@ -12,6 +12,8 @@ import { useLogout } from "@/api/hooks/use-auth-actions";
 import { useUnreadCount } from "@/api/hooks/use-unread-count";
 import { useDirectUnreadCount } from "@/api/hooks/use-direct-conversations";
 import { Button } from "@/components/ui/button";
+import { useWallet } from "@/api/hooks/use-economy";
+import { formatWenyou } from "@/lib/wenyou";
 
 export function NavBar() {
   const router = useRouter();
@@ -19,6 +21,7 @@ export function NavBar() {
   const logoutRequest = useLogout();
   const { data: unreadCount } = useUnreadCount(user?.id);
   const { data: directUnread } = useDirectUnreadCount(user?.id);
+  const { data: wallet } = useWallet(user?.id);
   const totalUnread = (unreadCount ?? 0) + (directUnread?.total ?? 0);
 
   const handleLogout = async () => {
@@ -51,6 +54,14 @@ export function NavBar() {
           </Link>
           {user ? (
             <>
+              <Link
+                href="/wallet"
+                title="我的温油"
+                className="flex items-center gap-1 text-sm font-medium tabular-nums text-primary hover:text-primary/80"
+              >
+                <Wallet className="h-4 w-4" />
+                {wallet ? formatWenyou(wallet.balance) : "—"} 升
+              </Link>
               <Link
                 href="/notifications"
                 className="relative text-sm text-muted-foreground hover:text-foreground"

@@ -15,6 +15,7 @@
 | [thread-create](./modules/thread-create.md) | 创建主题帖 | 已完成 |
 | [thread-detail](./modules/thread-detail.md) | 主题帖详情与回复 | 已完成 |
 | [profile](./modules/profile.md) | 用户资料与账号安全 | 已完成 |
+| [economy](./modules/economy.md) | 用户等级、温油签到、打赏与钱包流水 | 已完成 |
 | [notifications](./modules/notifications.md) | 通知 | 已完成 |
 | [direct-messages](./modules/direct-messages.md) | 私聊与统一消息中心 | 已完成 |
 | [stickers](./modules/stickers.md) | 用户私有表情收藏、管理与发送 | 已完成 |

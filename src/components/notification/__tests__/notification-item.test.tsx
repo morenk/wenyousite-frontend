@@ -55,7 +55,7 @@ function baseNotification(
     createdAt: "2026-01-01T00:00:00Z",
     post: { id: "p1", floorNumber: 1, parentPostId: null },
     thread: { id: "t1", title: "测试帖" },
-    fromUser: { id: "u2", username: "morenk", avatar: null },
+    fromUser: { id: "u2", username: "morenk", avatar: null, level: 1 },
     ...overrides,
   };
 }
@@ -270,7 +270,7 @@ describe("NotificationItem", () => {
           threadId: null,
           postId: null,
           content: "morenk 关注了你",
-          fromUser: { id: "u2", username: "morenk", avatar: null, deletedAt: "2026-01-02T00:00:00Z" },
+          fromUser: { id: "u2", username: "morenk", avatar: null, level: 1, deletedAt: "2026-01-02T00:00:00Z" },
         })}
       />,
     );
@@ -311,7 +311,7 @@ describe("NotificationItem", () => {
     renderWithQC(
       <NotificationItem
         notification={baseNotification({
-          fromUser: { id: "u2", username: "morenk", avatar: "https://example.com/uploads/a.png" },
+          fromUser: { id: "u2", username: "morenk", avatar: "https://example.com/uploads/a.png", level: 1 },
         })}
       />,
     );

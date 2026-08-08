@@ -39,6 +39,10 @@ vi.mock("@/api/hooks/use-auth-actions", () => ({
   useLogout: () => ({ mutateAsync: mockLogoutMutate }),
 }));
 
+vi.mock("@/api/hooks/use-economy", () => ({
+  useWallet: () => ({ data: { balance: "8" } }),
+}));
+
 vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: mockToastError },
 }));
@@ -56,6 +60,7 @@ describe("NavBar", () => {
     render(<NavBar />);
 
     expect(screen.queryByRole("link", { name: "收藏" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "8 升" })).toHaveAttribute("href", "/wallet");
     expect(screen.getByRole("link", { name: "消息" })).toHaveAttribute("href", "/notifications");
     expect(screen.getByRole("link", { name: "用户" })).toHaveAttribute("href", "/users/u1");
   });
@@ -66,6 +71,7 @@ describe("NavBar", () => {
 
     expect(screen.getByRole("link", { name: "登录" })).toHaveAttribute("href", "/login");
     expect(screen.getByRole("link", { name: "注册" })).toHaveAttribute("href", "/register");
+    expect(screen.queryByTitle("我的温油")).not.toBeInTheDocument();
   });
 
   test("服务端未能撤销终端时保留本地登录态并提示重试", async () => {

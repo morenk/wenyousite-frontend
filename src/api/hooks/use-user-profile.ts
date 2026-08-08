@@ -12,6 +12,9 @@ type ActiveUserFields =
   | "avatar"
   | "bio"
   | "role"
+  | "level"
+  | "receivedTipTotal"
+  | "receivedTipCount"
   | "showRecentReplies"
   | "showPlayerBadges"
   | "showBookmarks"
@@ -36,6 +39,9 @@ function normalizeUserPublic(user: GeneratedUserPublic): UserPublic {
     user.avatar === undefined ||
     user.bio === undefined ||
     user.role === undefined ||
+    user.level === undefined ||
+    user.receivedTipTotal === undefined ||
+    user.receivedTipCount === undefined ||
     user.showRecentReplies === undefined ||
     user.showPlayerBadges === undefined ||
     user.showBookmarks === undefined ||
@@ -49,6 +55,9 @@ function normalizeUserPublic(user: GeneratedUserPublic): UserPublic {
     avatar: user.avatar,
     bio: user.bio,
     role: user.role,
+    level: user.level,
+    receivedTipTotal: user.receivedTipTotal,
+    receivedTipCount: user.receivedTipCount,
     showRecentReplies: user.showRecentReplies,
     showPlayerBadges: user.showPlayerBadges,
     showBookmarks: user.showBookmarks,

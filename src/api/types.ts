@@ -1683,6 +1683,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/wallet": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取当前用户温油钱包余额与收款统计 */
+        get: operations["economyGetWallet"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/wallet/check-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 按北京时间自动签到；每日幂等获得 1–3 升温油和 2 经验 */
+        post: operations["economyCheckIn"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/wallet/transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取当前用户温油收支流水 */
+        get: operations["economyTransactions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/threads/{id}/tips": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 向已发布主题帖楼主打赏温油 */
+        post: operations["economyTipThread"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/{id}/tips": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 直接向用户打赏温油 */
+        post: operations["economyTipUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1756,6 +1841,7 @@ export interface components {
              * @example true
              */
             emailVerified: boolean;
+            level: number;
         };
         AuthResponseDto: {
             /**
@@ -1940,6 +2026,7 @@ export interface components {
             id: string;
             username: string;
             avatar: string | null;
+            level: number;
         };
         MentionCandidateDto: {
             id: string;
@@ -1966,6 +2053,12 @@ export interface components {
             bio: string | null;
             /** @enum {string} */
             role: "USER" | "ADMIN" | "SUPER_ADMIN";
+            level: number;
+            experience: number;
+            currentLevelExperience: number;
+            nextLevelExperience: number | null;
+            receivedTipTotal: string;
+            receivedTipCount: number;
             showRecentReplies: boolean;
             showPlayerBadges: boolean;
             showBookmarks: boolean;
@@ -2014,6 +2107,12 @@ export interface components {
             bio: string | null;
             /** @enum {string} */
             role: "USER" | "ADMIN" | "SUPER_ADMIN";
+            level: number;
+            experience: number;
+            currentLevelExperience: number;
+            nextLevelExperience: number | null;
+            receivedTipTotal: string;
+            receivedTipCount: number;
             showRecentReplies: boolean;
             showPlayerBadges: boolean;
             showBookmarks: boolean;
@@ -2047,6 +2146,8 @@ export interface components {
             visibility: "PUBLIC" | "PRIVATE";
             published: boolean;
             pinned: boolean;
+            /** @description 用户投入的累计打赏升数 */
+            tipTotal: string;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -2091,6 +2192,8 @@ export interface components {
             visibility: "PUBLIC" | "PRIVATE";
             published: boolean;
             pinned: boolean;
+            /** @description 用户投入的累计打赏升数 */
+            tipTotal: string;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -2137,6 +2240,9 @@ export interface components {
             bio?: string | null;
             /** @enum {string} */
             role?: "USER" | "ADMIN" | "SUPER_ADMIN";
+            level?: number;
+            receivedTipTotal?: string;
+            receivedTipCount?: number;
             showRecentReplies?: boolean;
             showPlayerBadges?: boolean;
             showBookmarks?: boolean;
@@ -2181,6 +2287,12 @@ export interface components {
             threadTitle?: string | null;
             totalCount?: number | null;
             likers?: components["schemas"]["NotificationLikerResponseDto"][];
+            grossAmount?: string | null;
+            recipientAmount?: string | null;
+            platformAmount?: string | null;
+            previousLevel?: number | null;
+            level?: number | null;
+            experience?: number | null;
         };
         NotificationTargetResponseDto: {
             /** @enum {string} */
@@ -2206,6 +2318,7 @@ export interface components {
             id: string;
             username: string;
             avatar: string | null;
+            level: number;
             /** Format: date-time */
             deletedAt: string | null;
         };
@@ -2213,7 +2326,7 @@ export interface components {
             id: string;
             userId: string;
             /** @enum {string} */
-            type: "reply" | "mention" | "new_floor" | "subthread_created" | "new_post" | "thread_created" | "follow" | "like" | "system";
+            type: "reply" | "mention" | "new_floor" | "subthread_created" | "new_post" | "thread_created" | "follow" | "like" | "tip" | "level_up" | "system";
             content: string | null;
             payload: components["schemas"]["NotificationPayloadResponseDto"] | null;
             target: components["schemas"]["NotificationTargetResponseDto"];
@@ -2265,6 +2378,8 @@ export interface components {
             visibility: "PUBLIC" | "PRIVATE";
             published: boolean;
             pinned: boolean;
+            /** @description 用户投入的累计打赏升数 */
+            tipTotal: string;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -2330,6 +2445,8 @@ export interface components {
             visibility: "PUBLIC" | "PRIVATE";
             published: boolean;
             pinned: boolean;
+            /** @description 用户投入的累计打赏升数 */
+            tipTotal: string;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -2475,6 +2592,8 @@ export interface components {
             viewCount: number;
             version: number;
             likeCount: number;
+            /** @description 用户投入的累计打赏升数 */
+            tipTotal: string;
             defaultSubthreadId: string | null;
             /** Format: date-time */
             createdAt: string;
@@ -3488,6 +3607,79 @@ export interface components {
             markdownContractVersion: number;
             capabilities: components["schemas"]["ApiCapabilitiesResponseDto"];
         };
+        WalletResponseDto: {
+            /** @example 42 */
+            balance: string;
+            /** @example 120 */
+            receivedTipTotal: string;
+            receivedTipCount: number;
+        };
+        ProgressionResponseDto: {
+            level: number;
+            experience: number;
+            currentLevelExperience: number;
+            nextLevelExperience: number | null;
+        };
+        DailyCheckInResponseDto: {
+            /** @description true 仅表示本次请求实际完成领取 */
+            claimedNow: boolean;
+            /** @example 2026-08-07 */
+            date: string;
+            /** @enum {string} */
+            rewardAmount: "1" | "2" | "3";
+            /** @example 2 */
+            experienceAwarded: number;
+            balance: string;
+            progression: components["schemas"]["ProgressionResponseDto"];
+        };
+        WalletTransactionTargetResponseDto: {
+            /** @enum {string} */
+            type: "THREAD" | "USER" | "NONE";
+            id: string | null;
+            title: string | null;
+        };
+        WalletTransactionResponseDto: {
+            id: string;
+            /** @enum {string} */
+            type: "DAILY_CHECK_IN" | "TIP";
+            /** @enum {string} */
+            direction: "INCOME" | "EXPENSE";
+            /** @description 该用户本次实际收入或支出 */
+            amount: string;
+            grossAmount: string;
+            recipientAmount: string;
+            platformAmount: string;
+            balanceAfter: string;
+            counterparty: components["schemas"]["PostAuthorResponseDto"] | null;
+            target: components["schemas"]["WalletTransactionTargetResponseDto"];
+            /** Format: date-time */
+            createdAt: string;
+        };
+        TipRequestDto: {
+            /**
+             * @description 打赏升数；只接受不小于 2 的十进制正整数字符串
+             * @example 10
+             */
+            amount: string;
+            /**
+             * Format: uuid
+             * @description 客户端生成的幂等请求 ID
+             */
+            clientRequestId: string;
+        };
+        TipResponseDto: {
+            transactionId: string;
+            grossAmount: string;
+            recipientAmount: string;
+            platformAmount: string;
+            /** @description 付款后余额 */
+            balance: string;
+            /** @description 主题累计投入总额 */
+            threadTipTotal?: string;
+            /** @description 收款人累计收到的用户投入总额 */
+            recipientTipTotal: string;
+            recipientTipCount: number;
+        };
         ApiPaginationMeta: {
             cursor: string | null;
             hasMore: boolean;
@@ -3918,11 +4110,26 @@ export interface components {
         MetaGetMeta200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["ApiMetaResponseDto"];
         };
+        EconomyGetWallet200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["WalletResponseDto"];
+        };
+        EconomyCheckIn200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["DailyCheckInResponseDto"];
+        };
+        EconomyTransactions200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["WalletTransactionResponseDto"][];
+        };
+        EconomyTipThread201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["TipResponseDto"];
+        };
+        EconomyTipUser201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["TipResponseDto"];
+        };
         /**
          * @description 稳定业务错误码；名称和值来源于 ErrorCode
          * @enum {integer}
          */
-        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40007 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40107 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 40912 | 42900 | 50000;
+        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40007 | 40008 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40107 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40307 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 40912 | 40913 | 42900 | 50000;
         ApiErrorEnvelope: {
             code: components["schemas"]["BusinessErrorCode"];
             message: string;
@@ -9722,6 +9929,272 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MetaGetMeta200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    economyGetWallet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EconomyGetWallet200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    economyCheckIn: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EconomyCheckIn200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    economyTransactions: {
+        parameters: {
+            query?: {
+                /** @description 服务端返回的不透明分页游标；首次请求不传，后续必须原样回传 */
+                cursor?: string;
+                /** @description 每页条数（默认 20，最大 50） */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 温油收支流水，cursor 分页 */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EconomyTransactions200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    economyTipThread: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TipRequestDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EconomyTipThread201Response"];
+                };
+            };
+            /** @description 金额不是不小于 2 的整数升 */
+            400: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 自我打赏、拉黑关系或无主题访问权限 */
+            403: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 主题帖或收款用户不存在 */
+            404: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 余额不足或幂等键复用于不同请求 */
+            409: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    economyTipUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TipRequestDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EconomyTipUser201Response"];
+                };
+            };
+            /** @description 金额不是不小于 2 的整数升 */
+            400: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 自我打赏或存在拉黑关系 */
+            403: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 收款用户不存在 */
+            404: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 余额不足或幂等键复用于不同请求 */
+            409: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */

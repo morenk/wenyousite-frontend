@@ -7,10 +7,10 @@
 实现用户主页、关注/拉黑、草稿箱三个子功能，补齐全站所有 `Link href="/users/{id}"` 的死链落点。
 
 **本次迭代范围（Phase 6 MVP）：**
-- `/users/[id]` 用户主页：资料卡（头像/用户名/Bio/注册时间/关注粉丝数）+ 私聊/关注/拉黑按钮 + 最近动态（recent-replies）+ 创建的帖子（created-threads）+ 参与的帖子（played-threads）
+- `/users/[id]` 用户主页：资料卡（头像/用户名/等级/Bio/注册时间/关注粉丝数/累计被投入温油总额与次数）+ 温油投入/私聊/关注/拉黑按钮 + 最近动态（recent-replies）+ 创建的帖子（created-threads）+ 参与的帖子（played-threads）
 - 关注/取消关注、拉黑/取消拉黑（仅登录，用户主页操作）
 - 草稿箱：未发布帖列表（进入 `/threads/create` 草稿列表查看，可跳转继续编辑或删除）
-- `/me` 我的资料：邮箱（并入基本信息，脱敏显示 + 邮箱验证状态，未验证可跳转 `/verify-email`）、头像（裁剪上传/移除）、Bio（textarea + 255 字数统计）、隐私开关（用户名需显式进入编辑，默认不修改）
+- `/me` 我的资料：精确经验与等级进度、累计收到温油统计、邮箱（并入基本信息，脱敏显示 + 邮箱验证状态，未验证可跳转 `/verify-email`）、头像（裁剪上传/移除）、Bio（textarea + 255 字数统计）、隐私开关（用户名需显式进入编辑，默认不修改）
 - `/me/password` 修改密码页：当前密码/新密码/确认新密码（显示/隐藏切换 + 需求提示），成功后登出跳登录
 - `/me/email` 更换邮箱页：当前密码二次认证 → 新邮箱 → 6 位验证码，成功后失效 me 缓存并跳转 `/me`
 - `/me/security` 账号安全页：双端登录终端、黑名单、账号注销
@@ -50,6 +50,7 @@
 | GET | `/users/:id/created-threads` | OptionalAuth | 创建的帖子（本人可见全部含私密帖，他人仅 PUBLIC），按创建时间倒序，Cursor 分页 |
 | GET | `/users/:id/played-threads` | OptionalAuth | 已获授玩家身份的非自建帖子，支持 `visibility=PUBLIC\|PRIVATE`；本人可见公开/私密帖，他人仅可见公开帖，按加入时间倒序和 Cursor 分页 |
 | POST | `/users/follow/:id` | Auth | 关注（幂等，首次关注发通知） |
+| POST | `/users/:id/tips` | Auth | 向该用户投入不少于 2 升温油（UUID 幂等） |
 | DELETE | `/users/follow/:id` | Auth | 取消关注 |
 | GET | `/users/:id/following` | OptionalAuth | 该用户的关注列表（公开，用户不存在 404） |
 | GET | `/users/:id/followers` | OptionalAuth | 该用户的粉丝列表（公开，用户不存在 404） |

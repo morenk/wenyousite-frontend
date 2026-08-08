@@ -6,6 +6,7 @@ import { Toaster } from "sonner";
 import { useEffect, useRef, useState } from "react";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { ConfirmProvider } from "@/components/ui/confirm-provider";
+import { DailyCheckInBootstrap } from "@/components/economy/daily-check-in-bootstrap";
 
 function createQueryClient() {
   return new QueryClient({
@@ -62,7 +63,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <NuqsAdapter>
       <AuthProvider>
         <IdentityScopedQueries>
-          <ConfirmProvider>{children}</ConfirmProvider>
+          <ConfirmProvider>
+            <DailyCheckInBootstrap />
+            {children}
+          </ConfirmProvider>
         </IdentityScopedQueries>
       </AuthProvider>
     </NuqsAdapter>

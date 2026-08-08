@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-provider";
 import type { ReplyData, ReplyDisplayData } from "@/api/hooks/use-floors";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
+import { LevelBadge } from "@/components/shared/level-badge";
 
 interface ReplyListProps {
   postId: string;
@@ -141,6 +142,7 @@ export function ReplyList({ postId, focusedReply, variant = "embedded" }: ReplyL
                 >
                   {reply.author.username}
                 </Link>
+                <LevelBadge level={reply.author.level} />
                 {variant === "discussion" && (
                   <span className="text-xs text-muted-foreground">讨论 #{index + 1}</span>
                 )}

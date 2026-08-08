@@ -19,6 +19,8 @@ import { AvatarUploader } from "@/components/user/avatar-uploader";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LevelBadge } from "@/components/shared/level-badge";
+import { formatWenyou } from "@/lib/wenyou";
 
 /** 邮箱脱敏：保留首字符与域名，如 a***@example.com */
 function maskEmail(email: string): string {
@@ -101,6 +103,40 @@ export function ProfileEditForm() {
 
   return (
     <div className="space-y-5">
+      {me && (
+        <Card>
+          <CardHeader className="flex-row items-center justify-between">
+            <CardTitle>等级与创作激励</CardTitle>
+            <LevelBadge level={me.level} className="h-6 px-2 text-xs" />
+          </CardHeader>
+          <CardContent className="space-y-3 pt-2">
+            <div>
+              <div className="mb-1.5 flex justify-between text-xs text-muted-foreground">
+                <span>{me.experience} 经验</span>
+                <span>
+                  {me.nextLevelExperience === null
+                    ? "已达最高等级"
+                    : `下一级 ${me.nextLevelExperience}`}
+                </span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-primary transition-[width]"
+                  style={{
+                    width: me.nextLevelExperience === null
+                      ? "100%"
+                      : `${Math.max(0, Math.min(100, ((me.experience - me.currentLevelExperience) / (me.nextLevelExperience - me.currentLevelExperience)) * 100))}%`,
+                  }}
+                />
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              累计收到 {formatWenyou(me.receivedTipTotal)} 升温油，共 {me.receivedTipCount} 次投入
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       {me && <UsernameEdit currentUsername={me.username} />}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">

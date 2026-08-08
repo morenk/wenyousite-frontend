@@ -9,6 +9,7 @@ import { Loader2, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { THREAD_CATEGORY_META, type ThreadCategory } from "@/lib/thread-presentation";
 import type { ThreadOwner } from "@/api/hooks/use-threads";
+import { LevelBadge } from "@/components/shared/level-badge";
 
 interface BookmarkThreadCardProps {
   thread: {
@@ -44,8 +45,8 @@ export function BookmarkThreadCard({
         <h3 className="text-sm font-semibold text-foreground line-clamp-1">
           {thread.title}
         </h3>
-        <p className="mt-1 text-xs text-muted-foreground">
-          {thread.owner.username} ·{" "}
+        <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+          {thread.owner.username} <LevelBadge level={thread.owner.level} /> ·{" "}
           {formatDistanceToNow(new Date(thread.createdAt), {
             addSuffix: true,
             locale: zhCN,

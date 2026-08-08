@@ -12,6 +12,8 @@ import {
   FilePlus,
   UserPlus,
   Heart,
+  Gift,
+  TrendingUp,
   Megaphone,
   X,
 } from "lucide-react";
@@ -222,5 +224,7 @@ const typeIconMap: Record<string, React.ComponentType<{ className?: string }>> =
   thread_created: FilePlus,
   follow: UserPlus,
   like: Heart,
+  tip: Gift,
+  level_up: TrendingUp,
   system: Megaphone,
 };

@@ -73,7 +73,8 @@
 | 状态 | thread.status | 招募中/已停招/已结束 |
 | 玩家数 | thread._count.players | 数字（被楼主授予玩家身份者） |
 | 楼层数 | thread._count.posts | 数字 |
-| 作者 | thread.owner | 头像（`_thumb.webp`，无则首字符占位）+ 用户名 |
+| 作者 | thread.owner | 头像（`_thumb.webp`，无则首字符占位）+ 用户名 + Lv.等级 |
+| 创作激励 | thread.tipTotal | 公开累计获得温油总额（整数升） |
 | 最后活跃 | thread.updatedAt | date-fns 相对时间 |
 
 ## 7. 分页策略
@@ -82,7 +83,7 @@
 - 每次请求 20 条。
 - 滚动到底部自动加载下一页（`IntersectionObserver`）。
 - 加载更多时显示 spinner。
-- **推荐排序（recommended）分类筛选去重**：后端智能排序用全局 Redis ZSET 按「已消费可见帖数」累进分页（前缀扫描 + 可见帖切片，每帖只出现一次）。前端 `ThreadList` 渲染前按 `thread.id` 兜底去重，防御任何来源（历史缓存/后端异常）的重复 id，确保同一帖不渲染多次。
+- **推荐排序（recommended）分类筛选去重**：后端智能排序活跃度纳入回复、点赞、浏览和累计获得温油，再按主题帖年龄衰减；全局 Redis ZSET 按「已消费可见帖数」累进分页（前缀扫描 + 可见帖切片，每帖只出现一次）。前端 `ThreadList` 渲染前按 `thread.id` 兜底去重，防御任何来源（历史缓存/后端异常）的重复 id，确保同一帖不渲染多次。
 - 排序参数：`newest`=最新创建，`active`=最新回复，`recommended`=智能排序（默认）。
 - 状态参数：不传表示全部状态；`RECRUITING`=招募中，`CLOSED`=已停招，`FINISHED`=已结束。
 - 标签 ID、分类、排序和状态都进入 `useThreads` 的 query key；切换任一筛选条件会得到独立分页缓存。

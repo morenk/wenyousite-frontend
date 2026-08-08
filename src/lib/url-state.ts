@@ -13,5 +13,6 @@ export const notificationTypeParser = parseAsStringLiteral([
   "reply,mention",
   "new_post,thread_created",
   "follow,like",
+  "tip,level_up",
   "system",
 ] as const);

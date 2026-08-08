@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { Users, MessageSquare } from "lucide-react";
+import { Gift, Users, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatMarkdownPreview } from "@/lib/markdown-preview";
 import { THREAD_CATEGORY_META, THREAD_STATUS_META } from "@/lib/thread-presentation";
@@ -14,6 +14,8 @@ import { UserAvatar } from "@/components/shared/user-avatar";
 import type { ThreadCardData } from "@/api/hooks/use-threads";
 import { floorsQueryOptions } from "@/api/hooks/use-floors";
 import { TopicTagLink } from "./topic-tag-link";
+import { LevelBadge } from "@/components/shared/level-badge";
+import { formatWenyou } from "@/lib/wenyou";
 
 interface ThreadCardProps {
   thread: ThreadCardData;
@@ -98,6 +100,10 @@ export function ThreadCard({ thread }: ThreadCardProps) {
               <MessageSquare className="h-3.5 w-3.5" />
               {thread._count.posts}
             </span>
+            <span className="flex items-center gap-1" title="累计获得温油">
+              <Gift className="h-3.5 w-3.5" />
+              {formatWenyou(thread.tipTotal)} 升
+            </span>
           </div>
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1.5">
@@ -108,6 +114,7 @@ export function ThreadCard({ thread }: ThreadCardProps) {
                 textClassName="text-[10px]"
               />
               {thread.owner.username}
+              <LevelBadge level={thread.owner.level} />
             </span>
             <span>
               {formatDistanceToNow(new Date(thread.updatedAt), {
