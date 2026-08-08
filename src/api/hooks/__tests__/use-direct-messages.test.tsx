@@ -4,6 +4,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, expect, test, vi } from "vitest";
 import {
   appendDirectMessageToCache,
+  reconcileDirectMessagesInCache,
   useDirectMessages,
   type DirectMessage,
 } from "@/api/hooks/use-direct-messages";
@@ -60,6 +61,57 @@ describe("direct message history", () => {
     appendDirectMessageToCache(client, "u1", "c1", []);
     appendDirectMessageToCache(client, "u1", "c1", [makeMessage("m1")]);
     expect(client.getQueryData(queryKeys.directMessages.messages("u1", "c1"))).toBeUndefined();
+  });
+
+  test("最近页对账只更新已加载消息，不把窗口中更早的记录追加到底部", () => {
+    const client = new QueryClient();
+    const key = queryKeys.directMessages.messages("u1", "c1");
+    const loaded = Array.from({ length: 30 }, (_, index) => makeMessage(`m${index + 21}`, {
+      createdAt: new Date(Date.UTC(2026, 7, 6, 20, 0, index + 21)).toISOString(),
+    }));
+    const reconciliation = Array.from({ length: 50 }, (_, index) => makeMessage(`m${index + 1}`, {
+      createdAt: new Date(Date.UTC(2026, 7, 6, 20, 0, index + 1)).toISOString(),
+      ...(index === 20 ? { content: null, recalledAt: "2026-08-06T21:00:00Z" } : {}),
+    }));
+    client.setQueryData(key, {
+      pages: [{ data: loaded, meta: { cursor: "m21", hasMore: true } }],
+      pageParams: [undefined],
+    } satisfies InfiniteData<unknown>);
+
+    reconcileDirectMessagesInCache(client, "u1", "c1", reconciliation);
+
+    const cached = client.getQueryData<InfiniteData<{ data: DirectMessage[] }>>(key);
+    expect(cached?.pages[0].data.map((message) => message.id)).toEqual(
+      loaded.map((message) => message.id),
+    );
+    expect(cached?.pages[0].data[0].recalledAt).toBe("2026-08-06T21:00:00Z");
+  });
+
+  test("重叠来源即使乱序写入缓存，暴露给时间线的消息仍保持时间正序", async () => {
+    const newestWindow = Array.from({ length: 30 }, (_, index) => makeMessage(`m${index + 21}`, {
+      createdAt: new Date(Date.UTC(2026, 7, 6, 20, 0, index + 21)).toISOString(),
+    }));
+    mockGET.mockImplementation(async (_path: string, options: {
+      params: { query: { limit: number; after?: string } };
+    }) => {
+      const { after } = options.params.query;
+      if (after) {
+        return { data: { data: [], meta: { cursor: null, hasMore: false } } };
+      }
+      return { data: { data: newestWindow, meta: { cursor: null, hasMore: false } } };
+    });
+    const { client, Wrapper } = setup();
+    const { result } = renderHook(() => useDirectMessages("c1", "u1"), { wrapper: Wrapper });
+
+    await waitFor(() => expect(result.current.messages).toHaveLength(30));
+    act(() => {
+      appendDirectMessageToCache(client, "u1", "c1", [makeMessage("m20", {
+        createdAt: new Date(Date.UTC(2026, 7, 6, 20, 0, 20)).toISOString(),
+      })]);
+    });
+
+    await waitFor(() => expect(result.current.messages[0]?.id).toBe("m20"));
+    expect(result.current.messages.at(-1)?.id).toBe("m50");
   });
 
   test("加载历史、按 after 增量同步并把分页按时间正序合并", async () => {

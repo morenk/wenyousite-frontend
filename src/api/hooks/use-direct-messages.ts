@@ -39,6 +39,32 @@ export function appendDirectMessageToCache(
   );
 }
 
+export function reconcileDirectMessagesInCache(
+  queryClient: QueryClient,
+  userId: string | undefined,
+  conversationId: string,
+  incoming: DirectMessage[],
+) {
+  if (incoming.length === 0) return;
+  queryClient.setQueryData<InfiniteData<DirectMessagesResponse, string | undefined>>(
+    queryKeys.directMessages.messages(userId, conversationId),
+    (current) => {
+      if (!current || current.pages.length === 0) return current;
+      const incomingById = new Map(incoming.map((item) => [item.id, item]));
+      return {
+        ...current,
+        pages: current.pages.map((page) => ({
+          ...page,
+          // Reconciliation refreshes mutable state (for example, recalls) on
+          // messages already loaded. Unknown records may be older than the
+          // current history window and must not be appended as new messages.
+          data: page.data.map((item) => incomingById.get(item.id) ?? item),
+        })),
+      };
+    },
+  );
+}
+
 export function removeDirectMessageFromCache(
   queryClient: QueryClient,
   userId: string | undefined,
@@ -120,6 +146,15 @@ export function useDirectMessages(conversationId?: string, userId?: string) {
         if (seen.has(message.id)) return false;
         seen.add(message.id);
         return true;
+      })
+      // Each API page is chronological, but the cache is also fed by polling
+      // and optimistic updates. Keep the rendered timeline chronological even
+      // if a future merge source returns an overlapping window.
+      .sort((left, right) => {
+        const leftTime = Date.parse(left.createdAt);
+        const rightTime = Date.parse(right.createdAt);
+        if (!Number.isFinite(leftTime) || !Number.isFinite(rightTime)) return 0;
+        return leftTime - rightTime;
       });
   }, [history.data?.pages]);
   const latestMessageId = messages.findLast((message) => message.deliveryState !== "sending")?.id;
@@ -182,7 +217,7 @@ export function useDirectMessages(conversationId?: string, userId?: string) {
 
   useEffect(() => {
     if (!conversationId || reconciliation.data.length === 0) return;
-    appendDirectMessageToCache(queryClient, userId, conversationId, reconciliation.data);
+    reconcileDirectMessagesInCache(queryClient, userId, conversationId, reconciliation.data);
   }, [conversationId, queryClient, reconciliation.data, userId]);
 
   return {

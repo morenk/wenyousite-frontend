@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
 import { ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ImageLightbox } from "@/components/shared/image-lightbox";
@@ -37,11 +37,11 @@ interface DirectMessageBubbleProps {
   mine: boolean;
   hideRequestImage?: boolean;
   canRecall?: boolean;
-  onRecall?: () => void;
+  onRecall?: (messageId: string) => void;
   recalling?: boolean;
 }
 
-export function DirectMessageBubble({
+export const DirectMessageBubble = memo(function DirectMessageBubble({
   message,
   mine,
   hideRequestImage = false,
@@ -143,7 +143,7 @@ export function DirectMessageBubble({
             {canRecall && !recalled && !sending && (
               <button
                 type="button"
-                onClick={onRecall}
+                onClick={() => onRecall?.(message.id)}
                 disabled={recalling}
                 className="hover:text-foreground disabled:opacity-50"
               >
@@ -162,4 +162,4 @@ export function DirectMessageBubble({
       )}
     </div>
   );
-}
+});

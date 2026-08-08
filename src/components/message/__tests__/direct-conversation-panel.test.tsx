@@ -11,19 +11,25 @@ const mocks = vi.hoisted(() => ({
   toastSuccess: vi.fn(),
   toastError: vi.fn(),
   virtualScrollToEnd: vi.fn(),
+  virtualContainerRef: vi.fn(),
+  virtualOptions: vi.fn(),
 }));
 
 vi.mock("@tanstack/react-virtual", () => ({
-  useVirtualizer: ({ count }: { count: number }) => ({
-    getVirtualItems: () => Array.from({ length: count }, (_, index) => ({
-      index,
-      key: `row-${index}`,
-      start: index * 100,
-    })),
-    getTotalSize: () => count * 100,
-    measureElement: vi.fn(),
-    scrollToEnd: mocks.virtualScrollToEnd,
-  }),
+  useVirtualizer: (options: { count: number }) => {
+    mocks.virtualOptions(options);
+    return {
+      getVirtualItems: () => Array.from({ length: options.count }, (_, index) => ({
+        index,
+        key: `row-${index}`,
+        start: index * 100,
+      })),
+      getTotalSize: () => options.count * 100,
+      measureElement: vi.fn(),
+      containerRef: mocks.virtualContainerRef,
+      scrollToEnd: mocks.virtualScrollToEnd,
+    };
+  },
 }));
 
 vi.mock("next/link", () => ({
@@ -68,12 +74,14 @@ vi.mock("@/components/message/direct-message-bubble", () => ({
     message: { id: string; content: string | null };
     hideRequestImage: boolean;
     canRecall: boolean;
-    onRecall: () => void;
+    onRecall: (messageId: string) => void;
   }) => (
     <div>
       <span>{message.content ?? message.id}</span>
       {hideRequestImage && <span>图片已隐藏</span>}
-      {canRecall && <button type="button" onClick={onRecall}>撤回 {message.id}</button>}
+      {canRecall && (
+        <button type="button" onClick={() => onRecall(message.id)}>撤回 {message.id}</button>
+      )}
     </div>
   ),
 }));
@@ -217,6 +225,27 @@ describe("DirectConversationPanel", () => {
     view.rerender(<DirectConversationPanel conversationId="c1" />);
 
     expect(mocks.virtualScrollToEnd).toHaveBeenCalledWith({ behavior: "smooth" });
+  });
+
+  test("长记录使用直接 DOM 定位且数据不变时复用测量回调", () => {
+    const view = render(<DirectConversationPanel conversationId="c1" />);
+    const initialOptions = mocks.virtualOptions.mock.calls.at(-1)?.[0] as {
+      directDomUpdates: boolean;
+      directDomUpdatesMode: string;
+      getItemKey: (index: number) => string | number;
+    };
+
+    expect(initialOptions).toEqual(expect.objectContaining({
+      directDomUpdates: true,
+      directDomUpdatesMode: "transform",
+    }));
+    expect(mocks.virtualContainerRef).toHaveBeenCalledWith(expect.any(HTMLDivElement));
+
+    view.rerender(<DirectConversationPanel conversationId="c1" />);
+    const rerenderedOptions = mocks.virtualOptions.mock.calls.at(-1)?.[0] as {
+      getItemKey: (index: number) => string | number;
+    };
+    expect(rerenderedOptions.getItemKey).toBe(initialOptions.getItemKey);
   });
 
   test("离开底部时返回入口会刷新并一次定位到最新消息", async () => {

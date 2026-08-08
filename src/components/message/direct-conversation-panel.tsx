@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Archive, ArchiveRestore, ArrowDown, Ban, Loader2 } from "lucide-react";
@@ -32,6 +32,7 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
   const [now, setNow] = useState(0);
   const [showJumpToLatest, setShowJumpToLatest] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const showJumpToLatestRef = useRef(false);
   const hasScrolledRef = useRef(false);
   const activeConversationIdRef = useRef(conversationId);
   const previousLatestMessageIdRef = useRef<string | undefined>(undefined);
@@ -39,22 +40,35 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
 
   const conversation = conversationQuery.data;
   const historyOffset = history.hasNextPage ? 1 : 0;
+  const getScrollElement = useCallback(() => scrollContainerRef.current, []);
+  const getItemKey = useCallback((index: number) => {
+    if (historyOffset && index === 0) return "load-older-messages";
+    return history.messages[index - historyOffset]?.id ?? index;
+  }, [history.messages, historyOffset]);
+  const estimateMessageSize = useCallback(
+    (index: number) => historyOffset && index === 0 ? 48 : 96,
+    [historyOffset],
+  );
+  const setJumpToLatestVisibility = useCallback((visible: boolean) => {
+    if (showJumpToLatestRef.current === visible) return;
+    showJumpToLatestRef.current = visible;
+    setShowJumpToLatest(visible);
+  }, []);
   // Virtualizer owns mutable measurement functions; it already performs its own render minimization.
   // eslint-disable-next-line react-hooks/incompatible-library
   const messageVirtualizer = useVirtualizer({
     count: history.messages.length + historyOffset,
-    getScrollElement: () => scrollContainerRef.current,
-    getItemKey: (index) => {
-      if (historyOffset && index === 0) return "load-older-messages";
-      return history.messages[index - historyOffset]?.id ?? index;
-    },
-    estimateSize: (index) => historyOffset && index === 0 ? 48 : 96,
+    getScrollElement,
+    getItemKey,
+    estimateSize: estimateMessageSize,
     overscan: 8,
     gap: 16,
     anchorTo: "end",
     followOnAppend: "auto",
     scrollEndThreshold: 80,
     useFlushSync: false,
+    directDomUpdates: true,
+    directDomUpdatesMode: "transform",
   });
 
   useEffect(() => {
@@ -74,7 +88,7 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
       hasScrolledRef.current = false;
       previousLatestMessageIdRef.current = undefined;
       markedReadRef.current = undefined;
-      setShowJumpToLatest(false);
+      setJumpToLatestVisibility(false);
     }
     if (!latestMessageId) return;
     const isInitialScroll = !hasScrolledRef.current;
@@ -83,11 +97,18 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
 
     if (isInitialScroll || isNewOwnMessage) {
       messageVirtualizer.scrollToEnd({ behavior: isInitialScroll ? "auto" : "smooth" });
-      setShowJumpToLatest(false);
+      setJumpToLatestVisibility(false);
     }
     hasScrolledRef.current = true;
     previousLatestMessageIdRef.current = latestMessageId;
-  }, [conversationId, latestMessage?.senderId, latestMessageId, messageVirtualizer, user?.id]);
+  }, [
+    conversationId,
+    latestMessage?.senderId,
+    latestMessageId,
+    messageVirtualizer,
+    setJumpToLatestVisibility,
+    user?.id,
+  ]);
 
   useEffect(() => {
     const latestIncoming = [...history.messages]
@@ -148,7 +169,8 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
     }
   };
 
-  const handleRecall = async (messageId: string) => {
+  const recallMessage = actions.recall.mutateAsync;
+  const handleRecall = useCallback(async (messageId: string) => {
     const confirmed = await confirmAction({
       title: "撤回消息",
       description: conversation?.status === "PENDING"
@@ -158,12 +180,12 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
     });
     if (!confirmed) return;
     try {
-      await actions.recall.mutateAsync(messageId);
+      await recallMessage(messageId);
       toast.success("消息已撤回");
     } catch (error) {
       toast.error(getApiErrorMessage(error, "撤回失败"));
     }
-  };
+  }, [confirmAction, conversation?.status, recallMessage]);
 
   if (conversationQuery.isLoading) {
     return (
@@ -276,7 +298,7 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
           onScroll={(event) => {
             const container = event.currentTarget;
             const distanceToEnd = container.scrollHeight - container.clientHeight - container.scrollTop;
-            setShowJumpToLatest(distanceToEnd > 80);
+            setJumpToLatestVisibility(distanceToEnd > 80);
           }}
         >
           {history.isLoading ? (
@@ -289,8 +311,8 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
             <div className="py-12 text-center text-sm text-muted-foreground">暂无可显示的消息</div>
           ) : (
             <div
+              ref={messageVirtualizer.containerRef}
               className="relative w-full"
-              style={{ height: `${messageVirtualizer.getTotalSize()}px` }}
             >
               {messageVirtualizer.getVirtualItems().map((virtualRow) => {
                 if (historyOffset && virtualRow.index === 0) {
@@ -300,7 +322,6 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
                       data-index={virtualRow.index}
                       ref={messageVirtualizer.measureElement}
                       className="absolute left-0 top-0 w-full text-center"
-                      style={{ transform: `translateY(${virtualRow.start}px)` }}
                     >
                       <Button
                         variant="ghost"
@@ -330,7 +351,6 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
                     data-index={virtualRow.index}
                     ref={messageVirtualizer.measureElement}
                     className="absolute left-0 top-0 w-full"
-                    style={{ transform: `translateY(${virtualRow.start}px)` }}
                   >
                     {showTime && now > 0 && (
                       <time
@@ -346,7 +366,7 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
                       hideRequestImage={requestIncoming && !mine}
                       canRecall={canRecall}
                       recalling={actions.recall.isPending}
-                      onRecall={() => void handleRecall(message.id)}
+                      onRecall={handleRecall}
                     />
                   </div>
                 );
@@ -365,7 +385,7 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
               // Dynamic message heights make a long smooth virtual scroll repeatedly
               // correct its target. Land once, then let appended messages follow at end.
               messageVirtualizer.scrollToEnd({ behavior: "auto" });
-              setShowJumpToLatest(false);
+              setJumpToLatestVisibility(false);
               void history.refetchLatest();
             }}
           >
