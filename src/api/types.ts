@@ -1138,7 +1138,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 获取楼中楼回复列表（cursor 分页，无限下拉） */
+        /** 获取楼中楼回复列表（支持顺序与玩家/楼主/协作者筛选） */
         get: operations["postsFindReplies"];
         put?: never;
         post?: never;
@@ -1520,7 +1520,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 隐藏主题帖或帖子 */
+        /** 隐藏主题帖、帖子、动态或动态评论 */
         post: operations["adminModerationHideContent"];
         delete?: never;
         options?: never;
@@ -1537,7 +1537,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 恢复由管理员隐藏的主题帖或帖子 */
+        /** 恢复由管理员隐藏的主题帖、帖子、动态或动态评论 */
         post: operations["adminModerationRestoreContent"];
         delete?: never;
         options?: never;
@@ -1683,6 +1683,23 @@ export interface paths {
         patch: operations["adminTaxonomyUpdateTag"];
         trace?: never;
     };
+    "/api/v1/search/moments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 按标题和纯文本正文搜索公开动态 */
+        get: operations["searchSearchMoments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/search/threads": {
         parameters: {
             query?: never;
@@ -1760,6 +1777,182 @@ export interface paths {
         };
         /** 按正文搜索单个主题帖内的楼层与楼中楼 */
         get: operations["threadSearchSearchPosts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/moments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 动态瀑布流；发现为热度，新鲜关注为时间倒序 */
+        get: operations["momentsList"];
+        put?: never;
+        /** 发布纯文本/图片动态，最多 9 张图片 */
+        post: operations["momentsCreate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/moments/bookmarks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 当前用户收藏的动态 */
+        get: operations["momentsBookmarks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/moments/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取动态详情 */
+        get: operations["momentsDetail"];
+        put?: never;
+        post?: never;
+        /** 软删除动态 */
+        delete: operations["momentsRemove"];
+        options?: never;
+        head?: never;
+        /** 编辑自己的动态，使用 version 乐观锁 */
+        patch: operations["momentsUpdate"];
+        trace?: never;
+    };
+    "/api/v1/moments/{id}/like": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 点赞动态，幂等 */
+        post: operations["momentsLike"];
+        /** 取消点赞动态，幂等 */
+        delete: operations["momentsUnlike"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/moments/{id}/bookmark": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 收藏动态，幂等 */
+        post: operations["momentsBookmark"];
+        /** 取消收藏动态，幂等 */
+        delete: operations["momentsUnbookmark"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/moments/{id}/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 主评论列表，支持顺序与作者筛选并内嵌三条楼中楼 */
+        get: operations["momentsCommentsList"];
+        put?: never;
+        /** 发表文字、单图或单表情评论；回复统一归入两层楼中楼 */
+        post: operations["momentsCreateComment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/moments/{id}/comment-authors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取当前可见动态回复串中的作者候选 */
+        get: operations["momentsCommentAuthors"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/moments/{id}/comments/{commentId}/replies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 分页获取某主评论的楼中楼，支持顺序与作者筛选 */
+        get: operations["momentsReplies"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/moments/{id}/comments/{commentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** 评论作者、动态作者或管理员软删除评论 */
+        delete: operations["momentsRemoveComment"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/{id}/moments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 用户公开动态列表 */
+        get: operations["userMomentsList"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2069,6 +2262,23 @@ export interface paths {
         put?: never;
         /** 直接向用户打赏温油 */
         post: operations["economyTipUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/moments/{id}/tips": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 给公开动态作者加油 */
+        post: operations["economyTipMoment"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2601,6 +2811,7 @@ export interface components {
             preview?: string | null;
             subthreadTitle?: string | null;
             threadTitle?: string | null;
+            momentTitle?: string | null;
             totalCount?: number | null;
             likers?: components["schemas"]["NotificationLikerResponseDto"][];
             grossAmount?: string | null;
@@ -2612,9 +2823,11 @@ export interface components {
         };
         NotificationTargetResponseDto: {
             /** @enum {string} */
-            kind: "post" | "thread" | "user" | "none";
+            kind: "post" | "thread" | "moment" | "user" | "none";
             threadId: string | null;
             postId: string | null;
+            momentId: string | null;
+            momentCommentId: string | null;
             userId: string | null;
         };
         NotificationPostResponseDto: {
@@ -2627,6 +2840,18 @@ export interface components {
         NotificationThreadResponseDto: {
             id: string;
             title: string | null;
+            /** Format: date-time */
+            deletedAt: string | null;
+        };
+        NotificationMomentResponseDto: {
+            id: string;
+            title: string;
+            /** Format: date-time */
+            deletedAt: string | null;
+        };
+        NotificationMomentCommentResponseDto: {
+            id: string;
+            parentCommentId: string | null;
             /** Format: date-time */
             deletedAt: string | null;
         };
@@ -2648,6 +2873,8 @@ export interface components {
             target: components["schemas"]["NotificationTargetResponseDto"];
             postId: string | null;
             threadId: string | null;
+            momentId: string | null;
+            momentCommentId: string | null;
             fromUserId: string | null;
             eventKey: string;
             isRead: boolean;
@@ -2655,6 +2882,8 @@ export interface components {
             createdAt: string;
             post: components["schemas"]["NotificationPostResponseDto"] | null;
             thread: components["schemas"]["NotificationThreadResponseDto"] | null;
+            moment: components["schemas"]["NotificationMomentResponseDto"] | null;
+            momentComment: components["schemas"]["NotificationMomentCommentResponseDto"] | null;
             fromUser: components["schemas"]["NotificationFromUserResponseDto"] | null;
         };
         UnreadNotificationCountResponseDto: {
@@ -2784,6 +3013,8 @@ export interface components {
             _count: components["schemas"]["ThreadListCountResponseDto"];
             /** @description 首页列表正文预览 */
             preview?: string;
+            /** @description 默认主贴正文中的普通图片 URL，按出现顺序返回，最多 3 张 */
+            coverImages: string[];
         };
         CreateThreadDto: {
             /**
@@ -3572,7 +3803,7 @@ export interface components {
         };
         CreateReportDto: {
             /** @enum {string} */
-            targetType: "USER" | "THREAD" | "POST";
+            targetType: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT";
             targetId: string;
             /** @enum {string} */
             reasonCode: "SPAM" | "HARASSMENT" | "HATE_OR_THREATS" | "SEXUAL_CONTENT" | "VIOLENT_CONTENT" | "PERSONAL_INFORMATION" | "ILLEGAL_CONTENT" | "OTHER";
@@ -3583,7 +3814,7 @@ export interface components {
             id: string;
             reporterId: string | null;
             /** @enum {string} */
-            targetType: "USER" | "THREAD" | "POST";
+            targetType: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT";
             targetId: string;
             /** @enum {string} */
             reasonCode: "SPAM" | "HARASSMENT" | "HATE_OR_THREATS" | "SEXUAL_CONTENT" | "VIOLENT_CONTENT" | "PERSONAL_INFORMATION" | "ILLEGAL_CONTENT" | "OTHER";
@@ -3612,7 +3843,7 @@ export interface components {
             id: string;
             reporterId: string | null;
             /** @enum {string} */
-            targetType: "USER" | "THREAD" | "POST";
+            targetType: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT";
             targetId: string;
             /** @enum {string} */
             reasonCode: "SPAM" | "HARASSMENT" | "HATE_OR_THREATS" | "SEXUAL_CONTENT" | "VIOLENT_CONTENT" | "PERSONAL_INFORMATION" | "ILLEGAL_CONTENT" | "OTHER";
@@ -3768,7 +3999,7 @@ export interface components {
         };
         AdminContentModerationResponseDto: {
             /** @enum {string} */
-            targetType: "THREAD" | "POST";
+            targetType: "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT";
             targetId: string;
             hidden: boolean;
             /** Format: date-time */
@@ -3785,7 +4016,7 @@ export interface components {
             /** @enum {string} */
             action: "SUPER_ADMIN_BOOTSTRAPPED" | "ADMIN_ROLE_GRANTED" | "ADMIN_ROLE_REVOKED" | "USER_SUSPENDED" | "USER_BANNED" | "USER_SANCTION_REVOKED" | "CONTENT_HIDDEN" | "CONTENT_RESTORED" | "REPORT_RESOLVED" | "REPORT_DISMISSED" | "SYSTEM_NOTIFICATION_SENT" | "THREAD_CATEGORY_CREATED" | "THREAD_CATEGORY_UPDATED" | "TAG_CREATED" | "TAG_UPDATED";
             /** @enum {string} */
-            targetType: "USER" | "THREAD" | "POST" | "REPORT" | "SYSTEM_NOTIFICATION" | "THREAD_CATEGORY" | "TAG";
+            targetType: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "REPORT" | "SYSTEM_NOTIFICATION" | "THREAD_CATEGORY" | "TAG";
             targetId: string | null;
             reportId: string | null;
             reason: string | null;
@@ -3938,6 +4169,41 @@ export interface components {
             isActive?: boolean;
             reason?: string;
         };
+        MomentMediaResponseDto: {
+            id: string;
+            url: string;
+            thumbnailUrl: string | null;
+            feedUrl: string | null;
+            mediumUrl: string | null;
+            width: number | null;
+            height: number | null;
+        };
+        MomentSearchResponseDto: {
+            id: string;
+            authorId: string;
+            author: components["schemas"]["PostAuthorResponseDto"];
+            title: string;
+            /** @description 纯文本正文摘要 */
+            contentExcerpt: string;
+            /** @enum {string} */
+            coverType: "IMAGE" | "TEXT";
+            /** @enum {string} */
+            textCoverTheme: "ROSE" | "LILAC" | "MINT" | "AMBER";
+            coverMedia: components["schemas"]["MomentMediaResponseDto"] | null;
+            imageCount: number;
+            likeCount: number;
+            commentCount: number;
+            bookmarkCount: number;
+            tipTotal: string;
+            viewerLiked: boolean;
+            viewerBookmarked: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** @description 仅用于说明结果相关度；客户端不得作为稳定业务字段依赖 */
+            relevance?: number;
+        };
         SearchThreadOwnerResponseDto: {
             /** @description 用户 ID */
             id: string;
@@ -3973,6 +4239,8 @@ export interface components {
             owner: components["schemas"]["SearchThreadOwnerResponseDto"];
             /** @description 主题帖统计 */
             _count: components["schemas"]["SearchThreadCountResponseDto"];
+            /** @description 默认主贴正文中的普通图片 URL，按出现顺序返回，最多 3 张 */
+            coverImages: string[];
         };
         SearchUserResponseDto: {
             /** @description 用户 ID */
@@ -4031,6 +4299,166 @@ export interface components {
             /** @description 公开楼层正文兼容匹配结果，最多 20 条 */
             posts: components["schemas"]["SearchPostResponseDto"][];
         };
+        MomentCardResponseDto: {
+            id: string;
+            authorId: string;
+            author: components["schemas"]["PostAuthorResponseDto"];
+            title: string;
+            /** @description 纯文本正文摘要 */
+            contentExcerpt: string;
+            /** @enum {string} */
+            coverType: "IMAGE" | "TEXT";
+            /** @enum {string} */
+            textCoverTheme: "ROSE" | "LILAC" | "MINT" | "AMBER";
+            coverMedia: components["schemas"]["MomentMediaResponseDto"] | null;
+            imageCount: number;
+            likeCount: number;
+            commentCount: number;
+            bookmarkCount: number;
+            tipTotal: string;
+            viewerLiked: boolean;
+            viewerBookmarked: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        CreateMomentDto: {
+            /** @description 动态标题，纯文本 */
+            title: string;
+            /**
+             * @description 动态正文，纯文本
+             * @default
+             */
+            content: string;
+            /**
+             * @description 已完成处理的图片 ID，顺序即展示顺序
+             * @default []
+             */
+            mediaIds: string[];
+            /** @description 必须属于 mediaIds；无图时为 null */
+            coverMediaId?: string | null;
+            /**
+             * Format: uuid
+             * @description 发布幂等键，同时决定无图文字封面配色
+             */
+            clientRequestId: string;
+        };
+        MomentDetailResponseDto: {
+            id: string;
+            authorId: string;
+            author: components["schemas"]["PostAuthorResponseDto"];
+            title: string;
+            /** @description 纯文本正文摘要 */
+            contentExcerpt: string;
+            /** @enum {string} */
+            coverType: "IMAGE" | "TEXT";
+            /** @enum {string} */
+            textCoverTheme: "ROSE" | "LILAC" | "MINT" | "AMBER";
+            coverMedia: components["schemas"]["MomentMediaResponseDto"] | null;
+            imageCount: number;
+            likeCount: number;
+            commentCount: number;
+            bookmarkCount: number;
+            tipTotal: string;
+            viewerLiked: boolean;
+            viewerBookmarked: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** @description 完整纯文本正文 */
+            content: string;
+            images: components["schemas"]["MomentMediaResponseDto"][];
+            version: number;
+            canEdit: boolean;
+            canDelete: boolean;
+        };
+        UpdateMomentDto: {
+            title?: string;
+            content?: string;
+            mediaIds?: string[];
+            coverMediaId?: string | null;
+            /** @description 乐观锁版本 */
+            version: number;
+        };
+        MomentDeleteResponseDto: {
+            message: string;
+        };
+        MomentActionResponseDto: {
+            momentId: string;
+            count: number;
+            active: boolean;
+        };
+        MomentStickerResponseDto: {
+            id: string;
+            url: string;
+            thumbnailUrl: string;
+            mediumUrl: string;
+            width: number | null;
+            height: number | null;
+            animated: boolean;
+            frameCount: number;
+            durationMs: number;
+        };
+        MomentReplyTargetResponseDto: {
+            id: string;
+            author: components["schemas"]["PostAuthorResponseDto"];
+        };
+        MomentCommentResponseDto: {
+            id: string;
+            momentId: string;
+            author: components["schemas"]["PostAuthorResponseDto"];
+            /** @description 图片/表情评论可为空字符串；删除后为 null */
+            content: string | null;
+            /** @description 每条评论最多一张普通图片 */
+            media: components["schemas"]["MomentMediaResponseDto"] | null;
+            /** @description 每条评论最多一个表情；与 media 互斥 */
+            sticker: components["schemas"]["MomentStickerResponseDto"] | null;
+            /** @description 楼中楼统一指向主评论 */
+            parentCommentId: string | null;
+            replyToComment: components["schemas"]["MomentReplyTargetResponseDto"] | null;
+            deleted: boolean;
+            canDelete: boolean;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        MomentRootCommentResponseDto: {
+            id: string;
+            momentId: string;
+            author: components["schemas"]["PostAuthorResponseDto"];
+            /** @description 图片/表情评论可为空字符串；删除后为 null */
+            content: string | null;
+            /** @description 每条评论最多一张普通图片 */
+            media: components["schemas"]["MomentMediaResponseDto"] | null;
+            /** @description 每条评论最多一个表情；与 media 互斥 */
+            sticker: components["schemas"]["MomentStickerResponseDto"] | null;
+            /** @description 楼中楼统一指向主评论 */
+            parentCommentId: string | null;
+            replyToComment: components["schemas"]["MomentReplyTargetResponseDto"] | null;
+            deleted: boolean;
+            canDelete: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            replyCount: number;
+            /** @description 按当前筛选与顺序返回的前三条可见楼中楼预览 */
+            replies: components["schemas"]["MomentCommentResponseDto"][];
+        };
+        CreateMomentCommentDto: {
+            /** @description 评论纯文本；与图片或表情至少提供一项 */
+            content?: string;
+            /** @description 已完成处理且属于评论者的图片 ID；与 stickerAssetId 互斥 */
+            mediaId?: string;
+            /** @description 当前收藏夹中的表情资产 ID；与 mediaId 互斥 */
+            stickerAssetId?: string;
+            /** @description 被回复评论 ID；服务端自动归并到所属主评论 */
+            replyToCommentId?: string;
+            /**
+             * Format: uuid
+             * @description 评论幂等键
+             */
+            clientRequestId: string;
+        };
         CreateUploadUrlDto: {
             /**
              * @description 原始文件名
@@ -4073,6 +4501,8 @@ export interface components {
             url: string;
             /** @description 处理完成后的 300px WebP 缩略图地址 */
             thumbnailUrl: string | null;
+            /** @description 处理完成后的 480px 等比例 WebP 信息流图片地址 */
+            feedUrl: string | null;
             /** @description 处理完成后的 800px WebP 中图地址 */
             mediumUrl: string | null;
             /** @description 对象存储 key */
@@ -4261,7 +4691,7 @@ export interface components {
         };
         WalletTransactionTargetResponseDto: {
             /** @enum {string} */
-            type: "THREAD" | "USER" | "NONE";
+            type: "THREAD" | "USER" | "MOMENT" | "NONE";
             id: string | null;
             title: string | null;
         };
@@ -4303,6 +4733,8 @@ export interface components {
             balance: string;
             /** @description 主题累计投入总额 */
             threadTipTotal?: string;
+            /** @description 动态累计加油总额 */
+            momentTipTotal?: string;
             /** @description 收款人累计收到的用户投入总额 */
             recipientTipTotal: string;
             recipientTipCount: number;
@@ -4734,6 +5166,9 @@ export interface components {
         AdminTaxonomyUpdateTag200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["TagResponseDto"];
         };
+        SearchSearchMoments200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["MomentSearchResponseDto"][];
+        };
         SearchSearchThreads200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["SearchThreadResponseDto"][];
         };
@@ -4748,6 +5183,54 @@ export interface components {
         };
         ThreadSearchSearchPosts200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
             data: components["schemas"]["SearchPostResponseDto"][];
+        };
+        MomentsList200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["MomentCardResponseDto"][];
+        };
+        MomentsCreate201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MomentDetailResponseDto"];
+        };
+        MomentsBookmarks200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["MomentCardResponseDto"][];
+        };
+        MomentsDetail200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MomentDetailResponseDto"];
+        };
+        MomentsRemove200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MomentDeleteResponseDto"];
+        };
+        MomentsUpdate200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MomentDetailResponseDto"];
+        };
+        MomentsLike201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MomentActionResponseDto"];
+        };
+        MomentsUnlike200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MomentActionResponseDto"];
+        };
+        MomentsBookmark201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MomentActionResponseDto"];
+        };
+        MomentsUnbookmark200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MomentActionResponseDto"];
+        };
+        MomentsCommentsList200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["MomentRootCommentResponseDto"][];
+        };
+        MomentsCreateComment201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MomentCommentResponseDto"];
+        };
+        MomentsCommentAuthors200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["PostAuthorResponseDto"][];
+        };
+        MomentsReplies200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["MomentCommentResponseDto"][];
+        };
+        MomentsRemoveComment200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MomentDeleteResponseDto"];
+        };
+        UserMomentsList200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["MomentCardResponseDto"][];
         };
         MediaGetUploadUrl201Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["UploadUrlResponseDto"];
@@ -4809,11 +5292,14 @@ export interface components {
         EconomyTipUser201Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["TipResponseDto"];
         };
+        EconomyTipMoment201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["TipResponseDto"];
+        };
         /**
          * @description 稳定业务错误码；名称和值来源于 ErrorCode
          * @enum {integer}
          */
-        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40007 | 40008 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40107 | 40108 | 40109 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40307 | 40308 | 40309 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40414 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 40912 | 40913 | 40914 | 40915 | 40916 | 40917 | 40918 | 40919 | 42900 | 50000;
+        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40007 | 40008 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40107 | 40108 | 40109 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40307 | 40308 | 40309 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40414 | 40415 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 40912 | 40913 | 40914 | 40915 | 40916 | 40917 | 40918 | 40919 | 42900 | 50000;
         ApiErrorEnvelope: {
             code: components["schemas"]["BusinessErrorCode"];
             message: string;
@@ -8641,6 +9127,10 @@ export interface operations {
                 cursor?: string;
                 /** @description 每页条数（默认 20，最大 50） */
                 limit?: number;
+                /** @description 回复顺序；帖子回复默认 OLDEST，动态主评论默认 NEWEST */
+                order?: "OLDEST" | "NEWEST";
+                /** @description 只返回指定作者的回复 */
+                authorId?: string;
             };
             header?: never;
             path: {
@@ -9469,7 +9959,7 @@ export interface operations {
                 /** @description 每页条数（默认 20，最大 50） */
                 limit?: number;
                 status?: "PENDING" | "RESOLVED" | "DISMISSED";
-                targetType?: "USER" | "THREAD" | "POST";
+                targetType?: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT";
                 reasonCode?: "SPAM" | "HARASSMENT" | "HATE_OR_THREATS" | "SEXUAL_CONTENT" | "VIOLENT_CONTENT" | "PERSONAL_INFORMATION" | "ILLEGAL_CONTENT" | "OTHER";
             };
             header?: never;
@@ -9954,7 +10444,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                type: "thread" | "post";
+                type: "thread" | "post" | "moment" | "moment_comment";
                 id: string;
             };
             cookie?: never;
@@ -9993,7 +10483,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                type: "thread" | "post";
+                type: "thread" | "post" | "moment" | "moment_comment";
                 id: string;
             };
             cookie?: never;
@@ -10035,7 +10525,7 @@ export interface operations {
                 /** @description 每页条数（默认 20，最大 50） */
                 limit?: number;
                 action?: "SUPER_ADMIN_BOOTSTRAPPED" | "ADMIN_ROLE_GRANTED" | "ADMIN_ROLE_REVOKED" | "USER_SUSPENDED" | "USER_BANNED" | "USER_SANCTION_REVOKED" | "CONTENT_HIDDEN" | "CONTENT_RESTORED" | "REPORT_RESOLVED" | "REPORT_DISMISSED" | "SYSTEM_NOTIFICATION_SENT" | "THREAD_CATEGORY_CREATED" | "THREAD_CATEGORY_UPDATED" | "TAG_CREATED" | "TAG_UPDATED";
-                targetType?: "USER" | "THREAD" | "POST" | "REPORT" | "SYSTEM_NOTIFICATION" | "THREAD_CATEGORY" | "TAG";
+                targetType?: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "REPORT" | "SYSTEM_NOTIFICATION" | "THREAD_CATEGORY" | "TAG";
                 targetId?: string;
                 actorId?: string;
                 createdAfter?: string;
@@ -10389,6 +10879,57 @@ export interface operations {
             };
         };
     };
+    searchSearchMoments: {
+        parameters: {
+            query: {
+                /** @description 搜索关键词，首尾空白会被移除 */
+                q: string;
+                /** @description 上一页返回的不透明游标 */
+                cursor?: string;
+                /** @description 每页条数，默认及最大均为 20 */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 相关度优先的动态游标分页 */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchSearchMoments200Response"];
+                };
+            };
+            /** @description 关键词不足 2 个字符或游标无效 */
+            400: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
     searchSearchThreads: {
         parameters: {
             query: {
@@ -10597,6 +11138,652 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    momentsList: {
+        parameters: {
+            query?: {
+                /** @description 服务端返回的不透明分页游标；首次请求不传，后续必须原样回传 */
+                cursor?: string;
+                /** @description 每页条数（默认 20，最大 50） */
+                limit?: number;
+                feed?: "DISCOVER" | "FOLLOWING";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 动态卡片游标分页 */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MomentsList200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    momentsCreate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMomentDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MomentsCreate201Response"];
+                };
+            };
+            /** @description 标题、正文、封面或图片状态不合法 */
+            400: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 幂等键复用或图片已被使用 */
+            409: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    momentsBookmarks: {
+        parameters: {
+            query?: {
+                /** @description 服务端返回的不透明分页游标；首次请求不传，后续必须原样回传 */
+                cursor?: string;
+                /** @description 每页条数（默认 20，最大 50） */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 动态收藏游标分页 */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MomentsBookmarks200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    momentsDetail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MomentsDetail200Response"];
+                };
+            };
+            /** @description 动态不存在、已删除或因拉黑不可见 */
+            404: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    momentsRemove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MomentsRemove200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    momentsUpdate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMomentDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MomentsUpdate200Response"];
+                };
+            };
+            /** @description 版本冲突或图片已被其他动态使用 */
+            409: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    momentsLike: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MomentsLike201Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    momentsUnlike: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MomentsUnlike200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    momentsBookmark: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MomentsBookmark201Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    momentsUnbookmark: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MomentsUnbookmark200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    momentsCommentsList: {
+        parameters: {
+            query?: {
+                /** @description 服务端返回的不透明分页游标；首次请求不传，后续必须原样回传 */
+                cursor?: string;
+                /** @description 每页条数（默认 20，最大 50） */
+                limit?: number;
+                /** @description 回复顺序；帖子回复默认 OLDEST，动态主评论默认 NEWEST */
+                order?: "OLDEST" | "NEWEST";
+                /** @description 只返回指定作者的回复 */
+                authorId?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 主评论游标分页 */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MomentsCommentsList200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    momentsCreateComment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMomentCommentDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MomentsCreateComment201Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    momentsCommentAuthors: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MomentsCommentAuthors200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    momentsReplies: {
+        parameters: {
+            query?: {
+                /** @description 服务端返回的不透明分页游标；首次请求不传，后续必须原样回传 */
+                cursor?: string;
+                /** @description 每页条数（默认 20，最大 50） */
+                limit?: number;
+                /** @description 回复顺序；帖子回复默认 OLDEST，动态主评论默认 NEWEST */
+                order?: "OLDEST" | "NEWEST";
+                /** @description 只返回指定作者的回复 */
+                authorId?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+                commentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 楼中楼游标分页 */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MomentsReplies200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    momentsRemoveComment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                commentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MomentsRemoveComment200Response"];
+                };
+            };
+            /** @description 无删除权限 */
+            403: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    userMomentsList: {
+        parameters: {
+            query?: {
+                /** @description 服务端返回的不透明分页游标；首次请求不传，后续必须原样回传 */
+                cursor?: string;
+                /** @description 每页条数（默认 20，最大 50） */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 用户动态游标分页 */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserMomentsList200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -11585,6 +12772,88 @@ export interface operations {
                 };
             };
             /** @description 收款用户不存在 */
+            404: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 余额不足或幂等键复用于不同请求 */
+            409: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    economyTipMoment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TipRequestDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EconomyTipMoment201Response"];
+                };
+            };
+            /** @description 金额不是不小于 2 的整数升 */
+            400: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 给自己加油或存在拉黑关系 */
+            403: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 动态不存在 */
             404: {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];
