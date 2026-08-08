@@ -1,9 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { Bookmark, ChevronRight, MessageCircle, Settings, Wallet } from "lucide-react";
+import {
+  Bell,
+  Bookmark,
+  ChevronRight,
+  MessageCircle,
+  Settings,
+  Wallet,
+  type LucideIcon,
+} from "lucide-react";
 
+import { useDirectUnreadCount } from "@/api/hooks/use-direct-conversations";
 import { useWallet } from "@/api/hooks/use-economy";
+import { useUnreadCount } from "@/api/hooks/use-unread-count";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { buttonVariants } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
@@ -16,6 +26,8 @@ import { ThreadCategoryMarker } from "@/components/thread/thread-category";
 export function AppContextRail() {
   const { user } = useAuth();
   const { data: wallet } = useWallet(user?.id);
+  const { data: unreadCount } = useUnreadCount(user?.id);
+  const { data: directUnread } = useDirectUnreadCount(user?.id);
   const { categories } = useThreadCategoriesContext();
 
   return (
@@ -53,9 +65,20 @@ export function AppContextRail() {
             </Link>
 
             <nav className="mt-3 grid gap-1" aria-label="账户快捷入口">
-              <ContextLink href="/messages" icon={MessageCircle}>私聊</ContextLink>
-              <ContextLink href="/bookmarks" icon={Bookmark}>收藏</ContextLink>
-              <ContextLink href="/me" icon={Settings}>资料与设置</ContextLink>
+              <ContextLink
+                href="/notifications"
+                icon={Bell}
+                label="通知"
+                count={unreadCount ?? 0}
+              />
+              <ContextLink
+                href="/messages"
+                icon={MessageCircle}
+                label="私聊"
+                count={directUnread?.total ?? 0}
+              />
+              <ContextLink href="/bookmarks" icon={Bookmark} label="收藏" />
+              <ContextLink href="/me" icon={Settings} label="资料与设置" />
             </nav>
           </div>
         </Panel>
@@ -102,19 +125,27 @@ export function AppContextRail() {
 function ContextLink({
   href,
   icon: Icon,
-  children,
+  label,
+  count = 0,
 }: {
   href: string;
-  icon: typeof Bookmark;
-  children: React.ReactNode;
+  icon: LucideIcon;
+  label: string;
+  count?: number;
 }) {
   return (
     <Link
       href={href}
+      aria-label={count > 0 ? `${label}，${count} 条未读` : label}
       className="flex min-h-9 items-center gap-2.5 rounded-lg px-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
     >
       <Icon className="size-4" />
-      {children}
+      <span className="flex-1">{label}</span>
+      {count > 0 ? (
+        <span className="min-w-5 rounded-full bg-destructive px-1.5 text-center font-utility text-[0.625rem] font-bold leading-5 text-white">
+          {count > 99 ? "99+" : count}
+        </span>
+      ) : null}
     </Link>
   );
 }

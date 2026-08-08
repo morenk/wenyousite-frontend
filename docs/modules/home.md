@@ -55,10 +55,11 @@
 |------|------|------|
 | HomePage | `src/app/page.tsx` | 首页主逻辑 |
 | AppChrome | `src/components/layout/app-chrome.tsx` | 根据路由切换社区三栏、工作区双栏和认证页布局 |
-| AppContextRail | `src/components/layout/app-context-rail.tsx` | 宽屏账户、钱包、玩法分类和访客功能入口 |
+| AppContextRail | `src/components/layout/app-context-rail.tsx` | 宽屏账户主页、钱包、通知/私聊未读数、收藏、设置、玩法分类和访客入口；与左栏个人入口互斥显示 |
 | TagThreadsPage | `src/app/tags/[id]/page.tsx` | 指定标签主题帖列表，复用首页筛选和无限滚动 |
 | ThreadList | `src/components/thread/thread-list.tsx` | 单一 Panel 外框、行分隔、四态与无限滚动 |
 | ThreadCard | `src/components/thread/thread-card.tsx` | 连续主题列表中的单行内容 |
+| ThreadCoverGrid | `src/components/thread/thread-cover-grid.tsx` | 首页与搜索共用的半宽 1–3 张 16:9 封面网格，支持 feed 衍生图回退 |
 | TopicTagLink | `src/components/thread/topic-tag-link.tsx` | 卡片与详情页共用的标签浏览入口 |
 | CategoryTabs | `src/components/thread/category-tabs.tsx` | 分类筛选 Tab |
 | ThreadFilters | `src/components/thread/thread-filters.tsx` | 排序与状态下拉筛选栏 |
@@ -75,6 +76,7 @@
 | 标题 | thread.title | 文本 |
 | 分类 | thread.category + `GET /thread-categories` | 动态 slug → 管理员配置的名称、顺序和可选颜色；空值/未知值安全降级 |
 | 正文预览 | 默认子贴正文（kind=BODY） | Markdown 纯文本截断（~120 字） |
+| 正文封面 | thread.coverImages[] | 标题下方按数量铺满半宽预览；1 张整行、2 张二等分、3 张三等分，单图仍按 16:9 等比缩小 |
 | 标签 | thread.topicTags[] | 可点击标签徽章，进入 `/tags/{tag.id}` |
 | 状态 | thread.status | 招募中/已停招/已结束 |
 | 玩家数 | thread._count.players | 数字（被楼主授予玩家身份者） |
@@ -111,7 +113,7 @@
 | 场景 | 处理 |
 |------|------|
 | 未登录 | 正常浏览列表，隐藏"创建"入口 |
-| 已登录 | 侧栏显示"创建主题帖"和"收藏"入口 |
+| 已登录 | 宽屏左栏用文楷“发布”按钮统一提供“发布主题帖 / 发布动态”，个人快捷入口集中到右栏；右栏隐藏时个人入口回到左侧图标轨道 |
 
 ## 10. 验收标准
 

@@ -11,7 +11,7 @@ import {
   LogIn,
   LogOut,
   MessageCircle,
-  PenLine,
+  Images,
   Search,
   UserPlus,
   type LucideIcon,
@@ -22,6 +22,7 @@ import { useLogout } from "@/api/hooks/use-auth-actions";
 import { useDirectUnreadCount } from "@/api/hooks/use-direct-conversations";
 import { useUnreadCount } from "@/api/hooks/use-unread-count";
 import { UserAvatar } from "@/components/shared/user-avatar";
+import { PublishMenu } from "@/components/layout/publish-menu";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +32,7 @@ type NavItem = {
   icon: LucideIcon;
   match: (pathname: string) => boolean;
   count?: number;
+  accountShortcut?: boolean;
 };
 
 export function NavBar({ compact = false }: { compact?: boolean }) {
@@ -43,11 +45,12 @@ export function NavBar({ compact = false }: { compact?: boolean }) {
 
   const items: NavItem[] = [
     { href: "/", label: "发现", icon: Compass, match: (path) => path === "/" || path.startsWith("/tags/") },
+    { href: "/moments", label: "动态", icon: Images, match: (path) => path.startsWith("/moments") },
     { href: "/search", label: "搜索", icon: Search, match: (path) => path.startsWith("/search") },
     ...(user ? [
-      { href: "/notifications", label: "通知", icon: Bell, match: (path: string) => path.startsWith("/notifications"), count: unreadCount ?? 0 },
-      { href: "/messages", label: "私聊", icon: MessageCircle, match: (path: string) => path.startsWith("/messages"), count: directUnread?.total ?? 0 },
-      { href: "/bookmarks", label: "收藏", icon: Bookmark, match: (path: string) => path.startsWith("/bookmarks") },
+      { href: "/notifications", label: "通知", icon: Bell, match: (path: string) => path.startsWith("/notifications"), count: unreadCount ?? 0, accountShortcut: true },
+      { href: "/messages", label: "私聊", icon: MessageCircle, match: (path: string) => path.startsWith("/messages"), count: directUnread?.total ?? 0, accountShortcut: true },
+      { href: "/bookmarks", label: "收藏", icon: Bookmark, match: (path: string) => path.startsWith("/bookmarks"), accountShortcut: true },
     ] : []),
   ];
 
@@ -88,28 +91,24 @@ export function NavBar({ compact = false }: { compact?: boolean }) {
         )}>温油站</span>
       </Link>
 
-      {user ? (
-        <Link
-          href="/threads/create"
-          className={cn(
-            "mt-5 flex h-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground transition-[background-color,transform] hover:bg-primary/80 active:translate-y-px",
-            !compact && "xl:gap-2 xl:px-4",
-          )}
-          aria-label="创建主题帖"
-          title="创建主题帖"
-        >
-          <PenLine className="size-5" />
-          <span className={cn("hidden text-sm font-bold", !compact && "xl:inline")}>创建主题帖</span>
-        </Link>
-      ) : null}
+      {user ? <PublishMenu userId={user.id} compact={compact} /> : null}
 
       <nav className="mt-5 grid gap-1.5" aria-label="主要页面">
         {items.map((item) => (
-          <RailLink key={item.href} item={item} active={item.match(pathname)} compact={compact} />
+          <RailLink
+            key={item.href}
+            item={item}
+            active={item.match(pathname)}
+            compact={compact}
+            hideOnWide={!!item.accountShortcut}
+          />
         ))}
       </nav>
 
-      <div className="mt-auto grid gap-2 border-t border-border pt-4">
+      <div className={cn(
+        "mt-auto grid gap-2 border-t border-border pt-4",
+        !user && "xl:hidden",
+      )}>
         {user ? (
           <>
             <Link
@@ -119,6 +118,7 @@ export function NavBar({ compact = false }: { compact?: boolean }) {
               className={cn(
                 "flex min-h-11 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
                 !compact && "xl:justify-start xl:gap-3 xl:px-2.5",
+                "xl:hidden",
                 pathname.startsWith(`/users/${user.id}`) && "bg-accent/55 text-foreground",
               )}
             >
@@ -169,7 +169,17 @@ export function NavBar({ compact = false }: { compact?: boolean }) {
   );
 }
 
-function RailLink({ item, active, compact }: { item: NavItem; active: boolean; compact: boolean }) {
+function RailLink({
+  item,
+  active,
+  compact,
+  hideOnWide,
+}: {
+  item: NavItem;
+  active: boolean;
+  compact: boolean;
+  hideOnWide: boolean;
+}) {
   const Icon = item.icon;
   const count = item.count ?? 0;
 
@@ -182,6 +192,7 @@ function RailLink({ item, active, compact }: { item: NavItem; active: boolean; c
       className={cn(
         "group relative flex min-h-11 items-center justify-center rounded-xl text-muted-foreground transition-[background-color,color] duration-[var(--motion-fast)] hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
         !compact && "xl:justify-start xl:gap-3 xl:px-3",
+        hideOnWide && "xl:hidden",
         active && "bg-accent/60 font-bold text-foreground",
       )}
     >

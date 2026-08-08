@@ -50,7 +50,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
       className={cn(
         "mx-auto grid min-h-screen w-full items-start gap-4 px-3 sm:px-4",
         mode === "community"
-          ? "max-w-[78rem] grid-cols-[4.5rem_minmax(0,1fr)] xl:grid-cols-[13rem_minmax(0,42rem)_17rem]"
+          ? "max-w-[80rem] grid-cols-[4.5rem_minmax(0,1fr)] xl:grid-cols-[17rem_minmax(0,42rem)_17rem]"
           : "max-w-[78rem] grid-cols-[4.5rem_minmax(0,1fr)]",
       )}
     >

@@ -6,6 +6,7 @@ const widthClasses = {
   feed: "max-w-feed",
   content: "max-w-content",
   workspace: "max-w-workspace",
+  wide: "max-w-[80rem]",
 } as const;
 
 export type PageWidth = keyof typeof widthClasses;

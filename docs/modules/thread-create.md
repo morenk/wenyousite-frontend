@@ -39,6 +39,8 @@
 |------|----------|------|
 | `/threads/create` | 创建主题帖页 | 需登录且邮箱已验证 |
 
+创建页和未发布草稿编辑页使用 `workspace` 宽内容骨架；左侧导航只压缩为 72px 图标轨道，不增加浏览页宽屏已收进右侧账户栏的个人快捷按钮。
+
 ## 3. 涉及 API
 
 | Method | Path | Guard | 用途 |
@@ -131,7 +133,7 @@
 **中文本地化策略：** 通过 `Crepe` 构造函数的 `featureConfigs` 覆盖所有英文 UI 字符串。
 Milkdown Crepe v7 不支持 i18n 插件，所有文本通过各 feature 的 config 对象逐项覆盖。
 
-**中文字体与阅读列：** `src/components/editor/milkdown-editor.css` 使用自托管 Noto Sans SC Variable 作为输入正文、LXGW WenKai 作为标题与中文强调、系统等宽字体作为代码字体。正文为 `17px / 1.9`，真实粗体使用 700 字重，中文强调使用文楷正体而非浏览器合成斜体；实际输入列与发布结果一致，限制在约 40 个全角字宽。
+**中文字体与阅读列：** `src/components/editor/milkdown-editor.css` 使用自托管 Noto Sans SC Variable 作为全部输入正文（包括 Markdown 标题与强调），系统等宽字体作为代码字体。正文为 `17px / 1.9`，粗体使用 700 字重，斜体使用标准 `italic` 样式；缺少斜体字形时仅允许浏览器合成倾斜。编辑器产出的正文不使用 LXGW WenKai，实际输入列与发布结果一致，限制在约 40 个全角字宽。主题帖标题、子帖标题等界面标题仍可使用展示字体。
 
 字数统计：底部实时显示 `{已输入}/10000`，70% 黄色警告，90% 红色警告。
 

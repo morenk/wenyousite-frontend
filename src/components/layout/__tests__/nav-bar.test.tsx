@@ -1,4 +1,4 @@
-/** NavBar 测试：登录状态导航与收藏入口布局 */
+/** NavBar 测试：全局导航与响应式账户入口布局 */
 
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
@@ -56,27 +56,30 @@ beforeEach(() => {
 afterEach(() => cleanup());
 
 describe("NavBar", () => {
-  test("登录后展示创作与个人导航入口", () => {
+  test("登录后展示统一发布与个人导航入口", () => {
     mockUseAuth.mockReturnValue({ user: { id: "u1", username: "用户" }, logout: vi.fn() });
     render(<NavBar />);
 
-    expect(screen.getByRole("link", { name: "创建主题帖" })).toHaveAttribute("href", "/threads/create");
-    expect(screen.getByRole("link", { name: "收藏" })).toHaveAttribute("href", "/bookmarks");
-    expect(screen.getByRole("link", { name: "通知" })).toHaveAttribute("href", "/notifications");
-    expect(screen.getByRole("link", { name: "私聊" })).toHaveAttribute("href", "/messages");
-    expect(screen.getByRole("link", { name: "用户" })).toHaveAttribute("href", "/users/u1");
+    expect(screen.getByRole("button", { name: "打开发布菜单" })).toBeInTheDocument();
+    expect(screen.getByText("发布")).toHaveClass("font-display");
+    expect(screen.getByRole("link", { name: "收藏" })).toHaveClass("xl:hidden");
+    expect(screen.getByRole("link", { name: "通知" })).toHaveClass("xl:hidden");
+    expect(screen.getByRole("link", { name: "私聊" })).toHaveClass("xl:hidden");
+    expect(screen.getByRole("link", { name: "用户" })).toHaveClass("xl:hidden");
   });
 
   test("未登录时显示登录和注册入口", () => {
     mockUseAuth.mockReturnValue({ user: null, logout: vi.fn() });
     render(<NavBar />);
 
-    expect(screen.getByRole("link", { name: "登录" })).toHaveAttribute("href", "/login");
+    const login = screen.getByRole("link", { name: "登录" });
+    expect(login).toHaveAttribute("href", "/login");
     expect(screen.getByRole("link", { name: "注册" })).toHaveAttribute("href", "/register");
-    expect(screen.queryByRole("link", { name: "创建主题帖" })).not.toBeInTheDocument();
+    expect(login.parentElement).toHaveClass("xl:hidden");
+    expect(screen.queryByRole("button", { name: "打开发布菜单" })).not.toBeInTheDocument();
   });
 
-  test("工作区紧凑模式在宽屏也不展开文字标签", () => {
+  test("工作区紧凑模式只收窄布局，不改变宽屏按钮集合", () => {
     mockUseAuth.mockReturnValue({ user: { id: "u1", username: "用户" }, logout: vi.fn() });
     render(<NavBar compact />);
 
@@ -86,7 +89,20 @@ describe("NavBar", () => {
     );
     expect(screen.getByText("温油站")).not.toHaveClass("xl:block");
     expect(screen.getByText("发现")).not.toHaveClass("xl:inline");
-    expect(screen.getByText("创建主题帖")).not.toHaveClass("xl:inline");
+    expect(screen.getByText("发布")).not.toHaveClass("xl:inline");
+    expect(screen.getByRole("link", { name: "通知" })).toHaveClass("xl:hidden");
+    expect(screen.getByRole("link", { name: "私聊" })).toHaveClass("xl:hidden");
+    expect(screen.getByRole("link", { name: "收藏" })).toHaveClass("xl:hidden");
+    expect(screen.getByRole("link", { name: "用户" })).toHaveClass("xl:hidden");
+  });
+
+  test("访客紧凑模式不会在宽屏额外显示登录注册按钮", () => {
+    mockUseAuth.mockReturnValue({ user: null, logout: vi.fn() });
+    render(<NavBar compact />);
+
+    expect(screen.getByRole("link", { name: "登录" }).parentElement).toHaveClass(
+      "xl:hidden",
+    );
   });
 
   test("服务端未能撤销终端时保留本地登录态并提示重试", async () => {
