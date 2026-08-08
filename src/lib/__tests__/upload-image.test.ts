@@ -115,6 +115,12 @@ describe("getImageUrlBySize", () => {
     );
   });
 
+  test("feed 尺寸返回 _feed.webp 后缀", () => {
+    expect(getImageUrlBySize(baseUrl, "feed")).toBe(
+      "https://example.com/uploads/image_feed.webp",
+    );
+  });
+
   test("svg 文件不添加后缀（保持原 URL）", () => {
     const svgUrl = "https://example.com/uploads/icon.svg";
     expect(getImageUrlBySize(svgUrl, "md")).toBe(svgUrl);
@@ -207,6 +213,58 @@ describe("uploadImageFile", () => {
       url: publicUrl,
       mediaId: "media-1",
     });
-    expect(global.fetch).toHaveBeenCalledWith(uploadUrl, expect.anything());
+    expect(global.fetch).toHaveBeenCalledWith(uploadUrl, expect.objectContaining({
+      method: "PUT",
+      signal: expect.any(AbortSignal),
+    }));
+  });
+
+  test("调用方取消时立即中止对象存储直传，且不确认上传完成", async () => {
+    vi.mocked(apiClient.POST).mockResolvedValueOnce({
+      data: {
+        code: 0,
+        message: "ok",
+        data: {
+          uploadUrl: "https://s3.example.com/upload",
+          mediaId: "media-cancelled",
+          objectKey: "uploads/cancelled.jpg",
+          publicUrl: "https://cdn.example.com/uploads/cancelled.jpg",
+        },
+      },
+      error: undefined,
+    });
+    vi.stubGlobal("fetch", vi.fn((_input, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+      init?.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")), { once: true });
+    })));
+
+    const controller = new AbortController();
+    const upload = uploadImageFile(file, { signal: controller.signal });
+    await vi.waitFor(() => expect(global.fetch).toHaveBeenCalledOnce());
+    controller.abort();
+
+    await expect(upload).rejects.toMatchObject({ name: "AbortError" });
+    expect(apiClient.POST).toHaveBeenCalledTimes(1);
+  });
+
+  test("对象存储直传超时后给出可操作的错误", async () => {
+    vi.mocked(apiClient.POST).mockResolvedValueOnce({
+      data: {
+        code: 0,
+        message: "ok",
+        data: {
+          uploadUrl: "https://s3.example.com/upload",
+          mediaId: "media-timeout",
+          objectKey: "uploads/timeout.jpg",
+          publicUrl: "https://cdn.example.com/uploads/timeout.jpg",
+        },
+      },
+      error: undefined,
+    });
+    vi.stubGlobal("fetch", vi.fn((_input, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+      init?.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")), { once: true });
+    })));
+
+    await expect(uploadImageFile(file, { timeoutMs: 1 })).rejects.toThrow("图片上传超时，请检查网络后重试");
+    expect(apiClient.POST).toHaveBeenCalledTimes(1);
   });
 });
