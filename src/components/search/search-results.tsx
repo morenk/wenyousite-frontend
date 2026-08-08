@@ -1,4 +1,4 @@
-/** 搜索结果展示：三个 Tab 独立惰性加载，楼层支持游标分页。 */
+/** 搜索结果展示：四个 Tab 独立惰性加载，动态与楼层支持游标分页。 */
 
 "use client";
 
@@ -6,12 +6,13 @@ import { useState, type KeyboardEvent } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { FileText, Loader2, MessageSquare, Users } from "lucide-react";
+import { FileText, Images, Loader2, MessageSquare, Users } from "lucide-react";
 import {
   isPostSearchKeywordValid,
   useSearchPosts,
   useSearchThreads,
   useSearchUsers,
+  useSearchMoments,
 } from "@/api/hooks/use-search";
 import { cn } from "@/lib/utils";
 import { ThreadCategoryBadge } from "@/components/thread/thread-category";
@@ -20,10 +21,13 @@ import { UserAvatar } from "@/components/shared/user-avatar";
 import { Button } from "@/components/ui/button";
 import { PostSearchResultList } from "@/components/search/post-search-result-list";
 import { ListRefreshIndicator } from "@/components/shared/list-refresh-indicator";
+import { MomentMasonry } from "@/components/moment/moment-masonry";
+import { useAuth } from "@/lib/auth";
+import { ThreadCoverGrid } from "@/components/thread/thread-cover-grid";
 
-type SearchTab = "threads" | "posts" | "users";
+type SearchTab = "moments" | "threads" | "posts" | "users";
 
-const tabOrder: SearchTab[] = ["threads", "posts", "users"];
+const tabOrder: SearchTab[] = ["moments", "threads", "posts", "users"];
 
 interface SearchResultsProps {
   keyword: string;
@@ -53,7 +57,8 @@ function SearchError({ onRetry }: SearchErrorProps) {
 }
 
 export function SearchResults({ keyword }: SearchResultsProps) {
-  const [activeTab, setActiveTab] = useState<SearchTab>("threads");
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState<SearchTab>("moments");
   const postKeywordValid = isPostSearchKeywordValid(keyword);
   const threadsQuery = useSearchThreads(keyword, activeTab === "threads");
   const usersQuery = useSearchUsers(keyword, activeTab === "users");
@@ -61,14 +66,25 @@ export function SearchResults({ keyword }: SearchResultsProps) {
     keyword,
     activeTab === "posts" && postKeywordValid,
   );
+  const momentsQuery = useSearchMoments(keyword, activeTab === "moments" && postKeywordValid, user?.id);
   const posts = postsQuery.data?.pages.flatMap((page) => page.data) ?? [];
-  const isRefreshing = activeTab === "threads"
+  const moments = momentsQuery.data?.pages.flatMap((page) => page.data) ?? [];
+  const isRefreshing = activeTab === "moments"
+    ? momentsQuery.isPlaceholderData
+    : activeTab === "threads"
     ? threadsQuery.isPlaceholderData
     : activeTab === "users"
       ? usersQuery.isPlaceholderData
       : postsQuery.isPlaceholderData;
 
   const tabs = [
+    {
+      value: "moments" as const,
+      label: "动态",
+      count: momentsQuery.data ? moments.length : undefined,
+      hasMore: momentsQuery.hasNextPage,
+      icon: Images,
+    },
     {
       value: "threads" as const,
       label: "主题帖",
@@ -117,7 +133,7 @@ export function SearchResults({ keyword }: SearchResultsProps) {
       <div
         role="tablist"
         aria-label="搜索结果分类"
-        className="grid grid-cols-3 gap-1 rounded-xl bg-muted p-1"
+        className="grid grid-cols-4 gap-1 rounded-xl bg-muted p-1"
       >
         {tabs.map((tab, index) => {
           const Icon = tab.icon;
@@ -162,6 +178,14 @@ export function SearchResults({ keyword }: SearchResultsProps) {
         aria-labelledby={`search-tab-${activeTab}`}
         className="mt-4"
       >
+        {activeTab === "moments" && (
+          !postKeywordValid ? (
+            <EmptyState title="动态搜索至少需要 2 个字符" description="用户名和主题帖仍支持单字符搜索" />
+          ) : (
+            <MomentMasonry moments={moments} maxLanes={2} isLoading={momentsQuery.isLoading} error={momentsQuery.error} hasNextPage={!isRefreshing && !!momentsQuery.hasNextPage} isFetchingNextPage={!isRefreshing && momentsQuery.isFetchingNextPage} onLoadMore={() => void momentsQuery.fetchNextPage()} onRetry={() => void momentsQuery.refetch()} emptyTitle="没有匹配的动态" emptyDescription="试试更换关键词。" />
+          )
+        )}
+
         {activeTab === "threads" && (
           threadsQuery.isLoading ? (
             <SearchLoading />
@@ -183,6 +207,7 @@ export function SearchResults({ keyword }: SearchResultsProps) {
                   <h3 className="font-display text-base font-bold text-foreground line-clamp-1">
                     {thread.title}
                   </h3>
+                  <ThreadCoverGrid images={thread.coverImages ?? []} />
                   <p className="mt-1 text-xs text-muted-foreground">
                     {thread.owner.username} ·{" "}
                     {formatDistanceToNow(new Date(thread.createdAt), {

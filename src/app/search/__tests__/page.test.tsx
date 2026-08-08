@@ -50,7 +50,7 @@ describe("搜索页", () => {
     const user = userEvent.setup();
     const onUrlUpdate = vi.fn<(event: UrlUpdateEvent) => void>();
     renderPage({ onUrlUpdate });
-    const input = screen.getByPlaceholderText("搜索用户、主题帖标题或楼层内容…");
+    const input = screen.getByPlaceholderText("搜索动态、用户、主题帖或楼层内容…");
 
     await user.type(input, "  剧情 推理  ");
     await user.click(screen.getByRole("button", { name: "搜索" }));

@@ -7,7 +7,7 @@
 实现用户主页、关注/拉黑、草稿箱三个子功能，补齐全站所有 `Link href="/users/{id}"` 的死链落点。
 
 **本次迭代范围（Phase 6 MVP）：**
-- `/users/[id]` 用户主页：资料卡（头像/用户名/等级/Bio/注册时间/关注粉丝数/累计被投入温油总额与次数）+ 温油投入/私聊/关注/拉黑按钮 + 最近动态（recent-replies）+ 创建的帖子（created-threads）+ 参与的帖子（played-threads）
+- `/users/[id]` 用户主页：资料卡（头像/用户名/等级/Bio/注册时间/关注粉丝数/累计被投入温油总额与次数）+ 加油/私聊/关注/拉黑按钮 + 动态瀑布流 + 最近回复（recent-replies）+ 创建的帖子（created-threads）+ 参与的帖子（played-threads）
 - 关注/取消关注、拉黑/取消拉黑（仅登录，用户主页操作）
 - 草稿箱：未发布帖列表（进入 `/threads/create` 草稿列表查看，可跳转继续编辑或删除）
 - `/me` 我的资料：精确经验与等级进度、累计收到温油统计、邮箱（并入基本信息，脱敏显示 + 邮箱验证状态，未验证可跳转 `/verify-email`）、头像（裁剪上传/移除）、Bio（textarea + 255 字数统计）、隐私开关（用户名需显式进入编辑，默认不修改）
@@ -24,7 +24,7 @@
 
 | 路由 | 页面说明 | 权限 |
 |------|----------|------|
-| `/users/[id]` | 用户主页：资料卡 + 最近动态 + 创建的帖子 + 参与的帖子 | 公开（OptionalAuth，登录态显示关系字段与操作） |
+| `/users/[id]` | 用户主页：资料卡 + 动态 + 最近回复 + 创建的帖子 + 参与的帖子 | 公开（OptionalAuth，登录态显示关系字段与操作） |
 | `/users/[id]/following` | 该用户关注的人列表 | 公开（OptionalAuth） |
 | `/users/[id]/followers` | 该用户的粉丝列表 | 公开（OptionalAuth） |
 | `/me` | 我的资料编辑（Bio/隐私开关/账号安全入口） | Auth（仅本人） |
@@ -47,6 +47,7 @@
 | POST | `/auth/change-email/verify` | Auth | 更换邮箱第二步：验证码确认并更新邮箱 |
 | GET | `/users/:id` | OptionalAuth | 用户公开资料；登录态额外返回 isFollowing/isFollowedBy/isBlocked/isBlockedBy |
 | GET | `/users/:id/recent-replies` | OptionalAuth | 最近 10 条回复（仅 PUBLIC 帖），不分页，受 showRecentReplies 控制 |
+| GET | `/users/:id/moments` | OptionalAuth | 用户发布的未删除动态，Cursor 分页并过滤双向拉黑关系 |
 | GET | `/users/:id/created-threads` | OptionalAuth | 创建的帖子（本人可见全部含私密帖，他人仅 PUBLIC），按创建时间倒序，Cursor 分页 |
 | GET | `/users/:id/played-threads` | OptionalAuth | 已获授玩家身份的非自建帖子，支持 `visibility=PUBLIC\|PRIVATE`；本人可见公开/私密帖，他人仅可见公开帖，按加入时间倒序和 Cursor 分页 |
 | POST | `/users/follow/:id` | Auth | 关注（幂等，首次关注发通知） |
@@ -228,7 +229,7 @@
 
 | 组件 | 路径 | 说明 |
 |------|------|------|
-| UserProfileCard | `src/components/user/user-profile-card.tsx` | 用户资料卡：头像（无则首字母）/用户名/Bio/注册时间/关注粉丝数（可点击）/操作按钮 |
+| UserProfileCard | `src/components/user/user-profile-card.tsx` | 用户资料卡：头像（无则首字母）/用户名/Bio/注册时间/关注粉丝数（可点击）；加油/私聊/关注/拉黑等页面级操作统一为无常驻边框或主色填充的轻量按钮 |
 | UserAvatar | `src/components/shared/user-avatar.tsx` | 共享头像组件：有 URL 用 `_thumb.webp` 缩略图，无则首字母占位；“已注销用户”始终忽略 URL 并使用统一灰色用户图标；尺寸通过 className 控制（资料卡/关注列表/通知/主题帖列表/楼层/楼中楼复用） |
 | FollowButton | `src/components/user/follow-button.tsx` | 关注/取消关注切换（未登录跳 /login） |
 | BlockButton | `src/components/user/block-button.tsx` | 拉黑/取消拉黑切换（全局无障碍确认框二次确认） |
@@ -288,7 +289,7 @@ showRecentReplies / showPlayerBadges / showBookmarks: boolean
 
 | 错误码 | 场景 | UI 行为 |
 |--------|------|---------|
-| 404 | 用户不存在 / 已注销 / 隐私开关关闭（recent-replies/played-threads） | 板块隐藏或显示"该用户未公开此信息" |
+| 404 | 用户不存在 / 已注销 / 隐私开关关闭 | 资料不存在时显示页面空态；查看他人资料时依据公开资料中的隐私开关不挂载最近动态、收藏或参与帖子整张卡片，也不发起对应请求 |
 | 40100 | 未登录关注/拉黑 | apiClient 拦截器自动跳 /login |
 | 40000 | PATCH /users/me 校验失败 | toast 后端 message（全部中文化，无英文默认提示） |
 | 40900 | 用户名冲突（后端 ConflictException 409） | "用户名已被占用" |

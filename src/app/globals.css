@@ -162,6 +162,38 @@ select {
   color: var(--foreground);
 }
 
+/* 动态详情与发布器把细滚动条收进圆角卡片，轨道不触碰上下圆角。 */
+.moment-detail-scroll,
+.moment-composer-scroll {
+  scrollbar-color: color-mix(in srgb, var(--muted-foreground) 42%, transparent) transparent;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+
+.moment-detail-scroll::-webkit-scrollbar,
+.moment-composer-scroll::-webkit-scrollbar {
+  width: 0.625rem;
+}
+
+.moment-detail-scroll::-webkit-scrollbar-track,
+.moment-composer-scroll::-webkit-scrollbar-track {
+  margin-block: 1rem;
+  background: transparent;
+}
+
+.moment-detail-scroll::-webkit-scrollbar-thumb,
+.moment-composer-scroll::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--muted-foreground) 42%, transparent);
+  background-clip: padding-box;
+}
+
+.moment-detail-scroll::-webkit-scrollbar-thumb:hover,
+.moment-composer-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in srgb, var(--brand-strong) 58%, transparent);
+}
+
 :where(a, button, input, textarea, select, [tabindex]):focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
@@ -275,13 +307,11 @@ select {
   letter-spacing: 0.018em;
 }
 
-/* 中文没有可靠的原生斜体；用文楷强调，避免浏览器合成斜体挤压笔画。 */
+/* 斜体保留 Markdown 的本来语义；中文字形缺少斜体时允许浏览器仅合成倾斜样式。 */
 .wenyou-prose em {
-  color: var(--brand-strong);
-  font-family: var(--font-display);
-  font-style: normal;
-  font-weight: 500;
-  letter-spacing: 0.035em;
+  font-family: var(--font-sans);
+  font-style: italic;
+  font-synthesis: style;
 }
 
 .wenyou-prose strong em,
@@ -290,6 +320,7 @@ select {
 }
 
 .wenyou-prose :is(h1, h2, h3, h4) {
+  font-family: var(--font-sans);
   letter-spacing: 0.015em;
 }
 
@@ -320,7 +351,8 @@ select {
   background: var(--muted);
   padding: 0.75em 1em;
   color: var(--foreground);
-  font-style: normal;
+  font-style: italic;
+  font-synthesis: style;
   font-weight: 400;
 }
 

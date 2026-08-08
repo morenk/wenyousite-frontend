@@ -18,6 +18,7 @@
 |------|------|------|
 | [auth](./modules/auth.md) | 认证 | 已完成 |
 | [home](./modules/home.md) | 首页 | 已完成 |
+| [moments](./modules/moments.md) | 动态瀑布流、发布、详情与楼中楼评论 | 已完成 |
 | [thread-create](./modules/thread-create.md) | 创建主题帖 | 已完成 |
 | [thread-detail](./modules/thread-detail.md) | 主题帖详情与回复 | 已完成 |
 | [profile](./modules/profile.md) | 用户资料与账号安全 | 已完成 |

@@ -5,10 +5,12 @@ import { apiClient } from "@/api/client";
 import { BROWSING_RETURN_GC_TIME } from "@/api/query-policy";
 import { queryKeys } from "@/api/query-keys";
 import type { components } from "@/api/types";
+import type { MomentCard } from "@/api/hooks/use-moments";
 
 export type SearchUser = components["schemas"]["SearchUserResponseDto"];
 export type SearchThread = components["schemas"]["SearchThreadResponseDto"];
 export type SearchPost = components["schemas"]["SearchPostResponseDto"];
+export type SearchMoment = components["schemas"]["MomentSearchResponseDto"];
 
 interface SearchPostPage {
   data: SearchPost[];
@@ -92,6 +94,39 @@ export function useSearchPosts(q: string, enabled: boolean) {
       } satisfies SearchPostPage;
     },
   );
+}
+
+export function useSearchMoments(
+  q: string,
+  enabled: boolean,
+  viewerId?: string,
+) {
+  const keyword = q.trim();
+  return useInfiniteQuery({
+    queryKey: queryKeys.search.moments(keyword, viewerId ?? "anonymous"),
+    queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
+      const { data, error } = await apiClient.GET("/api/v1/search/moments", {
+        params: {
+          query: {
+            q: keyword,
+            limit: 20,
+            ...(pageParam ? { cursor: pageParam } : {}),
+          },
+        },
+      });
+      if (error) throw error;
+      return {
+        data: (data?.data ?? []) as MomentCard[],
+        meta: data?.meta ?? { cursor: null, hasMore: false },
+      };
+    },
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (page) => page.meta.hasMore ? page.meta.cursor ?? undefined : undefined,
+    enabled: enabled && isPostSearchKeywordValid(keyword),
+    placeholderData: keepPreviousData,
+    staleTime: 30_000,
+    gcTime: BROWSING_RETURN_GC_TIME,
+  });
 }
 
 export function useThreadSearchPosts(

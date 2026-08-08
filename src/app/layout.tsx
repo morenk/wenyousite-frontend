@@ -14,14 +14,17 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
+  modal,
 }: Readonly<{
   children: React.ReactNode;
+  modal?: React.ReactNode;
 }>) {
   return (
     <html lang="zh-CN" className="h-full antialiased">
       <body className="min-h-screen">
         <Providers>
           <AppChrome>{children}</AppChrome>
+          {modal}
         </Providers>
       </body>
     </html>

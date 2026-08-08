@@ -45,6 +45,8 @@ export function NotificationItem({ notification }: NotificationItemProps) {
       })
     : notification.target.kind === "thread" && notification.target.threadId
       ? `/threads/${notification.target.threadId}`
+    : notification.target.kind === "moment" && notification.target.momentId
+      ? `/moments/${notification.target.momentId}${notification.target.momentCommentId ? `#comments` : ""}`
     : notification.target.kind === "user" && notification.target.userId
       ? `/users/${notification.target.userId}`
       : null;
@@ -159,6 +161,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
 function getDeletedHint(notification: NotificationItemData): string | null {
   if (notification.threadId && notification.thread?.deletedAt) return "该内容已删除";
   if (notification.postId && notification.post?.deletedAt) return "该内容已删除";
+  if (notification.momentId && notification.moment?.deletedAt) return "该动态已删除";
   if (notification.fromUserId && notification.fromUser?.deletedAt) return "该用户已注销";
   return null;
 }
@@ -178,7 +181,7 @@ function getStructuredNotificationContent(notification: NotificationItemData): R
   const action = typeof payload?.action === "string" ? payload.action : "";
 
   // 点赞通知可能已经聚合了多人，必须保留后端生成的聚合文案。
-  if (!actorName || !["reply", "mention", "new_post"].includes(action)) return null;
+  if (!actorName || !["reply", "mention", "new_post", "moment_reply", "moment_comment"].includes(action)) return null;
 
   const preview = typeof payload?.preview === "string"
     ? sanitizeNotificationText(payload.preview)
@@ -186,7 +189,11 @@ function getStructuredNotificationContent(notification: NotificationItemData): R
   const subthreadTitle = typeof payload?.subthreadTitle === "string"
     ? payload.subthreadTitle.trim()
     : "";
-  const actionText = action === "reply"
+  const actionText = action === "moment_reply"
+    ? "回复了你在动态中的评论"
+    : action === "moment_comment"
+      ? "评论了你的动态"
+      : action === "reply"
     ? "回复了"
     : action === "mention"
       ? subthreadTitle ? `在「${subthreadTitle}」提到了你` : "提到了你"

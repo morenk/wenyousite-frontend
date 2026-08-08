@@ -8,11 +8,13 @@ const {
   mockUseSearchThreads,
   mockUseSearchUsers,
   mockUseSearchPosts,
+  mockUseSearchMoments,
   mockFetchNextPage,
 } = vi.hoisted(() => ({
   mockUseSearchThreads: vi.fn(),
   mockUseSearchUsers: vi.fn(),
   mockUseSearchPosts: vi.fn(),
+  mockUseSearchMoments: vi.fn(),
   mockFetchNextPage: vi.fn(),
 }));
 
@@ -26,7 +28,18 @@ vi.mock("@/api/hooks/use-search", () => ({
   useSearchThreads: mockUseSearchThreads,
   useSearchUsers: mockUseSearchUsers,
   useSearchPosts: mockUseSearchPosts,
+  useSearchMoments: mockUseSearchMoments,
   isPostSearchKeywordValid: (q: string) => Array.from(q.trim()).length >= 2,
+}));
+
+vi.mock("@/lib/auth", () => ({
+  useAuth: () => ({ user: null }),
+}));
+
+vi.mock("@/components/moment/moment-masonry", () => ({
+  MomentMasonry: ({ moments }: { moments: unknown[] }) => (
+    <div>动态结果 {moments.length}</div>
+  ),
 }));
 
 const thread = {
@@ -36,6 +49,7 @@ const thread = {
   createdAt: "2026-01-01T00:00:00Z",
   owner: { id: "u1", username: "morenk", avatar: null },
   _count: { members: 1, posts: 2, players: 1 },
+  coverImages: ["https://cdn.example.com/uploads/search-cover.jpg"],
 };
 
 const user = {
@@ -92,23 +106,41 @@ describe("SearchResults", () => {
             fetchNextPage: mockFetchNextPage,
           },
     );
+    mockUseSearchMoments.mockImplementation((_q, enabled: boolean) => ({
+      ...idleQuery,
+      data: enabled
+        ? { pages: [{ data: [], meta: { cursor: null, hasMore: false } }] }
+        : undefined,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      fetchNextPage: mockFetchNextPage,
+      error: null,
+    }));
   });
 
   afterEach(() => cleanup());
 
-  test("默认只启用主题帖，点击用户 Tab 后才启用用户搜索", () => {
+  test("默认只启用动态，切换 Tab 后按需启用对应搜索", () => {
     render(<SearchResults keyword="测试" />);
 
-    expect(mockUseSearchThreads).toHaveBeenLastCalledWith("测试", true);
+    expect(mockUseSearchMoments).toHaveBeenLastCalledWith("测试", true, undefined);
+    expect(mockUseSearchThreads).toHaveBeenLastCalledWith("测试", false);
     expect(mockUseSearchUsers).toHaveBeenLastCalledWith("测试", false);
     expect(mockUseSearchPosts).toHaveBeenLastCalledWith("测试", false);
-    expect(screen.getByRole("tab", { name: "主题帖 1" })).toHaveAttribute(
+    expect(screen.getByRole("tab", { name: "动态 0" })).toHaveAttribute(
       "aria-selected",
       "true",
     );
+
+    fireEvent.click(screen.getByRole("tab", { name: "主题帖" }));
+    expect(mockUseSearchThreads).toHaveBeenLastCalledWith("测试", true);
     expect(screen.getByRole("link", { name: /测试帖子/ })).toHaveAttribute(
       "href",
       "/threads/t1",
+    );
+    expect(document.querySelector("[data-image-count='1'] img")).toHaveAttribute(
+      "src",
+      "https://cdn.example.com/uploads/search-cover_feed.webp",
     );
 
     fireEvent.click(screen.getByRole("tab", { name: "用户" }));
@@ -152,6 +184,7 @@ describe("SearchResults", () => {
     });
 
     render(<SearchResults keyword="新关键词" />);
+    fireEvent.click(screen.getByRole("tab", { name: "主题帖 1" }));
 
     expect(screen.getByRole("link", { name: /测试帖子/ })).toBeInTheDocument();
     expect(screen.getByRole("status", { name: "正在更新列表" })).toBeInTheDocument();

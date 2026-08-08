@@ -224,4 +224,44 @@ describe("economy hooks", () => {
     });
     expect(client.getQueryState(recipientKey)?.isInvalidated).toBe(true);
   });
+
+  test("给动态加油原地更新累计值，不重新请求并重排瀑布流", async () => {
+    mockPOST.mockResolvedValue({
+      data: { data: { ...tipResult, threadTipTotal: undefined, momentTipTotal: "14" } },
+    });
+    const { client, wrapper } = createHarness();
+    const momentKey = queryKeys.moments.list("DISCOVER", "user-1");
+    const moment = {
+      id: "moment-1",
+      coverType: "TEXT",
+      title: "动态",
+      contentExcerpt: "正文",
+      likeCount: 0,
+      commentCount: 0,
+      bookmarkCount: 0,
+      tipTotal: "4",
+      viewerLiked: false,
+      viewerBookmarked: false,
+    };
+    client.setQueryData(momentKey, { pages: [{ data: [moment] }] });
+    const { result } = renderHook(
+      () => useTipWenyou({ type: "MOMENT", id: "moment-1", recipientUserId: "owner-1" }, "user-1"),
+      { wrapper },
+    );
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        amount: "10",
+        clientRequestId: "99454040-6a52-4bf3-8bad-42683c4d09be",
+      });
+    });
+
+    expect(mockPOST).toHaveBeenCalledWith("/api/v1/moments/{id}/tips", {
+      params: { path: { id: "moment-1" } },
+      body: { amount: "10", clientRequestId: "99454040-6a52-4bf3-8bad-42683c4d09be" },
+    });
+    const cached = client.getQueryData<{ pages: { data: { tipTotal: string }[] }[] }>(momentKey);
+    expect(cached?.pages[0].data[0].tipTotal).toBe("14");
+    expect(client.getQueryState(momentKey)?.isInvalidated).toBe(false);
+  });
 });

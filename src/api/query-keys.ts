@@ -8,6 +8,27 @@ export const queryKeys = {
     detailForViewer: (threadId: string, viewerScope: string) =>
       ["thread", threadId, "viewer", viewerScope] as const,
   },
+  moments: {
+    all: ["moments"] as const,
+    list: (feed: "DISCOVER" | "FOLLOWING", viewerScope: string) =>
+      ["moments", "list", feed, viewerScope] as const,
+    detail: (momentId: string | undefined, viewerScope: string) =>
+      ["moments", "detail", momentId, viewerScope] as const,
+    comments: (momentId: string | undefined, viewerScope: string, filters?: object) =>
+      filters === undefined
+        ? (["moments", "comments", momentId, viewerScope] as const)
+        : (["moments", "comments", momentId, viewerScope, filters] as const),
+    replies: (momentId: string, commentId: string, viewerScope: string, filters?: object) =>
+      filters === undefined
+        ? (["moments", "comments", momentId, commentId, "replies", viewerScope] as const)
+        : (["moments", "comments", momentId, commentId, "replies", viewerScope, filters] as const),
+    commentAuthors: (momentId: string | undefined, viewerScope: string) =>
+      ["moments", "comment-authors", momentId, viewerScope] as const,
+    user: (userId: string | undefined, viewerScope: string) =>
+      ["moments", "user", userId, viewerScope] as const,
+    bookmarks: (viewerScope: string) =>
+      ["moments", "bookmarks", viewerScope] as const,
+  },
   floors: {
     all: ["floors"] as const,
     list: (subthreadId: string) => ["floors", subthreadId] as const,
@@ -124,5 +145,7 @@ export const queryKeys = {
   search: {
     threads: (keyword: string) => ["search", "threads", keyword] as const,
     users: (keyword: string) => ["search", "users", keyword] as const,
+    moments: (keyword: string, viewerScope: string) =>
+      ["search", "moments", keyword, viewerScope] as const,
   },
 };

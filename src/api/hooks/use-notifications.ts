@@ -9,19 +9,34 @@ type GeneratedNotificationItem =
   components["schemas"]["NotificationResponseDto"];
 type NotificationPost = NonNullable<GeneratedNotificationItem["post"]>;
 type NotificationThread = NonNullable<GeneratedNotificationItem["thread"]>;
+type NotificationMoment = NonNullable<GeneratedNotificationItem["moment"]>;
+type NotificationMomentComment = NonNullable<GeneratedNotificationItem["momentComment"]>;
+type NotificationTarget = GeneratedNotificationItem["target"];
 type GeneratedNotificationFromUser = NonNullable<
   GeneratedNotificationItem["fromUser"]
 >;
 /** UI 不依赖接收者 ID 和服务端幂等键，组件只消费展示字段。 */
 export type NotificationItem = Omit<
   GeneratedNotificationItem,
-  "userId" | "eventKey" | "post" | "thread" | "fromUser"
+  "userId" | "eventKey" | "post" | "thread" | "momentId" | "momentCommentId" | "moment" | "momentComment" | "target" | "fromUser"
 > & {
+  momentId?: string | null;
+  momentCommentId?: string | null;
+  target: Omit<NotificationTarget, "momentId" | "momentCommentId"> & {
+    momentId?: string | null;
+    momentCommentId?: string | null;
+  };
   post: (Omit<NotificationPost, "deletedAt"> & {
     deletedAt?: NotificationPost["deletedAt"];
   }) | null;
   thread: (Omit<NotificationThread, "deletedAt"> & {
     deletedAt?: NotificationThread["deletedAt"];
+  }) | null;
+  moment?: (Omit<NotificationMoment, "deletedAt"> & {
+    deletedAt?: NotificationMoment["deletedAt"];
+  }) | null;
+  momentComment?: (Omit<NotificationMomentComment, "deletedAt"> & {
+    deletedAt?: NotificationMomentComment["deletedAt"];
   }) | null;
   fromUser: (Omit<GeneratedNotificationFromUser, "deletedAt"> & {
     deletedAt?: GeneratedNotificationFromUser["deletedAt"];

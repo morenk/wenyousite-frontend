@@ -13,7 +13,9 @@ import type { ThreadCardData } from "@/api/hooks/use-threads";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 
 interface UserThreadListProps {
-  threads: ThreadCardData[];
+  threads: Array<
+    Pick<ThreadCardData, "id" | "title" | "category" | "status" | "visibility">
+  >;
   isLoading: boolean;
   isError: boolean;
   hasNextPage: boolean;

@@ -4,6 +4,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tansta
 import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
 import type { components, operations } from "@/api/types";
+import { patchMomentCaches } from "@/api/moment-cache";
 
 export type Wallet = components["schemas"]["WalletResponseDto"];
 export type WalletTransaction = components["schemas"]["WalletTransactionResponseDto"];
@@ -79,6 +80,7 @@ export function useWalletTransactions(userId: string | undefined) {
 
 export type TipTarget =
   | { type: "THREAD"; id: string; recipientUserId: string }
+  | { type: "MOMENT"; id: string; recipientUserId: string }
   | { type: "USER"; id: string };
 
 export function useTipWenyou(target: TipTarget, userId: string | undefined) {
@@ -97,10 +99,15 @@ export function useTipWenyou(target: TipTarget, userId: string | undefined) {
             params: { path: { id: target.id } },
             body,
           })
-        : await apiClient.POST("/api/v1/users/{id}/tips", {
-            params: { path: { id: target.id } },
-            body,
-          });
+        : target.type === "MOMENT"
+          ? await apiClient.POST("/api/v1/moments/{id}/tips", {
+              params: { path: { id: target.id } },
+              body,
+            })
+          : await apiClient.POST("/api/v1/users/{id}/tips", {
+              params: { path: { id: target.id } },
+              body,
+            });
       if (response.error) throw response.error;
       if (!response.data) throw new Error("打赏响应为空");
       return response.data.data;
@@ -113,6 +120,15 @@ export function useTipWenyou(target: TipTarget, userId: string | undefined) {
       if (target.type === "THREAD") {
         void queryClient.invalidateQueries({ queryKey: queryKeys.threads.detail(target.id) });
         void queryClient.invalidateQueries({ queryKey: queryKeys.threads.all });
+        void queryClient.invalidateQueries({
+          queryKey: queryKeys.users.detail(target.recipientUserId),
+        });
+      } else if (target.type === "MOMENT") {
+        if (result.momentTipTotal !== undefined) {
+          patchMomentCaches(queryClient, target.id, () => ({
+            tipTotal: result.momentTipTotal!,
+          }));
+        }
         void queryClient.invalidateQueries({
           queryKey: queryKeys.users.detail(target.recipientUserId),
         });

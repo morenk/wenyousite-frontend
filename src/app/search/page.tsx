@@ -29,7 +29,7 @@ function SearchPageInner() {
 
   return (
     <PageShell width="feed">
-      <PageHeader title="搜索" description="查找用户、主题帖和公开楼层内容。" />
+      <PageHeader title="搜索" description="查找动态、用户、主题帖和公开楼层内容。" />
       <form onSubmit={handleSubmit} className="mb-6 flex items-center gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -37,7 +37,7 @@ function SearchPageInner() {
             key={q}
             defaultValue={q}
             ref={inputRef}
-            placeholder="搜索用户、主题帖标题或楼层内容…"
+            placeholder="搜索动态、用户、主题帖或楼层内容…"
             className="pl-9"
           />
         </div>
@@ -45,7 +45,7 @@ function SearchPageInner() {
       </form>
 
       {!q.trim() ? (
-        <EmptyState title="输入关键词开始搜索" description="支持用户名、主题帖标题与楼层内容" />
+        <EmptyState title="输入关键词开始搜索" description="支持动态标题与正文、用户名、主题帖标题和楼层内容" />
       ) : (
         <SearchResults keyword={q} />
       )}

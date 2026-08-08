@@ -17,6 +17,30 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { useAuth } from "@/lib/auth";
 import { PageShell } from "@/components/layout/page-shell";
 import { PageRouteFallback } from "@/components/layout/page-route-fallback";
+import { UserMomentsSection } from "@/components/moment/user-moments-section";
+
+function RecentRepliesCard({ userId }: { userId: string }) {
+  const {
+    data: replies,
+    isLoading,
+    isError,
+  } = useUserRecentReplies(userId);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">最近回复</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <UserRecentReplies
+          replies={replies ?? []}
+          isLoading={isLoading}
+          error={isError}
+        />
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function UserProfilePage() {
   const params = useParams();
@@ -29,12 +53,6 @@ export default function UserProfilePage() {
     error,
     refetch,
   } = useUserProfile(userId);
-
-  const {
-    data: replies,
-    isLoading: repliesLoading,
-    isError: repliesError,
-  } = useUserRecentReplies(userId);
 
   if (isLoading) {
     return <PageRouteFallback variant="profile" />;
@@ -78,6 +96,11 @@ export default function UserProfilePage() {
     );
   }
 
+  const isSelf = user?.id === userId;
+  const canViewRecentReplies = isSelf || profile.showRecentReplies;
+  const canViewBookmarks = isSelf || profile.showBookmarks;
+  const canViewPlayedThreads = isSelf || profile.showPlayerBadges;
+
   return (
     <PageShell>
       <div className="space-y-5">
@@ -85,16 +108,14 @@ export default function UserProfilePage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">最近动态</CardTitle>
+            <CardTitle className="text-base">动态</CardTitle>
           </CardHeader>
           <CardContent>
-            <UserRecentReplies
-              replies={replies ?? []}
-              isLoading={repliesLoading}
-              error={repliesError}
-            />
+            <UserMomentsSection userId={userId} />
           </CardContent>
         </Card>
+
+        {canViewRecentReplies && <RecentRepliesCard userId={userId} />}
 
         <Card>
           <CardHeader>
@@ -105,23 +126,27 @@ export default function UserProfilePage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">收藏</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <UserBookmarksSection userId={userId} />
-          </CardContent>
-        </Card>
+        {canViewBookmarks && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">收藏</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <UserBookmarksSection userId={userId} />
+            </CardContent>
+          </Card>
+        )}
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">参与的帖子</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <UserPlayedThreads userId={userId} isSelf={user?.id === userId} />
-          </CardContent>
-        </Card>
+        {canViewPlayedThreads && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">参与的帖子</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <UserPlayedThreads userId={userId} isSelf={isSelf} />
+            </CardContent>
+          </Card>
+        )}
       </div>
     </PageShell>
   );
