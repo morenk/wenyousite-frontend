@@ -217,7 +217,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 登出：撤销当前登录终端的 refresh token（Cookie 优先），同时清除客户端 Cookie */
+        /** 登出：按 access token 的稳定终端 ID 撤销当前终端，旧客户端回退到 refresh token */
         post: operations["authLogout"];
         delete?: never;
         options?: never;
@@ -2481,7 +2481,7 @@ export interface components {
         };
         LogoutDto: {
             /**
-             * @description 待撤销的刷新令牌（Cookie 中已有则无需传）
+             * @description 旧客户端兼容：待撤销的刷新令牌；当前 access token 含 sid 时可省略
              * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
              */
             refreshToken?: string;
@@ -4657,12 +4657,25 @@ export interface components {
             directMessages: boolean;
             pushNotifications: boolean;
         };
+        MobilePlatformCompatibilityDto: {
+            /** @example 120 */
+            minimumSupportedBuild: number | null;
+            /** @example 135 */
+            recommendedBuild: number | null;
+            /** @example https://wenyou.site/download */
+            updateUrl: string | null;
+        };
+        MobileCompatibilityDto: {
+            android: components["schemas"]["MobilePlatformCompatibilityDto"];
+            ios: components["schemas"]["MobilePlatformCompatibilityDto"];
+        };
         ApiMetaResponseDto: {
             contractVersion: string;
             buildSha: string | null;
             /** @example 2 */
             markdownContractVersion: number;
             capabilities: components["schemas"]["ApiCapabilitiesResponseDto"];
+            mobileCompatibility: components["schemas"]["MobileCompatibilityDto"];
         };
         WalletResponseDto: {
             /** @example 42 */
@@ -5940,7 +5953,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description 登出成功，refreshToken 被撤销，Cookie 被清除 */
+            /** @description 当前登录终端已撤销，客户端 Cookie 被清除 */
             200: {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];
