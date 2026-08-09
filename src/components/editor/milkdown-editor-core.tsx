@@ -32,7 +32,12 @@ import {
   type InlineDiceRoll,
 } from "@/lib/dice-inline";
 import { getDiceNotationError, MAX_DICE_ROLLS_PER_POST } from "@/lib/dice";
-import { syncMilkdownToolbarVisibility } from "@/lib/milkdown-toolbar";
+import {
+  positionMilkdownHeadingDropdowns,
+  revealFocusedMilkdownToolbarItem,
+  syncMilkdownToolbarSemantics,
+  syncMilkdownToolbarVisibility,
+} from "@/lib/milkdown-toolbar";
 import { getApiErrorMessage } from "@/api/errors";
 import { useMentionCandidates } from "@/api/hooks/use-mention-candidates";
 import {
@@ -52,6 +57,7 @@ import {
   useEditorMentionController,
   type EditorMentionMenu,
 } from "@/components/editor/use-editor-mention-controller";
+import { configureNoNewUnorderedLists } from "@/components/editor/unordered-list-guard-plugin";
 import "@/components/editor/milkdown-editor.css";
 
 const MAX_CHARS = 10000;
@@ -60,7 +66,7 @@ const QUICK_DICE_SIDES = [4, 6, 8, 10, 12, 20, 100];
 const TOOLBAR_TOOLTIPS: Record<string, string> = {
   bold: "粗体",
   italic: "斜体",
-  "bullet-list": "无序列表",
+  strikethrough: "删除线",
   link: "链接",
   image: "图片",
   quote: "引用",
@@ -77,7 +83,12 @@ const DRAFT_ICON = `
 
 const DICE_ICON = `
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
-    <path fill="currentColor" d="M5 3h6a2 2 0 0 1 2 2v1h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-6v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm0 2v14h6V5H5Zm8 3v8h6V8h-6ZM7 7h2v2H7V7Zm0 6h2v2H7v-2Zm8-3h2v2h-2v-2Zm2 3h2v2h-2v-2Z" />
+    <rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="2" />
+    <circle cx="8" cy="8" r="1.5" fill="currentColor" />
+    <circle cx="16" cy="8" r="1.5" fill="currentColor" />
+    <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+    <circle cx="8" cy="16" r="1.5" fill="currentColor" />
+    <circle cx="16" cy="16" r="1.5" fill="currentColor" />
   </svg>
 `;
 
@@ -407,20 +418,20 @@ function EditorHost({
         crepe.addFeature(imageBlock, getImageBlockConfig(handleUpload));
       }
 
+      configureNoNewUnorderedLists(crepe.editor);
+
       crepe.addFeature(topBar, {
         headingOptions: CN_HEADING_OPTIONS,
         buildTopBar: (builder) => {
           const formatting = builder.getGroup("formatting").group;
           formatting.items = formatting.items.filter(
-            (item) => item.key !== "strikethrough" && item.key !== "code",
-          );
-          const list = builder.getGroup("list").group;
-          list.items = list.items.filter(
-            (item) => item.key !== "ordered-list" && item.key !== "task-list",
+            (item) => item.key !== "code",
           );
           const groups = builder.build();
-          const blockIdx = groups.findIndex((group) => group.key === "block");
-          if (blockIdx !== -1) groups.splice(blockIdx, 1);
+          for (const groupKey of ["list", "block"]) {
+            const index = groups.findIndex((group) => group.key === groupKey);
+            if (index !== -1) groups.splice(index, 1);
+          }
 
           const insert = builder.getGroup("insert").group;
           const imageItem = insert.items.find((item) => item.key === "image");
@@ -535,13 +546,32 @@ function EditorHost({
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
+    let positionFrame: number | null = null;
+
+    const scheduleDropdownPosition = () => {
+      if (positionFrame !== null) return;
+      positionFrame = window.requestAnimationFrame(() => {
+        positionFrame = null;
+        positionMilkdownHeadingDropdowns(host);
+      });
+    };
     const syncTopBar = () => {
       injectToolbarTooltips(host, toolbarLabelsRef.current);
       syncMilkdownToolbarVisibility(host, disabled ?? false);
+      syncMilkdownToolbarSemantics(host);
+      scheduleDropdownPosition();
+    };
+
+    const handleFocusIn = (event: FocusEvent) => {
+      const target = event.target;
+      if (target instanceof Element) revealFocusedMilkdownToolbarItem(target);
     };
 
     const observer = new MutationObserver(syncTopBar);
     observer.observe(host, { childList: true, subtree: true });
+    host.addEventListener("focusin", handleFocusIn);
+    window.addEventListener("resize", scheduleDropdownPosition);
+    window.addEventListener("scroll", scheduleDropdownPosition, true);
 
     const topBar = host.querySelector(".milkdown-top-bar");
     if (topBar) syncTopBar();
@@ -564,6 +594,10 @@ function EditorHost({
     return () => {
       clearInterval(interval);
       observer.disconnect();
+      host.removeEventListener("focusin", handleFocusIn);
+      window.removeEventListener("resize", scheduleDropdownPosition);
+      window.removeEventListener("scroll", scheduleDropdownPosition, true);
+      if (positionFrame !== null) window.cancelAnimationFrame(positionFrame);
     };
   }, [disabled]);
 
