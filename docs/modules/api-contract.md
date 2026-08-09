@@ -27,7 +27,7 @@
 
 `scripts/check-flutter-contract.mjs` 验证 OpenAPI 3.0、稳定 lowerCamel operationId、具名 2xx 响应、非空查询 schema、移动基线端点与错误码 schema。这是快速静态门禁；CI 另用固定版本 OpenAPI Generator 的 `dart-dio` 目标执行真实生成烟雾。
 
-当前固定契约主版本为 4。主题帖分类字段是可空字符串而非封闭枚举：草稿可为 `null`，发布必须使用 `GET /thread-categories` 返回的启用 slug。Web 与 Flutter 均不得复制 `DEDUCTION / NATION / RPG` 为穷举类型；未知 slug 必须安全显示，未知响应字段必须忽略。
+契约版本以 `contracts/openapi.json` 的 `info.version` 为准，不在说明文档中复制易过期的版本号。主题帖分类字段是可空字符串而非封闭枚举：草稿可为 `null`，发布必须使用 `GET /thread-categories` 返回的启用 slug。Web 与 Flutter 均不得复制 `DEDUCTION / NATION / RPG` 为穷举类型；未知 slug 必须安全显示，未知响应字段必须忽略。
 
 ## 4. 状态管理
 
@@ -53,17 +53,7 @@ HTTP/业务错误由 `src/api/errors.ts` 统一归一化；成功响应不得使
 
 ## 9. 验收标准
 
-- [x] `pnpm generate:api` 生成的编辑器相关响应均包含强类型 `data`
-- [x] 所有生产 API hooks 不再手写成功响应 envelope
-- [x] 生成类型、query key、UI/API 分层均有静态门禁
-- [x] lint、typecheck、覆盖率测试和生产构建纳入 `pnpm check`
-
-## 10. 子任务
-
-- [x] 重新生成 OpenAPI 类型
-- [x] 迁移提及和媒体上传调用
-- [x] 迁移帖子与草稿 hooks
-- [x] 更新测试与质量检查
-- [x] 接入可重复执行的契约门禁
-- [x] 固定 OpenAPI 产物，不再依赖相邻源码或运行中 Swagger
-- [x] 增加 Flutter/Dart 生成兼容门禁
+- `pnpm generate:api` 生成的编辑器相关响应均包含强类型 `data`
+- 所有生产 API hooks 不再手写成功响应 envelope
+- 生成类型、query key、UI/API 分层均有静态门禁
+- lint、typecheck、覆盖率测试和生产构建纳入 `pnpm check`

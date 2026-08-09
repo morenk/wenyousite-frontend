@@ -58,11 +58,23 @@ interface UploadedImage {
 
 export type UploadImageStage = "preparing" | "uploading" | "processing";
 
-interface UploadImageOptions {
+export interface UploadImageProgress {
+  stage: UploadImageStage;
+  /** 已发送到对象存储的字节数；准备阶段不可计算时为 null。 */
+  loadedBytes: number | null;
+  /** 本次对象存储直传的总字节数；准备阶段不可计算时为 null。 */
+  totalBytes: number | null;
+  /** 0～100 的整数进度；准备阶段不可计算时为 null。 */
+  percent: number | null;
+}
+
+export interface UploadImageOptions {
   signal?: AbortSignal;
   /** 单次对象存储直传的最长等待时间。 */
   timeoutMs?: number;
   onStage?: (stage: UploadImageStage) => void;
+  /** 包含真实已上传字节数的进度回调。 */
+  onProgress?: (progress: UploadImageProgress) => void;
 }
 
 const DIRECT_UPLOAD_TIMEOUT_MS = 120_000;
@@ -94,42 +106,59 @@ function abortableDelay(ms: number, signal?: AbortSignal): Promise<void> {
   });
 }
 
-async function putImageFile(
+function putImageFile(
   uploadUrl: string,
   file: File,
   signal: AbortSignal | undefined,
   timeoutMs: number,
+  onProgress?: (loadedBytes: number, totalBytes: number) => void,
 ): Promise<void> {
   throwIfUploadAborted(signal);
-  const controller = new AbortController();
-  let timedOut = false;
-  const onAbort = () => controller.abort();
-  signal?.addEventListener("abort", onAbort, { once: true });
-  const timeout = window.setTimeout(() => {
-    timedOut = true;
-    controller.abort();
-  }, timeoutMs);
+  return new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    let settled = false;
 
-  try {
-    const response = await fetch(uploadUrl, {
-      method: "PUT",
-      headers: { "Content-Type": file.type },
-      body: file,
-      signal: controller.signal,
+    const abortRequest = () => request.abort();
+    const finish = (callback: () => void) => {
+      if (settled) return;
+      settled = true;
+      signal?.removeEventListener("abort", abortRequest);
+      callback();
+    };
+
+    request.upload.addEventListener("progress", (event) => {
+      const totalBytes = event.lengthComputable && event.total > 0 ? event.total : file.size;
+      onProgress?.(Math.min(event.loaded, totalBytes), totalBytes);
     });
-    if (!response.ok) throw new Error("上传失败，请检查网络后重试");
-  } catch (error) {
-    if (signal?.aborted) throw createUploadAbortError();
-    if (timedOut) throw new Error("图片上传超时，请检查网络后重试");
-    if (isUploadAbortError(error)) throw createUploadAbortError();
-    if (error instanceof Error && error.message === "上传失败，请检查网络后重试") {
-      throw error;
+    request.addEventListener("load", () => {
+      if (request.status < 200 || request.status >= 300) {
+        finish(() => reject(new Error("上传失败，请检查网络后重试")));
+        return;
+      }
+      onProgress?.(file.size, file.size);
+      finish(resolve);
+    });
+    request.addEventListener("error", () => {
+      finish(() => reject(new Error("上传失败，请检查网络后重试")));
+    });
+    request.addEventListener("timeout", () => {
+      finish(() => reject(new Error("图片上传超时，请检查网络后重试")));
+    });
+    request.addEventListener("abort", () => {
+      finish(() => reject(createUploadAbortError()));
+    });
+    signal?.addEventListener("abort", abortRequest, { once: true });
+
+    try {
+      request.open("PUT", uploadUrl);
+      request.setRequestHeader("Content-Type", file.type);
+      request.timeout = timeoutMs;
+      onProgress?.(0, file.size);
+      request.send(file);
+    } catch {
+      finish(() => reject(new Error("上传失败，请检查网络后重试")));
     }
-    throw new Error("上传失败，请检查网络后重试");
-  } finally {
-    window.clearTimeout(timeout);
-    signal?.removeEventListener("abort", onAbort);
-  }
+  });
 }
 
 export async function uploadImageFile(
@@ -141,12 +170,37 @@ export async function uploadImageFile(
     throw new Error(validationError);
   }
 
-  const { signal, timeoutMs = DIRECT_UPLOAD_TIMEOUT_MS, onStage } = options;
+  const {
+    signal,
+    timeoutMs = DIRECT_UPLOAD_TIMEOUT_MS,
+    onStage,
+    onProgress,
+  } = options;
   throwIfUploadAborted(signal);
+
+  const reportStage = (stage: UploadImageStage) => {
+    onStage?.(stage);
+    if (stage === "preparing") {
+      onProgress?.({ stage, loadedBytes: null, totalBytes: null, percent: null });
+    } else if (stage === "processing") {
+      onProgress?.({ stage, loadedBytes: file.size, totalBytes: file.size, percent: 100 });
+    }
+  };
+  const reportUploadProgress = (loadedBytes: number, totalBytes: number) => {
+    const percent = totalBytes > 0
+      ? Math.min(100, Math.max(0, Math.round((loadedBytes / totalBytes) * 100)))
+      : 0;
+    onProgress?.({
+      stage: "uploading",
+      loadedBytes,
+      totalBytes,
+      percent,
+    });
+  };
 
   // 1. 获取预签名 URL
   try {
-    onStage?.("preparing");
+    reportStage("preparing");
     const { data: urlData, error: urlError } = await apiClient.POST(
       "/api/v1/media/upload-url",
       {
@@ -169,13 +223,13 @@ export async function uploadImageFile(
     if (!urlData) throw new Error("获取上传地址失败");
     const upload = urlData.data;
 
-    // 2. 直传 S3。浏览器 fetch 默认没有超时，必须允许用户取消并设置上限。
+    // 2. 直传 S3。XHR 提供真实上传字节进度，并保留超时与主动取消能力。
     onStage?.("uploading");
-    await putImageFile(upload.uploadUrl, file, signal, timeoutMs);
+    await putImageFile(upload.uploadUrl, file, signal, timeoutMs, reportUploadProgress);
     throwIfUploadAborted(signal);
 
     // 3. 确认上传完成
-    onStage?.("processing");
+    reportStage("processing");
     const { data: doneData, error: doneError } = await apiClient.POST(
       "/api/v1/media/upload-done",
       {
@@ -220,8 +274,11 @@ export async function uploadImageFile(
 }
 
 /** 编辑器图片上传：仅返回公开 URL */
-export async function uploadImage(file: File): Promise<string> {
-  const result = await uploadImageFile(file);
+export async function uploadImage(
+  file: File,
+  options: UploadImageOptions = {},
+): Promise<string> {
+  const result = await uploadImageFile(file, options);
   return result.url;
 }
 

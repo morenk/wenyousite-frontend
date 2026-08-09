@@ -4,26 +4,22 @@
 
 实现用户注册（两步：请求验证码 → 验证码+用户名密码完成注册）、登录、登出、忘记密码、重置密码、邮箱验证的全流程 UI。
 
-**本次迭代范围：**
-- 发布批次标识：`auth-login-terminal-2026-08-05`（与后端模块文档一致）
-- [x] 登录页面 `/login`
-- [x] 注册页面 `/register`
-- [x] 忘记密码页面 `/forgot-password`
-- [x] 重置密码页面 `/reset-password`
-- [x] 邮箱验证页面 `/verify-email`
-- [x] 全局导航栏（含登出按钮）
-- [x] Zod 校验 schema 抽取
-- [x] TanStack Query API hooks 抽取
-- [x] Access Token 过期后使用 httpOnly refresh cookie 单飞刷新并重放原请求
-- [x] 使用 Web Locks 协调多个浏览器标签页的 refresh token 轮转
-- [x] access token 仅驻留内存，页面启动时用 httpOnly refresh cookie 恢复会话
-- [x] `localStorage` 只保存不含凭证的用户 ID/修订号会话标记，用于跨标签页同步
-- [x] 登出时检查服务端错误，确保 refresh cookie 与当前登录终端确实退出
-- [x] 双端登录：每个账号最多一个 Web 登录终端和一个原生移动端登录终端，PC/手机网页共用 Web 槽位
-- [x] 登录/注册使用 OpenAPI 生成请求与响应类型，Web 响应体不再假定存在 refresh token
-
-**后续迭代：**
-- 无
+**当前能力：**
+- 登录页面 `/login`
+- 注册页面 `/register`
+- 忘记密码页面 `/forgot-password`
+- 重置密码页面 `/reset-password`
+- 邮箱验证页面 `/verify-email`
+- 全局导航栏（含登出按钮）
+- Zod 校验 schema 抽取
+- TanStack Query API hooks 抽取
+- Access Token 过期后使用 httpOnly refresh cookie 单飞刷新并重放原请求
+- 使用 Web Locks 协调多个浏览器标签页的 refresh token 轮转
+- access token 仅驻留内存，页面启动时用 httpOnly refresh cookie 恢复会话
+- `localStorage` 只保存不含凭证的用户 ID/修订号会话标记，用于跨标签页同步
+- 登出时检查服务端错误，确保 refresh cookie 与当前登录终端确实退出
+- 双端登录：每个账号最多一个 Web 登录终端和一个原生移动端登录终端，PC/手机网页共用 Web 槽位
+- 登录/注册使用 OpenAPI 生成请求与响应类型，Web 响应体不假定存在 refresh token
 
 ## 2. 页面与路由
 
@@ -245,43 +241,25 @@ Step2: 输入验证码 / 用户名 / 密码 / 确认密码 → 提交 → 成功
 
 ## 10. 验收标准
 
-- [x] `/login` 可正常登录并跳转首页
-- [x] `/register` 两步注册流程完整可用
-- [x] `/forgot-password` 发送重置邮件成功
-- [x] `/reset-password` 重置密码成功并强制重新登录
-- [x] `/verify-email` 验证邮箱成功
-- [x] 导航栏根据登录状态显示不同按钮
-- [x] 登出清除 token 并跳转首页
-- [x] access token 过期后可无感刷新并重放原请求
-- [x] 多个并发 401 只发起一次 refresh 请求
-- [x] 多标签页同时过期时通过 Web Lock 串行轮换 refresh cookie
-- [x] 生产代码静态门禁禁止恢复 `localStorage.accessToken`
-- [x] 登录账号变化后不会复用上一个账号的私有 Query 缓存
-- [x] 已登录用户访问公开认证页自动跳转
-- [x] 所有错误状态有 toast 提示
-- [x] 提交按钮有 loading 状态
-- [x] `pnpm check` 全部通过
+- `/login` 可正常登录并跳转首页
+- `/register` 两步注册流程完整可用
+- `/forgot-password` 发送重置邮件成功
+- `/reset-password` 重置密码成功并强制重新登录
+- `/verify-email` 验证邮箱成功
+- 导航栏根据登录状态显示不同按钮
+- 登出清除 token 并跳转首页
+- access token 过期后可无感刷新并重放原请求
+- 多个并发 401 只发起一次 refresh 请求
+- 多标签页同时过期时通过 Web Lock 串行轮换 refresh cookie
+- 生产代码静态门禁禁止恢复 `localStorage.accessToken`
+- 登录账号变化后不会复用上一个账号的私有 Query 缓存
+- 已登录用户访问公开认证页自动跳转
+- 所有错误状态有 toast 提示
+- 提交按钮有 loading 状态
 
-## 11. 子任务
-
-- [x] 编写模块设计文档 `docs/modules/auth.md`
-- [x] 抽取 Zod schema → `src/lib/validations/auth.ts`
-- [x] 抽取 API hooks → `src/api/hooks/use-login.ts` 等
-- [x] 抽取倒计时 hook → `src/hooks/use-countdown.ts`
-- [x] 实现 /login（登录页面）
-- [x] 实现 /register（注册页面）
-- [x] 实现 /forgot-password（忘记密码）
-- [x] 实现 /reset-password（重置密码）
-- [x] 实现 /verify-email（邮箱验证）
-- [x] 实现 NavBar（全局导航栏 + 登出）
-- [x] 高风险认证切片：Web refresh cookie-only、多标签页单飞、账号切换缓存隔离；单元测试覆盖，跨端行为由后端 `pnpm test:e2e:auth-terminal` 在真实 PostgreSQL 临时 Schema 验证
-- [x] 同步更新文档
-- [x] `pnpm check` 通过
-
-## 12. 跨端依赖与发布顺序
+## 11. 跨端约束
 
 - **风险**：认证状态、refresh token 轮转和私有缓存属于高风险路径。Web 不得读取或持久化 refresh token；原生移动端仍从响应体读取，两个客户端都依赖后端以 `platform` 区分登录终端
-- **契约依赖**：后端先保留可选 `refreshToken`、`createdAt` 和已废弃 `deviceInfo` 兼容字段，并新增稳定 `id`、`signedInAt`、`lastActiveAt`。前端类型必须由运行时 OpenAPI 重新生成，不手写平行类型
-- **发布顺序**：先按后端文档执行备份、迁移和新后端烟雾测试，再发布本 Web 构建，最后通知原生移动端确认 `X-Client-Platform: mobile` 与响应体 refresh token 流程；不允许客户端先假定新后端已上线
-- **兼容与回滚**：旧 Web 在兼容窗口内仍可使用 `createdAt`，新 Web 对缺失新时间字段提供显示兜底。Web 可回滚到上一构建而不回滚数据库；后端回滚及 token 重新登录影响见后端同批次文档
-- **发布后验证**：分别验证 Web 登录、原生移动端登录、双端并存、同端替换、多标签页刷新、登录终端列表、远程退出和账号切换；持续 401/5xx 或 refresh 失败时停止客户端发布并回滚 Web 构建
+- **契约依赖**：后端保留可选 `refreshToken`、`createdAt` 和已废弃 `deviceInfo` 兼容字段，并提供稳定 `id`、`signedInAt`、`lastActiveAt`。前端类型必须由已提交 OpenAPI 生成，不手写平行类型
+- **客户端标识**：原生端必须发送 `X-Client-Platform: mobile` 并消费响应体 refresh token；PC 与手机浏览器都属于 Web 槽位，refresh token 仅使用 HttpOnly Cookie
+- **回归范围**：认证改动至少验证 Web 登录、移动端登录、双端并存、同端替换、多标签页刷新、登录终端列表、远程退出和账号切换

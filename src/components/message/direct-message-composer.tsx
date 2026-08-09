@@ -4,8 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import { ImagePlus, Loader2, Send, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { ImageUploadProgress } from "@/components/shared/image-upload-progress";
 import { getApiErrorMessage } from "@/api/errors";
-import { uploadImageFile, validateImageFile } from "@/lib/upload-image";
+import {
+  isUploadAbortError,
+  uploadImageFile,
+  validateImageFile,
+  type UploadImageProgress as UploadImageProgressValue,
+} from "@/lib/upload-image";
 import { normalizeDirectMessageContent } from "@/lib/direct-message-content";
 import { StickerPickerPopover } from "@/components/sticker/sticker-picker-popover";
 import type { DirectMessageSendInput } from "@/lib/direct-message";
@@ -34,11 +40,14 @@ export function DirectMessageComposer({
   const [isSending, setIsSending] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const uploadAbortRef = useRef<AbortController | null>(null);
   const requestIdRef = useRef<string | null>(null);
   const restoreFocusRef = useRef(false);
+  const [uploadProgress, setUploadProgress] = useState<UploadImageProgressValue | null>(null);
 
   useEffect(() => {
     return () => {
+      uploadAbortRef.current?.abort();
       if (previewUrl) URL.revokeObjectURL(previewUrl);
     };
   }, [previewUrl]);
@@ -50,6 +59,9 @@ export function DirectMessageComposer({
   }, [disabled, isSending]);
 
   const clearImage = () => {
+    uploadAbortRef.current?.abort();
+    uploadAbortRef.current = null;
+    setUploadProgress(null);
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(null);
     setImage(null);
@@ -82,9 +94,15 @@ export function DirectMessageComposer({
     setIsSending(true);
     const submittedContent = content;
     const submittedImage = image;
+    const uploadController = image ? new AbortController() : null;
+    uploadAbortRef.current = uploadController;
     let clearedForOptimisticSend = false;
     try {
-      const uploaded = image ? await uploadImageFile(image) : undefined;
+      const uploaded = image ? await uploadImageFile(image, {
+        signal: uploadController?.signal,
+        onProgress: setUploadProgress,
+      }) : undefined;
+      setUploadProgress(null);
       const sendPromise = onSend({
         ...(normalized ? { content: normalized } : {}),
         ...(uploaded ? { mediaId: uploaded.mediaId } : {}),
@@ -117,8 +135,12 @@ export function DirectMessageComposer({
           setPreviewUrl(URL.createObjectURL(submittedImage));
         }
       }
-      toast.error(getApiErrorMessage(error, "发送失败，请稍后重试"));
+      if (!isUploadAbortError(error)) {
+        toast.error(getApiErrorMessage(error, "发送失败，请稍后重试"));
+      }
     } finally {
+      if (uploadAbortRef.current === uploadController) uploadAbortRef.current = null;
+      setUploadProgress(null);
       setIsSending(false);
     }
   };
@@ -189,6 +211,14 @@ export function DirectMessageComposer({
         placeholder={placeholder}
         className="w-full resize-none rounded-xl border border-input bg-card px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20 disabled:opacity-60"
       />
+      {uploadProgress ? (
+        <ImageUploadProgress
+          progress={uploadProgress}
+          onCancel={() => uploadAbortRef.current?.abort()}
+          className="mt-2"
+          compact
+        />
+      ) : null}
       <div className="mt-2 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <input
@@ -222,7 +252,9 @@ export function DirectMessageComposer({
           ) : (
             <Send className="h-4 w-4" />
           )}
-          {submitLabel}
+          {uploadProgress?.stage === "uploading" && uploadProgress.percent !== null
+            ? `上传 ${uploadProgress.percent}%`
+            : submitLabel}
         </Button>
       </div>
       {image && (

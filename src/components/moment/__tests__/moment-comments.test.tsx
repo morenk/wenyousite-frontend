@@ -174,10 +174,23 @@ describe("MomentComments", () => {
 
   test("展示两层评论、回复任意评论并删除有权限的评论", async () => {
     render(<MomentComments momentId="moment-1" />);
-    expect(screen.getByText("主评论内容")).toBeInTheDocument();
-    expect(screen.getByText("楼中楼内容")).toBeInTheDocument();
+    expect(screen.getByText("主评论内容")).toHaveClass("text-base", "leading-7");
+    expect(screen.getByText("楼中楼内容")).toHaveClass("text-base", "leading-7");
 
     const replyButtons = screen.getAllByRole("button", { name: "回复" });
+    expect(replyButtons[0]).not.toHaveTextContent("回复");
+    expect(replyButtons[0]).toHaveClass(
+      "size-8",
+      "hover:bg-primary",
+      "hover:text-brand-strong",
+    );
+    const deleteButton = screen.getByRole("button", { name: "删除" });
+    expect(deleteButton).not.toHaveTextContent("删除");
+    expect(deleteButton).toHaveClass(
+      "size-8",
+      "hover:bg-primary",
+      "hover:text-brand-strong",
+    );
     fireEvent.click(replyButtons[1]);
     const textarea = await screen.findByPlaceholderText("回复 回复者");
     fireEvent.change(textarea, { target: { value: "继续回复" } });
@@ -187,7 +200,7 @@ describe("MomentComments", () => {
       replyToCommentId: "reply-1",
     })));
 
-    fireEvent.click(screen.getByRole("button", { name: "删除" }));
+    fireEvent.click(deleteButton);
     await waitFor(() => expect(mockDelete).toHaveBeenCalledWith("root-1"));
     fireEvent.click(screen.getByRole("button", { name: "展开全部 2 条回复" }));
     expect(screen.getByText("楼中楼内容")).toBeInTheDocument();
@@ -386,7 +399,7 @@ describe("MomentComments", () => {
       refetch: mockRefetchComments,
     });
     rerender(<MomentComments momentId="moment-1" />);
-    expect(screen.getByText("还没有评论，来坐第一把椅子。")).toBeInTheDocument();
+    expect(screen.getByText("还没有评论。发表第一条评论。")).toBeInTheDocument();
 
     mockUseMomentComments.mockReturnValue({
       data: { pages: [{ data: [root] }] },

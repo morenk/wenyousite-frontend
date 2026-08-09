@@ -661,10 +661,11 @@ describe("ThreadDetailHeader", () => {
 
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
     await user.click(screen.getByRole("button", { name: "订阅玩家发言" }));
-    await user.selectOptions(
-      screen.getByLabelText("订阅帖内玩家"),
-      "target-user",
-    );
+    await user.click(screen.getByRole("combobox", { name: "订阅帖内玩家" }));
+    expect(await screen.findByRole("option", { name: "目标用户" })).toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: "帖主" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: "未标记参与人" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("option", { name: "目标用户" }));
     await user.click(screen.getByRole("button", { name: "订阅该玩家" }));
 
     expect(mockCreateMutate).toHaveBeenCalledWith({
@@ -672,12 +673,6 @@ describe("ThreadDetailHeader", () => {
       type: "USER",
       targetUserId: "target-user",
     });
-    expect(
-      screen.queryByRole("option", { name: "帖主" }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("option", { name: "未标记参与人" }),
-    ).not.toBeInTheDocument();
   });
 
   test("楼主不显示整帖订阅按钮", () => {

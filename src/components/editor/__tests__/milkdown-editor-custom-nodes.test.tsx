@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { MilkdownEditor } from "@/components/editor/milkdown-editor-core";
+import type { UploadImageOptions } from "@/lib/upload-image";
 
 vi.mock("@/lib/auth", () => ({
   useAuth: () => ({ user: null }),
@@ -123,7 +124,13 @@ describe("MilkdownEditor 自定义内联节点", () => {
   test("工具栏图片上传完成后立即同步 Markdown", async () => {
     const onChange = vi.fn();
     let finishUpload: ((url: string) => void) | undefined;
-    const onUploadImage = vi.fn(() => new Promise<string>((resolve) => {
+    const onUploadImage = vi.fn((_file: File, options?: UploadImageOptions) => new Promise<string>((resolve) => {
+      options?.onProgress?.({
+        stage: "uploading",
+        loadedBytes: 1 * 1024 * 1024,
+        totalBytes: 2 * 1024 * 1024,
+        percent: 50,
+      });
       finishUpload = resolve;
     }));
     const file = new File(["image"], "test.png", { type: "image/png" });
@@ -136,7 +143,11 @@ describe("MilkdownEditor 自定义内联节点", () => {
     renderEditor({ defaultValue: "正文", onChange, onUploadImage });
 
     fireEvent.pointerDown(await screen.findByRole("button", { name: "图片" }));
-    expect(onUploadImage).toHaveBeenCalledWith(file);
+    expect(onUploadImage).toHaveBeenCalledWith(file, expect.objectContaining({
+      signal: expect.any(AbortSignal),
+      onProgress: expect.any(Function),
+    }));
+    expect(await screen.findByText("1.0 MB / 2.0 MB")).toBeInTheDocument();
     onChange.mockClear();
 
     await act(async () => {

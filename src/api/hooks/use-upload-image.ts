@@ -1,10 +1,20 @@
 /** 图片上传 API hook */
 
 import { useMutation } from "@tanstack/react-query";
-import { uploadImage } from "@/lib/upload-image";
+import { uploadImage, type UploadImageOptions } from "@/lib/upload-image";
+
+interface UploadImageVariables {
+  file: File;
+  options?: UploadImageOptions;
+}
 
 export function useUploadImage() {
-  return useMutation({
-    mutationFn: uploadImage,
+  const mutation = useMutation({
+    mutationFn: ({ file, options }: UploadImageVariables) => uploadImage(file, options),
   });
+
+  return {
+    ...mutation,
+    mutateAsync: (file: File, options?: UploadImageOptions) => mutation.mutateAsync({ file, options }),
+  };
 }

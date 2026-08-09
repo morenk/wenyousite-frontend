@@ -3,10 +3,11 @@ import { cn } from "@/lib/utils";
 
 const widthClasses = {
   narrow: "max-w-narrow",
+  moment: "max-w-moment",
   feed: "max-w-feed",
   content: "max-w-content",
   workspace: "max-w-workspace",
-  wide: "max-w-[80rem]",
+  wide: "max-w-wide",
 } as const;
 
 export type PageWidth = keyof typeof widthClasses;

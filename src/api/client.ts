@@ -19,7 +19,8 @@ interface RefreshEnvelope {
 
 type RefreshOutcome =
   | { status: "ready"; accessToken: string; userId: string | null }
-  | { status: "failed" }
+  | { status: "rejected" }
+  | { status: "unavailable" }
   | { status: "identity-changed" };
 
 function getResponseUserId(user: unknown): string | null {
@@ -109,15 +110,18 @@ async function requestRefresh(
     body: "{}",
   });
   if (!response.ok) {
-    return getKnownUserId() === expectedUserId
-      ? { status: "failed" }
-      : { status: "identity-changed" };
+    if (getKnownUserId() !== expectedUserId) {
+      return { status: "identity-changed" };
+    }
+    return response.status === 401
+      ? { status: "rejected" }
+      : { status: "unavailable" };
   }
 
   const envelope = (await response.json()) as RefreshEnvelope;
   if (getKnownUserId() !== expectedUserId) return { status: "identity-changed" };
   const accessToken = envelope.data?.accessToken;
-  if (!accessToken) return { status: "failed" };
+  if (!accessToken) return { status: "unavailable" };
 
   const responseUserId = getResponseUserId(envelope.data?.user);
   if (
@@ -133,7 +137,7 @@ async function requestRefresh(
     : currentUser?.id === (responseUserId ?? expectedUserId)
       ? currentUser
       : null;
-  if (!user) return { status: "failed" };
+  if (!user) return { status: "unavailable" };
 
   setAuthSession(user, accessToken, { announce: false });
   return {
@@ -187,7 +191,7 @@ export async function bootstrapAuthSession(): Promise<void> {
     bootstrapPromise = null;
   });
   const outcome = await bootstrapPromise;
-  if (outcome.status === "failed") clearStoredAuth();
+  if (outcome.status === "rejected") clearStoredAuth();
 }
 
 /** 创建支持 refresh cookie 单飞轮换与原请求重放的 fetch。 */
@@ -245,11 +249,12 @@ export function createAuthenticatedFetch(fetchImpl: typeof fetch): typeof fetch 
     ) {
       return response;
     }
-    if (refreshOutcome.status === "failed") {
+    if (refreshOutcome.status === "rejected") {
       clearStoredAuth();
       window.location.href = "/login";
       return response;
     }
+    if (refreshOutcome.status === "unavailable") return response;
 
     const headers = new Headers(retryRequest.headers);
     headers.set("Authorization", `Bearer ${refreshOutcome.accessToken}`);

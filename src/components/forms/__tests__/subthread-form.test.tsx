@@ -15,7 +15,7 @@ describe("SubthreadForm", () => {
     render(
       <SubthreadForm mode="create" onSubmit={vi.fn()} onCancel={vi.fn()} />,
     );
-    expect(screen.getByText("添加子贴")).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "添加子贴" })).toBeInTheDocument();
   });
 
   test("编辑模式渲染正确标题", () => {
@@ -38,7 +38,7 @@ describe("SubthreadForm", () => {
       />,
     );
     expect(screen.getByDisplayValue("设定区")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("协作者")).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "发帖权限" })).toHaveTextContent("协作者");
   });
 
   test("创建模式下按钮文案为'添加'", () => {
@@ -80,13 +80,15 @@ describe("SubthreadForm", () => {
     );
 
     await user.type(screen.getByPlaceholderText("主帖 / 设定区 / 剧情区"), "新子贴");
+    await user.click(screen.getByRole("combobox", { name: "发帖权限" }));
+    await user.click(await screen.findByRole("option", { name: "玩家" }));
     await user.click(screen.getByText("添加"));
 
     await vi.waitFor(() => {
       expect(onSubmit).toHaveBeenCalledWith(
         expect.objectContaining({
           title: "新子贴",
-          postingPolicy: "PARTICIPANTS",
+          postingPolicy: "PLAYERS",
         }),
       );
     });
@@ -101,6 +103,17 @@ describe("SubthreadForm", () => {
     );
 
     await user.click(screen.getByText("取消"));
+    expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+
+  test("Esc 关闭弹层并调用 onCancel", async () => {
+    const user = userEvent.setup();
+    const onCancel = vi.fn();
+    render(
+      <SubthreadForm mode="create" onSubmit={vi.fn()} onCancel={onCancel} />,
+    );
+
+    await user.keyboard("{Escape}");
     expect(onCancel).toHaveBeenCalledTimes(1);
   });
 

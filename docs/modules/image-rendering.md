@@ -2,11 +2,12 @@
 
 ## 1. 目标与范围
 
-统一帖子正文图片的渲染与加载行为，避免大图溢出容器，同时利用后端已生成的派生图（`_md.webp` / `_thumb.webp`）降低带宽成本。
+统一 Web 图片上传、处理反馈、正文渲染与大图查看行为。所有上传入口共享同一媒体状态机，正文利用后端派生图（`_md.webp` / `_thumb.webp`）降低带宽成本。
 
-**本次迭代范围：**
+**当前能力：**
 - 上传安全契约与后端对齐：仅接受 JPEG / PNG / GIF / WebP / AVIF，拒绝空文件与未经净化的 SVG
 - 页面 CSP 的 `connect-src` 放行 RainS3 媒体源，允许浏览器通过预签名 URL 直接 PUT 上传
+- 统一上传管线通过 XHR 的上传字节事件报告真实进度；所有图片入口在准备、直传、媒体处理三个阶段持续反馈，直传阶段显示已传/总量和百分比，支持 `AbortSignal` 取消并保留 120 秒超时
 - `upload-done` 由后端核对对象存储实际大小和 MIME，并支持网络超时后的幂等重试；Web/Flutter 都只把 `COMPLETED` 媒体写入正文或头像
 - GIF 动图在正文进入视口并加载后默认播放，不再以静态 `_md.webp` 首帧代替；循环次数遵循文件自身设置
 - 正文图片渲染约束：`max-width: 100%` + `max-height: 50vh` + `height: auto` + `loading="lazy"`，长图不会撑满楼层
@@ -23,11 +24,6 @@
 - **GIF 正文使用原图**：现有 sharp 派生链路生成的是静态 WebP 首帧，无法满足默认播放；因此 `.gif`（扩展名大小写不敏感，允许 URL query/hash）跳过中图替换。仍保留 `loading="lazy"`，避免未进入视口的长页面动图提前消耗带宽。
 - 后端仍保留派生图生成（sharp：300×300 cover `_thumb.webp` q80 / 800px 等比 `_md.webp` q85）；上传完成确认会在入队前复核预签名阶段固化的大小与 MIME。
 
-**后续迭代（未含）：**
-- 上传前前端 canvas 压缩超大图（P2：>2000px 或 >3MB 压到 ~1600px，跳过 GIF）
-- 后端原图像素封顶 + EXIF 清理（P3）
-- 列表/封面预览使用 `_thumb.webp` 缩略图
-
 ## 2. 涉及 API
 
 | Method | Path | Guard | 用途 |
@@ -36,14 +32,16 @@
 | POST | `/media/upload-done` | Auth | 幂等确认上传；后端核对对象实际大小/MIME并原子入队 |
 | GET | `/media/:id` | Auth | 轮询图片处理状态 |
 
-上传链路由 `src/lib/upload-image.ts` 统一实现。允许 MIME 为 `image/jpeg`、`image/png`、`image/gif`、`image/webp`、`image/avif`，文件大小范围为 1B–10MB；Web 先给出友好错误，后端仍是最终校验边界。Flutter 必须复用同一范围并在选择器中排除 SVG。
+上传链路由 `src/lib/upload-image.ts` 统一实现。允许 MIME 为 `image/jpeg`、`image/png`、`image/gif`、`image/webp`、`image/avif`，文件大小范围为 1B–10MB；Web 先给出友好错误，后端仍是最终校验边界。对象存储 PUT 使用 XHR，是因为当前 Fetch 上传体不提供可消费的字节进度；API 凭证与状态轮询仍统一经过 `apiClient`。Flutter 必须复用同一范围并在选择器中排除 SVG。
 
 ## 3. 组件清单
 
 | 组件 | 路径 | 说明 |
 |------|------|------|
 | MarkdownContent | `src/components/thread/markdown-content.tsx` | 共享 markdown 渲染：图片约束 + 懒加载 + 中图替换 + lightbox |
-| ImageLightbox | `src/components/thread/image-lightbox.tsx` | 原图查看器：适应屏幕 / 1:1 / 滚轮缩放 / 拖拽 / Esc / 点背景关闭 |
+| ImageLightbox | `src/components/shared/image-lightbox.tsx` | 基于共享 Dialog 的原图查看器：焦点圈定、滚动锁定、适应屏幕 / 1:1 / 滚轮缩放 / 拖拽 / Esc / 点背景关闭；thread 路径仅保留兼容导出 |
+| Progress | `src/components/ui/progress.tsx` | 基于已安装 Base UI Progress 的统一无障碍进度原语 |
+| ImageUploadProgress | `src/components/shared/image-upload-progress.tsx` | 准备/上传/处理三阶段反馈；上传阶段显示真实字节、百分比并可按场景提供取消 |
 | getImageUrlBySize | `src/lib/upload-image.ts` | 静态原图 URL → `_md.webp` / `_thumb.webp` 派生图 URL（历史 SVG 原样返回） |
 | DirectMessageBubble | `src/components/message/direct-message-bubble.tsx` | 私聊静态图消费 `media.mediumUrl`，GIF 使用 `media.url`，不推导对象存储 key |
 
@@ -66,35 +64,22 @@
 | lightbox 图片单击 | 在适应屏幕与 1:1 原图之间切换；事件不会冒泡触发遮罩关闭 |
 | lightbox 其他操作 | 滚轮/工具栏缩放，放大后拖拽平移；Esc、点背景或关闭按钮退出 |
 | Milkdown 空段落 | 独占行 `<br />` / `<br>` / `<br/>` 规范化为安全空段落；围栏代码块中的同名示例原样保留 |
-| 引用（blockquote） | 由 `@tailwindcss/typography` 插件（`prose` 类）提供：左边框 + 斜体 + 引号；该插件已在 `globals.css` 以 `@plugin` 注册（此前未注册导致引用发布后呈常规文字） |
+| 引用（blockquote） | 由 `@tailwindcss/typography` 插件（`prose` 类）提供左边框、斜体和引号；插件必须在 `globals.css` 以 `@plugin` 注册 |
 | 原始 HTML | `react-markdown` 使用 `skipHtml` 忽略，不执行用户输入的标签或脚本 |
 
 **识别本站上传图的判定**：objectKey 统一以 `uploads/` 开头（后端生成规则），故以 URL 包含 `/uploads/` 判断，无需前端持有 COS 域名配置。
 
 ## 5. 验收标准
 
-- [x] 大图不再撑满/溢出容器宽度
-- [x] 本站上传图正文显示中图，点击可看原图
-- [x] 站外图片不被错误替换派生图
-- [x] lightbox 支持 Esc / 点背景关闭
-- [x] 长图打开后不被 `max-width:100%` 与适应视口缩放重复缩小
-- [x] 单击原图执行缩放切换，不会同时关闭 lightbox
-- [x] 已入库的 Milkdown 空段落保留视觉高度且不显示为字面文本，原始 HTML 保持禁用
-- [x] 正文高度超过 `120vh` 时折叠为 `80vh`，展开/收起后按当前内容位置跳转
-- [x] `pnpm lint && pnpm typecheck && pnpm test` 通过
-- [x] SVG 与空文件在调用 `upload-url` 前被客户端拒绝
-- [x] CSP 允许连接 RainS3 媒体源，预签名直传不会在发起请求前被浏览器拦截
-- [x] 本站 GIF 正文默认请求原图并播放，不需要先打开 lightbox
-
-## 6. 子任务
-
-- [x] `feat: MarkdownContent 共享渲染组件 + 测试`
-  - 新建 `markdown-content.tsx` / `image-lightbox.tsx`
-  - 测试：普通文本 / 本站图换中图 / 站外图原样 / SVG 不替换 / 中图失败回退 / lightbox 开合
-- [x] `feat: 楼层/子贴正文接入 + CSS 兜底`
-  - `floor-card.tsx`、`subthread-body.tsx` 换用 `<MarkdownContent>`
-  - `globals.css` 加 `.prose img` 兜底
-- [x] `docs: 图片渲染约定`（本文档）
-- [x] `fix: 修复 lightbox 长图重复缩小和图片点击冒泡`
-  - 使用图片 `naturalWidth` / `naturalHeight` 作为 transform 尺寸基准
-  - 增加原图点击不关闭、自然尺寸不被全局 CSS 二次约束的回归测试
+- 大图不再撑满/溢出容器宽度
+- 本站上传图正文显示中图，点击可看原图
+- 站外图片不被错误替换派生图
+- lightbox 支持 Esc / 点背景关闭
+- 长图打开后不被 `max-width:100%` 与适应视口缩放重复缩小
+- 单击原图执行缩放切换，不会同时关闭 lightbox
+- 已入库的 Milkdown 空段落保留视觉高度且不显示为字面文本，原始 HTML 保持禁用
+- 正文高度超过 `120vh` 时折叠为 `80vh`，展开/收起后按当前内容位置跳转
+- SVG 与空文件在调用 `upload-url` 前被客户端拒绝
+- CSP 允许连接 RainS3 媒体源，预签名直传不会在发起请求前被浏览器拦截
+- 本站 GIF 正文默认请求原图并播放，不需要先打开 lightbox
+- 所有 Web 图片上传入口持续显示阶段状态，直传阶段显示真实字节与百分比

@@ -1,6 +1,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { AppContextRail } from "@/components/layout/app-context-rail";
+import { UnreadCountsProvider } from "@/components/layout/unread-counts-context";
 
 const { mockUseAuth } = vi.hoisted(() => ({
   mockUseAuth: vi.fn(),
@@ -21,14 +22,6 @@ vi.mock("@/api/hooks/use-economy", () => ({
   useWallet: () => ({ data: { balance: "18" } }),
 }));
 
-vi.mock("@/api/hooks/use-unread-count", () => ({
-  useUnreadCount: () => ({ data: 3 }),
-}));
-
-vi.mock("@/api/hooks/use-direct-conversations", () => ({
-  useDirectUnreadCount: () => ({ data: { total: 2 } }),
-}));
-
 vi.mock("@/components/thread/thread-categories-provider", () => ({
   useThreadCategoriesContext: () => ({ categories: [] }),
 }));
@@ -42,7 +35,11 @@ describe("AppContextRail", () => {
       user: { id: "u1", username: "用户", avatar: null },
     });
 
-    render(<AppContextRail />);
+    render(
+      <UnreadCountsProvider notificationCount={3} directMessageCount={2}>
+        <AppContextRail />
+      </UnreadCountsProvider>,
+    );
 
     expect(screen.getByRole("link", { name: /用户/ })).toHaveAttribute("href", "/users/u1");
     expect(screen.getByRole("link", { name: "通知，3 条未读" })).toHaveAttribute(

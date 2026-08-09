@@ -2,15 +2,33 @@
 
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Cropper, { type Area } from "react-easy-crop";
 import { Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useSetAvatar } from "@/api/hooks/use-set-avatar";
 import { getApiErrorMessage } from "@/api/errors";
-import { getImageUrlBySize, uploadImageFile, validateAvatarFile } from "@/lib/upload-image";
+import { ImageUploadProgress } from "@/components/shared/image-upload-progress";
+import {
+  getImageUrlBySize,
+  isUploadAbortError,
+  uploadImageFile,
+  validateAvatarFile,
+  type UploadImageProgress as UploadImageProgressValue,
+} from "@/lib/upload-image";
 import { getCroppedBlob } from "@/lib/avatar-crop";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogBackdrop,
+  DialogClose,
+  DialogDescription,
+  DialogFooter,
+  DialogPopup,
+  DialogPortal,
+  DialogTitle,
+  DialogViewport,
+} from "@/components/ui/dialog";
 
 interface AvatarUploaderProps {
   username: string;
@@ -20,6 +38,7 @@ interface AvatarUploaderProps {
 export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
   const { setAvatar, removeAvatar } = useSetAvatar();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadAbortRef = useRef<AbortController | null>(null);
 
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -27,6 +46,9 @@ export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
   const [croppedArea, setCroppedArea] = useState<Area | undefined>();
   const [cropOpen, setCropOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<UploadImageProgressValue | null>(null);
+
+  useEffect(() => () => uploadAbortRef.current?.abort(), []);
 
   const avatarUrl = avatar ? getImageUrlBySize(avatar, "thumb") : null;
   const pending = isUploading || setAvatar.isPending || removeAvatar.isPending;
@@ -48,6 +70,9 @@ export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
   };
 
   const closeCrop = () => {
+    uploadAbortRef.current?.abort();
+    uploadAbortRef.current = null;
+    setUploadProgress(null);
     setCropOpen(false);
     if (imageSrc) URL.revokeObjectURL(imageSrc);
     setImageSrc(null);
@@ -56,17 +81,26 @@ export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
 
   const handleConfirm = async () => {
     if (!imageSrc || !croppedArea) return;
+    const controller = new AbortController();
+    uploadAbortRef.current = controller;
     setIsUploading(true);
     try {
       const blob = await getCroppedBlob(imageSrc, croppedArea);
       const file = new File([blob], "avatar.webp", { type: "image/webp" });
-      const { mediaId } = await uploadImageFile(file);
+      const { mediaId } = await uploadImageFile(file, {
+        signal: controller.signal,
+        onProgress: setUploadProgress,
+      });
       await setAvatar.mutateAsync(mediaId);
       toast.success("头像已更新");
       closeCrop();
     } catch (err) {
-      toast.error(getApiErrorMessage(err, "头像上传失败，请稍后重试"));
+      if (!isUploadAbortError(err)) {
+        toast.error(getApiErrorMessage(err, "头像上传失败，请稍后重试"));
+      }
     } finally {
+      if (uploadAbortRef.current === controller) uploadAbortRef.current = null;
+      setUploadProgress(null);
       setIsUploading(false);
     }
   };
@@ -131,48 +165,73 @@ export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
         />
       </div>
 
-      {cropOpen && imageSrc && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-md rounded-xl bg-background p-4">
-            <h3 className="mb-3 text-base font-semibold">裁剪头像</h3>
-            <div className="relative h-64 overflow-hidden rounded-lg bg-black">
-              <Cropper
-                image={imageSrc}
-                crop={crop}
-                zoom={zoom}
-                aspect={1}
-                onCropChange={setCrop}
-                onZoomChange={setZoom}
-                onCropComplete={(_area, areaPixels) => setCroppedArea(areaPixels)}
-              />
-            </div>
-            <div className="mt-3">
-              <label htmlFor="crop-zoom" className="mb-1 block text-xs text-muted-foreground">
-                缩放
-              </label>
-              <input
-                id="crop-zoom"
-                type="range"
-                min={1}
-                max={3}
-                step={0.01}
-                value={zoom}
-                onChange={(e) => setZoom(Number(e.target.value))}
-                className="w-full"
-              />
-            </div>
-            <div className="mt-4 flex justify-end gap-2">
-              <Button type="button" variant="ghost" onClick={closeCrop} disabled={isUploading}>
-                取消
-              </Button>
-              <Button type="button" onClick={handleConfirm} disabled={isUploading}>
-                {isUploading ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : null}
-                确认
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Dialog
+        open={cropOpen}
+        disablePointerDismissal={isUploading}
+        onOpenChange={(open) => {
+          if (!open && !isUploading) closeCrop();
+        }}
+      >
+        {imageSrc ? (
+          <DialogPortal>
+            <DialogBackdrop />
+            <DialogViewport>
+              <DialogPopup className="max-w-md p-4">
+                <DialogTitle>裁剪头像</DialogTitle>
+                <DialogDescription className="sr-only">
+                  移动画面并调整缩放，使头像主体位于正方形裁剪区域内。
+                </DialogDescription>
+                <div className="relative mt-3 h-64 overflow-hidden rounded-lg bg-foreground">
+                  <Cropper
+                    image={imageSrc}
+                    crop={crop}
+                    zoom={zoom}
+                    aspect={1}
+                    onCropChange={setCrop}
+                    onZoomChange={setZoom}
+                    onCropComplete={(_area, areaPixels) => setCroppedArea(areaPixels)}
+                  />
+                </div>
+                <div className="mt-3">
+                  <label htmlFor="crop-zoom" className="mb-1 block text-xs text-muted-foreground">
+                    缩放
+                  </label>
+                  <input
+                    id="crop-zoom"
+                    type="range"
+                    min={1}
+                    max={3}
+                    step={0.01}
+                    value={zoom}
+                    onChange={(event) => setZoom(Number(event.target.value))}
+                    className="w-full accent-brand-strong"
+                  />
+                </div>
+                {uploadProgress ? (
+                  <ImageUploadProgress
+                    progress={uploadProgress}
+                    onCancel={() => uploadAbortRef.current?.abort()}
+                    className="mt-3"
+                    compact
+                  />
+                ) : null}
+                <DialogFooter className="mt-4">
+                  <DialogClose
+                    disabled={isUploading}
+                    className={buttonVariants({ variant: "ghost" })}
+                  >
+                    取消
+                  </DialogClose>
+                  <Button type="button" onClick={handleConfirm} disabled={isUploading}>
+                    {isUploading ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : null}
+                    保存头像
+                  </Button>
+                </DialogFooter>
+              </DialogPopup>
+            </DialogViewport>
+          </DialogPortal>
+        ) : null}
+      </Dialog>
     </div>
   );
 }

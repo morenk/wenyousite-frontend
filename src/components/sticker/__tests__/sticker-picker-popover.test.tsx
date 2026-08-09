@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -7,11 +7,15 @@ const {
   mockUseStickerActions,
   mockGetKnownUserId,
   mockToastError,
+  mockUpload,
+  mockValidate,
 } = vi.hoisted(() => ({
   mockUseStickers: vi.fn(),
   mockUseStickerActions: vi.fn(),
   mockGetKnownUserId: vi.fn(),
   mockToastError: vi.fn(),
+  mockUpload: vi.fn(),
+  mockValidate: vi.fn(),
 }));
 
 vi.mock("@/api/hooks/use-stickers", () => ({
@@ -19,6 +23,10 @@ vi.mock("@/api/hooks/use-stickers", () => ({
   useStickerActions: (...args: unknown[]) => mockUseStickerActions(...args),
 }));
 vi.mock("@/lib/auth-store", () => ({ getKnownUserId: () => mockGetKnownUserId() }));
+vi.mock("@/lib/upload-image", () => ({
+  uploadImageFile: (...args: unknown[]) => mockUpload(...args),
+  validateImageFile: (...args: unknown[]) => mockValidate(...args),
+}));
 vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: mockToastError },
 }));
@@ -64,6 +72,7 @@ const remove = { mutateAsync: vi.fn(), isPending: false };
 beforeEach(() => {
   vi.clearAllMocks();
   mockGetKnownUserId.mockReturnValue("u1");
+  mockValidate.mockReturnValue(null);
   mockUseStickers.mockReturnValue({
     data: { items: [sticker], recent: [], pendingImports: [], version: 1, limit: 200 },
     isLoading: false,
@@ -145,5 +154,32 @@ describe("StickerPickerPopover", () => {
   test("disabled 禁用入口", () => {
     render(<StickerPickerPopover onSelect={vi.fn()} disabled />);
     expect(screen.getByRole("button", { name: "表情" })).toBeDisabled();
+  });
+
+  test("批量添加图片时展示总上传进度", async () => {
+    let resolveUpload!: (value: { mediaId: string }) => void;
+    mockUpload.mockImplementationOnce((_file: File, options: {
+      onProgress?: (progress: Record<string, unknown>) => void;
+    }) => {
+      options.onProgress?.({
+        stage: "uploading",
+        loadedBytes: 2 * 1024 * 1024,
+        totalBytes: 4 * 1024 * 1024,
+        percent: 50,
+      });
+      return new Promise((resolve) => { resolveUpload = resolve; });
+    });
+    const user = userEvent.setup();
+    render(<StickerPickerPopover onSelect={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: "表情" }));
+    const input = document.querySelector<HTMLInputElement>('input[type="file"]');
+    fireEvent.change(input!, {
+      target: { files: [new File([new Uint8Array(4 * 1024 * 1024)], "sticker.png", { type: "image/png" })] },
+    });
+
+    expect(await screen.findByText("2.0 MB / 4.0 MB")).toBeInTheDocument();
+    expect(screen.getByText("50%")).toBeInTheDocument();
+    resolveUpload({ mediaId: "media-1" });
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
   });
 });

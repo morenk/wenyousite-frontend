@@ -2,11 +2,9 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-const { mockPathname, mockUseAuth, mockUnread, mockDirectUnread, mockConversations } = vi.hoisted(() => ({
+const { mockPathname, mockUseAuth, mockConversations } = vi.hoisted(() => ({
   mockPathname: vi.fn(),
   mockUseAuth: vi.fn(),
-  mockUnread: vi.fn(),
-  mockDirectUnread: vi.fn(),
   mockConversations: vi.fn(),
 }));
 
@@ -17,13 +15,12 @@ vi.mock("next/link", () => ({
 }));
 vi.mock("next/navigation", () => ({ usePathname: () => mockPathname() }));
 vi.mock("@/lib/auth", () => ({ useAuth: () => mockUseAuth() }));
-vi.mock("@/api/hooks/use-unread-count", () => ({ useUnreadCount: () => mockUnread() }));
 vi.mock("@/api/hooks/use-direct-conversations", () => ({
-  useDirectUnreadCount: () => mockDirectUnread(),
   useDirectConversations: (...args: unknown[]) => mockConversations(...args),
 }));
 
 import { MessageCenterTabs } from "@/components/message/message-center-tabs";
+import { UnreadCountsProvider } from "@/components/layout/unread-counts-context";
 import { DirectConversationList } from "@/components/message/direct-conversation-list";
 import { DirectMessagesFrame } from "@/components/message/direct-messages-frame";
 
@@ -31,8 +28,6 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockPathname.mockReturnValue("/messages");
   mockUseAuth.mockReturnValue({ user: { id: "u1" } });
-  mockUnread.mockReturnValue({ data: 4 });
-  mockDirectUnread.mockReturnValue({ data: { total: 3 } });
 });
 
 afterEach(() => cleanup());
@@ -52,7 +47,11 @@ function query(overrides: Record<string, unknown> = {}) {
 
 describe("MessageCenterTabs", () => {
   test("展示私聊与通知各自徽标并标记当前页签", () => {
-    render(<MessageCenterTabs />);
+    render(
+      <UnreadCountsProvider notificationCount={4} directMessageCount={3}>
+        <MessageCenterTabs />
+      </UnreadCountsProvider>,
+    );
     expect(screen.getByRole("link", { name: "私聊 3" })).toHaveAttribute("href", "/messages");
     expect(screen.getByRole("link", { name: "通知 4" })).toHaveAttribute("href", "/notifications");
     expect(screen.getByRole("link", { name: "私聊 3" })).toHaveClass("border-brand-strong");
@@ -60,9 +59,11 @@ describe("MessageCenterTabs", () => {
 
   test("通知页签激活且 99 以上显示 99+", () => {
     mockPathname.mockReturnValue("/notifications");
-    mockUnread.mockReturnValue({ data: 120 });
-    mockDirectUnread.mockReturnValue({ data: undefined });
-    render(<MessageCenterTabs />);
+    render(
+      <UnreadCountsProvider notificationCount={120} directMessageCount={0}>
+        <MessageCenterTabs />
+      </UnreadCountsProvider>,
+    );
     expect(screen.getByText("99+")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "通知 99+" })).toHaveClass("border-brand-strong");
   });

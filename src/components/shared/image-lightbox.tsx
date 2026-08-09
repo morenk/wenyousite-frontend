@@ -12,6 +12,14 @@ import {
 } from "react";
 import { Maximize, X, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogBackdrop,
+  DialogPopup,
+  DialogPortal,
+  DialogTitle,
+  DialogViewport,
+} from "@/components/ui/dialog";
 
 interface ImageLightboxProps {
   src: string;
@@ -49,14 +57,6 @@ export function ImageLightbox({ src, alt, onClose }: ImageLightboxProps) {
   const maxScale = fitScale > 0 ? 1 / fitScale : 1;
   const clampScale = (s: number) => Math.min(maxScale, Math.max(1, s));
   const percent = Math.round(view.scale * fitScale * 100);
-
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
 
   useEffect(() => {
     function handleResize() {
@@ -151,14 +151,21 @@ export function ImageLightbox({ src, alt, onClose }: ImageLightboxProps) {
   const zoomed = view.scale > 1.001;
 
   return (
-    <div
-      ref={containerRef}
-      className="fixed inset-0 z-50 flex select-none items-center justify-center overflow-hidden bg-black/80 p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label="查看原图"
-      onClick={onClose}
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
     >
+      <DialogPortal>
+        <DialogBackdrop className="bg-foreground/80 backdrop-blur-none" />
+        <DialogViewport className="overflow-hidden p-4">
+          <DialogPopup
+            ref={containerRef}
+            className="relative flex h-full max-h-none max-w-none select-none items-center justify-center overflow-hidden rounded-none border-0 bg-transparent text-background shadow-none"
+            onClick={onClose}
+          >
+      <DialogTitle className="sr-only">查看原图</DialogTitle>
       {/* eslint-disable-next-line @next/next/no-img-element -- lightbox 直接展示 COS 原图，transform 缩放 */}
       <img
         src={src}
@@ -191,13 +198,13 @@ export function ImageLightbox({ src, alt, onClose }: ImageLightboxProps) {
 
       {/* 工具条 */}
       <div
-        className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-0.5 rounded-full border border-white/10 bg-black/70 px-2 py-1 text-white shadow-lg"
+        className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-0.5 rounded-full border border-background/10 bg-foreground/75 px-2 py-1 text-background shadow-popover"
         onClick={(e) => e.stopPropagation()}
       >
         <Button
           variant="ghost"
           size="icon-sm"
-          className="text-white hover:bg-white/10 hover:text-white"
+          className="text-background hover:bg-background/10 hover:text-background"
           aria-label="缩小"
           onClick={() => setView((v) => ({ ...v, scale: clampScale(v.scale / ZOOM_STEP) }))}
         >
@@ -205,7 +212,7 @@ export function ImageLightbox({ src, alt, onClose }: ImageLightboxProps) {
         </Button>
         <button
           type="button"
-          className="min-w-12 px-1 text-center text-xs tabular-nums hover:text-brand-strong"
+          className="min-h-8 min-w-12 rounded-md px-1 text-center text-xs tabular-nums hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
           onClick={toggleZoom}
           aria-label="切换 1:1 显示"
         >
@@ -214,7 +221,7 @@ export function ImageLightbox({ src, alt, onClose }: ImageLightboxProps) {
         <Button
           variant="ghost"
           size="icon-sm"
-          className="text-white hover:bg-white/10 hover:text-white"
+          className="text-background hover:bg-background/10 hover:text-background"
           aria-label="放大"
           onClick={() => setView((v) => ({ ...v, scale: clampScale(v.scale * ZOOM_STEP) }))}
         >
@@ -223,7 +230,7 @@ export function ImageLightbox({ src, alt, onClose }: ImageLightboxProps) {
         <Button
           variant="ghost"
           size="icon-sm"
-          className="text-white hover:bg-white/10 hover:text-white"
+          className="text-background hover:bg-background/10 hover:text-background"
           aria-label="1:1 原图"
           onClick={() => setView((v) => ({ scale: maxScale, x: v.x, y: v.y }))}
         >
@@ -232,23 +239,26 @@ export function ImageLightbox({ src, alt, onClose }: ImageLightboxProps) {
         <Button
           variant="ghost"
           size="icon-sm"
-          className="text-white hover:bg-white/10 hover:text-white"
+          className="text-background hover:bg-background/10 hover:text-background"
           aria-label="适应屏幕"
           onClick={() => setView({ scale: 1, x: 0, y: 0 })}
         >
           <Maximize className="h-4 w-4" />
         </Button>
-        <div className="mx-1 h-4 w-px bg-white/20" />
+        <div className="mx-1 h-4 w-px bg-background/20" />
         <Button
           variant="ghost"
           size="icon-sm"
-          className="text-white hover:bg-white/10 hover:text-white"
+          className="text-background hover:bg-background/10 hover:text-background"
           aria-label="关闭"
           onClick={onClose}
         >
           <X className="h-4 w-4" />
         </Button>
       </div>
-    </div>
+          </DialogPopup>
+        </DialogViewport>
+      </DialogPortal>
+    </Dialog>
   );
 }

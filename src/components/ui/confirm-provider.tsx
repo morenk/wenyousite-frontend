@@ -65,7 +65,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
         }}
       >
         <AlertDialog.Portal>
-          <AlertDialog.Backdrop className="fixed inset-0 z-[80] bg-[rgb(53_39_44/40%)]" />
+          <AlertDialog.Backdrop className="fixed inset-0 z-[80] bg-foreground/40 backdrop-blur-[1px]" />
           <AlertDialog.Viewport className="fixed inset-0 z-[81] flex items-center justify-center p-6">
             <AlertDialog.Popup className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-dialog outline-none">
               <AlertDialog.Title className="text-base font-semibold">

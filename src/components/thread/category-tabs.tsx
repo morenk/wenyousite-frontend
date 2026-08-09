@@ -31,7 +31,7 @@ export function CategoryTabs({ selected, onChange }: CategoryTabsProps) {
       >
         <TabsTrigger
           value="ALL"
-          className="group/category h-8 shrink-0 flex-none rounded-lg border-0 px-3 py-1 text-[0.8125rem] font-medium after:hidden hover:bg-card/60 data-active:bg-card data-active:font-bold data-active:shadow-[0_1px_2px_rgb(52_47_62_/_0.08)]"
+          className="group/category h-8 shrink-0 flex-none rounded-lg border-0 px-3 py-1 text-[0.8125rem] font-medium after:hidden hover:bg-card/60 data-active:bg-card data-active:font-bold data-active:ring-1 data-active:ring-border"
         >
           <span className="size-2 rounded-full bg-brand-strong/80 ring-2 ring-card" aria-hidden="true" />
           全部
@@ -40,7 +40,7 @@ export function CategoryTabs({ selected, onChange }: CategoryTabsProps) {
           <TabsTrigger
             key={category.id}
             value={category.slug}
-            className="group/category h-8 shrink-0 flex-none rounded-lg border-0 px-3 py-1 text-[0.8125rem] font-medium after:hidden hover:bg-card/60 data-active:bg-card data-active:font-bold data-active:shadow-[0_1px_2px_rgb(52_47_62_/_0.08)]"
+            className="group/category h-8 shrink-0 flex-none rounded-lg border-0 px-3 py-1 text-[0.8125rem] font-medium after:hidden hover:bg-card/60 data-active:bg-card data-active:font-bold data-active:ring-1 data-active:ring-border"
           >
             <ThreadCategoryMarker category={category.slug} className="size-2 rounded-full ring-2 ring-card" />
             {category.name}

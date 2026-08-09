@@ -211,4 +211,9 @@ test("宽屏保持三栏社区壳且减少动态效果", async ({ page }) => {
     .getByRole("tab", { name: "全部" })
     .evaluate((element) => getComputedStyle(element).transitionDuration);
   expect(Number.parseFloat(transitionDuration)).toBeLessThanOrEqual(0.00001);
+
+  await expect(page).toHaveScreenshot("home-1920.png", {
+    fullPage: true,
+    animations: "disabled",
+  });
 });

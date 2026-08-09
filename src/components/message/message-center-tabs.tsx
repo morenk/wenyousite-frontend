@@ -2,15 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth } from "@/lib/auth";
-import { useUnreadCount } from "@/api/hooks/use-unread-count";
-import { useDirectUnreadCount } from "@/api/hooks/use-direct-conversations";
+import { useUnreadCounts } from "@/components/layout/unread-counts-context";
 import { cn } from "@/lib/utils";
 
 function CountBadge({ count }: { count: number }) {
   if (count < 1) return null;
   return (
-    <span className="rounded-full bg-destructive px-1.5 py-0.5 font-utility text-[10px] font-bold leading-none text-white">
+    <span className="rounded-full bg-destructive px-1.5 py-0.5 font-utility text-[10px] font-bold leading-none text-destructive-foreground">
       {count > 99 ? "99+" : count}
     </span>
   );
@@ -18,9 +16,7 @@ function CountBadge({ count }: { count: number }) {
 
 export function MessageCenterTabs() {
   const pathname = usePathname();
-  const { user } = useAuth();
-  const { data: notificationCount = 0 } = useUnreadCount(user?.id);
-  const { data: directUnread } = useDirectUnreadCount(user?.id);
+  const { notificationCount, directMessageCount } = useUnreadCounts();
   const tabs = [
     {
       href: "/notifications",
@@ -32,7 +28,7 @@ export function MessageCenterTabs() {
       href: "/messages",
       label: "私聊",
       active: pathname.startsWith("/messages"),
-      count: directUnread?.total ?? 0,
+      count: directMessageCount,
     },
   ];
 

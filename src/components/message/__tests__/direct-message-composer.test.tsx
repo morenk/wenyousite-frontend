@@ -13,6 +13,7 @@ const { mockUpload, mockValidate, mockToastError, mockRandomUUID } = vi.hoisted(
 vi.mock("@/lib/upload-image", () => ({
   uploadImageFile: mockUpload,
   validateImageFile: mockValidate,
+  isUploadAbortError: (error: unknown) => error instanceof DOMException && error.name === "AbortError",
 }));
 vi.mock("sonner", () => ({ toast: { error: mockToastError } }));
 vi.mock("@/components/sticker/sticker-picker-popover", () => ({
@@ -147,6 +148,33 @@ describe("DirectMessageComposer", () => {
       },
     }));
     expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:preview");
+  });
+
+  test("图片直传期间展示真实字节和百分比", async () => {
+    let resolveUpload!: (value: { url: string; mediaId: string }) => void;
+    mockUpload.mockImplementationOnce((_file: File, options: {
+      onProgress?: (progress: Record<string, unknown>) => void;
+    }) => {
+      options.onProgress?.({
+        stage: "uploading",
+        loadedBytes: 2.5 * 1024 * 1024,
+        totalBytes: 5 * 1024 * 1024,
+        percent: 50,
+      });
+      return new Promise((resolve) => { resolveUpload = resolve; });
+    });
+    const onSend = vi.fn().mockResolvedValue(undefined);
+    const { container } = render(<DirectMessageComposer onSend={onSend} />);
+    fireEvent.change(container.querySelector("input[type=file]")!, {
+      target: { files: [new File(["image"], "photo.jpg", { type: "image/jpeg" })] },
+    });
+
+    await userEvent.click(screen.getByRole("button", { name: "发送" }));
+
+    expect(await screen.findByText("2.5 MB / 5.0 MB")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "上传 50%" })).toBeDisabled();
+    resolveUpload({ url: "https://cdn.example.com/a.jpg", mediaId: "media1" });
+    await waitFor(() => expect(onSend).toHaveBeenCalled());
   });
 
   test("选择 GIF 时明确提示会保留动画效果", () => {

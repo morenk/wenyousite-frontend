@@ -44,7 +44,7 @@ export function ReplyThreadControls({
   ];
 
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border/80 bg-card/75 p-2 shadow-sm shadow-foreground/[0.02]">
+    <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border/80 bg-card/75 p-2">
       <span className="inline-flex h-8 items-center gap-1.5 px-1 font-utility text-xs font-bold tracking-wide text-muted-foreground">
         <ArrowDownUp className="size-3.5" />
         阅读方式

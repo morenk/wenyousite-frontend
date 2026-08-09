@@ -75,6 +75,17 @@ for (const layer of ["app", "components"]) {
     ) {
       failures.push(`${uiPath}: 私聊模块不得依赖主题帖展示模块`);
     }
+    if (
+      uiPath !== "src/components/layout/app-chrome.tsx"
+      && (
+        /import\s*{[^}]*\buseUnreadCount\b[^}]*}\s*from\s*["']@\/api\/hooks\/use-unread-count["']/s.test(source)
+        || /import\s*{[^}]*\buseDirectUnreadCount\b[^}]*}\s*from\s*["']@\/api\/hooks\/use-direct-conversations["']/s.test(source)
+      )
+    ) {
+      failures.push(
+        `${uiPath}: 全局未读数只能由 AppChrome 订阅，展示组件请使用 unread-counts-context`,
+      );
+    }
   }
 }
 

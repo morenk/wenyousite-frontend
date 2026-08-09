@@ -9,6 +9,7 @@ import { useDeleteSubthread } from "@/api/hooks/use-delete-subthread";
 import { useReorderSubthreads } from "@/api/hooks/use-reorder-subthreads";
 import { useUpsertBody } from "@/api/hooks/use-upsert-body";
 import { useUploadImage } from "@/api/hooks/use-upload-image";
+import type { UploadImageOptions } from "@/lib/upload-image";
 import { hasVisibleMarkdownContent } from "@/lib/markdown";
 import { getApiError, getApiErrorMessage } from "@/api/errors";
 import type { ThreadDetail, SubthreadDetail } from "@/api/hooks/use-thread-detail";
@@ -303,7 +304,7 @@ export function useManagementPanelController({
     setThreadDirty: (dirty: boolean) => dispatch({ type: "thread-dirty", dirty }),
     setThreadSaving: (saving: boolean) => dispatch({ type: "thread-saving", saving }),
     resetSubthreadEditor: () => dispatch({ type: "reset-content" }),
-    uploadImage: (file: File) => uploadImage.mutateAsync(file),
+    uploadImage: (file: File, options?: UploadImageOptions) => uploadImage.mutateAsync(file, options),
     handleViewChange,
     handleExit,
     handleSelect,

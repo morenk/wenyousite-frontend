@@ -182,7 +182,7 @@ export function ContentDraftsPanel({
     >
       <div className="flex items-start justify-between gap-3 px-3 py-2.5">
         <div className="flex min-w-0 items-start gap-2.5">
-          <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-brand-strong shadow-sm">
+          <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-brand-strong">
             <StickyNote className="size-4" />
           </span>
           <div className="min-w-0">
@@ -234,7 +234,7 @@ export function ContentDraftsPanel({
             }`}
           >
             <span
-              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+              className={`absolute top-0.5 h-5 w-5 rounded-full bg-card shadow transition-transform ${
                 autoSaveEnabled ? "translate-x-5" : "translate-x-0.5"
               }`}
             />

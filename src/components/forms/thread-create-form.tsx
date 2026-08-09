@@ -19,6 +19,7 @@ import {
 } from "@/lib/validations/thread-create";
 import { useSaveThreadAggregate } from "@/api/hooks/use-save-thread-aggregate";
 import { useUploadImage } from "@/api/hooks/use-upload-image";
+import type { UploadImageOptions } from "@/lib/upload-image";
 import { API_ERROR_CODE, getApiError } from "@/api/errors";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
 
@@ -130,8 +131,8 @@ export function ThreadCreateForm({
     }
   }
 
-  async function handleUploadImage(file: File) {
-    const url = await uploadImage.mutateAsync(file);
+  async function handleUploadImage(file: File, options?: UploadImageOptions) {
+    const url = await uploadImage.mutateAsync(file, options);
     return url;
   }
 

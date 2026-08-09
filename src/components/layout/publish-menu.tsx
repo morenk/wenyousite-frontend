@@ -5,9 +5,14 @@
 import { Popover } from "@base-ui/react/popover";
 import { ChevronDown, ChevronRight, FileText, Images, PenLine } from "lucide-react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useState } from "react";
-import { MomentComposer } from "@/components/moment/moment-composer";
 import { cn } from "@/lib/utils";
+
+const MomentComposer = dynamic(
+  () => import("@/components/moment/moment-composer").then((module) => module.MomentComposer),
+  { ssr: false },
+);
 
 export function PublishMenu({ userId, compact = false }: { userId: string; compact?: boolean }) {
   const [menuOpen, setMenuOpen] = useState(false);

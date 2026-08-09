@@ -21,13 +21,19 @@ import { getApiErrorMessage } from "@/api/errors";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { ImageLightbox } from "@/components/shared/image-lightbox";
 import { FloatingInputDock } from "@/components/shared/floating-input-dock";
+import { ImageUploadProgress } from "@/components/shared/image-upload-progress";
 import { StickerPickerPopover } from "@/components/sticker/sticker-picker-popover";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import type { UserSticker } from "@/api/hooks/use-stickers";
 import { useAuth } from "@/lib/auth";
 import { compressMomentImage, validateMomentImageFile } from "@/lib/moment-image";
-import { isUploadAbortError, uploadImageFile, type UploadImageStage } from "@/lib/upload-image";
+import {
+  isUploadAbortError,
+  uploadImageFile,
+  type UploadImageProgress as UploadImageProgressValue,
+  type UploadImageStage,
+} from "@/lib/upload-image";
 import type { ReplyFilters, ReplyOrder } from "@/api/reply-query";
 
 const commentSchema = z.object({
@@ -72,7 +78,7 @@ export function MomentComments({ momentId }: { momentId: string }) {
       ) : commentsQuery.isError ? (
         <div className="py-10 text-center"><p className="text-sm text-muted-foreground">评论加载失败</p><Button variant="ghost" size="sm" className="mt-2" onClick={() => void commentsQuery.refetch()}>重试</Button></div>
       ) : comments.length === 0 ? (
-        <p className="py-12 text-center text-sm text-muted-foreground">还没有评论，来坐第一把椅子。</p>
+        <p className="py-12 text-center text-sm text-muted-foreground">还没有评论。发表第一条评论。</p>
       ) : (
         <div className="mt-7 divide-y divide-border/70">
           {comments.map((comment) => (
@@ -117,6 +123,7 @@ function MomentCommentForm({ momentId, replyTarget, onCancelReply }: { momentId:
   const [sticker, setSticker] = useState<UserSticker | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [uploadStage, setUploadStage] = useState<"compressing" | UploadImageStage | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<UploadImageProgressValue | null>(null);
   const { register, handleSubmit, reset, setError, clearErrors, control, formState: { errors } } = useForm<CommentForm>({
     resolver: zodResolver(commentSchema),
     defaultValues: { content: "" },
@@ -163,6 +170,7 @@ function MomentCommentForm({ momentId, replyTarget, onCancelReply }: { momentId:
     uploadedRef.current = null;
     requestRef.current = null;
     setUploadStage(null);
+    setUploadProgress(null);
     setImage(null);
     setSticker(null);
     setPreviewUrl(null);
@@ -191,6 +199,7 @@ function MomentCommentForm({ momentId, replyTarget, onCancelReply }: { momentId:
     uploadedRef.current = null;
     requestRef.current = null;
     setUploadStage(null);
+    setUploadProgress(null);
     setImage(null);
     setPreviewUrl(null);
     if (imageInputRef.current) imageInputRef.current.value = "";
@@ -228,10 +237,12 @@ function MomentCommentForm({ momentId, replyTarget, onCancelReply }: { momentId:
           mediaId = uploadedRef.current.mediaId;
         } else {
           setUploadStage("compressing");
+          setUploadProgress(null);
           const compressed = await compressMomentImage(submittedImage, { signal: controller.signal });
           const uploaded = await uploadImageFile(compressed, {
             signal: controller.signal,
             onStage: setUploadStage,
+            onProgress: setUploadProgress,
           });
           mediaId = uploaded.mediaId;
           uploadedRef.current = { file: submittedImage, mediaId };
@@ -257,6 +268,7 @@ function MomentCommentForm({ momentId, replyTarget, onCancelReply }: { momentId:
     } finally {
       if (uploadAbortRef.current === controller) uploadAbortRef.current = null;
       setUploadStage(null);
+      setUploadProgress(null);
     }
   };
 
@@ -265,7 +277,7 @@ function MomentCommentForm({ momentId, replyTarget, onCancelReply }: { momentId:
     : uploadStage === "preparing"
       ? "正在准备"
       : uploadStage === "uploading"
-        ? "正在上传"
+        ? `正在上传${uploadProgress?.percent === null || uploadProgress?.percent === undefined ? "" : ` ${uploadProgress.percent}%`}`
         : uploadStage === "processing"
           ? "正在处理"
           : "发送";
@@ -316,6 +328,15 @@ function MomentCommentForm({ momentId, replyTarget, onCancelReply }: { momentId:
             <X className="size-3" />
           </button>
         </div>
+      ) : null}
+
+      {uploadProgress ? (
+        <ImageUploadProgress
+          progress={uploadProgress}
+          onCancel={clearMedia}
+          className="mt-2"
+          compact
+        />
       ) : null}
 
       <div className="mt-2 flex items-center justify-between gap-3 px-1">
@@ -418,7 +439,7 @@ function CommentRow({
         {comment.deleted ? (
           <p className="mt-1 text-sm leading-6 text-muted-foreground">该评论已删除</p>
         ) : comment.content || comment.replyToComment ? (
-          <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-6 text-foreground">
+          <p className="mt-1 whitespace-pre-wrap break-words text-base leading-7 text-foreground">
             {comment.replyToComment ? (
               <span className="mr-1 text-muted-foreground">
                 回复 {comment.replyToComment.author.username}{comment.content ? "：" : ""}
@@ -448,8 +469,25 @@ function CommentRow({
         ) : null}
         {!comment.deleted ? (
           <div className="mt-1 flex items-center gap-1">
-            <button type="button" onClick={() => onReply({ id: comment.id, username: comment.author.username })} className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-xs text-muted-foreground hover:bg-background hover:text-foreground"><Reply className="size-3" />回复</button>
-            {comment.canDelete ? <button type="button" disabled={remove.isPending} onClick={() => void deleteComment()} className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-xs text-muted-foreground hover:bg-background hover:text-destructive disabled:opacity-50"><Trash2 className="size-3" />删除</button> : null}
+            <button
+              type="button"
+              aria-label="回复"
+              onClick={() => onReply({ id: comment.id, username: comment.author.username })}
+              className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-[background-color,color,transform] hover:bg-primary hover:text-brand-strong focus-visible:bg-primary focus-visible:text-brand-strong active:scale-95"
+            >
+              <Reply className="size-4" />
+            </button>
+            {comment.canDelete ? (
+              <button
+                type="button"
+                aria-label="删除"
+                disabled={remove.isPending}
+                onClick={() => void deleteComment()}
+                className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-[background-color,color,transform] hover:bg-primary hover:text-brand-strong focus-visible:bg-primary focus-visible:text-brand-strong active:scale-95 disabled:cursor-wait disabled:opacity-40"
+              >
+                <Trash2 className="size-4" />
+              </button>
+            ) : null}
           </div>
         ) : null}
       </div>

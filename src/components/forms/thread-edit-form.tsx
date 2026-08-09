@@ -164,7 +164,7 @@ export function ThreadEditForm({
                   setEditorContent(value);
                   field.onChange(value);
                 }}
-                onUploadImage={async (file) => uploadImage.mutateAsync(file)}
+                onUploadImage={(file, options) => uploadImage.mutateAsync(file, options)}
                 disabled={isSaving}
                 diceRolls={thread.defaultSubthread.bodyPost?.diceRolls}
               />

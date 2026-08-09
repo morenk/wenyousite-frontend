@@ -14,6 +14,77 @@ import {
   getImageUrlBySize,
 } from "@/lib/upload-image";
 
+type XhrMode = "success" | "pending" | "timeout";
+
+class FakeEventTarget {
+  private listeners = new Map<string, Array<(event: ProgressEvent | Event) => void>>();
+
+  addEventListener(type: string, listener: (event: ProgressEvent | Event) => void) {
+    const listeners = this.listeners.get(type) ?? [];
+    listeners.push(listener);
+    this.listeners.set(type, listeners);
+  }
+
+  emit(type: string, event: ProgressEvent | Event = new Event(type)) {
+    for (const listener of this.listeners.get(type) ?? []) listener(event);
+  }
+}
+
+class FakeXMLHttpRequest extends FakeEventTarget {
+  static instances: FakeXMLHttpRequest[] = [];
+  static mode: XhrMode = "success";
+
+  readonly upload = new FakeEventTarget();
+  status = 200;
+  timeout = 0;
+  method = "";
+  url = "";
+  headers = new Map<string, string>();
+  body: Document | XMLHttpRequestBodyInit | null = null;
+
+  constructor() {
+    super();
+    FakeXMLHttpRequest.instances.push(this);
+  }
+
+  open(method: string, url: string) {
+    this.method = method;
+    this.url = url;
+  }
+
+  setRequestHeader(name: string, value: string) {
+    this.headers.set(name, value);
+  }
+
+  send(body: Document | XMLHttpRequestBodyInit | null) {
+    this.body = body;
+    if (FakeXMLHttpRequest.mode === "pending") return;
+    if (FakeXMLHttpRequest.mode === "timeout") {
+      window.setTimeout(() => this.emit("timeout"), this.timeout);
+      return;
+    }
+    const total = body instanceof File ? body.size : 1;
+    const progress = new Event("progress") as ProgressEvent;
+    Object.defineProperties(progress, {
+      lengthComputable: { value: true },
+      loaded: { value: Math.floor(total / 2) },
+      total: { value: total },
+    });
+    this.upload.emit("progress", progress);
+    queueMicrotask(() => this.emit("load"));
+  }
+
+  abort() {
+    this.emit("abort");
+  }
+}
+
+function stubXhr(mode: XhrMode) {
+  FakeXMLHttpRequest.instances = [];
+  FakeXMLHttpRequest.mode = mode;
+  vi.stubGlobal("XMLHttpRequest", FakeXMLHttpRequest);
+}
+
 describe("validateImageFile", () => {
   test("合法 jpeg 文件通过", () => {
     const file = new File(["dummy"], "photo.jpg", { type: "image/jpeg" });
@@ -207,15 +278,27 @@ describe("uploadImageFile", () => {
       error: undefined,
     } as never);
 
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true }));
+    stubXhr("success");
+    const onProgress = vi.fn();
 
-    await expect(uploadImageFile(file)).resolves.toEqual({
+    await expect(uploadImageFile(file, { onProgress })).resolves.toEqual({
       url: publicUrl,
       mediaId: "media-1",
     });
-    expect(global.fetch).toHaveBeenCalledWith(uploadUrl, expect.objectContaining({
-      method: "PUT",
-      signal: expect.any(AbortSignal),
+    const request = FakeXMLHttpRequest.instances[0];
+    expect(request.method).toBe("PUT");
+    expect(request.url).toBe(uploadUrl);
+    expect(request.headers.get("Content-Type")).toBe("image/jpeg");
+    expect(request.body).toBe(file);
+    expect(onProgress).toHaveBeenCalledWith(expect.objectContaining({
+      stage: "uploading",
+      loadedBytes: Math.floor(file.size / 2),
+      totalBytes: file.size,
+      percent: 40,
+    }));
+    expect(onProgress).toHaveBeenCalledWith(expect.objectContaining({
+      stage: "processing",
+      percent: 100,
     }));
   });
 
@@ -233,13 +316,11 @@ describe("uploadImageFile", () => {
       },
       error: undefined,
     });
-    vi.stubGlobal("fetch", vi.fn((_input, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
-      init?.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")), { once: true });
-    })));
+    stubXhr("pending");
 
     const controller = new AbortController();
     const upload = uploadImageFile(file, { signal: controller.signal });
-    await vi.waitFor(() => expect(global.fetch).toHaveBeenCalledOnce());
+    await vi.waitFor(() => expect(FakeXMLHttpRequest.instances).toHaveLength(1));
     controller.abort();
 
     await expect(upload).rejects.toMatchObject({ name: "AbortError" });
@@ -260,9 +341,7 @@ describe("uploadImageFile", () => {
       },
       error: undefined,
     });
-    vi.stubGlobal("fetch", vi.fn((_input, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
-      init?.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")), { once: true });
-    })));
+    stubXhr("timeout");
 
     await expect(uploadImageFile(file, { timeoutMs: 1 })).rejects.toThrow("图片上传超时，请检查网络后重试");
     expect(apiClient.POST).toHaveBeenCalledTimes(1);

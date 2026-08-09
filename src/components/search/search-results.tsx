@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, type KeyboardEvent } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
@@ -14,7 +14,6 @@ import {
   useSearchUsers,
   useSearchMoments,
 } from "@/api/hooks/use-search";
-import { cn } from "@/lib/utils";
 import { ThreadCategoryBadge } from "@/components/thread/thread-category";
 import { EmptyState } from "@/components/shared/empty-state";
 import { UserAvatar } from "@/components/shared/user-avatar";
@@ -24,10 +23,9 @@ import { ListRefreshIndicator } from "@/components/shared/list-refresh-indicator
 import { MomentMasonry } from "@/components/moment/moment-masonry";
 import { useAuth } from "@/lib/auth";
 import { ThreadCoverGrid } from "@/components/thread/thread-cover-grid";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type SearchTab = "moments" | "threads" | "posts" | "users";
-
-const tabOrder: SearchTab[] = ["moments", "threads", "posts", "users"];
 
 interface SearchResultsProps {
   keyword: string;
@@ -108,57 +106,29 @@ export function SearchResults({ keyword }: SearchResultsProps) {
     },
   ];
 
-  const handleTabKeyDown = (
-    event: KeyboardEvent<HTMLButtonElement>,
-    index: number,
-  ) => {
-    let nextIndex: number | undefined;
-    if (event.key === "ArrowRight") nextIndex = (index + 1) % tabOrder.length;
-    if (event.key === "ArrowLeft") {
-      nextIndex = (index - 1 + tabOrder.length) % tabOrder.length;
-    }
-    if (event.key === "Home") nextIndex = 0;
-    if (event.key === "End") nextIndex = tabOrder.length - 1;
-    if (nextIndex === undefined) return;
-
-    event.preventDefault();
-    const nextTab = tabOrder[nextIndex];
-    setActiveTab(nextTab);
-    document.getElementById(`search-tab-${nextTab}`)?.focus();
-  };
-
   return (
-    <div className="relative" aria-busy={isRefreshing || undefined}>
+    <Tabs
+      value={activeTab}
+      onValueChange={(value) => setActiveTab(value as SearchTab)}
+      className="relative gap-0"
+      aria-busy={isRefreshing || undefined}
+    >
       {isRefreshing && <ListRefreshIndicator />}
-      <div
-        role="tablist"
+      <TabsList
         aria-label="搜索结果分类"
-        className="grid grid-cols-4 gap-1 rounded-xl bg-muted p-1"
+        className="grid h-10 w-full grid-cols-4 gap-1 rounded-xl bg-muted p-1"
       >
-        {tabs.map((tab, index) => {
+        {tabs.map((tab) => {
           const Icon = tab.icon;
-          const isActive = activeTab === tab.value;
           const countSuffix = tab.count === undefined
             ? ""
             : ` ${tab.count}${tab.hasMore ? "+" : ""}`;
           return (
-            <button
+            <TabsTrigger
               key={tab.value}
-              id={`search-tab-${tab.value}`}
-              type="button"
-              role="tab"
+              value={tab.value}
               aria-label={`${tab.label}${countSuffix}`}
-              aria-selected={isActive}
-              aria-controls={`search-panel-${tab.value}`}
-              tabIndex={isActive ? 0 : -1}
-              onClick={() => setActiveTab(tab.value)}
-              onKeyDown={(event) => handleTabKeyDown(event, index)}
-              className={cn(
-                "flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-medium transition-colors sm:text-sm",
-                isActive
-                  ? "bg-background text-foreground ring-1 ring-border"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
+              className="min-w-0 gap-1.5 rounded-lg px-2 py-2 text-xs font-medium sm:text-sm data-active:ring-1 data-active:ring-border"
             >
               <Icon className="h-4 w-4 shrink-0" />
               <span className="truncate">{tab.label}</span>
@@ -167,27 +137,21 @@ export function SearchResults({ keyword }: SearchResultsProps) {
                   {tab.count}{tab.hasMore ? "+" : ""}
                 </span>
               )}
-            </button>
+            </TabsTrigger>
           );
         })}
-      </div>
+      </TabsList>
 
-      <div
-        id={`search-panel-${activeTab}`}
-        role="tabpanel"
-        aria-labelledby={`search-tab-${activeTab}`}
-        className="mt-4"
-      >
-        {activeTab === "moments" && (
-          !postKeywordValid ? (
+      <TabsContent value="moments" className="mt-4">
+        {!postKeywordValid ? (
             <EmptyState title="动态搜索至少需要 2 个字符" description="用户名和主题帖仍支持单字符搜索" />
           ) : (
             <MomentMasonry moments={moments} maxLanes={2} isLoading={momentsQuery.isLoading} error={momentsQuery.error} hasNextPage={!isRefreshing && !!momentsQuery.hasNextPage} isFetchingNextPage={!isRefreshing && momentsQuery.isFetchingNextPage} onLoadMore={() => void momentsQuery.fetchNextPage()} onRetry={() => void momentsQuery.refetch()} emptyTitle="没有匹配的动态" emptyDescription="试试更换关键词。" />
-          )
-        )}
+          )}
+      </TabsContent>
 
-        {activeTab === "threads" && (
-          threadsQuery.isLoading ? (
+      <TabsContent value="threads" className="mt-4">
+        {threadsQuery.isLoading ? (
             <SearchLoading />
           ) : threadsQuery.isError ? (
             <SearchError onRetry={() => void threadsQuery.refetch()} />
@@ -218,11 +182,11 @@ export function SearchResults({ keyword }: SearchResultsProps) {
                 </Link>
               ))}
             </div>
-          )
-        )}
+          )}
+      </TabsContent>
 
-        {activeTab === "posts" && (
-          !postKeywordValid ? (
+      <TabsContent value="posts" className="mt-4">
+        {!postKeywordValid ? (
             <EmptyState
               title="楼层内容搜索至少需要 2 个字符"
               description="用户名和主题帖仍支持单字符搜索"
@@ -240,11 +204,11 @@ export function SearchResults({ keyword }: SearchResultsProps) {
               isFetchingNextPage={!isRefreshing && postsQuery.isFetchingNextPage}
               onLoadMore={() => void postsQuery.fetchNextPage()}
             />
-          )
-        )}
+          )}
+      </TabsContent>
 
-        {activeTab === "users" && (
-          usersQuery.isLoading ? (
+      <TabsContent value="users" className="mt-4">
+        {usersQuery.isLoading ? (
             <SearchLoading />
           ) : usersQuery.isError ? (
             <SearchError onRetry={() => void usersQuery.refetch()} />
@@ -276,9 +240,8 @@ export function SearchResults({ keyword }: SearchResultsProps) {
                 </Link>
               ))}
             </div>
-          )
-        )}
-      </div>
-    </div>
+          )}
+      </TabsContent>
+    </Tabs>
   );
 }

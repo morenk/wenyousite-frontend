@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { Bookmark, ChevronLeft, ChevronRight, Heart, Loader2, Pencil, Save, Trash2, X } from "lucide-react";
+import { Bookmark, ChevronLeft, ChevronRight, Heart, Loader2, Pencil, Save, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useDeleteMoment, useMoment, useMomentBookmark, useMomentLike, useUpdateMoment } from "@/api/hooks/use-moments";
@@ -26,7 +26,7 @@ function getCarouselAspectRatio(image: { width: number | null; height: number | 
   return Math.max(3 / 4, Math.min(16 / 10, image.width / image.height));
 }
 
-export function MomentDetailView({ momentId, modal = false, onClose }: { momentId: string; modal?: boolean; onClose?: () => void }) {
+export function MomentDetailView({ momentId, onDeleted }: { momentId: string; onDeleted?: () => void }) {
   const { user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -69,7 +69,7 @@ export function MomentDetailView({ momentId, modal = false, onClose }: { momentI
     try {
       await remove.mutateAsync(moment.id);
       toast.success("动态已删除");
-      if (modal && onClose) onClose();
+      if (onDeleted) onDeleted();
       else router.replace("/moments");
     } catch (error) {
       toast.error(getApiErrorMessage(error, "删除失败"));
@@ -111,7 +111,7 @@ export function MomentDetailView({ momentId, modal = false, onClose }: { momentI
   };
 
   return (
-    <article className={cn("mx-auto w-full max-w-[36rem] bg-background", modal && "min-h-full")}>
+    <article className="w-full bg-background">
       <header className="flex items-center gap-3 px-5 py-4 sm:px-7">
         <Link href={`/users/${moment.author.id}`} className="flex min-w-0 items-center gap-3 rounded-xl">
           <UserAvatar name={moment.author.username} src={moment.author.avatar} className="size-10" />
@@ -120,7 +120,6 @@ export function MomentDetailView({ momentId, modal = false, onClose }: { momentI
         <div className="ml-auto flex items-center gap-1">
           {moment.canEdit && !editing ? <Button variant="ghost" size="icon-sm" onClick={startEditing} aria-label="编辑动态" title="编辑动态"><Pencil /></Button> : null}
           {moment.canDelete ? <Button variant="ghost" size="icon-sm" onClick={() => void deleteMoment()} disabled={remove.isPending} aria-label="删除动态" title="删除动态"><Trash2 /></Button> : null}
-          {modal && onClose ? <Button variant="ghost" size="icon-sm" onClick={onClose} aria-label="关闭详情" title="关闭"><X /></Button> : null}
         </div>
       </header>
 
@@ -151,7 +150,7 @@ export function MomentDetailView({ momentId, modal = false, onClose }: { momentI
                   variant="ghost"
                   size="icon-sm"
                   onClick={() => showImage(activeImageIndex - 1)}
-                  className="absolute left-3 top-1/2 z-10 -mt-4 bg-black/55 text-white shadow-lg hover:bg-black/70 hover:text-white"
+                  className="absolute left-3 top-1/2 z-10 -mt-4 bg-foreground/60 text-background shadow-popover hover:bg-foreground/75 hover:text-background"
                   aria-label="上一张图片"
                 >
                   <ChevronLeft />
@@ -161,12 +160,12 @@ export function MomentDetailView({ momentId, modal = false, onClose }: { momentI
                   variant="ghost"
                   size="icon-sm"
                   onClick={() => showImage(activeImageIndex + 1)}
-                  className="absolute right-3 top-1/2 z-10 -mt-4 bg-black/55 text-white shadow-lg hover:bg-black/70 hover:text-white"
+                  className="absolute right-3 top-1/2 z-10 -mt-4 bg-foreground/60 text-background shadow-popover hover:bg-foreground/75 hover:text-background"
                   aria-label="下一张图片"
                 >
                   <ChevronRight />
                 </Button>
-                <span className="absolute bottom-3 right-3 z-10 rounded-full bg-black/55 px-2.5 py-1 font-utility text-xs font-bold tabular-nums text-white" aria-live="polite">
+                <span className="absolute bottom-3 right-3 z-10 rounded-full bg-foreground/60 px-2.5 py-1 font-utility text-xs font-bold tabular-nums text-background" aria-live="polite">
                   {activeImageIndex + 1} / {moment.images.length}
                 </span>
               </>

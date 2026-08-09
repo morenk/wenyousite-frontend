@@ -5,7 +5,7 @@ import { MomentCover } from "@/components/moment/moment-cover";
 describe("MomentCover", () => {
   afterEach(cleanup);
 
-  test("无图动态展示稳定主题的温油便笺文字封面", () => {
+  test("无图动态展示稳定主题的语义色文字封面", () => {
     const { container } = render(
       <MomentCover
         moment={{
@@ -18,10 +18,10 @@ describe("MomentCover", () => {
       />,
     );
 
-    expect(screen.getByText("温油便笺")).toBeInTheDocument();
     expect(screen.getByText("今天也想写一点")).toBeInTheDocument();
     expect(screen.queryByRole("img")).toBeNull();
-    expect(container.firstElementChild).toHaveClass("aspect-[3/4]", "rounded-xl");
+    expect(container.firstElementChild).toHaveClass("moment-text-cover", "aspect-[3/4]", "rounded-xl");
+    expect(container.firstElementChild).toHaveAttribute("data-cover-theme", "MINT");
   });
 
   test("图片动态优先使用 feed 派生图并显示图片数量", () => {

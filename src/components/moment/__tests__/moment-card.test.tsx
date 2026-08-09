@@ -1,13 +1,22 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-const { mockPush, mockLike, mockBookmark, mockUseAuth, mockToastError, mockLikePending } = vi.hoisted(() => ({
+const {
+  mockPush,
+  mockLike,
+  mockBookmark,
+  mockUseAuth,
+  mockToastError,
+  mockLikePending,
+  mockMarkReturn,
+} = vi.hoisted(() => ({
   mockPush: vi.fn(),
   mockLike: vi.fn(),
   mockBookmark: vi.fn(),
   mockUseAuth: vi.fn(),
   mockToastError: vi.fn(),
   mockLikePending: vi.fn(),
+  mockMarkReturn: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -15,8 +24,29 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/moments",
 }));
 vi.mock("next/link", () => ({
-  default: ({ children, href, ...props }: { children: React.ReactNode; href: string }) => <a href={href} {...props}>{children}</a>,
+  default: ({
+    children,
+    href,
+    onNavigate,
+    ...props
+  }: {
+    children: React.ReactNode;
+    href: string;
+    onNavigate?: () => void;
+  }) => (
+    <a
+      href={href}
+      onClick={(event) => {
+        event.preventDefault();
+        onNavigate?.();
+      }}
+      {...props}
+    >
+      {children}
+    </a>
+  ),
 }));
+vi.mock("@/lib/moment-navigation", () => ({ markMomentFeedReturn: mockMarkReturn }));
 vi.mock("@/lib/auth", () => ({ useAuth: () => mockUseAuth() }));
 vi.mock("@/api/hooks/use-moments", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/api/hooks/use-moments")>();
@@ -66,7 +96,10 @@ describe("MomentCard", () => {
   test("列表只展示竖版封面、标题、作者和点赞", async () => {
     render(<MomentCard moment={moment as never} />);
 
-    expect(screen.getByRole("link", { name: /动态标题/ })).toHaveAttribute("href", "/moments/moment-1");
+    const detailLink = screen.getByRole("link", { name: /动态标题/ });
+    expect(detailLink).toHaveAttribute("href", "/moments/moment-1");
+    fireEvent.click(detailLink);
+    expect(mockMarkReturn).toHaveBeenCalledWith("moment-1", "/moments");
     expect(screen.queryByText("一段普通文字正文")).toBeNull();
     expect(screen.queryByText("5 升")).toBeNull();
     expect(screen.queryByRole("button", { name: /收藏/ })).toBeNull();

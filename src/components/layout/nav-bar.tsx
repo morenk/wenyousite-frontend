@@ -19,10 +19,9 @@ import {
 import { toast } from "sonner";
 
 import { useLogout } from "@/api/hooks/use-auth-actions";
-import { useDirectUnreadCount } from "@/api/hooks/use-direct-conversations";
-import { useUnreadCount } from "@/api/hooks/use-unread-count";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { PublishMenu } from "@/components/layout/publish-menu";
+import { useUnreadCounts } from "@/components/layout/unread-counts-context";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
@@ -35,21 +34,24 @@ type NavItem = {
   accountShortcut?: boolean;
 };
 
-export function NavBar({ compact = false }: { compact?: boolean }) {
+export function NavBar({
+  compact = false,
+}: {
+  compact?: boolean;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
+  const { notificationCount, directMessageCount } = useUnreadCounts();
   const logoutRequest = useLogout();
-  const { data: unreadCount } = useUnreadCount(user?.id);
-  const { data: directUnread } = useDirectUnreadCount(user?.id);
 
   const items: NavItem[] = [
     { href: "/", label: "发现", icon: Compass, match: (path) => path === "/" || path.startsWith("/tags/") },
     { href: "/moments", label: "动态", icon: Images, match: (path) => path.startsWith("/moments") },
     { href: "/search", label: "搜索", icon: Search, match: (path) => path.startsWith("/search") },
     ...(user ? [
-      { href: "/notifications", label: "通知", icon: Bell, match: (path: string) => path.startsWith("/notifications"), count: unreadCount ?? 0, accountShortcut: true },
-      { href: "/messages", label: "私聊", icon: MessageCircle, match: (path: string) => path.startsWith("/messages"), count: directUnread?.total ?? 0, accountShortcut: true },
+      { href: "/notifications", label: "通知", icon: Bell, match: (path: string) => path.startsWith("/notifications"), count: notificationCount, accountShortcut: true },
+      { href: "/messages", label: "私聊", icon: MessageCircle, match: (path: string) => path.startsWith("/messages"), count: directMessageCount, accountShortcut: true },
       { href: "/bookmarks", label: "收藏", icon: Bookmark, match: (path: string) => path.startsWith("/bookmarks"), accountShortcut: true },
     ] : []),
   ];
@@ -206,7 +208,7 @@ function RailLink({
       <span className="relative">
         <Icon className="size-5" strokeWidth={active ? 2.4 : 2} />
         {count > 0 ? (
-          <span className="absolute -right-2.5 -top-2 flex min-w-4 items-center justify-center rounded-full bg-destructive px-1 font-utility text-[0.625rem] font-bold leading-4 text-white">
+          <span className="absolute -right-2.5 -top-2 flex min-w-4 items-center justify-center rounded-full bg-destructive px-1 font-utility text-[0.625rem] font-bold leading-4 text-destructive-foreground">
             {count > 99 ? "99+" : count}
           </span>
         ) : null}

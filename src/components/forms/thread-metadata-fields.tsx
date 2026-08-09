@@ -3,6 +3,13 @@
 import { useWatch, type UseFormReturn } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { TagInput } from "@/components/forms/tag-input";
 import type { ThreadCreateFormData } from "@/lib/validations/thread-create";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
@@ -11,6 +18,8 @@ import {
   THREAD_STATUS_OPTIONS,
   THREAD_VISIBILITY_OPTIONS,
 } from "@/lib/thread-presentation";
+
+const UNSELECTED_CATEGORY = "__UNSELECTED_CATEGORY__";
 
 export function ThreadMetadataFields({
   form,
@@ -40,6 +49,16 @@ export function ThreadMetadataFields({
   const currentCategoryUnavailable = Boolean(
     category && !categories.some((option) => option.slug === category),
   );
+  const categoryItems = [
+    {
+      value: UNSELECTED_CATEGORY,
+      label: categoriesLoading ? "正在加载分区…" : "请选择分区",
+    },
+    ...(currentCategoryUnavailable && category
+      ? [{ value: category, label: `${category}（已停用或不可用）` }]
+      : []),
+    ...categories.map((option) => ({ value: option.slug, label: option.name })),
+  ];
 
   return (
     <>
@@ -62,30 +81,39 @@ export function ThreadMetadataFields({
 
       <div className="space-y-2">
         <Label htmlFor="category">分区</Label>
-        <select
-          id="category"
-          value={category ?? ""}
-          onChange={(event) =>
+        <Select
+          items={categoryItems}
+          value={category ?? UNSELECTED_CATEGORY}
+          onValueChange={(value) =>
             form.setValue(
               "category",
-              event.target.value as ThreadCreateFormData["category"],
+              value === UNSELECTED_CATEGORY
+                ? undefined
+                : value as ThreadCreateFormData["category"],
               { shouldDirty: true, shouldValidate: true },
             )
           }
           disabled={disabled || categoriesLoading || categoriesError}
-          aria-invalid={Boolean(form.formState.errors.category)}
-          className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-60"
         >
-          <option value="">
-            {categoriesLoading ? "正在加载分区…" : "请选择分区"}
-          </option>
-          {currentCategoryUnavailable ? (
-            <option value={category} disabled>{category}（已停用或不可用）</option>
-          ) : null}
-          {categories.map((option) => (
-            <option key={option.id} value={option.slug}>{option.name}</option>
-          ))}
-        </select>
+          <SelectTrigger
+            id="category"
+            className="w-full"
+            aria-invalid={Boolean(form.formState.errors.category)}
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent align="start">
+            {categoryItems.map((option) => (
+              <SelectItem
+                key={option.value}
+                value={option.value}
+                disabled={option.value === UNSELECTED_CATEGORY || (currentCategoryUnavailable && option.value === category)}
+              >
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         {categoriesError ? (
           <p className="text-sm text-destructive">
             分区加载失败。{" "}
@@ -107,42 +135,50 @@ export function ThreadMetadataFields({
       {status !== undefined && onStatusChange && (
         <div className="space-y-2">
           <Label htmlFor="status">状态</Label>
-          <select
-            id="status"
+          <Select
+            items={THREAD_STATUS_OPTIONS}
             value={status}
-            onChange={(event) =>
-              onStatusChange(event.target.value as ThreadDetail["status"])
+            onValueChange={(value) =>
+              onStatusChange(value as ThreadDetail["status"])
             }
             disabled={disabled}
-            className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-60"
           >
-            {THREAD_STATUS_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>{option.label}</option>
-            ))}
-          </select>
+            <SelectTrigger id="status" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="start">
+              {THREAD_STATUS_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       )}
 
       {showVisibility && (
         <div className="space-y-2">
           <Label htmlFor="visibility">可见性</Label>
-          <select
-            id="visibility"
+          <Select
+            items={THREAD_VISIBILITY_OPTIONS}
             value={visibility}
-            onChange={(event) =>
+            onValueChange={(value) =>
               form.setValue(
                 "visibility",
-                event.target.value as ThreadCreateFormData["visibility"],
+                value as ThreadCreateFormData["visibility"],
                 { shouldDirty: true, shouldValidate: true },
               )
             }
             disabled={disabled}
-            className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-60"
           >
-            {THREAD_VISIBILITY_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>{option.label}</option>
-            ))}
-          </select>
+            <SelectTrigger id="visibility" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="start">
+              {THREAD_VISIBILITY_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       )}
 

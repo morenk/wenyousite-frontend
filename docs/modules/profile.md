@@ -1,12 +1,10 @@
 # 用户模块（资料 / 登录终端 / 关注拉黑 / 草稿箱）
 
-> 本轮跨端发布批次：`private-thread-access-2026-08-05`。
-
 ## 1. 目标与范围
 
 实现用户主页、关注/拉黑、草稿箱三个子功能，补齐全站所有 `Link href="/users/{id}"` 的死链落点。
 
-**本次迭代范围（Phase 6 MVP）：**
+**当前能力：**
 - `/users/[id]` 用户主页：资料卡（头像/用户名/等级/Bio/注册时间/关注粉丝数/累计被投入温油总额与次数）+ 加油/私聊/关注/拉黑按钮 + 动态瀑布流 + 最近回复（recent-replies）+ 创建的帖子（created-threads）+ 参与的帖子（played-threads）
 - 关注/取消关注、拉黑/取消拉黑（仅登录，用户主页操作）
 - 草稿箱：未发布帖列表（进入 `/threads/create` 草稿列表查看，可跳转继续编辑或删除）
@@ -14,11 +12,8 @@
 - `/me/password` 修改密码页：当前密码/新密码/确认新密码（显示/隐藏切换 + 需求提示），成功后登出跳登录
 - `/me/email` 更换邮箱页：当前密码二次认证 → 新邮箱 → 6 位验证码，成功后失效 me 缓存并跳转 `/me`
 - `/me/security` 账号安全页：双端登录终端、黑名单、账号注销
-- 登录终端改动属于发布批次 `auth-login-terminal-2026-08-05`；跨端契约、数据库迁移、发布顺序与回滚要求见 `docs/modules/auth.md`
+- 登录终端的跨端安全约束见 `docs/modules/auth.md`
 - 参与列表排除自建帖：只有被授予玩家身份（`playerMarked=true`）的帖子才计入，仅回复过而生成的候选成员关系不计入；本人可按“全部 / 公开帖 / 私密帖”分类，他人仅可见公开帖
-
-**后续迭代：**
-- 无（举报与管理后台不属于本模块）
 
 ## 2. 页面与路由
 
@@ -32,7 +27,7 @@
 | `/me/email` | 更换邮箱（当前密码二次认证 + 验证码） | Auth（仅本人） |
 | `/me/security` | Web / 移动端登录终端管理、黑名单管理、注销账号 | Auth（仅本人） |
 
-> 草稿箱不占独立路由：未发布帖列表收进 `/threads/create` 的草稿选择器（原 `/drafts` 路由已删除，入口迁移见 `docs/modules/thread-create.md`）。
+> 草稿箱不占独立路由：未发布帖列表位于 `/threads/create` 的草稿选择器，入口规则见 `docs/modules/thread-create.md`。
 
 ## 3. 涉及 API
 
@@ -235,13 +230,13 @@
 | BlockButton | `src/components/user/block-button.tsx` | 拉黑/取消拉黑切换（全局无障碍确认框二次确认） |
 | UserFollowList | `src/components/user/user-follow-list.tsx` | 关注/粉丝列表（头像 + 用户名链接 + 三态，复用两种列表） |
 | FollowListPage | `src/components/user/follow-list-page.tsx` | 关注/粉丝子页面主体（用户名标题 + 返回链接 + 列表） |
-| UserRecentReplies | `src/components/user/user-recent-replies.tsx` | 最近动态列表（**仅展示最近 5 条**；整卡通过共享 `getPostHref` 精确定位到对应楼层/楼中楼/正文；正文/楼层/楼中楼三态标识 + preview） |
+| UserRecentReplies | `src/components/user/user-recent-replies.tsx` | 最近回复列表（**仅展示最近 5 条**；整卡通过共享 `getPostHref` 精确定位到对应楼层/楼中楼/正文；正文/楼层/楼中楼三态标识 + preview） |
 | UserThreadList | `src/components/user/user-thread-list.tsx` | 用户帖子列表通用展示组件（徽章/标题/无限滚动，empty/error 文案 props） |
 | UserCreatedThreads | `src/components/user/user-created-threads.tsx` | 创建的帖子列表（薄包装：useUserCreatedThreads + UserThreadList） |
 | UserPlayedThreads | `src/components/user/user-played-threads.tsx` | 参与的帖子列表；本人显示“全部 / 公开帖 / 私密帖”，他人不显示私密分类入口 |
 | DraftList | `src/components/user/draft-list.tsx` | 草稿箱列表（标题/分类/更新时间/继续编辑/删除） |
 | UsernameEdit | `src/components/user/username-edit.tsx` | 独立用户名修改（默认只读，点「修改用户名」才进入编辑态，未改动不提交） |
-| AvatarUploader | `src/components/user/avatar-uploader.tsx` | 头像上传器：预览（`_thumb.webp` 缩略图/首字母占位）→ 文件选择校验（仅 jpg/png/webp，排除 svg）→ react-easy-crop 1:1 裁剪 → canvas 导出 512×512 webp → 上传（预签名+直传+轮询）→ `PATCH /me/avatar` 立即生效；「移除头像」调 `DELETE /me/avatar` |
+| AvatarUploader | `src/components/user/avatar-uploader.tsx` | 头像上传器：预览（`_thumb.webp` 缩略图/首字母占位）→ 文件选择校验（仅 jpg/png/webp，排除 svg）→ 共享 Dialog 内用 react-easy-crop 1:1 裁剪 → canvas 导出 512×512 webp → 上传（预签名+真实字节进度+可取消直传+轮询）→ `PATCH /me/avatar` 立即生效；「移除头像」调 `DELETE /me/avatar` |
 | ChangePasswordForm | `src/components/user/change-password-form.tsx` | 修改密码表单（当前/新/确认密码，PasswordInput 显隐切换），成功后登出跳登录 |
 | ChangeEmailForm | `src/components/user/change-email-form.tsx` | 更换邮箱表单（当前密码二次认证 → 新邮箱 → 验证码），成功后失效 me 缓存并跳转 `/me` |
 | PasswordInput | `src/components/ui/password-input.tsx` | 密码输入框（Eye/EyeOff 显示/隐藏切换） |
@@ -283,8 +278,6 @@ showRecentReplies / showPlayerBadges / showBookmarks: boolean
 
 > 用户名修改需间隔 7 天以上，不足时后端返回剩余天数提示；冲突返回 409（code 40900）。限流 5 次/分钟。
 
-> **后端修复记录**：`update-user.dto.ts` 用户名曾误用 `@Transform(sanitizeContent)`（class-transformer 传入参数对象而非字符串，导致用户名恒为空、任何合法名都被拒）。已改为 `@Transform(({ value }) => sanitizeContent(value))`；并为 MinLength/MaxLength 补充中文消息（不再出现英文默认提示）。随后 content 字段已彻底移除 sanitize 转换，markdown 原样存储、XSS 由各端渲染层净化（详见 `docs/modules/drafts.md` 内容安全一节）。
-
 ## 8. 错误处理
 
 | 错误码 | 场景 | UI 行为 |
@@ -312,39 +305,21 @@ showRecentReplies / showPlayerBadges / showBookmarks: boolean
 
 ## 10. 验收标准
 
-- [x] `/users/[id]` 展示资料卡（头像/用户名/Bio/时间/关注粉丝数）
-- [x] 「关注 N」「粉丝 N」可点击进入 `/users/[id]/following` / `/users/[id]/followers` 列表页
-- [x] 关注/粉丝列表展示用户名 + 头像，空态/错误态有占位
-- [x] 登录态显示关注/拉黑按钮，点击后状态即时更新（isFollowing/isBlocked + 计数）
-- [x] 未登录不显示关注/拉黑按钮；点击其他需登录操作跳 /login
-- [x] 关注/拉黑自己不显示按钮
-- [x] 最近动态列表渲染（正文/楼层/楼中楼三态标识 + 帖子链接 + preview），**仅展示最近 5 条**，为空/未公开有占位；点击通过共享 `getPostHref` 精确定位到对应楼层/楼中楼/正文
-- [x] 创建的帖子列表渲染（标题 + 分类/状态徽章），cursor 分页加载
-- [x] 参与的帖子列表渲染（标题 + 分类/状态/私密徽章），cursor 分页加载，不含自建帖；本人可按全部/公开帖/私密帖分类，他人仅见公开玩家帖
-- [x] 已注销用户在全站用户摘要中统一显示“已注销用户”与灰色用户图标
-- [x] 全站 `/users/{id}` 链接可正常跳转
-- [x] 草稿箱（`/threads/create` 草稿列表）列出我的未发布帖，可跳转编辑、可删除
-- [x] `/me` 修改用户名/Bio/隐私开关，错误码映射正确
-- [x] `/me/security` 以“Web 端登录/移动端登录”展示双端登录终端，不显示原始 UA
-- [x] `/me/security` 正确标记当前终端，并可退出另一登录终端
-- [x] 登录终端登录时间在 token 轮转后保持不变，账号切换不复用旧账号缓存
-- [x] `/me/security` 可查看黑名单并取消拉黑
-- [x] 输入确认文字后可注销账号并清空登录态
-- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` 通过
-
-## 11. 子任务（切片）
-
-- [x] 抓取 users 快照（scripts/api-verify.ts 增加 captureUsers）+ 更新 drafts 快照
-- [x] 编写模块设计文档 `docs/modules/profile.md`
-- [x] 切片1：用户类型 + `useUserProfile` hook（+ 测试）
-- [x] 切片2：`useUserRecentReplies` / `useUserPlayedThreads` hooks（+ 测试）
-- [x] 切片3：`useFollowActions` / `useBlockActions` hooks（+ 测试）
-- [x] 切片4：`UserProfileCard` / `FollowButton` / `BlockButton` 组件（+ 测试）
-- [x] 切片5：`UserRecentReplies` / `UserPlayedThreads` 组件（+ 测试）
-- [x] 切片6：`/users/[id]` 用户主页
-- [x] 切片7：`useDrafts` hook + `DraftList` 组件 + 草稿箱（原 `/drafts` 路由，已迁入 `/threads/create` 草稿选择器）
-- [x] 切片8：`useMe` / `useUpdateProfile` hooks + `/me` 我的资料
-- [x] 同步后端 `created-threads`：useUserCreatedThreads hook + UserThreadList 共享组件 + /users/[id] 创建列表
-- [x] 关注/粉丝列表：后端公开端点（/users/:id/following + /followers）+ useUserFollowList + UserFollowList + 子页面
-- [x] 登录终端高风险切片：友好平台文案、当前终端识别、稳定 ID 退出、加载/错误/空态、按用户隔离缓存；组件/hook 单测 + 后端真实 PostgreSQL 双端 E2E
-- [ ] 质量检查 + 文档同步 + 提交推送
+- `/users/[id]` 展示资料卡（头像/用户名/Bio/时间/关注粉丝数）
+- 「关注 N」「粉丝 N」可点击进入 `/users/[id]/following` / `/users/[id]/followers` 列表页
+- 关注/粉丝列表展示用户名 + 头像，空态/错误态有占位
+- 登录态显示关注/拉黑按钮，点击后状态即时更新（isFollowing/isBlocked + 计数）
+- 未登录不显示关注/拉黑按钮；点击其他需登录操作跳 /login
+- 关注/拉黑自己不显示按钮
+- 最近回复列表渲染（正文/楼层/楼中楼三态标识 + 帖子链接 + preview），**仅展示最近 5 条**，为空/未公开有占位；点击通过共享 `getPostHref` 精确定位到对应楼层/楼中楼/正文
+- 创建的帖子列表渲染（标题 + 分类/状态徽章），cursor 分页加载
+- 参与的帖子列表渲染（标题 + 分类/状态/私密徽章），cursor 分页加载，不含自建帖；本人可按全部/公开帖/私密帖分类，他人仅见公开玩家帖
+- 已注销用户在全站用户摘要中统一显示“已注销用户”与灰色用户图标
+- 全站 `/users/{id}` 链接可正常跳转
+- 草稿箱（`/threads/create` 草稿列表）列出我的未发布帖，可跳转编辑、可删除
+- `/me` 修改用户名/Bio/隐私开关，错误码映射正确
+- `/me/security` 以“Web 端登录/移动端登录”展示双端登录终端，不显示原始 UA
+- `/me/security` 正确标记当前终端，并可退出另一登录终端
+- 登录终端登录时间在 token 轮转后保持不变，账号切换不复用旧账号缓存
+- `/me/security` 可查看黑名单并取消拉黑
+- 输入确认文字后可注销账号并清空登录态

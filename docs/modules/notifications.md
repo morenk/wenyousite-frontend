@@ -2,22 +2,18 @@
 
 ## 1. 目标与范围
 
-实现站内通知的列表查看、未读标记与导航红点。导航栏现统一为「消息」入口，与私聊共用消息中心。
+实现站内通知的列表查看、未读标记与导航红点。全局导航分别提供「通知」和「私聊」，两个页面内部复用同一消息中心分类栏。
 
-**本次迭代范围（Phase 7 MVP，最小实现）：**
+**当前能力：**
 - `/notifications` 通知列表页：类型图标 + 结构化 payload 文案（旧通知回退 content）+ 相对时间 + 未读高亮 + 跳转 + 删除
 - 单条点击标记已读，顶部「全部已读」
-- 导航栏「消息」链接显示通知 + 私聊 + 消息请求合计徽标（轮询刷新）
+- 导航栏「通知」显示通知未读数；「私聊」显示已接受会话未读与待处理请求合计（轮询刷新）
 - 无限滚动（cursor 分页）+ loading / error / empty 三态
-
-**本轮迭代（通知可达性与一致性）：**
 - 按类型过滤 Tab（如 `?type=reply,mention`）
 - 通知跳转精确定位到楼层或楼中楼：主楼层在主题详情页高亮，楼中楼进入独立阅读页并高亮目标回复
 - 已读操作使用乐观缓存更新，跳转不再依赖请求完成
 - 页面重新获得焦点时刷新通知；补齐加载更多失败重试
 - 「全部已读」仅在有未读时展示，并即时更新列表与红点
-
-**本轮补充：**
 - payload 结构化渲染：`actorName`、动作和 `preview` 分段排版；点赞聚合继续使用后端生成的完整文案
 
 提及通知使用后端稳定 `eventKey` 幂等；同一帖子中显式提及已覆盖的用户不会再重复收到该帖的普通回复/新楼层提醒。正文中的 `[@用户名](/users/{userId})` 由 MarkdownContent 渲染为本站用户链接，兼容历史纯文本提及。
@@ -28,7 +24,7 @@
 |------|----------|------|
 | `/notifications` | 通知列表 | Auth（仅本人，未登录跳 /login） |
 
-导航栏「消息」入口默认指向 `/notifications`；私聊通过消息中心“私聊”页签进入，并保留各自的未读数。
+通知页和私聊页都显示「通知 / 私聊」分类栏，名称和各自徽标与全局导航一致。
 
 ## 3. 涉及 API
 
@@ -45,7 +41,7 @@
 
 ## 4. API 响应快照
 
-真实响应见 `docs/snapshots/notifications.snapshot.json`（当前无数据）。列表项结构（后端 `notifications.service.findAll` include 为准）：
+脱敏响应见 `docs/snapshots/notifications.snapshot.json`。列表项结构以后端契约为准：
 
 ### GET /notifications?limit=20 → NotificationItem[]
 
@@ -142,24 +138,14 @@
 
 ## 10. 验收标准
 
-- [x] `/notifications` 列表展示通知（图标 + 文案 + 时间 + 未读高亮）
-- [x] 未读通知有醒目标识；点击已读并跳转
-- [x] 「全部已读」一键清零未读
-- [x] 单条删除
-- [x] 无限滚动加载更多
-- [x] 导航栏「通知」显示未读徽标，读数随操作更新
-- [x] 未登录跳 /login
-- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` 通过
-- [x] 类型筛选、精确定位与刷新策略（本轮）
-- [x] 通知定位取消平滑移动动画，且只高亮目标卡片
-- [x] 乐观已读缓存更新（失败时自动回滚）
-- [x] payload 结构化渲染（actorName/action/preview 分段，旧数据回退 content）
-
-## 11. 子任务（切片）
-
-- [x] 抓取 notifications 快照 + 编写模块文档 + Roadmap 更新
-- [x] 切片2：通知 API hooks（useNotifications / useUnreadCount / useNotificationActions）+ 测试
-- [x] 切片3：NotificationItem / NotificationList 组件 + 测试
-- [x] 切片4：/notifications 页面 + 导航未读徽标
-- [x] 修复：未读数/列表按 userId 隔离缓存，登录即时刷新徽标（含登录/注册后失效）
-- [ ] 切片5：质量检查 + 部署 + 提交推送
+- `/notifications` 列表展示通知（图标 + 文案 + 时间 + 未读高亮）
+- 未读通知有醒目标识；点击已读并跳转
+- 「全部已读」一键清零未读
+- 单条删除
+- 无限滚动加载更多
+- 导航栏「通知」显示未读徽标，读数随操作更新
+- 未登录跳 /login
+- 类型筛选、精确定位与刷新策略（本轮）
+- 通知定位取消平滑移动动画，且只高亮目标卡片
+- 乐观已读缓存更新（失败时自动回滚）
+- payload 结构化渲染（actorName/action/preview 分段，旧数据回退 content）

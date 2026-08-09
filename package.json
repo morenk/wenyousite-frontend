@@ -19,11 +19,12 @@
     "generate:api": "openapi-typescript contracts/openapi.json -o src/api/types.ts",
     "contract:check": "node scripts/check-generated-api.mjs && node scripts/check-flutter-contract.mjs",
     "arch:check": "node scripts/check-query-keys.mjs",
+    "design:check": "node scripts/check-design-system.mjs",
     "snapshots:check": "tsx scripts/check-api-snapshots.ts",
     "snapshots:sanitize": "tsx scripts/sanitize-api-snapshots.ts",
     "snapshots:verify": "tsx scripts/api-verify.ts",
     "docs:check": "tsx scripts/check-doc-links.ts && tsx scripts/check-doc-truth.ts",
-    "check": "pnpm lint && pnpm typecheck && pnpm contract:check && pnpm arch:check && pnpm test:coverage && pnpm snapshots:check && pnpm docs:check && pnpm build",
+    "check": "pnpm lint && pnpm typecheck && pnpm contract:check && pnpm arch:check && pnpm design:check && pnpm test:coverage && pnpm snapshots:check && pnpm docs:check && pnpm build",
     "check:full": "pnpm check && E2E_ENV=test pnpm test:e2e"
   },
   "dependencies": {

@@ -17,8 +17,13 @@ import type { EditorView } from "@milkdown/kit/prose/view";
 import { Loader2 } from "lucide-react";
 import { useDebounce } from "use-debounce";
 import { toast } from "sonner";
+import { ImageUploadProgress } from "@/components/shared/image-upload-progress";
 import { cn } from "@/lib/utils";
 import { sanitizeMilkdownMarkdown } from "@/lib/markdown";
+import type {
+  UploadImageOptions,
+  UploadImageProgress as UploadImageProgressValue,
+} from "@/lib/upload-image";
 import {
   createInlineDiceNode,
   DICE_INLINE_NODE_NAME,
@@ -100,7 +105,7 @@ function injectToolbarTooltips(root: ParentNode, labels: string[]) {
 export interface MilkdownEditorProps {
   defaultValue?: string;
   onChange?: (value: string) => void;
-  onUploadImage?: (file: File) => Promise<string>;
+  onUploadImage?: (file: File, options?: UploadImageOptions) => Promise<string>;
   placeholder?: string;
   disabled?: boolean;
   /** 内容区最大高度（px），超过后内容区出现滚动条；默认 400 */
@@ -138,7 +143,7 @@ function getImageBlockConfig(onUploadImage: (file: File) => Promise<string>) {
 interface EditorHostProps {
   initialValue: string;
   onChange?: (value: string) => void;
-  onUploadImage?: (file: File) => Promise<string>;
+  onUploadImage?: (file: File, options?: UploadImageOptions) => Promise<string>;
   placeholder?: string;
   disabled?: boolean;
   onOpenDrafts?: () => void;
@@ -164,6 +169,7 @@ function EditorHost({
   const hostRef = useRef<HTMLDivElement>(null);
   const onChangeRef = useRef(onChange);
   const toolbarLabelsRef = useRef<string[]>([]);
+  const uploadAbortRef = useRef<AbortController | null>(null);
   const diceSelectionRef = useRef<{ from: number; to: number } | null>(null);
   const [dicePopover, setDicePopover] = useState<{ top: number; left: number } | null>(null);
   const [diceNodeCount, setDiceNodeCount] = useState(
@@ -172,6 +178,7 @@ function EditorHost({
   const [customDiceNotation, setCustomDiceNotation] = useState("1d20");
   const [mentionMenu, setMentionMenu] = useState<EditorMentionMenu | null>(null);
   const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
+  const [uploadProgress, setUploadProgress] = useState<UploadImageProgressValue | null>(null);
 
   useEffect(() => {
     onChangeRef.current = onChange;
@@ -255,16 +262,37 @@ function EditorHost({
     onDocumentChange: emitCurrentMarkdown,
   });
 
+  useEffect(() => () => uploadAbortRef.current?.abort(), []);
+
   /** 上传失败时统一弹 toast（Milkdown 内部会静默吞掉 onUpload 的 reject） */
   const handleUpload = useCallback(
     async (file: File) => {
+      uploadAbortRef.current?.abort();
+      const controller = new AbortController();
+      uploadAbortRef.current = controller;
+      setUploadProgress({
+        stage: "preparing",
+        loadedBytes: null,
+        totalBytes: null,
+        percent: null,
+      });
       try {
-        return await onUploadImage!(file);
+        return await onUploadImage!(file, {
+          signal: controller.signal,
+          onProgress: setUploadProgress,
+        });
       } catch (error) {
-        toast.error(
-          getApiErrorMessage(error, "上传失败，请稍后重试"),
-        );
+        if (!(error instanceof DOMException && error.name === "AbortError")) {
+          toast.error(
+            getApiErrorMessage(error, "上传失败，请稍后重试"),
+          );
+        }
         throw error;
+      } finally {
+        if (uploadAbortRef.current === controller) {
+          uploadAbortRef.current = null;
+          setUploadProgress(null);
+        }
       }
     },
     [onUploadImage],
@@ -542,6 +570,13 @@ function EditorHost({
   return (
     <div ref={hostRef} className="milkdown-editor relative">
       <Milkdown />
+      {uploadProgress ? (
+        <ImageUploadProgress
+          progress={uploadProgress}
+          onCancel={() => uploadAbortRef.current?.abort()}
+          className="absolute right-3 top-12 z-30 w-[min(22rem,calc(100%-1.5rem))] bg-background/95 shadow-popover backdrop-blur"
+        />
+      ) : null}
       {!loading && (
         <div className="absolute bottom-2 left-2 z-20 rounded-lg border border-border bg-background/95 shadow-sm backdrop-blur">
           <StickerPickerPopover

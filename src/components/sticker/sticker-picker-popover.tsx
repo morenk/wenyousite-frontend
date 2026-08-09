@@ -21,9 +21,14 @@ import { CSS } from "@dnd-kit/utilities";
 import { Check, GripVertical, Images, Loader2, Settings2, SmilePlus, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "@/api/errors";
+import { ImageUploadProgress } from "@/components/shared/image-upload-progress";
 import { useStickerActions, useStickers, type UserSticker } from "@/api/hooks/use-stickers";
 import { getKnownUserId } from "@/lib/auth-store";
-import { uploadImageFile, validateImageFile } from "@/lib/upload-image";
+import {
+  uploadImageFile,
+  validateImageFile,
+  type UploadImageProgress as UploadImageProgressValue,
+} from "@/lib/upload-image";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -139,6 +144,8 @@ function StickerPickerPanel({
   } | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<UploadImageProgressValue | null>(null);
+  const [uploadFileCount, setUploadFileCount] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -218,9 +225,34 @@ function StickerPickerPanel({
       return;
     }
     setUploading(true);
+    setUploadFileCount(candidates.length);
+    const totalBytes = candidates.reduce((total, file) => total + file.size, 0);
+    const loadedByFile = new Map<number, number>();
+    setUploadProgress({
+      stage: "preparing",
+      loadedBytes: null,
+      totalBytes: null,
+      percent: null,
+    });
+    const updateBatchProgress = (index: number, file: File, progress: UploadImageProgressValue) => {
+      const loadedBytes = progress.stage === "processing"
+        ? file.size
+        : progress.loadedBytes ?? loadedByFile.get(index) ?? 0;
+      loadedByFile.set(index, Math.min(file.size, loadedBytes));
+      const batchLoadedBytes = [...loadedByFile.values()].reduce((total, loaded) => total + loaded, 0);
+      const percent = totalBytes > 0 ? Math.round((batchLoadedBytes / totalBytes) * 100) : 0;
+      setUploadProgress({
+        stage: batchLoadedBytes >= totalBytes ? "processing" : "uploading",
+        loadedBytes: batchLoadedBytes,
+        totalBytes,
+        percent,
+      });
+    };
     const results = await runWithConcurrency(
-      candidates.map((file) => async () => {
-        const uploaded = await uploadImageFile(file);
+      candidates.map((file, index) => async () => {
+        const uploaded = await uploadImageFile(file, {
+          onProgress: (progress) => updateBatchProgress(index, file, progress),
+        });
         return actions.importMedia.mutateAsync(uploaded.mediaId);
       }),
       3,
@@ -230,6 +262,7 @@ function StickerPickerPanel({
     if (succeeded) toast.success(`已添加 ${succeeded} 个表情`);
     if (failed) toast.error(`${failed} 个表情添加失败，成功项已保留`);
     setUploading(false);
+    setUploadProgress(null);
     if (fileRef.current) fileRef.current.value = "";
     await actions.refresh();
   };
@@ -239,7 +272,7 @@ function StickerPickerPanel({
           role="dialog"
           aria-label="表情收藏"
           className={cn(
-            "absolute bottom-full z-50 mb-2 w-[min(22rem,calc(100vw-1rem))] rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-xl",
+            "absolute bottom-full z-50 mb-2 w-[min(22rem,calc(100vw-1rem))] rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-popover",
             align === "end" ? "right-0" : "left-0",
           )}
         >
@@ -294,6 +327,17 @@ function StickerPickerPanel({
               </Button>
             </div>
           </div>
+
+          {uploadProgress ? (
+            <ImageUploadProgress
+              progress={uploadProgress}
+              label={uploadProgress.stage === "processing"
+                ? `已上传 ${uploadFileCount} 个文件，正在处理`
+                : `正在上传 ${uploadFileCount} 个文件`}
+              className="mt-2"
+              compact
+            />
+          ) : null}
 
           <div className="mt-3 max-h-72 min-h-36 overflow-y-auto">
             {query.isLoading ? (

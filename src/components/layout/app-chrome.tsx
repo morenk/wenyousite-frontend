@@ -4,6 +4,11 @@ import { usePathname } from "next/navigation";
 
 import { NavBar } from "@/components/layout/nav-bar";
 import { AppContextRail } from "@/components/layout/app-context-rail";
+import { useDirectUnreadCount } from "@/api/hooks/use-direct-conversations";
+import { useUnreadCount } from "@/api/hooks/use-unread-count";
+import { ThreadCategoriesProvider } from "@/components/thread/thread-categories-provider";
+import { UnreadCountsProvider } from "@/components/layout/unread-counts-context";
+import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
 export type AppChromeMode = "community" | "workspace" | "auth";
@@ -31,6 +36,12 @@ export function getAppChromeMode(pathname: string): AppChromeMode {
   return "community";
 }
 
+export function routeNeedsThreadCategories(pathname: string): boolean {
+  return getAppChromeMode(pathname) === "community"
+    || pathname === "/threads/create"
+    || /^\/threads\/[^/]+\/edit(?:\/|$)/.test(pathname);
+}
+
 export function AppChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const mode = getAppChromeMode(pathname);
@@ -43,20 +54,47 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
     );
   }
 
+  const chrome = (
+    <AppChromeFrame mode={mode}>
+      {children}
+    </AppChromeFrame>
+  );
+
+  return routeNeedsThreadCategories(pathname) ? (
+    <ThreadCategoriesProvider>{chrome}</ThreadCategoriesProvider>
+  ) : chrome;
+}
+
+function AppChromeFrame({
+  mode,
+  children,
+}: {
+  mode: Exclude<AppChromeMode, "auth">;
+  children: React.ReactNode;
+}) {
+  const { user } = useAuth();
+  const { data: unreadCount } = useUnreadCount(user?.id);
+  const { data: directUnread } = useDirectUnreadCount(user?.id);
+
   return (
-    <div
+    <UnreadCountsProvider
+      notificationCount={unreadCount ?? 0}
+      directMessageCount={directUnread?.total ?? 0}
+    >
+      <div
       data-slot="app-chrome"
       data-mode={mode}
       className={cn(
         "mx-auto grid min-h-screen w-full items-start gap-4 px-3 sm:px-4",
         mode === "community"
-          ? "max-w-[80rem] grid-cols-[4.5rem_minmax(0,1fr)] xl:grid-cols-[17rem_minmax(0,42rem)_17rem]"
-          : "max-w-[78rem] grid-cols-[4.5rem_minmax(0,1fr)]",
+          ? "max-w-wide grid-cols-[4.5rem_minmax(0,1fr)] xl:grid-cols-[17rem_minmax(0,42rem)_17rem]"
+          : "max-w-chrome-workspace grid-cols-[4.5rem_minmax(0,1fr)]",
       )}
     >
       <NavBar compact={mode === "workspace"} />
       <main className="min-w-0">{children}</main>
       {mode === "community" ? <AppContextRail /> : null}
-    </div>
+      </div>
+    </UnreadCountsProvider>
   );
 }

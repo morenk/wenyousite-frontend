@@ -59,7 +59,7 @@ auth             [品牌与玩法] [认证表单]
 
 ```ts
 type AppChromeMode = "community" | "workspace" | "auth";
-type PageWidth = "narrow" | "feed" | "content" | "workspace" | "wide";
+type PageWidth = "narrow" | "moment" | "feed" | "content" | "workspace" | "wide";
 type PanelTone = "plain" | "soft" | "accent" | "floating";
 ```
 
@@ -67,6 +67,7 @@ type PanelTone = "plain" | "soft" | "accent" | "floating";
 - 1024px 隐藏右栏并将左栏收为图标轨道；右侧个人入口此时回到左侧，登录、注册、创建及账户功能仍必须可达。
 - 消息、主题帖创建/编辑和管理使用 `workspace`，不强塞右侧信息栏。`workspace` 只改变栏宽和文字标签，不改变同一屏宽下的左侧按钮集合：宽屏继续隐藏个人快捷入口，1024px 时与 `community` 一样回流到图标轨道。
 - 页面禁止直接写任意 `max-w-*`；使用 `PageShell` 语义宽度。
+- 分类上下文只包裹需要右侧玩法栏的 `community` 和主题帖创建/编辑工作区；认证页与消息工作区不请求分类。通知和私聊未读数由 `AppChrome` 各订阅一次，再通过只读上下文供左右侧栏和消息中心共同消费。
 
 ## 4. 表面与组件
 
@@ -90,6 +91,8 @@ type PanelTone = "plain" | "soft" | "accent" | "floating";
 - 输入框默认 44px 高、白底、可见边框；Focus 使用深品牌色边界和焦点环。
 - Badge 使用语义 `tone`，业务层不得拼接任意颜色。
 - Link 外观通过 `buttonVariants` 复用，禁止在 Link 内嵌 button。
+- 业务下拉选择与页签分别使用共享 `Select`、`Tabs`；不在页面或模块组件中重新实现原生 `<select>`、方向键切换或 ARIA 选中状态。
+- 模态交互使用共享 `Dialog` / `AlertDialog`，由原语统一处理焦点圈定、Esc、遮罩关闭和滚动锁定；紧凑关闭按钮仍保持至少 32px 命中区。
 - 所有交互覆盖 hover、focus-visible、active、disabled、loading 和 error。
 
 ### 4.3 内容与状态
@@ -97,6 +100,7 @@ type PanelTone = "plain" | "soft" | "accent" | "floating";
 - 页面标题使用 `PageHeader`，说明只描述筛选范围、权限、数据来源或下一步操作。
 - 不添加宣传式副标题、情绪化空话或内部设计概念。
 - 错误说明发生了什么以及用户能做什么；空状态提供真实可执行的下一步。
+- 文件直传不得只显示静态按钮文案或旋转图标：获取凭证与服务端处理阶段使用不定进度，传输阶段必须显示真实已传/总字节与百分比；统一复用 `Progress` 和 `ImageUploadProgress`，可取消入口与当前上传状态放在同一反馈区。
 - Markdown 正文使用不低于 16px 的字号和稳定行距，图片、表格、代码不突破容器。
 - 主题帖、楼层和回复保留作者、时间、状态、关系和操作，不为了简洁隐藏必要信息。
 
@@ -131,6 +135,7 @@ type PanelTone = "plain" | "soft" | "accent" | "floating";
 - 首页、标签、搜索、收藏和通知：`feed` + 连续信息流。
 - 首页与搜索主题帖卡片的正文图片使用同一封面带：标题下最多三张、按数量等分、统一 16:9，不叠加数量角标或独立灯箱入口。
 - 主题帖详情和楼中楼：`feed`，标题使用玩法线路边缘，正文保持单一阅读列。
+- 动态列表：`feed` + 两列瀑布流；动态详情保持 `feed` 外层中栏不动，并在内部使用 `moment` 语义阅读列（36rem）。文字封面只能从现有 primary、secondary、success、warning 语义色派生，不创建第二套品牌色或界面标签。
 - 用户主页、账户和钱包：`feed`；资料、设置和记录使用统一 Panel/Card。
 - 登录、注册、找回与验证：`auth`，左侧只显示品牌和真实玩法名称，右侧为表单。
 - 消息、创建、编辑和管理：`workspace`，内部工具栏和弹层仍使用同一 Token。
@@ -138,6 +143,7 @@ type PanelTone = "plain" | "soft" | "accent" | "floating";
 ## 7. 质量门禁
 
 - 共享组件通过 Testing Library 验证语义、状态和键盘行为。
-- 首页在 1024、1440 和 1920px 维护确定性视觉基线；代表页面补充 axe 检查。
+- 首页在 1024、1440 和 1920px 维护确定性视觉基线，动态详情在 1440px 维护阅读列基线；代表页面补充 axe 检查。
+- `pnpm design:check` 静态阻止业务 TSX 写死颜色、任意阴影、页面任意宽度、原生 Select、手写 Tab 状态机和动态第二品牌文案；该命令已纳入 `pnpm check`。
 - 视觉改动先截图自审：删除不承载信息的装饰，并确认纯白背景、文字对比和核心动作。
 - 完成后运行 `pnpm check`；核心旅程或布局变化运行 `pnpm check:full`。

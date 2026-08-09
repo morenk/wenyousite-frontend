@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { getApiErrorMessage } from "@/api/errors";
 import { saveStickerSource, type StickerSource } from "@/api/hooks/use-stickers";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { getKnownUserId } from "@/lib/auth-store";
 
 export function SaveStickerButton({
@@ -50,7 +49,7 @@ export function SaveStickerButton({
         event.stopPropagation();
         void save();
       }}
-      className={cn("shadow-sm", className)}
+      className={className}
     >
       {pending ? <Loader2 className="animate-spin" /> : <Plus />}
     </Button>

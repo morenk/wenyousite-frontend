@@ -13,6 +13,7 @@ import { MilkdownEditor } from "@/components/editor/milkdown-editor";
 import { Button } from "@/components/ui/button";
 import { useThreadComposer } from "@/components/thread/thread-composer-context";
 import { hasVisibleMarkdownContent } from "@/lib/markdown";
+import type { UploadImageOptions } from "@/lib/upload-image";
 
 function getErrorMessage(error: unknown, fallback: string) {
   const err = getApiError(error);
@@ -102,7 +103,9 @@ function ThreadComposer() {
     }
   };
 
-  const handleUploadImage = (file: File) => uploadImage.mutateAsync(file);
+  const handleUploadImage = (file: File, options?: UploadImageOptions) => (
+    uploadImage.mutateAsync(file, options)
+  );
 
   return (
     <div ref={containerRef} className="space-y-3 rounded-lg border border-primary/30 bg-background p-3">

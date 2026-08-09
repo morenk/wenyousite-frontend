@@ -85,7 +85,7 @@ function operation(method: string, apiPath: string) {
 
   const expectedFacts = [
     `后端总量：${Object.keys(spec.paths).length} 个路径、${allOperations.size} 个操作`,
-    `本轮明确搁置：举报 ${reportOperations.length} 个操作、管理后台 ${adminOperations.length} 个操作`,
+    `用户端范围外：举报 ${reportOperations.length} 个操作、管理后台 ${adminOperations.length} 个操作`,
     `用户端审计范围：${userOperations.size} 个操作`,
     `前端直接调用：${directOperations.size} 个操作；其余 ${missing.length} 个操作`,
   ];
@@ -127,6 +127,38 @@ function operation(method: string, apiPath: string) {
     for (const claim of forbiddenClaims) {
       if (claim.test(source)) {
         failures.push(`${path.relative(root, file)} 仍包含历史架构表述：${claim}`);
+      }
+    }
+  }
+
+  const currentGuides = [
+    path.resolve(root, "docs/design-system.md"),
+    ...markdownFiles(path.resolve(root, "docs/modules")),
+  ];
+  const historicalPlanningPatterns = [
+    /本次迭代/,
+    /本轮迭代/,
+    /本轮补充/,
+    /后续迭代/,
+    /本次不做/,
+    /发布批次/,
+    /跨端发布批次/,
+    /Phase\s*\d/i,
+    /修复记录/,
+    /(?:本|原子|第[一二三四五六七八九十0-9]+)切片/,
+    /Roadmap/,
+    /第一版/,
+    /当前无数据/,
+    /^##[^\n]*子任务[^\n]*$/m,
+    /^\s*- \[[ xX]\]\s+/m,
+  ];
+  for (const file of currentGuides) {
+    const source = fs.readFileSync(file, "utf8");
+    for (const pattern of historicalPlanningPatterns) {
+      if (pattern.test(source)) {
+        failures.push(
+          `${path.relative(root, file)} 混入迭代日志或任务清单：${pattern}`,
+        );
       }
     }
   }

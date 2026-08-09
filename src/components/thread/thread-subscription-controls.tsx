@@ -14,6 +14,13 @@ import {
 } from "@/api/hooks/use-subscription-mutations";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
 
 /** 主题详情中的官方更新与玩家发言订阅控制。 */
@@ -28,7 +35,7 @@ export function ThreadSubscriptionControls({ thread }: { thread: ThreadDetail })
   );
   const createSubscription = useCreateSubscription();
   const deleteSubscription = useDeleteSubscription();
-  const [selectedTargetUserId, setSelectedTargetUserId] = useState("");
+  const [selectedTargetUserId, setSelectedTargetUserId] = useState<string | null>(null);
   const [playerPopoverOpen, setPlayerPopoverOpen] = useState(false);
 
   if (!user || hasAutomaticUpdates) return null;
@@ -118,25 +125,31 @@ export function ThreadSubscriptionControls({ thread }: { thread: ThreadDetail })
           </Popover.Trigger>
           <Popover.Portal>
             <Popover.Positioner side="bottom" align="end" sideOffset={8} className="z-[70]">
-              <Popover.Popup className="w-64 rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-lg outline-none">
+              <Popover.Popup className="w-64 rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-popover outline-none">
                 <Popover.Title className="text-sm font-semibold">订阅玩家发言</Popover.Title>
                 <Popover.Description className="mt-1 text-xs leading-5 text-muted-foreground">
                   选择一名玩家，订阅其在本帖中的新发言。
                 </Popover.Description>
                 <div className="mt-3 space-y-2">
-                  <select
-                    aria-label="订阅帖内玩家"
+                  <Select
+                    items={candidateMembers.map((member) => ({
+                      value: member.userId,
+                      label: member.user.username,
+                    }))}
                     value={selectedTargetUserId}
-                    onChange={(event) => setSelectedTargetUserId(event.target.value)}
-                    className="h-9 w-full rounded-lg border border-input bg-card px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20"
+                    onValueChange={setSelectedTargetUserId}
                   >
-                    <option value="">选择玩家</option>
-                    {candidateMembers.map((member) => (
-                      <option key={member.userId} value={member.userId}>
+                    <SelectTrigger size="compact" aria-label="订阅帖内玩家" className="w-full">
+                      <SelectValue placeholder="选择玩家" />
+                    </SelectTrigger>
+                    <SelectContent align="start">
+                      {candidateMembers.map((member) => (
+                        <SelectItem key={member.userId} value={member.userId}>
                         {member.user.username}
-                      </option>
-                    ))}
-                  </select>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <Button
                     variant="default"
                     size="sm"

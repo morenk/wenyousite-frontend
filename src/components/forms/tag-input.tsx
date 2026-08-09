@@ -100,7 +100,7 @@ export function TagInput({
       </div>
 
       {focused && input.trim() && value.length < max && (
-        <div className="absolute z-10 mt-1 w-full rounded-lg border border-border bg-background p-1 shadow-sm">
+        <div className="absolute z-10 mt-1 w-full rounded-lg border border-border bg-popover p-1 shadow-popover">
           {isLoading ? (
             <div className="flex items-center justify-center py-2 text-muted-foreground">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

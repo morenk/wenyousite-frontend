@@ -17,6 +17,11 @@ describe("页面布局组件", () => {
     expect(screen.getByText("内容页面")).toHaveClass("max-w-content");
   });
 
+  test("PageShell 提供动态详情语义宽度", () => {
+    render(<PageShell width="moment">动态详情</PageShell>);
+    expect(screen.getByText("动态详情")).toHaveClass("max-w-moment");
+  });
+
   test("PageHeader 组合返回入口、说明和主动作", () => {
     render(
       <PageHeader

@@ -93,7 +93,8 @@ describe("MomentDetailView", () => {
 
   test("作者可以编辑普通文本并删除动态", async () => {
     const { container } = render(<MomentDetailView momentId="moment-1" />);
-    expect(container.querySelector("article")).toHaveClass("max-w-[36rem]");
+    expect(container.querySelector("article")).toHaveClass("w-full", "bg-background");
+    expect(container.querySelector("article")).not.toHaveClass("max-w-[36rem]");
     fireEvent.click(screen.getByRole("button", { name: "编辑动态" }));
     fireEvent.change(screen.getByRole("textbox", { name: "动态标题" }), { target: { value: "新动态标题" } });
     fireEvent.change(screen.getByRole("textbox", { name: "动态正文" }), { target: { value: "新正文" } });
@@ -201,10 +202,10 @@ describe("MomentDetailView", () => {
     expect(screen.getByText("动态不存在")).toBeInTheDocument();
   });
 
-  test("删除需确认，弹层删除成功后关闭弹层而不替换页面", async () => {
+  test("删除需确认，成功后由详情页统一执行返回", async () => {
     mockConfirm.mockResolvedValueOnce(false).mockResolvedValueOnce(true);
-    const onClose = vi.fn();
-    render(<MomentDetailView momentId="moment-1" modal onClose={onClose} />);
+    const onDeleted = vi.fn();
+    render(<MomentDetailView momentId="moment-1" onDeleted={onDeleted} />);
 
     fireEvent.click(screen.getByRole("button", { name: "删除动态" }));
     await waitFor(() => expect(mockConfirm).toHaveBeenCalledOnce());
@@ -212,11 +213,8 @@ describe("MomentDetailView", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "删除动态" }));
     await waitFor(() => expect(mockDelete).toHaveBeenCalledWith("moment-1"));
-    expect(onClose).toHaveBeenCalledOnce();
+    expect(onDeleted).toHaveBeenCalledOnce();
     expect(mockReplace).not.toHaveBeenCalled();
-
-    fireEvent.click(screen.getByRole("button", { name: "关闭详情" }));
-    expect(onClose).toHaveBeenCalledTimes(2);
   });
 
   test("编辑边界在客户端拦截，接口失败时保持编辑态供重试", async () => {

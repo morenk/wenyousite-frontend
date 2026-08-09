@@ -54,9 +54,12 @@
   --radius: var(--radius-control);
 
   --layout-narrow: 30rem;
+  --layout-moment: 36rem;
   --layout-feed: 42rem;
   --layout-content: 48rem;
   --layout-workspace: 72rem;
+  --layout-chrome-workspace: 78rem;
+  --layout-wide: 80rem;
 
   --wenyou-shadow-popover: 0 12px 32px rgb(52 47 62 / 12%);
   --wenyou-shadow-dialog: 0 24px 64px rgb(52 47 62 / 16%);
@@ -110,9 +113,12 @@
   --radius-xl: var(--radius-panel);
 
   --container-narrow: var(--layout-narrow);
+  --container-moment: var(--layout-moment);
   --container-feed: var(--layout-feed);
   --container-content: var(--layout-content);
   --container-workspace: var(--layout-workspace);
+  --container-chrome-workspace: var(--layout-chrome-workspace);
+  --container-wide: var(--layout-wide);
 
   --shadow-popover: var(--wenyou-shadow-popover);
   --shadow-dialog: var(--wenyou-shadow-dialog);
@@ -162,26 +168,50 @@ select {
   color: var(--foreground);
 }
 
-/* 动态详情与发布器把细滚动条收进圆角卡片，轨道不触碰上下圆角。 */
-.moment-detail-scroll,
+/* 文字动态封面只复用既有语义色，不建立独立品牌色板。 */
+.moment-text-cover {
+  --moment-cover-surface: var(--primary);
+  --moment-cover-ink: var(--primary-foreground);
+
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--moment-cover-surface) 24%, var(--background)) 0%,
+    var(--moment-cover-surface) 100%
+  );
+  color: var(--moment-cover-ink);
+}
+
+.moment-text-cover[data-cover-theme="LILAC"] {
+  --moment-cover-surface: var(--secondary);
+  --moment-cover-ink: var(--secondary-foreground);
+}
+
+.moment-text-cover[data-cover-theme="MINT"] {
+  --moment-cover-surface: var(--success-soft);
+  --moment-cover-ink: var(--success);
+}
+
+.moment-text-cover[data-cover-theme="AMBER"] {
+  --moment-cover-surface: var(--warning-soft);
+  --moment-cover-ink: var(--warning);
+}
+
+/* 动态发布器把细滚动条收进圆角卡片，轨道不触碰上下圆角。 */
 .moment-composer-scroll {
   scrollbar-color: color-mix(in srgb, var(--muted-foreground) 42%, transparent) transparent;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
 }
 
-.moment-detail-scroll::-webkit-scrollbar,
 .moment-composer-scroll::-webkit-scrollbar {
   width: 0.625rem;
 }
 
-.moment-detail-scroll::-webkit-scrollbar-track,
 .moment-composer-scroll::-webkit-scrollbar-track {
   margin-block: 1rem;
   background: transparent;
 }
 
-.moment-detail-scroll::-webkit-scrollbar-thumb,
 .moment-composer-scroll::-webkit-scrollbar-thumb {
   border: 3px solid transparent;
   border-radius: 999px;
@@ -189,7 +219,6 @@ select {
   background-clip: padding-box;
 }
 
-.moment-detail-scroll::-webkit-scrollbar-thumb:hover,
 .moment-composer-scroll::-webkit-scrollbar-thumb:hover {
   background-color: color-mix(in srgb, var(--brand-strong) 58%, transparent);
 }

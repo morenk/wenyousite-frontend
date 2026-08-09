@@ -25,6 +25,7 @@ vi.mock("react-easy-crop", () => ({
 vi.mock("@/lib/upload-image", () => ({
   uploadImageFile: mockUploadImageFile,
   validateAvatarFile: mockValidateAvatarFile,
+  isUploadAbortError: (error: unknown) => error instanceof DOMException && error.name === "AbortError",
   getImageUrlBySize: (url: string, size: "md" | "thumb") =>
     size === "thumb" && !url.endsWith(".svg") ? url.replace(/\.[^.]+$/, "_thumb.webp") : url,
 }));
@@ -97,8 +98,8 @@ describe("AvatarUploader", () => {
     const file = new File(["x"], "photo.png", { type: "image/png" });
     fireEvent.change(screen.getByTestId("avatar-file-input"), { target: { files: [file] } });
 
-    await waitFor(() => expect(screen.getByText("裁剪头像")).toBeInTheDocument());
-    fireEvent.click(screen.getByRole("button", { name: /确认/ }));
+    await waitFor(() => expect(screen.getByRole("dialog", { name: "裁剪头像" })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "保存头像" }));
 
     await waitFor(() => {
       expect(mockUploadImageFile).toHaveBeenCalled();
@@ -111,6 +112,31 @@ describe("AvatarUploader", () => {
       expect(mockSetAvatar.mutateAsync).toHaveBeenCalledWith("m1");
     });
     expect(toast.success).toHaveBeenCalledWith("头像已更新");
+  });
+
+  test("头像直传期间展示上传百分比", async () => {
+    let resolveUpload!: (value: { url: string; mediaId: string }) => void;
+    mockUploadImageFile.mockImplementationOnce((_file: File, options: {
+      onProgress?: (progress: Record<string, unknown>) => void;
+    }) => {
+      options.onProgress?.({
+        stage: "uploading",
+        loadedBytes: 1 * 1024 * 1024,
+        totalBytes: 4 * 1024 * 1024,
+        percent: 25,
+      });
+      return new Promise((resolve) => { resolveUpload = resolve; });
+    });
+    renderUploader();
+    fireEvent.change(screen.getByTestId("avatar-file-input"), {
+      target: { files: [new File(["x"], "photo.png", { type: "image/png" })] },
+    });
+    await waitFor(() => expect(screen.getByRole("dialog", { name: "裁剪头像" })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "保存头像" }));
+
+    expect(await screen.findByText("25%")).toBeInTheDocument();
+    resolveUpload({ url: "https://example.com/avatar.webp", mediaId: "m1" });
+    await waitFor(() => expect(mockSetAvatar.mutateAsync).toHaveBeenCalledWith("m1"));
   });
 
   test("非法文件直接提示错误，不打开裁剪", () => {

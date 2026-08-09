@@ -10,6 +10,7 @@ import { getApiErrorMessage } from "@/api/errors";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { MomentCover } from "@/components/moment/moment-cover";
 import { useAuth } from "@/lib/auth";
+import { markMomentFeedReturn } from "@/lib/moment-navigation";
 import { cn } from "@/lib/utils";
 
 export function MomentCard({ moment, priority = false }: { moment: MomentCardData; priority?: boolean }) {
@@ -35,7 +36,11 @@ export function MomentCard({ moment, priority = false }: { moment: MomentCardDat
 
   return (
     <article className="group/moment min-w-0 pb-3" data-moment-id={moment.id}>
-      <Link href={`/moments/${moment.id}`} className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30">
+      <Link
+        href={`/moments/${moment.id}`}
+        onNavigate={() => markMomentFeedReturn(moment.id, pathname)}
+        className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+      >
         <MomentCover moment={moment} priority={priority} />
         <div className="px-0.5 pt-2.5">
           <h2 className="line-clamp-2 text-[0.9375rem] font-semibold leading-6 text-foreground">

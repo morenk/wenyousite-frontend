@@ -31,7 +31,7 @@ export function DiceInsertPopover({
       data-dice-popover
       role="dialog"
       aria-label="插入骰子"
-      className="fixed z-[100] w-72 rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-lg"
+      className="fixed z-[100] w-72 rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-popover"
       style={{ top: position.top, left: position.left }}
     >
       <div className="mb-2 flex items-center justify-between gap-3 text-sm font-medium">

@@ -4,13 +4,11 @@
 
 实现收藏主题帖、我的收藏管理、他人收藏公开查看（尊重 `showBookmarks` 隐私）。
 
-**本次迭代范围（Phase 8 · 收藏）：**
+**当前能力：**
 - 详情页收藏/取消收藏按钮（仅登录）
 - `/bookmarks` 我的收藏管理页（列表 + 取消收藏，cursor 分页）
 - 用户资料页「收藏」区块（read-only，尊重 showBookmarks：未公开显示占位）
 - 登录后全局导航显示“收藏”；主题帖详情页和个人资料相关区域继续保留上下文入口
-
-**后续迭代：** 收藏分组、搜索收藏、下拉刷新。
 
 ## 2. 页面与路由
 
@@ -95,7 +93,7 @@
 | useBookmarks | `src/api/hooks/use-bookmarks.ts` | 我的收藏 hook |
 | useUserBookmarks | `src/api/hooks/use-user-bookmarks.ts` | 他人收藏 hook |
 | useBookmarkActions | `src/api/hooks/use-bookmark-actions.ts` | 收藏/取消收藏 mutation |
-| BookmarksPage | `src/app/bookmarks/page.tsx` | 我的收藏管理页 |
+| BookmarksPage | `src/app/bookmarks/page.tsx` | 我的收藏管理页；主题帖/动态分类复用共享 `Tabs` |
 
 ## 7. 交互规则
 
@@ -124,18 +122,8 @@
 
 ## 10. 验收标准
 
-- [x] 详情页收藏/取消收藏按钮（登录显示，状态即时更新）
-- [x] `/bookmarks` 我的收藏列表 + 取消收藏 + cursor 分页
-- [x] 登录后全局导航栏显示收藏入口
-- [x] 用户资料页「收藏」区块（read-only），未公开显示占位
-- [x] 私密帖收藏权限由后端保证
-- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` 通过
-
-## 11. 子任务（切片）
-
-- [x] 后端：findById 附加 isBookmarked/bookmarkId + findAll 附带 bookmarkId + 测试
-- [x] 前端 hooks：useBookmarks / useUserBookmarks / useBookmarkActions + 测试
-- [x] 前端组件：BookmarkButton / BookmarkThreadCard / BookmarkList / UserBookmarksSection + 测试
-- [x] 页面：/bookmarks + 详情页收藏按钮 + 资料页收藏区块
-- [x] 快照 + 文档 + Roadmap
-- [ ] 质量检查 + 部署 + 提交推送
+- 详情页收藏/取消收藏按钮（登录显示，状态即时更新）
+- `/bookmarks` 我的收藏列表 + 取消收藏 + cursor 分页
+- 登录后全局导航栏显示收藏入口
+- 用户资料页「收藏」区块（read-only），未公开显示占位
+- 私密帖收藏权限由后端保证

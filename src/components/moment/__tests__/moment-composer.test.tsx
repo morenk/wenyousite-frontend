@@ -11,6 +11,7 @@ const {
   mockCompress,
   mockValidate,
   mockToastError,
+  mockMarkReturn,
 } = vi.hoisted(() => ({
   mockCreate: vi.fn(),
   mockPush: vi.fn(),
@@ -21,9 +22,14 @@ const {
   mockCompress: vi.fn(),
   mockValidate: vi.fn(),
   mockToastError: vi.fn(),
+  mockMarkReturn: vi.fn(),
 }));
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: mockPush }) }));
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: mockPush }),
+  usePathname: () => "/moments",
+}));
+vi.mock("@/lib/moment-navigation", () => ({ markMomentFeedReturn: mockMarkReturn }));
 vi.mock("@/api/hooks/use-moments", () => ({
   useCreateMoment: () => ({ mutateAsync: mockCreate, isPending: false }),
 }));
@@ -80,6 +86,7 @@ describe("MomentComposer", () => {
     })));
     expect(mockDeleteDraft).toHaveBeenCalledWith("user-1");
     expect(onClose).toHaveBeenCalled();
+    expect(mockMarkReturn).toHaveBeenCalledWith("moment-new", "/moments");
     expect(mockPush).toHaveBeenCalledWith("/moments/moment-new");
   });
 
@@ -102,9 +109,19 @@ describe("MomentComposer", () => {
   test("图片直传卡住时可用关闭按钮取消，且不会继续发布", async () => {
     const onClose = vi.fn();
     let uploadSignal: AbortSignal | undefined;
-    mockUpload.mockImplementation((_file: File, options?: { signal?: AbortSignal; onStage?: (stage: string) => void }) => {
+    mockUpload.mockImplementation((_file: File, options?: {
+      signal?: AbortSignal;
+      onStage?: (stage: string) => void;
+      onProgress?: (progress: Record<string, unknown>) => void;
+    }) => {
       uploadSignal = options?.signal;
       options?.onStage?.("uploading");
+      options?.onProgress?.({
+        stage: "uploading",
+        loadedBytes: 2.5 * 1024 * 1024,
+        totalBytes: 5 * 1024 * 1024,
+        percent: 50,
+      });
       return new Promise((_resolve, reject) => {
         options?.signal?.addEventListener(
           "abort",
@@ -114,8 +131,8 @@ describe("MomentComposer", () => {
       });
     });
 
-    const { container } = render(<MomentComposer open userId="user-1" onClose={onClose} />);
-    const fileInput = container.querySelector<HTMLInputElement>('input[type="file"]');
+    render(<MomentComposer open userId="user-1" onClose={onClose} />);
+    const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]');
     expect(fileInput).not.toBeNull();
     fireEvent.change(fileInput!, {
       target: { files: [new File(["photo"], "photo.jpg", { type: "image/jpeg" })] },
@@ -123,6 +140,8 @@ describe("MomentComposer", () => {
     fireEvent.change(screen.getByLabelText("标题"), { target: { value: "带图动态" } });
     fireEvent.click(screen.getByRole("button", { name: "发布动态" }));
 
+    expect(await screen.findByText("2.5 MB / 5.0 MB")).toBeInTheDocument();
+    expect(screen.getByText("50%")).toBeInTheDocument();
     const cancelAndClose = await screen.findByRole("button", { name: "取消上传并关闭发布器" });
     expect(cancelAndClose).toBeEnabled();
     fireEvent.click(cancelAndClose);
@@ -136,8 +155,8 @@ describe("MomentComposer", () => {
     const original = new File(["original"], "photo.jpg", { type: "image/jpeg" });
     const compressed = new File(["compressed"], "photo.webp", { type: "image/webp" });
     mockCompress.mockResolvedValueOnce(compressed);
-    const { container } = render(<MomentComposer open userId="user-1" onClose={vi.fn()} />);
-    const fileInput = container.querySelector<HTMLInputElement>('input[type="file"]');
+    render(<MomentComposer open userId="user-1" onClose={vi.fn()} />);
+    const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]');
     fireEvent.change(fileInput!, { target: { files: [original] } });
     fireEvent.change(screen.getByLabelText("标题"), { target: { value: "压缩图片动态" } });
     fireEvent.click(screen.getByRole("button", { name: "发布动态" }));
@@ -149,8 +168,8 @@ describe("MomentComposer", () => {
   });
 
   test("多图换行时只滚动表单内容并保持底部操作栏可见", async () => {
-    const { container } = render(<MomentComposer open userId="user-1" onClose={vi.fn()} />);
-    const fileInput = container.querySelector<HTMLInputElement>('input[type="file"]');
+    render(<MomentComposer open userId="user-1" onClose={vi.fn()} />);
+    const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]');
     const files = Array.from(
       { length: 9 },
       (_, index) => new File([`photo-${index}`], `photo-${index}.jpg`, { type: "image/jpeg" }),
@@ -159,12 +178,12 @@ describe("MomentComposer", () => {
     fireEvent.change(fileInput!, { target: { files } });
     await screen.findByAltText("第 9 张图片");
 
-    const shell = container.querySelector<HTMLElement>('[data-slot="moment-composer-shell"]');
-    const form = container.querySelector<HTMLElement>('[data-slot="moment-composer-form"]');
-    const scroll = container.querySelector<HTMLElement>('[data-slot="moment-composer-scroll"]');
-    const actions = container.querySelector<HTMLElement>('[data-slot="moment-composer-actions"]');
+    const shell = document.querySelector<HTMLElement>('[data-slot="moment-composer-shell"]');
+    const form = document.querySelector<HTMLElement>('[data-slot="moment-composer-form"]');
+    const scroll = document.querySelector<HTMLElement>('[data-slot="moment-composer-scroll"]');
+    const actions = document.querySelector<HTMLElement>('[data-slot="moment-composer-actions"]');
 
-    expect(shell).toHaveClass("h-[min(92vh,52rem)]", "overflow-hidden");
+    expect(shell).toHaveClass("h-[min(92dvh,52rem)]", "overflow-hidden");
     expect(form).toHaveClass("grid", "grid-rows-[auto_minmax(0,1fr)_auto]", "overflow-hidden");
     expect(scroll).toHaveClass("min-h-0", "overflow-y-auto", "overscroll-contain");
     expect(scroll).not.toContainElement(actions);
@@ -204,10 +223,10 @@ describe("MomentComposer", () => {
     mockCreate
       .mockRejectedValueOnce(new Error("offline"))
       .mockResolvedValueOnce({ id: "moment-new" });
-    const { container } = render(
+    render(
       <MomentComposer open userId="user-1" onClose={vi.fn()} />,
     );
-    const fileInput = container.querySelector<HTMLInputElement>('input[type="file"]');
+    const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]');
     fireEvent.change(fileInput!, { target: { files: [original] } });
     fireEvent.change(screen.getByLabelText("标题"), { target: { value: "可重试动态" } });
 
@@ -233,10 +252,10 @@ describe("MomentComposer", () => {
     mockUpload
       .mockResolvedValueOnce({ mediaId: "media-first" })
       .mockResolvedValueOnce({ mediaId: "media-second" });
-    const { container } = render(
+    render(
       <MomentComposer open userId="user-1" onClose={vi.fn()} />,
     );
-    const fileInput = container.querySelector<HTMLInputElement>('input[type="file"]');
+    const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]');
     fireEvent.change(fileInput!, {
       target: {
         files: [
@@ -256,10 +275,10 @@ describe("MomentComposer", () => {
   });
 
   test("拒绝无效图片和超过九张的追加，不污染已有选择", async () => {
-    const { container } = render(
+    render(
       <MomentComposer open userId="user-1" onClose={vi.fn()} />,
     );
-    const fileInput = container.querySelector<HTMLInputElement>('input[type="file"]');
+    const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]');
     mockValidate.mockReturnValueOnce("动态暂不支持动图");
     fireEvent.change(fileInput!, {
       target: { files: [new File(["gif"], "bad.gif", { type: "image/gif" })] },

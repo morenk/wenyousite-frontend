@@ -11,9 +11,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import { useDirectUnreadCount } from "@/api/hooks/use-direct-conversations";
 import { useWallet } from "@/api/hooks/use-economy";
-import { useUnreadCount } from "@/api/hooks/use-unread-count";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { buttonVariants } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
@@ -22,12 +20,12 @@ import { cn } from "@/lib/utils";
 import { formatWenyou } from "@/lib/wenyou";
 import { useThreadCategoriesContext } from "@/components/thread/thread-categories-provider";
 import { ThreadCategoryMarker } from "@/components/thread/thread-category";
+import { useUnreadCounts } from "@/components/layout/unread-counts-context";
 
 export function AppContextRail() {
   const { user } = useAuth();
   const { data: wallet } = useWallet(user?.id);
-  const { data: unreadCount } = useUnreadCount(user?.id);
-  const { data: directUnread } = useDirectUnreadCount(user?.id);
+  const { notificationCount, directMessageCount } = useUnreadCounts();
   const { categories } = useThreadCategoriesContext();
 
   return (
@@ -69,13 +67,13 @@ export function AppContextRail() {
                 href="/notifications"
                 icon={Bell}
                 label="通知"
-                count={unreadCount ?? 0}
+                count={notificationCount}
               />
               <ContextLink
                 href="/messages"
                 icon={MessageCircle}
                 label="私聊"
-                count={directUnread?.total ?? 0}
+                count={directMessageCount}
               />
               <ContextLink href="/bookmarks" icon={Bookmark} label="收藏" />
               <ContextLink href="/me" icon={Settings} label="资料与设置" />
@@ -142,7 +140,7 @@ function ContextLink({
       <Icon className="size-4" />
       <span className="flex-1">{label}</span>
       {count > 0 ? (
-        <span className="min-w-5 rounded-full bg-destructive px-1.5 text-center font-utility text-[0.625rem] font-bold leading-5 text-white">
+        <span className="min-w-5 rounded-full bg-destructive px-1.5 text-center font-utility text-[0.625rem] font-bold leading-5 text-destructive-foreground">
           {count > 99 ? "99+" : count}
         </span>
       ) : null}

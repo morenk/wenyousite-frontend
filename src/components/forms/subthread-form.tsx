@@ -2,13 +2,31 @@
 
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, X } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogBackdrop,
+  DialogClose,
+  DialogCloseButton,
+  DialogFooter,
+  DialogPopup,
+  DialogPortal,
+  DialogTitle,
+  DialogViewport,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { POSTING_POLICY_OPTIONS } from "@/lib/post-policy";
 
 const subthreadFormSchema = z.object({
@@ -44,87 +62,99 @@ export function SubthreadForm({
   });
 
   const title = mode === "create" ? "添加子贴" : "编辑子贴";
+  const postingPolicy = useWatch({
+    control: form.control,
+    name: "postingPolicy",
+  });
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onCancel();
+    <Dialog
+      open
+      disablePointerDismissal={isSubmitting}
+      onOpenChange={(open) => {
+        if (!open && !isSubmitting) onCancel();
       }}
     >
-      <div className="w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-xl">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-base font-semibold">{title}</h3>
-          <button
-            type="button"
-            onClick={onCancel}
-            className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-            disabled={isSubmitting}
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+      <DialogPortal>
+        <DialogBackdrop />
+        <DialogViewport>
+          <DialogPopup className="max-w-sm p-6">
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <DialogTitle>{title}</DialogTitle>
+              <DialogCloseButton label="关闭子贴表单" disabled={isSubmitting} />
+            </div>
 
-        <form
-          onSubmit={form.handleSubmit((data) => onSubmit(data))}
-          className="space-y-4"
-        >
-          <div className="space-y-2">
-            <Label htmlFor="subtitle">子贴标题</Label>
-            <Input
-              id="subtitle"
-              placeholder="主帖 / 设定区 / 剧情区"
-              disabled={isSubmitting}
-              readOnly={lockTitle}
-              {...form.register("title")}
-            />
-            {lockTitle && (
-              <p className="text-xs text-muted-foreground">
-                主帖标题请在“主题帖”页签中修改
-              </p>
-            )}
-            {form.formState.errors.title && (
-              <p className="text-xs text-destructive">
-                {form.formState.errors.title.message}
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="policy">发帖权限</Label>
-            <select
-              id="policy"
-              disabled={isSubmitting}
-              className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-60"
-              {...form.register("postingPolicy")}
+            <form
+              onSubmit={form.handleSubmit((data) => onSubmit(data))}
+              className="space-y-4"
             >
-              {POSTING_POLICY_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="subtitle">子贴标题</Label>
+                <Input
+                  id="subtitle"
+                  placeholder="主帖 / 设定区 / 剧情区"
+                  disabled={isSubmitting}
+                  readOnly={lockTitle}
+                  {...form.register("title")}
+                />
+                {lockTitle && (
+                  <p className="text-xs text-muted-foreground">
+                    主帖标题请在“主题帖”页签中修改
+                  </p>
+                )}
+                {form.formState.errors.title && (
+                  <p className="text-xs text-destructive">
+                    {form.formState.errors.title.message}
+                  </p>
+                )}
+              </div>
 
-          <div className="flex justify-end gap-2 pt-2">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={onCancel}
-              disabled={isSubmitting}
-            >
-              取消
-            </Button>
-            <Button type="submit" size="sm" disabled={isSubmitting}>
-              {isSubmitting && (
-                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-              )}
-              {mode === "create" ? "添加" : "保存"}
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
+              <div className="space-y-2">
+                <Label htmlFor="policy">发帖权限</Label>
+                <Select
+                  items={POSTING_POLICY_OPTIONS}
+                  value={postingPolicy}
+                  onValueChange={(value) => {
+                    if (!value) return;
+                    form.setValue(
+                      "postingPolicy",
+                      value as SubthreadFormData["postingPolicy"],
+                      { shouldDirty: true, shouldValidate: true },
+                    );
+                  }}
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger id="policy" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent align="start">
+                    {POSTING_POLICY_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <DialogFooter className="pt-2">
+                <DialogClose
+                  disabled={isSubmitting}
+                  className={buttonVariants({ variant: "ghost", size: "compact" })}
+                >
+                  取消
+                </DialogClose>
+                <Button type="submit" size="compact" disabled={isSubmitting}>
+                  {isSubmitting && (
+                    <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                  )}
+                  {mode === "create" ? "添加" : "保存"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogPopup>
+        </DialogViewport>
+      </DialogPortal>
+    </Dialog>
   );
 }

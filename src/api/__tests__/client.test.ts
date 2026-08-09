@@ -103,7 +103,11 @@ describe("createAuthenticatedFetch", () => {
 
     expect(fetchImpl).toHaveBeenCalledWith(
       expect.stringContaining("/api/v1/auth/refresh"),
-      expect.objectContaining({ credentials: "same-origin" }),
+      expect.objectContaining({
+        method: "POST",
+        credentials: "same-origin",
+        body: "{}",
+      }),
     );
     expect(getAuthAccessToken()).toBe("boot-token");
     expect(getAuthSnapshot().user?.id).toBe("u1");
@@ -147,6 +151,56 @@ describe("createAuthenticatedFetch", () => {
     expect(getAuthAccessToken()).toBe("new-token");
     expect(getAuthSnapshot().user?.username).toBe("新用户");
     expect(localStorage.getItem("accessToken")).toBeNull();
+  });
+
+  test("刷新服务临时 5xx 时保留当前会话并等待后续请求重试", async () => {
+    setAuthSession(user("u1"), "expired-token");
+    const initialHref = window.location.href;
+    const fetchImpl = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ code: 40101 }), { status: 401 }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ code: 50000 }), { status: 500 }),
+      );
+
+    const authenticatedFetch = createAuthenticatedFetch(fetchImpl);
+    const response = await authenticatedFetch(
+      new Request("https://wenyou.site/api/v1/notifications", {
+        headers: { Authorization: "Bearer expired-token" },
+      }),
+    );
+
+    expect(response.status).toBe(401);
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    expect(getAuthAccessToken()).toBe("expired-token");
+    expect(getAuthSnapshot().user?.id).toBe("u1");
+    expect(window.location.href).toBe(initialHref);
+  });
+
+  test("刷新令牌被 401 拒绝时才清理会话并进入登录页", async () => {
+    setAuthSession(user("u1"), "expired-token");
+    const fetchImpl = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ code: 40101 }), { status: 401 }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ code: 40102 }), { status: 401 }),
+      );
+
+    const authenticatedFetch = createAuthenticatedFetch(fetchImpl);
+    const response = await authenticatedFetch(
+      new Request("https://wenyou.site/api/v1/notifications", {
+        headers: { Authorization: "Bearer expired-token" },
+      }),
+    );
+
+    expect(response.status).toBe(401);
+    expect(getAuthAccessToken()).toBeNull();
+    expect(getAuthSnapshot().user).toBeNull();
+    expect(window.location.href).toBe("http://localhost:3000/login");
   });
 
   test("并发 401 共享一次 refresh 请求", async () => {

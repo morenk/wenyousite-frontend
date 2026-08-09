@@ -1,21 +1,37 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, ArrowRight, ImagePlus, Loader2, Star, Trash2, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, ImagePlus, Loader2, Star, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useCreateMoment } from "@/api/hooks/use-moments";
 import { getApiErrorMessage } from "@/api/errors";
+import { ImageUploadProgress } from "@/components/shared/image-upload-progress";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogBackdrop,
+  DialogCloseButton,
+  DialogDescription,
+  DialogPopup,
+  DialogPortal,
+  DialogTitle,
+  DialogViewport,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { deleteMomentDraft, loadMomentDraft, saveMomentDraft } from "@/lib/moment-draft";
 import { compressMomentImage, validateMomentImageFile } from "@/lib/moment-image";
-import { isUploadAbortError, uploadImageFile } from "@/lib/upload-image";
+import { markMomentFeedReturn } from "@/lib/moment-navigation";
+import {
+  isUploadAbortError,
+  uploadImageFile,
+  type UploadImageProgress as UploadImageProgressValue,
+} from "@/lib/upload-image";
 import { cn } from "@/lib/utils";
 
 const schema = z.object({
@@ -34,6 +50,7 @@ interface MomentComposerProps {
 
 export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const createMoment = useCreateMoment();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const draftReadyRef = useRef(false);
@@ -45,6 +62,8 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
   const [images, setImages] = useState<LocalImage[]>([]);
   const [coverFileId, setCoverFileId] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<string | null>(null);
+  const [imageUploadProgress, setImageUploadProgress] = useState<UploadImageProgressValue | null>(null);
+  const [activeImagePosition, setActiveImagePosition] = useState<string | null>(null);
   const {
     register,
     control,
@@ -69,6 +88,8 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
     if (upload && !upload.signal.aborted) {
       upload.abort();
       setUploadProgress(null);
+      setImageUploadProgress(null);
+      setActiveImagePosition(null);
       toast.info("已取消上传，草稿仍为你保留");
     }
     onClose();
@@ -119,15 +140,6 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
     }, 600);
     return () => window.clearTimeout(timeout);
   }, [content, coverFileId, images, open, title, userId]);
-
-  useEffect(() => {
-    if (!open) return;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") closeComposer();
-    };
-    window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [closeComposer, open]);
 
   useEffect(() => () => {
     uploadAbortRef.current?.abort();
@@ -209,9 +221,11 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
         }
         for (let index = 0; index < images.length; index += 1) {
           const position = `第 ${index + 1}/${images.length} 张图片`;
+          setActiveImagePosition(position);
           const image = images[index];
           let uploadFile = compressedFilesRef.current.get(image.id);
           if (!uploadFile) {
+            setImageUploadProgress(null);
             setUploadProgress(`正在压缩${position}`);
             uploadFile = await compressMomentImage(image.file, {
               signal: uploadController?.signal,
@@ -224,6 +238,12 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
               if (stage === "preparing") setUploadProgress(`正在准备${position}`);
               if (stage === "uploading") setUploadProgress(`正在上传${position}`);
               if (stage === "processing") setUploadProgress(`正在处理${position}`);
+            },
+            onProgress: (progress) => {
+              setImageUploadProgress(progress);
+              if (progress.stage === "uploading" && progress.percent !== null) {
+                setUploadProgress(`正在上传${position} · ${progress.percent}%`);
+              }
             },
           });
           mediaIds.push(uploaded.mediaId);
@@ -252,6 +272,7 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
       publishRef.current = null;
       toast.success("动态已发布");
       onClose();
+      markMomentFeedReturn(created.id, pathname);
       router.push(`/moments/${created.id}`);
     } catch (error) {
       if (!isUploadAbortError(error)) {
@@ -260,25 +281,40 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
     } finally {
       if (uploadAbortRef.current === uploadController) uploadAbortRef.current = null;
       setUploadProgress(null);
+      setImageUploadProgress(null);
+      setActiveImagePosition(null);
     }
   };
 
   const selectedCover = images.find((image) => image.id === coverFileId);
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4 backdrop-blur-[1px]" role="dialog" aria-modal="true" aria-labelledby="moment-composer-title" onMouseDown={(event) => { if (event.target === event.currentTarget) closeComposer(); }}>
-      <div data-slot="moment-composer-shell" className="grid h-[min(92vh,52rem)] w-full max-w-5xl grid-cols-[minmax(18rem,0.8fr)_minmax(0,1.2fr)] overflow-hidden rounded-3xl bg-background shadow-dialog">
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) closeComposer();
+      }}
+    >
+      <DialogPortal>
+        <DialogBackdrop />
+        <DialogViewport>
+          <DialogPopup
+            data-slot="moment-composer-shell"
+            className="grid h-[min(92dvh,52rem)] max-h-none max-w-5xl grid-cols-[minmax(18rem,0.8fr)_minmax(0,1.2fr)] overflow-hidden rounded-3xl border-0 p-0"
+          >
         <div className="flex min-h-0 items-center justify-center overflow-hidden bg-muted/55 p-8">
           {selectedCover ? (
             <div className="relative aspect-[3/4] w-full max-w-sm overflow-hidden rounded-2xl bg-card">
               {/* eslint-disable-next-line @next/next/no-img-element -- 本地 Blob 草稿预览 */}
               <img src={selectedCover.previewUrl} alt="封面预览" className="h-full w-full object-cover" />
-              <span className="absolute bottom-3 left-3 rounded-full bg-black/55 px-3 py-1 text-xs font-medium text-white">封面预览</span>
+              <span className="absolute bottom-3 left-3 rounded-full bg-foreground/60 px-3 py-1 text-xs font-medium text-background">封面预览</span>
             </div>
           ) : (
-            <div className="relative flex aspect-[3/4] w-full max-w-sm items-center rounded-2xl bg-[linear-gradient(145deg,#fff8fb_0%,#f3c6dd_100%)] px-9 py-10 text-[#67465a]">
-              <span className="absolute left-7 top-7 font-display text-xs tracking-[0.18em] opacity-55">温油便笺</span>
-              <p className="line-clamp-5 font-display text-3xl font-bold leading-[1.55] tracking-wide">{title.trim() || "你的标题会成为封面"}</p>
+            <div
+              className="moment-text-cover flex aspect-[3/4] w-full max-w-sm items-center rounded-2xl px-9 py-10"
+              data-cover-theme="ROSE"
+            >
+              <p className="line-clamp-5 font-display text-3xl font-bold leading-[1.55] tracking-wide">{title.trim() || "标题会用于文字封面"}</p>
             </div>
           )}
         </div>
@@ -286,10 +322,13 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
         <form data-slot="moment-composer-form" onSubmit={(event) => void handleSubmit(submit)(event)} className="grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden">
           <header className="relative z-10 flex items-center justify-between bg-background px-6 py-4">
             <div>
-              <h2 id="moment-composer-title" className="font-display text-xl font-bold">发布动态</h2>
-              <p className="mt-0.5 text-xs text-muted-foreground">短一点，也可以很完整。</p>
+              <DialogTitle className="text-xl">发布动态</DialogTitle>
+              <DialogDescription className="mt-0.5 text-xs">可发布最多 1000 字或 9 张图片。</DialogDescription>
             </div>
-            <Button type="button" variant="ghost" size="icon-sm" onClick={closeComposer} disabled={isPublishing} aria-label={isUploading ? "取消上传并关闭发布器" : "关闭发布器"}><X /></Button>
+            <DialogCloseButton
+              disabled={isPublishing}
+              label={isUploading ? "取消上传并关闭发布器" : "关闭发布器"}
+            />
           </header>
 
           <div data-slot="moment-composer-scroll" className="moment-composer-scroll min-h-0 space-y-5 overflow-y-auto overscroll-contain px-6 pb-5">
@@ -314,12 +353,12 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
                   <div key={image.id} className={cn("group relative aspect-[3/4] overflow-hidden rounded-xl bg-muted", coverFileId === image.id && "ring-2 ring-brand-strong ring-offset-2")}>
                     {/* eslint-disable-next-line @next/next/no-img-element -- 本地 Blob 草稿预览 */}
                     <img src={image.previewUrl} alt={`第 ${index + 1} 张图片`} className="h-full w-full object-cover" />
-                    <div className="absolute inset-x-1 bottom-1 flex items-center justify-between rounded-lg bg-black/55 p-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
-                      <button type="button" className="rounded-md p-1 text-white hover:bg-white/15" onClick={() => setCoverFileId(image.id)} aria-label="设为封面"><Star className={cn("size-3.5", coverFileId === image.id && "fill-current")} /></button>
-                      <div className="flex"><button type="button" className="rounded-md p-1 text-white hover:bg-white/15 disabled:opacity-30" disabled={index === 0} onClick={() => moveImage(index, -1)} aria-label="向前移动"><ArrowLeft className="size-3.5" /></button><button type="button" className="rounded-md p-1 text-white hover:bg-white/15 disabled:opacity-30" disabled={index === images.length - 1} onClick={() => moveImage(index, 1)} aria-label="向后移动"><ArrowRight className="size-3.5" /></button></div>
-                      <button type="button" className="rounded-md p-1 text-white hover:bg-white/15" onClick={() => removeImage(image.id)} aria-label="删除图片"><Trash2 className="size-3.5" /></button>
+                    <div className="absolute inset-x-1 bottom-1 flex items-center justify-between rounded-lg bg-foreground/60 p-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+                      <Button type="button" variant="ghost" size="icon-compact" className="text-background hover:bg-background/15 hover:text-background" onClick={() => setCoverFileId(image.id)} aria-label="设为封面"><Star className={cn("size-3.5", coverFileId === image.id && "fill-current")} /></Button>
+                      <div className="flex"><Button type="button" variant="ghost" size="icon-compact" className="text-background hover:bg-background/15 hover:text-background disabled:bg-transparent" disabled={index === 0} onClick={() => moveImage(index, -1)} aria-label="向前移动"><ArrowLeft className="size-3.5" /></Button><Button type="button" variant="ghost" size="icon-compact" className="text-background hover:bg-background/15 hover:text-background disabled:bg-transparent" disabled={index === images.length - 1} onClick={() => moveImage(index, 1)} aria-label="向后移动"><ArrowRight className="size-3.5" /></Button></div>
+                      <Button type="button" variant="ghost" size="icon-compact" className="text-background hover:bg-background/15 hover:text-background" onClick={() => removeImage(image.id)} aria-label="删除图片"><Trash2 className="size-3.5" /></Button>
                     </div>
-                    {coverFileId === image.id ? <span className="absolute left-2 top-2 rounded-full bg-brand-strong px-2 py-0.5 text-[0.6875rem] font-bold text-white">封面</span> : null}
+                    {coverFileId === image.id ? <span className="absolute left-2 top-2 rounded-full bg-brand-strong px-2 py-0.5 text-[0.6875rem] font-bold text-background">封面</span> : null}
                   </div>
                 ))}
                 {images.length < 9 ? (
@@ -331,18 +370,30 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
             </div>
           </div>
 
-          <footer data-slot="moment-composer-actions" className="relative z-10 flex items-center justify-between bg-background px-6 py-4">
+          <footer data-slot="moment-composer-actions" className="relative z-10 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 bg-background px-6 py-4">
             {isUploading ? (
-              <button type="button" onClick={closeComposer} className="text-xs font-medium text-muted-foreground hover:text-foreground">取消上传</button>
+              <Button type="button" variant="link" size="compact" onClick={closeComposer} className="px-0 text-muted-foreground">取消上传</Button>
             ) : (
-              <button type="button" onClick={() => void clearDraft()} disabled={pending} className="text-xs text-muted-foreground hover:text-foreground disabled:opacity-40">清空草稿</button>
+              <Button type="button" variant="link" size="compact" onClick={() => void clearDraft()} disabled={pending} className="px-0 text-muted-foreground">清空草稿</Button>
             )}
+            {imageUploadProgress ? (
+              <ImageUploadProgress
+                progress={imageUploadProgress}
+                label={imageUploadProgress.stage === "processing"
+                  ? `${activeImagePosition ?? "图片"}已上传，正在处理`
+                  : `${activeImagePosition ?? "图片"}${imageUploadProgress.stage === "preparing" ? "正在准备" : "正在上传"}`}
+                className="mx-auto w-full max-w-sm"
+                compact
+              />
+            ) : <span />}
             <Button type="submit" variant="ghost" disabled={pending} className="min-w-28 text-brand-strong">
               {pending ? <><Loader2 className="animate-spin" />{uploadProgress ?? "发布中"}</> : "发布动态"}
             </Button>
           </footer>
         </form>
-      </div>
-    </div>
+          </DialogPopup>
+        </DialogViewport>
+      </DialogPortal>
+    </Dialog>
   );
 }

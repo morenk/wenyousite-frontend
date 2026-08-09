@@ -182,11 +182,9 @@ describe("ThreadEditForm", () => {
   test("回填现有标题、分区、可见性、标签、正文", () => {
     renderForm();
     expect(screen.getByDisplayValue("测试帖")).toBeInTheDocument();
-    const category = screen.getByLabelText("分区") as HTMLSelectElement;
-    expect(category.value).toBe("RPG");
-    const visibility = screen.getByLabelText("可见性") as HTMLSelectElement;
-    expect(visibility.value).toBe("PUBLIC");
-    expect(screen.getByLabelText("状态")).toHaveValue("RECRUITING");
+    expect(screen.getByRole("combobox", { name: "分区" })).toHaveTextContent("RPG");
+    expect(screen.getByRole("combobox", { name: "可见性" })).toHaveTextContent("公开");
+    expect(screen.getByRole("combobox", { name: "状态" })).toHaveTextContent("招募中");
     expect(screen.getByText("保留")).toBeInTheDocument();
     expect(screen.getByDisplayValue("默认正文")).toBeInTheDocument();
   });
@@ -277,7 +275,8 @@ describe("ThreadEditForm", () => {
     const user = userEvent.setup();
     renderForm(false);
 
-    await user.selectOptions(screen.getByLabelText("状态"), "FINISHED");
+    await user.click(screen.getByRole("combobox", { name: "状态" }));
+    await user.click(await screen.findByRole("option", { name: "已结束" }));
     await user.click(screen.getByRole("button", { name: "保存修改" }));
 
     expect(mockSaveThreadMutate).toHaveBeenCalledWith(
