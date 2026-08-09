@@ -60,6 +60,7 @@
   --layout-workspace: 72rem;
   --layout-chrome-workspace: 78rem;
   --layout-wide: 80rem;
+  --sticker-display-max: 8rem;
 
   --wenyou-shadow-popover: 0 12px 32px rgb(52 47 62 / 12%);
   --wenyou-shadow-dialog: 0 24px 64px rgb(52 47 62 / 16%);
@@ -449,4 +450,13 @@ select {
   max-width: 100%;
   max-height: 50vh;
   height: auto;
+}
+
+/* 帖子、动态与私聊使用同一表情上限；选择器需覆盖上方普通正文图片兜底。 */
+img.sticker-display {
+  width: auto;
+  height: auto;
+  max-width: min(var(--sticker-display-max), 100%);
+  max-height: var(--sticker-display-max);
+  object-fit: contain;
 }

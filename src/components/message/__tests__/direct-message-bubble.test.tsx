@@ -162,4 +162,35 @@ describe("DirectMessageBubble", () => {
       "https://images.example.com/mobile-safe-medium.webp",
     );
   });
+
+  test("静态私聊表情使用缩略图并遵循共享 128px 上限", () => {
+    render(
+      <DirectMessageBubble
+        message={message({
+          content: null,
+          sticker: {
+            id: "sticker-1",
+            url: "https://cdn.example.com/sticker.webp",
+            thumbnailUrl: "https://cdn.example.com/sticker_thumb.webp",
+            mediumUrl: "https://cdn.example.com/sticker.webp",
+            contentType: "image/webp",
+            width: 512,
+            height: 320,
+            animated: false,
+            frameCount: 1,
+            durationMs: 0,
+          },
+        })}
+        mine={false}
+      />,
+    );
+
+    const sticker = screen.getByRole("img", { name: "私聊表情" });
+    expect(sticker).toHaveAttribute(
+      "src",
+      "https://cdn.example.com/sticker_thumb.webp",
+    );
+    expect(sticker).toHaveClass("sticker-display");
+    expect(sticker.getAttribute("style")).toContain("--sticker-display-max");
+  });
 });

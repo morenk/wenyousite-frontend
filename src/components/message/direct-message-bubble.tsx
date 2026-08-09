@@ -8,6 +8,7 @@ import { normalizeDirectMessageContent } from "@/lib/direct-message-content";
 import { cn } from "@/lib/utils";
 import type { DirectMessage } from "@/api/hooks/use-direct-messages";
 import { SaveStickerButton } from "@/components/sticker/save-sticker-button";
+import { getStickerDisplayUrl, STICKER_DISPLAY_STYLE } from "@/lib/sticker-display";
 
 function PlainTextWithLinks({ content }: { content: string }) {
   const parts = content.split(/(https?:\/\/[^\s]+)/g);
@@ -62,7 +63,7 @@ export const DirectMessageBubble = memo(function DirectMessageBubble({
     || !!imageUrl && /\.gif(?:[?#]|$)/iu.test(imageUrl);
   const displayImageUrl = imageUrl
     ? message.sticker
-      ? imageUrl
+      ? getStickerDisplayUrl(message.sticker)
       : isAnimatedGif ? imageUrl : message.media?.mediumUrl ?? imageUrl
     : undefined;
 
@@ -113,8 +114,9 @@ export const DirectMessageBubble = memo(function DirectMessageBubble({
                         decoding="async"
                         className={cn(
                           "max-w-full object-contain",
-                          message.sticker ? "max-h-[180px] max-w-[180px]" : "max-h-80",
+                          message.sticker ? "sticker-display" : "max-h-80",
                         )}
+                        style={message.sticker ? STICKER_DISPLAY_STYLE : undefined}
                       />
                     </button>
                   )}

@@ -24,6 +24,7 @@ import {
 import { ImageLightbox } from "@/components/shared/image-lightbox";
 import { cn } from "@/lib/utils";
 import { SaveStickerButton } from "@/components/sticker/save-sticker-button";
+import { STICKER_DISPLAY_STYLE } from "@/lib/sticker-display";
 
 /** 判断是否为本站上传图片（objectKey 统一以 uploads/ 开头）且非派生图 */
 function isUploadedMediaUrl(url: string): boolean {
@@ -93,10 +94,10 @@ function MarkdownImage({ src, alt, title, sourcePostId }: ImageProps & { sourceP
           loading="lazy"
           className={cn(
             "cursor-zoom-in object-contain",
-            sticker ? "inline-block max-h-32 max-w-32 rounded" : "block max-w-full rounded-lg",
+            sticker ? "sticker-display inline-block rounded" : "block max-w-full rounded-lg",
           )}
           style={sticker
-            ? { width: "auto", height: "auto" }
+            ? STICKER_DISPLAY_STYLE
             : { maxWidth: "100%", maxHeight: "50vh", height: "auto" }}
           onError={() => {
             if (mediumUrl !== originalUrl) setFailed(true);

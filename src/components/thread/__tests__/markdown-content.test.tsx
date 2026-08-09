@@ -113,6 +113,18 @@ describe("MarkdownContent", () => {
     );
   });
 
+  test("帖子表情使用共享 128px 上限，不被普通 prose 图片规则放大", () => {
+    render(
+      <MarkdownContent
+        content={'![表情](https://cdn.example.com/stickers/asset.webp "wenyousite-sticker:v1:asset-1")'}
+      />,
+    );
+
+    const sticker = screen.getByRole("img", { name: "表情" });
+    expect(sticker).toHaveClass("sticker-display");
+    expect(sticker.getAttribute("style")).toContain("--sticker-display-max");
+  });
+
   test.each([
     "https://cos.example.com/wenyou/uploads/2026/01/01/u1/animated.gif",
     "https://cos.example.com/wenyou/uploads/2026/01/01/u1/animated.GIF?version=1#preview",
