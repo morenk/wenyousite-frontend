@@ -95,6 +95,19 @@ describe("MomentDetailView", () => {
     const { container } = render(<MomentDetailView momentId="moment-1" />);
     expect(container.querySelector("article")).toHaveClass("w-full", "bg-background");
     expect(container.querySelector("article")).not.toHaveClass("max-w-[36rem]");
+    const titleCard = container.querySelector('[data-slot="moment-detail-title-card"]');
+    expect(titleCard).toHaveClass(
+      "w-full",
+      "sm:px-7",
+    );
+    expect(titleCard).toContainElement(screen.getByRole("heading", { name: "原动态标题" }));
+    expect(titleCard).toContainElement(screen.getByRole("button", { name: "编辑动态" }));
+    expect(titleCard).toContainElement(screen.getByRole("button", { name: "删除动态" }));
+    expect(container.querySelector('[data-slot="moment-detail-reading"]')).toHaveClass(
+      "w-full",
+      "sm:px-7",
+    );
+    expect(container.querySelector('[data-slot="moment-detail-reading"]')).not.toHaveClass("max-w-moment");
     fireEvent.click(screen.getByRole("button", { name: "编辑动态" }));
     fireEvent.change(screen.getByRole("textbox", { name: "动态标题" }), { target: { value: "新动态标题" } });
     fireEvent.change(screen.getByRole("textbox", { name: "动态正文" }), { target: { value: "新正文" } });
@@ -126,7 +139,7 @@ describe("MomentDetailView", () => {
       refetch: vi.fn(),
     });
 
-    render(<MomentDetailView momentId="moment-1" />);
+    const { container } = render(<MomentDetailView momentId="moment-1" />);
 
     const image = screen.getByAltText("原动态标题，第 1 张图片");
     expect(image).toHaveAttribute("src", "https://cdn.example.com/portrait-md.webp");
@@ -134,8 +147,17 @@ describe("MomentDetailView", () => {
     expect(image).toHaveAttribute("height", "1920");
     expect(image.closest('[data-slot="moment-detail-image"]')).toHaveClass(
       "w-full",
-      "max-h-[min(51vh,29rem)]",
+      "max-h-[min(72vh,42rem)]",
     );
+    expect(image.closest('[data-slot="moment-detail-carousel"]')).toHaveClass(
+      "w-full",
+    );
+    expect(image.closest('[data-slot="moment-detail-carousel"]')).not.toHaveClass("-mx-2");
+    const titleCard = container.querySelector('[data-slot="moment-detail-title-card"]');
+    const carousel = container.querySelector('[data-slot="moment-detail-carousel"]');
+    expect(titleCard?.querySelector("h1")).toHaveTextContent("原动态标题");
+    expect(titleCard?.compareDocumentPosition(carousel as Node)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(screen.queryByText("动态")).not.toBeInTheDocument();
   });
 
   test("详情多图使用可循环的左右箭头轮播而不是网格", () => {

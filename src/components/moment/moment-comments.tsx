@@ -3,10 +3,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { ArrowDownUp, ChevronDown, ImagePlus, Loader2, Reply, Trash2, X } from "lucide-react";
+import { ArrowDownUp, ChevronDown, ChevronUp, ImagePlus, Loader2, Reply, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { z } from "zod";
 import {
@@ -35,15 +35,19 @@ import {
   type UploadImageStage,
 } from "@/lib/upload-image";
 import type { ReplyFilters, ReplyOrder } from "@/api/reply-query";
+import { getStickerDisplayUrl, STICKER_DISPLAY_STYLE } from "@/lib/sticker-display";
+import { cn } from "@/lib/utils";
 
 const commentSchema = z.object({
   content: z.string().trim().max(500, "评论最多 500 个字"),
 });
 type CommentForm = z.infer<typeof commentSchema>;
 type ReplyTarget = { id: string; username: string } | null;
+const LARGE_REPLY_THREAD_THRESHOLD = 10;
 
 export function MomentComments({ momentId }: { momentId: string }) {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
   const [order, setOrder] = useState<ReplyOrder>("NEWEST");
   const filters = useMemo<ReplyFilters>(
     () => ({ order }),
@@ -52,6 +56,40 @@ export function MomentComments({ momentId }: { momentId: string }) {
   const commentsQuery = useMomentComments(momentId, user?.id, filters);
   const comments = commentsQuery.data?.pages.flatMap((page) => page.data) ?? [];
   const [replyTarget, setReplyTarget] = useState<ReplyTarget>(null);
+  const targetRootCommentId = searchParams.get("comment");
+  const targetReplyId = targetRootCommentId ? searchParams.get("reply") : null;
+  const targetRootLoaded = !!targetRootCommentId && comments.some(
+    (comment) => comment.id === targetRootCommentId,
+  );
+  const loadedCommentPageCount = commentsQuery.data?.pages.length ?? 0;
+  const hasNextCommentPage = commentsQuery.hasNextPage;
+  const isFetchingNextCommentPage = commentsQuery.isFetchingNextPage;
+  const fetchNextCommentPage = commentsQuery.fetchNextPage;
+  const requestedCommentPageCountRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    requestedCommentPageCountRef.current = null;
+  }, [order, targetRootCommentId]);
+
+  useEffect(() => {
+    if (
+      !targetRootCommentId ||
+      targetRootLoaded ||
+      !hasNextCommentPage ||
+      isFetchingNextCommentPage ||
+      requestedCommentPageCountRef.current === loadedCommentPageCount
+    ) return;
+
+    requestedCommentPageCountRef.current = loadedCommentPageCount;
+    void fetchNextCommentPage();
+  }, [
+    fetchNextCommentPage,
+    hasNextCommentPage,
+    isFetchingNextCommentPage,
+    loadedCommentPageCount,
+    targetRootCommentId,
+    targetRootLoaded,
+  ]);
 
   return (
     <section id="comments" className="scroll-mt-6 pt-8" aria-labelledby="moment-comments-title">
@@ -83,11 +121,16 @@ export function MomentComments({ momentId }: { momentId: string }) {
         <div className="mt-7 divide-y divide-border/70">
           {comments.map((comment) => (
             <MomentCommentThread
-              key={comment.id}
+              key={`${comment.id}:${comment.id === targetRootCommentId
+                ? targetReplyId ?? targetRootCommentId
+                : ""}`}
               momentId={momentId}
               comment={comment}
               filters={filters}
               onReply={setReplyTarget}
+              focusedCommentId={comment.id === targetRootCommentId
+                ? targetReplyId ?? targetRootCommentId
+                : undefined}
             />
           ))}
         </div>
@@ -314,9 +357,10 @@ function MomentCommentForm({ momentId, replyTarget, onCancelReply }: { momentId:
         <div className="relative mt-3 w-fit rounded-xl bg-background/75 p-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={sticker?.asset.url ?? previewUrl ?? ""}
+            src={sticker ? getStickerDisplayUrl(sticker.asset) : previewUrl ?? ""}
             alt={sticker ? "待发送表情包" : "待发送评论图片"}
-            className={sticker ? "max-h-28 max-w-28 object-contain" : "max-h-40 max-w-56 rounded-lg object-contain"}
+            className={sticker ? "sticker-display object-contain" : "max-h-40 max-w-56 rounded-lg object-contain"}
+            style={sticker ? STICKER_DISPLAY_STYLE : undefined}
           />
           <button
             type="button"
@@ -374,28 +418,119 @@ function MomentCommentForm({ momentId, replyTarget, onCancelReply }: { momentId:
   );
 }
 
-function MomentCommentThread({ momentId, comment, filters, onReply }: { momentId: string; comment: MomentRootComment; filters: ReplyFilters; onReply: (target: ReplyTarget) => void }) {
+function MomentCommentThread({
+  momentId,
+  comment,
+  filters,
+  onReply,
+  focusedCommentId,
+}: {
+  momentId: string;
+  comment: MomentRootComment;
+  filters: ReplyFilters;
+  onReply: (target: ReplyTarget) => void;
+  focusedCommentId?: string;
+}) {
   const { user } = useAuth();
-  const [expanded, setExpanded] = useState(false);
+  const targetReplyId = focusedCommentId && focusedCommentId !== comment.id
+    ? focusedCommentId
+    : null;
+  const [expanded, setExpanded] = useState(() => !!targetReplyId);
+  const threadRef = useRef<HTMLElement | null>(null);
+  const requestedReplyPageCountRef = useRef<number | null>(null);
   const repliesQuery = useMomentReplies(momentId, comment.id, user?.id, expanded, filters);
   const expandedReplies = repliesQuery.data?.pages.flatMap((page) => page.data) ?? [];
-  const replies = expanded ? expandedReplies : comment.replies;
+  const replies = expanded
+    ? repliesQuery.data ? expandedReplies : comment.replies
+    : comment.replies;
+  const targetReplyLoaded = !!targetReplyId && expandedReplies.some(
+    (reply) => reply.id === targetReplyId,
+  );
+  const loadedReplyPageCount = repliesQuery.data?.pages.length ?? 0;
+  const hasNextReplyPage = repliesQuery.hasNextPage;
+  const isFetchingNextReplyPage = repliesQuery.isFetchingNextPage;
+  const fetchNextReplyPage = repliesQuery.fetchNextPage;
+  const isLargeExpandedThread = expanded && comment.replyCount > LARGE_REPLY_THREAD_THRESHOLD;
+
+  useEffect(() => {
+    requestedReplyPageCountRef.current = null;
+  }, [targetReplyId]);
+
+  useEffect(() => {
+    if (
+      !expanded ||
+      !targetReplyId ||
+      targetReplyLoaded ||
+      !hasNextReplyPage ||
+      isFetchingNextReplyPage ||
+      requestedReplyPageCountRef.current === loadedReplyPageCount
+    ) return;
+
+    requestedReplyPageCountRef.current = loadedReplyPageCount;
+    void fetchNextReplyPage();
+  }, [
+    expanded,
+    fetchNextReplyPage,
+    hasNextReplyPage,
+    isFetchingNextReplyPage,
+    loadedReplyPageCount,
+    targetReplyId,
+    targetReplyLoaded,
+  ]);
+
+  const collapseReplies = () => {
+    setExpanded(false);
+    window.requestAnimationFrame(() => {
+      threadRef.current?.scrollIntoView({ behavior: "auto", block: "start" });
+    });
+  };
 
   return (
-    <article className="py-5">
+    <article ref={threadRef} className="scroll-mt-6 py-5">
       <CommentRow
         momentId={momentId}
         comment={comment}
         onReply={onReply}
+        focused={focusedCommentId === comment.id}
       />
       {replies.length > 0 ? (
         <div className="ml-10 mt-3 space-y-3 rounded-2xl bg-muted/55 px-4 py-3">
-          {replies.map((reply) => <CommentRow key={reply.id} momentId={momentId} comment={reply} compact onReply={onReply} />)}
+          {isLargeExpandedThread ? (
+            <div
+              data-slot="moment-replies-collapse-dock"
+              className="pointer-events-none sticky top-4 z-20 mb-2 flex h-8 justify-end"
+            >
+              <button
+                type="button"
+                onClick={collapseReplies}
+                aria-label={`收起 ${comment.replyCount} 条回复`}
+                className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-background/95 px-3 py-1.5 text-xs font-semibold text-muted-foreground shadow-sm backdrop-blur-xl transition-[background-color,color,box-shadow,transform] hover:-translate-y-0.5 hover:bg-background hover:text-brand-strong hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+              >
+                <ChevronUp className="size-3.5" />
+                收起 {comment.replyCount} 条回复
+              </button>
+            </div>
+          ) : null}
+          {replies.map((reply) => (
+            <CommentRow
+              key={reply.id}
+              momentId={momentId}
+              comment={reply}
+              compact
+              onReply={onReply}
+              focused={focusedCommentId === reply.id}
+            />
+          ))}
           {!expanded && comment.replyCount > comment.replies.length ? (
             <button type="button" onClick={() => setExpanded(true)} className="text-xs font-semibold text-brand-strong hover:underline">展开全部 {comment.replyCount} 条回复</button>
           ) : null}
           {expanded && repliesQuery.hasNextPage ? (
             <button type="button" disabled={repliesQuery.isFetchingNextPage} onClick={() => void repliesQuery.fetchNextPage()} className="inline-flex items-center gap-1 text-xs font-semibold text-brand-strong hover:underline disabled:opacity-50">{repliesQuery.isFetchingNextPage && <Loader2 className="size-3 animate-spin" />}继续加载</button>
+          ) : null}
+          {expanded && !isLargeExpandedThread ? (
+            <button type="button" onClick={collapseReplies} className="inline-flex items-center gap-1 text-xs font-semibold text-brand-strong hover:underline">
+              <ChevronUp className="size-3" />收起回复
+            </button>
           ) : null}
         </div>
       ) : null}
@@ -408,15 +543,27 @@ function CommentRow({
   comment,
   compact = false,
   onReply,
+  focused = false,
 }: {
   momentId: string;
   comment: MomentComment;
   compact?: boolean;
   onReply: (target: ReplyTarget) => void;
+  focused?: boolean;
 }) {
   const { user } = useAuth();
   const remove = useDeleteMomentComment(momentId, user?.id);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const rowRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!focused) return;
+    const frame = window.requestAnimationFrame(() => {
+      rowRef.current?.scrollIntoView({ behavior: "auto", block: "center" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [focused]);
+
   const deleteComment = async () => {
     try {
       await remove.mutateAsync(comment.id);
@@ -427,7 +574,15 @@ function CommentRow({
   };
 
   return (
-    <div className="flex gap-3">
+    <div
+      ref={rowRef}
+      id={`moment-comment-${comment.id}`}
+      aria-current={focused ? "location" : undefined}
+      className={cn(
+        "flex scroll-mt-24 gap-3 rounded-xl transition-[background-color,box-shadow]",
+        focused && "bg-primary/[0.06] ring-2 ring-primary/25 ring-offset-4 ring-offset-background",
+      )}
+    >
       <UserAvatar name={comment.author.username} src={comment.author.avatar} className={compact ? "size-7" : "size-9"} textClassName="text-[0.625rem]" />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
@@ -457,13 +612,16 @@ function CommentRow({
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={comment.sticker?.url ?? comment.media?.mediumUrl ?? comment.media?.url ?? ""}
+              src={comment.sticker
+                ? getStickerDisplayUrl(comment.sticker)
+                : comment.media?.mediumUrl ?? comment.media?.url ?? ""}
               alt={comment.sticker ? "评论表情包" : "评论图片"}
               loading="lazy"
               decoding="async"
               className={comment.sticker
-                ? "max-h-32 max-w-32 object-contain"
+                ? "sticker-display object-contain"
                 : "max-h-72 max-w-60 rounded-xl object-contain"}
+              style={comment.sticker ? STICKER_DISPLAY_STYLE : undefined}
             />
           </button>
         ) : null}

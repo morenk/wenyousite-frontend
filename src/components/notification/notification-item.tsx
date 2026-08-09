@@ -36,6 +36,8 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const displayContent = sanitizeNotificationContent(notification);
   const structuredContent = getStructuredNotificationContent(notification);
   const deletedHint = getDeletedHint(notification);
+  const targetMomentId = notification.target.momentId ?? notification.momentId;
+  const targetMomentCommentId = notification.target.momentCommentId ?? notification.momentCommentId;
   const href = notification.target.kind === "post" &&
     notification.target.postId && notification.target.threadId
     ? getPostHref({
@@ -45,8 +47,12 @@ export function NotificationItem({ notification }: NotificationItemProps) {
       })
     : notification.target.kind === "thread" && notification.target.threadId
       ? `/threads/${notification.target.threadId}`
-    : notification.target.kind === "moment" && notification.target.momentId
-      ? `/moments/${notification.target.momentId}${notification.target.momentCommentId ? `#comments` : ""}`
+    : notification.target.kind === "moment" && targetMomentId
+      ? getMomentNotificationHref(
+          targetMomentId,
+          targetMomentCommentId,
+          notification.momentComment?.parentCommentId,
+        )
     : notification.target.kind === "user" && notification.target.userId
       ? `/users/${notification.target.userId}`
       : null;
@@ -162,8 +168,25 @@ function getDeletedHint(notification: NotificationItemData): string | null {
   if (notification.threadId && notification.thread?.deletedAt) return "该内容已删除";
   if (notification.postId && notification.post?.deletedAt) return "该内容已删除";
   if (notification.momentId && notification.moment?.deletedAt) return "该动态已删除";
+  if (notification.momentCommentId && notification.momentComment?.deletedAt) return "该评论已删除";
   if (notification.fromUserId && notification.fromUser?.deletedAt) return "该用户已注销";
   return null;
+}
+
+function getMomentNotificationHref(
+  momentId: string,
+  momentCommentId?: string | null,
+  parentCommentId?: string | null,
+): string {
+  const baseHref = `/moments/${encodeURIComponent(momentId)}`;
+  if (!momentCommentId) return baseHref;
+
+  const params = new URLSearchParams({
+    comment: parentCommentId ?? momentCommentId,
+  });
+  if (parentCommentId) params.set("reply", momentCommentId);
+
+  return `${baseHref}?${params.toString()}#moment-comment-${encodeURIComponent(momentCommentId)}`;
 }
 
 /** 兼容旧通知中残留的图片 Markdown、Milkdown 比例 alt、转义反斜杠及硬换行。 */

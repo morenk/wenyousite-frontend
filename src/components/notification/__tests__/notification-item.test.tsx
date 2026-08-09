@@ -109,6 +109,98 @@ describe("NotificationItem", () => {
     );
   });
 
+  test("动态主评论通知携带评论定位参数", () => {
+    renderWithQC(
+      <NotificationItem
+        notification={baseNotification({
+          postId: null,
+          threadId: null,
+          momentId: "moment-1",
+          momentCommentId: "comment-root",
+          target: {
+            kind: "moment",
+            threadId: null,
+            postId: null,
+            momentId: "moment-1",
+            momentCommentId: "comment-root",
+            userId: null,
+          },
+          post: null,
+          thread: null,
+          moment: { id: "moment-1", title: "测试动态" },
+          momentComment: { id: "comment-root", parentCommentId: null },
+        })}
+      />,
+    );
+
+    expect(screen.getByRole("link")).toHaveAttribute(
+      "href",
+      "/moments/moment-1?comment=comment-root#moment-comment-comment-root",
+    );
+  });
+
+  test("动态楼中楼通知同时携带主评论与具体回复定位参数", () => {
+    renderWithQC(
+      <NotificationItem
+        notification={baseNotification({
+          postId: null,
+          threadId: null,
+          momentId: "moment-1",
+          momentCommentId: "reply-108",
+          target: {
+            kind: "moment",
+            threadId: null,
+            postId: null,
+            momentId: "moment-1",
+            momentCommentId: "reply-108",
+            userId: null,
+          },
+          post: null,
+          thread: null,
+          moment: { id: "moment-1", title: "测试动态" },
+          momentComment: { id: "reply-108", parentCommentId: "comment-root" },
+        })}
+      />,
+    );
+
+    expect(screen.getByRole("link")).toHaveAttribute(
+      "href",
+      "/moments/moment-1?comment=comment-root&reply=reply-108#moment-comment-reply-108",
+    );
+  });
+
+  test("动态评论已删除时不再提供失效的定位链接", () => {
+    renderWithQC(
+      <NotificationItem
+        notification={baseNotification({
+          postId: null,
+          threadId: null,
+          momentId: "moment-1",
+          momentCommentId: "comment-deleted",
+          target: {
+            kind: "moment",
+            threadId: null,
+            postId: null,
+            momentId: "moment-1",
+            momentCommentId: "comment-deleted",
+            userId: null,
+          },
+          post: null,
+          thread: null,
+          moment: { id: "moment-1", title: "测试动态" },
+          momentComment: {
+            id: "comment-deleted",
+            parentCommentId: null,
+            deletedAt: "2026-01-02T00:00:00Z",
+          },
+        })}
+      />,
+    );
+
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(screen.getByText("该评论已删除")).toBeInTheDocument();
+  });
+
   test("未读点击触发标记已读", async () => {
     const user = userEvent.setup();
     const markReadMutate = vi.fn();

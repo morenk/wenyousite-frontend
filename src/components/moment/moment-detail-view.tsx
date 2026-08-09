@@ -112,26 +112,48 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
 
   return (
     <article className="w-full bg-background">
-      <header className="flex items-center gap-3 px-5 py-4 sm:px-7">
-        <Link href={`/users/${moment.author.id}`} className="flex min-w-0 items-center gap-3 rounded-xl">
-          <UserAvatar name={moment.author.username} src={moment.author.avatar} className="size-10" />
-          <div className="min-w-0"><p className="truncate text-sm font-bold">{moment.author.username}</p><time className="font-utility text-xs text-muted-foreground" dateTime={moment.createdAt}>{format(new Date(moment.createdAt), "yyyy年M月d日 HH:mm", { locale: zhCN })}</time></div>
-        </Link>
-        <div className="ml-auto flex items-center gap-1">
-          {moment.canEdit && !editing ? <Button variant="ghost" size="icon-sm" onClick={startEditing} aria-label="编辑动态" title="编辑动态"><Pencil /></Button> : null}
-          {moment.canDelete ? <Button variant="ghost" size="icon-sm" onClick={() => void deleteMoment()} disabled={remove.isPending} aria-label="删除动态" title="删除动态"><Trash2 /></Button> : null}
-        </div>
-      </header>
+      <section
+        data-slot="moment-detail-title-card"
+        className="mb-3 w-full rounded-2xl bg-muted/35 px-5 py-4 sm:px-7"
+        aria-label="动态标题与作者"
+      >
+        <header data-slot="moment-detail-header" className="flex items-center gap-3">
+          <Link href={`/users/${moment.author.id}`} className="flex min-w-0 items-center gap-3 rounded-xl">
+            <UserAvatar name={moment.author.username} src={moment.author.avatar} className="size-10" />
+            <div className="min-w-0"><p className="truncate text-sm font-bold">{moment.author.username}</p><time className="font-utility text-xs text-muted-foreground" dateTime={moment.createdAt}>{format(new Date(moment.createdAt), "yyyy年M月d日 HH:mm", { locale: zhCN })}</time></div>
+          </Link>
+          <div className="ml-auto flex items-center gap-1">
+            {moment.canEdit && !editing ? <Button variant="ghost" size="icon-sm" onClick={startEditing} aria-label="编辑动态" title="编辑动态"><Pencil /></Button> : null}
+            {moment.canDelete ? <Button variant="ghost" size="icon-sm" onClick={() => void deleteMoment()} disabled={remove.isPending} aria-label="删除动态" title="删除动态"><Trash2 /></Button> : null}
+          </div>
+        </header>
+
+        {editing ? (
+          <div className="mt-4 space-y-3 rounded-xl bg-background/75 p-4">
+            <Input value={editTitle} onChange={(event) => setEditTitle(event.target.value)} maxLength={40} aria-label="动态标题" />
+            <Textarea value={editContent} onChange={(event) => setEditContent(event.target.value)} maxLength={1000} className="min-h-32 resize-none bg-background" aria-label="动态正文" />
+            <div className="flex items-center justify-between gap-3">
+              <span className="font-utility text-xs text-muted-foreground">{Array.from(editTitle).length}/40 · {Array.from(editContent).length}/1000</span>
+              <div className="flex gap-1">
+                <Button variant="ghost" size="sm" onClick={() => setEditing(false)} disabled={update.isPending}>取消</Button>
+                <Button variant="ghost" size="sm" className="text-brand-strong" onClick={() => void saveEdit()} disabled={update.isPending}>{update.isPending ? <Loader2 className="animate-spin" /> : <Save />}保存</Button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <h1 id="moment-detail-title" className="mt-4 whitespace-pre-wrap font-display text-2xl font-bold leading-[1.5] tracking-wide sm:text-3xl">{moment.title}</h1>
+        )}
+      </section>
 
       {activeImage ? (
-        <div data-slot="moment-detail-carousel" className="bg-muted/40 p-2">
+        <div data-slot="moment-detail-carousel" className="w-full bg-muted/40 p-2">
           <div className="relative">
             <button
               key={activeImage.id}
               type="button"
               data-slot="moment-detail-image"
               onClick={() => setLightbox(activeImage.url)}
-              className="relative w-full max-h-[min(51vh,29rem)] overflow-hidden rounded-xl bg-muted"
+              className="relative w-full max-h-[min(72vh,42rem)] overflow-hidden rounded-xl bg-muted"
               style={{ aspectRatio: carouselAspectRatio }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- COS 处理中图已按契约选择 */}
@@ -174,26 +196,11 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
         </div>
       ) : null}
 
-      <div className="px-5 py-7 sm:px-8">
-        <p className="font-display text-xs tracking-[0.18em] text-muted-foreground">动态</p>
-        {editing ? (
-          <div className="mt-3 space-y-3 rounded-2xl bg-muted/55 p-4">
-            <Input value={editTitle} onChange={(event) => setEditTitle(event.target.value)} maxLength={40} aria-label="动态标题" />
-            <Textarea value={editContent} onChange={(event) => setEditContent(event.target.value)} maxLength={1000} className="min-h-32 resize-none bg-background" aria-label="动态正文" />
-            <div className="flex items-center justify-between gap-3">
-              <span className="font-utility text-xs text-muted-foreground">{Array.from(editTitle).length}/40 · {Array.from(editContent).length}/1000</span>
-              <div className="flex gap-1">
-                <Button variant="ghost" size="sm" onClick={() => setEditing(false)} disabled={update.isPending}>取消</Button>
-                <Button variant="ghost" size="sm" className="text-brand-strong" onClick={() => void saveEdit()} disabled={update.isPending}>{update.isPending ? <Loader2 className="animate-spin" /> : <Save />}保存</Button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <>
-            <h1 className="mt-2 whitespace-pre-wrap font-display text-2xl font-bold leading-[1.5] tracking-wide sm:text-3xl">{moment.title}</h1>
-            {moment.content ? <p className="mt-5 whitespace-pre-wrap break-words text-[1.0625rem] leading-8 text-foreground">{moment.content}</p> : null}
-          </>
-        )}
+      <div
+        data-slot="moment-detail-reading"
+        className="w-full px-5 py-7 sm:px-7"
+      >
+        {!editing && moment.content ? <p className="whitespace-pre-wrap break-words text-[1.0625rem] leading-8 text-foreground">{moment.content}</p> : null}
 
         <div className="mt-7 flex flex-wrap items-center gap-1 text-muted-foreground">
           <Button

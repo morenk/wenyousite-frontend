@@ -64,6 +64,22 @@ for (const file of sourceRoots.flatMap(sourceFiles)) {
   }
 }
 
+const stickerDisplayClaims = new Map([
+  ["src/app/globals.css", ["--sticker-display-max: 8rem", "img.sticker-display"]],
+  ["src/components/editor/milkdown-editor.css", ["var(--sticker-display-max)"]],
+  ["src/components/thread/markdown-content.tsx", ["sticker-display", "STICKER_DISPLAY_STYLE"]],
+  ["src/components/moment/moment-comments.tsx", ["sticker-display", "getStickerDisplayUrl"]],
+  ["src/components/message/direct-message-bubble.tsx", ["sticker-display", "getStickerDisplayUrl"]],
+]);
+for (const [fileName, claims] of stickerDisplayClaims) {
+  const source = readFileSync(resolve(root, fileName), "utf8");
+  for (const claim of claims) {
+    if (!source.includes(claim)) {
+      failures.push(`${fileName}: 表情展示必须复用统一 128px Token 与静态缩略图策略（缺少 ${claim}）`);
+    }
+  }
+}
+
 if (failures.length > 0) {
   throw new Error(`设计系统静态检查失败：\n${failures.join("\n")}`);
 }

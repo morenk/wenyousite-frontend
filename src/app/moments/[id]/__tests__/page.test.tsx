@@ -52,7 +52,7 @@ describe("MomentDetailPage", () => {
   });
   afterEach(cleanup);
 
-  test("详情使用 36rem 语义宽度并保留统一返回入口", () => {
+  test("详情使用统一 42rem 内容列并保留返回入口", () => {
     const { container } = render(<MomentDetailPage />);
 
     expect(mockDetail).toHaveBeenCalledWith({
@@ -62,11 +62,11 @@ describe("MomentDetailPage", () => {
     expect(screen.getByRole("main")).toHaveAttribute("data-width", "feed");
     expect(screen.getByRole("main")).toHaveClass("py-5");
     expect(container.querySelector('[data-slot="moment-detail-column"]')).toHaveClass(
-      "max-w-moment",
+      "max-w-feed",
       "mx-auto",
     );
     expect(container.querySelector('[data-slot="moment-detail-toolbar"]')).toHaveClass("w-full");
-    expect(container.querySelector('[data-slot="moment-detail-toolbar"]')).not.toHaveClass("max-w-[36rem]");
+    expect(container.querySelector('[data-slot="moment-detail-toolbar"]')).not.toHaveClass("max-w-moment");
     expect(screen.getByRole("button", { name: "返回动态" })).toBeInTheDocument();
     expect(screen.getByText("动态详情正文")).toBeInTheDocument();
   });

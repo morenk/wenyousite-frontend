@@ -54,6 +54,44 @@ const detail = {
   updatedAt: "2026-08-08T12:00:00.000Z",
 };
 
+const previewReply = {
+  id: "moment-reply-preview",
+  momentId: detail.id,
+  author: { id: "reply-preview-user", username: "预览回复者", avatar: null, level: 1 },
+  content: "首屏预览回复",
+  media: null,
+  sticker: null,
+  parentCommentId: "moment-comment-root",
+  replyToComment: null,
+  deleted: false,
+  canDelete: false,
+  createdAt: "2026-08-08T12:01:00.000Z",
+};
+
+const targetReply = {
+  ...previewReply,
+  id: "moment-reply-target",
+  author: { id: "reply-target-user", username: "目标回复者", avatar: null, level: 1 },
+  content: "通知需要定位的具体回复",
+  createdAt: "2026-08-08T14:00:00.000Z",
+};
+
+const longReplyRoot = {
+  id: "moment-comment-root",
+  momentId: detail.id,
+  author: { id: "root-comment-user", username: "主评论者", avatar: null, level: 1 },
+  content: "拥有很多楼中楼的主评论",
+  media: null,
+  sticker: null,
+  parentCommentId: null,
+  replyToComment: null,
+  deleted: false,
+  canDelete: false,
+  createdAt: "2026-08-08T12:00:00.000Z",
+  replyCount: 108,
+  replies: [previewReply],
+};
+
 const feedMoments = Array.from({ length: 18 }, (_, index) => {
   const isTarget = index === 17;
   return {
@@ -83,7 +121,10 @@ const feedMoments = Array.from({ length: 18 }, (_, index) => {
   };
 });
 
-async function mockMoments(page: Page) {
+async function mockMoments(
+  page: Page,
+  options: { longReplyThread?: boolean; portraitCover?: boolean } = {},
+) {
   await page.route("**/visual/**", (route) => {
     const portrait = route.request().url().includes("portrait");
     const [width, height] = portrait ? [120, 160] : [160, 100];
@@ -116,10 +157,17 @@ async function mockMoments(page: Page) {
       return response(feedMoments, { cursor: null, hasMore: false });
     }
     if (pathname === "/api/v1/moments/moment-layout/comments") {
-      return response([], { cursor: null, hasMore: false });
+      return response(options.longReplyThread ? [longReplyRoot] : [], { cursor: null, hasMore: false });
+    }
+    if (pathname === "/api/v1/moments/moment-layout/comments/moment-comment-root/replies") {
+      return response(options.longReplyThread ? [targetReply] : [], { cursor: null, hasMore: false });
     }
     if (pathname === "/api/v1/moments/moment-layout") {
-      return response(detail);
+      return response({
+        ...detail,
+        ...(options.longReplyThread ? { commentCount: 109 } : {}),
+        ...(options.portraitCover ? { coverMedia: portraitImage } : {}),
+      });
     }
     return response(null);
   });
@@ -127,12 +175,13 @@ async function mockMoments(page: Page) {
 
 test("动态详情以封面比例固定图片舞台，切图不推动正文", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await mockMoments(page);
+  await mockMoments(page, { portraitCover: true });
   await page.goto("/moments/moment-layout");
 
   const heading = page.getByRole("heading", { name: "固定舞台测试" });
   const imageFrame = page.locator('[data-slot="moment-detail-image"]');
   await expect(heading).toBeVisible();
+  await expect(heading).toBeInViewport();
   const firstImage = page.getByAltText("固定舞台测试，第 1 张图片");
   await expect(firstImage).toBeVisible();
   await expect.poll(
@@ -149,6 +198,10 @@ test("动态详情以封面比例固定图片舞台，切图不推动正文", as
   const headingBefore = await heading.boundingBox();
   expect(frameBefore).not.toBeNull();
   expect(headingBefore).not.toBeNull();
+  expect(frameBefore!.height).toBeGreaterThanOrEqual(670);
+  expect(headingBefore!.y).toBeGreaterThanOrEqual(0);
+  expect(headingBefore!.y + headingBefore!.height).toBeLessThanOrEqual(1000);
+  expect(headingBefore!.y + headingBefore!.height).toBeLessThan(frameBefore!.y);
 
   await page.getByRole("button", { name: "下一张图片" }).click();
   await expect(page.getByAltText("固定舞台测试，第 2 张图片")).toBeVisible();
@@ -210,17 +263,27 @@ test("详情替换固定中栏，返回时恢复关注流和滚动位置", async
     expect(Math.abs(afterBox.width - beforeBox.width)).toBeLessThan(1);
   });
 
-  const detailArticle = page.locator("article").filter({
-    has: page.getByRole("heading", { name: "固定舞台测试" }),
-  });
-  const [detailBox, detailShellBox] = await Promise.all([
-    detailArticle.boundingBox(),
+  const detailReading = page.locator('[data-slot="moment-detail-reading"]');
+  const detailCarousel = page.locator('[data-slot="moment-detail-carousel"]');
+  const detailTitleCard = page.locator('[data-slot="moment-detail-title-card"]');
+  const detailToolbar = page.locator('[data-slot="moment-detail-toolbar"]');
+  const [readingBox, carouselBox, titleCardBox, toolbarBox, detailShellBox] = await Promise.all([
+    detailReading.boundingBox(),
+    detailCarousel.boundingBox(),
+    detailTitleCard.boundingBox(),
+    detailToolbar.boundingBox(),
     shell.boundingBox(),
   ]);
-  if (!detailBox || !detailShellBox) throw new Error("未能测量动态详情正文");
-  expect(detailBox.width).toBeLessThanOrEqual(576);
+  if (!readingBox || !carouselBox || !titleCardBox || !toolbarBox || !detailShellBox) {
+    throw new Error("未能测量动态详情排版");
+  }
+  expect(carouselBox.width).toBeGreaterThanOrEqual(640);
+  for (const alignedBox of [readingBox, titleCardBox, toolbarBox]) {
+    expect(Math.abs(alignedBox.x - carouselBox.x)).toBeLessThan(1);
+    expect(Math.abs(alignedBox.width - carouselBox.width)).toBeLessThan(1);
+  }
   expect(Math.abs(
-    detailBox.x + detailBox.width / 2 - (detailShellBox.x + detailShellBox.width / 2),
+    carouselBox.x + carouselBox.width / 2 - (detailShellBox.x + detailShellBox.width / 2),
   )).toBeLessThan(1);
 
   await page.getByRole("button", { name: "返回动态" }).click();
@@ -230,4 +293,25 @@ test("详情替换固定中栏，返回时恢复关注流和滚动位置", async
     async () => Math.abs((await page.evaluate(() => window.scrollY)) - feedScrollY),
   ).toBeLessThan(80);
   await expect(targetCard).toBeVisible();
+});
+
+test("动态通知目标直达具体楼中楼，长讨论可从悬浮按钮收起", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 800 });
+  await mockMoments(page, { longReplyThread: true });
+  await page.goto(
+    "/moments/moment-layout?comment=moment-comment-root&reply=moment-reply-target#moment-comment-moment-reply-target",
+  );
+
+  const target = page.locator("#moment-comment-moment-reply-target");
+  await expect(target).toContainText("通知需要定位的具体回复");
+  await expect(target).toHaveAttribute("aria-current", "location");
+  await expect(target).toBeInViewport();
+
+  const collapse = page.getByRole("button", { name: "收起 108 条回复" });
+  await expect(collapse).toBeVisible();
+  await expect(collapse.locator("xpath=..")).toHaveCSS("position", "sticky");
+
+  await collapse.click();
+  await expect(target).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "展开全部 108 条回复" })).toBeVisible();
 });

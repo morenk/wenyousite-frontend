@@ -26,9 +26,8 @@ export async function openFreshThreadDraft(page: Page) {
   await createButton.click();
   await page.waitForSelector(".milkdown-editor .ProseMirror", { timeout: 30000 });
   const categorySelect = page.getByLabel("分区");
-  const firstActiveCategory = categorySelect.locator('option:not([value=""]):not([disabled])').first();
-  await expect(firstActiveCategory).toBeAttached({ timeout: 15000 });
-  const categorySlug = await firstActiveCategory.getAttribute("value");
-  if (!categorySlug) throw new Error("测试环境没有可用主题帖分类");
-  await categorySelect.selectOption(categorySlug);
+  await categorySelect.click();
+  const firstActiveCategory = page.locator('[role="option"]:not([data-disabled])').first();
+  await expect(firstActiveCategory).toBeVisible({ timeout: 15000 });
+  await firstActiveCategory.click();
 }

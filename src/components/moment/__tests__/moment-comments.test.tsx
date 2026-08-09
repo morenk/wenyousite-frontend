@@ -6,9 +6,11 @@ const {
   mockCreate,
   mockDelete,
   mockPush,
+  mockSearchParams,
   mockFetchReplies,
   mockRefetchComments,
   mockUseMomentComments,
+  mockUseMomentReplies,
   mockCompress,
   mockUpload,
   mockValidate,
@@ -19,9 +21,11 @@ const {
   mockCreate: vi.fn(),
   mockDelete: vi.fn(),
   mockPush: vi.fn(),
+  mockSearchParams: vi.fn(),
   mockFetchReplies: vi.fn(),
   mockRefetchComments: vi.fn(),
   mockUseMomentComments: vi.fn(),
+  mockUseMomentReplies: vi.fn(),
   mockCompress: vi.fn(),
   mockUpload: vi.fn(),
   mockValidate: vi.fn(),
@@ -61,6 +65,7 @@ const root = {
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
   usePathname: () => "/moments/moment-1",
+  useSearchParams: () => mockSearchParams(),
 }));
 vi.mock("@/lib/auth", () => ({ useAuth: () => mockUseAuth() }));
 vi.mock("@/lib/moment-image", () => ({
@@ -95,12 +100,7 @@ vi.mock("@/components/sticker/sticker-picker-popover", () => ({
 }));
 vi.mock("@/api/hooks/use-moments", () => ({
   useMomentComments: (...args: unknown[]) => mockUseMomentComments(...args),
-  useMomentReplies: (_momentId: string, _commentId: string, _userId: string, enabled: boolean) => ({
-    data: enabled ? { pages: [{ data: [reply] }] } : undefined,
-    hasNextPage: false,
-    isFetchingNextPage: false,
-    fetchNextPage: mockFetchReplies,
-  }),
+  useMomentReplies: (...args: unknown[]) => mockUseMomentReplies(...args),
   useCreateMomentComment: () => ({ mutateAsync: mockCreate, isPending: false }),
   useDeleteMomentComment: () => ({ mutateAsync: mockDelete, isPending: false }),
 }));
@@ -147,6 +147,15 @@ describe("MomentComments", () => {
       return rect();
     });
     mockUseAuth.mockReturnValue({ user: { id: "viewer-1" } });
+    mockSearchParams.mockReturnValue(new URLSearchParams());
+    mockUseMomentReplies.mockImplementation(
+      (_momentId: string, _commentId: string, _userId: string, enabled: boolean) => ({
+        data: enabled ? { pages: [{ data: [reply] }] } : undefined,
+        hasNextPage: false,
+        isFetchingNextPage: false,
+        fetchNextPage: mockFetchReplies,
+      }),
+    );
     mockCreate.mockResolvedValue({ id: "comment-new" });
     mockDelete.mockResolvedValue({});
     mockCompress.mockImplementation(async (file: File) => new File(
@@ -204,6 +213,96 @@ describe("MomentComments", () => {
     await waitFor(() => expect(mockDelete).toHaveBeenCalledWith("root-1"));
     fireEvent.click(screen.getByRole("button", { name: "展开全部 2 条回复" }));
     expect(screen.getByText("楼中楼内容")).toBeInTheDocument();
+  });
+
+  test("通知目标会自动展开楼中楼、定位并高亮具体回复", async () => {
+    mockSearchParams.mockReturnValue(
+      new URLSearchParams("comment=root-1&reply=reply-1"),
+    );
+    const scrollIntoView = vi
+      .spyOn(HTMLElement.prototype, "scrollIntoView")
+      .mockImplementation(() => {});
+
+    const { container } = render(<MomentComments momentId="moment-1" />);
+
+    const target = container.querySelector("#moment-comment-reply-1");
+    expect(target).toHaveAttribute("aria-current", "location");
+    expect(mockUseMomentReplies).toHaveBeenLastCalledWith(
+      "moment-1",
+      "root-1",
+      "viewer-1",
+      true,
+      { order: "NEWEST" },
+    );
+    await waitFor(() => expect(scrollIntoView).toHaveBeenCalledWith({
+      behavior: "auto",
+      block: "center",
+    }));
+  });
+
+  test("通知目标不在首批主评论时自动继续翻页查找", async () => {
+    mockSearchParams.mockReturnValue(new URLSearchParams("comment=root-later"));
+    mockUseMomentComments.mockReturnValue({
+      data: { pages: [{ data: [root] }] },
+      isLoading: false,
+      isError: false,
+      hasNextPage: true,
+      isFetchingNextPage: false,
+      fetchNextPage: mockFetchComments,
+      refetch: mockRefetchComments,
+    });
+
+    render(<MomentComments momentId="moment-1" />);
+
+    await waitFor(() => expect(mockFetchComments).toHaveBeenCalledOnce());
+  });
+
+  test("通知目标不在首批楼中楼时自动继续翻页查找", async () => {
+    mockSearchParams.mockReturnValue(
+      new URLSearchParams("comment=root-1&reply=reply-later"),
+    );
+    mockUseMomentReplies.mockReturnValue({
+      data: { pages: [{ data: [reply] }] },
+      hasNextPage: true,
+      isFetchingNextPage: false,
+      fetchNextPage: mockFetchReplies,
+    });
+
+    render(<MomentComments momentId="moment-1" />);
+
+    await waitFor(() => expect(mockFetchReplies).toHaveBeenCalledOnce());
+  });
+
+  test("超过十条的已展开楼中楼提供悬浮收起按钮", async () => {
+    const largeThread = { ...root, replyCount: 108 };
+    mockUseMomentComments.mockReturnValue({
+      data: { pages: [{ data: [largeThread] }] },
+      isLoading: false,
+      isError: false,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      fetchNextPage: mockFetchComments,
+      refetch: mockRefetchComments,
+    });
+    const scrollIntoView = vi
+      .spyOn(HTMLElement.prototype, "scrollIntoView")
+      .mockImplementation(() => {});
+
+    render(<MomentComments momentId="moment-1" />);
+    fireEvent.click(screen.getByRole("button", { name: "展开全部 108 条回复" }));
+
+    const collapse = screen.getByRole("button", { name: "收起 108 条回复" });
+    expect(collapse.closest('[data-slot="moment-replies-collapse-dock"]')).toHaveClass(
+      "sticky",
+      "top-4",
+    );
+
+    fireEvent.click(collapse);
+    expect(screen.getByRole("button", { name: "展开全部 108 条回复" })).toBeInTheDocument();
+    await waitFor(() => expect(scrollIntoView).toHaveBeenCalledWith({
+      behavior: "auto",
+      block: "start",
+    }));
   });
 
   test("访客看到登录入口并保留当前动态返回地址", () => {
@@ -332,7 +431,7 @@ describe("MomentComments", () => {
                 url: "https://cdn.example.com/sticker.webp",
                 thumbnailUrl: "https://cdn.example.com/sticker-thumb.webp",
                 mediumUrl: "https://cdn.example.com/sticker.webp",
-                animated: true,
+                animated: false,
               },
             },
             {
@@ -359,7 +458,14 @@ describe("MomentComments", () => {
       "src",
       "https://cdn.example.com/comment-md.webp",
     );
-    expect(screen.getByAltText("评论表情包")).toBeInTheDocument();
+    expect(screen.getByAltText("评论表情包")).toHaveAttribute(
+      "src",
+      "https://cdn.example.com/sticker-thumb.webp",
+    );
+    expect(screen.getByAltText("评论表情包")).toHaveClass("sticker-display");
+    expect(screen.getByAltText("评论表情包").getAttribute("style")).toContain(
+      "--sticker-display-max",
+    );
     expect(screen.getByText("该评论已删除")).toBeInTheDocument();
   });
 

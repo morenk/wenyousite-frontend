@@ -17,7 +17,7 @@ export default function MomentDetailPage() {
 
   return (
     <PageShell width="feed" className="py-5">
-      <div data-slot="moment-detail-column" className="mx-auto w-full max-w-moment">
+      <div data-slot="moment-detail-column" className="mx-auto w-full max-w-feed">
         <div data-slot="moment-detail-toolbar" className="w-full px-5 sm:px-7">
           <button
             type="button"
