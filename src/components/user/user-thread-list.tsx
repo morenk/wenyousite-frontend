@@ -54,12 +54,12 @@ export function UserThreadList({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="w-full space-y-3">
       {threads.map((thread) => (
         <Link
           key={thread.id}
           href={`/threads/${thread.id}`}
-          className="block rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-accent/20"
+          className="block w-full rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-accent/20"
         >
           <div className="mb-2 flex items-center gap-2">
             <ThreadCategoryBadge category={thread.category} />

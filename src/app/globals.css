@@ -201,6 +201,18 @@ select {
   }
 }
 
+/* 大图查看器只接管手势与可访问性，视觉仍映射到站内语义 Token。 */
+.yarl__root {
+  --yarl__color_backdrop: color-mix(in srgb, var(--foreground) 88%, transparent);
+  --yarl__color_button: var(--background);
+  --yarl__color_button_active: var(--primary);
+  --yarl__color_button_disabled: var(--muted-foreground);
+}
+
+.yarl__button {
+  filter: none;
+}
+
 /*
  * 帖子阅读排版：以全角字宽而不是通用内容宽度控制行长。
  * 17px 正文在 feed 内约为 35–37 个汉字/行；嵌套回复约为 32–35 个。
@@ -326,6 +338,12 @@ select {
   font-weight: 600;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.18em;
+}
+
+/* 传送门是正文内联语义，不继承普通外链的下划线，也不扩张成卡片。 */
+.wenyou-prose [data-slot="internal-reference-link"] {
+  color: var(--brand-strong);
+  text-decoration: none;
 }
 
 .wenyou-prose :not(pre) > code {

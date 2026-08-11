@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "@wenyousite/foundation/web/fonts.css";
 import "@wenyousite/foundation/web/tokens.css";
+import "yet-another-react-lightbox/styles.css";
 import "./globals.css";
 import { Providers } from "./providers";
 import { AppChrome } from "@/components/layout/app-chrome";

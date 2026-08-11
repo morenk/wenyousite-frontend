@@ -47,10 +47,7 @@ export function FloorList({
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-20">
-        <EmptyState
-          title="加载失败"
-          description="请检查网络连接后重试"
-        />
+        <EmptyState title="加载失败" />
         <Button variant="outline" size="sm" onClick={onRetry}>
           重试
         </Button>
@@ -60,10 +57,7 @@ export function FloorList({
 
   if (floors.length === 0) {
     return (
-      <EmptyState
-        title="暂无回复"
-        description="当前子贴还没有楼层。"
-      />
+      <EmptyState title="暂无回复" />
     );
   }
 

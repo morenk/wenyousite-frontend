@@ -91,7 +91,7 @@ export function MomentMasonry({
 
   if (isLoading) return <MomentMasonrySkeleton lanes={maxLanes} />;
   if (error) {
-    return <LoadError title="动态加载失败" description="请检查网络连接后重试" onRetry={onRetry ?? (() => undefined)} className="py-20" />;
+    return <LoadError title="动态加载失败" onRetry={onRetry ?? (() => undefined)} className="py-20" />;
   }
   if (uniqueMoments.length === 0) {
     return <EmptyState title={emptyTitle} description={emptyDescription} />;
@@ -99,7 +99,7 @@ export function MomentMasonry({
 
   const columnWidth = `calc((100% - ${(layout.lanes - 1) * GAP}px) / ${layout.lanes})`;
   return (
-    <div>
+    <div className="w-full">
       <div
         ref={containerRef}
         role="feed"

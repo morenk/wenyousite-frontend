@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import {
   Heart,
-  Gift,
+  Fuel,
   KeyRound,
   Link2,
   Loader2,
@@ -30,6 +30,7 @@ import {
   useExitThreadPlayer,
 } from "@/api/hooks/use-thread-access-actions";
 import { Button } from "@/components/ui/button";
+import { Tooltip } from "@/components/ui/tooltip";
 import { useConfirm } from "@/components/ui/confirm-provider";
 import { BookmarkButton } from "@/components/user/bookmark-button";
 import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
@@ -43,6 +44,7 @@ import { formatWenyou } from "@/lib/wenyou";
 import { ThreadCategoryBadge, ThreadCategoryMarker } from "@/components/thread/thread-category";
 import { SubthreadSwitcher } from "@/components/thread/subthread-tabs";
 import { LIKED_ACTIVE_SURFACE_CLASS_NAME } from "@/lib/like-state";
+import { getSubthreadHref } from "@/lib/post-navigation";
 
 interface ThreadDetailHeaderProps {
   thread: ThreadDetail;
@@ -51,6 +53,7 @@ interface ThreadDetailHeaderProps {
   isSearchOpen?: boolean;
   subthreads?: SubthreadDetail[];
   selectedSubthreadId?: string;
+  defaultSubthreadId?: string;
   onSubthreadChange?: (id: string) => void;
 }
 
@@ -86,6 +89,7 @@ export function ThreadDetailHeader({
   isSearchOpen = false,
   subthreads = [],
   selectedSubthreadId,
+  defaultSubthreadId,
   onSubthreadChange,
 }: ThreadDetailHeaderProps) {
   const { user } = useAuth();
@@ -144,6 +148,21 @@ export function ThreadDetailHeader({
         `${window.location.origin}/threads/${thread.id}`,
       );
       toast.success("链接已复制");
+    } catch {
+      toast.error("复制失败，请稍后重试");
+    }
+  };
+
+  const handleCopySubthreadLink = async () => {
+    try {
+      await navigator.clipboard.writeText(
+        `${window.location.origin}${getSubthreadHref(
+          thread.id,
+          selectedSubthreadId,
+          defaultSubthreadId,
+        )}`,
+      );
+      toast.success("当前子贴链接已复制");
     } catch {
       toast.error("复制失败，请稍后重试");
     }
@@ -216,46 +235,49 @@ export function ThreadDetailHeader({
               {hasBrowseTools ? (
                 <ThreadActionGroup label="浏览工具">
                   {onSearch ? (
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label="搜索本帖楼层"
-                      title="搜索本帖楼层"
-                      aria-expanded={isSearchOpen}
-                      onClick={onSearch}
-                      className={cn(actionButtonClassName, isSearchOpen && "bg-accent text-foreground")}
-                    >
-                      <Search className="h-4 w-4" />
-                    </Button>
+                    <Tooltip content={isSearchOpen ? "关闭本帖搜索" : "搜索本帖楼层"}>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label="搜索本帖楼层"
+                        aria-expanded={isSearchOpen}
+                        onClick={onSearch}
+                        className={cn(actionButtonClassName, isSearchOpen && "bg-accent text-foreground")}
+                      >
+                        <Search className="h-4 w-4" />
+                      </Button>
+                    </Tooltip>
                   ) : null}
                   {thread.visibility === "PUBLIC" ? (
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label="复制主题帖链接"
-                      title="复制主题帖链接"
-                      onClick={handleCopyThreadLink}
-                      className={actionButtonClassName}
-                    >
-                      <Link2 className="h-4 w-4" />
-                    </Button>
+                    <Tooltip content="复制主题帖链接">
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label="复制主题帖链接"
+                        onClick={handleCopyThreadLink}
+                        className={actionButtonClassName}
+                      >
+                        <Link2 className="h-4 w-4" />
+                      </Button>
+                    </Tooltip>
                   ) : null}
                   {isOwner && thread.published && thread.visibility === "PRIVATE" ? (
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={handleCopyInviteLink}
-                      disabled={createInviteLink.isPending}
-                      aria-label="生成并复制私密帖邀请链接"
-                      title="生成并复制私密帖邀请链接"
-                      className={actionButtonClassName}
-                    >
-                      {createInviteLink.isPending ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <KeyRound className="h-4 w-4" />
-                      )}
-                    </Button>
+                    <Tooltip content="生成并复制私密帖邀请链接" disabled={createInviteLink.isPending}>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={handleCopyInviteLink}
+                        disabled={createInviteLink.isPending}
+                        aria-label="生成并复制私密帖邀请链接"
+                        className={actionButtonClassName}
+                      >
+                        {createInviteLink.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <KeyRound className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </Tooltip>
                   ) : null}
                 </ThreadActionGroup>
               ) : null}
@@ -263,50 +285,53 @@ export function ThreadDetailHeader({
               {hasManagementTools ? (
                 <ThreadActionGroup label="管理操作">
                   {!isOwner && currentMember?.playerMarked ? (
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={handleExitPlayer}
-                      disabled={exitThreadPlayer.isPending}
-                      aria-label="退出玩家身份"
-                      title="退出玩家身份"
-                      className={actionButtonClassName}
-                    >
-                      {exitThreadPlayer.isPending ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <LogOut className="h-4 w-4" />
-                      )}
-                    </Button>
+                    <Tooltip content="退出玩家身份" disabled={exitThreadPlayer.isPending}>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={handleExitPlayer}
+                        disabled={exitThreadPlayer.isPending}
+                        aria-label="退出玩家身份"
+                        className={actionButtonClassName}
+                      >
+                        {exitThreadPlayer.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <LogOut className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </Tooltip>
                   ) : null}
                   {canManageThread && onManage ? (
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={onManage}
-                      aria-label="管理主题帖"
-                      title="管理主题帖"
-                      className={actionButtonClassName}
-                    >
-                      <Settings className="h-4 w-4" />
-                    </Button>
+                    <Tooltip content="管理主题帖">
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={onManage}
+                        aria-label="管理主题帖"
+                        className={actionButtonClassName}
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    </Tooltip>
                   ) : null}
                   {canManageThread && isOwner ? (
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      className="rounded-lg text-destructive hover:bg-destructive-soft hover:text-destructive"
-                      aria-label="删除主题帖"
-                      title="删除主题帖"
-                      onClick={handleDeleteThread}
-                      disabled={deleteThread.isPending}
-                    >
-                      {deleteThread.isPending ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Trash2 className="h-4 w-4" />
-                      )}
-                    </Button>
+                    <Tooltip content="删除主题帖" disabled={deleteThread.isPending}>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        className="rounded-lg text-destructive hover:bg-destructive-soft hover:text-destructive"
+                        aria-label="删除主题帖"
+                        onClick={handleDeleteThread}
+                        disabled={deleteThread.isPending}
+                      >
+                        {deleteThread.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </Tooltip>
                   ) : null}
                 </ThreadActionGroup>
               ) : null}
@@ -338,7 +363,7 @@ export function ThreadDetailHeader({
           <span>{thread._count.players} 位玩家</span>
           <span>{thread._count.posts} 楼</span>
           <span className="flex items-center gap-1" title="累计获得温油">
-            <Gift className="h-3.5 w-3.5" />
+            <Fuel className="h-3.5 w-3.5" />
             {formatWenyou(thread.tipTotal)} 升温油
           </span>
         </div>
@@ -362,6 +387,7 @@ export function ThreadDetailHeader({
               subthreads={subthreads}
               selectedId={selectedSubthreadId}
               onChange={onSubthreadChange}
+              onCopyCurrent={handleCopySubthreadLink}
               className="min-w-0 max-w-sm flex-1"
             />
           ) : null}

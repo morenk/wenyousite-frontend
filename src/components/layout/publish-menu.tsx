@@ -54,7 +54,6 @@ export function PublishMenu({ userId, compact = false }: { userId: string; compa
             <Popover.Popup className="w-64 rounded-2xl bg-popover p-2 text-popover-foreground shadow-popover outline-none">
               <div className="px-3 pb-2 pt-2">
                 <Popover.Title className="font-display text-base font-bold tracking-wide">选择发布方式</Popover.Title>
-                <Popover.Description className="mt-0.5 text-xs text-muted-foreground">按内容长度选择合适的入口</Popover.Description>
               </div>
               <nav className="grid gap-1" aria-label="发布选项">
                 <Link
@@ -65,7 +64,6 @@ export function PublishMenu({ userId, compact = false }: { userId: string; compa
                   <FileText className="size-5 text-brand-strong" />
                   <span className="min-w-0 flex-1">
                     <span className="block font-display text-[0.9375rem] font-bold">发布主题帖</span>
-                    <span className="block truncate text-xs text-muted-foreground">长内容、楼层与讨论</span>
                   </span>
                   <ChevronRight className="size-4 text-muted-foreground transition-transform group-hover/item:translate-x-0.5" />
                 </Link>
@@ -80,7 +78,6 @@ export function PublishMenu({ userId, compact = false }: { userId: string; compa
                   <Images className="size-5 text-brand-strong" />
                   <span className="min-w-0 flex-1">
                     <span className="block font-display text-[0.9375rem] font-bold">发布动态</span>
-                    <span className="block truncate text-xs text-muted-foreground">短文字与图片瀑布流</span>
                   </span>
                   <ChevronRight className="size-4 text-muted-foreground transition-transform group-hover/item:translate-x-0.5" />
                 </button>

@@ -55,7 +55,6 @@ export function ThreadList({
       <Panel padding="none">
         <LoadError
           title="加载失败"
-          description="请检查网络连接后重试"
           onRetry={onRetry}
           className="py-20"
         />
@@ -66,7 +65,7 @@ export function ThreadList({
   if (threads.length === 0) {
     return (
       <Panel padding="none">
-        <EmptyState title="还没有主题帖" description="创建后会显示在这里。" />
+        <EmptyState title="还没有主题帖" />
       </Panel>
     );
   }
@@ -77,7 +76,7 @@ export function ThreadList({
   );
 
   return (
-    <div className="relative" aria-busy={isRefreshing || undefined}>
+    <div className="relative w-full" aria-busy={isRefreshing || undefined}>
       {isRefreshing && <ListRefreshIndicator />}
       <StackList role="list" aria-label="主题帖列表">
         {uniqueThreads.map((thread) => (

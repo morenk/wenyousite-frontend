@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import {
   getPostDiscussionHref,
   getPostHref,
+  getSubthreadHref,
 } from "@/lib/post-navigation";
 
 describe("post-navigation", () => {
@@ -33,5 +34,15 @@ describe("post-navigation", () => {
     ).toBe(
       "/threads/thread%2Fwith%2Fslash/posts/parent%23hash/replies?post=post%3Fquery",
     );
+  });
+
+  test("非默认子贴使用稳定查询参数", () => {
+    expect(getSubthreadHref("thread-id", "subthread-id", "default-id"))
+      .toBe("/threads/thread-id?subthread=subthread-id");
+  });
+
+  test("默认子贴移除冗余查询参数", () => {
+    expect(getSubthreadHref("thread-id", "default-id", "default-id"))
+      .toBe("/threads/thread-id");
   });
 });

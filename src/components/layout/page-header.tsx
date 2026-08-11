@@ -10,6 +10,8 @@ interface PageHeaderProps extends Omit<ComponentProps<"header">, "title"> {
   backHref?: string;
   backLabel?: string;
   actions?: ReactNode;
+  toolbar?: ReactNode;
+  variant?: "default" | "compact";
 }
 
 export function PageHeader({
@@ -18,31 +20,64 @@ export function PageHeader({
   backHref,
   backLabel = "返回",
   actions,
+  toolbar,
+  variant = "default",
   className,
   ...props
 }: PageHeaderProps) {
+  const compact = variant === "compact";
+
   return (
-    <header className={cn("mb-5", className)} {...props}>
+    <header
+      data-variant={variant}
+      className={cn(
+        compact
+          ? "mb-4 overflow-hidden rounded-2xl border border-border bg-card"
+          : "mb-5",
+        className,
+      )}
+      {...props}
+    >
       {backHref ? (
         <Link
           href={backHref}
-          className="mb-3 inline-flex min-h-8 items-center gap-2 rounded-lg px-1 text-sm font-semibold text-muted-foreground transition-colors duration-[var(--motion-fast)] hover:text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+          className={cn(
+            "inline-flex min-h-8 items-center gap-2 rounded-lg px-1 text-sm font-semibold text-muted-foreground transition-colors duration-[var(--motion-fast)] hover:text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+            compact ? "mx-4 mt-2.5" : "mb-3",
+          )}
         >
           <ArrowLeft className="size-4" />
           {backLabel}
         </Link>
       ) : null}
-      <div className="flex items-start justify-between gap-6">
+      <div
+        className={cn(
+          "flex justify-between gap-6",
+          compact ? "min-h-13 items-center px-4 py-2.5" : "items-start",
+        )}
+      >
         <div className="min-w-0">
-          <h1 className="font-display text-[1.75rem] leading-9 font-bold tracking-[0.01em] text-foreground">{title}</h1>
+          <h1
+            className={cn(
+              "font-display font-bold tracking-[0.01em] text-foreground",
+              compact ? "text-xl leading-8" : "text-[1.75rem] leading-9",
+            )}
+          >
+            {title}
+          </h1>
           {description ? (
-            <div className="mt-2 text-sm leading-5 text-muted-foreground">
+            <div className={cn("text-sm leading-5 text-muted-foreground", compact ? "mt-0.5" : "mt-2")}>
               {description}
             </div>
           ) : null}
         </div>
         {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
       </div>
+      {toolbar ? (
+        <div data-slot="page-header-toolbar" className="border-t border-border bg-muted/35 p-2.5">
+          {toolbar}
+        </div>
+      ) : null}
     </header>
   );
 }

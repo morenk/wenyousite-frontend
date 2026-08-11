@@ -6,7 +6,6 @@ import { Suspense, useRef } from "react";
 import { useQueryState } from "nuqs";
 import { Search } from "lucide-react";
 import { SearchResults } from "@/components/search/search-results";
-import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageShell } from "@/components/layout/page-shell";
@@ -29,26 +28,27 @@ function SearchPageInner() {
 
   return (
     <PageShell width="feed">
-      <PageHeader title="搜索" description="查找动态、用户、主题帖和公开楼层内容。" />
-      <form onSubmit={handleSubmit} className="mb-6 flex items-center gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            key={q}
-            defaultValue={q}
-            ref={inputRef}
-            placeholder="搜索动态、用户、主题帖或楼层内容…"
-            className="pl-9"
-          />
-        </div>
-        <Button type="submit">搜索</Button>
-      </form>
+      <PageHeader
+        title="搜索"
+        variant="compact"
+        toolbar={
+          <form onSubmit={handleSubmit} className="flex items-center gap-2" role="search">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                key={q}
+                defaultValue={q}
+                ref={inputRef}
+                placeholder="搜索动态、用户、主题帖或楼层内容…"
+                className="pl-9"
+              />
+            </div>
+            <Button type="submit">搜索</Button>
+          </form>
+        }
+      />
 
-      {!q.trim() ? (
-        <EmptyState title="输入关键词开始搜索" description="支持动态标题与正文、用户名、主题帖标题和楼层内容" />
-      ) : (
-        <SearchResults keyword={q} />
-      )}
+      {q.trim() ? <SearchResults keyword={q} /> : null}
     </PageShell>
   );
 }

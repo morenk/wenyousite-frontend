@@ -45,7 +45,7 @@ function ConversationLink({
     <Link
       href={`/messages/${conversation.id}`}
       className={cn(
-        "flex gap-3 px-4 py-3 transition-colors hover:bg-accent/25",
+        "flex w-full gap-3 px-4 py-3 transition-colors hover:bg-accent/25",
         selected && "bg-accent/45",
       )}
     >
@@ -129,7 +129,7 @@ export function DirectConversationList({ selectedId }: { selectedId?: string }) 
   };
 
   return (
-    <aside className="flex min-h-0 flex-col border-r border-border bg-card">
+    <aside className="flex min-h-0 w-full flex-col border-r border-border bg-card">
       {showArchived && (
         <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border px-2">
           <Button

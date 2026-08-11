@@ -2,7 +2,7 @@
 
 import { AlertDialog } from "@base-ui/react/alert-dialog";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Gift, Loader2 } from "lucide-react";
+import { Fuel, Loader2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -69,9 +69,7 @@ export function WenyouTipButton({
     requestRef.current = nextRequest;
     try {
       const result = await tip.mutateAsync(nextRequest);
-      toast.success(
-        `已投入 ${result.grossAmount} 升温油，对方到账 ${result.recipientAmount} 升`,
-      );
+      toast.success(`已加油 ${result.grossAmount} 升`);
       requestRef.current = null;
       reset({ amount: "2" });
       setOpen(false);
@@ -100,9 +98,9 @@ export function WenyouTipButton({
           setOpen(true);
         }}
         aria-label="加油"
-        title={iconOnly ? "加油（投入温油）" : undefined}
+        title={iconOnly ? "加油" : undefined}
       >
-        <Gift className="h-4 w-4" />
+        <Fuel className="h-4 w-4" />
         {!iconOnly && "加油"}
       </Button>
       <AlertDialog.Root open={open} onOpenChange={setOpen}>
@@ -113,12 +111,9 @@ export function WenyouTipButton({
               <AlertDialog.Title className="text-base font-semibold">
                 为{recipientName}加油
               </AlertDialog.Title>
-              <AlertDialog.Description className="mt-2 text-sm leading-6 text-muted-foreground">
-                最低 2 升；创作者到账 85%（向下取整），其余由平台保留。
-              </AlertDialog.Description>
               <form
                 onSubmit={(event) => void handleSubmit(submit)(event)}
-                className="mt-4 space-y-4"
+                className="mt-3 space-y-4"
               >
                 <div className="space-y-1.5">
                   <Label htmlFor={`tip-amount-${target.type}-${target.id}`}>投入升数</Label>

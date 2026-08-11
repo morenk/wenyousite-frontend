@@ -7,6 +7,18 @@ interface PostNavigationTarget {
 
 const encodeRouteValue = (value: string) => encodeURIComponent(value);
 
+/** 构造主题详情地址；默认子贴不携带冗余查询参数。 */
+export function getSubthreadHref(
+  threadId: string,
+  subthreadId?: string | null,
+  defaultSubthreadId?: string | null,
+) {
+  const base = `/threads/${encodeRouteValue(threadId)}`;
+  return !subthreadId || subthreadId === defaultSubthreadId
+    ? base
+    : `${base}?subthread=${encodeRouteValue(subthreadId)}`;
+}
+
 /** 构造某个主楼层的楼中楼讨论页地址。 */
 export function getPostDiscussionHref(threadId: string, floorPostId: string) {
   return `/threads/${encodeRouteValue(threadId)}/posts/${encodeRouteValue(floorPostId)}/replies`;

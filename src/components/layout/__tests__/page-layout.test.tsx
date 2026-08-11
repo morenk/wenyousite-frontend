@@ -38,4 +38,23 @@ describe("页面布局组件", () => {
     expect(screen.getByRole("link", { name: "返回发现" })).toHaveAttribute("href", "/");
     expect(screen.getByRole("button", { name: "创建" })).toBeInTheDocument();
   });
+
+  test("PageHeader 紧凑模式把标题和页面工具收进同一排头", () => {
+    render(
+      <PageHeader
+        title="发现主题帖"
+        variant="compact"
+        toolbar={<button type="button">筛选</button>}
+      />,
+    );
+
+    const header = screen.getByRole("banner");
+    expect(header).toHaveAttribute("data-variant", "compact");
+    expect(header).toHaveClass("rounded-2xl", "overflow-hidden");
+    expect(screen.getByRole("heading", { name: "发现主题帖" })).toHaveClass("text-xl");
+    expect(screen.getByRole("button", { name: "筛选" }).parentElement).toHaveAttribute(
+      "data-slot",
+      "page-header-toolbar",
+    );
+  });
 });

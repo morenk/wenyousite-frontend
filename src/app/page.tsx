@@ -10,7 +10,6 @@ import { CategoryTabs } from "@/components/thread/category-tabs";
 import { ThreadFilters } from "@/components/thread/thread-filters";
 import { PageShell } from "@/components/layout/page-shell";
 import { PageHeader } from "@/components/layout/page-header";
-import { Panel } from "@/components/ui/panel";
 import { homeFilterParsers } from "@/lib/url-state";
 
 export default function HomePage() {
@@ -39,14 +38,10 @@ export default function HomePage() {
   return (
     <PageShell width="feed" className="py-5">
       <main data-slot="home-feed" className="min-w-0">
-        <Panel padding="none" className="overflow-hidden">
-          <PageHeader
-            title="发现主题帖"
-            description="按玩法、状态和活跃度筛选公开主题帖。"
-            className="mb-0 px-5 pt-6 pb-5"
-          />
-
-          <div className="border-t border-border bg-muted/35 p-3">
+        <PageHeader
+          title="发现主题帖"
+          variant="compact"
+          toolbar={
             <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
               <CategoryTabs
                 selected={category ?? undefined}
@@ -62,10 +57,10 @@ export default function HomePage() {
                 }
               />
             </div>
-          </div>
-        </Panel>
+          }
+        />
 
-        <div className="mt-4">
+        <div>
           <ThreadList
             threads={threads}
             hasNextPage={!!hasNextPage}

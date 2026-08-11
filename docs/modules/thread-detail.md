@@ -4,6 +4,8 @@
 
 实现主题帖详情页，展示帖子头部信息、排头卡内的子贴目录切换、楼层列表（分页）、Markdown 渲染，以及发布新楼层。
 
+子贴目录状态写入稳定 URL：非默认子贴使用 `?subthread={id}`，默认子贴移除该参数；切换目录使用 history replace，并保留左右游标。`post` 精确楼层参数优先于 `subthread`，无效子贴参数回落默认目录并清理。目录菜单打开后焦点直接进入搜索框，可按标题筛选几十个子贴并复制当前子贴链接。正文中的主题、子贴、楼层和回复链接统一按[站内传送门](./internal-references.md)内联显示。
+
 内容浏览不维护阅读进度、楼层更新数或内容未读状态；子贴目录只展示楼层总数。通知中心的未读状态属于独立通知能力，继续保留。
 
 浏览态不预先挂载 Milkdown，仅展示轻量的「发表回复」入口；用户点击发表、回复或编辑后，页面按目标位置挂载全局唯一的上下文编辑器。同一时刻详情页最多存在一个 Milkdown 实例。
@@ -14,6 +16,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 - 主题帖详情页 `/threads/[id]`
 - 详情排头卡（标题/分类/状态/作者/时间；低频工具置顶，目录与紧凑图标互动工具带置底）
 - 排头卡子贴目录切换，并提供左右游标快速切换相邻子贴
+- 排头卡离开视口后显示紧凑阅读书签条，保留当前主题、子贴切换、本帖搜索和回顶入口
 - 楼层列表（cursor 分页 + 滚动加载）
 - 楼层 Markdown 渲染（react-markdown + remark-gfm）
 - 通过全局唯一的上下文 Milkdown 发布、回复或编辑楼层
@@ -240,7 +243,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 |------|------|----------|
 | 主题帖详情 | `GET /threads/:id` | TanStack Query `useQuery`；query key 含查看者 ID，认证恢复后重新读取权限字段 |
 | 楼层列表 | `GET /subthreads/:subthreadId/posts` | TanStack Query `useInfiniteQuery` |
-| 当前选中子贴 | 用户点击 Tab | useState（默认 defaultSubthreadId） |
+| 当前选中子贴 | 用户通过目录、搜索结果或左右游标切换 | URL `subthread` 参数 + 本地派生（默认 `defaultSubthreadId`） |
 | 当前编辑会话 | 用户点击发表/回复/编辑 | `ThreadComposerProvider`（全页唯一 session + content + pending） |
 | 点赞状态 | `GET /threads/:id` 的 `isLiked` + `POST/DELETE /threads/:id/like` | useMutation + query invalidation；`likeCount` 仅用于展示总数 |
 | 订阅状态 | `GET /subscriptions` + `GET /threads/:id/members` | THREAD 通过单个图标切换官方更新；USER 在弹层中选择普通已标记玩家；楼主/协作者隐藏全部订阅控件 |
@@ -256,10 +259,11 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 |------|------|------|
 | ThreadDetailPage | `src/app/threads/[id]/page.tsx` | 详情页主逻辑；管理入口关闭当前编辑器后导航到 workspace 编辑路由 |
 | ThreadDetailHeader | `src/components/thread/thread-detail-header.tsx` | 两段式排头卡：上层展示主题信息与搜索/分享/管理工具，下层以禁止换行的单行工具带合并弹性子贴目录与紧凑图标互动操作；点赞与收藏相邻 |
+| ThreadReadingBar | `src/components/thread/thread-reading-bar.tsx` | 排头卡离开视口后的帖内阅读书签条；保留标题、子贴目录、搜索和回顶，并遵循减少动态效果设置 |
 | ThreadSubscriptionControls | `src/components/thread/thread-subscription-controls.tsx` | 普通用户的官方更新图标开关与玩家订阅弹层、成员候选查询 |
 | ThreadPostSearch | `src/components/thread/thread-post-search.tsx` | 内联搜索全部子贴与楼中楼；处理短词、分页及四态 |
 | PostSearchResultList | `src/components/search/post-search-result-list.tsx` | 与全站搜索共用的结果列表、加载更多和精确帖子导航 |
-| SubthreadSwitcher | `src/components/thread/subthread-tabs.tsx` | 排头卡内的子贴目录按钮；弹出固定高度纵向菜单，显示当前项与各子贴楼层数 |
+| SubthreadSwitcher | `src/components/thread/subthread-tabs.tsx` | 排头卡与阅读书签条共用的子贴目录；弹出可检索固定高度纵向菜单，显示当前项与各子贴楼层数，并保留左右游标 |
 | SubthreadBody | `src/components/thread/subthread-body.tsx` | 子贴卡（唯一卡片）：子贴标题 + 默认徽章 + 正文（kind=BODY）同容器（正文不进入楼层列表） |
 | FloorCard | `src/components/thread/floor-card.tsx` | 单条楼层卡片；作者可编辑，作者或楼主/协作者可删除；正文图片可收藏为表情 |
 | FloorList | `src/components/thread/floor-list.tsx` | 楼层列表（仅 kind=FLOOR，无限滚动，cursor 分页） |
@@ -320,7 +324,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 - 「成员」页签继续提供协作者与玩家管理。管理面板不做楼层级管理。
 - 主题帖表单或子贴正文有未保存内容时，切换页签、切换子贴或返回浏览均先确认是否放弃；保存或图片上传期间禁止导航。
 - `/threads/[id]/edit` 是已发布帖管理的唯一页面入口，同时兼容历史收藏和直达链接；草稿续写/发布流程不变。
-- 子贴多于一个时：排头卡显示当前子贴目录按钮，左右游标可快速切换相邻子贴并在首尾禁用；点击目录按钮后以固定高度纵向菜单承载全部子贴，支持方向键、快速键入定位与滚动浏览几十个子贴，不再使用横向滑动列表
+- 子贴多于一个时：排头卡显示当前子贴目录按钮，左右游标可快速切换相邻子贴并在首尾禁用；点击目录按钮后焦点直接进入搜索框，以固定高度纵向菜单承载并按标题筛选全部子贴，支持键盘操作与滚动浏览几十个子贴，不再使用横向滑动列表
 
 ## 6.2 阅读排版
 
@@ -344,7 +348,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 
 > **子贴正文 vs 回复串：** 子贴正文（kind=BODY）与楼层/回复串（kind=FLOOR）定位不同——正文由子贴生命周期管理（管理面板 upsert，删除帖子接口对 BODY 返回 403 拦截），**楼层列表中的楼层（含 #1）作者均可删除/编辑**，不存在「首楼禁删」。
 
-**页面布局：** 主题帖排头卡为带玩法线路色的两段式信息面板（`ThreadDetailHeader`：上层为徽章/标题/作者/标签与低频工具，下层为禁止换行的子贴目录和图标互动工具带；目录标题弹性截断，楼主/协作者新增的管理工具固定在上层，不挤压目录）→ 子贴卡（`SubthreadBody`：子贴标题 + 正文同卡）→ 楼层列表 → 语义上位于列表底部、视觉上浮在视口底部的轻量发布入口。
+**页面布局：** 主题帖排头卡为带玩法线路色的两段式信息面板（`ThreadDetailHeader`：上层为徽章/标题/作者/标签与低频工具，下层为禁止换行的子贴目录和图标互动工具带；目录标题弹性截断，楼主/协作者新增的管理工具固定在上层，不挤压目录）→ 排头卡离开视口后出现阅读书签条（标题、目录、搜索、回顶）→ 子贴卡（`SubthreadBody`：子贴标题 + 正文同卡）→ 楼层列表 → 语义上位于列表底部、视觉上浮在视口底部的轻量发布入口。
 
 ```
 用户点击 FloorForm 的「发表回复」入口

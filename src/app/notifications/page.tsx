@@ -26,7 +26,7 @@ function NotificationsPageInner() {
 
   return (
     <PageShell width="feed">
-      <PageHeader title="通知" description="与你的创作、互动和账号有关的最新消息。" />
+      <PageHeader title="通知" />
       <MessageCenterTabs />
       <div className="mt-5">
         <NotificationList type={type ?? undefined} onTypeChange={handleTypeChange} />

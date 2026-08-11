@@ -39,7 +39,7 @@ describe("WenyouTipButton", () => {
     });
   }
 
-  test("提交整数升数并展示实际到账提示", async () => {
+  test("提交整数升数后只确认本次加油金额", async () => {
     const user = userEvent.setup();
     render(
       <WenyouTipButton
@@ -51,6 +51,8 @@ describe("WenyouTipButton", () => {
     expect(trigger).not.toHaveClass("bg-primary");
     expect(trigger).not.toHaveClass("border-border");
     await user.click(trigger);
+    expect(screen.getByRole("heading", { name: "为作者加油" })).toBeInTheDocument();
+    expect(screen.queryByText(/到账|平台保留|85%/)).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "取消" })).not.toHaveClass("border-border");
     const input = screen.getByLabelText("投入升数");
     await user.clear(input);
@@ -61,7 +63,7 @@ describe("WenyouTipButton", () => {
       amount: "10",
       clientRequestId: expect.any(String),
     });
-    expect(mockToastSuccess).toHaveBeenCalledWith("已投入 10 升温油，对方到账 8 升");
+    expect(mockToastSuccess).toHaveBeenCalledWith("已加油 10 升");
   });
 
   test("拒绝低于 2 升的投入", async () => {

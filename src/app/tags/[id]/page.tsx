@@ -62,7 +62,6 @@ export default function TagThreadsPage() {
     <PageShell width="feed">
       <PageHeader
         title={`#${tagQuery.data.name}`}
-        description="主题帖标签"
         backHref="/"
         backLabel="返回发现"
       />

@@ -85,6 +85,28 @@ for (const [fileName, claims] of stickerDisplayClaims) {
   }
 }
 
+const fullWidthCollectionClaims = new Map([
+  ["src/components/ui/stack-list.tsx", ["w-full divide-y"]],
+  ["src/components/ui/tabs.tsx", ["w-full flex-col", "group-data-[orientation=horizontal]/tabs:w-full"]],
+  ["src/components/search/search-results.tsx", ["relative w-full min-w-0", "block w-full", "flex w-full"]],
+  ["src/components/search/post-search-result-list.tsx", ["w-full space-y-3", "block w-full"]],
+  ["src/components/moment/moment-masonry.tsx", ["className=\"w-full\""]],
+  ["src/components/user/bookmark-list.tsx", ["w-full space-y-3"]],
+  ["src/components/user/draft-list.tsx", ["w-full space-y-3", "flex w-full"]],
+  ["src/components/user/user-follow-list.tsx", ["w-full space-y-3", "flex w-full"]],
+  ["src/components/user/user-thread-list.tsx", ["w-full space-y-3", "block w-full"]],
+  ["src/components/notification/notification-list.tsx", ["w-full space-y-3"]],
+  ["src/components/message/direct-conversation-list.tsx", ["flex w-full gap-3", "min-h-0 w-full flex-col"]],
+]);
+for (const [fileName, claims] of fullWidthCollectionClaims) {
+  const source = readFileSync(resolve(root, fileName), "utf8");
+  for (const claim of claims) {
+    if (!source.includes(claim)) {
+      failures.push(`${fileName}: 集合容器与列表项必须占满分配列（缺少 ${claim}）`);
+    }
+  }
+}
+
 if (failures.length > 0) {
   throw new Error(`设计系统静态检查失败：\n${failures.join("\n")}`);
 }

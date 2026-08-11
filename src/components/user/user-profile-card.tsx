@@ -5,7 +5,7 @@
 import Link from "next/link";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { CalendarDays, Gift, MessageCircle, ShieldAlert, Users } from "lucide-react";
+import { CalendarDays, Fuel, MessageCircle, ShieldAlert, Users } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { FollowButton } from "@/components/user/follow-button";
 import { BlockButton } from "@/components/user/block-button";
@@ -70,7 +70,7 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
                   })}
                 </span>
                 <span className="flex items-center gap-1" title="累计收到的用户投入总额与次数">
-                  <Gift className="h-3.5 w-3.5" />
+                  <Fuel className="h-3.5 w-3.5" />
                   获得 {formatWenyou(user.receivedTipTotal)} 升 · {user.receivedTipCount} 次
                 </span>
               </div>

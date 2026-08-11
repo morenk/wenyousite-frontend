@@ -44,7 +44,6 @@ export function AppContextRail() {
               <UserAvatar name={user.username} src={user.avatar} className="size-11" />
               <div className="min-w-0 flex-1">
                 <p className="truncate font-bold text-foreground">{user.username}</p>
-                <p className="text-xs text-muted-foreground">查看我的主页</p>
               </div>
               <ChevronRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
             </Link>
@@ -84,10 +83,7 @@ export function AppContextRail() {
         <Panel className="overflow-hidden" padding="none">
           <div className="h-1 bg-primary" aria-hidden="true" />
           <div className="p-5">
-            <p className="font-display text-xl font-bold text-foreground">访客功能</p>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              登录后可创建、收藏和参与主题帖。
-            </p>
+            <p className="font-display text-xl font-bold text-foreground">登录温油站</p>
             <div className="mt-4 grid gap-2">
               <Link href="/register" className={cn(buttonVariants(), "w-full")}>注册</Link>
               <Link href="/login" className={cn(buttonVariants({ variant: "secondary" }), "w-full")}>登录</Link>

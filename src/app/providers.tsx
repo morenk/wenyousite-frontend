@@ -1,11 +1,13 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MotionConfig } from "framer-motion";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "sonner";
 import { useEffect, useRef, useState } from "react";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { ConfirmProvider } from "@/components/ui/confirm-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { DailyCheckInBootstrap } from "@/components/economy/daily-check-in-bootstrap";
 
 function createQueryClient() {
@@ -64,8 +66,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <AuthProvider>
         <IdentityScopedQueries>
           <ConfirmProvider>
-            <DailyCheckInBootstrap />
-            {children}
+            <TooltipProvider>
+              <MotionConfig reducedMotion="user">
+                <DailyCheckInBootstrap />
+                {children}
+              </MotionConfig>
+            </TooltipProvider>
           </ConfirmProvider>
         </IdentityScopedQueries>
       </AuthProvider>

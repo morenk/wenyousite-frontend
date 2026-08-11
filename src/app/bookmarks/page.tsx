@@ -23,7 +23,7 @@ export default function BookmarksPage() {
   const moments = momentsQuery.data?.pages.flatMap((page) => page.data) ?? [];
   return (
     <PageShell width="feed">
-      <PageHeader title="我的收藏" description="稍后继续阅读或参与的内容。" />
+      <PageHeader title="我的收藏" />
       <Tabs
         value={tab}
         onValueChange={(value) => setTab(value as "threads" | "moments")}
@@ -56,7 +56,7 @@ export default function BookmarksPage() {
           <BookmarkList folderId={folderId} folders={foldersQuery.data ?? []} />
         </>
       ) : (
-        <MomentMasonry moments={moments} maxLanes={2} isLoading={momentsQuery.isLoading} error={momentsQuery.error} hasNextPage={!!momentsQuery.hasNextPage} isFetchingNextPage={momentsQuery.isFetchingNextPage} onLoadMore={() => void momentsQuery.fetchNextPage()} onRetry={() => void momentsQuery.refetch()} emptyTitle="还没有收藏动态" emptyDescription="在动态区点一下收藏，之后就能从这里找到。" />
+        <MomentMasonry moments={moments} maxLanes={2} isLoading={momentsQuery.isLoading} error={momentsQuery.error} hasNextPage={!!momentsQuery.hasNextPage} isFetchingNextPage={momentsQuery.isFetchingNextPage} onLoadMore={() => void momentsQuery.fetchNextPage()} onRetry={() => void momentsQuery.refetch()} emptyTitle="还没有收藏动态" />
       )}
     </PageShell>
   );

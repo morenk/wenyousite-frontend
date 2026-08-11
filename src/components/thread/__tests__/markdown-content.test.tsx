@@ -35,6 +35,41 @@ describe("MarkdownContent", () => {
     expect(content).toHaveClass("wenyou-prose-compact");
   });
 
+  test("站内链接统一渲染为同页传送门，名称可自定义", () => {
+    const threadId = "cmsewdo0h000x7qv6aa77ll1v";
+    render(<MarkdownContent content={`参见 [设定 A](/threads/${threadId})`} />);
+
+    const portal = screen.getByRole("link", { name: "站内传送门：设定 A" });
+    expect(portal).toHaveAttribute("href", `/threads/${threadId}`);
+    expect(portal).not.toHaveAttribute("target");
+    expect(portal).toHaveAttribute("data-slot", "internal-reference-link");
+  });
+
+  test("裸站内链接显示默认名称，外链保持新窗口行为", () => {
+    const threadId = "cmsewdo0h000x7qv6aa77ll1v";
+    render(
+      <MarkdownContent
+        content={`入口 /threads/${threadId}?post=cmsewdqcr001a7qv6cy0y38bd，外链 [站点](https://example.com)`}
+      />,
+    );
+
+    expect(screen.getByRole("link", { name: "站内传送门：传送门" })).toHaveAttribute(
+      "href",
+      `/threads/${threadId}?post=cmsewdqcr001a7qv6cy0y38bd`,
+    );
+    expect(screen.getByRole("link", { name: "站点" })).toHaveAttribute("target", "_blank");
+  });
+
+  test("GFM 吞入裸地址的中文句号时仍识别传送门并在链接外保留标点", () => {
+    const threadId = "cmsewdo0h000x7qv6aa77ll1v";
+    render(<MarkdownContent content={`继续阅读 https://wenyou.site/threads/${threadId}。`} />);
+
+    const portal = screen.getByRole("link", { name: "站内传送门：传送门" });
+    expect(portal).toHaveAttribute("href", `/threads/${threadId}`);
+    expect(portal.closest("p")).toHaveTextContent("继续阅读 传送门。");
+    expect(portal).not.toHaveTextContent("。");
+  });
+
   test("骰子结果以和文字混排的背景色标签显示", () => {
     render(
       <MarkdownContent

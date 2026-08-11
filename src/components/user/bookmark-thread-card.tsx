@@ -45,7 +45,7 @@ export function BookmarkThreadCard({
   isUnbookmarking = false,
 }: BookmarkThreadCardProps) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-accent/20">
+    <div className="flex w-full items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-accent/20">
       <Link href={`/threads/${thread.id}`} className="min-w-0 flex-1">
         <div className="mb-1.5 flex items-center gap-2">
           <ThreadCategoryBadge category={thread.category} />

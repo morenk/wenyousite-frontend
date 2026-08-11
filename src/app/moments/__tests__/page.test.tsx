@@ -71,6 +71,8 @@ describe("MomentsPage", () => {
     expect(screen.getByRole("main")).toHaveAttribute("data-width", "feed");
     expect(mockClearReturn).toHaveBeenCalledOnce();
     expect(mockRememberFeed).toHaveBeenCalledWith("DISCOVER");
+    expect(screen.getByRole("heading", { name: "动态" })).toBeInTheDocument();
+    expect(screen.queryByText("浏览公开动态，或查看你关注用户的新内容。")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("tab", { name: "关注" }));
     expect(mockUseMoments).toHaveBeenLastCalledWith("FOLLOWING", "user-1");
     expect(mockRememberFeed).toHaveBeenLastCalledWith("FOLLOWING");
@@ -80,7 +82,7 @@ describe("MomentsPage", () => {
   test("返回动态列表时恢复原 Feed", async () => {
     mockUseAuth.mockReturnValue({ user: { id: "user-1" } });
     mockTakeRestore
-      .mockReturnValueOnce({ feed: "FOLLOWING", scrollY: 0 })
+      .mockReturnValueOnce({ feed: "FOLLOWING", scrollY: 0, momentId: "moment-1", anchorOffset: null })
       .mockReturnValue(null);
 
     render(<StrictMode><MomentsPage /></StrictMode>);

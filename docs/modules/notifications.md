@@ -111,7 +111,7 @@
 - 详情页读取 `post` 参数后通过 `GET /posts/:id` 查询目标上下文：切换子贴并立即滚动到目标楼层；楼中楼采用二阶段定位，在父楼展开且回复渲染完成后立即滚动到目标回复。定位不使用平滑移动动画；高亮只加在目标楼层/回复卡片本身，父楼层和列表容器不高亮。已删除内容维持后端列表过滤策略。
 - 点击通知（有跳转目标）：若未读，立即乐观标记为已读并异步提交，不阻塞跳转
 - 删除按钮：硬删除 + 失效列表/未读数
-- 类型图标：reply/mention/new_post/thread_created → MessageSquare/AtSign/PenLine/FilePlus；follow → UserPlus；like → Heart；tip → Gift；level_up → TrendingUp；system → Megaphone
+- 类型图标：reply/mention/new_post/thread_created → MessageSquare/AtSign/PenLine/FilePlus；follow → UserPlus；like → Heart；tip → Fuel；level_up → TrendingUp；system → Megaphone
 - 有操作者（`fromUser`）时左侧显示操作者头像（`_thumb.webp` 缩略图，无则首字符占位）；系统通知无操作者时保留类型图标
 - 未读：左侧圆点 + 背景高亮；点击后即时置为已读样式
 - 类型筛选由 URL `?type=` 驱动（如 `?type=reply,mention`）；nuqs 只接受界面支持的组合值并写入浏览历史，非法值回退「全部」，点击导航栏「通知」入口回到 `/notifications`（无参数）即重置为「全部」

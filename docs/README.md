@@ -35,6 +35,7 @@
 | [api-contract](./modules/api-contract.md) | 固定 OpenAPI 契约、Web 类型与 Flutter 生成兼容 | active |
 | [image-rendering](./modules/image-rendering.md) | 图片渲染与缩略图规则 | active |
 | [markdown-content-protocol](./modules/markdown-content-protocol.md) | Markdown 跨端内容协议 | active |
+| [internal-references](./modules/internal-references.md) | 站内传送门、稳定子贴 URL 与动态受限解析 | active |
 | [admin-station](./modules/admin-station.md) | PC 站务台、用户举报与申诉 | active |
 | [api-coverage](./api-coverage.md) | 前后端 API 覆盖审计 | 自动校验 |
 

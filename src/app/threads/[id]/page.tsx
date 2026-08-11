@@ -7,11 +7,12 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 
 import { useAuth } from "@/lib/auth";
-import { getPostHref } from "@/lib/post-navigation";
+import { getPostHref, getSubthreadHref } from "@/lib/post-navigation";
 import { useThreadDetail } from "@/api/hooks/use-thread-detail";
 import { useFloors } from "@/api/hooks/use-floors";
 import { usePost } from "@/api/hooks/use-post";
 import { ThreadDetailHeader } from "@/components/thread/thread-detail-header";
+import { ThreadReadingBar } from "@/components/thread/thread-reading-bar";
 import { ThreadPostSearch } from "@/components/thread/thread-post-search";
 import { SubthreadBody } from "@/components/thread/subthread-body";
 import { FloorList } from "@/components/thread/floor-list";
@@ -52,6 +53,7 @@ function ThreadDetailPageContent() {
   const router = useRouter();
   const threadId = params.id as string;
   const targetPostId = searchParams.get("post") ?? undefined;
+  const querySubthreadId = searchParams.get("subthread") ?? undefined;
   const { user, isInitialized } = useAuth();
   const { close: closeComposer } = useThreadComposer();
 
@@ -62,14 +64,18 @@ function ThreadDetailPageContent() {
     refetch,
   } = useThreadDetail(threadId);
 
-  const [selectedSubthreadId, setSelectedSubthreadId] = useState<string>();
   const [isSearching, setIsSearching] = useState(false);
   const { data: targetPost } = usePost(targetPostId);
   const targetFloorId = targetPost?.parentPostId ?? targetPost?.id;
   const { data: targetFloor } = usePost(targetFloorId);
 
-  const effectiveSubthreadId =
-    selectedSubthreadId ?? targetPost?.subthreadId ?? thread?.defaultSubthreadId;
+  const querySubthread = thread?.subthreads.find(
+    (subthread) => subthread.id === querySubthreadId,
+  );
+  // 精确楼层定位优先级高于目录选择；无效目录只回落，不发起额外探测请求。
+  const effectiveSubthreadId = targetPostId
+    ? targetPost?.subthreadId ?? thread?.defaultSubthreadId
+    : querySubthread?.id ?? thread?.defaultSubthreadId;
 
   const {
     data: floorsData,
@@ -93,12 +99,35 @@ function ThreadDetailPageContent() {
     }));
   }, [router, targetPost, threadId]);
 
+  useEffect(() => {
+    if (!thread) return;
+    if (targetPostId && querySubthreadId) {
+      router.replace(getPostHref({
+        threadId,
+        postId: targetPostId,
+        parentPostId: targetPost?.parentPostId,
+      }));
+      return;
+    }
+    if (!targetPostId && querySubthreadId && !querySubthread) {
+      router.replace(getSubthreadHref(threadId, thread.defaultSubthreadId, thread.defaultSubthreadId));
+    }
+  }, [querySubthread, querySubthreadId, router, targetPost?.parentPostId, targetPostId, thread, threadId]);
+
   const selectedSubthread = thread?.subthreads.find(
     (s) => s.id === effectiveSubthreadId,
   );
 
   const { isThreadManager } = useThreadPermissions();
   const canManageThread = isThreadManager || user?.id === thread?.ownerId;
+
+  useEffect(() => {
+    if (!isSearching) return;
+    window.requestAnimationFrame(() => {
+      document.querySelector<HTMLElement>('[aria-label="帖内楼层搜索"]')
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [isSearching]);
 
   // Loading
   if (isLoading || (!isInitialized && error)) {
@@ -122,10 +151,7 @@ function ThreadDetailPageContent() {
                 />
               ) : (
                 <>
-                  <EmptyState
-                    title="加载失败"
-                    description="请检查网络连接后重试"
-                  />
+                  <EmptyState title="加载失败" />
                   <Button variant="outline" size="sm" onClick={() => refetch()}>
                     重试
                   </Button>
@@ -140,6 +166,16 @@ function ThreadDetailPageContent() {
 
   if (!thread) return null;
 
+  const handleSubthreadChange = async (subthreadId: string) => {
+    if (await closeComposer()) {
+      router.replace(getSubthreadHref(
+        thread.id,
+        subthreadId,
+        thread.defaultSubthreadId,
+      ));
+    }
+  };
+
   return (
     <PageShell width="feed">
       {/* 头部 */}
@@ -149,12 +185,20 @@ function ThreadDetailPageContent() {
         onSearch={() => setIsSearching((open) => !open)}
         subthreads={thread.subthreads}
         selectedSubthreadId={effectiveSubthreadId}
-        onSubthreadChange={async (subthreadId) => {
-          if (await closeComposer()) setSelectedSubthreadId(subthreadId);
-        }}
+        defaultSubthreadId={thread.defaultSubthreadId}
+        onSubthreadChange={handleSubthreadChange}
         onManage={canManageThread ? async () => {
           if (await closeComposer()) router.push(`/threads/${thread.id}/edit`);
         } : undefined}
+      />
+
+      <ThreadReadingBar
+        threadTitle={thread.title}
+        subthreads={thread.subthreads}
+        selectedSubthreadId={effectiveSubthreadId}
+        onSubthreadChange={(subthreadId) => void handleSubthreadChange(subthreadId)}
+        onSearch={() => setIsSearching((open) => !open)}
+        isSearchOpen={isSearching}
       />
 
       {isSearching && (
@@ -163,7 +207,6 @@ function ThreadDetailPageContent() {
             threadId={thread.id}
             onClose={() => setIsSearching(false)}
             onSelect={() => {
-              setSelectedSubthreadId(undefined);
               setIsSearching(false);
             }}
           />

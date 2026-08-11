@@ -54,7 +54,7 @@ export function BookmarkList({
   if (isError) {
     return (
       <div className="flex flex-col items-center gap-4 py-16">
-        <EmptyState title="收藏加载失败" description="请稍后重试" />
+        <EmptyState title="收藏加载失败" />
         <Button variant="outline" size="sm" onClick={() => refetch()}>
           重试
         </Button>
@@ -64,15 +64,12 @@ export function BookmarkList({
 
   if (bookmarks.length === 0) {
     return (
-      <EmptyState
-        title={folderId ? "这个收藏夹还是空的" : "还没有收藏"}
-        description={folderId ? "可以把其他收藏移动到这里" : "在帖子详情页点击收藏即可添加"}
-      />
+      <EmptyState title={folderId ? "这个收藏夹还是空的" : "还没有收藏"} />
     );
   }
 
   return (
-    <div className="space-y-3">
+    <div className="w-full space-y-3">
       {bookmarks.map((bookmark) => (
         <BookmarkThreadCard
           key={bookmark.id}

@@ -75,11 +75,7 @@ export function ThreadPostSearch({
           <Button type="submit">搜索</Button>
         </form>
 
-        {keyword === undefined ? (
-          <p className="py-2 text-center text-sm text-muted-foreground">
-            输入关键词，查找当前主题帖中的发言
-          </p>
-        ) : !keywordValid ? (
+        {keyword === undefined ? null : !keywordValid ? (
           <p role="alert" className="py-2 text-center text-sm text-muted-foreground">
             请输入至少 2 个字符
           </p>
@@ -89,7 +85,7 @@ export function ThreadPostSearch({
           </div>
         ) : postsQuery.isError ? (
           <div className="flex flex-col items-center gap-3 py-6">
-            <EmptyState title="搜索失败" description="请稍后重试" />
+            <EmptyState title="搜索失败" />
             <Button
               type="button"
               variant="outline"
@@ -100,7 +96,7 @@ export function ThreadPostSearch({
             </Button>
           </div>
         ) : posts.length === 0 ? (
-          <EmptyState title="本帖没有匹配的楼层" description="可以换个关键词试试" />
+          <EmptyState title="本帖没有匹配的楼层" />
         ) : (
           <PostSearchResultList
             posts={posts}

@@ -10,12 +10,15 @@ interface MomentFeedReturnMarker {
   source: "/moments";
   feed: MomentFeedBrowseMode;
   scrollY: number;
+  anchorOffset: number | null;
   createdAt: number;
 }
 
 export interface MomentFeedRestoreState {
   feed: MomentFeedBrowseMode;
   scrollY: number;
+  momentId: string;
+  anchorOffset: number | null;
 }
 
 function isMomentFeed(value: unknown): value is MomentFeedBrowseMode {
@@ -39,11 +42,14 @@ export function markMomentFeedReturn(momentId: string, pathname: string): void {
   if (pathname !== "/moments") return;
   try {
     const storedFeed = window.sessionStorage.getItem(MOMENT_FEED_BROWSE_STORAGE_KEY);
+    const anchor = Array.from(document.querySelectorAll<HTMLElement>("[data-moment-id]"))
+      .find((element) => element.dataset.momentId === momentId);
     const marker: MomentFeedReturnMarker = {
       momentId,
       source: "/moments",
       feed: isMomentFeed(storedFeed) ? storedFeed : "DISCOVER",
       scrollY: Math.max(0, window.scrollY),
+      anchorOffset: anchor?.getBoundingClientRect().top ?? null,
       createdAt: Date.now(),
     };
     window.sessionStorage.setItem(MOMENT_FEED_RETURN_STORAGE_KEY, JSON.stringify(marker));
@@ -74,6 +80,8 @@ export function takeMomentFeedReturn(momentId: string): boolean {
     window.sessionStorage.setItem(MOMENT_FEED_RESTORE_STORAGE_KEY, JSON.stringify({
       feed: marker.feed,
       scrollY: marker.scrollY,
+      momentId: marker.momentId,
+      anchorOffset: marker.anchorOffset,
       createdAt: marker.createdAt,
     }));
     return true;
@@ -94,11 +102,19 @@ export function takeMomentFeedRestore(): MomentFeedRestoreState | null {
       !isMomentFeed(restore.feed) ||
       !Number.isFinite(restore.scrollY) ||
       (restore.scrollY ?? -1) < 0 ||
+      typeof restore.momentId !== "string" ||
+      restore.momentId.length === 0 ||
+      !(restore.anchorOffset === null || restore.anchorOffset === undefined || Number.isFinite(restore.anchorOffset)) ||
       !Number.isFinite(age) ||
       age < 0 ||
       age > MOMENT_FEED_RETURN_MAX_AGE_MS
     ) return null;
-    return { feed: restore.feed, scrollY: restore.scrollY! };
+    return {
+      feed: restore.feed,
+      scrollY: restore.scrollY!,
+      momentId: restore.momentId,
+      anchorOffset: restore.anchorOffset ?? null,
+    };
   } catch {
     return null;
   }

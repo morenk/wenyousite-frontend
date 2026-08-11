@@ -1,4 +1,5 @@
 import { DICE_INLINE_MARKER_SOURCE } from "@/lib/dice-inline";
+import { formatInternalReferencePreview } from "@/lib/internal-reference";
 
 const IMAGE_RE = /!\[[^\]]*\]\((?:\\.|[^)])*\)/gu;
 const INLINE_LINK_RE = /\[([^\]\r\n]+)\]\((?:\\.|[^)])*\)/gu;
@@ -11,7 +12,7 @@ const EMPTY_PARAGRAPH_RE = /^ {0,3}<br\s*\/?>[\t ]*$/gimu;
 export function formatMarkdownPreview(markdown: string): string {
   const diceMarker = new RegExp(DICE_INLINE_MARKER_SOURCE, "giu");
 
-  return markdown
+  return formatInternalReferencePreview(markdown)
     .replace(diceMarker, (_marker, _nodeId: string, notation: string) =>
       `[${notation}]`)
     .replace(IMAGE_RE, "[图片]")

@@ -44,7 +44,7 @@ export function UserBookmarksSection({ userId }: UserBookmarksSectionProps) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="w-full space-y-3">
       {bookmarks.map((bookmark) => (
         <BookmarkThreadCard key={bookmark.id} thread={bookmark} />
       ))}

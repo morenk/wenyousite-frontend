@@ -43,7 +43,15 @@ vi.mock("@/api/hooks/use-moments", () => ({
 vi.mock("@/components/ui/confirm-provider", () => ({ useConfirm: () => mockConfirm }));
 vi.mock("@/components/moment/moment-comments", () => ({ MomentComments: () => <div>评论区</div> }));
 vi.mock("@/components/economy/wenyou-tip-button", () => ({ WenyouTipButton: () => <button>加油</button> }));
-vi.mock("@/components/shared/image-lightbox", () => ({ ImageLightbox: ({ alt }: { alt: string }) => <div>{alt} 大图</div> }));
+vi.mock("@/components/shared/gallery-lightbox", () => ({
+  GalleryLightbox: ({
+    images,
+    index,
+  }: {
+    images: Array<{ alt: string }>;
+    index: number;
+  }) => <div>{images[index]?.alt} 大图</div>,
+}));
 vi.mock("sonner", () => ({
   toast: {
     error: mockToastError,
@@ -230,6 +238,23 @@ describe("MomentDetailView", () => {
       .toHaveClass("text-destructive", "bg-destructive-soft");
   });
 
+  test("动态正文将命名站内坐标渲染为同页传送门", () => {
+    const threadId = "cmsewdo0h000x7qv6aa77ll1v";
+    mockUseMoment.mockReturnValue({
+      data: { ...detail, content: `[角色设定](/threads/${threadId})` },
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+
+    render(<MomentDetailView momentId="moment-1" />);
+
+    expect(screen.getByRole("link", { name: "站内传送门：角色设定" })).toHaveAttribute(
+      "href",
+      `/threads/${threadId}`,
+    );
+  });
+
   test("加载与不可见状态有清晰反馈", () => {
     mockUseMoment.mockReturnValue({ data: undefined, isLoading: true, isError: false });
     const { rerender } = render(<MomentDetailView momentId="moment-1" />);
@@ -301,7 +326,7 @@ describe("MomentDetailView", () => {
     await waitFor(() => expect(mockLike).toHaveBeenCalledOnce());
     expect(mockBookmark).toHaveBeenCalledOnce();
 
-    fireEvent.click(screen.getByRole("button", { name: "原动态标题，第 1 张图片" }));
-    expect(screen.getByText("原动态标题 大图")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "查看大图：原动态标题，第 1 张图片" }));
+    expect(await screen.findByText("原动态标题，第 1 张图片 大图")).toBeInTheDocument();
   });
 });

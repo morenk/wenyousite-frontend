@@ -27,4 +27,11 @@ describe("formatMarkdownPreview", () => {
       ),
     ).toBe("标题 重点 [图片]");
   });
+
+  test("传送门摘要保留自定义名称，裸链接使用默认名称", () => {
+    const threadId = "cmsewdo0h000x7qv6aa77ll1v";
+    expect(formatMarkdownPreview(
+      `[设定 A](/threads/${threadId}) 和 https://wenyou.site/threads/${threadId}`,
+    )).toBe("设定 A 和 传送门");
+  });
 });

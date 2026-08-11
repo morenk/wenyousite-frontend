@@ -41,49 +41,65 @@ export default function MomentsPage() {
   useEffect(() => {
     const restore = pendingRestore.current;
     if (!restore || restore.feed !== feed || query.isLoading || moments.length === 0) return;
-    let innerFrame = 0;
-    const outerFrame = window.requestAnimationFrame(() => {
-      innerFrame = window.requestAnimationFrame(() => {
-        window.scrollTo(0, restore.scrollY);
+    let frame = 0;
+    let attempts = 0;
+    let stableFrames = 0;
+    const restoreScroll = () => {
+      attempts += 1;
+      window.scrollTo({ top: restore.scrollY, behavior: "auto" });
+      const anchor = restore.anchorOffset === null
+        ? null
+        : Array.from(document.querySelectorAll<HTMLElement>("[data-moment-id]"))
+          .find((element) => element.dataset.momentId === restore.momentId);
+      if (anchor && restore.anchorOffset !== null) {
+        window.scrollBy({
+          top: anchor.getBoundingClientRect().top - restore.anchorOffset,
+          behavior: "auto",
+        });
+      }
+      const restored = anchor && restore.anchorOffset !== null
+        ? Math.abs(anchor.getBoundingClientRect().top - restore.anchorOffset) < 2
+        : Math.abs(window.scrollY - restore.scrollY) < 2;
+      stableFrames = restored
+        ? stableFrames + 1
+        : 0;
+
+      // 虚拟瀑布流会在首批卡片测量后修正总高度；以原卡片视口锚点为准，稳定后再消费状态。
+      if (stableFrames >= 6 || attempts >= 120) {
         pendingRestore.current = null;
-      });
-    });
-    return () => {
-      window.cancelAnimationFrame(outerFrame);
-      window.cancelAnimationFrame(innerFrame);
+        return;
+      }
+      frame = window.requestAnimationFrame(restoreScroll);
     };
+    frame = window.requestAnimationFrame(restoreScroll);
+    return () => window.cancelAnimationFrame(frame);
   }, [feed, moments.length, query.isLoading]);
 
   return (
     <PageShell width="feed" className="py-5">
       <PageHeader
-        className="px-1"
         title="动态"
-        description="浏览公开动态，或查看你关注用户的新内容。"
-      />
-
-      <Tabs
-        value={feed}
-        onValueChange={(value) => setFeed(value as MomentFeed)}
-        className="mb-5 gap-0 px-1"
-      >
-        <TabsList variant="line" aria-label="动态信息流" className="h-10 p-0">
-        {([['DISCOVER', '发现'], ['FOLLOWING', '关注']] as const).map(([value, label]) => (
-          <TabsTrigger
-            key={value}
-            value={value}
-            className="px-3"
+        variant="compact"
+        toolbar={
+          <Tabs
+            value={feed}
+            onValueChange={(value) => setFeed(value as MomentFeed)}
+            className="gap-0"
           >
-            {label}
-          </TabsTrigger>
-        ))}
-        </TabsList>
-      </Tabs>
+            <TabsList aria-label="动态信息流" className="h-10 p-1">
+              {([['DISCOVER', '发现'], ['FOLLOWING', '关注']] as const).map(([value, label]) => (
+                <TabsTrigger key={value} value={value} className="px-4">
+                  {label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        }
+      />
 
       {feed === "FOLLOWING" && !user ? (
         <div className="rounded-3xl bg-muted/60 px-6 py-20 text-center">
           <h2 className="font-display text-xl font-bold">登录后查看关注动态</h2>
-          <p className="mt-2 text-sm text-muted-foreground">你关注的人发布的新内容会按时间出现在这里。</p>
           <Button variant="ghost" className="mt-5 text-brand-strong" onClick={() => router.push(`/login?next=${encodeURIComponent(pathname)}`)}>登录</Button>
         </div>
       ) : (
@@ -97,7 +113,6 @@ export default function MomentsPage() {
           onLoadMore={() => void query.fetchNextPage()}
           onRetry={() => void query.refetch()}
           emptyTitle={feed === "FOLLOWING" ? "关注的人还没有新动态" : "动态区还很安静"}
-          emptyDescription={feed === "FOLLOWING" ? "切换到发现，查看公开动态。" : "从左侧发布入口创建第一条动态。"}
         />
       )}
     </PageShell>

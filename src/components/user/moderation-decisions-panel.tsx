@@ -21,7 +21,7 @@ export function ModerationDecisionsPanel() {
   if (decisions.isLoading) return <p className="mt-8 text-sm text-muted-foreground">正在读取治理决定…</p>;
   if (decisions.isError) return <p className="mt-8 text-sm text-destructive">治理决定加载失败</p>;
   return (
-    <div className="mx-auto mt-8 max-w-3xl space-y-4">
+    <div className="mx-auto mt-8 w-full max-w-3xl space-y-4">
       {decisions.data?.map((decision) => <DecisionCard key={decision.id} decision={decision} userId={user?.id} />)}
       {decisions.data?.length === 0 ? <div className="rounded-2xl border border-dashed border-border p-10 text-center"><Scale className="mx-auto size-7 text-muted-foreground" /><p className="mt-3 text-sm font-bold">近 30 天没有治理决定</p></div> : null}
     </div>
@@ -32,7 +32,7 @@ function DecisionCard({ decision, userId }: { decision: UserModerationDecision; 
   const appeal = useSubmitModerationAppeal(userId);
   const form = useForm<z.infer<typeof schema>>({ resolver: zodResolver(schema), defaultValues: { statement: "" } });
   return (
-    <article className="rounded-2xl border border-border bg-card p-6">
+    <article className="w-full rounded-2xl border border-border bg-card p-6">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-2"><Badge tone={decision.active ? "warning" : "neutral"}>{decision.active ? "生效中" : "已撤销"}</Badge><span className="text-sm font-bold">{decision.action}</span></div>
         <time className="font-utility text-xs text-muted-foreground">{format(new Date(decision.createdAt), "yyyy-MM-dd HH:mm")}</time>

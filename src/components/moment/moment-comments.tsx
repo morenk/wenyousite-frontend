@@ -22,6 +22,8 @@ import { UserAvatar } from "@/components/shared/user-avatar";
 import { ImageLightbox } from "@/components/shared/image-lightbox";
 import { FloatingInputDock } from "@/components/shared/floating-input-dock";
 import { ImageUploadProgress } from "@/components/shared/image-upload-progress";
+import { InternalReferenceInsert } from "@/components/shared/internal-reference-insert";
+import { InternalReferenceText } from "@/components/shared/internal-reference-text";
 import { StickerPickerPopover } from "@/components/sticker/sticker-picker-popover";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,6 +39,7 @@ import {
 import type { ReplyFilters, ReplyOrder } from "@/api/reply-query";
 import { getStickerDisplayUrl, STICKER_DISPLAY_STYLE } from "@/lib/sticker-display";
 import { cn } from "@/lib/utils";
+import { insertTextAtSelection } from "@/lib/internal-reference";
 
 const commentSchema = z.object({
   content: z.string().trim().max(500, "评论最多 500 个字"),
@@ -167,7 +170,7 @@ function MomentCommentForm({ momentId, replyTarget, onCancelReply }: { momentId:
   const [expanded, setExpanded] = useState(false);
   const [uploadStage, setUploadStage] = useState<"compressing" | UploadImageStage | null>(null);
   const [uploadProgress, setUploadProgress] = useState<UploadImageProgressValue | null>(null);
-  const { register, handleSubmit, reset, setError, clearErrors, control, formState: { errors } } = useForm<CommentForm>({
+  const { register, handleSubmit, reset, setError, clearErrors, control, getValues, setValue, formState: { errors } } = useForm<CommentForm>({
     resolver: zodResolver(commentSchema),
     defaultValues: { content: "" },
   });
@@ -325,6 +328,26 @@ function MomentCommentForm({ momentId, replyTarget, onCancelReply }: { momentId:
           ? "正在处理"
           : "发送";
 
+  const insertReference = (markdown: string) => {
+    const textarea = textareaRef.current;
+    const current = getValues("content");
+    const result = insertTextAtSelection(
+      current,
+      markdown,
+      textarea?.selectionStart,
+      textarea?.selectionEnd,
+    );
+    if (Array.from(result.value).length > 500) {
+      setError("content", { message: "评论最多 500 个字" });
+      return;
+    }
+    setValue("content", result.value, { shouldDirty: true, shouldValidate: true });
+    window.requestAnimationFrame(() => {
+      textarea?.focus();
+      textarea?.setSelectionRange(result.cursor, result.cursor);
+    });
+  };
+
   return (
     <form onSubmit={(event) => void handleSubmit(submit)(event)} className="rounded-2xl bg-background/95 p-3 backdrop-blur-xl">
       <div className="mb-2 flex items-center justify-between px-1 text-xs text-muted-foreground">
@@ -406,6 +429,17 @@ function MomentCommentForm({ momentId, replyTarget, onCancelReply }: { momentId:
             disabled={pending}
             label="表情包"
             onSelect={selectSticker}
+          />
+          <InternalReferenceInsert
+            disabled={pending}
+            getSuggestedLabel={() => {
+              const textarea = textareaRef.current;
+              return textarea
+                ? getValues("content").slice(textarea.selectionStart, textarea.selectionEnd)
+                : "";
+            }}
+            onInsert={insertReference}
+            className="text-muted-foreground"
           />
           <span className="hidden text-xs text-muted-foreground sm:inline">限 1 张图片或表情 · {contentLength}/500</span>
         </div>
@@ -600,7 +634,7 @@ function CommentRow({
                 回复 {comment.replyToComment.author.username}{comment.content ? "：" : ""}
               </span>
             ) : null}
-            {comment.content}
+            {comment.content ? <InternalReferenceText content={comment.content} /> : null}
           </p>
         ) : null}
         {!comment.deleted && (comment.media || comment.sticker) ? (

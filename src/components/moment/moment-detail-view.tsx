@@ -4,39 +4,37 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { Bookmark, ChevronLeft, ChevronRight, Heart, Loader2, Pencil, Save, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { Bookmark, Heart, Loader2, Pencil, Save, Trash2 } from "lucide-react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { useDeleteMoment, useMoment, useMomentBookmark, useMomentLike, useUpdateMoment } from "@/api/hooks/use-moments";
 import { getApiErrorMessage } from "@/api/errors";
 import { MomentComments } from "@/components/moment/moment-comments";
+import { MomentImageGallery } from "@/components/moment/moment-image-gallery";
 import { WenyouTipButton } from "@/components/economy/wenyou-tip-button";
-import { ImageLightbox } from "@/components/shared/image-lightbox";
+import { InternalReferenceInsert } from "@/components/shared/internal-reference-insert";
+import { InternalReferenceText } from "@/components/shared/internal-reference-text";
 import { LoadError } from "@/components/shared/load-error";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip } from "@/components/ui/tooltip";
 import { useConfirm } from "@/components/ui/confirm-provider";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { LIKED_ACTIVE_SURFACE_CLASS_NAME } from "@/lib/like-state";
-
-function getCarouselAspectRatio(image: { width: number | null; height: number | null } | null | undefined): number {
-  if (!image?.width || !image.height) return 1;
-  return Math.max(3 / 4, Math.min(16 / 10, image.width / image.height));
-}
+import { insertTextAtSelection } from "@/lib/internal-reference";
 
 export function MomentDetailView({ momentId, onDeleted }: { momentId: string; onDeleted?: () => void }) {
   const { user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const detail = useMoment(momentId, user?.id);
-  const [lightbox, setLightbox] = useState<string | null>(null);
-  const [activeImageId, setActiveImageId] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
+  const editContentRef = useRef<HTMLTextAreaElement>(null);
   const confirm = useConfirm();
   const remove = useDeleteMoment();
   const update = useUpdateMoment();
@@ -102,15 +100,24 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
       toast.error(getApiErrorMessage(error, "编辑失败，请刷新后重试"));
     }
   };
-  const activeImageIndex = Math.max(0, moment.images.findIndex((image) => image.id === activeImageId));
-  const activeImage = moment.images[activeImageIndex];
-  const carouselAspectRatio = getCarouselAspectRatio(moment.coverMedia ?? moment.images[0]);
-  const showImage = (index: number) => {
-    if (moment.images.length < 2) return;
-    const wrappedIndex = (index + moment.images.length) % moment.images.length;
-    setActiveImageId(moment.images[wrappedIndex].id);
+  const insertEditReference = (markdown: string) => {
+    const textarea = editContentRef.current;
+    const result = insertTextAtSelection(
+      editContent,
+      markdown,
+      textarea?.selectionStart,
+      textarea?.selectionEnd,
+    );
+    if (Array.from(result.value).length > 1000) {
+      toast.error("正文最多 1000 个字");
+      return;
+    }
+    setEditContent(result.value);
+    window.requestAnimationFrame(() => {
+      textarea?.focus();
+      textarea?.setSelectionRange(result.cursor, result.cursor);
+    });
   };
-
   return (
     <article className="w-full bg-background">
       <section
@@ -124,17 +131,38 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
             <div className="min-w-0"><p className="truncate text-sm font-bold">{moment.author.username}</p><time className="font-utility text-xs text-muted-foreground" dateTime={moment.createdAt}>{format(new Date(moment.createdAt), "yyyy年M月d日 HH:mm", { locale: zhCN })}</time></div>
           </Link>
           <div className="ml-auto flex items-center gap-1">
-            {moment.canEdit && !editing ? <Button variant="ghost" size="icon-sm" onClick={startEditing} aria-label="编辑动态" title="编辑动态"><Pencil /></Button> : null}
-            {moment.canDelete ? <Button variant="ghost" size="icon-sm" onClick={() => void deleteMoment()} disabled={remove.isPending} aria-label="删除动态" title="删除动态"><Trash2 /></Button> : null}
+            {moment.canEdit && !editing ? (
+              <Tooltip content="编辑动态">
+                <Button variant="ghost" size="icon-sm" onClick={startEditing} aria-label="编辑动态"><Pencil /></Button>
+              </Tooltip>
+            ) : null}
+            {moment.canDelete ? (
+              <Tooltip content="删除动态" disabled={remove.isPending}>
+                <Button variant="ghost" size="icon-sm" onClick={() => void deleteMoment()} disabled={remove.isPending} aria-label="删除动态"><Trash2 /></Button>
+              </Tooltip>
+            ) : null}
           </div>
         </header>
 
         {editing ? (
           <div className="mt-4 space-y-3 rounded-xl bg-background/75 p-4">
             <Input value={editTitle} onChange={(event) => setEditTitle(event.target.value)} maxLength={40} aria-label="动态标题" />
-            <Textarea value={editContent} onChange={(event) => setEditContent(event.target.value)} maxLength={1000} className="min-h-32 resize-none bg-background" aria-label="动态正文" />
+            <Textarea ref={editContentRef} value={editContent} onChange={(event) => setEditContent(event.target.value)} maxLength={1000} className="min-h-32 resize-none bg-background" aria-label="动态正文" />
             <div className="flex items-center justify-between gap-3">
-              <span className="font-utility text-xs text-muted-foreground">{Array.from(editTitle).length}/40 · {Array.from(editContent).length}/1000</span>
+              <div className="flex items-center gap-2">
+                <InternalReferenceInsert
+                  disabled={update.isPending}
+                  getSuggestedLabel={() => {
+                    const textarea = editContentRef.current;
+                    return textarea
+                      ? editContent.slice(textarea.selectionStart, textarea.selectionEnd)
+                      : "";
+                  }}
+                  onInsert={insertEditReference}
+                  className="text-muted-foreground"
+                />
+                <span className="font-utility text-xs text-muted-foreground">{Array.from(editTitle).length}/40 · {Array.from(editContent).length}/1000</span>
+              </div>
               <div className="flex gap-1">
                 <Button variant="ghost" size="sm" onClick={() => setEditing(false)} disabled={update.isPending}>取消</Button>
                 <Button variant="ghost" size="sm" className="text-brand-strong" onClick={() => void saveEdit()} disabled={update.isPending}>{update.isPending ? <Loader2 className="animate-spin" /> : <Save />}保存</Button>
@@ -144,93 +172,62 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
         ) : (
           <h1 id="moment-detail-title" className="mt-4 whitespace-pre-wrap font-display text-2xl font-bold leading-[1.5] tracking-wide sm:text-3xl">{moment.title}</h1>
         )}
+
+        {!editing ? (
+          <div
+            data-slot="moment-detail-actions"
+            className="mt-4 flex flex-wrap items-center gap-1 border-t border-border/75 pt-3 text-muted-foreground"
+          >
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => void toggleLike()}
+              aria-disabled={like.isPending}
+              className={cn(
+                "group/like aria-disabled:cursor-wait",
+                moment.viewerLiked && LIKED_ACTIVE_SURFACE_CLASS_NAME,
+              )}
+              aria-pressed={moment.viewerLiked}
+              aria-label={moment.viewerLiked ? `取消点赞${moment.likeCount > 0 ? `，${moment.likeCount}` : ""}` : `点赞${moment.likeCount > 0 ? `，${moment.likeCount}` : ""}`}
+            >
+              <Heart className={cn(
+                "transition-[color,fill,transform] duration-[var(--motion-fast)] ease-[var(--ease-standard)] motion-safe:group-active/like:scale-90",
+                moment.viewerLiked && "fill-current",
+              )} />
+              {moment.likeCount || "点赞"}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => void toggleBookmark()}
+              disabled={bookmark.isPending}
+              className={cn(moment.viewerBookmarked && "bg-primary/35 text-brand-strong")}
+              aria-pressed={moment.viewerBookmarked}
+              aria-label={moment.viewerBookmarked ? `取消收藏${moment.bookmarkCount > 0 ? `，${moment.bookmarkCount}` : ""}` : `收藏${moment.bookmarkCount > 0 ? `，${moment.bookmarkCount}` : ""}`}
+            >
+              <Bookmark className={cn(moment.viewerBookmarked && "fill-current")} />
+              {moment.bookmarkCount || "收藏"}
+            </Button>
+            {user?.id !== moment.authorId ? <WenyouTipButton target={{ type: "MOMENT", id: moment.id, recipientUserId: moment.authorId }} recipientName={moment.author.username} /> : null}
+            <span className="ml-auto font-utility text-xs text-muted-foreground">累计加油 {moment.tipTotal} 升</span>
+          </div>
+        ) : null}
       </section>
 
-      {activeImage ? (
-        <div data-slot="moment-detail-carousel" className="w-full bg-muted/40 p-2">
-          <div className="relative">
-            <button
-              key={activeImage.id}
-              type="button"
-              data-slot="moment-detail-image"
-              onClick={() => setLightbox(activeImage.url)}
-              className="relative w-full max-h-[min(72vh,42rem)] overflow-hidden rounded-xl bg-muted"
-              style={{ aspectRatio: carouselAspectRatio }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element -- COS 处理中图已按契约选择 */}
-              <img
-                src={activeImage.mediumUrl ?? activeImage.url}
-                alt={`${moment.title}，第 ${activeImageIndex + 1} 张图片`}
-                width={activeImage.width ?? undefined}
-                height={activeImage.height ?? undefined}
-                className="h-full w-full object-contain"
-              />
-            </button>
-            {moment.images.length > 1 ? (
-              <>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => showImage(activeImageIndex - 1)}
-                  className="absolute left-3 top-1/2 z-10 -mt-4 bg-foreground/60 text-background shadow-popover hover:bg-foreground/75 hover:text-background"
-                  aria-label="上一张图片"
-                >
-                  <ChevronLeft />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => showImage(activeImageIndex + 1)}
-                  className="absolute right-3 top-1/2 z-10 -mt-4 bg-foreground/60 text-background shadow-popover hover:bg-foreground/75 hover:text-background"
-                  aria-label="下一张图片"
-                >
-                  <ChevronRight />
-                </Button>
-                <span className="absolute bottom-3 right-3 z-10 rounded-full bg-foreground/60 px-2.5 py-1 font-utility text-xs font-bold tabular-nums text-background" aria-live="polite">
-                  {activeImageIndex + 1} / {moment.images.length}
-                </span>
-              </>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
+      <MomentImageGallery
+        title={moment.title}
+        images={moment.images}
+        coverMedia={moment.coverMedia}
+      />
 
       <div
         data-slot="moment-detail-reading"
         className="w-full px-5 py-7 sm:px-7"
       >
-        {!editing && moment.content ? <p className="whitespace-pre-wrap break-words text-[1.0625rem] leading-8 text-foreground">{moment.content}</p> : null}
-
-        <div className="mt-7 flex flex-wrap items-center gap-1 text-muted-foreground">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => void toggleLike()}
-            aria-disabled={like.isPending}
-            className={cn(
-              "group/like aria-disabled:cursor-wait",
-              moment.viewerLiked && LIKED_ACTIVE_SURFACE_CLASS_NAME,
-            )}
-            aria-pressed={moment.viewerLiked}
-            aria-label={moment.viewerLiked ? `取消点赞${moment.likeCount > 0 ? `，${moment.likeCount}` : ""}` : `点赞${moment.likeCount > 0 ? `，${moment.likeCount}` : ""}`}
-          >
-            <Heart className={cn(
-              "transition-[color,fill,transform] duration-[var(--motion-fast)] ease-[var(--ease-standard)] motion-safe:group-active/like:scale-90",
-              moment.viewerLiked && "fill-current",
-            )} />
-            {moment.likeCount || "点赞"}
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => void toggleBookmark()} disabled={bookmark.isPending} className={cn(moment.viewerBookmarked && "text-brand-strong")} aria-pressed={moment.viewerBookmarked}><Bookmark className={cn(moment.viewerBookmarked && "fill-current")} />{moment.bookmarkCount || "收藏"}</Button>
-          {user?.id !== moment.authorId ? <WenyouTipButton target={{ type: "MOMENT", id: moment.id, recipientUserId: moment.authorId }} recipientName={moment.author.username} /> : null}
-          <span className="ml-auto font-utility text-xs text-muted-foreground">累计加油 {moment.tipTotal} 升</span>
-        </div>
+        {!editing && moment.content ? <p className="whitespace-pre-wrap break-words text-[1.0625rem] leading-8 text-foreground"><InternalReferenceText content={moment.content} /></p> : null}
 
         <MomentComments momentId={moment.id} />
       </div>
-
-      {lightbox ? <ImageLightbox src={lightbox} alt={moment.title} onClose={() => setLightbox(null)} /> : null}
     </article>
   );
 }

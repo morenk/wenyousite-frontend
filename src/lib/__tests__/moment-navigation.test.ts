@@ -22,7 +22,12 @@ describe("moment feed return navigation", () => {
     rememberMomentFeed("FOLLOWING");
     markMomentFeedReturn("moment-1", "/moments");
     expect(takeMomentFeedReturn("moment-1")).toBe(true);
-    expect(takeMomentFeedRestore()).toEqual({ feed: "FOLLOWING", scrollY: 640 });
+    expect(takeMomentFeedRestore()).toEqual({
+      feed: "FOLLOWING",
+      scrollY: 640,
+      momentId: "moment-1",
+      anchorOffset: null,
+    });
     expect(takeMomentFeedRestore()).toBeNull();
     expect(takeMomentFeedReturn("moment-1")).toBe(false);
   });

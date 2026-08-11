@@ -46,7 +46,7 @@ function SearchLoading() {
 function SearchError({ onRetry }: SearchErrorProps) {
   return (
     <div className="flex flex-col items-center gap-4 py-12">
-      <EmptyState title="搜索失败" description="请稍后重试" />
+      <EmptyState title="搜索失败" />
       <Button variant="outline" size="sm" onClick={onRetry}>
         重试
       </Button>
@@ -146,7 +146,7 @@ export function SearchResults({ keyword }: SearchResultsProps) {
         {!postKeywordValid ? (
             <EmptyState title="动态搜索至少需要 2 个字符" description="用户名和主题帖仍支持单字符搜索" />
           ) : (
-            <MomentMasonry moments={moments} maxLanes={2} isLoading={momentsQuery.isLoading} error={momentsQuery.error} hasNextPage={!isRefreshing && !!momentsQuery.hasNextPage} isFetchingNextPage={!isRefreshing && momentsQuery.isFetchingNextPage} onLoadMore={() => void momentsQuery.fetchNextPage()} onRetry={() => void momentsQuery.refetch()} emptyTitle="没有匹配的动态" emptyDescription="试试更换关键词。" />
+            <MomentMasonry moments={moments} maxLanes={2} isLoading={momentsQuery.isLoading} error={momentsQuery.error} hasNextPage={!isRefreshing && !!momentsQuery.hasNextPage} isFetchingNextPage={!isRefreshing && momentsQuery.isFetchingNextPage} onLoadMore={() => void momentsQuery.fetchNextPage()} onRetry={() => void momentsQuery.refetch()} emptyTitle="没有匹配的动态" />
           )}
       </TabsContent>
 
@@ -156,7 +156,7 @@ export function SearchResults({ keyword }: SearchResultsProps) {
           ) : threadsQuery.isError ? (
             <SearchError onRetry={() => void threadsQuery.refetch()} />
           ) : !threadsQuery.data || threadsQuery.data.length === 0 ? (
-            <EmptyState title="没有匹配的主题帖" description="可以查看其他分类" />
+            <EmptyState title="没有匹配的主题帖" />
           ) : (
             <div className="w-full space-y-3">
               {threadsQuery.data.map((thread) => (
@@ -196,7 +196,7 @@ export function SearchResults({ keyword }: SearchResultsProps) {
           ) : postsQuery.isError ? (
             <SearchError onRetry={() => void postsQuery.refetch()} />
           ) : posts.length === 0 ? (
-            <EmptyState title="没有匹配的楼层内容" description="可以查看其他分类" />
+            <EmptyState title="没有匹配的楼层内容" />
           ) : (
             <PostSearchResultList
               posts={posts}
@@ -213,7 +213,7 @@ export function SearchResults({ keyword }: SearchResultsProps) {
           ) : usersQuery.isError ? (
             <SearchError onRetry={() => void usersQuery.refetch()} />
           ) : !usersQuery.data || usersQuery.data.length === 0 ? (
-            <EmptyState title="没有匹配的用户" description="可以查看其他分类" />
+            <EmptyState title="没有匹配的用户" />
           ) : (
             <div className="w-full space-y-3">
               {usersQuery.data.map((user) => (

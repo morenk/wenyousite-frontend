@@ -279,12 +279,12 @@ describe("ThreadDetailHeader", () => {
 
     const header = container.querySelector('[data-slot="thread-detail-header"]');
     expect(header).toContainElement(
-      screen.getByRole("button", { name: "切换子贴，当前：主帖" }),
+      screen.getByRole("combobox", { name: "切换子贴，当前：主帖" }),
     );
     expect(header?.querySelector(".overflow-x-auto")).toBeNull();
 
-    await user.click(screen.getByRole("button", { name: "切换子贴，当前：主帖" }));
-    await user.click(screen.getByRole("menuitem", { name: "设定区 18 楼" }));
+    await user.click(screen.getByRole("combobox", { name: "切换子贴，当前：主帖" }));
+    await user.click(screen.getByRole("option", { name: "设定区 18 楼" }));
     expect(onSubthreadChange).toHaveBeenCalledWith("s2");
   });
 
@@ -462,7 +462,7 @@ describe("ThreadDetailHeader", () => {
 
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
 
-    await user.click(screen.getByTitle("删除主题帖"));
+    await user.click(screen.getByRole("button", { name: "删除主题帖" }));
 
     expect(window.confirm).toHaveBeenCalledWith(
       "确定要删除该主题帖吗？已发布主题帖删除后将无法恢复。",
@@ -484,7 +484,7 @@ describe("ThreadDetailHeader", () => {
 
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
 
-    await user.click(screen.getByTitle("删除主题帖"));
+    await user.click(screen.getByRole("button", { name: "删除主题帖" }));
 
     expect(mockDeleteThreadMutate).not.toHaveBeenCalled();
     expect(mockRouterPush).not.toHaveBeenCalled();
@@ -517,7 +517,7 @@ describe("ThreadDetailHeader", () => {
     });
 
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
-    await user.click(screen.getByTitle("删除主题帖"));
+    await user.click(screen.getByRole("button", { name: "删除主题帖" }));
 
     expect(toast.error).toHaveBeenCalledWith("仅楼主可删除主题帖");
     expect(mockRouterPush).not.toHaveBeenCalled();

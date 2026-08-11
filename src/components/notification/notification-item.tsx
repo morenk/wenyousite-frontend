@@ -12,7 +12,7 @@ import {
   FilePlus,
   UserPlus,
   Heart,
-  Gift,
+  Fuel,
   TrendingUp,
   Megaphone,
   X,
@@ -129,7 +129,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     <Link
       href={href}
       onClick={handleOpen}
-      className="flex items-start gap-3"
+      className="flex w-full items-start gap-3"
     >
       {inner}
     </Link>
@@ -144,7 +144,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   return (
     <div
       className={cn(
-        "relative rounded-xl border p-3.5",
+        "relative w-full rounded-xl border p-3.5",
         notification.isRead
           ? "border-border bg-card"
           : "border-primary/20 bg-primary/[0.03]",
@@ -254,7 +254,7 @@ const typeIconMap: Record<string, React.ComponentType<{ className?: string }>> =
   thread_created: FilePlus,
   follow: UserPlus,
   like: Heart,
-  tip: Gift,
+  tip: Fuel,
   level_up: TrendingUp,
   system: Megaphone,
 };

@@ -58,7 +58,7 @@ export function NotificationList({ type, onTypeChange }: NotificationListProps) 
   };
 
   return (
-    <div className="space-y-3">
+    <div className="w-full space-y-3">
       <div className="flex items-center justify-between gap-2">
         <div className="flex flex-wrap gap-1">
           {NOTIFICATION_FILTERS.map((filter) => (
@@ -93,13 +93,13 @@ export function NotificationList({ type, onTypeChange }: NotificationListProps) 
         </div>
       ) : isError ? (
         <div className="flex flex-col items-center gap-4 py-16">
-          <EmptyState title="通知加载失败" description="请稍后重试" />
+          <EmptyState title="通知加载失败" />
           <Button variant="outline" size="sm" onClick={() => refetch()}>
             重试
           </Button>
         </div>
       ) : notifications.length === 0 ? (
-        <EmptyState title="暂无通知" description="新的回复、@提及、关注等会出现在这里" />
+        <EmptyState title="暂无通知" />
       ) : (
         <>
           {notifications.map((notification) => (

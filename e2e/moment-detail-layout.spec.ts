@@ -179,7 +179,8 @@ test("动态详情以封面比例固定图片舞台，切图不推动正文", as
   await page.goto("/moments/moment-layout");
 
   const heading = page.getByRole("heading", { name: "固定舞台测试" });
-  const imageFrame = page.locator('[data-slot="moment-detail-image"]');
+  // Embla 会同时保留所有幻灯片；用首张图片的固定舞台测量尺寸，避免多元素定位歧义。
+  const imageFrame = page.locator('[data-slot="moment-detail-image"]').first();
   await expect(heading).toBeVisible();
   await expect(heading).toBeInViewport();
   const firstImage = page.getByAltText("固定舞台测试，第 1 张图片");
@@ -232,7 +233,9 @@ test("详情替换固定中栏，返回时恢复关注流和滚动位置", async
   await expect(targetCard).toBeVisible();
   await targetCard.scrollIntoViewIfNeeded();
   const feedScrollY = await page.evaluate(() => window.scrollY);
+  const targetOffset = (await targetCard.boundingBox())?.y;
   expect(feedScrollY).toBeGreaterThan(500);
+  expect(targetOffset).toBeDefined();
 
   const main = page.locator('[data-slot="app-chrome"] > main');
   const leftRail = page.getByRole("complementary", { name: "全局导航" });
@@ -290,9 +293,9 @@ test("详情替换固定中栏，返回时恢复关注流和滚动位置", async
   await expect(page).toHaveURL(/\/moments$/);
   await expect(page.getByRole("tab", { name: "关注" })).toHaveAttribute("aria-selected", "true");
   await expect.poll(
-    async () => Math.abs((await page.evaluate(() => window.scrollY)) - feedScrollY),
-  ).toBeLessThan(80);
-  await expect(targetCard).toBeVisible();
+    async () => Math.abs(((await targetCard.boundingBox())?.y ?? Number.POSITIVE_INFINITY) - targetOffset!),
+  ).toBeLessThan(2);
+  await expect(targetCard).toBeInViewport();
 });
 
 test("动态通知目标直达具体楼中楼，长讨论可从悬浮按钮收起", async ({ page }) => {

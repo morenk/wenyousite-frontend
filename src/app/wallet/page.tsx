@@ -9,7 +9,7 @@ export default function WalletPage() {
   return (
     <RequireAuth>
       <PageShell width="feed">
-        <PageHeader title="我的温油" description="查看余额，以及最近的获得和投入记录。" />
+        <PageHeader title="我的温油" />
         <WalletHistory />
       </PageShell>
     </RequireAuth>

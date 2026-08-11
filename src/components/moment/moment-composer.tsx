@@ -10,6 +10,7 @@ import { z } from "zod";
 import { useCreateMoment } from "@/api/hooks/use-moments";
 import { getApiErrorMessage } from "@/api/errors";
 import { ImageUploadProgress } from "@/components/shared/image-upload-progress";
+import { InternalReferenceInsert } from "@/components/shared/internal-reference-insert";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -33,6 +34,7 @@ import {
   type UploadImageProgress as UploadImageProgressValue,
 } from "@/lib/upload-image";
 import { cn } from "@/lib/utils";
+import { insertTextAtSelection } from "@/lib/internal-reference";
 
 const schema = z.object({
   title: z.string().trim().min(2, "标题至少 2 个字").max(40, "标题最多 40 个字"),
@@ -53,6 +55,7 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
   const pathname = usePathname();
   const createMoment = useCreateMoment();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const contentTextareaRef = useRef<HTMLTextAreaElement>(null);
   const draftReadyRef = useRef(false);
   const quotaWarningRef = useRef(false);
   const composerClosedRef = useRef(!open);
@@ -70,6 +73,7 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
     handleSubmit,
     reset,
     setValue,
+    getValues,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -77,6 +81,7 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
   });
   const title = useWatch({ control, name: "title" });
   const content = useWatch({ control, name: "content" });
+  const contentRegistration = register("content");
   const isPublishing = createMoment.isPending || uploadProgress === "正在发布动态";
   const isUploading = uploadProgress !== null && !isPublishing;
   const pending = isPublishing || isUploading;
@@ -288,6 +293,26 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
 
   const selectedCover = images.find((image) => image.id === coverFileId);
 
+  const insertReference = (markdown: string) => {
+    const textarea = contentTextareaRef.current;
+    const current = getValues("content");
+    const result = insertTextAtSelection(
+      current,
+      markdown,
+      textarea?.selectionStart,
+      textarea?.selectionEnd,
+    );
+    if (Array.from(result.value).length > 1000) {
+      toast.error("正文最多 1000 个字");
+      return;
+    }
+    setValue("content", result.value, { shouldDirty: true, shouldValidate: true });
+    window.requestAnimationFrame(() => {
+      textarea?.focus();
+      textarea?.setSelectionRange(result.cursor, result.cursor);
+    });
+  };
+
   return (
     <Dialog
       open={open}
@@ -338,8 +363,32 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
               <div className="flex justify-between text-xs"><span className="text-destructive">{errors.title?.message}</span><span className="font-utility text-muted-foreground">{Array.from(title).length}/40</span></div>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="moment-content">正文</Label>
-              <Textarea id="moment-content" placeholder="补充一些细节（可选，纯文字）" maxLength={1000} className="min-h-36 resize-none" aria-invalid={!!errors.content} {...register("content")} />
+              <div className="flex items-center justify-between gap-3">
+                <Label htmlFor="moment-content">正文</Label>
+                <InternalReferenceInsert
+                  disabled={pending}
+                  getSuggestedLabel={() => {
+                    const textarea = contentTextareaRef.current;
+                    return textarea
+                      ? getValues("content").slice(textarea.selectionStart, textarea.selectionEnd)
+                      : "";
+                  }}
+                  onInsert={insertReference}
+                  className="text-muted-foreground"
+                />
+              </div>
+              <Textarea
+                id="moment-content"
+                placeholder="补充一些细节（可选，可插入站内传送门）"
+                maxLength={1000}
+                className="min-h-36 resize-none"
+                aria-invalid={!!errors.content}
+                {...contentRegistration}
+                ref={(element) => {
+                  contentRegistration.ref(element);
+                  contentTextareaRef.current = element;
+                }}
+              />
               <div className="flex justify-between text-xs"><span className="text-destructive">{errors.content?.message}</span><span className="font-utility text-muted-foreground">{Array.from(content).length}/1000</span></div>
             </div>
 

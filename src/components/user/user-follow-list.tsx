@@ -29,7 +29,7 @@ export function UserFollowList({ userId, kind }: UserFollowListProps) {
   if (isError) {
     return (
       <div className="flex flex-col items-center gap-4 py-16">
-        <EmptyState title="加载失败" description="请稍后重试" />
+        <EmptyState title="加载失败" />
         <Button variant="outline" size="sm" onClick={() => refetch()}>
           重试
         </Button>
@@ -42,12 +42,12 @@ export function UserFollowList({ userId, kind }: UserFollowListProps) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="w-full space-y-3">
       {users.map((user) => (
         <Link
           key={user.id}
           href={`/users/${user.id}`}
-          className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 transition-colors hover:bg-accent/20"
+          className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-3 transition-colors hover:bg-accent/20"
         >
           <UserAvatar name={user.username} src={user.avatar} className="h-10 w-10" />
           <span className="text-sm font-medium text-foreground">

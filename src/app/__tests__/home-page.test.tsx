@@ -102,6 +102,8 @@ describe("首页", () => {
   test("首页内容流不重复全局创建入口", () => {
     renderPage();
 
+    expect(screen.getByRole("heading", { name: "发现主题帖" })).toBeInTheDocument();
+    expect(screen.queryByText("按玩法、状态和活跃度筛选公开主题帖。")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "创建主题帖" })).not.toBeInTheDocument();
   });
 

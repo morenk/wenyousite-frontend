@@ -64,7 +64,7 @@ export function MemberManager({ threadId, isOwner, isCollaborator }: MemberManag
   if (error) {
     return (
       <div className="flex flex-col items-center gap-4 py-16">
-        <EmptyState title="加载失败" description="请检查网络连接后重试" />
+        <EmptyState title="加载失败" />
         <Button variant="outline" size="sm" onClick={() => refetch()}>
           重试
         </Button>

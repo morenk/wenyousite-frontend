@@ -107,7 +107,7 @@
 | useThreadSearchPosts | `src/api/hooks/use-search.ts` | 帖内楼层分页 hook，与全站楼层共享分页核心 |
 | PostSearchResultList | `src/components/search/post-search-result-list.tsx` | 全站与帖内共享的楼层结果、统一 Markdown 纯文本预览、加载更多和精确定位列表 |
 | ThreadPostSearch | `src/components/thread/thread-post-search.tsx` | 详情页内联搜索面板，处理输入与 loading/error/empty/data 四态 |
-| SearchPage | `src/app/search/page.tsx` | 搜索页（输入 + 四态） |
+| SearchPage | `src/app/search/page.tsx` | 紧凑排头合并页面标题与搜索表单；下方承载结果四态 |
 
 ## 7. 交互规则
 
@@ -121,14 +121,15 @@
 - 用户项 → `/users/{id}`；主题帖项 → `/threads/{id}`；楼层项通过共享 `getPostHref` 携带目标帖子 ID 和 `parentPostId`，主楼层进入所属子贴，楼中楼直达对应讨论页并定位高亮
 - 主题帖封面随整张结果卡片跳转，不单独打开灯箱；图片懒加载，本站静态图优先使用 `_feed.webp`，失败后回退原图
 - 详情页头部“搜索本帖”切换内联面板；输入只在提交时发请求，点击主楼层结果会清除当前手选子贴后切换到结果所属子贴
-- 空关键词 → 提示输入；无结果 → "没有找到相关内容"
+- 空关键词 → 只显示已可操作的搜索排头，不再追加重复引导；无结果 → "没有找到相关内容"
+- 页面标题、输入框和按钮已足以表达搜索能力，不额外展示检索范围副标题；具体结果分类由 Tab 直接呈现
 
 ## 8. 错误处理
 
 | 场景 | UI 行为 |
 |------|---------|
 | 请求失败 | 错误态 + 重试按钮 |
-| 空关键词 | 空态提示输入 |
+| 空关键词 | 保持结果区为空，搜索框继续可直接操作 |
 | 分类无结果 | 当前 Tab 显示对应空态，其他 Tab 仍可切换 |
 | 楼层关键词不足 2 字符 | 显示补充关键词提示，不发请求 |
 

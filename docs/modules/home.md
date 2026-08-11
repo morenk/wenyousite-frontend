@@ -50,7 +50,7 @@
 
 | 组件 | 路径 | 说明 |
 |------|------|------|
-| HomePage | `src/app/page.tsx` | 首页主逻辑 |
+| HomePage | `src/app/page.tsx` | 首页主逻辑；紧凑排头合并标题与筛选工具，不显示解释性副标题 |
 | AppChrome | `src/components/layout/app-chrome.tsx` | 根据路由切换社区三栏、工作区双栏和认证页布局 |
 | AppContextRail | `src/components/layout/app-context-rail.tsx` | 宽屏账户主页、钱包、通知/私聊未读数、收藏、设置、玩法分类和访客入口；与左栏个人入口互斥显示 |
 | TagThreadsPage | `src/app/tags/[id]/page.tsx` | 指定标签主题帖列表，复用首页筛选和无限滚动 |
@@ -132,4 +132,5 @@
 - 标签页仅展示精确关联该标签的公开已发布主题帖，并可继续组合筛选
 - 标签不存在时显示明确错误状态
 - 首页与标签页使用纯白阅读表面、玩法线路色、语义 PageShell 和连续信息列表
+- 首页排头只显示“发现主题帖”和实际筛选控件，不用说明文字重复解释筛选能力
 - 1024/1440/1920px 具有确定性 Playwright 视觉基线，宽屏保持 272px 导航 + 672px feed + 272px 上下文栏

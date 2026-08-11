@@ -90,7 +90,7 @@ describe("DraftList", () => {
     });
     renderWithQC(<DraftList />);
     expect(screen.getByText("还没有主题帖草稿")).toBeInTheDocument();
-    expect(screen.getByText("点击「新建主题帖」创建草稿。")).toBeInTheDocument();
+    expect(screen.queryByText("点击「新建主题帖」创建草稿。")).not.toBeInTheDocument();
   });
 
   test("渲染草稿并跳转编辑", () => {

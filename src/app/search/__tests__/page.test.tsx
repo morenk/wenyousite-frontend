@@ -33,9 +33,11 @@ describe("搜索页", () => {
     );
   }
 
-  test("无关键词时显示引导而不渲染结果", () => {
+  test("无关键词时只显示紧凑搜索排头", () => {
     renderPage();
-    expect(screen.getByText("输入关键词开始搜索")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "搜索" })).toBeInTheDocument();
+    expect(screen.queryByText("查找动态、用户、主题帖和公开楼层内容。")).not.toBeInTheDocument();
+    expect(screen.queryByText("输入关键词开始搜索")).not.toBeInTheDocument();
     expect(screen.queryByText(/^结果:/)).not.toBeInTheDocument();
   });
 
@@ -74,6 +76,6 @@ describe("搜索页", () => {
     expect(onUrlUpdate).toHaveBeenCalledWith(expect.objectContaining({
       searchParams: new URLSearchParams(),
     }));
-    expect(await screen.findByText("输入关键词开始搜索")).toBeInTheDocument();
+    expect(screen.queryByText(/^结果:/)).not.toBeInTheDocument();
   });
 });

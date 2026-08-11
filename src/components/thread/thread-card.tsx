@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { Gift, Users, MessageSquare } from "lucide-react";
+import { Fuel, Users, MessageSquare } from "lucide-react";
 import { formatMarkdownPreview } from "@/lib/markdown-preview";
 import { THREAD_STATUS_META } from "@/lib/thread-presentation";
 import { UserAvatar } from "@/components/shared/user-avatar";
@@ -133,7 +133,7 @@ export function ThreadCard({ thread }: ThreadCardProps) {
               {thread._count.posts}
             </span>
             <span className="flex items-center gap-1" title="累计获得温油">
-              <Gift className="h-3.5 w-3.5" />
+              <Fuel className="h-3.5 w-3.5" />
               {formatWenyou(thread.tipTotal)} 升
             </span>
           </div>

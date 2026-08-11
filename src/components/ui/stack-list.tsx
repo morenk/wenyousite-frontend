@@ -12,7 +12,7 @@ export function StackList({ className, ...props }: ComponentProps<"div">) {
     <div
       data-slot="stack-list"
       className={cn(
-        "divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card",
+        "w-full divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card",
         className,
       )}
       {...props}

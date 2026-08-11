@@ -47,7 +47,7 @@ export function DraftList() {
   if (error) {
     return (
       <div className="flex flex-col items-center gap-4 py-16">
-        <EmptyState title="草稿加载失败" description="请稍后重试" />
+        <EmptyState title="草稿加载失败" />
         <Button variant="outline" size="sm" onClick={() => refetch()}>
           重试
         </Button>
@@ -57,19 +57,16 @@ export function DraftList() {
 
   if (!drafts || drafts.length === 0) {
     return (
-      <EmptyState
-        title="还没有主题帖草稿"
-        description="点击「新建主题帖」创建草稿。"
-      />
+      <EmptyState title="还没有主题帖草稿" />
     );
   }
 
   return (
-    <div className="space-y-3">
+    <div className="w-full space-y-3">
       {drafts.map((draft) => (
         <div
           key={draft.id}
-          className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4"
+          className="flex w-full items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4"
         >
           <div className="min-w-0">
             <div className="mb-1 flex items-center gap-2">

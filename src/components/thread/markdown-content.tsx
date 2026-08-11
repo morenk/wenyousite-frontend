@@ -3,11 +3,13 @@
 "use client";
 
 import {
+  isValidElement,
   useEffect,
   useId,
   useRef,
   useState,
   type ComponentProps,
+  type ReactNode,
 } from "react";
 import ReactMarkdown, { type ExtraProps } from "react-markdown";
 import { createPortal } from "react-dom";
@@ -25,6 +27,12 @@ import { ImageLightbox } from "@/components/shared/image-lightbox";
 import { cn } from "@/lib/utils";
 import { SaveStickerButton } from "@/components/sticker/save-sticker-button";
 import { STICKER_DISPLAY_STYLE } from "@/lib/sticker-display";
+import {
+  INTERNAL_REFERENCE_DEFAULT_LABEL,
+  parseInternalReference,
+  tokenizeInternalReferenceText,
+} from "@/lib/internal-reference";
+import { InternalReferenceLink } from "@/components/shared/internal-reference-link";
 
 /** 判断是否为本站上传图片（objectKey 统一以 uploads/ 开头）且非派生图 */
 function isUploadedMediaUrl(url: string): boolean {
@@ -45,7 +53,44 @@ type AnchorProps = ComponentProps<"a"> & ExtraProps;
 type TableProps = ComponentProps<"table"> & ExtraProps;
 type PreProps = ComponentProps<"pre"> & ExtraProps;
 
+function getNodeText(node: ReactNode): string {
+  if (typeof node === "string" || typeof node === "number") return String(node);
+  if (Array.isArray(node)) return node.map(getNodeText).join("");
+  if (isValidElement<{ children?: ReactNode }>(node)) return getNodeText(node.props.children);
+  return "";
+}
+
+function getInternalMarkdownHref(href: string) {
+  let decodedHref = href;
+  try {
+    decodedHref = decodeURI(href);
+  } catch {
+    // 交给统一解析器判无效，不为坏编码抛出渲染异常。
+  }
+  const trailing = decodedHref.match(/[，。！？；：、]+$/u)?.[0] ?? "";
+  const candidate = trailing ? decodedHref.slice(0, -trailing.length) : decodedHref;
+  return { reference: parseInternalReference(candidate), trailing, candidate };
+}
+
 function MarkdownLink({ href, children, ...props }: AnchorProps) {
+  const internalHref = typeof href === "string" ? getInternalMarkdownHref(href) : null;
+  if (internalHref?.reference) {
+    const childText = getNodeText(children);
+    const comparableChildText = internalHref.trailing && childText.endsWith(internalHref.trailing)
+      ? childText.slice(0, -internalHref.trailing.length)
+      : childText;
+    const label = comparableChildText.trim()
+      && comparableChildText.trim() !== href
+      && comparableChildText.trim() !== internalHref.candidate
+      ? comparableChildText.trim()
+      : INTERNAL_REFERENCE_DEFAULT_LABEL;
+    return (
+      <>
+        <InternalReferenceLink href={internalHref.reference.href} label={label} />
+        {internalHref.trailing}
+      </>
+    );
+  }
   const userMatch = typeof href === "string" ? /^\/users\/([^/]+)$/u.exec(href) : null;
   if (userMatch) {
     return (
@@ -233,6 +278,41 @@ function remarkInlineDice(rolls: InlineDiceRoll[]) {
   };
 }
 
+/** GFM 不会自动链接相对地址；在文本节点内把裸站内坐标提升为统一链接节点。 */
+function remarkBareInternalReferences() {
+  return (tree: MarkdownNode) => {
+    const transform = (node: MarkdownNode) => {
+      if (!node.children || node.type === "link" || node.type === "code" || node.type === "inlineCode") return;
+      const children: MarkdownNode[] = [];
+      for (const child of node.children) {
+        if (child.type !== "text" || !child.value) {
+          transform(child);
+          children.push(child);
+          continue;
+        }
+        const segments = tokenizeInternalReferenceText(child.value);
+        if (!segments.some((segment) => segment.type === "portal")) {
+          children.push(child);
+          continue;
+        }
+        for (const segment of segments) {
+          if (segment.type === "text") {
+            if (segment.value) children.push({ type: "text", value: segment.value });
+          } else {
+            children.push({
+              type: "link",
+              url: segment.reference.href,
+              children: [{ type: "text", value: segment.label }],
+            } as MarkdownNode);
+          }
+        }
+      }
+      node.children = children;
+    };
+    transform(tree);
+  };
+}
+
 const COLLAPSE_TRIGGER_VIEWPORT_RATIO = 1.2;
 
 interface CollapsibleMarkdownProps {
@@ -308,7 +388,12 @@ function CollapsibleMarkdown({
         style={collapsed ? { maxHeight: "80vh", overflow: "hidden" } : undefined}
       >
         <ReactMarkdown
-          remarkPlugins={[remarkGfm, remarkMilkdownEmptyParagraphs, remarkInlineDice(diceRolls)]}
+          remarkPlugins={[
+            remarkGfm,
+            remarkMilkdownEmptyParagraphs,
+            remarkInlineDice(diceRolls),
+            remarkBareInternalReferences,
+          ]}
           components={{
             a: MarkdownLink,
             img: (props) => <MarkdownImage {...props} sourcePostId={sourcePostId} />,

@@ -27,7 +27,7 @@ export function WalletHistory() {
   const items = transactions.data?.pages.flatMap((page) => page.data) ?? [];
 
   return (
-    <div className="space-y-5">
+    <div className="w-full space-y-5">
       <Card>
         <CardContent className="flex items-center justify-between gap-4 py-6">
           <div>
@@ -65,13 +65,13 @@ export function WalletHistory() {
             </div>
           ) : transactions.isError && items.length === 0 ? (
             <div className="flex flex-col items-center gap-3 py-10">
-              <EmptyState title="流水加载失败" description="请稍后重试" />
+              <EmptyState title="流水加载失败" />
               <Button variant="outline" size="sm" onClick={() => transactions.refetch()}>
                 重试
               </Button>
             </div>
           ) : items.length === 0 ? (
-            <EmptyState title="暂无收支记录" description="每日在线会自动领取 1～3 升温油" />
+            <EmptyState title="暂无收支记录" />
           ) : (
             <div className="divide-y divide-border">
               {items.map((transaction) => (
