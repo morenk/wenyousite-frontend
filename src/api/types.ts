@@ -1652,6 +1652,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/moderation/appeal-token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 校验账号密码并签发 15 分钟申诉专用凭据 */
+        post: operations["userModerationAppealsIssueToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/moderation/decisions/mine": {
         parameters: {
             query?: never;
@@ -1659,7 +1676,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 当前用户近 30 天可申诉的治理决定（Web/移动端兼容） */
+        /** 以普通或申诉专用凭据读取近 30 天本人治理决定 */
         get: operations["userModerationAppealsMine"];
         put?: never;
         post?: never;
@@ -1678,7 +1695,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 对自己的治理决定提交一次申诉（Web/移动端兼容） */
+        /** 以普通或申诉专用凭据对本人治理决定提交一次申诉 */
         post: operations["userModerationAppealsAppeal"];
         delete?: never;
         options?: never;
@@ -4447,17 +4464,31 @@ export interface components {
              */
             suspendUntil?: string;
         };
+        ModerationAppealDecisionResponseDto: {
+            id: string;
+            /** @enum {string} */
+            targetType: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "DIRECT_MESSAGE";
+            targetId: string;
+            /** @enum {string} */
+            action: "HIDE_CONTENT" | "SUSPEND_USER" | "BAN_USER";
+            /** @enum {string} */
+            policyCode: "SPAM" | "HARASSMENT" | "HATE_OR_THREATS" | "SEXUAL_CONTENT" | "VIOLENT_CONTENT" | "PERSONAL_INFORMATION" | "IMPERSONATION_OR_FRAUD" | "INTELLECTUAL_PROPERTY" | "ILLEGAL_CONTENT" | "OTHER";
+            publicExplanation: string;
+            active: boolean;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        ModerationAppealAppellantResponseDto: {
+            id: string;
+            username: string;
+        };
         ModerationAppealResponseDto: {
             id: string;
             statement: string;
             /** @enum {string} */
             status: "PENDING" | "UPHELD" | "OVERTURNED";
-            decision: {
-                [key: string]: unknown;
-            };
-            appellant: {
-                [key: string]: unknown;
-            };
+            decision: components["schemas"]["ModerationAppealDecisionResponseDto"];
+            appellant: components["schemas"]["ModerationAppealAppellantResponseDto"];
             /** Format: date-time */
             createdAt: string;
         };
@@ -4465,6 +4496,17 @@ export interface components {
             /** @enum {string} */
             outcome: "UPHELD" | "OVERTURNED";
             note: string;
+        };
+        IssueAppealTokenDto: {
+            /** @description 邮箱或大小写敏感的用户名 */
+            account: string;
+            password: string;
+        };
+        AppealAccessTokenResponseDto: {
+            /** @description 仅可用于用户申诉接口的短期 Bearer JWT */
+            appealToken: string;
+            /** Format: date-time */
+            expiresAt: string;
         };
         ModerationDecisionPublicResponseDto: {
             id: string;
@@ -4846,7 +4888,7 @@ export interface components {
             authorId: string;
             author: components["schemas"]["PostAuthorResponseDto"];
             title: string;
-            /** @description 纯文本正文摘要 */
+            /** @description 正文纯文本摘要；传送门降级为自定义名称或默认名称“传送门” */
             contentExcerpt: string;
             /** @enum {string} */
             coverType: "IMAGE" | "TEXT";
@@ -4967,7 +5009,7 @@ export interface components {
             authorId: string;
             author: components["schemas"]["PostAuthorResponseDto"];
             title: string;
-            /** @description 纯文本正文摘要 */
+            /** @description 正文纯文本摘要；传送门降级为自定义名称或默认名称“传送门” */
             contentExcerpt: string;
             /** @enum {string} */
             coverType: "IMAGE" | "TEXT";
@@ -4990,7 +5032,7 @@ export interface components {
             /** @description 动态标题，纯文本 */
             title: string;
             /**
-             * @description 动态正文，纯文本
+             * @description 动态正文字串；可按 internal-reference v1 嵌入命名站内传送门，其他 Markdown 按普通文本处理
              * @default
              */
             content: string;
@@ -5012,7 +5054,7 @@ export interface components {
             authorId: string;
             author: components["schemas"]["PostAuthorResponseDto"];
             title: string;
-            /** @description 纯文本正文摘要 */
+            /** @description 正文纯文本摘要；传送门降级为自定义名称或默认名称“传送门” */
             contentExcerpt: string;
             /** @enum {string} */
             coverType: "IMAGE" | "TEXT";
@@ -5030,7 +5072,7 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
-            /** @description 完整纯文本正文 */
+            /** @description 完整正文字串；可包含 internal-reference v1 站内传送门语法 */
             content: string;
             images: components["schemas"]["MomentMediaResponseDto"][];
             version: number;
@@ -5039,6 +5081,7 @@ export interface components {
         };
         UpdateMomentDto: {
             title?: string;
+            /** @description 动态正文字串；站内传送门语法见 internal-reference v1，其他 Markdown 按普通文本处理 */
             content?: string;
             mediaIds?: string[];
             coverMediaId?: string | null;
@@ -5108,7 +5151,7 @@ export interface components {
             replies: components["schemas"]["MomentCommentResponseDto"][];
         };
         CreateMomentCommentDto: {
-            /** @description 评论纯文本；与图片或表情至少提供一项 */
+            /** @description 评论字串；可按 internal-reference v1 嵌入命名站内传送门；与图片或表情至少提供一项 */
             content?: string;
             /** @description 已完成处理且属于评论者的图片 ID；与 stickerAssetId 互斥 */
             mediaId?: string;
@@ -5835,6 +5878,9 @@ export interface components {
         };
         AdminModerationAppealsResolve201Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["ModerationAppealResponseDto"];
+        };
+        UserModerationAppealsIssueToken200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AppealAccessTokenResponseDto"];
         };
         UserModerationAppealsMine200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["ModerationDecisionPublicResponseDto"][];
@@ -11600,6 +11646,53 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminModerationAppealsResolve201Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    userModerationAppealsIssueToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IssueAppealTokenDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserModerationAppealsIssueToken200Response"];
+                };
+            };
+            /** @description 账号密码错误、账号锁定或邮箱未验证 */
+            401: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
