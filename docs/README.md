@@ -12,7 +12,7 @@
 
 | 文档 | 内容 | 状态 |
 |------|------|------|
-| [Web 视觉设计系统](./design-system.md) | Web 品牌 Token、应用壳、页面宽度、共享组件与视觉验收规则 | active |
+| [Web 设计基础接入](./design-system.md) | 中央设计基础的版本锁、Web 实现入口与升级规则 | active |
 
 ### 模块设计文档
 
@@ -35,6 +35,7 @@
 | [api-contract](./modules/api-contract.md) | 固定 OpenAPI 契约、Web 类型与 Flutter 生成兼容 | active |
 | [image-rendering](./modules/image-rendering.md) | 图片渲染与缩略图规则 | active |
 | [markdown-content-protocol](./modules/markdown-content-protocol.md) | Markdown 跨端内容协议 | active |
+| [admin-station](./modules/admin-station.md) | PC 站务台、用户举报与申诉 | active |
 | [api-coverage](./api-coverage.md) | 前后端 API 覆盖审计 | 自动校验 |
 
 `active` 表示该文档是当前实现的事实源，不表示功能停止演进。链接、模块索引、OpenAPI 操作数量、未调用端点表和历史规划用语由 `pnpm docs:check` 按当前源码校验。
@@ -47,7 +48,7 @@
 |------|------|
 | `wenyousite-backend/docs/frontend-guide.md` | 认证、分页、业务流程和错误码 |
 | `wenyousite-backend/docs/mobile-client-guide.md` | Flutter 的 API、安全存储、幂等、Markdown 与推送契约 |
-| `wenyousite-backend/docs/mobile-ui-contract.md` | Flutter 的排版、文字缩放、阅读列、导航和视觉验收契约 |
+| [`wenyousite-foundation`](https://github.com/morenk/wenyousite-foundation) | 跨端审美、共享 Token、字体与 Web/Flutter 平台规范 |
 | `wenyousite-backend/src/common/exceptions/error-codes.ts` | 可机器识别的错误码定义 |
 | `wenyousite-backend/docs/data-model.md` | 数据模型 |
 | `wenyousite-backend/docs/api-endpoints.md` | API 端点索引 |

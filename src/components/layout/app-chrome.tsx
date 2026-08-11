@@ -19,6 +19,7 @@ const authRoutes = [
   "/forgot-password",
   "/reset-password",
   "/verify-email",
+  "/station",
 ];
 
 export function getAppChromeMode(pathname: string): AppChromeMode {

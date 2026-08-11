@@ -266,6 +266,13 @@ export function createAuthenticatedFetch(fetchImpl: typeof fetch): typeof fetch 
 const authenticatedFetch = createAuthenticatedFetch((input, init) =>
   globalThis.fetch(input, init));
 
+// 管理端 CSRF token 只驻留当前页面内存；管理员会话本身由 HttpOnly Cookie 保存。
+let adminCsrfToken: string | null = null;
+
+export function setAdminCsrfToken(token: string | null) {
+  adminCsrfToken = token;
+}
+
 export const apiClient = createClient<paths>({
   baseUrl: getBaseUrl(),
   fetch: authenticatedFetch,
@@ -280,6 +287,14 @@ apiClient.use({
       request.headers.set("Authorization", `Bearer ${token}`);
     }
     request.headers.set("X-Client-Platform", "web");
+    const url = new URL(request.url);
+    if (
+      adminCsrfToken &&
+      url.pathname.startsWith("/api/v1/admin/") &&
+      ["POST", "PUT", "PATCH", "DELETE"].includes(request.method)
+    ) {
+      request.headers.set("X-CSRF-Token", adminCsrfToken);
+    }
   },
 });
 

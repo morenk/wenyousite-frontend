@@ -19,6 +19,7 @@ type ActiveUserFields =
   | "showRecentReplies"
   | "showPlayerBadges"
   | "showBookmarks"
+  | "accountStatus"
   | "createdAt"
   | "_count";
 
@@ -46,6 +47,7 @@ function normalizeUserPublic(user: GeneratedUserPublic): UserPublic {
     user.showRecentReplies === undefined ||
     user.showPlayerBadges === undefined ||
     user.showBookmarks === undefined ||
+    user.accountStatus === undefined ||
     user.createdAt === undefined ||
     user._count === undefined
   ) {
@@ -62,6 +64,7 @@ function normalizeUserPublic(user: GeneratedUserPublic): UserPublic {
     showRecentReplies: user.showRecentReplies,
     showPlayerBadges: user.showPlayerBadges,
     showBookmarks: user.showBookmarks,
+    accountStatus: user.accountStatus,
     createdAt: user.createdAt,
     _count: user._count,
     isDeactivated: false,

@@ -103,6 +103,7 @@
     "showRecentReplies": true,
     "showPlayerBadges": true,
     "showBookmarks": true,
+    "accountStatus": "ACTIVE",
     "createdAt": "2026-07-29T11:23:55.222Z",
     "_count": { "following": 0, "followers": 0 },
     "isFollowing": false, "isFollowedBy": false, "isBlocked": false, "isBlockedBy": false
@@ -111,6 +112,8 @@
 ```
 
 > 已注销用户的公开主页被屏蔽为 `{ id, username: "已注销用户", isDeactivated: true }`；帖子作者、楼主、成员、关注列表、收藏、搜索和通知中的用户摘要也统一显示“已注销用户”与灰色用户图标，不显示内部墓碑用户名或旧头像。注销事务清空头像引用后，后端确认该 URL 未被正文、草稿或其他头像引用时立即删除原图和派生图；失败由每日孤儿回收兜底。
+
+公开资料的 `accountStatus` 为 `ACTIVE / SUSPENDED / BANNED`。资料卡只在后两种状态显示“该用户已被暂时封禁 / 永久封禁”，不显示处罚原因或具体截止时间。
 
 用户公开资料、最近动态、创建帖、收藏和参与帖使用 60 秒新鲜期，并在离开页面后保留 30 分钟，返回上一页面时优先复用缓存；关注列表继续使用默认缓存策略。其中会随身份变化的 OptionalAuth 数据在 query key 中加入查看者 ID，认证恢复或账号切换后不会复用匿名/其他账号的权限结果。关注、收藏、资料修改等写操作仍主动失效对应查询。
 
@@ -224,7 +227,7 @@
 
 | 组件 | 路径 | 说明 |
 |------|------|------|
-| UserProfileCard | `src/components/user/user-profile-card.tsx` | 用户资料卡：头像（无则首字母）/用户名/Bio/注册时间/关注粉丝数（可点击）；加油/私聊/关注/拉黑等页面级操作统一为无常驻边框或主色填充的轻量按钮 |
+| UserProfileCard | `src/components/user/user-profile-card.tsx` | 用户资料卡：头像、用户名、Bio、注册时间、关注粉丝数与临时/永久封禁状态；处罚提示不展示截止时间 |
 | UserAvatar | `src/components/shared/user-avatar.tsx` | 共享头像组件：有 URL 用 `_thumb.webp` 缩略图，无则首字母占位；“已注销用户”始终忽略 URL 并使用统一灰色用户图标；尺寸通过 className 控制（资料卡/关注列表/通知/主题帖列表/楼层/楼中楼复用） |
 | FollowButton | `src/components/user/follow-button.tsx` | 关注/取消关注切换（未登录跳 /login） |
 | BlockButton | `src/components/user/block-button.tsx` | 拉黑/取消拉黑切换（全局无障碍确认框二次确认） |

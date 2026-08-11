@@ -35,6 +35,7 @@ const sampleUser = {
   showRecentReplies: true,
   showPlayerBadges: true,
   showBookmarks: true,
+  accountStatus: "ACTIVE",
   createdAt: "2026-01-01T00:00:00Z",
   _count: { following: 0, followers: 1 },
   isFollowing: false,

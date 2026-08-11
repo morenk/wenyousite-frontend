@@ -92,6 +92,8 @@ export const queryKeys = {
   },
   bookmarks: {
     all: ["bookmarks"] as const,
+    list: (folderId?: string) => ["bookmarks", "list", folderId ?? "all"] as const,
+    folders: ["bookmarks", "folders"] as const,
   },
   notifications: {
     all: ["notifications"] as const,
@@ -132,6 +134,7 @@ export const queryKeys = {
   subscriptions: ["subscriptions"] as const,
   threadCategories: ["thread-categories"] as const,
   topicTags: (query: string) => ["tags", query] as const,
+  topicTagsRoot: ["tags"] as const,
   topicTag: (tagId: string) => ["tag", tagId] as const,
   contentDrafts: ["content-drafts"] as const,
   draftSlots: ["draft-slots"] as const,
@@ -140,6 +143,7 @@ export const queryKeys = {
   blockedUsers: (userId?: string) => ["blocked-users", userId] as const,
   invitePreview: (token: string | undefined) =>
     ["invite-preview", token] as const,
+  moderationDecisions: (userId?: string) => ["moderation-decisions", userId] as const,
   mentionCandidates: (threadId: string, query: string) =>
     ["mention-candidates", threadId, query] as const,
   search: {
@@ -147,5 +151,24 @@ export const queryKeys = {
     users: (keyword: string) => ["search", "users", keyword] as const,
     moments: (keyword: string, viewerScope: string) =>
       ["search", "moments", keyword, viewerScope] as const,
+  },
+  admin: {
+    root: ["admin"] as const,
+    session: ["admin", "session"] as const,
+    casesRoot: ["admin", "cases"] as const,
+    cases: (params: object) => ["admin", "cases", params] as const,
+    case: (id?: string) => ["admin", "case", id] as const,
+    appealsRoot: ["admin", "appeals"] as const,
+    appeals: (params: object) => ["admin", "appeals", params] as const,
+    accounts: ["admin", "accounts"] as const,
+    settings: ["admin", "settings"] as const,
+    dashboard: ["admin", "dashboard"] as const,
+    usersRoot: ["admin", "users"] as const,
+    users: (params: object) => ["admin", "users", params] as const,
+    userSearch: (query: string) => ["admin", "user-search", query] as const,
+    audits: (params: object) => ["admin", "audits", params] as const,
+    taxonomy: ["admin", "taxonomy"] as const,
+    announcementsRoot: ["admin", "announcements"] as const,
+    announcements: (params: object) => ["admin", "announcements", params] as const,
   },
 };

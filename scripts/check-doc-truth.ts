@@ -2,6 +2,16 @@
 
 import * as fs from "node:fs";
 import * as path from "node:path";
+import {
+  EDITOR_CAPABILITY_LABELS,
+  EDITOR_CREATABLE_HEADING_LEVELS,
+  EDITOR_MORE_FALLBACK,
+  EDITOR_MORE_PROGRESSIVE,
+  EDITOR_PRIMARY_NARROW,
+  EDITOR_PRIMARY_WIDE,
+  EDITOR_SYNTAX_ONLY,
+  editorCapabilityLabels,
+} from "../src/lib/editor-capabilities";
 
 const root = process.cwd();
 const openapiPath = path.resolve(root, "contracts/openapi.json");
@@ -181,8 +191,9 @@ function operation(method: string, apiPath: string) {
       "Flutter 必须",
     ]],
     ["docs/design-system.md", [
+      "morenk/wenyousite-foundation",
+      "foundation.lock.json",
       "GET /thread-categories",
-      "wenyousite-backend/docs/mobile-ui-contract.md",
     ]],
   ]);
   for (const [relativePath, claims] of requiredClaims) {
@@ -194,10 +205,44 @@ function operation(method: string, apiPath: string) {
     }
   }
 
+  const capabilityRow = (ids: Parameters<typeof editorCapabilityLabels>[0]) =>
+    editorCapabilityLabels(ids).join("、");
+  const editorCapabilityBlock = [
+    "<!-- editor-capabilities:start -->",
+    "| 层级 | 能力 |",
+    "| --- | --- |",
+    `| 宽栏一级栏 | ${capabilityRow(EDITOR_PRIMARY_WIDE)} |`,
+    `| 收纳后一级栏 | ${capabilityRow(EDITOR_PRIMARY_NARROW)} |`,
+    `| 更多菜单 | ${capabilityRow(EDITOR_MORE_FALLBACK)} |`,
+    `| 进一步收纳 | ${capabilityRow(EDITOR_MORE_PROGRESSIVE)} |`,
+    `| 仅语法/粘贴 | ${capabilityRow(EDITOR_SYNTAX_ONLY)} |`,
+    `| 新建标题层级 | ${[
+      "正文",
+      ...EDITOR_CREATABLE_HEADING_LEVELS.map((level) => `标题 ${level}`),
+    ].join("、")} |`,
+    "<!-- editor-capabilities:end -->",
+  ].join("\n");
+  const protocolDocument = fs.readFileSync(
+    path.resolve(root, "docs/modules/markdown-content-protocol.md"),
+    "utf8",
+  );
+  const documentedCapabilityBlock = protocolDocument.match(
+    /<!-- editor-capabilities:start -->[\s\S]*?<!-- editor-capabilities:end -->/u,
+  )?.[0];
+  if (documentedCapabilityBlock !== editorCapabilityBlock) {
+    failures.push(
+      `编辑器能力表与 src/lib/editor-capabilities.ts 不一致：\n期望\n${editorCapabilityBlock}`,
+    );
+  }
+  if (EDITOR_CAPABILITY_LABELS.more !== "更多") {
+    failures.push("编辑器窄栏固定出口必须命名为“更多”");
+  }
+
   const backendRoot = path.resolve(root, "../wenyousite-backend");
   for (const fixtureName of [
     "markdown-v2-fixtures.json",
     "markdown-v2-nodes-fixtures.json",
+    "thread-category-v1-fixtures.json",
   ]) {
     const frontendFixture = path.resolve(root, "contracts", fixtureName);
     const backendFixture = path.resolve(backendRoot, "contracts", fixtureName);

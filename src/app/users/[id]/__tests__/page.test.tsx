@@ -83,6 +83,7 @@ const privateProfile = {
   showRecentReplies: false,
   showPlayerBadges: false,
   showBookmarks: false,
+  accountStatus: "ACTIVE" as const,
   createdAt: "2026-01-01T00:00:00Z",
   _count: { following: 0, followers: 0 },
   isDeactivated: false as const,

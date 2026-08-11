@@ -47,6 +47,7 @@ const sampleUser = {
   showRecentReplies: true,
   showPlayerBadges: true,
   showBookmarks: true,
+  accountStatus: "ACTIVE" as const,
   createdAt: "2026-01-01T00:00:00Z",
   _count: { following: 3, followers: 5 },
   isFollowing: false,
@@ -105,5 +106,14 @@ describe("UserProfileCard", () => {
     mockUseAuth.mockReturnValue({ user: null });
     renderWithQC(<UserProfileCard user={sampleUser} />);
     expect(screen.queryByRole("button", { name: "加油" })).not.toBeInTheDocument();
+  });
+
+  test.each([
+    ["SUSPENDED", "该用户已被暂时封禁"],
+    ["BANNED", "该用户已被永久封禁"],
+  ] as const)("根据账号状态显示封禁提示且不展示截止时间", (accountStatus, message) => {
+    renderWithQC(<UserProfileCard user={{ ...sampleUser, accountStatus }} />);
+    expect(screen.getByRole("status")).toHaveTextContent(message);
+    expect(screen.getByRole("status")).not.toHaveTextContent(/至|截止|\d{4}-\d{2}-\d{2}/);
   });
 });

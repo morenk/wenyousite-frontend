@@ -5,7 +5,7 @@
 import Link from "next/link";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { CalendarDays, Gift, MessageCircle, Users } from "lucide-react";
+import { CalendarDays, Gift, MessageCircle, ShieldAlert, Users } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { FollowButton } from "@/components/user/follow-button";
 import { BlockButton } from "@/components/user/block-button";
@@ -105,6 +105,31 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
             )}
           </div>
         </div>
+
+        {user.accountStatus !== "ACTIVE" ? (
+          <div
+            role="status"
+            className={
+              user.accountStatus === "BANNED"
+                ? "mt-5 flex items-start gap-3 rounded-xl bg-destructive-soft px-4 py-3 text-destructive"
+                : "mt-5 flex items-start gap-3 rounded-xl bg-warning-soft px-4 py-3 text-warning"
+            }
+          >
+            <ShieldAlert className="mt-0.5 size-4 shrink-0" />
+            <div>
+              <p className="text-sm font-bold">
+                {user.accountStatus === "BANNED"
+                  ? "该用户已被永久封禁"
+                  : "该用户已被暂时封禁"}
+              </p>
+              <p className="mt-0.5 text-xs opacity-80">
+                {user.accountStatus === "BANNED"
+                  ? "该账号已无法登录或进行互动。"
+                  : "封禁期间，该账号无法登录或进行互动。"}
+              </p>
+            </div>
+          </div>
+        ) : null}
 
         {user.bio && (
           <p className="mt-5 whitespace-pre-wrap border-t border-border pt-4 text-sm leading-7 text-foreground/90">
