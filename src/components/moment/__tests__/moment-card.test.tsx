@@ -118,7 +118,12 @@ describe("MomentCard", () => {
 
     mockUseAuth.mockReturnValue({ user: { id: "author-1" } });
     rerender(<MomentCard moment={{ ...moment, viewerLiked: true, viewerBookmarked: true } as never} />);
-    expect(screen.getByRole("button", { name: "取消点赞，2" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "取消点赞，2" }))
+      .toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "取消点赞，2" }))
+      .toHaveClass("text-destructive");
+    expect(screen.getByRole("button", { name: "取消点赞，2" }))
+      .not.toHaveClass("text-brand-strong");
   });
 
   test("接口失败显示明确错误", async () => {

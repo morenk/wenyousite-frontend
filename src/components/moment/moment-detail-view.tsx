@@ -20,6 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useConfirm } from "@/components/ui/confirm-provider";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
+import { LIKED_ACTIVE_SURFACE_CLASS_NAME } from "@/lib/like-state";
 
 function getCarouselAspectRatio(image: { width: number | null; height: number | null } | null | undefined): number {
   if (!image?.width || !image.height) return 1;
@@ -208,7 +209,10 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
             size="sm"
             onClick={() => void toggleLike()}
             aria-disabled={like.isPending}
-            className={cn("group/like aria-disabled:cursor-wait", moment.viewerLiked && "text-brand-strong")}
+            className={cn(
+              "group/like aria-disabled:cursor-wait",
+              moment.viewerLiked && LIKED_ACTIVE_SURFACE_CLASS_NAME,
+            )}
             aria-pressed={moment.viewerLiked}
             aria-label={moment.viewerLiked ? `取消点赞${moment.likeCount > 0 ? `，${moment.likeCount}` : ""}` : `点赞${moment.likeCount > 0 ? `，${moment.likeCount}` : ""}`}
           >

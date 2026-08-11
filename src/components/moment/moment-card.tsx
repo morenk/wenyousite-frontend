@@ -12,6 +12,7 @@ import { MomentCover } from "@/components/moment/moment-cover";
 import { useAuth } from "@/lib/auth";
 import { markMomentFeedReturn } from "@/lib/moment-navigation";
 import { cn } from "@/lib/utils";
+import { LIKED_ACTIVE_CLASS_NAME } from "@/lib/like-state";
 
 export function MomentCard({ moment, priority = false }: { moment: MomentCardData; priority?: boolean }) {
   const { user } = useAuth();
@@ -99,7 +100,7 @@ function ActionButton({
       onClick={() => { if (!pending) onClick(); }}
       className={cn(
         "group/like inline-flex min-h-8 shrink-0 items-center gap-1 rounded-lg px-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground aria-disabled:cursor-wait",
-        active && "text-brand-strong",
+        active && LIKED_ACTIVE_CLASS_NAME,
       )}
     >
       {children}

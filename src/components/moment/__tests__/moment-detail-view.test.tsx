@@ -215,6 +215,21 @@ describe("MomentDetailView", () => {
     expect(mockLike).not.toHaveBeenCalled();
   });
 
+  test("已点赞状态与主题帖统一使用红色语义色", () => {
+    mockUseAuth.mockReturnValue({ user: { id: "viewer-1" } });
+    mockUseMoment.mockReturnValue({
+      data: { ...detail, viewerLiked: true, likeCount: 6 },
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+
+    render(<MomentDetailView momentId="moment-1" />);
+
+    expect(screen.getByRole("button", { name: "取消点赞，6" }))
+      .toHaveClass("text-destructive", "bg-destructive-soft");
+  });
+
   test("加载与不可见状态有清晰反馈", () => {
     mockUseMoment.mockReturnValue({ data: undefined, isLoading: true, isError: false });
     const { rerender } = render(<MomentDetailView momentId="moment-1" />);

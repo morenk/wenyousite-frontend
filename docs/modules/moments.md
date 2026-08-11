@@ -64,7 +64,7 @@
 | GET | `/search/moments` | 标题与正文搜索 |
 | POST | `/moments/:id/tips` | 给动态作者加油 |
 
-所有查询通过 `src/api/hooks/use-moments.ts` 和 `useSearchMoments` 管理，query key 包含流类型、查看者与筛选条件。点赞在 mutation 发出前同步乐观修补详情、信息流、用户动态、收藏及搜索缓存，服务端失败时只回滚该动态；请求期间不改变按钮颜色或透明度。瀑布流使用 TanStack Virtual measured lanes，只挂载可视区域附近卡片；`ResizeObserver` 回写真实卡片高度，较短封面会自然形成左右错落。虚拟项进入距列表末尾约两行的预取区时触发游标翻页，不依赖未挂载的 DOM sentinel。
+所有查询通过 `src/api/hooks/use-moments.ts` 和 `useSearchMoments` 管理，query key 包含流类型、查看者与筛选条件。点赞在 mutation 发出前同步乐观修补详情、信息流、用户动态、收藏及搜索缓存，服务端失败时只回滚该动态；请求期间不改变按钮颜色或透明度。主题帖与动态的已点赞状态统一使用 `text-destructive / destructive-soft`，心形填充，不再分别使用品牌色和红色。瀑布流使用 TanStack Virtual measured lanes，只挂载可视区域附近卡片；`ResizeObserver` 回写真实卡片高度，较短封面会自然形成左右错落。虚拟项进入距列表末尾约两行的预取区时触发游标翻页，不依赖未挂载的 DOM sentinel。
 
 ## 前端库采用边界
 
