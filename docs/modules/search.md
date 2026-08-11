@@ -30,7 +30,9 @@
 | GET | `/threads/:threadId/search/posts?q=&cursor=&limit=20` | OptionalAuth | 搜索本帖全部子贴中的楼层与楼中楼 |
 | GET | `/search?q=` | Public | 旧客户端兼容聚合端点，新前端不调用 |
 
-> 各 Tab 不会并发预取，默认只请求动态，首次点击其他分类后才请求对应端点。动态与楼层关键词至少 2 个字符并使用游标分页，楼层每页 20 条且每个主题帖最多 3 条；用户结果排除注销账号，动态、主题帖与楼层仅返回公开内容。主题帖结果使用 `coverImages` 在标题下展示最多三张 16:9 封面。
+> 各 Tab 不会并发预取，默认只请求动态，首次点击其他分类后才请求对应端点。动态与楼层关键词至少 2 个字符并使用游标分页，楼层每页 20 条且每个主题帖最多 3 条；用户结果排除注销账号，动态、主题帖与楼层仅返回公开内容。主题帖结果只使用 `coverImages[0]`，在标题下展示默认主贴的第一张 16:9 封面。
+
+> 主题帖和楼层 Tab 属于用户显式搜索，因此仍展示已注销作者留下的公开历史内容；这些搜索结果不会写入首页 `threads` 发现缓存。
 
 > 帖内搜索使用相同的短词限制、相关度排序和游标，但不套用“每个主题帖最多 3 条”；PRIVATE 帖仅成员可搜，未发布帖仅楼主可搜。搜索结果携带 `parentPostId`，楼中楼可直接进入独立讨论页。
 
@@ -98,7 +100,7 @@
 | 组件 | 路径 | 说明 |
 |------|------|------|
 | SearchResults | `src/components/search/search-results.tsx` | 基于共享 `Tabs` 的四类结果、分类 loading/error/empty、短词提示与动态/楼层加载更多 |
-| ThreadCoverGrid | `src/components/thread/thread-cover-grid.tsx` | 与首页共用的主题帖封面网格 |
+| ThreadCover | `src/components/thread/thread-cover.tsx` | 与首页共用的主题帖单封面 |
 | useSearchThreads / useSearchUsers | `src/api/hooks/use-search.ts` | 主题帖与用户分类查询 hooks |
 | useSearchMoments | `src/api/hooks/use-search.ts` | 动态游标分页 hook，缓存键包含当前查看者 |
 | useSearchPosts | `src/api/hooks/use-search.ts` | 楼层游标分页 hook，透传 `meta.cursor` |
@@ -138,6 +140,7 @@
 
 - `/search` 输入关键词搜索动态标题/正文、用户名、主题帖标题与楼层内容
 - 结果分「动态」「主题帖」「楼层内容」「用户」四个 Tab，均可切换和跳转
+- 分类栏与结果面板在页面主内容列中纵向排列，各分类列表与结果卡片占满可用宽度
 - 默认只请求动态，其余分类在首次激活 Tab 时才请求
 - 动态与楼层单字符不请求，至少 2 字符才执行正文搜索
 - 楼层每页 20 条，可使用游标加载更多；数量有更多时显示 `+`
@@ -150,3 +153,4 @@
 - 主题帖详情可搜索全部子贴中的主楼层和楼中楼
 - 帖内搜索复用全站短词、游标、结果列表与帖子导航组件，且不限制为 3 条
 - 私密帖与未发布帖的帖内搜索继承主题帖访问权限
+- 已注销作者的公开历史主题帖和楼层仍可被显式搜索

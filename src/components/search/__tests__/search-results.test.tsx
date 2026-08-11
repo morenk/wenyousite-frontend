@@ -49,7 +49,10 @@ const thread = {
   createdAt: "2026-01-01T00:00:00Z",
   owner: { id: "u1", username: "morenk", avatar: null },
   _count: { members: 1, posts: 2, players: 1 },
-  coverImages: ["https://cdn.example.com/uploads/search-cover.jpg"],
+  coverImages: [
+    "https://cdn.example.com/uploads/search-cover.jpg",
+    "https://cdn.example.com/uploads/search-second.jpg",
+  ],
 };
 
 const user = {
@@ -123,6 +126,12 @@ describe("SearchResults", () => {
   test("默认只启用动态，切换 Tab 后按需启用对应搜索", () => {
     render(<SearchResults keyword="测试" />);
 
+    expect(document.querySelector('[data-slot="tabs"]')).toHaveClass(
+      "w-full",
+      "flex-col",
+      "min-w-0",
+    );
+    expect(screen.getByRole("tabpanel")).toHaveClass("w-full", "min-w-0");
     expect(mockUseSearchMoments).toHaveBeenLastCalledWith("测试", true, undefined);
     expect(mockUseSearchThreads).toHaveBeenLastCalledWith("测试", false);
     expect(mockUseSearchUsers).toHaveBeenLastCalledWith("测试", false);
@@ -138,10 +147,12 @@ describe("SearchResults", () => {
       "href",
       "/threads/t1",
     );
-    expect(document.querySelector("[data-image-count='1'] img")).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /测试帖子/ })).toHaveClass("w-full");
+    expect(document.querySelector("[data-thread-cover='true'] img")).toHaveAttribute(
       "src",
       "https://cdn.example.com/uploads/search-cover_feed.webp",
     );
+    expect(document.querySelectorAll("[data-thread-cover='true'] img")).toHaveLength(1);
 
     fireEvent.click(screen.getByRole("tab", { name: "用户" }));
     expect(mockUseSearchUsers).toHaveBeenLastCalledWith("测试", true);
@@ -149,6 +160,31 @@ describe("SearchResults", () => {
       "href",
       "/users/u1",
     );
+    expect(screen.getByRole("link", { name: /测试用户/ })).toHaveClass("w-full");
+  });
+
+  test("主题帖分类展示加载和错误状态，并允许重试", () => {
+    mockUseSearchThreads.mockImplementation((_q, enabled: boolean) =>
+      enabled ? { ...idleQuery, isLoading: true } : idleQuery,
+    );
+    const loadingView = render(<SearchResults keyword="测试" />);
+
+    fireEvent.click(screen.getByRole("tab", { name: "主题帖" }));
+    expect(loadingView.container.querySelector(".animate-spin")).toBeInTheDocument();
+    loadingView.unmount();
+
+    const refetch = vi.fn();
+    mockUseSearchThreads.mockImplementation((_q, enabled: boolean) =>
+      enabled
+        ? { ...idleQuery, isError: true, refetch }
+        : idleQuery,
+    );
+    render(<SearchResults keyword="测试" />);
+
+    fireEvent.click(screen.getByRole("tab", { name: "主题帖" }));
+    expect(screen.getByText("搜索失败")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "重试" }));
+    expect(refetch).toHaveBeenCalledTimes(1);
   });
 
   test("楼层 Tab 显示更多标记并可游标加载下一页", () => {
@@ -162,6 +198,7 @@ describe("SearchResults", () => {
       "href",
       "/threads/t1?post=p1",
     );
+    expect(screen.getByRole("link", { name: /测试帖子/ })).toHaveClass("w-full");
 
     fireEvent.click(screen.getByRole("button", { name: "加载更多楼层" }));
     expect(mockFetchNextPage).toHaveBeenCalledTimes(1);

@@ -19,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { stackListRowVariants } from "@/components/ui/stack-list";
 import { cn } from "@/lib/utils";
 import { ThreadCategoryBadge, ThreadCategoryMarker } from "./thread-category";
-import { ThreadCoverGrid } from "./thread-cover-grid";
+import { ThreadCover } from "./thread-cover";
 
 interface ThreadCardProps {
   thread: ThreadCardData;
@@ -27,9 +27,9 @@ interface ThreadCardProps {
 
 export function ThreadCard({ thread }: ThreadCardProps) {
   const queryClient = useQueryClient();
-  const coverImages = thread.coverImages ?? [];
+  const coverImage = thread.coverImages?.[0] ?? null;
   const formattedPreview = formatMarkdownPreview(thread.preview ?? "");
-  const preview = coverImages.length > 0
+  const preview = coverImage
     ? formattedPreview.replace(/\[图片\]/gu, " ").replace(/\s{2,}/gu, " ").trim()
     : formattedPreview;
   const prefetchThread = () => {
@@ -107,7 +107,7 @@ export function ThreadCard({ thread }: ThreadCardProps) {
             </Link>
           </h3>
 
-          <ThreadCoverGrid images={coverImages} />
+          <ThreadCover image={coverImage} />
 
           {preview && (
             <p className="mt-1.5 text-sm leading-6 text-muted-foreground line-clamp-2">

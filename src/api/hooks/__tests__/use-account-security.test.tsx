@@ -144,4 +144,32 @@ describe("账号安全 hooks", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(mockDELETE).toHaveBeenCalledWith("/api/v1/users/me");
   });
+
+  test("注销成功后清除首页发现缓存，但保留用户显式搜索缓存", async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    });
+    queryClient.setQueryData(["threads", { sort: "recommended" }], {
+      pages: [{ data: [{ id: "own-thread" }] }],
+    });
+    queryClient.setQueryData(["search", "threads", "历史"], [
+      { id: "own-thread" },
+    ]);
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+    mockDELETE.mockResolvedValueOnce({
+      data: { data: { message: "账号已注销" } },
+      error: undefined,
+    });
+
+    const { result } = renderHook(() => useDeleteAccount(), { wrapper: Wrapper });
+    result.current.mutate();
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(queryClient.getQueryData(["threads", { sort: "recommended" }])).toBeUndefined();
+    expect(queryClient.getQueryData(["search", "threads", "历史"])).toEqual([
+      { id: "own-thread" },
+    ]);
+  });
 });

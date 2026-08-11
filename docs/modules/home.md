@@ -6,6 +6,7 @@
 
 **当前能力：**
 - 主题帖列表（分页）
+- 发现流隐藏已注销楼主的历史帖子
 - ThreadCard 卡片组件
 - 分类筛选 Tab
 - 排序筛选（最新创建、最新回复、智能排序）
@@ -43,6 +44,8 @@
 
 公开浏览列表离开页面后保留 30 分钟缓存。筛选变化时继续展示上一组已完成内容，并用列表顶部细进度线表达更新；新结果到达前暂停无限滚动，避免为旧筛选继续翻页。
 
+`GET /threads` 由服务端保证只返回未注销楼主的帖子。Web 用户完成自身账号注销后会立即移除 `threads` 发现分页缓存，避免返回首页时短暂闪回旧帖；`search` 缓存保持独立，不会回填发现流。
+
 ## 5. 组件清单
 
 | 组件 | 路径 | 说明 |
@@ -53,7 +56,7 @@
 | TagThreadsPage | `src/app/tags/[id]/page.tsx` | 指定标签主题帖列表，复用首页筛选和无限滚动 |
 | ThreadList | `src/components/thread/thread-list.tsx` | 单一 Panel 外框、行分隔、四态与无限滚动 |
 | ThreadCard | `src/components/thread/thread-card.tsx` | 连续主题列表中的单行内容 |
-| ThreadCoverGrid | `src/components/thread/thread-cover-grid.tsx` | 首页与搜索共用的半宽 1–3 张 16:9 封面网格，支持 feed 衍生图回退 |
+| ThreadCover | `src/components/thread/thread-cover.tsx` | 首页与搜索共用的半宽 16:9 单封面，支持 feed 衍生图回退 |
 | TopicTagLink | `src/components/thread/topic-tag-link.tsx` | 卡片与详情页共用的标签浏览入口 |
 | CategoryTabs | `src/components/thread/category-tabs.tsx` | 分类筛选 Tab |
 | ThreadFilters | `src/components/thread/thread-filters.tsx` | 排序与状态下拉筛选栏 |
@@ -70,7 +73,7 @@
 | 标题 | thread.title | 文本 |
 | 分类 | thread.category + `GET /thread-categories` | 动态 slug → 管理员配置的名称、顺序和可选颜色；空值/未知值安全降级 |
 | 正文预览 | 默认子贴正文（kind=BODY） | Markdown 纯文本截断（~120 字） |
-| 正文封面 | thread.coverImages[] | 标题下方按数量铺满半宽预览；1 张整行、2 张二等分、3 张三等分，单图仍按 16:9 等比缩小 |
+| 正文封面 | thread.coverImages[0] | 标题下方只展示默认主贴正文中的第一张普通图片，按半宽 16:9 裁切预览 |
 | 标签 | thread.topicTags[] | 可点击标签徽章，进入 `/tags/{tag.id}` |
 | 状态 | thread.status | 招募中/已停招/已结束 |
 | 玩家数 | thread._count.players | 数字（被楼主授予玩家身份者） |
@@ -112,6 +115,7 @@
 ## 10. 验收标准
 
 - 首页加载并显示主题帖列表
+- 首页、标签页与各排序都不展示已注销楼主的历史帖
 - 卡片正确显示标题、分类、正文摘要、标签
 - 分类筛选 Tab 可切换列表
 - 最新创建、最新回复、智能排序可切换列表

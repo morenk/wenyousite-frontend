@@ -86,11 +86,16 @@ export function useUnblockUser(userId?: string) {
 }
 
 export function useDeleteAccount() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async () => {
       const { data, error } = await apiClient.DELETE("/api/v1/users/me");
       if (error) throw error;
       return data;
+    },
+    onSuccess: () => {
+      // 注销后返回首页时不能闪回本账号仍在发现流里的旧分页；显式搜索缓存不属于发现流。
+      queryClient.removeQueries({ queryKey: queryKeys.threads.all });
     },
   });
 }

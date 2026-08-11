@@ -22,7 +22,7 @@ import { PostSearchResultList } from "@/components/search/post-search-result-lis
 import { ListRefreshIndicator } from "@/components/shared/list-refresh-indicator";
 import { MomentMasonry } from "@/components/moment/moment-masonry";
 import { useAuth } from "@/lib/auth";
-import { ThreadCoverGrid } from "@/components/thread/thread-cover-grid";
+import { ThreadCover } from "@/components/thread/thread-cover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type SearchTab = "moments" | "threads" | "posts" | "users";
@@ -110,7 +110,7 @@ export function SearchResults({ keyword }: SearchResultsProps) {
     <Tabs
       value={activeTab}
       onValueChange={(value) => setActiveTab(value as SearchTab)}
-      className="relative gap-0"
+      className="relative w-full min-w-0 gap-0"
       aria-busy={isRefreshing || undefined}
     >
       {isRefreshing && <ListRefreshIndicator />}
@@ -142,7 +142,7 @@ export function SearchResults({ keyword }: SearchResultsProps) {
         })}
       </TabsList>
 
-      <TabsContent value="moments" className="mt-4">
+      <TabsContent value="moments" className="mt-4 w-full min-w-0">
         {!postKeywordValid ? (
             <EmptyState title="动态搜索至少需要 2 个字符" description="用户名和主题帖仍支持单字符搜索" />
           ) : (
@@ -150,7 +150,7 @@ export function SearchResults({ keyword }: SearchResultsProps) {
           )}
       </TabsContent>
 
-      <TabsContent value="threads" className="mt-4">
+      <TabsContent value="threads" className="mt-4 w-full min-w-0">
         {threadsQuery.isLoading ? (
             <SearchLoading />
           ) : threadsQuery.isError ? (
@@ -158,12 +158,12 @@ export function SearchResults({ keyword }: SearchResultsProps) {
           ) : !threadsQuery.data || threadsQuery.data.length === 0 ? (
             <EmptyState title="没有匹配的主题帖" description="可以查看其他分类" />
           ) : (
-            <div className="space-y-3">
+            <div className="w-full space-y-3">
               {threadsQuery.data.map((thread) => (
                 <Link
                   key={thread.id}
                   href={`/threads/${thread.id}`}
-                  className="block rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-accent/20"
+                  className="block w-full rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-accent/20"
                 >
                   <div className="mb-1.5 flex items-center gap-2">
                     <ThreadCategoryBadge category={thread.category} />
@@ -171,7 +171,7 @@ export function SearchResults({ keyword }: SearchResultsProps) {
                   <h3 className="font-display text-base font-bold text-foreground line-clamp-1">
                     {thread.title}
                   </h3>
-                  <ThreadCoverGrid images={thread.coverImages ?? []} />
+                  <ThreadCover image={thread.coverImages?.[0]} />
                   <p className="mt-1 text-xs text-muted-foreground">
                     {thread.owner.username} ·{" "}
                     {formatDistanceToNow(new Date(thread.createdAt), {
@@ -185,7 +185,7 @@ export function SearchResults({ keyword }: SearchResultsProps) {
           )}
       </TabsContent>
 
-      <TabsContent value="posts" className="mt-4">
+      <TabsContent value="posts" className="mt-4 w-full min-w-0">
         {!postKeywordValid ? (
             <EmptyState
               title="楼层内容搜索至少需要 2 个字符"
@@ -207,7 +207,7 @@ export function SearchResults({ keyword }: SearchResultsProps) {
           )}
       </TabsContent>
 
-      <TabsContent value="users" className="mt-4">
+      <TabsContent value="users" className="mt-4 w-full min-w-0">
         {usersQuery.isLoading ? (
             <SearchLoading />
           ) : usersQuery.isError ? (
@@ -215,12 +215,12 @@ export function SearchResults({ keyword }: SearchResultsProps) {
           ) : !usersQuery.data || usersQuery.data.length === 0 ? (
             <EmptyState title="没有匹配的用户" description="可以查看其他分类" />
           ) : (
-            <div className="space-y-3">
+            <div className="w-full space-y-3">
               {usersQuery.data.map((user) => (
                 <Link
                   key={user.id}
                   href={`/users/${user.id}`}
-                  className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-accent/20"
+                  className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-accent/20"
                 >
                   <UserAvatar
                     name={user.username}
