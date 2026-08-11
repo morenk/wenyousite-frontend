@@ -12,6 +12,11 @@ import React from "react";
 vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
+vi.mock("@/components/thread/thread-categories-provider", () => ({
+  useThreadCategoriesContext: () => ({
+    categories: [{ id: "deduction", slug: "DEDUCTION", name: "演绎", color: null }],
+  }),
+}));
 import { toast } from "sonner";
 
 const mockUseAuth = vi.fn();
@@ -248,16 +253,48 @@ describe("ThreadDetailHeader", () => {
     expect(screen.getByText("0 升温油")).toBeInTheDocument();
   });
 
+  test("子贴切换入口合并在排头卡中并通过菜单切换", async () => {
+    const user = userEvent.setup();
+    const onSubthreadChange = vi.fn();
+    const subthreads = [
+      baseThread.defaultSubthread,
+      {
+        ...baseThread.defaultSubthread,
+        id: "s2",
+        title: "设定区",
+        sortOrder: 1,
+        _count: { posts: 18 },
+      },
+    ];
+    mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
+
+    const { container } = renderWithQC(
+      <ThreadDetailHeader
+        thread={{ ...baseThread, subthreads }}
+        subthreads={subthreads}
+        selectedSubthreadId="s1"
+        onSubthreadChange={onSubthreadChange}
+      />,
+    );
+
+    const header = container.querySelector('[data-slot="thread-detail-header"]');
+    expect(header).toContainElement(
+      screen.getByRole("button", { name: "切换子贴，当前：主帖" }),
+    );
+    expect(header?.querySelector(".overflow-x-auto")).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "切换子贴，当前：主帖" }));
+    await user.click(screen.getByRole("menuitem", { name: "设定区 18 楼" }));
+    expect(onSubthreadChange).toHaveBeenCalledWith("s2");
+  });
+
   test("仅登录的非楼主用户可为已发布主题帖加油", () => {
     mockUseAuth.mockReturnValue({
       user: { id: "other-user", username: "别人" },
       isInitialized: true,
     });
     const view = renderWithQC(<ThreadDetailHeader thread={baseThread} />);
-    expect(screen.getByRole("button", { name: "加油" })).toHaveAttribute(
-      "title",
-      "加油（投入温油）",
-    );
+    expect(screen.getByRole("button", { name: "加油" })).toHaveTextContent(/^$/);
 
     view.unmount();
     mockUseAuth.mockReturnValue({
@@ -276,25 +313,67 @@ describe("ThreadDetailHeader", () => {
     expect(screen.queryByRole("button", { name: "加油" })).not.toBeInTheDocument();
   });
 
-  test("操作按互动与浏览类型分组，点赞和收藏相邻", () => {
+  test("普通成员的最大互动操作集与子贴目录保持单行", () => {
     mockUseAuth.mockReturnValue({
       user: { id: "other-user", username: "别人" },
       isInitialized: true,
     });
-    renderWithQC(<ThreadDetailHeader thread={baseThread} onSearch={vi.fn()} />);
+    mockUseMembers.mockReturnValue({
+      data: [{
+        id: "member-player",
+        threadId: "thread-1",
+        userId: "player-1",
+        role: "PARTICIPANT",
+        playerMarked: true,
+        joinedAt: "2026-01-01T00:00:00Z",
+        user: { id: "player-1", username: "玩家", avatar: null },
+      }],
+      isLoading: false,
+    } as never);
+    const subthreads = [
+      baseThread.defaultSubthread,
+      {
+        ...baseThread.defaultSubthread,
+        id: "s2",
+        title: "很长的设定资料与角色关系整理区",
+        sortOrder: 1,
+      },
+    ];
+    const { container } = renderWithQC(
+      <ThreadDetailHeader
+        thread={{ ...baseThread, subthreads }}
+        onSearch={vi.fn()}
+        subthreads={subthreads}
+        selectedSubthreadId="s2"
+        onSubthreadChange={vi.fn()}
+      />,
+    );
 
     const interactionGroup = screen.getByRole("group", { name: "互动操作" });
+    const toolbar = container.querySelector('[data-slot="thread-detail-toolbar"]');
+    const switcher = container.querySelector('[data-slot="subthread-switcher"]');
+    expect(toolbar?.firstElementChild).not.toHaveClass("flex-wrap");
+    expect(switcher).toHaveClass("min-w-0", "max-w-sm", "flex-1");
+    expect(interactionGroup).toHaveClass("shrink-0", "flex-nowrap");
     expect(interactionGroup).not.toHaveClass("border");
     expect(interactionGroup).not.toHaveClass("border-border");
     expect(interactionGroup).not.toHaveClass("bg-background/70");
     expect(
-      within(interactionGroup).getAllByRole("button").map((button) => button.getAttribute("aria-label")),
+      within(interactionGroup).getAllByRole("button").map(
+        (button) => button.getAttribute("aria-label") ?? button.textContent,
+      ),
     ).toEqual([
       "点赞，当前 3 个赞",
       "收藏帖子",
       "订阅官方更新",
+      "订阅玩家发言",
       "加油",
     ]);
+    const actionButtons = within(interactionGroup).getAllByRole("button");
+    expect(actionButtons[0]).toHaveTextContent("3");
+    actionButtons.slice(1).forEach((button) => {
+      expect(button).toHaveTextContent(/^$/);
+    });
     expect(screen.getByRole("group", { name: "浏览工具" })).toBeInTheDocument();
   });
 
@@ -315,6 +394,10 @@ describe("ThreadDetailHeader", () => {
     mockPOST.mockResolvedValue({ error: undefined });
     renderWithQC(<ThreadDetailHeader thread={baseThread} onManage={vi.fn()} />);
     expect(screen.getByRole("button", { name: "管理主题帖" })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "互动操作" })).toHaveClass(
+      "shrink-0",
+      "flex-nowrap",
+    );
     expect(screen.queryByText("编辑")).not.toBeInTheDocument();
     // OWNER 不应该看到加入/退出按钮
     expect(screen.queryByText("加入")).toBeNull();
@@ -357,6 +440,10 @@ describe("ThreadDetailHeader", () => {
     renderWithQC(<ThreadDetailHeader thread={baseThread} onManage={vi.fn()} />);
 
     expect(screen.getByRole("button", { name: "管理主题帖" })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "互动操作" })).toHaveClass(
+      "shrink-0",
+      "flex-nowrap",
+    );
     expect(screen.queryByText("编辑")).not.toBeInTheDocument();
     expect(screen.queryByTitle("删除主题帖")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "订阅官方更新" })).not.toBeInTheDocument();
@@ -534,7 +621,9 @@ describe("ThreadDetailHeader", () => {
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: /1/ }));
+    const likeButton = screen.getByRole("button", { name: /1/ });
+    expect(likeButton).toHaveClass("text-destructive", "bg-destructive-soft");
+    await user.click(likeButton);
     expect(mockDELETE).toHaveBeenCalledWith("/api/v1/threads/{id}/like", {
       params: { path: { id: "thread-1" } },
     });

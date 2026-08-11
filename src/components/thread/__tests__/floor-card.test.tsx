@@ -207,12 +207,31 @@ describe("FloorCard", () => {
     });
     renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
 
-    await user.click(screen.getByRole("button", { name: "复制本楼层链接" }));
+    await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
+    await user.click(screen.getByRole("menuitem", { name: "复制链接" }));
 
     expect(mockClipboardWriteText).toHaveBeenCalledWith(
       "http://localhost:3000/threads/t1?post=post-1",
     );
-    expect(screen.getByRole("button", { name: "复制本楼层链接" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "更多楼层操作" })).toBeInTheDocument();
+  });
+
+  test("楼层卡片可从操作菜单复制渲染后的文本", async () => {
+    const user = userEvent.setup();
+    Object.defineProperty(window.navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: mockClipboardWriteText },
+    });
+    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+
+    expect(screen.queryByRole("menuitem", { name: "复制文本" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
+    await user.click(screen.getByRole("menuitem", { name: "复制文本" }));
+
+    await waitFor(() => {
+      expect(mockClipboardWriteText).toHaveBeenCalledWith("这是加粗的正文");
+      expect(toast.success).toHaveBeenCalledWith("文本已复制");
+    });
   });
 
   test("有简短回复时默认展示前五条内联预览", () => {
@@ -225,7 +244,7 @@ describe("FloorCard", () => {
     expect(screen.queryByText("回复 reply-6")).not.toBeInTheDocument();
   });
 
-  test("发布时间与回复入口位于楼中楼预览上方且没有分割线", () => {
+  test("发布时间与回复数入口位于楼中楼预览上方且没有分割线", () => {
     const withReplies = {
       ...baseFloor,
       _count: { replies: 1 },
@@ -242,7 +261,7 @@ describe("FloorCard", () => {
     const publishedAt = meta.querySelector("time");
 
     expect(publishedAt).toHaveAttribute("dateTime", baseFloor.createdAt);
-    expect(meta).toContainElement(screen.getByRole("link", { name: "回复" }));
+    expect(meta).toContainElement(screen.getByRole("link", { name: "1 条回复" }));
     expect(meta.nextElementSibling).toBe(preview);
     expect(meta).not.toHaveClass("border-t");
   });
@@ -270,24 +289,31 @@ describe("FloorCard", () => {
     expect(container.firstChild as HTMLElement).toHaveClass("bg-muted/20");
   });
 
-  test("未登录不显示编辑/删除按钮", () => {
+  test("未登录时操作菜单不显示编辑/删除", async () => {
+    const user = userEvent.setup();
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
     renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
-    expect(screen.queryByTitle("编辑楼层")).toBeNull();
-    expect(screen.queryByTitle("删除楼层")).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
+    expect(screen.queryByRole("menuitem", { name: "编辑" })).toBeNull();
+    expect(screen.queryByRole("menuitem", { name: "删除" })).toBeNull();
   });
 
-  test("非作者不显示编辑/删除按钮", () => {
+  test("非作者的操作菜单不显示编辑/删除", async () => {
+    const user = userEvent.setup();
     mockUseAuth.mockReturnValue({
       user: { id: "other", username: "别人", emailVerified: true },
       isInitialized: true,
     });
     renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
-    expect(screen.queryByTitle("编辑楼层")).toBeNull();
-    expect(screen.queryByTitle("删除楼层")).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
+    expect(screen.queryByRole("menuitem", { name: "编辑" })).toBeNull();
+    expect(screen.queryByRole("menuitem", { name: "删除" })).toBeNull();
   });
 
-  test("管理者可删除他人楼层但不可编辑", () => {
+  test("管理者可从操作菜单删除他人楼层但不可编辑", async () => {
+    const user = userEvent.setup();
     mockUseAuth.mockReturnValue({
       user: { id: "manager", username: "管理者", emailVerified: true },
       isInitialized: true,
@@ -296,27 +322,34 @@ describe("FloorCard", () => {
 
     renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
 
-    expect(screen.queryByTitle("编辑楼层")).not.toBeInTheDocument();
-    expect(screen.getByTitle("删除楼层")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
+    expect(screen.queryByRole("menuitem", { name: "编辑" })).not.toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "删除" })).toBeInTheDocument();
   });
 
-  test("作者显示编辑/删除按钮", () => {
+  test("作者的操作菜单显示编辑/删除", async () => {
+    const user = userEvent.setup();
     mockUseAuth.mockReturnValue({
       user: { id: "u1", username: "测试用户", emailVerified: true },
       isInitialized: true,
     });
     renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
-    expect(screen.getByTitle("编辑楼层")).toBeInTheDocument();
-    expect(screen.getByTitle("删除楼层")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
+    expect(screen.getByRole("menuitem", { name: "编辑" })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "删除" })).toBeInTheDocument();
   });
 
-  test("楼层 #1 删除按钮也可点（楼层均可删除，子贴正文由后端拦截）", () => {
+  test("楼层 #1 删除菜单项也可点（楼层均可删除，子贴正文由后端拦截）", async () => {
+    const user = userEvent.setup();
     mockUseAuth.mockReturnValue({
       user: { id: "u1", username: "测试用户", emailVerified: true },
       isInitialized: true,
     });
     renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
-    const del = screen.getByTitle("删除楼层");
+
+    await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
+    const del = screen.getByRole("menuitem", { name: "删除" });
     expect(del).not.toBeDisabled();
   });
 
@@ -328,7 +361,8 @@ describe("FloorCard", () => {
     });
     renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
 
-    await user.click(screen.getByTitle("编辑楼层"));
+    await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
+    await user.click(screen.getByRole("menuitem", { name: "编辑" }));
     const textarea = screen.getByTestId("milkdown-editor");
     await user.clear(textarea);
     await user.type(textarea, "编辑后的正文");
@@ -351,7 +385,8 @@ describe("FloorCard", () => {
     mockUpdateMutateAsync.mockRejectedValueOnce({ code: 40002, message: "内容已被修改" });
     renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
 
-    await user.click(screen.getByTitle("编辑楼层"));
+    await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
+    await user.click(screen.getByRole("menuitem", { name: "编辑" }));
     await user.click(screen.getByRole("button", { name: "保存修改" }));
 
     expect(toast.error).toHaveBeenCalledWith("内容已被修改，请刷新后重试");
@@ -365,7 +400,8 @@ describe("FloorCard", () => {
     });
     renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
 
-    await user.click(screen.getByTitle("编辑楼层"));
+    await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
+    await user.click(screen.getByRole("menuitem", { name: "编辑" }));
     await user.click(screen.getByRole("button", { name: "取消" }));
 
     expect(mockUpdateMutateAsync).not.toHaveBeenCalled();
@@ -382,7 +418,8 @@ describe("FloorCard", () => {
     });
     renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
 
-    await user.click(screen.getByTitle("删除楼层"));
+    await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
+    await user.click(screen.getByRole("menuitem", { name: "删除" }));
 
     expect(window.confirm).toHaveBeenCalled();
     expect(mockDeleteMutateAsync).toHaveBeenCalledWith("post-1");
@@ -399,7 +436,8 @@ describe("FloorCard", () => {
     });
     renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
 
-    await user.click(screen.getByTitle("删除楼层"));
+    await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
+    await user.click(screen.getByRole("menuitem", { name: "删除" }));
 
     expect(window.confirm).toHaveBeenCalled();
     expect(mockDeleteMutateAsync).not.toHaveBeenCalled();
@@ -429,7 +467,8 @@ describe("FloorCard", () => {
     expect(screen.queryByTestId("floor-card-actions")).toBeNull();
   });
 
-  test("回复按钮进入独立楼中楼阅读页", () => {
+  test("回复菜单项进入独立楼中楼阅读页", async () => {
+    const user = userEvent.setup();
     mockUseAuth.mockReturnValue({
       user: { id: "u1", username: "测试用户", emailVerified: true },
       isInitialized: true,
@@ -437,16 +476,20 @@ describe("FloorCard", () => {
     renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
 
     expect(screen.queryByText("暂无回复")).toBeNull();
-    expect(screen.getByTestId("floor-card-actions")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "回复" })).toHaveAttribute(
+    expect(screen.queryByTestId("floor-card-actions")).toBeNull();
+    await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
+    expect(screen.getByRole("menuitem", { name: "回复" })).toHaveAttribute(
       "href",
       "/threads/t1/posts/post-1/replies",
     );
   });
 
-  test("未登录不显示回复按钮", () => {
+  test("未登录时操作菜单不显示回复动作", async () => {
+    const user = userEvent.setup();
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
     renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
-    expect(screen.queryByRole("link", { name: "回复" })).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
+    expect(screen.queryByRole("menuitem", { name: "回复" })).toBeNull();
   });
 });

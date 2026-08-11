@@ -1,4 +1,4 @@
-/** 主题帖详情页：头部 + 子贴 Tab + 楼层列表 + 发布 */
+/** 主题帖详情页：排头卡目录切换 + 子贴正文 + 楼层列表 + 发布 */
 
 "use client";
 
@@ -13,7 +13,6 @@ import { useFloors } from "@/api/hooks/use-floors";
 import { usePost } from "@/api/hooks/use-post";
 import { ThreadDetailHeader } from "@/components/thread/thread-detail-header";
 import { ThreadPostSearch } from "@/components/thread/thread-post-search";
-import { SubthreadTabs } from "@/components/thread/subthread-tabs";
 import { SubthreadBody } from "@/components/thread/subthread-body";
 import { FloorList } from "@/components/thread/floor-list";
 import {
@@ -148,6 +147,11 @@ function ThreadDetailPageContent() {
         thread={thread}
         isSearchOpen={isSearching}
         onSearch={() => setIsSearching((open) => !open)}
+        subthreads={thread.subthreads}
+        selectedSubthreadId={effectiveSubthreadId}
+        onSubthreadChange={async (subthreadId) => {
+          if (await closeComposer()) setSelectedSubthreadId(subthreadId);
+        }}
         onManage={canManageThread ? async () => {
           if (await closeComposer()) router.push(`/threads/${thread.id}/edit`);
         } : undefined}
@@ -167,15 +171,6 @@ function ThreadDetailPageContent() {
       )}
 
       <div className="mt-5 space-y-4">
-        {/* 子贴 Tabs */}
-        <SubthreadTabs
-          subthreads={thread.subthreads}
-          selectedId={effectiveSubthreadId}
-          onChange={async (subthreadId) => {
-            if (await closeComposer()) setSelectedSubthreadId(subthreadId);
-          }}
-        />
-
         {/* 子贴标题 + 正文（正文不占楼层号） */}
         {selectedSubthread && (
           <SubthreadBody

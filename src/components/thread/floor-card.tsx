@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { ArrowRight, Link2, MessageSquare, Pencil, Trash2 } from "lucide-react";
+import { ArrowRight, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { getPostDiscussionHref, getPostHref } from "@/lib/post-navigation";
@@ -18,10 +18,14 @@ import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
 import { useThreadComposer } from "@/components/thread/thread-composer-context";
 import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
 import { UserAvatar } from "@/components/shared/user-avatar";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-provider";
 import type { FloorDisplayData } from "@/api/hooks/use-floors";
 import { LevelBadge } from "@/components/shared/level-badge";
+import {
+  getVisibleContentText,
+  PostActionsMenu,
+} from "@/components/thread/post-actions-menu";
 
 interface FloorCardProps {
   floor: FloorDisplayData;
@@ -102,8 +106,8 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
       )}
     >
       {/* 楼层头部 */}
-      <div className="mb-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="mb-3 flex items-start justify-between gap-2">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
           <UserAvatar
             name={floor.author.username}
             src={floor.author.avatar}
@@ -123,61 +127,29 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
             </span>
           )}
         </div>
-        <div className="flex items-center gap-1">
-          {!isEditing && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 px-2"
-              aria-label="复制本楼层链接"
-              title="复制本楼层链接"
-              onClick={async () => {
-                try {
-                  await navigator.clipboard.writeText(`${window.location.origin}${floorHref}`);
-                  toast.success("链接已复制");
-                } catch {
-                  toast.error("复制失败，请稍后重试");
-                }
-              }}
-            >
-              <Link2 className="h-3.5 w-3.5" />
-            </Button>
-          )}
-          {!isEditing && (isAuthor || canDelete) && (
-            <>
-              {isAuthor && <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 px-2"
-                onClick={handleStartEdit}
-                title="编辑楼层"
-              >
-                <Pencil className="h-3.5 w-3.5" />
-              </Button>}
-              {canDelete && <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 px-2 text-destructive hover:text-destructive"
-                onClick={handleDelete}
-                title="删除楼层"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>}
-            </>
-          )}
-        </div>
+        {!isEditing ? (
+          <PostActionsMenu
+            triggerLabel="更多楼层操作"
+            menuLabel="楼层操作"
+            copyText={() => getVisibleContentText(`floor-content-${floor.id}`, floor.content)}
+            copyHref={floorHref}
+            replyHref={user && floor.floorNumber != null ? discussionHref : undefined}
+            onEdit={isAuthor ? handleStartEdit : undefined}
+            onDelete={canDelete ? () => void handleDelete() : undefined}
+          />
+        ) : null}
       </div>
 
       {/* 楼层正文 / 编辑态 */}
       {isEditing ? (
         <ThreadComposerOutlet anchorId={editAnchorId} />
       ) : (
-        <>
+        <div id={`floor-content-${floor.id}`}>
           <MarkdownContent content={floor.content} diceRolls={floor.diceRolls} sourcePostId={floor.id} />
-        </>
+        </div>
       )}
 
-      {/* 发布时间与回复入口：承接正文，并保持在楼中楼预览上方。 */}
+      {/* 发布时间与回复数入口：承接正文，并保持在楼中楼预览上方。 */}
       <div
         data-testid="floor-card-meta"
         className="mt-3 flex min-h-6 items-center justify-between gap-3"
@@ -191,30 +163,16 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
             locale: zhCN,
           })}
         </time>
-        {!isEditing && (floor._count.replies > 0 || (user && floor.floorNumber != null)) && (
+        {!isEditing && floor._count.replies > 0 && (
           <div data-testid="floor-card-actions" className="ml-auto flex items-center gap-1">
-            {floor._count.replies > 0 && (
-              <Link
-                href={discussionHref}
-                className="flex items-center gap-1 px-2 text-xs text-muted-foreground hover:text-foreground"
-              >
-                <MessageSquare className="h-3.5 w-3.5" />
-                {floor._count.replies} 条回复
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            )}
-            {user && floor.floorNumber != null && (
-              <Link
-                href={discussionHref}
-                className={cn(
-                  buttonVariants({ variant: "ghost", size: "sm" }),
-                  "h-6 px-2 text-xs",
-                )}
-              >
-                <MessageSquare className="mr-1 h-3.5 w-3.5" />
-                回复
-              </Link>
-            )}
+            <Link
+              href={discussionHref}
+              className="flex items-center gap-1 px-2 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <MessageSquare className="h-3.5 w-3.5" />
+              {floor._count.replies} 条回复
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
           </div>
         )}
       </div>

@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { ChevronDown, Link2, Loader2, MessageSquare, Pencil, Trash2 } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useReplies } from "@/api/hooks/use-replies";
 import { useDeletePost } from "@/api/hooks/use-delete-post";
@@ -29,6 +29,10 @@ import {
   type ReplyAuthorOption,
 } from "@/components/shared/reply-thread-controls";
 import type { ReplyOrder } from "@/api/reply-query";
+import {
+  getVisibleContentText,
+  PostActionsMenu,
+} from "@/components/thread/post-actions-menu";
 
 interface ReplyListProps {
   postId: string;
@@ -167,8 +171,8 @@ export function ReplyList({ postId, threadId, focusedReply, variant = "embedded"
               reply.id === focusedReply?.id && "border-primary bg-primary/[0.06] ring-2 ring-primary/20",
             ].filter(Boolean).join(" ")}
           >
-            <div className="mb-1.5 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
+            <div className="mb-1.5 flex items-start justify-between gap-2">
+              <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
                 <UserAvatar
                   name={reply.author.username}
                   src={reply.author.avatar}
@@ -203,85 +207,49 @@ export function ReplyList({ postId, threadId, focusedReply, variant = "embedded"
                   })}
                 </span>
               </div>
-              {!isEditing && (isAuthor || canDelete) && (
-                <div className="flex items-center gap-1">
-                  {isAuthor && <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 px-2 text-xs"
-                    title="编辑回复"
-                    onClick={() => {
-                      open({
-                        key: `edit:${reply.id}`,
-                        anchorId,
-                        type: "edit",
-                        subthreadId: reply.subthreadId,
-                        postId: reply.id,
-                        parentPostId: postId,
-                        version: reply.version,
-                        label: `编辑 @${reply.author.username} 的回复`,
-                        initialContent: reply.content,
-                        diceRolls: reply.diceRolls,
-                      });
-                    }}
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </Button>}
-                  {canDelete && <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 px-2 text-xs text-destructive hover:text-destructive"
-                    title="删除回复"
-                    onClick={() => handleDeleteReply(reply)}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>}
-                </div>
-              )}
-              {!isEditing && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 px-2 text-xs"
-                  aria-label="复制此回复链接"
-                  title="复制此回复链接"
-                  onClick={async () => {
-                    try {
-                      await navigator.clipboard.writeText(`${window.location.origin}${replyHref}`);
-                      toast.success("链接已复制");
-                    } catch {
-                      toast.error("复制失败，请稍后重试");
-                    }
-                  }}
-                >
-                  <Link2 className="h-3.5 w-3.5" />
-                </Button>
-              )}
-              {user && !isEditing && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 px-2 text-xs"
-                  onClick={() => open({
-                    key: `reply:${reply.id}`,
-                    anchorId,
-                    type: "reply",
-                    subthreadId: reply.subthreadId,
-                    parentPostId: postId,
-                    replyToPostId: reply.id,
-                    label: `回复 @${reply.author.username}`,
-                    initialContent: "",
-                  })}
-                >
-                  <MessageSquare className="mr-1 h-3.5 w-3.5" />
-                  回复
-                </Button>
-              )}
+              {!isEditing ? (
+                <PostActionsMenu
+                  triggerLabel="更多回复操作"
+                  menuLabel="回复操作"
+                  copyText={() => getVisibleContentText(
+                    `reply-content-${reply.id}`,
+                    reply.content,
+                  )}
+                  copyHref={replyHref}
+                  onReply={user ? () => {
+                    open({
+                      key: `reply:${reply.id}`,
+                      anchorId,
+                      type: "reply",
+                      subthreadId: reply.subthreadId,
+                      parentPostId: postId,
+                      replyToPostId: reply.id,
+                      label: `回复 @${reply.author.username}`,
+                      initialContent: "",
+                    });
+                  } : undefined}
+                  onEdit={isAuthor ? () => {
+                    open({
+                      key: `edit:${reply.id}`,
+                      anchorId,
+                      type: "edit",
+                      subthreadId: reply.subthreadId,
+                      postId: reply.id,
+                      parentPostId: postId,
+                      version: reply.version,
+                      label: `编辑 @${reply.author.username} 的回复`,
+                      initialContent: reply.content,
+                      diceRolls: reply.diceRolls,
+                    });
+                  } : undefined}
+                  onDelete={canDelete ? () => void handleDeleteReply(reply) : undefined}
+                />
+              ) : null}
             </div>
             {!isEditing && (
-              <>
+              <div id={`reply-content-${reply.id}`}>
                 <MarkdownContent content={reply.content} diceRolls={reply.diceRolls} sourcePostId={reply.id} />
-              </>
+              </div>
             )}
             <ThreadComposerOutlet anchorId={anchorId} />
           </div>

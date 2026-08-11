@@ -33,7 +33,7 @@ import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-provider";
 import { BookmarkButton } from "@/components/user/bookmark-button";
 import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
-import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
+import type { SubthreadDetail, ThreadDetail } from "@/api/hooks/use-thread-detail";
 import { TopicTagLink } from "@/components/thread/topic-tag-link";
 import { ThreadSubscriptionControls } from "@/components/thread/thread-subscription-controls";
 import { LevelBadge } from "@/components/shared/level-badge";
@@ -41,12 +41,17 @@ import { Badge } from "@/components/ui/badge";
 import { WenyouTipButton } from "@/components/economy/wenyou-tip-button";
 import { formatWenyou } from "@/lib/wenyou";
 import { ThreadCategoryBadge, ThreadCategoryMarker } from "@/components/thread/thread-category";
+import { SubthreadSwitcher } from "@/components/thread/subthread-tabs";
+import { LIKED_ACTIVE_SURFACE_CLASS_NAME } from "@/lib/like-state";
 
 interface ThreadDetailHeaderProps {
   thread: ThreadDetail;
   onManage?: () => void;
   onSearch?: () => void;
   isSearchOpen?: boolean;
+  subthreads?: SubthreadDetail[];
+  selectedSubthreadId?: string;
+  onSubthreadChange?: (id: string) => void;
 }
 
 function ThreadActionGroup({
@@ -63,7 +68,7 @@ function ThreadActionGroup({
       role="group"
       aria-label={label}
       className={cn(
-        "flex shrink-0 items-center gap-1",
+        "flex items-center gap-1",
         className,
       )}
     >
@@ -79,6 +84,9 @@ export function ThreadDetailHeader({
   onManage,
   onSearch,
   isSearchOpen = false,
+  subthreads = [],
+  selectedSubthreadId,
+  onSubthreadChange,
 }: ThreadDetailHeaderProps) {
   const { user } = useAuth();
   const router = useRouter();
@@ -171,48 +179,155 @@ export function ThreadDetailHeader({
     }
   };
 
+  const hasBrowseTools = Boolean(
+    onSearch
+    || thread.visibility === "PUBLIC"
+    || isOwner && thread.published && thread.visibility === "PRIVATE",
+  );
+  const hasManagementTools = Boolean(
+    user && (
+      !isOwner && currentMember?.playerMarked
+      || canManageThread && (!!onManage || isOwner)
+    ),
+  );
+
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-5">
+    <div
+      data-slot="thread-detail-header"
+      className="relative overflow-hidden rounded-2xl border border-border bg-card"
+    >
       <ThreadCategoryMarker
         category={thread.category}
         className="absolute inset-y-0 left-0 w-1.5"
       />
-      <div className="flex flex-col gap-4">
-        {/* 分类 + 状态 */}
-        <div className="flex items-center gap-2">
-          <ThreadCategoryBadge category={thread.category} />
-          <Badge tone={THREAD_STATUS_META[thread.status].badgeTone}>
-            {THREAD_STATUS_META[thread.status].label}
-          </Badge>
-          {thread.visibility === "PRIVATE" && (
-            <Badge tone="warning">私密</Badge>
-          )}
-          {thread.pinned && (
-            <Badge tone="brand">置顶</Badge>
-          )}
+      <div className="px-6 pb-5 pt-5">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <ThreadCategoryBadge category={thread.category} />
+            <Badge tone={THREAD_STATUS_META[thread.status].badgeTone}>
+              {THREAD_STATUS_META[thread.status].label}
+            </Badge>
+            {thread.visibility === "PRIVATE" ? <Badge tone="warning">私密</Badge> : null}
+            {thread.pinned ? <Badge tone="brand">置顶</Badge> : null}
+          </div>
+
+          {(hasBrowseTools || hasManagementTools) ? (
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              {hasBrowseTools ? (
+                <ThreadActionGroup label="浏览工具">
+                  {onSearch ? (
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label="搜索本帖楼层"
+                      title="搜索本帖楼层"
+                      aria-expanded={isSearchOpen}
+                      onClick={onSearch}
+                      className={cn(actionButtonClassName, isSearchOpen && "bg-accent text-foreground")}
+                    >
+                      <Search className="h-4 w-4" />
+                    </Button>
+                  ) : null}
+                  {thread.visibility === "PUBLIC" ? (
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label="复制主题帖链接"
+                      title="复制主题帖链接"
+                      onClick={handleCopyThreadLink}
+                      className={actionButtonClassName}
+                    >
+                      <Link2 className="h-4 w-4" />
+                    </Button>
+                  ) : null}
+                  {isOwner && thread.published && thread.visibility === "PRIVATE" ? (
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={handleCopyInviteLink}
+                      disabled={createInviteLink.isPending}
+                      aria-label="生成并复制私密帖邀请链接"
+                      title="生成并复制私密帖邀请链接"
+                      className={actionButtonClassName}
+                    >
+                      {createInviteLink.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <KeyRound className="h-4 w-4" />
+                      )}
+                    </Button>
+                  ) : null}
+                </ThreadActionGroup>
+              ) : null}
+
+              {hasManagementTools ? (
+                <ThreadActionGroup label="管理操作">
+                  {!isOwner && currentMember?.playerMarked ? (
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={handleExitPlayer}
+                      disabled={exitThreadPlayer.isPending}
+                      aria-label="退出玩家身份"
+                      title="退出玩家身份"
+                      className={actionButtonClassName}
+                    >
+                      {exitThreadPlayer.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <LogOut className="h-4 w-4" />
+                      )}
+                    </Button>
+                  ) : null}
+                  {canManageThread && onManage ? (
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={onManage}
+                      aria-label="管理主题帖"
+                      title="管理主题帖"
+                      className={actionButtonClassName}
+                    >
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  ) : null}
+                  {canManageThread && isOwner ? (
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      className="rounded-lg text-destructive hover:bg-destructive-soft hover:text-destructive"
+                      aria-label="删除主题帖"
+                      title="删除主题帖"
+                      onClick={handleDeleteThread}
+                      disabled={deleteThread.isPending}
+                    >
+                      {deleteThread.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
+                    </Button>
+                  ) : null}
+                </ThreadActionGroup>
+              ) : null}
+            </div>
+          ) : null}
         </div>
 
-        {/* 标题 */}
-        <h1 className="font-display text-[1.75rem] leading-9 font-bold tracking-[0.01em] text-foreground">{thread.title}</h1>
+        <h1 className="mt-4 max-w-4xl font-display text-[1.875rem] font-bold leading-10 tracking-[0.01em] text-foreground">
+          {thread.title}
+        </h1>
 
-        {/* 标签 */}
-        {thread.topicTags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {thread.topicTags.map(({ tag }) => (
-              <TopicTagLink key={tag.id} tag={tag} />
-            ))}
-          </div>
-        )}
-
-        {/* 作者 + 时间 + 统计 */}
-        <div className="flex flex-wrap items-center gap-3 font-utility text-xs text-muted-foreground">
-          <Link
-            href={`/users/${thread.ownerId}`}
-            className="font-medium text-foreground hover:text-brand-strong"
-          >
-            {thread.owner.username}
-          </Link>
-          <LevelBadge level={thread.owner.level} />
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 font-utility text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-2">
+            <Link
+              href={`/users/${thread.ownerId}`}
+              className="font-medium text-foreground hover:text-brand-strong"
+            >
+              {thread.owner.username}
+            </Link>
+            <LevelBadge level={thread.owner.level} />
+          </span>
           <span>
             {formatDistanceToNow(new Date(thread.createdAt), {
               addSuffix: true,
@@ -228,163 +343,84 @@ export function ThreadDetailHeader({
           </span>
         </div>
 
-        {/* 单行操作工具轨：互动、浏览工具与管理职责分组。 */}
-        <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
-          <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <ThreadActionGroup label="互动操作">
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={user ? handleLike : () => router.push("/login")}
-                disabled={like.isPending || unlike.isPending}
-                aria-label={thread.isLiked
-                  ? `取消点赞，当前 ${thread.likeCount} 个赞`
-                  : `点赞，当前 ${thread.likeCount} 个赞`}
-                title={thread.isLiked
-                  ? `取消点赞（当前 ${thread.likeCount}）`
-                  : `点赞（当前 ${thread.likeCount}）`}
-                className={cn(
-                  actionButtonClassName,
-                  thread.isLiked && "bg-destructive-soft text-destructive hover:text-destructive",
-                )}
-              >
-                {like.isPending || unlike.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Heart className={cn("h-4 w-4", thread.isLiked && "fill-current")} />
-                )}
-              </Button>
-
-              {user && (
-                <BookmarkButton
-                  threadId={thread.id}
-                  isBookmarked={thread.isBookmarked}
-                  bookmarkId={thread.bookmarkId}
-                  iconOnly
-                  className={actionButtonClassName}
-                />
-              )}
-
-              {user && <ThreadSubscriptionControls thread={thread} />}
-
-              {user && !isOwner && thread.published && (
-                <WenyouTipButton
-                  target={{
-                    type: "THREAD",
-                    id: thread.id,
-                    recipientUserId: thread.ownerId,
-                  }}
-                  recipientName={`主题帖「${thread.title}」`}
-                  variant="ghost"
-                  iconOnly
-                  className={actionButtonClassName}
-                />
-              )}
-            </ThreadActionGroup>
-
-            {(onSearch
-              || thread.visibility === "PUBLIC"
-              || isOwner && thread.published && thread.visibility === "PRIVATE") && (
-              <ThreadActionGroup label="浏览工具">
-                {onSearch && (
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label="搜索本帖楼层"
-                    title="搜索本帖楼层"
-                    aria-expanded={isSearchOpen}
-                    onClick={onSearch}
-                    className={cn(actionButtonClassName, isSearchOpen && "bg-accent text-foreground")}
-                  >
-                    <Search className="h-4 w-4" />
-                  </Button>
-                )}
-                {thread.visibility === "PUBLIC" && (
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label="复制主题帖链接"
-                    title="复制主题帖链接"
-                    onClick={handleCopyThreadLink}
-                    className={actionButtonClassName}
-                  >
-                    <Link2 className="h-4 w-4" />
-                  </Button>
-                )}
-                {isOwner && thread.published && thread.visibility === "PRIVATE" && (
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={handleCopyInviteLink}
-                    disabled={createInviteLink.isPending}
-                    aria-label="生成并复制私密帖邀请链接"
-                    title="生成并复制私密帖邀请链接"
-                    className={actionButtonClassName}
-                  >
-                    {createInviteLink.isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <KeyRound className="h-4 w-4" />
-                    )}
-                  </Button>
-                )}
-              </ThreadActionGroup>
-            )}
+        {thread.topicTags.length > 0 ? (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {thread.topicTags.map(({ tag }) => (
+              <TopicTagLink key={tag.id} tag={tag} />
+            ))}
           </div>
+        ) : null}
+      </div>
 
-          {user && (
-            !isOwner && currentMember?.playerMarked
-            || canManageThread && (!!onManage || isOwner)
-          ) && (
-            <ThreadActionGroup label="管理操作" className="ml-auto">
-              {!isOwner && currentMember?.playerMarked && (
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={handleExitPlayer}
-                  disabled={exitThreadPlayer.isPending}
-                  aria-label="退出玩家身份"
-                  title="退出玩家身份"
-                  className={actionButtonClassName}
-                >
-                  {exitThreadPlayer.isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <LogOut className="h-4 w-4" />
-                  )}
-                </Button>
+      <div
+        data-slot="thread-detail-toolbar"
+        className="border-t border-border bg-muted/25 px-4 py-2.5"
+      >
+        <div className="flex min-w-0 items-center gap-2">
+          {onSubthreadChange ? (
+            <SubthreadSwitcher
+              subthreads={subthreads}
+              selectedId={selectedSubthreadId}
+              onChange={onSubthreadChange}
+              className="min-w-0 max-w-sm flex-1"
+            />
+          ) : null}
+
+          <ThreadActionGroup
+            label="互动操作"
+            className="ml-auto shrink-0 flex-nowrap justify-end gap-0.5"
+          >
+            <Button
+              variant="ghost"
+              size="compact"
+              onClick={user ? handleLike : () => router.push("/login")}
+              disabled={like.isPending || unlike.isPending}
+              aria-label={thread.isLiked
+                ? `取消点赞，当前 ${thread.likeCount} 个赞`
+                : `点赞，当前 ${thread.likeCount} 个赞`}
+              title={thread.isLiked
+                ? `取消点赞（当前 ${thread.likeCount}）`
+                : `点赞（当前 ${thread.likeCount}）`}
+              className={cn(
+                actionButtonClassName,
+                "px-2",
+                thread.isLiked && LIKED_ACTIVE_SURFACE_CLASS_NAME,
               )}
-              {canManageThread && onManage && (
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={onManage}
-                  aria-label="管理主题帖"
-                  title="管理主题帖"
-                  className={actionButtonClassName}
-                >
-                  <Settings className="h-4 w-4" />
-                </Button>
+            >
+              {like.isPending || unlike.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Heart className={cn("h-4 w-4", thread.isLiked && "fill-current")} />
               )}
-              {canManageThread && isOwner && (
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className="rounded-lg text-destructive hover:bg-destructive-soft hover:text-destructive"
-                  aria-label="删除主题帖"
-                  title="删除主题帖"
-                  onClick={handleDeleteThread}
-                  disabled={deleteThread.isPending}
-                >
-                  {deleteThread.isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Trash2 className="h-4 w-4" />
-                  )}
-                </Button>
-              )}
-            </ThreadActionGroup>
-          )}
+              <span className="font-utility text-xs tabular-nums">{thread.likeCount}</span>
+            </Button>
+
+            {user ? (
+              <BookmarkButton
+                threadId={thread.id}
+                isBookmarked={thread.isBookmarked}
+                bookmarkId={thread.bookmarkId}
+                iconOnly
+                className={actionButtonClassName}
+              />
+            ) : null}
+
+            {user ? <ThreadSubscriptionControls thread={thread} /> : null}
+
+            {user && !isOwner && thread.published ? (
+              <WenyouTipButton
+                target={{
+                  type: "THREAD",
+                  id: thread.id,
+                  recipientUserId: thread.ownerId,
+                }}
+                recipientName={`主题帖「${thread.title}」`}
+                variant="ghost"
+                iconOnly
+                className={actionButtonClassName}
+              />
+            ) : null}
+          </ThreadActionGroup>
         </div>
       </div>
     </div>

@@ -1,11 +1,9 @@
-/** SubthreadTabs 组件测试 */
+/** SubthreadSwitcher 组件测试：头部目录按钮与大量子贴菜单。 */
 
-import { describe, test, expect, vi, afterEach } from "vitest";
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
-import {
-  SubthreadTabs,
-  hasOverflow,
-} from "@/components/thread/subthread-tabs";
+import { afterEach, describe, expect, test, vi } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { SubthreadSwitcher } from "@/components/thread/subthread-tabs";
 import type { SubthreadDetail } from "@/api/hooks/use-thread-detail";
 
 function makeSub(overrides: Partial<SubthreadDetail> = {}): SubthreadDetail {
@@ -25,40 +23,12 @@ function makeSub(overrides: Partial<SubthreadDetail> = {}): SubthreadDetail {
   };
 }
 
-const origScrollIntoView = Element.prototype.scrollIntoView;
+afterEach(cleanup);
 
-const proto = HTMLElement.prototype as unknown as Record<string, unknown>;
-
-afterEach(() => {
-  cleanup();
-  delete proto.scrollWidth;
-  delete proto.clientWidth;
-  delete proto.scrollLeft;
-  Element.prototype.scrollIntoView = origScrollIntoView;
-});
-
-describe("hasOverflow", () => {
-  test("内容未溢出时两侧都不可滚动", () => {
-    expect(hasOverflow(300, 300, 0)).toEqual({ left: false, right: false });
-  });
-
-  test("内容溢出且未滚动时仅右侧可滚动", () => {
-    expect(hasOverflow(1000, 300, 0)).toEqual({ left: false, right: true });
-  });
-
-  test("内容溢出且已滚动到末尾时仅左侧可滚动", () => {
-    expect(hasOverflow(1000, 300, 700)).toEqual({ left: true, right: false });
-  });
-
-  test("内容溢出且滚动在中间时两侧都可滚动", () => {
-    expect(hasOverflow(1000, 300, 300)).toEqual({ left: true, right: true });
-  });
-});
-
-describe("SubthreadTabs", () => {
-  test("单子贴时不渲染 Tab", () => {
+describe("SubthreadSwitcher", () => {
+  test("单子贴时不渲染切换按钮", () => {
     const { container } = render(
-      <SubthreadTabs
+      <SubthreadSwitcher
         subthreads={[makeSub()]}
         selectedId="s1"
         onChange={() => {}}
@@ -67,57 +37,10 @@ describe("SubthreadTabs", () => {
     expect(container.firstChild).toBeNull();
   });
 
-  test("多子贴时渲染所有 Tab", () => {
+  test("按钮展示当前子贴与楼层数，选项仅在菜单展开后出现", async () => {
+    const user = userEvent.setup();
     render(
-      <SubthreadTabs
-        subthreads={[
-          makeSub({ id: "s1", title: "主帖" }),
-          makeSub({ id: "s2", title: "设定区" }),
-        ]}
-        selectedId="s1"
-        onChange={() => {}}
-      />,
-    );
-    expect(screen.getByText("主帖")).toBeInTheDocument();
-    expect(screen.getByText("设定区")).toBeInTheDocument();
-  });
-
-  test("选中 Tab 高亮", () => {
-    render(
-      <SubthreadTabs
-        subthreads={[
-          makeSub({ id: "s1", title: "主帖" }),
-          makeSub({ id: "s2", title: "设定区" }),
-        ]}
-        selectedId="s1"
-        onChange={() => {}}
-      />,
-    );
-    const selected = screen.getByText("主帖");
-    expect(selected.className).toContain("border-primary");
-    const unselected = screen.getByText("设定区");
-    expect(unselected.className).toContain("border-transparent");
-  });
-
-  test("点击 Tab 调用 onChange", () => {
-    const onChange = vi.fn();
-    render(
-      <SubthreadTabs
-        subthreads={[
-          makeSub({ id: "s1", title: "主帖" }),
-          makeSub({ id: "s2", title: "设定区" }),
-        ]}
-        selectedId="s1"
-        onChange={onChange}
-      />,
-    );
-    fireEvent.click(screen.getByText("设定区"));
-    expect(onChange).toHaveBeenCalledWith("s2");
-  });
-
-  test("显示子贴楼层数", () => {
-    render(
-      <SubthreadTabs
+      <SubthreadSwitcher
         subthreads={[
           makeSub({ id: "s1", title: "主帖", _count: { posts: 10 } }),
           makeSub({ id: "s2", title: "设定区", _count: { posts: 0 } }),
@@ -126,104 +49,133 @@ describe("SubthreadTabs", () => {
         onChange={() => {}}
       />,
     );
-    expect(screen.getByText("10")).toBeInTheDocument();
-    // _count.posts === 0 时不显示数字
-    expect(screen.queryByText("0")).toBeNull();
-  });
 
-  test("0 个帖子的子贴不显示计数", () => {
-    render(
-      <SubthreadTabs
-        subthreads={[
-          makeSub({ id: "s1", title: "主帖", _count: { posts: 0 } }),
-          makeSub({ id: "s2", title: "设定区", _count: { posts: 0 } }),
-        ]}
-        selectedId="s1"
-        onChange={() => {}}
-      />,
+    expect(screen.getByRole("button", { name: "切换子贴，当前：主帖" })).toHaveTextContent(
+      "主帖10 楼",
     );
-    expect(screen.queryByText("0")).toBeNull();
+    expect(screen.queryByRole("menuitem", { name: /设定区/ })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "切换子贴，当前：主帖" }));
+
+    expect(screen.getByRole("menu")).toBeInTheDocument();
+    expect(screen.getByText("共 2 个子贴")).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "主帖 10 楼" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(screen.getByRole("menuitem", { name: "设定区 0 楼" })).toBeInTheDocument();
   });
 
-  test("内容溢出时显示滚动箭头", () => {
-    Object.defineProperty(HTMLElement.prototype, "scrollWidth", {
-      configurable: true,
-      value: 1000,
-    });
-    Object.defineProperty(HTMLElement.prototype, "clientWidth", {
-      configurable: true,
-      value: 300,
-    });
-    Object.defineProperty(HTMLElement.prototype, "scrollLeft", {
-      configurable: true,
-      value: 0,
-    });
+  test("点击菜单项切换并关闭菜单", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
     render(
-      <SubthreadTabs
+      <SubthreadSwitcher
         subthreads={[
           makeSub({ id: "s1", title: "主帖" }),
           makeSub({ id: "s2", title: "设定区" }),
         ]}
         selectedId="s1"
-        onChange={() => {}}
+        onChange={onChange}
       />,
     );
-    // 未滚动到最左时只有向右箭头
-    expect(screen.getByTitle("向右滚动")).toBeInTheDocument();
-    expect(screen.queryByTitle("向左滚动")).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "切换子贴，当前：主帖" }));
+    await user.click(screen.getByRole("menuitem", { name: "设定区 5 楼" }));
+
+    expect(onChange).toHaveBeenCalledWith("s2");
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   });
 
-  test("未溢出时不显示滚动箭头", () => {
-    Object.defineProperty(HTMLElement.prototype, "scrollWidth", {
-      configurable: true,
-      value: 300,
-    });
-    Object.defineProperty(HTMLElement.prototype, "clientWidth", {
-      configurable: true,
-      value: 300,
-    });
-    Object.defineProperty(HTMLElement.prototype, "scrollLeft", {
-      configurable: true,
-      value: 0,
-    });
-    render(
-      <SubthreadTabs
-        subthreads={[
-          makeSub({ id: "s1", title: "主帖" }),
-          makeSub({ id: "s2", title: "设定区" }),
-        ]}
-        selectedId="s1"
-        onChange={() => {}}
-      />,
-    );
-    expect(screen.queryByTitle("向右滚动")).toBeNull();
-    expect(screen.queryByTitle("向左滚动")).toBeNull();
-  });
-
-  test("选中 Tab 变化时调用 scrollIntoView", () => {
-    Element.prototype.scrollIntoView = vi.fn();
+  test("左右游标切换相邻子贴，并在首尾禁用", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const subthreads = [
+      makeSub({ id: "s1", title: "主帖" }),
+      makeSub({ id: "s2", title: "设定区" }),
+      makeSub({ id: "s3", title: "闲聊区" }),
+    ];
     const { rerender } = render(
-      <SubthreadTabs
-        subthreads={[
-          makeSub({ id: "s1", title: "主帖" }),
-          makeSub({ id: "s2", title: "设定区" }),
-        ]}
-        selectedId="s1"
-        onChange={() => {}}
+      <SubthreadSwitcher
+        subthreads={subthreads}
+        selectedId="s2"
+        onChange={onChange}
       />,
     );
-    expect(Element.prototype.scrollIntoView).toHaveBeenCalledTimes(1);
+
+    await user.click(screen.getByRole("button", { name: "上一个子贴：主帖" }));
+    await user.click(screen.getByRole("button", { name: "下一个子贴：闲聊区" }));
+    expect(onChange).toHaveBeenNthCalledWith(1, "s1");
+    expect(onChange).toHaveBeenNthCalledWith(2, "s3");
 
     rerender(
-      <SubthreadTabs
+      <SubthreadSwitcher
+        subthreads={subthreads}
+        selectedId="s1"
+        onChange={onChange}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "已经是第一个子贴" })).toBeDisabled();
+
+    rerender(
+      <SubthreadSwitcher
+        subthreads={subthreads}
+        selectedId="s3"
+        onChange={onChange}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "已经是最后一个子贴" })).toBeDisabled();
+  });
+
+  test("几十个子贴收纳在固定高度的纵向菜单中", async () => {
+    const user = userEvent.setup();
+    const subthreads = Array.from({ length: 40 }, (_, index) => makeSub({
+      id: `s${index + 1}`,
+      title: `章节 ${index + 1}`,
+      sortOrder: index,
+      _count: { posts: index },
+    }));
+    render(
+      <SubthreadSwitcher
+        subthreads={subthreads}
+        selectedId="s20"
+        onChange={() => {}}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "切换子贴，当前：章节 20" }));
+
+    expect(screen.getByText("共 40 个子贴")).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "章节 40 39 楼" })).toBeInTheDocument();
+    expect(screen.getByRole("menu").querySelector(".max-h-80")).toHaveClass(
+      "overflow-y-auto",
+    );
+    expect(screen.getByRole("button", { name: "上一个子贴：章节 19" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "下一个子贴：章节 21" })).toBeEnabled();
+  });
+
+  test("支持键盘打开、方向键选择和 Esc 关闭", async () => {
+    const user = userEvent.setup();
+    render(
+      <SubthreadSwitcher
         subthreads={[
           makeSub({ id: "s1", title: "主帖" }),
           makeSub({ id: "s2", title: "设定区" }),
         ]}
-        selectedId="s2"
+        selectedId="s1"
         onChange={() => {}}
       />,
     );
-    expect(Element.prototype.scrollIntoView).toHaveBeenCalledTimes(2);
+
+    await user.tab();
+    await user.keyboard("{Enter}");
+    expect(screen.getByRole("menu")).toBeInTheDocument();
+
+    await user.keyboard("{ArrowDown}");
+    expect(screen.getByRole("menuitem", { name: "设定区 5 楼" })).toHaveFocus();
+
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "切换子贴，当前：主帖" })).toHaveFocus();
   });
 });

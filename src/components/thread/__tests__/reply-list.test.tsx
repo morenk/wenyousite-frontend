@@ -231,12 +231,31 @@ describe("ReplyList", () => {
     mockUseReplies.mockReturnValue(dataWithReplies([baseReply()]));
 
     render(<ReplyList postId="post-1" />, { wrapper: createWrapper() });
-    await user.click(screen.getByRole("button", { name: "复制此回复链接" }));
+    await user.click(screen.getByRole("button", { name: "更多回复操作" }));
+    await user.click(screen.getByRole("menuitem", { name: "复制链接" }));
 
     expect(mockClipboardWriteText).toHaveBeenCalledWith(
       "http://localhost:3000/threads/t1/posts/post-1/replies?post=reply-1",
     );
     expect(mockToastSuccess).toHaveBeenCalledWith("链接已复制");
+  });
+
+  test("回复卡片可从操作菜单复制渲染后的文本", async () => {
+    const user = userEvent.setup();
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: mockClipboardWriteText },
+    });
+    mockUseReplies.mockReturnValue(dataWithReplies([baseReply({ content: "这是**加粗**文本" })]));
+
+    render(<ReplyList postId="post-1" />, { wrapper: createWrapper() });
+    expect(screen.queryByRole("menuitem", { name: "复制文本" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "更多回复操作" }));
+    await user.click(screen.getByRole("menuitem", { name: "复制文本" }));
+
+    expect(mockClipboardWriteText).toHaveBeenCalledWith("这是加粗文本");
+    expect(mockToastSuccess).toHaveBeenCalledWith("文本已复制");
   });
 
   test("作者有头像时渲染缩略图", () => {
@@ -259,11 +278,14 @@ describe("ReplyList", () => {
     expect(screen.getByRole("button", { name: "重试" })).toBeInTheDocument();
   });
 
-  test("未登录不显示回复按钮", () => {
+  test("未登录时操作菜单不显示回复动作", async () => {
+    const user = userEvent.setup();
     mockUseAuth.mockReturnValue({ user: null });
     mockUseReplies.mockReturnValue(dataWithReplies([baseReply()]));
     render(<ReplyList postId="post-1" />, { wrapper: createWrapper() });
-    expect(screen.queryByRole("button", { name: "回复" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "更多回复操作" }));
+    expect(screen.queryByRole("menuitem", { name: "回复" })).not.toBeInTheDocument();
   });
 
   test("登录后点击回复按钮才按需挂载目标编辑器", async () => {
@@ -273,11 +295,10 @@ describe("ReplyList", () => {
     mockUseReplies.mockReturnValue(dataWithReplies([reply]));
 
     render(<ReplyList postId="post-1" />, { wrapper: createWrapper() });
-    const replyButton = screen.getByRole("button", { name: "回复" });
-    expect(replyButton).toBeInTheDocument();
     expect(screen.queryByTestId("milkdown-editor")).not.toBeInTheDocument();
 
-    await user.click(replyButton);
+    await user.click(screen.getByRole("button", { name: "更多回复操作" }));
+    await user.click(screen.getByRole("menuitem", { name: "回复" }));
     expect(screen.getAllByTestId("milkdown-editor")).toHaveLength(1);
     expect(screen.getByText("回复 @小明")).toBeInTheDocument();
   });
@@ -288,9 +309,8 @@ describe("ReplyList", () => {
     mockUseReplies.mockReturnValue(dataWithReplies([baseReply()]));
 
     render(<ReplyList postId="post-1" />, { wrapper: createWrapper() });
-    const replyButton = screen.getByRole("button", { name: "回复" });
-
-    await user.click(replyButton);
+    await user.click(screen.getByRole("button", { name: "更多回复操作" }));
+    await user.click(screen.getByRole("menuitem", { name: "回复" }));
     expect(screen.getByTestId("milkdown-editor")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "取消" }));
@@ -322,7 +342,8 @@ describe("ReplyList", () => {
     mockUseReplies.mockReturnValue(dataWithReplies([baseReply()]));
 
     render(<ReplyList postId="post-1" />, { wrapper: createWrapper() });
-    await user.click(screen.getByTitle("编辑回复"));
+    await user.click(screen.getByRole("button", { name: "更多回复操作" }));
+    await user.click(screen.getByRole("menuitem", { name: "编辑" }));
     const input = screen.getByTestId("milkdown-editor");
     expect(input).toHaveValue("楼中楼回复内容");
     await user.clear(input);
@@ -343,28 +364,33 @@ describe("ReplyList", () => {
     vi.stubGlobal("confirm", vi.fn(() => true));
 
     render(<ReplyList postId="post-1" />, { wrapper: createWrapper() });
-    await user.click(screen.getByTitle("删除回复"));
+    await user.click(screen.getByRole("button", { name: "更多回复操作" }));
+    await user.click(screen.getByRole("menuitem", { name: "删除" }));
 
     expect(mockDeleteMutateAsync).toHaveBeenCalledWith("reply-1");
   });
 
-  test("他人的楼中楼回复不显示编辑/删除", () => {
+  test("他人的楼中楼回复操作菜单不显示编辑/删除", async () => {
+    const user = userEvent.setup();
     mockUseAuth.mockReturnValue({ user: { id: "u1" } });
     mockUseReplies.mockReturnValue(dataWithReplies([baseReply()]));
     render(<ReplyList postId="post-1" />, { wrapper: createWrapper() });
 
-    expect(screen.queryByTitle("编辑回复")).not.toBeInTheDocument();
-    expect(screen.queryByTitle("删除回复")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "更多回复操作" }));
+    expect(screen.queryByRole("menuitem", { name: "编辑" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: "删除" })).not.toBeInTheDocument();
   });
 
-  test("管理者可删除他人回复但不可编辑", () => {
+  test("管理者可从操作菜单删除他人回复但不可编辑", async () => {
+    const user = userEvent.setup();
     mockUseAuth.mockReturnValue({ user: { id: "manager" } });
     mockUseThreadPermissions.mockReturnValue({ isManager: true });
     mockUseReplies.mockReturnValue(dataWithReplies([baseReply()]));
 
     render(<ReplyList postId="post-1" />, { wrapper: createWrapper() });
 
-    expect(screen.queryByTitle("编辑回复")).not.toBeInTheDocument();
-    expect(screen.getByTitle("删除回复")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "更多回复操作" }));
+    expect(screen.queryByRole("menuitem", { name: "编辑" })).not.toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "删除" })).toBeInTheDocument();
   });
 });

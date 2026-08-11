@@ -24,7 +24,9 @@ import {
 import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
 
 /** 主题详情中的官方更新与玩家发言订阅控制。 */
-export function ThreadSubscriptionControls({ thread }: { thread: ThreadDetail }) {
+export function ThreadSubscriptionControls({ thread }: {
+  thread: ThreadDetail;
+}) {
   const { user } = useAuth();
   const { isManager, isOwner: roleIsOwner } = useThreadPermissions();
   const isOwner = roleIsOwner || user?.id === thread.ownerId;

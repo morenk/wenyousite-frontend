@@ -232,8 +232,9 @@ test.describe("楼层编辑与删除", () => {
     const floorCard = page.locator(".rounded-xl.border").filter({ hasText: "待编辑的楼层正文" });
     await expect(floorCard.first()).toBeVisible();
 
-    // 点击编辑按钮
-    await floorCard.first().getByTitle("编辑楼层").click();
+    // 从卡片右上角操作菜单进入编辑
+    await floorCard.first().getByRole("button", { name: "更多楼层操作" }).click();
+    await page.getByRole("menuitem", { name: "编辑" }).click();
     // 编辑态编辑器在楼层卡片内、DOM 中先于底部发布表单编辑器，取第一个
     const editEditor = page.locator(".milkdown-editor .ProseMirror").first();
     await expect(editEditor).toBeVisible();
@@ -266,8 +267,9 @@ test.describe("楼层编辑与删除", () => {
       .first();
     await expect(floorCard).toBeVisible();
 
-    // 点击删除并在站内确认框确认
-    await floorCard.getByTitle("删除楼层").click();
+    // 从卡片右上角操作菜单删除，并在站内确认框确认
+    await floorCard.getByRole("button", { name: "更多楼层操作" }).click();
+    await page.getByRole("menuitem", { name: "删除" }).click();
     await page.getByRole("button", { name: "删除", exact: true }).click();
 
     await expect(page.getByText("楼层已删除").first()).toBeVisible({ timeout: 10000 });
@@ -286,7 +288,8 @@ test.describe("楼中楼回复", () => {
       .locator(".rounded-xl.border")
       .filter({ hasText: "图片上传测试楼层" })
       .first();
-    await floorCard.getByRole("link", { name: "回复" }).click();
+    await floorCard.getByRole("button", { name: "更多楼层操作" }).click();
+    await page.getByRole("menuitem", { name: "回复" }).click();
     await expect(page.getByText("楼中楼讨论").first()).toBeVisible();
     await page.getByRole("button", { name: "参与讨论" }).click();
 
@@ -315,7 +318,8 @@ test.describe("楼中楼回复", () => {
       .first();
     await expect(floorCard).toBeVisible();
 
-    await floorCard.getByRole("link", { name: "回复" }).click();
+    await floorCard.getByRole("button", { name: "更多楼层操作" }).click();
+    await page.getByRole("menuitem", { name: "回复" }).click();
     await page.getByRole("button", { name: "参与讨论" }).click();
     const replyEditor = page.locator(".milkdown-editor .ProseMirror").first();
     await expect(replyEditor).toBeVisible({ timeout: 10000 });
