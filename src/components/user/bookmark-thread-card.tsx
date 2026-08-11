@@ -10,6 +10,14 @@ import type { ThreadCategory } from "@/lib/thread-presentation";
 import { ThreadCategoryBadge } from "@/components/thread/thread-category";
 import type { ThreadOwner } from "@/api/hooks/use-threads";
 import { LevelBadge } from "@/components/shared/level-badge";
+import type { BookmarkFolder } from "@/api/hooks/use-bookmark-folders";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface BookmarkThreadCardProps {
   thread: {
@@ -19,14 +27,21 @@ interface BookmarkThreadCardProps {
     createdAt: string;
     owner: ThreadOwner;
     bookmarkId?: string;
+    bookmarkFolderId?: string;
   };
+  folders?: BookmarkFolder[];
+  onMove?: (bookmarkId: string, folderId: string) => void;
   onUnbookmark?: (bookmarkId: string, threadId: string) => void;
+  isMoving?: boolean;
   isUnbookmarking?: boolean;
 }
 
 export function BookmarkThreadCard({
   thread,
+  folders = [],
+  onMove,
   onUnbookmark,
+  isMoving = false,
   isUnbookmarking = false,
 }: BookmarkThreadCardProps) {
   return (
@@ -46,21 +61,51 @@ export function BookmarkThreadCard({
           })}
         </p>
       </Link>
-      {onUnbookmark && thread.bookmarkId && (
-        <button
-          type="button"
-          title="取消收藏"
-          onClick={() => onUnbookmark(thread.bookmarkId!, thread.id)}
-          disabled={isUnbookmarking}
-          className="shrink-0 rounded p-1.5 text-muted-foreground/60 hover:bg-muted hover:text-foreground"
-        >
-          {isUnbookmarking ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Trash2 className="h-4 w-4" />
-          )}
-        </button>
-      )}
+      <div className="flex shrink-0 items-center gap-1.5">
+        {onMove && thread.bookmarkId && thread.bookmarkFolderId && folders.length > 0 ? (
+          <Select
+            items={folders.map((folder) => ({ value: folder.id, label: folder.name }))}
+            value={thread.bookmarkFolderId}
+            onValueChange={(folderId) => {
+              if (folderId && folderId !== thread.bookmarkFolderId) {
+                onMove(thread.bookmarkId!, folderId);
+              }
+            }}
+            disabled={isMoving}
+          >
+            <SelectTrigger
+              size="compact"
+              className="max-w-36 font-utility text-xs font-normal text-muted-foreground"
+              aria-label={`移动“${thread.title}”到收藏夹`}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="end">
+              {folders.map((folder) => (
+                <SelectItem key={folder.id} value={folder.id}>
+                  {folder.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : null}
+        {onUnbookmark && thread.bookmarkId && (
+          <button
+            type="button"
+            title="取消收藏"
+            aria-label={`取消收藏“${thread.title}”`}
+            onClick={() => onUnbookmark(thread.bookmarkId!, thread.id)}
+            disabled={isUnbookmarking}
+            className="shrink-0 rounded p-1.5 text-muted-foreground/60 hover:bg-muted hover:text-foreground"
+          >
+            {isUnbookmarking ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Trash2 className="h-4 w-4" />
+            )}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

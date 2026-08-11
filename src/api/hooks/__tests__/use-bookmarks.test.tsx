@@ -37,6 +37,7 @@ const sample = {
   owner: { id: "u1", username: "morenk", avatar: null },
   _count: { members: 1, posts: 2 },
   bookmarkId: "bm1",
+  bookmarkFolderId: "cfolderdefault000000000001",
 };
 
 describe("useBookmarks", () => {
@@ -71,5 +72,27 @@ describe("useBookmarks", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.hasNextPage).toBe(true);
+  });
+
+  test("按收藏夹筛选时传 folderId", async () => {
+    mockGET.mockResolvedValue({
+      data: { code: 0, message: "ok", data: [sample], meta: { cursor: null, hasMore: false } },
+      error: undefined,
+    });
+
+    const { result } = renderHook(
+      () => useBookmarks("cfolderdefault000000000001"),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockGET).toHaveBeenCalledWith("/api/v1/bookmarks", {
+      params: {
+        query: {
+          limit: "10",
+          folderId: "cfolderdefault000000000001",
+        },
+      },
+    });
   });
 });

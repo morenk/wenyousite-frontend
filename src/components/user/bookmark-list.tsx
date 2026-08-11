@@ -10,8 +10,18 @@ import { BookmarkThreadCard } from "@/components/user/bookmark-thread-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
+import {
+  useMoveBookmark,
+  type BookmarkFolder,
+} from "@/api/hooks/use-bookmark-folders";
 
-export function BookmarkList() {
+export function BookmarkList({
+  folderId,
+  folders = [],
+}: {
+  folderId?: string;
+  folders?: BookmarkFolder[];
+}) {
   const {
     data,
     fetchNextPage,
@@ -20,9 +30,10 @@ export function BookmarkList() {
     isLoading,
     isError,
     refetch,
-  } = useBookmarks();
+  } = useBookmarks(folderId);
 
   const removeBookmark = useRemoveBookmark();
+  const moveBookmark = useMoveBookmark();
 
   const sentinelRef = useInfiniteScroll({
     hasNextPage: !!hasNextPage,
@@ -53,7 +64,10 @@ export function BookmarkList() {
 
   if (bookmarks.length === 0) {
     return (
-      <EmptyState title="还没有收藏" description="在帖子详情页点击收藏即可添加" />
+      <EmptyState
+        title={folderId ? "这个收藏夹还是空的" : "还没有收藏"}
+        description={folderId ? "可以把其他收藏移动到这里" : "在帖子详情页点击收藏即可添加"}
+      />
     );
   }
 
@@ -63,12 +77,20 @@ export function BookmarkList() {
         <BookmarkThreadCard
           key={bookmark.id}
           thread={bookmark}
+          folders={folders}
+          onMove={(bookmarkId, nextFolderId) =>
+            moveBookmark.mutate(
+              { bookmarkId, folderId: nextFolderId },
+              { onSuccess: () => toast.success("已移动收藏") },
+            )
+          }
           onUnbookmark={(bookmarkId, threadId) =>
             removeBookmark.mutate(
               { bookmarkId, threadId },
               { onSuccess: () => toast.success("已取消收藏") },
             )
           }
+          isMoving={moveBookmark.isPending}
           isUnbookmarking={removeBookmark.isPending}
         />
       ))}

@@ -2,11 +2,11 @@
 
 ## 1. 目标与范围
 
-实现收藏主题帖、我的收藏管理、他人收藏公开查看（尊重 `showBookmarks` 隐私）。
+实现收藏主题帖、私有收藏夹分类、我的收藏管理、他人收藏公开查看（尊重 `showBookmarks` 隐私）。
 
 **当前能力：**
 - 详情页收藏/取消收藏按钮（仅登录）
-- `/bookmarks` 我的收藏管理页（列表 + 取消收藏，cursor 分页）
+- `/bookmarks` 我的收藏管理页（默认/自建收藏夹筛选、移动、取消收藏，cursor 分页）
 - 用户资料页「收藏」区块（read-only，尊重 showBookmarks：未公开显示占位）
 - 登录后全局导航显示“收藏”；主题帖详情页和个人资料相关区域继续保留上下文入口
 
@@ -23,8 +23,10 @@
 
 | Method | Path | Guard | 用途 |
 |--------|------|-------|------|
-| GET | `/bookmarks?cursor=&limit=` | AuthRead | 我的收藏列表（cursor 分页，每条含 `bookmarkId`） |
-| POST | `/bookmarks` | AuthRead | 收藏主题帖（Body `{ threadId }`，返回收藏记录 id） |
+| GET | `/bookmarks?cursor=&limit=&folderId=` | AuthRead | 我的收藏列表（每条含 `bookmarkId` / `bookmarkFolderId`） |
+| GET / POST | `/bookmarks/folders` | AuthRead | 获取分类计数 / 新建分类 |
+| POST | `/bookmarks` | AuthRead | 收藏主题帖；不传可选 `folderId` 时进入默认收藏夹 |
+| PATCH | `/bookmarks/:id` | AuthRead | 移动到自己的其他收藏夹 |
 | DELETE | `/bookmarks/:id` | AuthRead | 取消收藏（按记录 id） |
 | GET | `/users/:id/bookmarks` | OptionalAuth | 该用户公开收藏（cursor 分页，showBookmarks 关闭返回 404，私密帖非参与人过滤） |
 | GET | `/threads/:id` | AuthRead | 登录态附加 `isBookmarked` + `bookmarkId`（详情页按钮状态） |
@@ -77,7 +79,8 @@
 
 | 状态 | 来源 | 管理方式 |
 |------|------|----------|
-| 我的收藏 | `GET /bookmarks` | `useInfiniteQuery`（`queryKeys.bookmarks.all`） |
+| 我的收藏 | `GET /bookmarks` | 按 folderId 分 key 的 `useInfiniteQuery` |
+| 收藏夹分类 | `GET /bookmarks/folders` | `useQuery`；新建/移动后主动失效分类计数与列表 |
 | 他人收藏 | `GET /users/:id/bookmarks` | `useInfiniteQuery`（`queryKeys.users.bookmarks(id)`，404→error 显示未公开） |
 | 详情页收藏态 | `GET /threads/:id` 的 isBookmarked/bookmarkId | `useQuery`（`queryKeys.threads.detail(id)`） |
 | 收藏/取消 | POST/DELETE | 领域 mutation hook 统一更新详情并失效收藏列表 |
@@ -87,8 +90,9 @@
 | 组件 | 路径 | 说明 |
 |------|------|------|
 | BookmarkButton | `src/components/user/bookmark-button.tsx` | 详情页收藏/取消切换 |
-| BookmarkThreadCard | `src/components/user/bookmark-thread-card.tsx` | 收藏帖卡片（分类/标题/作者/时间，可选取消按钮） |
-| BookmarkList | `src/components/user/bookmark-list.tsx` | 我的收藏管理列表（无限滚动 + 取消收藏） |
+| BookmarkFolderBar | `src/components/user/bookmark-folder-bar.tsx` | 分类筛选、数量与 RHF + Zod 新建弹窗 |
+| BookmarkThreadCard | `src/components/user/bookmark-thread-card.tsx` | 收藏帖卡片（分类/标题/作者/时间/移动/取消） |
+| BookmarkList | `src/components/user/bookmark-list.tsx` | 我的收藏管理列表（分类分页 + 移动 + 取消） |
 | UserBookmarksSection | `src/components/user/user-bookmarks-section.tsx` | 资料页收藏区块（read-only，404=未公开） |
 | useBookmarks | `src/api/hooks/use-bookmarks.ts` | 我的收藏 hook |
 | useUserBookmarks | `src/api/hooks/use-user-bookmarks.ts` | 他人收藏 hook |
@@ -97,8 +101,9 @@
 
 ## 7. 交互规则
 
-- 详情页按钮：已收藏 → 取消（按 bookmarkId DELETE）；未收藏 → 收藏（POST）
-- `/bookmarks` 每条可取消收藏，取消后列表即时刷新
+- 详情页按钮：已收藏 → 取消（按 bookmarkId DELETE）；未收藏 → 不传 folderId 收藏到默认收藏夹
+- `/bookmarks` 分类条固定“全部”在首位，服务端默认收藏夹其次；可新建 1–24 字分类
+- 每条收藏可从选择器移动分类，当前筛选与所有分类计数同步刷新
 - 资料页收藏区块 read-only，点击跳转帖子
 - 私密帖仅参与人可收藏（后端校验）
 
@@ -123,7 +128,7 @@
 ## 10. 验收标准
 
 - 详情页收藏/取消收藏按钮（登录显示，状态即时更新）
-- `/bookmarks` 我的收藏列表 + 取消收藏 + cursor 分页
+- `/bookmarks` 我的收藏夹筛选、新建、移动、取消收藏与 cursor 分页
 - 登录后全局导航栏显示收藏入口
 - 用户资料页「收藏」区块（read-only），未公开显示占位
 - 私密帖收藏权限由后端保证

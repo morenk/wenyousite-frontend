@@ -10,12 +10,13 @@ export type BookmarkedThread =
 export type BookmarksResponse =
   operations["bookmarksFindAll"]["responses"][200]["content"]["application/json"];
 
-export function useBookmarks() {
+export function useBookmarks(folderId?: string) {
   return useInfiniteQuery({
-    queryKey: queryKeys.bookmarks.all,
+    queryKey: queryKeys.bookmarks.list(folderId),
     queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
       const queryParams: Record<string, string> = { limit: "10" };
       if (pageParam) queryParams.cursor = pageParam;
+      if (folderId) queryParams.folderId = folderId;
 
       const { data, error } = await apiClient.GET("/api/v1/bookmarks", {
         params: { query: queryParams },
