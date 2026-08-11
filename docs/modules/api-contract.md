@@ -25,9 +25,9 @@
 
 成功响应统一为 `{ code, message, data, meta? }`。业务 DTO 位于 `data`，cursor 分页位于 `meta`。
 
-`scripts/check-flutter-contract.mjs` 验证 OpenAPI 3.0、稳定 lowerCamel operationId、具名 2xx 响应、非空查询 schema、移动基线端点与错误码 schema。这是快速静态门禁；CI 另用固定版本 OpenAPI Generator 的 `dart-dio` 目标执行真实生成烟雾。
+`scripts/check-flutter-contract.mjs` 验证 OpenAPI 3.0、稳定 lowerCamel operationId、具名 2xx 响应、非空查询 schema、移动基线端点、动态分类开放字符串与错误码 schema。这是快速静态门禁；CI 另用固定版本 OpenAPI Generator 的 `dart-dio` 目标执行真实生成烟雾。
 
-契约版本以 `contracts/openapi.json` 的 `info.version` 为准，不在说明文档中复制易过期的版本号。主题帖分类字段是可空字符串而非封闭枚举：草稿可为 `null`，发布必须使用 `GET /thread-categories` 返回的启用 slug。Web 与 Flutter 均不得复制 `DEDUCTION / NATION / RPG` 为穷举类型；未知 slug 必须安全显示，未知响应字段必须忽略。
+契约版本以 `contracts/openapi.json` 的 `info.version` 为准，不在说明文档中复制易过期的版本号。主题帖分类字段是可空字符串而非封闭枚举：草稿可为 `null`，发布必须使用 `GET /thread-categories` 返回的启用 slug。Web 与 Flutter 均消费 `contracts/thread-category-v1-fixtures.json` 黄金用例，不得复制任何现有 slug、名称或颜色作为运行时回退；未知 slug 显示原值，空值显示“未分类”，未知响应字段必须忽略。
 
 ## 4. 状态管理
 
@@ -56,4 +56,5 @@ HTTP/业务错误由 `src/api/errors.ts` 统一归一化；成功响应不得使
 - `pnpm generate:api` 生成的编辑器相关响应均包含强类型 `data`
 - 所有生产 API hooks 不再手写成功响应 envelope
 - 生成类型、query key、UI/API 分层均有静态门禁
+- 动态分类黄金用例与后端副本一致，Flutter 契约门禁拒绝分类枚举化
 - lint、typecheck、覆盖率测试和生产构建纳入 `pnpm check`

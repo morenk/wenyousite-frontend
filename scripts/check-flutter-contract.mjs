@@ -46,6 +46,16 @@ for (const [apiPath, pathItem] of Object.entries(spec.paths ?? {})) {
         failures.push(`${label} 429 缺少 Retry-After 响应头`);
       }
       if (!/^2\d\d$/.test(status) || status === "204" || status === "205") continue;
+      const contentTypes = Object.keys(response?.content ?? {});
+      if (!contentTypes.includes("application/json")) {
+        const hasTypedDownload = contentTypes.some(
+          (contentType) => response?.content?.[contentType]?.schema?.type === "string",
+        );
+        if (!hasTypedDownload) {
+          failures.push(`${label} ${status} 非 JSON 响应必须声明字符串下载 schema`);
+        }
+        continue;
+      }
       const schema = response?.content?.["application/json"]?.schema;
       if (!schema?.$ref?.startsWith("#/components/schemas/")) {
         failures.push(`${label} ${status} 必须引用具名响应 component`);
@@ -77,6 +87,7 @@ for (const [apiPath, method] of [
 for (const requiredPath of [
   "/api/v1/meta",
   "/api/v1/mobile/devices/current",
+  "/api/v1/thread-categories",
   "/api/v1/auth/login",
   "/api/v1/auth/refresh",
 ]) {
@@ -84,6 +95,28 @@ for (const requiredPath of [
 }
 if (!spec.components?.schemas?.BusinessErrorCode) {
   failures.push("缺少可生成的 BusinessErrorCode schema");
+}
+
+const categoryDefinition = spec.components?.schemas?.ThreadCategoryResponseDto;
+if (
+  categoryDefinition?.properties?.slug?.type !== "string"
+  || Array.isArray(categoryDefinition?.properties?.slug?.enum)
+) {
+  failures.push("ThreadCategoryResponseDto.slug 必须是开放字符串，不能固化为枚举");
+}
+if ("slug" in (spec.components?.schemas?.UpdateThreadCategoryDto?.properties ?? {})) {
+  failures.push("UpdateThreadCategoryDto 不得允许修改稳定 slug");
+}
+const categoryInputSchemas = new Set(["CreateThreadDto", "UpdateThreadDto", "SaveThreadAggregateDto"]);
+for (const [schemaName, schema] of Object.entries(spec.components?.schemas ?? {})) {
+  const category = schema?.properties?.category;
+  if (!category) continue;
+  if (category.type !== "string" || Array.isArray(category.enum)) {
+    failures.push(`${schemaName}.category 必须是开放字符串，不能固化为枚举`);
+  }
+  if (!categoryInputSchemas.has(schemaName) && category.nullable !== true) {
+    failures.push(`${schemaName}.category 必须允许历史草稿或无分类值为 null`);
+  }
 }
 
 if (failures.length > 0) {

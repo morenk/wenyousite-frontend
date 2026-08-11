@@ -36,6 +36,12 @@ vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
+vi.mock("@/components/thread/thread-categories-provider", () => ({
+  useThreadCategoriesContext: () => ({
+    categories: [{ id: "deduction", slug: "DEDUCTION", name: "演绎", color: null }],
+  }),
+}));
+
 import { toast } from "sonner";
 import { DraftList } from "@/components/user/draft-list";
 

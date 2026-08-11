@@ -14,9 +14,6 @@ const badgeVariants = cva(
         warning: "bg-warning-soft text-warning",
         danger: "bg-destructive-soft text-destructive",
         info: "bg-info-soft text-info",
-        deduction: "bg-category-deduction-soft text-category-deduction",
-        nation: "bg-category-nation-soft text-category-nation",
-        rpg: "bg-category-rpg-soft text-category-rpg",
       },
     },
     defaultVariants: {

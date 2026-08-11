@@ -641,6 +641,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/bookmarks/folders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取我的收藏夹分类 */
+        get: operations["bookmarksFindFolders"];
+        put?: never;
+        /** 新建收藏夹分类 */
+        post: operations["bookmarksCreateFolder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/bookmarks/{id}": {
         parameters: {
             query?: never;
@@ -655,7 +673,8 @@ export interface paths {
         delete: operations["bookmarksRemove"];
         options?: never;
         head?: never;
-        patch?: never;
+        /** 移动收藏到其他收藏夹 */
+        patch: operations["bookmarksMove"];
         trace?: never;
     };
     "/api/v1/threads/draft": {
@@ -682,7 +701,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 主题帖列表（仅已发布帖），支持排序、分区、状态及标签筛选 */
+        /**
+         * 首页主题帖发现列表，排除已注销楼主的帖子
+         * @description 仅返回楼主账号未注销的已发布主题帖，支持排序、分区、状态及标签筛选。已注销楼主的历史公开帖仅可通过显式搜索找到。
+         */
         get: operations["threadsFindAll"];
         put?: never;
         /** 创建主题帖草稿（published=false）。在沙盒内逐步添加子贴/楼层后通过 PATCH 发布 */
@@ -1282,7 +1304,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 提交公开社区目标举报 */
+        /** 提交社区内容、用户或自己收到的私聊消息举报（Web/移动端兼容） */
         post: operations["reportsCreate"];
         delete?: never;
         options?: never;
@@ -1336,6 +1358,399 @@ export interface paths {
         /** 原子结案并可选执行治理动作 */
         post: operations["adminReportsResolve"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/auth/challenge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 管理员密码校验后发送邮箱二次验证码 */
+        post: operations["adminAuthChallenge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/auth/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 验证邮箱验证码并建立独立管理员 Cookie 会话 */
+        post: operations["adminAuthVerify"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/auth/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 读取并续活当前管理员会话，同时轮发 CSRF token */
+        get: operations["adminAuthSession"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 撤销当前管理员会话 */
+        post: operations["adminAuthLogout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/auth/step-up/challenge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 为高风险站务操作发送邮箱确认码 */
+        post: operations["adminAuthStepUpChallenge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/auth/step-up/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 确认高风险操作，10 分钟内免重复验证 */
+        post: operations["adminAuthVerifyStepUp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 管理员账号、会话和待处理邀请 */
+        get: operations["adminAccountsList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/accounts/invites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 邀请现有温油账号成为管理员 */
+        post: operations["adminAccountsInvite"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/accounts/invites/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** 取消待处理管理员邀请 */
+        delete: operations["adminAccountsCancel"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/accounts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** 撤销普通管理员身份并注销其会话 */
+        delete: operations["adminAccountsRevoke"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/accounts/transfer-super-admin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 把唯一超级管理员身份移交给另一名管理员 */
+        post: operations["adminAccountsTransfer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin-invitations/{token}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 当前温油账号接受管理员邀请（Web） */
+        post: operations["adminInviteAcceptanceAccept"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/cases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 按同一目标聚合后的治理案件队列 */
+        get: operations["moderationCasesList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/cases/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 案件证据、举报人、决定和申诉轨迹 */
+        get: operations["moderationCasesGet"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/cases/{id}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 以公开说明和规则分类原子结案 */
+        post: operations["moderationCasesResolve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/appeals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 申诉处理队列 */
+        get: operations["adminModerationAppealsList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/appeals/{id}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 维持或推翻治理决定；推翻会恢复内容或解除处罚 */
+        post: operations["adminModerationAppealsResolve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/moderation/decisions/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 当前用户近 30 天可申诉的治理决定（Web/移动端兼容） */
+        get: operations["userModerationAppealsMine"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/moderation/appeals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 对自己的治理决定提交一次申诉（Web/移动端兼容） */
+        post: operations["userModerationAppealsAppeal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/operations/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 读取注册、内容写入和维护公告状态 */
+        get: operations["siteOperationalSettingsGet"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** 更新紧急开关和定时维护公告 */
+        patch: operations["siteOperationalSettingsUpdate"];
+        trace?: never;
+    };
+    "/api/v1/admin/notification-campaigns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 定时站内通知历史和状态 */
+        get: operations["notificationCampaignList"];
+        put?: never;
+        /** 新建立即或定时发送的站内通知 */
+        post: operations["notificationCampaignCreate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/notification-campaigns/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 预估通知接收人数 */
+        post: operations["notificationCampaignPreview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/notification-campaigns/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** 取消尚未开始发送的通知计划 */
+        delete: operations["notificationCampaignCancel"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1507,7 +1922,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** 授予或撤销管理员角色（超级管理员） */
+        /** 撤销管理员角色；授予请使用邀请流程（超级管理员） */
         patch: operations["adminModerationUpdateRole"];
         trace?: never;
     };
@@ -1554,6 +1969,23 @@ export interface paths {
         };
         /** 管理员审计日志 */
         get: operations["adminModerationListAuditLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/audit-logs/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 按当前筛选导出管理员审计日志 CSV（最多 10000 条） */
+        get: operations["adminModerationExportAuditLogs"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2657,7 +3089,7 @@ export interface components {
             title: string;
             /**
              * @description 动态分类 slug
-             * @example DEDUCTION
+             * @example MYSTERY
              */
             category: string | null;
             /** @enum {string} */
@@ -2678,6 +3110,8 @@ export interface components {
             _count: components["schemas"]["BookmarkThreadCountResponseDto"];
             /** @description 查看自己的收藏时返回收藏记录 ID */
             bookmarkId?: string;
+            /** @description 查看自己的收藏时返回所属收藏夹 ID */
+            bookmarkFolderId?: string;
         };
         ThreadListDefaultSubthreadResponseDto: {
             id: string;
@@ -2709,7 +3143,7 @@ export interface components {
             title: string;
             /**
              * @description 动态分类 slug
-             * @example DEDUCTION
+             * @example MYSTERY
              */
             category: string | null;
             /** @enum {string} */
@@ -2775,6 +3209,11 @@ export interface components {
             /** Format: date-time */
             createdAt?: string;
             _count?: components["schemas"]["UserSocialCountResponseDto"];
+            /**
+             * @description 公开账号状态；只区分有效的临时或永久封禁，不包含处罚截止时间
+             * @enum {string}
+             */
+            accountStatus?: "ACTIVE" | "SUSPENDED" | "BANNED";
             isFollowing?: boolean;
             isFollowedBy?: boolean;
             isBlocked?: boolean;
@@ -2917,7 +3356,7 @@ export interface components {
             title: string;
             /**
              * @description 动态分类 slug
-             * @example DEDUCTION
+             * @example MYSTERY
              */
             category: string | null;
             /** @enum {string} */
@@ -2938,6 +3377,20 @@ export interface components {
             _count: components["schemas"]["BookmarkThreadCountResponseDto"];
             /** @description 收藏记录 ID */
             bookmarkId?: string;
+            /** @description 所属收藏夹 ID */
+            bookmarkFolderId?: string;
+        };
+        BookmarkFolderResponseDto: {
+            id: string;
+            name: string;
+            isDefault: boolean;
+            bookmarkCount: number;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        CreateBookmarkFolderDto: {
+            /** @example 跑团资料 */
+            name: string;
         };
         CreateBookmarkDto: {
             /**
@@ -2945,13 +3398,21 @@ export interface components {
              * @example clxthread001...
              */
             threadId: string;
+            /** @description 目标收藏夹 ID；不传时归入默认收藏夹 */
+            folderId?: string;
         };
         BookmarkResponseDto: {
             id: string;
             userId: string;
             threadId: string;
+            /** @description 所属收藏夹 ID */
+            folderId: string;
             /** Format: date-time */
             createdAt: string;
+        };
+        MoveBookmarkDto: {
+            /** @description 要移入的收藏夹 ID */
+            folderId: string;
         };
         DraftDefaultSubthreadResponseDto: {
             id: string;
@@ -2966,7 +3427,7 @@ export interface components {
             title: string;
             /**
              * @description 动态分类 slug
-             * @example DEDUCTION
+             * @example MYSTERY
              */
             category: string | null;
             /** @enum {string} */
@@ -2990,7 +3451,7 @@ export interface components {
             title: string;
             /**
              * @description 动态分类 slug
-             * @example DEDUCTION
+             * @example MYSTERY
              */
             category: string | null;
             /** @enum {string} */
@@ -3013,7 +3474,7 @@ export interface components {
             _count: components["schemas"]["ThreadListCountResponseDto"];
             /** @description 首页列表正文预览 */
             preview?: string;
-            /** @description 默认主贴正文中的普通图片 URL，按出现顺序返回，最多 3 张 */
+            /** @description 默认主贴正文中的第一张普通图片 URL；无图时返回空数组 */
             coverImages: string[];
         };
         CreateThreadDto: {
@@ -3029,7 +3490,7 @@ export interface components {
             title?: string;
             /**
              * @description 管理员配置的主题帖分类 slug；草稿可暂不选择
-             * @example DEDUCTION
+             * @example MYSTERY
              */
             category?: string;
             /**
@@ -3134,7 +3595,7 @@ export interface components {
             ownerId: string;
             /**
              * @description 动态分类 slug
-             * @example DEDUCTION
+             * @example MYSTERY
              */
             category: string | null;
             /** @enum {string} */
@@ -3166,6 +3627,8 @@ export interface components {
             _count: components["schemas"]["ThreadCountResponseDto"];
             isBookmarked?: boolean;
             bookmarkId?: string | null;
+            /** @description 当前收藏所属收藏夹 ID */
+            bookmarkFolderId?: string | null;
             isLiked?: boolean;
             currentMembership?: components["schemas"]["CurrentThreadMembershipResponseDto"] | null;
             capabilities?: components["schemas"]["ThreadCapabilitiesResponseDto"];
@@ -3175,7 +3638,7 @@ export interface components {
             title?: string;
             /**
              * @description 管理员配置的分类 slug
-             * @example DEDUCTION
+             * @example MYSTERY
              */
             category?: string;
             /**
@@ -3204,7 +3667,7 @@ export interface components {
             title?: string;
             /**
              * @description 管理员配置的分类 slug
-             * @example DEDUCTION
+             * @example MYSTERY
              */
             category?: string;
             /** @enum {string} */
@@ -3258,7 +3721,7 @@ export interface components {
             title: string;
             /**
              * @description 动态分类 slug
-             * @example DEDUCTION
+             * @example MYSTERY
              */
             category: string | null;
             /**
@@ -3323,6 +3786,8 @@ export interface components {
             description: string | null;
             sortOrder: number;
             isActive: boolean;
+            /** @description 合并目标标签 ID；未合并时为 null */
+            mergedIntoId: string | null;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -3422,6 +3887,8 @@ export interface components {
             icon: string | null;
             sortOrder: number;
             isActive: boolean;
+            /** @description 合并目标分类 ID；未合并时为 null */
+            mergedIntoId: string | null;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -3768,7 +4235,7 @@ export interface components {
             title: string;
             /**
              * @description 动态分类 slug
-             * @example DEDUCTION
+             * @example MYSTERY
              */
             category: string | null;
         };
@@ -3803,10 +4270,10 @@ export interface components {
         };
         CreateReportDto: {
             /** @enum {string} */
-            targetType: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT";
+            targetType: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "DIRECT_MESSAGE";
             targetId: string;
             /** @enum {string} */
-            reasonCode: "SPAM" | "HARASSMENT" | "HATE_OR_THREATS" | "SEXUAL_CONTENT" | "VIOLENT_CONTENT" | "PERSONAL_INFORMATION" | "ILLEGAL_CONTENT" | "OTHER";
+            reasonCode: "SPAM" | "HARASSMENT" | "HATE_OR_THREATS" | "SEXUAL_CONTENT" | "VIOLENT_CONTENT" | "PERSONAL_INFORMATION" | "IMPERSONATION_OR_FRAUD" | "INTELLECTUAL_PROPERTY" | "ILLEGAL_CONTENT" | "OTHER";
             /** @description 选择 OTHER 时必填 */
             details?: string;
         };
@@ -3814,10 +4281,10 @@ export interface components {
             id: string;
             reporterId: string | null;
             /** @enum {string} */
-            targetType: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT";
+            targetType: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "DIRECT_MESSAGE";
             targetId: string;
             /** @enum {string} */
-            reasonCode: "SPAM" | "HARASSMENT" | "HATE_OR_THREATS" | "SEXUAL_CONTENT" | "VIOLENT_CONTENT" | "PERSONAL_INFORMATION" | "ILLEGAL_CONTENT" | "OTHER";
+            reasonCode: "SPAM" | "HARASSMENT" | "HATE_OR_THREATS" | "SEXUAL_CONTENT" | "VIOLENT_CONTENT" | "PERSONAL_INFORMATION" | "IMPERSONATION_OR_FRAUD" | "INTELLECTUAL_PROPERTY" | "ILLEGAL_CONTENT" | "OTHER";
             details: string | null;
             targetSnapshot: {
                 [key: string]: unknown;
@@ -3843,10 +4310,10 @@ export interface components {
             id: string;
             reporterId: string | null;
             /** @enum {string} */
-            targetType: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT";
+            targetType: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "DIRECT_MESSAGE";
             targetId: string;
             /** @enum {string} */
-            reasonCode: "SPAM" | "HARASSMENT" | "HATE_OR_THREATS" | "SEXUAL_CONTENT" | "VIOLENT_CONTENT" | "PERSONAL_INFORMATION" | "ILLEGAL_CONTENT" | "OTHER";
+            reasonCode: "SPAM" | "HARASSMENT" | "HATE_OR_THREATS" | "SEXUAL_CONTENT" | "VIOLENT_CONTENT" | "PERSONAL_INFORMATION" | "IMPERSONATION_OR_FRAUD" | "INTELLECTUAL_PROPERTY" | "ILLEGAL_CONTENT" | "OTHER";
             details: string | null;
             targetSnapshot: {
                 [key: string]: unknown;
@@ -3883,6 +4350,206 @@ export interface components {
              */
             suspendUntil?: string;
         };
+        AdminLoginChallengeDto: {
+            /**
+             * @description 管理员邮箱或用户名
+             * @example admin@example.com
+             */
+            account: string;
+            /** @example SecurePass123! */
+            password: string;
+        };
+        AdminChallengeResponseDto: {
+            /** Format: uuid */
+            challengeId: string;
+            /** @example 600 */
+            expiresIn: number;
+        };
+        AdminChallengeVerifyDto: {
+            /** Format: uuid */
+            challengeId: string;
+            /** @example 123456 */
+            code: string;
+        };
+        AdminSessionResponseDto: {
+            session: {
+                [key: string]: unknown;
+            };
+            user: {
+                [key: string]: unknown;
+            };
+            csrfToken: string;
+        };
+        AdminStepUpResponseDto: {
+            /** Format: date-time */
+            elevatedUntil: string;
+        };
+        AdminAccountsResponseDto: {
+            accounts: {
+                [key: string]: unknown;
+            }[];
+            invites: {
+                [key: string]: unknown;
+            }[];
+        };
+        CreateAdminInviteDto: {
+            /** @description 已验证邮箱的现有温油账号 ID */
+            userId: string;
+        };
+        AdminInviteCreatedResponseDto: {
+            id: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        AdminAccountReasonDto: {
+            reason: string;
+        };
+        TransferSuperAdminDto: {
+            reason: string;
+            /** @description 接任超级管理员的现有管理员 ID */
+            userId: string;
+        };
+        ModerationCaseResponseDto: {
+            id: string;
+            /** @enum {string} */
+            targetType: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "DIRECT_MESSAGE";
+            targetId: string;
+            /** @enum {string} */
+            status: "OPEN" | "RESOLVED" | "DISMISSED";
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            reports: {
+                [key: string]: unknown;
+            }[];
+            decisions: {
+                [key: string]: unknown;
+            }[];
+        };
+        ResolveModerationCaseDto: {
+            /** @enum {string} */
+            outcome: "RESOLVED" | "DISMISSED";
+            /** @enum {string} */
+            action?: "HIDE_CONTENT" | "SUSPEND_USER" | "BAN_USER";
+            /**
+             * @description 适用的站务规则分类
+             * @enum {string}
+             */
+            policyCode: "SPAM" | "HARASSMENT" | "HATE_OR_THREATS" | "SEXUAL_CONTENT" | "VIOLENT_CONTENT" | "PERSONAL_INFORMATION" | "IMPERSONATION_OR_FRAUD" | "INTELLECTUAL_PROPERTY" | "ILLEGAL_CONTENT" | "OTHER";
+            /** @description 向被处置用户公开 */
+            publicExplanation: string;
+            /** @description 仅管理员可见 */
+            internalNote?: string;
+            /**
+             * Format: date-time
+             * @description 暂停账号时必填
+             */
+            suspendUntil?: string;
+        };
+        ModerationAppealResponseDto: {
+            id: string;
+            statement: string;
+            /** @enum {string} */
+            status: "PENDING" | "UPHELD" | "OVERTURNED";
+            decision: {
+                [key: string]: unknown;
+            };
+            appellant: {
+                [key: string]: unknown;
+            };
+            /** Format: date-time */
+            createdAt: string;
+        };
+        ResolveModerationAppealDto: {
+            /** @enum {string} */
+            outcome: "UPHELD" | "OVERTURNED";
+            note: string;
+        };
+        ModerationDecisionPublicResponseDto: {
+            id: string;
+            /** @enum {string} */
+            targetType: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "DIRECT_MESSAGE";
+            targetId: string;
+            /** @enum {string} */
+            action: "HIDE_CONTENT" | "SUSPEND_USER" | "BAN_USER";
+            /** @enum {string} */
+            policyCode: "SPAM" | "HARASSMENT" | "HATE_OR_THREATS" | "SEXUAL_CONTENT" | "VIOLENT_CONTENT" | "PERSONAL_INFORMATION" | "IMPERSONATION_OR_FRAUD" | "INTELLECTUAL_PROPERTY" | "ILLEGAL_CONTENT" | "OTHER";
+            publicExplanation: string;
+            active: boolean;
+            appeal: {
+                [key: string]: unknown;
+            } | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        CreateModerationAppealDto: {
+            decisionId: string;
+            statement: string;
+        };
+        SiteOperationalSettingsResponseDto: {
+            id: string;
+            /** Format: date-time */
+            registrationPausedUntil?: string | null;
+            /** Format: date-time */
+            contentWritesPausedUntil?: string | null;
+            maintenanceTitle?: string | null;
+            maintenanceContent?: string | null;
+            /** Format: date-time */
+            maintenanceStartsAt?: string | null;
+            /** Format: date-time */
+            maintenanceEndsAt?: string | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        UpdateSiteSettingsDto: {
+            /** Format: date-time */
+            registrationPausedUntil?: string | null;
+            /** Format: date-time */
+            contentWritesPausedUntil?: string | null;
+            maintenanceTitle?: string | null;
+            maintenanceContent?: string | null;
+            /** Format: date-time */
+            maintenanceStartsAt?: string | null;
+            /** Format: date-time */
+            maintenanceEndsAt?: string | null;
+        };
+        NotificationCampaignResponseDto: {
+            id: string;
+            title: string;
+            content: string;
+            /** @enum {string} */
+            status: "SCHEDULED" | "SENDING" | "SENT" | "CANCELED" | "FAILED";
+            /** Format: date-time */
+            scheduledAt: string;
+            estimatedCount: number;
+            recipientCount: number;
+            /** @enum {string} */
+            audienceRole?: "USER" | "ADMIN" | "SUPER_ADMIN";
+            createdBy?: {
+                [key: string]: unknown;
+            };
+            /** Format: date-time */
+            createdAt: string;
+        };
+        NotificationAudienceDto: {
+            roles?: ("USER" | "ADMIN" | "SUPER_ADMIN")[];
+            emailVerified?: boolean;
+        };
+        AdminRecipientCountResponseDto: {
+            recipientCount: number;
+            estimatedCount?: number;
+        };
+        CreateNotificationCampaignDto: {
+            title: string;
+            content: string;
+            /** Format: date-time */
+            scheduledAt: string;
+            audience?: components["schemas"]["NotificationAudienceDto"];
+            /** @enum {string} */
+            destinationType?: "THREAD";
+            destinationId?: string;
+        };
         AdminCapabilityResponseDto: {
             /** @enum {string} */
             role: "ADMIN" | "SUPER_ADMIN";
@@ -3909,10 +4576,6 @@ export interface components {
             conditions?: components["schemas"]["UserConditionDto"];
             /** @description 关联主题帖 ID（可选，前端跳转用） */
             threadId?: string;
-        };
-        AdminRecipientCountResponseDto: {
-            recipientCount: number;
-            estimatedCount?: number;
         };
         AdminNotificationUserResponseDto: {
             id: string;
@@ -4014,9 +4677,9 @@ export interface components {
         AdminAuditLogResponseDto: {
             id: string;
             /** @enum {string} */
-            action: "SUPER_ADMIN_BOOTSTRAPPED" | "ADMIN_ROLE_GRANTED" | "ADMIN_ROLE_REVOKED" | "USER_SUSPENDED" | "USER_BANNED" | "USER_SANCTION_REVOKED" | "CONTENT_HIDDEN" | "CONTENT_RESTORED" | "REPORT_RESOLVED" | "REPORT_DISMISSED" | "SYSTEM_NOTIFICATION_SENT" | "THREAD_CATEGORY_CREATED" | "THREAD_CATEGORY_UPDATED" | "TAG_CREATED" | "TAG_UPDATED";
+            action: "SUPER_ADMIN_BOOTSTRAPPED" | "ADMIN_ROLE_GRANTED" | "ADMIN_ROLE_REVOKED" | "USER_SUSPENDED" | "USER_BANNED" | "USER_SANCTION_REVOKED" | "CONTENT_HIDDEN" | "CONTENT_RESTORED" | "REPORT_RESOLVED" | "REPORT_DISMISSED" | "SYSTEM_NOTIFICATION_SENT" | "THREAD_CATEGORY_CREATED" | "THREAD_CATEGORY_UPDATED" | "TAG_CREATED" | "TAG_UPDATED" | "ADMIN_INVITED" | "ADMIN_INVITE_ACCEPTED" | "ADMIN_INVITE_CANCELED" | "SUPER_ADMIN_TRANSFERRED" | "ADMIN_SESSION_REVOKED" | "CASE_RESOLVED" | "CASE_DISMISSED" | "APPEAL_SUBMITTED" | "APPEAL_UPHELD" | "APPEAL_OVERTURNED" | "USER_SESSIONS_REVOKED" | "PASSWORD_RESET_REQUESTED_BY_ADMIN" | "NOTIFICATION_CAMPAIGN_SCHEDULED" | "NOTIFICATION_CAMPAIGN_CANCELED" | "THREAD_CATEGORY_MERGED" | "TAG_MERGED" | "SITE_SETTINGS_UPDATED";
             /** @enum {string} */
-            targetType: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "REPORT" | "SYSTEM_NOTIFICATION" | "THREAD_CATEGORY" | "TAG";
+            targetType: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "REPORT" | "SYSTEM_NOTIFICATION" | "THREAD_CATEGORY" | "TAG" | "MODERATION_CASE" | "MODERATION_DECISION" | "MODERATION_APPEAL" | "ADMIN_INVITE" | "ADMIN_SESSION" | "NOTIFICATION_CAMPAIGN" | "SITE_SETTINGS";
             targetId: string | null;
             reportId: string | null;
             reason: string | null;
@@ -4139,10 +4802,10 @@ export interface components {
         };
         UpdateThreadCategoryDto: {
             name?: string;
-            description?: Record<string, never> | null;
+            description?: string | null;
             /** @example #7C3AED */
-            color?: Record<string, never> | null;
-            icon?: Record<string, never> | null;
+            color?: string | null;
+            icon?: string | null;
             sortOrder?: number;
             isActive?: boolean;
             /** @description 管理员审计原因 */
@@ -4163,8 +4826,8 @@ export interface components {
         UpdateManagedTagDto: {
             name?: string;
             /** @example #FF6B6B */
-            color?: Record<string, never> | null;
-            description?: Record<string, never> | null;
+            color?: string | null;
+            description?: string | null;
             sortOrder?: number;
             isActive?: boolean;
             reason?: string;
@@ -4227,7 +4890,7 @@ export interface components {
             title: string;
             /**
              * @description 动态分类 slug
-             * @example DEDUCTION
+             * @example MYSTERY
              */
             category: string | null;
             /**
@@ -4239,7 +4902,7 @@ export interface components {
             owner: components["schemas"]["SearchThreadOwnerResponseDto"];
             /** @description 主题帖统计 */
             _count: components["schemas"]["SearchThreadCountResponseDto"];
-            /** @description 默认主贴正文中的普通图片 URL，按出现顺序返回，最多 3 张 */
+            /** @description 默认主贴正文中的第一张普通图片 URL；无图时返回空数组 */
             coverImages: string[];
         };
         SearchUserResponseDto: {
@@ -4942,8 +5605,17 @@ export interface components {
         BookmarksCreate201Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["BookmarkResponseDto"];
         };
+        BookmarksFindFolders200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["BookmarkFolderResponseDto"][];
+        };
+        BookmarksCreateFolder201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["BookmarkFolderResponseDto"];
+        };
         BookmarksRemove200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["MessageResponseDto"];
+        };
+        BookmarksMove200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["BookmarkResponseDto"];
         };
         ThreadsFindDrafts200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["DraftThreadResponseDto"][];
@@ -5112,6 +5784,81 @@ export interface components {
         };
         AdminReportsResolve200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["AdminReportResponseDto"];
+        };
+        AdminAuthChallenge200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminChallengeResponseDto"];
+        };
+        AdminAuthVerify200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminSessionResponseDto"];
+        };
+        AdminAuthSession200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminSessionResponseDto"];
+        };
+        AdminAuthLogout200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        AdminAuthStepUpChallenge200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminChallengeResponseDto"];
+        };
+        AdminAuthVerifyStepUp200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminStepUpResponseDto"];
+        };
+        AdminAccountsList200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminAccountsResponseDto"];
+        };
+        AdminAccountsInvite201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminInviteCreatedResponseDto"];
+        };
+        AdminAccountsCancel200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        AdminAccountsRevoke200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        AdminAccountsTransfer201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        AdminInviteAcceptanceAccept201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        ModerationCasesList200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["ModerationCaseResponseDto"][];
+        };
+        ModerationCasesGet200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ModerationCaseResponseDto"];
+        };
+        ModerationCasesResolve201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ModerationCaseResponseDto"];
+        };
+        AdminModerationAppealsList200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["ModerationAppealResponseDto"][];
+        };
+        AdminModerationAppealsResolve201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ModerationAppealResponseDto"];
+        };
+        UserModerationAppealsMine200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ModerationDecisionPublicResponseDto"][];
+        };
+        UserModerationAppealsAppeal201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ModerationAppealResponseDto"];
+        };
+        SiteOperationalSettingsGet200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["SiteOperationalSettingsResponseDto"];
+        };
+        SiteOperationalSettingsUpdate200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["SiteOperationalSettingsResponseDto"];
+        };
+        NotificationCampaignList200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["NotificationCampaignResponseDto"][];
+        };
+        NotificationCampaignCreate201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["NotificationCampaignResponseDto"];
+        };
+        NotificationCampaignPreview200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminRecipientCountResponseDto"];
+        };
+        NotificationCampaignCancel200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
         };
         AdminIndex200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["AdminCapabilityResponseDto"];
@@ -5312,7 +6059,7 @@ export interface components {
          * @description 稳定业务错误码；名称和值来源于 ErrorCode
          * @enum {integer}
          */
-        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40007 | 40008 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40107 | 40108 | 40109 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40307 | 40308 | 40309 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40414 | 40415 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 40912 | 40913 | 40914 | 40915 | 40916 | 40917 | 40918 | 40919 | 42900 | 50000;
+        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40007 | 40008 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40107 | 40108 | 40109 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40117 | 40118 | 40119 | 40120 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40307 | 40308 | 40309 | 40310 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40414 | 40415 | 40416 | 40417 | 40418 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 40912 | 40913 | 40914 | 40915 | 40916 | 40917 | 40918 | 40919 | 40920 | 40921 | 40922 | 40923 | 40924 | 40925 | 42900 | 50000;
         ApiErrorEnvelope: {
             code: components["schemas"]["BusinessErrorCode"];
             message: string;
@@ -7312,6 +8059,8 @@ export interface operations {
                 cursor?: string;
                 /** @description 每页条数（默认 20，最大 50） */
                 limit?: number;
+                /** @description 只返回指定收藏夹中的主题帖；不传时返回全部 */
+                folderId?: string;
             };
             header?: never;
             path?: never;
@@ -7424,6 +8173,74 @@ export interface operations {
             };
         };
     };
+    bookmarksFindFolders: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookmarksFindFolders200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    bookmarksCreateFolder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateBookmarkFolderDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookmarksCreateFolder201Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
     bookmarksRemove: {
         parameters: {
             query?: never;
@@ -7458,6 +8275,55 @@ export interface operations {
                 };
             };
             /** @description 收藏不存在 */
+            404: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    bookmarksMove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MoveBookmarkDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookmarksMove200Response"];
+                };
+            };
+            /** @description 收藏或收藏夹不存在 */
             404: {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];
@@ -9972,10 +10838,13 @@ export interface operations {
                 /** @description 每页条数（默认 20，最大 50） */
                 limit?: number;
                 status?: "PENDING" | "RESOLVED" | "DISMISSED";
-                targetType?: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT";
-                reasonCode?: "SPAM" | "HARASSMENT" | "HATE_OR_THREATS" | "SEXUAL_CONTENT" | "VIOLENT_CONTENT" | "PERSONAL_INFORMATION" | "ILLEGAL_CONTENT" | "OTHER";
+                targetType?: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "DIRECT_MESSAGE";
+                reasonCode?: "SPAM" | "HARASSMENT" | "HATE_OR_THREATS" | "SEXUAL_CONTENT" | "VIOLENT_CONTENT" | "PERSONAL_INFORMATION" | "IMPERSONATION_OR_FRAUD" | "INTELLECTUAL_PROPERTY" | "ILLEGAL_CONTENT" | "OTHER";
             };
-            header?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10008,7 +10877,10 @@ export interface operations {
     adminReportsFindOne: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
             path: {
                 id: string;
             };
@@ -10042,7 +10914,10 @@ export interface operations {
     adminReportsResolve: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
             path: {
                 id: string;
             };
@@ -10088,10 +10963,968 @@ export interface operations {
             };
         };
     };
-    adminIndex: {
+    adminAuthChallenge: {
         parameters: {
             query?: never;
             header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminLoginChallengeDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminAuthChallenge200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminAuthVerify: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminChallengeVerifyDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminAuthVerify200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminAuthSession: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminAuthSession200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminAuthLogout: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminAuthLogout200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminAuthStepUpChallenge: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminAuthStepUpChallenge200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminAuthVerifyStepUp: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminChallengeVerifyDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminAuthVerifyStepUp200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminAccountsList: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminAccountsList200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminAccountsInvite: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateAdminInviteDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminAccountsInvite201Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminAccountsCancel: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminAccountReasonDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminAccountsCancel200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminAccountsRevoke: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminAccountReasonDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminAccountsRevoke200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminAccountsTransfer: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransferSuperAdminDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminAccountsTransfer201Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminInviteAcceptanceAccept: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminInviteAcceptanceAccept201Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    moderationCasesList: {
+        parameters: {
+            query?: {
+                /** @description 服务端返回的不透明分页游标；首次请求不传，后续必须原样回传 */
+                cursor?: string;
+                /** @description 每页条数（默认 20，最大 50） */
+                limit?: number;
+                status?: "OPEN" | "RESOLVED" | "DISMISSED";
+                targetType?: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "DIRECT_MESSAGE";
+                reasonCode?: "SPAM" | "HARASSMENT" | "HATE_OR_THREATS" | "SEXUAL_CONTENT" | "VIOLENT_CONTENT" | "PERSONAL_INFORMATION" | "IMPERSONATION_OR_FRAUD" | "INTELLECTUAL_PROPERTY" | "ILLEGAL_CONTENT" | "OTHER";
+            };
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 治理案件队列 */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModerationCasesList200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    moderationCasesGet: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModerationCasesGet200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    moderationCasesResolve: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResolveModerationCaseDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModerationCasesResolve201Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminModerationAppealsList: {
+        parameters: {
+            query?: {
+                /** @description 服务端返回的不透明分页游标；首次请求不传，后续必须原样回传 */
+                cursor?: string;
+                /** @description 每页条数（默认 20，最大 50） */
+                limit?: number;
+                status?: "PENDING" | "UPHELD" | "OVERTURNED";
+                targetType?: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "DIRECT_MESSAGE";
+                action?: "HIDE_CONTENT" | "SUSPEND_USER" | "BAN_USER";
+            };
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 申诉处理队列 */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminModerationAppealsList200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminModerationAppealsResolve: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResolveModerationAppealDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminModerationAppealsResolve201Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    userModerationAppealsMine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserModerationAppealsMine200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    userModerationAppealsAppeal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateModerationAppealDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserModerationAppealsAppeal201Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    siteOperationalSettingsGet: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SiteOperationalSettingsGet200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    siteOperationalSettingsUpdate: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateSiteSettingsDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SiteOperationalSettingsUpdate200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    notificationCampaignList: {
+        parameters: {
+            query?: {
+                /** @description 服务端返回的不透明分页游标；首次请求不传，后续必须原样回传 */
+                cursor?: string;
+                /** @description 每页条数（默认 20，最大 50） */
+                limit?: number;
+                /** @description 标题或正文关键词 */
+                q?: string;
+                status?: "SCHEDULED" | "SENDING" | "SENT" | "CANCELED" | "FAILED";
+                /** @description 是否配置主题帖跳转目标 */
+                destination?: "THREAD" | "NONE";
+            };
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 通知计划历史 */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationCampaignList200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    notificationCampaignCreate: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateNotificationCampaignDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationCampaignCreate201Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    notificationCampaignPreview: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NotificationAudienceDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationCampaignPreview200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    notificationCampaignCancel: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationCampaignCancel200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminIndex: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10123,7 +11956,10 @@ export interface operations {
     adminSendSystemNotification: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10159,7 +11995,10 @@ export interface operations {
     adminPreviewRecipients: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10198,7 +12037,10 @@ export interface operations {
                 /** @description 分页游标 */
                 cursor?: string;
             };
-            header?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10233,7 +12075,10 @@ export interface operations {
                 /** @description 用户名或邮箱关键词 */
                 q: string;
             };
-            header?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10274,7 +12119,10 @@ export interface operations {
                 role?: "USER" | "ADMIN" | "SUPER_ADMIN";
                 status?: "ACTIVE" | "SUSPENDED" | "BANNED";
             };
-            header?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10307,7 +12155,10 @@ export interface operations {
     adminModerationGetUser: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
             path: {
                 id: string;
             };
@@ -10341,7 +12192,10 @@ export interface operations {
     adminModerationSanctionUser: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
             path: {
                 id: string;
             };
@@ -10379,7 +12233,10 @@ export interface operations {
     adminModerationRevokeSanction: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
             path: {
                 id: string;
             };
@@ -10417,7 +12274,10 @@ export interface operations {
     adminModerationUpdateRole: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
             path: {
                 id: string;
             };
@@ -10455,7 +12315,10 @@ export interface operations {
     adminModerationHideContent: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
             path: {
                 type: "thread" | "post" | "moment" | "moment_comment";
                 id: string;
@@ -10494,7 +12357,10 @@ export interface operations {
     adminModerationRestoreContent: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
             path: {
                 type: "thread" | "post" | "moment" | "moment_comment";
                 id: string;
@@ -10537,14 +12403,17 @@ export interface operations {
                 cursor?: string;
                 /** @description 每页条数（默认 20，最大 50） */
                 limit?: number;
-                action?: "SUPER_ADMIN_BOOTSTRAPPED" | "ADMIN_ROLE_GRANTED" | "ADMIN_ROLE_REVOKED" | "USER_SUSPENDED" | "USER_BANNED" | "USER_SANCTION_REVOKED" | "CONTENT_HIDDEN" | "CONTENT_RESTORED" | "REPORT_RESOLVED" | "REPORT_DISMISSED" | "SYSTEM_NOTIFICATION_SENT" | "THREAD_CATEGORY_CREATED" | "THREAD_CATEGORY_UPDATED" | "TAG_CREATED" | "TAG_UPDATED";
-                targetType?: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "REPORT" | "SYSTEM_NOTIFICATION" | "THREAD_CATEGORY" | "TAG";
+                action?: "SUPER_ADMIN_BOOTSTRAPPED" | "ADMIN_ROLE_GRANTED" | "ADMIN_ROLE_REVOKED" | "USER_SUSPENDED" | "USER_BANNED" | "USER_SANCTION_REVOKED" | "CONTENT_HIDDEN" | "CONTENT_RESTORED" | "REPORT_RESOLVED" | "REPORT_DISMISSED" | "SYSTEM_NOTIFICATION_SENT" | "THREAD_CATEGORY_CREATED" | "THREAD_CATEGORY_UPDATED" | "TAG_CREATED" | "TAG_UPDATED" | "ADMIN_INVITED" | "ADMIN_INVITE_ACCEPTED" | "ADMIN_INVITE_CANCELED" | "SUPER_ADMIN_TRANSFERRED" | "ADMIN_SESSION_REVOKED" | "CASE_RESOLVED" | "CASE_DISMISSED" | "APPEAL_SUBMITTED" | "APPEAL_UPHELD" | "APPEAL_OVERTURNED" | "USER_SESSIONS_REVOKED" | "PASSWORD_RESET_REQUESTED_BY_ADMIN" | "NOTIFICATION_CAMPAIGN_SCHEDULED" | "NOTIFICATION_CAMPAIGN_CANCELED" | "THREAD_CATEGORY_MERGED" | "TAG_MERGED" | "SITE_SETTINGS_UPDATED";
+                targetType?: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "REPORT" | "SYSTEM_NOTIFICATION" | "THREAD_CATEGORY" | "TAG" | "MODERATION_CASE" | "MODERATION_DECISION" | "MODERATION_APPEAL" | "ADMIN_INVITE" | "ADMIN_SESSION" | "NOTIFICATION_CAMPAIGN" | "SITE_SETTINGS";
                 targetId?: string;
                 actorId?: string;
                 createdAfter?: string;
                 createdBefore?: string;
             };
-            header?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10574,6 +12443,53 @@ export interface operations {
             };
         };
     };
+    adminModerationExportAuditLogs: {
+        parameters: {
+            query?: {
+                /** @description 服务端返回的不透明分页游标；首次请求不传，后续必须原样回传 */
+                cursor?: string;
+                /** @description 每页条数（默认 20，最大 50） */
+                limit?: number;
+                action?: "SUPER_ADMIN_BOOTSTRAPPED" | "ADMIN_ROLE_GRANTED" | "ADMIN_ROLE_REVOKED" | "USER_SUSPENDED" | "USER_BANNED" | "USER_SANCTION_REVOKED" | "CONTENT_HIDDEN" | "CONTENT_RESTORED" | "REPORT_RESOLVED" | "REPORT_DISMISSED" | "SYSTEM_NOTIFICATION_SENT" | "THREAD_CATEGORY_CREATED" | "THREAD_CATEGORY_UPDATED" | "TAG_CREATED" | "TAG_UPDATED" | "ADMIN_INVITED" | "ADMIN_INVITE_ACCEPTED" | "ADMIN_INVITE_CANCELED" | "SUPER_ADMIN_TRANSFERRED" | "ADMIN_SESSION_REVOKED" | "CASE_RESOLVED" | "CASE_DISMISSED" | "APPEAL_SUBMITTED" | "APPEAL_UPHELD" | "APPEAL_OVERTURNED" | "USER_SESSIONS_REVOKED" | "PASSWORD_RESET_REQUESTED_BY_ADMIN" | "NOTIFICATION_CAMPAIGN_SCHEDULED" | "NOTIFICATION_CAMPAIGN_CANCELED" | "THREAD_CATEGORY_MERGED" | "TAG_MERGED" | "SITE_SETTINGS_UPDATED";
+                targetType?: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "REPORT" | "SYSTEM_NOTIFICATION" | "THREAD_CATEGORY" | "TAG" | "MODERATION_CASE" | "MODERATION_DECISION" | "MODERATION_APPEAL" | "ADMIN_INVITE" | "ADMIN_SESSION" | "NOTIFICATION_CAMPAIGN" | "SITE_SETTINGS";
+                targetId?: string;
+                actorId?: string;
+                createdAfter?: string;
+                createdBefore?: string;
+            };
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description UTF-8 CSV，包含 BOM 并防止表格公式注入 */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
     adminDashboardOverview: {
         parameters: {
             query?: {
@@ -10582,7 +12498,10 @@ export interface operations {
                 /** @description 北京时间结束日期（含） */
                 to?: string;
             };
-            header?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10619,7 +12538,10 @@ export interface operations {
                 /** @description 北京时间结束日期（含） */
                 to?: string;
             };
-            header?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10651,7 +12573,10 @@ export interface operations {
     adminDashboardDistributions: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10683,7 +12608,10 @@ export interface operations {
     adminTaxonomyListCategories: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10715,7 +12643,10 @@ export interface operations {
     adminTaxonomyCreateCategory: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10751,7 +12682,10 @@ export interface operations {
     adminTaxonomyUpdateCategory: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
             path: {
                 id: string;
             };
@@ -10789,7 +12723,10 @@ export interface operations {
     adminTaxonomyListTags: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10821,7 +12758,10 @@ export interface operations {
     adminTaxonomyCreateTag: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10857,7 +12797,10 @@ export interface operations {
     adminTaxonomyUpdateTag: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
             path: {
                 id: string;
             };

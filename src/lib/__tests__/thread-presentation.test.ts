@@ -17,6 +17,7 @@ describe("getThreadCategoryPresentation", () => {
 
   test("未知分类安全显示 slug，空分类显示未分类", () => {
     expect(getThreadCategoryPresentation("ARCHIVE", []).label).toBe("ARCHIVE");
+    expect(getThreadCategoryPresentation("DEDUCTION", []).label).toBe("DEDUCTION");
     expect(getThreadCategoryPresentation(null, []).label).toBe("未分类");
   });
 

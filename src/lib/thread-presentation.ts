@@ -10,33 +10,6 @@ export type ThreadCategory = NonNullable<
 export type ThreadStatus = components["schemas"]["HomeThreadListItemResponseDto"]["status"];
 export type ThreadVisibility = components["schemas"]["HomeThreadListItemResponseDto"]["visibility"];
 
-const LEGACY_THREAD_CATEGORY_META: Record<
-  string,
-  { label: string; badgeTone: BadgeTone; markerClassName: string }
-> = {
-  DEDUCTION: {
-    label: "演绎",
-    badgeTone: "deduction",
-    markerClassName: "bg-category-deduction",
-  },
-  NATION: {
-    label: "国策",
-    badgeTone: "nation",
-    markerClassName: "bg-category-nation",
-  },
-  RPG: {
-    label: "RPG",
-    badgeTone: "rpg",
-    markerClassName: "bg-category-rpg",
-  },
-};
-
-export const LEGACY_THREAD_CATEGORIES: ThreadCategoryDefinition[] = [
-  { id: "legacy_deduction", slug: "DEDUCTION", name: "演绎", description: null, color: null, icon: null, sortOrder: 10, isActive: true, createdAt: "1970-01-01T00:00:00.000Z", updatedAt: "1970-01-01T00:00:00.000Z" },
-  { id: "legacy_nation", slug: "NATION", name: "国策", description: null, color: null, icon: null, sortOrder: 20, isActive: true, createdAt: "1970-01-01T00:00:00.000Z", updatedAt: "1970-01-01T00:00:00.000Z" },
-  { id: "legacy_rpg", slug: "RPG", name: "RPG", description: null, color: null, icon: null, sortOrder: 30, isActive: true, createdAt: "1970-01-01T00:00:00.000Z", updatedAt: "1970-01-01T00:00:00.000Z" },
-];
-
 function normalizeCategoryColor(color: string | null | undefined) {
   return color && /^#[0-9a-f]{6}$/i.test(color) ? color.toUpperCase() : null;
 }
@@ -54,12 +27,11 @@ export function getThreadCategoryPresentation(
   const definition = slug
     ? categories.find((category) => category.slug === slug)
     : undefined;
-  const legacy = slug ? LEGACY_THREAD_CATEGORY_META[slug] : undefined;
   const color = normalizeCategoryColor(definition?.color);
 
   return {
-    label: definition?.name ?? legacy?.label ?? slug ?? "未分类",
-    badgeTone: color ? "neutral" : legacy?.badgeTone ?? "neutral",
+    label: definition?.name ?? slug ?? "未分类",
+    badgeTone: "neutral",
     badgeStyle: color
       ? {
           backgroundColor: `${color}1F`,
@@ -67,9 +39,7 @@ export function getThreadCategoryPresentation(
           color: "var(--foreground)",
         }
       : undefined,
-    markerClassName: color
-      ? ""
-      : legacy?.markerClassName ?? "bg-muted-foreground",
+    markerClassName: color ? "" : "bg-muted-foreground",
     markerStyle: color ? { backgroundColor: color } : undefined,
   };
 }
