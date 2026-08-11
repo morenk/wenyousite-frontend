@@ -33,7 +33,7 @@ describe("MilkdownEditor 内联骰子", () => {
     expect(editor?.querySelector(".prosemirror-virtual-cursor")).toBeNull();
   });
 
-  test("点击工具栏骰子按钮会打开插入弹窗", async () => {
+  test("宽栏骰子按钮直接打开插入弹窗", async () => {
     Object.defineProperty(window, "innerWidth", { configurable: true, value: 1280 });
     Object.defineProperty(window, "innerHeight", { configurable: true, value: 800 });
     render(
@@ -61,7 +61,7 @@ describe("MilkdownEditor 内联骰子", () => {
       expect(dialog).toBeInTheDocument();
       expect(dialog.parentElement).toBe(document.body);
       expect(dialog).toHaveClass("fixed", "z-[100]");
-      expect(dialog).toHaveStyle({ top: "58px", left: "320px" });
+      expect(dialog).toHaveStyle({ top: "58px", left: "64px" });
     });
   });
 

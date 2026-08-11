@@ -42,6 +42,8 @@ function isGifUrl(url: string): boolean {
 
 type ImageProps = ComponentProps<"img"> & ExtraProps;
 type AnchorProps = ComponentProps<"a"> & ExtraProps;
+type TableProps = ComponentProps<"table"> & ExtraProps;
+type PreProps = ComponentProps<"pre"> & ExtraProps;
 
 function MarkdownLink({ href, children, ...props }: AnchorProps) {
   const userMatch = typeof href === "string" ? /^\/users\/([^/]+)$/u.exec(href) : null;
@@ -64,6 +66,32 @@ function MarkdownLink({ href, children, ...props }: AnchorProps) {
     >
       {children}
     </a>
+  );
+}
+
+/** 宽表格只在自身区域滚动，不把帖子卡片或页面撑宽。 */
+function MarkdownTable({ className, ...props }: TableProps) {
+  return (
+    <div
+      data-slot="markdown-table-scroll"
+      className="my-[1.7142857em] max-w-full overflow-x-auto overscroll-x-contain"
+      role="region"
+      tabIndex={0}
+      aria-label="可横向滚动的表格"
+    >
+      <table {...props} className={cn("my-0", className)} />
+    </div>
+  );
+}
+
+/** 代码块保留原始换行，溢出只发生在代码块内部。 */
+function MarkdownPre({ className, ...props }: PreProps) {
+  return (
+    <pre
+      {...props}
+      data-slot="markdown-code-scroll"
+      className={cn("max-w-full overflow-x-auto overscroll-x-contain", className)}
+    />
   );
 }
 
@@ -284,6 +312,8 @@ function CollapsibleMarkdown({
           components={{
             a: MarkdownLink,
             img: (props) => <MarkdownImage {...props} sourcePostId={sourcePostId} />,
+            pre: MarkdownPre,
+            table: MarkdownTable,
           }}
           skipHtml
         >

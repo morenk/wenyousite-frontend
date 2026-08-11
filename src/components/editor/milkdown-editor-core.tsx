@@ -11,7 +11,17 @@ import { linkTooltip } from "@milkdown/crepe/feature/link-tooltip";
 import { listItem } from "@milkdown/crepe/feature/list-item";
 import { placeholder as placeholderFeature } from "@milkdown/crepe/feature/placeholder";
 import { topBar } from "@milkdown/crepe/feature/top-bar";
-import { editorViewCtx } from "@milkdown/core";
+import { commandsCtx, editorViewCtx } from "@milkdown/core";
+import { toggleLinkCommand } from "@milkdown/kit/component/link-tooltip";
+import {
+  inlineCodeSchema,
+  insertHrCommand,
+  toggleInlineCodeCommand,
+  wrapInBlockquoteCommand,
+  wrapInBulletListCommand,
+  wrapInOrderedListCommand,
+} from "@milkdown/kit/preset/commonmark";
+import { toggleStrikethroughCommand } from "@milkdown/kit/preset/gfm";
 import { TextSelection } from "@milkdown/kit/prose/state";
 import type { EditorView } from "@milkdown/kit/prose/view";
 import { Loader2 } from "lucide-react";
@@ -33,10 +43,15 @@ import {
 } from "@/lib/dice-inline";
 import { getDiceNotationError, MAX_DICE_ROLLS_PER_POST } from "@/lib/dice";
 import {
+  fitMilkdownToolbar,
   positionMilkdownHeadingDropdowns,
-  revealFocusedMilkdownToolbarItem,
+  syncMilkdownHeadingOptions,
+  syncMilkdownMoreMenuState,
   syncMilkdownToolbarSemantics,
+  syncMilkdownToolbarItems,
   syncMilkdownToolbarVisibility,
+  type MilkdownToolbarDensity,
+  type MilkdownToolbarItemMetadata,
 } from "@/lib/milkdown-toolbar";
 import { getApiErrorMessage } from "@/api/errors";
 import { useMentionCandidates } from "@/api/hooks/use-mention-candidates";
@@ -46,6 +61,10 @@ import {
 import { useEditorDraftController } from "@/components/editor/use-editor-draft-controller";
 import { createDiceInlineEditorPlugins } from "@/components/editor/dice-inline-plugin";
 import { DiceInsertPopover } from "@/components/editor/dice-insert-popover";
+import {
+  EditorMoreMenu,
+  type EditorMoreMenuItem,
+} from "@/components/editor/editor-more-menu";
 import { createStickerInlineEditorPlugins } from "@/components/editor/sticker-inline-plugin";
 import { StickerPickerPopover } from "@/components/sticker/sticker-picker-popover";
 import { MAX_STICKERS_PER_POST, STICKER_INLINE_NODE_NAME } from "@/lib/sticker-inline";
@@ -57,23 +76,15 @@ import {
   useEditorMentionController,
   type EditorMentionMenu,
 } from "@/components/editor/use-editor-mention-controller";
-import { configureNoNewUnorderedLists } from "@/components/editor/unordered-list-guard-plugin";
+import {
+  EDITOR_CAPABILITY_LABELS,
+  EDITOR_CREATABLE_HEADING_LEVELS,
+  type EditorCapabilityId,
+} from "@/lib/editor-capabilities";
 import "@/components/editor/milkdown-editor.css";
 
 const MAX_CHARS = 10000;
 const QUICK_DICE_SIDES = [4, 6, 8, 10, 12, 20, 100];
-
-const TOOLBAR_TOOLTIPS: Record<string, string> = {
-  bold: "粗体",
-  italic: "斜体",
-  strikethrough: "删除线",
-  link: "链接",
-  image: "图片",
-  quote: "引用",
-  hr: "分隔线",
-  dice: "骰子",
-  draft: "正文草稿",
-};
 
 const DRAFT_ICON = `
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
@@ -92,26 +103,13 @@ const DICE_ICON = `
   </svg>
 `;
 
-function injectToolbarTooltips(root: ParentNode, labels: string[]) {
-  root.querySelectorAll(".milkdown-top-bar").forEach((topBar) => {
-    const headingBtn = topBar.querySelector<HTMLButtonElement>(".top-bar-heading-button");
-    if (headingBtn && !headingBtn.hasAttribute("title")) {
-      headingBtn.title = "切换标题级别";
-    }
-
-    const buttons = topBar.querySelectorAll<HTMLButtonElement>(".top-bar-item");
-    buttons.forEach((btn, index) => {
-      const label = labels[index];
-      if (label && !btn.hasAttribute("title")) {
-        btn.title = label;
-        btn.setAttribute("aria-label", label);
-      }
-      if (label === "骰子") {
-        btn.dataset.editorTool = "dice";
-      }
-    });
-  });
-}
+const MORE_ICON = `
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+    <circle cx="5" cy="12" r="1.8" fill="currentColor" />
+    <circle cx="12" cy="12" r="1.8" fill="currentColor" />
+    <circle cx="19" cy="12" r="1.8" fill="currentColor" />
+  </svg>
+`;
 
 export interface MilkdownEditorProps {
   defaultValue?: string;
@@ -138,6 +136,28 @@ const CN_HEADING_OPTIONS = [
   { label: "标题 5", level: 5 },
   { label: "标题 6", level: 6 },
 ];
+
+const CREATABLE_HEADING_LABELS = new Set([
+  "正文",
+  ...EDITOR_CREATABLE_HEADING_LEVELS.map((level) => `标题 ${level}`),
+]);
+
+function positionEditorPopover(
+  anchor: DOMRect,
+  width: number,
+  estimatedHeight: number,
+): { top: number; left: number } {
+  const gap = 8;
+  const maxLeft = Math.max(gap, window.innerWidth - width - gap);
+  const belowTop = anchor.bottom + 6;
+  const top = belowTop + estimatedHeight <= window.innerHeight - gap
+    ? belowTop
+    : Math.max(gap, anchor.top - estimatedHeight - 6);
+  return {
+    top,
+    left: Math.max(gap, Math.min(maxLeft, anchor.right - width)),
+  };
+}
 
 function getImageBlockConfig(onUploadImage: (file: File) => Promise<string>) {
   return {
@@ -179,10 +199,12 @@ function EditorHost({
   const crepeRef = useRef<CrepeBuilder | null>(null);
   const hostRef = useRef<HTMLDivElement>(null);
   const onChangeRef = useRef(onChange);
-  const toolbarLabelsRef = useRef<string[]>([]);
+  const toolbarItemsRef = useRef<MilkdownToolbarItemMetadata[]>([]);
   const uploadAbortRef = useRef<AbortController | null>(null);
   const diceSelectionRef = useRef<{ from: number; to: number } | null>(null);
   const [dicePopover, setDicePopover] = useState<{ top: number; left: number } | null>(null);
+  const [moreMenuPosition, setMoreMenuPosition] = useState<{ top: number; left: number } | null>(null);
+  const [toolbarDensity, setToolbarDensity] = useState<MilkdownToolbarDensity>("expanded");
   const [diceNodeCount, setDiceNodeCount] = useState(
     () => parseInlineDiceNodes(initialValue).length,
   );
@@ -309,7 +331,7 @@ function EditorHost({
     [onUploadImage],
   );
 
-  const handleOpenDice = useCallback((view: EditorView) => {
+  const handleOpenDice = useCallback((view: EditorView, menuAnchor?: DOMRect) => {
     if (disabled) return;
     let count = 0;
     view.state.doc.descendants((node) => {
@@ -322,21 +344,117 @@ function EditorHost({
     };
     const host = hostRef.current;
     const topBar = host?.querySelector<HTMLElement>(".milkdown-top-bar");
-    const trigger = host?.querySelector<HTMLElement>('[data-editor-tool="dice"]');
+    const directTrigger = host?.querySelector<HTMLElement>('[data-editor-tool="dice"]');
     if (!host || !topBar) return;
-    const width = 288;
-    const estimatedHeight = 220;
-    const anchorRect = (trigger ?? topBar).getBoundingClientRect();
-    const maxLeft = Math.max(8, window.innerWidth - width - 8);
-    const belowTop = anchorRect.bottom + 6;
-    const top = belowTop + estimatedHeight <= window.innerHeight
-      ? belowTop
-      : Math.max(8, anchorRect.top - estimatedHeight - 6);
-    setDicePopover({
-      top,
-      left: Math.max(8, Math.min(maxLeft, anchorRect.left)),
-    });
+    setMoreMenuPosition(null);
+    setDicePopover(positionEditorPopover(
+      menuAnchor ?? directTrigger?.getBoundingClientRect() ?? topBar.getBoundingClientRect(),
+      288,
+      220,
+    ));
   }, [disabled]);
+
+  const handleOpenMore = useCallback(() => {
+    if (disabled) return;
+    const trigger = hostRef.current?.querySelector<HTMLElement>('[data-editor-tool="more"]');
+    if (!trigger) return;
+    setDicePopover(null);
+    setMoreMenuPosition(positionEditorPopover(
+      trigger.getBoundingClientRect(),
+      240,
+      360,
+    ));
+  }, [disabled]);
+
+  const runMoreCommand = useCallback((capability: EditorCapabilityId) => {
+    crepeRef.current?.editor.action((ctx) => {
+      const commands = ctx.get(commandsCtx);
+      switch (capability) {
+        case "link":
+          commands.call(toggleLinkCommand.key);
+          break;
+        case "inline-code":
+          {
+            const view = ctx.get(editorViewCtx);
+            const { state } = view;
+            if (state.selection.empty) {
+              const markType = inlineCodeSchema.type(ctx);
+              const marks = state.storedMarks ?? state.selection.$from.marks();
+              const active = marks.some((mark) => mark.type === markType);
+              view.dispatch(active
+                ? state.tr.removeStoredMark(markType)
+                : state.tr.addStoredMark(markType.create()));
+            } else {
+              commands.call(toggleInlineCodeCommand.key);
+            }
+          }
+          break;
+        case "quote":
+          commands.call(wrapInBlockquoteCommand.key);
+          break;
+        case "bullet-list":
+          commands.call(wrapInBulletListCommand.key);
+          break;
+        case "ordered-list":
+          commands.call(wrapInOrderedListCommand.key);
+          break;
+        case "hr":
+          commands.call(insertHrCommand.key);
+          break;
+        case "strikethrough":
+          commands.call(toggleStrikethroughCommand.key);
+          break;
+        default:
+          return;
+      }
+      const view = ctx.get(editorViewCtx);
+      emitCurrentMarkdown(view);
+      view.focus();
+    });
+    setMoreMenuPosition(null);
+  }, [emitCurrentMarkdown]);
+
+  const moreMenuItems = useMemo<EditorMoreMenuItem[]>(() => {
+    const items: EditorMoreMenuItem[] = [];
+    const add = (
+      id: EditorCapabilityId,
+      group: EditorMoreMenuItem["group"],
+    ) => items.push({ id, group, label: EDITOR_CAPABILITY_LABELS[id] });
+
+    if (toolbarDensity === "compact") {
+      add("strikethrough", "文字");
+    }
+    add("link", "文字");
+    add("inline-code", "文字");
+    add("quote", "段落");
+    add("bullet-list", "段落");
+    add("ordered-list", "段落");
+    add("hr", "段落");
+    add("dice", "创作");
+    if (["without-draft", "compact"].includes(toolbarDensity) && onOpenDrafts) {
+      add("draft", "创作");
+    }
+    return items;
+  }, [onOpenDrafts, toolbarDensity]);
+
+  const handleMoreSelect = useCallback((capability: EditorCapabilityId, anchor: DOMRect) => {
+    if (capability === "dice") {
+      const view = crepeRef.current?.editor.action((ctx) => ctx.get(editorViewCtx));
+      if (view) handleOpenDice(view, anchor);
+      return;
+    }
+    if (capability === "draft") {
+      setMoreMenuPosition(null);
+      onOpenDrafts?.();
+      return;
+    }
+    runMoreCommand(capability);
+  }, [handleOpenDice, onOpenDrafts, runMoreCommand]);
+
+  const handleCloseMore = useCallback(() => {
+    setMoreMenuPosition(null);
+    crepeRef.current?.editor.action((ctx) => ctx.get(editorViewCtx)).focus();
+  }, []);
 
   const handleInsertDice = useCallback((notationInput: string) => {
     const error = getDiceNotationError(notationInput);
@@ -418,23 +536,32 @@ function EditorHost({
         crepe.addFeature(imageBlock, getImageBlockConfig(handleUpload));
       }
 
-      configureNoNewUnorderedLists(crepe.editor);
-
       crepe.addFeature(topBar, {
         headingOptions: CN_HEADING_OPTIONS,
         buildTopBar: (builder) => {
           const formatting = builder.getGroup("formatting").group;
-          formatting.items = formatting.items.filter(
-            (item) => item.key !== "code",
+          formatting.items = formatting.items.filter((item) =>
+            ["bold", "italic", "strikethrough", "code"].includes(item.key),
           );
+          const list = builder.getGroup("list").group;
+          list.items = list.items.filter((item) => item.key !== "task-list");
+          const insert = builder.getGroup("insert").group;
+          const imageItem = insert.items.find((item) => item.key === "image");
+          const block = builder.getGroup("block").group;
+          block.items = [];
+          const more = builder.getGroup("more").group;
+          more.items = more.items.filter((item) => ["quote", "hr"].includes(item.key));
+
           const groups = builder.build();
-          for (const groupKey of ["list", "block"]) {
+          for (const groupKey of ["block"]) {
             const index = groups.findIndex((group) => group.key === groupKey);
             if (index !== -1) groups.splice(index, 1);
           }
+          if (insert.items.length === 0) {
+            const insertIndex = groups.findIndex((group) => group.key === "insert");
+            if (insertIndex !== -1) groups.splice(insertIndex, 1);
+          }
 
-          const insert = builder.getGroup("insert").group;
-          const imageItem = insert.items.find((item) => item.key === "image");
           if (imageItem) {
             imageItem.onRun = (ctx) => {
               const input = document.createElement("input");
@@ -471,10 +598,24 @@ function EditorHost({
               onRun: () => onOpenDrafts(),
             });
           }
-          toolbarLabelsRef.current = builder.build().flatMap((group) =>
+          builder.addGroup("more-menu", "更多").addItem("more", {
+            icon: MORE_ICON,
+            active: () => false,
+            onRun: handleOpenMore,
+          });
+          toolbarItemsRef.current = builder.build().flatMap((group) =>
             group.items
               .filter((item) => item.key !== "heading-selector")
-              .map((item) => TOOLBAR_TOOLTIPS[item.key] ?? item.key),
+              .map((item) => {
+                const key = item.key === "code" ? "inline-code" : item.key;
+                return {
+                  key,
+                  label:
+                    EDITOR_CAPABILITY_LABELS[
+                      key as keyof typeof EDITOR_CAPABILITY_LABELS
+                    ] ?? item.key,
+                };
+              }),
           );
         },
       });
@@ -547,6 +688,8 @@ function EditorHost({
     const host = hostRef.current;
     if (!host) return;
     let positionFrame: number | null = null;
+    let layoutFrame: number | null = null;
+    let resizeObserver: ResizeObserver | null = null;
 
     const scheduleDropdownPosition = () => {
       if (positionFrame !== null) return;
@@ -555,26 +698,38 @@ function EditorHost({
         positionMilkdownHeadingDropdowns(host);
       });
     };
+    const scheduleToolbarLayout = () => {
+      if (layoutFrame !== null) return;
+      layoutFrame = window.requestAnimationFrame(() => {
+        layoutFrame = null;
+        const topBar = host.querySelector<HTMLElement>(".milkdown-top-bar");
+        if (!topBar) return;
+        setToolbarDensity(fitMilkdownToolbar(topBar));
+      });
+    };
     const syncTopBar = () => {
-      injectToolbarTooltips(host, toolbarLabelsRef.current);
+      syncMilkdownToolbarItems(host, toolbarItemsRef.current);
+      syncMilkdownHeadingOptions(host, CREATABLE_HEADING_LABELS);
       syncMilkdownToolbarVisibility(host, disabled ?? false);
       syncMilkdownToolbarSemantics(host);
       scheduleDropdownPosition();
-    };
-
-    const handleFocusIn = (event: FocusEvent) => {
-      const target = event.target;
-      if (target instanceof Element) revealFocusedMilkdownToolbarItem(target);
+      scheduleToolbarLayout();
     };
 
     const observer = new MutationObserver(syncTopBar);
     observer.observe(host, { childList: true, subtree: true });
-    host.addEventListener("focusin", handleFocusIn);
+    window.addEventListener("resize", scheduleToolbarLayout);
     window.addEventListener("resize", scheduleDropdownPosition);
     window.addEventListener("scroll", scheduleDropdownPosition, true);
 
-    const topBar = host.querySelector(".milkdown-top-bar");
-    if (topBar) syncTopBar();
+    const topBar = host.querySelector<HTMLElement>(".milkdown-top-bar");
+    if (topBar) {
+      syncTopBar();
+      if (typeof ResizeObserver !== "undefined") {
+        resizeObserver = new ResizeObserver(scheduleToolbarLayout);
+        resizeObserver.observe(topBar);
+      }
+    }
 
     let attempts = 0;
     const maxAttempts = 50;
@@ -583,6 +738,10 @@ function EditorHost({
       const tb = host.querySelector(".milkdown-top-bar");
       if (tb) {
         syncTopBar();
+        if (!resizeObserver && typeof ResizeObserver !== "undefined") {
+          resizeObserver = new ResizeObserver(scheduleToolbarLayout);
+          resizeObserver.observe(tb);
+        }
         clearInterval(interval);
         return;
       }
@@ -594,12 +753,20 @@ function EditorHost({
     return () => {
       clearInterval(interval);
       observer.disconnect();
-      host.removeEventListener("focusin", handleFocusIn);
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", scheduleToolbarLayout);
       window.removeEventListener("resize", scheduleDropdownPosition);
       window.removeEventListener("scroll", scheduleDropdownPosition, true);
       if (positionFrame !== null) window.cancelAnimationFrame(positionFrame);
+      if (layoutFrame !== null) window.cancelAnimationFrame(layoutFrame);
     };
   }, [disabled]);
+
+  useEffect(() => {
+    if (hostRef.current) {
+      syncMilkdownMoreMenuState(hostRef.current, moreMenuPosition !== null);
+    }
+  }, [moreMenuPosition]);
 
   return (
     <div ref={hostRef} className="milkdown-editor relative">
@@ -634,6 +801,12 @@ function EditorHost({
         notation={customDiceNotation}
         onNotationChange={setCustomDiceNotation}
         onInsert={handleInsertDice}
+      />
+      <EditorMoreMenu
+        position={moreMenuPosition}
+        items={moreMenuItems}
+        onSelect={handleMoreSelect}
+        onClose={handleCloseMore}
       />
       <MentionCandidateMenu
         position={mentionMenu}
@@ -711,7 +884,7 @@ function EditorCore({
       />
       <div className="flex items-center justify-between border-t border-border px-3 py-2">
         <span className="text-xs text-muted-foreground">
-          支持 Markdown，粘贴或拖拽图片上传
+          支持 Markdown，粘贴会保留兼容格式
         </span>
         <div className="flex items-center gap-3">
           {(autoSaveEnabled || autoSaveStatus === "error") && (

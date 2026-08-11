@@ -20,21 +20,118 @@ export function syncMilkdownToolbarSemantics(root: ParentNode): void {
   });
 }
 
-/** 键盘焦点进入被横向裁切的按钮时，仅滚动工具栏，不带动页面。 */
-export function revealFocusedMilkdownToolbarItem(target: Element): void {
-  const item = target.closest<HTMLElement>(
-    ".top-bar-item, .top-bar-heading-button",
-  );
-  const topBar = item?.closest<HTMLElement>(".milkdown-top-bar");
-  if (!item || !topBar) return;
+export interface MilkdownToolbarItemMetadata {
+  key: string;
+  label: string;
+}
 
-  const itemRect = item.getBoundingClientRect();
-  const topBarRect = topBar.getBoundingClientRect();
-  if (itemRect.left < topBarRect.left + TOOLBAR_VIEWPORT_GAP) {
-    topBar.scrollLeft -= topBarRect.left + TOOLBAR_VIEWPORT_GAP - itemRect.left;
-  } else if (itemRect.right > topBarRect.right - TOOLBAR_VIEWPORT_GAP) {
-    topBar.scrollLeft += itemRect.right - topBarRect.right + TOOLBAR_VIEWPORT_GAP;
+/** 为 Crepe 生成的无文本按钮补齐名称与稳定能力 ID。 */
+export function syncMilkdownToolbarItems(
+  root: ParentNode,
+  items: readonly MilkdownToolbarItemMetadata[],
+): void {
+  root.querySelectorAll(".milkdown-top-bar").forEach((topBar) => {
+    const heading = topBar.querySelector<HTMLButtonElement>(".top-bar-heading-button");
+    if (heading) {
+      heading.title = "切换正文样式";
+      heading.setAttribute("aria-label", "切换正文样式");
+      heading.dataset.editorTool = "heading";
+    }
+
+    topBar.querySelectorAll<HTMLButtonElement>(".top-bar-item").forEach((button, index) => {
+      const item = items[index];
+      if (!item) return;
+      button.title = item.label;
+      button.setAttribute("aria-label", item.label);
+      button.dataset.editorTool = item.key;
+      if (item.key === "more") {
+        button.setAttribute("aria-haspopup", "menu");
+        if (!button.hasAttribute("aria-expanded")) {
+          button.setAttribute("aria-expanded", "false");
+        }
+      }
+    });
+  });
+}
+
+/** 标题读取兼容 H1–H6，但创建菜单只暴露产品允许的层级。 */
+export function syncMilkdownHeadingOptions(
+  root: ParentNode,
+  allowedLabels: ReadonlySet<string>,
+): void {
+  root.querySelectorAll<HTMLButtonElement>(".top-bar-heading-option").forEach((option) => {
+    option.hidden = !allowedLabels.has(option.textContent?.trim() ?? "");
+  });
+}
+
+export type MilkdownToolbarDensity =
+  | "expanded"
+  | "with-more"
+  | "without-draft"
+  | "compact";
+
+const MORE_FALLBACK_TOOLS = new Set([
+  "link",
+  "inline-code",
+  "quote",
+  "bullet-list",
+  "ordered-list",
+  "hr",
+  "dice",
+]);
+
+/** 同步每级密度的可见按钮，并移除没有可见按钮的空分组分隔线。 */
+export function applyMilkdownToolbarDensity(
+  topBar: HTMLElement,
+  density: MilkdownToolbarDensity,
+): void {
+  topBar.dataset.editorDensity = density;
+  topBar.querySelectorAll<HTMLElement>("[data-editor-tool]").forEach((item) => {
+    const tool = item.dataset.editorTool ?? "";
+    item.hidden = density === "expanded"
+      ? tool === "more"
+      : MORE_FALLBACK_TOOLS.has(tool)
+        || (tool === "draft" && ["without-draft", "compact"].includes(density))
+        || (tool === "strikethrough" && density === "compact");
+  });
+
+  const inner = topBar.querySelector<HTMLElement>(".top-bar-inner");
+  if (!inner) return;
+  const children = Array.from(inner.children) as HTMLElement[];
+  children.forEach((child, index) => {
+    if (!child.classList.contains("top-bar-divider")) return;
+    const group = children.slice(index + 1).findIndex((candidate) =>
+      candidate.classList.contains("top-bar-divider"),
+    );
+    const end = group === -1 ? children.length : index + 1 + group;
+    child.hidden = !children
+      .slice(index + 1, end)
+      .some((candidate) => !candidate.hidden);
+  });
+}
+
+/** 按真实容器宽度逐级收纳可选一级项，始终不启用横向滚动。 */
+export function fitMilkdownToolbar(topBar: HTMLElement): MilkdownToolbarDensity {
+  const inner = topBar.querySelector<HTMLElement>(".top-bar-inner");
+  const densities: readonly MilkdownToolbarDensity[] = [
+    "expanded",
+    "with-more",
+    "without-draft",
+    "compact",
+  ];
+
+  for (const density of densities) {
+    applyMilkdownToolbarDensity(topBar, density);
+    if (!inner || topBar.scrollWidth <= topBar.clientWidth) return density;
   }
+  return "compact";
+}
+
+export function syncMilkdownMoreMenuState(root: ParentNode, open: boolean): void {
+  root.querySelectorAll<HTMLElement>('[data-editor-tool="more"]').forEach((trigger) => {
+    trigger.setAttribute("aria-haspopup", "menu");
+    trigger.setAttribute("aria-expanded", String(open));
+  });
 }
 
 interface ToolbarViewport {
@@ -43,7 +140,7 @@ interface ToolbarViewport {
 }
 
 /**
- * 横向滚动容器会裁切绝对定位子元素，因此标题菜单改用视口坐标浮动。
+ * 编辑器外框会裁切绝对定位子元素，因此标题菜单改用视口坐标浮动。
  * 菜单仍留在原 DOM 中，Crepe 自带的选择与点击外部关闭逻辑可以继续工作。
  */
 export function positionMilkdownHeadingDropdowns(

@@ -177,15 +177,18 @@ test("编辑器格式、窄栏、骰子与正文草稿工具在真实浏览器�
 
   const toolbar = page.getByRole("toolbar", { name: "正文格式工具栏" });
   await expect(toolbar.getByRole("button", { name: "删除线" })).toBeVisible();
-  await expect(toolbar.getByRole("button", { name: "无序列表" })).toHaveCount(0);
-  const diceIcon = toolbar.getByRole("button", { name: "骰子" });
-  await expect(diceIcon.locator("rect[rx='4']")).toHaveCount(1);
-  await expect(diceIcon.locator("circle")).toHaveCount(5);
+  await expect(toolbar.getByRole("button", { name: "无序列表" })).toBeVisible();
+  await expect(toolbar.getByRole("button", { name: "骰子" })).toBeVisible();
+  await expect(toolbar.getByRole("button", { name: "更多" })).toHaveCount(0);
 
   const host = page.locator(".milkdown-editor").first();
   await host.evaluate((element) => {
-    element.style.width = "360px";
+    element.style.width = "320px";
   });
+  await expect(toolbar).toHaveAttribute(
+    "data-editor-density",
+    /^(?:with-more|without-draft|compact)$/u,
+  );
   const narrowMetrics = await toolbar.evaluate((element) => ({
     clientWidth: element.clientWidth,
     scrollWidth: element.scrollWidth,
@@ -193,12 +196,24 @@ test("编辑器格式、窄栏、骰子与正文草稿工具在真实浏览器�
       ...element.querySelectorAll<HTMLElement>(
         ".top-bar-heading-button, .top-bar-item",
       ),
-    ].map((item) => item.offsetTop),
+    ].filter((item) => getComputedStyle(item).display !== "none")
+      .map((item) => item.offsetTop),
   }));
   expect(
     Math.max(...narrowMetrics.itemTops) - Math.min(...narrowMetrics.itemTops),
   ).toBeLessThanOrEqual(4);
-  expect(narrowMetrics.scrollWidth).toBeGreaterThan(narrowMetrics.clientWidth);
+  expect(narrowMetrics.scrollWidth).toBeLessThanOrEqual(narrowMetrics.clientWidth + 1);
+  await expect(toolbar.getByRole("button", { name: "更多" })).toBeVisible();
+  await expect(toolbar.getByRole("button", { name: "正文草稿" })).not.toBeVisible();
+  const narrowDensity = await toolbar.getAttribute("data-editor-density");
+  if (narrowDensity === "compact") {
+    await expect(toolbar.getByRole("button", { name: "删除线" })).not.toBeVisible();
+  } else {
+    await expect(toolbar.getByRole("button", { name: "删除线" })).toBeVisible();
+  }
+  await toolbar.getByRole("button", { name: "更多" }).click();
+  await expect(page.getByRole("menuitem", { name: "骰子" })).toBeVisible();
+  await page.keyboard.press("Escape");
   const headingButton = toolbar.locator(".top-bar-heading-button");
   await headingButton.click();
   const headingMenu = toolbar.locator(".top-bar-heading-dropdown");
@@ -215,9 +230,8 @@ test("编辑器格式、窄栏、骰子与正文草稿工具在真实浏览器�
   await host.evaluate((element) => {
     element.style.width = "";
   });
+  await expect(toolbar).toHaveAttribute("data-editor-density", "expanded");
 
-  const diceButton = page.getByRole("button", { name: "骰子" });
-  await expect(diceButton).toBeVisible();
   const editor = page.locator(".milkdown .ProseMirror");
   await editor.fill("需要删除的文字");
   await editor.selectText();
@@ -229,7 +243,7 @@ test("编辑器格式、窄栏、骰子与正文草稿工具在真实浏览器�
 
   await editor.click();
   await editor.fill("玛利亚发财的概率：");
-  await diceButton.click();
+  await toolbar.getByRole("button", { name: "骰子" }).click();
 
   const popover = page.getByRole("dialog", { name: "插入骰子" });
   await expect(popover).toBeVisible();

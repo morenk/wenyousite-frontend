@@ -53,23 +53,38 @@ test.describe("主题帖创建流程", () => {
     const toolbar = page.getByRole("toolbar", { name: "正文格式工具栏" });
     await expect(toolbar).toBeVisible({ timeout: 5000 });
 
-    // 顶栏恢复删除线、移除无序列表，并使用明确的五点骰面图标。
-    await expect(toolbar.getByRole("button", { name: "删除线" })).toBeVisible();
-    await expect(toolbar.getByRole("button", { name: "无序列表" })).toHaveCount(0);
-    const diceButton = toolbar.getByRole("button", { name: "骰子" });
-    await expect(diceButton.locator("rect[rx='4']")).toHaveCount(1);
-    await expect(diceButton.locator("circle")).toHaveCount(5);
+    // 宽栏能放下时直接平铺全部常用能力，不增加一次“更多”点击。
+    for (const label of [
+      "删除线",
+      "行内代码",
+      "无序列表",
+      "有序列表",
+      "链接",
+      "图片",
+      "引用",
+      "分隔线",
+      "骰子",
+      "正文草稿",
+    ]) {
+      await expect(toolbar.getByRole("button", { name: label })).toBeVisible();
+    }
+    await expect(toolbar.getByRole("button", { name: "更多" })).toHaveCount(0);
   });
 
-  test("编辑器顶栏在窄容器保持单行并可横向滚动", async ({ page }) => {
+  test("编辑器顶栏在窄容器保持单行且不横向滚动", async ({ page }) => {
     await openFreshThreadDraft(page);
 
     const host = page.locator(".milkdown-editor").first();
     const toolbar = page.getByRole("toolbar", { name: "正文格式工具栏" });
     await expect(toolbar).toBeVisible({ timeout: 5000 });
     await host.evaluate((element) => {
-      element.style.width = "360px";
+      element.style.width = "320px";
     });
+
+    await expect(toolbar).toHaveAttribute(
+      "data-editor-density",
+      /^(?:with-more|without-draft|compact)$/u,
+    );
 
     const metrics = await toolbar.evaluate((element) => ({
       clientWidth: element.clientWidth,
@@ -78,27 +93,28 @@ test.describe("主题帖创建流程", () => {
         ...element.querySelectorAll<HTMLElement>(
           ".top-bar-heading-button, .top-bar-item",
         ),
-      ].map((item) => item.offsetTop),
+      ].filter((item) => getComputedStyle(item).display !== "none")
+        .map((item) => item.offsetTop),
     }));
     expect(
       Math.max(...metrics.itemTops) - Math.min(...metrics.itemTops),
     ).toBeLessThanOrEqual(4);
-    expect(metrics.scrollWidth).toBeGreaterThan(metrics.clientWidth);
+    expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.clientWidth + 1);
+    await expect(toolbar.getByRole("button", { name: "正文样式" })).toHaveCount(0);
+    await expect(toolbar.getByRole("button", { name: "切换正文样式" })).toBeVisible();
+    await expect(toolbar.getByRole("button", { name: "粗体" })).toBeVisible();
+    await expect(toolbar.getByRole("button", { name: "斜体" })).toBeVisible();
+    await expect(toolbar.getByRole("button", { name: "图片" })).toBeVisible();
+    await expect(toolbar.getByRole("button", { name: "更多" })).toBeVisible();
+    await expect(toolbar.getByRole("button", { name: "无序列表" })).not.toBeVisible();
+    await expect(toolbar.getByRole("button", { name: "正文草稿" })).not.toBeVisible();
+    const density = await toolbar.getAttribute("data-editor-density");
+    if (density === "compact") {
+      await expect(toolbar.getByRole("button", { name: "删除线" })).not.toBeVisible();
+    } else {
+      await expect(toolbar.getByRole("button", { name: "删除线" })).toBeVisible();
+    }
 
-    await toolbar.evaluate((element) => {
-      element.scrollLeft = element.scrollWidth;
-    });
-    const toolbarBox = await toolbar.boundingBox();
-    const lastButtonBox = await toolbar.getByRole("button", { name: "正文草稿" }).boundingBox();
-    expect(toolbarBox).not.toBeNull();
-    expect(lastButtonBox).not.toBeNull();
-    expect(lastButtonBox!.x + lastButtonBox!.width).toBeLessThanOrEqual(
-      toolbarBox!.x + toolbarBox!.width + 1,
-    );
-
-    await toolbar.evaluate((element) => {
-      element.scrollLeft = 0;
-    });
     await toolbar.locator(".top-bar-heading-button").click();
     const headingMenu = toolbar.locator(".top-bar-heading-dropdown");
     await expect(headingMenu).toBeVisible();
@@ -108,6 +124,10 @@ test.describe("主题帖创建流程", () => {
     expect(menuBox!.x + menuBox!.width).toBeLessThanOrEqual(
       (await page.evaluate(() => window.innerWidth)) - 8,
     );
+    await expect(headingMenu.getByRole("button", { name: "正文" })).toBeVisible();
+    await expect(headingMenu.getByRole("button", { name: "标题 2" })).toBeVisible();
+    await expect(headingMenu.getByRole("button", { name: "标题 3" })).toBeVisible();
+    await expect(headingMenu.getByRole("button", { name: "标题 1" })).toHaveCount(0);
   });
 
   test("上传并插入图片后编辑器工具栏仍可见", async ({ page }) => {

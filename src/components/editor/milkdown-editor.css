@@ -77,6 +77,23 @@
   font-synthesis: style;
 }
 
+/* 手写或粘贴产生的复杂块只在自身内部溢出，不扩大编辑器。 */
+.milkdown .ProseMirror pre,
+.milkdown .ProseMirror table {
+  max-width: 100%;
+}
+
+.milkdown .ProseMirror pre {
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.milkdown .ProseMirror table {
+  display: block;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
 .milkdown-editor .ProseMirror {
   min-height: var(--editor-min-height, 280px);
   max-height: var(--editor-max-height, 400px);
@@ -115,38 +132,17 @@
   min-width: 40px;
 }
 
-/*
- * 所有编辑场景共用同一条容器驱动的工具栏：常见详情窄栏通过紧凑间距保持单行，
- * 更窄的嵌套容器只横向滚动，不按页面身份或视口断点切换布局。
- */
+/* 宽栏直接平铺常用能力；只有真实放不下时才启用“更多”，始终保持单行。 */
 .milkdown .milkdown-top-bar {
   min-height: 44px;
   padding-inline: 8px;
   flex-wrap: nowrap;
-  overflow-x: auto;
-  overflow-y: hidden;
-  overscroll-behavior-inline: contain;
-  scroll-padding-inline: 8px;
-  scrollbar-color: color-mix(in srgb, var(--crepe-color-outline) 42%, transparent) transparent;
-  scrollbar-width: thin;
-}
-
-.milkdown .milkdown-top-bar::-webkit-scrollbar {
-  height: 4px;
-}
-
-.milkdown .milkdown-top-bar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.milkdown .milkdown-top-bar::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--crepe-color-outline) 42%, transparent);
+  overflow: visible;
 }
 
 .milkdown .milkdown-top-bar .top-bar-inner {
-  width: max-content;
-  min-width: 100%;
+  width: 100%;
+  min-width: 0;
   flex-wrap: nowrap;
 }
 

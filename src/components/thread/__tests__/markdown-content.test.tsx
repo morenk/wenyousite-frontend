@@ -92,6 +92,41 @@ describe("MarkdownContent", () => {
     expect(document.querySelectorAll("br")).toHaveLength(1);
   });
 
+  test("完整 CommonMark/GFM 内容可渲染，表格与代码只在自身区域溢出", () => {
+    render(
+      <MarkdownContent
+        content={[
+          "##### 历史五级标题",
+          "",
+          "1. 有序项目",
+          "2. 第二项",
+          "",
+          "- [x] 已完成",
+          "",
+          "| 名称 | 数量 |",
+          "| --- | ---: |",
+          "| 骰子 | 2 |",
+          "",
+          "```ts",
+          "const veryLongValue = '不会撑宽整张帖子卡片';",
+          "```",
+        ].join("\n")}
+      />,
+    );
+
+    expect(screen.getByRole("heading", { level: 5, name: "历史五级标题" })).toBeInTheDocument();
+    expect(document.querySelector("ol")).toBeInTheDocument();
+    expect(document.querySelector('input[type="checkbox"]')).toBeChecked();
+    expect(document.querySelector('[data-slot="markdown-table-scroll"]')).toHaveClass(
+      "max-w-full",
+      "overflow-x-auto",
+    );
+    expect(document.querySelector('[data-slot="markdown-code-scroll"]')).toHaveClass(
+      "max-w-full",
+      "overflow-x-auto",
+    );
+  });
+
   test("空 URL 图片不渲染破图", () => {
     render(<MarkdownContent content={"![1.00]()"} />);
     expect(screen.queryByRole("img")).toBeNull();

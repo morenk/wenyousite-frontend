@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { Popover } from "@base-ui/react/popover";
 import {
   DndContext,
   KeyboardSensor,
@@ -129,9 +130,8 @@ async function runWithConcurrency<T>(tasks: Array<() => Promise<T>>, concurrency
 
 function StickerPickerPanel({
   onSelect,
-  align = "start",
   onClose,
-}: Pick<StickerPickerPopoverProps, "onSelect" | "align"> & { onClose: () => void }) {
+}: Pick<StickerPickerPopoverProps, "onSelect"> & { onClose: () => void }) {
   const userId = getKnownUserId() ?? undefined;
   const query = useStickers(userId);
   const actions = useStickerActions(userId);
@@ -268,13 +268,10 @@ function StickerPickerPanel({
   };
 
   return (
-        <div
+        <Popover.Popup
           role="dialog"
           aria-label="表情收藏"
-          className={cn(
-            "absolute bottom-full z-50 mb-2 w-[min(22rem,calc(100vw-1rem))] rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-popover",
-            align === "end" ? "right-0" : "left-0",
-          )}
+          className="w-[min(22rem,calc(100vw-1rem))] max-h-(--available-height) overflow-y-auto overscroll-contain rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-popover outline-none"
         >
           <div className="flex items-center justify-between gap-2">
             <div className="flex rounded-lg bg-muted p-0.5">
@@ -339,7 +336,10 @@ function StickerPickerPanel({
             />
           ) : null}
 
-          <div className="mt-3 max-h-72 min-h-36 overflow-y-auto">
+          <div
+            data-slot="sticker-picker-scroll"
+            className="mt-3 max-h-72 min-h-36 touch-pan-y overflow-y-auto overscroll-contain"
+          >
             {query.isLoading ? (
               <div className="flex h-36 items-center justify-center text-muted-foreground">
                 <Loader2 className="h-5 w-5 animate-spin" />
@@ -394,7 +394,7 @@ function StickerPickerPanel({
               </Button>
             </div>
           )}
-        </div>
+        </Popover.Popup>
   );
 }
 
@@ -405,38 +405,36 @@ export function StickerPickerPopover({
   label = "表情",
 }: StickerPickerPopoverProps) {
   const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const close = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
-    };
-    document.addEventListener("pointerdown", close);
-    return () => document.removeEventListener("pointerdown", close);
-  }, [open]);
 
   return (
-    <div ref={rootRef} className="relative inline-flex">
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        disabled={disabled}
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        onClick={() => setOpen((value) => !value)}
+    <Popover.Root open={open} onOpenChange={setOpen}>
+      <Popover.Trigger
+        render={
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={disabled}
+            aria-haspopup="dialog"
+          />
+        }
       >
         <SmilePlus className="h-4 w-4" />
         {label}
-      </Button>
-      {open && (
-        <StickerPickerPanel
-          onSelect={onSelect}
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Positioner
+          side="top"
           align={align}
-          onClose={() => setOpen(false)}
-        />
-      )}
-    </div>
+          sideOffset={8}
+          className="isolate z-[100]"
+        >
+          <StickerPickerPanel
+            onSelect={onSelect}
+            onClose={() => setOpen(false)}
+          />
+        </Popover.Positioner>
+      </Popover.Portal>
+    </Popover.Root>
   );
 }

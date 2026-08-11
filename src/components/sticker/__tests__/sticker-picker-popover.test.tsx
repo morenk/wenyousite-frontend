@@ -90,6 +90,53 @@ beforeEach(() => {
 afterEach(() => cleanup());
 
 describe("StickerPickerPopover", () => {
+  test("面板通过 Portal 脱离会裁切内容的编辑器外壳", async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      <div data-testid="editor-shell" className="overflow-hidden">
+        <StickerPickerPopover onSelect={vi.fn()} />
+      </div>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "表情" }));
+    const panel = screen.getByRole("dialog", { name: "表情收藏" });
+
+    expect(document.body).toContainElement(panel);
+    expect(container).not.toContainElement(panel);
+  });
+
+  test("表情较多时只滚动弹窗内列表并阻断页面滚动链", async () => {
+    const user = userEvent.setup();
+    mockUseStickers.mockReturnValue({
+      data: {
+        items: Array.from({ length: 50 }, (_, index) => ({
+          ...sticker,
+          id: `f${index}`,
+        })),
+        recent: [],
+        pendingImports: [],
+        version: 1,
+        limit: 200,
+      },
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+    render(<StickerPickerPopover onSelect={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: "表情" }));
+    const panel = screen.getByRole("dialog", { name: "表情收藏" });
+    const stickerScroll = document.querySelector<HTMLElement>('[data-slot="sticker-picker-scroll"]');
+
+    expect(panel).toHaveClass("overscroll-contain");
+    expect(stickerScroll).toHaveClass(
+      "max-h-72",
+      "overflow-y-auto",
+      "overscroll-contain",
+      "touch-pan-y",
+    );
+  });
+
   test("打开收藏面板并选择表情后关闭、刷新最近使用", async () => {
     const user = userEvent.setup();
     const onSelect = vi.fn().mockResolvedValue(undefined);

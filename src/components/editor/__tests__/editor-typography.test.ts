@@ -39,7 +39,7 @@ describe("编辑器正文字体", () => {
     );
     const publishedHeadings = getRule(
       globalCss,
-      ".wenyou-prose :is(h1, h2, h3, h4)",
+      ".wenyou-prose :is(h1, h2, h3, h4, h5, h6)",
     );
 
     expect(editorCss).toContain("--crepe-font-title: var(--font-sans)");
@@ -47,6 +47,14 @@ describe("编辑器正文字体", () => {
     expect(publishedHeadings).toContain("font-family: var(--font-sans)");
     expect(editorHeadings).not.toContain("var(--font-display)");
     expect(publishedHeadings).not.toContain("var(--font-display)");
+  });
+
+  test("工具栏依靠能力收纳保持单行，不开放横向滑动", () => {
+    const topBar = getRule(editorCss, ".milkdown .milkdown-top-bar");
+
+    expect(topBar).toContain("flex-wrap: nowrap");
+    expect(topBar).toContain("overflow: visible");
+    expect(topBar).not.toMatch(/overflow-x:\s*(?:auto|scroll)/u);
   });
 
   test("编辑态与发布态的引用块均使用斜体", () => {
