@@ -2,77 +2,6 @@
 @plugin "@tailwindcss/typography";
 @import "tw-animate-css";
 
-:root {
-  /* 页面画布永远纯白；柔和色只表达品牌、玩法和状态。 */
-  --background: #ffffff;
-  --foreground: #342f3e;
-
-  --card: #ffffff;
-  --card-foreground: #342f3e;
-
-  --popover: #ffffff;
-  --popover-foreground: #342f3e;
-
-  --primary: #f3c6dd;
-  --primary-foreground: #704c65;
-  --brand-strong: #704c65;
-
-  --secondary: #c7ccff;
-  --secondary-foreground: #4b527c;
-
-  --muted: #f7f5f8;
-  --muted-foreground: #6d6775;
-
-  --accent: #f7dbea;
-  --accent-foreground: #68455d;
-
-  --destructive: #8a3f50;
-  --destructive-foreground: #ffffff;
-
-  --success: #3d6650;
-  --success-soft: #c8e8d6;
-  --warning: #6b5a19;
-  --warning-soft: #f7e7a9;
-  --destructive-soft: #f8d2d8;
-  --info: #4b527c;
-  --info-soft: #c7ccff;
-
-  --category-deduction: #7b5d22;
-  --category-deduction-soft: #faedbb;
-  --category-nation: #4b527c;
-  --category-nation-soft: #dde0ff;
-  --category-rpg: #704c65;
-  --category-rpg-soft: #f7dbea;
-
-  --border: #e8e3eb;
-  --input: #dcd5e0;
-  --ring: #704c65;
-
-  --radius-compact: 0.625rem;
-  --radius-control: 0.75rem;
-  --radius-panel: 1rem;
-  --radius: var(--radius-control);
-
-  --layout-narrow: 30rem;
-  --layout-moment: 36rem;
-  --layout-feed: 42rem;
-  --layout-content: 48rem;
-  --layout-workspace: 72rem;
-  --layout-chrome-workspace: 78rem;
-  --layout-wide: 80rem;
-  --sticker-display-max: 8rem;
-
-  --wenyou-shadow-popover: 0 12px 32px rgb(52 47 62 / 12%);
-  --wenyou-shadow-dialog: 0 24px 64px rgb(52 47 62 / 16%);
-  --wenyou-shadow-floating: 0 10px 28px rgb(52 47 62 / 14%);
-
-  --motion-fast: 120ms;
-  --motion-standard: 180ms;
-  --motion-slow: 240ms;
-  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
-}
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -98,12 +27,6 @@
   --color-warning-soft: var(--warning-soft);
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
-  --color-category-deduction: var(--category-deduction);
-  --color-category-deduction-soft: var(--category-deduction-soft);
-  --color-category-nation: var(--category-nation);
-  --color-category-nation-soft: var(--category-nation-soft);
-  --color-category-rpg: var(--category-rpg);
-  --color-category-rpg-soft: var(--category-rpg-soft);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -349,7 +272,7 @@ select {
   font-weight: 700;
 }
 
-.wenyou-prose :is(h1, h2, h3, h4) {
+.wenyou-prose :is(h1, h2, h3, h4, h5, h6) {
   font-family: var(--font-sans);
   letter-spacing: 0.015em;
 }
@@ -366,8 +289,7 @@ select {
   margin-block: 1.15em 0.6em;
 }
 
-.wenyou-prose h3,
-.wenyou-prose h4 {
+.wenyou-prose :is(h3, h4, h5, h6) {
   font-size: 1.12em;
   line-height: 1.55;
   margin-block: 1em 0.5em;
@@ -423,6 +345,10 @@ select {
 .wenyou-prose table {
   font-size: 0.88em;
   line-height: 1.7;
+}
+
+.wenyou-prose [data-slot="markdown-table-scroll"] {
+  scrollbar-gutter: stable;
 }
 
 /* 骰子是正文内联原子节点：继承周围文字，只用底色区分待掷与正式结果。 */

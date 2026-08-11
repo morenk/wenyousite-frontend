@@ -4,6 +4,8 @@
 
 统一 Web 图片上传、处理反馈、正文渲染与大图查看行为。所有上传入口共享同一媒体状态机，正文利用后端派生图（`_md.webp` / `_thumb.webp`）降低带宽成本。
 
+头像、封面、正文、缩略图与收藏表情的裁切/完整显示、状态、替代文本和查看器语义以 `foundation.lock.json` 锁定的[跨端图片呈现契约](https://github.com/morenk/wenyousite-foundation/blob/v1.1.0/docs/images.md)为准；本文只记录 Web 当前实现、后端媒体字段和验收入口，不建立第二套审美规范。
+
 **当前能力：**
 - 上传安全契约与后端对齐：仅接受 JPEG / PNG / GIF / WebP / AVIF，拒绝空文件与未经净化的 SVG
 - 页面 CSP 的 `connect-src` 放行 RainS3 媒体源，允许浏览器通过预签名 URL 直接 PUT 上传

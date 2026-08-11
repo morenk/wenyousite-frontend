@@ -43,7 +43,7 @@ pnpm snapshots:check
 - 富文本编辑继续使用 Milkdown；除非任务明确要求，不引入第二套编辑器或平行数据格式。
 - 保持 App Router 的 Server/Client Component 边界；仅在确需浏览器 API、状态或事件时添加 `"use client"`。
 - 可观察行为、契约或运行方式改变时，更新对应 `docs/modules/` 文档；纯重构无需制造文档变更。
-- `docs/design-system.md` 与 `docs/modules/` 只描述当前可观察事实、稳定边界和验收约束；Phase、发布批次、已完成子任务与愿望清单留在 Git/Issue，不写回长期指导文档。
+- 跨端审美、Token、字体与体验能力以 `foundation.lock.json` 锁定的 `morenk/wenyousite-foundation` 为唯一事实源；`docs/design-system.md` 只记录 Web 接入映射，`docs/modules/` 只描述当前可观察行为与验收约束。
 
 ## 3. 测试与质量门禁
 

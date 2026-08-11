@@ -37,6 +37,10 @@ const sharedRules = [
     pattern: /role=["']tablist["']/,
   },
   {
+    label: "方向状态必须显式匹配 data-orientation，请使用 data-[orientation=...] 变体",
+    pattern: /(?:group-)?data-(?:horizontal|vertical)(?:\/[\w-]+)?:/,
+  },
+  {
     label: "动态模块不得建立“温油便笺”第二品牌文案",
     pattern: /温油便笺/,
   },
@@ -65,7 +69,8 @@ for (const file of sourceRoots.flatMap(sourceFiles)) {
 }
 
 const stickerDisplayClaims = new Map([
-  ["src/app/globals.css", ["--sticker-display-max: 8rem", "img.sticker-display"]],
+  ["node_modules/@wenyousite/foundation/web/tokens.css", ["--sticker-display-max: 8rem"]],
+  ["src/app/globals.css", ["img.sticker-display"]],
   ["src/components/editor/milkdown-editor.css", ["var(--sticker-display-max)"]],
   ["src/components/thread/markdown-content.tsx", ["sticker-display", "STICKER_DISPLAY_STYLE"]],
   ["src/components/moment/moment-comments.tsx", ["sticker-display", "getStickerDisplayUrl"]],

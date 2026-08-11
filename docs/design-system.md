@@ -1,150 +1,22 @@
-# 温油站 Web 视觉设计系统
+# Web 设计基础接入
 
 状态：`active`
 
-本文档是 PC Web 的视觉事实源。业务页面复用 `src/app/globals.css` 的语义 Token、`src/components/ui/` 原语和 `src/components/layout/` 骨架；不得在页面中另造近似颜色、宽度、圆角、阴影或状态样式。
+跨端审美、共享 Token、字体角色和编辑器能力的唯一事实源是公开仓库
+[`morenk/wenyousite-foundation`](https://github.com/morenk/wenyousite-foundation)。本仓库由
+[`foundation.lock.json`](../foundation.lock.json) 固定到 `v1.1.0`，实现前必须读取同版本的：
 
-## 1. 设计边界
+- [`docs/foundation.md`](https://github.com/morenk/wenyousite-foundation/blob/v1.1.0/docs/foundation.md)
+- [`docs/platforms/web.md`](https://github.com/morenk/wenyousite-foundation/blob/v1.1.0/docs/platforms/web.md)
+- [`docs/images.md`](https://github.com/morenk/wenyousite-foundation/blob/v1.1.0/docs/images.md)
+- [`contracts/foundation.v1.json`](https://github.com/morenk/wenyousite-foundation/blob/v1.1.0/contracts/foundation.v1.json)
 
-- 产品是多人文字共同创作社区，主要任务是发现、阅读、创建和管理主题帖。
-- 参考 Misskey 的桌面信息架构、内容密度与反馈方式，不复制其品牌、角色、资产或实现代码。
-- 页面画布始终是纯白色。浅色只用于选中、玩法、状态和局部反馈，不铺设大面积彩色背景。
-- 当前只实现亮色主题；不保留散落的 `dark:` 分支。
-- 不使用人物、吉祥物或场景插画。视觉识别由排版、三栏骨架和玩法线路标记承担。
-- 用户界面只显示真实功能名称。内部视觉概念、配色名称和宣传式氛围文案不得成为界面标签。
-- Web 最小目标宽度为 1024px；更窄宽度只保证浏览器缩放下的核心操作可用，不实现移动端产品布局。
+本地只保留实现映射，不复制规范：
 
-## 2. 核心视觉语言
+- `src/app/layout.tsx` 引入中央字体与 Token CSS，`globals.css` 只做 Tailwind 映射和 Web 组件样式。
+- `src/lib/editor-capabilities.ts` 是中央编辑器契约的薄转发层。
+- `src/components/ui/` 与 `src/components/layout/` 承担 Web 原语和页面骨架。
+- 分类名称、排序和可选颜色等业务数据仍由 `GET /thread-categories` 提供，不进入设计基础仓库。
+- `pnpm design:check` 同时校验版本锁、中央产物消费和业务 UI 静态约束。
 
-### 2.1 色板
-
-| 角色 | 色值 | 用途 |
-| --- | --- | --- |
-| `background` / `card` | `#FFFFFF` | 页面、正文和常规表面 |
-| `foreground` | `#342F3E` | 标题和正文 |
-| `primary` | `#F3C6DD` | 主动作、选中和品牌标记 |
-| `brandStrong` | `#704C65` | 白底链接、焦点与品牌前景 |
-| `secondary` | `#C7CCFF` | 次要动作、国策线路和信息状态 |
-| `successSoft` | `#C8E8D6` | 成功、招募中和支持状态 |
-
-弱文字使用 `#6D6775`，边框使用 `#E8E3EB`。演绎、国策和 RPG 分别使用黄褐、淡紫蓝和莓粉线路色；危险和警告使用独立语义色。浅色背景必须搭配通过 WCAG AA 的深色文字，禁止在浅色卡上使用白色小字。
-
-### 2.2 字体
-
-- `font-display`：LXGW WenKai，仅用于品牌、页面标题、主题帖标题和区块标题。
-- `font-sans`：自托管 Noto Sans SC Variable，用于正文、控件和长时间阅读，避免不同系统中文字体造成字宽和字重漂移。
-- `font-utility`：Nunito Variable，用于数字、等级、时间、计数和短标签。
-- 字体通过 Fontsource 随应用自托管，不从运行时 CDN 加载；正文使用真实 100–900 可变字重，不依赖浏览器合成粗体。
-- 正文不使用文楷；界面装饰不能依赖特殊字形才能理解。
-
-### 2.3 线路标记
-
-线路标记是唯一高辨识度元素，只在有真实数据语义时出现：
-
-- 分类筛选用线路点和选中轨道表示当前玩法；名称、排序和可选颜色来自 `GET /thread-categories`，旧三分类仅保留稳定的品牌色降级。
-- 主题帖列表与详情左边缘用线路色表示玩法。
-- 连载状态继续显示文字徽章，颜色不是唯一信息。
-- 不给普通区块添加虚假编号、时间线或站点关系。
-
-## 3. 页面骨架
-
-`AppChrome` 根据路由选择三种模式：
-
-```text
-community ≥1280  [左导航 272] [中央内容 672] [右侧信息 272]
-community 1024   [图标导航 72] [中央内容自适应]
-workspace        [图标导航 72] [消息 / 编辑 / 管理宽工作区]
-auth             [品牌与玩法] [认证表单]
-```
-
-```ts
-type AppChromeMode = "community" | "workspace" | "auth";
-type PageWidth = "narrow" | "moment" | "feed" | "content" | "workspace" | "wide";
-type PanelTone = "plain" | "soft" | "accent" | "floating";
-```
-
-- 普通宽屏页面的左侧只保留全站浏览、统一发布与退出；文楷“发布”按钮通过无边框便笺折角样式提供主题帖/动态两种创作入口。个人主页、通知、私聊、收藏和设置集中在右侧账户栏，访客登录/注册也只保留右侧入口，不重复展示。
-- 1024px 隐藏右栏并将左栏收为图标轨道；右侧个人入口此时回到左侧，登录、注册、创建及账户功能仍必须可达。
-- 消息、主题帖创建/编辑和管理使用 `workspace`，不强塞右侧信息栏。`workspace` 只改变栏宽和文字标签，不改变同一屏宽下的左侧按钮集合：宽屏继续隐藏个人快捷入口，1024px 时与 `community` 一样回流到图标轨道。
-- 页面禁止直接写任意 `max-w-*`；使用 `PageShell` 语义宽度。
-- 分类上下文只包裹需要右侧玩法栏的 `community` 和主题帖创建/编辑工作区；认证页与消息工作区不请求分类。通知和私聊未读数由 `AppChrome` 各订阅一次，再通过只读上下文供左右侧栏和消息中心共同消费。
-
-## 4. 表面与组件
-
-### 4.1 Panel、Card 与列表
-
-- 常规表面为白底、1px 边框和 16px 圆角，不使用常驻阴影。
-- `soft` 用于次级说明，`accent` 用于选中/局部反馈，`floating` 只用于弹层。
-- 连续信息流使用 `StackList`：单一外框、内部细分隔、行 Hover 弱品牌色。
-- 独立表单、资料摘要和工作区可使用 Card；同一区域避免多层卡片嵌套。
-- 阴影只表示真实悬浮层，不通过 Hover 抬升普通列表项。
-
-### 4.2 控件
-
-| 规格 | 高度 | 圆角 |
-| --- | --- | --- |
-| compact | 32px | 10px |
-| default | 40px | 12px |
-| large | 44px | 12px |
-
-- 主要动作使用柔粉背景和深品牌色文字；一个区域通常只有一个主要动作。
-- 输入框默认 44px 高、白底、可见边框；Focus 使用深品牌色边界和焦点环。
-- Badge 使用语义 `tone`，业务层不得拼接任意颜色。
-- Link 外观通过 `buttonVariants` 复用，禁止在 Link 内嵌 button。
-- 业务下拉选择与页签分别使用共享 `Select`、`Tabs`；不在页面或模块组件中重新实现原生 `<select>`、方向键切换或 ARIA 选中状态。
-- 模态交互使用共享 `Dialog` / `AlertDialog`，由原语统一处理焦点圈定、Esc、遮罩关闭和滚动锁定；紧凑关闭按钮仍保持至少 32px 命中区。
-- 所有交互覆盖 hover、focus-visible、active、disabled、loading 和 error。
-
-### 4.3 内容与状态
-
-- 页面标题使用 `PageHeader`，说明只描述筛选范围、权限、数据来源或下一步操作。
-- 不添加宣传式副标题、情绪化空话或内部设计概念。
-- 错误说明发生了什么以及用户能做什么；空状态提供真实可执行的下一步。
-- 文件直传不得只显示静态按钮文案或旋转图标：获取凭证与服务端处理阶段使用不定进度，传输阶段必须显示真实已传/总字节与百分比；统一复用 `Progress` 和 `ImageUploadProgress`，可取消入口与当前上传状态放在同一反馈区。
-- 帖子、动态评论和私聊中的收藏表情统一使用 `--sticker-display-max: 8rem`（128px）作为最大宽高，不按资源自然尺寸放大；静态表情优先加载 128px 缩略图，动图加载服务端已规范化的动画资产。
-- Markdown 正文使用不低于 16px 的字号和稳定行距，图片、表格、代码不突破容器。
-- 主题帖、楼层和回复保留作者、时间、状态、关系和操作，不为了简洁隐藏必要信息。
-
-### 4.4 帖子阅读排版
-
-- 已发布的主题帖正文、楼层和独立回复使用 17px 字号、约 32px 行高，最大阅读宽度为 40 个全角字宽。
-- 在 100% 浏览器缩放下，主帖与楼层目标为每行约 35–37 个汉字；嵌套回复使用 16px / 1.85 行高，目标为每行约 32–35 个汉字。
-- Markdown 粗体使用 700 字重和轻微字距；Markdown 斜体使用标准 `italic` 样式，缺少斜体字形时允许浏览器合成倾斜。
-- 引用块在编辑态与发布态统一使用斜体；代码、表格降一级字号，但不得低于约 15px。
-- 阅读排版只使用稳定的 `rem` / `em`、固定自托管字体和通用换行规则；不依赖实验性自动平衡换行。浏览器缩放时字号、行高和阅读宽度同步放大。
-- Milkdown 编辑区使用与发布结果相同的正文、粗体、强调和标题尺度，并将实际输入列限制在约 40 个全角字宽。
-- 本节数值只约束 PC Web。Flutter 共享可读性、真实字重、语义强调和可缩放原则，但使用原生逻辑像素与手机阅读列；移动端事实源见 `wenyousite-backend/docs/mobile-ui-contract.md`。
-
-## 5. 动效与无障碍
-
-| Token | 时长 | 用途 |
-| --- | --- | --- |
-| `motionFast` | 120ms | Hover、按压、颜色和边框 |
-| `motionStandard` | 180ms | 选中线路、Popover、短位移 |
-| `motionSlow` | 240ms | Dialog、Drawer |
-
-- 常规反馈不使用弹跳、卡片上浮、持续背景动画或视差。
-- 公开浏览路由加载时保持 `AppChrome` 不变，内容区使用与目标页面结构一致的骨架；不要对整页做淡入淡出。
-- 顶部 2px 品牌进度线延迟 `motionFast`（120ms）后出现，快速导航不闪烁；列表筛选请求期间保留旧内容并在列表顶部显示细更新线。
-- `prefers-reduced-motion: reduce` 下关闭非必要位移、缩放和循环动画。
-- 键盘焦点始终可见；颜色不能成为状态的唯一信号。
-- 默认控件命中区域不小于 40px；紧凑工具栏不小于 32px。
-- 1024px、200% 缩放和键盘操作下，核心信息与动作不能被裁切。
-
-## 6. 页面应用
-
-- 首页、标签、搜索、收藏和通知：`feed` + 连续信息流。
-- 首页与搜索主题帖卡片的正文图片使用同一封面带：标题下最多三张、按数量等分、统一 16:9，不叠加数量角标或独立灯箱入口。
-- 主题帖详情和楼中楼：`feed`，标题使用玩法线路边缘，正文保持单一阅读列。
-- 动态列表：`feed` + 两列瀑布流；动态详情保持 `feed` 外层中栏不动，并在内部使用 `moment` 语义阅读列（36rem）。文字封面只能从现有 primary、secondary、success、warning 语义色派生，不创建第二套品牌色或界面标签。
-- 用户主页、账户和钱包：`feed`；资料、设置和记录使用统一 Panel/Card。
-- 登录、注册、找回与验证：`auth`，左侧只显示品牌和真实玩法名称，右侧为表单。
-- 消息、创建、编辑和管理：`workspace`，内部工具栏和弹层仍使用同一 Token。
-
-## 7. 质量门禁
-
-- 共享组件通过 Testing Library 验证语义、状态和键盘行为。
-- 首页在 1024、1440 和 1920px 维护确定性视觉基线，动态详情在 1440px 维护阅读列基线；代表页面补充 axe 检查。
-- `pnpm design:check` 静态阻止业务 TSX 写死颜色、任意阴影、页面任意宽度、原生 Select、手写 Tab 状态机和动态第二品牌文案；该命令已纳入 `pnpm check`。
-- 视觉改动先截图自审：删除不承载信息的装饰，并确认纯白背景、文字对比和核心动作。
-- 完成后运行 `pnpm check`；核心旅程或布局变化运行 `pnpm check:full`。
+需要新增共享语义时，先在基础仓库修改契约、生成产物并发布新标签，再升级本仓库锁文件；只影响 Web 的实现细节记录在对应 `docs/modules/` 文档。
