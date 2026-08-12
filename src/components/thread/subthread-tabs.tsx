@@ -1,10 +1,9 @@
-/** 子贴切换器：在主题帖排头卡内用可检索目录承载大量子贴。 */
+/** 子贴切换器：在主题帖排头卡内用紧凑目录承载大量子贴。 */
 
 "use client";
 
-import { Combobox } from "@base-ui/react/combobox";
-import { Check, ChevronDown, ChevronLeft, ChevronRight, Link2, ListTree, Search } from "lucide-react";
-import type { KeyboardEvent as ReactKeyboardEvent } from "react";
+import { Select } from "@base-ui/react/select";
+import { Check, ChevronDown, ChevronLeft, ChevronRight, Link2, ListTree } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip } from "@/components/ui/tooltip";
@@ -29,63 +28,21 @@ export function SubthreadSwitcher({
   onCopyCurrent,
   className,
 }: SubthreadSwitcherProps) {
-  const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
-  const [keyboardIndex, setKeyboardIndex] = useState(-1);
-  const [activeOptionId, setActiveOptionId] = useState<string>();
-  const inputRef = useRef<HTMLInputElement>(null);
-  const itemRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const selectedItemRef = useRef<HTMLDivElement>(null);
   const selected = subthreads.find((subthread) => subthread.id === selectedId)
     ?? subthreads[0];
 
   useEffect(() => {
     if (!open) return;
-    const focusTimer = window.setTimeout(() => inputRef.current?.focus(), 0);
+    const focusTimer = window.setTimeout(() => selectedItemRef.current?.focus(), 0);
     return () => window.clearTimeout(focusTimer);
-  }, [open]);
+  }, [open, selected?.id]);
 
   if (subthreads.length <= 1 || !selected) return null;
   const selectedIndex = subthreads.findIndex((subthread) => subthread.id === selected.id);
   const previous = subthreads[selectedIndex - 1];
   const next = subthreads[selectedIndex + 1];
-  const normalizedQuery = query.trim().toLocaleLowerCase();
-  const filteredSubthreads = normalizedQuery
-    ? subthreads.filter((subthread) => (
-        subthread.title.toLocaleLowerCase().includes(normalizedQuery)
-      ))
-    : subthreads;
-
-  function handleInputKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
-    if (filteredSubthreads.length === 0) return;
-
-    let nextIndex = keyboardIndex;
-    if (event.key === "ArrowDown") {
-      nextIndex = keyboardIndex < filteredSubthreads.length - 1
-        ? keyboardIndex + 1
-        : 0;
-    } else if (event.key === "ArrowUp") {
-      nextIndex = keyboardIndex > 0
-        ? keyboardIndex - 1
-        : filteredSubthreads.length - 1;
-    } else if (event.key === "Home") {
-      nextIndex = 0;
-    } else if (event.key === "End") {
-      nextIndex = filteredSubthreads.length - 1;
-    } else if (event.key === "Enter" && keyboardIndex >= 0) {
-      event.preventDefault();
-      const target = filteredSubthreads[keyboardIndex];
-      if (target && target.id !== selected.id) onChange(target.id);
-      setOpen(false);
-      setActiveOptionId(undefined);
-      return;
-    } else {
-      return;
-    }
-
-    event.preventDefault();
-    setKeyboardIndex(nextIndex);
-    setActiveOptionId(itemRefs.current[nextIndex]?.id);
-  }
 
   return (
     <div
@@ -109,34 +66,15 @@ export function SubthreadSwitcher({
         </Button>
       </Tooltip>
 
-      <Combobox.Root
-        items={subthreads}
+      <Select.Root
         open={open}
-        autoHighlight
-        value={selected}
-        inputValue={query}
-        onInputValueChange={(value) => {
-          setQuery(value);
-          setKeyboardIndex(-1);
-          setActiveOptionId(undefined);
-        }}
-        filter={(subthread, value) => (
-          subthread.title.toLocaleLowerCase().includes(value.trim().toLocaleLowerCase())
-        )}
-        itemToStringLabel={(subthread) => subthread.title}
-        itemToStringValue={(subthread) => subthread.id}
-        isItemEqualToValue={(item, value) => item.id === value.id}
-        onOpenChange={(open) => {
-          setOpen(open);
-          setKeyboardIndex(-1);
-          setActiveOptionId(undefined);
-          if (!open) setQuery("");
-        }}
-        onValueChange={(subthread) => {
-          if (subthread && subthread.id !== selected.id) onChange(subthread.id);
+        value={selected.id}
+        onOpenChange={setOpen}
+        onValueChange={(id) => {
+          if (id && id !== selected.id) onChange(id);
         }}
       >
-        <Combobox.Trigger
+        <Select.Trigger
           render={
             <Button
               type="button"
@@ -158,16 +96,23 @@ export function SubthreadSwitcher({
             className="ml-auto size-4 text-muted-foreground transition-transform group-aria-expanded:rotate-180"
             aria-hidden="true"
           />
-        </Combobox.Trigger>
+        </Select.Trigger>
 
-        <Combobox.Portal>
-          <Combobox.Positioner side="bottom" align="start" sideOffset={6} className="z-[70]">
-            <Combobox.Popup
-              aria-label="主题目录"
-              initialFocus={inputRef}
+        <Select.Portal>
+          <Select.Positioner
+            side="bottom"
+            align="start"
+            sideOffset={6}
+            alignItemWithTrigger={false}
+            className="z-[70]"
+          >
+            <Select.Popup
               className="w-[min(22rem,calc(100vw-2rem))] origin-(--transform-origin) overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-popover outline-none duration-[var(--motion-standard)] data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"
             >
-              <div className="flex items-center justify-between border-b border-border px-3.5 py-2.5">
+              <div
+                data-slot="subthread-menu-header"
+                className="flex items-center justify-between border-b border-border px-3.5 py-2.5"
+              >
                 <p className="font-display text-sm font-bold">主题目录</p>
                 <div className="flex items-center gap-1.5">
                   <span className="font-utility text-xs text-muted-foreground">
@@ -189,43 +134,23 @@ export function SubthreadSwitcher({
                   ) : null}
                 </div>
               </div>
-              <div className="border-b border-border p-2.5">
-                <label className="flex h-9 items-center gap-2 rounded-lg border border-border bg-background px-3 focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20">
-                  <Search className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                  <span className="sr-only">筛选子贴</span>
-                  <Combobox.Input
-                    ref={inputRef}
-                    placeholder="搜索子贴标题"
-                    aria-activedescendant={activeOptionId}
-                    onKeyDown={handleInputKeyDown}
-                    className="h-full min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-                  />
-                </label>
-              </div>
-              <Combobox.Empty className="px-4 py-8 text-center text-sm text-muted-foreground">
-                没有匹配的子贴
-              </Combobox.Empty>
-              <Combobox.List className="max-h-80 overflow-y-auto overscroll-contain p-1.5">
-                {(subthread: SubthreadDetail, index) => {
+              <Select.List
+                data-slot="subthread-menu-list"
+                aria-label="主题目录"
+                className="max-h-80 overflow-y-auto overscroll-contain p-1.5 outline-none"
+              >
+                {subthreads.map((subthread) => {
                   const isSelected = subthread.id === selected.id;
                   return (
-                    <Combobox.Item
+                    <Select.Item
                       key={subthread.id}
-                      ref={(element) => {
-                        itemRefs.current[index] = element;
-                      }}
-                      value={subthread}
-                      index={index}
+                      ref={isSelected ? selectedItemRef : undefined}
+                      value={subthread.id}
+                      label={subthread.title}
                       aria-current={isSelected ? "page" : undefined}
-                      data-keyboard-highlighted={keyboardIndex === index ? "" : undefined}
-                      onPointerEnter={() => {
-                        setKeyboardIndex(-1);
-                        setActiveOptionId(undefined);
-                      }}
                       className={cn(
-                        "grid min-h-11 w-full cursor-default grid-cols-[1rem_minmax(0,1fr)_auto] items-center gap-2 rounded-lg px-2.5 py-2 outline-none select-none data-highlighted:bg-accent/70 data-highlighted:text-accent-foreground focus:bg-accent/70",
+                        "grid min-h-11 w-full cursor-default grid-cols-[1rem_minmax(0,1fr)_auto] items-center gap-2 rounded-lg px-2.5 py-2 outline-none select-none data-highlighted:bg-accent/70 data-highlighted:text-accent-foreground",
                         isSelected && "bg-accent text-accent-foreground",
-                        keyboardIndex === index && "bg-accent/70 text-accent-foreground",
                       )}
                     >
                       <Check
@@ -235,20 +160,20 @@ export function SubthreadSwitcher({
                         )}
                         aria-hidden="true"
                       />
-                      <span className="min-w-0 truncate text-sm font-medium">
+                      <Select.ItemText className="min-w-0 truncate text-sm font-medium">
                         {subthread.title}
-                      </span>
+                      </Select.ItemText>
                       <span className="font-utility text-xs tabular-nums text-muted-foreground">
                         {subthread._count.posts} 楼
                       </span>
-                    </Combobox.Item>
+                    </Select.Item>
                   );
-                }}
-              </Combobox.List>
-            </Combobox.Popup>
-          </Combobox.Positioner>
-        </Combobox.Portal>
-      </Combobox.Root>
+                })}
+              </Select.List>
+            </Select.Popup>
+          </Select.Positioner>
+        </Select.Portal>
+      </Select.Root>
 
       <Tooltip content={next ? `下一个子贴：${next.title}` : "已经是最后一个子贴"} disabled={!next}>
         <Button

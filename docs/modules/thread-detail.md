@@ -4,7 +4,7 @@
 
 实现主题帖详情页，展示帖子头部信息、排头卡内的子贴目录切换、楼层列表（分页）、Markdown 渲染，以及发布新楼层。
 
-子贴目录状态写入稳定 URL：非默认子贴使用 `?subthread={id}`，默认子贴移除该参数；切换目录使用 history replace，并保留左右游标。`post` 精确楼层参数优先于 `subthread`，无效子贴参数回落默认目录并清理。目录菜单打开后焦点直接进入搜索框，可按标题筛选几十个子贴并复制当前子贴链接。正文中的主题、子贴、楼层和回复链接统一按[站内传送门](./internal-references.md)内联显示。
+子贴目录状态写入稳定 URL：非默认子贴使用 `?subthread={id}`，默认子贴移除该参数；切换目录使用 history replace，并保留左右游标。`post` 精确楼层参数优先于 `subthread`，无效子贴参数回落默认目录并清理。目录菜单不设置搜索框，打开后直接聚焦当前子贴项，可用方向键浏览、滚动承载几十个子贴并复制当前子贴链接。正文中的主题、子贴、楼层和回复链接统一按[站内传送门](./internal-references.md)内联显示。
 
 内容浏览不维护阅读进度、楼层更新数或内容未读状态；子贴目录只展示楼层总数。通知中心的未读状态属于独立通知能力，继续保留。
 
@@ -263,7 +263,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 | ThreadSubscriptionControls | `src/components/thread/thread-subscription-controls.tsx` | 普通用户的官方更新图标开关与玩家订阅弹层、成员候选查询 |
 | ThreadPostSearch | `src/components/thread/thread-post-search.tsx` | 内联搜索全部子贴与楼中楼；处理短词、分页及四态 |
 | PostSearchResultList | `src/components/search/post-search-result-list.tsx` | 与全站搜索共用的结果列表、加载更多和精确帖子导航 |
-| SubthreadSwitcher | `src/components/thread/subthread-tabs.tsx` | 排头卡与阅读书签条共用的子贴目录；弹出可检索固定高度纵向菜单，显示当前项与各子贴楼层数，并保留左右游标 |
+| SubthreadSwitcher | `src/components/thread/subthread-tabs.tsx` | 排头卡与阅读书签条共用的子贴目录；弹出紧凑的固定高度纵向菜单，显示当前项与各子贴楼层数，并保留左右游标 |
 | SubthreadBody | `src/components/thread/subthread-body.tsx` | 子贴卡（唯一卡片）：子贴标题 + 默认徽章 + 正文（kind=BODY）同容器（正文不进入楼层列表） |
 | FloorCard | `src/components/thread/floor-card.tsx` | 单条楼层卡片；作者可编辑，作者或楼主/协作者可删除；正文图片可收藏为表情 |
 | FloorList | `src/components/thread/floor-list.tsx` | 楼层列表（仅 kind=FLOOR，无限滚动，cursor 分页） |
@@ -324,7 +324,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 - 「成员」页签继续提供协作者与玩家管理。管理面板不做楼层级管理。
 - 主题帖表单或子贴正文有未保存内容时，切换页签、切换子贴或返回浏览均先确认是否放弃；保存或图片上传期间禁止导航。
 - `/threads/[id]/edit` 是已发布帖管理的唯一页面入口，同时兼容历史收藏和直达链接；草稿续写/发布流程不变。
-- 子贴多于一个时：排头卡显示当前子贴目录按钮，左右游标可快速切换相邻子贴并在首尾禁用；点击目录按钮后焦点直接进入搜索框，以固定高度纵向菜单承载并按标题筛选全部子贴，支持键盘操作与滚动浏览几十个子贴，不再使用横向滑动列表
+- 子贴多于一个时：排头卡显示当前子贴目录按钮，左右游标可快速切换相邻子贴并在首尾禁用；点击目录按钮后直接聚焦当前子贴项，列表紧接目录头部且不设置搜索框，以固定高度纵向菜单支持键盘操作与滚动浏览几十个子贴，不再使用横向滑动列表
 
 ## 6.2 阅读排版
 

@@ -131,6 +131,8 @@ function operation(method: string, apiPath: string) {
     /全局导航栏不展示收藏入口/,
     /Flutter 后续必须/,
     /z\.enum\(\["DEDUCTION", "NATION", "RPG"\]\)/,
+    /目录菜单打开后焦点直接进入搜索框/,
+    /弹出可检索固定高度纵向菜单/,
   ];
   for (const file of architectureDocs) {
     const source = fs.readFileSync(file, "utf8");
@@ -212,9 +214,9 @@ function operation(method: string, apiPath: string) {
     "| 层级 | 能力 |",
     "| --- | --- |",
     `| 宽栏一级栏 | ${capabilityRow(EDITOR_PRIMARY_WIDE)} |`,
-    `| 收纳后一级栏 | ${capabilityRow(EDITOR_PRIMARY_NARROW)} |`,
-    `| 更多菜单 | ${capabilityRow(EDITOR_MORE_FALLBACK)} |`,
-    `| 进一步收纳 | ${capabilityRow(EDITOR_MORE_PROGRESSIVE)} |`,
+    `| 最窄核心一级栏 | ${capabilityRow(EDITOR_PRIMARY_NARROW)} |`,
+    `| 最窄“更多”基础集合 | ${capabilityRow(EDITOR_MORE_FALLBACK)} |`,
+    `| 继续变窄时追加收纳 | ${capabilityRow(EDITOR_MORE_PROGRESSIVE)} |`,
     `| 仅语法/粘贴 | ${capabilityRow(EDITOR_SYNTAX_ONLY)} |`,
     `| 新建标题层级 | ${[
       "正文",

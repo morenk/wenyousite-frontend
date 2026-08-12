@@ -1,4 +1,4 @@
-/** SubthreadSwitcher 组件测试：头部可检索目录与大量子贴切换。 */
+/** SubthreadSwitcher 组件测试：头部紧凑目录与大量子贴切换。 */
 
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
@@ -57,10 +57,8 @@ describe("SubthreadSwitcher", () => {
 
     await user.click(screen.getByRole("combobox", { name: "切换子贴，当前：主帖" }));
 
-    expect(screen.getByRole("dialog", { name: "主题目录" })).toBeInTheDocument();
-    await waitFor(() => {
-      expect(screen.getByRole("combobox", { name: "筛选子贴" })).toHaveFocus();
-    });
+    expect(screen.getByRole("listbox", { name: "主题目录" })).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText("搜索子贴标题")).not.toBeInTheDocument();
     expect(screen.getByText("共 2 个子贴")).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "主帖 10 楼" })).toHaveAttribute(
       "aria-current",
@@ -87,7 +85,7 @@ describe("SubthreadSwitcher", () => {
     await user.click(screen.getByRole("option", { name: "设定区 5 楼" }));
 
     expect(onChange).toHaveBeenCalledWith("s2");
-    expect(screen.queryByRole("dialog", { name: "主题目录" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("listbox", { name: "主题目录" })).not.toBeInTheDocument();
   });
 
   test("目录菜单可复制当前子贴链接", async () => {
@@ -185,32 +183,34 @@ describe("SubthreadSwitcher", () => {
         ]}
         selectedId="s1"
         onChange={onChange}
+        onCopyCurrent={() => {}}
       />,
     );
 
     await user.tab();
     await user.keyboard("{Enter}");
-    expect(screen.getByRole("dialog", { name: "主题目录" })).toBeInTheDocument();
-    const input = screen.getByRole("combobox", { name: "筛选子贴" });
-    await waitFor(() => expect(input).toHaveFocus());
+    expect(screen.getByRole("listbox", { name: "主题目录" })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole("option", { name: "主帖 5 楼" })).toHaveFocus();
+    });
 
-    await user.keyboard("{ArrowDown}{ArrowDown}");
-    expect(screen.getByRole("option", { name: "设定区 5 楼" })).toHaveAttribute(
-      "data-keyboard-highlighted",
-    );
+    await user.keyboard("{ArrowDown}");
+    expect(screen.getByRole("option", { name: "设定区 5 楼" })).toHaveFocus();
     await user.keyboard("{Enter}");
     expect(onChange).toHaveBeenCalledWith("s2");
-    expect(screen.queryByRole("dialog", { name: "主题目录" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("listbox", { name: "主题目录" })).not.toBeInTheDocument();
 
     await user.keyboard("{Enter}");
-    await waitFor(() => expect(screen.getByRole("combobox", { name: "筛选子贴" })).toHaveFocus());
+    await waitFor(() => {
+      expect(screen.getByRole("option", { name: "主帖 5 楼" })).toHaveFocus();
+    });
 
     await user.keyboard("{Escape}");
-    expect(screen.queryByRole("dialog", { name: "主题目录" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("listbox", { name: "主题目录" })).not.toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "切换子贴，当前：主帖" })).toHaveFocus();
   });
 
-  test("输入标题可筛选大量子贴并显示明确空态", async () => {
+  test("目录不渲染搜索框或空态占位，列表紧接头部", async () => {
     const user = userEvent.setup();
     render(
       <SubthreadSwitcher
@@ -225,13 +225,14 @@ describe("SubthreadSwitcher", () => {
     );
 
     await user.click(screen.getByRole("combobox", { name: /切换子贴/ }));
-    const input = screen.getByRole("combobox", { name: "筛选子贴" });
-    await user.type(input, "设定");
-    expect(screen.getByRole("option", { name: "角色设定 5 楼" })).toBeInTheDocument();
-    expect(screen.queryByRole("option", { name: "序章 5 楼" })).toBeNull();
+    const list = screen.getByRole("listbox", { name: "主题目录" });
+    const header = screen.getByText("主题目录").closest('[data-slot="subthread-menu-header"]');
 
-    await user.clear(input);
-    await user.type(input, "不存在");
-    expect(screen.getByText("没有匹配的子贴")).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText("搜索子贴标题")).not.toBeInTheDocument();
+    expect(screen.queryByText("没有匹配的子贴")).not.toBeInTheDocument();
+    expect(header?.nextElementSibling).toBe(list);
+    expect(screen.getByRole("option", { name: "序章 5 楼" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "角色设定 5 楼" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "第二幕 5 楼" })).toBeInTheDocument();
   });
 });
