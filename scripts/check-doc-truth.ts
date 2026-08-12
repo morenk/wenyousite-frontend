@@ -133,6 +133,7 @@ function operation(method: string, apiPath: string) {
     /z\.enum\(\["DEDUCTION", "NATION", "RPG"\]\)/,
     /目录菜单打开后焦点直接进入搜索框/,
     /弹出可检索固定高度纵向菜单/,
+    /骰子入口.*工具栏收纳时进入“更多”/,
   ];
   for (const file of architectureDocs) {
     const source = fs.readFileSync(file, "utf8");

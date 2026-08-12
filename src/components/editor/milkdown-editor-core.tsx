@@ -44,6 +44,7 @@ import {
 import { getDiceNotationError, MAX_DICE_ROLLS_PER_POST } from "@/lib/dice";
 import {
   fitMilkdownToolbar,
+  getMilkdownMoreCapabilities,
   positionMilkdownHeadingDropdowns,
   syncMilkdownHeadingOptions,
   syncMilkdownMoreMenuState,
@@ -415,26 +416,23 @@ function EditorHost({
   }, [emitCurrentMarkdown]);
 
   const moreMenuItems = useMemo<EditorMoreMenuItem[]>(() => {
-    const items: EditorMoreMenuItem[] = [];
-    const add = (
-      id: EditorCapabilityId,
-      group: EditorMoreMenuItem["group"],
-    ) => items.push({ id, group, label: EDITOR_CAPABILITY_LABELS[id] });
-
-    if (toolbarDensity === "compact") {
-      add("strikethrough", "文字");
-    }
-    add("link", "文字");
-    add("inline-code", "文字");
-    add("quote", "段落");
-    add("bullet-list", "段落");
-    add("ordered-list", "段落");
-    add("hr", "段落");
-    add("dice", "创作");
-    if (["without-draft", "compact"].includes(toolbarDensity) && onOpenDrafts) {
-      add("draft", "创作");
-    }
-    return items;
+    const groups: Partial<Record<EditorCapabilityId, EditorMoreMenuItem["group"]>> = {
+      strikethrough: "文字",
+      link: "文字",
+      "inline-code": "文字",
+      quote: "段落",
+      "bullet-list": "段落",
+      "ordered-list": "段落",
+      hr: "段落",
+      dice: "创作",
+      draft: "创作",
+    };
+    return getMilkdownMoreCapabilities(toolbarDensity, Boolean(onOpenDrafts))
+      .map((id) => ({
+        id,
+        group: groups[id]!,
+        label: EDITOR_CAPABILITY_LABELS[id],
+      }));
   }, [onOpenDrafts, toolbarDensity]);
 
   const handleMoreSelect = useCallback((capability: EditorCapabilityId, anchor: DOMRect) => {

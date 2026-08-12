@@ -224,6 +224,7 @@ export function ContentDraftsPanel({
           </div>
           <button
             type="button"
+            data-slot="content-drafts-autosave-switch"
             role="switch"
             aria-checked={autoSaveEnabled}
             aria-label="槽位 1 自动保存"
@@ -234,8 +235,10 @@ export function ContentDraftsPanel({
             }`}
           >
             <span
-              className={`absolute top-0.5 h-5 w-5 rounded-full bg-card shadow transition-transform ${
-                autoSaveEnabled ? "translate-x-5" : "translate-x-0.5"
+              data-slot="content-drafts-autosave-thumb"
+              aria-hidden="true"
+              className={`pointer-events-none absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-card shadow transition-transform ${
+                autoSaveEnabled ? "translate-x-5" : "translate-x-0"
               }`}
             />
           </button>

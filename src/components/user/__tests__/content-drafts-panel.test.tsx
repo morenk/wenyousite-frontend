@@ -289,6 +289,26 @@ describe("ContentDraftsPanel", () => {
     expect(onAutoSaveChange).toHaveBeenCalledWith(true, 2);
   });
 
+  test("自动保存开关滑块以轨道左侧为固定定位基准", () => {
+    const { rerender } = renderPanel({ autoSaveEnabled: false });
+    const switchControl = screen.getByRole("switch", { name: "槽位 1 自动保存" });
+    const thumb = switchControl.querySelector<HTMLElement>(
+      '[data-slot="content-drafts-autosave-thumb"]',
+    );
+
+    expect(thumb).toHaveClass("left-0.5", "translate-x-0");
+
+    rerender(
+      <QueryClientProvider client={new QueryClient()}>
+        <ContentDraftsPanel open onClose={vi.fn()} autoSaveEnabled />
+      </QueryClientProvider>,
+    );
+    expect(
+      screen.getByRole("switch", { name: "槽位 1 自动保存" })
+        .querySelector('[data-slot="content-drafts-autosave-thumb"]'),
+    ).toHaveClass("left-0.5", "translate-x-5");
+  });
+
   test("显示自动保存完成状态", () => {
     renderPanel({ autoSaveEnabled: true, autoSaveStatus: "saved" });
     expect(screen.getByText("当前内容已自动保存")).toBeInTheDocument();

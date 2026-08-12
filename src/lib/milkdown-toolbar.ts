@@ -1,3 +1,8 @@
+import {
+  EDITOR_MORE_FALLBACK,
+  type EditorCapabilityId,
+} from "@/lib/editor-capabilities";
+
 /** 将 Crepe 顶栏的内联可见性与编辑器只读状态保持一致。 */
 export function syncMilkdownToolbarVisibility(
   root: ParentNode,
@@ -70,15 +75,18 @@ export type MilkdownToolbarDensity =
   | "without-draft"
   | "compact";
 
-const MORE_FALLBACK_TOOLS = new Set([
+const MORE_FALLBACK_TOOLS = new Set<string>(EDITOR_MORE_FALLBACK);
+const STANDARD_PRIMARY_TOOLS = new Set<string>([
   "link",
-  "inline-code",
   "quote",
-  "bullet-list",
-  "ordered-list",
   "hr",
   "dice",
 ]);
+
+/** 标准内容栏只收纳专家格式；其余四项利用剩余空间保留直达。 */
+function isStandardMoreTool(tool: string): boolean {
+  return MORE_FALLBACK_TOOLS.has(tool) && !STANDARD_PRIMARY_TOOLS.has(tool);
+}
 
 /** 同步每级密度的可见按钮，并移除没有可见按钮的空分组分隔线。 */
 export function applyMilkdownToolbarDensity(
@@ -88,11 +96,16 @@ export function applyMilkdownToolbarDensity(
   topBar.dataset.editorDensity = density;
   topBar.querySelectorAll<HTMLElement>("[data-editor-tool]").forEach((item) => {
     const tool = item.dataset.editorTool ?? "";
-    item.hidden = density === "expanded"
-      ? tool === "more"
-      : MORE_FALLBACK_TOOLS.has(tool)
-        || (tool === "draft" && ["without-draft", "compact"].includes(density))
-        || (tool === "strikethrough" && density === "compact");
+    if (density === "expanded") {
+      item.hidden = tool === "more";
+    } else if (density === "compact") {
+      item.hidden = MORE_FALLBACK_TOOLS.has(tool)
+        || tool === "draft"
+        || tool === "strikethrough";
+    } else {
+      item.hidden = isStandardMoreTool(tool)
+        || (tool === "draft" && density === "without-draft");
+    }
   });
 
   const inner = topBar.querySelector<HTMLElement>(".top-bar-inner");
@@ -108,6 +121,26 @@ export function applyMilkdownToolbarDensity(
       .slice(index + 1, end)
       .some((candidate) => !candidate.hidden);
   });
+}
+
+/** “更多”只列出当前密度确实隐藏的能力，避免与一级按钮重复。 */
+export function getMilkdownMoreCapabilities(
+  density: MilkdownToolbarDensity,
+  hasDraft: boolean,
+): EditorCapabilityId[] {
+  if (density === "expanded") return [];
+
+  const capabilities: EditorCapabilityId[] = [];
+  if (density === "compact") capabilities.push("strikethrough");
+  capabilities.push(
+    ...EDITOR_MORE_FALLBACK.filter((capability) => (
+      density === "compact" || !STANDARD_PRIMARY_TOOLS.has(capability)
+    )),
+  );
+  if (hasDraft && ["without-draft", "compact"].includes(density)) {
+    capabilities.push("draft");
+  }
+  return capabilities;
 }
 
 /** 按真实容器宽度逐级收纳可选一级项，始终不启用横向滚动。 */

@@ -183,6 +183,25 @@ test("编辑器格式、窄栏、骰子与正文草稿工具在真实浏览器�
 
   const host = page.locator(".milkdown-editor").first();
   await host.evaluate((element) => {
+    element.style.width = "640px";
+  });
+  await expect(toolbar).toHaveAttribute("data-editor-density", "with-more");
+  for (const label of ["链接", "引用", "分隔线", "骰子"]) {
+    await expect(toolbar.getByRole("button", { name: label })).toBeVisible();
+  }
+  for (const label of ["行内代码", "无序列表", "有序列表"]) {
+    await expect(toolbar.getByRole("button", { name: label })).not.toBeVisible();
+  }
+  await toolbar.getByRole("button", { name: "更多" }).click();
+  for (const label of ["行内代码", "无序列表", "有序列表"]) {
+    await expect(page.getByRole("menuitem", { name: label })).toBeVisible();
+  }
+  for (const label of ["链接", "引用", "分隔线", "骰子"]) {
+    await expect(page.getByRole("menuitem", { name: label })).toHaveCount(0);
+  }
+  await page.keyboard.press("Escape");
+
+  await host.evaluate((element) => {
     element.style.width = "320px";
   });
   await expect(toolbar).toHaveAttribute(
@@ -257,6 +276,22 @@ test("编辑器格式、窄栏、骰子与正文草稿工具在真实浏览器�
   await expect(draftPanel).toBeVisible();
   await expect(draftPanel).toContainText("浏览器内的正文草稿");
   await draftPanel.scrollIntoViewIfNeeded();
+  const autoSaveSwitch = draftPanel.getByRole("switch", { name: "槽位 1 自动保存" });
+  const switchGeometry = await autoSaveSwitch.evaluate((track) => {
+    const thumb = track.querySelector<HTMLElement>(
+      '[data-slot="content-drafts-autosave-thumb"]',
+    );
+    const trackRect = track.getBoundingClientRect();
+    const thumbRect = thumb!.getBoundingClientRect();
+    return {
+      leftGap: thumbRect.left - trackRect.left,
+      topGap: thumbRect.top - trackRect.top,
+      bottomGap: trackRect.bottom - thumbRect.bottom,
+    };
+  });
+  expect(switchGeometry.leftGap).toBeCloseTo(2, 0);
+  expect(switchGeometry.topGap).toBeCloseTo(2, 0);
+  expect(switchGeometry.bottomGap).toBeCloseTo(2, 0);
   expect(await draftPanel.evaluate((element) => getComputedStyle(element).position)).not.toBe("fixed");
   await expect(page.getByRole("dialog", { name: "正文草稿" })).toHaveCount(0);
   await page.getByRole("button", { name: "收起正文草稿" }).click();

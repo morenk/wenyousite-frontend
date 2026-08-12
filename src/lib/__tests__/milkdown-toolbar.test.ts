@@ -2,6 +2,7 @@ import { describe, expect, test, vi } from "vitest";
 import {
   applyMilkdownToolbarDensity,
   fitMilkdownToolbar,
+  getMilkdownMoreCapabilities,
   positionMilkdownHeadingDropdowns,
   syncMilkdownHeadingOptions,
   syncMilkdownMoreMenuState,
@@ -159,7 +160,7 @@ describe("syncMilkdownToolbarVisibility", () => {
     expect(EDITOR_CAPABILITY_LABELS.more).toBe("更多");
   });
 
-  test("展开态隐藏更多，收纳态隐藏低频直达按钮与空分隔线", () => {
+  test("展开态隐藏更多，标准栏保留链接、引用、分隔线和骰子直达", () => {
     const root = document.createElement("div");
     root.innerHTML = `
       <div class="milkdown-top-bar">
@@ -172,7 +173,13 @@ describe("syncMilkdownToolbarVisibility", () => {
           <button data-editor-tool="bullet-list"></button>
           <button data-editor-tool="ordered-list"></button>
           <div class="top-bar-divider"></div>
+          <button data-editor-tool="link"></button>
           <button data-editor-tool="image"></button>
+          <div class="top-bar-divider"></div>
+          <button data-editor-tool="quote"></button>
+          <button data-editor-tool="hr"></button>
+          <div class="top-bar-divider"></div>
+          <button data-editor-tool="dice"></button>
           <div class="top-bar-divider"></div>
           <button data-editor-tool="draft"></button>
           <div class="top-bar-divider"></div>
@@ -189,9 +196,31 @@ describe("syncMilkdownToolbarVisibility", () => {
     applyMilkdownToolbarDensity(toolbar, "with-more");
     expect(root.querySelector<HTMLElement>('[data-editor-tool="inline-code"]')).toHaveAttribute("hidden");
     expect(root.querySelector<HTMLElement>('[data-editor-tool="bullet-list"]')).toHaveAttribute("hidden");
+    for (const tool of ["link", "quote", "hr", "dice"]) {
+      expect(root.querySelector<HTMLElement>(`[data-editor-tool="${tool}"]`)).not.toHaveAttribute("hidden");
+    }
     expect(root.querySelector<HTMLElement>('[data-editor-tool="more"]')).not.toHaveAttribute("hidden");
     expect(root.querySelector<HTMLElement>('[data-editor-tool="draft"]')).not.toHaveAttribute("hidden");
     expect(root.querySelectorAll(".top-bar-divider[hidden]")).toHaveLength(1);
+  });
+
+  test("更多菜单按工具栏密度只返回当前隐藏能力", () => {
+    expect(getMilkdownMoreCapabilities("with-more", true)).toEqual([
+      "inline-code",
+      "bullet-list",
+      "ordered-list",
+    ]);
+    expect(getMilkdownMoreCapabilities("without-draft", true)).toEqual([
+      "inline-code",
+      "bullet-list",
+      "ordered-list",
+      "draft",
+    ]);
+    expect(getMilkdownMoreCapabilities("compact", true)).toEqual([
+      "strikethrough",
+      ...EDITOR_MORE_FALLBACK,
+      "draft",
+    ]);
   });
 
   test("标题菜单只开放正文、二级和三级标题，仍可显示其他历史层级", () => {

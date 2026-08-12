@@ -57,6 +57,28 @@ describe("编辑器正文字体", () => {
     expect(topBar).not.toMatch(/overflow-x:\s*(?:auto|scroll)/u);
   });
 
+  test("正文首列与工具栏首项共用居中内容列", () => {
+    const milkdown = getRule(editorCss, ".milkdown");
+    const proseMirror = getRule(editorCss, ".milkdown .ProseMirror");
+    const topBar = getRule(editorCss, ".milkdown .milkdown-top-bar");
+    const topBarInner = getRule(
+      editorCss,
+      ".milkdown .milkdown-top-bar .top-bar-inner",
+    );
+
+    expect(milkdown).toContain("--editor-content-max-width: 50rem");
+    expect(milkdown).toContain("--editor-content-inline-padding: 24px");
+    expect(milkdown).toContain("--editor-toolbar-inline-padding: 12px");
+    expect(proseMirror).toContain("max-width: var(--editor-content-max-width)");
+    expect(proseMirror).toContain("padding: 16px var(--editor-content-inline-padding)");
+    expect(topBar).toContain("padding-inline: 0");
+    expect(topBarInner).toContain("max-width: var(--editor-content-max-width)");
+    expect(topBarInner).toContain("margin-inline: auto");
+    expect(topBarInner).toContain(
+      "padding-inline: var(--editor-toolbar-inline-padding)",
+    );
+  });
+
   test("编辑态与发布态的引用块均使用斜体", () => {
     const editorQuote = getRule(editorCss, ".milkdown .ProseMirror blockquote");
     const publishedQuote = getRule(globalCss, ".wenyou-prose blockquote");

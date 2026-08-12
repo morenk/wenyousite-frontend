@@ -12,13 +12,17 @@
   --crepe-font-default: var(--font-sans);
   --crepe-font-title: var(--font-sans);
   --crepe-font-code: var(--font-mono);
+  /* 正文与工具栏共用一条内容基线；工具栏补偿首个控件自身的 12px 内缩。 */
+  --editor-content-max-width: 50rem;
+  --editor-content-inline-padding: 24px;
+  --editor-toolbar-inline-padding: 12px;
 }
 
 .milkdown .ProseMirror {
   width: 100%;
-  max-width: 46rem;
+  max-width: var(--editor-content-max-width);
   margin-inline: auto;
-  padding: 20px 32px;
+  padding: 16px var(--editor-content-inline-padding);
   font-family: var(--font-sans);
   font-size: 1.0625rem;
   font-synthesis: none;
@@ -135,14 +139,17 @@
 /* 宽栏直接平铺常用能力；只有真实放不下时才启用“更多”，始终保持单行。 */
 .milkdown .milkdown-top-bar {
   min-height: 44px;
-  padding-inline: 8px;
+  padding-inline: 0;
   flex-wrap: nowrap;
   overflow: visible;
 }
 
 .milkdown .milkdown-top-bar .top-bar-inner {
   width: 100%;
+  max-width: var(--editor-content-max-width);
   min-width: 0;
+  margin-inline: auto;
+  padding-inline: var(--editor-toolbar-inline-padding);
   flex-wrap: nowrap;
 }
 
