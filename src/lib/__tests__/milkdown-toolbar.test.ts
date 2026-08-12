@@ -12,10 +12,15 @@ import {
 } from "@/lib/milkdown-toolbar";
 import {
   EDITOR_CAPABILITY_LABELS,
+  EDITOR_DENSITY_ORDER,
   EDITOR_MORE_FALLBACK,
+  EDITOR_MORE_BY_DENSITY,
+  EDITOR_PRIMARY_BY_DENSITY,
   EDITOR_PRIMARY_NARROW,
   EDITOR_PRIMARY_WIDE,
   EDITOR_SYNTAX_ONLY,
+  EDITOR_WEB_CAPABILITIES,
+  EDITOR_WEB_LAYOUT,
   editorCapabilityLabels,
 } from "@/lib/editor-capabilities";
 
@@ -46,11 +51,14 @@ function rect({
 describe("syncMilkdownToolbarVisibility", () => {
   test("上传结束恢复可编辑后清除 Crepe 遗留的隐藏样式", () => {
     const root = document.createElement("div");
-    root.innerHTML = '<div class="milkdown-top-bar" style="display: none"></div>';
+    root.innerHTML =
+      '<div class="milkdown-top-bar" style="display: none"></div>';
 
     syncMilkdownToolbarVisibility(root, false);
 
-    expect(root.querySelector<HTMLElement>(".milkdown-top-bar")?.style.display).toBe("");
+    expect(
+      root.querySelector<HTMLElement>(".milkdown-top-bar")?.style.display,
+    ).toBe("");
   });
 
   test("只影响当前编辑器宿主内的顶栏", () => {
@@ -61,8 +69,12 @@ describe("syncMilkdownToolbarVisibility", () => {
 
     syncMilkdownToolbarVisibility(first, true);
 
-    expect(first.querySelector<HTMLElement>(".milkdown-top-bar")?.style.display).toBe("none");
-    expect(second.querySelector<HTMLElement>(".milkdown-top-bar")?.style.display).toBe("");
+    expect(
+      first.querySelector<HTMLElement>(".milkdown-top-bar")?.style.display,
+    ).toBe("none");
+    expect(
+      second.querySelector<HTMLElement>(".milkdown-top-bar")?.style.display,
+    ).toBe("");
   });
 
   test("补齐水平格式工具栏语义", () => {
@@ -92,9 +104,15 @@ describe("syncMilkdownToolbarVisibility", () => {
       { key: "more", label: "更多" },
     ]);
 
-    expect(root.querySelector('[data-editor-tool="heading"]')).toHaveAccessibleName("切换正文样式");
-    expect(root.querySelector('[data-editor-tool="bold"]')).toHaveAccessibleName("粗体");
-    expect(root.querySelector('[data-editor-tool="more"]')).toHaveAccessibleName("更多");
+    expect(
+      root.querySelector('[data-editor-tool="heading"]'),
+    ).toHaveAccessibleName("切换正文样式");
+    expect(
+      root.querySelector('[data-editor-tool="bold"]'),
+    ).toHaveAccessibleName("粗体");
+    expect(
+      root.querySelector('[data-editor-tool="more"]'),
+    ).toHaveAccessibleName("更多");
   });
 
   test("窄容器依次收纳草稿与删除线，不启用横向滚动", () => {
@@ -105,16 +123,20 @@ describe("syncMilkdownToolbarVisibility", () => {
       </div>
     `;
     const toolbar = root.querySelector<HTMLElement>(".milkdown-top-bar")!;
-    Object.defineProperty(toolbar, "clientWidth", { configurable: true, value: 320 });
+    Object.defineProperty(toolbar, "clientWidth", {
+      configurable: true,
+      value: 320,
+    });
     Object.defineProperty(toolbar, "scrollWidth", {
       configurable: true,
-      get: () => toolbar.dataset.editorDensity === "expanded"
-        ? 800
-        : toolbar.dataset.editorDensity === "with-more"
-          ? 360
-        : toolbar.dataset.editorDensity === "without-draft"
-          ? 330
-          : 300,
+      get: () =>
+        toolbar.dataset.editorDensity === "expanded"
+          ? 800
+          : toolbar.dataset.editorDensity === "with-more"
+            ? 360
+            : toolbar.dataset.editorDensity === "without-draft"
+              ? 330
+              : 300,
     });
 
     expect(fitMilkdownToolbar(toolbar)).toBe("compact");
@@ -129,14 +151,18 @@ describe("syncMilkdownToolbarVisibility", () => {
       </div>
     `;
     const toolbar = root.querySelector<HTMLElement>(".milkdown-top-bar")!;
-    Object.defineProperty(toolbar, "clientWidth", { configurable: true, value: 340 });
+    Object.defineProperty(toolbar, "clientWidth", {
+      configurable: true,
+      value: 340,
+    });
     Object.defineProperty(toolbar, "scrollWidth", {
       configurable: true,
-      get: () => toolbar.dataset.editorDensity === "expanded"
-        ? 800
-        : toolbar.dataset.editorDensity === "with-more"
-          ? 360
-          : 330,
+      get: () =>
+        toolbar.dataset.editorDensity === "expanded"
+          ? 800
+          : toolbar.dataset.editorDensity === "with-more"
+            ? 360
+            : 330,
     });
 
     expect(fitMilkdownToolbar(toolbar)).toBe("without-draft");
@@ -158,6 +184,32 @@ describe("syncMilkdownToolbarVisibility", () => {
       expect(EDITOR_PRIMARY_WIDE).not.toContain(capability);
     }
     expect(EDITOR_CAPABILITY_LABELS.more).toBe("更多");
+  });
+
+  test("四档收纳、正文测量与能力生命周期直接来自 Foundation", () => {
+    expect(EDITOR_DENSITY_ORDER).toEqual([
+      "expanded",
+      "with-more",
+      "without-draft",
+      "compact",
+    ]);
+    expect(EDITOR_PRIMARY_BY_DENSITY.compact).toEqual(EDITOR_PRIMARY_NARROW);
+    expect(EDITOR_MORE_BY_DENSITY["with-more"]).toEqual([
+      "inline-code",
+      "bullet-list",
+      "ordered-list",
+    ]);
+    expect(EDITOR_WEB_LAYOUT).toMatchObject({
+      frameMaxRem: 50,
+      textMeasurePx: 680,
+      contentInlinePaddingPx: 24,
+      toolbarInlinePaddingPx: 12,
+      firstControlInternalInsetPx: 12,
+    });
+    expect(EDITOR_WEB_CAPABILITIES.mention.roundTrip).toBe(
+      "identity-preserving",
+    );
+    expect(EDITOR_WEB_CAPABILITIES.table.creation).toBe("source");
   });
 
   test("展开态隐藏更多，标准栏保留链接、引用、分隔线和骰子直达", () => {
@@ -190,17 +242,31 @@ describe("syncMilkdownToolbarVisibility", () => {
     const toolbar = root.querySelector<HTMLElement>(".milkdown-top-bar")!;
 
     applyMilkdownToolbarDensity(toolbar, "expanded");
-    expect(root.querySelector<HTMLElement>('[data-editor-tool="inline-code"]')).not.toHaveAttribute("hidden");
-    expect(root.querySelector<HTMLElement>('[data-editor-tool="more"]')).toHaveAttribute("hidden");
+    expect(
+      root.querySelector<HTMLElement>('[data-editor-tool="inline-code"]'),
+    ).not.toHaveAttribute("hidden");
+    expect(
+      root.querySelector<HTMLElement>('[data-editor-tool="more"]'),
+    ).toHaveAttribute("hidden");
 
     applyMilkdownToolbarDensity(toolbar, "with-more");
-    expect(root.querySelector<HTMLElement>('[data-editor-tool="inline-code"]')).toHaveAttribute("hidden");
-    expect(root.querySelector<HTMLElement>('[data-editor-tool="bullet-list"]')).toHaveAttribute("hidden");
+    expect(
+      root.querySelector<HTMLElement>('[data-editor-tool="inline-code"]'),
+    ).toHaveAttribute("hidden");
+    expect(
+      root.querySelector<HTMLElement>('[data-editor-tool="bullet-list"]'),
+    ).toHaveAttribute("hidden");
     for (const tool of ["link", "quote", "hr", "dice"]) {
-      expect(root.querySelector<HTMLElement>(`[data-editor-tool="${tool}"]`)).not.toHaveAttribute("hidden");
+      expect(
+        root.querySelector<HTMLElement>(`[data-editor-tool="${tool}"]`),
+      ).not.toHaveAttribute("hidden");
     }
-    expect(root.querySelector<HTMLElement>('[data-editor-tool="more"]')).not.toHaveAttribute("hidden");
-    expect(root.querySelector<HTMLElement>('[data-editor-tool="draft"]')).not.toHaveAttribute("hidden");
+    expect(
+      root.querySelector<HTMLElement>('[data-editor-tool="more"]'),
+    ).not.toHaveAttribute("hidden");
+    expect(
+      root.querySelector<HTMLElement>('[data-editor-tool="draft"]'),
+    ).not.toHaveAttribute("hidden");
     expect(root.querySelectorAll(".top-bar-divider[hidden]")).toHaveLength(1);
   });
 
@@ -235,7 +301,9 @@ describe("syncMilkdownToolbarVisibility", () => {
 
     syncMilkdownHeadingOptions(root, new Set(["正文", "标题 2", "标题 3"]));
 
-    const options = root.querySelectorAll<HTMLButtonElement>(".top-bar-heading-option");
+    const options = root.querySelectorAll<HTMLButtonElement>(
+      ".top-bar-heading-option",
+    );
     expect(options[0]).not.toHaveAttribute("hidden");
     expect(options[1]).toHaveAttribute("hidden");
     expect(options[2]).not.toHaveAttribute("hidden");
@@ -249,8 +317,14 @@ describe("syncMilkdownToolbarVisibility", () => {
 
     syncMilkdownMoreMenuState(root, true);
 
-    expect(root.querySelector("button")).toHaveAttribute("aria-haspopup", "menu");
-    expect(root.querySelector("button")).toHaveAttribute("aria-expanded", "true");
+    expect(root.querySelector("button")).toHaveAttribute(
+      "aria-haspopup",
+      "menu",
+    );
+    expect(root.querySelector("button")).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
   });
 
   test("标题菜单在视口内靠近触发按钮定位，空间不足时翻到上方", () => {
@@ -262,7 +336,9 @@ describe("syncMilkdownToolbarVisibility", () => {
       </div>
     `;
     const trigger = root.querySelector<HTMLElement>(".top-bar-heading-button")!;
-    const dropdown = root.querySelector<HTMLElement>(".top-bar-heading-dropdown")!;
+    const dropdown = root.querySelector<HTMLElement>(
+      ".top-bar-heading-dropdown",
+    )!;
     vi.spyOn(trigger, "getBoundingClientRect").mockReturnValue(
       rect({ left: 280, right: 312, top: 170, bottom: 202 }),
     );

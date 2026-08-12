@@ -4,14 +4,28 @@
  */
 export {
   EDITOR_CAPABILITY_LABELS,
+  EDITOR_CONTEXTUAL_MOBILE,
+  EDITOR_CONTEXTUAL_WEB,
   EDITOR_CREATABLE_HEADING_LEVELS,
+  EDITOR_DENSITY_ORDER,
+  EDITOR_INVARIANTS,
+  EDITOR_MOBILE_CAPABILITIES,
+  EDITOR_MOBILE_LAYOUT,
   EDITOR_MORE_FALLBACK,
+  EDITOR_MORE_BY_DENSITY,
   EDITOR_MORE_PROGRESSIVE,
+  EDITOR_PRIMARY_BY_DENSITY,
   EDITOR_PRIMARY_NARROW,
   EDITOR_PRIMARY_WIDE,
   EDITOR_SYNTAX_ONLY,
+  EDITOR_WEB_CAPABILITIES,
+  EDITOR_WEB_LAYOUT,
   FOUNDATION_VERSION,
   editorCapabilityLabels,
 } from "@wenyousite/foundation/editor";
 
-export type { EditorCapabilityId } from "@wenyousite/foundation/editor";
+export type {
+  EditorCapabilityContract,
+  EditorCapabilityId,
+  EditorToolbarDensity,
+} from "@wenyousite/foundation/editor";

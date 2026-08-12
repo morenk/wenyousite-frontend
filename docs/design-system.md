@@ -4,17 +4,18 @@
 
 跨端审美、共享 Token、字体角色和编辑器能力的唯一事实源是公开仓库
 [`morenk/wenyousite-foundation`](https://github.com/morenk/wenyousite-foundation)。本仓库由
-[`foundation.lock.json`](../foundation.lock.json) 固定到 `v1.2.0`，实现前必须读取同版本的：
+[`foundation.lock.json`](../foundation.lock.json) 固定到 `v1.3.0`，实现前必须读取同版本的：
 
-- [`docs/foundation.md`](https://github.com/morenk/wenyousite-foundation/blob/v1.2.0/docs/foundation.md)
-- [`docs/platforms/web.md`](https://github.com/morenk/wenyousite-foundation/blob/v1.2.0/docs/platforms/web.md)
-- [`docs/images.md`](https://github.com/morenk/wenyousite-foundation/blob/v1.2.0/docs/images.md)
-- [`contracts/foundation.v1.json`](https://github.com/morenk/wenyousite-foundation/blob/v1.2.0/contracts/foundation.v1.json)
+- [`docs/foundation.md`](https://github.com/morenk/wenyousite-foundation/blob/v1.3.0/docs/foundation.md)
+- [`docs/platforms/web.md`](https://github.com/morenk/wenyousite-foundation/blob/v1.3.0/docs/platforms/web.md)
+- [`docs/images.md`](https://github.com/morenk/wenyousite-foundation/blob/v1.3.0/docs/images.md)
+- [`contracts/foundation.v1.json`](https://github.com/morenk/wenyousite-foundation/blob/v1.3.0/contracts/foundation.v1.json)
 
 本地只保留实现映射，不复制规范：
 
 - `src/app/layout.tsx` 引入中央字体与 Token CSS，`globals.css` 只做 Tailwind 映射和 Web 组件样式。
 - `src/lib/editor-capabilities.ts` 是中央编辑器契约的薄转发层。
+- 编辑器使用 Foundation 的 50rem 框架承载工具栏，但正文块固定为 680px 测量宽度；正文 24px 首列偏移与工具栏 12px 外层加首控件 12px 内缩共用基线。
 - `src/components/ui/` 与 `src/components/layout/` 承担 Web 原语和页面骨架。
 - 发现、动态与搜索使用 `PageHeader compact`：标题和紧随其后的筛选、切换或搜索工具收在同一紧凑面板，不用副标题重复解释页面名称。
 - 列表容器与列表项按 Foundation `experiences.collections` 占满分配列；消息气泡、标签、徽标与紧凑操作是内容宽度例外。

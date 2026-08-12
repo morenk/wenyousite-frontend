@@ -5,7 +5,7 @@ Web 与 Flutter 共用数据库中的 Markdown 字符串，不修改既有字段
 ## 协议事实源
 
 - 协议标识为 `wenyousite-markdown`，当前版本为 `2`。
-- Web 仓库中的 `contracts/markdown-v2-fixtures.json` 与 `contracts/markdown-v2-nodes-fixtures.json` 是后端同名黄金语料的同步副本。前者固定 `canonical` / `visible`，后者固定提及、骰子、表情和图片节点的 parse / serialize / round-trip 与复制身份。
+- Web 仓库中的 `contracts/markdown-v2-fixtures.json`、`contracts/markdown-v2-nodes-fixtures.json` 与 `contracts/markdown-editor-roundtrip-v1-fixtures.json` 是后端同名黄金语料的同步副本。它们依次固定 `canonical` / `visible`、扩展节点身份，以及普通 Markdown 的结构化编辑/源码保留。
 - 后端是写入与发布校验的最终权威；Web 在提交前执行同版本规则以即时反馈，Flutter 必须把两份语言无关 JSON 语料纳入单元测试。
 - 规则变更必须先修改黄金语料并提升协议版本，禁止单独修改某一端正则。
 - Web 的发布、回复、编辑和草稿入口传递完整规范正文，不做全局 `trim()`；`trim()` 只允许用于空内容判断，首尾空段落及空白必须保留。
@@ -25,7 +25,7 @@ Web 与 Flutter 共用数据库中的 Markdown 字符串，不修改既有字段
 | 新建标题层级 | 正文、标题 2、标题 3 |
 <!-- editor-capabilities:end -->
 
-一级栏始终保持单行且不横向滚动。容器能放下时，PC 宽栏直接平铺全部常用能力并隐藏“更多”；标准内容栏只把行内代码、无序列表和有序列表收入“更多”，链接、引用、分隔线和骰子继续直接展示。继续变窄时先收纳正文草稿，再切换到最窄核心栏；此时“更多”才承载完整基础集合，并追加正文草稿和删除线。正文样式、粗体、斜体、图片和收纳状态下的“更多”始终直接可见。标题菜单只新建正文、二级标题和三级标题；手写、粘贴及历史内容中的其他标题层级继续按协议渲染和编辑。表格与代码块只在各自内容区域内横向滚动，不撑宽页面。
+一级栏始终保持单行且不横向滚动。四档密度和每档“更多”内容直接消费 Foundation 契约：容器能放下时平铺全部常用能力，随后依次进入 `with-more`、`without-draft` 与 `compact`。标题菜单只新建正文、二级标题和三级标题；手写、粘贴及历史内容中的其他标题层级继续按协议渲染和编辑。表格与代码块只在各自内容区域内横向滚动，不撑宽页面。
 
 ## 空段落
 
@@ -54,6 +54,7 @@ Flutter 端必须遵循同一存储与校验规则，将独占 `<br />` 渲染�
 
 - Web 黄金语料与后端 Markdown v2 语料一致
 - Web 扩展节点语料与后端 `markdown-v2-nodes-fixtures.json` 一致
+- Web 编辑器往返语料与后端 `markdown-editor-roundtrip-v1-fixtures.json` 一致
 - Web 规范化逐条输出预期 `canonical`，且结果幂等
 - Web 可见性判断逐条输出预期 `visible`
 - Web 纯文本预览隐藏骰子协议和链接地址，并保留可读方括号占位

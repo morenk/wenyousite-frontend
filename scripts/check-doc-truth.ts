@@ -89,7 +89,11 @@ function operation(method: string, apiPath: string) {
     .split("## 未单独调用的用户端操作")[1]
     ?.split("## 后续边界")[0];
   if (!auditSection) throw new Error("docs/api-coverage.md 缺少未调用操作章节");
-  const documentedMissing = [...auditSection.matchAll(/^\| `((?:GET|POST|PUT|PATCH|DELETE) \/api\/v1\/[^`]+)` \|/gm)]
+  const documentedMissing = [
+    ...auditSection.matchAll(
+      /^\| `((?:GET|POST|PUT|PATCH|DELETE) \/api\/v1\/[^`]+)` \|/gm,
+    ),
+  ]
     .map((match) => match[1])
     .sort();
 
@@ -108,7 +112,10 @@ function operation(method: string, apiPath: string) {
     );
   }
 
-  const docsIndex = fs.readFileSync(path.resolve(root, "docs/README.md"), "utf8");
+  const docsIndex = fs.readFileSync(
+    path.resolve(root, "docs/README.md"),
+    "utf8",
+  );
   for (const name of fs
     .readdirSync(path.resolve(root, "docs/modules"))
     .filter((file) => file.endsWith(".md"))) {
@@ -139,7 +146,9 @@ function operation(method: string, apiPath: string) {
     const source = fs.readFileSync(file, "utf8");
     for (const claim of forbiddenClaims) {
       if (claim.test(source)) {
-        failures.push(`${path.relative(root, file)} 仍包含历史架构表述：${claim}`);
+        failures.push(
+          `${path.relative(root, file)} 仍包含历史架构表述：${claim}`,
+        );
       }
     }
   }
@@ -177,27 +186,32 @@ function operation(method: string, apiPath: string) {
   }
 
   const requiredClaims = new Map<string, string[]>([
-    ["docs/modules/thread-create.md", [
-      "GET /thread-categories",
-      "草稿允许暂不选择分类",
-      "17px / 1.9",
-    ]],
-    ["docs/modules/direct-messages.md", [
-      "固定为 72px 图标轨道",
-      "16px / 28px",
-      "分别提供通知和私聊入口",
-    ]],
+    [
+      "docs/modules/thread-create.md",
+      ["GET /thread-categories", "草稿允许暂不选择分类", "17px / 1.9"],
+    ],
+    [
+      "docs/modules/direct-messages.md",
+      ["固定为 72px 图标轨道", "16px / 28px", "分别提供通知和私聊入口"],
+    ],
     ["docs/modules/bookmarks.md", ["全局导航栏显示收藏入口"]],
-    ["docs/modules/markdown-content-protocol.md", [
-      "markdown-v2-fixtures.json",
-      "markdown-v2-nodes-fixtures.json",
-      "Flutter 必须",
-    ]],
-    ["docs/design-system.md", [
-      "morenk/wenyousite-foundation",
-      "foundation.lock.json",
-      "GET /thread-categories",
-    ]],
+    [
+      "docs/modules/markdown-content-protocol.md",
+      [
+        "markdown-v2-fixtures.json",
+        "markdown-v2-nodes-fixtures.json",
+        "markdown-editor-roundtrip-v1-fixtures.json",
+        "Flutter 必须",
+      ],
+    ],
+    [
+      "docs/design-system.md",
+      [
+        "morenk/wenyousite-foundation",
+        "foundation.lock.json",
+        "GET /thread-categories",
+      ],
+    ],
   ]);
   for (const [relativePath, claims] of requiredClaims) {
     const source = fs.readFileSync(path.resolve(root, relativePath), "utf8");
@@ -245,13 +259,15 @@ function operation(method: string, apiPath: string) {
   for (const fixtureName of [
     "markdown-v2-fixtures.json",
     "markdown-v2-nodes-fixtures.json",
+    "markdown-editor-roundtrip-v1-fixtures.json",
     "thread-category-v1-fixtures.json",
   ]) {
     const frontendFixture = path.resolve(root, "contracts", fixtureName);
     const backendFixture = path.resolve(backendRoot, "contracts", fixtureName);
     if (
       fs.existsSync(backendFixture) &&
-      fs.readFileSync(frontendFixture, "utf8") !== fs.readFileSync(backendFixture, "utf8")
+      fs.readFileSync(frontendFixture, "utf8") !==
+        fs.readFileSync(backendFixture, "utf8")
     ) {
       failures.push(`前后端 ${fixtureName} 不一致`);
     }
