@@ -66,17 +66,27 @@ describe("编辑器正文字体", () => {
       ".milkdown .milkdown-top-bar .top-bar-inner",
     );
 
-    expect(milkdown).toContain("--editor-content-max-width: 50rem");
-    expect(milkdown).toContain("--editor-content-inline-padding: 24px");
-    expect(milkdown).toContain("--editor-toolbar-inline-padding: 12px");
+    expect(milkdown).toContain(
+      "--editor-content-max-width: var(--editor-frame-max)",
+    );
     expect(proseMirror).toContain("max-width: var(--editor-content-max-width)");
-    expect(proseMirror).toContain("padding: 16px var(--editor-content-inline-padding)");
+    expect(proseMirror).toContain(
+      "padding: 16px var(--editor-content-inline-padding)",
+    );
     expect(topBar).toContain("padding-inline: 0");
     expect(topBarInner).toContain("max-width: var(--editor-content-max-width)");
     expect(topBarInner).toContain("margin-inline: auto");
     expect(topBarInner).toContain(
       "padding-inline: var(--editor-toolbar-inline-padding)",
     );
+  });
+
+  test("编辑器框架放宽时正文仍使用发布态测量宽度", () => {
+    const proseChildren = getRule(editorCss, ".milkdown .ProseMirror > *");
+    const published = getRule(globalCss, ".wenyou-prose");
+
+    expect(proseChildren).toContain("max-width: var(--editor-text-measure)");
+    expect(published).toContain("max-width: 40em");
   });
 
   test("编辑态与发布态的引用块均使用斜体", () => {

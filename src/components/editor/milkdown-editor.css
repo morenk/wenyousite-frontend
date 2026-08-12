@@ -12,10 +12,13 @@
   --crepe-font-default: var(--font-sans);
   --crepe-font-title: var(--font-sans);
   --crepe-font-code: var(--font-mono);
-  /* 正文与工具栏共用一条内容基线；工具栏补偿首个控件自身的 12px 内缩。 */
-  --editor-content-max-width: 50rem;
-  --editor-content-inline-padding: 24px;
-  --editor-toolbar-inline-padding: 12px;
+  /* Foundation 固定框架、正文行宽与首列基线；工具栏补偿首个控件自身内缩。 */
+  --editor-content-max-width: var(--editor-frame-max);
+}
+
+/* 框架为工具栏保留横向空间，正文块仍保持发布态 40 个全角字的阅读行长。 */
+.milkdown .ProseMirror > * {
+  max-width: var(--editor-text-measure);
 }
 
 .milkdown .ProseMirror {
