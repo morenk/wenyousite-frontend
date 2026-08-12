@@ -6,7 +6,7 @@
 
 当前所有用户端模块均由 `src/api/types.ts` 提供请求和成功响应类型；`pnpm contract:check` 会从仓库内固定契约重新生成到临时目录并逐字节比较，同时拒绝 hooks 中的 `as unknown as` 和手写 `*Response` interface。存在相邻后端仓库时还会校验两份审核产物逐字节一致。
 
-契约更新流程是 `pnpm contract:sync && pnpm generate:api`。前者只复制后端已提交产物，后者只读取本仓库固定产物；因此单仓 CI、历史 commit 和客户端发布分支都可重复生成同一类型。
+契约更新流程是 `pnpm contract:sync && pnpm generate:api`。前者只复制后端已提交产物，后者只读取本仓库固定产物；因此本地检查、历史 commit 和客户端发布分支都可重复生成同一类型。
 
 ## 2. 页面与路由
 
@@ -25,7 +25,7 @@
 
 成功响应统一为 `{ code, message, data, meta? }`。业务 DTO 位于 `data`，cursor 分页位于 `meta`。
 
-`scripts/check-flutter-contract.mjs` 验证 OpenAPI 3.0、稳定 lowerCamel operationId、具名 2xx 响应、非空查询 schema、移动基线端点、动态分类开放字符串与错误码 schema。这是快速静态门禁；CI 另用固定版本 OpenAPI Generator 的 `dart-dio` 目标执行真实生成烟雾。
+`scripts/check-flutter-contract.mjs` 验证 OpenAPI 3.0、稳定 lowerCamel operationId、具名 2xx 响应、非空查询 schema、移动基线端点、动态分类开放字符串与错误码 schema，作为 `pnpm contract:check` 的本地静态门禁。
 
 契约版本以 `contracts/openapi.json` 的 `info.version` 为准，不在说明文档中复制易过期的版本号。主题帖分类字段是可空字符串而非封闭枚举：草稿可为 `null`，发布必须使用 `GET /thread-categories` 返回的启用 slug。Web 与 Flutter 均消费 `contracts/thread-category-v1-fixtures.json` 黄金用例，不得复制任何现有 slug、名称或颜色作为运行时回退；未知 slug 显示原值，空值显示“未分类”，未知响应字段必须忽略。
 
