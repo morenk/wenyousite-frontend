@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducer, useRef } from "react";
+import { useCallback, useReducer, useRef } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { useCreateSubthread } from "@/api/hooks/use-create-subthread";
@@ -87,9 +87,13 @@ function managementReducer(
     case "saving":
       return { ...state, isSaving: action.saving };
     case "thread-dirty":
-      return { ...state, isThreadDirty: action.dirty };
+      return state.isThreadDirty === action.dirty
+        ? state
+        : { ...state, isThreadDirty: action.dirty };
     case "thread-saving":
-      return { ...state, isThreadSaving: action.saving };
+      return state.isThreadSaving === action.saving
+        ? state
+        : { ...state, isThreadSaving: action.saving };
   }
 }
 
@@ -139,6 +143,12 @@ export function useManagementPanelController({
   const isSubthreadDirty = Boolean(selectedSub) && state.content !== state.savedContent;
   const isNavigationLocked =
     state.isSaving || state.isThreadSaving || uploadImage.isPending;
+  const setThreadDirty = useCallback((dirty: boolean) => {
+    dispatch({ type: "thread-dirty", dirty });
+  }, [dispatch]);
+  const setThreadSaving = useCallback((saving: boolean) => {
+    dispatch({ type: "thread-saving", saving });
+  }, [dispatch]);
 
   const hasUnsavedChanges = () => state.view === "thread"
     ? state.isThreadDirty
@@ -301,8 +311,8 @@ export function useManagementPanelController({
     updatePending: updateSubthread.isPending,
     setContent: (content: string) => dispatch({ type: "content", content }),
     setSubFormMode: (mode: SubFormMode) => dispatch({ type: "form", mode }),
-    setThreadDirty: (dirty: boolean) => dispatch({ type: "thread-dirty", dirty }),
-    setThreadSaving: (saving: boolean) => dispatch({ type: "thread-saving", saving }),
+    setThreadDirty,
+    setThreadSaving,
     resetSubthreadEditor: () => dispatch({ type: "reset-content" }),
     uploadImage: (file: File, options?: UploadImageOptions) => uploadImage.mutateAsync(file, options),
     handleViewChange,

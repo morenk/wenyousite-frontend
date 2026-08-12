@@ -4,6 +4,7 @@ import { describe, test, expect, vi, afterEach, beforeEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { toast } from "sonner";
 import {
   ManagementPanel,
@@ -30,17 +31,26 @@ vi.mock("@/components/forms/thread-edit-form", () => ({
   ThreadEditForm: ({
     isOwner,
     onDirtyChange,
+    onSavingChange,
   }: {
     isOwner: boolean;
     onDirtyChange?: (isDirty: boolean) => void;
-  }) => (
-    <div data-testid="thread-edit-form">
-      主题帖编辑 isOwner={String(isOwner)}
-      <button type="button" onClick={() => onDirtyChange?.(true)}>
-        模拟修改主题帖
-      </button>
-    </div>
-  ),
+    onSavingChange?: (isSaving: boolean) => void;
+  }) => {
+    useEffect(() => {
+      onDirtyChange?.(false);
+      onSavingChange?.(false);
+    }, [onDirtyChange, onSavingChange]);
+
+    return (
+      <div data-testid="thread-edit-form">
+        主题帖编辑 isOwner={String(isOwner)}
+        <button type="button" onClick={() => onDirtyChange?.(true)}>
+          模拟修改主题帖
+        </button>
+      </div>
+    );
+  },
 }));
 
 vi.mock("@/components/editor/milkdown-editor", () => ({
@@ -251,6 +261,14 @@ describe("ManagementPanel", () => {
 
     expect(screen.getByTestId("thread-edit-form")).toBeInTheDocument();
     expect(screen.queryByText("子贴目录")).not.toBeInTheDocument();
+  });
+
+  test("表单挂载同步未修改状态时不会形成重复更新", async () => {
+    const user = userEvent.setup();
+    renderDefaultPanel();
+
+    await user.click(screen.getByRole("button", { name: "模拟修改主题帖" }));
+    expect(screen.getByTestId("thread-edit-form")).toBeInTheDocument();
   });
 
   test("子贴目录不展示主帖并默认编辑第一个真实子贴", () => {
