@@ -35,6 +35,7 @@ export function useCreatePost() {
         queryClient.invalidateQueries({
           queryKey: queryKeys.floors.list(variables.subthreadId),
         }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.users.all }),
         ...(variables.parentPostId
           ? [
               queryClient.invalidateQueries({

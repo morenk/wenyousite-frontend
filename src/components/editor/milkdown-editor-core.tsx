@@ -126,6 +126,10 @@ export interface MilkdownEditorProps {
   threadId?: string;
   /** 已由服务端结算的结果；按 nodeId 映射到正文内联节点。 */
   diceRolls?: InlineDiceRoll[];
+  /** 编辑器就绪后聚焦正文；仅用于明确的创建后续写流程。 */
+  autoFocus?: boolean;
+  /** contenteditable 正文输入区的可访问名称。 */
+  ariaLabel?: string;
 }
 
 const CN_HEADING_OPTIONS = [
@@ -183,6 +187,8 @@ interface EditorHostProps {
   minHeight: number;
   threadId?: string;
   diceRolls?: InlineDiceRoll[];
+  autoFocus?: boolean;
+  ariaLabel: string;
 }
 
 /** Crepe 编辑器宿主：以 initialValue 初始化；被外层按 key 重挂载以回填恢复的正文草稿 */
@@ -195,6 +201,8 @@ function EditorHost({
   onOpenDrafts,
   threadId,
   diceRolls = [],
+  autoFocus = false,
+  ariaLabel,
 }: EditorHostProps) {
   const [loading] = useInstance();
   const crepeRef = useRef<CrepeBuilder | null>(null);
@@ -217,6 +225,14 @@ function EditorHost({
   useEffect(() => {
     onChangeRef.current = onChange;
   }, [onChange]);
+
+  useEffect(() => {
+    if (!autoFocus || disabled || loading) return;
+    const frame = window.requestAnimationFrame(() => {
+      crepeRef.current?.editor.action((ctx) => ctx.get(editorViewCtx)).focus();
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [autoFocus, disabled, loading]);
   const mentionQuery = mentionMenu?.query ?? "";
   const [debouncedMentionQuery] = useDebounce(mentionQuery, 180);
   const {
@@ -705,7 +721,11 @@ function EditorHost({
         setToolbarDensity(fitMilkdownToolbar(topBar));
       });
     };
+    const syncEditorSemantics = () => {
+      host.querySelector<HTMLElement>(".ProseMirror")?.setAttribute("aria-label", ariaLabel);
+    };
     const syncTopBar = () => {
+      syncEditorSemantics();
       syncMilkdownToolbarItems(host, toolbarItemsRef.current);
       syncMilkdownHeadingOptions(host, CREATABLE_HEADING_LABELS);
       syncMilkdownToolbarVisibility(host, disabled ?? false);
@@ -716,6 +736,7 @@ function EditorHost({
 
     const observer = new MutationObserver(syncTopBar);
     observer.observe(host, { childList: true, subtree: true });
+    syncEditorSemantics();
     window.addEventListener("resize", scheduleToolbarLayout);
     window.addEventListener("resize", scheduleDropdownPosition);
     window.addEventListener("scroll", scheduleDropdownPosition, true);
@@ -758,7 +779,7 @@ function EditorHost({
       if (positionFrame !== null) window.cancelAnimationFrame(positionFrame);
       if (layoutFrame !== null) window.cancelAnimationFrame(layoutFrame);
     };
-  }, [disabled]);
+  }, [ariaLabel, disabled]);
 
   useEffect(() => {
     if (hostRef.current) {
@@ -829,6 +850,8 @@ function EditorCore({
   minHeight = 280,
   threadId,
   diceRolls = [],
+  autoFocus = false,
+  ariaLabel,
 }: MilkdownEditorProps) {
   const {
     user,
@@ -846,6 +869,7 @@ function EditorCore({
   } = useEditorDraftController({ defaultValue: defaultValue ?? "", onChange });
 
   const charCount = currentContent.length;
+  const editorAriaLabel = ariaLabel ?? placeholder ?? "正文编辑器";
 
   const charWarning =
     charCount > MAX_CHARS * 0.9
@@ -879,6 +903,8 @@ function EditorCore({
         minHeight={minHeight}
         threadId={threadId}
         diceRolls={diceRolls}
+        autoFocus={autoFocus}
+        ariaLabel={editorAriaLabel}
       />
       <div className="flex items-center justify-between border-t border-border px-3 py-2">
         <span className="text-xs text-muted-foreground">

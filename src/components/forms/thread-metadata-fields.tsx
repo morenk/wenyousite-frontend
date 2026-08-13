@@ -25,12 +25,16 @@ export function ThreadMetadataFields({
   form,
   disabled,
   showVisibility = true,
+  visibilityReadOnly = false,
+  sections = "all",
   status,
   onStatusChange,
 }: {
   form: UseFormReturn<ThreadCreateFormData>;
   disabled: boolean;
   showVisibility?: boolean;
+  visibilityReadOnly?: boolean;
+  sections?: "all" | "identity" | "publication";
   status?: ThreadDetail["status"];
   onStatusChange?: (status: ThreadDetail["status"]) => void;
 }) {
@@ -59,10 +63,12 @@ export function ThreadMetadataFields({
       : []),
     ...categories.map((option) => ({ value: option.slug, label: option.name })),
   ];
+  const showIdentity = sections === "all" || sections === "identity";
+  const showPublication = sections === "all" || sections === "publication";
 
   return (
     <>
-      <div className="space-y-2 sm:col-span-2">
+      {showIdentity ? <div className="space-y-2 sm:col-span-2">
         <Label htmlFor="title">主题帖标题</Label>
         <Input
           id="title"
@@ -77,9 +83,9 @@ export function ThreadMetadataFields({
             {form.formState.errors.title.message}
           </p>
         )}
-      </div>
+      </div> : null}
 
-      <div className="space-y-2">
+      {showPublication ? <div className="space-y-2">
         <Label htmlFor="category">分区</Label>
         <Select
           items={categoryItems}
@@ -130,9 +136,9 @@ export function ThreadMetadataFields({
             {form.formState.errors.category.message}
           </p>
         ) : null}
-      </div>
+      </div> : null}
 
-      {status !== undefined && onStatusChange && (
+      {showPublication && status !== undefined && onStatusChange && (
         <div className="space-y-2">
           <Label htmlFor="status">状态</Label>
           <Select
@@ -155,7 +161,7 @@ export function ThreadMetadataFields({
         </div>
       )}
 
-      {showVisibility && (
+      {showPublication && showVisibility && (
         <div className="space-y-2">
           <Label htmlFor="visibility">可见性</Label>
           <Select
@@ -168,7 +174,7 @@ export function ThreadMetadataFields({
                 { shouldDirty: true, shouldValidate: true },
               )
             }
-            disabled={disabled}
+            disabled={disabled || visibilityReadOnly}
           >
             <SelectTrigger id="visibility" className="w-full">
               <SelectValue />
@@ -179,10 +185,15 @@ export function ThreadMetadataFields({
               ))}
             </SelectContent>
           </Select>
+          {visibilityReadOnly ? (
+            <p className="text-xs leading-5 text-muted-foreground">
+              当前可见性由楼主管理，协作者只能查看。
+            </p>
+          ) : null}
         </div>
       )}
 
-      <div className="space-y-2 sm:col-span-2">
+      {showIdentity ? <div className="space-y-2 sm:col-span-2">
         <Label htmlFor="tags">标签</Label>
         <TagInput
           value={tagNames ?? []}
@@ -195,7 +206,7 @@ export function ThreadMetadataFields({
           disabled={disabled}
         />
         {tagError && <p className="text-sm text-destructive">{tagError}</p>}
-      </div>
+      </div> : null}
     </>
   );
 }

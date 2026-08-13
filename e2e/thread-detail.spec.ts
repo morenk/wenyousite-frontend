@@ -41,10 +41,10 @@ test.describe("主题帖管理面板", () => {
     await loginAndCreatePublishedThread(page);
 
     // 进入管理面板
-    await page.getByRole("button", { name: "管理" }).click();
-    await expect(page.getByText("返回浏览")).toBeVisible();
-    await page.getByRole("button", { name: "子贴", exact: true }).click();
-    await expect(page.getByText("子贴目录")).toBeVisible();
+    await page.getByRole("button", { name: "管理主题帖" }).click();
+    await expect(page.getByText("返回帖子")).toBeVisible();
+    await page.getByRole("tab", { name: /子贴内容/ }).click();
+    await expect(page.getByText("章节目录")).toBeVisible();
 
     // 添加子贴
     await page.getByText("添加子贴").click();
@@ -57,36 +57,35 @@ test.describe("主题帖管理面板", () => {
     // 新子贴出现在目录树
     await expect(page.locator("aside").getByText("设定区")).toBeVisible({ timeout: 10000 });
 
-    // 选中新子贴，编辑器清空
-    await page.locator("aside").getByText("设定区").click();
-    await expect(page.getByText("正在编辑：设定区")).toBeVisible();
+    // 新建后自动选中并打开内联元数据与正文画布
+    await expect(page.getByLabel("子贴标题")).toHaveValue("设定区");
 
     // 编辑正文并保存
     const editor = page.locator(".milkdown-editor .ProseMirror");
     await editor.click();
     await editor.pressSequentially("设定区世界观设定。", { delay: 20 });
     await expect(page.locator(".tabular-nums")).not.toHaveText(/^0\/10000$/);
-    await page.getByText("保存修改").click();
-    await expect(page.getByText("正文已保存").first()).toBeVisible({ timeout: 10000 });
+    await page.getByRole("button", { name: "保存子贴" }).click();
+    await expect(page.getByText("子贴修改已保存").first()).toBeVisible({ timeout: 10000 });
 
     // 删除刚创建的子贴
-    await page.locator("aside").getByTitle("删除子贴").click();
-    await page.getByRole("button", { name: "删除", exact: true }).click();
+    await page.getByRole("button", { name: "删除子贴「设定区」" }).click();
+    await page.getByRole("button", { name: "删除子贴", exact: true }).click();
     await expect(page.getByText("子贴已删除").first()).toBeVisible({ timeout: 10000 });
     await expect(page.locator("aside").getByText("设定区")).not.toBeVisible();
 
     // 返回浏览
-    await page.getByText("返回浏览").click();
-    await expect(page.getByRole("button", { name: "管理" })).toBeVisible();
+    await page.getByText("返回帖子").click();
+    await expect(page.getByRole("button", { name: "管理主题帖" })).toBeVisible();
   });
 
   test("拖拽排序子贴", async ({ page }) => {
     await loginAndCreatePublishedThread(page);
 
     // 进入管理面板
-    await page.getByRole("button", { name: "管理" }).click();
-    await expect(page.getByText("返回浏览")).toBeVisible();
-    await page.getByRole("button", { name: "子贴", exact: true }).click();
+    await page.getByRole("button", { name: "管理主题帖" }).click();
+    await expect(page.getByText("返回帖子")).toBeVisible();
+    await page.getByRole("tab", { name: /子贴内容/ }).click();
 
     const aside = page.locator("aside");
 
@@ -98,9 +97,9 @@ test.describe("主题帖管理面板", () => {
       await expect(aside.getByText(title)).toBeVisible({ timeout: 10000 });
     }
 
-    // 拖拽"设定区"（第 2 个节点）到"剧情区"之后：默认子贴保持首位，重排为 [默认, 剧情区, 设定区]
-    const handle = aside.getByTitle("拖拽排序").nth(1);
-    const target = aside.getByText("剧情区");
+    // 拖拽"设定区"到"剧情区"之后；主帖不在可排序目录中
+    const handle = aside.getByRole("button", { name: "拖动子贴「设定区」排序" });
+    const target = aside.getByRole("button", { name: "选择子贴「剧情区」" });
     const from = await handle.boundingBox();
     const to = await target.boundingBox();
     if (!from || !to) throw new Error("无法获取拖拽元素位置");
@@ -123,18 +122,18 @@ test.describe("主题帖管理面板", () => {
     const reorderRes = await reorderResponse;
     expect(reorderRes.status()).toBe(200);
 
-    // 树中仍保留所有子贴（默认子贴标题已跟随帖子标题，用主帖徽章断言）
-    await expect(aside.getByText("主帖")).toBeVisible();
+    // 树中只保留真实子贴；默认主帖继续由帖子设置页管理
+    await expect(aside.getByText("主帖", { exact: true })).not.toBeVisible();
     await expect(aside.getByText("设定区")).toBeVisible();
     await expect(aside.getByText("剧情区")).toBeVisible();
   });
 
-  test("拖拽子贴到主帖位置不触发交换且无错误提示", async ({ page }) => {
+  test("子贴目录不提供主帖落点并支持键盘排序", async ({ page }) => {
     await loginAndCreatePublishedThread(page);
 
-    await page.getByRole("button", { name: "管理" }).click();
-    await expect(page.getByText("返回浏览")).toBeVisible();
-    await page.getByRole("button", { name: "子贴", exact: true }).click();
+    await page.getByRole("button", { name: "管理主题帖" }).click();
+    await expect(page.getByText("返回帖子")).toBeVisible();
+    await page.getByRole("tab", { name: /子贴内容/ }).click();
 
     const aside = page.locator("aside");
 
@@ -146,34 +145,17 @@ test.describe("主题帖管理面板", () => {
       await expect(aside.getByText(title)).toBeVisible({ timeout: 10000 });
     }
 
-    // 记录拖拽前的树顺序
-    const treeList = aside.locator("div.overflow-y-auto").first();
-    const treeNodes = treeList.locator(':scope > div[class*="cursor-pointer"]');
-    const orderBefore = await treeNodes.allTextContents();
-
-    // 拖拽"设定区"（第 2 个节点）到主帖位置：主帖不作为落点，应被操作层拦截
-    const handle = aside.getByTitle("拖拽排序").nth(1);
-    const mainPost = aside.getByText("主帖").first();
-    const from = await handle.boundingBox();
-    const to = await mainPost.boundingBox();
-    if (!from || !to) throw new Error("无法获取拖拽元素位置");
-
-    await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
-    await page.mouse.down();
-    await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, {
-      steps: 12,
-    });
-    await page.mouse.up();
-
-    // 顺序不变（主帖保持首位）
-    const orderAfter = await treeNodes.allTextContents();
-    expect(orderAfter).toEqual(orderBefore);
-
-    // 无"不能交换"提示或排序失败提示
-    await expect(
-      page.getByText("主帖必须保持在第一位，不能与其他子帖交换顺序"),
-    ).not.toBeVisible();
-    await expect(page.getByText(/排序保存失败/)).not.toBeVisible();
+    await expect(aside.getByText("主帖", { exact: true })).not.toBeVisible();
+    const reorderResponse = page.waitForResponse(
+      (response) => response.url().includes("/subthreads/reorder") &&
+        response.request().method() === "PUT",
+    );
+    const handle = aside.getByRole("button", { name: "拖动子贴「设定区」排序" });
+    await handle.focus();
+    await page.keyboard.press("Space");
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("Space");
+    expect((await reorderResponse).status()).toBe(200);
   });
 });
 
@@ -182,11 +164,11 @@ test.describe("已发布帖统一管理", () => {
     await loginAndCreatePublishedThread(page);
     const threadUrl = page.url();
 
-    // 详情页只保留统一管理入口，默认打开主题帖页签
+    // 详情页只保留统一管理入口，默认打开帖子设置页签
     await expect(page.getByRole("button", { name: "编辑" })).not.toBeVisible();
-    await page.getByRole("button", { name: "管理" }).click();
+    await page.getByRole("button", { name: "管理主题帖" }).click();
     await expect(page).toHaveURL(`${threadUrl}/edit`);
-    await expect(page.getByRole("button", { name: "主题帖" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "帖子设置" })).toBeVisible();
 
     // 修改标题
     const titleInput = page.locator("#title");
@@ -194,13 +176,12 @@ test.describe("已发布帖统一管理", () => {
     await titleInput.fill(newTitle);
 
     // 保存修改
-    await page.getByRole("button", { name: "保存修改" }).click();
-    await expect(page.getByText("修改已保存").first()).toBeVisible({ timeout: 10000 });
+    await page.getByRole("button", { name: "保存帖子" }).click();
+    await expect(page.getByText("帖子修改已保存").first()).toBeVisible({ timeout: 10000 });
 
-    // 保存后仍在管理界面，返回浏览后显示新标题
+    // 保存后仍在管理界面，返回帖子后显示新标题
     await expect(page).toHaveURL(`${threadUrl}/edit`);
-    await expect(page.getByText(`管理帖子：${newTitle}`)).toBeVisible({ timeout: 10000 });
-    await page.getByRole("button", { name: "返回浏览" }).click();
+    await page.getByRole("button", { name: "返回帖子" }).click();
     await expect(page.locator("h1")).toHaveText(newTitle, { timeout: 10000 });
   });
 
@@ -211,8 +192,8 @@ test.describe("已发布帖统一管理", () => {
 
     // 已发布帖旧链接进入相同管理面板
     await page.goto(`/threads/${threadId}/edit`);
-    await expect(page.getByText(/管理帖子：/)).toBeVisible();
-    await expect(page.getByRole("button", { name: "主题帖" })).toBeVisible();
+    await expect(page.getByText("共同创作管理台")).toBeVisible();
+    await expect(page.getByRole("tab", { name: "帖子设置" })).toBeVisible();
 
     // 登出后访问应跳转登录
     await page.context().clearCookies();

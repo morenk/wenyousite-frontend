@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 const {
   mockUseAuth,
@@ -33,7 +33,12 @@ describe("UserMomentsSection", () => {
     vi.clearAllMocks();
     mockUseAuth.mockReturnValue({ user: { id: "viewer-1" } });
     mockUseUserMoments.mockReturnValue({
-      data: { pages: [{ data: [{ id: "moment-1" }] }, { data: [{ id: "moment-2" }] }] },
+      data: {
+        pages: [
+          { data: [{ id: "moment-1" }], meta: { cursor: "next", hasMore: true } },
+          { data: [{ id: "moment-2" }], meta: { cursor: null, hasMore: false } },
+        ],
+      },
       isLoading: false,
       error: null,
       hasNextPage: true,
@@ -42,6 +47,8 @@ describe("UserMomentsSection", () => {
       refetch: mockRefetch,
     });
   });
+
+  afterEach(cleanup);
 
   test("按查看者隔离用户动态缓存并透传分页操作", () => {
     render(<UserMomentsSection userId="author-1" />);

@@ -208,6 +208,19 @@ describe("moment hooks", () => {
     });
 
     mockGET.mockClear();
+    const previewHarness = harness();
+    const preview = renderHook(() => useUserMoments("author-1", "viewer-1", 2), {
+      wrapper: previewHarness.wrapper,
+    });
+    await waitFor(() => expect(preview.result.current.data?.pages[0].data).toEqual([card]));
+    expect(mockGET).toHaveBeenCalledWith("/api/v1/users/{id}/moments", {
+      params: { path: { id: "author-1" }, query: { limit: 2 } },
+    });
+    expect(queryKeys.moments.user("author-1", "viewer-1", 2)).not.toEqual(
+      queryKeys.moments.user("author-1", "viewer-1", 20),
+    );
+
+    mockGET.mockClear();
     const bookmarkHarness = harness();
     const bookmarks = renderHook(() => useMomentBookmarks(undefined), {
       wrapper: bookmarkHarness.wrapper,

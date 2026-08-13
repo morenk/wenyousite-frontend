@@ -51,6 +51,20 @@ export function validateAvatarFile(file: File): string | null {
   return null;
 }
 
+/** 个人主页背景图校验；动图不进入固定 3:1 裁剪链路。 */
+export function validateProfileCoverFile(file: File): string | null {
+  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+    return "背景图仅支持 jpg/png/webp 格式";
+  }
+  if (file.size < 1) {
+    return "背景图文件不能为空";
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    return "图片大小不能超过 10MB";
+  }
+  return null;
+}
+
 interface UploadedImage {
   url: string;
   mediaId: string;

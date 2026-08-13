@@ -12,7 +12,8 @@
 | `/moments/[id]` | 直接替换 42rem `feed` 中栏内容的动态详情页；返回栏、标题卡片、图片画廊与正文区使用同一组中栏内边线，左右侧轨的位置与宽度不变 |
 | `/search?q=…` | 默认动态 Tab，仅搜索动态标题和正文，至少 2 个字符 |
 | `/bookmarks` | “主题帖 / 动态”分类收藏 |
-| `/users/[id]` | 用户公开动态瀑布流 |
+| `/users/[id]` | 用户资料“概览”Tab 只在创作汇总中展示动态总数，不重复挂载动态卡片 |
+| `/users/[id]/moments` | 用户资料“动态”Tab，展示完整公开动态瀑布流并按游标继续加载；与其他资料 Tab 共用持久 Layout，切换时资料头部不卸载 |
 
 卡片主体不使用常驻边框或紫色填充。图片封面优先使用 480px `_feed.webp` 派生图，并保留横图、方图的原始比例；过长竖图最多收束到 3:4，文字封面保持 3:4。两列由真实卡片高度独立排布，不要求左右卡片顶边或底边互相对齐。无图片时由服务端持久化的 `textCoverTheme` 和标题生成语义色文字封面；ROSE、LILAC、MINT、AMBER 分别复用设计系统已有的 primary、secondary、success、warning 色对，不增加第二套品牌标签或写死色值，同时确保分页、刷新和跨端主题稳定。瀑布流卡片只保留标题、作者与点赞，收藏、评论和加油集中在详情页。
 
@@ -65,7 +66,7 @@
 | GET | `/search/moments` | 标题与正文搜索 |
 | POST | `/moments/:id/tips` | 给动态作者加油 |
 
-所有查询通过 `src/api/hooks/use-moments.ts` 和 `useSearchMoments` 管理，query key 包含流类型、查看者与筛选条件。点赞在 mutation 发出前同步乐观修补详情、信息流、用户动态、收藏及搜索缓存，服务端失败时只回滚该动态；请求期间不改变按钮颜色或透明度。主题帖与动态的已点赞状态统一使用 `text-destructive / destructive-soft`，心形填充，不再分别使用品牌色和红色。瀑布流使用 TanStack Virtual measured lanes，只挂载可视区域附近卡片；`ResizeObserver` 回写真实卡片高度，较短封面会自然形成左右错落。虚拟项进入距列表末尾约两行的预取区时触发游标翻页，不依赖未挂载的 DOM sentinel。
+所有查询通过 `src/api/hooks/use-moments.ts` 和 `useSearchMoments` 管理，query key 包含流类型、查看者、用户动态页容量与筛选条件；个人主页的 2 条预览和完整动态页的 20 条分页缓存互不污染。点赞在 mutation 发出前同步乐观修补详情、信息流、用户动态、收藏及搜索缓存，服务端失败时只回滚该动态；请求期间不改变按钮颜色或透明度。主题帖与动态的已点赞状态统一使用 `text-destructive / destructive-soft`，心形填充，不再分别使用品牌色和红色。瀑布流使用 TanStack Virtual measured lanes，只挂载可视区域附近卡片；`ResizeObserver` 回写真实卡片高度，较短封面会自然形成左右错落。虚拟项进入距列表末尾约两行的预取区时触发游标翻页，不依赖未挂载的 DOM sentinel。
 
 ## 前端库采用边界
 

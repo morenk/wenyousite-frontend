@@ -38,7 +38,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 | `/threads/[id]` | 主题帖详情页（含子贴、楼层） | 公开（PRIVATE 帖非成员返回 404） |
 | `/threads/[id]?post={postId}` | 精确定位主楼层；未知父楼上下文时兼容识别并转入楼中楼 | 继承主题帖访问权限 |
 | `/threads/[id]/posts/[postId]/replies?post={replyId}` | 独立楼中楼阅读页：原楼层作为讨论正文，楼中楼回复作为连续楼层 | 继承主题帖访问权限 |
-| `/threads/[id]/edit` | 兼容编辑路由：草稿使用 ThreadCreateForm；已发布帖复用统一管理面板并默认进入「主题帖」 | OWNER/COLLABORATOR；草稿仅 OWNER |
+| `/threads/[id]/edit` | 兼容编辑路由：草稿使用 ThreadCreateForm；已发布帖复用统一管理面板并默认进入「帖子设置」 | OWNER/COLLABORATOR；草稿仅 OWNER |
 
 ## 3. 涉及 API
 
@@ -85,7 +85,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 
 > **统一导航契约**：`src/lib/post-navigation.ts` 集中生成主楼层、楼中楼讨论和目标回复地址，供搜索、通知、个人动态、复制链接、讨论列表及兼容重定向复用。各业务组件只负责呈现或触发导航，不再自行拼接帖子定位 URL。
 
-> **主题帖链接契约**：公开主题帖可通过 `/threads/{threadId}` 访问根页面，头部提供复制主题帖链接入口。私密帖不显示普通复制链接；楼主只显示可授予访问权限的“复制邀请链接”，其他成员不显示分享入口。
+> **主题帖链接契约**：公开主题帖可通过 `/threads/{threadId}` 访问根页面，详情头部提供复制主题帖链接入口。私密帖不显示普通复制链接；生成或刷新邀请链接只放在管理台「帖子设置 → 私密访问」，详情头部不重复提供邀请与删除入口。
 
 > **主题标签导航**：详情头部的主题帖标签链接到 `/tags/{tagId}`；标签页只列出关联该标签的公开已发布主题帖，私密帖不会因标签关系出现在公开列表中。
 
@@ -251,7 +251,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 | 帖内搜索 | `GET /threads/:threadId/search/posts` | `useThreadSearchPosts` 游标分页；面板开关与待提交输入为详情页/组件本地状态 |
 | 表情收藏 | `GET /stickers` 与导入/排序/删除端点 | `useStickers` 用户级缓存；编辑器点选插入，正文图片可快速收藏 |
 | 动态分类 | `GET /thread-categories` | 全局 Query 缓存；详情、列表和管理表单共用同一 slug → 展示映射 |
-| 管理视图 | `/threads/[id]/edit` | `thread / subthreads / members` 本地状态；默认 `thread`，切换前检查未保存内容 |
+| 管理视图 | `/threads/[id]/edit` | `view=settings|subthreads|members` 与可选 `subthread={id}` URL 状态；默认参数省略，切换使用 history replace 并在离开前检查未保存内容 |
 
 ## 6. 组件清单
 
@@ -277,11 +277,11 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 | ReplyForm | `src/components/thread/reply-form.tsx` | 楼中楼浮动回复入口：登录用户按需打开统一编辑器，未登录显示登录提示 |
 | ReplyList | `src/components/thread/reply-list.tsx` | 楼中楼连续列表；独立阅读时可切换最早/最新在前，并只看帖内玩家、楼主或协作者；作者可编辑，作者或楼主/协作者可删除 |
 | ThreadPermissionsProvider | `src/components/thread/thread-permissions-context.tsx` | 复用详情中的当前成员与 capability 投影，计算楼主、协作者、参与人和管理权限 |
-| MemberManager | `src/components/thread/member-manager.tsx` | 楼主可任免协作者；楼主/协作者可授予/收回玩家 |
-| ManagementPanel | `src/components/thread/management-panel.tsx` | 楼主/协作者统一管理面板：主题帖、子贴、成员三个页签及未保存保护 |
-| useManagementPanelController | `src/components/thread/use-management-panel-controller.ts` | 管理面板 reducer、脏状态保护、mutation 与提示编排 |
-| SubthreadTree | `src/components/thread/subthread-tree.tsx` | 管理面板左栏子贴目录树（@dnd-kit 拖拽排序） |
-| SubthreadForm | `src/components/forms/subthread-form.tsx` | 子贴创建/编辑共享 Dialog（焦点圈定、Esc/遮罩关闭）+ 共享 Select（title + postingPolicy + Zod 校验） |
+| MemberManager | `src/components/thread/member-manager.tsx` | 成员权限表：本地搜索/筛选，楼主可任免协作者，楼主/协作者可授予或收回玩家标记 |
+| ManagementPanel | `src/components/thread/management-panel.tsx` | 楼主/协作者统一桌面管理台：帖子设置、子贴内容、成员权限三个 URL 页签，持续保存状态与快捷保存 |
+| useManagementPanelController | `src/components/thread/use-management-panel-controller.ts` | 管理台 reducer、URL 恢复、未保存导航保护、联合保存/冲突恢复与 mutation 编排 |
+| SubthreadTree | `src/components/thread/subthread-tree.tsx` | 管理台左栏章节目录（真实顺序、权限/楼层摘要、@dnd-kit 鼠标与键盘排序） |
+| SubthreadForm | `src/components/forms/subthread-form.tsx` | 新建子贴 Dialog（焦点圈定、Esc/遮罩关闭）+ 共享 Select（title + postingPolicy + Zod 校验）；已有子贴在正文画布上方内联编辑元数据 |
 | useFloors | `src/api/hooks/use-floors.ts` | 楼层列表 hook |
 | useLikeThread | `src/api/hooks/use-like-thread.ts` | 点赞/取消点赞 hook |
 | useCreateSubthread | `src/api/hooks/use-create-subthread.ts` | 管理面板：添加子贴 |
@@ -300,31 +300,35 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 
 > 楼层卡片会直接展示 API 返回的前 5 条楼中楼回复；发布时间与回复入口位于正文和预览之间，使用留白而非分割线组织层级。回复正文合计超过 500 个字符时，内联区域截断并使用渐变遮罩，点击「展开回复」进入独立楼中楼页面。超过 5 条时仍只展示前 5 条，并通过回复数链接查看完整串；没有楼中楼回复时不显示空状态文案。
 | useSubscriptionMutations | `src/api/hooks/use-subscription-mutations.ts` | 创建/取消订阅 |
-| ThreadEditForm | `src/components/forms/thread-edit-form.tsx` | 管理面板「主题帖」表单；协作者可改标题/分区/状态/标签/主帖正文，可见性仅楼主；上报脏状态与保存状态 |
+| ThreadEditForm | `src/components/forms/thread-edit-form.tsx` | 管理台「帖子设置」双栏表单；协作者可改标题/分区/状态/标签/主帖正文，可见性仅楼主；邀请与删除归入楼主侧栏并上报统一保存状态 |
 | EditThreadPage | `src/app/threads/[id]/edit/page.tsx` | 兼容路由：未发布草稿继续使用发布表单，已发布帖复用统一管理面板 |
 | useEditorMentionController | `src/components/editor/use-editor-mention-controller.ts` | Milkdown 的提及 DOM 监听、键盘导航、原子删除与插入事务 |
 
 ## 6.1 帖主管理面板
 
-帖主/协作者在头部只看到一个「管理」按钮，点击进入 `/threads/[id]/edit` 的 **workspace 管理面板**。该路由固定使用 72px 图标导航且不显示右侧信息栏，避免管理区被社区三栏壳压缩；压缩只改变宽度与文字标签，不在宽屏额外增加个人快捷按钮。面板包含「主题帖 / 子贴 / 成员」三个页签并默认打开「主题帖」；「返回浏览」回到主题帖详情。
+帖主/协作者在详情头部只看到一个「管理主题帖」按钮，点击进入 `/threads/[id]/edit` 的 **共同创作管理台**。该路由只面向 PC，固定使用 72px 图标导航且不显示右侧信息栏；验收最小宽度为 1024px，不提供移动抽屉或触控排序。管理台包含「帖子设置 / 子贴内容 / 成员权限」三个页签并默认打开「帖子设置」；「返回帖子」回到主题帖详情。
 
 ```
-┌─ 管理帖子 ──────────────────────────────────────────┐
-│ [← 返回浏览]  管理：{帖子标题} [主题帖][子贴][成员] │
-├─────────────────────────────────────────────────────┤
-│ 主题帖：标题/分区/状态/可见性/标签/主帖正文         │
-│ 子贴：子贴目录树 + 子贴正文编辑器                    │
-│ 成员：协作者与玩家管理                               │
-└─────────────────────────────────────────────────────┘
+┌─ 共同创作管理台 ─────────────────────────────────────────────┐
+│ [← 返回帖子]  {帖子标题} [楼主/协作者]   已保存   [保存当前页] │
+│ 帖子设置 ｜ 子贴内容 N ｜ 成员权限 N                         │
+├──────────────────────────────────────────────────────────────┤
+│ 设置：标题、标签、主帖正文            │ 发布/可见性/访问权限 │
+│ 子贴：约 18rem 章节目录                │ 元数据 + 正文画布    │
+│ 成员：搜索与角色筛选后的桌面权限表                           │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-- 「主题帖」页签：复用 `ThreadEditForm` 编辑标题、分区、状态、主题标签和主帖正文；可见性仅楼主可改。保存通过 `PATCH /threads/:id/aggregate` 原子提交后停留在管理界面。
-- 「子贴」页签：左栏目录只展示真实子贴，支持新增、元数据编辑、删除和拖拽排序；右栏编辑所选子贴正文，保存调用 `PUT /subthreads/:id/body`。默认主贴不在此处重复展示，统一由「主题帖」页签管理。
-- 拖拽排序只操作目录中的真实子贴；提交时前端自动把默认子贴补在首位，继续满足默认子贴 `sortOrder=0` 的数据约束。
-- 「成员」页签继续提供协作者与玩家管理。管理面板不做楼层级管理。
-- 主题帖表单或子贴正文有未保存内容时，切换页签、切换子贴或返回浏览均先确认是否放弃；保存或图片上传期间禁止导航。
+- 顶栏持续显示「已保存 / 有未保存修改 / 保存中 / 保存失败 / 内容冲突」，页签以状态点标记未保存修改；帖子与子贴均支持 `Ctrl/Cmd+S`，成员权限修改即时生效。
+- 「帖子设置」采用内容主栏与 18rem 发布侧栏。标题、分区、状态、标签和主帖正文通过 `PATCH /threads/:id/aggregate` 原子保存；可见性仅楼主可改。协作者仍能看到只读可见性和明确能力说明。
+- 私密帖邀请与删除主题帖集中到帖子设置：生成邀请前说明旧链接失效；刚改为私密但尚未保存时禁用邀请。删除确认包含帖子标题、子贴/楼层影响及不可恢复说明，成功后 replace 到首页。
+- 「子贴内容」左栏只展示真实子贴，使用真实顺序号、短发帖权限和楼层数；当前项以品牌竖线标记。鼠标和键盘拖拽均先本地排序，失败回滚。提交排序时自动把默认子贴补在首位，继续满足 `sortOrder=0` 约束。
+- 子贴标题与发帖权限在右侧正文画布上方内联编辑。顶栏「保存子贴」按实际变更分别提交元数据和正文；部分成功只提交成功部分的新基线，并明确提示剩余失败项。新建后立即选中、写入 URL 并聚焦正文；删除当前项后选择相邻章节。
+- 「成员权限」使用桌面表格，默认按楼主、协作者、玩家、其他参与人排序；支持用户名搜索与「全部 / 协作者 / 玩家 / 其他参与人」筛选。协作权限和玩家标记是独立维度：任免协作者需站内确认，玩家标记直接切换；每行 mutation 独立 pending、乐观更新并在失败时回滚。
+- 乐观锁冲突不清空本地输入。帖子和子贴均提供「复制本地正文 / 载入最新版本」，载入前再次确认。
+- 帖子设置或当前子贴有未保存内容时，页签切换、子贴切换、返回帖子、工作区链接、浏览器后退、刷新和关闭均受保护；保存、排序、创建、删除或图片上传期间禁止离开。
+- 管理上下文由 URL 恢复：默认设置页省略参数；子贴使用 `?view=subthreads&subthread={id}`，成员使用 `?view=members`。无效子贴安全回落首个真实子贴并规范化 URL，切换统一使用 history replace。
 - `/threads/[id]/edit` 是已发布帖管理的唯一页面入口，同时兼容历史收藏和直达链接；草稿续写/发布流程不变。
-- 子贴多于一个时：排头卡显示当前子贴目录按钮，左右游标可快速切换相邻子贴并在首尾禁用；点击目录按钮后直接聚焦当前子贴项，列表紧接目录头部且不设置搜索框，以固定高度纵向菜单支持键盘操作与滚动浏览几十个子贴，不再使用横向滑动列表
 
 ## 6.2 阅读排版
 
@@ -401,7 +405,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 | OWNER 删除 | 显示 "删除" 按钮；确认后调用 `DELETE /threads/:id`，成功返回首页 |
 | OWNER/COLLABORATOR 订阅 | 不显示任何订阅控件；自动接收全部帖子动态 |
 | 普通用户订阅 | THREAD 使用铃铛图标切换官方更新；USER 通过玩家图标弹层选择 `PARTICIPANT + playerMarked=true` 普通玩家；用途由悬浮说明展示 |
-| PRIVATE OWNER | 只显示“复制邀请链接”，不显示无授权能力的普通链接；每次调用都会刷新旧 token |
+| PRIVATE OWNER | 详情头部不显示普通分享；管理台「帖子设置 → 私密访问」可生成邀请，每次调用都会刷新旧 token |
 | PRIVATE 其他成员 | 不显示普通复制链接或邀请链接 |
 | PUBLIC 非成员 | 不显示手动加入；首次发言自动建立参与人记录 |
 | 已标记玩家 | 显示“退出玩家身份”；OWNER 不可退出 |
@@ -430,13 +434,17 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 - thread 不存在时显示 404
 - 所有错误状态有 toast 或内联提示
 - 帖主看到「管理」按钮（非帖主不显示）
-- 详情头部不再显示独立「编辑」按钮；管理入口进入 `/threads/[id]/edit` workspace 并默认打开「主题帖」页签
-- 主题帖保存后停留在管理界面；切页签或返回浏览前保护未保存内容
-- 主帖正文仅在「主题帖」页签编辑，子贴页签不重复挂载主帖编辑器
-- 管理面板：左子贴目录树 + 右单例编辑器（返回浏览可切回）
-- 管理面板：添加/编辑/删除子贴（SubthreadForm 弹窗）
-- 管理面板：子贴拖拽排序（@dnd-kit + useReorderSubthreads）
-- 管理面板：编辑子贴正文（保存调用 PUT /subthreads/:id/body upsert，不再区分 createPost/updatePost）
+- 详情头部不再显示独立「编辑」、邀请或删除按钮；管理入口进入 `/threads/[id]/edit` workspace 并默认打开「帖子设置」页签
+- 管理台顶栏显示当前身份、计数、持续保存状态和当前页保存按钮；帖子/子贴支持 `Ctrl/Cmd+S`
+- 帖子设置保存后停留在管理台；协作者看到只读可见性和能力边界，楼主在同页管理私密邀请与删除
+- 切页签、切子贴、返回帖子、工作区链接、浏览器后退或刷新前保护未保存内容；写入与上传期间锁定离开
+- 管理 URL 可刷新恢复：`?view=subthreads&subthread={id}` 与 `?view=members`；非法子贴安全回落并规范化
+- 主帖正文仅在「帖子设置」编辑，子贴内容页不重复挂载主帖编辑器
+- 子贴内容：左侧章节目录 + 右侧单例编辑器；已有子贴的标题和发帖权限在正文画布上方内联编辑
+- 子贴内容：创建后自动选中聚焦，删除后选择相邻项；元数据与正文由顶栏联合保存并保留部分成功状态
+- 子贴内容：鼠标和键盘拖拽排序（@dnd-kit + useReorderSubthreads），失败时回滚并显示状态
+- 成员权限：表格搜索筛选、独立的协作权限/玩家标记、协作者任免确认、逐行 pending 与乐观失败回滚
+- 帖子或子贴版本冲突保留本地输入，并提供复制本地正文与确认后载入最新版本
 - 子贴目录不展示默认主贴；排序请求自动保留默认子贴首位
 - 排头卡内的子贴目录菜单支持几十个子贴：当前项明确、显示各子贴楼层数、纵向滚动且不占用正文上方横向空间；菜单两侧游标可切换上一个/下一个子贴，首尾状态不可点击
 - 消息/站内链接定位取消移动动画，仅高亮目标楼层或楼中楼回复卡片

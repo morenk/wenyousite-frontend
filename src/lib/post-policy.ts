@@ -7,7 +7,7 @@ export const POSTING_POLICY_LABEL: Record<string, string> = {
 };
 
 export const POSTING_POLICY_OPTIONS = [
-  { value: "PARTICIPANTS", label: "所有人" },
-  { value: "COLLABORATORS", label: "协作者" },
-  { value: "PLAYERS", label: "玩家" },
+  { value: "PARTICIPANTS", label: "所有参与人" },
+  { value: "COLLABORATORS", label: "仅协作者" },
+  { value: "PLAYERS", label: "仅玩家" },
 ] as const;

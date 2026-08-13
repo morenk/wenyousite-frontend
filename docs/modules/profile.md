@@ -5,10 +5,10 @@
 实现用户主页、关注/拉黑、草稿箱三个子功能，补齐全站所有 `Link href="/users/{id}"` 的死链落点。
 
 **当前能力：**
-- `/users/[id]` 用户主页：资料卡（头像/用户名/等级/Bio/注册时间/关注粉丝数/累计被投入温油总额与次数）+ 加油/私聊/关注/拉黑按钮 + 动态瀑布流 + 最近回复（recent-replies）+ 创建的帖子（created-threads）+ 参与的帖子（played-threads）
+- `/users/[id]` 用户资料使用路由分组共享 Layout 承载资料头部与吸顶 Tab；Tab 路由主动预取，切换时只替换内容区且资料头不卸载，慢速切换只显示局部骨架；概览展示创作活动汇总和允许公开的最近回复，动态列表只留在动态 Tab，未激活内容不挂载查询
 - 关注/取消关注、拉黑/取消拉黑（仅登录，用户主页操作）
 - 草稿箱：未发布帖列表（进入 `/threads/create` 草稿列表查看，可跳转继续编辑或删除）
-- `/me` 我的资料：精确经验与等级进度、累计收到温油统计、邮箱（并入基本信息，脱敏显示 + 邮箱验证状态，未验证可跳转 `/verify-email`）、头像（裁剪上传/移除）、Bio（textarea + 255 字数统计）、隐私开关（用户名需显式进入编辑，默认不修改）
+- `/me` 我的资料：精确经验与等级进度、主页背景（3:1 裁剪上传/移除）、头像（1:1 裁剪上传/移除）、邮箱、Bio 与隐私开关（用户名需显式进入编辑，默认不修改）
 - `/me/password` 修改密码页：当前密码/新密码/确认新密码（显示/隐藏切换 + 需求提示），成功后登出跳登录
 - `/me/email` 更换邮箱页：当前密码二次认证 → 新邮箱 → 6 位验证码，成功后失效 me 缓存并跳转 `/me`
 - `/me/security` 账号安全页：双端登录终端、黑名单、账号注销
@@ -19,7 +19,10 @@
 
 | 路由 | 页面说明 | 权限 |
 |------|----------|------|
-| `/users/[id]` | 用户主页：资料卡 + 动态 + 最近回复 + 创建的帖子 + 参与的帖子 | 公开（OptionalAuth，登录态显示关系字段与操作） |
+| `/users/[id]` | 概览 Tab：资料头部 + 创作活动汇总 + 可见的最近回复 | 公开（OptionalAuth，登录态显示关系字段与操作） |
+| `/users/[id]/moments` | 动态 Tab：完整用户动态瀑布流 | 公开（OptionalAuth） |
+| `/users/[id]/threads` | 帖子 Tab：创建/参与二级切换；只挂载当前列表 | 公开（参与列表受 showPlayerBadges 控制） |
+| `/users/[id]/bookmarks` | 收藏 Tab：只读收藏列表 | 公开（受 showBookmarks 控制；无权限时不挂载查询） |
 | `/users/[id]/following` | 该用户关注的人列表 | 公开（OptionalAuth） |
 | `/users/[id]/followers` | 该用户的粉丝列表 | 公开（OptionalAuth） |
 | `/me` | 我的资料编辑（Bio/隐私开关/账号安全入口） | Auth（仅本人） |
@@ -37,6 +40,8 @@
 | PATCH | `/users/me` | Auth | 修改资料（username/bio/隐私开关），5次/分钟限流，需邮箱已验证 |
 | PATCH | `/users/me/avatar` | Auth | 设置头像（传入 mediaId），需邮箱已验证 |
 | DELETE | `/users/me/avatar` | Auth | 移除头像（置空 avatar，回到首字母占位），需邮箱已验证 |
+| PATCH | `/users/me/profile-cover` | Auth | 设置主页背景（传入本人已完成的 3:1 mediaId），需邮箱已验证 |
+| DELETE | `/users/me/profile-cover` | Auth | 移除主页背景并恢复无背景的紧凑资料卡，需邮箱已验证 |
 | POST | `/auth/change-password` | AuthRead | 修改密码（旧+新），成功后退出全部登录终端并强制重新登录 |
 | POST | `/auth/change-email/request-code` | Auth | 更换邮箱第一步：校验当前密码后向新邮箱发送验证码 |
 | POST | `/auth/change-email/verify` | Auth | 更换邮箱第二步：验证码确认并更新邮箱 |
@@ -44,6 +49,7 @@
 | GET | `/users/:id/recent-replies` | OptionalAuth | 最近 10 条回复（仅 PUBLIC 帖），不分页，受 showRecentReplies 控制 |
 | GET | `/users/:id/moments` | OptionalAuth | 用户发布的未删除动态，Cursor 分页并过滤双向拉黑关系 |
 | GET | `/users/:id/created-threads` | OptionalAuth | 创建的帖子（本人可见全部含私密帖，他人仅 PUBLIC），按创建时间倒序，Cursor 分页 |
+| GET | `/users/:id/activity-summary` | OptionalAuth | 创作活动汇总：可见动态、自建主题、玩家身份参与主题、回复总数；隐私项无权时为 null |
 | GET | `/users/:id/played-threads` | OptionalAuth | 已获授玩家身份的非自建帖子，支持 `visibility=PUBLIC\|PRIVATE`；本人可见公开/私密帖，他人仅可见公开帖，按加入时间倒序和 Cursor 分页 |
 | POST | `/users/follow/:id` | Auth | 关注（幂等，首次关注发通知） |
 | POST | `/users/:id/tips` | Auth | 向该用户投入不少于 2 升温油（UUID 幂等） |
@@ -75,6 +81,7 @@
     "email": "<redacted-email>",
     "username": "testthread2",
     "avatar": null,
+    "profileCover": null,
     "bio": null,
     "role": "USER",
     "showRecentReplies": true,
@@ -98,6 +105,7 @@
     "id": "<redacted-id>",
     "username": "testuser",
     "avatar": null,
+    "profileCover": null,
     "bio": null,
     "role": "USER",
     "showRecentReplies": true,
@@ -212,6 +220,7 @@
 | 状态 | 来源 | 管理方式 |
 |------|------|----------|
 | 用户资料 | `GET /users/:id` | TanStack Query `useQuery`（`queryKeys.users.detailForViewer(id, viewerScope)`） |
+| 创作活动汇总 | `GET /users/:id/activity-summary` | TanStack Query `useQuery`（按 viewerScope 隔离，60 秒新鲜期） |
 | 最近动态 | `GET /users/:id/recent-replies` | TanStack Query `useQuery` |
 | 创建的帖子 | `GET /users/:id/created-threads` | `useInfiniteQuery`（cursor 分页） |
 | 参与的帖子 | `GET /users/:id/played-threads` | `useInfiniteQuery`（cursor 分页；query key 含 PUBLIC/PRIVATE/ALL 分类） |
@@ -227,7 +236,11 @@
 
 | 组件 | 路径 | 说明 |
 |------|------|------|
-| UserProfileCard | `src/components/user/user-profile-card.tsx` | 用户资料卡：头像、用户名、Bio、注册时间、关注粉丝数与临时/永久封禁状态；处罚提示不展示截止时间 |
+| UserProfileShell | `src/components/user/user-profile-shell.tsx` | 由 `(profile)/layout.tsx` 持久挂载的资料头部、权限 Context 与吸顶路由 Tab；切换 Tab 时不卸载 |
+| UserProfileTabFallback | `src/components/user/user-profile-tab-fallback.tsx` | Tab 路由慢速切换的局部内容骨架，不重复资料头部、导航或 PageShell |
+| UserActivitySummaryCard | `src/components/user/user-activity-summary.tsx` | 概览四项创作统计；精确数字、隐私占位及动态/帖子/最近回复入口 |
+| UserProfileCard | `src/components/user/user-profile-card.tsx` | 用户主页头部：有背景图时显示 3:1 背景墙和明确置顶的半覆盖头像；无背景图时回退紧凑默认资料卡 |
+| ProfileCover | `src/components/user/profile-cover.tsx` | 背景图展示：通过 `srcset` 按视口/DPR 自适应选择 800px 中图或高清原图，固定 3:1 占位，并保留原图回退与加载失败状态 |
 | UserAvatar | `src/components/shared/user-avatar.tsx` | 共享头像组件：有 URL 用 `_thumb.webp` 缩略图，无则首字母占位；“已注销用户”始终忽略 URL 并使用统一灰色用户图标；尺寸通过 className 控制（资料卡/关注列表/通知/主题帖列表/楼层/楼中楼复用） |
 | FollowButton | `src/components/user/follow-button.tsx` | 关注/取消关注切换（未登录跳 /login） |
 | BlockButton | `src/components/user/block-button.tsx` | 拉黑/取消拉黑切换（全局无障碍确认框二次确认） |
@@ -237,15 +250,20 @@
 | UserThreadList | `src/components/user/user-thread-list.tsx` | 用户帖子列表通用展示组件（徽章/标题/无限滚动，empty/error 文案 props） |
 | UserCreatedThreads | `src/components/user/user-created-threads.tsx` | 创建的帖子列表（薄包装：useUserCreatedThreads + UserThreadList） |
 | UserPlayedThreads | `src/components/user/user-played-threads.tsx` | 参与的帖子列表；本人显示“全部 / 公开帖 / 私密帖”，他人不显示私密分类入口 |
+| UserThreadsPage | `src/components/user/user-threads-page.tsx` | 帖子 Tab：创建/参与使用二级切换，只挂载当前无限列表 |
+| UserBookmarksPage | `src/components/user/user-bookmarks-page.tsx` | 收藏 Tab：尊重公开权限，无权限时不发起收藏请求 |
 | DraftList | `src/components/user/draft-list.tsx` | 草稿箱列表（标题/分类/更新时间/继续编辑/删除） |
 | UsernameEdit | `src/components/user/username-edit.tsx` | 独立用户名修改（默认只读，点「修改用户名」才进入编辑态，未改动不提交） |
 | AvatarUploader | `src/components/user/avatar-uploader.tsx` | 头像上传器：预览（`_thumb.webp` 缩略图/首字母占位）→ 文件选择校验（仅 jpg/png/webp，排除 svg）→ 共享 Dialog 内用 react-easy-crop 1:1 裁剪 → canvas 导出 512×512 webp → 上传（预签名+真实字节进度+可取消直传+轮询）→ `PATCH /me/avatar` 立即生效；「移除头像」调 `DELETE /me/avatar` |
+| ProfileCoverUploader | `src/components/user/profile-cover-uploader.tsx` | 背景上传器：与头像叠合预览 → 3:1 裁剪/缩放 → 1920×640 高质量 WebP → 上传与绑定；支持进度、取消、更换和移除 |
 | ChangePasswordForm | `src/components/user/change-password-form.tsx` | 修改密码表单（当前/新/确认密码，PasswordInput 显隐切换），成功后登出跳登录 |
 | ChangeEmailForm | `src/components/user/change-email-form.tsx` | 更换邮箱表单（当前密码二次认证 → 新邮箱 → 验证码），成功后失效 me 缓存并跳转 `/me` |
 | PasswordInput | `src/components/ui/password-input.tsx` | 密码输入框（Eye/EyeOff 显示/隐藏切换） |
 | useSetAvatar | `src/api/hooks/use-set-avatar.ts` | 设置/移除头像 hook（PATCH/DELETE `/users/me/avatar`，成功后失效 me/user 缓存） |
+| useSetProfileCover | `src/api/hooks/use-set-profile-cover.ts` | 设置/移除主页背景 hook（PATCH/DELETE `/users/me/profile-cover`，成功后失效 me/user 缓存） |
 | getCroppedBlob | `src/lib/avatar-crop.ts` | react-easy-crop 裁剪区域 → 512×512 webp Blob（canvas） |
 | useUserProfile | `src/api/hooks/use-user-profile.ts` | 用户公开资料 hook |
+| useUserActivitySummary | `src/api/hooks/use-user-activity-summary.ts` | 按查看者隔离的主页创作汇总 hook |
 | useUserFollowList | `src/api/hooks/use-user-follow-list.ts` | 关注/粉丝列表 hook（kind 复用） |
 | useUserRecentReplies | `src/api/hooks/use-user-recent-replies.ts` | 最近动态 hook |
 | useUserCreatedThreads | `src/api/hooks/use-user-created-threads.ts` | 创建的帖子 hook（cursor 分页） |
@@ -255,7 +273,7 @@
 | useMe | `src/api/hooks/use-me.ts` | 我的资料 hook |
 | useUpdateProfile | `src/api/hooks/use-update-profile.ts` | 修改资料 mutation |
 | useDrafts | `src/api/hooks/use-drafts.ts` | 草稿列表 hook |
-| UserProfilePage | `src/app/users/[id]/page.tsx` | 用户主页 |
+| UserProfilePage | `src/app/users/[id]/(profile)/page.tsx` | 用户资料概览：创作汇总与最近回复；URL 仍为 `/users/[id]` |
 | MePage | `src/app/me/page.tsx` | 我的资料编辑 |
 | AccountSecurityPanel | `src/components/user/account-security-panel.tsx` | 双端登录终端、黑名单和账号注销三块安全操作；当前终端不可远程退出 |
 | useAccountSecurity | `src/api/hooks/use-account-security.ts` | 登录终端列表/退出、黑名单/取消拉黑、注销账号 hooks |
@@ -285,7 +303,7 @@ showRecentReplies / showPlayerBadges / showBookmarks: boolean
 
 | 错误码 | 场景 | UI 行为 |
 |--------|------|---------|
-| 404 | 用户不存在 / 已注销 / 隐私开关关闭 | 资料不存在时显示页面空态；查看他人资料时依据公开资料中的隐私开关不挂载最近动态、收藏或参与帖子整张卡片，也不发起对应请求 |
+| 404 | 用户不存在 / 已注销 / 隐私开关关闭 | 资料不存在时显示页面空态；查看他人资料时依据公开资料中的隐私开关隐藏对应 Tab/二级入口，不发起收藏、参与帖或最近回复请求 |
 | 40100 | 未登录关注/拉黑 | apiClient 拦截器自动跳 /login |
 | 40000 | PATCH /users/me 校验失败 | toast 后端 message（全部中文化，无英文默认提示） |
 | 40900 | 用户名冲突（后端 ConflictException 409） | "用户名已被占用" |
@@ -301,7 +319,7 @@ showRecentReplies / showPlayerBadges / showBookmarks: boolean
 | 查看自己的参与列表 | 只返回已获授玩家身份的非自建帖子（可含私密帖），可按全部/公开帖/私密帖分类 |
 | 查看他人的参与列表 | 不显示分类控件；后端仅返回 PUBLIC 且 playerMarked=true 的帖子，绝不返回私密帖 |
 | 关注/拉黑他人 | 仅登录；isFollowing/isBlocked 为 true 时按钮切换为取消态 |
-| 隐私开关关闭（showRecentReplies/showPlayerBadges） | 对应板块显示"未公开"占位；后端返回 404 时按 404 处理 |
+| 隐私开关关闭（showRecentReplies/showPlayerBadges/showBookmarks） | 概览不挂载最近回复；帖子页隐藏参与入口；收藏 Tab 隐藏，直达时显示未公开且不发请求 |
 | 草稿箱 | 仅本人（登录守卫，isInitialized 后再判断） |
 | /me | 仅本人（未登录跳 /login） |
 | 注销账号 | 必须输入“注销账号”二次确认；成功后清空本地登录态并跳首页 |
@@ -309,6 +327,11 @@ showRecentReplies / showPlayerBadges / showBookmarks: boolean
 ## 10. 验收标准
 
 - `/users/[id]` 展示资料卡（头像/用户名/Bio/时间/关注粉丝数）
+- 资料头部下方提供概览/动态/帖子/收藏路由 Tab，滚动时保持可达；隐私 Tab 按权限隐藏
+- 概览仅请求活动汇总和允许公开的最近回复，不挂载动态瀑布流、帖子、收藏或参与列表
+- `/users/[id]/moments` 展示完整动态瀑布流，继续使用 cursor 分页与虚拟化
+- `/users/[id]/threads` 在创建/参与之间二级切换，只挂载当前列表
+- `/users/[id]/bookmarks` 只读展示允许访问的收藏；无权限时不发起收藏请求
 - 「关注 N」「粉丝 N」可点击进入 `/users/[id]/following` / `/users/[id]/followers` 列表页
 - 关注/粉丝列表展示用户名 + 头像，空态/错误态有占位
 - 登录态显示关注/拉黑按钮，点击后状态即时更新（isFollowing/isBlocked + 计数）

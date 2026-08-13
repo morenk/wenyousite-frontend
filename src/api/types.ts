@@ -330,6 +330,24 @@ export interface paths {
         patch: operations["usersSetAvatar"];
         trace?: never;
     };
+    "/api/v1/users/me/profile-cover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** 移除个人主页背景图并恢复默认背景 */
+        delete: operations["usersRemoveProfileCover"];
+        options?: never;
+        head?: never;
+        /** 设置个人主页背景图（传入 3:1 图片的 mediaId） */
+        patch: operations["usersSetProfileCover"];
+        trace?: never;
+    };
     "/api/v1/users/{id}/bookmarks": {
         parameters: {
             query?: never;
@@ -373,6 +391,23 @@ export interface paths {
         };
         /** 查看用户创建的主题帖（本人可见全部含私密帖，他人仅见 PUBLIC 已发布帖） */
         get: operations["usersGetUserCreatedThreads"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/{id}/activity-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取用户主页创作活动汇总 */
+        get: operations["usersGetUserActivitySummary"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3006,6 +3041,14 @@ export interface components {
             /** @description 当前用户是否允许使用 @全体玩家 */
             canMentionAllPlayers: boolean;
         };
+        ProfileCoverResponseDto: {
+            /** @description 背景图原图地址 */
+            url: string;
+            /** @description 800px WebP 中图地址 */
+            mediumUrl: string | null;
+            width: number | null;
+            height: number | null;
+        };
         UserSocialCountResponseDto: {
             following: number;
             followers: number;
@@ -3016,6 +3059,7 @@ export interface components {
             email: string;
             username: string;
             avatar: string | null;
+            profileCover: components["schemas"]["ProfileCoverResponseDto"] | null;
             bio: string | null;
             /** @enum {string} */
             role: "USER" | "ADMIN" | "SUPER_ADMIN";
@@ -3070,6 +3114,7 @@ export interface components {
             email: string;
             username: string;
             avatar: string | null;
+            profileCover: components["schemas"]["ProfileCoverResponseDto"] | null;
             bio: string | null;
             /** @enum {string} */
             role: "USER" | "ADMIN" | "SUPER_ADMIN";
@@ -3091,6 +3136,13 @@ export interface components {
             updatedAt: string;
         };
         SetAvatarDto: {
+            /**
+             * @description upload-url 返回的 mediaId
+             * @example clxabc123...
+             */
+            mediaId: string;
+        };
+        SetProfileCoverDto: {
             /**
              * @description upload-url 返回的 mediaId
              * @example clxabc123...
@@ -3184,6 +3236,16 @@ export interface components {
             /** @description 首页列表正文预览；用户活动列表可能不返回 */
             preview?: string;
         };
+        UserActivitySummaryResponseDto: {
+            /** @description 当前查看者可见的未删除动态数 */
+            momentCount: number;
+            /** @description 当前查看者可见的已发布自建主题数 */
+            createdThreadCount: number;
+            /** @description 当前查看者可见的玩家身份参与主题数；未公开时为 null */
+            playedThreadCount: number | null;
+            /** @description 当前查看者可见的存活楼层/楼中楼回复数；未公开时为 null */
+            replyCount: number | null;
+        };
         RecentReplyThreadResponseDto: {
             title: string;
         };
@@ -3214,6 +3276,7 @@ export interface components {
             id: string;
             username: string;
             avatar?: string | null;
+            profileCover?: components["schemas"]["ProfileCoverResponseDto"] | null;
             bio?: string | null;
             /** @enum {string} */
             role?: "USER" | "ADMIN" | "SUPER_ADMIN";
@@ -5579,6 +5642,12 @@ export interface components {
         UsersSetAvatar200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["PrivateUserResponseDto"];
         };
+        UsersRemoveProfileCover200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["PrivateUserResponseDto"];
+        };
+        UsersSetProfileCover200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["PrivateUserResponseDto"];
+        };
         UsersGetUserBookmarks200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
             data: components["schemas"]["BookmarkThreadResponseDto"][];
         };
@@ -5587,6 +5656,9 @@ export interface components {
         };
         UsersGetUserCreatedThreads200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
             data: components["schemas"]["ThreadListItemResponseDto"][];
+        };
+        UsersGetUserActivitySummary200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["UserActivitySummaryResponseDto"];
         };
         UsersGetUserRecentReplies200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["RecentReplyResponseDto"][];
@@ -7219,6 +7291,109 @@ export interface operations {
             };
         };
     };
+    usersRemoveProfileCover: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 更新后的用户资料（profileCover 为 null） */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsersRemoveProfileCover200Response"];
+                };
+            };
+            /** @description 未登录或 Token 无效 */
+            401: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    usersSetProfileCover: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetProfileCoverDto"];
+            };
+        };
+        responses: {
+            /** @description 更新后的用户资料（含新背景图） */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsersSetProfileCover200Response"];
+                };
+            };
+            /** @description 未登录或 Token 无效 */
+            401: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description mediaId 不存在或未完成处理 */
+            404: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
     usersGetUserBookmarks: {
         parameters: {
             query?: {
@@ -7348,6 +7523,52 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UsersGetUserCreatedThreads200Response"];
+                };
+            };
+            /** @description 用户不存在 */
+            404: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    usersGetUserActivitySummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 按当前查看者权限统计动态、创建主题、参与主题和回复总数 */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsersGetUserActivitySummary200Response"];
                 };
             };
             /** @description 用户不存在 */

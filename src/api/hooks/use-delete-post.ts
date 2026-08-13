@@ -18,6 +18,7 @@ export function useDeletePost() {
         queryClient.invalidateQueries({ queryKey: queryKeys.floors.all }),
         queryClient.invalidateQueries({ queryKey: queryKeys.replies.all }),
         queryClient.invalidateQueries({ queryKey: queryKeys.posts.detail(postId) }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.users.all }),
       ]),
   });
 }

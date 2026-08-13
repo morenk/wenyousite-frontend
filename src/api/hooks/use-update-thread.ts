@@ -1,7 +1,8 @@
 /** 更新主题帖 / 发布 API hook */
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { queryKeys } from "@/api/query-keys";
 import type { ThreadCreateFormData } from "@/lib/validations/thread-create";
 import { normalizeThreadDetail } from "./use-thread-detail";
 
@@ -15,6 +16,7 @@ export interface UpdateThreadBody {
 }
 
 export function useUpdateThread() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
       threadId,
@@ -38,5 +40,6 @@ export function useUpdateThread() {
       if (!data) throw new Error("更新主题帖响应为空");
       return normalizeThreadDetail(data.data);
     },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.users.all }),
   });
 }

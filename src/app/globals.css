@@ -66,6 +66,15 @@ body {
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  /* 路由占位与长页面切换时始终预留纵向滚动条槽，避免居中应用框架横向跳动。 */
+  scrollbar-gutter: stable;
+}
+
+/* 旧浏览器不支持稳定槽位时，退化为常驻纵向滚动条。 */
+@supports not (scrollbar-gutter: stable) {
+  html {
+    overflow-y: scroll;
+  }
 }
 
 button,

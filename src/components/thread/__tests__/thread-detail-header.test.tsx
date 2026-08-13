@@ -1,7 +1,7 @@
 /** ThreadDetailHeader 组件测试 */
 
 import { describe, test, expect, vi, afterEach, beforeEach } from "vitest";
-import { render, screen, cleanup, waitFor, within } from "@testing-library/react";
+import { render, screen, cleanup, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThreadDetailHeader } from "@/components/thread/thread-detail-header";
@@ -449,78 +449,16 @@ describe("ThreadDetailHeader", () => {
     expect(screen.queryByRole("button", { name: "订阅官方更新" })).not.toBeInTheDocument();
   });
 
-  test("OWNER 看到删除主题帖按钮，确认后删除并返回首页", async () => {
-    const user = userEvent.setup();
-    vi.stubGlobal(
-      "confirm",
-      vi.fn(() => true),
-    );
+  test("详情头部不再承载删除主题帖入口", () => {
     mockUseAuth.mockReturnValue({
       user: { id: "owner-1", username: "帖主" },
       isInitialized: true,
     });
 
-    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
+    renderWithQC(<ThreadDetailHeader thread={baseThread} onManage={vi.fn()} />);
 
-    await user.click(screen.getByRole("button", { name: "删除主题帖" }));
-
-    expect(window.confirm).toHaveBeenCalledWith(
-      "确定要删除该主题帖吗？已发布主题帖删除后将无法恢复。",
-    );
-    expect(mockDeleteThreadMutate).toHaveBeenCalledWith("thread-1");
-    expect(mockRouterPush).toHaveBeenCalledWith("/");
-  });
-
-  test("取消删除主题帖时不调用删除接口", async () => {
-    const user = userEvent.setup();
-    vi.stubGlobal(
-      "confirm",
-      vi.fn(() => false),
-    );
-    mockUseAuth.mockReturnValue({
-      user: { id: "owner-1", username: "帖主" },
-      isInitialized: true,
-    });
-
-    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
-
-    await user.click(screen.getByRole("button", { name: "删除主题帖" }));
-
-    expect(mockDeleteThreadMutate).not.toHaveBeenCalled();
-    expect(mockRouterPush).not.toHaveBeenCalled();
-  });
-
-  test("非 OWNER 看不到删除主题帖按钮", () => {
-    mockUseAuth.mockReturnValue({
-      user: { id: "other-user", username: "别人" },
-      isInitialized: true,
-    });
-
-    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
-
-    expect(screen.queryByTitle("删除主题帖")).toBeNull();
-  });
-
-  test("删除失败显示后端错误", async () => {
-    const user = userEvent.setup();
-    vi.stubGlobal(
-      "confirm",
-      vi.fn(() => true),
-    );
-    mockDeleteThreadMutate.mockRejectedValueOnce({
-      code: 40301,
-      message: "仅楼主可删除主题帖",
-    });
-    mockUseAuth.mockReturnValue({
-      user: { id: "owner-1", username: "帖主" },
-      isInitialized: true,
-    });
-
-    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
-    await user.click(screen.getByRole("button", { name: "删除主题帖" }));
-
-    expect(toast.error).toHaveBeenCalledWith("仅楼主可删除主题帖");
-    expect(mockRouterPush).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: "删除主题帖" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "管理主题帖" })).toBeInTheDocument();
   });
 
   test("非 OWNER 看不到管理按钮", () => {
@@ -773,38 +711,26 @@ describe("ThreadDetailHeader", () => {
     expect(screen.queryByTitle("订阅官方更新")).toBeNull();
   });
 
-  test("私密帖楼主可生成并复制邀请链接", async () => {
-    const user = userEvent.setup();
-    Object.defineProperty(window.navigator, "clipboard", {
-      configurable: true,
-      value: { writeText: mockClipboardWriteText },
-    });
+  test("私密帖邀请入口集中到管理页，详情头部只保留管理入口", () => {
+    const onManage = vi.fn();
     mockUseAuth.mockReturnValue({
       user: { id: "owner-1", username: "帖主" },
       isInitialized: true,
     });
-    mockPOST.mockResolvedValueOnce({
-      data: { data: { threadId: "thread-1", token: "invite-token" } },
-      error: undefined,
-    });
     renderWithQC(
-      <ThreadDetailHeader thread={{ ...baseThread, visibility: "PRIVATE" }} />,
+      <ThreadDetailHeader
+        thread={{ ...baseThread, visibility: "PRIVATE" }}
+        onManage={onManage}
+      />,
     );
 
     expect(
       screen.queryByRole("button", { name: "复制主题帖链接" }),
     ).not.toBeInTheDocument();
-    await user.click(
-      screen.getByRole("button", { name: "生成并复制私密帖邀请链接" }),
-    );
-    expect(mockPOST).toHaveBeenCalledWith("/api/v1/threads/{id}/invite-link", {
-      params: { path: { id: "thread-1" } },
-    });
-    await waitFor(() =>
-      expect(mockClipboardWriteText).toHaveBeenCalledWith(
-        `${window.location.origin}/join/invite-token`,
-      ),
-    );
+    expect(
+      screen.queryByRole("button", { name: /邀请链接/ }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "管理主题帖" })).toBeInTheDocument();
   });
 
   test("公开帖不提供手动加入入口", () => {

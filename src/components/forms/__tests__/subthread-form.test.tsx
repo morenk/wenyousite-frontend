@@ -81,7 +81,7 @@ describe("SubthreadForm", () => {
 
     await user.type(screen.getByPlaceholderText("主帖 / 设定区 / 剧情区"), "新子贴");
     await user.click(screen.getByRole("combobox", { name: "发帖权限" }));
-    await user.click(await screen.findByRole("option", { name: "玩家" }));
+    await user.click(await screen.findByRole("option", { name: "仅玩家" }));
     await user.click(screen.getByText("添加"));
 
     await vi.waitFor(() => {

@@ -8,13 +8,11 @@ import type { ReactNode } from "react";
 import {
   Heart,
   Fuel,
-  KeyRound,
   Link2,
   Loader2,
   LogOut,
   Search,
   Settings,
-  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -23,12 +21,8 @@ import { cn } from "@/lib/utils";
 import { THREAD_STATUS_META } from "@/lib/thread-presentation";
 import { useAuth } from "@/lib/auth";
 import { useLikeThread } from "@/api/hooks/use-like-thread";
-import { useDeleteThread } from "@/api/hooks/use-delete-thread";
 import { getApiErrorMessage } from "@/api/errors";
-import {
-  useCreateInviteLink,
-  useExitThreadPlayer,
-} from "@/api/hooks/use-thread-access-actions";
+import { useExitThreadPlayer } from "@/api/hooks/use-thread-access-actions";
 import { Button } from "@/components/ui/button";
 import { Tooltip } from "@/components/ui/tooltip";
 import { useConfirm } from "@/components/ui/confirm-provider";
@@ -95,7 +89,6 @@ export function ThreadDetailHeader({
   const { user } = useAuth();
   const router = useRouter();
   const { like, unlike } = useLikeThread(thread.id);
-  const deleteThread = useDeleteThread();
   const {
     currentMember,
     isOwner: roleIsOwner,
@@ -103,7 +96,6 @@ export function ThreadDetailHeader({
   } = useThreadPermissions();
   const isOwner = roleIsOwner || user?.id === thread.ownerId;
   const canManageThread = isThreadManager || isOwner;
-  const createInviteLink = useCreateInviteLink();
   const exitThreadPlayer = useExitThreadPlayer();
   const confirmAction = useConfirm();
 
@@ -116,29 +108,6 @@ export function ThreadDetailHeader({
       }
     } catch {
       toast.error("操作失败，请稍后重试");
-    }
-  };
-
-  const handleDeleteThread = async () => {
-    const message = thread.published
-      ? "确定要删除该主题帖吗？已发布主题帖删除后将无法恢复。"
-      : "确定要删除该主题帖吗？草稿删除后将无法恢复。";
-    if (
-      !(await confirmAction({
-        title: "删除主题帖",
-        description: message,
-        confirmLabel: "删除",
-        destructive: true,
-      }))
-    )
-      return;
-
-    try {
-      await deleteThread.mutateAsync(thread.id);
-      toast.success("主题帖已删除");
-      router.push("/");
-    } catch (error: unknown) {
-      toast.error(getApiErrorMessage(error, "删除失败，请稍后重试"));
     }
   };
 
@@ -168,18 +137,6 @@ export function ThreadDetailHeader({
     }
   };
 
-  const handleCopyInviteLink = async () => {
-    try {
-      const invite = await createInviteLink.mutateAsync(thread.id);
-      await navigator.clipboard.writeText(
-        `${window.location.origin}/join/${invite.token}`,
-      );
-      toast.success("邀请链接已复制，旧链接已失效");
-    } catch (error: unknown) {
-      toast.error(getApiErrorMessage(error, "邀请链接生成失败"));
-    }
-  };
-
   const handleExitPlayer = async () => {
     if (
       !(await confirmAction({
@@ -200,13 +157,12 @@ export function ThreadDetailHeader({
 
   const hasBrowseTools = Boolean(
     onSearch
-    || thread.visibility === "PUBLIC"
-    || isOwner && thread.published && thread.visibility === "PRIVATE",
+    || thread.visibility === "PUBLIC",
   );
   const hasManagementTools = Boolean(
     user && (
       !isOwner && currentMember?.playerMarked
-      || canManageThread && (!!onManage || isOwner)
+      || canManageThread && !!onManage
     ),
   );
 
@@ -261,24 +217,6 @@ export function ThreadDetailHeader({
                       </Button>
                     </Tooltip>
                   ) : null}
-                  {isOwner && thread.published && thread.visibility === "PRIVATE" ? (
-                    <Tooltip content="生成并复制私密帖邀请链接" disabled={createInviteLink.isPending}>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={handleCopyInviteLink}
-                        disabled={createInviteLink.isPending}
-                        aria-label="生成并复制私密帖邀请链接"
-                        className={actionButtonClassName}
-                      >
-                        {createInviteLink.isPending ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <KeyRound className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </Tooltip>
-                  ) : null}
                 </ThreadActionGroup>
               ) : null}
 
@@ -312,24 +250,6 @@ export function ThreadDetailHeader({
                         className={actionButtonClassName}
                       >
                         <Settings className="h-4 w-4" />
-                      </Button>
-                    </Tooltip>
-                  ) : null}
-                  {canManageThread && isOwner ? (
-                    <Tooltip content="删除主题帖" disabled={deleteThread.isPending}>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        className="rounded-lg text-destructive hover:bg-destructive-soft hover:text-destructive"
-                        aria-label="删除主题帖"
-                        onClick={handleDeleteThread}
-                        disabled={deleteThread.isPending}
-                      >
-                        {deleteThread.isPending ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="h-4 w-4" />
-                        )}
                       </Button>
                     </Tooltip>
                   ) : null}

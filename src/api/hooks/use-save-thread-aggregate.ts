@@ -37,6 +37,7 @@ export function useSaveThreadAggregate() {
       );
       void queryClient.invalidateQueries({ queryKey: queryKeys.threads.all });
       void queryClient.invalidateQueries({ queryKey: queryKeys.threadDrafts });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
     },
   });
 }

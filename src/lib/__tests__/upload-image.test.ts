@@ -11,6 +11,7 @@ import {
   uploadImageFile,
   validateImageFile,
   validateAvatarFile,
+  validateProfileCoverFile,
   getImageUrlBySize,
 } from "@/lib/upload-image";
 
@@ -168,6 +169,21 @@ describe("validateAvatarFile", () => {
 
   test("空头像文件被拒绝", () => {
     expect(validateAvatarFile(new File([], "empty.png", { type: "image/png" }))).toMatch(/不能为空/);
+  });
+});
+
+describe("validateProfileCoverFile", () => {
+  test("背景图仅接受 jpg/png/webp", () => {
+    expect(validateProfileCoverFile(new File(["x"], "cover.jpg", { type: "image/jpeg" }))).toBeNull();
+    expect(validateProfileCoverFile(new File(["x"], "cover.png", { type: "image/png" }))).toBeNull();
+    expect(validateProfileCoverFile(new File(["x"], "cover.webp", { type: "image/webp" }))).toBeNull();
+    expect(validateProfileCoverFile(new File(["x"], "cover.gif", { type: "image/gif" }))).toMatch(/仅支持/);
+  });
+
+  test("背景图拒绝空文件和超过 10MB 的文件", () => {
+    expect(validateProfileCoverFile(new File([], "empty.png", { type: "image/png" }))).toMatch(/不能为空/);
+    const large = new File([new Uint8Array(10 * 1024 * 1024 + 1)], "large.png", { type: "image/png" });
+    expect(validateProfileCoverFile(large)).toMatch(/不能超过 10MB/);
   });
 });
 

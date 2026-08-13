@@ -16,6 +16,7 @@ import { getApiError } from "@/api/errors";
 import { profileSchema, type ProfileFormData } from "@/lib/validations/profile";
 import { UsernameEdit } from "@/components/user/username-edit";
 import { AvatarUploader } from "@/components/user/avatar-uploader";
+import { ProfileCoverUploader } from "@/components/user/profile-cover-uploader";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -137,6 +138,30 @@ export function ProfileEditForm() {
         </Card>
       )}
 
+      {me ? (
+        <Card id="profile-appearance" className="scroll-mt-5">
+          <CardHeader>
+            <CardTitle>主页外观</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6 pt-2">
+            <div>
+              <div className="mb-3">
+                <p className="text-sm font-medium text-foreground">主页背景</p>
+                <p className="text-xs text-muted-foreground">显示在个人主页顶部，头像会覆盖背景下缘。</p>
+              </div>
+              <ProfileCoverUploader
+                username={me.username}
+                avatar={me.avatar}
+                profileCover={me.profileCover}
+              />
+            </div>
+            <div className="border-t border-border pt-5">
+              <AvatarUploader username={me.username} avatar={me.avatar} />
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+
       {me && <UsernameEdit currentUsername={me.username} />}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -145,7 +170,6 @@ export function ProfileEditForm() {
             <CardTitle>基本信息</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 pt-6">
-            {me && <AvatarUploader username={me.username} avatar={me.avatar} />}
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-sm font-medium text-foreground">邮箱</p>

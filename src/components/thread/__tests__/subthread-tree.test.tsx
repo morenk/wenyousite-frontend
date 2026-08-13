@@ -1,10 +1,13 @@
-/** SubthreadTree 组件测试 */
+/** SubthreadTree 章节目录测试 */
 
-import { describe, test, expect, vi, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { afterEach, describe, expect, test, vi } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { SubthreadTree } from "@/components/thread/subthread-tree";
 import type { SubthreadDetail } from "@/api/hooks/use-thread-detail";
+import {
+  getReorderedSubthreadIds,
+  SubthreadTree,
+} from "@/components/thread/subthread-tree";
 
 afterEach(() => {
   cleanup();
@@ -15,6 +18,7 @@ function makeSub(
   id: string,
   title: string,
   postingPolicy: "PARTICIPANTS" | "COLLABORATORS" | "PLAYERS" = "PARTICIPANTS",
+  posts = 0,
 ): SubthreadDetail {
   return {
     id,
@@ -27,81 +31,86 @@ function makeSub(
     deletedAt: null,
     createdAt: "2026-01-01T00:00:00Z",
     bodyPost: null,
-    _count: { posts: 0 },
+    _count: { posts },
   };
 }
 
 const subthreads = [
-  makeSub("s2", "设定区", "COLLABORATORS"),
-  makeSub("s3", "剧情区", "PLAYERS"),
+  makeSub("s2", "设定区", "COLLABORATORS", 12),
+  makeSub("s3", "剧情区", "PLAYERS", 4),
 ];
 
 const baseProps = {
   subthreads,
   onSelect: vi.fn(),
-  onEdit: vi.fn(),
   onDelete: vi.fn(),
   onReorder: vi.fn(),
   onCreate: vi.fn(),
 };
 
 describe("SubthreadTree", () => {
-  test("渲染所有子贴标题", () => {
+  test("按真实顺序展示标题、权限与楼层数", () => {
     render(<SubthreadTree {...baseProps} />);
-    expect(screen.getByText("设定区")).toBeInTheDocument();
-    expect(screen.getByText("剧情区")).toBeInTheDocument();
-  });
 
-  test("渲染发帖权限标签", () => {
-    render(<SubthreadTree {...baseProps} />);
+    expect(screen.getByText("01")).toBeInTheDocument();
+    expect(screen.getByText("02")).toBeInTheDocument();
+    expect(screen.getByText("设定区")).toBeInTheDocument();
     expect(screen.getByText("协作者")).toBeInTheDocument();
+    expect(screen.getByText("12 楼")).toBeInTheDocument();
+    expect(screen.getByText("剧情区")).toBeInTheDocument();
     expect(screen.getByText("玩家")).toBeInTheDocument();
   });
 
-  test("selectedId 匹配的子贴高亮", () => {
+  test("选中章节具有当前位置语义与选中标记", () => {
     render(<SubthreadTree {...baseProps} selectedId="s2" />);
-    const node = screen.getByText("设定区").closest("div");
-    expect(node).toHaveClass("bg-primary/10");
+
+    const selectButton = screen.getByRole("button", { name: "选择子贴「设定区」" });
+    expect(selectButton).toHaveAttribute("aria-current", "page");
+    expect(selectButton.closest("[data-selected]"))?.toHaveAttribute("data-selected", "true");
   });
 
-  test("点击子贴调用 onSelect", async () => {
+  test("点击章节调用 onSelect", async () => {
     const user = userEvent.setup();
     const onSelect = vi.fn();
     render(<SubthreadTree {...baseProps} onSelect={onSelect} />);
 
-    await user.click(screen.getByText("设定区"));
+    await user.click(screen.getByRole("button", { name: "选择子贴「设定区」" }));
     expect(onSelect).toHaveBeenCalledWith("s2");
   });
 
-  test("点击编辑按钮调用 onEdit 并传入子贴", async () => {
-    const user = userEvent.setup();
-    const onEdit = vi.fn();
-    render(<SubthreadTree {...baseProps} onEdit={onEdit} />);
-
-    await user.click(screen.getAllByTitle("编辑子贴")[0]);
-    expect(onEdit).toHaveBeenCalledWith(subthreads[0]);
-  });
-
-  test("所有目录项均可删除", () => {
-    render(<SubthreadTree {...baseProps} />);
-    expect(screen.getAllByTitle("删除子贴")).toHaveLength(2);
-  });
-
-  test("点击删除按钮调用 onDelete", async () => {
+  test("排序把手与删除操作有独立的可访问名称", async () => {
     const user = userEvent.setup();
     const onDelete = vi.fn();
     render(<SubthreadTree {...baseProps} onDelete={onDelete} />);
 
-    await user.click(screen.getAllByTitle("删除子贴")[0]);
+    expect(screen.getByRole("button", { name: "拖动子贴「设定区」排序" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "删除子贴「设定区」" }));
     expect(onDelete).toHaveBeenCalledWith(subthreads[0]);
   });
 
-  test("点击添加子贴按钮调用 onCreate", async () => {
+  test("点击添加子贴调用 onCreate", async () => {
     const user = userEvent.setup();
     const onCreate = vi.fn();
     render(<SubthreadTree {...baseProps} onCreate={onCreate} />);
 
-    await user.click(screen.getByText("添加子贴"));
+    await user.click(screen.getByRole("button", { name: "添加子贴" }));
     expect(onCreate).toHaveBeenCalledTimes(1);
+  });
+
+  test("排序计算返回真实 ID 顺序并忽略无效落点", () => {
+    expect(getReorderedSubthreadIds(subthreads, "s2", "s3")).toEqual(["s3", "s2"]);
+    expect(getReorderedSubthreadIds(subthreads, "s2", "s2")).toBeNull();
+    expect(getReorderedSubthreadIds(subthreads, "missing", "s3")).toBeNull();
+    expect(getReorderedSubthreadIds(subthreads, "s2", "missing")).toBeNull();
+    expect(getReorderedSubthreadIds(subthreads, "s2", null)).toBeNull();
+  });
+
+  test("保存期间禁用选择、排序、删除和创建", () => {
+    render(<SubthreadTree {...baseProps} disabled />);
+
+    expect(screen.getByRole("button", { name: "选择子贴「设定区」" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "拖动子贴「设定区」排序" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "删除子贴「设定区」" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "添加子贴" })).toBeDisabled();
   });
 });

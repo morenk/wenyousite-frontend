@@ -1,41 +1,45 @@
-/** SubthreadTree：管理面板左栏子贴目录树（支持拖拽排序） */
+/** 管理工作台章节目录：真实顺序编号、鼠标/键盘排序与低噪音操作。 */
 
 "use client";
 
 import { useCallback } from "react";
 import {
   DndContext,
-  closestCenter,
+  KeyboardSensor,
   PointerSensor,
+  closestCenter,
   useSensor,
   useSensors,
   type DragEndEvent,
 } from "@dnd-kit/core";
 import {
-  arrayMove,
   SortableContext,
-  verticalListSortingStrategy,
+  arrayMove,
+  sortableKeyboardCoordinates,
   useSortable,
+  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Pencil, Trash2, Plus } from "lucide-react";
+import { GripVertical, Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { POSTING_POLICY_LABEL } from "@/lib/post-policy";
 import type { SubthreadDetail } from "@/api/hooks/use-thread-detail";
 
 interface SubthreadTreeNodeProps {
   subthread: SubthreadDetail;
+  index: number;
   isSelected: boolean;
+  disabled: boolean;
   onSelect: () => void;
-  onEdit: () => void;
   onDelete: () => void;
 }
 
 function SubthreadTreeNode({
   subthread,
+  index,
   isSelected,
+  disabled,
   onSelect,
-  onEdit,
   onDelete,
 }: SubthreadTreeNodeProps) {
   const {
@@ -45,64 +49,67 @@ function SubthreadTreeNode({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: subthread.id });
+  } = useSortable({ id: subthread.id, disabled });
 
   return (
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
+      data-selected={isSelected ? "true" : "false"}
       className={cn(
-        "flex cursor-pointer select-none items-center gap-1.5 rounded-lg px-2 py-2 text-sm",
+        "group relative flex min-h-14 items-center gap-1 rounded-xl border border-transparent px-1.5 transition-[background-color,border-color,box-shadow] duration-[var(--motion-fast)]",
+        "before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:origin-center before:rounded-full before:bg-brand-strong before:transition-transform",
         isSelected
-          ? "bg-primary/10 text-foreground"
-          : "text-foreground hover:bg-muted",
-        isDragging && "relative z-10 shadow-md",
+          ? "border-border bg-card shadow-sm before:scale-y-100"
+          : "hover:bg-card/70 before:scale-y-0",
+        isDragging && "z-10 border-border bg-card shadow-popover",
       )}
-      onClick={onSelect}
     >
       <button
         type="button"
-        className="shrink-0 touch-none text-muted-foreground hover:text-foreground"
-        title="拖拽排序"
-        onClick={(e) => e.stopPropagation()}
+        className="flex size-8 shrink-0 touch-none items-center justify-center rounded-lg text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/30 disabled:pointer-events-none"
+        aria-label={`拖动子贴「${subthread.title}」排序`}
+        title="拖拽或使用键盘排序"
+        disabled={disabled}
         {...attributes}
         {...listeners}
       >
-        <GripVertical className="h-3.5 w-3.5" />
+        <GripVertical className="size-4" />
       </button>
 
-      <span className="min-w-0 flex-1 truncate">
-        {subthread.title}
-      </span>
+      <button
+        type="button"
+        onClick={onSelect}
+        disabled={disabled}
+        aria-label={`选择子贴「${subthread.title}」`}
+        aria-current={isSelected ? "page" : undefined}
+        className="flex min-w-0 flex-1 items-center gap-2 rounded-lg px-1 py-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/30 disabled:pointer-events-none"
+      >
+        <span className="w-6 shrink-0 font-utility text-[0.6875rem] font-bold tabular-nums text-muted-foreground">
+          {String(index + 1).padStart(2, "0")}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-semibold text-foreground">
+            {subthread.title}
+          </span>
+          <span className="mt-0.5 flex items-center gap-1.5 font-utility text-[0.6875rem] leading-4 text-muted-foreground">
+            <span>{POSTING_POLICY_LABEL[subthread.postingPolicy] ?? subthread.postingPolicy}</span>
+            <span aria-hidden="true">·</span>
+            <span>{subthread._count.posts} 楼</span>
+          </span>
+        </span>
+      </button>
 
-      <span className="shrink-0 text-xs text-muted-foreground">
-        {POSTING_POLICY_LABEL[subthread.postingPolicy] ?? subthread.postingPolicy}
-      </span>
-
-      <div className="flex shrink-0 items-center gap-0.5">
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onEdit();
-          }}
-          title="编辑子贴"
-          className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-        >
-          <Pencil className="h-3.5 w-3.5" />
-        </button>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete();
-          }}
-          title="删除子贴"
-          className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={onDelete}
+        disabled={disabled}
+        aria-label={`删除子贴「${subthread.title}」`}
+        title="删除子贴"
+        className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground opacity-0 outline-none transition-[background-color,color,opacity] group-hover:opacity-100 focus:opacity-100 focus-visible:ring-2 focus-visible:ring-ring/30 hover:bg-destructive-soft hover:text-destructive disabled:pointer-events-none"
+      >
+        <Trash2 className="size-4" />
+      </button>
     </div>
   );
 }
@@ -110,61 +117,69 @@ function SubthreadTreeNode({
 interface SubthreadTreeProps {
   subthreads: SubthreadDetail[];
   selectedId?: string;
+  disabled?: boolean;
   onSelect: (id: string) => void;
-  onEdit: (subthread: SubthreadDetail) => void;
   onDelete: (subthread: SubthreadDetail) => void;
   onReorder: (ids: string[]) => void;
   onCreate: () => void;
 }
 
+export function getReorderedSubthreadIds(
+  subthreads: SubthreadDetail[],
+  activeId: string | number,
+  overId: string | number | null,
+) {
+  if (overId === null || activeId === overId) return null;
+  const oldIndex = subthreads.findIndex((subthread) => subthread.id === activeId);
+  const newIndex = subthreads.findIndex((subthread) => subthread.id === overId);
+  if (oldIndex === -1 || newIndex === -1) return null;
+  return arrayMove(subthreads, oldIndex, newIndex).map((subthread) => subthread.id);
+}
+
 export function SubthreadTree({
   subthreads,
   selectedId,
+  disabled = false,
   onSelect,
-  onEdit,
   onDelete,
   onReorder,
   onCreate,
 }: SubthreadTreeProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
-      if (!over || active.id === over.id) return;
-      const oldIndex = subthreads.findIndex((sub) => sub.id === active.id);
-      const newIndex = subthreads.findIndex((sub) => sub.id === over.id);
-      if (oldIndex === -1 || newIndex === -1) return;
-      const reordered = arrayMove(subthreads, oldIndex, newIndex).map(
-        (sub) => sub.id,
-      );
-      onReorder(reordered);
+      const ids = getReorderedSubthreadIds(subthreads, active.id, over?.id ?? null);
+      if (ids) onReorder(ids);
     },
-    [subthreads, onReorder],
+    [onReorder, subthreads],
   );
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex-1 overflow-y-auto space-y-0.5 p-2">
+      <div className="flex-1 space-y-1 overflow-y-auto p-2">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
         >
           <SortableContext
-            items={subthreads.map((s) => s.id)}
+            items={subthreads.map((subthread) => subthread.id)}
             strategy={verticalListSortingStrategy}
           >
-            {subthreads.map((sub) => (
+            {subthreads.map((subthread, index) => (
               <SubthreadTreeNode
-                key={sub.id}
-                subthread={sub}
-                isSelected={selectedId === sub.id}
-                onSelect={() => onSelect(sub.id)}
-                onEdit={() => onEdit(sub)}
-                onDelete={() => onDelete(sub)}
+                key={subthread.id}
+                subthread={subthread}
+                index={index}
+                isSelected={selectedId === subthread.id}
+                disabled={disabled}
+                onSelect={() => onSelect(subthread.id)}
+                onDelete={() => onDelete(subthread)}
               />
             ))}
           </SortableContext>
@@ -175,9 +190,10 @@ export function SubthreadTree({
         <button
           type="button"
           onClick={onCreate}
-          className="flex w-full items-center justify-center gap-1 rounded-lg border border-dashed border-border py-2 text-sm text-muted-foreground hover:bg-muted/50 transition-colors"
+          disabled={disabled}
+          className="flex min-h-10 w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-border text-sm font-semibold text-muted-foreground outline-none transition-colors hover:border-brand-strong/35 hover:bg-card hover:text-brand-strong focus-visible:ring-2 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:bg-muted"
         >
-          <Plus className="h-3.5 w-3.5" />
+          <Plus className="size-4" />
           添加子贴
         </button>
       </div>

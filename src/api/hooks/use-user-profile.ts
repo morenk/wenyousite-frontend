@@ -11,6 +11,7 @@ type GeneratedUserPublic =
   components["schemas"]["PublicUserResponseDto"];
 type ActiveUserFields =
   | "avatar"
+  | "profileCover"
   | "bio"
   | "role"
   | "level"
@@ -39,6 +40,7 @@ function normalizeUserPublic(user: GeneratedUserPublic): UserPublic {
   }
   if (
     user.avatar === undefined ||
+    user.profileCover === undefined ||
     user.bio === undefined ||
     user.role === undefined ||
     user.level === undefined ||
@@ -56,6 +58,7 @@ function normalizeUserPublic(user: GeneratedUserPublic): UserPublic {
   return {
     ...user,
     avatar: user.avatar,
+    profileCover: user.profileCover,
     bio: user.bio,
     role: user.role,
     level: user.level,

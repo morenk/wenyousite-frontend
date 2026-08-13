@@ -73,7 +73,10 @@ export function useCreateMoment() {
       if (!data) throw new Error("发布动态失败");
       return data.data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.moments.all }),
+    onSuccess: () => Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.moments.all }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.all }),
+    ]),
   });
 }
 
@@ -117,7 +120,10 @@ export function useDeleteMoment() {
       if (error) throw error;
       return data?.data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.moments.all }),
+    onSuccess: () => Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.moments.all }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.all }),
+    ]),
   });
 }
 
@@ -312,13 +318,20 @@ function useMomentCardPages<TResponse extends { data: MomentCard[]; meta: { curs
   });
 }
 
-export function useUserMoments(userId: string | undefined, viewerId?: string) {
+export function useUserMoments(
+  userId: string | undefined,
+  viewerId?: string,
+  pageSize = 20,
+) {
   return useMomentCardPages<UserMomentListResponse>(
-    queryKeys.moments.user(userId, viewerId ?? "anonymous"),
+    queryKeys.moments.user(userId, viewerId ?? "anonymous", pageSize),
     !!userId,
     async (cursor) => {
       const { data, error } = await apiClient.GET("/api/v1/users/{id}/moments", {
-        params: { path: { id: userId! }, query: { limit: 20, ...(cursor ? { cursor } : {}) } },
+        params: {
+          path: { id: userId! },
+          query: { limit: pageSize, ...(cursor ? { cursor } : {}) },
+        },
       });
       if (error) throw error;
       return data ?? (emptyPage<MomentCard>() satisfies UserMomentListResponse);

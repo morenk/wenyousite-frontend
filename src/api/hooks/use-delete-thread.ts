@@ -20,6 +20,7 @@ export function useDeleteThread() {
       return Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.threads.all }),
         queryClient.invalidateQueries({ queryKey: queryKeys.threadDrafts }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.users.all }),
       ]);
     },
   });

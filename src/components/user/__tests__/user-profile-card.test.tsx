@@ -1,7 +1,7 @@
 /** UserProfileCard 组件测试：资料展示 + 本人/他人操作区分 */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const { mockUseAuth } = vi.hoisted(() => ({ mockUseAuth: vi.fn() }));
@@ -39,6 +39,7 @@ const sampleUser = {
   id: "u2",
   username: "testuser",
   avatar: null,
+  profileCover: null,
   bio: "你好",
   role: "USER" as const,
   level: 3,
@@ -76,6 +77,8 @@ describe("UserProfileCard", () => {
       "href",
       "/users/u2/followers",
     );
+    expect(document.querySelector('[data-slot="profile-cover"]')).toBeNull();
+    expect(screen.getByTestId("user-avatar-placeholder")).not.toHaveClass("-mt-12");
   });
 
   test("查看他人时显示关注/拉黑按钮", () => {
@@ -94,12 +97,72 @@ describe("UserProfileCard", () => {
     expect(screen.getByTestId("block-btn")).toHaveTextContent("u2:false");
   });
 
-  test("查看自己时显示「编辑资料」而非关注按钮", () => {
+  test("查看自己时显示「编辑主页」并直达外观设置", () => {
     mockUseAuth.mockReturnValue({ user: { id: "u2" } });
     renderWithQC(<UserProfileCard user={sampleUser} />);
-    expect(screen.getByRole("link", { name: "编辑资料" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "编辑主页" })).toHaveAttribute(
+      "href",
+      "/me#profile-appearance",
+    );
     expect(screen.queryByRole("button", { name: "加油" })).not.toBeInTheDocument();
     expect(screen.queryByTestId("follow-btn")).not.toBeInTheDocument();
+  });
+
+  test("有背景图时按 DPR 自适应选择中图或高清原图", () => {
+    renderWithQC(
+      <UserProfileCard
+        user={{
+          ...sampleUser,
+          profileCover: {
+            url: "https://example.com/cover.png",
+            mediumUrl: "https://example.com/cover_md.webp",
+            width: 1920,
+            height: 640,
+          },
+        }}
+      />,
+    );
+    const cover = screen.getByRole("img", { name: "testuser 的主页背景" });
+    expect(cover).toHaveAttribute("src", "https://example.com/cover.png");
+    expect(cover).toHaveAttribute(
+      "srcset",
+      "https://example.com/cover_md.webp 800w, https://example.com/cover.png 1920w",
+    );
+    expect(cover).toHaveAttribute(
+      "sizes",
+      "(min-width: 672px) 648px, (min-width: 640px) calc(100vw - 24px), calc(100vw - 16px)",
+    );
+    expect(document.querySelector('[data-slot="profile-cover"]')).toBeInTheDocument();
+    expect(screen.getByTestId("user-avatar-placeholder")).toHaveClass(
+      "z-20",
+      "-mt-8",
+      "sm:-mt-12",
+    );
+  });
+
+  test("响应式候选图失败后回退原图，原图也失败才显示错误状态", () => {
+    renderWithQC(
+      <UserProfileCard
+        user={{
+          ...sampleUser,
+          profileCover: {
+            url: "https://example.com/cover.png",
+            mediumUrl: "https://example.com/cover_md.webp",
+            width: 1920,
+            height: 640,
+          },
+        }}
+      />,
+    );
+
+    const cover = screen.getByRole("img", { name: "testuser 的主页背景" });
+    fireEvent.error(cover);
+    expect(cover).toHaveAttribute("src", "https://example.com/cover.png");
+    expect(cover).not.toHaveAttribute("srcset");
+    expect(screen.queryByText("背景图加载失败")).not.toBeInTheDocument();
+
+    fireEvent.error(cover);
+    expect(screen.getByRole("status")).toHaveTextContent("背景图加载失败");
   });
 
   test("访客查看他人资料时不显示投入入口", () => {

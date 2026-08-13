@@ -66,7 +66,9 @@ vi.mock("@/components/forms/thread-create-form", () => ({
 
 vi.mock("@/components/thread/management-panel", () => ({
   ManagementPanel: ({ initialView }: { initialView?: string }) => (
-    <div>统一管理面板 initialView={initialView}</div>
+    <div data-testid="management-panel" data-initial-view={initialView}>
+      统一管理面板
+    </div>
   ),
 }));
 
@@ -99,11 +101,11 @@ describe("EditThreadPage", () => {
     expect(mocks.replace).toHaveBeenCalledWith("/threads/thread-1");
   });
 
-  test("已发布帖子复用统一管理面板并默认进入主题帖页签", () => {
+  test("已发布帖子复用统一管理面板并默认进入帖子设置页签", () => {
     mocks.thread.published = true;
     render(<EditThreadPage />);
 
-    expect(screen.getByText("统一管理面板 initialView=thread")).toBeInTheDocument();
+    expect(screen.getByTestId("management-panel")).not.toHaveAttribute("data-initial-view");
     expect(screen.queryByText("草稿创建表单")).not.toBeInTheDocument();
   });
 });

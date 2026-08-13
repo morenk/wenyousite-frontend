@@ -157,6 +157,7 @@ export function ThreadCreateForm({
                 onUploadImage={handleUploadImage}
                 disabled={isSaving || isPublishing}
                 diceRolls={thread.defaultSubthread.bodyPost?.diceRolls}
+                ariaLabel="主题帖正文"
               />
             )}
           />

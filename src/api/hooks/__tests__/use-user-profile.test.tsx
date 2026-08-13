@@ -27,6 +27,7 @@ const sampleUser = {
   id: "u1",
   username: "testuser",
   avatar: null,
+  profileCover: null,
   bio: null,
   role: "USER",
   level: 1,

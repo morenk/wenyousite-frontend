@@ -140,9 +140,8 @@ function EditThreadPageContent() {
     <div className="h-screen w-full px-2 py-4 sm:px-4">
       <ManagementPanel
         thread={thread}
-        initialView="thread"
         onExit={() => router.push(`/threads/${threadId}`)}
-        onRefetch={refetch}
+        onRefetch={async () => (await refetch()).data}
       />
     </div>
   );

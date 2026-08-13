@@ -97,16 +97,16 @@ function DetailFallback() {
 function ProfileFallback() {
   return (
     <PageShell width="feed" className="py-5">
-      <Panel>
-        <div className="flex items-start gap-4">
-          <Skeleton className="size-16 shrink-0 rounded-full" />
-          <div className="min-w-0 flex-1">
-            <Skeleton className="h-7 w-40 rounded-lg" />
-            <Skeleton className="mt-3 h-4 w-64 max-w-full" />
-            <div className="mt-5 flex gap-3">
-              <Skeleton className="h-9 w-20 rounded-xl" />
-              <Skeleton className="h-9 w-20 rounded-xl" />
+      <Panel padding="none" className="overflow-hidden pb-5">
+        <Skeleton className="aspect-3/1 w-full rounded-none" />
+        <div className="grid grid-cols-[6rem_minmax(0,1fr)] gap-4 px-5">
+          <Skeleton className="-mt-12 size-24 shrink-0 rounded-full ring-4 ring-card" />
+          <div className="min-w-0 pt-4">
+            <div className="flex items-center justify-between gap-4">
+              <Skeleton className="h-7 w-40 rounded-lg" />
+              <Skeleton className="h-8 w-24 rounded-lg" />
             </div>
+            <Skeleton className="mt-3 h-4 w-64 max-w-full" />
           </div>
         </div>
       </Panel>

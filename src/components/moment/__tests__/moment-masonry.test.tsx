@@ -91,4 +91,16 @@ describe("MomentMasonry", () => {
 
     await waitFor(() => expect(mockLanes).toHaveBeenLastCalledWith(2));
   });
+
+  test("资料页预览可隐藏无限列表的翻页状态区", () => {
+    render(
+      <MomentMasonry
+        moments={[item("1"), item("2")] as never}
+        showPaginationStatus={false}
+      />,
+    );
+
+    expect(screen.queryByText("没有更多了")).not.toBeInTheDocument();
+    expect(screen.queryByText("正在加载更多")).not.toBeInTheDocument();
+  });
 });

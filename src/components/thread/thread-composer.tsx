@@ -134,6 +134,7 @@ function ThreadComposer() {
         minHeight={isReply ? 120 : 180}
         threadId={threadId}
         diceRolls={session.diceRolls}
+        ariaLabel={isReply ? "回复正文" : isEdit ? "编辑正文" : "楼层正文"}
       />
       <div className="flex justify-end">
         <Button

@@ -7,7 +7,7 @@
 **当前能力：**
 - 详情页收藏/取消收藏按钮（仅登录）
 - `/bookmarks` 我的收藏管理页（默认/自建收藏夹筛选、移动、取消收藏，cursor 分页）
-- 用户资料页「收藏」区块（read-only，尊重 showBookmarks：未公开显示占位）
+- 用户资料页 `/users/[id]/bookmarks` 收藏 Tab（read-only，尊重 showBookmarks；无权限时隐藏 Tab 且不挂载查询；切换时复用持久资料头部）
 - 登录后全局导航显示“收藏”；主题帖详情页和个人资料相关区域继续保留上下文入口
 
 ## 2. 页面与路由
@@ -15,7 +15,7 @@
 | 路由 | 页面说明 | 权限 |
 |------|----------|------|
 | `/bookmarks` | 我的收藏管理（取消收藏） | Auth（仅本人） |
-| `/users/[id]`（收藏区块） | 该用户公开收藏（read-only） | 公开（OptionalAuth，showBookmarks 关闭返回 404） |
+| `/users/[id]/bookmarks` | 该用户公开收藏 Tab（read-only） | 公开（OptionalAuth，showBookmarks 关闭时不发起列表请求） |
 
 详情页操作区（点赞/订阅旁）加 `BookmarkButton`（登录显示）。
 
@@ -93,7 +93,8 @@
 | BookmarkFolderBar | `src/components/user/bookmark-folder-bar.tsx` | 分类筛选、数量与 RHF + Zod 新建弹窗 |
 | BookmarkThreadCard | `src/components/user/bookmark-thread-card.tsx` | 收藏帖卡片（分类/标题/作者/时间/移动/取消） |
 | BookmarkList | `src/components/user/bookmark-list.tsx` | 我的收藏管理列表（分类分页 + 移动 + 取消） |
-| UserBookmarksSection | `src/components/user/user-bookmarks-section.tsx` | 资料页收藏区块（read-only，404=未公开） |
+| UserBookmarksSection | `src/components/user/user-bookmarks-section.tsx` | 资料页收藏 Tab 的只读列表（404=未公开） |
+| UserBookmarksPage | `src/components/user/user-bookmarks-page.tsx` | 收藏 Tab 页面与权限门；无权限时不挂载列表查询 |
 | useBookmarks | `src/api/hooks/use-bookmarks.ts` | 我的收藏 hook |
 | useUserBookmarks | `src/api/hooks/use-user-bookmarks.ts` | 他人收藏 hook |
 | useBookmarkActions | `src/api/hooks/use-bookmark-actions.ts` | 收藏/取消收藏 mutation |
@@ -104,7 +105,7 @@
 - 详情页按钮：已收藏 → 取消（按 bookmarkId DELETE）；未收藏 → 不传 folderId 收藏到默认收藏夹
 - `/bookmarks` 分类条固定“全部”在首位，服务端默认收藏夹其次；可新建 1–24 字分类
 - 每条收藏可从选择器移动分类，当前筛选与所有分类计数同步刷新
-- 资料页收藏区块 read-only，点击跳转帖子
+- 资料页收藏 Tab read-only，点击跳转帖子；未公开时隐藏主 Tab，直达路由不发起列表请求
 - 私密帖仅参与人可收藏（后端校验）
 
 ## 8. 错误处理
@@ -130,5 +131,5 @@
 - 详情页收藏/取消收藏按钮（登录显示，状态即时更新）
 - `/bookmarks` 我的收藏夹筛选、新建、移动、取消收藏与 cursor 分页
 - 登录后全局导航栏显示收藏入口
-- 用户资料页「收藏」区块（read-only），未公开显示占位
+- 用户资料页收藏 Tab（read-only），未公开时隐藏入口且直达显示占位
 - 私密帖收藏权限由后端保证

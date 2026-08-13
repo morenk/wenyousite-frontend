@@ -40,6 +40,10 @@ vi.mock("@/components/user/avatar-uploader", () => ({
   AvatarUploader: () => <div data-testid="avatar-uploader" />,
 }));
 
+vi.mock("@/components/user/profile-cover-uploader", () => ({
+  ProfileCoverUploader: () => <div data-testid="profile-cover-uploader" />,
+}));
+
 vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
@@ -51,6 +55,7 @@ const baseMe = {
   email: "alice@example.com",
   username: "alice",
   avatar: null,
+  profileCover: null,
   bio: "",
   role: "USER" as const,
   level: 3,
@@ -100,6 +105,13 @@ describe("ProfileEditForm", () => {
       "href",
       "/verify-email",
     );
+  });
+
+  test("主页外观区同时提供背景墙与头像编辑", () => {
+    render(<ProfileEditForm />, { wrapper: createWrapper() });
+    expect(screen.getByText("主页外观")).toBeInTheDocument();
+    expect(screen.getByTestId("profile-cover-uploader")).toBeInTheDocument();
+    expect(screen.getByTestId("avatar-uploader")).toBeInTheDocument();
   });
 
   test("展示当前等级、经验进度和精确累计收款", () => {

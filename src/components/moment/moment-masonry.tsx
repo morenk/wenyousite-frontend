@@ -20,6 +20,7 @@ interface MomentMasonryProps {
   onLoadMore?: () => void;
   onRetry?: () => void;
   maxLanes?: 1 | 2 | 3;
+  showPaginationStatus?: boolean;
   emptyTitle?: string;
   emptyDescription?: string;
 }
@@ -39,6 +40,7 @@ export function MomentMasonry({
   onLoadMore,
   onRetry,
   maxLanes = 3,
+  showPaginationStatus = true,
   emptyTitle = "还没有动态",
   emptyDescription = "发布后会显示在这里。",
 }: MomentMasonryProps) {
@@ -128,13 +130,15 @@ export function MomentMasonry({
           );
         })}
       </div>
-      <div className="flex min-h-14 items-center justify-center text-sm text-muted-foreground">
-        {isFetchingNextPage ? (
-          <span className="inline-flex items-center gap-2" role="status">
-            <Loader2 className="size-4 animate-spin" />正在加载更多
-          </span>
-        ) : !hasNextPage ? "没有更多了" : null}
-      </div>
+      {showPaginationStatus ? (
+        <div className="flex min-h-14 items-center justify-center text-sm text-muted-foreground">
+          {isFetchingNextPage ? (
+            <span className="inline-flex items-center gap-2" role="status">
+              <Loader2 className="size-4 animate-spin" />正在加载更多
+            </span>
+          ) : !hasNextPage ? "没有更多了" : null}
+        </div>
+      ) : null}
     </div>
   );
 }

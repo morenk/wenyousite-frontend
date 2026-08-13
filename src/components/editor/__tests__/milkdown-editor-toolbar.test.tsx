@@ -16,10 +16,14 @@ vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
-function renderEditor(defaultValue = "") {
+function renderEditor(defaultValue = "", ariaLabel?: string) {
   return render(
     <QueryClientProvider client={new QueryClient()}>
-      <MilkdownEditor defaultValue={defaultValue} onUploadImage={vi.fn()} />
+      <MilkdownEditor
+        defaultValue={defaultValue}
+        onUploadImage={vi.fn()}
+        ariaLabel={ariaLabel}
+      />
     </QueryClientProvider>,
   );
 }
@@ -80,6 +84,12 @@ afterAll(async () => {
 });
 
 describe("MilkdownEditor 能力分层", () => {
+  test("正文输入区提供可配置的可访问名称", async () => {
+    const { container } = renderEditor("正文", "主帖正文");
+
+    expect(await getEditor(container)).toHaveAttribute("aria-label", "主帖正文");
+  });
+
   test("宽栏直接展示全部常用能力，不显示多余的更多按钮", async () => {
     renderEditor("正文");
     const toolbar = await screen.findByRole("toolbar", { name: "正文格式工具栏" });

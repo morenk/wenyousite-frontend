@@ -10,7 +10,7 @@
 - 上传安全契约与后端对齐：仅接受 JPEG / PNG / GIF / WebP / AVIF，拒绝空文件与未经净化的 SVG
 - 页面 CSP 的 `connect-src` 放行 RainS3 媒体源，允许浏览器通过预签名 URL 直接 PUT 上传
 - 统一上传管线通过 XHR 的上传字节事件报告真实进度；所有图片入口在准备、直传、媒体处理三个阶段持续反馈，直传阶段显示已传/总量和百分比，支持 `AbortSignal` 取消并保留 120 秒超时
-- `upload-done` 由后端核对对象存储实际大小和 MIME，并支持网络超时后的幂等重试；Web/Flutter 都只把 `COMPLETED` 媒体写入正文或头像
+- `upload-done` 由后端核对对象存储实际大小和 MIME，并支持网络超时后的幂等重试；Web/Flutter 都只把 `COMPLETED` 媒体写入正文、头像或主页背景
 - GIF 动图在正文进入视口并加载后默认播放，不再以静态 `_md.webp` 首帧代替；循环次数遵循文件自身设置
 - 正文图片渲染约束：`max-width: 100%` + `max-height: 50vh` + `height: auto` + `loading="lazy"`，长图不会撑满楼层
 - 本站上传的静态图自动显示 `_md.webp` 中图，点击打开 lightbox 查看原图
@@ -25,6 +25,7 @@
 - **结构化媒体不猜 URL**：`GET /media/:id`、上传确认和私聊消息里的媒体对象显式返回 `url`、`thumbnailUrl`、`mediumUrl`，派生图未就绪时为 `null`。新 Web/Flutter 场景必须消费这些字段，不得复制 `_md.webp` / `_thumb.webp` 文件名规则。
 - **GIF 正文使用原图**：现有 sharp 派生链路生成的是静态 WebP 首帧，无法满足默认播放；因此 `.gif`（扩展名大小写不敏感，允许 URL query/hash）跳过中图替换。仍保留 `loading="lazy"`，避免未进入视口的长页面动图提前消耗带宽。
 - 后端仍保留派生图生成（sharp：300×300 cover `_thumb.webp` q80 / 800px 等比 `_md.webp` q85）；上传完成确认会在入队前复核预签名阶段固化的大小与 MIME。
+- 个人主页背景在客户端先裁剪为 1920×640 WebP（质量 0.92），服务端绑定时再次校验本人归属、完成状态、光栅 MIME 与 3:1 比例；展示通过 `srcset` 在契约显式返回的 800px `mediumUrl` 与原图 `url` 之间按视口和 DPR 自适应选择，候选图失败时回退原图，不在组件内猜测派生地址。
 
 ## 2. 涉及 API
 
