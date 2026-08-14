@@ -1,4 +1,4 @@
-/** 主题帖详情页：排头卡目录切换 + 子贴正文 + 楼层列表 + 发布 */
+/** 主题帖详情页：主题文档卡 + 清晰分区的楼层讨论 + 发布。 */
 
 "use client";
 
@@ -117,6 +117,11 @@ function ThreadDetailPageContent() {
   const selectedSubthread = thread?.subthreads.find(
     (s) => s.id === effectiveSubthreadId,
   );
+  const selectedSubthreadIndex = selectedSubthread
+    ? (thread?.subthreads.findIndex(
+        (subthread) => subthread.id === selectedSubthread.id,
+      ) ?? -1)
+    : -1;
 
   const { isThreadManager } = useThreadPermissions();
   const canManageThread = isThreadManager || user?.id === thread?.ownerId;
@@ -178,7 +183,18 @@ function ThreadDetailPageContent() {
 
   return (
     <PageShell width="feed">
-      {/* 头部 */}
+      <ThreadReadingBar
+        threadTitle={thread.title}
+        subthreads={thread.subthreads}
+        selectedSubthreadId={effectiveSubthreadId}
+        onSubthreadChange={(subthreadId) =>
+          void handleSubthreadChange(subthreadId)
+        }
+        onSearch={() => setIsSearching((open) => !open)}
+        isSearchOpen={isSearching}
+      />
+
+      {/* 主题身份、目录与当前子贴正文共用同一个文档容器。 */}
       <ThreadDetailHeader
         thread={thread}
         isSearchOpen={isSearching}
@@ -187,19 +203,26 @@ function ThreadDetailPageContent() {
         selectedSubthreadId={effectiveSubthreadId}
         defaultSubthreadId={thread.defaultSubthreadId}
         onSubthreadChange={handleSubthreadChange}
-        onManage={canManageThread ? async () => {
-          if (await closeComposer()) router.push(`/threads/${thread.id}/edit`);
-        } : undefined}
-      />
-
-      <ThreadReadingBar
-        threadTitle={thread.title}
-        subthreads={thread.subthreads}
-        selectedSubthreadId={effectiveSubthreadId}
-        onSubthreadChange={(subthreadId) => void handleSubthreadChange(subthreadId)}
-        onSearch={() => setIsSearching((open) => !open)}
-        isSearchOpen={isSearching}
-      />
+        onManage={
+          canManageThread
+            ? async () => {
+                if (await closeComposer()) {
+                  router.push(`/threads/${thread.id}/edit`);
+                }
+              }
+            : undefined
+        }
+      >
+        {selectedSubthread ? (
+          <SubthreadBody
+            subthread={selectedSubthread}
+            isDefault={selectedSubthread.id === thread.defaultSubthreadId}
+            threadTitle={thread.title}
+            position={selectedSubthreadIndex + 1}
+            total={thread.subthreads.length}
+          />
+        ) : null}
+      </ThreadDetailHeader>
 
       {isSearching && (
         <div className="mt-5">
@@ -213,28 +236,34 @@ function ThreadDetailPageContent() {
         </div>
       )}
 
-      <div className="mt-5 space-y-4">
-        {/* 子贴标题 + 正文（正文不占楼层号） */}
-        {selectedSubthread && (
-          <SubthreadBody
-            subthread={selectedSubthread}
-            isDefault={selectedSubthread.id === thread.defaultSubthreadId}
-          />
-        )}
-
-        {/* 楼层列表 */}
+      <div className="mt-6 space-y-4">
+        {/* 讨论区与主题文档显式分层。 */}
         {effectiveSubthreadId && (
-          <FloorList
-            floors={floors}
-            hasNextPage={!!hasNextPage}
-            isFetchingNextPage={isFetchingNextPage}
-            isLoading={isFloorsLoading}
-            error={floorsError}
-            onLoadMore={() => fetchNextPage()}
-            onRetry={() => refetchFloors()}
-            // 旧楼中楼链接重定向期间不高亮父楼层，最终只在独立页高亮目标回复。
-            focusedFloor={targetPost?.parentPostId ? undefined : targetFloor}
-          />
+          <section aria-labelledby="thread-discussion-title">
+            <div className="mb-3 flex items-center gap-3 px-1">
+              <h2
+                id="thread-discussion-title"
+                className="font-display text-lg font-bold text-foreground"
+              >
+                讨论
+              </h2>
+              <span className="font-utility text-xs tabular-nums text-muted-foreground">
+                {selectedSubthread?._count.posts ?? 0} 楼
+              </span>
+              <span className="h-px flex-1 bg-border" aria-hidden="true" />
+            </div>
+            <FloorList
+              floors={floors}
+              hasNextPage={!!hasNextPage}
+              isFetchingNextPage={isFetchingNextPage}
+              isLoading={isFloorsLoading}
+              error={floorsError}
+              onLoadMore={() => fetchNextPage()}
+              onRetry={() => refetchFloors()}
+              // 旧楼中楼链接重定向期间不高亮父楼层，最终只在独立页高亮目标回复。
+              focusedFloor={targetPost?.parentPostId ? undefined : targetFloor}
+            />
+          </section>
         )}
 
         {/* 发布楼层 */}

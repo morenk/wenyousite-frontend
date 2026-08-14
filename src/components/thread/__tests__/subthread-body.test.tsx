@@ -38,14 +38,26 @@ describe("SubthreadBody", () => {
     expect(strong.tagName).toBe("STRONG");
   });
 
-  test("默认子贴显示「主帖」徽章", () => {
+  test("默认子贴显示主帖正文定位", () => {
     render(<SubthreadBody subthread={baseSubthread} isDefault />);
-    expect(screen.getByText("主帖")).toBeInTheDocument();
+    expect(screen.getByText("主帖正文")).toBeInTheDocument();
   });
 
-  test("非默认子贴不显示「主帖」徽章", () => {
-    render(<SubthreadBody subthread={baseSubthread} />);
-    expect(screen.queryByText("主帖")).toBeNull();
+  test("非默认子贴显示目录位置", () => {
+    render(<SubthreadBody subthread={baseSubthread} position={2} total={4} />);
+    expect(screen.getByText("子贴 2 / 4")).toBeInTheDocument();
+    expect(screen.queryByText("主帖正文")).toBeNull();
+  });
+
+  test("主贴标题与主题标题重复时只在视觉上显示一次", () => {
+    render(
+      <SubthreadBody
+        subthread={baseSubthread}
+        isDefault
+        threadTitle="设定区"
+      />,
+    );
+    expect(screen.getByRole("heading", { name: "设定区" })).toHaveClass("sr-only");
   });
 
   test("无正文时显示占位文案", () => {

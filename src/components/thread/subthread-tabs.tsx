@@ -56,7 +56,7 @@ export function SubthreadSwitcher({
           type="button"
           variant="ghost"
           size="icon-sm"
-          className="rounded-lg text-muted-foreground hover:text-foreground"
+          className="hidden rounded-lg text-muted-foreground hover:text-foreground sm:inline-flex"
           aria-label={previous ? `上一个子贴：${previous.title}` : "已经是第一个子贴"}
           title={!previous ? "已经是第一个子贴" : undefined}
           disabled={!previous}
@@ -80,7 +80,7 @@ export function SubthreadSwitcher({
               type="button"
               variant="outline"
               size="compact"
-              className="group h-9 w-0 min-w-0 grow justify-start gap-2 rounded-xl bg-card px-3 font-normal shadow-none"
+              className="group h-8 w-0 min-w-0 grow justify-start gap-2 rounded-lg bg-card px-2.5 font-normal shadow-none"
               aria-label={`切换子贴，当前：${selected.title}`}
             />
           }
@@ -89,7 +89,7 @@ export function SubthreadSwitcher({
           <span className="min-w-0 flex-1 truncate text-left font-display text-sm font-bold text-foreground">
             {selected.title}
           </span>
-          <span className="shrink-0 font-utility text-xs tabular-nums text-muted-foreground">
+          <span className="hidden shrink-0 font-utility text-xs tabular-nums text-muted-foreground sm:inline">
             {selected._count.posts} 楼
           </span>
           <ChevronDown
@@ -180,7 +180,7 @@ export function SubthreadSwitcher({
           type="button"
           variant="ghost"
           size="icon-sm"
-          className="rounded-lg text-muted-foreground hover:text-foreground"
+          className="hidden rounded-lg text-muted-foreground hover:text-foreground sm:inline-flex"
           aria-label={next ? `下一个子贴：${next.title}` : "已经是最后一个子贴"}
           title={!next ? "已经是最后一个子贴" : undefined}
           disabled={!next}

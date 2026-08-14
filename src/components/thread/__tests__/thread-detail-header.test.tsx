@@ -134,6 +134,11 @@ function renderWithQC(ui: React.ReactElement) {
   );
 }
 
+async function openThreadDetails(user = userEvent.setup()) {
+  await user.click(screen.getByRole("button", { name: "更多帖子信息与操作" }));
+  return user;
+}
+
 const baseThread: ThreadDetail = {
   id: "thread-1",
   title: "测试主题帖",
@@ -187,17 +192,42 @@ describe("ThreadDetailHeader", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
     mockPOST.mockResolvedValue({ error: undefined });
 
-    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
-    expect(screen.getByText("测试主题帖")).toBeInTheDocument();
+    const { container } = renderWithQC(<ThreadDetailHeader thread={baseThread} />);
+    expect(screen.getByRole("heading", { name: "测试主题帖" })).toHaveClass(
+      "text-center",
+    );
+    expect(
+      container.querySelector('[data-slot="thread-detail-identity"]'),
+    ).toHaveClass("py-2.5");
+    expect(
+      container.querySelector('[data-slot="thread-detail-context"]'),
+    ).toHaveClass("whitespace-nowrap", "justify-center");
   });
 
-  test("平台管理员在公开主题帖看到独立站务隐藏入口", () => {
+  test("排头与当前子贴正文属于同一个主题文档容器", () => {
+    mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
+    const { container } = renderWithQC(
+      <ThreadDetailHeader thread={baseThread}>
+        <section>当前子贴正文</section>
+      </ThreadDetailHeader>,
+    );
+
+    const documentCard = container.querySelector('[data-slot="thread-document"]');
+    const header = container.querySelector('[data-slot="thread-detail-header"]');
+    const body = container.querySelector('[data-slot="thread-document-body"]');
+    expect(documentCard).toContainElement(header as HTMLElement);
+    expect(documentCard).toContainElement(body as HTMLElement);
+    expect(body).toHaveTextContent("当前子贴正文");
+  });
+
+  test("平台管理员在公开主题帖的更多面板看到站务隐藏入口", async () => {
     mockUseAuth.mockReturnValue({
       user: { id: "admin-1", role: "ADMIN" },
       isInitialized: true,
     });
 
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
+    await openThreadDetails();
 
     expect(screen.getByRole("button", { name: "站务隐藏主题帖" })).toBeInTheDocument();
   });
@@ -223,6 +253,7 @@ describe("ThreadDetailHeader", () => {
       value: { writeText: mockClipboardWriteText },
     });
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
+    await openThreadDetails(user);
 
     await user.click(screen.getByRole("button", { name: "复制主题帖链接" }));
 
@@ -239,9 +270,11 @@ describe("ThreadDetailHeader", () => {
     expect(screen.getByText("招募中")).toBeInTheDocument();
   });
 
-  test("渲染标签", () => {
+  test("标签收纳在更多面板", async () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
+    expect(screen.queryByText("#测试标签")).not.toBeInTheDocument();
+    await openThreadDetails();
     expect(screen.getByText("#测试标签")).toBeInTheDocument();
     expect(screen.getByText("#测试标签").closest("a")).toHaveAttribute(
       "href",
@@ -255,13 +288,16 @@ describe("ThreadDetailHeader", () => {
     expect(screen.getByText("帖主")).toBeInTheDocument();
   });
 
-  test("渲染统计信息", () => {
+  test("统计信息收纳在更多面板", async () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
-    expect(screen.getByText("100 次浏览")).toBeInTheDocument();
-    expect(screen.getByText("3 位玩家")).toBeInTheDocument();
-    expect(screen.getByText("5 楼")).toBeInTheDocument();
-    expect(screen.getByText("0 升温油")).toBeInTheDocument();
+    expect(screen.queryByLabelText("帖子统计")).not.toBeInTheDocument();
+    await openThreadDetails();
+    const stats = within(screen.getByLabelText("帖子统计"));
+    expect(stats.getByText("100")).toBeInTheDocument();
+    expect(stats.getByText("3")).toBeInTheDocument();
+    expect(stats.getByText("5")).toBeInTheDocument();
+    expect(stats.getByText("0")).toBeInTheDocument();
   });
 
   test("子贴切换入口合并在排头卡中并通过菜单切换", async () => {
@@ -397,13 +433,14 @@ describe("ThreadDetailHeader", () => {
     );
   });
 
-  test("OWNER 只看到统一管理入口，不再显示编辑按钮", () => {
+  test("OWNER 只在更多面板看到统一管理入口，不再显示编辑按钮", async () => {
     mockUseAuth.mockReturnValue({
       user: { id: "owner-1", username: "帖主" },
       isInitialized: true,
     });
     mockPOST.mockResolvedValue({ error: undefined });
     renderWithQC(<ThreadDetailHeader thread={baseThread} onManage={vi.fn()} />);
+    await openThreadDetails();
     expect(screen.getByRole("button", { name: "管理主题帖" })).toBeInTheDocument();
     expect(screen.getByRole("group", { name: "互动操作" })).toHaveClass(
       "shrink-0",
@@ -415,17 +452,18 @@ describe("ThreadDetailHeader", () => {
     expect(screen.queryByText("退出")).toBeNull();
   });
 
-  test("OWNER 看到管理按钮", () => {
+  test("OWNER 在更多面板看到管理按钮", async () => {
     mockUseAuth.mockReturnValue({
       user: { id: "owner-1", username: "帖主" },
       isInitialized: true,
     });
     mockPOST.mockResolvedValue({ error: undefined });
     renderWithQC(<ThreadDetailHeader thread={baseThread} onManage={vi.fn()} />);
+    await openThreadDetails();
     expect(screen.getByRole("button", { name: "管理主题帖" })).toBeInTheDocument();
   });
 
-  test("协作者可管理主题帖，但不可删除整帖或创建订阅", () => {
+  test("协作者可从更多面板管理主题帖，但不可删除整帖或创建订阅", async () => {
     mockUseAuth.mockReturnValue({
       user: { id: "collaborator-1", username: "协作者" },
       isInitialized: true,
@@ -449,6 +487,7 @@ describe("ThreadDetailHeader", () => {
     } as never);
 
     renderWithQC(<ThreadDetailHeader thread={baseThread} onManage={vi.fn()} />);
+    await openThreadDetails();
 
     expect(screen.getByRole("button", { name: "管理主题帖" })).toBeInTheDocument();
     expect(screen.getByRole("group", { name: "互动操作" })).toHaveClass(
@@ -460,13 +499,14 @@ describe("ThreadDetailHeader", () => {
     expect(screen.queryByRole("button", { name: "订阅官方更新" })).not.toBeInTheDocument();
   });
 
-  test("详情头部不再承载删除主题帖入口", () => {
+  test("详情更多面板不再承载删除主题帖入口", async () => {
     mockUseAuth.mockReturnValue({
       user: { id: "owner-1", username: "帖主" },
       isInitialized: true,
     });
 
     renderWithQC(<ThreadDetailHeader thread={baseThread} onManage={vi.fn()} />);
+    await openThreadDetails();
 
     expect(screen.queryByRole("button", { name: "删除主题帖" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "管理主题帖" })).toBeInTheDocument();
@@ -493,6 +533,7 @@ describe("ThreadDetailHeader", () => {
     renderWithQC(
       <ThreadDetailHeader thread={baseThread} onManage={onManage} />,
     );
+    await openThreadDetails(user);
 
     await user.click(screen.getByRole("button", { name: "管理主题帖" }));
     expect(onManage).toHaveBeenCalledTimes(1);
@@ -722,7 +763,7 @@ describe("ThreadDetailHeader", () => {
     expect(screen.queryByTitle("订阅官方更新")).toBeNull();
   });
 
-  test("私密帖邀请入口集中到管理页，详情头部只保留管理入口", () => {
+  test("私密帖邀请入口集中到管理页，更多面板只保留管理入口", async () => {
     const onManage = vi.fn();
     mockUseAuth.mockReturnValue({
       user: { id: "owner-1", username: "帖主" },
@@ -734,6 +775,7 @@ describe("ThreadDetailHeader", () => {
         onManage={onManage}
       />,
     );
+    await openThreadDetails();
 
     expect(
       screen.queryByRole("button", { name: "复制主题帖链接" }),
@@ -788,6 +830,7 @@ describe("ThreadDetailHeader", () => {
       vi.fn(() => true),
     );
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
+    await openThreadDetails(user);
 
     await user.click(screen.getByRole("button", { name: "退出玩家身份" }));
     expect(mockDELETE).toHaveBeenCalledWith(
