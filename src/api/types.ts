@@ -344,7 +344,7 @@ export interface paths {
         delete: operations["usersRemoveProfileCover"];
         options?: never;
         head?: never;
-        /** 设置个人主页背景图（传入 3:1 图片的 mediaId） */
+        /** 设置个人主页双画幅背景图（电脑端 3:1、移动端 2:1） */
         patch: operations["usersSetProfileCover"];
         trace?: never;
     };
@@ -3075,6 +3075,14 @@ export interface components {
             /** @description 当前用户是否允许使用 @全体玩家 */
             canMentionAllPlayers: boolean;
         };
+        ProfileCoverVariantResponseDto: {
+            /** @description 背景图原图地址 */
+            url: string;
+            /** @description 800px WebP 中图地址 */
+            mediumUrl: string | null;
+            width: number | null;
+            height: number | null;
+        };
         ProfileCoverResponseDto: {
             /** @description 背景图原图地址 */
             url: string;
@@ -3082,6 +3090,8 @@ export interface components {
             mediumUrl: string | null;
             width: number | null;
             height: number | null;
+            /** @description 移动端 2:1 裁切；历史背景图可能为空 */
+            mobile: components["schemas"]["ProfileCoverVariantResponseDto"] | null;
         };
         UserSocialCountResponseDto: {
             following: number;
@@ -3178,10 +3188,15 @@ export interface components {
         };
         SetProfileCoverDto: {
             /**
-             * @description upload-url 返回的 mediaId
+             * @description 电脑端 3:1 背景图 mediaId
              * @example clxabc123...
              */
             mediaId: string;
+            /**
+             * @description 移动端 2:1 背景图 mediaId；旧客户端省略时会清空移动端裁切
+             * @example clxmobile456...
+             */
+            mobileMediaId?: string;
         };
         BookmarkThreadCountResponseDto: {
             members: number;

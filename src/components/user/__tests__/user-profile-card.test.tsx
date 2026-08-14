@@ -118,6 +118,7 @@ describe("UserProfileCard", () => {
             mediumUrl: "https://example.com/cover_md.webp",
             width: 1920,
             height: 640,
+            mobile: null,
           },
         }}
       />,
@@ -150,6 +151,7 @@ describe("UserProfileCard", () => {
             mediumUrl: "https://example.com/cover_md.webp",
             width: 1920,
             height: 640,
+            mobile: null,
           },
         }}
       />,

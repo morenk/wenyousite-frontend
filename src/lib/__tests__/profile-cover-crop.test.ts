@@ -36,18 +36,31 @@ afterEach(() => {
 });
 
 describe("getCroppedProfileCoverBlob", () => {
-  test("直接使用自然像素裁剪区并输出 1920×640 的高质量 WebP", async () => {
+  test("直接使用自然像素裁剪区并输出 1920×640 的 Web 画幅", async () => {
     const blob = await getCroppedProfileCoverBlob("blob:cover", {
       x: 120,
       y: 80,
       width: 900,
       height: 300,
-    });
+    }, "web");
 
     expect(blob.type).toBe("image/webp");
     const [, sx, sy, sw, sh, dx, dy, dw, dh] = mockDrawImage.mock.calls[0];
     expect([sx, sy, sw, sh]).toEqual([120, 80, 900, 300]);
     expect([dx, dy, dw, dh]).toEqual([0, 0, 1920, 640]);
     expect(mockToBlob).toHaveBeenCalledWith(expect.any(Function), "image/webp", 0.92);
+  });
+
+  test("同一原图可独立输出 1600×800 的移动端画幅", async () => {
+    await getCroppedProfileCoverBlob("blob:cover", {
+      x: 200,
+      y: 40,
+      width: 1000,
+      height: 500,
+    }, "mobile");
+
+    const [, sx, sy, sw, sh, dx, dy, dw, dh] = mockDrawImage.mock.calls[0];
+    expect([sx, sy, sw, sh]).toEqual([200, 40, 1000, 500]);
+    expect([dx, dy, dw, dh]).toEqual([0, 0, 1600, 800]);
   });
 });

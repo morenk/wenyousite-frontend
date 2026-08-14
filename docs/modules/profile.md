@@ -8,7 +8,7 @@
 - `/users/[id]` 用户资料使用路由分组共享 Layout 承载资料头部与吸顶 Tab；Tab 路由主动预取，切换时只替换内容区且资料头不卸载，慢速切换只显示局部骨架；概览展示创作活动汇总和允许公开的最近回复，动态列表只留在动态 Tab，未激活内容不挂载查询
 - 关注/取消关注、拉黑/取消拉黑（仅登录，用户主页操作）
 - 草稿箱：未发布帖列表（进入 `/threads/create` 草稿列表查看，可跳转继续编辑或删除）
-- `/me` 我的资料：精确经验与等级进度、主页背景（3:1 裁剪上传/移除）、头像（1:1 裁剪上传/移除）、邮箱、Bio 与隐私开关（用户名需显式进入编辑，默认不修改）
+- `/me` 我的资料：精确经验与等级进度、主页背景（同一原图分别裁剪 Web 3:1 与移动端 2:1 后一起上传/移除）、头像（1:1 裁剪上传/移除）、邮箱、Bio 与隐私开关（用户名需显式进入编辑，默认不修改）
 - `/me/password` 修改密码页：当前密码/新密码/确认新密码（显示/隐藏切换 + 需求提示），成功后登出跳登录
 - `/me/email` 更换邮箱页：当前密码二次认证 → 新邮箱 → 6 位验证码，成功后失效 me 缓存并跳转 `/me`
 - `/me/security` 账号安全页：双端登录终端、黑名单、账号注销
@@ -40,8 +40,8 @@
 | PATCH | `/users/me` | Auth | 修改资料（username/bio/隐私开关），5次/分钟限流，需邮箱已验证 |
 | PATCH | `/users/me/avatar` | Auth | 设置头像（传入 mediaId），需邮箱已验证 |
 | DELETE | `/users/me/avatar` | Auth | 移除头像（置空 avatar，回到首字母占位），需邮箱已验证 |
-| PATCH | `/users/me/profile-cover` | Auth | 设置主页背景（传入本人已完成的 3:1 mediaId），需邮箱已验证 |
-| DELETE | `/users/me/profile-cover` | Auth | 移除主页背景并恢复无背景的紧凑资料卡，需邮箱已验证 |
+| PATCH | `/users/me/profile-cover` | Auth | 原子设置双画幅主页背景（Web 3:1 `mediaId` + 移动端 2:1 `mobileMediaId`），需邮箱已验证 |
+| DELETE | `/users/me/profile-cover` | Auth | 同时移除两端主页背景并恢复无背景的紧凑资料卡，需邮箱已验证 |
 | POST | `/auth/change-password` | AuthRead | 修改密码（旧+新），成功后退出全部登录终端并强制重新登录 |
 | POST | `/auth/change-email/request-code` | Auth | 更换邮箱第一步：校验当前密码后向新邮箱发送验证码 |
 | POST | `/auth/change-email/verify` | Auth | 更换邮箱第二步：验证码确认并更新邮箱 |
@@ -240,7 +240,7 @@
 | UserProfileTabFallback | `src/components/user/user-profile-tab-fallback.tsx` | Tab 路由慢速切换的局部内容骨架，不重复资料头部、导航或 PageShell |
 | UserActivitySummaryCard | `src/components/user/user-activity-summary.tsx` | 概览四项创作统计；精确数字、隐私占位及动态/帖子/最近回复入口 |
 | UserProfileCard | `src/components/user/user-profile-card.tsx` | 用户主页头部：有背景图时显示 3:1 背景墙和明确置顶的半覆盖头像；无背景图时回退紧凑默认资料卡 |
-| ProfileCover | `src/components/user/profile-cover.tsx` | 背景图展示：通过 `srcset` 按视口/DPR 自适应选择 800px 中图或高清原图，固定 3:1 占位，并保留原图回退与加载失败状态 |
+| ProfileCover | `src/components/user/profile-cover.tsx` | 背景图展示：支持 Web 3:1 / 移动端 2:1 占位，通过 `srcset` 按视口/DPR 自适应选择 800px 中图或高清原图，并保留原图回退与加载失败状态 |
 | UserAvatar | `src/components/shared/user-avatar.tsx` | 共享头像组件：有 URL 用 `_thumb.webp` 缩略图，无则首字母占位；“已注销用户”始终忽略 URL 并使用统一灰色用户图标；尺寸通过 className 控制（资料卡/关注列表/通知/主题帖列表/楼层/楼中楼复用） |
 | FollowButton | `src/components/user/follow-button.tsx` | 关注/取消关注切换（未登录跳 /login） |
 | BlockButton | `src/components/user/block-button.tsx` | 拉黑/取消拉黑切换（全局无障碍确认框二次确认） |
@@ -255,12 +255,12 @@
 | DraftList | `src/components/user/draft-list.tsx` | 草稿箱列表（标题/分类/更新时间/继续编辑/删除） |
 | UsernameEdit | `src/components/user/username-edit.tsx` | 独立用户名修改（默认只读，点「修改用户名」才进入编辑态，未改动不提交） |
 | AvatarUploader | `src/components/user/avatar-uploader.tsx` | 头像上传器：预览（`_thumb.webp` 缩略图/首字母占位）→ 文件选择校验（仅 jpg/png/webp，排除 svg）→ 共享 Dialog 内用 react-easy-crop 1:1 裁剪 → canvas 导出 512×512 webp → 上传（预签名+真实字节进度+可取消直传+轮询）→ `PATCH /me/avatar` 立即生效；「移除头像」调 `DELETE /me/avatar` |
-| ProfileCoverUploader | `src/components/user/profile-cover-uploader.tsx` | 背景上传器：与头像叠合预览 → 3:1 裁剪/缩放 → 1920×640 高质量 WebP → 上传与绑定；支持进度、取消、更换和移除 |
+| ProfileCoverUploader | `src/components/user/profile-cover-uploader.tsx` | 双画幅背景上传器：同一原图分别调整 Web 3:1 与移动端 2:1 取景框 → 输出 1920×640 / 1600×800 高质量 WebP → 依次上传并原子绑定；支持分步进度、失败续传、取消、更换和同时移除 |
 | ChangePasswordForm | `src/components/user/change-password-form.tsx` | 修改密码表单（当前/新/确认密码，PasswordInput 显隐切换），成功后登出跳登录 |
 | ChangeEmailForm | `src/components/user/change-email-form.tsx` | 更换邮箱表单（当前密码二次认证 → 新邮箱 → 验证码），成功后失效 me 缓存并跳转 `/me` |
 | PasswordInput | `src/components/ui/password-input.tsx` | 密码输入框（Eye/EyeOff 显示/隐藏切换） |
 | useSetAvatar | `src/api/hooks/use-set-avatar.ts` | 设置/移除头像 hook（PATCH/DELETE `/users/me/avatar`，成功后失效 me/user 缓存） |
-| useSetProfileCover | `src/api/hooks/use-set-profile-cover.ts` | 设置/移除主页背景 hook（PATCH/DELETE `/users/me/profile-cover`，成功后失效 me/user 缓存） |
+| useSetProfileCover | `src/api/hooks/use-set-profile-cover.ts` | 设置/移除双画幅主页背景 hook（PATCH 同时发送 `mediaId` 与 `mobileMediaId`，DELETE 清除两端；成功后失效 me/user 缓存） |
 | getCroppedBlob | `src/lib/avatar-crop.ts` | react-easy-crop 裁剪区域 → 512×512 webp Blob（canvas） |
 | useUserProfile | `src/api/hooks/use-user-profile.ts` | 用户公开资料 hook |
 | useUserActivitySummary | `src/api/hooks/use-user-activity-summary.ts` | 按查看者隔离的主页创作汇总 hook |

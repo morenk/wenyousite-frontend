@@ -12,9 +12,15 @@ export function useSetProfileCover() {
   };
 
   const setProfileCover = useMutation({
-    mutationFn: async (mediaId: string) => {
+    mutationFn: async ({
+      mediaId,
+      mobileMediaId,
+    }: {
+      mediaId: string;
+      mobileMediaId: string;
+    }) => {
       const { data, error } = await apiClient.PATCH("/api/v1/users/me/profile-cover", {
-        body: { mediaId },
+        body: { mediaId, mobileMediaId },
       });
       if (error) throw error;
       return data;

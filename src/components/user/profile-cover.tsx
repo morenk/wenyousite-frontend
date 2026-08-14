@@ -6,18 +6,28 @@ import type { components } from "@/api/types";
 import { cn } from "@/lib/utils";
 
 export type ProfileCoverMedia = components["schemas"]["ProfileCoverResponseDto"];
+export type ProfileCoverVariantMedia =
+  components["schemas"]["ProfileCoverVariantResponseDto"];
+
+export type ProfileCoverSurface = "web" | "mobile";
 
 const PROFILE_COVER_SIZES =
   "(min-width: 672px) 648px, (min-width: 640px) calc(100vw - 24px), calc(100vw - 16px)";
 
 interface ProfileCoverProps {
-  cover: ProfileCoverMedia | null;
+  cover: ProfileCoverVariantMedia | null;
   username: string;
+  surface?: ProfileCoverSurface;
   className?: string;
 }
 
-/** 固定 3:1 的个人主页背景墙；按视口与 DPR 自适应选择中图或高清原图。 */
-export function ProfileCover({ cover, username, className }: ProfileCoverProps) {
+/** 个人主页背景墙；按展示端使用对应画幅，并按 DPR 自适应选择中图或高清原图。 */
+export function ProfileCover({
+  cover,
+  username,
+  surface = "web",
+  className,
+}: ProfileCoverProps) {
   const source = cover?.url ?? null;
   const originalWidth = cover?.width ?? null;
   const responsiveSource =
@@ -32,8 +42,10 @@ export function ProfileCover({ cover, username, className }: ProfileCoverProps) 
   return (
     <div
       data-slot="profile-cover"
+      data-surface={surface}
       className={cn(
-        "relative aspect-3/1 w-full overflow-hidden bg-secondary/70",
+        "relative w-full overflow-hidden bg-secondary/70",
+        surface === "mobile" ? "aspect-2/1" : "aspect-3/1",
         className,
       )}
     >
@@ -43,7 +55,11 @@ export function ProfileCover({ cover, username, className }: ProfileCoverProps) 
           src={source}
           srcSet={usesOriginalFallback ? undefined : responsiveSource}
           sizes={responsiveSource && !usesOriginalFallback ? PROFILE_COVER_SIZES : undefined}
-          alt={`${username} 的主页背景`}
+          alt={
+            surface === "mobile"
+              ? `${username} 的移动端主页背景`
+              : `${username} 的主页背景`
+          }
           width={cover?.width ?? undefined}
           height={cover?.height ?? undefined}
           className="h-full w-full object-cover"

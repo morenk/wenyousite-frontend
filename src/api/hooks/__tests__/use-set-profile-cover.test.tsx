@@ -32,12 +32,18 @@ describe("useSetProfileCover", () => {
     mockDelete.mockResolvedValue({ data: {}, error: undefined });
   });
 
-  test("绑定 mediaId 到主页背景", async () => {
+  test("同时绑定电脑端和移动端背景 mediaId", async () => {
     const { result } = renderHook(() => useSetProfileCover(), { wrapper: createWrapper() });
-    result.current.setProfileCover.mutate("media-cover-1");
+    result.current.setProfileCover.mutate({
+      mediaId: "media-cover-web-1",
+      mobileMediaId: "media-cover-mobile-1",
+    });
     await waitFor(() => expect(result.current.setProfileCover.isSuccess).toBe(true));
     expect(mockPatch).toHaveBeenCalledWith("/api/v1/users/me/profile-cover", {
-      body: { mediaId: "media-cover-1" },
+      body: {
+        mediaId: "media-cover-web-1",
+        mobileMediaId: "media-cover-mobile-1",
+      },
     });
   });
 
