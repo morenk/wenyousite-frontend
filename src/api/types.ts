@@ -5042,43 +5042,38 @@ export interface components {
             /** @description 仅用于说明结果相关度；客户端不得作为稳定业务字段依赖 */
             relevance?: number;
         };
-        SearchThreadOwnerResponseDto: {
-            /** @description 用户 ID */
-            id: string;
-            /** @description 用户名 */
-            username: string;
-            /** @description 头像 URL */
-            avatar: string | null;
-        };
-        SearchThreadCountResponseDto: {
-            /** @description 参与人数 */
-            members: number;
-            /** @description 帖子数 */
-            posts: number;
-            /** @description 已标记玩家数 */
-            players: number;
-        };
         SearchThreadResponseDto: {
-            /** @description 主题帖 ID */
             id: string;
-            /** @description 主题帖标题 */
             title: string;
             /**
              * @description 动态分类 slug
              * @example MYSTERY
              */
             category: string | null;
-            /**
-             * Format: date-time
-             * @description 创建时间
-             */
+            /** @enum {string} */
+            status: "RECRUITING" | "CLOSED" | "FINISHED";
+            /** @enum {string} */
+            visibility: "PUBLIC" | "PRIVATE";
+            published: boolean;
+            pinned: boolean;
+            /** @description 用户投入的累计打赏升数 */
+            tipTotal: string;
+            /** Format: date-time */
             createdAt: string;
-            /** @description 楼主信息 */
-            owner: components["schemas"]["SearchThreadOwnerResponseDto"];
-            /** @description 主题帖统计 */
-            _count: components["schemas"]["SearchThreadCountResponseDto"];
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: date-time */
+            deletedAt: string | null;
+            owner: components["schemas"]["PostAuthorResponseDto"];
+            defaultSubthread: components["schemas"]["ThreadListDefaultSubthreadResponseDto"] | null;
+            topicTags: components["schemas"]["ThreadTagRelationResponseDto"][];
+            _count: components["schemas"]["ThreadListCountResponseDto"];
+            /** @description 首页列表正文预览 */
+            preview?: string;
             /** @description 默认主贴正文中的第一张普通图片 URL；无图时返回空数组 */
             coverImages: string[];
+            /** @description 仅说明本次查询的标题相关度；客户端不得作为稳定业务字段依赖 */
+            relevance?: number;
         };
         SearchUserResponseDto: {
             /** @description 用户 ID */
@@ -6123,7 +6118,7 @@ export interface components {
         SearchSearchMoments200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
             data: components["schemas"]["MomentSearchResponseDto"][];
         };
-        SearchSearchThreads200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+        SearchSearchThreads200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
             data: components["schemas"]["SearchThreadResponseDto"][];
         };
         SearchSearchUsers200Response: components["schemas"]["ApiSuccessEnvelope"] & {
@@ -13362,6 +13357,10 @@ export interface operations {
             query: {
                 /** @description 搜索关键词，首尾空白会被移除 */
                 q: string;
+                /** @description 上一页返回的不透明游标 */
+                cursor?: string;
+                /** @description 每页条数；旧客户端省略时保持最多 50 条，新客户端建议显式传 20 */
+                limit?: number;
             };
             header?: never;
             path?: never;
@@ -13369,7 +13368,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 主题帖结果，最多 50 条 */
+            /** @description 完整主题帖列表卡片，按标题相关度游标分页；meta 含 cursor/hasMore */
             200: {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];
@@ -13378,6 +13377,17 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SearchSearchThreads200Response"];
+                };
+            };
+            /** @description 搜索游标无效 */
+            400: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */

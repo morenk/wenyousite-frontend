@@ -24,13 +24,13 @@
 | Method | Path | Guard | 用途 |
 |--------|------|-------|------|
 | GET | `/search/moments?q=&cursor=&limit=20` | OptionalAuth | 动态 Tab 按需查询，游标分页并按查看者过滤拉黑关系 |
-| GET | `/search/threads?q=` | Public | 主题帖 Tab 按需查询，最多 50 条 |
+| GET | `/search/threads?q=&cursor=&limit=20` | Public | 主题帖 Tab 按需查询，返回完整首页卡片并按相关度游标分页 |
 | GET | `/search/users?q=` | Public | 用户 Tab 按需查询，最多 20 条 |
 | GET | `/search/posts?q=&cursor=&limit=20` | Public | 楼层 Tab 按需查询，相关度游标分页 |
 | GET | `/threads/:threadId/search/posts?q=&cursor=&limit=20` | OptionalAuth | 搜索本帖全部子贴中的楼层与楼中楼 |
 | GET | `/search?q=` | Public | 旧客户端兼容聚合端点，新前端不调用 |
 
-> 各 Tab 不会并发预取，默认只请求动态，首次点击其他分类后才请求对应端点。动态与楼层关键词至少 2 个字符并使用游标分页，楼层每页 20 条且每个主题帖最多 3 条；用户结果排除注销账号，动态、主题帖与楼层仅返回公开内容。主题帖结果只使用 `coverImages[0]`，在标题下展示默认主贴的第一张 16:9 封面。
+> 各 Tab 不会并发预取，默认只请求动态，首次点击其他分类后才请求对应端点。动态、主题帖与楼层都使用游标分页，动态与楼层关键词至少 2 个字符；楼层每页 20 条且每个主题帖最多 3 条。用户结果排除注销账号，动态、主题帖与楼层仅返回公开内容。主题帖结果与首页复用完整 `ThreadCard`，封面仍只使用 `coverImages[0]`。
 
 > 主题帖和楼层 Tab 属于用户显式搜索，因此仍展示已注销作者留下的公开历史内容；这些搜索结果不会写入首页 `threads` 发现缓存。
 
@@ -79,14 +79,14 @@
 }
 ```
 
-> 用户结果只含公开展示所需的 `id/username/avatar/bio`；主题帖结果无 `preview`/`status`/`pinned`，楼层项含 `floorNumber`/`thread`/`subthread` 供跳转。
+> 用户结果只含公开展示所需的 `id/username/avatar/bio`；主题帖结果包含首页卡片所需的 `preview/status/pinned/topicTags/defaultSubthread/_count/tipTotal`，楼层项含 `floorNumber/thread/subthread` 供跳转。
 
 ## 5. 状态管理
 
 | 状态 | 来源 | 管理方式 |
 |------|------|----------|
 | 动态结果 | `GET /search/moments?q=&cursor=` | `useInfiniteQuery`，仅动态 Tab 激活且关键词不少于 2 字符时 enabled；缓存按查看者隔离 |
-| 主题帖结果 | `GET /search/threads?q=` | `useQuery`，仅主题帖 Tab 激活时 enabled |
+| 主题帖结果 | `GET /search/threads?q=&cursor=` | `useInfiniteQuery`，仅主题帖 Tab 激活时 enabled，每页显式请求 20 条 |
 | 用户结果 | `GET /search/users?q=` | `useQuery`，仅用户 Tab 激活时 enabled |
 | 楼层结果 | `GET /search/posts?q=&cursor=` | `useInfiniteQuery`，仅楼层 Tab 激活且关键词不少于 2 字符时 enabled |
 | 帖内楼层结果 | `GET /threads/:threadId/search/posts?q=&cursor=` | `useThreadSearchPosts`；仅提交有效关键词后请求，按 threadId 隔离缓存 |
@@ -99,9 +99,10 @@
 
 | 组件 | 路径 | 说明 |
 |------|------|------|
-| SearchResults | `src/components/search/search-results.tsx` | 基于共享 `Tabs` 的四类结果、分类 loading/error/empty、短词提示与动态/楼层加载更多 |
+| SearchResults | `src/components/search/search-results.tsx` | 基于共享 `Tabs` 的四类结果、分类 loading/error/empty、短词提示与动态/主题帖/楼层加载更多 |
 | ThreadCover | `src/components/thread/thread-cover.tsx` | 与首页共用的主题帖单封面 |
-| useSearchThreads / useSearchUsers | `src/api/hooks/use-search.ts` | 主题帖与用户分类查询 hooks |
+| useSearchThreads / useSearchUsers | `src/api/hooks/use-search.ts` | 主题帖游标分页与用户一次性分类查询 hooks |
+| ThreadList / ThreadCard | `src/components/thread/` | 首页与搜索共同使用的主题帖列表、卡片及四态反馈 |
 | useSearchMoments | `src/api/hooks/use-search.ts` | 动态游标分页 hook，缓存键包含当前查看者 |
 | useSearchPosts | `src/api/hooks/use-search.ts` | 楼层游标分页 hook，透传 `meta.cursor` |
 | useThreadSearchPosts | `src/api/hooks/use-search.ts` | 帖内楼层分页 hook，与全站楼层共享分页核心 |
@@ -116,10 +117,10 @@
 - 四类结果通过共享 `Tabs` 切换并继承方向键、Home/End 与 ARIA 语义；默认动态，仅激活的分类发起请求，已加载结果由 TanStack Query 缓存
 - Tab 数量表示当前已加载条数而非全站总数；达到分类上限或楼层仍有下一页时显示 `+`，不发起昂贵的总数统计
 - 用户名和主题帖允许单字符；单字符进入动态或楼层 Tab 时提示至少输入 2 个字符且不请求接口
-- 楼层每页加载 20 条，`meta.hasMore=true` 时显示“加载更多楼层”
+- 主题帖每页加载 20 条并滚动触底续页；楼层每页加载 20 条，`meta.hasMore=true` 时显示“加载更多楼层”
 - 楼层内容卡片不暴露 Markdown 协议或链接地址：骰子显示为 `[表达式]`，标签链接显示为 `[标签]`，裸链接显示为 `[链接]`
 - 用户项 → `/users/{id}`；主题帖项 → `/threads/{id}`；楼层项通过共享 `getPostHref` 携带目标帖子 ID 和 `parentPostId`，主楼层进入所属子贴，楼中楼直达对应讨论页并定位高亮
-- 主题帖封面随整张结果卡片跳转，不单独打开灯箱；图片懒加载，本站静态图优先使用 `_feed.webp`，失败后回退原图
+- 主题帖搜索直接复用首页列表卡片，状态、标签、摘要、统计和温油展示一致；封面不单独打开灯箱，图片懒加载并优先使用 `_feed.webp`
 - 详情页头部“搜索本帖”切换内联面板；输入只在提交时发请求，点击主楼层结果会清除当前手选子贴后切换到结果所属子贴
 - 空关键词 → 只显示已可操作的搜索排头，不再追加重复引导；无结果 → "没有找到相关内容"
 - 页面标题、输入框和按钮已足以表达搜索能力，不额外展示检索范围副标题；具体结果分类由 Tab 直接呈现
@@ -144,7 +145,7 @@
 - 分类栏与结果面板在页面主内容列中纵向排列，各分类列表与结果卡片占满可用宽度
 - 默认只请求动态，其余分类在首次激活 Tab 时才请求
 - 动态与楼层单字符不请求，至少 2 字符才执行正文搜索
-- 楼层每页 20 条，可使用游标加载更多；数量有更多时显示 `+`
+- 主题帖与楼层每页 20 条，可使用游标加载更多；数量有更多时显示 `+`
 - 后端保证每个主题帖最多返回 3 条楼层并按相关度优先排序
 - 楼层搜索结果可直接定位到具体楼层或楼中楼回复
 - 楼层搜索预览以方括号占位展示骰子和链接，不显示内部协议或裸 URL
