@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { Bookmark, Heart, Loader2, Pencil, Save, Trash2 } from "lucide-react";
+import { Bookmark, Heart, Loader2, Pencil, Save, ShieldAlert, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { useDeleteMoment, useMoment, useMomentBookmark, useMomentLike, useUpdateMoment } from "@/api/hooks/use-moments";
@@ -25,6 +25,7 @@ import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { LIKED_ACTIVE_SURFACE_CLASS_NAME } from "@/lib/like-state";
 import { insertTextAtSelection } from "@/lib/internal-reference";
+import { AdminContentModerationDialog } from "@/components/admin/admin-content-moderation-dialog";
 
 export function MomentDetailView({ momentId, onDeleted }: { momentId: string; onDeleted?: () => void }) {
   const { user } = useAuth();
@@ -34,6 +35,7 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
+  const [moderationOpen, setModerationOpen] = useState(false);
   const editContentRef = useRef<HTMLTextAreaElement>(null);
   const confirm = useConfirm();
   const remove = useDeleteMoment();
@@ -41,6 +43,7 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
   const moment = detail.data;
   const like = useMomentLike(momentId, moment?.viewerLiked ?? false);
   const bookmark = useMomentBookmark(momentId, moment?.viewerBookmarked ?? false);
+  const canModerate = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
 
   if (detail.isLoading) {
     return <div className="flex min-h-[32rem] items-center justify-center" role="status"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>;
@@ -119,7 +122,8 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
     });
   };
   return (
-    <article className="w-full bg-background">
+    <>
+      <article className="w-full bg-background">
       <section
         data-slot="moment-detail-title-card"
         className="mb-3 w-full rounded-2xl bg-muted/35 px-5 py-4 sm:px-7"
@@ -139,6 +143,19 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
             {moment.canDelete ? (
               <Tooltip content="删除动态" disabled={remove.isPending}>
                 <Button variant="ghost" size="icon-sm" onClick={() => void deleteMoment()} disabled={remove.isPending} aria-label="删除动态"><Trash2 /></Button>
+              </Tooltip>
+            ) : null}
+            {canModerate ? (
+              <Tooltip content="站务隐藏动态">
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => setModerationOpen(true)}
+                  aria-label="站务隐藏动态"
+                  className="text-destructive hover:bg-destructive-soft hover:text-destructive"
+                >
+                  <ShieldAlert />
+                </Button>
               </Tooltip>
             ) : null}
           </div>
@@ -228,6 +245,18 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
 
         <MomentComments momentId={moment.id} />
       </div>
-    </article>
+      </article>
+      {canModerate ? (
+        <AdminContentModerationDialog
+          target={{ type: "moment", id: moment.id, label: "动态" }}
+          open={moderationOpen}
+          onOpenChange={setModerationOpen}
+          onHidden={() => {
+            if (onDeleted) onDeleted();
+            else router.replace("/moments");
+          }}
+        />
+      ) : null}
+    </>
   );
 }

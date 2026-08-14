@@ -16,6 +16,7 @@ import {
   LogOut,
   ScrollText,
   Settings2,
+  ShieldAlert,
   ShieldCheck,
   SlidersHorizontal,
   Users,
@@ -30,6 +31,7 @@ const navigationGroups = [
     icon: LayoutList,
     items: [
       { href: "/station/cases", label: "案件队列", icon: ClipboardList },
+      { href: "/station/content", label: "内容处置", icon: ShieldAlert },
       { href: "/station/appeals", label: "申诉复核", icon: BookOpenCheck },
       { href: "/station/users", label: "用户与处罚", icon: Users },
     ],

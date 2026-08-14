@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { ArrowDownUp, ChevronDown, ChevronUp, ImagePlus, Loader2, Reply, Trash2, X } from "lucide-react";
+import { ArrowDownUp, ChevronDown, ChevronUp, ImagePlus, Loader2, Reply, ShieldAlert, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -40,6 +40,7 @@ import type { ReplyFilters, ReplyOrder } from "@/api/reply-query";
 import { getStickerDisplayUrl, STICKER_DISPLAY_STYLE } from "@/lib/sticker-display";
 import { cn } from "@/lib/utils";
 import { insertTextAtSelection } from "@/lib/internal-reference";
+import { AdminContentModerationDialog } from "@/components/admin/admin-content-moderation-dialog";
 
 const commentSchema = z.object({
   content: z.string().trim().max(500, "评论最多 500 个字"),
@@ -588,6 +589,7 @@ function CommentRow({
   const { user } = useAuth();
   const remove = useDeleteMomentComment(momentId, user?.id);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [moderationOpen, setModerationOpen] = useState(false);
   const rowRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -680,6 +682,16 @@ function CommentRow({
                 <Trash2 className="size-4" />
               </button>
             ) : null}
+            {user?.role === "ADMIN" || user?.role === "SUPER_ADMIN" ? (
+              <button
+                type="button"
+                aria-label="站务隐藏评论"
+                onClick={() => setModerationOpen(true)}
+                className="inline-flex size-8 items-center justify-center rounded-lg text-destructive transition-[background-color,color,transform] hover:bg-destructive-soft focus-visible:bg-destructive-soft active:scale-95"
+              >
+                <ShieldAlert className="size-4" />
+              </button>
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -688,6 +700,13 @@ function CommentRow({
           src={lightboxUrl}
           alt={comment.sticker ? "评论表情包" : "评论图片"}
           onClose={() => setLightboxUrl(null)}
+        />
+      ) : null}
+      {user?.role === "ADMIN" || user?.role === "SUPER_ADMIN" ? (
+        <AdminContentModerationDialog
+          target={{ type: "moment_comment", id: comment.id, label: compact ? "动态回复" : "动态评论" }}
+          open={moderationOpen}
+          onOpenChange={setModerationOpen}
         />
       ) : null}
     </div>

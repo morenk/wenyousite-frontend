@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import StationEntryPage from "@/app/station/page";
 import StationCasesPage from "@/app/station/cases/page";
+import StationContentPage from "@/app/station/content/page";
 import StationAppealsPage from "@/app/station/appeals/page";
 import StationUsersPage from "@/app/station/users/page";
 import StationAnnouncementsPage from "@/app/station/announcements/page";
@@ -19,6 +20,7 @@ describe("station route composition", () => {
     expect(StationDashboardPage()).toBeTruthy();
     expect(StationInvitePage()).toBeTruthy();
     expect(StationCasesPage()).toBeTruthy();
+    expect(StationContentPage()).toBeTruthy();
     expect(StationAppealsPage()).toBeTruthy();
     expect(StationUsersPage()).toBeTruthy();
     expect(StationAnnouncementsPage()).toBeTruthy();

@@ -1,4 +1,5 @@
 export type AdminRole = "ADMIN" | "SUPER_ADMIN";
+export type AdminContentType = "thread" | "post" | "moment" | "moment_comment";
 export type CaseStatus = "OPEN" | "RESOLVED" | "DISMISSED";
 export type TargetType =
   | "USER"

@@ -14,6 +14,7 @@
 | `/station/invite?token=` | 已登录温油账号接受管理员邀请 |
 | `/station/dashboard` | 用户、待办、活跃趋势和服务健康总览 |
 | `/station/cases` | 举报聚合案件、证据和处置 |
+| `/station/content` | 按前台链接或内容编号直接隐藏、恢复内容 |
 | `/station/appeals` | 申诉复核与决定推翻 |
 | `/station/users` | 用户检索、处罚和解除 |
 | `/station/announcements` | 站内通知受众预览、排期与取消 |
@@ -42,6 +43,8 @@
 - 所有 API 经过共享 `apiClient`；`src/api/types.ts` 只由固定 OpenAPI 生成。
 - 管理 CSRF token 只保存在内存中，由 `/admin/auth/session` 返回；仅对管理写请求附加 `X-CSRF-Token`。
 - 普通用户 access token 和管理员 Cookie 会话互不替代。接受邀请后清除普通 Web 本地会话，再跳转站务登录。
+- 普通前台登录态为 `ADMIN / SUPER_ADMIN` 时，公开主题帖、楼层/回复、动态和动态评论显示“站务隐藏”入口；提交前仍核验独立站务 Cookie 与 CSRF。站务会话不存在或过期时只引导在新窗口登录并重新核验，不把普通 access token 降级为管理凭据。
+- `/station/content` 接受裸内容编号，也可从主题帖 `?post=`、楼中楼、动态 `?comment=&reply=` 链接自动识别精确目标。隐藏成功后公开查询缓存立即失效；恢复只用于 `removalSource=ADMIN` 的内容，作者主动删除与父级仍不可见状态会由后端拒绝。
 - 站务列表、详情、决定和写入通过 `src/api/hooks/use-admin.ts` 统一缓存及失效，不在组件内直接 `fetch`。
 - 分类的 `slug` 是主题帖外键和跨端接口使用的稳定标识，创建后不可修改；名称、描述、颜色、排序和启停状态由站务台编辑。分类写入成功后同时失效站务列表与公开分类缓存，不需要等待五分钟缓存过期。
 - 举报表单显式携带 `targetType/targetId`；私聊举报由后端再次确认当前用户是接收者。

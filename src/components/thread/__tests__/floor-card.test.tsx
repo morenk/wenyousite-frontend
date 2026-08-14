@@ -144,6 +144,15 @@ describe("FloorCard", () => {
     expect(screen.getByTestId("user-avatar-placeholder").textContent).toBe("测");
   });
 
+  test("管理员可从楼层菜单进入站务隐藏", async () => {
+    const user = userEvent.setup();
+    mockUseAuth.mockReturnValue({ user: { id: "admin-1", role: "ADMIN" }, isInitialized: true });
+    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+
+    await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
+    expect(await screen.findByRole("menuitem", { name: "站务隐藏" })).toBeInTheDocument();
+  });
+
   test("定位楼层时立即滚动且只高亮楼层卡片本身", async () => {
     const scrollIntoView = vi
       .spyOn(HTMLElement.prototype, "scrollIntoView")

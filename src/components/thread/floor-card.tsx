@@ -136,6 +136,7 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
             replyHref={user && floor.floorNumber != null ? discussionHref : undefined}
             onEdit={isAuthor ? handleStartEdit : undefined}
             onDelete={canDelete ? () => void handleDelete() : undefined}
+            moderationTarget={{ type: "post", id: floor.id, label: `楼层 #${floor.floorNumber ?? ""}`.trim() }}
           />
         ) : null}
       </div>

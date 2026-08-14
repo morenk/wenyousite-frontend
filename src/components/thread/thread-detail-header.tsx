@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
   Heart,
   Fuel,
@@ -13,6 +13,7 @@ import {
   LogOut,
   Search,
   Settings,
+  ShieldAlert,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -39,6 +40,7 @@ import { ThreadCategoryBadge, ThreadCategoryMarker } from "@/components/thread/t
 import { SubthreadSwitcher } from "@/components/thread/subthread-tabs";
 import { LIKED_ACTIVE_SURFACE_CLASS_NAME } from "@/lib/like-state";
 import { getSubthreadHref } from "@/lib/post-navigation";
+import { AdminContentModerationDialog } from "@/components/admin/admin-content-moderation-dialog";
 
 interface ThreadDetailHeaderProps {
   thread: ThreadDetail;
@@ -98,6 +100,9 @@ export function ThreadDetailHeader({
   const canManageThread = isThreadManager || isOwner;
   const exitThreadPlayer = useExitThreadPlayer();
   const confirmAction = useConfirm();
+  const [moderationOpen, setModerationOpen] = useState(false);
+  const canModerateThread = thread.visibility === "PUBLIC"
+    && (user?.role === "ADMIN" || user?.role === "SUPER_ADMIN");
 
   const handleLike = async () => {
     try {
@@ -167,10 +172,11 @@ export function ThreadDetailHeader({
   );
 
   return (
-    <div
-      data-slot="thread-detail-header"
-      className="relative overflow-hidden rounded-2xl border border-border bg-card"
-    >
+    <>
+      <div
+        data-slot="thread-detail-header"
+        className="relative overflow-hidden rounded-2xl border border-border bg-card"
+      >
       <ThreadCategoryMarker
         category={thread.category}
         className="absolute inset-y-0 left-0 w-1.5"
@@ -186,7 +192,7 @@ export function ThreadDetailHeader({
             {thread.pinned ? <Badge tone="brand">置顶</Badge> : null}
           </div>
 
-          {(hasBrowseTools || hasManagementTools) ? (
+          {(hasBrowseTools || hasManagementTools || canModerateThread) ? (
             <div className="flex flex-wrap items-center justify-end gap-2">
               {hasBrowseTools ? (
                 <ThreadActionGroup label="浏览工具">
@@ -253,6 +259,21 @@ export function ThreadDetailHeader({
                       </Button>
                     </Tooltip>
                   ) : null}
+                </ThreadActionGroup>
+              ) : null}
+              {canModerateThread ? (
+                <ThreadActionGroup label="站务操作">
+                  <Tooltip content="站务隐藏主题帖">
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => setModerationOpen(true)}
+                      aria-label="站务隐藏主题帖"
+                      className="rounded-lg text-destructive hover:bg-destructive-soft hover:text-destructive"
+                    >
+                      <ShieldAlert className="h-4 w-4" />
+                    </Button>
+                  </Tooltip>
                 </ThreadActionGroup>
               ) : null}
             </div>
@@ -369,6 +390,15 @@ export function ThreadDetailHeader({
           </ThreadActionGroup>
         </div>
       </div>
-    </div>
+      </div>
+      {canModerateThread ? (
+        <AdminContentModerationDialog
+          target={{ type: "thread", id: thread.id, label: "主题帖" }}
+          open={moderationOpen}
+          onOpenChange={setModerationOpen}
+          onHidden={() => router.replace("/")}
+        />
+      ) : null}
+    </>
   );
 }

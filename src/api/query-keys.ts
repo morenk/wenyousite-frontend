@@ -170,6 +170,7 @@ export const queryKeys = {
     usersRoot: ["admin", "users"] as const,
     users: (params: object) => ["admin", "users", params] as const,
     userSearch: (query: string) => ["admin", "user-search", query] as const,
+    auditsRoot: ["admin", "audits"] as const,
     audits: (params: object) => ["admin", "audits", params] as const,
     taxonomy: ["admin", "taxonomy"] as const,
     announcementsRoot: ["admin", "announcements"] as const,

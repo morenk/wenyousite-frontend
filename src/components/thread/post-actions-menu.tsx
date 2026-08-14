@@ -4,9 +4,15 @@
 
 import { Menu } from "@base-ui/react/menu";
 import Link from "next/link";
-import { Copy, Ellipsis, Link2, MessageSquare, Pencil, Trash2 } from "lucide-react";
+import { Copy, Ellipsis, Link2, MessageSquare, Pencil, ShieldAlert, Trash2 } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
+import {
+  AdminContentModerationDialog,
+  type AdminModerationTarget,
+} from "@/components/admin/admin-content-moderation-dialog";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
 interface PostActionsMenuProps {
@@ -18,6 +24,8 @@ interface PostActionsMenuProps {
   onReply?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  moderationTarget?: AdminModerationTarget;
+  onModerated?: () => void;
 }
 
 const menuItemClassName =
@@ -48,28 +56,37 @@ export function PostActionsMenu({
   onReply,
   onEdit,
   onDelete,
+  moderationTarget,
+  onModerated,
 }: PostActionsMenuProps) {
+  const { user } = useAuth();
+  const [moderationOpen, setModerationOpen] = useState(false);
+  const canModerate = Boolean(
+    moderationTarget && (user?.role === "ADMIN" || user?.role === "SUPER_ADMIN"),
+  );
+
   return (
-    <Menu.Root>
-      <Menu.Trigger
-        render={
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            aria-label={triggerLabel}
-            title={triggerLabel}
-          />
-        }
-      >
-        <Ellipsis className="size-4" aria-hidden="true" />
-      </Menu.Trigger>
-      <Menu.Portal>
-        <Menu.Positioner side="bottom" align="end" sideOffset={4} className="z-[70]">
-          <Menu.Popup
-            aria-label={menuLabel}
-            className="w-40 origin-(--transform-origin) rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-popover outline-none duration-[var(--motion-standard)] data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"
-          >
+    <>
+      <Menu.Root>
+        <Menu.Trigger
+          render={
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label={triggerLabel}
+              title={triggerLabel}
+            />
+          }
+        >
+          <Ellipsis className="size-4" aria-hidden="true" />
+        </Menu.Trigger>
+        <Menu.Portal>
+          <Menu.Positioner side="bottom" align="end" sideOffset={4} className="z-[70]">
+            <Menu.Popup
+              aria-label={menuLabel}
+              className="w-44 origin-(--transform-origin) rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-popover outline-none duration-[var(--motion-standard)] data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"
+            >
             {replyHref ? (
               <Menu.LinkItem
                 render={<Link href={replyHref} />}
@@ -108,9 +125,24 @@ export function PostActionsMenu({
                 编辑
               </Menu.Item>
             ) : null}
-            {onDelete ? (
+            {canModerate ? (
               <>
                 <Menu.Separator className="mx-2 my-1 h-px bg-border" />
+                <Menu.Item
+                  className={cn(
+                    menuItemClassName,
+                    "text-destructive data-highlighted:bg-destructive-soft data-highlighted:text-destructive focus:bg-destructive-soft focus:text-destructive",
+                  )}
+                  onClick={() => setModerationOpen(true)}
+                >
+                  <ShieldAlert className="size-4" aria-hidden="true" />
+                  站务隐藏
+                </Menu.Item>
+              </>
+            ) : null}
+            {onDelete ? (
+              <>
+                {!canModerate ? <Menu.Separator className="mx-2 my-1 h-px bg-border" /> : null}
                 <Menu.Item
                   className={cn(
                     menuItemClassName,
@@ -123,9 +155,18 @@ export function PostActionsMenu({
                 </Menu.Item>
               </>
             ) : null}
-          </Menu.Popup>
-        </Menu.Positioner>
-      </Menu.Portal>
-    </Menu.Root>
+            </Menu.Popup>
+          </Menu.Positioner>
+        </Menu.Portal>
+      </Menu.Root>
+      {canModerate && moderationTarget ? (
+        <AdminContentModerationDialog
+          target={moderationTarget}
+          open={moderationOpen}
+          onOpenChange={setModerationOpen}
+          onHidden={onModerated}
+        />
+      ) : null}
+    </>
   );
 }

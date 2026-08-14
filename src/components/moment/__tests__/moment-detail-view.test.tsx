@@ -42,6 +42,9 @@ vi.mock("@/api/hooks/use-moments", () => ({
 }));
 vi.mock("@/components/ui/confirm-provider", () => ({ useConfirm: () => mockConfirm }));
 vi.mock("@/components/moment/moment-comments", () => ({ MomentComments: () => <div>评论区</div> }));
+vi.mock("@/components/admin/admin-content-moderation-dialog", () => ({
+  AdminContentModerationDialog: ({ open, target }: { open: boolean; target: { id: string } }) => open ? <div>处置 {target.id}</div> : null,
+}));
 vi.mock("@/components/economy/wenyou-tip-button", () => ({ WenyouTipButton: () => <button>加油</button> }));
 vi.mock("@/components/shared/gallery-lightbox", () => ({
   GalleryLightbox: ({
@@ -128,6 +131,20 @@ describe("MomentDetailView", () => {
     fireEvent.click(screen.getByRole("button", { name: "删除动态" }));
     await waitFor(() => expect(mockDelete).toHaveBeenCalledWith("moment-1"));
     expect(mockReplace).toHaveBeenCalledWith("/moments");
+  });
+
+  test("管理员在动态详情可直接打开站务隐藏面板", () => {
+    mockUseAuth.mockReturnValue({ user: { id: "admin-1", role: "ADMIN" } });
+    mockUseMoment.mockReturnValue({
+      data: { ...detail, canEdit: false, canDelete: false },
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+
+    render(<MomentDetailView momentId="moment-1" />);
+    fireEvent.click(screen.getByRole("button", { name: "站务隐藏动态" }));
+    expect(screen.getByText("处置 moment-1")).toBeInTheDocument();
   });
 
   test("详情单图限制首屏高度并保留原始尺寸信息", () => {

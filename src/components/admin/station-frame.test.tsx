@@ -43,6 +43,7 @@ describe("StationFrame navigation", () => {
 
     await user.click(screen.getByRole("button", { name: "内容治理" }));
     expect(screen.getByRole("link", { name: "案件队列" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "内容处置" })).toHaveAttribute("href", "/station/content");
   });
 
   it("普通管理员看不到超级管理员专属的账号入口", async () => {

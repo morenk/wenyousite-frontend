@@ -23,6 +23,7 @@ import {
   useAdminAuditLogs,
   useAdminCase,
   useAdminCases,
+  useAdminContentActions,
   useAdminDashboard,
   useAdminLogin,
   useAdminLogout,
@@ -69,6 +70,7 @@ describe("admin query hooks", () => {
       useAdminLogout();
       useAdminStepUp();
       useAdminCases({ status: "OPEN" });
+      useAdminContentActions();
       useAdminCase("case-1");
       useAdminDashboard();
       useResolveAdminCase();
@@ -115,6 +117,47 @@ describe("admin query hooks", () => {
     await waitFor(() => {
       expect(client.getQueryState(queryKeys.admin.taxonomy)?.isInvalidated).toBe(true);
       expect(client.getQueryState(queryKeys.threadCategories)?.isInvalidated).toBe(true);
+    });
+  });
+
+  it("直接隐藏帖子使用站务接口并同步公开内容与审计缓存", async () => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    client.setQueryData(queryKeys.floors.list("subthread-1"), []);
+    client.setQueryData(queryKeys.replies.list("post-1"), []);
+    client.setQueryData(queryKeys.posts.detail("post-1"), {});
+    client.setQueryData(queryKeys.admin.audits({}), []);
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    );
+    api.POST.mockResolvedValueOnce({
+      data: {
+        data: {
+          targetType: "POST",
+          targetId: "post-1",
+          hidden: true,
+          deletedAt: "2026-08-13T00:00:00.000Z",
+        },
+      },
+    });
+    const { result } = renderHook(() => useAdminContentActions(), { wrapper });
+
+    await act(async () => {
+      await result.current.hide.mutateAsync({
+        type: "post",
+        id: "post-1",
+        reason: "违反社区规则",
+      });
+    });
+
+    expect(api.POST).toHaveBeenCalledWith("/api/v1/admin/content/{type}/{id}/hide", {
+      params: { path: { type: "post", id: "post-1" } },
+      body: { reason: "违反社区规则" },
+    });
+    await waitFor(() => {
+      expect(client.getQueryState(queryKeys.floors.list("subthread-1"))?.isInvalidated).toBe(true);
+      expect(client.getQueryState(queryKeys.replies.list("post-1"))?.isInvalidated).toBe(true);
+      expect(client.getQueryState(queryKeys.posts.detail("post-1"))?.isInvalidated).toBe(true);
+      expect(client.getQueryState(queryKeys.admin.audits({}))?.isInvalidated).toBe(true);
     });
   });
 });

@@ -191,6 +191,17 @@ describe("ThreadDetailHeader", () => {
     expect(screen.getByText("测试主题帖")).toBeInTheDocument();
   });
 
+  test("平台管理员在公开主题帖看到独立站务隐藏入口", () => {
+    mockUseAuth.mockReturnValue({
+      user: { id: "admin-1", role: "ADMIN" },
+      isInitialized: true,
+    });
+
+    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
+
+    expect(screen.getByRole("button", { name: "站务隐藏主题帖" })).toBeInTheDocument();
+  });
+
   test("点击帖内搜索入口触发详情页搜索面板", async () => {
     const user = userEvent.setup();
     const onSearch = vi.fn();

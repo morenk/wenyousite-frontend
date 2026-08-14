@@ -18,6 +18,7 @@ const hooks = vi.hoisted(() => ({
   useAcceptAdminInvite: vi.fn(),
   useAdminCases: vi.fn(),
   useAdminCase: vi.fn(),
+  useAdminContentActions: vi.fn(),
   useResolveAdminCase: vi.fn(),
   useAdminSession: vi.fn(),
   useAdminAccounts: vi.fn(),
@@ -44,6 +45,7 @@ import { AdminDashboardPanel } from "@/components/admin/admin-dashboard-panel";
 import { AdminInviteAcceptance } from "@/components/admin/admin-invite-acceptance";
 import { CaseWorkbench } from "@/components/admin/case-workbench";
 import { AdminAccountsPanel } from "@/components/admin/admin-accounts-panel";
+import { ContentModerationPanel } from "@/components/admin/content-moderation-panel";
 
 function mutation() {
   return { mutateAsync: vi.fn(), isPending: false };
@@ -98,6 +100,7 @@ describe("station panels", () => {
     });
     hooks.useAdminCases.mockReturnValue({ data: { items: [], meta: { cursor: null, hasMore: false } }, isLoading: false, isFetching: false });
     hooks.useAdminCase.mockReturnValue({ data: undefined, isLoading: false, isError: false });
+    hooks.useAdminContentActions.mockReturnValue({ hide: mutation(), restore: mutation() });
     hooks.useResolveAdminCase.mockReturnValue(mutation());
     hooks.useAdminSession.mockReturnValue({ data: { user: { id: "admin-1", username: "admin", role: "SUPER_ADMIN" } } });
     hooks.useAdminAccounts.mockReturnValue({ data: { accounts: [], invites: [] }, isLoading: false, isError: false });
@@ -116,6 +119,7 @@ describe("station panels", () => {
       <AdminDashboardPanel key="dashboard" />,
       <AdminInviteAcceptance key="invite" />,
       <CaseWorkbench key="cases" />,
+      <ContentModerationPanel key="content" />,
       <AdminAccountsPanel key="accounts" />,
     ];
     for (const panel of panels) {

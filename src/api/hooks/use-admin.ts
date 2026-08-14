@@ -6,6 +6,7 @@ import { queryKeys } from "@/api/query-keys";
 import type { components, operations } from "@/api/types";
 import type {
   AdminAccountsData,
+  AdminContentType,
   AdminSessionData,
   CaseStatus,
   CaseSummary,
@@ -28,7 +29,7 @@ function envelope<T>(value: unknown): Envelope<T> {
   return value as Envelope<T>;
 }
 
-export function useAdminSession() {
+export function useAdminSession(enabled = true) {
   return useQuery({
     queryKey: queryKeys.admin.session,
     queryFn: async () => {
@@ -40,6 +41,7 @@ export function useAdminSession() {
     },
     retry: false,
     staleTime: 30_000,
+    enabled,
   });
 }
 
@@ -403,6 +405,71 @@ export function useAdminUserActions() {
     onSuccess: refresh,
   });
   return { sanction, revoke };
+}
+
+export interface AdminContentActionInput {
+  type: AdminContentType;
+  id: string;
+  reason: string;
+}
+
+/** 站务内容处置统一写入口；成功后让公开读路径与审计轨迹立即刷新。 */
+export function useAdminContentActions() {
+  const queryClient = useQueryClient();
+  const refresh = ({ type, id }: AdminContentActionInput) => {
+    const shared = [
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.auditsRoot }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.dashboard }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.all }),
+    ];
+
+    if (type === "thread") {
+      return Promise.all([
+        ...shared,
+        queryClient.invalidateQueries({ queryKey: queryKeys.threads.all }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.threads.detail(id) }),
+      ]);
+    }
+    if (type === "post") {
+      return Promise.all([
+        ...shared,
+        queryClient.invalidateQueries({ queryKey: queryKeys.floors.all }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.replies.all }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.posts.detail(id) }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.threads.all }),
+      ]);
+    }
+    return Promise.all([
+      ...shared,
+      queryClient.invalidateQueries({ queryKey: queryKeys.moments.all }),
+    ]);
+  };
+
+  const hide = useMutation({
+    mutationFn: async ({ type, id, reason }: AdminContentActionInput) => {
+      const { data, error } = await apiClient.POST("/api/v1/admin/content/{type}/{id}/hide", {
+        params: { path: { type, id } },
+        body: { reason },
+      });
+      if (error) throw error;
+      return envelope<components["schemas"]["AdminContentModerationResponseDto"]>(data).data;
+    },
+    onSuccess: (_data, variables) => refresh(variables),
+  });
+
+  const restore = useMutation({
+    mutationFn: async ({ type, id, reason }: AdminContentActionInput) => {
+      const { data, error } = await apiClient.POST("/api/v1/admin/content/{type}/{id}/restore", {
+        params: { path: { type, id } },
+        body: { reason },
+      });
+      if (error) throw error;
+      return envelope<components["schemas"]["AdminContentModerationResponseDto"]>(data).data;
+    },
+    onSuccess: (_data, variables) => refresh(variables),
+  });
+
+  return { hide, restore };
 }
 
 export type AdminAuditLog = components["schemas"]["AdminAuditLogResponseDto"];

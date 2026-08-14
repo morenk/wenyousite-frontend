@@ -243,6 +243,7 @@ export function ReplyList({ postId, threadId, focusedReply, variant = "embedded"
                     });
                   } : undefined}
                   onDelete={canDelete ? () => void handleDeleteReply(reply) : undefined}
+                  moderationTarget={{ type: "post", id: reply.id, label: "回复" }}
                 />
               ) : null}
             </div>
