@@ -413,36 +413,59 @@ export interface AdminContentActionInput {
   reason: string;
 }
 
+export type AdminHiddenContent = components["schemas"]["AdminHiddenContentResponseDto"];
+export type AdminHiddenContentFilters = NonNullable<
+  operations["adminModerationListHiddenContent"]["parameters"]["query"]
+>;
+
+export function useAdminHiddenContent(filters: AdminHiddenContentFilters) {
+  return useQuery({
+    queryKey: queryKeys.admin.hiddenContent(filters),
+    queryFn: async () => {
+      const { data, error } = await apiClient.GET("/api/v1/admin/content/hidden", {
+        params: { query: { ...filters, limit: filters.limit ?? 20 } },
+      });
+      if (error) throw error;
+      const result = envelope<AdminHiddenContent[]>(data);
+      return { items: result.data, meta: result.meta };
+    },
+    placeholderData: keepPreviousData,
+  });
+}
+
 /** 站务内容处置统一写入口；成功后让公开读路径与审计轨迹立即刷新。 */
 export function useAdminContentActions() {
   const queryClient = useQueryClient();
-  const refresh = ({ type, id }: AdminContentActionInput) => {
-    const shared = [
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.auditsRoot }),
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.dashboard }),
-      queryClient.invalidateQueries({ queryKey: queryKeys.users.all }),
-    ];
+  const refresh = ({ type, id }: AdminContentActionInput, hidden: boolean) => {
+    void queryClient.invalidateQueries({ queryKey: queryKeys.admin.hiddenContentRoot });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.admin.auditsRoot });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.admin.dashboard });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
 
     if (type === "thread") {
-      return Promise.all([
-        ...shared,
-        queryClient.invalidateQueries({ queryKey: queryKeys.threads.all }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.threads.detail(id) }),
-      ]);
+      void queryClient.invalidateQueries({ queryKey: queryKeys.threads.all });
+      if (hidden) {
+        queryClient.removeQueries({ queryKey: queryKeys.threads.detail(id) });
+      } else {
+        void queryClient.invalidateQueries({ queryKey: queryKeys.threads.detail(id) });
+      }
+      return;
     }
     if (type === "post") {
-      return Promise.all([
-        ...shared,
-        queryClient.invalidateQueries({ queryKey: queryKeys.floors.all }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.replies.all }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.posts.detail(id) }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.threads.all }),
-      ]);
+      void queryClient.invalidateQueries({ queryKey: queryKeys.floors.all });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.replies.all });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.threads.all });
+      if (hidden) {
+        queryClient.removeQueries({ queryKey: queryKeys.posts.detail(id) });
+      } else {
+        void queryClient.invalidateQueries({ queryKey: queryKeys.posts.detail(id) });
+      }
+      return;
     }
-    return Promise.all([
-      ...shared,
-      queryClient.invalidateQueries({ queryKey: queryKeys.moments.all }),
-    ]);
+    if (type === "moment" && hidden) {
+      queryClient.removeQueries({ queryKey: queryKeys.moments.detailRoot(id) });
+    }
+    void queryClient.invalidateQueries({ queryKey: queryKeys.moments.all });
   };
 
   const hide = useMutation({
@@ -454,7 +477,7 @@ export function useAdminContentActions() {
       if (error) throw error;
       return envelope<components["schemas"]["AdminContentModerationResponseDto"]>(data).data;
     },
-    onSuccess: (_data, variables) => refresh(variables),
+    onSuccess: (data, variables) => refresh(variables, data.hidden),
   });
 
   const restore = useMutation({
@@ -466,7 +489,7 @@ export function useAdminContentActions() {
       if (error) throw error;
       return envelope<components["schemas"]["AdminContentModerationResponseDto"]>(data).data;
     },
-    onSuccess: (_data, variables) => refresh(variables),
+    onSuccess: (data, variables) => refresh(variables, data.hidden),
   });
 
   return { hide, restore };

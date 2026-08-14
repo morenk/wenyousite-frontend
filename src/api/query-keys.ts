@@ -10,6 +10,7 @@ export const queryKeys = {
   },
   moments: {
     all: ["moments"] as const,
+    detailRoot: (momentId: string) => ["moments", "detail", momentId] as const,
     list: (feed: "DISCOVER" | "FOLLOWING", viewerScope: string) =>
       ["moments", "list", feed, viewerScope] as const,
     detail: (momentId: string | undefined, viewerScope: string) =>
@@ -170,6 +171,8 @@ export const queryKeys = {
     usersRoot: ["admin", "users"] as const,
     users: (params: object) => ["admin", "users", params] as const,
     userSearch: (query: string) => ["admin", "user-search", query] as const,
+    hiddenContentRoot: ["admin", "hidden-content"] as const,
+    hiddenContent: (params: object) => ["admin", "hidden-content", params] as const,
     auditsRoot: ["admin", "audits"] as const,
     audits: (params: object) => ["admin", "audits", params] as const,
     taxonomy: ["admin", "taxonomy"] as const,

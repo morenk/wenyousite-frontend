@@ -126,6 +126,14 @@ export const adminAuditUrlKeys = {
   dateTo: "to",
 } as const;
 
+export const adminHiddenContentFilterParsers = {
+  targetType: parseAsStringLiteral(["THREAD", "POST", "MOMENT", "MOMENT_COMMENT"] as const),
+};
+
+export const adminHiddenContentUrlKeys = {
+  targetType: "hiddenType",
+} as const;
+
 export const adminAnnouncementFilterParsers = {
   query: parseAsString.withDefault(""),
   status: parseAsStringLiteral(["SCHEDULED", "SENDING", "SENT", "CANCELED", "FAILED"] as const),

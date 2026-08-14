@@ -1,4 +1,4 @@
-import { fireEvent, render, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { NuqsTestingAdapter } from "nuqs/adapters/testing";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -19,6 +19,7 @@ const hooks = vi.hoisted(() => ({
   useAdminCases: vi.fn(),
   useAdminCase: vi.fn(),
   useAdminContentActions: vi.fn(),
+  useAdminHiddenContent: vi.fn(),
   useResolveAdminCase: vi.fn(),
   useAdminSession: vi.fn(),
   useAdminAccounts: vi.fn(),
@@ -101,6 +102,12 @@ describe("station panels", () => {
     hooks.useAdminCases.mockReturnValue({ data: { items: [], meta: { cursor: null, hasMore: false } }, isLoading: false, isFetching: false });
     hooks.useAdminCase.mockReturnValue({ data: undefined, isLoading: false, isError: false });
     hooks.useAdminContentActions.mockReturnValue({ hide: mutation(), restore: mutation() });
+    hooks.useAdminHiddenContent.mockReturnValue({
+      data: { items: [], meta: { cursor: null, hasMore: false } },
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+    });
     hooks.useResolveAdminCase.mockReturnValue(mutation());
     hooks.useAdminSession.mockReturnValue({ data: { user: { id: "admin-1", username: "admin", role: "SUPER_ADMIN" } } });
     hooks.useAdminAccounts.mockReturnValue({ data: { accounts: [], invites: [] }, isLoading: false, isError: false });
@@ -148,6 +155,7 @@ describe("station panels", () => {
       { panel: <UsersPanel />, name: "用户列表" },
       { panel: <AnnouncementsPanel />, name: "通知发送计划" },
       { panel: <AuditPanel />, name: "决定轨迹" },
+      { panel: <ContentModerationPanel />, name: "当前隐藏内容" },
       { panel: <TaxonomyPanel />, name: "主题帖分类" },
       { panel: <AdminAccountsPanel />, name: "现有站务账号" },
     ];
@@ -157,6 +165,50 @@ describe("station panels", () => {
       expect(within(view.container).getByRole("table", { name })).toBeInTheDocument();
       view.unmount();
     }
+  });
+
+  it("隐藏内容列表展示当前状态并可填写理由直接恢复", async () => {
+    const restore = mutation();
+    hooks.useAdminContentActions.mockReturnValue({ hide: mutation(), restore });
+    hooks.useAdminHiddenContent.mockReturnValue({
+      data: {
+        items: [{
+          targetType: "POST",
+          targetId: "post-1",
+          summary: "被隐藏的楼层内容",
+          author: { id: "user-1", username: "小温" },
+          moderator: { id: "admin-1", username: "站务" },
+          hiddenAt: "2026-08-14T08:00:00.000Z",
+          reason: "违反社区规则",
+          canRestore: true,
+          restoreBlockedReason: null,
+          threadId: "thread-1",
+          parentPostId: null,
+          momentId: null,
+          parentCommentId: null,
+        }],
+        meta: { cursor: null, hasMore: false },
+      },
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+    });
+
+    const view = renderWithUrl(<ContentModerationPanel />);
+    const panel = within(view.container);
+    expect(panel.getByText("被隐藏的楼层内容")).toBeInTheDocument();
+    expect(panel.getByText("违反社区规则")).toBeInTheDocument();
+    fireEvent.click(panel.getByRole("button", { name: "恢复" }));
+    fireEvent.change(screen.getByLabelText("恢复理由"), { target: { value: "复核后恢复" } });
+    fireEvent.click(screen.getByRole("button", { name: "确认恢复" }));
+
+    await waitFor(() => {
+      expect(restore.mutateAsync).toHaveBeenCalledWith({
+        type: "post",
+        id: "post-1",
+        reason: "复核后恢复",
+      });
+    });
   });
 
   it("用户表格用中文列展示记录并提供明确管理入口", () => {

@@ -1995,6 +1995,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/content/hidden": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 当前仍由管理员隐藏的内容列表 */
+        get: operations["adminModerationListHiddenContent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/content/{type}/{id}/restore": {
         parameters: {
             query?: never;
@@ -4773,6 +4790,27 @@ export interface components {
             /** Format: date-time */
             deletedAt: string | null;
         };
+        AdminHiddenContentUserResponseDto: {
+            id: string;
+            username: string;
+        };
+        AdminHiddenContentResponseDto: {
+            /** @enum {string} */
+            targetType: "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT";
+            targetId: string;
+            summary: string;
+            author: components["schemas"]["AdminHiddenContentUserResponseDto"];
+            moderator: components["schemas"]["AdminHiddenContentUserResponseDto"] | null;
+            /** Format: date-time */
+            hiddenAt: string;
+            reason: string | null;
+            canRestore: boolean;
+            restoreBlockedReason: string | null;
+            threadId: string | null;
+            parentPostId: string | null;
+            momentId: string | null;
+            parentCommentId: string | null;
+        };
         AdminAuditActorResponseDto: {
             id: string;
             username: string;
@@ -6010,6 +6048,9 @@ export interface components {
         };
         AdminModerationHideContent200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["AdminContentModerationResponseDto"];
+        };
+        AdminModerationListHiddenContent200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["AdminHiddenContentResponseDto"][];
         };
         AdminModerationRestoreContent200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["AdminContentModerationResponseDto"];
@@ -12653,6 +12694,48 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminModerationHideContent200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminModerationListHiddenContent: {
+        parameters: {
+            query?: {
+                /** @description 服务端返回的不透明分页游标；首次请求不传，后续必须原样回传 */
+                cursor?: string;
+                /** @description 每页条数（默认 20，最大 50） */
+                limit?: number;
+                targetType?: "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT";
+            };
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 当前隐藏内容列表 */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminModerationListHiddenContent200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */

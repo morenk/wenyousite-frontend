@@ -25,6 +25,7 @@ import {
   useAdminCases,
   useAdminContentActions,
   useAdminDashboard,
+  useAdminHiddenContent,
   useAdminLogin,
   useAdminLogout,
   useAdminSession,
@@ -83,6 +84,7 @@ describe("admin query hooks", () => {
       useResolveAdminAppeal();
       useAdminUsers({});
       useAdminUserActions();
+      useAdminHiddenContent({});
       useAdminAuditLogs({});
       useAdminTaxonomy();
       useAdminTaxonomyActions();
@@ -125,6 +127,7 @@ describe("admin query hooks", () => {
     client.setQueryData(queryKeys.floors.list("subthread-1"), []);
     client.setQueryData(queryKeys.replies.list("post-1"), []);
     client.setQueryData(queryKeys.posts.detail("post-1"), {});
+    client.setQueryData(queryKeys.admin.hiddenContent({}), []);
     client.setQueryData(queryKeys.admin.audits({}), []);
     const wrapper = ({ children }: { children: ReactNode }) => (
       <QueryClientProvider client={client}>{children}</QueryClientProvider>
@@ -156,8 +159,41 @@ describe("admin query hooks", () => {
     await waitFor(() => {
       expect(client.getQueryState(queryKeys.floors.list("subthread-1"))?.isInvalidated).toBe(true);
       expect(client.getQueryState(queryKeys.replies.list("post-1"))?.isInvalidated).toBe(true);
-      expect(client.getQueryState(queryKeys.posts.detail("post-1"))?.isInvalidated).toBe(true);
+      expect(client.getQueryState(queryKeys.posts.detail("post-1"))).toBeUndefined();
+      expect(client.getQueryState(queryKeys.admin.hiddenContent({}))?.isInvalidated).toBe(true);
       expect(client.getQueryState(queryKeys.admin.audits({}))?.isInvalidated).toBe(true);
     });
+  });
+
+  it("隐藏成功不等待后台缓存刷新完成", async () => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    vi.spyOn(client, "invalidateQueries").mockReturnValue(new Promise(() => undefined));
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    );
+    api.POST.mockResolvedValueOnce({
+      data: {
+        data: {
+          targetType: "THREAD",
+          targetId: "thread-1",
+          hidden: true,
+          deletedAt: "2026-08-14T00:00:00.000Z",
+        },
+      },
+    });
+    const { result } = renderHook(() => useAdminContentActions(), { wrapper });
+
+    let completed = false;
+    act(() => {
+      void result.current.hide.mutateAsync({
+        type: "thread",
+        id: "thread-1",
+        reason: "违反社区规则",
+      }).then(() => {
+        completed = true;
+      });
+    });
+
+    await waitFor(() => expect(completed).toBe(true));
   });
 });

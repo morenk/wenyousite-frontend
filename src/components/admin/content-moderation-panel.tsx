@@ -1,5 +1,6 @@
 "use client";
 
+import { LANGUAGE_ACTIONS } from "@wenyousite/foundation/language";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { CheckCircle2, ExternalLink, Loader2, RotateCcw, ShieldAlert } from "lucide-react";
@@ -19,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { parseAdminContentReference, type AdminContentReference } from "@/lib/admin-content-reference";
 import { cn } from "@/lib/utils";
+import { HiddenContentList } from "./hidden-content-list";
 
 const formSchema = z.object({
   action: z.enum(["hide", "restore"]),
@@ -42,6 +44,11 @@ const auditTargetTypes: Record<AdminContentType, string> = {
   post: "POST",
   moment: "MOMENT",
   moment_comment: "MOMENT_COMMENT",
+};
+
+const actionLabels: Record<FormValues["action"], string> = {
+  hide: LANGUAGE_ACTIONS.hide,
+  restore: LANGUAGE_ACTIONS.restore,
 };
 
 export function ContentModerationPanel() {
@@ -72,7 +79,7 @@ export function ContentModerationPanel() {
       const mutation = values.action === "hide" ? actions.hide : actions.restore;
       await mutation.mutateAsync({ ...target, reason: values.reason });
       setLastAction({ ...target, action: values.action });
-      toast.success(`${targetLabels[target.type]}已${values.action === "hide" ? "隐藏" : "恢复"}`);
+      toast.success(`${targetLabels[target.type]}已${actionLabels[values.action]}`);
       form.reset({
         action: values.action,
         targetType: target.type,
@@ -80,13 +87,14 @@ export function ContentModerationPanel() {
         reason: "",
       });
     } catch (error) {
-      toast.error(getApiErrorMessage(error, values.action === "hide" ? "隐藏失败" : "恢复失败"));
+      toast.error(getApiErrorMessage(error, `${actionLabels[values.action]}失败`));
     }
   });
 
   return (
-    <div className="mx-auto grid max-w-[76rem] grid-cols-[minmax(0,1fr)_22rem] gap-6">
-      <Panel padding="none" className="overflow-hidden">
+    <div className="mx-auto max-w-[76rem] space-y-6">
+      <div className="grid grid-cols-[minmax(0,1fr)_22rem] gap-6">
+        <Panel padding="none" className="overflow-hidden">
         <div className={cn(
           "h-1",
           action === "hide" ? "bg-destructive" : "bg-success",
@@ -114,10 +122,10 @@ export function ContentModerationPanel() {
                 value={action}
                 onValueChange={(value) => form.setValue("action", value as FormValues["action"], { shouldValidate: true })}
               >
-                <SelectTrigger className="w-full"><SelectValue>{action === "hide" ? "隐藏内容" : "恢复内容"}</SelectValue></SelectTrigger>
+                <SelectTrigger className="w-full"><SelectValue>{actionLabels[action]}内容</SelectValue></SelectTrigger>
                 <SelectContent align="start">
-                  <SelectItem value="hide">隐藏内容</SelectItem>
-                  <SelectItem value="restore">恢复内容</SelectItem>
+                  <SelectItem value="hide">{LANGUAGE_ACTIONS.hide}内容</SelectItem>
+                  <SelectItem value="restore">{LANGUAGE_ACTIONS.restore}内容</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -178,14 +186,14 @@ export function ContentModerationPanel() {
             </p>
             <Button type="submit" variant={action === "hide" ? "destructive" : "default"} disabled={pending}>
               {pending ? <Loader2 className="animate-spin" /> : action === "hide" ? <ShieldAlert /> : <RotateCcw />}
-              {action === "hide" ? "确认隐藏" : "确认恢复"}
+              确认{actionLabels[action]}
             </Button>
           </div>
         </form>
-      </Panel>
+        </Panel>
 
-      <div className="space-y-5">
-        <Panel tone="soft">
+        <div className="space-y-5">
+          <Panel tone="soft">
           <p className="font-utility text-xs font-bold tracking-[0.12em] text-muted-foreground uppercase">处置边界</p>
           <h3 className="mt-2 font-display text-lg font-bold">隐藏不是删除</h3>
           <ul className="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
@@ -193,13 +201,13 @@ export function ContentModerationPanel() {
             <li>站务人员、理由和时间进入审计轨迹。</li>
             <li>恢复不会覆盖作者删除或父级内容不可见状态。</li>
           </ul>
-        </Panel>
+          </Panel>
 
-        {lastAction ? (
-          <Panel className="border-success/35">
+          {lastAction ? (
+            <Panel className="border-success/35">
             <Badge tone="success">刚刚完成</Badge>
             <p className="mt-3 text-sm font-bold">
-              {targetLabels[lastAction.type]}已{lastAction.action === "hide" ? "隐藏" : "恢复"}
+              {targetLabels[lastAction.type]}已{actionLabels[lastAction.action]}
             </p>
             <code className="mt-2 block break-all font-utility text-xs text-muted-foreground">{lastAction.id}</code>
             <Link
@@ -209,9 +217,11 @@ export function ContentModerationPanel() {
               查看审计记录
               <ExternalLink />
             </Link>
-          </Panel>
-        ) : null}
+            </Panel>
+          ) : null}
+        </div>
       </div>
+      <HiddenContentList />
     </div>
   );
 }
