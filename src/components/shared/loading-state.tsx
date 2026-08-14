@@ -1,5 +1,9 @@
-import { Loader2 } from "lucide-react";
+import type { FeedbackResourceState } from "@wenyousite/foundation/interaction";
+
+import { WenyouIcon } from "@/components/ui/wenyou-icon";
 import { cn } from "@/lib/utils";
+
+const feedbackState = "loading" satisfies FeedbackResourceState;
 
 interface LoadingStateProps {
   label?: string;
@@ -16,6 +20,8 @@ export function LoadingState({
   return (
     <div
       role="status"
+      aria-live="polite"
+      data-feedback-state={feedbackState}
       className={cn(
         "flex items-center justify-center text-muted-foreground",
         variant === "page" && "min-h-screen",
@@ -24,8 +30,8 @@ export function LoadingState({
         className,
       )}
     >
-      <Loader2
-        aria-hidden="true"
+      <WenyouIcon
+        id="status.loading"
         className={cn(
           "animate-spin",
           variant === "page" ? "h-6 w-6" : "h-5 w-5",

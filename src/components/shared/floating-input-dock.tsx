@@ -28,7 +28,7 @@ interface FloatingInputDockProps {
 export function FloatingInputDock({
   children,
   visible = true,
-  layerClassName = "z-30",
+  layerClassName = "z-[var(--layer-floating)]",
   slotPrefix = "floating-composer",
 }: FloatingInputDockProps) {
   const [anchorNode, setAnchorNode] = useState<HTMLDivElement | null>(null);

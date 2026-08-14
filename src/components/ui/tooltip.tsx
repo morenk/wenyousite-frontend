@@ -35,7 +35,7 @@ export function Tooltip({
     <TooltipPrimitive.Root>
       <TooltipPrimitive.Trigger render={children} disabled={disabled} />
       <TooltipPrimitive.Portal>
-        <TooltipPrimitive.Positioner side={side} sideOffset={7} className="z-[90]">
+        <TooltipPrimitive.Positioner side={side} sideOffset={7} className="z-[var(--layer-tooltip)]">
           <TooltipPrimitive.Popup
             className={cn(
               "origin-(--transform-origin) rounded-lg bg-foreground px-2.5 py-1.5 font-utility text-xs font-medium text-background shadow-popover outline-none",

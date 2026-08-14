@@ -33,6 +33,14 @@ const sharedRules = [
     pattern: /shadow-\[/,
   },
   {
+    label: "业务 UI 不得声明全局数字 z-index，请使用 Foundation layer Token",
+    pattern: /(?:\bz-(?:30|40|50)\b|z-\[\d+\])/,
+  },
+  {
+    label: "普通模态遮罩必须使用 Foundation overlay scrim Token",
+    pattern: /bg-foreground\/(?:40|45).*backdrop-blur-\[1px\]/,
+  },
+  {
     label: "业务 Tab 不得手写 ARIA 状态机，请复用 components/ui/tabs",
     pattern: /role=["']tablist["']/,
   },
@@ -65,6 +73,45 @@ for (const file of sourceRoots.flatMap(sourceFiles)) {
     failures.push(
       `${fileName}: 页面不得直接声明任意 max-width，请为 PageShell 增加语义宽度`,
     );
+  }
+}
+
+const governedIconFiles = [
+  "src/components/shared/empty-state.tsx",
+  "src/components/shared/load-error.tsx",
+  "src/components/shared/loading-state.tsx",
+  "src/components/editor/editor-more-menu.tsx",
+  "src/components/editor/milkdown-editor-core.tsx",
+  "src/components/layout/nav-bar.tsx",
+  "src/components/layout/page-header.tsx",
+  "src/components/layout/publish-menu.tsx",
+  "src/components/ui/dialog.tsx",
+];
+for (const fileName of governedIconFiles) {
+  const source = readFileSync(resolve(root, fileName), "utf8");
+  if (source.includes('from "lucide-react"')) {
+    failures.push(`${fileName}: 核心导航与编辑器图标必须通过 WenyouIcon 使用 Foundation 语义`);
+  }
+}
+
+const semanticContractClaims = new Map([
+  ["src/app/globals.css", ["var(--type-body-size)", "var(--type-body-line-height)"]],
+  ["src/components/layout/page-header.tsx", ["--type-page-title-size", "--type-section-title-size"]],
+  ["src/components/ui/dialog.tsx", ["--type-subsection-title-size", "--layer-modal-backdrop", "--overlay-scrim"]],
+  ["src/components/ui/tooltip.tsx", ["--layer-tooltip"]],
+  ["src/components/ui/select.tsx", ["--layer-popup"]],
+  ["src/components/shared/floating-input-dock.tsx", ["--layer-floating"]],
+  ["src/components/layout/nav-bar.tsx", ["@wenyousite/foundation/navigation", "--layer-chrome"]],
+  ["src/components/layout/navigation-progress.tsx", ["--layer-global-progress"]],
+  ["src/components/editor/editor-more-menu.tsx", ["--layer-nested-popup"]],
+  ["src/components/shared/loading-state.tsx", ["@wenyousite/foundation/interaction", "data-feedback-state"]],
+  ["src/components/shared/load-error.tsx", ["@wenyousite/foundation/language", "data-feedback-state"]],
+  ["src/components/shared/empty-state.tsx", ["@wenyousite/foundation/interaction", "data-feedback-state"]],
+]);
+for (const [fileName, claims] of semanticContractClaims) {
+  const source = readFileSync(resolve(root, fileName), "utf8");
+  for (const claim of claims) {
+    if (!source.includes(claim)) failures.push(`${fileName}: 未消费 Foundation v2.2 语义（缺少 ${claim}）`);
   }
 }
 
@@ -111,4 +158,4 @@ if (failures.length > 0) {
   throw new Error(`设计系统静态检查失败：\n${failures.join("\n")}`);
 }
 
-console.log("Design tokens, shared selects/tabs, semantic widths, and shadow roles follow the design system");
+console.log("Design tokens, typography, feedback, layers, navigation, semantic widths, and shadows follow Foundation");

@@ -38,7 +38,7 @@ export function MentionCandidateMenu({
     <div
       role="listbox"
       aria-label="艾特候选"
-      className="fixed z-[100] w-[min(18rem,calc(100vw-1rem))] overflow-hidden rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-popover"
+      className="fixed z-[var(--layer-nested-popup)] w-[min(18rem,calc(100vw-1rem))] overflow-hidden rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-popover"
       style={{ top: position.top, left: position.left }}
     >
       {pending && (

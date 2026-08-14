@@ -24,7 +24,6 @@ import {
 import { toggleStrikethroughCommand } from "@milkdown/kit/preset/gfm";
 import { TextSelection } from "@milkdown/kit/prose/state";
 import type { EditorView } from "@milkdown/kit/prose/view";
-import { Loader2 } from "lucide-react";
 import { useDebounce } from "use-debounce";
 import { toast } from "sonner";
 import { ImageUploadProgress } from "@/components/shared/image-upload-progress";
@@ -82,35 +81,12 @@ import {
   EDITOR_CREATABLE_HEADING_LEVELS,
   type EditorCapabilityId,
 } from "@/lib/editor-capabilities";
+import { editorChevronDownSvg, editorIconSvg } from "@/lib/editor-icons";
+import { WenyouIcon } from "@/components/ui/wenyou-icon";
 import "@/components/editor/milkdown-editor.css";
 
 const MAX_CHARS = 10000;
 const QUICK_DICE_SIDES = [4, 6, 8, 10, 12, 20, 100];
-
-const DRAFT_ICON = `
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
-    <path fill="currentColor" d="M5 3h11l3 3v15H5V3Zm2 2v14h10V7.5L14.5 5H7Zm2 4h6v2H9V9Zm0 4h6v2H9v-2Z" />
-  </svg>
-`;
-
-const DICE_ICON = `
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
-    <rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="2" />
-    <circle cx="8" cy="8" r="1.5" fill="currentColor" />
-    <circle cx="16" cy="8" r="1.5" fill="currentColor" />
-    <circle cx="12" cy="12" r="1.5" fill="currentColor" />
-    <circle cx="8" cy="16" r="1.5" fill="currentColor" />
-    <circle cx="16" cy="16" r="1.5" fill="currentColor" />
-  </svg>
-`;
-
-const MORE_ICON = `
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
-    <circle cx="5" cy="12" r="1.8" fill="currentColor" />
-    <circle cx="12" cy="12" r="1.8" fill="currentColor" />
-    <circle cx="19" cy="12" r="1.8" fill="currentColor" />
-  </svg>
-`;
 
 export interface MilkdownEditorProps {
   defaultValue?: string;
@@ -552,6 +528,17 @@ function EditorHost({
 
       crepe.addFeature(topBar, {
         headingOptions: CN_HEADING_OPTIONS,
+        boldIcon: editorIconSvg("bold"),
+        italicIcon: editorIconSvg("italic"),
+        strikethroughIcon: editorIconSvg("strikethrough"),
+        codeIcon: editorIconSvg("inline-code"),
+        linkIcon: editorIconSvg("link"),
+        imageIcon: editorIconSvg("image"),
+        quoteIcon: editorIconSvg("quote"),
+        hrIcon: editorIconSvg("hr"),
+        bulletListIcon: editorIconSvg("bullet-list"),
+        orderedListIcon: editorIconSvg("ordered-list"),
+        chevronDownIcon: editorChevronDownSvg(),
         buildTopBar: (builder) => {
           const formatting = builder.getGroup("formatting").group;
           formatting.items = formatting.items.filter((item) =>
@@ -601,19 +588,19 @@ function EditorHost({
             };
           }
           builder.addGroup("dice", "骰子").addItem("dice", {
-            icon: DICE_ICON,
+            icon: editorIconSvg("dice"),
             active: () => false,
             onRun: (ctx) => handleOpenDice(ctx.get(editorViewCtx)),
           });
           if (onOpenDrafts) {
             builder.addGroup("draft", "草稿").addItem("draft", {
-              icon: DRAFT_ICON,
+              icon: editorIconSvg("draft"),
               active: () => false,
               onRun: () => onOpenDrafts(),
             });
           }
           builder.addGroup("more-menu", "更多").addItem("more", {
-            icon: MORE_ICON,
+            icon: editorIconSvg("more"),
             active: () => false,
             onRun: handleOpenMore,
           });
@@ -794,7 +781,7 @@ function EditorHost({
         <ImageUploadProgress
           progress={uploadProgress}
           onCancel={() => uploadAbortRef.current?.abort()}
-          className="absolute right-3 top-12 z-30 w-[min(22rem,calc(100%-1.5rem))] bg-background/95 shadow-popover backdrop-blur"
+          className="absolute right-3 top-12 z-[var(--layer-popup)] w-[min(22rem,calc(100%-1.5rem))] bg-background/95 shadow-popover backdrop-blur"
         />
       ) : null}
       {!loading && (
@@ -808,7 +795,7 @@ function EditorHost({
       )}
       {loading && (
         <div className="flex items-center justify-center py-12 text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin mr-2" />
+          <WenyouIcon id="status.loading" className="mr-2 h-5 w-5 animate-spin" />
           编辑器加载中…
         </div>
       )}

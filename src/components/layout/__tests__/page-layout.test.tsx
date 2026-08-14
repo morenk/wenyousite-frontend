@@ -51,7 +51,10 @@ describe("页面布局组件", () => {
     const header = screen.getByRole("banner");
     expect(header).toHaveAttribute("data-variant", "compact");
     expect(header).toHaveClass("rounded-2xl", "overflow-hidden");
-    expect(screen.getByRole("heading", { name: "发现主题帖" })).toHaveClass("text-xl");
+    expect(screen.getByRole("heading", { name: "发现主题帖" })).toHaveClass(
+      "[font-size:var(--type-section-title-size)]",
+      "[line-height:var(--type-section-title-line-height)]",
+    );
     expect(screen.getByRole("button", { name: "筛选" }).parentElement).toHaveAttribute(
       "data-slot",
       "page-header-toolbar",

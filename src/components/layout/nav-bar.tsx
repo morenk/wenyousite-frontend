@@ -4,22 +4,12 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  Bell,
-  Bookmark,
-  Compass,
-  LogIn,
-  LogOut,
-  MessageCircle,
-  Images,
-  Search,
-  UserPlus,
-  type LucideIcon,
-} from "lucide-react";
 import { toast } from "sonner";
+import { NAVIGATION_ICONS, NAVIGATION_LABELS } from "@wenyousite/foundation/navigation";
 
 import { useLogout } from "@/api/hooks/use-auth-actions";
 import { UserAvatar } from "@/components/shared/user-avatar";
+import { WenyouIcon, type WenyouIconId } from "@/components/ui/wenyou-icon";
 import { PublishMenu } from "@/components/layout/publish-menu";
 import { useUnreadCounts } from "@/components/layout/unread-counts-context";
 import { useAuth } from "@/lib/auth";
@@ -28,7 +18,7 @@ import { cn } from "@/lib/utils";
 type NavItem = {
   href: string;
   label: string;
-  icon: LucideIcon;
+  icon: WenyouIconId;
   match: (pathname: string) => boolean;
   count?: number;
   accountShortcut?: boolean;
@@ -46,13 +36,13 @@ export function NavBar({
   const logoutRequest = useLogout();
 
   const items: NavItem[] = [
-    { href: "/", label: "发现", icon: Compass, match: (path) => path === "/" || path.startsWith("/tags/") },
-    { href: "/moments", label: "动态", icon: Images, match: (path) => path.startsWith("/moments") },
-    { href: "/search", label: "搜索", icon: Search, match: (path) => path.startsWith("/search") },
+    { href: "/", label: NAVIGATION_LABELS.discover, icon: NAVIGATION_ICONS.discover, match: (path) => path === "/" || path.startsWith("/tags/") },
+    { href: "/moments", label: NAVIGATION_LABELS.moments, icon: NAVIGATION_ICONS.moments, match: (path) => path.startsWith("/moments") },
+    { href: "/search", label: NAVIGATION_LABELS.search, icon: NAVIGATION_ICONS.search, match: (path) => path.startsWith("/search") },
     ...(user ? [
-      { href: "/notifications", label: "通知", icon: Bell, match: (path: string) => path.startsWith("/notifications"), count: notificationCount, accountShortcut: true },
-      { href: "/messages", label: "私聊", icon: MessageCircle, match: (path: string) => path.startsWith("/messages"), count: directMessageCount, accountShortcut: true },
-      { href: "/bookmarks", label: "收藏", icon: Bookmark, match: (path: string) => path.startsWith("/bookmarks"), accountShortcut: true },
+      { href: "/notifications", label: NAVIGATION_LABELS.notifications, icon: NAVIGATION_ICONS.notifications, match: (path: string) => path.startsWith("/notifications"), count: notificationCount, accountShortcut: true },
+      { href: "/messages", label: NAVIGATION_LABELS.directMessages, icon: NAVIGATION_ICONS.directMessages, match: (path: string) => path.startsWith("/messages"), count: directMessageCount, accountShortcut: true },
+      { href: "/bookmarks", label: NAVIGATION_LABELS.bookmarks, icon: NAVIGATION_ICONS.bookmarks, match: (path: string) => path.startsWith("/bookmarks"), accountShortcut: true },
     ] : []),
   ];
 
@@ -71,7 +61,7 @@ export function NavBar({
 
   return (
     <aside
-      className="sticky top-0 z-40 flex h-screen min-h-[36rem] flex-col py-4"
+      className="sticky top-0 z-[var(--layer-chrome)] flex h-screen min-h-[36rem] flex-col py-4"
       aria-label="全局导航"
       data-compact={compact ? "true" : "false"}
     >
@@ -139,7 +129,7 @@ export function NavBar({
               )}
               title="退出"
             >
-              <LogOut className="size-4" />
+              <WenyouIcon id="action.logout" className="size-4" />
               <span className={cn("hidden text-sm font-medium", !compact && "xl:inline")}>退出</span>
             </button>
           </>
@@ -149,7 +139,7 @@ export function NavBar({
               "flex min-h-11 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
               !compact && "xl:gap-3",
             )} title="登录">
-              <LogIn className="size-5" />
+              <WenyouIcon id="action.login" className="size-5" />
               <span className={cn("hidden text-sm font-semibold", !compact && "xl:inline")}>登录</span>
             </Link>
             <Link
@@ -161,7 +151,7 @@ export function NavBar({
                 !compact && "xl:px-3",
               )}
             >
-              <UserPlus className={cn("size-5", !compact && "xl:hidden")} />
+              <WenyouIcon id="action.follow" className={cn("size-5", !compact && "xl:hidden")} />
               <span className={cn("hidden text-sm font-bold", !compact && "xl:inline")}>注册</span>
             </Link>
           </>
@@ -182,7 +172,6 @@ function RailLink({
   compact: boolean;
   hideOnWide: boolean;
 }) {
-  const Icon = item.icon;
   const count = item.count ?? 0;
 
   return (
@@ -206,7 +195,7 @@ function RailLink({
         aria-hidden="true"
       />
       <span className="relative">
-        <Icon className="size-5" strokeWidth={active ? 2.4 : 2} />
+        <WenyouIcon id={item.icon} className="size-5" />
         {count > 0 ? (
           <span className="absolute -right-2.5 -top-2 flex min-w-4 items-center justify-center rounded-full bg-destructive px-1 font-utility text-[0.625rem] font-bold leading-4 text-destructive-foreground">
             {count > 99 ? "99+" : count}

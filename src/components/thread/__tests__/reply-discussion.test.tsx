@@ -76,7 +76,7 @@ describe("ReplyDiscussion", () => {
       '[data-slot="floating-composer-dock"]',
     );
     expect(list).toHaveTextContent("p1:discussion");
-    expect(dock).toHaveClass("fixed", "bottom-4", "z-30");
+    expect(dock).toHaveClass("fixed", "bottom-4", "z-[var(--layer-floating)]");
     expect(dock?.parentElement).toBe(document.body);
     expect(
       list.compareDocumentPosition(anchor!) & Node.DOCUMENT_POSITION_FOLLOWING,

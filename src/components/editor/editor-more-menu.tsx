@@ -1,34 +1,11 @@
 "use client";
 
 import { createPortal } from "react-dom";
-import { useEffect, useRef, type ComponentType, type SVGProps } from "react";
-import {
-  Code2,
-  Dices,
-  FileClock,
-  Link2,
-  List,
-  ListOrdered,
-  Minus,
-  Quote,
-  Strikethrough,
-} from "lucide-react";
+import { useEffect, useRef } from "react";
 import type { EditorCapabilityId } from "@/lib/editor-capabilities";
+import { editorIconId, isEditorIconCapability } from "@/lib/editor-icons";
 import { cn } from "@/lib/utils";
-
-type MenuIcon = ComponentType<SVGProps<SVGSVGElement>>;
-
-const MENU_ICONS: Partial<Record<EditorCapabilityId, MenuIcon>> = {
-  strikethrough: Strikethrough,
-  draft: FileClock,
-  link: Link2,
-  "inline-code": Code2,
-  quote: Quote,
-  "bullet-list": List,
-  "ordered-list": ListOrdered,
-  hr: Minus,
-  dice: Dices,
-};
+import { WenyouIcon } from "@/components/ui/wenyou-icon";
 
 export interface EditorMoreMenuItem {
   id: EditorCapabilityId;
@@ -84,7 +61,7 @@ export function EditorMoreMenu({ position, items, onSelect, onClose }: EditorMor
       data-editor-more-menu
       role="menu"
       aria-label="更多正文格式"
-      className="fixed z-[100] max-h-[min(28rem,calc(100vh-1rem))] w-60 overflow-y-auto rounded-xl border border-border bg-popover p-2 text-popover-foreground shadow-popover"
+      className="fixed z-[var(--layer-nested-popup)] max-h-[min(28rem,calc(100vh-1rem))] w-60 overflow-y-auto rounded-xl border border-border bg-popover p-2 text-popover-foreground shadow-popover"
       style={{ top: position.top, left: position.left }}
       onKeyDown={(event) => {
         if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
@@ -114,7 +91,8 @@ export function EditorMoreMenu({ position, items, onSelect, onClose }: EditorMor
           </p>
           <div className="grid grid-cols-2 gap-1">
             {group.items.map((item) => {
-              const Icon = MENU_ICONS[item.id];
+              if (!isEditorIconCapability(item.id)) return null;
+              const iconId = editorIconId(item.id);
               return (
                 <button
                   key={item.id}
@@ -126,7 +104,7 @@ export function EditorMoreMenu({ position, items, onSelect, onClose }: EditorMor
                     event.currentTarget.getBoundingClientRect(),
                   )}
                 >
-                  {Icon ? <Icon className="h-4 w-4 shrink-0" aria-hidden="true" /> : null}
+                  <WenyouIcon id={iconId} className="h-4 w-4 shrink-0" />
                   <span>{item.label}</span>
                 </button>
               );

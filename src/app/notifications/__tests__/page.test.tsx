@@ -13,7 +13,7 @@ vi.mock("@/components/notification/notification-list", () => ({
   }) => (
     <div>
       <span>类型:{type ?? "全部"}</span>
-      <button type="button" onClick={() => onTypeChange("system")}>系统通知</button>
+      <button type="button" onClick={() => onTypeChange("tip,level_up,system")}>系统通知</button>
       <button type="button" onClick={() => onTypeChange(undefined)}>全部通知</button>
     </div>
   ),
@@ -24,13 +24,13 @@ import NotificationsPage from "@/app/notifications/page";
 afterEach(() => cleanup());
 
 describe("通知页 URL 筛选", () => {
-  test("从 URL 恢复合法类型并忽略非法类型", () => {
+  test("从 URL 恢复规范分组并忽略非法类型", () => {
     const { unmount } = render(
-      <NuqsTestingAdapter searchParams="?type=reply%2Cmention">
+      <NuqsTestingAdapter searchParams="?type=reply%2Cmention%2Cfollow%2Clike">
         <NotificationsPage />
       </NuqsTestingAdapter>,
     );
-    expect(screen.getByText("类型:reply,mention")).toBeInTheDocument();
+    expect(screen.getByText("类型:reply,mention,follow,like")).toBeInTheDocument();
 
     unmount();
     render(
@@ -41,14 +41,19 @@ describe("通知页 URL 筛选", () => {
     expect(screen.getByText("类型:全部")).toBeInTheDocument();
   });
 
-  test("从 URL 恢复温油与等级通知类型", () => {
+  test.each([
+    ["reply%2Cmention", "reply,mention,follow,like"],
+    ["follow%2Clike", "reply,mention,follow,like"],
+    ["tip%2Clevel_up", "tip,level_up,system"],
+    ["system", "tip,level_up,system"],
+  ])("将历史筛选 %s 归并到当前分组", (legacyType, expectedType) => {
     render(
-      <NuqsTestingAdapter searchParams="?type=tip%2Clevel_up">
+      <NuqsTestingAdapter searchParams={`?type=${legacyType}`}>
         <NotificationsPage />
       </NuqsTestingAdapter>,
     );
 
-    expect(screen.getByText("类型:tip,level_up")).toBeInTheDocument();
+    expect(screen.getByText(`类型:${expectedType}`)).toBeInTheDocument();
   });
 
   test("切换和清空类型会更新 URL", async () => {
@@ -62,7 +67,7 @@ describe("通知页 URL 筛选", () => {
 
     await user.click(screen.getByRole("button", { name: "系统通知" }));
     expect(onUrlUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
-      searchParams: new URLSearchParams("type=system"),
+      searchParams: new URLSearchParams("type=tip%2Clevel_up%2Csystem"),
     }));
 
     await user.click(screen.getByRole("button", { name: "全部通知" }));

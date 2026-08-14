@@ -4,7 +4,7 @@ export function NavigationProgress() {
     <div
       data-slot="navigation-progress"
       aria-hidden="true"
-      className="navigation-progress fixed inset-x-0 top-0 z-[100] h-0.5 overflow-hidden bg-primary"
+      className="navigation-progress fixed inset-x-0 top-0 z-[var(--layer-global-progress)] h-0.5 overflow-hidden bg-primary"
     />
   );
 }

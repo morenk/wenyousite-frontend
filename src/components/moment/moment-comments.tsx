@@ -144,7 +144,7 @@ export function MomentComments({ momentId }: { momentId: string }) {
         <div className="flex justify-center py-4"><Button variant="ghost" size="sm" disabled={commentsQuery.isFetchingNextPage} onClick={() => void commentsQuery.fetchNextPage()}>{commentsQuery.isFetchingNextPage ? <Loader2 className="animate-spin" /> : <ChevronDown />}加载更多评论</Button></div>
       ) : null}
 
-      <FloatingInputDock slotPrefix="floating-moment-comment" layerClassName="z-[70]">
+      <FloatingInputDock slotPrefix="floating-moment-comment">
         <MomentCommentForm
           momentId={momentId}
           replyTarget={replyTarget}

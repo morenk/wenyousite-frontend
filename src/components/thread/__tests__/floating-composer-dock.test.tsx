@@ -62,7 +62,7 @@ describe("FloatingComposerDock", () => {
       '[data-slot="floating-composer-anchor"]',
     );
 
-    expect(floating).toHaveClass("fixed", "bottom-4", "z-30");
+    expect(floating).toHaveClass("fixed", "bottom-4", "z-[var(--layer-floating)]");
     expect(floating).toHaveStyle({ left: "240px", width: "640px" });
     expect(floating?.parentElement).toBe(document.body);
     await waitFor(() => expect(anchor).toHaveStyle({ height: "136px" }));

@@ -109,8 +109,10 @@ describe("NotificationList", () => {
     renderList();
     expect(screen.getByText("暂无通知")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "全部" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "回复与提及" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "互动" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "订阅" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "系统" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "温油与等级" })).not.toBeInTheDocument();
   });
 
   test("点击类型筛选触发 onTypeChange", async () => {
@@ -129,8 +131,11 @@ describe("NotificationList", () => {
     mockUseNotificationActions.mockReturnValue({ markAllRead: { isPending: false, mutateAsync: vi.fn() } });
     renderList({ onTypeChange });
 
+    await user.click(screen.getByRole("button", { name: "互动" }));
+    expect(onTypeChange).toHaveBeenCalledWith("reply,mention,follow,like");
+
     await user.click(screen.getByRole("button", { name: "系统" }));
-    expect(onTypeChange).toHaveBeenCalledWith("system");
+    expect(onTypeChange).toHaveBeenCalledWith("tip,level_up,system");
 
     await user.click(screen.getByRole("button", { name: "全部" }));
     expect(onTypeChange).toHaveBeenCalledWith(undefined);

@@ -1,7 +1,7 @@
 import type { ComponentProps, ReactNode } from "react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 
+import { WenyouIcon } from "@/components/ui/wenyou-icon";
 import { cn } from "@/lib/utils";
 
 interface PageHeaderProps extends Omit<ComponentProps<"header">, "title"> {
@@ -46,7 +46,7 @@ export function PageHeader({
             compact ? "mx-4 mt-2.5" : "mb-3",
           )}
         >
-          <ArrowLeft className="size-4" />
+          <WenyouIcon id="navigation.back" className="size-4" />
           {backLabel}
         </Link>
       ) : null}
@@ -59,14 +59,16 @@ export function PageHeader({
         <div className="min-w-0">
           <h1
             className={cn(
-              "font-display font-bold tracking-[0.01em] text-foreground",
-              compact ? "text-xl leading-8" : "text-[1.75rem] leading-9",
+              "font-display tracking-[0.01em] text-foreground",
+              compact
+                ? "[font-size:var(--type-section-title-size)] [font-weight:var(--type-section-title-weight)] [line-height:var(--type-section-title-line-height)]"
+                : "[font-size:var(--type-page-title-size)] [font-weight:var(--type-page-title-weight)] [line-height:var(--type-page-title-line-height)]",
             )}
           >
             {title}
           </h1>
           {description ? (
-            <div className={cn("text-sm leading-5 text-muted-foreground", compact ? "mt-0.5" : "mt-2")}>
+            <div className={cn("text-muted-foreground [font-size:var(--type-compact-body-size)] [line-height:var(--type-compact-body-line-height)]", compact ? "mt-0.5" : "mt-2")}>
               {description}
             </div>
           ) : null}

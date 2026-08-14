@@ -12,6 +12,7 @@ import { NotificationItem } from "@/components/notification/notification-item";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
+import { NOTIFICATION_FILTERS } from "@/lib/notification-filters";
 
 interface NotificationListProps {
   type?: string;
@@ -63,7 +64,7 @@ export function NotificationList({ type, onTypeChange }: NotificationListProps) 
         <div className="flex flex-wrap gap-1">
           {NOTIFICATION_FILTERS.map((filter) => (
             <Button
-              key={filter.value ?? "all"}
+              key={filter.id}
               variant={type === filter.value ? "secondary" : "ghost"}
               size="sm"
               className="h-7 px-2 text-xs"
@@ -135,12 +136,3 @@ export function NotificationList({ type, onTypeChange }: NotificationListProps) 
     </div>
   );
 }
-
-const NOTIFICATION_FILTERS = [
-  { label: "全部", value: undefined },
-  { label: "回复与提及", value: "reply,mention" },
-  { label: "主题更新", value: "new_post,thread_created" },
-  { label: "关注与点赞", value: "follow,like" },
-  { label: "温油与等级", value: "tip,level_up" },
-  { label: "系统", value: "system" },
-] as const;

@@ -56,6 +56,9 @@ export function syncMilkdownToolbarItems(
         button.title = item.label;
         button.setAttribute("aria-label", item.label);
         button.dataset.editorTool = item.key;
+        if (["bold", "italic", "strikethrough", "inline-code", "link"].includes(item.key)) {
+          button.setAttribute("aria-pressed", String(button.classList.contains("active")));
+        }
         if (item.key === "more") {
           button.setAttribute("aria-haspopup", "menu");
           if (!button.hasAttribute("aria-expanded")) {

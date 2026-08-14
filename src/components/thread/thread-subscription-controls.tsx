@@ -126,7 +126,7 @@ export function ThreadSubscriptionControls({ thread }: {
             <UsersRound className="h-4 w-4" />
           </Popover.Trigger>
           <Popover.Portal>
-            <Popover.Positioner side="bottom" align="end" sideOffset={8} className="z-[70]">
+            <Popover.Positioner side="bottom" align="end" sideOffset={8} className="z-[var(--layer-popup)]">
               <Popover.Popup className="w-64 rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-popover outline-none">
                 <Popover.Title className="text-sm font-semibold">订阅玩家发言</Popover.Title>
                 <Popover.Description className="mt-1 text-xs leading-5 text-muted-foreground">

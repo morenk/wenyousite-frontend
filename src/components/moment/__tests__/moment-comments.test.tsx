@@ -332,7 +332,7 @@ describe("MomentComments", () => {
 
     const collapsed = screen.getByRole("button", { name: "发表评论…" });
     const dock = collapsed.closest<HTMLElement>('[data-slot="floating-moment-comment-dock"]');
-    expect(dock).toHaveClass("fixed", "bottom-4", "z-[70]");
+    expect(dock).toHaveClass("fixed", "bottom-4", "z-[var(--layer-floating)]");
     expect(dock).toHaveStyle({ left: "320px", width: "512px" });
     expect(dock?.parentElement).toBe(document.body);
 

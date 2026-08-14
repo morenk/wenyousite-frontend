@@ -112,7 +112,7 @@ export function UserProfileShell({ userId, children }: UserProfileShellProps) {
           <UserProfileCard user={profile} />
           <nav
             aria-label="个人资料分类"
-            className="sticky top-2 z-30 rounded-2xl border border-border bg-card/95 px-2 backdrop-blur-md"
+            className="sticky top-2 z-[var(--layer-sticky)] rounded-2xl border border-border bg-card/95 px-2 backdrop-blur-md"
           >
             <div className={cn("grid w-full", tabs.length === 4 ? "grid-cols-4" : "grid-cols-3")}>
               {tabs.map((tab) => {

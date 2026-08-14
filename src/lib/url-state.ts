@@ -1,4 +1,5 @@
-import { parseAsString, parseAsStringLiteral } from "nuqs";
+import { createParser, parseAsString, parseAsStringLiteral } from "nuqs";
+import { normalizeNotificationFilter } from "@/lib/notification-filters";
 
 export const homeFilterParsers = {
   category: parseAsString,
@@ -9,10 +10,7 @@ export const homeFilterParsers = {
 
 export const searchQueryParser = parseAsString.withDefault("");
 
-export const notificationTypeParser = parseAsStringLiteral([
-  "reply,mention",
-  "new_post,thread_created",
-  "follow,like",
-  "tip,level_up",
-  "system",
-] as const);
+export const notificationTypeParser = createParser({
+  parse: normalizeNotificationFilter,
+  serialize: (value) => value,
+});

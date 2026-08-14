@@ -3,10 +3,11 @@
 "use client";
 
 import { Popover } from "@base-ui/react/popover";
-import { ChevronDown, ChevronRight, FileText, Images, PenLine } from "lucide-react";
+import { NAVIGATION_ICONS, NAVIGATION_LABELS } from "@wenyousite/foundation/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useState } from "react";
+import { WenyouIcon } from "@/components/ui/wenyou-icon";
 import { cn } from "@/lib/utils";
 
 const MomentComposer = dynamic(
@@ -26,7 +27,7 @@ export function PublishMenu({ userId, compact = false }: { userId: string; compa
             <button
               type="button"
               aria-label="打开发布菜单"
-              title="发布"
+              title={NAVIGATION_LABELS.publish}
               className={cn(
                 "group relative isolate mt-5 flex h-12 w-full items-center justify-center overflow-hidden rounded-2xl bg-primary font-display text-primary-foreground transition-[background-color,transform] duration-[var(--motion-fast)] ease-[var(--ease-standard)] hover:bg-accent active:translate-y-px",
                 !compact && "xl:justify-start xl:gap-2.5 xl:px-4",
@@ -38,19 +39,19 @@ export function PublishMenu({ userId, compact = false }: { userId: string; compa
             aria-hidden="true"
             className="absolute inset-y-0 right-0 -z-10 w-16 bg-secondary/35 [clip-path:polygon(38%_0,100%_0,100%_100%,0_100%)] transition-transform duration-[var(--motion-standard)] ease-[var(--ease-standard)] group-hover:translate-x-1"
           />
-          <PenLine className="size-5" />
+          <WenyouIcon id={NAVIGATION_ICONS.publish} className="size-5" />
           <span className={cn(
             "hidden font-display text-[1.0625rem] font-bold tracking-[0.12em]",
             !compact && "xl:inline",
-          )}>发布</span>
-          <ChevronDown className={cn(
+          )}>{NAVIGATION_LABELS.publish}</span>
+          <WenyouIcon id="navigation.expand" className={cn(
             "hidden size-4 transition-transform duration-[var(--motion-fast)] group-aria-expanded:rotate-180",
             !compact && "xl:ml-auto xl:block",
           )} />
         </Popover.Trigger>
 
         <Popover.Portal>
-          <Popover.Positioner side="right" align="start" sideOffset={12} className="z-[80]">
+          <Popover.Positioner side="right" align="start" sideOffset={12} className="z-[var(--layer-popup)]">
             <Popover.Popup className="w-64 rounded-2xl bg-popover p-2 text-popover-foreground shadow-popover outline-none">
               <div className="px-3 pb-2 pt-2">
                 <Popover.Title className="font-display text-base font-bold tracking-wide">选择发布方式</Popover.Title>
@@ -61,11 +62,11 @@ export function PublishMenu({ userId, compact = false }: { userId: string; compa
                   onClick={() => setMenuOpen(false)}
                   className="group/item flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
                 >
-                  <FileText className="size-5 text-brand-strong" />
+                  <WenyouIcon id="status.file" className="size-5 text-brand-strong" />
                   <span className="min-w-0 flex-1">
                     <span className="block font-display text-[0.9375rem] font-bold">发布主题帖</span>
                   </span>
-                  <ChevronRight className="size-4 text-muted-foreground transition-transform group-hover/item:translate-x-0.5" />
+                  <WenyouIcon id="navigation.next" className="size-4 text-muted-foreground transition-transform group-hover/item:translate-x-0.5" />
                 </Link>
                 <button
                   type="button"
@@ -75,11 +76,11 @@ export function PublishMenu({ userId, compact = false }: { userId: string; compa
                   }}
                   className="group/item flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
                 >
-                  <Images className="size-5 text-brand-strong" />
+                  <WenyouIcon id="status.gallery" className="size-5 text-brand-strong" />
                   <span className="min-w-0 flex-1">
                     <span className="block font-display text-[0.9375rem] font-bold">发布动态</span>
                   </span>
-                  <ChevronRight className="size-4 text-muted-foreground transition-transform group-hover/item:translate-x-0.5" />
+                  <WenyouIcon id="navigation.next" className="size-4 text-muted-foreground transition-transform group-hover/item:translate-x-0.5" />
                 </button>
               </nav>
             </Popover.Popup>

@@ -158,6 +158,16 @@
 
 .milkdown .milkdown-top-bar .top-bar-item {
   margin: 6px 4px;
+  border-radius: var(--radius-compact);
+  transition:
+    color var(--motion-fast) var(--ease-standard),
+    background-color var(--motion-fast) var(--ease-standard);
+}
+
+/* 同一图形贯穿未选中与选中态；选中由柔粉容器表达，不替换实心图标。 */
+.milkdown .milkdown-top-bar .top-bar-item.active {
+  color: var(--accent-foreground);
+  background: var(--accent);
 }
 
 .milkdown .milkdown-top-bar .top-bar-divider {

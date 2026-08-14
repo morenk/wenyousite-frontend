@@ -105,8 +105,8 @@ export function WenyouTipButton({
       </Button>
       <AlertDialog.Root open={open} onOpenChange={setOpen}>
         <AlertDialog.Portal>
-          <AlertDialog.Backdrop className="fixed inset-0 z-[80] bg-foreground/45 backdrop-blur-[1px]" />
-          <AlertDialog.Viewport className="fixed inset-0 z-[81] flex items-center justify-center p-4">
+          <AlertDialog.Backdrop className="fixed inset-0 z-[var(--layer-modal-backdrop)] bg-[var(--overlay-scrim)] backdrop-blur-[var(--overlay-scrim-blur)]" />
+          <AlertDialog.Viewport className="fixed inset-0 z-[var(--layer-modal)] flex items-center justify-center p-4">
             <AlertDialog.Popup className="w-full max-w-sm rounded-xl border border-border bg-background p-5 shadow-dialog outline-none">
               <AlertDialog.Title className="text-base font-semibold">
                 为{recipientName}加油

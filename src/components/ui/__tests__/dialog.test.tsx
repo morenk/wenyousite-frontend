@@ -35,6 +35,13 @@ describe("Dialog", () => {
       "dialog-popup",
     );
     expect(screen.getByRole("button", { name: "关闭编辑" })).toHaveClass("size-8");
+    expect(document.querySelector('[data-slot="dialog-backdrop"]')).toHaveClass(
+      "z-[var(--layer-modal-backdrop)]",
+      "bg-[var(--overlay-scrim)]",
+    );
+    expect(document.querySelector('[data-slot="dialog-viewport"]')).toHaveClass(
+      "z-[var(--layer-modal)]",
+    );
   });
 
   test("Esc 通过受控状态回调关闭弹层", async () => {

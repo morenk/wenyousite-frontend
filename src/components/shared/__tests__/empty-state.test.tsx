@@ -8,8 +8,9 @@ afterEach(() => cleanup());
 
 describe("EmptyState", () => {
   test("渲染标题", () => {
-    render(<EmptyState title="暂无数据" />);
+    const { container } = render(<EmptyState title="暂无数据" />);
     expect(screen.getByText("暂无数据")).toBeInTheDocument();
+    expect(container.firstElementChild).toHaveAttribute("data-feedback-state", "empty");
   });
 
   test("渲染描述", () => {

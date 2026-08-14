@@ -9,7 +9,7 @@
 - 单条点击标记已读，顶部「全部已读」
 - 导航栏「通知」显示通知未读数；「私聊」显示已接受会话未读与待处理请求合计（轮询刷新）
 - 无限滚动（cursor 分页）+ loading / error / empty 三态
-- 按类型过滤 Tab（如 `?type=reply,mention`）
+- 按 Foundation 分组过滤：全部、互动、订阅、系统
 - 通知跳转精确定位到楼层或楼中楼：主楼层在主题详情页高亮，楼中楼进入独立阅读页并高亮目标回复
 - 已读操作使用乐观缓存更新，跳转不再依赖请求完成
 - 页面重新获得焦点时刷新通知；补齐加载更多失败重试
@@ -38,6 +38,16 @@
 | GET | `/posts/:id` | Public | 获取通知目标帖的主题/子贴/父楼上下文，用于精确定位 |
 
 > `NotificationType`：reply / mention / new_post / thread_created / follow / like / tip / level_up / system。旧类型 `new_floor` / `subthread_created` 后端自动映射为 `new_post`。
+
+通知筛选分组由当前 Foundation v2.2.0 契约中的 `experiences.notifications` 定义，Web 直接消费生成产物，不在业务组件复制名称和成员：
+
+| 分组 | 类型 |
+|------|------|
+| 互动 | reply / mention / follow / like |
+| 订阅 | new_post / thread_created |
+| 系统 | tip / level_up / system |
+
+“全部”不发送 `type` 参数。历史 `reply,mention`、`follow,like`、`tip,level_up` 与 `system` URL 会归并到对应新分组；非法值回退“全部”。未知新增类型在 Foundation 升级前仍可从“全部”看到，客户端不猜测其分组。
 
 ## 4. API 响应快照
 
@@ -114,7 +124,7 @@
 - 类型图标：reply/mention/new_post/thread_created → MessageSquare/AtSign/PenLine/FilePlus；follow → UserPlus；like → Heart；tip → Fuel；level_up → TrendingUp；system → Megaphone
 - 有操作者（`fromUser`）时左侧显示操作者头像（`_thumb.webp` 缩略图，无则首字符占位）；系统通知无操作者时保留类型图标
 - 未读：左侧圆点 + 背景高亮；点击后即时置为已读样式
-- 类型筛选由 URL `?type=` 驱动（如 `?type=reply,mention`）；nuqs 只接受界面支持的组合值并写入浏览历史，非法值回退「全部」，点击导航栏「通知」入口回到 `/notifications`（无参数）即重置为「全部」
+- 类型筛选由 URL `?type=` 驱动；nuqs 将历史组合归并为 Foundation 当前分组，切换时把规范组合写入浏览历史；非法值回退「全部」，点击导航栏「通知」入口回到 `/notifications`（无参数）即重置为「全部」
 - 类型筛选栏在任何状态下（加载中/出错/空数据）都保持渲染，空类型时不会丢失导航栏；「全部已读」仅在列表存在未读时显示
 - 历史通知展示时移除残留图片 Markdown；仅当结构化 `payload.preview` 明确等于 `1.00` 时移除尾部比例 alt，避免误删正常数字正文
 - 展示时顺带还原 Milkdown 序列化残留的反斜杠转义（`\<`/`\>` → `<`/`>`）及硬换行反斜杠（`\`+换行 → 换行），兼容已入库的旧通知，避免预览出现孤立 `\`

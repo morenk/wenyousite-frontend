@@ -60,7 +60,7 @@ describe("MilkdownEditor 内联骰子", () => {
       const dialog = screen.getByRole("dialog", { name: "插入骰子" });
       expect(dialog).toBeInTheDocument();
       expect(dialog.parentElement).toBe(document.body);
-      expect(dialog).toHaveClass("fixed", "z-[100]");
+      expect(dialog).toHaveClass("fixed", "z-[var(--layer-nested-popup)]");
       expect(dialog).toHaveStyle({ top: "58px", left: "64px" });
     });
   });

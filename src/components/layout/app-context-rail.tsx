@@ -1,20 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import {
-  Bell,
-  Bookmark,
-  ChevronRight,
-  MessageCircle,
-  Settings,
-  Wallet,
-  type LucideIcon,
-} from "lucide-react";
+import { NAVIGATION_ICONS, NAVIGATION_LABELS } from "@wenyousite/foundation/navigation";
+import { ChevronRight, Wallet } from "lucide-react";
 
 import { useWallet } from "@/api/hooks/use-economy";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { buttonVariants } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
+import { WenyouIcon, type WenyouIconId } from "@/components/ui/wenyou-icon";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { formatWenyou } from "@/lib/wenyou";
@@ -64,18 +58,18 @@ export function AppContextRail() {
             <nav className="mt-3 grid gap-1" aria-label="账户快捷入口">
               <ContextLink
                 href="/notifications"
-                icon={Bell}
-                label="通知"
+                icon={NAVIGATION_ICONS.notifications}
+                label={NAVIGATION_LABELS.notifications}
                 count={notificationCount}
               />
               <ContextLink
                 href="/messages"
-                icon={MessageCircle}
-                label="私聊"
+                icon={NAVIGATION_ICONS.directMessages}
+                label={NAVIGATION_LABELS.directMessages}
                 count={directMessageCount}
               />
-              <ContextLink href="/bookmarks" icon={Bookmark} label="收藏" />
-              <ContextLink href="/me" icon={Settings} label="资料与设置" />
+              <ContextLink href="/bookmarks" icon={NAVIGATION_ICONS.bookmarks} label={NAVIGATION_LABELS.bookmarks} />
+              <ContextLink href="/me" icon="action.settings" label="资料与设置" />
             </nav>
           </div>
         </Panel>
@@ -118,12 +112,12 @@ export function AppContextRail() {
 
 function ContextLink({
   href,
-  icon: Icon,
+  icon,
   label,
   count = 0,
 }: {
   href: string;
-  icon: LucideIcon;
+  icon: WenyouIconId;
   label: string;
   count?: number;
 }) {
@@ -133,7 +127,7 @@ function ContextLink({
       aria-label={count > 0 ? `${label}，${count} 条未读` : label}
       className="flex min-h-9 items-center gap-2.5 rounded-lg px-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
     >
-      <Icon className="size-4" />
+      <WenyouIcon id={icon} className="size-4" />
       <span className="flex-1">{label}</span>
       {count > 0 ? (
         <span className="min-w-5 rounded-full bg-destructive px-1.5 text-center font-utility text-[0.625rem] font-bold leading-5 text-destructive-foreground">

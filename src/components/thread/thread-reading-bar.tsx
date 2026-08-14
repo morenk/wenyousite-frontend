@@ -48,7 +48,7 @@ export function ThreadReadingBar({
   }, []);
 
   return (
-    <div data-slot="thread-reading-bar-anchor" className="sticky top-2 z-40 h-0">
+    <div data-slot="thread-reading-bar-anchor" className="sticky top-2 z-[var(--layer-sticky)] h-0">
       <AnimatePresence>
         {visible ? (
           <motion.nav

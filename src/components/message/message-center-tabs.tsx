@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { NAVIGATION_LABELS } from "@wenyousite/foundation/navigation";
 import { useUnreadCounts } from "@/components/layout/unread-counts-context";
 import { cn } from "@/lib/utils";
 
@@ -20,13 +21,13 @@ export function MessageCenterTabs() {
   const tabs = [
     {
       href: "/notifications",
-      label: "通知",
+      label: NAVIGATION_LABELS.notifications,
       active: pathname.startsWith("/notifications"),
       count: notificationCount,
     },
     {
       href: "/messages",
-      label: "私聊",
+      label: NAVIGATION_LABELS.directMessages,
       active: pathname.startsWith("/messages"),
       count: directMessageCount,
     },

@@ -427,7 +427,7 @@ export function StickerPickerPopover({
           side="top"
           align={align}
           sideOffset={8}
-          className="isolate z-[100]"
+          className="isolate z-[var(--layer-nested-popup)]"
         >
           <StickerPickerPanel
             onSelect={onSelect}
