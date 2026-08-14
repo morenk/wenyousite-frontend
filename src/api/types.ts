@@ -2063,6 +2063,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/moderation/content/{type}/{id}/hide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 管理员在前台或移动端直接隐藏内容，无需独立站务会话 */
+        post: operations["clientContentModerationHide"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/dashboard/overview": {
         parameters: {
             query?: never;
@@ -6057,6 +6074,9 @@ export interface components {
         };
         AdminModerationListAuditLogs200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
             data: components["schemas"]["AdminAuditLogResponseDto"][];
+        };
+        ClientContentModerationHide200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminContentModerationResponseDto"];
         };
         AdminDashboardOverview200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["AdminDashboardOverviewResponseDto"];
@@ -12872,6 +12892,45 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    clientContentModerationHide: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                type: "thread" | "post" | "moment" | "moment_comment";
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModerateContentDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientContentModerationHide200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */

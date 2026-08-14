@@ -1,6 +1,11 @@
 "use client";
 
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { apiClient, setAdminCsrfToken } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
 import type { components, operations } from "@/api/types";
@@ -48,15 +53,25 @@ export function useAdminSession(enabled = true) {
 export function useAdminLogin() {
   const queryClient = useQueryClient();
   const challenge = useMutation({
-    mutationFn: async (body: components["schemas"]["AdminLoginChallengeDto"]) => {
-      const { data, error } = await apiClient.POST("/api/v1/admin/auth/challenge", { body });
+    mutationFn: async (
+      body: components["schemas"]["AdminLoginChallengeDto"],
+    ) => {
+      const { data, error } = await apiClient.POST(
+        "/api/v1/admin/auth/challenge",
+        { body },
+      );
       if (error) throw error;
       return envelope<{ challengeId: string; expiresIn: number }>(data).data;
     },
   });
   const verify = useMutation({
-    mutationFn: async (body: components["schemas"]["AdminChallengeVerifyDto"]) => {
-      const { data, error } = await apiClient.POST("/api/v1/admin/auth/verify", { body });
+    mutationFn: async (
+      body: components["schemas"]["AdminChallengeVerifyDto"],
+    ) => {
+      const { data, error } = await apiClient.POST(
+        "/api/v1/admin/auth/verify",
+        { body },
+      );
       if (error) throw error;
       return envelope<AdminSessionData>(data).data;
     },
@@ -86,29 +101,36 @@ export function useAdminDashboard() {
   return useQuery({
     queryKey: queryKeys.admin.dashboard,
     queryFn: async () => {
-      const [overviewResult, timeseriesResult, distributionsResult, healthResult] =
-        await Promise.all([
-          apiClient.GET("/api/v1/admin/dashboard/overview"),
-          apiClient.GET("/api/v1/admin/dashboard/timeseries"),
-          apiClient.GET("/api/v1/admin/dashboard/distributions"),
-          apiClient.GET("/api/v1/health"),
-        ]);
+      const [
+        overviewResult,
+        timeseriesResult,
+        distributionsResult,
+        healthResult,
+      ] = await Promise.all([
+        apiClient.GET("/api/v1/admin/dashboard/overview"),
+        apiClient.GET("/api/v1/admin/dashboard/timeseries"),
+        apiClient.GET("/api/v1/admin/dashboard/distributions"),
+        apiClient.GET("/api/v1/health"),
+      ]);
 
-      const failed = [overviewResult, timeseriesResult, distributionsResult, healthResult].find(
-        (result) => result.error,
-      );
+      const failed = [
+        overviewResult,
+        timeseriesResult,
+        distributionsResult,
+        healthResult,
+      ].find((result) => result.error);
       if (failed?.error) throw failed.error;
 
       return {
-        overview: envelope<components["schemas"]["AdminDashboardOverviewResponseDto"]>(
-          overviewResult.data,
-        ).data,
-        timeseries: envelope<components["schemas"]["AdminDashboardTimeseriesResponseDto"]>(
-          timeseriesResult.data,
-        ).data,
-        distributions: envelope<components["schemas"]["AdminDashboardDistributionsResponseDto"]>(
-          distributionsResult.data,
-        ).data,
+        overview: envelope<
+          components["schemas"]["AdminDashboardOverviewResponseDto"]
+        >(overviewResult.data).data,
+        timeseries: envelope<
+          components["schemas"]["AdminDashboardTimeseriesResponseDto"]
+        >(timeseriesResult.data).data,
+        distributions: envelope<
+          components["schemas"]["AdminDashboardDistributionsResponseDto"]
+        >(distributionsResult.data).data,
         health: envelope<{
           status?: string;
           info?: Record<string, { status: string }>;
@@ -122,9 +144,12 @@ export function useAdminDashboard() {
 export function useAcceptAdminInvite() {
   return useMutation({
     mutationFn: async (token: string) => {
-      const { data, error } = await apiClient.POST("/api/v1/admin-invitations/{token}/accept", {
-        params: { path: { token } },
-      });
+      const { data, error } = await apiClient.POST(
+        "/api/v1/admin-invitations/{token}/accept",
+        {
+          params: { path: { token } },
+        },
+      );
       if (error) throw error;
       return data;
     },
@@ -135,22 +160,31 @@ export function useAdminStepUp() {
   const queryClient = useQueryClient();
   const challenge = useMutation({
     mutationFn: async () => {
-      const { data, error } = await apiClient.POST("/api/v1/admin/auth/step-up/challenge");
+      const { data, error } = await apiClient.POST(
+        "/api/v1/admin/auth/step-up/challenge",
+      );
       if (error) throw error;
       return envelope<{ challengeId: string; expiresIn: number }>(data).data;
     },
   });
   const verify = useMutation({
-    mutationFn: async (body: components["schemas"]["AdminChallengeVerifyDto"]) => {
-      const { data, error } = await apiClient.POST("/api/v1/admin/auth/step-up/verify", { body });
+    mutationFn: async (
+      body: components["schemas"]["AdminChallengeVerifyDto"],
+    ) => {
+      const { data, error } = await apiClient.POST(
+        "/api/v1/admin/auth/step-up/verify",
+        { body },
+      );
       if (error) throw error;
       return envelope<{ elevatedUntil: string }>(data).data;
     },
     onSuccess: ({ elevatedUntil }) => {
-      queryClient.setQueryData<AdminSessionData>(queryKeys.admin.session, (current) =>
-        current
-          ? { ...current, session: { ...current.session, elevatedUntil } }
-          : current,
+      queryClient.setQueryData<AdminSessionData>(
+        queryKeys.admin.session,
+        (current) =>
+          current
+            ? { ...current, session: { ...current.session, elevatedUntil } }
+            : current,
       );
     },
   });
@@ -208,16 +242,21 @@ export function useResolveAdminCase() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...body }: ResolveCaseInput) => {
-      const { data, error } = await apiClient.POST("/api/v1/admin/cases/{id}/resolve", {
-        params: { path: { id } },
-        body,
-      });
+      const { data, error } = await apiClient.POST(
+        "/api/v1/admin/cases/{id}/resolve",
+        {
+          params: { path: { id } },
+          body,
+        },
+      );
       if (error) throw error;
       return envelope<ModerationCaseDetail>(data).data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.casesRoot });
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.case(variables.id) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.admin.case(variables.id),
+      });
     },
   });
 }
@@ -236,12 +275,16 @@ export function useAdminAccounts(enabled: boolean) {
 
 export function useAdminAccountActions() {
   const queryClient = useQueryClient();
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: queryKeys.admin.accounts });
+  const invalidate = () =>
+    queryClient.invalidateQueries({ queryKey: queryKeys.admin.accounts });
   const invite = useMutation({
     mutationFn: async (userId: string) => {
-      const { data, error } = await apiClient.POST("/api/v1/admin/accounts/invites", {
-        body: { userId },
-      });
+      const { data, error } = await apiClient.POST(
+        "/api/v1/admin/accounts/invites",
+        {
+          body: { userId },
+        },
+      );
       if (error) throw error;
       return data;
     },
@@ -249,10 +292,13 @@ export function useAdminAccountActions() {
   });
   const cancelInvite = useMutation({
     mutationFn: async ({ id, reason }: { id: string; reason: string }) => {
-      const { data, error } = await apiClient.DELETE("/api/v1/admin/accounts/invites/{id}", {
-        params: { path: { id } },
-        body: { reason },
-      });
+      const { data, error } = await apiClient.DELETE(
+        "/api/v1/admin/accounts/invites/{id}",
+        {
+          params: { path: { id } },
+          body: { reason },
+        },
+      );
       if (error) throw error;
       return data;
     },
@@ -260,20 +306,32 @@ export function useAdminAccountActions() {
   });
   const revoke = useMutation({
     mutationFn: async ({ id, reason }: { id: string; reason: string }) => {
-      const { data, error } = await apiClient.DELETE("/api/v1/admin/accounts/{id}", {
-        params: { path: { id } },
-        body: { reason },
-      });
+      const { data, error } = await apiClient.DELETE(
+        "/api/v1/admin/accounts/{id}",
+        {
+          params: { path: { id } },
+          body: { reason },
+        },
+      );
       if (error) throw error;
       return data;
     },
     onSuccess: invalidate,
   });
   const transfer = useMutation({
-    mutationFn: async ({ userId, reason }: { userId: string; reason: string }) => {
-      const { data, error } = await apiClient.POST("/api/v1/admin/accounts/transfer-super-admin", {
-        body: { userId, reason },
-      });
+    mutationFn: async ({
+      userId,
+      reason,
+    }: {
+      userId: string;
+      reason: string;
+    }) => {
+      const { data, error } = await apiClient.POST(
+        "/api/v1/admin/accounts/transfer-super-admin",
+        {
+          body: { userId, reason },
+        },
+      );
       if (error) throw error;
       return data;
     },
@@ -286,9 +344,12 @@ export function useAdminUserSearch(query: string) {
   return useQuery({
     queryKey: queryKeys.admin.userSearch(query),
     queryFn: async () => {
-      const { data, error } = await apiClient.GET("/api/v1/admin/users/search", {
-        params: { query: { q: query } },
-      });
+      const { data, error } = await apiClient.GET(
+        "/api/v1/admin/users/search",
+        {
+          params: { query: { q: query } },
+        },
+      );
       if (error) throw error;
       return data.data.data;
     },
@@ -301,7 +362,9 @@ export function useAdminSettings() {
   return useQuery({
     queryKey: queryKeys.admin.settings,
     queryFn: async () => {
-      const { data, error } = await apiClient.GET("/api/v1/admin/operations/settings");
+      const { data, error } = await apiClient.GET(
+        "/api/v1/admin/operations/settings",
+      );
       if (error) throw error;
       return envelope<OperationalSettings>(data).data;
     },
@@ -311,8 +374,13 @@ export function useAdminSettings() {
 export function useUpdateAdminSettings() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (body: components["schemas"]["UpdateSiteSettingsDto"]) => {
-      const { data, error } = await apiClient.PATCH("/api/v1/admin/operations/settings", { body });
+    mutationFn: async (
+      body: components["schemas"]["UpdateSiteSettingsDto"],
+    ) => {
+      const { data, error } = await apiClient.PATCH(
+        "/api/v1/admin/operations/settings",
+        { body },
+      );
       if (error) throw error;
       return envelope<OperationalSettings>(data).data;
     },
@@ -344,11 +412,22 @@ export function useAdminAppeals(filters: AdminAppealFilters) {
 export function useResolveAdminAppeal() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, outcome, note }: { id: string; outcome: "UPHELD" | "OVERTURNED"; note: string }) => {
-      const { data, error } = await apiClient.POST("/api/v1/admin/appeals/{id}/resolve", {
-        params: { path: { id } },
-        body: { outcome, note },
-      });
+    mutationFn: async ({
+      id,
+      outcome,
+      note,
+    }: {
+      id: string;
+      outcome: "UPHELD" | "OVERTURNED";
+      note: string;
+    }) => {
+      const { data, error } = await apiClient.POST(
+        "/api/v1/admin/appeals/{id}/resolve",
+        {
+          params: { path: { id } },
+          body: { outcome, note },
+        },
+      );
       if (error) throw error;
       return data;
     },
@@ -381,13 +460,20 @@ export function useAdminUsers(filters: AdminUserFilters) {
 
 export function useAdminUserActions() {
   const queryClient = useQueryClient();
-  const refresh = () => queryClient.invalidateQueries({ queryKey: queryKeys.admin.usersRoot });
+  const refresh = () =>
+    queryClient.invalidateQueries({ queryKey: queryKeys.admin.usersRoot });
   const sanction = useMutation({
-    mutationFn: async ({ id, ...body }: { id: string } & components["schemas"]["SanctionUserDto"]) => {
-      const { data, error } = await apiClient.POST("/api/v1/admin/users/{id}/sanctions", {
-        params: { path: { id } },
-        body,
-      });
+    mutationFn: async ({
+      id,
+      ...body
+    }: { id: string } & components["schemas"]["SanctionUserDto"]) => {
+      const { data, error } = await apiClient.POST(
+        "/api/v1/admin/users/{id}/sanctions",
+        {
+          params: { path: { id } },
+          body,
+        },
+      );
       if (error) throw error;
       return data;
     },
@@ -395,10 +481,13 @@ export function useAdminUserActions() {
   });
   const revoke = useMutation({
     mutationFn: async ({ id, reason }: { id: string; reason: string }) => {
-      const { data, error } = await apiClient.POST("/api/v1/admin/users/{id}/sanctions/current/revoke", {
-        params: { path: { id } },
-        body: { reason },
-      });
+      const { data, error } = await apiClient.POST(
+        "/api/v1/admin/users/{id}/sanctions/current/revoke",
+        {
+          params: { path: { id } },
+          body: { reason },
+        },
+      );
       if (error) throw error;
       return data;
     },
@@ -413,7 +502,8 @@ export interface AdminContentActionInput {
   reason: string;
 }
 
-export type AdminHiddenContent = components["schemas"]["AdminHiddenContentResponseDto"];
+export type AdminHiddenContent =
+  components["schemas"]["AdminHiddenContentResponseDto"];
 export type AdminHiddenContentFilters = NonNullable<
   operations["adminModerationListHiddenContent"]["parameters"]["query"]
 >;
@@ -422,9 +512,12 @@ export function useAdminHiddenContent(filters: AdminHiddenContentFilters) {
   return useQuery({
     queryKey: queryKeys.admin.hiddenContent(filters),
     queryFn: async () => {
-      const { data, error } = await apiClient.GET("/api/v1/admin/content/hidden", {
-        params: { query: { ...filters, limit: filters.limit ?? 20 } },
-      });
+      const { data, error } = await apiClient.GET(
+        "/api/v1/admin/content/hidden",
+        {
+          params: { query: { ...filters, limit: filters.limit ?? 20 } },
+        },
+      );
       if (error) throw error;
       const result = envelope<AdminHiddenContent[]>(data);
       return { items: result.data, meta: result.meta };
@@ -433,12 +526,15 @@ export function useAdminHiddenContent(filters: AdminHiddenContentFilters) {
   });
 }
 
-/** 站务内容处置统一写入口；成功后让公开读路径与审计轨迹立即刷新。 */
-export function useAdminContentActions() {
+function useContentModerationRefresh() {
   const queryClient = useQueryClient();
-  const refresh = ({ type, id }: AdminContentActionInput, hidden: boolean) => {
-    void queryClient.invalidateQueries({ queryKey: queryKeys.admin.hiddenContentRoot });
-    void queryClient.invalidateQueries({ queryKey: queryKeys.admin.auditsRoot });
+  return ({ type, id }: AdminContentActionInput, hidden: boolean) => {
+    void queryClient.invalidateQueries({
+      queryKey: queryKeys.admin.hiddenContentRoot,
+    });
+    void queryClient.invalidateQueries({
+      queryKey: queryKeys.admin.auditsRoot,
+    });
     void queryClient.invalidateQueries({ queryKey: queryKeys.admin.dashboard });
     void queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
 
@@ -447,7 +543,9 @@ export function useAdminContentActions() {
       if (hidden) {
         queryClient.removeQueries({ queryKey: queryKeys.threads.detail(id) });
       } else {
-        void queryClient.invalidateQueries({ queryKey: queryKeys.threads.detail(id) });
+        void queryClient.invalidateQueries({
+          queryKey: queryKeys.threads.detail(id),
+        });
       }
       return;
     }
@@ -458,7 +556,9 @@ export function useAdminContentActions() {
       if (hidden) {
         queryClient.removeQueries({ queryKey: queryKeys.posts.detail(id) });
       } else {
-        void queryClient.invalidateQueries({ queryKey: queryKeys.posts.detail(id) });
+        void queryClient.invalidateQueries({
+          queryKey: queryKeys.posts.detail(id),
+        });
       }
       return;
     }
@@ -467,32 +567,70 @@ export function useAdminContentActions() {
     }
     void queryClient.invalidateQueries({ queryKey: queryKeys.moments.all });
   };
+}
+
+/** 站务内容处置统一写入口；成功后让公开读路径与审计轨迹立即刷新。 */
+export function useAdminContentActions() {
+  const refresh = useContentModerationRefresh();
 
   const hide = useMutation({
     mutationFn: async ({ type, id, reason }: AdminContentActionInput) => {
-      const { data, error } = await apiClient.POST("/api/v1/admin/content/{type}/{id}/hide", {
-        params: { path: { type, id } },
-        body: { reason },
-      });
+      const { data, error } = await apiClient.POST(
+        "/api/v1/admin/content/{type}/{id}/hide",
+        {
+          params: { path: { type, id } },
+          body: { reason },
+        },
+      );
       if (error) throw error;
-      return envelope<components["schemas"]["AdminContentModerationResponseDto"]>(data).data;
+      return envelope<
+        components["schemas"]["AdminContentModerationResponseDto"]
+      >(data).data;
     },
     onSuccess: (data, variables) => refresh(variables, data.hidden),
   });
 
   const restore = useMutation({
     mutationFn: async ({ type, id, reason }: AdminContentActionInput) => {
-      const { data, error } = await apiClient.POST("/api/v1/admin/content/{type}/{id}/restore", {
-        params: { path: { type, id } },
-        body: { reason },
-      });
+      const { data, error } = await apiClient.POST(
+        "/api/v1/admin/content/{type}/{id}/restore",
+        {
+          params: { path: { type, id } },
+          body: { reason },
+        },
+      );
       if (error) throw error;
-      return envelope<components["schemas"]["AdminContentModerationResponseDto"]>(data).data;
+      return envelope<
+        components["schemas"]["AdminContentModerationResponseDto"]
+      >(data).data;
     },
     onSuccess: (data, variables) => refresh(variables, data.hidden),
   });
 
   return { hide, restore };
+}
+
+/** 前台管理员使用普通 Bearer 登录态隐藏内容，不依赖独立站务会话。 */
+export function useAdminBearerContentActions() {
+  const refresh = useContentModerationRefresh();
+  const hide = useMutation({
+    mutationFn: async ({ type, id, reason }: AdminContentActionInput) => {
+      const { data, error } = await apiClient.POST(
+        "/api/v1/moderation/content/{type}/{id}/hide",
+        {
+          params: { path: { type, id } },
+          body: { reason },
+        },
+      );
+      if (error) throw error;
+      return envelope<
+        components["schemas"]["AdminContentModerationResponseDto"]
+      >(data).data;
+    },
+    onSuccess: (data, variables) => refresh(variables, data.hidden),
+  });
+
+  return { hide };
 }
 
 export type AdminAuditLog = components["schemas"]["AdminAuditLogResponseDto"];
@@ -532,28 +670,41 @@ export function useAdminTaxonomy() {
 
 export function useAdminTaxonomyActions() {
   const queryClient = useQueryClient();
-  const refreshCategories = () => Promise.all([
-    queryClient.invalidateQueries({ queryKey: queryKeys.admin.taxonomy }),
-    queryClient.invalidateQueries({ queryKey: queryKeys.threadCategories }),
-  ]);
-  const refreshTags = () => Promise.all([
-    queryClient.invalidateQueries({ queryKey: queryKeys.admin.taxonomy }),
-    queryClient.invalidateQueries({ queryKey: queryKeys.topicTagsRoot }),
-  ]);
+  const refreshCategories = () =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.taxonomy }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.threadCategories }),
+    ]);
+  const refreshTags = () =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.taxonomy }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.topicTagsRoot }),
+    ]);
   const createCategory = useMutation({
-    mutationFn: async (body: components["schemas"]["CreateThreadCategoryDto"]) => {
-      const { data, error } = await apiClient.POST("/api/v1/admin/thread-categories", { body });
+    mutationFn: async (
+      body: components["schemas"]["CreateThreadCategoryDto"],
+    ) => {
+      const { data, error } = await apiClient.POST(
+        "/api/v1/admin/thread-categories",
+        { body },
+      );
       if (error) throw error;
       return data;
     },
     onSuccess: refreshCategories,
   });
   const updateCategory = useMutation({
-    mutationFn: async ({ id, ...body }: components["schemas"]["UpdateThreadCategoryDto"] & { id: string }) => {
-      const { data, error } = await apiClient.PATCH("/api/v1/admin/thread-categories/{id}", {
-        params: { path: { id } },
-        body,
-      });
+    mutationFn: async ({
+      id,
+      ...body
+    }: components["schemas"]["UpdateThreadCategoryDto"] & { id: string }) => {
+      const { data, error } = await apiClient.PATCH(
+        "/api/v1/admin/thread-categories/{id}",
+        {
+          params: { path: { id } },
+          body,
+        },
+      );
       if (error) throw error;
       return data;
     },
@@ -561,14 +712,19 @@ export function useAdminTaxonomyActions() {
   });
   const createTag = useMutation({
     mutationFn: async (body: components["schemas"]["CreateManagedTagDto"]) => {
-      const { data, error } = await apiClient.POST("/api/v1/admin/tags", { body });
+      const { data, error } = await apiClient.POST("/api/v1/admin/tags", {
+        body,
+      });
       if (error) throw error;
       return data;
     },
     onSuccess: refreshTags,
   });
   const updateTag = useMutation({
-    mutationFn: async ({ id, ...body }: components["schemas"]["UpdateManagedTagDto"] & { id: string }) => {
+    mutationFn: async ({
+      id,
+      ...body
+    }: components["schemas"]["UpdateManagedTagDto"] & { id: string }) => {
       const { data, error } = await apiClient.PATCH("/api/v1/admin/tags/{id}", {
         params: { path: { id } },
         body,
@@ -589,9 +745,12 @@ export function useNotificationCampaigns(filters: NotificationCampaignFilters) {
   return useQuery({
     queryKey: queryKeys.admin.announcements(filters),
     queryFn: async () => {
-      const { data, error } = await apiClient.GET("/api/v1/admin/notification-campaigns", {
-        params: { query: { ...filters, limit: filters.limit ?? 20 } },
-      });
+      const { data, error } = await apiClient.GET(
+        "/api/v1/admin/notification-campaigns",
+        {
+          params: { query: { ...filters, limit: filters.limit ?? 20 } },
+        },
+      );
       if (error) throw error;
       const result = envelope<NotificationCampaign[]>(data);
       return { items: result.data, meta: result.meta };
@@ -602,17 +761,30 @@ export function useNotificationCampaigns(filters: NotificationCampaignFilters) {
 
 export function useNotificationCampaignActions() {
   const queryClient = useQueryClient();
-  const refresh = () => queryClient.invalidateQueries({ queryKey: queryKeys.admin.announcementsRoot });
+  const refresh = () =>
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.admin.announcementsRoot,
+    });
   const preview = useMutation({
-    mutationFn: async (body: components["schemas"]["NotificationAudienceDto"]) => {
-      const { data, error } = await apiClient.POST("/api/v1/admin/notification-campaigns/preview", { body });
+    mutationFn: async (
+      body: components["schemas"]["NotificationAudienceDto"],
+    ) => {
+      const { data, error } = await apiClient.POST(
+        "/api/v1/admin/notification-campaigns/preview",
+        { body },
+      );
       if (error) throw error;
       return envelope<{ recipientCount: number }>(data).data;
     },
   });
   const create = useMutation({
-    mutationFn: async (body: components["schemas"]["CreateNotificationCampaignDto"]) => {
-      const { data, error } = await apiClient.POST("/api/v1/admin/notification-campaigns", { body });
+    mutationFn: async (
+      body: components["schemas"]["CreateNotificationCampaignDto"],
+    ) => {
+      const { data, error } = await apiClient.POST(
+        "/api/v1/admin/notification-campaigns",
+        { body },
+      );
       if (error) throw error;
       return data;
     },
@@ -620,9 +792,12 @@ export function useNotificationCampaignActions() {
   });
   const cancel = useMutation({
     mutationFn: async (id: string) => {
-      const { data, error } = await apiClient.DELETE("/api/v1/admin/notification-campaigns/{id}", {
-        params: { path: { id } },
-      });
+      const { data, error } = await apiClient.DELETE(
+        "/api/v1/admin/notification-campaigns/{id}",
+        {
+          params: { path: { id } },
+        },
+      );
       if (error) throw error;
       return data;
     },
