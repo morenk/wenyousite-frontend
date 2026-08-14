@@ -34,9 +34,20 @@ const thread = {
   id: "t1",
   title: "测试帖子",
   category: "RPG" as const,
+  status: "RECRUITING" as const,
+  visibility: "PUBLIC" as const,
+  published: true,
+  pinned: false,
+  tipTotal: "0",
   createdAt: "2026-01-01T00:00:00Z",
-  owner: { id: "u1", username: "morenk", avatar: null },
+  updatedAt: "2026-01-02T00:00:00Z",
+  deletedAt: null,
+  owner: { id: "u1", username: "morenk", avatar: null, level: 1 },
+  defaultSubthread: { id: "s1", title: "主贴", lastPostAt: null },
+  topicTags: [],
   _count: { members: 1, posts: 2, players: 1 },
+  preview: "正文预览",
+  coverImages: [],
 };
 
 const user = {
@@ -63,7 +74,14 @@ describe("分类搜索 hooks", () => {
 
   test("主题帖与用户使用独立端点且可由 Tab 控制启用", async () => {
     mockGET
-      .mockResolvedValueOnce({ data: { code: 0, message: "ok", data: [thread] } })
+      .mockResolvedValueOnce({
+        data: {
+          code: 0,
+          message: "ok",
+          data: [thread],
+          meta: { cursor: null, hasMore: false },
+        },
+      })
       .mockResolvedValueOnce({ data: { code: 0, message: "ok", data: [user] } });
 
     const wrapper = createWrapper();
@@ -73,13 +91,53 @@ describe("分类搜索 hooks", () => {
     await waitFor(() => expect(threads.result.current.isSuccess).toBe(true));
     await waitFor(() => expect(users.result.current.isSuccess).toBe(true));
     expect(mockGET).toHaveBeenCalledWith("/api/v1/search/threads", {
-      params: { query: { q: "测试" } },
+      params: { query: { q: "测试", limit: 20 } },
     });
     expect(mockGET).toHaveBeenCalledWith("/api/v1/search/users", {
       params: { query: { q: "测试" } },
     });
-    expect(threads.result.current.data?.[0].title).toBe("测试帖子");
+    expect(threads.result.current.data?.pages[0].data[0].title).toBe("测试帖子");
     expect(users.result.current.data?.[0].username).toBe("测试用户");
+  });
+
+  test("主题帖搜索按 meta.cursor 加载下一页", async () => {
+    mockGET
+      .mockResolvedValueOnce({
+        data: {
+          code: 0,
+          message: "ok",
+          data: [thread],
+          meta: { cursor: "thread-next", hasMore: true },
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          code: 0,
+          message: "ok",
+          data: [{ ...thread, id: "t2" }],
+          meta: { cursor: null, hasMore: false },
+        },
+      });
+
+    const { result } = renderHook(() => useSearchThreads(" 测试 ", true), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    let nextPageResult: Awaited<
+      ReturnType<typeof result.current.fetchNextPage>
+    > | undefined;
+    await act(async () => {
+      nextPageResult = await result.current.fetchNextPage();
+    });
+
+    expect(mockGET).toHaveBeenNthCalledWith(2, "/api/v1/search/threads", {
+      params: {
+        query: { q: "测试", limit: 20, cursor: "thread-next" },
+      },
+    });
+    expect(nextPageResult?.data?.pages).toHaveLength(2);
+    expect(nextPageResult?.hasNextPage).toBe(false);
   });
 
   test("未激活分类不请求", () => {

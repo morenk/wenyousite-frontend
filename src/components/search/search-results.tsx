@@ -4,8 +4,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
-import { zhCN } from "date-fns/locale";
 import { FileText, Images, Loader2, MessageSquare, Users } from "lucide-react";
 import {
   isPostSearchKeywordValid,
@@ -14,7 +12,6 @@ import {
   useSearchUsers,
   useSearchMoments,
 } from "@/api/hooks/use-search";
-import { ThreadCategoryBadge } from "@/components/thread/thread-category";
 import { EmptyState } from "@/components/shared/empty-state";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Button } from "@/components/ui/button";
@@ -22,7 +19,7 @@ import { PostSearchResultList } from "@/components/search/post-search-result-lis
 import { ListRefreshIndicator } from "@/components/shared/list-refresh-indicator";
 import { MomentMasonry } from "@/components/moment/moment-masonry";
 import { useAuth } from "@/lib/auth";
-import { ThreadCover } from "@/components/thread/thread-cover";
+import { ThreadList } from "@/components/thread/thread-list";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type SearchTab = "moments" | "threads" | "posts" | "users";
@@ -66,6 +63,7 @@ export function SearchResults({ keyword }: SearchResultsProps) {
   );
   const momentsQuery = useSearchMoments(keyword, activeTab === "moments" && postKeywordValid, user?.id);
   const posts = postsQuery.data?.pages.flatMap((page) => page.data) ?? [];
+  const threads = threadsQuery.data?.pages.flatMap((page) => page.data) ?? [];
   const moments = momentsQuery.data?.pages.flatMap((page) => page.data) ?? [];
   const isRefreshing = activeTab === "moments"
     ? momentsQuery.isPlaceholderData
@@ -86,8 +84,8 @@ export function SearchResults({ keyword }: SearchResultsProps) {
     {
       value: "threads" as const,
       label: "主题帖",
-      count: threadsQuery.data?.length,
-      hasMore: threadsQuery.data?.length === 50,
+      count: threadsQuery.data ? threads.length : undefined,
+      hasMore: threadsQuery.hasNextPage,
       icon: MessageSquare,
     },
     {
@@ -113,7 +111,7 @@ export function SearchResults({ keyword }: SearchResultsProps) {
       className="relative w-full min-w-0 gap-0"
       aria-busy={isRefreshing || undefined}
     >
-      {isRefreshing && <ListRefreshIndicator />}
+      {isRefreshing && activeTab !== "threads" && <ListRefreshIndicator />}
       <TabsList
         aria-label="搜索结果分类"
         className="grid h-10 w-full grid-cols-4 gap-1 rounded-xl bg-muted p-1"
@@ -151,38 +149,20 @@ export function SearchResults({ keyword }: SearchResultsProps) {
       </TabsContent>
 
       <TabsContent value="threads" className="mt-4 w-full min-w-0">
-        {threadsQuery.isLoading ? (
-            <SearchLoading />
-          ) : threadsQuery.isError ? (
-            <SearchError onRetry={() => void threadsQuery.refetch()} />
-          ) : !threadsQuery.data || threadsQuery.data.length === 0 ? (
-            <EmptyState title="没有匹配的主题帖" />
-          ) : (
-            <div className="w-full space-y-3">
-              {threadsQuery.data.map((thread) => (
-                <Link
-                  key={thread.id}
-                  href={`/threads/${thread.id}`}
-                  className="block w-full rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-accent/20"
-                >
-                  <div className="mb-1.5 flex items-center gap-2">
-                    <ThreadCategoryBadge category={thread.category} />
-                  </div>
-                  <h3 className="font-display text-base font-bold text-foreground line-clamp-1">
-                    {thread.title}
-                  </h3>
-                  <ThreadCover image={thread.coverImages?.[0]} />
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {thread.owner.username} ·{" "}
-                    {formatDistanceToNow(new Date(thread.createdAt), {
-                      addSuffix: true,
-                      locale: zhCN,
-                    })}
-                  </p>
-                </Link>
-              ))}
-            </div>
-          )}
+        <div className="block w-full">
+          <ThreadList
+            threads={threads}
+            hasNextPage={!isRefreshing && !!threadsQuery.hasNextPage}
+            isFetchingNextPage={!isRefreshing && threadsQuery.isFetchingNextPage}
+            isLoading={threadsQuery.isLoading}
+            isRefreshing={activeTab === "threads" && !!threadsQuery.isPlaceholderData}
+            error={threadsQuery.error}
+            onLoadMore={() => void threadsQuery.fetchNextPage()}
+            onRetry={() => void threadsQuery.refetch()}
+            emptyTitle="没有匹配的主题帖"
+            errorTitle="搜索失败"
+          />
+        </div>
       </TabsContent>
 
       <TabsContent value="posts" className="mt-4 w-full min-w-0">

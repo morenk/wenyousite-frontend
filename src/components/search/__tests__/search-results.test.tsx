@@ -1,7 +1,14 @@
 /** SearchResults 组件测试：分类惰性加载、短词提示与楼层分页。 */
 
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render as testingLibraryRender,
+  screen,
+} from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import type { ReactElement } from "react";
 import { SearchResults } from "@/components/search/search-results";
 
 const {
@@ -46,9 +53,19 @@ const thread = {
   id: "t1",
   title: "测试帖子",
   category: "RPG",
+  status: "RECRUITING",
+  visibility: "PUBLIC",
+  published: true,
+  pinned: false,
+  tipTotal: "12",
   createdAt: "2026-01-01T00:00:00Z",
-  owner: { id: "u1", username: "morenk", avatar: null },
+  updatedAt: "2026-01-02T00:00:00Z",
+  deletedAt: null,
+  owner: { id: "u1", username: "morenk", avatar: null, level: 3 },
+  defaultSubthread: { id: "s1", title: "主贴", lastPostAt: null },
+  topicTags: [],
   _count: { members: 1, posts: 2, players: 1 },
+  preview: "统一后的主题帖正文预览",
   coverImages: [
     "https://cdn.example.com/uploads/search-cover.jpg",
     "https://cdn.example.com/uploads/search-second.jpg",
@@ -76,14 +93,43 @@ const idleQuery = {
   data: undefined,
   isLoading: false,
   isError: false,
+  error: null,
+  isPlaceholderData: false,
   refetch: vi.fn(),
 };
+
+function render(ui: ReactElement) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return testingLibraryRender(
+    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
+  );
+}
 
 describe("SearchResults", () => {
   beforeEach(() => {
     mockFetchNextPage.mockReset();
     mockUseSearchThreads.mockImplementation((_q, enabled: boolean) =>
-      enabled ? { ...idleQuery, data: [thread] } : idleQuery,
+      enabled
+        ? {
+            ...idleQuery,
+            data: {
+              pages: [{
+                data: [thread],
+                meta: { cursor: null, hasMore: false },
+              }],
+            },
+            hasNextPage: false,
+            isFetchingNextPage: false,
+            fetchNextPage: mockFetchNextPage,
+          }
+        : {
+            ...idleQuery,
+            hasNextPage: false,
+            isFetchingNextPage: false,
+            fetchNextPage: mockFetchNextPage,
+          },
     );
     mockUseSearchUsers.mockImplementation((_q, enabled: boolean) =>
       enabled ? { ...idleQuery, data: [user] } : idleQuery,
@@ -143,11 +189,12 @@ describe("SearchResults", () => {
 
     fireEvent.click(screen.getByRole("tab", { name: "主题帖" }));
     expect(mockUseSearchThreads).toHaveBeenLastCalledWith("测试", true);
-    expect(screen.getByRole("link", { name: /测试帖子/ })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "查看主题帖：测试帖子" })).toHaveAttribute(
       "href",
       "/threads/t1",
     );
-    expect(screen.getByRole("link", { name: /测试帖子/ })).toHaveClass("w-full");
+    expect(screen.getByText("统一后的主题帖正文预览")).toBeInTheDocument();
+    expect(screen.getByText("招募中")).toBeInTheDocument();
     expect(document.querySelector("[data-thread-cover='true'] img")).toHaveAttribute(
       "src",
       "https://cdn.example.com/uploads/search-cover_feed.webp",
@@ -170,13 +217,23 @@ describe("SearchResults", () => {
     const loadingView = render(<SearchResults keyword="测试" />);
 
     fireEvent.click(screen.getByRole("tab", { name: "主题帖" }));
-    expect(loadingView.container.querySelector(".animate-spin")).toBeInTheDocument();
+    expect(
+      screen.getByRole("status", { name: "正在加载主题帖" }),
+    ).toBeInTheDocument();
     loadingView.unmount();
 
     const refetch = vi.fn();
     mockUseSearchThreads.mockImplementation((_q, enabled: boolean) =>
       enabled
-        ? { ...idleQuery, isError: true, refetch }
+        ? {
+            ...idleQuery,
+            isError: true,
+            error: new Error("搜索失败"),
+            refetch,
+            hasNextPage: false,
+            isFetchingNextPage: false,
+            fetchNextPage: mockFetchNextPage,
+          }
         : idleQuery,
     );
     render(<SearchResults keyword="测试" />);
@@ -216,14 +273,22 @@ describe("SearchResults", () => {
   test("关键词变化时保留旧结果并标记列表正在更新", () => {
     mockUseSearchThreads.mockReturnValue({
       ...idleQuery,
-      data: [thread],
+      data: {
+        pages: [{
+          data: [thread],
+          meta: { cursor: null, hasMore: false },
+        }],
+      },
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      fetchNextPage: mockFetchNextPage,
       isPlaceholderData: true,
     });
 
     render(<SearchResults keyword="新关键词" />);
     fireEvent.click(screen.getByRole("tab", { name: "主题帖 1" }));
 
-    expect(screen.getByRole("link", { name: /测试帖子/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "查看主题帖：测试帖子" })).toBeInTheDocument();
     expect(screen.getByRole("status", { name: "正在更新列表" })).toBeInTheDocument();
   });
 });

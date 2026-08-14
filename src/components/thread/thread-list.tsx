@@ -23,6 +23,8 @@ interface ThreadListProps {
   error: unknown;
   onLoadMore: () => void;
   onRetry: () => void;
+  emptyTitle?: string;
+  errorTitle?: string;
 }
 
 export function ThreadList({
@@ -34,6 +36,8 @@ export function ThreadList({
   error,
   onLoadMore,
   onRetry,
+  emptyTitle = "还没有主题帖",
+  errorTitle = "加载失败",
 }: ThreadListProps) {
   const sentinelRef = useInfiniteScroll({
     hasNextPage: hasNextPage && !isRefreshing,
@@ -54,7 +58,7 @@ export function ThreadList({
     return (
       <Panel padding="none">
         <LoadError
-          title="加载失败"
+          title={errorTitle}
           onRetry={onRetry}
           className="py-20"
         />
@@ -65,7 +69,7 @@ export function ThreadList({
   if (threads.length === 0) {
     return (
       <Panel padding="none">
-        <EmptyState title="还没有主题帖" />
+        <EmptyState title={emptyTitle} />
       </Panel>
     );
   }

@@ -81,6 +81,22 @@ describe("ThreadList", () => {
     expect(screen.getByText("还没有主题帖")).toBeInTheDocument();
   });
 
+  test("搜索场景可复用列表并覆盖空态文案", () => {
+    render(
+      <ThreadList
+        threads={[]}
+        hasNextPage={false}
+        isFetchingNextPage={false}
+        isLoading={false}
+        error={null}
+        onLoadMore={() => {}}
+        onRetry={() => {}}
+        emptyTitle="没有匹配的主题帖"
+      />,
+    );
+    expect(screen.getByText("没有匹配的主题帖")).toBeInTheDocument();
+  });
+
   test("错误状态显示重试按钮", () => {
     const onRetry = vi.fn();
     render(

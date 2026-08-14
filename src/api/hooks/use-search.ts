@@ -17,6 +17,11 @@ interface SearchPostPage {
   meta: components["schemas"]["ApiPaginationMeta"];
 }
 
+interface SearchThreadPage {
+  data: SearchThread[];
+  meta: components["schemas"]["ApiPaginationMeta"];
+}
+
 function usePostSearchPages(
   queryKey: readonly unknown[],
   enabled: boolean,
@@ -41,15 +46,27 @@ export const isPostSearchKeywordValid = (q: string) =>
 
 export function useSearchThreads(q: string, enabled: boolean) {
   const keyword = q.trim();
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: queryKeys.search.threads(keyword),
-    queryFn: async () => {
+    queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
       const { data, error } = await apiClient.GET("/api/v1/search/threads", {
-        params: { query: { q: keyword } },
+        params: {
+          query: {
+            q: keyword,
+            limit: 20,
+            ...(pageParam ? { cursor: pageParam } : {}),
+          },
+        },
       });
       if (error) throw error;
-      return data?.data ?? [];
+      return {
+        data: data?.data ?? [],
+        meta: data?.meta ?? { cursor: null, hasMore: false },
+      } satisfies SearchThreadPage;
     },
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) =>
+      lastPage.meta.hasMore ? (lastPage.meta.cursor ?? undefined) : undefined,
     enabled: enabled && keyword.length > 0,
     placeholderData: keepPreviousData,
     staleTime: 30 * 1000,
