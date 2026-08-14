@@ -29,7 +29,6 @@ import {
 
 interface FloorCardProps {
   floor: FloorDisplayData;
-  isEven: boolean;
   focused?: boolean;
 }
 
@@ -37,7 +36,7 @@ interface FloorCardProps {
 export const INLINE_REPLY_LIMIT = 5;
 export const INLINE_REPLY_MAX_LENGTH = 500;
 
-export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
+export function FloorCard({ floor, focused = false }: FloorCardProps) {
   const { user } = useAuth();
   const cardRef = useRef<HTMLDivElement>(null);
   const deletePost = useDeletePost();
@@ -100,8 +99,7 @@ export function FloorCard({ floor, isEven, focused = false }: FloorCardProps) {
       ref={cardRef}
       id={`post-${floor.id}`}
       className={cn(
-        "rounded-2xl border border-border bg-card p-4 transition-colors",
-        isEven && "bg-muted/20",
+        "rounded-xl border border-border bg-card p-4 transition-colors",
         focused && "border-primary bg-accent/30 ring-2 ring-primary/20",
       )}
     >

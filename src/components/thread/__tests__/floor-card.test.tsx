@@ -138,7 +138,7 @@ describe("FloorCard", () => {
   });
 
   test("渲染作者名和楼层号", () => {
-    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+    renderWithQC(<FloorCard floor={baseFloor} />);
     expect(screen.getByText("测试用户")).toBeInTheDocument();
     expect(screen.getByText("#1")).toBeInTheDocument();
     expect(screen.getByTestId("user-avatar-placeholder").textContent).toBe("测");
@@ -147,7 +147,7 @@ describe("FloorCard", () => {
   test("管理员可从楼层菜单进入站务隐藏", async () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({ user: { id: "admin-1", role: "ADMIN" }, isInitialized: true });
-    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+    renderWithQC(<FloorCard floor={baseFloor} />);
 
     await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
     expect(await screen.findByRole("menuitem", { name: "站务隐藏" })).toBeInTheDocument();
@@ -158,7 +158,7 @@ describe("FloorCard", () => {
       .spyOn(HTMLElement.prototype, "scrollIntoView")
       .mockImplementation(() => {});
     const { container } = renderWithQC(
-      <FloorCard floor={baseFloor} isEven={false} focused />,
+      <FloorCard floor={baseFloor} focused />,
     );
 
     await waitFor(() => {
@@ -175,7 +175,7 @@ describe("FloorCard", () => {
       ...baseFloor,
       author: { id: "u1", username: "测试用户", avatar: "https://example.com/a.png", level: 1 },
     };
-    renderWithQC(<FloorCard floor={withAvatar} isEven={false} />);
+    renderWithQC(<FloorCard floor={withAvatar} />);
     expect(screen.getByRole("img")).toHaveAttribute(
       "src",
       "https://example.com/a_thumb.webp",
@@ -183,19 +183,19 @@ describe("FloorCard", () => {
   });
 
   test("渲染 Markdown 加粗", () => {
-    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+    renderWithQC(<FloorCard floor={baseFloor} />);
     const strong = screen.getByText("加粗");
     expect(strong.tagName).toBe("STRONG");
   });
 
   test("渲染纯文本内容", () => {
     const plain = { ...baseFloor, content: "纯文本正文" };
-    renderWithQC(<FloorCard floor={plain} isEven={false} />);
+    renderWithQC(<FloorCard floor={plain} />);
     expect(screen.getByText("纯文本正文")).toBeInTheDocument();
   });
 
   test("不显示回复数（replies 为 0）", () => {
-    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+    renderWithQC(<FloorCard floor={baseFloor} />);
     expect(screen.queryByText("条回复")).toBeNull();
   });
 
@@ -204,7 +204,7 @@ describe("FloorCard", () => {
       ...baseFloor,
       _count: { replies: 3 },
     };
-    renderWithQC(<FloorCard floor={withReplies} isEven={false} />);
+    renderWithQC(<FloorCard floor={withReplies} />);
     expect(screen.getByText("3 条回复")).toBeInTheDocument();
   });
 
@@ -214,7 +214,7 @@ describe("FloorCard", () => {
       configurable: true,
       value: { writeText: mockClipboardWriteText },
     });
-    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+    renderWithQC(<FloorCard floor={baseFloor} />);
 
     await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
     await user.click(screen.getByRole("menuitem", { name: "复制链接" }));
@@ -231,7 +231,7 @@ describe("FloorCard", () => {
       configurable: true,
       value: { writeText: mockClipboardWriteText },
     });
-    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+    renderWithQC(<FloorCard floor={baseFloor} />);
 
     expect(screen.queryByRole("menuitem", { name: "复制文本" })).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
@@ -246,7 +246,7 @@ describe("FloorCard", () => {
   test("有简短回复时默认展示前五条内联预览", () => {
     const replies = Array.from({ length: 6 }, (_, index) => inlineReply(`reply-${index + 1}`));
     const withReplies = { ...baseFloor, _count: { replies: 6 }, replies };
-    renderWithQC(<FloorCard floor={withReplies} isEven={false} />);
+    renderWithQC(<FloorCard floor={withReplies} />);
 
     expect(screen.getAllByTestId("inline-reply")).toHaveLength(5);
     expect(screen.getByText("回复 reply-1")).toBeInTheDocument();
@@ -263,7 +263,7 @@ describe("FloorCard", () => {
       user: { id: "u1", username: "测试用户", emailVerified: true },
       isInitialized: true,
     });
-    renderWithQC(<FloorCard floor={withReplies} isEven={false} />);
+    renderWithQC(<FloorCard floor={withReplies} />);
 
     const meta = screen.getByTestId("floor-card-meta");
     const preview = screen.getByTestId("inline-replies");
@@ -281,7 +281,7 @@ describe("FloorCard", () => {
       _count: { replies: 1 },
       replies: [inlineReply("reply-long", "长".repeat(501))],
     };
-    renderWithQC(<FloorCard floor={withReplies} isEven={false} />);
+    renderWithQC(<FloorCard floor={withReplies} />);
 
     expect(screen.getByTestId("inline-reply")).toBeInTheDocument();
     expect(screen.getByTestId("inline-replies")).toHaveClass("overflow-hidden");
@@ -291,17 +291,16 @@ describe("FloorCard", () => {
     );
   });
 
-  test("偶数索引有轻量交替底色", () => {
-    const { container } = renderWithQC(
-      <FloorCard floor={baseFloor} isEven={true} />,
-    );
-    expect(container.firstChild as HTMLElement).toHaveClass("bg-muted/20");
+  test("楼层使用弱于主题文档的紧凑圆角且不交替着色", () => {
+    const { container } = renderWithQC(<FloorCard floor={baseFloor} />);
+    expect(container.firstChild as HTMLElement).toHaveClass("rounded-xl", "bg-card");
+    expect(container.firstChild as HTMLElement).not.toHaveClass("bg-muted/20", "rounded-2xl");
   });
 
   test("未登录时操作菜单不显示编辑/删除", async () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
-    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+    renderWithQC(<FloorCard floor={baseFloor} />);
 
     await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
     expect(screen.queryByRole("menuitem", { name: "编辑" })).toBeNull();
@@ -314,7 +313,7 @@ describe("FloorCard", () => {
       user: { id: "other", username: "别人", emailVerified: true },
       isInitialized: true,
     });
-    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+    renderWithQC(<FloorCard floor={baseFloor} />);
 
     await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
     expect(screen.queryByRole("menuitem", { name: "编辑" })).toBeNull();
@@ -329,7 +328,7 @@ describe("FloorCard", () => {
     });
     mockUseThreadPermissions.mockReturnValue({ isManager: true });
 
-    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+    renderWithQC(<FloorCard floor={baseFloor} />);
 
     await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
     expect(screen.queryByRole("menuitem", { name: "编辑" })).not.toBeInTheDocument();
@@ -342,7 +341,7 @@ describe("FloorCard", () => {
       user: { id: "u1", username: "测试用户", emailVerified: true },
       isInitialized: true,
     });
-    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+    renderWithQC(<FloorCard floor={baseFloor} />);
 
     await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
     expect(screen.getByRole("menuitem", { name: "编辑" })).toBeInTheDocument();
@@ -355,7 +354,7 @@ describe("FloorCard", () => {
       user: { id: "u1", username: "测试用户", emailVerified: true },
       isInitialized: true,
     });
-    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+    renderWithQC(<FloorCard floor={baseFloor} />);
 
     await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
     const del = screen.getByRole("menuitem", { name: "删除" });
@@ -368,7 +367,7 @@ describe("FloorCard", () => {
       user: { id: "u1", username: "测试用户", emailVerified: true },
       isInitialized: true,
     });
-    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+    renderWithQC(<FloorCard floor={baseFloor} />);
 
     await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
     await user.click(screen.getByRole("menuitem", { name: "编辑" }));
@@ -392,7 +391,7 @@ describe("FloorCard", () => {
       isInitialized: true,
     });
     mockUpdateMutateAsync.mockRejectedValueOnce({ code: 40002, message: "内容已被修改" });
-    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+    renderWithQC(<FloorCard floor={baseFloor} />);
 
     await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
     await user.click(screen.getByRole("menuitem", { name: "编辑" }));
@@ -407,7 +406,7 @@ describe("FloorCard", () => {
       user: { id: "u1", username: "测试用户", emailVerified: true },
       isInitialized: true,
     });
-    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+    renderWithQC(<FloorCard floor={baseFloor} />);
 
     await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
     await user.click(screen.getByRole("menuitem", { name: "编辑" }));
@@ -425,7 +424,7 @@ describe("FloorCard", () => {
       user: { id: "u1", username: "测试用户", emailVerified: true },
       isInitialized: true,
     });
-    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+    renderWithQC(<FloorCard floor={baseFloor} />);
 
     await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
     await user.click(screen.getByRole("menuitem", { name: "删除" }));
@@ -443,7 +442,7 @@ describe("FloorCard", () => {
       user: { id: "u1", username: "测试用户", emailVerified: true },
       isInitialized: true,
     });
-    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+    renderWithQC(<FloorCard floor={baseFloor} />);
 
     await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
     await user.click(screen.getByRole("menuitem", { name: "删除" }));
@@ -459,7 +458,7 @@ describe("FloorCard", () => {
       user: { id: "u1", username: "测试用户", emailVerified: true },
       isInitialized: true,
     });
-    renderWithQC(<FloorCard floor={withReplies} isEven={false} />);
+    renderWithQC(<FloorCard floor={withReplies} />);
 
     expect(screen.getByRole("link", { name: /3 条回复/ })).toHaveAttribute(
       "href",
@@ -469,7 +468,7 @@ describe("FloorCard", () => {
 
   test("无楼中楼回复时不显示占位，未登录不保留空操作栏", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
-    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+    renderWithQC(<FloorCard floor={baseFloor} />);
 
     expect(screen.queryByText("暂无回复")).toBeNull();
     expect(screen.getByTestId("floor-card-meta").querySelector("time")).toBeInTheDocument();
@@ -482,7 +481,7 @@ describe("FloorCard", () => {
       user: { id: "u1", username: "测试用户", emailVerified: true },
       isInitialized: true,
     });
-    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+    renderWithQC(<FloorCard floor={baseFloor} />);
 
     expect(screen.queryByText("暂无回复")).toBeNull();
     expect(screen.queryByTestId("floor-card-actions")).toBeNull();
@@ -496,7 +495,7 @@ describe("FloorCard", () => {
   test("未登录时操作菜单不显示回复动作", async () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
-    renderWithQC(<FloorCard floor={baseFloor} isEven={false} />);
+    renderWithQC(<FloorCard floor={baseFloor} />);
 
     await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
     expect(screen.queryByRole("menuitem", { name: "回复" })).toBeNull();

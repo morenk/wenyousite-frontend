@@ -67,11 +67,10 @@ export function FloorList({
 
   return (
     <div className="flex flex-col gap-3">
-      {displayedFloors.map((floor, index) => (
+      {displayedFloors.map((floor) => (
         <FloorCard
           key={floor.id}
           floor={floor}
-          isEven={index % 2 === 1}
           focused={floor.id === focusedFloor?.id}
         />
       ))}

@@ -13,12 +13,11 @@ vi.mock("@/hooks/use-infinite-scroll", () => ({
 }));
 
 vi.mock("@/components/thread/floor-card", () => ({
-  FloorCard: ({ floor, focused, isEven }: {
+  FloorCard: ({ floor, focused }: {
     floor: { id: string };
     focused: boolean;
-    isEven: boolean;
   }) => (
-    <div data-testid="floor" data-focused={focused} data-even={isEven}>
+    <div data-testid="floor" data-focused={focused}>
       {floor.id}
     </div>
   ),
@@ -73,7 +72,6 @@ describe("FloorList", () => {
     const cards = screen.getAllByTestId("floor");
     expect(cards.map((card) => card.textContent)).toEqual(["focused", "p1", "p2"]);
     expect(cards[0]).toHaveAttribute("data-focused", "true");
-    expect(cards[1]).toHaveAttribute("data-even", "true");
   });
 
   test("聚焦楼层已在列表中时不重复插入", () => {
