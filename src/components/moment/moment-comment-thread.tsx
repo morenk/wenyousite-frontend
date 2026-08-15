@@ -1,8 +1,9 @@
 "use client";
 
 import { ChevronUp, Loader2 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
+  type MomentComment,
   type MomentRootComment,
   useMomentReplies,
 } from "@/api/hooks/use-moments";
@@ -19,12 +20,14 @@ export function MomentCommentThread({
   filters,
   onReply,
   focusedCommentId,
+  focusedReply,
 }: {
   momentId: string;
   comment: MomentRootComment;
   filters: ReplyFilters;
   onReply: (target: MomentReplyTarget) => void;
   focusedCommentId?: string;
+  focusedReply?: MomentComment;
 }) {
   const { user } = useAuth();
   const targetReplyId = focusedCommentId && focusedCommentId !== comment.id
@@ -32,34 +35,20 @@ export function MomentCommentThread({
     : null;
   const [expanded, setExpanded] = useState(() => !!targetReplyId);
   const threadRef = useRef<HTMLElement | null>(null);
-  const requestedReplyPageCountRef = useRef<number | null>(null);
   const repliesQuery = useMomentReplies(momentId, comment.id, user?.id, expanded, filters);
   const expandedReplies = repliesQuery.data?.pages.flatMap((page) => page.data) ?? [];
-  const replies = expanded
+  const loadedReplies = expanded
     ? repliesQuery.data ? expandedReplies : comment.replies
     : comment.replies;
-  const targetReplyLoaded = !!targetReplyId && expandedReplies.some(
-    (reply) => reply.id === targetReplyId,
-  );
-  const loadedReplyPageCount = repliesQuery.data?.pages.length ?? 0;
+  const injectedFocusedReply = expanded && focusedReply?.id === targetReplyId &&
+      focusedReply.parentCommentId === comment.id &&
+      !loadedReplies.some((reply) => reply.id === focusedReply.id)
+    ? focusedReply
+    : null;
+  const replies = injectedFocusedReply
+    ? [injectedFocusedReply, ...loadedReplies]
+    : loadedReplies;
   const isLargeExpandedThread = expanded && comment.replyCount > LARGE_REPLY_THREAD_THRESHOLD;
-
-  useEffect(() => {
-    requestedReplyPageCountRef.current = null;
-  }, [targetReplyId]);
-
-  useEffect(() => {
-    if (
-      !expanded ||
-      !targetReplyId ||
-      targetReplyLoaded ||
-      !repliesQuery.hasNextPage ||
-      repliesQuery.isFetchingNextPage ||
-      requestedReplyPageCountRef.current === loadedReplyPageCount
-    ) return;
-    requestedReplyPageCountRef.current = loadedReplyPageCount;
-    void repliesQuery.fetchNextPage();
-  }, [expanded, loadedReplyPageCount, repliesQuery, targetReplyId, targetReplyLoaded]);
 
   const collapseReplies = () => {
     setExpanded(false);

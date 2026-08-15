@@ -1,12 +1,17 @@
 "use client";
 
 import { ArrowDownUp, ChevronDown, Loader2 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { useMomentComments } from "@/api/hooks/use-moments";
+import {
+  type MomentRootComment,
+  useMomentCommentContext,
+  useMomentComments,
+} from "@/api/hooks/use-moments";
 import { FloatingInputDock } from "@/components/shared/floating-input-dock";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
+import { getApiError } from "@/api/errors";
 import type { ReplyFilters, ReplyOrder } from "@/api/reply-query";
 import { MomentCommentForm } from "@/components/moment/moment-comment-form";
 import { MomentCommentThread } from "@/components/moment/moment-comment-thread";
@@ -18,36 +23,35 @@ export function MomentComments({ momentId }: { momentId: string }) {
   const [order, setOrder] = useState<ReplyOrder>("NEWEST");
   const filters = useMemo<ReplyFilters>(() => ({ order }), [order]);
   const commentsQuery = useMomentComments(momentId, user?.id, filters);
-  const comments = commentsQuery.data?.pages.flatMap((page) => page.data) ?? [];
-  const [replyTarget, setReplyTarget] = useState<MomentReplyTarget>(null);
-  const targetRootCommentId = searchParams.get("comment");
-  const targetReplyId = targetRootCommentId ? searchParams.get("reply") : null;
-  const targetRootLoaded = !!targetRootCommentId && comments.some(
-    (comment) => comment.id === targetRootCommentId,
+  const commentPages = commentsQuery.data?.pages;
+  const comments = useMemo(
+    () => commentPages?.flatMap((page) => page.data) ?? [],
+    [commentPages],
   );
-  const loadedCommentPageCount = commentsQuery.data?.pages.length ?? 0;
-  const requestedCommentPageCountRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    requestedCommentPageCountRef.current = null;
-  }, [order, targetRootCommentId]);
-
-  useEffect(() => {
-    if (
-      !targetRootCommentId ||
-      targetRootLoaded ||
-      !commentsQuery.hasNextPage ||
-      commentsQuery.isFetchingNextPage ||
-      requestedCommentPageCountRef.current === loadedCommentPageCount
-    ) return;
-    requestedCommentPageCountRef.current = loadedCommentPageCount;
-    void commentsQuery.fetchNextPage();
-  }, [
-    commentsQuery,
-    loadedCommentPageCount,
-    targetRootCommentId,
-    targetRootLoaded,
-  ]);
+  const [replyTarget, setReplyTarget] = useState<MomentReplyTarget>(null);
+  const rootCommentParam = searchParams.get("comment");
+  const replyParam = rootCommentParam ? searchParams.get("reply") : null;
+  const targetCommentId = replyParam ?? rootCommentParam ?? undefined;
+  const contextQuery = useMomentCommentContext(momentId, targetCommentId, user?.id);
+  const context = contextQuery.data;
+  const focusedRoot = useMemo<MomentRootComment | null>(() => context ? {
+    ...context.root,
+    replyCount: context.replyCount,
+    replies: context.target.parentCommentId ? [context.target] : [],
+  } : null, [context]);
+  const displayedComments = useMemo(() => {
+    if (!focusedRoot || comments.some((comment) => comment.id === focusedRoot.id)) {
+      return comments;
+    }
+    return [focusedRoot, ...comments];
+  }, [comments, focusedRoot]);
+  const focusedRootId = context?.root.id;
+  const focusedCommentId = context?.target.id;
+  const focusedReply = context?.target.parentCommentId ? context.target : undefined;
+  const contextError = getApiError(contextQuery.error);
+  const targetUnavailable = contextError.code === 40400 || contextError.status === 404;
+  const showCommentsLoading = commentsQuery.isLoading && displayedComments.length === 0;
+  const showCommentsError = commentsQuery.isError && displayedComments.length === 0;
 
   return (
     <section id="comments" className="scroll-mt-6 pt-5" aria-label="动态回复">
@@ -65,29 +69,49 @@ export function MomentComments({ momentId }: { momentId: string }) {
         </button>
       </div>
 
-      {commentsQuery.isLoading ? (
+      {targetCommentId && contextQuery.isLoading ? (
+        <div className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-muted/45 px-4 py-3 text-sm text-muted-foreground" role="status">
+          <Loader2 className="size-4 animate-spin" />
+          正在定位目标回复…
+        </div>
+      ) : null}
+
+      {contextQuery.isError ? (
+        <div
+          className="mt-4 rounded-xl border border-border/70 bg-muted/35 px-4 py-3 text-center text-sm text-muted-foreground"
+          role={targetUnavailable ? "status" : "alert"}
+        >
+          <p>{targetUnavailable ? "目标回复不存在或不可见" : "定位目标回复失败"}</p>
+          {!targetUnavailable ? (
+            <Button variant="ghost" size="sm" className="mt-1" onClick={() => void contextQuery.refetch()}>
+              重试定位
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
+
+      {showCommentsLoading ? (
         <div className="flex justify-center py-14" role="status">
           <Loader2 className="size-5 animate-spin text-muted-foreground" />
         </div>
-      ) : commentsQuery.isError ? (
+      ) : showCommentsError ? (
         <div className="py-10 text-center">
           <p className="text-sm text-muted-foreground">评论加载失败</p>
           <Button variant="ghost" size="sm" className="mt-2" onClick={() => void commentsQuery.refetch()}>重试</Button>
         </div>
-      ) : comments.length === 0 ? (
+      ) : displayedComments.length === 0 ? (
         <p className="py-12 text-center text-sm text-muted-foreground">还没有评论</p>
       ) : (
         <div className="mt-4 divide-y divide-border/70">
-          {comments.map((comment) => (
+          {displayedComments.map((comment) => (
             <MomentCommentThread
-              key={`${comment.id}:${comment.id === targetRootCommentId ? targetReplyId ?? targetRootCommentId : ""}`}
+              key={`${comment.id}:${comment.id === focusedRootId ? focusedCommentId ?? "" : ""}`}
               momentId={momentId}
               comment={comment}
               filters={filters}
               onReply={setReplyTarget}
-              focusedCommentId={comment.id === targetRootCommentId
-                ? targetReplyId ?? targetRootCommentId
-                : undefined}
+              focusedCommentId={comment.id === focusedRootId ? focusedCommentId : undefined}
+              focusedReply={comment.id === focusedRootId ? focusedReply : undefined}
             />
           ))}
         </div>

@@ -23,6 +23,10 @@ export const queryKeys = {
       filters === undefined
         ? (["moments", "comments", momentId, commentId, "replies", viewerScope] as const)
         : (["moments", "comments", momentId, commentId, "replies", viewerScope, filters] as const),
+    commentContexts: (momentId: string, viewerScope: string) =>
+      ["moments", "comment-context", momentId, viewerScope] as const,
+    commentContext: (momentId: string, commentId: string | undefined, viewerScope: string) =>
+      ["moments", "comment-context", momentId, viewerScope, commentId] as const,
     commentAuthors: (momentId: string | undefined, viewerScope: string) =>
       ["moments", "comment-authors", momentId, viewerScope] as const,
     user: (userId: string | undefined, viewerScope: string, pageSize = 20) =>

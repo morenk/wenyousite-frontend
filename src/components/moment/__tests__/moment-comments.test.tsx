@@ -9,6 +9,8 @@ const {
   mockSearchParams,
   mockFetchReplies,
   mockRefetchComments,
+  mockRefetchContext,
+  mockUseMomentCommentContext,
   mockUseMomentComments,
   mockUseMomentReplies,
   mockCompress,
@@ -24,6 +26,8 @@ const {
   mockSearchParams: vi.fn(),
   mockFetchReplies: vi.fn(),
   mockRefetchComments: vi.fn(),
+  mockRefetchContext: vi.fn(),
+  mockUseMomentCommentContext: vi.fn(),
   mockUseMomentComments: vi.fn(),
   mockUseMomentReplies: vi.fn(),
   mockCompress: vi.fn(),
@@ -99,6 +103,7 @@ vi.mock("@/components/sticker/sticker-picker-popover", () => ({
   ),
 }));
 vi.mock("@/api/hooks/use-moments", () => ({
+  useMomentCommentContext: (...args: unknown[]) => mockUseMomentCommentContext(...args),
   useMomentComments: (...args: unknown[]) => mockUseMomentComments(...args),
   useMomentReplies: (...args: unknown[]) => mockUseMomentReplies(...args),
   useCreateMomentComment: () => ({ mutateAsync: mockCreate, isPending: false }),
@@ -152,6 +157,13 @@ describe("MomentComments", () => {
     });
     mockUseAuth.mockReturnValue({ user: { id: "viewer-1" } });
     mockSearchParams.mockReturnValue(new URLSearchParams());
+    mockUseMomentCommentContext.mockReturnValue({
+      data: undefined,
+      error: null,
+      isLoading: false,
+      isError: false,
+      refetch: mockRefetchContext,
+    });
     mockUseMomentReplies.mockImplementation(
       (_momentId: string, _commentId: string, _userId: string, enabled: boolean) => ({
         data: enabled ? { pages: [{ data: [reply] }] } : undefined,
@@ -229,6 +241,13 @@ describe("MomentComments", () => {
     mockSearchParams.mockReturnValue(
       new URLSearchParams("comment=root-1&reply=reply-1"),
     );
+    mockUseMomentCommentContext.mockReturnValue({
+      data: { root, target: reply, replyCount: root.replyCount },
+      error: null,
+      isLoading: false,
+      isError: false,
+      refetch: mockRefetchContext,
+    });
     const scrollIntoView = vi
       .spyOn(HTMLElement.prototype, "scrollIntoView")
       .mockImplementation(() => {});
@@ -244,14 +263,33 @@ describe("MomentComments", () => {
       true,
       { order: "NEWEST" },
     );
+    expect(mockUseMomentCommentContext).toHaveBeenLastCalledWith(
+      "moment-1",
+      "reply-1",
+      "viewer-1",
+    );
     await waitFor(() => expect(scrollIntoView).toHaveBeenCalledWith({
       behavior: "auto",
       block: "center",
     }));
   });
 
-  test("通知目标不在首批主评论时自动继续翻页查找", async () => {
+  test("通知目标不在首批主评论时直接注入且不扫描后续分页", async () => {
+    const laterRoot = {
+      ...root,
+      id: "root-later",
+      content: "后页主评论",
+      replyCount: 0,
+      replies: [],
+    };
     mockSearchParams.mockReturnValue(new URLSearchParams("comment=root-later"));
+    mockUseMomentCommentContext.mockReturnValue({
+      data: { root: laterRoot, target: laterRoot, replyCount: 0 },
+      error: null,
+      isLoading: false,
+      isError: false,
+      refetch: mockRefetchContext,
+    });
     mockUseMomentComments.mockReturnValue({
       data: { pages: [{ data: [root] }] },
       isLoading: false,
@@ -262,15 +300,32 @@ describe("MomentComments", () => {
       refetch: mockRefetchComments,
     });
 
-    render(<MomentComments momentId="moment-1" />);
+    const { container } = render(<MomentComments momentId="moment-1" />);
 
-    await waitFor(() => expect(mockFetchComments).toHaveBeenCalledOnce());
+    expect(screen.getByText("后页主评论")).toBeInTheDocument();
+    expect(container.querySelector("#moment-comment-root-later")).toHaveAttribute(
+      "aria-current",
+      "location",
+    );
+    expect(mockFetchComments).not.toHaveBeenCalled();
   });
 
-  test("通知目标不在首批楼中楼时自动继续翻页查找", async () => {
+  test("通知目标不在首批楼中楼时直接注入、去重且不扫描回复分页", () => {
+    const laterReply = {
+      ...reply,
+      id: "reply-later",
+      content: "后页楼中楼",
+    };
     mockSearchParams.mockReturnValue(
       new URLSearchParams("comment=root-1&reply=reply-later"),
     );
+    mockUseMomentCommentContext.mockReturnValue({
+      data: { root, target: laterReply, replyCount: root.replyCount },
+      error: null,
+      isLoading: false,
+      isError: false,
+      refetch: mockRefetchContext,
+    });
     mockUseMomentReplies.mockReturnValue({
       data: { pages: [{ data: [reply] }] },
       hasNextPage: true,
@@ -278,9 +333,57 @@ describe("MomentComments", () => {
       fetchNextPage: mockFetchReplies,
     });
 
-    render(<MomentComments momentId="moment-1" />);
+    const { container } = render(<MomentComments momentId="moment-1" />);
 
-    await waitFor(() => expect(mockFetchReplies).toHaveBeenCalledOnce());
+    expect(screen.getAllByText("后页楼中楼")).toHaveLength(1);
+    expect(container.querySelector("#moment-comment-reply-later")).toHaveAttribute(
+      "aria-current",
+      "location",
+    );
+    expect(mockFetchReplies).not.toHaveBeenCalled();
+  });
+
+  test("定位中显示进度，目标不可见时保留普通评论并明确提示", () => {
+    mockSearchParams.mockReturnValue(new URLSearchParams("comment=hidden-comment"));
+    mockUseMomentCommentContext.mockReturnValue({
+      data: undefined,
+      error: null,
+      isLoading: true,
+      isError: false,
+      refetch: mockRefetchContext,
+    });
+    const { rerender } = render(<MomentComments momentId="moment-1" />);
+    expect(screen.getByText("正在定位目标回复…")).toBeInTheDocument();
+
+    mockUseMomentCommentContext.mockReturnValue({
+      data: undefined,
+      error: { code: 40400, message: "目标评论不存在或不可见" },
+      isLoading: false,
+      isError: true,
+      refetch: mockRefetchContext,
+    });
+    rerender(<MomentComments momentId="moment-1" />);
+
+    expect(screen.getByText("目标回复不存在或不可见")).toBeInTheDocument();
+    expect(screen.getByText("主评论内容")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "重试定位" })).toBeNull();
+  });
+
+  test("定位临时失败时保留评论并允许重试", () => {
+    mockSearchParams.mockReturnValue(new URLSearchParams("comment=target-comment"));
+    mockUseMomentCommentContext.mockReturnValue({
+      data: undefined,
+      error: { code: 50000, message: "服务暂时不可用" },
+      isLoading: false,
+      isError: true,
+      refetch: mockRefetchContext,
+    });
+
+    render(<MomentComments momentId="moment-1" />);
+    fireEvent.click(screen.getByRole("button", { name: "重试定位" }));
+
+    expect(mockRefetchContext).toHaveBeenCalledOnce();
+    expect(screen.getByText("主评论内容")).toBeInTheDocument();
   });
 
   test("超过十条的已展开楼中楼提供悬浮收起按钮", async () => {

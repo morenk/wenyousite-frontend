@@ -28,6 +28,7 @@ import {
   useMoment,
   useMomentBookmark,
   useMomentBookmarks,
+  useMomentCommentContext,
   useMomentCommentAuthors,
   useMomentComments,
   useMomentLike,
@@ -259,6 +260,35 @@ describe("moment hooks", () => {
     expect(mockGET).toHaveBeenNthCalledWith(2, "/api/v1/moments/{id}/comment-authors", {
       params: { path: { id: "moment-1" } },
     });
+  });
+
+  test("按评论 ID 获取精确定位上下文，缺少目标 ID 时保持禁用", async () => {
+    const context = {
+      root: { id: "root-1", parentCommentId: null },
+      target: { id: "reply-1", parentCommentId: "root-1" },
+      replyCount: 8,
+    };
+    mockGET.mockResolvedValue({ data: { data: context } });
+    const enabledHarness = harness();
+    const query = renderHook(
+      () => useMomentCommentContext("moment-1", "reply-1", "viewer-1"),
+      { wrapper: enabledHarness.wrapper },
+    );
+
+    await waitFor(() => expect(query.result.current.data).toEqual(context));
+    expect(mockGET).toHaveBeenCalledWith(
+      "/api/v1/moments/{id}/comments/{commentId}/context",
+      { params: { path: { id: "moment-1", commentId: "reply-1" } } },
+    );
+
+    mockGET.mockClear();
+    const disabledHarness = harness();
+    const disabled = renderHook(
+      () => useMomentCommentContext("moment-1", undefined, "viewer-1"),
+      { wrapper: disabledHarness.wrapper },
+    );
+    expect(disabled.result.current.fetchStatus).toBe("idle");
+    expect(mockGET).not.toHaveBeenCalled();
   });
 
   test("楼中楼只有展开后请求，并保持筛选条件与 cursor 一致", async () => {

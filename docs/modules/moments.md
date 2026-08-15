@@ -49,7 +49,7 @@
 
 双向任一拉黑都会过滤动态、评论和搜索结果，并禁止继续回复。评论作者、动态作者和管理员可以软删除评论；删除采用条件更新，累计评论数只扣减一次。动态详情通知携带结构化 `momentId` / `momentCommentId`，目标被删除时前端显示不可跳转状态。
 
-动态评论通知链接使用 `comment` 标识所属主评论，并在目标为楼中楼时额外携带 `reply`。详情页若未在当前分页找到目标，会依次加载后续主评论或楼中楼分页，找到后自动展开、滚动到目标并保持定位高亮；因此通知不会只停在评论区标题。
+动态评论通知链接使用 `comment` 标识所属主评论，并在目标为楼中楼时额外携带 `reply`。详情页以 `reply ?? comment` 调用评论上下文接口；目标不在当前分页时直接注入主评论和楼中楼、去重后自动展开、滚动并保持定位高亮，不遍历后续分页。定位中显示进度；目标已删除、因拉黑不可见或不存在时保留动态和普通评论并显示行内提示，临时失败可重试定位。
 
 ## API 与缓存
 
@@ -62,6 +62,7 @@
 | GET / POST | `/moments/:id/comments` | 主评论列表 / 发布评论 |
 | GET | `/moments/:id/comment-authors` | 当前查看者可见的评论作者筛选候选 |
 | GET | `/moments/:id/comments/:commentId/replies` | 楼中楼分页 |
+| GET | `/moments/:id/comments/:commentId/context` | 按主评论或楼中楼 ID 获取精确定位上下文 |
 | DELETE | `/moments/:id/comments/:commentId` | 软删除评论 |
 | GET | `/users/:id/moments` | 用户动态 |
 | GET | `/moments/bookmarks` | 当前用户动态收藏 |

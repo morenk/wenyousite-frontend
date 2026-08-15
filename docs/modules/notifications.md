@@ -10,7 +10,7 @@
 - 导航栏「通知」显示通知未读数；「私聊」显示已接受会话未读与待处理请求合计（轮询刷新）
 - 无限滚动（cursor 分页）+ loading / error / empty 三态
 - 按 Foundation 分组过滤：全部、互动、订阅、系统
-- 通知跳转精确定位到楼层或楼中楼：主楼层在主题详情页高亮，楼中楼进入独立阅读页并高亮目标回复
+- 通知跳转精确定位到主题帖楼层/楼中楼及动态主评论/楼中楼：目标不在首屏分页时仍可直接注入、高亮并滚动定位
 - 已读操作使用乐观缓存更新，跳转不再依赖请求完成
 - 页面重新获得焦点时刷新通知；补齐加载更多失败重试
 - 「全部已读」仅在有未读时展示，并即时更新列表与红点
@@ -36,6 +36,7 @@
 | DELETE | `/notifications/:id` | AuthRead | 硬删除单条 |
 | POST | `/notifications/read-all` | AuthRead | 一键全部已读 |
 | GET | `/posts/:id` | Public | 获取通知目标帖的主题/子贴/父楼上下文，用于精确定位 |
+| GET | `/moments/:id/comments/:commentId/context` | OptionalAuth | 获取动态通知目标主评论与楼中楼上下文，用于精确定位 |
 
 > `NotificationType`：reply / mention / new_post / thread_created / follow / like / tip / level_up / system。旧类型 `new_floor` / `subthread_created` 后端自动映射为 `new_post`。
 
@@ -119,6 +120,7 @@
 - 跳转以 `target.kind` 为唯一分支：`post` → 通过共享 `getPostHref` 精确定位楼层/楼中楼；`thread` → `/threads/{threadId}`；`user` → `/users/{userId}`；`none` 不可点。顶层 `postId/threadId/fromUserId` 与关联对象仅保留展示、删除状态和旧数据兼容用途。
 - **跳转对象已删除不跳转**：列表接口返回 thread/post/fromUser 的 `deletedAt`；目标已删除时该通知不渲染链接，行内显示提示（帖子/楼层 →「该内容已删除」，用户 →「该用户已注销」），点击仅标记已读并 toast 提示，不导航
 - 详情页读取 `post` 参数后通过 `GET /posts/:id` 查询目标上下文：切换子贴并立即滚动到目标楼层；楼中楼采用二阶段定位，在父楼展开且回复渲染完成后立即滚动到目标回复。定位不使用平滑移动动画；高亮只加在目标楼层/回复卡片本身，父楼层和列表容器不高亮。已删除内容维持后端列表过滤策略。
+- 动态详情以 `reply ?? comment` 查询评论上下文；目标不在已加载分页时直接注入并去重，不连续扫描主评论或楼中楼分页。目标 404 时保留动态与普通评论并提示“目标回复不存在或不可见”，其他定位错误提供重试。
 - 点击通知（有跳转目标）：若未读，立即乐观标记为已读并异步提交，不阻塞跳转
 - 删除按钮：硬删除 + 失效列表/未读数
 - 类型图标：reply/mention/new_post/thread_created → MessageSquare/AtSign/PenLine/FilePlus；follow → UserPlus；like → Heart；tip → Fuel；level_up → TrendingUp；system → Megaphone

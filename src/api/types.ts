@@ -2428,6 +2428,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/moments/{id}/comments/{commentId}/context": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 按评论 ID 获取动态主评论与精确定位目标 */
+        get: operations["momentsCommentContext"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/moments/{id}/comments/{commentId}/replies": {
         parameters: {
             query?: never;
@@ -5293,6 +5310,14 @@ export interface components {
              */
             clientRequestId: string;
         };
+        MomentCommentContextResponseDto: {
+            /** @description 目标所在的主评论；主评论已删除但仍有可见回复时返回墓碑内容 */
+            root: components["schemas"]["MomentCommentResponseDto"];
+            /** @description 需要精确定位的可见主评论或楼中楼回复 */
+            target: components["schemas"]["MomentCommentResponseDto"];
+            /** @description 该主评论下当前查看者可见的楼中楼回复数 */
+            replyCount: number;
+        };
         CreateUploadUrlDto: {
             /**
              * @description 原始文件名
@@ -6171,6 +6196,9 @@ export interface components {
         };
         MomentsCommentAuthors200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["PostAuthorResponseDto"][];
+        };
+        MomentsCommentContext200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MomentCommentContextResponseDto"];
         };
         MomentsReplies200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
             data: components["schemas"]["MomentCommentResponseDto"][];
@@ -14090,6 +14118,52 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MomentsCommentAuthors200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    momentsCommentContext: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                commentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MomentsCommentContext200Response"];
+                };
+            };
+            /** @description 动态或目标评论不存在、已删除或因拉黑不可见 */
+            404: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */

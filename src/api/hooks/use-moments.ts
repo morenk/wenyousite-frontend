@@ -5,11 +5,13 @@ import { BROWSING_RETURN_GC_TIME } from "@/api/query-policy";
 import type { components, operations } from "@/api/types";
 import { isMomentCacheQuery, patchMomentCaches } from "@/api/moment-cache";
 import type { ReplyFilters } from "@/api/reply-query";
+import { getApiError } from "@/api/errors";
 
 export type MomentCard = components["schemas"]["MomentCardResponseDto"];
 export type MomentDetail = components["schemas"]["MomentDetailResponseDto"];
 export type MomentComment = components["schemas"]["MomentCommentResponseDto"];
 export type MomentRootComment = components["schemas"]["MomentRootCommentResponseDto"];
+export type MomentCommentContext = components["schemas"]["MomentCommentContextResponseDto"];
 export type MomentFeed = "DISCOVER" | "FOLLOWING";
 export type CreateMomentInput = components["schemas"]["CreateMomentDto"];
 export type UpdateMomentInput = components["schemas"]["UpdateMomentDto"];
@@ -18,6 +20,7 @@ export type CreateMomentCommentInput = components["schemas"]["CreateMomentCommen
 type MomentListResponse = operations["momentsList"]["responses"][200]["content"]["application/json"];
 type MomentCommentListResponse = operations["momentsCommentsList"]["responses"][200]["content"]["application/json"];
 type MomentReplyListResponse = operations["momentsReplies"]["responses"][200]["content"]["application/json"];
+type MomentCommentContextResponse = operations["momentsCommentContext"]["responses"][200]["content"]["application/json"];
 type MomentCommentAuthorListResponse = operations["momentsCommentAuthors"]["responses"][200]["content"]["application/json"];
 type UserMomentListResponse = operations["userMomentsList"]["responses"][200]["content"]["application/json"];
 type MomentBookmarkListResponse = operations["momentsBookmarks"]["responses"][200]["content"]["application/json"];
@@ -248,6 +251,29 @@ export function useMomentReplies(
   });
 }
 
+export function useMomentCommentContext(
+  momentId: string,
+  commentId: string | undefined,
+  userId?: string,
+) {
+  const scope = userId ?? "anonymous";
+  return useQuery({
+    queryKey: queryKeys.moments.commentContext(momentId, commentId, scope),
+    queryFn: async () => {
+      const { data, error } = await apiClient.GET(
+        "/api/v1/moments/{id}/comments/{commentId}/context",
+        { params: { path: { id: momentId, commentId: commentId! } } },
+      );
+      if (error) throw error;
+      if (!data) throw new Error("动态评论定位上下文为空");
+      return data.data satisfies MomentCommentContextResponse["data"];
+    },
+    enabled: !!commentId,
+    retry: (failureCount, error) => getApiError(error).code !== 40400 && failureCount < 1,
+    staleTime: 20_000,
+  });
+}
+
 export function useMomentCommentAuthors(momentId: string | undefined, userId?: string) {
   const scope = userId ?? "anonymous";
   return useQuery({
@@ -278,6 +304,7 @@ export function useCreateMomentComment(momentId: string, userId?: string) {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.moments.comments(momentId, userId ?? "anonymous") });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.moments.commentContexts(momentId, userId ?? "anonymous") });
       patchMomentCaches(queryClient, momentId, (moment) => ({
         commentCount: moment.commentCount + 1,
       }));
@@ -297,6 +324,7 @@ export function useDeleteMomentComment(momentId: string, userId?: string) {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.moments.comments(momentId, userId ?? "anonymous") });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.moments.commentContexts(momentId, userId ?? "anonymous") });
       patchMomentCaches(queryClient, momentId, (moment) => ({
         commentCount: Math.max(0, moment.commentCount - 1),
       }));

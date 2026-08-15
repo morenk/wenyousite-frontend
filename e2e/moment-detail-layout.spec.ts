@@ -159,8 +159,15 @@ async function mockMoments(
     if (pathname === "/api/v1/moments/moment-layout/comments") {
       return response(options.longReplyThread ? [longReplyRoot] : [], { cursor: null, hasMore: false });
     }
+    if (pathname === "/api/v1/moments/moment-layout/comments/moment-reply-target/context") {
+      return response(options.longReplyThread ? {
+        root: longReplyRoot,
+        target: targetReply,
+        replyCount: longReplyRoot.replyCount,
+      } : null);
+    }
     if (pathname === "/api/v1/moments/moment-layout/comments/moment-comment-root/replies") {
-      return response(options.longReplyThread ? [targetReply] : [], { cursor: null, hasMore: false });
+      return response(options.longReplyThread ? [previewReply] : [], { cursor: null, hasMore: false });
     }
     if (pathname === "/api/v1/moments/moment-layout") {
       return response({
