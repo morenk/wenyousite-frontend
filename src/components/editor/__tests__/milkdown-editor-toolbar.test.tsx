@@ -16,11 +16,12 @@ vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
-function renderEditor(defaultValue = "", ariaLabel?: string) {
+function renderEditor(defaultValue = "", ariaLabel?: string, onChange?: (value: string) => void) {
   return render(
     <QueryClientProvider client={new QueryClient()}>
       <MilkdownEditor
         defaultValue={defaultValue}
+        onChange={onChange}
         onUploadImage={vi.fn()}
         ariaLabel={ariaLabel}
       />
@@ -114,6 +115,7 @@ describe("MilkdownEditor 能力分层", () => {
     for (const label of ["任务列表", "代码块", "表格"]) {
       expect(within(toolbar).queryByRole("button", { name: label })).toBeNull();
     }
+
   });
 
   test("窄栏把低频能力收入更多菜单", async () => {
@@ -229,16 +231,81 @@ describe("MilkdownEditor 能力分层", () => {
     });
   });
 
+  test("粘贴 Markdown 有序列表时保留工具栏内结构", async () => {
+    const { container } = renderEditor();
+    const editor = await getEditor(container);
+    fireEvent.paste(editor, { clipboardData: clipboardData({ text: "1. 第一项\n2. 第二项" }) });
+    await waitFor(() => expect(editor.querySelector("ol")).toBeInTheDocument());
+  });
+
+  test("单独粘贴邀请链接时立即显示并序列化为传送门", async () => {
+    const onChange = vi.fn();
+    const { container } = renderEditor("", "正文编辑器", onChange);
+    const editor = await getEditor(container);
+
+    fireEvent.paste(editor, {
+      clipboardData: clipboardData({
+        text: "https://wenyou.site/join/AbCdEfGh_123-XYZ",
+      }),
+    });
+
+    const portal = await waitFor(() => {
+      const element = editor.querySelector<HTMLAnchorElement>('[data-slot="internal-reference-link"]');
+      expect(element).toBeInTheDocument();
+      return element!;
+    });
+    expect(portal).toHaveAttribute("href", "/join/AbCdEfGh_123-XYZ");
+    expect(portal).toHaveTextContent("传送门");
+    expect(onChange).toHaveBeenCalledWith("[传送门](/join/AbCdEfGh_123-XYZ)");
+  });
+
+  test("编辑器重开时命名邀请链接仍以传送门显示", async () => {
+    const { container } = renderEditor("[私密入口](/join/AbCdEfGh_123-XYZ)");
+    const editor = await getEditor(container);
+    const portal = await waitFor(() => {
+      const element = editor.querySelector<HTMLAnchorElement>('[data-slot="internal-reference-link"]');
+      expect(element).toBeInTheDocument();
+      return element!;
+    });
+
+    expect(portal).toHaveAttribute("href", "/join/AbCdEfGh_123-XYZ");
+    expect(portal).toHaveTextContent("私密入口");
+  });
+
   test.each([
-    ["有序列表", "1. 第一项\n2. 第二项", "ol"],
-    ["任务列表", "- [ ] 待办\n- [x] 完成", ".label.unchecked, .label.checked"],
-    ["代码块", "```js\nconst answer = 42\n```", "pre"],
-    ["表格", "| 名称 | 数量 |\n| --- | ---: |\n| 骰子 | 2 |", "table"],
-  ])("粘贴 Markdown %s 时保留协议结构", async (_name, markdown, selector) => {
+    ["任务列表", "- [ ] 待办\n- [x] 完成"],
+    ["代码块", "```js\nconst answer = 42\n```"],
+    ["表格", "| 名称 | 数量 |\n| --- | ---: |\n| 骰子 | 2 |"],
+    ["额外标题", "# 一级标题\n#### 四级标题"],
+  ])("粘贴 Markdown %s 时只插入字面段落", async (_name, markdown) => {
     const { container } = renderEditor();
     const editor = await getEditor(container);
     fireEvent.paste(editor, { clipboardData: clipboardData({ text: markdown }) });
-    await waitFor(() => expect(editor.querySelector(selector)).toBeInTheDocument());
+    await waitFor(() => expect(editor).toHaveTextContent(markdown.split("\n")[0]!));
+    expect(editor.querySelector("table, pre, h1, h4, input[type='checkbox']")).toBeNull();
+  });
+
+  test("粘贴 HTML 表格优先使用 text/plain 并保持无提示字面文本", async () => {
+    const { container } = renderEditor();
+    const editor = await getEditor(container);
+    fireEvent.paste(editor, {
+      clipboardData: clipboardData({
+        text: "名称\t数量\n骰子\t2",
+        html: "<table><tr><th>名称</th><th>数量</th></tr><tr><td>骰子</td><td>2</td></tr></table>",
+      }),
+    });
+    await waitFor(() => expect(editor).toHaveTextContent("名称 数量"));
+    expect(editor.querySelector("table")).toBeNull();
+  });
+
+  test("手动输入 H1 和围栏语法不会创建白名单外节点", async () => {
+    const user = userEvent.setup();
+    const { container } = renderEditor();
+    const editor = await getEditor(container);
+    await user.click(editor);
+    await user.type(editor, "# 一级标题{Enter}```js ");
+    expect(editor).toHaveTextContent("# 一级标题");
+    expect(editor.querySelector("h1, pre")).toBeNull();
   });
 
   test("更多菜单可创建无序列表并保持原选区", async () => {

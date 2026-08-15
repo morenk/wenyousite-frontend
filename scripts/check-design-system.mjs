@@ -65,6 +65,12 @@ for (const file of sourceRoots.flatMap(sourceFiles)) {
     failures.push(`${fileName}:${line}: ${rule.label}`);
   }
 
+  const rawReplyIcon = /import\s*\{[^}]*\bReply\b[^}]*\}\s*from\s*["']lucide-react["']/s.exec(source);
+  if (rawReplyIcon) {
+    const line = source.slice(0, rawReplyIcon.index).split("\n").length;
+    failures.push(`${fileName}:${line}: 回复动作必须通过 ReplyActionButton 使用 Foundation action.reply 语义`);
+  }
+
   if (
     fileName.startsWith("src/app/")
     && fileName.endsWith("/page.tsx")
@@ -107,11 +113,23 @@ const semanticContractClaims = new Map([
   ["src/components/shared/loading-state.tsx", ["@wenyousite/foundation/interaction", "data-feedback-state"]],
   ["src/components/shared/load-error.tsx", ["@wenyousite/foundation/language", "data-feedback-state"]],
   ["src/components/shared/empty-state.tsx", ["@wenyousite/foundation/interaction", "data-feedback-state"]],
+  ["src/components/shared/reply-action-button.tsx", [
+    "Tooltip",
+    "id=\"action.reply\"",
+    "aria-label={presentation === \"icon\" ? label : undefined}",
+    "presentation === \"labeled\"",
+    "<span>{label}</span>",
+  ]],
+  ["src/components/thread/floor-card.tsx", ["ReplyActionButton", "id=\"metric.replies\""]],
+  ["src/components/thread/reply-list.tsx", ["ReplyActionButton"]],
+  ["src/components/moment/moment-comment-row.tsx", ["ReplyActionButton"]],
+  ["src/components/thread/reply-form.tsx", ["id=\"action.reply\""]],
+  ["src/components/thread/floor-form.tsx", ["id=\"action.add-comment\""]],
 ]);
 for (const [fileName, claims] of semanticContractClaims) {
   const source = readFileSync(resolve(root, fileName), "utf8");
   for (const claim of claims) {
-    if (!source.includes(claim)) failures.push(`${fileName}: 未消费 Foundation v2.2 语义（缺少 ${claim}）`);
+    if (!source.includes(claim)) failures.push(`${fileName}: 未消费当前 Foundation 语义（缺少 ${claim}）`);
   }
 }
 
@@ -120,7 +138,7 @@ const stickerDisplayClaims = new Map([
   ["src/app/globals.css", ["img.sticker-display"]],
   ["src/components/editor/milkdown-editor.css", ["var(--sticker-display-max)"]],
   ["src/components/thread/markdown-content.tsx", ["sticker-display", "STICKER_DISPLAY_STYLE"]],
-  ["src/components/moment/moment-comments.tsx", ["sticker-display", "getStickerDisplayUrl"]],
+  ["src/components/moment/moment-comment-row.tsx", ["sticker-display", "getStickerDisplayUrl"]],
   ["src/components/message/direct-message-bubble.tsx", ["sticker-display", "getStickerDisplayUrl"]],
 ]);
 for (const [fileName, claims] of stickerDisplayClaims) {

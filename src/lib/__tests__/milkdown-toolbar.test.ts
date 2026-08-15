@@ -12,13 +12,13 @@ import {
 } from "@/lib/milkdown-toolbar";
 import {
   EDITOR_CAPABILITY_LABELS,
+  EDITOR_CONTENT_POLICY,
   EDITOR_DENSITY_ORDER,
   EDITOR_MORE_FALLBACK,
   EDITOR_MORE_BY_DENSITY,
   EDITOR_PRIMARY_BY_DENSITY,
   EDITOR_PRIMARY_NARROW,
   EDITOR_PRIMARY_WIDE,
-  EDITOR_SYNTAX_ONLY,
   EDITOR_WEB_CAPABILITIES,
   EDITOR_WEB_LAYOUT,
   editorCapabilityLabels,
@@ -180,7 +180,8 @@ describe("syncMilkdownToolbarVisibility", () => {
     for (const capability of EDITOR_MORE_FALLBACK) {
       expect(EDITOR_PRIMARY_WIDE).toContain(capability);
     }
-    for (const capability of EDITOR_SYNTAX_ONLY) {
+    for (const capability of ["task-list", "code-block", "table"]) {
+      expect(EDITOR_CAPABILITY_LABELS).not.toHaveProperty(capability);
       expect(EDITOR_PRIMARY_WIDE).not.toContain(capability);
     }
     expect(EDITOR_CAPABILITY_LABELS.more).toBe("更多");
@@ -209,7 +210,12 @@ describe("syncMilkdownToolbarVisibility", () => {
     expect(EDITOR_WEB_CAPABILITIES.mention.roundTrip).toBe(
       "identity-preserving",
     );
-    expect(EDITOR_WEB_CAPABILITIES.table.creation).toBe("source");
+    expect(EDITOR_CONTENT_POLICY).toMatchObject({
+      markdownContractVersion: 3,
+      structuredCapabilitySource: "toolbar",
+      unsupportedClientBehavior: "literal-text-silent",
+      maximumListDepth: 3,
+    });
   });
 
   test("展开态隐藏更多，标准栏保留链接、引用、分隔线和骰子直达", () => {

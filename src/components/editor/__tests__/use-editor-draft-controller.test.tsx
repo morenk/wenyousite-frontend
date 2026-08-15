@@ -66,6 +66,23 @@ describe("useEditorDraftController", () => {
     expect(mockToastSuccess).toHaveBeenCalledWith("已恢复正文草稿");
   });
 
+  test("重开历史正文与恢复草稿时静默把白名单外结构降为字面文本", () => {
+    const onChange = vi.fn();
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(
+      () => useEditorDraftController({ defaultValue: "# 历史标题", onChange }),
+      { wrapper: Wrapper },
+    );
+
+    expect(result.current.currentContent).toBe("\\# 历史标题");
+    expect(onChange).toHaveBeenCalledWith("\\# 历史标题");
+
+    act(() => result.current.handleRestore({ content: "```\n旧代码\n```" }));
+    expect(result.current.currentContent).toBe("\\`\\`\\`\n\n旧代码\n\n\\`\\`\\`");
+    expect(onChange).toHaveBeenLastCalledWith("\\`\\`\\`\n\n旧代码\n\n\\`\\`\\`");
+    expect(mockToastError).not.toHaveBeenCalled();
+  });
+
   test("已登录时窗口重新聚焦会刷新草稿与槽位", () => {
     const { client, Wrapper } = createQueryWrapper();
     const refetch = vi.spyOn(client, "refetchQueries");

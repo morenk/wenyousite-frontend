@@ -23,12 +23,16 @@ if (packageJson.dependencies?.["@wenyousite/foundation"] !== `github:morenk/weny
 if (manifest.version !== lock.version) failures.push("已安装 foundation 版本与锁文件不一致");
 if (manifest.contractSha256 !== lock.contractSha256) failures.push("已安装 foundation 契约哈希与锁文件不一致");
 if (!read("pnpm-lock.yaml").includes(lock.revision)) failures.push("pnpm-lock.yaml 未锁定指定 foundation revision");
-if (foundationContract.version !== "2.2.0" || foundationContract.schemaVersion !== 1) {
-  failures.push("Web 必须消费 Foundation v2.2.0 schema 1 契约");
+if (foundationContract.version !== "3.0.0" || foundationContract.schemaVersion !== 1) {
+  failures.push("Web 必须消费 Foundation v3.0.0 schema 1 契约");
 }
 if (!manifest.features?.typography || !manifest.features?.interaction || !manifest.features?.navigation || !manifest.features?.language) {
-  failures.push("已安装 Foundation 缺少 v2.2 语义能力");
+  failures.push("已安装 Foundation 缺少共享语义能力");
 }
+if (
+  foundationContract.experiences.editor.contentPolicy?.markdownContractVersion !== 3 ||
+  foundationContract.experiences.editor.contentPolicy?.structuredCapabilitySource !== "toolbar"
+) failures.push("已安装 Foundation 未绑定 Markdown v3 工具栏白名单");
 if (Object.keys(manifest.artifactSha256 ?? {}).length !== 22) {
   failures.push("已安装 Foundation 生成产物清单不完整");
 }
@@ -66,9 +70,13 @@ const iconAdapter = read("src/components/ui/wenyou-icon.tsx");
 if (!iconAdapter.includes('@wenyousite/foundation/icons') || !iconAdapter.includes("data-icon-semantic")) {
   failures.push("Web 核心图标未通过 Foundation 语义适配器渲染");
 }
-const editorCore = read("src/components/editor/milkdown-editor-core.tsx");
-if (!editorCore.includes("editorIconSvg") || /const\s+(?:DRAFT|DICE|MORE)_ICON/.test(editorCore)) {
+const editorHost = read("src/components/editor/milkdown-editor-host.tsx");
+if (!editorHost.includes("editorIconSvg") || /const\s+(?:DRAFT|DICE|MORE)_ICON/.test(editorHost)) {
   failures.push("Milkdown 工具栏必须使用 Foundation 同源 SVG，禁止保留手写图标");
+}
+const editorStyles = read("src/components/editor/milkdown-editor.css");
+if (!/svg\.lucide\s*\{[^}]*fill:\s*none;[^}]*stroke:\s*currentColor;/su.test(editorStyles)) {
+  failures.push("Milkdown 必须覆盖 Crepe 的实心 fill，保持 Foundation Lucide 无填充描边");
 }
 
 const foundationNotificationTypes = foundationContract.experiences.notifications.groups

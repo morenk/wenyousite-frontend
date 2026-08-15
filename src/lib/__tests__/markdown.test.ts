@@ -3,35 +3,48 @@
 import { describe, test, expect } from "vitest";
 import {
   sanitizeEmptyImages,
+  findUnsupportedMarkdownFormats,
   hasVisibleMarkdownContent,
+  literalizeUnsupportedMarkdown,
   sanitizeMilkdownMarkdown,
 } from "@/lib/markdown";
-import markdownV2Fixtures from "../../../contracts/markdown-v2-fixtures.json";
+import markdownV3Fixtures from "../../../contracts/markdown-v3-fixtures.json";
 
-type MarkdownFixture = (typeof markdownV2Fixtures.cases)[number];
+type MarkdownFixture = (typeof markdownV3Fixtures.cases)[number];
 
-describe("Markdown v2 黄金语料", () => {
+describe("Markdown v3 黄金语料", () => {
   test("协议版本正确且 case id 唯一", () => {
-    expect(markdownV2Fixtures.contract).toBe("wenyousite-markdown");
-    expect(markdownV2Fixtures.version).toBe(2);
-    expect(new Set(markdownV2Fixtures.cases.map(({ id }) => id)).size).toBe(
-      markdownV2Fixtures.cases.length,
+    expect(markdownV3Fixtures.contract).toBe("wenyousite-markdown");
+    expect(markdownV3Fixtures.version).toBe(3);
+    expect(new Set(markdownV3Fixtures.cases.map(({ id }) => id)).size).toBe(
+      markdownV3Fixtures.cases.length,
     );
   });
 
-  test.each(markdownV2Fixtures.cases)(
-    "$id 规范化为 canonical 且保持幂等",
-    ({ input, canonical }: MarkdownFixture) => {
-      expect(sanitizeMilkdownMarkdown(input)).toBe(canonical);
-      expect(sanitizeMilkdownMarkdown(canonical)).toBe(canonical);
+  test.each(markdownV3Fixtures.cases)(
+    "$id 字面降级为 literal 且保持幂等",
+    ({ input, literal }: MarkdownFixture) => {
+      expect(sanitizeMilkdownMarkdown(input)).toBe(literal);
+      expect(sanitizeMilkdownMarkdown(literal)).toBe(literal);
     },
   );
 
-  test.each(markdownV2Fixtures.cases)(
+  test.each(markdownV3Fixtures.cases)(
     "$id 的发布可见性符合协议",
     ({ input, canonical, visible }: MarkdownFixture) => {
       expect(hasVisibleMarkdownContent(input)).toBe(visible);
       expect(hasVisibleMarkdownContent(canonical)).toBe(visible);
+    },
+  );
+
+  test.each(markdownV3Fixtures.cases)(
+    "$id 白名单结果与首个不支持类型一致",
+    ({ canonical, supported, unsupportedType }: MarkdownFixture) => {
+      expect(findUnsupportedMarkdownFormats(canonical)[0]?.type ?? null).toBe(
+        unsupportedType,
+      );
+      expect(findUnsupportedMarkdownFormats(literalizeUnsupportedMarkdown(canonical))).toEqual([]);
+      expect(supported).toBe(unsupportedType === null);
     },
   );
 });
@@ -80,16 +93,33 @@ describe("sanitizeMilkdownMarkdown", () => {
     ).toBe("第一段\n\n<br />\n<br />\n<br />\n<br />\n\n第二段");
   });
 
-  test("保留正文行内显式输入的 br 文本", () => {
+  test("正文行内显式 br 降为可见字面文本", () => {
     expect(sanitizeMilkdownMarkdown("正文 <br /> 示例")).toBe(
-      "正文 <br /> 示例",
+      "正文 \\<br \\/\\> 示例",
     );
   });
 
-  test("保留围栏代码块中的 br 示例", () => {
+  test("围栏代码块逐行降为普通段落", () => {
     const markdown =
       "```html\n<br />\n![empty]()\n```\n\n~~~html\n<br>\n![empty]( )\n~~~";
-    expect(sanitizeMilkdownMarkdown(markdown)).toBe(markdown);
+    const literal = sanitizeMilkdownMarkdown(markdown);
+    expect(literal).not.toContain("```html");
+    expect(findUnsupportedMarkdownFormats(literal)).toEqual([]);
+  });
+
+  test("嵌套任务项与同段内每个硬换行都会逐行降级", () => {
+    const task = "- 普通项目\n  - [ ] 嵌套任务";
+    expect(findUnsupportedMarkdownFormats(task)[0]?.type).toBe("task-list");
+    expect(sanitizeMilkdownMarkdown(task)).toContain(
+      "\n\n  \\- \\[ \\] 嵌套任务",
+    );
+
+    const hardBreaks = "第一行  \n第二行\\\n第三行";
+    expect(findUnsupportedMarkdownFormats(hardBreaks)).toEqual([
+      { type: "hard-break", startLine: 0, endLine: 0 },
+      { type: "hard-break", startLine: 1, endLine: 1 },
+    ]);
+    expect(findUnsupportedMarkdownFormats(sanitizeMilkdownMarkdown(hardBreaks))).toEqual([]);
   });
 
   test("清理空 URL 图片但保留空段落", () => {

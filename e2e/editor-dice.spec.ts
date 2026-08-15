@@ -181,6 +181,31 @@ test("编辑器格式、窄栏、骰子与正文草稿工具在真实浏览器�
   await expect(toolbar.getByRole("button", { name: "骰子" })).toBeVisible();
   await expect(toolbar.getByRole("button", { name: "更多" })).toHaveCount(0);
 
+  const iconPaint = await toolbar.evaluate((element) =>
+    [...element.querySelectorAll<SVGSVGElement>(".top-bar-item svg.lucide")]
+      .filter((icon) => {
+        const button = icon.closest<HTMLElement>(".top-bar-item");
+        return button && getComputedStyle(button).display !== "none";
+      })
+      .map((icon) => ({
+        fill: getComputedStyle(icon).fill,
+        stroke: getComputedStyle(icon).stroke,
+        svgCount: icon.closest(".top-bar-item")?.querySelectorAll("svg").length ?? 0,
+      })),
+  );
+  expect(iconPaint.length).toBeGreaterThan(0);
+  expect(iconPaint.every(({ fill, stroke, svgCount }) =>
+    fill === "none" && stroke !== "none" && svgCount === 1,
+  )).toBe(true);
+
+  const editor = page.locator(".milkdown .ProseMirror");
+  await editor.click();
+  const boldButton = toolbar.getByRole("button", { name: "粗体" });
+  await boldButton.click();
+  await expect(boldButton).toHaveClass(/\bactive\b/u);
+  await expect(boldButton.locator("svg.lucide")).toHaveCSS("fill", "none");
+  await boldButton.click();
+
   const host = page.locator(".milkdown-editor").first();
   await host.evaluate((element) => {
     element.style.width = "640px";
@@ -251,7 +276,6 @@ test("编辑器格式、窄栏、骰子与正文草稿工具在真实浏览器�
   });
   await expect(toolbar).toHaveAttribute("data-editor-density", "expanded");
 
-  const editor = page.locator(".milkdown .ProseMirror");
   await editor.fill("需要删除的文字");
   await editor.selectText();
   const strikethroughButton = toolbar.getByRole("button", { name: "删除线" });

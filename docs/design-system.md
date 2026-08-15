@@ -4,22 +4,22 @@
 
 跨端审美、共享 Token、字体角色和编辑器能力的唯一事实源是公开仓库
 [`morenk/wenyousite-foundation`](https://github.com/morenk/wenyousite-foundation)。本仓库由
-[`foundation.lock.json`](../foundation.lock.json) 固定到 `v2.2.0`，实现前必须读取同版本的：
+[`foundation.lock.json`](../foundation.lock.json) 固定到 `v3.0.0`，实现前必须读取同版本的：
 
-- [`docs/foundation.md`](https://github.com/morenk/wenyousite-foundation/blob/v2.2.0/docs/foundation.md)
-- [`docs/platforms/web.md`](https://github.com/morenk/wenyousite-foundation/blob/v2.2.0/docs/platforms/web.md)
-- [`docs/images.md`](https://github.com/morenk/wenyousite-foundation/blob/v2.2.0/docs/images.md)
-- [`docs/icons.md`](https://github.com/morenk/wenyousite-foundation/blob/v2.2.0/docs/icons.md)
-- [`docs/notifications.md`](https://github.com/morenk/wenyousite-foundation/blob/v2.2.0/docs/notifications.md)
-- [`docs/interaction.md`](https://github.com/morenk/wenyousite-foundation/blob/v2.2.0/docs/interaction.md)
-- [`docs/navigation-language.md`](https://github.com/morenk/wenyousite-foundation/blob/v2.2.0/docs/navigation-language.md)
-- [`contracts/foundation.v1.json`](https://github.com/morenk/wenyousite-foundation/blob/v2.2.0/contracts/foundation.v1.json)
+- [`docs/foundation.md`](https://github.com/morenk/wenyousite-foundation/blob/v3.0.0/docs/foundation.md)
+- [`docs/platforms/web.md`](https://github.com/morenk/wenyousite-foundation/blob/v3.0.0/docs/platforms/web.md)
+- [`docs/images.md`](https://github.com/morenk/wenyousite-foundation/blob/v3.0.0/docs/images.md)
+- [`docs/icons.md`](https://github.com/morenk/wenyousite-foundation/blob/v3.0.0/docs/icons.md)
+- [`docs/notifications.md`](https://github.com/morenk/wenyousite-foundation/blob/v3.0.0/docs/notifications.md)
+- [`docs/interaction.md`](https://github.com/morenk/wenyousite-foundation/blob/v3.0.0/docs/interaction.md)
+- [`docs/navigation-language.md`](https://github.com/morenk/wenyousite-foundation/blob/v3.0.0/docs/navigation-language.md)
+- [`contracts/foundation.v1.json`](https://github.com/morenk/wenyousite-foundation/blob/v3.0.0/contracts/foundation.v1.json)
 
 本地只保留实现映射，不复制规范：
 
 - `src/app/layout.tsx` 引入中央字体与 Token CSS，`globals.css` 只做 Tailwind 映射和 Web 组件样式。
 - `src/lib/editor-capabilities.ts` 是中央编辑器契约的薄转发层。
-- `src/components/ui/wenyou-icon.tsx` 根据产品语义渲染 Foundation 同源 Lucide 节点；Crepe 顶栏消费相同来源生成的 SVG 字符串。
+- `src/components/ui/wenyou-icon.tsx` 根据产品语义渲染 Foundation 同源 Lucide 节点；Crepe 顶栏消费相同来源生成的 SVG 字符串，并在 Web 接入边界覆盖其默认实心 `fill`，保持 Lucide 无填充描边。
 - 编辑器使用 Foundation 的 50rem 框架承载工具栏，但正文块固定为 680px 测量宽度；正文 24px 首列偏移与工具栏 12px 外层加首控件 12px 内缩共用基线。
 - `src/components/ui/` 与 `src/components/layout/` 承担 Web 原语和页面骨架。
 - 发现、动态与搜索使用 `PageHeader compact`：标题和紧随其后的筛选、切换或搜索工具收在同一紧凑面板，不用副标题重复解释页面名称。

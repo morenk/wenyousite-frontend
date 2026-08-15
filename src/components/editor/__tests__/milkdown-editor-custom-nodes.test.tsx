@@ -52,7 +52,7 @@ vi.mock("sonner", () => ({
 }));
 
 const nodeFixtures = JSON.parse(
-  readFileSync(resolve(process.cwd(), "contracts/markdown-v2-nodes-fixtures.json"), "utf8"),
+  readFileSync(resolve(process.cwd(), "contracts/markdown-v3-nodes-fixtures.json"), "utf8"),
 ) as { cases: Array<{ id: string; markdown: string; serialized: string }> };
 
 function renderEditor(props: React.ComponentProps<typeof MilkdownEditor>) {

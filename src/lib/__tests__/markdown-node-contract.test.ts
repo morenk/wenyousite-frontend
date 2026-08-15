@@ -38,10 +38,10 @@ interface IdentityRule {
 }
 
 const fixtures = JSON.parse(
-  readFileSync(resolve(process.cwd(), "contracts/markdown-v2-nodes-fixtures.json"), "utf8"),
+  readFileSync(resolve(process.cwd(), "contracts/markdown-v3-nodes-fixtures.json"), "utf8"),
 ) as { cases: NodeFixture[]; identityRules: IdentityRule[] };
 
-describe("Markdown v2 节点跨端契约", () => {
+describe("Markdown v3 节点跨端契约", () => {
   test.each(fixtures.cases)("$id 解析与节点序列化一致", (fixture) => {
     const mentions = fixture.nodes.filter(
       (node): node is InlineMentionNode =>

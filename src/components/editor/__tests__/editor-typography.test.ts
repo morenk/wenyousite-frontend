@@ -57,6 +57,16 @@ describe("编辑器正文字体", () => {
     expect(topBar).not.toMatch(/overflow-x:\s*(?:auto|scroll)/u);
   });
 
+  test("Crepe 顶栏保持 Foundation Lucide 的无填充描边", () => {
+    const iconRule = getRule(
+      editorCss,
+      ".milkdown .milkdown-top-bar :is(.top-bar-item, .top-bar-chevron) svg.lucide",
+    );
+
+    expect(iconRule).toContain("fill: none");
+    expect(iconRule).toContain("stroke: currentColor");
+  });
+
   test("正文首列与工具栏首项共用居中内容列", () => {
     const milkdown = getRule(editorCss, ".milkdown");
     const proseMirror = getRule(editorCss, ".milkdown .ProseMirror");

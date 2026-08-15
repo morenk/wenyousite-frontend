@@ -84,19 +84,9 @@
   font-synthesis: style;
 }
 
-/* 手写或粘贴产生的复杂块只在自身内部溢出，不扩大编辑器。 */
-.milkdown .ProseMirror pre,
-.milkdown .ProseMirror table {
-  max-width: 100%;
-}
-
+/* 历史代码节点即使短暂存在，也不得扩大编辑器。 */
 .milkdown .ProseMirror pre {
-  overflow-x: auto;
-  overscroll-behavior-inline: contain;
-}
-
-.milkdown .ProseMirror table {
-  display: block;
+  max-width: 100%;
   overflow-x: auto;
   overscroll-behavior-inline: contain;
 }
@@ -168,6 +158,16 @@
 .milkdown .milkdown-top-bar .top-bar-item.active {
   color: var(--accent-foreground);
   background: var(--accent);
+}
+
+/*
+ * Crepe 的默认顶栏图标是实心 SVG，因此上游样式会强制设置 fill。
+ * Foundation 注入的是 Lucide 描边图标；在接入边界恢复其无填充约束，
+ * 并以相同或更高的选择器优先级覆盖普通态与 active 态的上游规则。
+ */
+.milkdown .milkdown-top-bar :is(.top-bar-item, .top-bar-chevron) svg.lucide {
+  fill: none;
+  stroke: currentColor;
 }
 
 .milkdown .milkdown-top-bar .top-bar-divider {

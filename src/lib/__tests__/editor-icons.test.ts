@@ -21,8 +21,28 @@ describe("editorIconSvg", () => {
     expect(editorIconSvg("quote")).toContain('stroke-width="2"');
   });
 
+  it.each([
+    "bold",
+    "italic",
+    "strikethrough",
+    "inline-code",
+    "bullet-list",
+    "ordered-list",
+    "link",
+    "image",
+    "quote",
+    "hr",
+    "dice",
+    "draft",
+    "more",
+  ] as const)("%s 只生成一枚 SVG", (capability) => {
+    const svg = editorIconSvg(capability);
+    expect(svg.match(/<svg\b/gu)).toHaveLength(1);
+    expect(svg.match(/<\/svg>/gu)).toHaveLength(1);
+  });
+
   it("只把具备产品图标语义的能力交给图标菜单", () => {
     expect(isEditorIconCapability("draft")).toBe(true);
-    expect(isEditorIconCapability("task-list")).toBe(false);
+    expect(isEditorIconCapability("mention")).toBe(false);
   });
 });

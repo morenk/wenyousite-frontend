@@ -16,7 +16,7 @@ const DICE_MARKER = `[[dice:v1:${DICE_NODE_ID}:1d20]]`;
 
 describe("MarkdownContent", () => {
   test("渲染普通 markdown 文本", () => {
-    render(<MarkdownContent content={"# 标题\n\n正文内容"} />);
+    render(<MarkdownContent content={"## 标题\n\n正文内容"} />);
     expect(screen.getByRole("heading", { name: "标题" })).toBeInTheDocument();
     expect(screen.getByText("正文内容")).toBeInTheDocument();
     expect(document.querySelector('[data-slot="markdown-content"]')).toHaveClass(
@@ -68,6 +68,18 @@ describe("MarkdownContent", () => {
     expect(portal).toHaveAttribute("href", `/threads/${threadId}`);
     expect(portal.closest("p")).toHaveTextContent("继续阅读 传送门。");
     expect(portal).not.toHaveTextContent("。");
+  });
+
+  test("私密帖邀请链接渲染为同页传送门", () => {
+    render(
+      <MarkdownContent
+        content="请使用 https://wenyou.site/join/AbCdEfGh_123-XYZ 加入"
+      />,
+    );
+
+    const portal = screen.getByRole("link", { name: "站内传送门：传送门" });
+    expect(portal).toHaveAttribute("href", "/join/AbCdEfGh_123-XYZ");
+    expect(portal).not.toHaveAttribute("target");
   });
 
   test("骰子结果以和文字混排的背景色标签显示", () => {
@@ -127,7 +139,7 @@ describe("MarkdownContent", () => {
     expect(document.querySelectorAll("br")).toHaveLength(1);
   });
 
-  test("完整 CommonMark/GFM 内容可渲染，表格与代码只在自身区域溢出", () => {
+  test("历史白名单外结构只显示源码字符，不生成结构节点", () => {
     render(
       <MarkdownContent
         content={[
@@ -149,17 +161,20 @@ describe("MarkdownContent", () => {
       />,
     );
 
-    expect(screen.getByRole("heading", { level: 5, name: "历史五级标题" })).toBeInTheDocument();
+    expect(screen.getByText("##### 历史五级标题")).toBeInTheDocument();
     expect(document.querySelector("ol")).toBeInTheDocument();
-    expect(document.querySelector('input[type="checkbox"]')).toBeChecked();
-    expect(document.querySelector('[data-slot="markdown-table-scroll"]')).toHaveClass(
-      "max-w-full",
-      "overflow-x-auto",
-    );
-    expect(document.querySelector('[data-slot="markdown-code-scroll"]')).toHaveClass(
-      "max-w-full",
-      "overflow-x-auto",
-    );
+    expect(document.querySelector("h5")).toBeNull();
+    expect(document.querySelector('input[type="checkbox"]')).toBeNull();
+    expect(document.querySelector("table")).toBeNull();
+    expect(document.querySelector("pre")).toBeNull();
+    expect(screen.getByText("- [x] 已完成")).toBeInTheDocument();
+    expect(screen.getByText("```ts")).toBeInTheDocument();
+  });
+
+  test("原始 HTML 显示为字面文字且不会执行", () => {
+    render(<MarkdownContent content={'<script>window.evil = true</script>'} />);
+    expect(screen.getByText('<script>window.evil = true</script>')).toBeInTheDocument();
+    expect(document.querySelector("script")).toBeNull();
   });
 
   test("空 URL 图片不渲染破图", () => {

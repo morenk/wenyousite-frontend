@@ -7,6 +7,7 @@ import { getApiErrorMessage } from "@/api/errors";
 import { useSaveDraft } from "@/api/hooks/use-save-draft";
 import { queryKeys } from "@/api/query-keys";
 import { useAuth } from "@/lib/auth";
+import { sanitizeMilkdownMarkdown } from "@/lib/markdown";
 import type { EditorDraftSnapshot } from "@/components/editor/content-drafts-panel";
 
 export type EditorAutoSaveStatus = "idle" | "saving" | "saved" | "error";
@@ -22,14 +23,15 @@ export function useEditorDraftController({
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { mutateAsync: saveDraftAutomatically } = useSaveDraft();
-  const [restoredValue, setRestoredValue] = useState(defaultValue);
+  const initialValue = sanitizeMilkdownMarkdown(defaultValue);
+  const [restoredValue, setRestoredValue] = useState(initialValue);
   const [version, setVersion] = useState(0);
-  const [currentContent, setCurrentContent] = useState(defaultValue);
+  const [currentContent, setCurrentContent] = useState(initialValue);
   const [draftOpen, setDraftOpen] = useState(false);
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<EditorAutoSaveStatus>("idle");
   const externalOnChangeRef = useRef(onChange);
-  const latestContentRef = useRef(defaultValue);
+  const latestContentRef = useRef(initialValue);
   const autoSaveQueueRef = useRef<Promise<unknown>>(Promise.resolve());
   const autoSaveSequenceRef = useRef(0);
   const autoSaveVersionRef = useRef<number | undefined>(undefined);
@@ -38,6 +40,10 @@ export function useEditorDraftController({
   useEffect(() => {
     externalOnChangeRef.current = onChange;
   }, [onChange]);
+
+  useEffect(() => {
+    if (initialValue !== defaultValue) externalOnChangeRef.current?.(initialValue);
+  }, [defaultValue, initialValue]);
 
   const handleChange = useCallback(
     (value: string) => {
@@ -50,11 +56,12 @@ export function useEditorDraftController({
   );
 
   const handleRestore = useCallback((snapshot: EditorDraftSnapshot) => {
-    latestContentRef.current = snapshot.content;
-    setRestoredValue(snapshot.content);
-    setCurrentContent(snapshot.content);
+    const safeContent = sanitizeMilkdownMarkdown(snapshot.content);
+    latestContentRef.current = safeContent;
+    setRestoredValue(safeContent);
+    setCurrentContent(safeContent);
     setVersion((current) => current + 1);
-    externalOnChangeRef.current?.(snapshot.content);
+    externalOnChangeRef.current?.(safeContent);
     toast.success("已恢复正文草稿");
   }, []);
 
