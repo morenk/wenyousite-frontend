@@ -14,7 +14,6 @@
 - 页面和组件不得直接 `fetch` 后端。请求统一经过 `src/api/client.ts` 的 `apiClient`，再由 `src/api/hooks/` 暴露。
 - `contracts/openapi.json` 是已提交的后端契约快照，生成类型位于 `src/api/types.ts`；不要手改生成文件。
 - 后端可观察接口变化必须先更新后端 OpenAPI，再执行契约同步/类型生成，并修正前端调用与测试。
-- `docs/snapshots/` 只用于脱敏后的响应形状回归，不替代 OpenAPI，也不得写入 token、Cookie、邮箱、密码或未脱敏用户数据。
 - 浏览器固定访问同域 `/api/v1`。服务端代理使用 `BACKEND_URL`；不要新增代码未读取的 `NEXT_PUBLIC_*` API 地址。
 
 常用契约命令：
@@ -23,7 +22,6 @@
 pnpm contract:check
 pnpm contract:sync
 pnpm generate:api
-pnpm snapshots:check
 ```
 
 ### 认证与安全
@@ -52,7 +50,7 @@ pnpm snapshots:check
 - 纯函数、Schema、Hook、缓存更新：Vitest 单元测试。
 - 组件状态、表单、乐观更新、可访问性交互：Testing Library 组件测试。
 - 路由、代理、认证跳转、跨页面核心旅程：Playwright 或等价端到端验证。
-- API 契约变化：契约检查、生成类型编译、受影响模块测试；必要时更新脱敏快照。
+- API 契约变化：契约检查、生成类型编译与受影响模块测试。
 - Bug 修复必须增加能复现该问题的回归测试，除非只能由外部基础设施验证；此时在交付说明中写清验证方法。
 
 实现过程中先跑受影响测试；代码任务交付前运行：
@@ -67,6 +65,7 @@ pnpm check
 pnpm check:full
 ```
 
+- `pnpm check:full` 把本次生成的 standalone 候选构建隔离运行在 `127.0.0.1:3101`；Playwright 不复用已部署的 `3001` 进程。
 - 完整 Playwright E2E 只连本机 loopback 后端，并使用可清理的专用测试账号。
 - 公网开发环境可做**定向写入烟雾测试**，但必须使用专用测试账号、只创建可识别测试数据、验证后清理；禁止批量或不可逆操作。
 - 纯文档变更只做链接、格式和差异检查，不运行 `pnpm check`、不构建、不重启服务。
@@ -79,7 +78,7 @@ pnpm check:full
 代码任务的默认完成链路：
 
 1. 实现并运行相关测试。
-2. 运行 `pnpm check`；高风险任务补充 `pnpm check:full` 或等价验证。
+2. 运行 `pnpm check`；认证/权限、核心旅程或高风险变更补充带专用账号的 `pnpm check:full`。
 3. 自动重启受影响服务，不另行等待部署授权。
 4. 检查公网健康、受影响页面/旅程和最近日志。
 5. 汇报变更与验证结果。
@@ -90,20 +89,15 @@ pnpm check:full
 
 - Next.js 使用 `output: "standalone"`，宿主机进程监听 `3001`；PostgreSQL/Redis 才由 Docker Compose 管理。
 - `pnpm check` 已包含 `next build`。源码未再变化时不要重复 build。
-- `next build` 会重写线上旧进程正在读取的 `.next`。只要运行过 `pnpm check` 或 `pnpm build`，必须在同一批次补齐 static/public、立即重启 3001 并验证，不能留下新旧 chunk 混用状态。
+- 线上进程必须从 `/var/lib/wenyousite/frontend/releases/` 下的不可变 release 运行，不能直接运行会被 `next build` 重写的 `.next/standalone`。
+- 只要运行过 `pnpm check` 或 `pnpm build`，必须使用切换脚本组装 static/public、预检并切换 3001；脚本失败时保留或恢复上一成功版本。
 - 纯前端变化只切换前端；后端或契约同时变化时，先切换并验证后端，再同步契约、检查和切换前端。
 
 检查完成后的前端切换：
 
 ```bash
 cd /root/wenyousite/wenyousite-frontend
-cp -a .next/static .next/standalone/.next/
-cp -a public .next/standalone/
-frontend_pid="$(ss -tlnp | sed -n 's/.*:3001 .*pid=\([0-9][0-9]*\).*/\1/p' | head -n 1)"
-test -n "$frontend_pid" && kill "$frontend_pid"
-mkdir -p /tmp/opencode
-setsid nohup env PORT=3001 node .next/standalone/server.js </dev/null \
-  >/tmp/opencode/wenyousite-frontend.log 2>&1 &
+bash scripts/deploy-standalone.sh
 ```
 
 切换后至少验证：

@@ -19,14 +19,15 @@ pnpm typecheck
 pnpm test
 pnpm test:coverage
 pnpm check
+pnpm check:full
 pnpm build
 pnpm generate:api
 ```
 
-`pnpm check` 会校验 OpenAPI 生成类型、查询键与 UI/API 分层、覆盖率阈值、安全快照、文档事实和生产构建。Playwright 默认直接复用 `127.0.0.1:3001` 上已经部署的线上 production build，不会启动 `next dev`；它会写入测试数据，只允许连接本机后端，运行前按 `.env.e2e.example` 提供专用测试账号：
+`pnpm check` 会校验 OpenAPI 生成类型、查询键与 UI/API 分层、覆盖率阈值、文档事实和生产构建。`pnpm check:full` 在此基础上把刚生成的 standalone 构建复制到临时目录并监听 `127.0.0.1:3101`，Playwright 只测试这份候选构建，不复用 `3001` 上的已部署版本。E2E 会写入测试数据，只允许连接本机后端，运行前按 `.env.e2e.example` 提供专用测试账号：
 
 ```bash
-E2E_ENV=test E2E_EMAIL=... E2E_PASSWORD=... pnpm test:e2e
+E2E_EMAIL=... E2E_PASSWORD=... pnpm check:full
 ```
 
 Web access token 只驻留内存，页面刷新通过 httpOnly refresh cookie 恢复；浏览器存储中不持久化凭证。
