@@ -4,12 +4,12 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import {
   EDITOR_CAPABILITY_LABELS,
+  EDITOR_CONTENT_POLICY,
   EDITOR_CREATABLE_HEADING_LEVELS,
   EDITOR_MORE_FALLBACK,
   EDITOR_MORE_PROGRESSIVE,
   EDITOR_PRIMARY_NARROW,
   EDITOR_PRIMARY_WIDE,
-  EDITOR_SYNTAX_ONLY,
   editorCapabilityLabels,
 } from "../src/lib/editor-capabilities";
 
@@ -78,8 +78,20 @@ function operation(method: string, apiPath: string) {
   // refresh 使用原生 fetch 包装器，以避免拦截器递归。
   directOperations.add("POST /api/v1/auth/refresh");
 
+  const directKnownOperations = new Set(
+    [...directOperations].filter((item) => allOperations.has(item)),
+  );
+  const directUserOperations = [...directKnownOperations].filter((item) =>
+    userOperations.has(item),
+  );
+  const directExcludedOperations = [...directKnownOperations].filter((item) =>
+    excluded.has(item),
+  );
   const missing = [...userOperations]
-    .filter((item) => !directOperations.has(item))
+    .filter((item) => !directKnownOperations.has(item))
+    .sort();
+  const missingExcluded = [...excluded]
+    .filter((item) => !directKnownOperations.has(item))
     .sort();
   const coverageDocument = fs.readFileSync(
     path.resolve(root, "docs/api-coverage.md"),
@@ -87,7 +99,7 @@ function operation(method: string, apiPath: string) {
   );
   const auditSection = coverageDocument
     .split("## 未单独调用的用户端操作")[1]
-    ?.split("## 后续边界")[0];
+    ?.split("## 范围边界")[0];
   if (!auditSection) throw new Error("docs/api-coverage.md 缺少未调用操作章节");
   const documentedMissing = [
     ...auditSection.matchAll(
@@ -101,7 +113,8 @@ function operation(method: string, apiPath: string) {
     `后端总量：${Object.keys(spec.paths).length} 个路径、${allOperations.size} 个操作`,
     `用户端范围外：举报 ${reportOperations.length} 个操作、管理后台 ${adminOperations.length} 个操作`,
     `用户端审计范围：${userOperations.size} 个操作`,
-    `前端直接调用：${directOperations.size} 个操作；其余 ${missing.length} 个操作`,
+    `Web 源码直接引用：${directKnownOperations.size} 个操作（用户端 ${directUserOperations.length} 个，举报/站务 ${directExcludedOperations.length} 个）`,
+    `未直接引用：用户端 ${missing.length} 个、举报/站务 ${missingExcluded.length} 个`,
   ];
   const failures = expectedFacts
     .filter((fact) => !coverageDocument.includes(fact))
@@ -157,6 +170,33 @@ function operation(method: string, apiPath: string) {
     path.resolve(root, "docs/design-system.md"),
     ...markdownFiles(path.resolve(root, "docs/modules")),
   ];
+
+  const retiredSnapshotDirectory = path.resolve(root, "docs/snapshots");
+  if (
+    fs.existsSync(retiredSnapshotDirectory) &&
+    fs.readdirSync(retiredSnapshotDirectory).some((name) => name.endsWith(".snapshot.json"))
+  ) {
+    failures.push("docs/snapshots 已废弃，响应结构只由 OpenAPI 与生成类型维护");
+  }
+  const packageDocument = fs.readFileSync(path.resolve(root, "package.json"), "utf8");
+  if (packageDocument.includes("snapshots:")) {
+    failures.push("package.json 仍包含已废弃的运行时快照命令");
+  }
+  const foundationLock = JSON.parse(
+    fs.readFileSync(path.resolve(root, "foundation.lock.json"), "utf8"),
+  ) as { version: string; tag: string };
+  const designSystemDocument = fs.readFileSync(
+    path.resolve(root, "docs/design-system.md"),
+    "utf8",
+  );
+  for (const versionClaim of [
+    `固定到 \`${foundationLock.tag}\``,
+    `/blob/${foundationLock.tag}/`,
+  ]) {
+    if (!designSystemDocument.includes(versionClaim)) {
+      failures.push(`docs/design-system.md 未同步 Foundation ${foundationLock.version}`);
+    }
+  }
   const historicalPlanningPatterns = [
     /本次迭代/,
     /本轮迭代/,
@@ -198,9 +238,9 @@ function operation(method: string, apiPath: string) {
     [
       "docs/modules/markdown-content-protocol.md",
       [
-        "markdown-v2-fixtures.json",
-        "markdown-v2-nodes-fixtures.json",
-        "markdown-editor-roundtrip-v1-fixtures.json",
+        "markdown-v3-fixtures.json",
+        "markdown-v3-nodes-fixtures.json",
+        "markdown-editor-roundtrip-v2-fixtures.json",
         "Flutter 必须",
       ],
     ],
@@ -232,7 +272,7 @@ function operation(method: string, apiPath: string) {
     `| 最窄核心一级栏 | ${capabilityRow(EDITOR_PRIMARY_NARROW)} |`,
     `| 最窄“更多”基础集合 | ${capabilityRow(EDITOR_MORE_FALLBACK)} |`,
     `| 继续变窄时追加收纳 | ${capabilityRow(EDITOR_MORE_PROGRESSIVE)} |`,
-    `| 仅语法/粘贴 | ${capabilityRow(EDITOR_SYNTAX_ONLY)} |`,
+    `| 结构化能力边界 | 仅工具栏入口；白名单外格式静默降为字面文本 |`,
     `| 新建标题层级 | ${[
       "正文",
       ...EDITOR_CREATABLE_HEADING_LEVELS.map((level) => `标题 ${level}`),
@@ -254,12 +294,21 @@ function operation(method: string, apiPath: string) {
   if (EDITOR_CAPABILITY_LABELS.more !== "更多") {
     failures.push("编辑器窄栏固定出口必须命名为“更多”");
   }
+  if (
+    EDITOR_CONTENT_POLICY.markdownContractVersion !== 3 ||
+    EDITOR_CONTENT_POLICY.structuredCapabilitySource !== "toolbar" ||
+    EDITOR_CONTENT_POLICY.unsupportedClientBehavior !== "literal-text-silent" ||
+    EDITOR_CONTENT_POLICY.unsupportedApiBehavior !== "reject" ||
+    EDITOR_CONTENT_POLICY.maximumListDepth !== 3
+  ) {
+    failures.push("Foundation 正文策略必须保持 Markdown v3 工具栏白名单契约");
+  }
 
   const backendRoot = path.resolve(root, "../wenyousite-backend");
   for (const fixtureName of [
-    "markdown-v2-fixtures.json",
-    "markdown-v2-nodes-fixtures.json",
-    "markdown-editor-roundtrip-v1-fixtures.json",
+    "markdown-v3-fixtures.json",
+    "markdown-v3-nodes-fixtures.json",
+    "markdown-editor-roundtrip-v2-fixtures.json",
     "thread-category-v1-fixtures.json",
   ]) {
     const frontendFixture = path.resolve(root, "contracts", fixtureName);
@@ -277,6 +326,6 @@ function operation(method: string, apiPath: string) {
     throw new Error(`文档真实性检查失败：\n${failures.join("\n")}`);
   }
   console.log(
-    `Documentation facts match ${allOperations.size} OpenAPI operations and ${directOperations.size} frontend calls`,
+    `Documentation facts match ${allOperations.size} OpenAPI operations and ${directKnownOperations.size} frontend calls`,
   );
 }
