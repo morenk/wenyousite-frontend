@@ -117,12 +117,6 @@ function ThreadDetailPageContent() {
   const selectedSubthread = thread?.subthreads.find(
     (s) => s.id === effectiveSubthreadId,
   );
-  const selectedSubthreadIndex = selectedSubthread
-    ? (thread?.subthreads.findIndex(
-        (subthread) => subthread.id === selectedSubthread.id,
-      ) ?? -1)
-    : -1;
-
   const { isThreadManager } = useThreadPermissions();
   const canManageThread = isThreadManager || user?.id === thread?.ownerId;
 
@@ -218,8 +212,6 @@ function ThreadDetailPageContent() {
             subthread={selectedSubthread}
             isDefault={selectedSubthread.id === thread.defaultSubthreadId}
             threadTitle={thread.title}
-            position={selectedSubthreadIndex + 1}
-            total={thread.subthreads.length}
           />
         ) : null}
       </ThreadDetailHeader>
@@ -236,22 +228,9 @@ function ThreadDetailPageContent() {
         </div>
       )}
 
-      <div className="mt-6 space-y-4">
-        {/* 讨论区与主题文档显式分层。 */}
+      <div className="mt-4 space-y-4">
         {effectiveSubthreadId && (
-          <section aria-labelledby="thread-discussion-title">
-            <div className="mb-3 flex items-center gap-3 px-1">
-              <h2
-                id="thread-discussion-title"
-                className="font-display text-lg font-bold text-foreground"
-              >
-                讨论
-              </h2>
-              <span className="font-utility text-xs tabular-nums text-muted-foreground">
-                {selectedSubthread?._count.posts ?? 0} 楼
-              </span>
-              <span className="h-px flex-1 bg-border" aria-hidden="true" />
-            </div>
+          <section aria-label="帖子回复">
             <FloorList
               floors={floors}
               hasNextPage={!!hasNextPage}

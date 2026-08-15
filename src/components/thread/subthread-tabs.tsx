@@ -41,8 +41,10 @@ export function SubthreadSwitcher({
 
   if (subthreads.length <= 1 || !selected) return null;
   const selectedIndex = subthreads.findIndex((subthread) => subthread.id === selected.id);
-  const previous = subthreads[selectedIndex - 1];
-  const next = subthreads[selectedIndex + 1];
+  const previous = subthreads[
+    (selectedIndex - 1 + subthreads.length) % subthreads.length
+  ];
+  const next = subthreads[(selectedIndex + 1) % subthreads.length];
 
   return (
     <div
@@ -51,16 +53,14 @@ export function SubthreadSwitcher({
       aria-label="子贴切换"
       className={cn("flex min-w-0 items-center gap-1", className)}
     >
-      <Tooltip content={previous ? `上一个子贴：${previous.title}` : "已经是第一个子贴"} disabled={!previous}>
+      <Tooltip content={`上一个子贴：${previous.title}`}>
         <Button
           type="button"
           variant="ghost"
           size="icon-sm"
           className="hidden rounded-lg text-muted-foreground hover:text-foreground sm:inline-flex"
-          aria-label={previous ? `上一个子贴：${previous.title}` : "已经是第一个子贴"}
-          title={!previous ? "已经是第一个子贴" : undefined}
-          disabled={!previous}
-          onClick={() => previous && onChange(previous.id)}
+          aria-label={`上一个子贴：${previous.title}`}
+          onClick={() => onChange(previous.id)}
         >
           <ChevronLeft className="size-4" aria-hidden="true" />
         </Button>
@@ -175,16 +175,14 @@ export function SubthreadSwitcher({
         </Select.Portal>
       </Select.Root>
 
-      <Tooltip content={next ? `下一个子贴：${next.title}` : "已经是最后一个子贴"} disabled={!next}>
+      <Tooltip content={`下一个子贴：${next.title}`}>
         <Button
           type="button"
           variant="ghost"
           size="icon-sm"
           className="hidden rounded-lg text-muted-foreground hover:text-foreground sm:inline-flex"
-          aria-label={next ? `下一个子贴：${next.title}` : "已经是最后一个子贴"}
-          title={!next ? "已经是最后一个子贴" : undefined}
-          disabled={!next}
-          onClick={() => next && onChange(next.id)}
+          aria-label={`下一个子贴：${next.title}`}
+          onClick={() => onChange(next.id)}
         >
           <ChevronRight className="size-4" aria-hidden="true" />
         </Button>

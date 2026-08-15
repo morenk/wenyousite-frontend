@@ -105,7 +105,7 @@ describe("SubthreadSwitcher", () => {
     expect(onCopyCurrent).toHaveBeenCalledOnce();
   });
 
-  test("左右游标切换相邻子贴，并在首尾禁用", async () => {
+  test("左右游标切换相邻子贴，并在首尾循环衔接", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     const subthreads = [
@@ -133,7 +133,8 @@ describe("SubthreadSwitcher", () => {
         onChange={onChange}
       />,
     );
-    expect(screen.getByRole("button", { name: "已经是第一个子贴" })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "上一个子贴：闲聊区" }));
+    expect(onChange).toHaveBeenNthCalledWith(3, "s3");
 
     rerender(
       <SubthreadSwitcher
@@ -142,7 +143,8 @@ describe("SubthreadSwitcher", () => {
         onChange={onChange}
       />,
     );
-    expect(screen.getByRole("button", { name: "已经是最后一个子贴" })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "下一个子贴：主帖" }));
+    expect(onChange).toHaveBeenNthCalledWith(4, "s1");
   });
 
   test("几十个子贴收纳在固定高度的纵向菜单中", async () => {
@@ -187,6 +189,8 @@ describe("SubthreadSwitcher", () => {
       />,
     );
 
+    await user.tab();
+    expect(screen.getByRole("button", { name: "上一个子贴：设定区" })).toHaveFocus();
     await user.tab();
     await user.keyboard("{Enter}");
     expect(screen.getByRole("listbox", { name: "主题目录" })).toBeInTheDocument();

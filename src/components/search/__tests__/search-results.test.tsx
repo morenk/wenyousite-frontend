@@ -182,9 +182,15 @@ describe("SearchResults", () => {
     expect(mockUseSearchThreads).toHaveBeenLastCalledWith("测试", false);
     expect(mockUseSearchUsers).toHaveBeenLastCalledWith("测试", false);
     expect(mockUseSearchPosts).toHaveBeenLastCalledWith("测试", false);
-    expect(screen.getByRole("tab", { name: "动态 0" })).toHaveAttribute(
+    expect(screen.getByRole("tab", { name: "动态" })).toHaveAttribute(
       "aria-selected",
       "true",
+    );
+    expect(screen.getByRole("tab", { name: "动态" })).toHaveClass(
+      "self-stretch",
+    );
+    expect(screen.getByRole("tab", { name: "动态" })).not.toHaveClass(
+      "h-full",
     );
 
     fireEvent.click(screen.getByRole("tab", { name: "主题帖" }));
@@ -244,12 +250,13 @@ describe("SearchResults", () => {
     expect(refetch).toHaveBeenCalledTimes(1);
   });
 
-  test("楼层 Tab 显示更多标记并可游标加载下一页", () => {
+  test("楼层 Tab 不显示计数并可游标加载下一页", () => {
     render(<SearchResults keyword="测试" />);
     fireEvent.click(screen.getByRole("tab", { name: "楼层内容" }));
 
     expect(mockUseSearchPosts).toHaveBeenLastCalledWith("测试", true);
-    expect(screen.getByRole("tab", { name: "楼层内容 1+" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "楼层内容" })).toBeInTheDocument();
+    expect(screen.queryByText("1+")).toBeNull();
     expect(screen.getByText("这是匹配的楼层内容")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /测试帖子/ })).toHaveAttribute(
       "href",
@@ -270,7 +277,7 @@ describe("SearchResults", () => {
     expect(screen.queryByText("这是匹配的楼层内容")).not.toBeInTheDocument();
   });
 
-  test("关键词变化时保留旧结果并标记列表正在更新", () => {
+  test("关键词变化时保留旧结果但分类不显示计数", () => {
     mockUseSearchThreads.mockReturnValue({
       ...idleQuery,
       data: {
@@ -286,9 +293,10 @@ describe("SearchResults", () => {
     });
 
     render(<SearchResults keyword="新关键词" />);
-    fireEvent.click(screen.getByRole("tab", { name: "主题帖 1" }));
+    fireEvent.click(screen.getByRole("tab", { name: "主题帖" }));
 
     expect(screen.getByRole("link", { name: "查看主题帖：测试帖子" })).toBeInTheDocument();
     expect(screen.getByRole("status", { name: "正在更新列表" })).toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "主题帖 1" })).toBeNull();
   });
 });

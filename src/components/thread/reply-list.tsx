@@ -18,6 +18,7 @@ import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
 import { useThreadComposer } from "@/components/thread/thread-composer-context";
 import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
 import { UserAvatar } from "@/components/shared/user-avatar";
+import { ReplyActionButton } from "@/components/shared/reply-action-button";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-provider";
 import type { ReplyData, ReplyDisplayData } from "@/api/hooks/use-floors";
@@ -160,6 +161,18 @@ export function ReplyList({ postId, threadId, focusedReply, variant = "embedded"
           postId: reply.id,
           parentPostId: postId,
         });
+        const handleStartReply = () => {
+          void open({
+            key: `reply:${reply.id}`,
+            anchorId,
+            type: "reply",
+            subthreadId: reply.subthreadId,
+            parentPostId: postId,
+            replyToPostId: reply.id,
+            label: `回复 @${reply.author.username}`,
+            initialContent: "",
+          });
+        };
         return (
           <div
             key={reply.id}
@@ -187,7 +200,9 @@ export function ReplyList({ postId, threadId, focusedReply, variant = "embedded"
                 </Link>
                 <LevelBadge level={reply.author.level} />
                 {variant === "discussion" && (
-                  <span className="text-xs text-muted-foreground">讨论 #{index + 1}</span>
+                  <span className="font-utility text-xs tabular-nums text-muted-foreground">
+                    #{index + 1}
+                  </span>
                 )}
                 {replyToUser && replyToId && (
                   <span className="text-xs text-muted-foreground">
@@ -200,12 +215,6 @@ export function ReplyList({ postId, threadId, focusedReply, variant = "embedded"
                     </Link>
                   </span>
                 )}
-                <span className="text-xs text-muted-foreground">
-                  {formatDistanceToNow(new Date(reply.createdAt), {
-                    addSuffix: true,
-                    locale: zhCN,
-                  })}
-                </span>
               </div>
               {!isEditing ? (
                 <PostActionsMenu
@@ -216,18 +225,6 @@ export function ReplyList({ postId, threadId, focusedReply, variant = "embedded"
                     reply.content,
                   )}
                   copyHref={replyHref}
-                  onReply={user ? () => {
-                    open({
-                      key: `reply:${reply.id}`,
-                      anchorId,
-                      type: "reply",
-                      subthreadId: reply.subthreadId,
-                      parentPostId: postId,
-                      replyToPostId: reply.id,
-                      label: `回复 @${reply.author.username}`,
-                      initialContent: "",
-                    });
-                  } : undefined}
                   onEdit={isAuthor ? () => {
                     open({
                       key: `edit:${reply.id}`,
@@ -252,31 +249,45 @@ export function ReplyList({ postId, threadId, focusedReply, variant = "embedded"
                 <MarkdownContent content={reply.content} diceRolls={reply.diceRolls} sourcePostId={reply.id} />
               </div>
             )}
+            <div
+              data-testid="reply-card-meta"
+              className="mt-3 flex min-h-8 items-center justify-between gap-3"
+            >
+              <time dateTime={reply.createdAt} className="text-xs text-muted-foreground">
+                {formatDistanceToNow(new Date(reply.createdAt), {
+                  addSuffix: true,
+                  locale: zhCN,
+                })}
+              </time>
+              {!isEditing && user ? (
+                <ReplyActionButton
+                  presentation="labeled"
+                  onClick={handleStartReply}
+                />
+              ) : null}
+            </div>
             <ThreadComposerOutlet anchorId={anchorId} />
           </div>
         );
       })}
 
-      {/* 加载更多 sentinel */}
-      <div ref={sentinelRef} className="flex items-center justify-center py-2">
-        {isFetchingNextPage && (
-          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-        )}
-        {hasNextPage && !isFetchingNextPage && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => fetchNextPage()}
-            className="text-xs"
-          >
-            <ChevronDown className="mr-1 h-3.5 w-3.5" />
-            加载更多回复
-          </Button>
-        )}
-        {!hasNextPage && replies.length > 0 && (
-          <span className="text-xs text-muted-foreground">没有更多了</span>
-        )}
-      </div>
+      {hasNextPage || isFetchingNextPage ? (
+        <div ref={sentinelRef} className="flex items-center justify-center py-2">
+          {isFetchingNextPage ? (
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => fetchNextPage()}
+              className="text-xs"
+            >
+              <ChevronDown className="mr-1 h-3.5 w-3.5" />
+              加载更多回复
+            </Button>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }

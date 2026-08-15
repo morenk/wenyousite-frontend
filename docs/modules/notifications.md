@@ -39,7 +39,7 @@
 
 > `NotificationType`：reply / mention / new_post / thread_created / follow / like / tip / level_up / system。旧类型 `new_floor` / `subthread_created` 后端自动映射为 `new_post`。
 
-通知筛选分组由当前 Foundation v2.2.0 契约中的 `experiences.notifications` 定义，Web 直接消费生成产物，不在业务组件复制名称和成员：
+通知筛选分组由当前 Foundation v3.0.0 契约中的 `experiences.notifications` 定义，Web 直接消费生成产物，不在业务组件复制名称和成员：
 
 | 分组 | 类型 |
 |------|------|
@@ -49,9 +49,9 @@
 
 “全部”不发送 `type` 参数。历史 `reply,mention`、`follow,like`、`tip,level_up` 与 `system` URL 会归并到对应新分组；非法值回退“全部”。未知新增类型在 Foundation 升级前仍可从“全部”看到，客户端不猜测其分组。
 
-## 4. API 响应快照
+## 4. 响应结构
 
-脱敏响应见 `docs/snapshots/notifications.snapshot.json`。列表项结构以后端契约为准：
+列表项结构以后端 OpenAPI 契约和 `src/api/types.ts` 生成类型为准：
 
 ### GET /notifications?limit=20 → NotificationItem[]
 

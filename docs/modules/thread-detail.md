@@ -12,7 +12,7 @@
 
 平台管理员在公开主题帖头部以及每个楼层、楼中楼回复的更多菜单中可打开“站务隐藏”。提交使用管理员当前普通 Bearer 登录态，服务端实时校验角色，不要求独立站务会话；成功后立即移除已隐藏目标的详情缓存，并异步刷新楼层、回复、用户内容列表和审计查询，不等待必然返回 404 的目标详情重试。主题帖隐藏后返回首页，楼层或回复隐藏后留在当前阅读位置并由刷新后的查询移除。
 
-Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全局 CSS。编辑能力遵循 [`markdown-content-protocol.md`](./markdown-content-protocol.md) 的分层矩阵：PC 一行容得下时直接平铺全部常用能力并隐藏“更多”，实际溢出时保留核心能力并把低频项收入“更多”；安全 CommonMark/GFM 即使没有按钮，也可由语法、粘贴或历史正文进入并继续编辑。增强代码编辑器、表格行列 UI、公式、AI 和块编辑不进入编辑器包。主题卡片在鼠标悬停或键盘聚焦时并行预取 30 秒内可复用的详情与首屏楼层，进入详情后不再串行等待两次请求。
+Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全局 CSS。编辑能力遵循 [`markdown-content-protocol.md`](./markdown-content-protocol.md) 的工具栏白名单：PC 一行容得下时直接平铺全部常用能力并隐藏“更多”，实际溢出时保留核心能力并把低频项收入“更多”；工具栏外格式静默保留为字面文本。增强代码编辑器、表格行列 UI、公式、AI 和块编辑不进入编辑器包。主题卡片在鼠标悬停或键盘聚焦时并行预取 30 秒内可复用的详情与首屏楼层，进入详情后不再串行等待两次请求。
 
 **当前能力：**
 - 主题帖详情页 `/threads/[id]`
@@ -83,7 +83,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 
 > **主楼层链接契约**：主楼层可通过 `/threads/{threadId}?post={postId}` 精确定位；楼层卡片右上角操作菜单提供复制链接入口。该 URL 仅依赖现有 Post 字段，不新增 API。
 
-> **卡片操作契约**：子贴回复串的主楼层与楼中楼回复共用同一套右上角三点菜单。复制文本、复制链接始终可用；回复仅登录后可用；编辑仅作者可用；删除仅作者或帖内管理者可用并与普通操作分组。楼层底部只保留“X 条回复”这类阅读状态入口，不重复展示回复按钮。
+> **卡片操作契约**：子贴回复串的主楼层与楼中楼回复共用同一套右上角三点菜单。复制文本、复制链接始终可用；编辑仅作者可用；删除仅作者或帖内管理者可用并与普通操作分组。回复不藏在更多菜单中：登录用户可从卡片底部右侧带 `action.reply` 图标与“回复”文字的按钮原位打开编辑器；底部左侧显示发布时间，主楼层的回复数作为相邻阅读入口。动态评论区继续使用带 Tooltip 的纯图标形态，以保持信息流密度。
 
 > **统一导航契约**：`src/lib/post-navigation.ts` 集中生成主楼层、楼中楼讨论和目标回复地址，供搜索、通知、个人动态、复制链接、讨论列表及兼容重定向复用。各业务组件只负责呈现或触发导航，不再自行拼接帖子定位 URL。
 
@@ -93,7 +93,9 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 
 > **邀请重复访问契约**：`/join/[token]` 读取预览响应的 `alreadyJoined`。已是成员时显示加载过渡并立即 `replace` 到 `/threads/{threadId}`；提交加入接口本身也保持幂等，用于覆盖多标签页或并发点击。加入成功后失效“参与的帖子”缓存。预览查询不自动重试，旧 token 的 404 会立即显示“邀请链接无效或已失效”，避免页面长时间转圈和重复请求。
 
-## 4. API 响应快照
+> **邀请传送门契约**：合法的 `/join/{16 位 token}` 及 `https://wenyou.site` 同源绝对地址可在帖子、动态和评论中显示为站内传送门；解析阶段不请求邀请预览或私密帖元数据。发布邀请传送门等同于分享该邀请凭据，目标可见性仍由加入页和既有权限逻辑决定。
+
+## 4. 响应结构示例
 
 ### GET /threads/:id → ThreadDetail
 
@@ -226,7 +228,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 }
 ```
 
-> **replyTo 字段**：后端 `GET /posts/:id/replies` 与 `GET /subthreads/:id/posts` 内嵌回复均带 `replyToPost` 关联（含目标回复 `author`），前端 `PostData.replyToPost` 据此渲染「回复 @xxx」上下文。旧快照（无 replyToPost）已过时，需重新抓取。
+> **replyTo 字段**：后端 `GET /posts/:id/replies` 与 `GET /subthreads/:id/posts` 内嵌回复均带 `replyToPost` 关联（含目标回复 `author`），前端 `PostData.replyToPost` 据此渲染「回复 @xxx」上下文。字段事实以固定 OpenAPI 和生成类型为准。
 
 ### POST /threads/:id/like → ThreadDetail (partial)
 
@@ -265,19 +267,19 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 | ThreadSubscriptionControls | `src/components/thread/thread-subscription-controls.tsx` | 普通用户的官方更新图标开关与玩家订阅弹层、成员候选查询 |
 | ThreadPostSearch | `src/components/thread/thread-post-search.tsx` | 内联搜索全部子贴与楼中楼；处理短词、分页及四态 |
 | PostSearchResultList | `src/components/search/post-search-result-list.tsx` | 与全站搜索共用的结果列表、加载更多和精确帖子导航 |
-| SubthreadSwitcher | `src/components/thread/subthread-tabs.tsx` | 排头卡与阅读书签条共用的子贴目录；弹出紧凑的固定高度纵向菜单，显示当前项与各子贴楼层数，并保留左右游标 |
-| SubthreadBody | `src/components/thread/subthread-body.tsx` | 子贴卡（唯一卡片）：子贴标题 + 默认徽章 + 正文（kind=BODY）同容器（正文不进入楼层列表） |
-| FloorCard | `src/components/thread/floor-card.tsx` | 单条楼层卡片；作者可编辑，作者或楼主/协作者可删除；正文图片可收藏为表情 |
+| SubthreadSwitcher | `src/components/thread/subthread-tabs.tsx` | 排头卡与阅读书签条共用的子贴目录；弹出紧凑的固定高度纵向菜单，显示当前项与各子贴楼层数；左右游标在首尾循环衔接 |
+| SubthreadBody | `src/components/thread/subthread-body.tsx` | 当前子贴标题与正文（kind=BODY）在主题文档容器内连续阅读；不显示“主帖正文 / 子贴 n/N”等重复定位文案，正文不进入楼层列表 |
+| FloorCard | `src/components/thread/floor-card.tsx` | 单条楼层卡片；登录用户可从显式回复按钮原位打开编辑器，作者可编辑，作者或楼主/协作者可删除；正文图片可收藏为表情 |
 | FloorList | `src/components/thread/floor-list.tsx` | 楼层列表（仅 kind=FLOOR，无限滚动，cursor 分页） |
 | ThreadComposerProvider | `src/components/thread/thread-composer-context.tsx` | 全页唯一编辑会话；统一处理目标切换、脏内容确认和提交锁 |
 | ThreadComposer | `src/components/thread/thread-composer.tsx` | 按当前会话创建楼层、回复或编辑帖子；唯一挂载 MilkdownEditor |
 | ThreadComposerOutlet | `src/components/thread/thread-composer.tsx` | 放置在楼层/回复上下文中的轻量插槽，仅活动目标渲染编辑器 |
 | FloorForm | `src/components/thread/floor-form.tsx` | 新楼层轻量入口；点击后才在底部浮层中展开唯一编辑器 |
 | FloatingComposerDock | `src/components/thread/floating-composer-dock.tsx` | 主回复串与楼中楼共用的视口底部浮动输入坞；对齐内容列、自动留白、其他卡片编辑时隐藏 |
-| ReplyDiscussion | `src/components/thread/reply-discussion.tsx` | 独立楼中楼阅读主体：原楼层作为讨论正文、导航回原楼层、回复列表与共享浮动输入坞 |
+| ReplyDiscussion | `src/components/thread/reply-discussion.tsx` | 独立楼中楼阅读主体：原楼层保留 `#n` 定位、导航回原楼层、回复列表与共享浮动输入坞；不重复显示楼中楼说明标题 |
 | getPostHref / getPostDiscussionHref | `src/lib/post-navigation.ts` | 共享帖子导航契约：统一主楼层定位、楼中楼直达及 URL 编码 |
 | ReplyForm | `src/components/thread/reply-form.tsx` | 楼中楼浮动回复入口：登录用户按需打开统一编辑器，未登录显示登录提示 |
-| ReplyList | `src/components/thread/reply-list.tsx` | 楼中楼连续列表；独立阅读时可切换最早/最新在前，并只看帖内玩家、楼主或协作者；作者可编辑，作者或楼主/协作者可删除 |
+| ReplyList | `src/components/thread/reply-list.tsx` | 楼中楼连续列表，各条保留显式原位回复按钮与 `#n` 顺序定位；独立阅读时可切换最早/最新在前，并只看帖内玩家、楼主或协作者；作者可编辑，作者或楼主/协作者可删除 |
 | ThreadPermissionsProvider | `src/components/thread/thread-permissions-context.tsx` | 复用详情中的当前成员与 capability 投影，计算楼主、协作者、参与人和管理权限 |
 | MemberManager | `src/components/thread/member-manager.tsx` | 成员权限表：本地搜索/筛选，楼主可任免协作者，楼主/协作者可授予或收回玩家标记 |
 | ManagementPanel | `src/components/thread/management-panel.tsx` | 楼主/协作者统一桌面管理台：帖子设置、子贴内容、成员权限三个 URL 页签，持续保存状态与快捷保存 |
@@ -354,7 +356,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 
 > **子贴正文 vs 回复串：** 子贴正文（kind=BODY）与楼层/回复串（kind=FLOOR）定位不同——正文由子贴生命周期管理（管理面板 upsert，删除帖子接口对 BODY 返回 403 拦截），**楼层列表中的楼层（含 #1）作者均可删除/编辑**，不存在「首楼禁删」。
 
-**页面布局：** 主题帖排头卡为带玩法线路色的两段式信息面板（`ThreadDetailHeader`：上层为徽章/标题/作者/标签与低频工具，下层为禁止换行的子贴目录和图标互动工具带；目录标题弹性截断，楼主/协作者新增的管理工具固定在上层，不挤压目录）→ 排头卡离开视口后出现阅读书签条（标题、目录、搜索、回顶）→ 子贴卡（`SubthreadBody`：子贴标题 + 正文同卡）→ 楼层列表 → 语义上位于列表底部、视觉上浮在视口底部的轻量发布入口。
+**页面布局：** 主题帖排头卡为带玩法线路色的两段式信息面板（`ThreadDetailHeader`：上层为徽章/标题/作者/标签与低频工具，下层为禁止换行的子贴目录和图标互动工具带；目录标题弹性截断，左右游标首尾循环）→ 排头卡离开视口后出现阅读书签条（标题、目录、搜索、回顶）→ 当前子贴标题与正文（不重复显示定位说明）→ 楼层列表（不额外显示“讨论 n 楼”标题）→ 语义上位于列表底部、视觉上浮在视口底部的轻量发布入口。
 
 ```
 用户点击 FloorForm 的「发表回复」入口
@@ -369,7 +371,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 
 > **楼层编辑**：作者从 FloorCard 右上角操作菜单选择“编辑”后，唯一编辑器在正文位置回填 `floor.content`，保存调用 `useUpdatePost`（乐观锁 version）。原正文仅在该楼层为当前编辑目标时隐藏。
 
-> **楼中楼独立阅读**：详情页不再原地展开长回复串。点击回复数，或从楼层右上角操作菜单选择“回复”进入独立页面；页面顶部保留主题帖/子贴/原楼层上下文，原楼层在视觉上作为讨论正文，回复按普通楼层密度连续排列。存储语义不变，创建仍传 `parentPostId=主楼层 id`、`replyToPostId=目标 id`；编辑、删除和无限分页复用原有 hooks。
+> **楼中楼回复与独立阅读**：详情页不原地展开长回复串。登录用户点击楼层下方显式回复按钮时，在当前楼层内挂载唯一编辑器；点击回复数或“展开回复”才进入独立阅读页。独立页顶部保留主题帖/子贴/原楼层上下文，回复按普通楼层密度连续排列，每条回复也有显式原位回复按钮。存储语义不变，创建仍传 `parentPostId=主楼层 id`、`replyToPostId=目标 id`；编辑、删除和无限分页复用原有 hooks。
 
 > **回复串阅读筛选**：独立楼中楼页在回复列表前提供“最早回复在前 / 最新回复在前”和“只看某人”。作者候选只取当前 `playerMarked=true` 的玩家以及 `OWNER / COLLABORATOR`；普通参与人候选不出现。切换条件会使用新的查询缓存与第一页游标，避免只重排当前已加载数据。
 
@@ -448,12 +450,12 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 - 成员权限：表格搜索筛选、独立的协作权限/玩家标记、协作者任免确认、逐行 pending 与乐观失败回滚
 - 帖子或子贴版本冲突保留本地输入，并提供复制本地正文与确认后载入最新版本
 - 子贴目录不展示默认主贴；排序请求自动保留默认子贴首位
-- 排头卡内的子贴目录菜单支持几十个子贴：当前项明确、显示各子贴楼层数、纵向滚动且不占用正文上方横向空间；菜单两侧游标可切换上一个/下一个子贴，首尾状态不可点击
+- 排头卡内的子贴目录菜单支持几十个子贴：当前项明确、显示各子贴楼层数、纵向滚动且不占用正文上方横向空间；菜单两侧游标循环切换上一个/下一个子贴
 - 消息/站内链接定位取消移动动画，仅高亮目标楼层或楼中楼回复卡片
 - 头部可打开帖内搜索，覆盖全部子贴与楼中楼并支持游标加载更多
 - 搜索结果可切换到所属子贴并精确定位；楼中楼直达独立讨论页
 - 帖内搜索与全站搜索复用结果列表和导航协议，同时继承私密帖/草稿权限
-- 登录发帖自动进入参与人候选池，同时提供公开加入与退出玩家身份操作
+- 登录发帖自动进入参与人候选池；玩家身份通过邀请链接加入，并可主动退出
 - 元数据人数显示 `_count.players`（被授予玩家身份者），非候选池总数
 - 创建楼层/楼中楼提交稳定 clientRequestId
 - 相同内容网络重试复用 UUID，修改内容后使用新 UUID

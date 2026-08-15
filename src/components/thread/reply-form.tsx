@@ -3,11 +3,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { LogIn, MessageSquare } from "lucide-react";
+import { LogIn } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useThreadComposer } from "@/components/thread/thread-composer-context";
 import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
 import { Button } from "@/components/ui/button";
+import { WenyouIcon } from "@/components/ui/wenyou-icon";
 
 interface ReplyFormProps {
   subthreadId: string;
@@ -62,7 +63,7 @@ export function ReplyForm({
             initialContent: "",
           })}
         >
-          <MessageSquare className="mr-2 h-4 w-4" />
+          <WenyouIcon id="action.reply" className="mr-2 size-4" />
           发表回复…
         </Button>
       )}

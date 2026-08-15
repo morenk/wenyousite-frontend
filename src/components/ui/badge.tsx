@@ -22,7 +22,7 @@ const badgeVariants = cva(
   },
 );
 
-export type BadgeTone = NonNullable<VariantProps<typeof badgeVariants>["tone"]>;
+export type { BadgeTone } from "@/lib/presentation-types";
 
 export function Badge({
   className,

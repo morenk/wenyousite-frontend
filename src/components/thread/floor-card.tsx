@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { ArrowRight, MessageSquare } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { getPostDiscussionHref, getPostHref } from "@/lib/post-navigation";
@@ -18,7 +18,9 @@ import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
 import { useThreadComposer } from "@/components/thread/thread-composer-context";
 import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
 import { UserAvatar } from "@/components/shared/user-avatar";
+import { ReplyActionButton } from "@/components/shared/reply-action-button";
 import { buttonVariants } from "@/components/ui/button";
+import { WenyouIcon } from "@/components/ui/wenyou-icon";
 import { useConfirm } from "@/components/ui/confirm-provider";
 import type { FloorDisplayData } from "@/api/hooks/use-floors";
 import { LevelBadge } from "@/components/shared/level-badge";
@@ -47,7 +49,9 @@ export function FloorCard({ floor, focused = false }: FloorCardProps) {
   const isAuthor = !!user && user.id === floor.authorId;
   const canDelete = isAuthor || isManager;
   const editAnchorId = `floor-edit:${floor.id}`;
+  const replyAnchorId = `reply:${floor.id}`;
   const isEditing = session?.key === `edit:${floor.id}`;
+  const isReplying = session?.anchorId === replyAnchorId && session.type === "reply";
   const discussionHref = getPostDiscussionHref(floor.threadId, floor.id);
   const floorHref = getPostHref({ threadId: floor.threadId, postId: floor.id });
   const inlineReplies = (floor.replies ?? []).slice(0, INLINE_REPLY_LIMIT);
@@ -76,6 +80,19 @@ export function FloorCard({ floor, focused = false }: FloorCardProps) {
       label: `编辑 #${floor.floorNumber ?? ""}`,
       initialContent: floor.content,
       diceRolls: floor.diceRolls,
+    });
+  };
+
+  const handleStartReply = () => {
+    void open({
+      key: replyAnchorId,
+      anchorId: replyAnchorId,
+      type: "reply",
+      subthreadId: floor.subthreadId,
+      parentPostId: floor.id,
+      replyToPostId: floor.id,
+      label: `回复 #${floor.floorNumber ?? ""} ${floor.author.username}`.trim(),
+      initialContent: "",
     });
   };
 
@@ -131,7 +148,6 @@ export function FloorCard({ floor, focused = false }: FloorCardProps) {
             menuLabel="楼层操作"
             copyText={() => getVisibleContentText(`floor-content-${floor.id}`, floor.content)}
             copyHref={floorHref}
-            replyHref={user && floor.floorNumber != null ? discussionHref : undefined}
             onEdit={isAuthor ? handleStartEdit : undefined}
             onDelete={canDelete ? () => void handleDelete() : undefined}
             moderationTarget={{ type: "post", id: floor.id, label: `楼层 #${floor.floorNumber ?? ""}`.trim() }}
@@ -148,7 +164,7 @@ export function FloorCard({ floor, focused = false }: FloorCardProps) {
         </div>
       )}
 
-      {/* 发布时间与回复数入口：承接正文，并保持在楼中楼预览上方。 */}
+      {/* 发布时间、直接回复与回复数入口：承接正文，并保持在楼中楼预览上方。 */}
       <div
         data-testid="floor-card-meta"
         className="mt-3 flex min-h-6 items-center justify-between gap-3"
@@ -162,19 +178,30 @@ export function FloorCard({ floor, focused = false }: FloorCardProps) {
             locale: zhCN,
           })}
         </time>
-        {!isEditing && floor._count.replies > 0 && (
+        {!isEditing && (user || floor._count.replies > 0) && (
           <div data-testid="floor-card-actions" className="ml-auto flex items-center gap-1">
-            <Link
-              href={discussionHref}
-              className="flex items-center gap-1 px-2 text-xs text-muted-foreground hover:text-foreground"
-            >
-              <MessageSquare className="h-3.5 w-3.5" />
-              {floor._count.replies} 条回复
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
+            {user ? (
+              <ReplyActionButton presentation="labeled" onClick={handleStartReply} />
+            ) : null}
+            {floor._count.replies > 0 ? (
+              <Link
+                href={discussionHref}
+                className="flex min-h-8 items-center gap-1 rounded-lg px-2 text-xs text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+              >
+                <WenyouIcon id="metric.replies" className="size-3.5" />
+                {floor._count.replies} 条回复
+                <ArrowRight className="size-3.5" aria-hidden="true" />
+              </Link>
+            ) : null}
           </div>
         )}
       </div>
+
+      {isReplying ? (
+        <div className="mt-3">
+          <ThreadComposerOutlet anchorId={replyAnchorId} />
+        </div>
+      ) : null}
 
       {/* 楼中楼预览：只展示前五条，正文合计过长时截断并用渐变遮罩。 */}
       {!isEditing && inlineReplies.length > 0 && (

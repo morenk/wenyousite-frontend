@@ -30,6 +30,12 @@ describe("Tabs 布局", () => {
       "min-w-0",
       "group-data-[orientation=horizontal]/tabs:w-full",
     );
+    expect(screen.getByRole("tab", { name: "结果" })).toHaveClass(
+      "self-stretch",
+    );
+    expect(screen.getByRole("tab", { name: "结果" })).not.toHaveClass(
+      "h-full",
+    );
   });
 
   test("垂直分类栏保留左右排列", () => {

@@ -94,8 +94,9 @@ describe("FloorList", () => {
     fireEvent.scroll(window);
   });
 
-  test("最后一页显示结束提示", () => {
-    renderList();
-    expect(screen.getByText("没有更多了")).toBeInTheDocument();
+  test("最后一页不渲染多余的结束占位", () => {
+    const { container } = renderList();
+    expect(screen.queryByText("没有更多了")).toBeNull();
+    expect(container.querySelector('[data-slot="floor-list-sentinel"]')).toBeNull();
   });
 });

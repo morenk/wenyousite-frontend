@@ -34,6 +34,7 @@ export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps
 
   return (
     <PageShell width="feed">
+      <h1 className="sr-only">{rootPost.thread.title}的楼层回复</h1>
       <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
         <Link href={originalFloorHref} className="inline-flex items-center gap-1 hover:text-foreground">
           <ArrowLeft className="h-4 w-4" />
@@ -51,8 +52,7 @@ export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps
 
       <section className="overflow-hidden rounded-xl border border-border bg-card">
         <div className="border-b border-border bg-muted/30 px-5 py-3">
-          <p className="text-xs font-medium text-muted-foreground">楼中楼讨论主题</p>
-          <div className="mt-2 flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <UserAvatar
                 name={rootPost.author.username}
@@ -69,7 +69,7 @@ export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps
                 </Link>
                 <LevelBadge level={rootPost.author.level} />
                 <p className="text-xs text-muted-foreground">
-                  原子贴 #{rootPost.floorNumber} 楼 · {formatDistanceToNow(new Date(rootPost.createdAt), {
+                  #{rootPost.floorNumber} · {formatDistanceToNow(new Date(rootPost.createdAt), {
                     addSuffix: true,
                     locale: zhCN,
                   })}
@@ -83,13 +83,7 @@ export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps
         </div>
       </section>
 
-      <section className="mt-6">
-        <div className="mb-3 flex items-center justify-between">
-          <h1 className="font-display text-lg font-bold text-foreground">楼中楼讨论</h1>
-          <span className="text-sm text-muted-foreground">
-            共 {rootPost._count.replies} 条回复
-          </span>
-        </div>
+      <section className="mt-4" aria-label={`楼层回复，共 ${rootPost._count.replies} 条`}>
         <ReplyList
           postId={rootPost.id}
           threadId={rootPost.thread.id}

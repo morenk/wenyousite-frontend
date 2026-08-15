@@ -66,8 +66,10 @@ describe("ReplyDiscussion", () => {
     );
 
     expect(screen.getByText("原楼层长文")).toBeInTheDocument();
-    expect(screen.getByText("原子贴 #12 楼", { exact: false })).toBeInTheDocument();
-    expect(screen.getByText("共 87 条回复")).toBeInTheDocument();
+    expect(screen.getByText("#12", { exact: false })).toBeInTheDocument();
+    expect(screen.queryByText("楼中楼讨论主题")).toBeNull();
+    expect(screen.queryByText("楼中楼讨论")).toBeNull();
+    expect(screen.getByRole("region", { name: "楼层回复，共 87 条" })).toBeInTheDocument();
     const list = screen.getByTestId("reply-list");
     const anchor = document.querySelector<HTMLElement>(
       '[data-slot="floating-composer-anchor"]',

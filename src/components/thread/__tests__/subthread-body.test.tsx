@@ -38,15 +38,14 @@ describe("SubthreadBody", () => {
     expect(strong.tagName).toBe("STRONG");
   });
 
-  test("默认子贴显示主帖正文定位", () => {
+  test("默认子贴不显示重复的正文定位文案", () => {
     render(<SubthreadBody subthread={baseSubthread} isDefault />);
-    expect(screen.getByText("主帖正文")).toBeInTheDocument();
+    expect(screen.queryByText("主帖正文")).toBeNull();
   });
 
-  test("非默认子贴显示目录位置", () => {
-    render(<SubthreadBody subthread={baseSubthread} position={2} total={4} />);
-    expect(screen.getByText("子贴 2 / 4")).toBeInTheDocument();
-    expect(screen.queryByText("主帖正文")).toBeNull();
+  test("非默认子贴不重复显示目录位置", () => {
+    render(<SubthreadBody subthread={baseSubthread} />);
+    expect(screen.queryByText(/\u5b50\u8d34\s+\d+\s*\/\s*\d+/)).toBeNull();
   });
 
   test("主贴标题与主题标题重复时只在视觉上显示一次", () => {

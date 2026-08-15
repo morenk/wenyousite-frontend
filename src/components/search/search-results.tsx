@@ -77,29 +77,21 @@ export function SearchResults({ keyword }: SearchResultsProps) {
     {
       value: "moments" as const,
       label: "动态",
-      count: momentsQuery.data ? moments.length : undefined,
-      hasMore: momentsQuery.hasNextPage,
       icon: Images,
     },
     {
       value: "threads" as const,
       label: "主题帖",
-      count: threadsQuery.data ? threads.length : undefined,
-      hasMore: threadsQuery.hasNextPage,
       icon: MessageSquare,
     },
     {
       value: "posts" as const,
       label: "楼层内容",
-      count: postsQuery.data ? posts.length : undefined,
-      hasMore: postsQuery.hasNextPage,
       icon: FileText,
     },
     {
       value: "users" as const,
       label: "用户",
-      count: usersQuery.data?.length,
-      hasMore: usersQuery.data?.length === 20,
       icon: Users,
     },
   ];
@@ -118,23 +110,15 @@ export function SearchResults({ keyword }: SearchResultsProps) {
       >
         {tabs.map((tab) => {
           const Icon = tab.icon;
-          const countSuffix = tab.count === undefined
-            ? ""
-            : ` ${tab.count}${tab.hasMore ? "+" : ""}`;
           return (
             <TabsTrigger
               key={tab.value}
               value={tab.value}
-              aria-label={`${tab.label}${countSuffix}`}
-              className="min-w-0 gap-1.5 rounded-lg px-2 py-2 text-xs font-medium sm:text-sm data-active:ring-1 data-active:ring-border"
+              aria-label={tab.label}
+              className="min-w-0 gap-1.5 rounded-lg px-2 text-xs font-medium sm:text-sm data-active:ring-1 data-active:ring-border"
             >
               <Icon className="h-4 w-4 shrink-0" />
               <span className="truncate">{tab.label}</span>
-              {tab.count !== undefined && (
-                <span className="rounded-full bg-muted-foreground/10 px-1.5 text-[11px] tabular-nums">
-                  {tab.count}{tab.hasMore ? "+" : ""}
-                </span>
-              )}
             </TabsTrigger>
           );
         })}

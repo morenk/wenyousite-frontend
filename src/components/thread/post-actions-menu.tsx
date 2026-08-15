@@ -1,10 +1,9 @@
-/** 帖子卡片统一操作菜单：回复、复制、编辑与删除。 */
+/** 帖子卡片低频操作菜单：复制、编辑、删除与站务处理。 */
 
 "use client";
 
 import { Menu } from "@base-ui/react/menu";
-import Link from "next/link";
-import { Copy, Ellipsis, Link2, MessageSquare, Pencil, ShieldAlert, Trash2 } from "lucide-react";
+import { Copy, Ellipsis, Link2, Pencil, ShieldAlert, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -20,8 +19,6 @@ interface PostActionsMenuProps {
   menuLabel: string;
   copyText: () => string;
   copyHref: string;
-  replyHref?: string;
-  onReply?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
   moderationTarget?: AdminModerationTarget;
@@ -52,8 +49,6 @@ export function PostActionsMenu({
   menuLabel,
   copyText,
   copyHref,
-  replyHref,
-  onReply,
   onEdit,
   onDelete,
   moderationTarget,
@@ -87,21 +82,6 @@ export function PostActionsMenu({
               aria-label={menuLabel}
               className="w-44 origin-(--transform-origin) rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-popover outline-none duration-[var(--motion-standard)] data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"
             >
-            {replyHref ? (
-              <Menu.LinkItem
-                render={<Link href={replyHref} />}
-                closeOnClick
-                className={menuItemClassName}
-              >
-                <MessageSquare className="size-4" aria-hidden="true" />
-                回复
-              </Menu.LinkItem>
-            ) : onReply ? (
-              <Menu.Item className={menuItemClassName} onClick={onReply}>
-                <MessageSquare className="size-4" aria-hidden="true" />
-                回复
-              </Menu.Item>
-            ) : null}
             <Menu.Item
               className={menuItemClassName}
               onClick={() => void copyToClipboard(copyText(), "文本已复制")}

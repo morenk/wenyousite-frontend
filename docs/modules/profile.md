@@ -67,9 +67,9 @@
 
 > **无 body 写操作**：关注/拉黑等无 body 的 POST/DELETE，openapi-fetch 不发送 body 时不带 `Content-Type`，后端可正常解析；**不要**手动设 `Content-Type: application/json` + 空 body（后端 Fastify 返回 40001 "Body cannot be empty"）。
 
-## 4. API 响应快照
+## 4. 响应结构
 
-真实响应见 `docs/snapshots/users.snapshot.json`（13 端点）与 `docs/snapshots/drafts.snapshot.json`。
+响应结构以固定 OpenAPI 和 `src/api/types.ts` 的生成类型为事实源。
 
 ### GET /users/me → UserMe
 

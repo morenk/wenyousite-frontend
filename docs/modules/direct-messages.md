@@ -33,7 +33,7 @@ Web 端提供低频轮询的一对一私聊。入口位于全局导航和用户�
 | POST | `/direct-conversations/:id/read` | 标记本人实际看到的消息为已读 |
 | DELETE | `/direct-messages/:id` | 十分钟内撤回本人消息 |
 
-脱敏响应样例见 `docs/snapshots/direct-messages.snapshot.json`，结构事实源仍是 `src/api/types.ts` 的生成类型。
+响应结构以固定 OpenAPI 和 `src/api/types.ts` 的生成类型为事实源。
 
 ## 状态与交互
 

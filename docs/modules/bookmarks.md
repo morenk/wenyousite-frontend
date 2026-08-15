@@ -31,9 +31,9 @@
 | GET | `/users/:id/bookmarks` | OptionalAuth | 该用户公开收藏（cursor 分页，showBookmarks 关闭返回 404，私密帖非参与人过滤） |
 | GET | `/threads/:id` | AuthRead | 登录态附加 `isBookmarked` + `bookmarkId`（详情页按钮状态） |
 
-## 4. API 响应快照
+## 4. 响应结构
 
-真实响应见 `docs/snapshots/bookmarks.snapshot.json`。
+响应结构以固定 OpenAPI 和 `src/api/types.ts` 的生成类型为事实源。
 
 ### GET /bookmarks?limit=3 → { ...thread, bookmarkId }
 

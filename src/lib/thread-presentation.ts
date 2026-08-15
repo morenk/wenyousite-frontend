@@ -2,7 +2,7 @@ import type { CSSProperties } from "react";
 
 import type { ThreadCategoryDefinition } from "@/api/hooks/use-thread-categories";
 import type { components } from "@/api/types";
-import type { BadgeTone } from "@/components/ui/badge";
+import type { BadgeTone } from "@/lib/presentation-types";
 
 export type ThreadCategory = NonNullable<
   components["schemas"]["HomeThreadListItemResponseDto"]["category"]

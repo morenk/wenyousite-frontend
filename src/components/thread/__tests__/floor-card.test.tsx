@@ -27,12 +27,13 @@ vi.mock("@/components/thread/thread-permissions-context", () => ({
 }));
 
 const mockUpdateMutateAsync = vi.fn().mockResolvedValue({ id: "post-1" });
+const mockCreateMutateAsync = vi.fn().mockResolvedValue({ id: "reply-1" });
 const mockDeleteMutateAsync = vi.fn().mockResolvedValue(undefined);
 vi.mock("@/api/hooks/use-update-post", () => ({
   useUpdatePost: () => ({ mutateAsync: mockUpdateMutateAsync, isPending: false }),
 }));
 vi.mock("@/api/hooks/use-create-post", () => ({
-  useCreatePost: () => ({ mutateAsync: vi.fn().mockResolvedValue({ id: "reply-1" }) }),
+  useCreatePost: () => ({ mutateAsync: mockCreateMutateAsync }),
 }));
 vi.mock("@/api/hooks/use-delete-post", () => ({
   useDeletePost: () => ({ mutateAsync: mockDeleteMutateAsync }),
@@ -206,6 +207,10 @@ describe("FloorCard", () => {
     };
     renderWithQC(<FloorCard floor={withReplies} />);
     expect(screen.getByText("3 条回复")).toBeInTheDocument();
+    expect(screen.getByText("3 条回复").parentElement?.querySelector("svg")).toHaveAttribute(
+      "data-icon-semantic",
+      "metric.replies",
+    );
   });
 
   test("楼层卡片可复制楼层精确链接", async () => {
@@ -475,7 +480,7 @@ describe("FloorCard", () => {
     expect(screen.queryByTestId("floor-card-actions")).toBeNull();
   });
 
-  test("回复菜单项进入独立楼中楼阅读页", async () => {
+  test("登录用户可从零回复楼层直接原位打开回复编辑器", async () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({
       user: { id: "u1", username: "测试用户", emailVerified: true },
@@ -484,12 +489,31 @@ describe("FloorCard", () => {
     renderWithQC(<FloorCard floor={baseFloor} />);
 
     expect(screen.queryByText("暂无回复")).toBeNull();
-    expect(screen.queryByTestId("floor-card-actions")).toBeNull();
-    await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
-    expect(screen.getByRole("menuitem", { name: "回复" })).toHaveAttribute(
-      "href",
-      "/threads/t1/posts/post-1/replies",
+    expect(screen.getByTestId("floor-card-actions")).toBeInTheDocument();
+    const replyButton = screen.getByRole("button", { name: "回复" });
+    expect(screen.getByTestId("floor-card-actions")).toContainElement(replyButton);
+    expect(replyButton).toHaveTextContent("回复");
+    expect(replyButton.querySelector("svg")).toHaveAttribute(
+      "data-icon-semantic",
+      "action.reply",
     );
+
+    await user.click(replyButton);
+    expect(screen.getByTestId("milkdown-editor")).toBeInTheDocument();
+    expect(screen.getByText("回复 #1 测试用户")).toBeInTheDocument();
+
+    await user.type(screen.getByTestId("milkdown-editor"), "原位回复内容");
+    await user.click(screen.getAllByRole("button", { name: "回复" }).at(-1)!);
+    expect(mockCreateMutateAsync).toHaveBeenCalledWith({
+      subthreadId: "s1",
+      content: "原位回复内容",
+      clientRequestId: expect.any(String),
+      parentPostId: "post-1",
+      replyToPostId: "post-1",
+    });
+
+    await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
+    expect(screen.queryByRole("menuitem", { name: "回复" })).not.toBeInTheDocument();
   });
 
   test("未登录时操作菜单不显示回复动作", async () => {

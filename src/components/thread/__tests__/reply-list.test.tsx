@@ -17,8 +17,9 @@ const { mockUseAuth, mockUseThreadPermissions } = vi.hoisted(() => ({
   mockUseAuth: vi.fn(),
   mockUseThreadPermissions: vi.fn(),
 }));
-const { mockUpdateMutateAsync, mockDeleteMutateAsync, mockClipboardWriteText, mockToastSuccess } = vi.hoisted(() => ({
+const { mockUpdateMutateAsync, mockCreateMutateAsync, mockDeleteMutateAsync, mockClipboardWriteText, mockToastSuccess } = vi.hoisted(() => ({
   mockUpdateMutateAsync: vi.fn().mockResolvedValue({}),
+  mockCreateMutateAsync: vi.fn().mockResolvedValue({ id: "new-reply" }),
   mockDeleteMutateAsync: vi.fn().mockResolvedValue(undefined),
   mockClipboardWriteText: vi.fn().mockResolvedValue(undefined),
   mockToastSuccess: vi.fn(),
@@ -40,7 +41,7 @@ vi.mock("@/api/hooks/use-update-post", () => ({
 }));
 
 vi.mock("@/api/hooks/use-create-post", () => ({
-  useCreatePost: () => ({ mutateAsync: vi.fn().mockResolvedValue({ id: "new-reply" }) }),
+  useCreatePost: () => ({ mutateAsync: mockCreateMutateAsync }),
 }));
 
 vi.mock("@/api/hooks/use-upload-image", () => ({
@@ -97,6 +98,7 @@ beforeEach(() => {
   mockUseAuth.mockReturnValue({ user: null });
   mockUseThreadPermissions.mockReturnValue({ isManager: false });
   mockUpdateMutateAsync.mockClear();
+  mockCreateMutateAsync.mockClear();
   mockDeleteMutateAsync.mockClear();
   mockClipboardWriteText.mockClear();
   mockToastSuccess.mockClear();
@@ -187,6 +189,7 @@ describe("ReplyList", () => {
     render(<ReplyList postId="post-1" threadId="t1" variant="discussion" />, {
       wrapper: createWrapper(),
     });
+    expect(screen.getByText("#1")).toBeInTheDocument();
     await user.click(screen.getByRole("combobox", { name: "只看某人的回复" }));
 
     expect(screen.getByText("楼主甲")).toBeInTheDocument();
@@ -284,11 +287,18 @@ describe("ReplyList", () => {
     mockUseReplies.mockReturnValue(dataWithReplies([baseReply()]));
     render(<ReplyList postId="post-1" />, { wrapper: createWrapper() });
 
+    const replyMeta = screen.getByTestId("reply-card-meta");
+    expect(replyMeta.querySelector("time")).toHaveAttribute(
+      "datetime",
+      "2026-01-01T00:00:00Z",
+    );
+    expect(replyMeta.querySelector("button")).toBeNull();
+
     await user.click(screen.getByRole("button", { name: "更多回复操作" }));
     expect(screen.queryByRole("menuitem", { name: "回复" })).not.toBeInTheDocument();
   });
 
-  test("登录后点击回复按钮才按需挂载目标编辑器", async () => {
+  test("登录后点击显式回复按钮按需挂载目标编辑器", async () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({ user: { id: "u1" } });
     const reply = baseReply({ id: "reply-2", author: { id: "u3", username: "小明", avatar: null, level: 1 } });
@@ -297,10 +307,35 @@ describe("ReplyList", () => {
     render(<ReplyList postId="post-1" />, { wrapper: createWrapper() });
     expect(screen.queryByTestId("milkdown-editor")).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "更多回复操作" }));
-    await user.click(screen.getByRole("menuitem", { name: "回复" }));
+    const replyButton = screen.getByRole("button", { name: "回复" });
+    const replyMeta = screen.getByTestId("reply-card-meta");
+    const replyTime = replyMeta.querySelector("time");
+    expect(replyMeta).toHaveClass("justify-between");
+    expect(replyMeta).toContainElement(replyButton);
+    expect(replyTime).toHaveAttribute("datetime", reply.createdAt);
+    expect(replyMeta.firstElementChild).toBe(replyTime);
+    expect(replyMeta.lastElementChild).toBe(replyButton);
+    expect(replyButton).toHaveTextContent("回复");
+    expect(replyButton.querySelector("svg")).toHaveAttribute(
+      "data-icon-semantic",
+      "action.reply",
+    );
+    await user.click(replyButton);
     expect(screen.getAllByTestId("milkdown-editor")).toHaveLength(1);
     expect(screen.getByText("回复 @小明")).toBeInTheDocument();
+
+    await user.type(screen.getByTestId("milkdown-editor"), "回复小明");
+    await user.click(screen.getAllByRole("button", { name: "回复" }).at(-1)!);
+    expect(mockCreateMutateAsync).toHaveBeenCalledWith({
+      subthreadId: "s1",
+      content: "回复小明",
+      clientRequestId: expect.any(String),
+      parentPostId: "post-1",
+      replyToPostId: "reply-2",
+    });
+
+    await user.click(screen.getByRole("button", { name: "更多回复操作" }));
+    expect(screen.queryByRole("menuitem", { name: "回复" })).not.toBeInTheDocument();
   });
 
   test("点击取消收起回复编辑器", async () => {
@@ -309,8 +344,7 @@ describe("ReplyList", () => {
     mockUseReplies.mockReturnValue(dataWithReplies([baseReply()]));
 
     render(<ReplyList postId="post-1" />, { wrapper: createWrapper() });
-    await user.click(screen.getByRole("button", { name: "更多回复操作" }));
-    await user.click(screen.getByRole("menuitem", { name: "回复" }));
+    await user.click(screen.getByRole("button", { name: "回复" }));
     expect(screen.getByTestId("milkdown-editor")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "取消" }));
@@ -346,6 +380,11 @@ describe("ReplyList", () => {
     await user.click(screen.getByRole("menuitem", { name: "编辑" }));
     const input = screen.getByTestId("milkdown-editor");
     expect(input).toHaveValue("楼中楼回复内容");
+    expect(screen.getByTestId("reply-card-meta").querySelector("time")).toHaveAttribute(
+      "datetime",
+      "2026-01-01T00:00:00Z",
+    );
+    expect(screen.queryByRole("button", { name: "回复" })).not.toBeInTheDocument();
     await user.clear(input);
     await user.type(input, "修改后的回复");
     await user.click(screen.getByRole("button", { name: "保存修改" }));

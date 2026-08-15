@@ -75,15 +75,17 @@ export function FloorList({
         />
       ))}
 
-      {/* 加载更多 sentinel */}
-      <div ref={sentinelRef} className="flex items-center justify-center py-4">
-        {isFetchingNextPage && (
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        )}
-        {!hasNextPage && floors.length > 0 && (
-          <p className="text-xs text-muted-foreground">没有更多了</p>
-        )}
-      </div>
+      {hasNextPage || isFetchingNextPage ? (
+        <div
+          ref={sentinelRef}
+          data-slot="floor-list-sentinel"
+          className="flex items-center justify-center py-4"
+        >
+          {isFetchingNextPage ? (
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }
