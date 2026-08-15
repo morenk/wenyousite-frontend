@@ -12,19 +12,21 @@ import { getApiErrorMessage } from "@/api/errors";
 import { MomentComments } from "@/components/moment/moment-comments";
 import { MomentImageGallery } from "@/components/moment/moment-image-gallery";
 import { WenyouTipButton } from "@/components/economy/wenyou-tip-button";
+import {
+  InternalReferenceEditor,
+  type InternalReferenceEditorHandle,
+} from "@/components/shared/internal-reference-editor";
 import { InternalReferenceInsert } from "@/components/shared/internal-reference-insert";
 import { InternalReferenceText } from "@/components/shared/internal-reference-text";
 import { LoadError } from "@/components/shared/load-error";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Tooltip } from "@/components/ui/tooltip";
 import { useConfirm } from "@/components/ui/confirm-provider";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { LIKED_ACTIVE_SURFACE_CLASS_NAME } from "@/lib/like-state";
-import { insertTextAtSelection } from "@/lib/internal-reference";
 import { AdminContentModerationDialog } from "@/components/admin/admin-content-moderation-dialog";
 
 export function MomentDetailView({ momentId, onDeleted }: { momentId: string; onDeleted?: () => void }) {
@@ -36,7 +38,7 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
   const [moderationOpen, setModerationOpen] = useState(false);
-  const editContentRef = useRef<HTMLTextAreaElement>(null);
+  const editContentRef = useRef<InternalReferenceEditorHandle>(null);
   const confirm = useConfirm();
   const remove = useDeleteMoment();
   const update = useUpdateMoment();
@@ -104,22 +106,7 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
     }
   };
   const insertEditReference = (markdown: string) => {
-    const textarea = editContentRef.current;
-    const result = insertTextAtSelection(
-      editContent,
-      markdown,
-      textarea?.selectionStart,
-      textarea?.selectionEnd,
-    );
-    if (Array.from(result.value).length > 1000) {
-      toast.error("正文最多 1000 个字");
-      return;
-    }
-    setEditContent(result.value);
-    window.requestAnimationFrame(() => {
-      textarea?.focus();
-      textarea?.setSelectionRange(result.cursor, result.cursor);
-    });
+    editContentRef.current?.insertReference(markdown);
   };
   return (
     <>
@@ -164,17 +151,21 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
         {editing ? (
           <div className="mt-4 space-y-3 rounded-xl bg-background/75 p-4">
             <Input value={editTitle} onChange={(event) => setEditTitle(event.target.value)} maxLength={40} aria-label="动态标题" />
-            <Textarea ref={editContentRef} value={editContent} onChange={(event) => setEditContent(event.target.value)} maxLength={1000} className="min-h-32 resize-none bg-background" aria-label="动态正文" />
+            <InternalReferenceEditor
+              ref={editContentRef}
+              value={editContent}
+              onChange={setEditContent}
+              maxLength={1000}
+              className="min-h-32 max-h-72 bg-background"
+              ariaLabel="动态正文"
+              disabled={update.isPending}
+              onLimitExceeded={() => toast.error("正文最多 1000 个字")}
+            />
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <InternalReferenceInsert
                   disabled={update.isPending}
-                  getSuggestedLabel={() => {
-                    const textarea = editContentRef.current;
-                    return textarea
-                      ? editContent.slice(textarea.selectionStart, textarea.selectionEnd)
-                      : "";
-                  }}
+                  getSuggestedLabel={() => editContentRef.current?.getSelectedText() ?? ""}
                   onInsert={insertEditReference}
                   className="text-muted-foreground"
                 />

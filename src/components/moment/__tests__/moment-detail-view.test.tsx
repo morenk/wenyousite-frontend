@@ -66,6 +66,20 @@ vi.mock("sonner", () => ({
 
 import { MomentDetailView } from "@/components/moment/moment-detail-view";
 
+function clipboardData(text: string) {
+  return { getData: (type: string) => type === "text/plain" ? text : "" };
+}
+
+function selectEditorContents(editor: HTMLElement) {
+  editor.focus();
+  const selection = window.getSelection();
+  const range = document.createRange();
+  range.selectNodeContents(editor);
+  selection?.removeAllRanges();
+  selection?.addRange(range);
+  document.dispatchEvent(new Event("selectionchange"));
+}
+
 const detail = {
   id: "moment-1",
   authorId: "author-1",
@@ -121,7 +135,9 @@ describe("MomentDetailView", () => {
     expect(container.querySelector('[data-slot="moment-detail-reading"]')).not.toHaveClass("max-w-moment");
     fireEvent.click(screen.getByRole("button", { name: "编辑动态" }));
     fireEvent.change(screen.getByRole("textbox", { name: "动态标题" }), { target: { value: "新动态标题" } });
-    fireEvent.change(screen.getByRole("textbox", { name: "动态正文" }), { target: { value: "新正文" } });
+    const contentEditor = screen.getByRole("textbox", { name: "动态正文" });
+    selectEditorContents(contentEditor);
+    fireEvent.paste(contentEditor, { clipboardData: clipboardData("新正文") });
     fireEvent.click(screen.getByRole("button", { name: "保存" }));
     await waitFor(() => expect(mockUpdate).toHaveBeenCalledWith({
       id: "moment-1",

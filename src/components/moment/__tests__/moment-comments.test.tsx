@@ -128,6 +128,10 @@ const rect = (overrides: Partial<DOMRect> = {}) => ({
   ...overrides,
 }) as DOMRect;
 
+function clipboardData(text: string) {
+  return { getData: (type: string) => type === "text/plain" ? text : "" };
+}
+
 describe("MomentComments", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -183,11 +187,17 @@ describe("MomentComments", () => {
 
   test("展示两层评论、回复任意评论并删除有权限的评论", async () => {
     render(<MomentComments momentId="moment-1" />);
+    expect(screen.queryByRole("heading", { name: "评论" })).toBeNull();
+    expect(screen.queryByText("楼中楼")).toBeNull();
     expect(screen.getByText("主评论内容")).toHaveClass("text-base", "leading-7");
     expect(screen.getByText("楼中楼内容")).toHaveClass("text-base", "leading-7");
 
     const replyButtons = screen.getAllByRole("button", { name: "回复" });
     expect(replyButtons[0]).not.toHaveTextContent("回复");
+    expect(replyButtons[0].querySelector("svg")).toHaveAttribute(
+      "data-icon-semantic",
+      "action.reply",
+    );
     expect(replyButtons[0]).toHaveClass(
       "size-8",
       "hover:bg-primary",
@@ -201,8 +211,8 @@ describe("MomentComments", () => {
       "hover:text-brand-strong",
     );
     fireEvent.click(replyButtons[1]);
-    const textarea = await screen.findByPlaceholderText("回复 回复者");
-    fireEvent.change(textarea, { target: { value: "继续回复" } });
+    const editor = await screen.findByPlaceholderText("回复 回复者");
+    fireEvent.paste(editor, { clipboardData: clipboardData("继续回复") });
     fireEvent.click(screen.getByRole("button", { name: "发送" }));
     await waitFor(() => expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({
       content: "继续回复",
@@ -327,7 +337,7 @@ describe("MomentComments", () => {
   });
 
   test("评论框固定在内容列底部，回复深处评论时聚焦但不滚动页面", async () => {
-    const focus = vi.spyOn(HTMLTextAreaElement.prototype, "focus");
+    const focus = vi.spyOn(HTMLElement.prototype, "focus");
     render(<MomentComments momentId="moment-1" />);
 
     const collapsed = screen.getByRole("button", { name: "发表评论…" });
@@ -505,7 +515,7 @@ describe("MomentComments", () => {
       refetch: mockRefetchComments,
     });
     rerender(<MomentComments momentId="moment-1" />);
-    expect(screen.getByText("还没有评论。发表第一条评论。")).toBeInTheDocument();
+    expect(screen.getByText("还没有评论")).toBeInTheDocument();
 
     mockUseMomentComments.mockReturnValue({
       data: { pages: [{ data: [root] }] },

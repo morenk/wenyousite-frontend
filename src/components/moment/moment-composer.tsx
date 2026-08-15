@@ -3,13 +3,17 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, ArrowRight, ImagePlus, Loader2, Star, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useCreateMoment } from "@/api/hooks/use-moments";
 import { getApiErrorMessage } from "@/api/errors";
 import { ImageUploadProgress } from "@/components/shared/image-upload-progress";
+import {
+  InternalReferenceEditor,
+  type InternalReferenceEditorHandle,
+} from "@/components/shared/internal-reference-editor";
 import { InternalReferenceInsert } from "@/components/shared/internal-reference-insert";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,7 +28,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { deleteMomentDraft, loadMomentDraft, saveMomentDraft } from "@/lib/moment-draft";
 import { compressMomentImage, validateMomentImageFile } from "@/lib/moment-image";
 import { markMomentFeedReturn } from "@/lib/moment-navigation";
@@ -34,7 +37,6 @@ import {
   type UploadImageProgress as UploadImageProgressValue,
 } from "@/lib/upload-image";
 import { cn } from "@/lib/utils";
-import { insertTextAtSelection } from "@/lib/internal-reference";
 
 const schema = z.object({
   title: z.string().trim().min(2, "标题至少 2 个字").max(40, "标题最多 40 个字"),
@@ -55,7 +57,7 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
   const pathname = usePathname();
   const createMoment = useCreateMoment();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const contentTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const contentEditorRef = useRef<InternalReferenceEditorHandle>(null);
   const draftReadyRef = useRef(false);
   const quotaWarningRef = useRef(false);
   const composerClosedRef = useRef(!open);
@@ -73,7 +75,6 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
     handleSubmit,
     reset,
     setValue,
-    getValues,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -81,7 +82,6 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
   });
   const title = useWatch({ control, name: "title" });
   const content = useWatch({ control, name: "content" });
-  const contentRegistration = register("content");
   const isPublishing = createMoment.isPending || uploadProgress === "正在发布动态";
   const isUploading = uploadProgress !== null && !isPublishing;
   const pending = isPublishing || isUploading;
@@ -294,23 +294,7 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
   const selectedCover = images.find((image) => image.id === coverFileId);
 
   const insertReference = (markdown: string) => {
-    const textarea = contentTextareaRef.current;
-    const current = getValues("content");
-    const result = insertTextAtSelection(
-      current,
-      markdown,
-      textarea?.selectionStart,
-      textarea?.selectionEnd,
-    );
-    if (Array.from(result.value).length > 1000) {
-      toast.error("正文最多 1000 个字");
-      return;
-    }
-    setValue("content", result.value, { shouldDirty: true, shouldValidate: true });
-    window.requestAnimationFrame(() => {
-      textarea?.focus();
-      textarea?.setSelectionRange(result.cursor, result.cursor);
-    });
+    contentEditorRef.current?.insertReference(markdown);
   };
 
   return (
@@ -364,30 +348,33 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
             </div>
             <div className="space-y-1.5">
               <div className="flex items-center justify-between gap-3">
-                <Label htmlFor="moment-content">正文</Label>
+                <Label>正文</Label>
                 <InternalReferenceInsert
                   disabled={pending}
-                  getSuggestedLabel={() => {
-                    const textarea = contentTextareaRef.current;
-                    return textarea
-                      ? getValues("content").slice(textarea.selectionStart, textarea.selectionEnd)
-                      : "";
-                  }}
+                  getSuggestedLabel={() => contentEditorRef.current?.getSelectedText() ?? ""}
                   onInsert={insertReference}
                   className="text-muted-foreground"
                 />
               </div>
-              <Textarea
-                id="moment-content"
-                placeholder="补充一些细节（可选，可插入站内传送门）"
-                maxLength={1000}
-                className="min-h-36 resize-none"
-                aria-invalid={!!errors.content}
-                {...contentRegistration}
-                ref={(element) => {
-                  contentRegistration.ref(element);
-                  contentTextareaRef.current = element;
-                }}
+              <Controller
+                control={control}
+                name="content"
+                render={({ field }) => (
+                  <InternalReferenceEditor
+                    ref={contentEditorRef}
+                    id="moment-content"
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    maxLength={1000}
+                    ariaLabel="正文"
+                    ariaInvalid={!!errors.content}
+                    placeholder="补充一些细节（可选，可插入站内传送门）"
+                    disabled={pending}
+                    className="min-h-36 max-h-72"
+                    onLimitExceeded={() => toast.error("正文最多 1000 个字")}
+                  />
+                )}
               />
               <div className="flex justify-between text-xs"><span className="text-destructive">{errors.content?.message}</span><span className="font-utility text-muted-foreground">{Array.from(content).length}/1000</span></div>
             </div>

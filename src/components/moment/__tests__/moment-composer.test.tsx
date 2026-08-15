@@ -58,6 +58,10 @@ vi.mock("sonner", () => ({
 
 import { MomentComposer } from "@/components/moment/moment-composer";
 
+function clipboardData(text: string) {
+  return { getData: (type: string) => type === "text/plain" ? text : "" };
+}
+
 describe("MomentComposer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -75,7 +79,9 @@ describe("MomentComposer", () => {
     const onClose = vi.fn();
     render(<MomentComposer open userId="user-1" onClose={onClose} />);
     fireEvent.change(screen.getByLabelText("标题"), { target: { value: "新的动态" } });
-    fireEvent.change(screen.getByLabelText("正文"), { target: { value: "只有普通文字" } });
+    fireEvent.paste(screen.getByRole("textbox", { name: "正文" }), {
+      clipboardData: clipboardData("只有普通文字"),
+    });
     fireEvent.click(screen.getByRole("button", { name: "发布动态" }));
 
     await waitFor(() => expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({
@@ -209,7 +215,7 @@ describe("MomentComposer", () => {
     render(<MomentComposer open userId="user-1" onClose={vi.fn()} />);
 
     expect(await screen.findByDisplayValue("恢复的标题")).toBeInTheDocument();
-    expect(screen.getByLabelText("正文")).toHaveValue("恢复的正文");
+    expect(screen.getByRole("textbox", { name: "正文" })).toHaveTextContent("恢复的正文");
     expect(screen.getByAltText("第 1 张图片")).toHaveAttribute("src", expect.stringMatching(/^blob:/));
     expect(screen.getByAltText("第 2 张图片")).toBeInTheDocument();
     expect(screen.getByAltText("封面预览")).toHaveAttribute(

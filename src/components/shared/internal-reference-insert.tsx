@@ -28,7 +28,7 @@ const schema = z.object({
   label: z.string().trim().min(1, "请填写显示名称").max(40, "名称最多 40 个字"),
   href: z.string().trim().refine(
     (value) => !!parseInternalReference(value),
-    "仅支持主题帖、子贴、楼层或回复链接",
+    "仅支持主题帖、子贴、楼层、回复或私密邀请链接",
   ),
 });
 
@@ -96,7 +96,7 @@ export function InternalReferenceInsert({
               <div>
                 <DialogTitle>插入站内传送门</DialogTitle>
                 <DialogDescription className="mt-1">
-                  为主题帖、子贴、楼层或回复设置一个简短名称。
+                  为主题帖、子贴、楼层、回复或私密邀请设置一个简短名称。
                 </DialogDescription>
               </div>
               <DialogCloseButton />
@@ -135,7 +135,7 @@ export function InternalReferenceInsert({
                 {errors.href?.message ? (
                   <p className="text-xs text-destructive">{errors.href.message}</p>
                 ) : (
-                  <p className="text-xs text-muted-foreground">可直接粘贴浏览器中的当前楼层或子贴地址。</p>
+                  <p className="text-xs text-muted-foreground">可直接粘贴浏览器中的帖子坐标或私密邀请地址。</p>
                 )}
               </div>
               <DialogFooter>

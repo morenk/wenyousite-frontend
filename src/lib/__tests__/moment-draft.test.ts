@@ -32,6 +32,7 @@ function draft(
 describe("moment draft storage", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.spyOn(Date, "now").mockReturnValue(NOW);
     vi.stubGlobal("indexedDB", new IDBFactory());
   });
 
@@ -70,7 +71,6 @@ describe("moment draft storage", () => {
   });
 
   test("超过七天的草稿读取时自动清理且不影响其他用户", async () => {
-    vi.spyOn(Date, "now").mockReturnValue(NOW);
     await saveMomentDraft(draft("expired", { updatedAt: NOW - 8 * DAY_MS }));
     await saveMomentDraft(draft("boundary", { updatedAt: NOW - 7 * DAY_MS }));
 

@@ -58,6 +58,6 @@ describe("站内传送门共享组件", () => {
     await user.type(screen.getByRole("textbox", { name: "站内链接" }), "https://example.com/a");
     await user.click(screen.getByRole("button", { name: "插入" }));
 
-    expect(await screen.findByText("仅支持主题帖、子贴、楼层或回复链接")).toBeInTheDocument();
+    expect(await screen.findByText("仅支持主题帖、子贴、楼层、回复或私密邀请链接")).toBeInTheDocument();
   });
 });
