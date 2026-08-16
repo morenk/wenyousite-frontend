@@ -53,7 +53,6 @@ export function TaxonomyPanel() {
   const [{
     categoryQuery,
     categoryStatus,
-    categoryColor,
     categoryPage,
     tagQuery,
     tagStatus,
@@ -76,11 +75,9 @@ export function TaxonomyPanel() {
       if (keyword && !`${category.name} ${category.slug} ${category.description ?? ""}`.toLocaleLowerCase().includes(keyword)) return false;
       if (categoryStatus === "ACTIVE" && !category.isActive) return false;
       if (categoryStatus === "INACTIVE" && category.isActive) return false;
-      if (categoryColor === "SET" && !category.color) return false;
-      if (categoryColor === "EMPTY" && category.color) return false;
       return true;
     });
-  }, [categoryColor, categoryQuery, categoryStatus, taxonomy.data?.categories]);
+  }, [categoryQuery, categoryStatus, taxonomy.data?.categories]);
   const filteredTags = useMemo(() => {
     const keyword = tagQuery.trim().toLocaleLowerCase();
     return (taxonomy.data?.tags ?? []).filter((tag) => {
@@ -132,13 +129,13 @@ export function TaxonomyPanel() {
             <span className="flex size-10 items-center justify-center rounded-xl bg-accent text-accent-foreground"><FolderTree className="size-5" /></span>
             <div>
               <h2 className="font-display text-xl font-bold">主题帖分类</h2>
-              <p className="text-xs text-muted-foreground">名称和颜色来自数据库；标识创建后保持稳定。</p>
+              <p className="text-xs text-muted-foreground">名称来自数据库；标识创建后保持稳定。</p>
             </div>
           </div>
 
           <AdminFilterBar
-            activeCount={(categoryQuery.trim() ? 1 : 0) + (categoryStatus ? 1 : 0) + (categoryColor ? 1 : 0)}
-            onReset={() => void setFilters({ categoryQuery: null, categoryStatus: null, categoryColor: null, categoryPage: null }, { history: "push" })}
+            activeCount={(categoryQuery.trim() ? 1 : 0) + (categoryStatus ? 1 : 0)}
+            onReset={() => void setFilters({ categoryQuery: null, categoryStatus: null, categoryPage: null }, { history: "push" })}
           >
             <AdminFilterField label="关键词" className="w-44">
               <Input value={categoryQuery} onChange={(event) => void setFilters({ categoryQuery: event.target.value, categoryPage: null })} placeholder="名称、标识或说明" />
@@ -153,22 +150,11 @@ export function TaxonomyPanel() {
                 </SelectContent>
               </Select>
             </AdminFilterField>
-            <AdminFilterField label="颜色状态" className="w-28">
-              <Select value={categoryColor ?? "ALL"} onValueChange={(value) => void setFilters({ categoryColor: value === "ALL" ? null : value as NonNullable<typeof categoryColor>, categoryPage: null }, { history: "push" })}>
-                <SelectTrigger className="w-full"><SelectValue>{!categoryColor ? "全部" : categoryColor === "SET" ? "已设置" : "未设置"}</SelectValue></SelectTrigger>
-                <SelectContent align="start">
-                  <SelectItem value="ALL">全部</SelectItem>
-                  <SelectItem value="SET">已设置</SelectItem>
-                  <SelectItem value="EMPTY">未设置</SelectItem>
-                </SelectContent>
-              </Select>
-            </AdminFilterField>
           </AdminFilterBar>
 
           <AdminTable aria-label="主题帖分类">
             <AdminTableHead>
               <tr>
-                <AdminTableHeader>识别色</AdminTableHeader>
                 <AdminTableHeader>分类</AdminTableHeader>
                 <AdminTableHeader>稳定标识</AdminTableHeader>
                 <AdminTableHeader className="text-right">排序</AdminTableHeader>
@@ -179,9 +165,6 @@ export function TaxonomyPanel() {
             <AdminTableBody>
             {categoryTable.getRowModel().rows.map(({ original: category }) => (
               <AdminTableRow key={category.id}>
-                <AdminTableCell>
-                  <span className="block size-4 rounded-sm border border-border" style={{ backgroundColor: category.color ?? "var(--muted)" }} aria-label={category.color ? `颜色 ${category.color}` : "未设置颜色"} />
-                </AdminTableCell>
                 <AdminTableCell className="max-w-lg">
                   <p className="font-bold">{category.name}</p>
                   <p className="mt-0.5 truncate text-xs text-muted-foreground">{category.description || "未填写分类说明"}</p>
@@ -214,7 +197,7 @@ export function TaxonomyPanel() {
                 </AdminTableCell>
               </AdminTableRow>
             ))}
-            {categoryTable.getRowModel().rows.length === 0 ? <AdminTableEmpty colSpan={6}>当前筛选下没有分类</AdminTableEmpty> : null}
+            {categoryTable.getRowModel().rows.length === 0 ? <AdminTableEmpty colSpan={5}>当前筛选下没有分类</AdminTableEmpty> : null}
             </AdminTableBody>
           </AdminTable>
           <AdminPagination

@@ -1,10 +1,11 @@
 import type { ComponentProps } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
+import type { BadgeSize, ElementTone } from "@wenyousite/foundation/elements";
 
 import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
-  "inline-flex min-h-6 shrink-0 items-center rounded-full px-2.5 py-0.5 font-utility text-xs leading-5 font-bold",
+  "inline-flex shrink-0 items-center justify-center rounded-full font-utility font-bold leading-none [&>svg]:shrink-0",
   {
     variants: {
       tone: {
@@ -15,25 +16,33 @@ const badgeVariants = cva(
         danger: "bg-destructive-soft text-destructive",
         info: "bg-info-soft text-info",
       },
+      size: {
+        default: "h-[var(--element-badge-default-height)] px-2.5 text-[length:var(--element-badge-default-font-size)] [&>svg]:size-[var(--element-badge-default-icon-size)]",
+        compact: "h-[var(--element-badge-compact-height)] px-2 text-[length:var(--element-badge-compact-font-size)] [&>svg]:size-[var(--element-badge-compact-icon-size)]",
+      },
     },
     defaultVariants: {
       tone: "neutral",
+      size: "default",
     },
   },
 );
 
-export type { BadgeTone } from "@/lib/presentation-types";
+export type BadgeTone = ElementTone;
+export type { BadgeSize };
 
 export function Badge({
   className,
   tone = "neutral",
+  size = "default",
   ...props
 }: ComponentProps<"span"> & VariantProps<typeof badgeVariants>) {
   return (
     <span
       data-slot="badge"
       data-tone={tone}
-      className={cn(badgeVariants({ tone }), className)}
+      data-size={size}
+      className={cn(badgeVariants({ tone, size }), className)}
       {...props}
     />
   );

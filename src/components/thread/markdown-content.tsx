@@ -13,7 +13,6 @@ import {
 } from "react";
 import ReactMarkdown, { type ExtraProps } from "react-markdown";
 import { createPortal } from "react-dom";
-import Link from "next/link";
 import remarkGfm from "remark-gfm";
 import { getImageUrlBySize } from "@/lib/upload-image";
 import { sanitizeMilkdownMarkdown } from "@/lib/markdown";
@@ -33,6 +32,7 @@ import {
   tokenizeInternalReferenceText,
 } from "@/lib/internal-reference";
 import { InternalReferenceLink } from "@/components/shared/internal-reference-link";
+import { ContentLink } from "@/components/ui/content-link";
 
 /** 判断是否为本站上传图片（objectKey 统一以 uploads/ 开头）且非派生图 */
 function isUploadedMediaUrl(url: string): boolean {
@@ -70,7 +70,8 @@ function getInternalMarkdownHref(href: string) {
   return { reference: parseInternalReference(candidate), trailing, candidate };
 }
 
-function MarkdownLink({ href, children, ...props }: AnchorProps) {
+function MarkdownLink({ href, children, node: _node, ...props }: AnchorProps) {
+  void _node;
   const internalHref = typeof href === "string" ? getInternalMarkdownHref(href) : null;
   if (internalHref?.reference) {
     const childText = getNodeText(children);
@@ -91,24 +92,25 @@ function MarkdownLink({ href, children, ...props }: AnchorProps) {
   }
   const userMatch = typeof href === "string" ? /^\/users\/([^/]+)$/u.exec(href) : null;
   if (userMatch) {
+    const label = getNodeText(children).trim();
     return (
-      <Link
+      <ContentLink
         href={`/users/${userMatch[1]}`}
-        className="font-medium text-brand-strong no-underline hover:underline"
+        mention={label.startsWith("@")}
+        {...props}
       >
         {children}
-      </Link>
+      </ContentLink>
     );
   }
   return (
-    <a
-      href={href}
+    <ContentLink
+      href={href ?? ""}
+      external={typeof href === "string" && /^https?:\/\//iu.test(href)}
       {...props}
-      target="_blank"
-      rel="noreferrer"
     >
       {children}
-    </a>
+    </ContentLink>
   );
 }
 

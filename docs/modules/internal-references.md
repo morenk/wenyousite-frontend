@@ -2,6 +2,8 @@
 
 Web 消费 [`contracts/internal-reference-v1-fixtures.json`](../../contracts/internal-reference-v1-fixtures.json)。站内主题帖、子贴、主楼层、楼中楼讨论、具体回复和 16 位 token 的私密帖邀请 `/join/{token}` 统一显示为正文内联“传送门”，不因引用来源或目标类型生成不同 label、卡片或摘要。邀请坐标不接受查询参数或片段。
 
+传送门呈现由 Foundation `experiences.elements.inline.internalReference` 拥有：阅读态和编辑态使用同源 `content.internal-reference` 门图标与轻量柔粉胶囊，长名称可换行且不截断；编辑态阻止点击导航。普通链接、用户提及、行内代码、骰子、引用和分隔线不得复用传送门外观。
+
 显式 `\[设定 A\]\(/threads/…\)` 只显示“设定 A”；裸站内地址显示“传送门”。内联元素复用 primary / brand 语义色和小型开门图标，保持正文行高，ARIA 名称为 `站内传送门：{名称}`，使用 Next 同标签导航。站外链接继续在新标签页打开。目标是否存在或可见只由点击后的既有 404 / 权限状态处理，渲染阶段不请求目标元数据。
 
 帖子正文由 Markdown v3 工具栏白名单处理，Milkdown 的普通链接入口即可构造传送门。动态正文和评论仍是字符串：只激活 `[名称](合法站内坐标)` 与裸站内坐标，其他 Markdown 和外链原样显示；发布、编辑和回复均使用只增强传送门的轻量所见即所得编辑器。动态发布、编辑和评论工具栏提供“传送门”按钮，名称与链接通过 RHF/Zod 校验，写回规范化相对 Markdown 语法；当前选择文本预填为名称，写回后恢复文本光标。

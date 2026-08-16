@@ -33,7 +33,7 @@ export function CategoryTabs({ selected, onChange }: CategoryTabsProps) {
           value="ALL"
           className="group/category h-8 shrink-0 flex-none rounded-lg border-0 px-3 py-1 text-[0.8125rem] font-medium after:hidden hover:bg-card/60 data-active:bg-card data-active:font-bold data-active:ring-1 data-active:ring-border"
         >
-          <span className="size-2 rounded-full bg-brand-strong/80 ring-2 ring-card" aria-hidden="true" />
+          <ThreadCategoryMarker className="h-4 rounded-full" />
           全部
         </TabsTrigger>
         {categories.map((category) => (
@@ -42,7 +42,7 @@ export function CategoryTabs({ selected, onChange }: CategoryTabsProps) {
             value={category.slug}
             className="group/category h-8 shrink-0 flex-none rounded-lg border-0 px-3 py-1 text-[0.8125rem] font-medium after:hidden hover:bg-card/60 data-active:bg-card data-active:font-bold data-active:ring-1 data-active:ring-border"
           >
-            <ThreadCategoryMarker category={category.slug} className="size-2 rounded-full ring-2 ring-card" />
+            <ThreadCategoryMarker className="h-4 rounded-full" />
             {category.name}
           </TabsTrigger>
         ))}

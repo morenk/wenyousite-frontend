@@ -48,8 +48,7 @@ export function ThreadCard({ thread }: ThreadCardProps) {
       className={cn(stackListRowVariants(), "group/thread overflow-hidden pl-6")}
     >
       <ThreadCategoryMarker
-        category={thread.category}
-        className="absolute inset-y-4 left-0 w-1 rounded-r-full transition-[width] duration-[var(--motion-fast)] group-hover/thread:w-1.5"
+        className="absolute inset-y-4 left-0 rounded-r-full"
       />
       <div className="flex gap-3.5">
         <UserAvatar
@@ -78,16 +77,16 @@ export function ThreadCard({ thread }: ThreadCardProps) {
             <div className="relative z-10 flex shrink-0 flex-wrap items-center justify-end gap-1.5">
               <ThreadCategoryBadge
                 category={thread.category}
-                className="min-h-5 px-2 py-0 leading-4"
+                size="compact"
               />
               <Badge
                 tone={THREAD_STATUS_META[thread.status].badgeTone}
-                className="min-h-5 px-2 py-0 leading-4"
+                size="compact"
               >
                 {THREAD_STATUS_META[thread.status].label}
               </Badge>
               {thread.pinned && (
-                <Badge tone="brand" className="min-h-5 px-2 py-0 leading-4">
+                <Badge tone="brand" size="compact">
                   置顶
                 </Badge>
               )}

@@ -52,9 +52,9 @@ describe("MessageCenterTabs", () => {
         <MessageCenterTabs />
       </UnreadCountsProvider>,
     );
-    expect(screen.getByRole("link", { name: "私聊 3" })).toHaveAttribute("href", "/messages");
-    expect(screen.getByRole("link", { name: "通知 4" })).toHaveAttribute("href", "/notifications");
-    expect(screen.getByRole("link", { name: "私聊 3" })).toHaveClass("border-brand-strong");
+    expect(screen.getByRole("link", { name: "私聊 3 条未读" })).toHaveAttribute("href", "/messages");
+    expect(screen.getByRole("link", { name: "通知 4 条未读" })).toHaveAttribute("href", "/notifications");
+    expect(screen.getByRole("link", { name: "私聊 3 条未读" })).toHaveClass("border-brand-strong");
   });
 
   test("通知页签激活且 99 以上显示 99+", () => {
@@ -65,7 +65,7 @@ describe("MessageCenterTabs", () => {
       </UnreadCountsProvider>,
     );
     expect(screen.getByText("99+")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "通知 99+" })).toHaveClass("border-brand-strong");
+    expect(screen.getByRole("link", { name: "通知 99+ 条未读" })).toHaveClass("border-brand-strong");
   });
 });
 

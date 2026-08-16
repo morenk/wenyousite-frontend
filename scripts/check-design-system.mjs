@@ -106,7 +106,21 @@ const semanticContractClaims = new Map([
     "var(--type-body-line-height)",
     "var(--icon-control-hover-state-opacity)",
     "var(--icon-control-pressed-state-opacity)",
+    "var(--element-internal-reference-surface)",
+    "var(--element-code-surface)",
+    "var(--element-quote-padding-block)",
+    "var(--element-category-marker-width)",
+    "var(--element-category-marker-foreground)",
   ]],
+  ["src/components/ui/badge.tsx", ["@wenyousite/foundation/elements", "BadgeSize", "--element-badge-compact-height"]],
+  ["src/components/ui/unread-count-badge.tsx", ["@wenyousite/foundation/elements", "maximumDisplay", "data-slot=\"unread-count\""]],
+  ["src/components/ui/content-link.tsx", ["@wenyousite/foundation/elements", "data-slot", "externalBehavior"]],
+  ["src/components/shared/internal-reference-link.tsx", ["@wenyousite/foundation/elements", "internalReference.icon", "internal-reference-element"]],
+  ["src/components/shared/internal-reference-editor-dom.ts", ["@wenyousite/foundation/elements", "iconNode", "editorBehavior"]],
+  ["src/components/shared/level-badge.tsx", ["@wenyousite/foundation/elements", "--element-level-height", "data-slot=\"level-badge\""]],
+  ["src/components/thread/topic-tag-link.tsx", ["@wenyousite/foundation/elements", "--element-topic-tag-min-height", "data-slot=\"topic-tag\""]],
+  ["src/components/thread/thread-category.tsx", ["data-slot=\"category-badge\"", "data-slot=\"category-marker\""]],
+  ["src/lib/thread-presentation.ts", ["METADATA_ELEMENT_STYLES", "categoryMarker.badgeTone"]],
   ["src/components/layout/page-header.tsx", ["--type-page-title-size", "--type-section-title-size"]],
   ["src/components/ui/dialog.tsx", ["--type-subsection-title-size", "--layer-modal-backdrop", "--overlay-scrim"]],
   ["src/components/ui/tooltip.tsx", ["--layer-tooltip"]],
@@ -212,8 +226,31 @@ for (const [fileName, claims] of fullWidthCollectionClaims) {
   }
 }
 
+const elementDuplicateBans = new Map([
+  ["src/components/shared/internal-reference-link.tsx", ["from \"lucide-react\"", "bg-primary/10", "rounded-[0.4em]"]],
+  ["src/components/shared/internal-reference-editor-dom.ts", ["M13 4h3", "M13 4.562"]],
+  ["src/components/message/message-center-tabs.tsx", ["function CountBadge", "count > 99", "bg-destructive"]],
+  ["src/components/message/direct-conversation-list.tsx", ["count > 99", "bg-destructive"]],
+  ["src/components/layout/nav-bar.tsx", ["count > 99", "bg-destructive"]],
+  ["src/components/layout/app-context-rail.tsx", ["count > 99", "bg-destructive"]],
+  ["src/components/shared/level-badge.tsx", ["0.6875rem", "min-h-5"]],
+  ["src/components/thread/topic-tag-link.tsx", ["min-h-6"]],
+  ["src/lib/thread-presentation.ts", ["--category-color", "normalizeCategoryColor", "definition?.color", "${color}1F", "${color}55"]],
+  ["src/components/thread/thread-category.tsx", ["data-has-category-color", "badgeStyle", "markerStyle"]],
+  ["src/components/admin/category-edit-dialog.tsx", ["category.color", "register(\"color\")", "values.color", "previewColor"]],
+  ["src/components/admin/taxonomy-panel.tsx", ["categoryColor", "category.color"]],
+  ["src/lib/admin-url-state.ts", ["categoryColor"]],
+  ["src/app/globals.css", ["--category-color", "data-has-category-color", "category-badge-tint-opacity", "category-badge-border-opacity"]],
+]);
+for (const [fileName, banned] of elementDuplicateBans) {
+  const source = readFileSync(resolve(root, fileName), "utf8");
+  for (const claim of banned) {
+    if (source.includes(claim)) failures.push(`${fileName}: 核心元素样式不得保留重复实现（${claim}）`);
+  }
+}
+
 if (failures.length > 0) {
   throw new Error(`设计系统静态检查失败：\n${failures.join("\n")}`);
 }
 
-console.log("Design tokens, icon controls, typography, feedback, layers, navigation, semantic widths, and shadows follow Foundation");
+console.log("Design tokens, elements, icon controls, typography, feedback, layers, navigation, semantic widths, and shadows follow Foundation");

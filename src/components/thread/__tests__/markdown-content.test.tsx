@@ -58,6 +58,15 @@ describe("MarkdownContent", () => {
       `/threads/${threadId}?post=cmsewdqcr001a7qv6cy0y38bd`,
     );
     expect(screen.getByRole("link", { name: "站点" })).toHaveAttribute("target", "_blank");
+    expect(screen.getByRole("link", { name: "站点" })).toHaveAttribute("data-slot", "content-link");
+  });
+
+  test("用户提及保留 @ 文字线索并使用独立元素语义", () => {
+    render(<MarkdownContent content="欢迎 [@南枝](/users/user-1) 加入" />);
+
+    const mention = screen.getByRole("link", { name: "@南枝" });
+    expect(mention).toHaveAttribute("href", "/users/user-1");
+    expect(mention).toHaveAttribute("data-slot", "mention-link");
   });
 
   test("GFM 吞入裸地址的中文句号时仍识别传送门并在链接外保留标点", () => {

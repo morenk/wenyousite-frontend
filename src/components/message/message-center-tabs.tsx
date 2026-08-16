@@ -4,16 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NAVIGATION_LABELS } from "@wenyousite/foundation/navigation";
 import { useUnreadCounts } from "@/components/layout/unread-counts-context";
+import { UnreadCountBadge } from "@/components/ui/unread-count-badge";
 import { cn } from "@/lib/utils";
-
-function CountBadge({ count }: { count: number }) {
-  if (count < 1) return null;
-  return (
-    <span className="rounded-full bg-destructive px-1.5 py-0.5 font-utility text-[10px] font-bold leading-none text-destructive-foreground">
-      {count > 99 ? "99+" : count}
-    </span>
-  );
-}
 
 export function MessageCenterTabs() {
   const pathname = usePathname();
@@ -47,7 +39,7 @@ export function MessageCenterTabs() {
           )}
         >
           {tab.label}
-          <CountBadge count={tab.count} />
+          <UnreadCountBadge count={tab.count} />
         </Link>
       ))}
     </div>

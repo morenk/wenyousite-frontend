@@ -74,7 +74,6 @@ test("编辑器格式、窄栏、骰子与正文草稿工具在真实浏览器�
           slug: "MYSTERY",
           name: "悬疑推理",
           description: null,
-          color: "#7C3AED",
           icon: "search",
           sortOrder: 0,
           isActive: true,

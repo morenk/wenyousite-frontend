@@ -10,7 +10,7 @@ const { categoryState } = vi.hoisted(() => ({
       { id: "deduction", slug: "DEDUCTION", name: "演绎", color: null },
       { id: "nation", slug: "NATION", name: "国策", color: null },
       { id: "rpg", slug: "RPG", name: "RPG", color: null },
-      { id: "mystery", slug: "MYSTERY", name: "悬疑", color: "#7C3AED" },
+      { id: "mystery", slug: "MYSTERY", name: "悬疑" },
     ],
   },
 }));

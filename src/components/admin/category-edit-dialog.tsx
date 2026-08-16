@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LockKeyhole, Palette } from "lucide-react";
+import { LockKeyhole } from "lucide-react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -30,10 +30,6 @@ type Category = components["schemas"]["ThreadCategoryResponseDto"];
 const editSchema = z.object({
   name: z.string().trim().min(1, "请输入分类名称").max(50, "名称最多 50 个字符"),
   description: z.string().trim().max(200, "说明最多 200 个字符"),
-  color: z.union([
-    z.literal(""),
-    z.string().trim().regex(/^#[0-9a-fA-F]{6}$/, "使用 # 加六位十六进制字符"),
-  ]),
   sortOrder: z.number().int("排序必须是整数").min(0, "排序不能小于 0"),
 });
 
@@ -54,14 +50,10 @@ export function CategoryEditDialog({
     defaultValues: {
       name: category.name,
       description: category.description ?? "",
-      color: category.color ?? "",
       sortOrder: category.sortOrder,
     },
   });
-  const name = useWatch({ control: form.control, name: "name" });
-  const color = useWatch({ control: form.control, name: "color" });
   const description = useWatch({ control: form.control, name: "description" });
-  const previewColor = /^#[0-9a-fA-F]{6}$/.test(color) ? color.toUpperCase() : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -76,9 +68,8 @@ export function CategoryEditDialog({
                     id: category.id,
                     name: values.name,
                     description: values.description || null,
-                    color: values.color ? values.color.toUpperCase() : null,
                     sortOrder: values.sortOrder,
-                    reason: "站务台更新分类展示设置",
+                    reason: "站务台更新分类设置",
                   });
                   toast.success("分类设置已保存");
                   onOpenChange(false);
@@ -133,30 +124,6 @@ export function CategoryEditDialog({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-[1fr_1fr] gap-5">
-                  <div className="space-y-2">
-                    <Label htmlFor={`category-edit-color-${category.id}`}>识别色</Label>
-                    <div className="flex items-center gap-3">
-                      <span className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border" style={{ backgroundColor: previewColor ?? "var(--muted)" }}>
-                        {!previewColor ? <Palette className="size-4 text-muted-foreground" /> : null}
-                      </span>
-                      <Input id={`category-edit-color-${category.id}`} className="font-utility uppercase" placeholder="留空使用中性色" {...form.register("color")} />
-                    </div>
-                    {form.formState.errors.color ? <p className="text-xs text-destructive">{form.formState.errors.color.message}</p> : null}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>实时预览</Label>
-                    <div className="flex h-10 items-center rounded-lg border border-border bg-background px-3">
-                      <span
-                        className="inline-flex min-h-6 items-center rounded-full px-2.5 py-0.5 font-utility text-xs leading-5 font-bold"
-                        style={previewColor ? { backgroundColor: `${previewColor}1F`, boxShadow: `inset 0 0 0 1px ${previewColor}55` } : { backgroundColor: "var(--muted)", color: "var(--muted-foreground)" }}
-                      >
-                        {name.trim() || "未命名分类"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
               </div>
 
               <DialogFooter className="border-t border-border bg-muted/45 px-7 py-4">

@@ -12,6 +12,7 @@ import {
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { UnreadCountBadge } from "@/components/ui/unread-count-badge";
 
 function previewText(conversation: DirectConversation) {
   if (!conversation.lastMessage) return "暂无消息";
@@ -74,11 +75,7 @@ function ConversationLink({
                 : ""}
             {previewText(conversation)}
           </p>
-          {conversation.unreadCount > 0 && (
-            <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 font-utility text-[10px] font-bold text-white">
-              {conversation.unreadCount > 99 ? "99+" : conversation.unreadCount}
-            </span>
-          )}
+          <UnreadCountBadge count={conversation.unreadCount} />
         </div>
       </div>
     </Link>

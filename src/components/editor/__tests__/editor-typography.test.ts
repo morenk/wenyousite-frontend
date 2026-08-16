@@ -99,14 +99,14 @@ describe("编辑器正文字体", () => {
     expect(published).toContain("max-width: 40em");
   });
 
-  test("编辑态与发布态的引用块均使用斜体", () => {
+  test("编辑态与发布态的引用块均使用正常字形和元素 Token", () => {
     const editorQuote = getRule(editorCss, ".milkdown .ProseMirror blockquote");
     const publishedQuote = getRule(globalCss, ".wenyou-prose blockquote");
 
     for (const rule of [editorQuote, publishedQuote]) {
-      expect(rule).toContain("font-style: italic");
-      expect(rule).toContain("font-synthesis: style");
-      expect(rule).not.toContain("font-style: normal");
+      expect(rule).toContain("font-style: normal");
+      expect(rule).toContain("font-synthesis: none");
+      expect(rule).toContain("var(--element-quote-padding-block)");
     }
   });
 });

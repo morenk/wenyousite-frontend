@@ -309,7 +309,7 @@ function operation(method: string, apiPath: string) {
     "markdown-v3-fixtures.json",
     "markdown-v3-nodes-fixtures.json",
     "markdown-editor-roundtrip-v2-fixtures.json",
-    "thread-category-v1-fixtures.json",
+    "thread-category-v2-fixtures.json",
   ]) {
     const frontendFixture = path.resolve(root, "contracts", fixtureName);
     const backendFixture = path.resolve(backendRoot, "contracts", fixtureName);

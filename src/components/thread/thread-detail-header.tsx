@@ -165,8 +165,7 @@ export function ThreadDetailHeader({
         className="relative overflow-hidden rounded-2xl border border-border bg-card"
       >
         <ThreadCategoryMarker
-          category={thread.category}
-          className="absolute inset-y-0 left-0 w-1.5"
+          className="absolute inset-y-0 left-0"
         />
         <header data-slot="thread-detail-header">
           <div

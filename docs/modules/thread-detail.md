@@ -76,7 +76,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 
 > **ID 校验说明**：后端所有 ID 为 Prisma `cuid()` 生成的 CUID（非 UUID），DTO 校验统一使用 `@IsCuid`（替代 `@IsUUID`，后者会因 CUID 不含连字符而拒绝请求）。
 
-> **分类显示契约**：`thread.category` 是可空的动态 slug，不再是封闭枚举。详情通过 `GET /thread-categories` 显示管理员配置的名称和颜色；未知 slug 显示原 slug，空值显示“未分类”，不能导致页面崩溃。
+> **分类显示契约**：`thread.category` 是可空的动态 slug，不再是封闭枚举。详情通过 `GET /thread-categories` 显示管理员配置的名称，并使用 Foundation 统一中性呈现；分类 API 不包含颜色字段。未知 slug 显示原 slug，空值显示“未分类”，不能导致页面崩溃。
 
 > **通知精确定位**：主楼层仍使用详情页 `?post=` 注入并立即定位；楼中楼通知直接进入 `/threads/{threadId}/posts/{parentPostId}/replies?post={replyId}`，在独立阅读页立即定位并高亮目标回复。定位不使用平滑移动动画；高亮只作用于目标楼层/回复卡片本身，父楼层和列表容器不高亮。兼容旧链接：详情页发现目标是楼中楼时立即重定向到独立阅读页，重定向期间不高亮父楼层。
 

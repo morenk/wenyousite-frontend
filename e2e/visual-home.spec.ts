@@ -101,7 +101,6 @@ async function mockHome(page: Page) {
             slug: "DEDUCTION",
             name: "演绎",
             description: null,
-            color: null,
             icon: null,
             sortOrder: 10,
             isActive: true,
@@ -113,7 +112,6 @@ async function mockHome(page: Page) {
             slug: "NATION",
             name: "国策",
             description: null,
-            color: null,
             icon: null,
             sortOrder: 20,
             isActive: true,
@@ -125,7 +123,6 @@ async function mockHome(page: Page) {
             slug: "RPG",
             name: "RPG",
             description: null,
-            color: null,
             icon: null,
             sortOrder: 30,
             isActive: true,
@@ -164,6 +161,13 @@ for (const viewport of [
     await hideDevIndicator(page);
     await expect(page.getByRole("heading", { name: "发现主题帖" })).toBeVisible();
     await expect(page.getByText("暮色列车：寻找失落的终点站")).toBeVisible();
+    const firstCategoryMarker = page.locator('[data-slot="category-marker"]').first();
+    await expect(firstCategoryMarker).toHaveCSS("width", "4px");
+    const categoryMarkerColors = await page.locator('[data-slot="category-marker"]').evaluateAll(
+      (markers) => [...new Set(markers.map((marker) => getComputedStyle(marker).backgroundColor))],
+    );
+    expect(categoryMarkerColors).toHaveLength(1);
+    await expect(page.getByRole("link", { name: "查看 #都市奇谭 标签下的主题帖" })).toHaveCSS("min-height", "32px");
 
     const pageShell = page.locator('[data-slot="page-shell"]');
     const box = await pageShell.boundingBox();

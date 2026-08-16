@@ -14,6 +14,14 @@ describe("视觉系统基础组件", () => {
 
     expect(screen.getByText("招募中")).toHaveAttribute("data-tone", "success");
     expect(screen.getByText("招募中")).toHaveClass("bg-success-soft");
+    expect(screen.getByText("招募中")).toHaveAttribute("data-size", "default");
+  });
+
+  test("Badge 紧凑尺寸消费 Foundation 元素 Token", () => {
+    render(<Badge tone="brand" size="compact">置顶</Badge>);
+
+    expect(screen.getByText("置顶")).toHaveAttribute("data-size", "compact");
+    expect(screen.getByText("置顶").className).toContain("--element-badge-compact-height");
   });
 
   test("Panel 通过 tone 和 padding 组合表面", () => {

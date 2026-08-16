@@ -60,12 +60,14 @@ export function markEditorMentionAnchors(root: ParentNode): number {
         anchor.removeAttribute("contenteditable");
         anchor.removeAttribute("spellcheck");
         delete anchor.dataset.mentionId;
+        delete anchor.dataset.slot;
       }
       return;
     }
     anchor.setAttribute("contenteditable", "false");
     anchor.setAttribute("spellcheck", "false");
     anchor.dataset.mentionId = userId;
+    anchor.dataset.slot = "mention-link";
     marked += 1;
   });
   return marked;

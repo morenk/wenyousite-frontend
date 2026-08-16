@@ -3972,8 +3972,6 @@ export interface components {
             /** @example 悬疑推理 */
             name: string;
             description: string | null;
-            /** @example #7C3AED */
-            color: string | null;
             /** @example search */
             icon: string | null;
             sortOrder: number;
@@ -4921,8 +4919,6 @@ export interface components {
             /** @example 悬疑推理 */
             name: string;
             description?: string;
-            /** @example #7C3AED */
-            color?: string;
             /** @example search */
             icon?: string;
             /** @default 0 */
@@ -4935,8 +4931,6 @@ export interface components {
         UpdateThreadCategoryDto: {
             name?: string;
             description?: string | null;
-            /** @example #7C3AED */
-            color?: string | null;
             icon?: string | null;
             sortOrder?: number;
             isActive?: boolean;

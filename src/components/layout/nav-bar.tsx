@@ -12,6 +12,7 @@ import { UserAvatar } from "@/components/shared/user-avatar";
 import { WenyouIcon, type WenyouIconId } from "@/components/ui/wenyou-icon";
 import { PublishMenu } from "@/components/layout/publish-menu";
 import { useUnreadCounts } from "@/components/layout/unread-counts-context";
+import { UnreadCountBadge } from "@/components/ui/unread-count-badge";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
@@ -178,7 +179,7 @@ function RailLink({
     <Link
       href={item.href}
       aria-current={active ? "page" : undefined}
-      aria-label={item.label}
+      aria-label={count > 0 ? `${item.label}，${count} 条未读` : item.label}
       title={item.label}
       className={cn(
         "group relative flex min-h-11 items-center justify-center rounded-xl text-muted-foreground transition-[background-color,color] duration-[var(--motion-fast)] hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
@@ -196,11 +197,7 @@ function RailLink({
       />
       <span className="relative">
         <WenyouIcon id={item.icon} className="size-5" />
-        {count > 0 ? (
-          <span className="absolute -right-2.5 -top-2 flex min-w-4 items-center justify-center rounded-full bg-destructive px-1 font-utility text-[0.625rem] font-bold leading-4 text-destructive-foreground">
-            {count > 99 ? "99+" : count}
-          </span>
-        ) : null}
+        <UnreadCountBadge count={count} className="absolute -right-2.5 -top-2" />
       </span>
       <span className={cn("hidden text-sm", !compact && "xl:inline")}>{item.label}</span>
     </Link>

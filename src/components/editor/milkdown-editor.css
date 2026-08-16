@@ -78,10 +78,28 @@
 }
 
 .milkdown .ProseMirror blockquote {
+  border-inline-start-width: var(--element-quote-marker-width);
   border-color: var(--primary);
+  border-radius: 0 var(--radius-compact) var(--radius-compact) 0;
   background: var(--muted);
-  font-style: italic;
-  font-synthesis: style;
+  padding: var(--element-quote-padding-block) var(--element-quote-padding-inline);
+  color: var(--foreground);
+  font-style: normal;
+  font-synthesis: none;
+}
+
+.milkdown .ProseMirror :not(pre) > code {
+  border-radius: var(--element-code-radius);
+  background: var(--element-code-surface);
+  padding: var(--element-code-padding-block) var(--element-code-padding-inline);
+  color: var(--element-code-foreground);
+  font-family: var(--font-mono);
+  font-size: var(--element-code-size);
+}
+
+.milkdown .ProseMirror hr {
+  border: 0;
+  border-block-start: var(--element-divider-width) solid var(--border);
 }
 
 /* 历史代码节点即使短暂存在，也不得扩大编辑器。 */

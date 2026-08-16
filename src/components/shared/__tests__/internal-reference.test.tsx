@@ -23,6 +23,7 @@ describe("站内传送门共享组件", () => {
     );
     expect(screen.getByText(/\*\*原样\*\*/u)).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "外链" })).toBeNull();
+    expect(document.querySelector('[data-icon-semantic="content.internal-reference"]')).toBeInTheDocument();
   });
 
   test("构造器校验并写回命名的相对规范地址", async () => {

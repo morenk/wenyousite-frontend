@@ -166,7 +166,6 @@ export const adminAccountUrlKeys = {
 export const adminTaxonomyFilterParsers = {
   categoryQuery: parseAsString.withDefault(""),
   categoryStatus: parseAsStringLiteral(["ACTIVE", "INACTIVE"] as const),
-  categoryColor: parseAsStringLiteral(["SET", "EMPTY"] as const),
   categoryPage: parseAsInteger.withDefault(1),
   tagQuery: parseAsString.withDefault(""),
   tagStatus: parseAsStringLiteral(["ACTIVE", "INACTIVE"] as const),
@@ -176,7 +175,6 @@ export const adminTaxonomyFilterParsers = {
 export const adminTaxonomyUrlKeys = {
   categoryQuery: "categoryQ",
   categoryStatus: "categoryStatus",
-  categoryColor: "categoryColor",
   categoryPage: "categoryPage",
   tagQuery: "tagQ",
   tagStatus: "tagStatus",

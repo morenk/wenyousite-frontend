@@ -1,6 +1,8 @@
 import type { Mark } from "@milkdown/kit/prose/model";
 import type { Transaction } from "@milkdown/kit/prose/state";
 import type { EditorView, MarkView } from "@milkdown/kit/prose/view";
+import { INLINE_ELEMENT_STYLES } from "@wenyousite/foundation/elements";
+import { ICON_STYLE, iconNode } from "@wenyousite/foundation/icons";
 import {
   INTERNAL_REFERENCE_DEFAULT_LABEL,
   parseInternalReference,
@@ -23,20 +25,14 @@ function createDoorOpenIcon() {
   icon.setAttribute("viewBox", "0 0 24 24");
   icon.setAttribute("fill", "none");
   icon.setAttribute("stroke", "currentColor");
-  icon.setAttribute("stroke-width", "2");
+  icon.setAttribute("stroke-width", String(ICON_STYLE.strokeWidth));
   icon.setAttribute("stroke-linecap", "round");
   icon.setAttribute("stroke-linejoin", "round");
   icon.setAttribute("aria-hidden", "true");
-  for (const data of [
-    "M13 4h3a2 2 0 0 1 2 2v14",
-    "M2 20h3",
-    "M13 20h9",
-    "M10 12v.01",
-    "M13 4.562v16.157a1 1 0 0 1-1.242.97L5 20V5.562a2 2 0 0 1 1.515-1.94l4-1A2 2 0 0 1 13 4.561Z",
-  ]) {
-    const path = document.createElementNS(namespace, "path");
-    path.setAttribute("d", data);
-    icon.append(path);
+  for (const [elementName, attributes] of iconNode(INLINE_ELEMENT_STYLES.internalReference.icon)) {
+    const node = document.createElementNS(namespace, elementName);
+    for (const [name, value] of Object.entries(attributes)) node.setAttribute(name, value);
+    icon.append(node);
   }
   return icon;
 }
@@ -64,6 +60,7 @@ export function createEditorLinkMarkView(initialMark: Mark): MarkView {
 
   dom.dataset.slot = "internal-reference-link";
   dom.dataset.editorLink = "true";
+  dom.dataset.elementBehavior = INLINE_ELEMENT_STYLES.internalReference.editorBehavior;
   const prefix = document.createElement("span");
   prefix.dataset.slot = "internal-reference-prefix";
   prefix.textContent = "站内传送门：";

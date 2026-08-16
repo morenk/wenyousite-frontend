@@ -15,6 +15,7 @@ import { formatWenyou } from "@/lib/wenyou";
 import { useThreadCategoriesContext } from "@/components/thread/thread-categories-provider";
 import { ThreadCategoryMarker } from "@/components/thread/thread-category";
 import { useUnreadCounts } from "@/components/layout/unread-counts-context";
+import { UnreadCountBadge } from "@/components/ui/unread-count-badge";
 
 export function AppContextRail() {
   const { user } = useAuth();
@@ -98,7 +99,7 @@ export function AppContextRail() {
               href={`/?category=${encodeURIComponent(category.slug)}`}
               className="group flex min-h-10 items-center gap-3 rounded-lg px-2.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-accent/45 hover:text-foreground"
             >
-              <ThreadCategoryMarker category={category.slug} className="size-2.5 rounded-full ring-4 ring-white" />
+              <ThreadCategoryMarker className="h-5 rounded-full" />
               <span className="flex-1">{category.name}</span>
               <ChevronRight className="size-4 opacity-0 transition-[opacity,transform] group-hover:translate-x-0.5 group-hover:opacity-100" />
             </Link>
@@ -129,11 +130,7 @@ function ContextLink({
     >
       <WenyouIcon id={icon} className="size-4" />
       <span className="flex-1">{label}</span>
-      {count > 0 ? (
-        <span className="min-w-5 rounded-full bg-destructive px-1.5 text-center font-utility text-[0.625rem] font-bold leading-5 text-destructive-foreground">
-          {count > 99 ? "99+" : count}
-        </span>
-      ) : null}
+      <UnreadCountBadge count={count} />
     </Link>
   );
 }

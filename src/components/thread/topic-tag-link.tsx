@@ -1,5 +1,8 @@
 import Link from "next/link";
+import { METADATA_ELEMENT_STYLES } from "@wenyousite/foundation/elements";
 import { cn } from "@/lib/utils";
+
+const TOPIC_TAG_PREFIX = METADATA_ELEMENT_STYLES.topicTag.prefix;
 
 interface TopicTagLinkProps {
   tag: {
@@ -15,12 +18,13 @@ export function TopicTagLink({ tag, className }: TopicTagLinkProps) {
     <Link
       href={`/tags/${tag.id}`}
       aria-label={`查看 #${tag.name} 标签下的主题帖`}
+      data-slot="topic-tag"
       className={cn(
-        "inline-flex min-h-6 items-center rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground transition-[background-color,border-color,color] duration-[var(--motion-fast)] hover:border-primary hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+        "inline-flex min-h-[var(--element-topic-tag-min-height)] items-center rounded-full border border-border px-2.5 text-xs font-medium text-muted-foreground transition-[background-color,border-color,color] duration-[var(--motion-fast)] hover:border-primary hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
         className,
       )}
     >
-      #{tag.name}
+      {TOPIC_TAG_PREFIX}{tag.name}
     </Link>
   );
 }

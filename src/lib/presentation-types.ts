@@ -1,7 +1,1 @@
-export type BadgeTone =
-  | "neutral"
-  | "brand"
-  | "success"
-  | "warning"
-  | "danger"
-  | "info";
+export type { ElementTone as BadgeTone } from "@wenyousite/foundation/elements";

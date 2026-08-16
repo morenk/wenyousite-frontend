@@ -30,9 +30,6 @@ function renderPanel(searchParams = "") {
 }
 
 describe("TaxonomyPanel", () => {
-  const originalColor = ["#", "704", "C65"].join("");
-  const replacementColor = ["#", "6A4", "A72"].join("");
-
   beforeEach(() => {
     vi.clearAllMocks();
     hooks.createCategory.mockResolvedValue({});
@@ -45,7 +42,6 @@ describe("TaxonomyPanel", () => {
           slug: "RPG",
           name: "角色扮演",
           description: "角色扮演主题",
-          color: originalColor,
           icon: null,
           sortOrder: 30,
           isActive: true,
@@ -72,6 +68,8 @@ describe("TaxonomyPanel", () => {
     await user.click(screen.getByRole("button", { name: "编辑 角色扮演" }));
     expect(screen.getAllByText("RPG")).toHaveLength(2);
     expect(screen.getByText("历史主题帖和链接依赖此标识；重命名不会改变它。")).toBeInTheDocument();
+    expect(screen.queryByLabelText("识别色")).not.toBeInTheDocument();
+    expect(screen.queryByText("颜色状态")).not.toBeInTheDocument();
 
     const name = screen.getByLabelText("展示名称");
     await user.clear(name);
@@ -79,9 +77,6 @@ describe("TaxonomyPanel", () => {
     const description = screen.getByLabelText("分类说明");
     await user.clear(description);
     await user.type(description, "共同讲述角色故事");
-    const color = screen.getByLabelText("识别色");
-    await user.clear(color);
-    await user.type(color, replacementColor);
     const sortOrder = screen.getByLabelText("排序");
     await user.clear(sortOrder);
     await user.type(sortOrder, "40");
@@ -91,9 +86,8 @@ describe("TaxonomyPanel", () => {
       id: "legacy_rpg",
       name: "叙事角色扮演",
       description: "共同讲述角色故事",
-      color: replacementColor,
       sortOrder: 40,
-      reason: "站务台更新分类展示设置",
+      reason: "站务台更新分类设置",
     });
   });
 

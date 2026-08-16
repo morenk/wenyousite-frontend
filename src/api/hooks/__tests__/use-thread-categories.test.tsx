@@ -24,7 +24,6 @@ describe("useThreadCategories", () => {
             slug: "MYSTERY",
             name: "悬疑",
             description: null,
-            color: "#7C3AED",
             icon: null,
             sortOrder: 10,
             isActive: true,

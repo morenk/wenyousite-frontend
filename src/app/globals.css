@@ -413,14 +413,14 @@ select {
 
 .wenyou-prose blockquote {
   margin-block: 1em;
-  border-inline-start-width: 3px;
+  border-inline-start-width: var(--element-quote-marker-width);
   border-color: var(--primary);
   border-radius: 0 var(--radius-compact) var(--radius-compact) 0;
   background: var(--muted);
-  padding: 0.75em 1em;
+  padding: var(--element-quote-padding-block) var(--element-quote-padding-inline);
   color: var(--foreground);
-  font-style: italic;
-  font-synthesis: style;
+  font-style: normal;
+  font-synthesis: none;
   font-weight: 400;
 }
 
@@ -439,34 +439,74 @@ select {
 }
 
 .wenyou-prose a {
+  color: var(--element-link-foreground);
   font-weight: 600;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.18em;
+  text-decoration-thickness: var(--element-link-underline-width);
+  text-underline-offset: var(--element-link-underline-offset);
 }
 
-/* 传送门是正文内联语义，不继承普通外链的下划线，也不扩张成卡片。 */
-.wenyou-prose [data-slot="internal-reference-link"] {
-  color: var(--brand-strong);
+/* 普通链接与提及保留文字线索；提及用 @ 区分，不创建第二层底色。 */
+[data-slot="content-link"] {
+  color: var(--element-link-foreground);
+  font-weight: 600;
+  text-decoration-line: underline;
+  text-decoration-thickness: var(--element-link-underline-width);
+  text-underline-offset: var(--element-link-underline-offset);
+}
+
+[data-slot="mention-link"] {
+  color: var(--element-link-foreground);
+  background: transparent;
+  font-weight: 600;
   text-decoration: none;
 }
 
-/* 编辑态复用阅读态传送门语义；链接本身不接管焦点或触发导航。 */
+/* 阅读态与编辑态复用同一轻量胶囊；长标签在胶囊内换行，不截断。 */
+.internal-reference-element,
 [data-slot="internal-reference-link"][data-editor-link="true"] {
   display: inline-flex;
+  max-width: 100%;
+  min-width: 0;
   align-items: baseline;
-  gap: 0.28em;
-  margin-inline: 0.08em;
-  border-radius: 0.4em;
-  background: color-mix(in srgb, var(--primary) 10%, transparent);
-  padding: 0.08em 0.38em;
-  color: var(--brand-strong);
+  gap: var(--element-internal-reference-gap);
+  border-radius: var(--element-internal-reference-radius);
+  background: var(--element-internal-reference-surface);
+  padding: var(--element-internal-reference-padding-block) var(--element-internal-reference-padding-inline);
+  color: var(--element-internal-reference-foreground);
   font-weight: 600;
   text-decoration: none;
+  vertical-align: baseline;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  transition: background-color var(--motion-fast) var(--ease-standard);
+}
+
+.internal-reference-element:hover,
+[data-slot="internal-reference-link"][data-editor-link="true"]:hover {
+  background: color-mix(
+    in srgb,
+    var(--element-internal-reference-surface),
+    var(--element-internal-reference-foreground) calc(var(--element-internal-reference-hover-state-opacity) * 100%)
+  );
+}
+
+.internal-reference-element:active {
+  background: color-mix(
+    in srgb,
+    var(--element-internal-reference-surface),
+    var(--element-internal-reference-foreground) calc(var(--element-internal-reference-pressed-state-opacity) * 100%)
+  );
+}
+
+[data-slot="internal-reference-link"][data-editor-link="true"] {
   cursor: text;
 }
 
-[data-slot="internal-reference-link"][data-editor-link="true"]:hover {
-  background: color-mix(in srgb, var(--primary) 20%, transparent);
+[data-slot="internal-reference-label"] {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 [data-slot="internal-reference-prefix"] {
@@ -482,8 +522,8 @@ select {
 [data-slot="internal-reference-icon"] {
   position: relative;
   top: 0.08em;
-  width: 0.92em;
-  height: 0.92em;
+  width: var(--element-internal-reference-icon-size);
+  height: var(--element-internal-reference-icon-size);
   flex: none;
 }
 
@@ -513,10 +553,12 @@ select {
 }
 
 .wenyou-prose :not(pre) > code {
-  border-radius: 0.35em;
-  background: var(--muted);
-  padding: 0.12em 0.35em;
-  font-size: 0.88em;
+  border-radius: var(--element-code-radius);
+  background: var(--element-code-surface);
+  padding: var(--element-code-padding-block) var(--element-code-padding-inline);
+  color: var(--element-code-foreground);
+  font-family: var(--font-mono);
+  font-size: var(--element-code-size);
   font-weight: 500;
 }
 
@@ -530,12 +572,17 @@ select {
   line-height: 1.7;
 }
 
+.wenyou-prose hr {
+  border: 0;
+  border-block-start: var(--element-divider-width) solid var(--border);
+}
+
 /* 骰子是正文内联原子节点：继承周围文字，只用底色区分待掷与正式结果。 */
 .dice-inline {
   display: inline;
-  padding: 0.08em 0.3em;
-  border-radius: 0.3em;
-  font: inherit;
+  padding: var(--element-dice-padding-block) var(--element-dice-padding-inline);
+  border-radius: var(--element-dice-radius);
+  font-family: var(--font-utility);
   line-height: inherit;
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
@@ -543,11 +590,19 @@ select {
 }
 
 .dice-inline-result {
-  background: color-mix(in srgb, var(--primary) 15%, transparent);
+  background: var(--element-dice-settled-surface);
+  color: var(--element-dice-settled-foreground);
 }
 
 .dice-inline-pending {
-  background: var(--warning-soft);
+  background: var(--element-dice-pending-surface);
+  color: var(--element-dice-pending-foreground);
+}
+
+/* 分类只保留 Foundation 中性结构线索。 */
+[data-slot="category-marker"] {
+  width: var(--element-category-marker-width);
+  background-color: var(--element-category-marker-foreground);
 }
 
 /* 正文图片兜底：任何 markdown 内容图片都不超出容器宽度 */

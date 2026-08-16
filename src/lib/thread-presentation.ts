@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { METADATA_ELEMENT_STYLES } from "@wenyousite/foundation/elements";
 
 import type { ThreadCategoryDefinition } from "@/api/hooks/use-thread-categories";
 import type { components } from "@/api/types";
@@ -10,37 +10,20 @@ export type ThreadCategory = NonNullable<
 export type ThreadStatus = components["schemas"]["HomeThreadListItemResponseDto"]["status"];
 export type ThreadVisibility = components["schemas"]["HomeThreadListItemResponseDto"]["visibility"];
 
-function normalizeCategoryColor(color: string | null | undefined) {
-  return color && /^#[0-9a-f]{6}$/i.test(color) ? color.toUpperCase() : null;
-}
-
 export function getThreadCategoryPresentation(
   slug: string | null | undefined,
-  categories: Pick<ThreadCategoryDefinition, "slug" | "name" | "color">[],
+  categories: Pick<ThreadCategoryDefinition, "slug" | "name">[],
 ): {
   label: string;
   badgeTone: BadgeTone;
-  badgeStyle?: CSSProperties;
-  markerClassName: string;
-  markerStyle?: CSSProperties;
 } {
   const definition = slug
     ? categories.find((category) => category.slug === slug)
     : undefined;
-  const color = normalizeCategoryColor(definition?.color);
 
   return {
     label: definition?.name ?? slug ?? "未分类",
-    badgeTone: "neutral",
-    badgeStyle: color
-      ? {
-          backgroundColor: `${color}1F`,
-          boxShadow: `inset 0 0 0 1px ${color}55`,
-          color: "var(--foreground)",
-        }
-      : undefined,
-    markerClassName: color ? "" : "bg-muted-foreground",
-    markerStyle: color ? { backgroundColor: color } : undefined,
+    badgeTone: METADATA_ELEMENT_STYLES.categoryMarker.badgeTone,
   };
 }
 

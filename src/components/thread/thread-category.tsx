@@ -23,8 +23,8 @@ export function ThreadCategoryBadge({
   return (
     <Badge
       tone={presentation.badgeTone}
+      data-slot="category-badge"
       className={className}
-      style={presentation.badgeStyle}
       {...props}
     >
       {presentation.label}
@@ -33,15 +33,13 @@ export function ThreadCategoryBadge({
 }
 
 export function ThreadCategoryMarker({
-  category,
   className,
   ...props
-}: ComponentProps<"span"> & { category: string | null | undefined }) {
-  const presentation = useThreadCategoryPresentation(category);
+}: ComponentProps<"span">) {
   return (
     <span
-      className={cn(presentation.markerClassName, className)}
-      style={presentation.markerStyle}
+      data-slot="category-marker"
+      className={cn("block shrink-0", className)}
       aria-hidden="true"
       {...props}
     />

@@ -34,7 +34,7 @@ const detail = {
   author: { id: layoutUser.id, username: layoutUser.username, avatar: null, level: 1 },
   title: "固定舞台测试",
   contentExcerpt: "切换图片时正文不移动",
-  content: "切换图片时正文不移动",
+  content: "切换图片时正文不移动。参见 [夜班列车](/threads/cmsewdo0h000x7qv6aa77ll1v)",
   coverType: "IMAGE",
   textCoverTheme: "ROSE",
   coverMedia: landscapeCover,
@@ -188,6 +188,10 @@ test("动态详情以封面比例固定图片舞台，切图不推动正文", as
   // Embla 会同时保留所有幻灯片；用首张图片的固定舞台测量尺寸，避免多元素定位歧义。
   const imageFrame = page.locator('[data-slot="moment-detail-image"]').first();
   await expect(heading).toBeVisible();
+  const portal = page.getByRole("link", { name: "站内传送门：夜班列车" });
+  await expect(portal).toBeVisible();
+  await expect(portal.locator('[data-icon-semantic="content.internal-reference"]')).toBeVisible();
+  await expect(portal).toHaveCSS("font-weight", "600");
   await expect(heading).toBeInViewport();
   const firstImage = page.getByAltText("固定舞台测试，第 1 张图片");
   await expect(firstImage).toBeVisible();
