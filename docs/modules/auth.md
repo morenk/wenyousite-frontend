@@ -2,14 +2,13 @@
 
 ## 1. 目标与范围
 
-实现用户注册（两步：请求验证码 → 验证码+用户名密码完成注册）、登录、登出、忘记密码、重置密码、邮箱验证的全流程 UI。
+实现用户注册（两步：请求验证码 → 验证码+用户名密码完成注册）、登录、登出、忘记密码、重置密码的全流程 UI。
 
 **当前能力：**
 - 登录页面 `/login`
 - 注册页面 `/register`
 - 忘记密码页面 `/forgot-password`
 - 重置密码页面 `/reset-password`
-- 邮箱验证页面 `/verify-email`
 - 全局导航栏（含登出按钮）
 - Zod 校验 schema 抽取
 - TanStack Query API hooks 抽取
@@ -20,6 +19,7 @@
 - 登出时检查服务端错误，确保 refresh cookie 与当前登录终端确实退出
 - 双端登录：每个账号最多一个 Web 登录终端和一个原生移动端登录终端，PC/手机网页共用 Web 槽位
 - 登录/注册使用 OpenAPI 生成请求与响应类型，Web 响应体不假定存在 refresh token
+- 验证码发码请求成功、超时、5xx 或 429 后统一进入跨认证页面的 60 秒冷却，结果不明时仍允许输入已可能送达的验证码
 
 ## 2. 页面与路由
 
@@ -29,7 +29,6 @@
 | `/register` | 注册两步：发验证码 → 填信息 | 公开，已登录自动跳转 `/` |
 | `/forgot-password` | 输入邮箱，请求重置邮件 | 公开，已登录自动跳转 `/` |
 | `/reset-password` | 输入验证码 + 新密码，完成重置 | 公开（通过链接/手动进入） |
-| `/verify-email` | 输入验证码，验证邮箱 | 需登录（AuthRead） |
 
 ## 3. 涉及 API
 
@@ -42,8 +41,6 @@
 | POST | `/auth/refresh` | Public | access token 过期后轮换 refresh token，并重放原请求 |
 | POST | `/auth/forgot-password` | Public | 请求重置密码邮件 |
 | POST | `/auth/reset-password` | Public | 使用验证码重置密码 |
-| POST | `/auth/verify-email` | AuthRead | 使用验证码验证邮箱 |
-| POST | `/auth/resend-verification` | Public | 重发验证邮件 |
 
 ## 4. 状态管理
 
@@ -55,6 +52,7 @@
 | 会话标记 | 当前 userId + 随机 revision，不含 token/资料 | `localStorage`，只用于多标签页身份变化通知 |
 | `isInitialized` | refresh cookie 启动恢复完成标志 | AuthContext（恢复前 false，结束后 true） |
 | `email`（注册第一步） | 用户输入，暂存 | 组件 state，第二步复用 |
+| 发码冷却截止时间 | 当前标签页最近一次成功或结果不明的发码请求 | `sessionStorage`，仅保存时间戳，不保存邮箱、验证码或凭证 |
 | 表单状态 | react-hook-form | 组件本地 |
 | 提交 loading | useState | 组件本地 |
 
@@ -70,7 +68,6 @@ TanStack Query 容器由当前认证身份隔离；首次 AuthContext hydration 
 | RegisterPage | `src/app/register/page.tsx` | 注册页面（两步） |
 | ForgotPasswordPage | `src/app/forgot-password/page.tsx` | 忘记密码页面 |
 | ResetPasswordPage | `src/app/reset-password/page.tsx` | 重置密码页面 |
-| VerifyEmailPage | `src/app/verify-email/page.tsx` | 邮箱验证页面 |
 | GuestRoute / GuestOnly | `src/components/auth/guest-route.tsx` | 登录、注册和找回密码路由共享的访客边界与认证恢复等待 |
 | AuthPageShell | `src/components/auth/auth-page-shell.tsx` | 认证流程统一双栏布局；左侧功能分区，右侧表单卡片 |
 | NavBar | `src/components/layout/nav-bar.tsx` | 非认证路由的左侧全局导航栏 |
@@ -164,14 +161,6 @@ const resetPasswordSchema = z.object({
 });
 ```
 
-### 邮箱验证
-
-```ts
-const verifyEmailSchema = z.object({
-  token: z.string().min(6).max(6).regex(/^\d+$/, "验证码为 6 位数字"),
-});
-```
-
 ## 7. 错误处理
 
 | 错误码 | 场景 | UI 行为 |
@@ -179,15 +168,15 @@ const verifyEmailSchema = z.object({
 | 40100 | 未携带认证凭证 | 受保护路由跳转登录；业务页面展示后端 message |
 | 40101 | access token 过期 | apiClient 单飞刷新并重放原请求 |
 | 40102–40104 | token 无效、已撤销或触发盗用检测 | 不刷新；清理当前会话并要求重新登录 |
-| 40105–40107 | 账号锁定、账号注销或邮箱未验证 | 展示后端 message；邮箱未验证跳 `/verify-email` |
+| 40105–40106 | 账号锁定或账号注销 | 展示后端 message |
 | 40110 | 登录凭据错误 | toast "账号或密码错误" |
 | 40111–40114 | 验证码过期、错误、超限或不存在 | 展示后端 message，按提示重新获取验证码 |
 | 40115–40116 | 会话不存在或旧密码错误 | 展示后端 message，不触发 token 刷新 |
 | 40001 | 验证码错误 / 过期 / 业务校验 | toast 后端 message |
-| 40300 | 邮箱未验证 | toast "请先验证邮箱" |
 | 40900 | 用户名被占用 / 邮箱已注册 | toast "用户名已被占用" / "该邮箱已注册" |
-| 42900 | 频繁请求 | toast "操作太频繁，请稍后再试" |
-| 网络错误 | fetch 失败 | toast "网络连接失败，请检查网络后重试" |
+| 42900 | 发码请求频繁 | 提示先检查邮箱、保留验证码输入流程，并在 60 秒后开放重试 |
+| 发码请求网络错误 / 5xx | 投递结果不确定 | 提示邮件可能已发出、保留验证码输入流程，并进入 60 秒冷却 |
+| 其他网络错误 | fetch 失败 | toast "网络连接失败，请检查网络后重试" |
 
 **统一模式：**
 ```ts
@@ -207,9 +196,7 @@ if (error) {
 |------|------|
 | 已登录用户访问 `/login`、`/register` 等 | 路由 `layout.tsx` 统一挂载 `GuestRoute`；等待会话恢复后跳转 `next` 或 `/` |
 | 未登录用户访问需登录页面 | 受保护路由的 `layout.tsx` 统一挂载 `RequireAuth`，等待启动恢复后保留 `next` 路径跳登录 |
-| 需验证邮箱的写入口 | 创建、编辑、邀请加入布局统一传 `requireVerifiedEmail`，未验证跳 `/verify-email` |
 | 登出 | 调 `POST /auth/logout`；服务端成功后清除内存会话和无凭证标记并跳首页，失败则保留登录态并提示重试 |
-| verify-email 需登录 | `/verify-email/layout.tsx` 使用 `RequireAuth`，未登录保留目标路径跳转 |
 
 ## 9. 用户流程
 
@@ -222,22 +209,16 @@ if (error) {
 ```
 进入 /register → Step1: 输入邮箱 → 点击获取验证码 → 成功: 进入 Step2
 Step2: 输入验证码 / 用户名 / 密码 / 确认密码 → 提交 → 成功: 自动登录跳首页 失败: toast
-60 秒倒计时后可重新发送验证码；邮箱输错可点「换个邮箱」返回 Step1 重新输入（新邮箱会生成新验证码）
+成功或发码结果不明时，60 秒倒计时后才可重新发送；结果不明仍直接进入 Step2 供用户尝试已到达的验证码。邮箱输错可点「换个邮箱」返回 Step1 重新输入（新邮箱会生成新验证码）
 ```
 
 ### 忘记密码 / 重置密码
 ```
 进入 /forgot-password → 输入邮箱 → 提交 → 成功: toast "重置邮件已发送" 跳 /reset-password
-/reset-password 页也提供「发送验证码」按钮（复用 forgot-password 端点）+ 60s 倒计时重发，验证码丢失无需回退
+/reset-password 页也提供「发送验证码」按钮（复用 forgot-password 端点）+ 60s 倒计时重发；从 `/forgot-password` 跳转时复用同一标签页冷却时间，验证码丢失无需回退
 输入验证码 / 新密码 → 提交 → 成功: toast "密码重置成功，请重新登录" 跳 /login（后端吊销所有 refresh token）
 ```
 （后端反枚举，无论邮箱是否存在都返回成功）
-
-### 邮箱验证
-```
-进入 /verify-email → 如未登录跳 /login → 输入验证码 → 提交 → 成功: toast "邮箱验证成功" 跳首页
-「发送验证码」按钮（60s 倒计时，可重新发送）
-```
 
 ## 10. 验收标准
 
@@ -245,7 +226,6 @@ Step2: 输入验证码 / 用户名 / 密码 / 确认密码 → 提交 → 成功
 - `/register` 两步注册流程完整可用
 - `/forgot-password` 发送重置邮件成功
 - `/reset-password` 重置密码成功并强制重新登录
-- `/verify-email` 验证邮箱成功
 - 导航栏根据登录状态显示不同按钮
 - 登出清除 token 并跳转首页
 - access token 过期后可无感刷新并重放原请求
@@ -256,6 +236,7 @@ Step2: 输入验证码 / 用户名 / 密码 / 确认密码 → 提交 → 成功
 - 已登录用户访问公开认证页自动跳转
 - 所有错误状态有 toast 提示
 - 提交按钮有 loading 状态
+- 发码请求超时、5xx 或 429 后不立即重放；注册、找回、重置和换绑页面允许继续填码且保持 60 秒冷却
 
 ## 11. 跨端约束
 

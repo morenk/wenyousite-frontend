@@ -6,7 +6,6 @@ export interface AuthUser {
   username: string;
   avatar: string | null;
   role: string;
-  emailVerified: boolean;
 }
 
 export interface AuthSnapshot {
@@ -95,7 +94,6 @@ export function isAuthUser(value: unknown): value is AuthUser {
     typeof user.email === "string" &&
     typeof user.username === "string" &&
     (typeof user.avatar === "string" || user.avatar === null) &&
-    typeof user.role === "string" &&
-    typeof user.emailVerified === "boolean"
+    typeof user.role === "string"
   );
 }

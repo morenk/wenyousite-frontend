@@ -7,7 +7,6 @@ import {
   registerStep2Schema,
   forgotPasswordSchema,
   resetPasswordSchema,
-  verifyEmailSchema,
   changePasswordSchema,
   changeEmailSchema,
 } from "@/lib/validations/auth";
@@ -304,22 +303,6 @@ describe("resetPasswordSchema", () => {
       token: "123456",
       newPassword: "Ab12",
     });
-    expect(result.success).toBe(false);
-  });
-});
-
-describe("verifyEmailSchema", () => {
-  test("合法验证码通过", () => {
-    expect(verifyEmailSchema.safeParse({ token: "123456" }).success).toBe(true);
-  });
-
-  test("验证码不足 6 位", () => {
-    const result = verifyEmailSchema.safeParse({ token: "12" });
-    expect(result.success).toBe(false);
-  });
-
-  test("验证码含非数字", () => {
-    const result = verifyEmailSchema.safeParse({ token: "abcdef" });
     expect(result.success).toBe(false);
   });
 });

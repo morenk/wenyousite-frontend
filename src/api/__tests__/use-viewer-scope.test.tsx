@@ -15,7 +15,6 @@ const user: AuthUser = {
   username: "用户一",
   avatar: null,
   role: "USER",
-  emailVerified: true,
 };
 
 beforeEach(() => {

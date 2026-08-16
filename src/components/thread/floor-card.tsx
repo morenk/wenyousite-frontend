@@ -17,10 +17,9 @@ import { MarkdownContent } from "@/components/thread/markdown-content";
 import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
 import { useThreadComposer } from "@/components/thread/thread-composer-context";
 import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
-import { UserAvatar } from "@/components/shared/user-avatar";
+import { UserAvatarLink } from "@/components/shared/user-avatar";
 import { ReplyActionButton } from "@/components/shared/reply-action-button";
 import { buttonVariants } from "@/components/ui/button";
-import { WenyouIcon } from "@/components/ui/wenyou-icon";
 import { useConfirm } from "@/components/ui/confirm-provider";
 import type { FloorDisplayData } from "@/api/hooks/use-floors";
 import { LevelBadge } from "@/components/shared/level-badge";
@@ -28,6 +27,7 @@ import {
   getVisibleContentText,
   PostActionsMenu,
 } from "@/components/thread/post-actions-menu";
+import { ReplyCard } from "@/components/thread/reply-card";
 
 interface FloorCardProps {
   floor: FloorDisplayData;
@@ -59,7 +59,13 @@ export function FloorCard({ floor, focused = false }: FloorCardProps) {
     (total, reply) => total + reply.content.length,
     0,
   );
-  const inlineRepliesOverflow = inlineRepliesLength > INLINE_REPLY_MAX_LENGTH;
+  const hasHiddenInlineReplies = floor._count.replies > inlineReplies.length;
+  const inlineRepliesOverflow =
+    hasHiddenInlineReplies || inlineRepliesLength > INLINE_REPLY_MAX_LENGTH;
+  const hasActiveInlineComposer = inlineReplies.some(
+    (reply) => session?.anchorId === `reply:${reply.id}`,
+  );
+  const shouldClipInlineReplies = inlineRepliesOverflow && !hasActiveInlineComposer;
 
   useEffect(() => {
     if (!focused) return;
@@ -123,7 +129,8 @@ export function FloorCard({ floor, focused = false }: FloorCardProps) {
       {/* 楼层头部 */}
       <div className="mb-3 flex items-start justify-between gap-2">
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
-          <UserAvatar
+          <UserAvatarLink
+            userId={floor.authorId}
             name={floor.author.username}
             src={floor.author.avatar}
             className="h-8 w-8"
@@ -164,7 +171,7 @@ export function FloorCard({ floor, focused = false }: FloorCardProps) {
         </div>
       )}
 
-      {/* 发布时间、直接回复与回复数入口：承接正文，并保持在楼中楼预览上方。 */}
+      {/* 发布时间与直接回复入口：承接正文，并保持在楼中楼预览上方。 */}
       <div
         data-testid="floor-card-meta"
         className="mt-3 flex min-h-6 items-center justify-between gap-3"
@@ -178,23 +185,11 @@ export function FloorCard({ floor, focused = false }: FloorCardProps) {
             locale: zhCN,
           })}
         </time>
-        {!isEditing && (user || floor._count.replies > 0) && (
+        {!isEditing && user ? (
           <div data-testid="floor-card-actions" className="ml-auto flex items-center gap-1">
-            {user ? (
-              <ReplyActionButton presentation="labeled" onClick={handleStartReply} />
-            ) : null}
-            {floor._count.replies > 0 ? (
-              <Link
-                href={discussionHref}
-                className="flex min-h-8 items-center gap-1 rounded-lg px-2 text-xs text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-              >
-                <WenyouIcon id="metric.replies" className="size-3.5" />
-                {floor._count.replies} 条回复
-                <ArrowRight className="size-3.5" aria-hidden="true" />
-              </Link>
-            ) : null}
+            <ReplyActionButton presentation="labeled" onClick={handleStartReply} />
           </div>
-        )}
+        ) : null}
       </div>
 
       {isReplying ? (
@@ -203,53 +198,26 @@ export function FloorCard({ floor, focused = false }: FloorCardProps) {
         </div>
       ) : null}
 
-      {/* 楼中楼预览：只展示前五条，正文合计过长时截断并用渐变遮罩。 */}
+      {/* 楼中楼预览：数量或正文长度超限时截断并用渐变遮罩引导完整阅读。 */}
       {!isEditing && inlineReplies.length > 0 && (
         <div
           data-testid="inline-replies"
           className={cn(
             "relative mt-2 border-l-2 border-border pl-3",
-            inlineRepliesOverflow && "max-h-96 overflow-hidden",
+            shouldClipInlineReplies && "max-h-96 overflow-hidden",
           )}
         >
           <div className="space-y-2">
             {inlineReplies.map((reply) => (
-              <div
+              <ReplyCard
                 key={reply.id}
-                data-testid="inline-reply"
-                className="rounded-lg border border-border bg-background p-3"
-              >
-                <div className="mb-1 flex items-center gap-2 text-xs text-muted-foreground">
-                  <UserAvatar
-                    name={reply.author.username}
-                    src={reply.author.avatar}
-                    className="h-5 w-5"
-                    textClassName="text-[9px]"
-                  />
-                  <Link
-                    href={`/users/${reply.authorId}`}
-                    className="font-medium text-foreground hover:text-brand-strong"
-                  >
-                    {reply.author.username}
-                  </Link>
-                  <LevelBadge level={reply.author.level} />
-                  <span>
-                    {formatDistanceToNow(new Date(reply.createdAt), {
-                      addSuffix: true,
-                      locale: zhCN,
-                    })}
-                  </span>
-                </div>
-                <MarkdownContent
-                  content={reply.content}
-                  diceRolls={reply.diceRolls}
-                  sourcePostId={reply.id}
-                  size="compact"
-                />
-              </div>
+                reply={reply}
+                parentPostId={floor.id}
+                variant="preview"
+              />
             ))}
           </div>
-          {inlineRepliesOverflow && (
+          {shouldClipInlineReplies && (
             <>
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-card to-transparent" />
               <Link
@@ -259,7 +227,7 @@ export function FloorCard({ floor, focused = false }: FloorCardProps) {
                   "absolute bottom-3 left-1/2 z-10 -translate-x-1/2 bg-card/95",
                 )}
               >
-                展开回复
+                查看全部 {floor._count.replies} 条回复
                 <ArrowRight className="ml-1 h-3.5 w-3.5" />
               </Link>
             </>

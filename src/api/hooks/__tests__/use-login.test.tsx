@@ -25,7 +25,6 @@ const loginResponse = {
         username: "tester",
         avatar: null,
         role: "user",
-        emailVerified: true,
       },
     },
   },

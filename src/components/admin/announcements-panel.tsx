@@ -37,7 +37,7 @@ const schema = z.object({
   title: z.string().trim().min(1).max(60),
   content: z.string().trim().min(1).max(1000),
   scheduledAt: z.string().min(1, "请选择发送时间"),
-  audience: z.enum(["ALL", "USERS", "VERIFIED"]),
+  audience: z.enum(["ALL", "USERS"]),
   destinationId: z.string(),
 });
 type Values = z.infer<typeof schema>;
@@ -45,7 +45,6 @@ type Values = z.infer<typeof schema>;
 const audienceItems = [
   { value: "ALL", label: "全站所有账号" },
   { value: "USERS", label: "仅普通用户" },
-  { value: "VERIFIED", label: "已验证邮箱用户" },
 ];
 
 const campaignStatusLabels: Record<string, string> = {
@@ -58,7 +57,6 @@ const campaignStatusLabels: Record<string, string> = {
 
 function audienceBody(value: Values["audience"]) {
   if (value === "USERS") return { roles: ["USER" as const] };
-  if (value === "VERIFIED") return { emailVerified: true };
   return {};
 }
 

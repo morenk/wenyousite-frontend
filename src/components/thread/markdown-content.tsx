@@ -385,7 +385,7 @@ function CollapsibleMarkdown({
             <button
               ref={collapseButtonRef}
               type="button"
-              className="relative z-10 rounded-full border border-border bg-card px-4 py-1.5 text-sm text-muted-foreground shadow-sm hover:text-foreground"
+              className="relative z-10 rounded-full border border-border bg-card px-4 py-1.5 text-sm font-bold text-muted-foreground shadow-sm hover:text-foreground"
               aria-controls={contentId}
               aria-expanded={expanded}
               onClick={handleToggle}

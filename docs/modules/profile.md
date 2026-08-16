@@ -37,11 +37,11 @@
 | Method | Path | Guard | 用途 |
 |--------|------|-------|------|
 | GET | `/users/me` | AuthRead | 我的完整资料（含 email、隐私开关、_count） |
-| PATCH | `/users/me` | Auth | 修改资料（username/bio/隐私开关），5次/分钟限流，需邮箱已验证 |
-| PATCH | `/users/me/avatar` | Auth | 设置头像（传入 mediaId），需邮箱已验证 |
-| DELETE | `/users/me/avatar` | Auth | 移除头像（置空 avatar，回到首字母占位），需邮箱已验证 |
-| PATCH | `/users/me/profile-cover` | Auth | 原子设置双画幅主页背景（Web 3:1 `mediaId` + 移动端 2:1 `mobileMediaId`），需邮箱已验证 |
-| DELETE | `/users/me/profile-cover` | Auth | 同时移除两端主页背景并恢复无背景的紧凑资料卡，需邮箱已验证 |
+| PATCH | `/users/me` | Auth | 修改资料（username/bio/隐私开关），5次/分钟限流 |
+| PATCH | `/users/me/avatar` | Auth | 设置头像（传入 mediaId） |
+| DELETE | `/users/me/avatar` | Auth | 移除头像（置空 avatar，回到首字母占位） |
+| PATCH | `/users/me/profile-cover` | Auth | 原子设置双画幅主页背景（Web 3:1 `mediaId` + 移动端 2:1 `mobileMediaId`） |
+| DELETE | `/users/me/profile-cover` | Auth | 同时移除两端主页背景并恢复无背景的紧凑资料卡 |
 | POST | `/auth/change-password` | AuthRead | 修改密码（旧+新），成功后退出全部登录终端并强制重新登录 |
 | POST | `/auth/change-email/request-code` | Auth | 更换邮箱第一步：校验当前密码后向新邮箱发送验证码 |
 | POST | `/auth/change-email/verify` | Auth | 更换邮箱第二步：验证码确认并更新邮箱 |
@@ -87,7 +87,6 @@
     "showRecentReplies": true,
     "showPlayerBadges": true,
     "showBookmarks": true,
-    "emailVerified": true,
     "deletedAt": null,
     "createdAt": "2026-07-30T13:52:39.048Z",
     "updatedAt": "2026-07-30T13:52:39.048Z",

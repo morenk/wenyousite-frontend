@@ -24,7 +24,7 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/lib/auth", () => ({
   useAuth: () => ({
-    user: { id: "user-1", emailVerified: true },
+    user: { id: "user-1" },
     isInitialized: true,
   }),
 }));

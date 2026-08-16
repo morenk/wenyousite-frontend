@@ -4,7 +4,7 @@ import { ModerationDecisionsPanel } from "@/components/user/moderation-decisions
 
 export default function MyModerationPage() {
   return (
-    <RequireAuth requireVerifiedEmail>
+    <RequireAuth>
       <PageShell width="feed" className="py-8">
         <p className="font-utility text-xs font-bold tracking-[0.12em] text-muted-foreground uppercase">Moderation</p>
         <h1 className="mt-1 font-display text-3xl font-bold">治理决定与申诉</h1>

@@ -13,7 +13,7 @@ import {
   ReplyForm,
 } from "@/components/thread/reply-form";
 import { FloatingComposerDock } from "@/components/thread/floating-composer-dock";
-import { UserAvatar } from "@/components/shared/user-avatar";
+import { UserAvatarLink } from "@/components/shared/user-avatar";
 import { LevelBadge } from "@/components/shared/level-badge";
 import { getPostHref } from "@/lib/post-navigation";
 import type { ReplyDisplayData } from "@/api/hooks/use-floors";
@@ -54,7 +54,8 @@ export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps
         <div className="border-b border-border bg-muted/30 px-5 py-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <UserAvatar
+              <UserAvatarLink
+                userId={rootPost.authorId}
                 name={rootPost.author.username}
                 src={rootPost.author.avatar}
                 className="h-9 w-9"

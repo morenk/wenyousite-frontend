@@ -1,8 +1,11 @@
+import type { FloorOrder } from "@/api/floor-query";
+
 /** 站内帖子定位目标；parentPostId 存在时表示楼中楼回复。 */
 interface PostNavigationTarget {
   threadId: string;
   postId: string;
   parentPostId?: string | null;
+  floorOrder?: FloorOrder;
 }
 
 const encodeRouteValue = (value: string) => encodeURIComponent(value);
@@ -12,11 +15,16 @@ export function getSubthreadHref(
   threadId: string,
   subthreadId?: string | null,
   defaultSubthreadId?: string | null,
+  floorOrder: FloorOrder = "OLDEST",
 ) {
   const base = `/threads/${encodeRouteValue(threadId)}`;
-  return !subthreadId || subthreadId === defaultSubthreadId
-    ? base
-    : `${base}?subthread=${encodeRouteValue(subthreadId)}`;
+  const query = new URLSearchParams();
+  if (subthreadId && subthreadId !== defaultSubthreadId) {
+    query.set("subthread", subthreadId);
+  }
+  if (floorOrder === "NEWEST") query.set("order", floorOrder);
+  const search = query.toString();
+  return search ? `${base}?${search}` : base;
 }
 
 /** 构造某个主楼层的楼中楼讨论页地址。 */
@@ -32,10 +40,13 @@ export function getPostHref({
   threadId,
   postId,
   parentPostId,
+  floorOrder = "OLDEST",
 }: PostNavigationTarget) {
-  const query = `?post=${encodeRouteValue(postId)}`;
+  const query = new URLSearchParams({ post: postId });
+  if (!parentPostId && floorOrder === "NEWEST") query.set("order", floorOrder);
+  const search = `?${query.toString()}`;
   if (parentPostId) {
-    return `${getPostDiscussionHref(threadId, parentPostId)}${query}`;
+    return `${getPostDiscussionHref(threadId, parentPostId)}${search}`;
   }
-  return `/threads/${encodeRouteValue(threadId)}${query}`;
+  return `/threads/${encodeRouteValue(threadId)}${search}`;
 }

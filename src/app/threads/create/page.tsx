@@ -40,21 +40,17 @@ export default function CreateThreadPage() {
     error: threadError,
   } = useThreadDetail(createdThreadId ?? undefined);
 
-  // 检查登录和邮箱验证（等 auth 初始化完成后再判断，避免 hydration 期间误判为未登录）
+  // 等 auth 初始化完成后再判断，避免 hydration 期间误判为未登录
   useEffect(() => {
     if (!isInitialized) return;
     if (!user) {
       router.replace("/login");
       return;
     }
-    if (!user.emailVerified) {
-      toast.error("请先验证邮箱后再发布主题帖");
-      router.replace("/verify-email");
-    }
   }, [user, router, isInitialized]);
 
   async function handleCreateNew() {
-    if (!isInitialized || !user?.emailVerified) return;
+    if (!isInitialized || !user) return;
     if (isDraftCreationStarted.current) return;
     isDraftCreationStarted.current = true;
     createRequestIdRef.current ??= crypto.randomUUID();
@@ -164,7 +160,7 @@ export default function CreateThreadPage() {
     );
   }
 
-  if (!user || !user.emailVerified) {
+  if (!user) {
     return null;
   }
 

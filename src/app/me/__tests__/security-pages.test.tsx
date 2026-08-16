@@ -39,7 +39,7 @@ import ChangeEmailPage from "@/app/me/email/page";
 import AccountSecurityPage from "@/app/me/security/page";
 import MeLayout from "@/app/me/layout";
 
-const authedUser = { id: "u1", username: "tester", emailVerified: true };
+const authedUser = { id: "u1", username: "tester" };
 
 beforeEach(() => {
   vi.clearAllMocks();

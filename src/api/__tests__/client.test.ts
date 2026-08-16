@@ -21,7 +21,6 @@ const user = (id: string, username = id): AuthUser => ({
   username,
   avatar: null,
   role: "USER",
-  emailVerified: true,
 });
 
 beforeEach(() => {
@@ -44,7 +43,6 @@ describe("isSessionExpired401", () => {
       isSessionExpired401(401, "/api/v1/auth/register/verify-and-complete", null, 40112),
     ).toBe(false);
     expect(isSessionExpired401(401, "/api/v1/auth/reset-password", null, 40112)).toBe(false);
-    expect(isSessionExpired401(401, "/api/v1/auth/verify-email", "Bearer x", 40112)).toBe(false);
   });
 
   test("业务 401（改密/换邮箱）即使携带 token 也不按会话过期处理", () => {
@@ -79,9 +77,8 @@ describe("isTerminalSession401", () => {
     }
   });
 
-  test("access token 过期、邮箱未验证和未携带 token 不直接清理会话", () => {
+  test("access token 过期和未携带 token 不直接清理会话", () => {
     expect(isTerminalSession401(401, "Bearer x", 40101)).toBe(false);
-    expect(isTerminalSession401(401, "Bearer x", 40107)).toBe(false);
     expect(isTerminalSession401(401, null, 40103)).toBe(false);
   });
 });

@@ -40,7 +40,6 @@ const BUSINESS_401_PATHS = new Set([
   "/api/v1/auth/login",
   "/api/v1/auth/register/verify-and-complete",
   "/api/v1/auth/reset-password",
-  "/api/v1/auth/verify-email",
   "/api/v1/auth/change-password",
   "/api/v1/auth/change-email/request-code",
   "/api/v1/auth/change-email/verify",

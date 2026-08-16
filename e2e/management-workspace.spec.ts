@@ -7,7 +7,6 @@ const owner = {
   username: "雾港记录员",
   avatar: null,
   role: "USER",
-  emailVerified: true,
 };
 
 const defaultSubthread = {

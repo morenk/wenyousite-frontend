@@ -2,7 +2,7 @@
 
 import { describe, test, expect, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
-import { UserAvatar } from "@/components/shared/user-avatar";
+import { UserAvatar, UserAvatarLink } from "@/components/shared/user-avatar";
 
 afterEach(() => cleanup());
 
@@ -51,5 +51,14 @@ describe("UserAvatar", () => {
     expect(avatar.className).toContain("text-muted-foreground");
     expect(screen.getByRole("img", { name: "已注销用户头像" })).toBe(avatar);
     expect(avatar.querySelector("img")).toBeNull();
+  });
+
+  test("可点击头像提供用户主页链接与明确名称", () => {
+    render(<UserAvatarLink userId="user-1" name="alice" src={null} className="size-8" />);
+
+    expect(screen.getByRole("link", { name: "查看alice的用户主页" })).toHaveAttribute(
+      "href",
+      "/users/user-1",
+    );
   });
 });

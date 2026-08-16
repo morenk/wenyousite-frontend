@@ -14,7 +14,6 @@ const mockUser: AuthUser = {
   username: "testuser",
   avatar: null,
   role: "USER",
-  emailVerified: true,
 };
 
 beforeEach(() => {

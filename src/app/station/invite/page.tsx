@@ -3,7 +3,7 @@ import { RequireAuth } from "@/components/auth/require-auth";
 
 export default function StationInvitePage() {
   return (
-    <RequireAuth requireVerifiedEmail>
+    <RequireAuth>
       <AdminInviteAcceptance />
     </RequireAuth>
   );

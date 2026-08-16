@@ -1,7 +1,7 @@
 /** FloorCard 组件测试：Markdown 渲染 + 作者编辑/删除 */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup, waitFor } from "@testing-library/react";
+import { render, screen, cleanup, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { FloorCard } from "@/components/thread/floor-card";
@@ -143,6 +143,10 @@ describe("FloorCard", () => {
     expect(screen.getByText("测试用户")).toBeInTheDocument();
     expect(screen.getByText("#1")).toBeInTheDocument();
     expect(screen.getByTestId("user-avatar-placeholder").textContent).toBe("测");
+    expect(screen.getByRole("link", { name: "查看测试用户的用户主页" })).toHaveAttribute(
+      "href",
+      "/users/u1",
+    );
   });
 
   test("管理员可从楼层菜单进入站务隐藏", async () => {
@@ -195,21 +199,27 @@ describe("FloorCard", () => {
     expect(screen.getByText("纯文本正文")).toBeInTheDocument();
   });
 
-  test("不显示回复数（replies 为 0）", () => {
+  test("没有回复时不显示完整回复入口", () => {
     renderWithQC(<FloorCard floor={baseFloor} />);
     expect(screen.queryByText("条回复")).toBeNull();
   });
 
-  test("显示回复数（replies > 0）", () => {
+  test("主楼层不再显示回复数链接", () => {
     const withReplies = {
       ...baseFloor,
       _count: { replies: 3 },
+      replies: Array.from({ length: 3 }, (_, index) => inlineReply(`reply-${index + 1}`)),
     };
+    mockUseAuth.mockReturnValue({
+      user: { id: "u1", username: "测试用户" },
+      isInitialized: true,
+    });
     renderWithQC(<FloorCard floor={withReplies} />);
-    expect(screen.getByText("3 条回复")).toBeInTheDocument();
-    expect(screen.getByText("3 条回复").parentElement?.querySelector("svg")).toHaveAttribute(
-      "data-icon-semantic",
-      "metric.replies",
+
+    expect(screen.queryByText("3 条回复")).not.toBeInTheDocument();
+    const floorActions = screen.getByTestId("floor-card-actions");
+    expect(floorActions).toContainElement(
+      within(floorActions).getByRole("button", { name: "回复" }),
     );
   });
 
@@ -248,7 +258,7 @@ describe("FloorCard", () => {
     });
   });
 
-  test("有简短回复时默认展示前五条内联预览", () => {
+  test("回复数量超限时展示前五条并显示带总数的渐变入口", () => {
     const replies = Array.from({ length: 6 }, (_, index) => inlineReply(`reply-${index + 1}`));
     const withReplies = { ...baseFloor, _count: { replies: 6 }, replies };
     renderWithQC(<FloorCard floor={withReplies} />);
@@ -256,16 +266,108 @@ describe("FloorCard", () => {
     expect(screen.getAllByTestId("inline-reply")).toHaveLength(5);
     expect(screen.getByText("回复 reply-1")).toBeInTheDocument();
     expect(screen.queryByText("回复 reply-6")).not.toBeInTheDocument();
+    expect(screen.getByTestId("inline-replies")).toHaveClass("overflow-hidden");
+    const viewAll = screen.getByRole("link", { name: "查看全部 6 条回复" });
+    expect(viewAll).toHaveAttribute("href", "/threads/t1/posts/post-1/replies");
+    expect(viewAll).toHaveClass("font-bold");
+    expect(screen.queryByRole("link", { name: "6 条回复" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "查看用户reply-1的用户主页" })).toHaveAttribute(
+      "href",
+      "/users/author-reply-1",
+    );
   });
 
-  test("发布时间与回复数入口位于楼中楼预览上方且没有分割线", () => {
+  test("内联回复显示三点菜单，未登录时只提供复制操作", async () => {
+    const user = userEvent.setup();
+    Object.defineProperty(window.navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: mockClipboardWriteText },
+    });
+    const withReplies = {
+      ...baseFloor,
+      _count: { replies: 1 },
+      replies: [inlineReply("reply-1", "这是**加粗**回复")],
+    };
+    renderWithQC(<FloorCard floor={withReplies} />);
+
+    const inline = screen.getByTestId("inline-reply");
+    expect(within(inline).getByRole("button", { name: "更多回复操作" })).toBeInTheDocument();
+    expect(within(inline).queryByRole("button", { name: "回复" })).not.toBeInTheDocument();
+
+    await user.click(within(inline).getByRole("button", { name: "更多回复操作" }));
+    expect(screen.getByRole("menuitem", { name: "复制文本" })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "复制链接" })).toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: "编辑" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: "删除" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("menuitem", { name: "复制链接" }));
+    await waitFor(() => {
+      expect(mockClipboardWriteText).toHaveBeenCalledWith(
+        "http://localhost:3000/threads/t1/posts/post-1/replies?post=reply-1",
+      );
+    });
+  });
+
+  test("登录用户可在内联回复下方原位回复目标用户", async () => {
+    const user = userEvent.setup();
+    const reply = inlineReply("reply-1");
+    const withReplies = {
+      ...baseFloor,
+      _count: { replies: 1 },
+      replies: [reply],
+    };
+    mockUseAuth.mockReturnValue({
+      user: { id: "u1", username: "测试用户" },
+      isInitialized: true,
+    });
+    renderWithQC(<FloorCard floor={withReplies} />);
+
+    const inline = screen.getByTestId("inline-reply");
+    await user.click(within(inline).getByRole("button", { name: "回复" }));
+    expect(within(inline).getByText("回复 @用户reply-1")).toBeInTheDocument();
+
+    await user.type(within(inline).getByTestId("milkdown-editor"), "回复预览用户");
+    await user.click(within(inline).getAllByRole("button", { name: "回复" }).at(-1)!);
+    expect(mockCreateMutateAsync).toHaveBeenCalledWith({
+      subthreadId: "s1",
+      content: "回复预览用户",
+      clientRequestId: expect.any(String),
+      parentPostId: "post-1",
+      replyToPostId: "reply-1",
+    });
+  });
+
+  test("内联回复作者可从三点菜单编辑和删除", async () => {
+    const user = userEvent.setup();
     const withReplies = {
       ...baseFloor,
       _count: { replies: 1 },
       replies: [inlineReply("reply-1")],
     };
     mockUseAuth.mockReturnValue({
-      user: { id: "u1", username: "测试用户", emailVerified: true },
+      user: { id: "author-reply-1", username: "用户reply-1" },
+      isInitialized: true,
+    });
+    renderWithQC(<FloorCard floor={withReplies} />);
+
+    const inline = screen.getByTestId("inline-reply");
+    await user.click(within(inline).getByRole("button", { name: "更多回复操作" }));
+    expect(screen.getByRole("menuitem", { name: "编辑" })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "删除" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("menuitem", { name: "编辑" }));
+    expect(within(inline).getByTestId("milkdown-editor")).toHaveValue("回复 reply-1");
+    expect(within(inline).queryByRole("button", { name: "更多回复操作" })).not.toBeInTheDocument();
+  });
+
+  test("发布时间与主楼层回复按钮位于预览上方且没有回复数链接", () => {
+    const withReplies = {
+      ...baseFloor,
+      _count: { replies: 1 },
+      replies: [inlineReply("reply-1")],
+    };
+    mockUseAuth.mockReturnValue({
+      user: { id: "u1", username: "测试用户" },
       isInitialized: true,
     });
     renderWithQC(<FloorCard floor={withReplies} />);
@@ -275,25 +377,41 @@ describe("FloorCard", () => {
     const publishedAt = meta.querySelector("time");
 
     expect(publishedAt).toHaveAttribute("dateTime", baseFloor.createdAt);
-    expect(meta).toContainElement(screen.getByRole("link", { name: "1 条回复" }));
+    expect(meta).toContainElement(within(meta).getByRole("button", { name: "回复" }));
+    expect(within(meta).queryByRole("link")).not.toBeInTheDocument();
     expect(meta.nextElementSibling).toBe(preview);
     expect(meta).not.toHaveClass("border-t");
   });
 
-  test("内联回复正文合计超过限制时显示截断预览、渐变遮罩和展开入口", () => {
+  test("超长内联预览在原位回复期间展开，取消后恢复截断", async () => {
+    const user = userEvent.setup();
     const withReplies = {
       ...baseFloor,
       _count: { replies: 1 },
       replies: [inlineReply("reply-long", "长".repeat(501))],
     };
+    mockUseAuth.mockReturnValue({
+      user: { id: "u1", username: "测试用户" },
+      isInitialized: true,
+    });
     renderWithQC(<FloorCard floor={withReplies} />);
 
-    expect(screen.getByTestId("inline-reply")).toBeInTheDocument();
-    expect(screen.getByTestId("inline-replies")).toHaveClass("overflow-hidden");
-    expect(screen.getByRole("link", { name: /展开回复/ })).toHaveAttribute(
+    const inline = screen.getByTestId("inline-reply");
+    const preview = screen.getByTestId("inline-replies");
+    expect(preview).toHaveClass("overflow-hidden");
+    expect(screen.getByRole("link", { name: "查看全部 1 条回复" })).toHaveAttribute(
       "href",
       "/threads/t1/posts/post-1/replies",
     );
+    expect(screen.getByRole("link", { name: "查看全部 1 条回复" })).toHaveClass("font-bold");
+
+    await user.click(within(inline).getByRole("button", { name: "回复" }));
+    expect(preview).not.toHaveClass("overflow-hidden");
+    expect(screen.queryByRole("link", { name: /查看全部/ })).not.toBeInTheDocument();
+
+    await user.click(within(inline).getByRole("button", { name: "取消" }));
+    expect(preview).toHaveClass("overflow-hidden");
+    expect(screen.getByRole("link", { name: "查看全部 1 条回复" })).toBeInTheDocument();
   });
 
   test("楼层使用弱于主题文档的紧凑圆角且不交替着色", () => {
@@ -315,7 +433,7 @@ describe("FloorCard", () => {
   test("非作者的操作菜单不显示编辑/删除", async () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({
-      user: { id: "other", username: "别人", emailVerified: true },
+      user: { id: "other", username: "别人" },
       isInitialized: true,
     });
     renderWithQC(<FloorCard floor={baseFloor} />);
@@ -328,7 +446,7 @@ describe("FloorCard", () => {
   test("管理者可从操作菜单删除他人楼层但不可编辑", async () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({
-      user: { id: "manager", username: "管理者", emailVerified: true },
+      user: { id: "manager", username: "管理者" },
       isInitialized: true,
     });
     mockUseThreadPermissions.mockReturnValue({ isManager: true });
@@ -343,7 +461,7 @@ describe("FloorCard", () => {
   test("作者的操作菜单显示编辑/删除", async () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({
-      user: { id: "u1", username: "测试用户", emailVerified: true },
+      user: { id: "u1", username: "测试用户" },
       isInitialized: true,
     });
     renderWithQC(<FloorCard floor={baseFloor} />);
@@ -356,7 +474,7 @@ describe("FloorCard", () => {
   test("楼层 #1 删除菜单项也可点（楼层均可删除，子贴正文由后端拦截）", async () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({
-      user: { id: "u1", username: "测试用户", emailVerified: true },
+      user: { id: "u1", username: "测试用户" },
       isInitialized: true,
     });
     renderWithQC(<FloorCard floor={baseFloor} />);
@@ -369,7 +487,7 @@ describe("FloorCard", () => {
   test("编辑保存：调用 useUpdatePost 并提示成功", async () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({
-      user: { id: "u1", username: "测试用户", emailVerified: true },
+      user: { id: "u1", username: "测试用户" },
       isInitialized: true,
     });
     renderWithQC(<FloorCard floor={baseFloor} />);
@@ -392,7 +510,7 @@ describe("FloorCard", () => {
   test("编辑保存乐观锁冲突提示 40002", async () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({
-      user: { id: "u1", username: "测试用户", emailVerified: true },
+      user: { id: "u1", username: "测试用户" },
       isInitialized: true,
     });
     mockUpdateMutateAsync.mockRejectedValueOnce({ code: 40002, message: "内容已被修改" });
@@ -408,7 +526,7 @@ describe("FloorCard", () => {
   test("取消编辑不调用保存", async () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({
-      user: { id: "u1", username: "测试用户", emailVerified: true },
+      user: { id: "u1", username: "测试用户" },
       isInitialized: true,
     });
     renderWithQC(<FloorCard floor={baseFloor} />);
@@ -426,7 +544,7 @@ describe("FloorCard", () => {
     const user = userEvent.setup();
     vi.stubGlobal("confirm", vi.fn(() => true));
     mockUseAuth.mockReturnValue({
-      user: { id: "u1", username: "测试用户", emailVerified: true },
+      user: { id: "u1", username: "测试用户" },
       isInitialized: true,
     });
     renderWithQC(<FloorCard floor={baseFloor} />);
@@ -444,7 +562,7 @@ describe("FloorCard", () => {
     const user = userEvent.setup();
     vi.stubGlobal("confirm", vi.fn(() => false));
     mockUseAuth.mockReturnValue({
-      user: { id: "u1", username: "测试用户", emailVerified: true },
+      user: { id: "u1", username: "测试用户" },
       isInitialized: true,
     });
     renderWithQC(<FloorCard floor={baseFloor} />);
@@ -457,18 +575,21 @@ describe("FloorCard", () => {
     vi.unstubAllGlobals();
   });
 
-  test("有回复时回复数链接进入独立楼中楼阅读页", () => {
-    const withReplies = { ...baseFloor, _count: { replies: 3 } };
+  test("五条以内的短回复不提供独立楼中楼入口", () => {
+    const withReplies = {
+      ...baseFloor,
+      _count: { replies: 5 },
+      replies: Array.from({ length: 5 }, (_, index) => inlineReply(`reply-${index + 1}`)),
+    };
     mockUseAuth.mockReturnValue({
-      user: { id: "u1", username: "测试用户", emailVerified: true },
+      user: { id: "u1", username: "测试用户" },
       isInitialized: true,
     });
-    renderWithQC(<FloorCard floor={withReplies} />);
+    const { container } = renderWithQC(<FloorCard floor={withReplies} />);
 
-    expect(screen.getByRole("link", { name: /3 条回复/ })).toHaveAttribute(
-      "href",
-      "/threads/t1/posts/post-1/replies",
-    );
+    expect(screen.getAllByTestId("inline-reply")).toHaveLength(5);
+    expect(screen.queryByRole("link", { name: /查看全部/ })).not.toBeInTheDocument();
+    expect(container.querySelector('a[href="/threads/t1/posts/post-1/replies"]')).toBeNull();
   });
 
   test("无楼中楼回复时不显示占位，未登录不保留空操作栏", () => {
@@ -483,7 +604,7 @@ describe("FloorCard", () => {
   test("登录用户可从零回复楼层直接原位打开回复编辑器", async () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({
-      user: { id: "u1", username: "测试用户", emailVerified: true },
+      user: { id: "u1", username: "测试用户" },
       isInitialized: true,
     });
     renderWithQC(<FloorCard floor={baseFloor} />);

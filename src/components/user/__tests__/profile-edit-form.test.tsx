@@ -1,4 +1,4 @@
-/** ProfileEditForm 组件测试：账户信息（脱敏邮箱/验证状态）、Bio textarea、隐私开关、账号安全入口 */
+/** ProfileEditForm 组件测试：账户信息（脱敏邮箱）、Bio textarea、隐私开关、账号安全入口 */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
@@ -67,7 +67,6 @@ const baseMe = {
   showRecentReplies: true,
   showPlayerBadges: true,
   showBookmarks: true,
-  emailVerified: false,
   deletedAt: null,
   createdAt: "2026-01-01T00:00:00Z",
   updatedAt: "2026-01-01T00:00:00Z",
@@ -97,14 +96,11 @@ describe("ProfileEditForm", () => {
     expect(document.querySelector(".animate-spin")).toBeTruthy();
   });
 
-  test("展示脱敏邮箱与未认证徽章，并跳转验证页链接", () => {
+  test("展示脱敏邮箱且不再显示冗余邮箱状态", () => {
     render(<ProfileEditForm />, { wrapper: createWrapper() });
     expect(screen.getByText("a***@example.com")).toBeInTheDocument();
-    expect(screen.getByText("未认证")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "去验证" })).toHaveAttribute(
-      "href",
-      "/verify-email",
-    );
+    expect(screen.queryByText("未认证")).not.toBeInTheDocument();
+    expect(screen.queryByText("已认证")).not.toBeInTheDocument();
   });
 
   test("主页外观区同时提供背景墙与头像编辑", () => {
@@ -131,17 +127,6 @@ describe("ProfileEditForm", () => {
     render(<ProfileEditForm />, { wrapper: createWrapper() });
     expect(screen.getByText("Lv.9")).toBeInTheDocument();
     expect(screen.getByText("已达最高等级")).toBeInTheDocument();
-  });
-
-  test("已认证时显示已认证徽章，无去验证链接", () => {
-    mockMe.mockReturnValue({
-      data: { ...baseMe, emailVerified: true },
-      isLoading: false,
-      error: null,
-    });
-    render(<ProfileEditForm />, { wrapper: createWrapper() });
-    expect(screen.getByText("已认证")).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "去验证" })).not.toBeInTheDocument();
   });
 
   test("个人简介为 textarea 并显示字数统计", () => {

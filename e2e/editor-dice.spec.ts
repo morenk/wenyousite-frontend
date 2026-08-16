@@ -55,7 +55,6 @@ test("编辑器格式、窄栏、骰子与正文草稿工具在真实浏览器�
             username: "骰子测试",
             avatar: null,
             role: "USER",
-            emailVerified: true,
           },
         },
       },

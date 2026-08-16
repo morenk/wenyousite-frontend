@@ -1,10 +1,12 @@
 /** useEmailCode hook 测试：发送状态与倒计时 */
 
-import { describe, test, expect, vi } from "vitest";
+import { beforeEach, describe, test, expect, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useEmailCode } from "@/hooks/use-email-code";
 
 describe("useEmailCode", () => {
+  beforeEach(() => window.sessionStorage.clear());
+
   test("发送成功后启动倒计时并返回 true", async () => {
     const { result } = renderHook(() => useEmailCode());
     const run = vi.fn().mockResolvedValue(undefined);
@@ -20,7 +22,7 @@ describe("useEmailCode", () => {
     expect(result.current.sending).toBe(false);
   });
 
-  test("发送抛错时向上抛出且不启动倒计时", async () => {
+  test("结果不明错误向上抛出并启动倒计时", async () => {
     const { result } = renderHook(() => useEmailCode());
     const run = vi.fn().mockRejectedValue(new Error("发送失败"));
 
@@ -28,8 +30,34 @@ describe("useEmailCode", () => {
       await expect(result.current.send(run)).rejects.toThrow("发送失败");
     });
 
-    expect(result.current.countdown).toBe(0);
+    expect(result.current.countdown).toBe(60);
     expect(result.current.sending).toBe(false);
+  });
+
+  test("明确业务错误不启动倒计时", async () => {
+    const { result } = renderHook(() => useEmailCode());
+    const run = vi.fn().mockRejectedValue({ code: 40900, message: "邮箱已注册" });
+
+    await act(async () => {
+      await expect(result.current.send(run)).rejects.toEqual({
+        code: 40900,
+        message: "邮箱已注册",
+      });
+    });
+
+    expect(result.current.countdown).toBe(0);
+  });
+
+  test("跨认证页面恢复当前标签页中的剩余冷却", () => {
+    window.sessionStorage.setItem(
+      "wenyousite:email-code-cooldown-until",
+      String(Date.now() + 30_000),
+    );
+
+    const { result } = renderHook(() => useEmailCode());
+
+    expect(result.current.countdown).toBeGreaterThanOrEqual(29);
+    expect(result.current.countdown).toBeLessThanOrEqual(30);
   });
 
   test("发送期间 sending 为 true", async () => {

@@ -47,7 +47,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 注册第二步：验证邮箱 + 设置用户名密码。完成后 emailVerified=true 立即可用 */
+        /** 注册第二步：验证邮箱 + 设置用户名密码，完成后立即建立账号会话 */
         post: operations["authVerifyAndComplete"];
         delete?: never;
         options?: never;
@@ -83,40 +83,6 @@ export interface paths {
         put?: never;
         /** 用 refreshToken 轮转换取新双 Token（Cookie 优先，含盗用检测） */
         post: operations["authRefresh"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/auth/verify-email": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** 验证当前登录用户的邮箱（6 位验证码，限流 5次/分钟） */
-        post: operations["authVerifyEmail"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/auth/resend-verification": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** 重发验证邮件（限流 1次/分钟） */
-        post: operations["authResendVerification"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1424,7 +1390,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 验证邮箱验证码并建立独立管理员 Cookie 会话 */
+        /** 验证管理员验证码并建立独立管理员 Cookie 会话 */
         post: operations["adminAuthVerify"];
         delete?: never;
         options?: never;
@@ -2647,7 +2613,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** 接受或拒绝收到的消息请求；接受要求邮箱已验证 */
+        /** 接受或拒绝收到的消息请求 */
         patch: operations["directConversationsHandleRequest"];
         trace?: never;
     };
@@ -2888,11 +2854,6 @@ export interface components {
              * @example USER
              */
             role: string;
-            /**
-             * @description 邮箱是否已验证
-             * @example true
-             */
-            emailVerified: boolean;
             level: number;
         };
         AuthResponseDto: {
@@ -2933,27 +2894,6 @@ export interface components {
              */
             refreshToken?: string;
         };
-        VerifyEmailDto: {
-            /**
-             * @description 6 位邮箱验证码
-             * @example 8a7b3c
-             */
-            token: string;
-        };
-        MessageResponseDto: {
-            /**
-             * @description 操作结果说明
-             * @example 操作成功
-             */
-            message: string;
-        };
-        ResendVerificationDto: {
-            /**
-             * @description 需要重发验证邮件的邮箱
-             * @example user@example.com
-             */
-            email: string;
-        };
         ChangePasswordDto: {
             /**
              * @description 当前密码
@@ -2965,6 +2905,13 @@ export interface components {
              * @example NewPass456
              */
             newPassword: string;
+        };
+        MessageResponseDto: {
+            /**
+             * @description 操作结果说明
+             * @example 操作成功
+             */
+            message: string;
         };
         ForgotPasswordDto: {
             /**
@@ -3133,7 +3080,6 @@ export interface components {
             showRecentReplies: boolean;
             showPlayerBadges: boolean;
             showBookmarks: boolean;
-            emailVerified: boolean;
             /** Format: date-time */
             deletedAt: string | null;
             /** Format: date-time */
@@ -3188,7 +3134,6 @@ export interface components {
             showRecentReplies: boolean;
             showPlayerBadges: boolean;
             showBookmarks: boolean;
-            emailVerified: boolean;
             /** Format: date-time */
             deletedAt: string | null;
             /** Format: date-time */
@@ -4539,7 +4484,7 @@ export interface components {
             }[];
         };
         CreateAdminInviteDto: {
-            /** @description 已验证邮箱的现有温油账号 ID */
+            /** @description 现有温油账号 ID */
             userId: string;
         };
         AdminInviteCreatedResponseDto: {
@@ -4705,7 +4650,6 @@ export interface components {
         };
         NotificationAudienceDto: {
             roles?: ("USER" | "ADMIN" | "SUPER_ADMIN")[];
-            emailVerified?: boolean;
         };
         AdminRecipientCountResponseDto: {
             recipientCount: number;
@@ -4729,8 +4673,6 @@ export interface components {
         UserConditionDto: {
             /** @description 角色筛选（USER / ADMIN / SUPER_ADMIN） */
             role?: ("USER" | "ADMIN" | "SUPER_ADMIN")[];
-            /** @description 邮箱验证状态筛选 */
-            emailVerified?: boolean;
             /** @description 注册时间起始（ISO 8601） */
             createdAfter?: string;
             /** @description 注册时间截止（ISO 8601） */
@@ -4778,7 +4720,6 @@ export interface components {
             email: string;
             /** @enum {string} */
             role: "USER" | "ADMIN" | "SUPER_ADMIN";
-            emailVerified: boolean;
             /** Format: date-time */
             createdAt: string;
         };
@@ -4803,7 +4744,6 @@ export interface components {
             username: string;
             /** @enum {string} */
             role: "USER" | "ADMIN" | "SUPER_ADMIN";
-            emailVerified: boolean;
             /** @enum {string} */
             moderationStatus: "ACTIVE" | "SUSPENDED" | "BANNED";
             currentSanction?: components["schemas"]["AdminUserSanctionResponseDto"] | null;
@@ -5681,12 +5621,6 @@ export interface components {
         AuthRefresh200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["AuthResponseDto"];
         };
-        AuthVerifyEmail200Response: components["schemas"]["ApiSuccessEnvelope"] & {
-            data: components["schemas"]["MessageResponseDto"];
-        };
-        AuthResendVerification200Response: components["schemas"]["ApiSuccessEnvelope"] & {
-            data: components["schemas"]["MessageResponseDto"];
-        };
         AuthChangePassword200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["MessageResponseDto"];
         };
@@ -6276,7 +6210,7 @@ export interface components {
          * @description 稳定业务错误码；名称和值来源于 ErrorCode
          * @enum {integer}
          */
-        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40007 | 40008 | 40009 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40107 | 40108 | 40109 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40117 | 40118 | 40119 | 40120 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40307 | 40308 | 40309 | 40310 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40414 | 40415 | 40416 | 40417 | 40418 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 40912 | 40913 | 40914 | 40915 | 40916 | 40917 | 40918 | 40919 | 40920 | 40921 | 40922 | 40923 | 40924 | 40925 | 42900 | 50000;
+        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40007 | 40008 | 40009 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40108 | 40109 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40117 | 40118 | 40119 | 40120 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40307 | 40308 | 40309 | 40310 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40414 | 40415 | 40416 | 40417 | 40418 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 40912 | 40913 | 40914 | 40915 | 40916 | 40917 | 40918 | 40919 | 40920 | 40921 | 40922 | 40923 | 40924 | 40925 | 42900 | 50000;
         ApiErrorEnvelope: {
             code: components["schemas"]["BusinessErrorCode"];
             message: string;
@@ -6557,102 +6491,6 @@ export interface operations {
             };
         };
     };
-    authVerifyEmail: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["VerifyEmailDto"];
-            };
-        };
-        responses: {
-            /** @description 验证成功 */
-            200: {
-                headers: {
-                    "X-Request-ID": components["headers"]["XRequestId"];
-                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AuthVerifyEmail200Response"];
-                };
-            };
-            /** @description 验证码错误 */
-            400: {
-                headers: {
-                    "X-Request-ID": components["headers"]["XRequestId"];
-                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelope"];
-                };
-            };
-            /** @description 未登录 */
-            401: {
-                headers: {
-                    "X-Request-ID": components["headers"]["XRequestId"];
-                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelope"];
-                };
-            };
-            /** @description 未在此操作中单独列出的错误响应 */
-            default: {
-                headers: {
-                    "X-Request-ID": components["headers"]["XRequestId"];
-                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelope"];
-                };
-            };
-        };
-    };
-    authResendVerification: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ResendVerificationDto"];
-            };
-        };
-        responses: {
-            /** @description 验证邮件已重新发送 */
-            200: {
-                headers: {
-                    "X-Request-ID": components["headers"]["XRequestId"];
-                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AuthResendVerification200Response"];
-                };
-            };
-            /** @description 未在此操作中单独列出的错误响应 */
-            default: {
-                headers: {
-                    "X-Request-ID": components["headers"]["XRequestId"];
-                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorEnvelope"];
-                };
-            };
-        };
-    };
     authChangePassword: {
         parameters: {
             query?: never;
@@ -6880,7 +6718,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
-            /** @description 未登录或邮箱未验证 */
+            /** @description 未登录 */
             401: {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];
@@ -8831,7 +8669,7 @@ export interface operations {
                     "application/json": components["schemas"]["ThreadsCreate201Response"];
                 };
             };
-            /** @description 未登录或邮箱未验证 */
+            /** @description 未登录 */
             401: {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];
@@ -8923,7 +8761,7 @@ export interface operations {
                     "application/json": components["schemas"]["ThreadsRemove200Response"];
                 };
             };
-            /** @description 未登录或邮箱未验证 */
+            /** @description 未登录 */
             401: {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];
@@ -8995,7 +8833,7 @@ export interface operations {
                     "application/json": components["schemas"]["ThreadsUpdate200Response"];
                 };
             };
-            /** @description 未登录或邮箱未验证 */
+            /** @description 未登录 */
             401: {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];
@@ -9078,7 +8916,7 @@ export interface operations {
                     "application/json": components["schemas"]["ThreadsSaveAggregate200Response"];
                 };
             };
-            /** @description 未登录或邮箱未验证 */
+            /** @description 未登录 */
             401: {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];
@@ -9227,7 +9065,7 @@ export interface operations {
                     "application/json": components["schemas"]["ThreadsCreateInviteLink200Response"];
                 };
             };
-            /** @description 未登录或邮箱未验证 */
+            /** @description 未登录 */
             401: {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];
@@ -9341,7 +9179,7 @@ export interface operations {
                     "application/json": components["schemas"]["ThreadsJoinByInviteLink200Response"];
                 };
             };
-            /** @description 未登录或邮箱未验证 */
+            /** @description 未登录 */
             401: {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];
@@ -9690,7 +9528,7 @@ export interface operations {
                     "application/json": components["schemas"]["TagsCreate200Response"];
                 };
             };
-            /** @description 未登录或邮箱未验证 */
+            /** @description 未登录 */
             401: {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];
@@ -10260,6 +10098,8 @@ export interface operations {
                 cursor?: string;
                 /** @description 每页条数 */
                 limit?: number;
+                /** @description 主楼层顺序，默认 OLDEST */
+                order?: "OLDEST" | "NEWEST";
             };
             header?: never;
             path: {
@@ -12004,7 +11844,7 @@ export interface operations {
                     "application/json": components["schemas"]["UserModerationAppealsIssueToken200Response"];
                 };
             };
-            /** @description 账号密码错误、账号锁定或邮箱未验证 */
+            /** @description 账号密码错误或账号锁定 */
             401: {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];
@@ -14558,7 +14398,7 @@ export interface operations {
                     "application/json": components["schemas"]["DirectConversationsCreate201Response"];
                 };
             };
-            /** @description 邮箱未验证、存在拉黑关系或无权再次申请 */
+            /** @description 存在拉黑关系或无权再次申请 */
             403: {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];
@@ -14792,7 +14632,7 @@ export interface operations {
                     "application/json": components["schemas"]["DirectConversationsSend201Response"];
                 };
             };
-            /** @description 邮箱未验证、拉黑或会话不可发送 */
+            /** @description 拉黑或会话不可发送 */
             403: {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];
@@ -14852,7 +14692,7 @@ export interface operations {
                     "application/json": components["schemas"]["DirectConversationsHandleRequest200Response"];
                 };
             };
-            /** @description 不是请求接收方或接受时邮箱未验证 */
+            /** @description 不是请求接收方或请求状态不允许此操作 */
             403: {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];

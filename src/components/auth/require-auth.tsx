@@ -1,4 +1,4 @@
-/** 客户端认证边界：集中处理受保护路由的初始化、登录和邮箱验证跳转。 */
+/** 客户端认证边界：集中处理受保护路由的初始化和登录跳转。 */
 
 "use client";
 
@@ -9,10 +9,8 @@ import { useAuth } from "@/lib/auth";
 
 export function RequireAuth({
   children,
-  requireVerifiedEmail = false,
 }: {
   children: ReactNode;
-  requireVerifiedEmail?: boolean;
 }) {
   const { user, isInitialized } = useAuth();
   const pathname = usePathname();
@@ -24,12 +22,9 @@ export function RequireAuth({
       router.replace(`/login?next=${encodeURIComponent(pathname)}`);
       return;
     }
-    if (requireVerifiedEmail && !user.emailVerified) {
-      router.replace("/verify-email");
-    }
-  }, [isInitialized, pathname, requireVerifiedEmail, router, user]);
+  }, [isInitialized, pathname, router, user]);
 
-  if (!isInitialized || !user || (requireVerifiedEmail && !user.emailVerified)) {
+  if (!isInitialized || !user) {
     return (
       <div
         className="flex min-h-screen items-center justify-center"

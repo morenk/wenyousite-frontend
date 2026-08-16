@@ -1,4 +1,4 @@
-/** 认证操作 API hooks（忘记密码、重置密码、邮箱验证、登出等） */
+/** 认证操作 API hooks（忘记密码、重置密码、换绑邮箱、登出等） */
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
@@ -32,31 +32,6 @@ export function useResetPassword() {
       const { data, error } = await apiClient.POST("/api/v1/auth/reset-password", {
         body: req,
       });
-      if (error) throw error;
-      return data;
-    },
-  });
-}
-
-export function useVerifyEmail() {
-  return useMutation({
-    mutationFn: async (token: string) => {
-      const { data, error } = await apiClient.POST("/api/v1/auth/verify-email", {
-        body: { token },
-      });
-      if (error) throw error;
-      return data;
-    },
-  });
-}
-
-export function useResendVerification() {
-  return useMutation({
-    mutationFn: async (email: string) => {
-      const { data, error } = await apiClient.POST(
-        "/api/v1/auth/resend-verification",
-        { body: { email } },
-      );
       if (error) throw error;
       return data;
     },

@@ -25,7 +25,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("sonner", () => ({
-  toast: { success: vi.fn(), error: vi.fn() },
+  toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn() },
 }));
 
 import { toast } from "sonner";
@@ -42,6 +42,7 @@ function createWrapper() {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  window.sessionStorage.clear();
   mockChangeEmailRequest.mutateAsync.mockResolvedValue({ message: "验证码已发送，请查收新邮箱" });
   mockChangeEmailVerify.mutateAsync.mockResolvedValue({ message: "邮箱已成功更换" });
 });
@@ -88,5 +89,19 @@ describe("ChangeEmailForm", () => {
   test("验证码未发送时确认按钮禁用", () => {
     render(<ChangeEmailForm />, { wrapper: createWrapper() });
     expect(screen.getByRole("button", { name: "确认更换" })).toBeDisabled();
+  });
+
+  test("请求结果不明时允许填写可能已收到的验证码并进入冷却", async () => {
+    mockChangeEmailRequest.mutateAsync.mockRejectedValue(new Error("network disconnected"));
+    render(<ChangeEmailForm />, { wrapper: createWrapper() });
+    fireEvent.change(document.getElementById("change-old-password")!, { target: { value: "CurrentPass123" } });
+    fireEvent.change(document.getElementById("new-email")!, { target: { value: "new@example.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "发送验证码" }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "确认更换" })).toBeEnabled();
+    });
+    expect(document.getElementById("email-code")).toBeEnabled();
+    expect(screen.getByRole("button", { name: /秒后重发/ })).toBeDisabled();
   });
 });

@@ -177,23 +177,6 @@ export function ProfileEditForm() {
                   {me ? maskEmail(me.email) : ""}
                 </p>
               </div>
-              {me?.emailVerified ? (
-                <span className="shrink-0 rounded-full bg-success-soft px-2.5 py-0.5 text-xs font-medium text-success">
-                  已认证
-                </span>
-              ) : (
-                <div className="flex shrink-0 items-center gap-2">
-                  <span className="rounded-full bg-warning-soft px-2.5 py-0.5 text-xs font-medium text-warning">
-                    未认证
-                  </span>
-                  <Link
-                    href="/verify-email"
-                    className="text-xs font-medium text-brand-strong hover:underline"
-                  >
-                    去验证
-                  </Link>
-                </div>
-              )}
             </div>
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">

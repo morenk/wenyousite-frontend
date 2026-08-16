@@ -85,14 +85,6 @@ export const resetPasswordSchema = z.object({
     .regex(/\d/, { message: "密码需包含至少一个数字" }),
 });
 
-export const verifyEmailSchema = z.object({
-  token: z
-    .string()
-    .min(6, { message: "验证码为 6 位数字" })
-    .max(6, { message: "验证码为 6 位数字" })
-    .regex(/^\d+$/, { message: "验证码为 6 位数字" }),
-});
-
 export const changePasswordSchema = z
   .object({
     oldPassword: z.string().min(1, { message: "请输入当前密码" }),
@@ -125,6 +117,5 @@ export type LoginFormData = z.infer<typeof loginSchema>;
 export type RegisterStep2FormData = z.infer<typeof registerStep2Schema>;
 export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
-export type VerifyEmailFormData = z.infer<typeof verifyEmailSchema>;
 export type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
 export type ChangeEmailFormData = z.infer<typeof changeEmailSchema>;

@@ -16,7 +16,11 @@ import {
 } from "@/lib/validations/auth";
 import { useResetPassword, useForgotPassword } from "@/api/hooks/use-auth-actions";
 import { API_ERROR_CODE, getApiError } from "@/api/errors";
-import { useEmailCode } from "@/hooks/use-email-code";
+import {
+  EMAIL_SEND_UNCERTAIN_MESSAGE,
+  isEmailSendOutcomeUnknown,
+  useEmailCode,
+} from "@/hooks/use-email-code";
 import { SendCodeButton } from "@/components/auth/send-code-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,11 +56,13 @@ export default function ResetPasswordPage() {
       });
     } catch (err) {
       const e = getApiError(err);
-      toast.error(
-        e.code === API_ERROR_CODE.RATE_LIMITED
-          ? "操作太频繁，请稍后再试"
-          : e.message || "发送失败，请稍后重试",
-      );
+      if (e.code === API_ERROR_CODE.RATE_LIMITED || e.status === 429) {
+        toast.warning("操作太频繁，请先检查邮箱或 60 秒后再试");
+      } else if (isEmailSendOutcomeUnknown(err)) {
+        toast.warning(EMAIL_SEND_UNCERTAIN_MESSAGE);
+      } else {
+        toast.error(e.message || "发送失败，请稍后重试");
+      }
     }
   };
 

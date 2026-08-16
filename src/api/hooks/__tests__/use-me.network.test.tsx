@@ -15,7 +15,6 @@ const currentUser = {
   showRecentReplies: true,
   showPlayerBadges: true,
   showBookmarks: true,
-  emailVerified: true,
   deletedAt: null,
   createdAt: "2026-08-07T10:00:00.000Z",
   updatedAt: "2026-08-07T10:00:00.000Z",

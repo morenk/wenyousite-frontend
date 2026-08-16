@@ -71,7 +71,7 @@ function renderWithQC(ui: React.ReactElement) {
   );
 }
 
-const loggedInUser = { id: "u1", username: "test", emailVerified: true };
+const loggedInUser = { id: "u1", username: "test" };
 
 describe("FloorForm", () => {
   beforeEach(() => {

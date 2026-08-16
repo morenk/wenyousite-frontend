@@ -187,7 +187,6 @@ const threadCreateSchema = z.object({
 |--------|------|---------|
 | 40100 | 未登录 / 缺少认证凭证 | 登录守卫跳转 `/login` |
 | 40101 | access token 过期 | apiClient 自动刷新并重放创建请求，保留同一 `clientRequestId` |
-| 40300 | 邮箱未验证 | toast "请先验证邮箱后再发布" 并跳转 `/verify-email` |
 | 40000 | 字段长度/格式校验失败 | 按字段显示 inline error |
 | 40001 | 发布校验失败（缺标题/分区/正文） | toast 后端 message |
 | 40900 | 乐观锁冲突 | toast "内容已被修改，请刷新后重试" 并重新获取详情 |
@@ -203,7 +202,6 @@ const threadCreateSchema = z.object({
 | 场景 | 处理 |
 |------|------|
 | 未登录用户访问 `/threads/create` | 路由 layout 的 `RequireAuth` 等待会话恢复，保留 `next` 跳转登录 |
-| 已登录但邮箱未验证 | layout 的 `RequireAuth(requireVerifiedEmail)` 跳转 `/verify-email` |
 | 创建草稿失败（网络等） | 显示错误提示，提供重试按钮 |
 | 发布时并发冲突 | 重新获取详情刷新 version，用户手动再次发布 |
 
@@ -214,8 +212,7 @@ const threadCreateSchema = z.object({
 ```
 进入 /threads/create 草稿选择器
   ↓ 未登录 → /login
-  ↓ 未验证邮箱 → /verify-email
-  ↓ 已登录且已验证
+  ↓ 已登录
 点击“新建主题帖”
 POST /threads 创建草稿
   ↓ 成功
@@ -234,7 +231,6 @@ POST /threads 创建草稿
 
 - 进入 `/threads/create` 先展示草稿选择器，仅点击「新建主题帖」才创建草稿
 - 未登录用户跳转登录页
-- 未验证邮箱用户收到提示并跳转验证页
 - 表单可编辑标题、分区、可见性、标签、默认子贴正文
 - 创建页保持简洁：不承载多子贴/楼层管理（移至详情页管理面板）
 - 标签输入支持自动补全和新建

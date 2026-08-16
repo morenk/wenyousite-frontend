@@ -13,7 +13,7 @@ export default function ReportPage() {
   const targetType = params.get("targetType") as TargetType | null;
   const targetId = params.get("targetId");
   return (
-    <RequireAuth requireVerifiedEmail>
+    <RequireAuth>
       {!targetType || !targetTypes.has(targetType) || !targetId ? (
         <p className="mx-auto mt-16 max-w-xl rounded-xl border border-border bg-card p-6 text-sm text-destructive">举报目标参数无效。</p>
       ) : <ReportForm targetType={targetType} targetId={targetId} />}

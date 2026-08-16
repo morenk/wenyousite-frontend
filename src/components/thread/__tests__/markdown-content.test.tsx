@@ -282,9 +282,12 @@ describe("MarkdownContent", () => {
     fireEvent.resize(window);
     const expand = await screen.findByRole("button", { name: "展开全文" });
     expect(expand).toHaveAttribute("aria-expanded", "false");
+    expect(expand).toHaveClass("font-bold");
     await userEvent.setup().click(expand);
-    expect(screen.getByRole("button", { name: "收起" })).toHaveAttribute("aria-expanded", "true");
-    await userEvent.setup().click(screen.getByRole("button", { name: "收起" }));
+    const collapse = screen.getByRole("button", { name: "收起" });
+    expect(collapse).toHaveAttribute("aria-expanded", "true");
+    expect(collapse).toHaveClass("font-bold");
+    await userEvent.setup().click(collapse);
     await waitFor(() => expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "auto", block: "start" }));
   });
 });

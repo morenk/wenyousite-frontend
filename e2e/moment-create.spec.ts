@@ -6,7 +6,6 @@ const user = {
   username: "动态发布测试用户",
   avatar: null,
   role: "USER",
-  emailVerified: true,
 };
 
 const createdMoment = {

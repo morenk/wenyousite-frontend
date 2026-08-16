@@ -1,13 +1,14 @@
 /** 倒计时 hook */
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export function useCountdown(seconds: number) {
   const [countdown, setCountdown] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const start = () => {
-    setCountdown(seconds);
+  const start = useCallback((overrideSeconds?: number) => {
+    const duration = overrideSeconds ?? seconds;
+    setCountdown(duration);
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
       setCountdown((prev) => {
@@ -18,7 +19,7 @@ export function useCountdown(seconds: number) {
         return prev - 1;
       });
     }, 1000);
-  };
+  }, [seconds]);
 
   useEffect(() => {
     return () => {

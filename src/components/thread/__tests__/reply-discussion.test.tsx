@@ -66,6 +66,10 @@ describe("ReplyDiscussion", () => {
     );
 
     expect(screen.getByText("原楼层长文")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "查看作者的用户主页" })).toHaveAttribute(
+      "href",
+      "/users/u1",
+    );
     expect(screen.getByText("#12", { exact: false })).toBeInTheDocument();
     expect(screen.queryByText("楼中楼讨论主题")).toBeNull();
     expect(screen.queryByText("楼中楼讨论")).toBeNull();

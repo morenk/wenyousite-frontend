@@ -29,7 +29,6 @@ function PrivateQueryProbe() {
           username: "用户二",
           avatar: null,
           role: "USER",
-          emailVerified: true,
         }, "token-u2")}
       >
         切换账号
@@ -55,7 +54,6 @@ beforeEach(() => {
         username: "用户一",
         avatar: null,
         role: "USER",
-        emailVerified: true,
       },
     },
   }), { status: 200, headers: { "content-type": "application/json" } })));

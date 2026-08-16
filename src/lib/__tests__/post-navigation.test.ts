@@ -12,6 +12,14 @@ describe("post-navigation", () => {
     );
   });
 
+  test("主楼层定位可保留倒序阅读方式", () => {
+    expect(getPostHref({
+      threadId: "t1",
+      postId: "p1",
+      floorOrder: "NEWEST",
+    })).toBe("/threads/t1?post=p1&order=NEWEST");
+  });
+
   test("楼中楼回复直接定位到所属讨论页", () => {
     expect(
       getPostHref({ threadId: "t1", postId: "r1", parentPostId: "p1" }),
@@ -44,5 +52,12 @@ describe("post-navigation", () => {
   test("默认子贴移除冗余查询参数", () => {
     expect(getSubthreadHref("thread-id", "default-id", "default-id"))
       .toBe("/threads/thread-id");
+  });
+
+  test("切换子贴时保留倒序阅读方式", () => {
+    expect(getSubthreadHref("thread-id", "subthread-id", "default-id", "NEWEST"))
+      .toBe("/threads/thread-id?subthread=subthread-id&order=NEWEST");
+    expect(getSubthreadHref("thread-id", "default-id", "default-id", "NEWEST"))
+      .toBe("/threads/thread-id?order=NEWEST");
   });
 });

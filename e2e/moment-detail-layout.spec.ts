@@ -6,7 +6,6 @@ const layoutUser = {
   username: "动态布局测试用户",
   avatar: null,
   role: "USER",
-  emailVerified: true,
 };
 
 const portraitImage = {

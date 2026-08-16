@@ -14,13 +14,12 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/lib/auth", () => ({ useAuth: () => mockUseAuth() }));
 
-const verifiedUser = {
+const loggedInUser = {
   id: "u1",
   email: "user@example.com",
   username: "用户",
   avatar: null,
   role: "USER",
-  emailVerified: true,
 };
 
 beforeEach(() => {
@@ -51,24 +50,10 @@ describe("RequireAuth", () => {
     expect(screen.queryByText("私有内容")).not.toBeInTheDocument();
   });
 
-  test("需要已验证邮箱时拦截未验证用户", async () => {
-    mockUseAuth.mockReturnValue({
-      user: { ...verifiedUser, emailVerified: false },
-      isInitialized: true,
-    });
+  test("已登录用户渲染受保护内容", () => {
+    mockUseAuth.mockReturnValue({ user: loggedInUser, isInitialized: true });
 
-    render(<RequireAuth requireVerifiedEmail>私有内容</RequireAuth>);
-
-    await waitFor(() =>
-      expect(mockReplace).toHaveBeenCalledWith("/verify-email"),
-    );
-    expect(screen.queryByText("私有内容")).not.toBeInTheDocument();
-  });
-
-  test("符合要求时渲染受保护内容", () => {
-    mockUseAuth.mockReturnValue({ user: verifiedUser, isInitialized: true });
-
-    render(<RequireAuth requireVerifiedEmail>私有内容</RequireAuth>);
+    render(<RequireAuth>私有内容</RequireAuth>);
 
     expect(screen.getByText("私有内容")).toBeVisible();
     expect(mockReplace).not.toHaveBeenCalled();

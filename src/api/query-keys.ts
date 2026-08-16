@@ -36,7 +36,10 @@ export const queryKeys = {
   },
   floors: {
     all: ["floors"] as const,
-    list: (subthreadId: string) => ["floors", subthreadId] as const,
+    list: (subthreadId: string, filters?: object) =>
+      filters === undefined
+        ? (["floors", subthreadId] as const)
+        : (["floors", subthreadId, filters] as const),
   },
   replies: {
     all: ["replies"] as const,

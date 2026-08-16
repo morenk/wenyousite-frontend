@@ -17,10 +17,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthPageShell } from "@/components/auth/auth-page-shell";
+import {
+  EMAIL_SEND_UNCERTAIN_MESSAGE,
+  isEmailSendOutcomeUnknown,
+  useEmailCode,
+} from "@/hooks/use-email-code";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
   const forgotMutation = useForgotPassword();
+  const { countdown, sending, send } = useEmailCode();
 
   const {
     register,
@@ -33,14 +39,18 @@ export default function ForgotPasswordPage() {
 
   const onSubmit = async (formData: ForgotPasswordFormData) => {
     try {
-      await forgotMutation.mutateAsync({ email: formData.email });
+      await send(() => forgotMutation.mutateAsync({ email: formData.email }));
       toast.success("重置邮件已发送，请查收邮箱");
       setValue("email", formData.email);
       router.push("/reset-password");
     } catch (error: unknown) {
       const err = getApiError(error);
-      if (err.code === API_ERROR_CODE.RATE_LIMITED) {
-        toast.error("操作太频繁，请稍后再试");
+      if (err.code === API_ERROR_CODE.RATE_LIMITED || err.status === 429) {
+        toast.warning("操作太频繁，请先检查邮箱或 60 秒后再试");
+        router.push("/reset-password");
+      } else if (isEmailSendOutcomeUnknown(error)) {
+        toast.warning(EMAIL_SEND_UNCERTAIN_MESSAGE);
+        router.push("/reset-password");
       } else {
         toast.error(err.message || "发送失败，请稍后重试");
       }
@@ -83,9 +93,13 @@ export default function ForgotPasswordPage() {
                 type="submit"
                 size="lg"
                 className="w-full"
-                disabled={forgotMutation.isPending}
+                disabled={sending || countdown > 0}
               >
-                {forgotMutation.isPending ? "发送中..." : "发送重置验证码"}
+                {sending
+                  ? "发送中..."
+                  : countdown > 0
+                    ? `${countdown} 秒后可重试`
+                    : "发送重置验证码"}
               </Button>
       </form>
     </AuthPageShell>

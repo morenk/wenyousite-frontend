@@ -7,7 +7,6 @@ import {
   registerStep2Schema,
   forgotPasswordSchema,
   resetPasswordSchema,
-  verifyEmailSchema,
 } from "@/lib/validations/auth";
 
 describe("loginSchema 边界", () => {
@@ -239,27 +238,6 @@ describe("resetPasswordSchema 边界", () => {
       token: "123456",
       newPassword: "Abcdef12",
     });
-    expect(result.success).toBe(false);
-  });
-});
-
-describe("verifyEmailSchema 边界", () => {
-  test("验证码刚好 6 位通过", () => {
-    expect(verifyEmailSchema.safeParse({ token: "000000" }).success).toBe(true);
-  });
-
-  test("验证码为空", () => {
-    const result = verifyEmailSchema.safeParse({ token: "" });
-    expect(result.success).toBe(false);
-  });
-
-  test("验证码 5 位", () => {
-    const result = verifyEmailSchema.safeParse({ token: "12345" });
-    expect(result.success).toBe(false);
-  });
-
-  test("验证码 7 位", () => {
-    const result = verifyEmailSchema.safeParse({ token: "1234567" });
     expect(result.success).toBe(false);
   });
 });

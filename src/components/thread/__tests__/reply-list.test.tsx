@@ -172,6 +172,10 @@ describe("ReplyList", () => {
     expect(screen.getByText("replier")).toBeInTheDocument();
     expect(screen.getByText("楼中楼回复内容")).toBeInTheDocument();
     expect(screen.getByTestId("user-avatar-placeholder").textContent).toBe("R");
+    expect(screen.getByRole("link", { name: "查看replier的用户主页" })).toHaveAttribute(
+      "href",
+      "/users/u2",
+    );
   });
 
   test("独立回复串只提供玩家、楼主和协作者作为作者筛选候选", async () => {

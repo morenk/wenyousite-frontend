@@ -18,7 +18,11 @@ import {
   emailSchema,
   type ChangeEmailFormData,
 } from "@/lib/validations/auth";
-import { useEmailCode } from "@/hooks/use-email-code";
+import {
+  EMAIL_SEND_UNCERTAIN_MESSAGE,
+  isEmailSendOutcomeUnknown,
+  useEmailCode,
+} from "@/hooks/use-email-code";
 import { SendCodeButton } from "@/components/auth/send-code-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,6 +65,12 @@ export function ChangeEmailForm() {
       const e = getApiError(err);
       if (e.code === 40900) {
         toast.error("该邮箱已被其他用户使用");
+      } else if (e.code === 42900 || e.status === 429) {
+        setCodeSent(true);
+        toast.warning("操作太频繁，请先检查邮箱或 60 秒后再试");
+      } else if (isEmailSendOutcomeUnknown(err)) {
+        setCodeSent(true);
+        toast.warning(EMAIL_SEND_UNCERTAIN_MESSAGE);
       } else {
         toast.error(e.message || "发送失败，请稍后重试");
       }

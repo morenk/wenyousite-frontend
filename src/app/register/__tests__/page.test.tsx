@@ -38,6 +38,7 @@ import RegisterPage from "@/app/register/page";
 
 beforeEach(() => {
   vi.clearAllMocks();
+  window.sessionStorage.clear();
   mockSendCode.mutateAsync.mockResolvedValue({
     code: 0,
     data: { emailSent: true, codeExpiresIn: 900 },
@@ -79,5 +80,31 @@ describe("RegisterPage", () => {
       expect(screen.getByRole("button", { name: "获取验证码" })).toBeInTheDocument();
     });
     expect(screen.queryByRole("button", { name: "换个邮箱" })).not.toBeInTheDocument();
+  });
+
+  test("请求结果不明时进入验证码步骤并阻止立即重发", async () => {
+    mockSendCode.mutateAsync.mockRejectedValue(new Error("network disconnected"));
+    render(<RegisterPage />);
+
+    fireEvent.change(document.getElementById("email")!, { target: { value: "maybe@b.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "获取验证码" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("maybe@b.com")).toBeInTheDocument();
+    });
+    expect(screen.getByText(/秒后可重新发送/)).toBeInTheDocument();
+  });
+
+  test("仅有 HTTP 429 状态时也进入验证码步骤和冷却", async () => {
+    mockSendCode.mutateAsync.mockRejectedValue({ status: 429, message: "Too Many Requests" });
+    render(<RegisterPage />);
+
+    fireEvent.change(document.getElementById("email")!, { target: { value: "rate@b.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "获取验证码" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("rate@b.com")).toBeInTheDocument();
+    });
+    expect(screen.getByText(/秒后可重新发送/)).toBeInTheDocument();
   });
 });

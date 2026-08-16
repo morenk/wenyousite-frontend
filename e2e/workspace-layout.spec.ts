@@ -6,7 +6,6 @@ const layoutUser = {
   username: "布局测试用户",
   avatar: null,
   role: "USER",
-  emailVerified: true,
 };
 
 async function mockWorkspaceSession(page: Page) {

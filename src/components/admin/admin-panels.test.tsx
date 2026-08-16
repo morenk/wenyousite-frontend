@@ -219,7 +219,6 @@ describe("station panels", () => {
           username: "小温",
           email: "wen@example.com",
           role: "USER",
-          emailVerified: true,
           moderationStatus: "ACTIVE",
           currentSanction: null,
           createdAt: "2026-08-11T08:00:00.000Z",

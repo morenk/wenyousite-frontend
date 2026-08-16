@@ -18,7 +18,6 @@ const authRoutes = [
   "/register",
   "/forgot-password",
   "/reset-password",
-  "/verify-email",
   "/station",
 ];
 

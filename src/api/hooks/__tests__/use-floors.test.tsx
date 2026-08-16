@@ -1,6 +1,6 @@
 /** useFloors hook 测试 */
 
-import { describe, test, expect, vi } from "vitest";
+import { beforeEach, describe, test, expect, vi } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFloors } from "@/api/hooks/use-floors";
@@ -50,6 +50,8 @@ const sampleResponse = {
 };
 
 describe("useFloors", () => {
+  beforeEach(() => mockGET.mockReset());
+
   test("success", async () => {
     mockGET.mockResolvedValue({ data: sampleResponse, error: undefined });
 
@@ -62,6 +64,43 @@ describe("useFloors", () => {
     const pages = result.current.data?.pages ?? [];
     expect(pages[0]?.data[0].floorNumber).toBe(1);
     expect(pages[0]?.data[0].content).toBe("第一楼正文");
+    expect(mockGET).toHaveBeenCalledWith(
+      "/api/v1/subthreads/{subthreadId}/posts",
+      {
+        params: {
+          path: { subthreadId: "s1" },
+          query: { limit: 20, order: "OLDEST" },
+        },
+      },
+    );
+  });
+
+  test("倒序与游标进入每页请求", async () => {
+    mockGET
+      .mockResolvedValueOnce({
+        data: { ...sampleResponse, meta: { cursor: "post-1", hasMore: true } },
+        error: undefined,
+      })
+      .mockResolvedValueOnce({
+        data: { ...sampleResponse, data: [], meta: { cursor: null, hasMore: false } },
+        error: undefined,
+      });
+
+    const { result } = renderHook(() => useFloors("s1", "NEWEST"), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.hasNextPage).toBe(true));
+    await result.current.fetchNextPage();
+
+    expect(mockGET).toHaveBeenLastCalledWith(
+      "/api/v1/subthreads/{subthreadId}/posts",
+      {
+        params: {
+          path: { subthreadId: "s1" },
+          query: { limit: 20, order: "NEWEST", cursor: "post-1" },
+        },
+      },
+    );
   });
 
   test("subthreadId 为 undefined 时不请求", () => {
@@ -105,7 +144,7 @@ describe("useFloors", () => {
   });
 
   test("网络错误", async () => {
-    mockGET.mockRejectedValue(new Error("网络错误"));
+    mockGET.mockResolvedValue({ data: undefined, error: new Error("网络错误") });
 
     const { result } = renderHook(() => useFloors("s1"), {
       wrapper: createWrapper(),

@@ -20,7 +20,7 @@ describe("AppChrome 路由模式", () => {
     },
   );
 
-  test.each(["/login", "/register", "/forgot-password", "/reset-password", "/verify-email"])(
+  test.each(["/login", "/register", "/forgot-password", "/reset-password"])(
     "%s 使用认证页骨架",
     (pathname) => {
       expect(getAppChromeMode(pathname)).toBe("auth");

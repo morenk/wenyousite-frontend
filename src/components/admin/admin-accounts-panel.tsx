@@ -354,7 +354,7 @@ export function AdminAccountsPanel() {
       <aside className="self-start rounded-lg border border-border bg-card p-5">
         <p className="font-utility text-xs font-bold tracking-[0.1em] text-muted-foreground">邀请站务账号</p>
         <h2 className="mt-1 font-display text-xl font-bold">邀请现有用户</h2>
-        <p className="mt-2 text-xs leading-5 text-muted-foreground">管理员继承现有温油账号。只有邮箱已验证的普通用户可以被邀请。</p>
+        <p className="mt-2 text-xs leading-5 text-muted-foreground">管理员继承现有温油账号。普通用户可以被邀请。</p>
         <div className="relative mt-5">
           <Search className="pointer-events-none absolute top-3.5 left-3.5 size-4 text-muted-foreground" />
           <Input value={inviteQuery} onChange={(event) => setInviteQuery(event.target.value)} placeholder="用户名或邮箱" className="pl-10" />
@@ -369,7 +369,7 @@ export function AdminAccountsPanel() {
               <Button
                 size="icon-compact"
                 title="发送邀请"
-                disabled={!user.emailVerified || actions.invite.isPending}
+                disabled={actions.invite.isPending}
                 onClick={async () => {
                   try {
                     await actions.invite.mutateAsync(user.id);

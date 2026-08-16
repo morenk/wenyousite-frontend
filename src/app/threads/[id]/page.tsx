@@ -4,6 +4,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useQueryState } from "nuqs";
 import { AlertCircle } from "lucide-react";
 
 import { useAuth } from "@/lib/auth";
@@ -11,11 +12,13 @@ import { getPostHref, getSubthreadHref } from "@/lib/post-navigation";
 import { useThreadDetail } from "@/api/hooks/use-thread-detail";
 import { useFloors } from "@/api/hooks/use-floors";
 import { usePost } from "@/api/hooks/use-post";
+import type { FloorOrder } from "@/api/floor-query";
 import { ThreadDetailHeader } from "@/components/thread/thread-detail-header";
 import { ThreadReadingBar } from "@/components/thread/thread-reading-bar";
 import { ThreadPostSearch } from "@/components/thread/thread-post-search";
 import { SubthreadBody } from "@/components/thread/subthread-body";
 import { FloorList } from "@/components/thread/floor-list";
+import { FloorOrderControl } from "@/components/thread/floor-order-control";
 import {
   FloorForm,
   getFloorComposerAnchorId,
@@ -34,6 +37,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageShell } from "@/components/layout/page-shell";
 import { PageRouteFallback } from "@/components/layout/page-route-fallback";
+import { floorOrderParser } from "@/lib/thread-url-state";
 
 export default function ThreadDetailPage() {
   const params = useParams();
@@ -54,6 +58,14 @@ function ThreadDetailPageContent() {
   const threadId = params.id as string;
   const targetPostId = searchParams.get("post") ?? undefined;
   const querySubthreadId = searchParams.get("subthread") ?? undefined;
+  const [floorOrder, setFloorOrder] = useQueryState(
+    "order",
+    floorOrderParser.withOptions({
+      history: "push",
+      shallow: true,
+      clearOnDefault: true,
+    }),
+  );
   const { user, isInitialized } = useAuth();
   const { close: closeComposer } = useThreadComposer();
 
@@ -85,7 +97,7 @@ function ThreadDetailPageContent() {
     isLoading: isFloorsLoading,
     error: floorsError,
     refetch: refetchFloors,
-  } = useFloors(effectiveSubthreadId);
+  } = useFloors(effectiveSubthreadId, floorOrder);
 
   const floors = floorsData?.pages.flatMap((page) => page?.data ?? []) ?? [];
 
@@ -106,13 +118,19 @@ function ThreadDetailPageContent() {
         threadId,
         postId: targetPostId,
         parentPostId: targetPost?.parentPostId,
+        floorOrder,
       }));
       return;
     }
     if (!targetPostId && querySubthreadId && !querySubthread) {
-      router.replace(getSubthreadHref(threadId, thread.defaultSubthreadId, thread.defaultSubthreadId));
+      router.replace(getSubthreadHref(
+        threadId,
+        thread.defaultSubthreadId,
+        thread.defaultSubthreadId,
+        floorOrder,
+      ));
     }
-  }, [querySubthread, querySubthreadId, router, targetPost?.parentPostId, targetPostId, thread, threadId]);
+  }, [floorOrder, querySubthread, querySubthreadId, router, targetPost?.parentPostId, targetPostId, thread, threadId]);
 
   const selectedSubthread = thread?.subthreads.find(
     (s) => s.id === effectiveSubthreadId,
@@ -171,7 +189,15 @@ function ThreadDetailPageContent() {
         thread.id,
         subthreadId,
         thread.defaultSubthreadId,
+        floorOrder,
       ));
+    }
+  };
+
+  const handleFloorOrderChange = async (nextOrder: FloorOrder) => {
+    if (nextOrder === floorOrder) return;
+    if (await closeComposer()) {
+      await setFloorOrder(nextOrder);
     }
   };
 
@@ -196,6 +222,7 @@ function ThreadDetailPageContent() {
         subthreads={thread.subthreads}
         selectedSubthreadId={effectiveSubthreadId}
         defaultSubthreadId={thread.defaultSubthreadId}
+        floorOrder={floorOrder}
         onSubthreadChange={handleSubthreadChange}
         onManage={
           canManageThread
@@ -231,6 +258,12 @@ function ThreadDetailPageContent() {
       <div className="mt-4 space-y-4">
         {effectiveSubthreadId && (
           <section aria-label="帖子回复">
+            {floors.length > 1 || hasNextPage ? (
+              <FloorOrderControl
+                order={floorOrder}
+                onOrderChange={(nextOrder) => void handleFloorOrderChange(nextOrder)}
+              />
+            ) : null}
             <FloorList
               floors={floors}
               hasNextPage={!!hasNextPage}

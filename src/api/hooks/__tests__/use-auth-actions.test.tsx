@@ -6,9 +6,7 @@ import {
   useChangePassword,
   useForgotPassword,
   useLogout,
-  useResendVerification,
   useResetPassword,
-  useVerifyEmail,
 } from "@/api/hooks/use-auth-actions";
 import { queryKeys } from "@/api/query-keys";
 import { createQueryWrapper } from "@/test/query-client";
@@ -28,13 +26,11 @@ beforeEach(() => {
 });
 
 describe("认证动作 hooks", () => {
-  test("忘记密码、重置、验证、重发与登出使用各自契约端点", async () => {
+  test("忘记密码、重置与登出使用各自契约端点", async () => {
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => ({
       forgot: useForgotPassword(),
       reset: useResetPassword(),
-      verify: useVerifyEmail(),
-      resend: useResendVerification(),
       logout: useLogout(),
     }), { wrapper: Wrapper });
 
@@ -45,8 +41,6 @@ describe("认证动作 hooks", () => {
         token: "reset-token",
         newPassword: "new-password",
       });
-      await result.current.verify.mutateAsync("verify-token");
-      await result.current.resend.mutateAsync("user@example.com");
       await result.current.logout.mutateAsync();
     });
 
@@ -60,13 +54,7 @@ describe("认证动作 hooks", () => {
         newPassword: "new-password",
       },
     });
-    expect(mockPOST).toHaveBeenNthCalledWith(3, "/api/v1/auth/verify-email", {
-      body: { token: "verify-token" },
-    });
-    expect(mockPOST).toHaveBeenNthCalledWith(4, "/api/v1/auth/resend-verification", {
-      body: { email: "user@example.com" },
-    });
-    expect(mockPOST).toHaveBeenNthCalledWith(5, "/api/v1/auth/logout", { body: {} });
+    expect(mockPOST).toHaveBeenNthCalledWith(3, "/api/v1/auth/logout", { body: {} });
   });
 
   test("修改密码和邮箱请求完整转发敏感字段", async () => {
@@ -116,10 +104,14 @@ describe("认证动作 hooks", () => {
     const error = { code: 40001, message: "验证码无效" };
     mockPOST.mockResolvedValueOnce({ data: undefined, error });
     const { Wrapper } = createQueryWrapper();
-    const { result } = renderHook(() => useVerifyEmail(), { wrapper: Wrapper });
+    const { result } = renderHook(() => useResetPassword(), { wrapper: Wrapper });
 
     await act(async () => {
-      await expect(result.current.mutateAsync("bad-token")).rejects.toEqual(error);
+      await expect(result.current.mutateAsync({
+        email: "user@example.com",
+        token: "bad-token",
+        newPassword: "new-password",
+      })).rejects.toEqual(error);
     });
   });
 });

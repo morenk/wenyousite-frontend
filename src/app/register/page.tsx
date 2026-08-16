@@ -17,7 +17,11 @@ import {
 } from "@/lib/validations/auth";
 import { useSendRegisterCode, useRegisterComplete } from "@/api/hooks/use-register";
 import { API_ERROR_CODE, getApiError } from "@/api/errors";
-import { useEmailCode } from "@/hooks/use-email-code";
+import {
+  EMAIL_SEND_UNCERTAIN_MESSAGE,
+  isEmailSendOutcomeUnknown,
+  useEmailCode,
+} from "@/hooks/use-email-code";
 import { AuthPageShell } from "@/components/auth/auth-page-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,8 +73,14 @@ export default function RegisterPage() {
       const err = getApiError(error);
       if (err.code === API_ERROR_CODE.CONFLICT) {
         toast.error("该邮箱已注册");
-      } else if (err.code === API_ERROR_CODE.RATE_LIMITED) {
-        toast.warning("操作太频繁，请稍后再试");
+      } else if (err.code === API_ERROR_CODE.RATE_LIMITED || err.status === 429) {
+        setEmail(parsed.data.email);
+        setStep("register");
+        toast.warning("操作太频繁，请先检查邮箱或 60 秒后再试");
+      } else if (isEmailSendOutcomeUnknown(error)) {
+        setEmail(parsed.data.email);
+        setStep("register");
+        toast.warning(EMAIL_SEND_UNCERTAIN_MESSAGE);
       } else {
         toast.error(err.message || "发送验证码失败");
       }
