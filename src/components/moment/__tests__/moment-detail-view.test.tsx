@@ -256,7 +256,7 @@ describe("MomentDetailView", () => {
     expect(mockLike).not.toHaveBeenCalled();
   });
 
-  test("已点赞状态与主题帖统一使用红色语义色", () => {
+  test("已点赞状态与主题帖统一使用 Foundation 鲜粉语义色", () => {
     mockUseAuth.mockReturnValue({ user: { id: "viewer-1" } });
     mockUseMoment.mockReturnValue({
       data: { ...detail, viewerLiked: true, likeCount: 6 },
@@ -267,8 +267,31 @@ describe("MomentDetailView", () => {
 
     render(<MomentDetailView momentId="moment-1" />);
 
-    expect(screen.getByRole("button", { name: "取消点赞，6" }))
-      .toHaveClass("text-destructive", "bg-destructive-soft");
+    const likeButton = screen.getByRole("button", { name: "点赞" });
+    expect(likeButton).toHaveAttribute("aria-pressed", "true");
+    expect(likeButton).toHaveAccessibleDescription("当前 6 个赞");
+    expect(likeButton).toHaveClass("bg-like-soft", "text-foreground");
+    expect(likeButton).not.toHaveClass("text-destructive", "bg-destructive-soft");
+    expect(likeButton.querySelector('[data-slot="interaction-toggle-icon"]'))
+      .toHaveClass("fill-like", "text-like");
+  });
+
+  test("已收藏状态使用 Foundation 金色语义色且计数保持正文色", () => {
+    mockUseMoment.mockReturnValue({
+      data: { ...detail, viewerBookmarked: true, bookmarkCount: 4 },
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+
+    render(<MomentDetailView momentId="moment-1" />);
+
+    const bookmarkButton = screen.getByRole("button", { name: "收藏" });
+    expect(bookmarkButton).toHaveAttribute("aria-pressed", "true");
+    expect(bookmarkButton).toHaveAccessibleDescription("当前 4 个收藏");
+    expect(bookmarkButton).toHaveClass("bg-bookmark-soft", "text-foreground");
+    expect(bookmarkButton.querySelector('[data-slot="interaction-toggle-icon"]'))
+      .toHaveClass("fill-bookmark", "text-bookmark");
   });
 
   test("动态正文将命名站内坐标渲染为同页传送门", () => {

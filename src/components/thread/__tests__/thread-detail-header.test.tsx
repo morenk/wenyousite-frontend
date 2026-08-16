@@ -410,8 +410,8 @@ describe("ThreadDetailHeader", () => {
         (button) => button.getAttribute("aria-label") ?? button.textContent,
       ),
     ).toEqual([
-      "点赞，当前 3 个赞",
-      "收藏帖子",
+      "点赞",
+      "收藏",
       "订阅官方更新",
       "订阅玩家发言",
       "加油",
@@ -427,10 +427,9 @@ describe("ThreadDetailHeader", () => {
   test("未登录时显示带计数说明的点赞按钮", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
-    expect(screen.getByRole("button", { name: "点赞，当前 3 个赞" })).toHaveAttribute(
-      "title",
-      "点赞（当前 3）",
-    );
+    const likeButton = screen.getByRole("button", { name: "点赞" });
+    expect(likeButton).toHaveAttribute("title", "点赞（当前 3）");
+    expect(likeButton).toHaveAccessibleDescription("当前 3 个赞");
   });
 
   test("OWNER 只在更多面板看到统一管理入口，不再显示编辑按钮", async () => {
@@ -574,10 +573,9 @@ describe("ThreadDetailHeader", () => {
     });
     const noLikes = { ...baseThread, likeCount: 0 };
     renderWithQC(<ThreadDetailHeader thread={noLikes} />);
-    expect(screen.getByRole("button", { name: "点赞，当前 0 个赞" })).toHaveAttribute(
-      "title",
-      "点赞（当前 0）",
-    );
+    const likeButton = screen.getByRole("button", { name: "点赞" });
+    expect(likeButton).toHaveAttribute("title", "点赞（当前 0）");
+    expect(likeButton).toHaveAccessibleDescription("当前 0 个赞");
   });
 
   test("其他人已点赞但当前用户未点赞时调用点赞接口", async () => {
@@ -592,7 +590,7 @@ describe("ThreadDetailHeader", () => {
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: /7/ }));
+    await user.click(screen.getByRole("button", { name: "点赞" }));
     expect(mockPOST).toHaveBeenCalledWith("/api/v1/threads/{id}/like", {
       params: { path: { id: "thread-1" } },
     });
@@ -611,8 +609,13 @@ describe("ThreadDetailHeader", () => {
       />,
     );
 
-    const likeButton = screen.getByRole("button", { name: /1/ });
-    expect(likeButton).toHaveClass("text-destructive", "bg-destructive-soft");
+    const likeButton = screen.getByRole("button", { name: "点赞" });
+    expect(likeButton).toHaveAttribute("aria-pressed", "true");
+    expect(likeButton).toHaveAccessibleDescription("当前 1 个赞");
+    expect(likeButton).toHaveClass("bg-like-soft", "text-foreground");
+    expect(likeButton).not.toHaveClass("text-destructive", "bg-destructive-soft");
+    expect(likeButton.querySelector('[data-slot="interaction-toggle-icon"]'))
+      .toHaveClass("fill-like", "text-like");
     await user.click(likeButton);
     expect(mockDELETE).toHaveBeenCalledWith("/api/v1/threads/{id}/like", {
       params: { path: { id: "thread-1" } },

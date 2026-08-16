@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { Bookmark, Heart, Loader2, Pencil, Save, ShieldAlert, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Save, ShieldAlert, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { useDeleteMoment, useMoment, useMomentBookmark, useMomentLike, useUpdateMoment } from "@/api/hooks/use-moments";
@@ -21,12 +21,11 @@ import { InternalReferenceText } from "@/components/shared/internal-reference-te
 import { LoadError } from "@/components/shared/load-error";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Button } from "@/components/ui/button";
+import { InteractionToggle } from "@/components/ui/interaction-toggle";
 import { Input } from "@/components/ui/input";
 import { Tooltip } from "@/components/ui/tooltip";
 import { useConfirm } from "@/components/ui/confirm-provider";
 import { useAuth } from "@/lib/auth";
-import { cn } from "@/lib/utils";
-import { LIKED_ACTIVE_SURFACE_CLASS_NAME } from "@/lib/like-state";
 import { AdminContentModerationDialog } from "@/components/admin/admin-content-moderation-dialog";
 
 export function MomentDetailView({ momentId, onDeleted }: { momentId: string; onDeleted?: () => void }) {
@@ -186,36 +185,30 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
             data-slot="moment-detail-actions"
             className="mt-4 flex flex-wrap items-center gap-1 border-t border-border/75 pt-3 text-muted-foreground"
           >
-            <Button
-              variant="ghost"
-              size="sm"
+            <InteractionToggle
+              tone="like"
+              pressed={moment.viewerLiked}
+              pending={like.isPending}
+              icon="action.like"
               onClick={() => void toggleLike()}
-              aria-disabled={like.isPending}
-              className={cn(
-                "group/like aria-disabled:cursor-wait",
-                moment.viewerLiked && LIKED_ACTIVE_SURFACE_CLASS_NAME,
-              )}
-              aria-pressed={moment.viewerLiked}
-              aria-label={moment.viewerLiked ? `取消点赞${moment.likeCount > 0 ? `，${moment.likeCount}` : ""}` : `点赞${moment.likeCount > 0 ? `，${moment.likeCount}` : ""}`}
+              accessibleName="点赞"
+              accessibleDescription={`当前 ${moment.likeCount} 个赞`}
+              actionTitle={moment.viewerLiked ? "取消点赞" : "点赞"}
             >
-              <Heart className={cn(
-                "transition-[color,fill,transform] duration-[var(--motion-fast)] ease-[var(--ease-standard)] motion-safe:group-active/like:scale-90",
-                moment.viewerLiked && "fill-current",
-              )} />
               {moment.likeCount || "点赞"}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
+            </InteractionToggle>
+            <InteractionToggle
+              tone="bookmark"
+              pressed={moment.viewerBookmarked}
+              pending={bookmark.isPending}
+              icon="action.bookmark"
               onClick={() => void toggleBookmark()}
-              disabled={bookmark.isPending}
-              className={cn(moment.viewerBookmarked && "bg-primary/35 text-brand-strong")}
-              aria-pressed={moment.viewerBookmarked}
-              aria-label={moment.viewerBookmarked ? `取消收藏${moment.bookmarkCount > 0 ? `，${moment.bookmarkCount}` : ""}` : `收藏${moment.bookmarkCount > 0 ? `，${moment.bookmarkCount}` : ""}`}
+              accessibleName="收藏"
+              accessibleDescription={`当前 ${moment.bookmarkCount} 个收藏`}
+              actionTitle={moment.viewerBookmarked ? "取消收藏" : "收藏"}
             >
-              <Bookmark className={cn(moment.viewerBookmarked && "fill-current")} />
               {moment.bookmarkCount || "收藏"}
-            </Button>
+            </InteractionToggle>
             {user?.id !== moment.authorId ? <WenyouTipButton target={{ type: "MOMENT", id: moment.id, recipientUserId: moment.authorId }} recipientName={moment.author.username} /> : null}
             <span className="ml-auto font-utility text-xs text-muted-foreground">累计加油 {moment.tipTotal} 升</span>
           </div>

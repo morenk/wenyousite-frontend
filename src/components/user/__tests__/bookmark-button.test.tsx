@@ -69,7 +69,12 @@ describe("BookmarkButton", () => {
     });
 
     renderWithQC(<BookmarkButton threadId="t1" isBookmarked={true} bookmarkId="bm1" />);
-    const btn = screen.getByRole("button", { name: "已收藏" });
+    const btn = screen.getByRole("button", { name: "收藏" });
+    expect(btn).toHaveTextContent("已收藏");
+    expect(btn).toHaveAttribute("aria-pressed", "true");
+    expect(btn).toHaveClass("bg-bookmark-soft", "text-foreground");
+    expect(btn.querySelector('[data-slot="interaction-toggle-icon"]'))
+      .toHaveClass("fill-bookmark", "text-bookmark");
     await user.click(btn);
 
     expect(removeMutate).toHaveBeenCalledWith("bm1");

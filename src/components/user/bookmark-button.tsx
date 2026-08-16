@@ -2,11 +2,9 @@
 
 "use client";
 
-import { Bookmark, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useBookmarkActions } from "@/api/hooks/use-bookmark-actions";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { InteractionToggle } from "@/components/ui/interaction-toggle";
 
 interface BookmarkButtonProps {
   threadId: string;
@@ -46,24 +44,19 @@ export function BookmarkButton({
   const label = isBookmarked ? "取消收藏" : "收藏帖子";
 
   return (
-    <Button
+    <InteractionToggle
+      tone="bookmark"
+      pressed={isBookmarked}
+      pending={isPending}
+      icon="action.bookmark"
+      accessibleName="收藏"
+      actionTitle={label}
       variant={variant}
       size={iconOnly ? "icon-sm" : "sm"}
       onClick={handleClick}
-      disabled={isPending}
-      aria-label={iconOnly ? label : undefined}
-      title={label}
-      className={cn(
-        isBookmarked && iconOnly && "bg-accent text-brand-strong hover:text-brand-strong",
-        className,
-      )}
+      className={className}
     >
-      {isPending ? (
-        <Loader2 className={cn("h-4 w-4 animate-spin", !iconOnly && "mr-1")} />
-      ) : (
-        <Bookmark className={cn("h-4 w-4", !iconOnly && "mr-1", isBookmarked && "fill-current")} />
-      )}
       {!iconOnly && (isBookmarked ? "已收藏" : "收藏")}
-    </Button>
+    </InteractionToggle>
   );
 }

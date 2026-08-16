@@ -104,7 +104,9 @@ describe("MomentCard", () => {
     expect(screen.queryByText("5 升")).toBeNull();
     expect(screen.queryByRole("button", { name: /收藏/ })).toBeNull();
     expect(screen.queryByRole("button", { name: "加油" })).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "点赞，2" }));
+    const likeButton = screen.getByRole("button", { name: "点赞" });
+    expect(likeButton).toHaveAccessibleDescription("当前 2 个赞");
+    fireEvent.click(likeButton);
     await waitFor(() => expect(mockLike).toHaveBeenCalledTimes(1));
     expect(mockBookmark).not.toHaveBeenCalled();
   });
@@ -112,24 +114,25 @@ describe("MomentCard", () => {
   test("访客操作先跳转登录，并呈现已点赞状态", () => {
     mockUseAuth.mockReturnValue({ user: null });
     const { rerender } = render(<MomentCard moment={moment as never} />);
-    fireEvent.click(screen.getByRole("button", { name: "点赞，2" }));
+    fireEvent.click(screen.getByRole("button", { name: "点赞" }));
     expect(mockPush).toHaveBeenCalledWith("/login?next=%2Fmoments");
     expect(mockLike).not.toHaveBeenCalled();
 
     mockUseAuth.mockReturnValue({ user: { id: "author-1" } });
     rerender(<MomentCard moment={{ ...moment, viewerLiked: true, viewerBookmarked: true } as never} />);
-    expect(screen.getByRole("button", { name: "取消点赞，2" }))
-      .toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("button", { name: "取消点赞，2" }))
-      .toHaveClass("text-destructive");
-    expect(screen.getByRole("button", { name: "取消点赞，2" }))
-      .not.toHaveClass("text-brand-strong");
+    const likeButton = screen.getByRole("button", { name: "点赞" });
+    expect(likeButton).toHaveAttribute("aria-pressed", "true");
+    expect(likeButton).toHaveAccessibleDescription("当前 2 个赞");
+    expect(likeButton).toHaveClass("bg-like-soft", "text-foreground");
+    expect(likeButton).not.toHaveClass("text-destructive", "text-brand-strong");
+    expect(likeButton.querySelector('[data-slot="interaction-toggle-icon"]'))
+      .toHaveClass("fill-like", "text-like");
   });
 
   test("接口失败显示明确错误", async () => {
     mockLike.mockRejectedValue(new Error("offline"));
     render(<MomentCard moment={moment as never} />);
-    fireEvent.click(screen.getByRole("button", { name: "点赞，2" }));
+    fireEvent.click(screen.getByRole("button", { name: "点赞" }));
     await waitFor(() => expect(mockToastError).toHaveBeenCalled());
   });
 
@@ -137,12 +140,14 @@ describe("MomentCard", () => {
     mockLikePending.mockReturnValue(true);
     render(<MomentCard moment={moment as never} />);
 
-    const button = screen.getByRole("button", { name: "点赞，2" });
+    const button = screen.getByRole("button", { name: "点赞" });
     expect(button).toHaveAttribute("aria-disabled", "true");
+    expect(button).toHaveAttribute("aria-busy", "true");
     expect(button).not.toBeDisabled();
-    expect(button.querySelector("svg")).toHaveClass(
+    expect(button.querySelector('[data-slot="interaction-toggle-icon"]')).toHaveClass(
       "transition-[color,fill,transform]",
-      "motion-safe:group-active/like:scale-90",
+      "motion-safe:group-active/interaction-toggle:scale-90",
+      "animate-spin",
     );
   });
 });

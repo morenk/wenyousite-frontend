@@ -5,7 +5,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
-import { Heart, Loader2, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
@@ -16,6 +16,7 @@ import { useLikeThread } from "@/api/hooks/use-like-thread";
 import { getApiErrorMessage } from "@/api/errors";
 import { useExitThreadPlayer } from "@/api/hooks/use-thread-access-actions";
 import { Button } from "@/components/ui/button";
+import { InteractionToggle } from "@/components/ui/interaction-toggle";
 import { Tooltip } from "@/components/ui/tooltip";
 import { useConfirm } from "@/components/ui/confirm-provider";
 import { BookmarkButton } from "@/components/user/bookmark-button";
@@ -29,7 +30,6 @@ import {
 } from "@/components/thread/thread-category";
 import { SubthreadSwitcher } from "@/components/thread/subthread-tabs";
 import { ThreadDetailMore } from "@/components/thread/thread-detail-more";
-import { LIKED_ACTIVE_SURFACE_CLASS_NAME } from "@/lib/like-state";
 import { getSubthreadHref } from "@/lib/post-navigation";
 import { AdminContentModerationDialog } from "@/components/admin/admin-content-moderation-dialog";
 import type { FloorOrder } from "@/api/floor-query";
@@ -285,41 +285,26 @@ export function ThreadDetailHeader({
                 label="互动操作"
                 className="ml-auto shrink-0 flex-nowrap justify-end gap-0.5"
               >
-                <Button
-                  variant="ghost"
+                <InteractionToggle
+                  tone="like"
+                  pressed={thread.isLiked}
+                  pending={like.isPending || unlike.isPending}
+                  icon="action.like"
                   size="compact"
                   onClick={user ? handleLike : () => router.push("/login")}
-                  disabled={like.isPending || unlike.isPending}
-                  aria-label={
-                    thread.isLiked
-                      ? `取消点赞，当前 ${thread.likeCount} 个赞`
-                      : `点赞，当前 ${thread.likeCount} 个赞`
-                  }
-                  title={
+                  accessibleName="点赞"
+                  accessibleDescription={`当前 ${thread.likeCount} 个赞`}
+                  actionTitle={
                     thread.isLiked
                       ? `取消点赞（当前 ${thread.likeCount}）`
                       : `点赞（当前 ${thread.likeCount}）`
                   }
-                  className={cn(
-                    actionButtonClassName,
-                    "px-2",
-                    thread.isLiked && LIKED_ACTIVE_SURFACE_CLASS_NAME,
-                  )}
+                  className={cn(actionButtonClassName, "px-2")}
                 >
-                  {like.isPending || unlike.isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Heart
-                      className={cn(
-                        "h-4 w-4",
-                        thread.isLiked && "fill-current",
-                      )}
-                    />
-                  )}
                   <span className="font-utility text-xs tabular-nums">
                     {thread.likeCount}
                   </span>
-                </Button>
+                </InteractionToggle>
 
                 {user ? (
                   <BookmarkButton

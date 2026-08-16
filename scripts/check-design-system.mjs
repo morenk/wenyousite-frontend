@@ -101,7 +101,12 @@ for (const fileName of governedIconFiles) {
 }
 
 const semanticContractClaims = new Map([
-  ["src/app/globals.css", ["var(--type-body-size)", "var(--type-body-line-height)"]],
+  ["src/app/globals.css", [
+    "var(--type-body-size)",
+    "var(--type-body-line-height)",
+    "var(--icon-control-hover-state-opacity)",
+    "var(--icon-control-pressed-state-opacity)",
+  ]],
   ["src/components/layout/page-header.tsx", ["--type-page-title-size", "--type-section-title-size"]],
   ["src/components/ui/dialog.tsx", ["--type-subsection-title-size", "--layer-modal-backdrop", "--overlay-scrim"]],
   ["src/components/ui/tooltip.tsx", ["--layer-tooltip"]],
@@ -113,6 +118,41 @@ const semanticContractClaims = new Map([
   ["src/components/shared/loading-state.tsx", ["@wenyousite/foundation/interaction", "data-feedback-state"]],
   ["src/components/shared/load-error.tsx", ["@wenyousite/foundation/language", "data-feedback-state"]],
   ["src/components/shared/empty-state.tsx", ["@wenyousite/foundation/interaction", "data-feedback-state"]],
+  ["src/components/ui/interaction-toggle.tsx", [
+    "@wenyousite/foundation/icons",
+    "IconControlTone",
+    "aria-pressed={pressed}",
+    "aria-busy={pending || undefined}",
+    "bg-like-soft",
+    "fill-like text-like",
+    "bg-bookmark-soft",
+    "fill-bookmark text-bookmark",
+    'pending ? "status.loading" : icon',
+  ]],
+  ["src/components/thread/thread-detail-header.tsx", [
+    "InteractionToggle",
+    'tone="like"',
+    'accessibleName="点赞"',
+    "accessibleDescription",
+  ]],
+  ["src/components/moment/moment-card.tsx", [
+    "InteractionToggle",
+    'tone="like"',
+    'accessibleName="点赞"',
+    "accessibleDescription",
+  ]],
+  ["src/components/moment/moment-detail-view.tsx", [
+    "InteractionToggle",
+    'tone="like"',
+    'tone="bookmark"',
+    'accessibleName="点赞"',
+    'accessibleName="收藏"',
+  ]],
+  ["src/components/user/bookmark-button.tsx", [
+    "InteractionToggle",
+    'tone="bookmark"',
+    'accessibleName="收藏"',
+  ]],
   ["src/components/shared/reply-action-button.tsx", [
     "Tooltip",
     "id=\"action.reply\"",
@@ -176,4 +216,4 @@ if (failures.length > 0) {
   throw new Error(`设计系统静态检查失败：\n${failures.join("\n")}`);
 }
 
-console.log("Design tokens, typography, feedback, layers, navigation, semantic widths, and shadows follow Foundation");
+console.log("Design tokens, icon controls, typography, feedback, layers, navigation, semantic widths, and shadows follow Foundation");
