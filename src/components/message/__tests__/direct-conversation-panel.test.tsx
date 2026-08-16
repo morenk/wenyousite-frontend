@@ -188,7 +188,7 @@ describe("DirectConversationPanel", () => {
     expect(history.fetchNextPage).toHaveBeenCalled();
     await userEvent.click(screen.getByTitle("归档"));
     expect(actionSet.setArchived.mutateAsync).toHaveBeenCalledWith(true);
-    expect(mocks.toastSuccess).toHaveBeenCalledWith("已归档");
+    expect(mocks.toastSuccess).not.toHaveBeenCalledWith("已归档");
   });
 
   test("本人十分钟内消息可撤回", async () => {
@@ -330,6 +330,7 @@ describe("DirectConversationPanel", () => {
     await userEvent.click(screen.getByRole("button", { name: "拉黑" }));
     expect(blockSet.block.mutateAsync).toHaveBeenCalled();
     expect(mocks.confirm).toHaveBeenCalledWith(expect.objectContaining({ title: "拉黑用户" }));
+    expect(mocks.toastSuccess).not.toHaveBeenCalledWith("已拉黑");
     first.unmount();
 
     setConversation({ isBlocked: true, canSend: false });

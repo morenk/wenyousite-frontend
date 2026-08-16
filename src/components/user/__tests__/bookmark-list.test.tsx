@@ -116,6 +116,26 @@ describe("BookmarkList", () => {
     expect(mockDELETE).toHaveBeenCalledWith("/api/v1/bookmarks/{id}", {
       params: { path: { id: "bm1" } },
     });
-    expect(toast.success).toHaveBeenCalledWith("已取消收藏");
+    expect(toast.success).not.toHaveBeenCalled();
+  });
+
+  test("取消收藏失败时显示错误提示", async () => {
+    const user = userEvent.setup();
+    mockUseBookmarks.mockReturnValue({
+      data: { pages: [{ data: [sampleBookmark], meta: { cursor: null, hasMore: false } }] },
+      fetchNextPage: vi.fn(),
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      isLoading: false,
+      isError: false,
+      error: undefined,
+      refetch: vi.fn(),
+    });
+    mockDELETE.mockResolvedValue({ data: undefined, error: { message: "网络错误" } });
+
+    render(<BookmarkList />, { wrapper: createWrapper() });
+    await user.click(screen.getByTitle("取消收藏"));
+
+    expect(toast.error).toHaveBeenCalledWith("网络错误");
   });
 });

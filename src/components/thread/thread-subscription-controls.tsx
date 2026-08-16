@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Popover } from "@base-ui/react/popover";
-import { Bell, BellOff, Loader2, UsersRound } from "lucide-react";
+import { Loader2, UsersRound } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { getApiErrorMessage } from "@/api/errors";
@@ -14,6 +14,7 @@ import {
 } from "@/api/hooks/use-subscription-mutations";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
 import { Button } from "@/components/ui/button";
+import { InteractionToggle } from "@/components/ui/interaction-toggle";
 import {
   Select,
   SelectContent,
@@ -61,10 +62,8 @@ export function ThreadSubscriptionControls({ thread }: {
     try {
       if (threadSubscription) {
         await deleteSubscription.mutateAsync(threadSubscription.id);
-        toast.success("已取消订阅");
       } else {
         await createSubscription.mutateAsync({ threadId: thread.id, type: "THREAD" });
-        toast.success("已订阅，帖子更新将通知你");
       }
     } catch (error: unknown) {
       toast.error(getApiErrorMessage(error, "操作失败，请稍后重试"));
@@ -76,14 +75,12 @@ export function ThreadSubscriptionControls({ thread }: {
     try {
       if (selectedUserSubscription) {
         await deleteSubscription.mutateAsync(selectedUserSubscription.id);
-        toast.success("已取消该用户的发言订阅");
       } else {
         await createSubscription.mutateAsync({
           threadId: thread.id,
           type: "USER",
           targetUserId: selectedTargetUserId,
         });
-        toast.success("已订阅该用户在本帖的发言");
       }
       setPlayerPopoverOpen(false);
     } catch (error: unknown) {
@@ -93,23 +90,17 @@ export function ThreadSubscriptionControls({ thread }: {
 
   return (
     <>
-      <Button
-        variant="ghost"
-        size="icon-sm"
+      <InteractionToggle
+        tone="subscription"
+        pressed={Boolean(threadSubscription)}
+        pending={isPending}
+        icon="action.subscribe"
         onClick={() => void handleToggleThread()}
-        disabled={isPending}
-        aria-label={threadSubscription ? "取消订阅官方更新" : "订阅官方更新"}
-        title={threadSubscription ? "取消订阅官方更新" : "订阅官方更新"}
-        className={threadSubscription ? "bg-accent text-brand-strong hover:text-brand-strong" : undefined}
-      >
-        {isPending ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : threadSubscription ? (
-          <BellOff className="h-4 w-4" />
-        ) : (
-          <Bell className="h-4 w-4" />
-        )}
-      </Button>
+        accessibleName="订阅官方更新"
+        accessibleDescription={threadSubscription ? "当前已订阅官方更新" : "当前未订阅官方更新"}
+        actionTitle={threadSubscription ? "取消订阅官方更新" : "订阅官方更新"}
+        size="icon-sm"
+      />
 
       {candidateMembers.length > 0 && (
         <Popover.Root open={playerPopoverOpen} onOpenChange={setPlayerPopoverOpen}>

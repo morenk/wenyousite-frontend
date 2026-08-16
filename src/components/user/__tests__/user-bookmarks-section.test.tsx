@@ -48,10 +48,11 @@ const sample = {
   visibility: "PUBLIC",
   published: true,
   pinned: false,
+  tipTotal: "8",
   createdAt: "2026-01-01T00:00:00Z",
   updatedAt: "2026-01-01T00:00:00Z",
   deletedAt: null,
-  owner: { id: "u1", username: "morenk", avatar: null },
+  owner: { id: "u1", username: "morenk", avatar: null, level: 3 },
   _count: { members: 1, posts: 2 },
 };
 
@@ -67,7 +68,7 @@ describe("UserBookmarksSection", () => {
       error: undefined,
     });
     render(<UserBookmarksSection userId="u1" />, { wrapper: createWrapper() });
-    expect(screen.getByText("加载中…")).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "正在加载主题帖" })).toBeInTheDocument();
   });
 
   test("未公开收藏（404）显示占位", () => {
@@ -110,6 +111,8 @@ describe("UserBookmarksSection", () => {
     });
     render(<UserBookmarksSection userId="u1" />, { wrapper: createWrapper() });
     expect(screen.getByRole("link", { name: /他人收藏/ })).toHaveAttribute("href", "/threads/t1");
+    expect(screen.getByText("morenk")).toBeInTheDocument();
+    expect(screen.getByText("8 升")).toBeInTheDocument();
     expect(screen.queryByTitle("取消收藏")).not.toBeInTheDocument();
   });
 });

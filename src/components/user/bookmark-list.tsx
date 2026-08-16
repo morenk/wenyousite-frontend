@@ -4,6 +4,7 @@
 
 import { Loader2, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
+import { getApiErrorMessage } from "@/api/errors";
 import { useBookmarks } from "@/api/hooks/use-bookmarks";
 import { useRemoveBookmark } from "@/api/hooks/use-bookmark-actions";
 import { BookmarkThreadCard } from "@/components/user/bookmark-thread-card";
@@ -84,7 +85,11 @@ export function BookmarkList({
           onUnbookmark={(bookmarkId, threadId) =>
             removeBookmark.mutate(
               { bookmarkId, threadId },
-              { onSuccess: () => toast.success("已取消收藏") },
+              {
+                onError: (error) => {
+                  toast.error(getApiErrorMessage(error, "取消收藏失败，请稍后重试"));
+                },
+              },
             )
           }
           isMoving={moveBookmark.isPending}

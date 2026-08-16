@@ -71,7 +71,7 @@ describe("FollowButton", () => {
     await user.click(btn);
 
     expect(followMutate).toHaveBeenCalled();
-    expect(toast.success).toHaveBeenCalledWith("关注成功");
+    expect(toast.success).not.toHaveBeenCalled();
   });
 
   test("已关注时显示「已关注」，点击后调用 unfollow", async () => {
@@ -90,6 +90,20 @@ describe("FollowButton", () => {
     await user.click(btn);
 
     expect(unfollowMutate).toHaveBeenCalled();
-    expect(toast.success).toHaveBeenCalledWith("已取消关注");
+    expect(toast.success).not.toHaveBeenCalled();
+  });
+
+  test("关注失败时保留错误提示", async () => {
+    const user = userEvent.setup();
+    mockUseAuth.mockReturnValue({ user: { id: "u1" } });
+    mockUseFollowActions.mockReturnValue({
+      follow: { isPending: false, mutateAsync: vi.fn().mockRejectedValue(new Error("failed")) },
+      unfollow: { isPending: false, mutateAsync: vi.fn() },
+    });
+
+    renderWithQC(<FollowButton userId="u2" isFollowing={false} />);
+    await user.click(screen.getByRole("button", { name: "关注" }));
+
+    expect(toast.error).toHaveBeenCalledWith("操作失败，请稍后重试");
   });
 });

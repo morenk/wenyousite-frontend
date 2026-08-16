@@ -40,6 +40,8 @@ vi.mock("next/link", () => ({
 }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
+import { toast } from "sonner";
+
 beforeEach(() => {
   sessionQuery.data = [
     { id: "current", platform: "web", deviceInfo: "Mozilla/5.0 raw-web-ua", isCurrent: true, signedInAt: "2026-08-01T00:00:00Z", lastActiveAt: "2026-08-01T01:00:00Z", createdAt: "2026-08-01T00:00:00Z", expiresAt: "2026-08-08T00:00:00Z" },
@@ -77,6 +79,7 @@ describe("AccountSecurityPanel", () => {
     await user.click(screen.getByRole("button", { name: "取消拉黑" }));
     expect(revokeMutate).toHaveBeenCalledWith("remote");
     expect(unblockMutate).toHaveBeenCalledWith("u2");
+    expect(toast.success).not.toHaveBeenCalledWith("已取消拉黑");
   });
 
   test("必须输入确认文字才能注销账号", async () => {

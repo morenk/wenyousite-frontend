@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { Fuel, Users, MessageSquare } from "lucide-react";
+import { Fuel, LockKeyhole, MessageSquare, Users } from "lucide-react";
 import { formatMarkdownPreview } from "@/lib/markdown-preview";
 import { THREAD_STATUS_META } from "@/lib/thread-presentation";
 import { UserAvatar } from "@/components/shared/user-avatar";
@@ -17,12 +17,31 @@ import { LevelBadge } from "@/components/shared/level-badge";
 import { formatWenyou } from "@/lib/wenyou";
 import { Badge } from "@/components/ui/badge";
 import { stackListRowVariants } from "@/components/ui/stack-list";
-import { cn } from "@/lib/utils";
-import { ThreadCategoryBadge, ThreadCategoryMarker } from "./thread-category";
+import { ThreadCategoryBadge } from "./thread-category";
 import { ThreadCover } from "./thread-cover";
 
+export interface ThreadCardViewData {
+  id: ThreadCardData["id"];
+  title: ThreadCardData["title"];
+  category: ThreadCardData["category"];
+  status: ThreadCardData["status"];
+  visibility: ThreadCardData["visibility"];
+  pinned: ThreadCardData["pinned"];
+  tipTotal: ThreadCardData["tipTotal"];
+  updatedAt: ThreadCardData["updatedAt"];
+  owner: ThreadCardData["owner"];
+  defaultSubthread?: ThreadCardData["defaultSubthread"];
+  topicTags?: ThreadCardData["topicTags"];
+  preview?: ThreadCardData["preview"];
+  coverImages?: ThreadCardData["coverImages"];
+  _count: {
+    posts: number;
+    players?: number;
+  };
+}
+
 interface ThreadCardProps {
-  thread: ThreadCardData;
+  thread: ThreadCardViewData;
 }
 
 export function ThreadCard({ thread }: ThreadCardProps) {
@@ -32,6 +51,7 @@ export function ThreadCard({ thread }: ThreadCardProps) {
   const preview = coverImage
     ? formattedPreview.replace(/\[图片\]/gu, " ").replace(/\s{2,}/gu, " ").trim()
     : formattedPreview;
+  const topicTags = thread.topicTags ?? [];
   const prefetchThread = () => {
     // 详情接口会记录浏览量，不能在悬停/聚焦时调用；楼层列表是无副作用查询。
     if (thread.defaultSubthread?.id) {
@@ -45,11 +65,8 @@ export function ThreadCard({ thread }: ThreadCardProps) {
     <article
       role="listitem"
       data-category={thread.category}
-      className={cn(stackListRowVariants(), "group/thread overflow-hidden pl-6")}
+      className={stackListRowVariants()}
     >
-      <ThreadCategoryMarker
-        className="absolute inset-y-4 left-0 rounded-r-full"
-      />
       <div className="flex gap-3.5">
         <UserAvatar
           name={thread.owner.username}
@@ -85,6 +102,12 @@ export function ThreadCard({ thread }: ThreadCardProps) {
               >
                 {THREAD_STATUS_META[thread.status].label}
               </Badge>
+              {thread.visibility === "PRIVATE" && (
+                <Badge tone="warning" size="compact" className="gap-1">
+                  <LockKeyhole className="h-3 w-3" />
+                  私密帖
+                </Badge>
+              )}
               {thread.pinned && (
                 <Badge tone="brand" size="compact">
                   置顶
@@ -114,19 +137,21 @@ export function ThreadCard({ thread }: ThreadCardProps) {
             </p>
           )}
 
-          {thread.topicTags.length > 0 && (
+          {topicTags.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-1.5">
-              {thread.topicTags.map(({ tag }) => (
+              {topicTags.map(({ tag }) => (
                 <TopicTagLink key={tag.id} tag={tag} className="relative z-10" />
               ))}
             </div>
           )}
 
           <div className="mt-3 flex flex-wrap items-center gap-3 font-utility text-xs font-semibold text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <Users className="h-3.5 w-3.5" />
-              {thread._count.players}
-            </span>
+            {typeof thread._count.players === "number" && (
+              <span className="flex items-center gap-1">
+                <Users className="h-3.5 w-3.5" />
+                {thread._count.players}
+              </span>
+            )}
             <span className="flex items-center gap-1">
               <MessageSquare className="h-3.5 w-3.5" />
               {thread._count.posts}

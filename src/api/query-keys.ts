@@ -101,6 +101,8 @@ export const queryKeys = {
     detail: (userId: string | undefined) => ["wallet", userId] as const,
     transactions: (userId: string | undefined) =>
       ["wallet", userId, "transactions"] as const,
+    transactionPage: (userId: string | undefined, cursor?: string) =>
+      ["wallet", userId, "transactions", cursor ?? "first"] as const,
   },
   bookmarks: {
     all: ["bookmarks"] as const,

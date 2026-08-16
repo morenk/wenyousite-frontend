@@ -31,10 +31,8 @@ export function BookmarkButton({
       if (isBookmarked) {
         if (!bookmarkId) return;
         await remove.mutateAsync(bookmarkId);
-        toast.success("已取消收藏");
       } else {
         await add.mutateAsync();
-        toast.success("已收藏");
       }
     } catch {
       toast.error("操作失败，请稍后重试");

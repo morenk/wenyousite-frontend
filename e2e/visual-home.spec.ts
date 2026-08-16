@@ -161,12 +161,7 @@ for (const viewport of [
     await hideDevIndicator(page);
     await expect(page.getByRole("heading", { name: "发现主题帖" })).toBeVisible();
     await expect(page.getByText("暮色列车：寻找失落的终点站")).toBeVisible();
-    const firstCategoryMarker = page.locator('[data-slot="category-marker"]').first();
-    await expect(firstCategoryMarker).toHaveCSS("width", "4px");
-    const categoryMarkerColors = await page.locator('[data-slot="category-marker"]').evaluateAll(
-      (markers) => [...new Set(markers.map((marker) => getComputedStyle(marker).backgroundColor))],
-    );
-    expect(categoryMarkerColors).toHaveLength(1);
+    await expect(page.locator('[data-slot="category-marker"]')).toHaveCount(0);
     await expect(page.getByRole("link", { name: "查看 #都市奇谭 标签下的主题帖" })).toHaveCSS("min-height", "32px");
 
     const pageShell = page.locator('[data-slot="page-shell"]');
@@ -180,6 +175,7 @@ for (const viewport of [
     const contextRail = page.getByRole("complementary", { name: "快捷信息" });
     if (viewport.width >= 1280) {
       await expect(contextRail).toBeVisible();
+      await expect(contextRail.getByText("按玩法发现")).toHaveCount(0);
     } else {
       await expect(contextRail).toBeHidden();
     }

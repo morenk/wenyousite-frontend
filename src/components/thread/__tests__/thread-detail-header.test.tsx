@@ -106,6 +106,7 @@ afterEach(() => {
 });
 
 beforeEach(() => {
+  vi.clearAllMocks();
   mockPOST.mockReset();
   mockDELETE.mockReset();
   mockPOST.mockResolvedValue({ error: undefined });
@@ -202,6 +203,7 @@ describe("ThreadDetailHeader", () => {
     expect(
       container.querySelector('[data-slot="thread-detail-context"]'),
     ).toHaveClass("whitespace-nowrap", "justify-center");
+    expect(container.querySelector('[data-slot="category-marker"]')).toBeNull();
   });
 
   test("排头与当前子贴正文属于同一个主题文档容器", () => {
@@ -419,7 +421,11 @@ describe("ThreadDetailHeader", () => {
     const actionButtons = within(interactionGroup).getAllByRole("button");
     expect(actionButtons[0]).toHaveTextContent("3");
     actionButtons.slice(1).forEach((button) => {
-      expect(button).toHaveTextContent(/^$/);
+      const visibleText = Array.from(button.children)
+        .filter((child) => !child.classList.contains("sr-only"))
+        .map((child) => child.textContent)
+        .join("");
+      expect(visibleText).toBe("");
     });
     expect(screen.getByRole("group", { name: "浏览工具" })).toBeInTheDocument();
   });
@@ -612,10 +618,13 @@ describe("ThreadDetailHeader", () => {
     const likeButton = screen.getByRole("button", { name: "点赞" });
     expect(likeButton).toHaveAttribute("aria-pressed", "true");
     expect(likeButton).toHaveAccessibleDescription("当前 1 个赞");
-    expect(likeButton).toHaveClass("bg-like-soft", "text-foreground");
+    expect(likeButton).toHaveClass("bg-transparent", "text-foreground");
+    expect(likeButton).not.toHaveClass("bg-like-soft");
     expect(likeButton).not.toHaveClass("text-destructive", "bg-destructive-soft");
     expect(likeButton.querySelector('[data-slot="interaction-toggle-icon"]'))
-      .toHaveClass("fill-like", "text-like");
+      .toHaveClass("text-like");
+    expect(likeButton.querySelector('[data-slot="interaction-toggle-icon"]'))
+      .toHaveAttribute("data-icon-variant", "filled");
     await user.click(likeButton);
     expect(mockDELETE).toHaveBeenCalledWith("/api/v1/threads/{id}/like", {
       params: { path: { id: "thread-1" } },
@@ -635,6 +644,8 @@ describe("ThreadDetailHeader", () => {
       "title",
       "订阅官方更新",
     );
+    expect(screen.getByRole("button", { name: "订阅官方更新" }))
+      .toHaveAttribute("aria-pressed", "false");
 
     await user.click(screen.getByRole("button", { name: "订阅官方更新" }));
 
@@ -642,6 +653,7 @@ describe("ThreadDetailHeader", () => {
       threadId: "thread-1",
       type: "THREAD",
     });
+    expect(toast.success).not.toHaveBeenCalledWith("已订阅，帖子更新将通知你");
   });
 
   test("已订阅时按钮提供取消订阅操作", async () => {
@@ -667,14 +679,24 @@ describe("ThreadDetailHeader", () => {
 
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
 
-    expect(screen.getByRole("button", { name: "取消订阅官方更新" })).toHaveAttribute(
+    const subscriptionButton = screen.getByRole("button", { name: "订阅官方更新" });
+    expect(subscriptionButton).toHaveAttribute(
       "title",
       "取消订阅官方更新",
     );
+    expect(subscriptionButton).toHaveAttribute("aria-pressed", "true");
+    expect(subscriptionButton).toHaveClass("bg-transparent", "text-foreground");
+    expect(subscriptionButton.querySelector('[data-slot="interaction-toggle-icon"]'))
+      .toHaveClass("text-brand-strong");
+    expect(subscriptionButton.querySelector('[data-slot="interaction-toggle-icon"]'))
+      .toHaveAttribute("data-icon-semantic", "action.subscribe");
+    expect(subscriptionButton.querySelector('[data-slot="interaction-toggle-icon"]'))
+      .toHaveAttribute("data-icon-variant", "filled");
 
-    await user.click(screen.getByRole("button", { name: "取消订阅官方更新" }));
+    await user.click(subscriptionButton);
 
     expect(mockDeleteMutate).toHaveBeenCalledWith("sub1");
+    expect(toast.success).not.toHaveBeenCalledWith("已取消订阅");
   });
 
   test("USER 订阅不会被误认为整帖订阅", () => {
@@ -699,7 +721,8 @@ describe("ThreadDetailHeader", () => {
 
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
     expect(screen.getByRole("button", { name: "订阅官方更新" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "取消订阅官方更新" })).toBeNull();
+    expect(screen.getByRole("button", { name: "订阅官方更新" }))
+      .toHaveAttribute("aria-pressed", "false");
   });
 
   test("可选择参与人并创建 USER 订阅", async () => {
@@ -755,6 +778,21 @@ describe("ThreadDetailHeader", () => {
       type: "USER",
       targetUserId: "target-user",
     });
+    expect(toast.success).not.toHaveBeenCalledWith("已订阅该用户在本帖的发言");
+  });
+
+  test("订阅失败时保留错误提示", async () => {
+    const user = userEvent.setup();
+    mockUseAuth.mockReturnValue({
+      user: { id: "other-user", username: "别人" },
+      isInitialized: true,
+    });
+    mockCreateMutate.mockRejectedValueOnce({ message: "订阅失败" });
+    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
+
+    await user.click(screen.getByRole("button", { name: "订阅官方更新" }));
+
+    expect(toast.error).toHaveBeenCalledWith("订阅失败");
   });
 
   test("楼主不显示整帖订阅按钮", () => {

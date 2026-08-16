@@ -23,8 +23,8 @@ if (packageJson.dependencies?.["@wenyousite/foundation"] !== `github:morenk/weny
 if (manifest.version !== lock.version) failures.push("已安装 foundation 版本与锁文件不一致");
 if (manifest.contractSha256 !== lock.contractSha256) failures.push("已安装 foundation 契约哈希与锁文件不一致");
 if (!read("pnpm-lock.yaml").includes(lock.revision)) failures.push("pnpm-lock.yaml 未锁定指定 foundation revision");
-if (foundationContract.version !== "5.0.0" || foundationContract.schemaVersion !== 1) {
-  failures.push("Web 必须消费 Foundation v5.0.0 schema 1 契约");
+if (foundationContract.version !== "5.1.0" || foundationContract.schemaVersion !== 1) {
+  failures.push("Web 必须消费 Foundation v5.1.0 schema 1 契约");
 }
 if (!manifest.features?.typography || !manifest.features?.interaction || !manifest.features?.iconControls || !manifest.features?.navigation || !manifest.features?.language || !manifest.features?.elements) {
   failures.push("已安装 Foundation 缺少共享语义能力");
@@ -62,7 +62,7 @@ for (const claim of ["--type-body-size", "--type-body-line-height"]) {
   if (!globalStyles.includes(`var(${claim})`)) failures.push(`globals.css 未消费语义排版 Token ${claim}`);
 }
 const foundationTokens = read("node_modules/@wenyousite/foundation/web/tokens.css");
-for (const token of ["--type-page-title-size", "--overlay-scrim", "--layer-modal", "--layer-global-progress", "--like", "--like-soft", "--bookmark", "--bookmark-soft", "--icon-control-hover-state-opacity", "--icon-control-pressed-state-opacity", "--icon-control-disabled-content-opacity", "--element-internal-reference-surface", "--element-badge-default-height", "--element-category-marker-width", "--element-category-marker-foreground"]) {
+for (const token of ["--type-page-title-size", "--overlay-scrim", "--layer-modal", "--layer-global-progress", "--like", "--bookmark", "--icon-control-state-layer-color", "--icon-control-state-layer-radius", "--icon-control-hover-state-opacity", "--icon-control-focus-state-opacity", "--icon-control-pressed-state-opacity", "--icon-control-disabled-content-opacity", "--element-internal-reference-surface", "--element-badge-default-height"]) {
   if (!foundationTokens.includes(`${token}:`)) failures.push(`Foundation Web Token 缺少 ${token}`);
 }
 if (
@@ -75,8 +75,12 @@ if (
 if (
   foundationContract.experiences.icons.controls?.selected?.like?.semanticId !== "action.like"
   || foundationContract.experiences.icons.controls?.selected?.bookmark?.semanticId !== "action.bookmark"
+  || foundationContract.experiences.icons.controls?.selected?.subscription?.semanticId !== "action.subscribe"
+  || foundationContract.experiences.icons.controls?.selected?.like?.surface !== "transparent"
+  || foundationContract.experiences.icons.controls?.selected?.bookmark?.surface !== "transparent"
+  || foundationContract.experiences.icons.controls?.selected?.subscription?.surface !== "transparent"
 ) {
-  failures.push("Foundation 缺少点赞与收藏互动控件语义");
+  failures.push("Foundation 缺少透明底的点赞、收藏与订阅互动控件语义");
 }
 for (const schemaName of [
   "ThreadCategoryResponseDto",
@@ -89,7 +93,12 @@ for (const schemaName of [
 }
 
 const iconAdapter = read("src/components/ui/wenyou-icon.tsx");
-if (!iconAdapter.includes('@wenyousite/foundation/icons') || !iconAdapter.includes("data-icon-semantic")) {
+if (
+  !iconAdapter.includes('@wenyousite/foundation/icons')
+  || !iconAdapter.includes("IconVisualVariant")
+  || !iconAdapter.includes("data-icon-semantic")
+  || !iconAdapter.includes("data-icon-variant")
+) {
   failures.push("Web 核心图标未通过 Foundation 语义适配器渲染");
 }
 const editorHost = read("src/components/editor/milkdown-editor-host.tsx");

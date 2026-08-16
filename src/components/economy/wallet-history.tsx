@@ -2,13 +2,14 @@
 
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { ChevronDown, Loader2, WalletCards } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, WalletCards } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { formatWenyou } from "@/lib/wenyou";
 import { useWallet, useWalletTransactions, type WalletTransaction } from "@/api/hooks/use-economy";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
+import { useCursorPagination } from "@/hooks/use-cursor-pagination";
 
 function transactionTitle(transaction: WalletTransaction): string {
   if (transaction.type === "DAILY_CHECK_IN") return "每日在线签到";
@@ -23,8 +24,12 @@ function transactionTitle(transaction: WalletTransaction): string {
 export function WalletHistory() {
   const { user } = useAuth();
   const wallet = useWallet(user?.id);
-  const transactions = useWalletTransactions(user?.id);
-  const items = transactions.data?.pages.flatMap((page) => page.data) ?? [];
+  const pagination = useCursorPagination(user?.id ?? "wallet-anonymous");
+  const transactions = useWalletTransactions(user?.id, pagination.cursor);
+  const items = transactions.data?.data ?? [];
+  const nextCursor = transactions.data?.meta.hasMore
+    ? transactions.data.meta.cursor
+    : null;
 
   return (
     <div className="w-full space-y-5">
@@ -59,16 +64,24 @@ export function WalletHistory() {
           <CardTitle className="text-base">收支记录</CardTitle>
         </CardHeader>
         <CardContent>
-          {transactions.isLoading && items.length === 0 ? (
+          {transactions.isLoading ? (
             <div className="flex justify-center py-12" role="status" aria-label="流水加载中">
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             </div>
-          ) : transactions.isError && items.length === 0 ? (
+          ) : transactions.isError ? (
             <div className="flex flex-col items-center gap-3 py-10">
               <EmptyState title="流水加载失败" />
-              <Button variant="outline" size="sm" onClick={() => transactions.refetch()}>
-                重试
-              </Button>
+              <div className="flex items-center gap-2">
+                {pagination.hasPrevious && (
+                  <Button variant="ghost" size="sm" onClick={pagination.previous}>
+                    <ChevronLeft className="h-4 w-4" />
+                    返回上一页
+                  </Button>
+                )}
+                <Button variant="outline" size="sm" onClick={() => transactions.refetch()}>
+                  重试
+                </Button>
+              </div>
             </div>
           ) : items.length === 0 ? (
             <EmptyState title="暂无收支记录" />
@@ -104,28 +117,38 @@ export function WalletHistory() {
             </div>
           )}
 
-          {items.length > 0 && transactions.isFetchNextPageError ? (
-            <div className="mt-3 flex items-center justify-center gap-2 text-sm text-destructive">
-              <span>更多流水加载失败</span>
-              <Button variant="outline" size="sm" onClick={() => transactions.fetchNextPage()}>
-                重试加载
-              </Button>
-            </div>
-          ) : transactions.hasNextPage && (
-            <div className="mt-3 flex justify-center">
+          {!transactions.isLoading
+            && !transactions.isError
+            && (items.length > 0 || pagination.hasPrevious) && (
+            <nav
+              className="mt-4 flex items-center justify-center gap-2 border-t border-border pt-4"
+              aria-label="收支记录分页"
+            >
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => transactions.fetchNextPage()}
-                disabled={transactions.isFetchingNextPage}
+                onClick={pagination.previous}
+                disabled={!pagination.hasPrevious}
               >
-                {transactions.isFetchingNextPage
-                  ? <Loader2 className="h-4 w-4 animate-spin" />
-                  : <ChevronDown className="h-4 w-4" />}
-                加载更多
+                <ChevronLeft className="h-4 w-4" />
+                上一页
               </Button>
-            </div>
-          )}
+              <span className="min-w-16 text-center text-sm tabular-nums text-muted-foreground">
+                第 {pagination.page} 页
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  if (nextCursor) pagination.next(nextCursor);
+                }}
+                disabled={!nextCursor}
+              >
+                下一页
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </nav>
+            )}
         </CardContent>
       </Card>
     </div>

@@ -5,7 +5,6 @@ import type { ComponentProps } from "react";
 import { Badge } from "@/components/ui/badge";
 import { useThreadCategoriesContext } from "@/components/thread/thread-categories-provider";
 import { getThreadCategoryPresentation } from "@/lib/thread-presentation";
-import { cn } from "@/lib/utils";
 
 export function useThreadCategoryPresentation(category: string | null | undefined) {
   const { categories } = useThreadCategoriesContext();
@@ -29,20 +28,6 @@ export function ThreadCategoryBadge({
     >
       {presentation.label}
     </Badge>
-  );
-}
-
-export function ThreadCategoryMarker({
-  className,
-  ...props
-}: ComponentProps<"span">) {
-  return (
-    <span
-      data-slot="category-marker"
-      className={cn("block shrink-0", className)}
-      aria-hidden="true"
-      {...props}
-    />
   );
 }
 

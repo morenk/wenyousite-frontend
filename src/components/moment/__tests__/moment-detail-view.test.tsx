@@ -270,10 +270,13 @@ describe("MomentDetailView", () => {
     const likeButton = screen.getByRole("button", { name: "点赞" });
     expect(likeButton).toHaveAttribute("aria-pressed", "true");
     expect(likeButton).toHaveAccessibleDescription("当前 6 个赞");
-    expect(likeButton).toHaveClass("bg-like-soft", "text-foreground");
+    expect(likeButton).toHaveClass("bg-transparent", "text-foreground");
+    expect(likeButton).not.toHaveClass("bg-like-soft");
     expect(likeButton).not.toHaveClass("text-destructive", "bg-destructive-soft");
     expect(likeButton.querySelector('[data-slot="interaction-toggle-icon"]'))
-      .toHaveClass("fill-like", "text-like");
+      .toHaveClass("text-like");
+    expect(likeButton.querySelector('[data-slot="interaction-toggle-icon"]'))
+      .toHaveAttribute("data-icon-variant", "filled");
   });
 
   test("已收藏状态使用 Foundation 金色语义色且计数保持正文色", () => {
@@ -289,9 +292,12 @@ describe("MomentDetailView", () => {
     const bookmarkButton = screen.getByRole("button", { name: "收藏" });
     expect(bookmarkButton).toHaveAttribute("aria-pressed", "true");
     expect(bookmarkButton).toHaveAccessibleDescription("当前 4 个收藏");
-    expect(bookmarkButton).toHaveClass("bg-bookmark-soft", "text-foreground");
+    expect(bookmarkButton).toHaveClass("bg-transparent", "text-foreground");
+    expect(bookmarkButton).not.toHaveClass("bg-bookmark-soft");
     expect(bookmarkButton.querySelector('[data-slot="interaction-toggle-icon"]'))
-      .toHaveClass("fill-bookmark", "text-bookmark");
+      .toHaveClass("text-bookmark");
+    expect(bookmarkButton.querySelector('[data-slot="interaction-toggle-icon"]'))
+      .toHaveAttribute("data-icon-variant", "filled");
   });
 
   test("动态正文将命名站内坐标渲染为同页传送门", () => {

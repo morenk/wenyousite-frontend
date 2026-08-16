@@ -26,14 +26,12 @@ export function FollowButton({ userId, isFollowing }: FollowButtonProps) {
     if (isFollowing) {
       try {
         await unfollow.mutateAsync();
-        toast.success("已取消关注");
       } catch {
         toast.error("操作失败，请稍后重试");
       }
     } else {
       try {
         await follow.mutateAsync();
-        toast.success("关注成功");
       } catch {
         toast.error("操作失败，请稍后重试");
       }

@@ -73,7 +73,7 @@ describe("BlockButton", () => {
 
     expect(global.confirm).toHaveBeenCalled();
     expect(blockMutate).toHaveBeenCalled();
-    expect(toast.success).toHaveBeenCalledWith("已拉黑");
+    expect(toast.success).not.toHaveBeenCalled();
   });
 
   test("confirm 取消时不执行拉黑", async () => {
@@ -103,6 +103,19 @@ describe("BlockButton", () => {
     await user.click(screen.getByRole("button", { name: "已拉黑" }));
 
     expect(unblockMutate).toHaveBeenCalled();
-    expect(toast.success).toHaveBeenCalledWith("已取消拉黑");
+    expect(toast.success).not.toHaveBeenCalled();
+  });
+
+  test("拉黑失败时保留错误提示", async () => {
+    const user = userEvent.setup();
+    mockUseBlockActions.mockReturnValue({
+      block: { isPending: false, mutateAsync: vi.fn().mockRejectedValue(new Error("failed")) },
+      unblock: { isPending: false, mutateAsync: vi.fn() },
+    });
+
+    renderWithQC(<BlockButton userId="u2" isBlocked={false} />);
+    await user.click(screen.getByRole("button", { name: "拉黑" }));
+
+    expect(toast.error).toHaveBeenCalledWith("操作失败，请稍后重试");
   });
 });

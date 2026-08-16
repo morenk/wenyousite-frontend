@@ -52,14 +52,14 @@
 |------|------|------|
 | HomePage | `src/app/page.tsx` | 首页主逻辑；紧凑排头合并标题与筛选工具，不显示解释性副标题 |
 | AppChrome | `src/components/layout/app-chrome.tsx` | 根据路由切换社区三栏、工作区双栏和认证页布局 |
-| AppContextRail | `src/components/layout/app-context-rail.tsx` | 宽屏账户主页、钱包、通知/私聊未读数、收藏、设置、玩法分类和访客入口；与左栏个人入口互斥显示 |
+| AppContextRail | `src/components/layout/app-context-rail.tsx` | 宽屏账户主页、钱包、通知/私聊未读数、收藏、设置和访客入口；不重复分类筛选 |
 | TagThreadsPage | `src/app/tags/[id]/page.tsx` | 指定标签主题帖列表，复用首页筛选和无限滚动 |
-| ThreadList | `src/components/thread/thread-list.tsx` | 单一 Panel 外框、行分隔、四态与无限滚动 |
-| ThreadCard | `src/components/thread/thread-card.tsx` | 连续主题列表中的单行内容 |
+| ThreadList | `src/components/thread/thread-list.tsx` | 首页、标签页和个人资料主题帖共用的 Panel 外框、行分隔、四态与无限滚动 |
+| ThreadCard | `src/components/thread/thread-card.tsx` | 首页与个人资料创建/参与/收藏列表共用的单行内容；按接口实际字段隐藏缺省预览、封面、标签或玩家数 |
 | ThreadCover | `src/components/thread/thread-cover.tsx` | 首页与搜索共用的半宽 16:9 单封面，支持 feed 衍生图回退 |
 | TopicTagLink | `src/components/thread/topic-tag-link.tsx` | 卡片与详情页共用的标签浏览入口 |
 
-分类元数据遵循 Foundation 元素契约：分类 API 不包含颜色字段，4px 线路统一为中性前景，分类 Badge 复用 neutral tone，且名称始终显示；主题标签统一保留 `#` 和 Web 32px 命中高度，状态 Badge 使用默认/紧凑尺寸而非页面手写高度。
+分类元数据不包含颜色字段，界面只通过文字或 neutral Badge 显示分类，不渲染色块或线路；主题标签统一保留 `#` 和 Web 32px 命中高度，状态 Badge 使用默认/紧凑尺寸而非页面手写高度。
 | CategoryTabs | `src/components/thread/category-tabs.tsx` | 分类筛选 Tab |
 | ThreadFilters | `src/components/thread/thread-filters.tsx` | 排序与状态下拉筛选栏 |
 | EmptyState | `src/components/shared/empty-state.tsx` | 空状态提示 |
@@ -68,12 +68,12 @@
 
 每张卡片展示：
 
-首页使用社区应用壳：1024px 起显示 72px 紧凑导航和最大 672px feed；1280px 起切换为 272px 完整导航、672px feed 与 272px 上下文栏。主题帖以单一白色面板内的连续列表行展示，左侧线路色标识玩法；作者、时间、分类和状态位于紧凑元数据区，列表行之间使用细分隔线，不为每行重复常驻阴影。
+首页使用社区应用壳：1024px 起显示 72px 紧凑导航和最大 672px feed；1280px 起切换为 272px 完整导航、672px feed 与 272px 上下文栏。主题帖以单一白色面板内的连续列表行展示；作者、时间、分类和状态位于紧凑元数据区，列表行之间使用细分隔线，不为每行重复常驻阴影。右侧上下文栏只提供账户快捷信息，不重复顶部分类筛选。
 
 | 字段 | 来源 | 格式 |
 |------|------|------|
 | 标题 | thread.title | 文本 |
-| 分类 | thread.category + `GET /thread-categories` | 动态 slug → 管理员配置的名称、顺序和可选颜色；空值/未知值安全降级 |
+| 分类 | thread.category + `GET /thread-categories` | 动态 slug → 管理员配置的名称与顺序；空值/未知值安全降级 |
 | 正文预览 | 默认子贴正文（kind=BODY） | Markdown 纯文本截断（~120 字） |
 | 正文封面 | thread.coverImages[0] | 标题下方只展示默认主贴正文中的第一张普通图片，按半宽 16:9 裁切预览 |
 | 标签 | thread.topicTags[] | 可点击标签徽章，进入 `/tags/{tag.id}` |
@@ -133,6 +133,6 @@
 - 卡片和详情页标签可进入稳定标签路由
 - 标签页仅展示精确关联该标签的公开已发布主题帖，并可继续组合筛选
 - 标签不存在时显示明确错误状态
-- 首页与标签页使用纯白阅读表面、玩法线路色、语义 PageShell 和连续信息列表
+- 首页与标签页使用纯白阅读表面、语义 PageShell 和连续信息列表，不渲染分类色块
 - 首页排头只显示“发现主题帖”和实际筛选控件，不用说明文字重复解释筛选能力
 - 1024/1440/1920px 具有确定性 Playwright 视觉基线，宽屏保持 272px 导航 + 672px feed + 272px 上下文栏

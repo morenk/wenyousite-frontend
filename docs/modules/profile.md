@@ -246,9 +246,8 @@
 | UserFollowList | `src/components/user/user-follow-list.tsx` | 关注/粉丝列表（头像 + 用户名链接 + 三态，复用两种列表） |
 | FollowListPage | `src/components/user/follow-list-page.tsx` | 关注/粉丝子页面主体（用户名标题 + 返回链接 + 列表） |
 | UserRecentReplies | `src/components/user/user-recent-replies.tsx` | 最近回复列表（**仅展示最近 5 条**；整卡通过共享 `getPostHref` 精确定位到对应楼层/楼中楼/正文；正文/楼层/楼中楼三态标识 + preview） |
-| UserThreadList | `src/components/user/user-thread-list.tsx` | 用户帖子列表通用展示组件（徽章/标题/无限滚动，empty/error 文案 props） |
-| UserCreatedThreads | `src/components/user/user-created-threads.tsx` | 创建的帖子列表（薄包装：useUserCreatedThreads + UserThreadList） |
-| UserPlayedThreads | `src/components/user/user-played-threads.tsx` | 参与的帖子列表；本人显示“全部 / 公开帖 / 私密帖”，他人不显示私密分类入口 |
+| UserCreatedThreads | `src/components/user/user-created-threads.tsx` | 创建的帖子列表，复用首页 `ThreadList`/`ThreadCard` |
+| UserPlayedThreads | `src/components/user/user-played-threads.tsx` | 复用首页主题帖列表；本人显示“全部 / 公开帖 / 私密帖”，他人不显示私密分类入口 |
 | UserThreadsPage | `src/components/user/user-threads-page.tsx` | 帖子 Tab：创建/参与使用二级切换，只挂载当前无限列表 |
 | UserBookmarksPage | `src/components/user/user-bookmarks-page.tsx` | 收藏 Tab：尊重公开权限，无权限时不发起收藏请求 |
 | DraftList | `src/components/user/draft-list.tsx` | 草稿箱列表（标题/分类/更新时间/继续编辑/删除） |
@@ -317,7 +316,7 @@ showRecentReplies / showPlayerBadges / showBookmarks: boolean
 | 查看自己主页 | 显示"编辑资料"入口（跳 /me），不显示关注/拉黑按钮 |
 | 查看自己的参与列表 | 只返回已获授玩家身份的非自建帖子（可含私密帖），可按全部/公开帖/私密帖分类 |
 | 查看他人的参与列表 | 不显示分类控件；后端仅返回 PUBLIC 且 playerMarked=true 的帖子，绝不返回私密帖 |
-| 关注/拉黑他人 | 仅登录；isFollowing/isBlocked 为 true 时按钮切换为取消态 |
+| 关注/拉黑他人 | 仅登录；isFollowing/isBlocked 为 true 时按钮切换为取消态；成功仅更新按钮或黑名单状态，失败显示错误 Toast |
 | 隐私开关关闭（showRecentReplies/showPlayerBadges/showBookmarks） | 概览不挂载最近回复；帖子页隐藏参与入口；收藏 Tab 隐藏，直达时显示未公开且不发请求 |
 | 草稿箱 | 仅本人（登录守卫，isInitialized 后再判断） |
 | /me | 仅本人（未登录跳 /login） |
@@ -329,16 +328,16 @@ showRecentReplies / showPlayerBadges / showBookmarks: boolean
 - 资料头部下方提供概览/动态/帖子/收藏路由 Tab，滚动时保持可达；隐私 Tab 按权限隐藏
 - 概览仅请求活动汇总和允许公开的最近回复，不挂载动态瀑布流、帖子、收藏或参与列表
 - `/users/[id]/moments` 展示完整动态瀑布流，继续使用 cursor 分页与虚拟化
-- `/users/[id]/threads` 在创建/参与之间二级切换，只挂载当前列表
-- `/users/[id]/bookmarks` 只读展示允许访问的收藏；无权限时不发起收藏请求
+- `/users/[id]/threads` 在创建/参与之间二级切换，只挂载当前列表；两类列表复用首页主题帖卡片与加载状态
+- `/users/[id]/bookmarks` 复用首页主题帖卡片只读展示允许访问的收藏；本人显示新建收藏夹入口，无权限时不发起收藏请求
 - 「关注 N」「粉丝 N」可点击进入 `/users/[id]/following` / `/users/[id]/followers` 列表页
 - 关注/粉丝列表展示用户名 + 头像，空态/错误态有占位
 - 登录态显示关注/拉黑按钮，点击后状态即时更新（isFollowing/isBlocked + 计数）
 - 未登录不显示关注/拉黑按钮；点击其他需登录操作跳 /login
 - 关注/拉黑自己不显示按钮
 - 最近回复列表渲染（正文/楼层/楼中楼三态标识 + 帖子链接 + preview），**仅展示最近 5 条**，为空/未公开有占位；点击通过共享 `getPostHref` 精确定位到对应楼层/楼中楼/正文
-- 创建的帖子列表渲染（标题 + 分类/状态徽章），cursor 分页加载
-- 参与的帖子列表渲染（标题 + 分类/状态/私密徽章），cursor 分页加载，不含自建帖；本人可按全部/公开帖/私密帖分类，他人仅见公开玩家帖
+- 创建的帖子列表使用首页信息层级渲染作者、更新时间、分类/状态、标题、预览、标签与统计，cursor 分页加载
+- 参与的帖子列表复用首页信息层级并显示私密徽章，cursor 分页加载，不含自建帖；本人可按全部/公开帖/私密帖分类，他人仅见公开玩家帖
 - 已注销用户在全站用户摘要中统一显示“已注销用户”与灰色用户图标
 - 全站 `/users/{id}` 链接可正常跳转
 - 草稿箱（`/threads/create` 草稿列表）列出我的未发布帖，可跳转编辑、可删除

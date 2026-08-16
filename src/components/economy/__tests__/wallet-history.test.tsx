@@ -2,12 +2,11 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-const { mockUseWallet, mockUseWalletTransactions, mockWalletRefetch, mockTransactionsRefetch, mockFetchNextPage } = vi.hoisted(() => ({
+const { mockUseWallet, mockUseWalletTransactions, mockWalletRefetch, mockTransactionsRefetch } = vi.hoisted(() => ({
   mockUseWallet: vi.fn(),
   mockUseWalletTransactions: vi.fn(),
   mockWalletRefetch: vi.fn(),
   mockTransactionsRefetch: vi.fn(),
-  mockFetchNextPage: vi.fn(),
 }));
 
 vi.mock("@/lib/auth", () => ({
@@ -16,7 +15,8 @@ vi.mock("@/lib/auth", () => ({
 
 vi.mock("@/api/hooks/use-economy", () => ({
   useWallet: () => mockUseWallet(),
-  useWalletTransactions: () => mockUseWalletTransactions(),
+  useWalletTransactions: (userId: string | undefined, cursor?: string) =>
+    mockUseWalletTransactions(userId, cursor),
 }));
 
 import { WalletHistory } from "@/components/economy/wallet-history";
@@ -75,14 +75,15 @@ function walletResult(overrides: Record<string, unknown> = {}) {
 
 function transactionsResult(overrides: Record<string, unknown> = {}) {
   return {
-    data: { pages: [{ data: [dailyCheckIn, tipExpense, tipIncome] }] },
+    data: {
+      code: 0,
+      message: "ok",
+      data: [dailyCheckIn, tipExpense, tipIncome],
+      meta: { cursor: null, hasMore: false },
+    },
     isLoading: false,
     isError: false,
-    isFetchNextPageError: false,
     refetch: mockTransactionsRefetch,
-    hasNextPage: false,
-    fetchNextPage: mockFetchNextPage,
-    isFetchingNextPage: false,
     ...overrides,
   };
 }
@@ -136,28 +137,80 @@ describe("WalletHistory", () => {
     expect(mockTransactionsRefetch).toHaveBeenCalledTimes(1);
 
     mockUseWalletTransactions.mockReturnValue(transactionsResult({
-      data: { pages: [{ data: [] }] },
+      data: {
+        code: 0,
+        message: "ok",
+        data: [],
+        meta: { cursor: null, hasMore: false },
+      },
     }));
     view.rerender(<WalletHistory />);
     expect(screen.getByText("暂无收支记录")).toBeInTheDocument();
   });
 
-  test("加载下一页失败时保留已有流水并允许重试下一页", async () => {
-    mockUseWalletTransactions.mockReturnValue(transactionsResult({ hasNextPage: true }));
-    const view = render(<WalletHistory />);
+  test("使用游标前后翻页且只渲染当前页流水", async () => {
+    const secondPageExpense = {
+      ...tipExpense,
+      id: "transaction-page-2",
+      target: { ...tipExpense.target, title: "第二页主题帖" },
+    };
+    mockUseWalletTransactions.mockImplementation((_userId, cursor) =>
+      cursor === "cursor-2"
+        ? transactionsResult({
+            data: {
+              code: 0,
+              message: "ok",
+              data: [secondPageExpense],
+              meta: { cursor: null, hasMore: false },
+            },
+          })
+        : transactionsResult({
+            data: {
+              code: 0,
+              message: "ok",
+              data: [dailyCheckIn],
+              meta: { cursor: "cursor-2", hasMore: true },
+            },
+          }),
+    );
 
-    await userEvent.click(screen.getByRole("button", { name: "加载更多" }));
-    expect(mockFetchNextPage).toHaveBeenCalledTimes(1);
+    render(<WalletHistory />);
+    expect(screen.getByText("第 1 页")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "上一页" })).toBeDisabled();
 
-    mockUseWalletTransactions.mockReturnValue(transactionsResult({
-      isError: true,
-      isFetchNextPageError: true,
-      hasNextPage: true,
-    }));
-    view.rerender(<WalletHistory />);
-    expect(screen.getByText("每日在线签到")).toBeInTheDocument();
-    expect(screen.getByText("更多流水加载失败")).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "重试加载" }));
-    expect(mockFetchNextPage).toHaveBeenCalledTimes(2);
+    await userEvent.click(screen.getByRole("button", { name: "下一页" }));
+    expect(await screen.findByText("投入给「第二页主题帖」")).toBeInTheDocument();
+    expect(screen.queryByText("每日在线签到")).not.toBeInTheDocument();
+    expect(screen.getByText("第 2 页")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "下一页" })).toBeDisabled();
+    expect(mockUseWalletTransactions).toHaveBeenLastCalledWith("user-1", "cursor-2");
+
+    await userEvent.click(screen.getByRole("button", { name: "上一页" }));
+    expect(await screen.findByText("每日在线签到")).toBeInTheDocument();
+    expect(screen.queryByText("投入给「第二页主题帖」")).not.toBeInTheDocument();
+    expect(screen.getByText("第 1 页")).toBeInTheDocument();
+  });
+
+  test("后续页失败时可重试或返回上一页", async () => {
+    mockUseWalletTransactions.mockImplementation((_userId, cursor) =>
+      cursor === "cursor-2"
+        ? transactionsResult({ data: undefined, isError: true })
+        : transactionsResult({
+            data: {
+              code: 0,
+              message: "ok",
+              data: [dailyCheckIn],
+              meta: { cursor: "cursor-2", hasMore: true },
+            },
+          }),
+    );
+
+    render(<WalletHistory />);
+    await userEvent.click(screen.getByRole("button", { name: "下一页" }));
+    expect(await screen.findByText("流水加载失败")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "重试" }));
+    expect(mockTransactionsRefetch).toHaveBeenCalledTimes(1);
+    await userEvent.click(screen.getByRole("button", { name: "返回上一页" }));
+    expect(await screen.findByText("每日在线签到")).toBeInTheDocument();
   });
 });

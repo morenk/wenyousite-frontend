@@ -105,12 +105,12 @@ const semanticContractClaims = new Map([
     "var(--type-body-size)",
     "var(--type-body-line-height)",
     "var(--icon-control-hover-state-opacity)",
+    "var(--icon-control-focus-state-opacity)",
     "var(--icon-control-pressed-state-opacity)",
+    "var(--icon-control-state-layer-radius)",
     "var(--element-internal-reference-surface)",
     "var(--element-code-surface)",
     "var(--element-quote-padding-block)",
-    "var(--element-category-marker-width)",
-    "var(--element-category-marker-foreground)",
   ]],
   ["src/components/ui/badge.tsx", ["@wenyousite/foundation/elements", "BadgeSize", "--element-badge-compact-height"]],
   ["src/components/ui/unread-count-badge.tsx", ["@wenyousite/foundation/elements", "maximumDisplay", "data-slot=\"unread-count\""]],
@@ -119,7 +119,7 @@ const semanticContractClaims = new Map([
   ["src/components/shared/internal-reference-editor-dom.ts", ["@wenyousite/foundation/elements", "iconNode", "editorBehavior"]],
   ["src/components/shared/level-badge.tsx", ["@wenyousite/foundation/elements", "--element-level-height", "data-slot=\"level-badge\""]],
   ["src/components/thread/topic-tag-link.tsx", ["@wenyousite/foundation/elements", "--element-topic-tag-min-height", "data-slot=\"topic-tag\""]],
-  ["src/components/thread/thread-category.tsx", ["data-slot=\"category-badge\"", "data-slot=\"category-marker\""]],
+  ["src/components/thread/thread-category.tsx", ["data-slot=\"category-badge\""]],
   ["src/lib/thread-presentation.ts", ["METADATA_ELEMENT_STYLES", "categoryMarker.badgeTone"]],
   ["src/components/layout/page-header.tsx", ["--type-page-title-size", "--type-section-title-size"]],
   ["src/components/ui/dialog.tsx", ["--type-subsection-title-size", "--layer-modal-backdrop", "--overlay-scrim"]],
@@ -135,12 +135,14 @@ const semanticContractClaims = new Map([
   ["src/components/ui/interaction-toggle.tsx", [
     "@wenyousite/foundation/icons",
     "IconControlTone",
+    "IconVisualVariant",
+    "ICON_CONTROL_STATES",
     "aria-pressed={pressed}",
     "aria-busy={pending || undefined}",
-    "bg-like-soft",
-    "fill-like text-like",
-    "bg-bookmark-soft",
-    "fill-bookmark text-bookmark",
+    "selectedIconVariants",
+    'state.glyph === "filled"',
+    'subscription: "text-brand-strong"',
+    'data-slot="interaction-toggle-icon-target"',
     'pending ? "status.loading" : icon',
   ]],
   ["src/components/thread/thread-detail-header.tsx", [
@@ -167,6 +169,13 @@ const semanticContractClaims = new Map([
     'tone="bookmark"',
     'accessibleName="收藏"',
   ]],
+  ["src/components/thread/thread-subscription-controls.tsx", [
+    "InteractionToggle",
+    'tone="subscription"',
+    'icon="action.subscribe"',
+    'accessibleName="订阅官方更新"',
+    "accessibleDescription",
+  ]],
   ["src/components/shared/reply-action-button.tsx", [
     "Tooltip",
     "id=\"action.reply\"",
@@ -184,6 +193,16 @@ for (const [fileName, claims] of semanticContractClaims) {
   const source = readFileSync(resolve(root, fileName), "utf8");
   for (const claim of claims) {
     if (!source.includes(claim)) failures.push(`${fileName}: 未消费当前 Foundation 语义（缺少 ${claim}）`);
+  }
+}
+
+const interactionToggleSource = readFileSync(
+  resolve(root, "src/components/ui/interaction-toggle.tsx"),
+  "utf8",
+);
+for (const forbiddenSurface of ["bg-accent", "bg-like-soft", "bg-bookmark-soft"]) {
+  if (interactionToggleSource.includes(forbiddenSurface)) {
+    failures.push(`InteractionToggle 选中态不得渲染常驻背景（发现 ${forbiddenSurface}）`);
   }
 }
 
@@ -213,7 +232,6 @@ const fullWidthCollectionClaims = new Map([
   ["src/components/user/bookmark-list.tsx", ["w-full space-y-3"]],
   ["src/components/user/draft-list.tsx", ["w-full space-y-3", "flex w-full"]],
   ["src/components/user/user-follow-list.tsx", ["w-full space-y-3", "flex w-full"]],
-  ["src/components/user/user-thread-list.tsx", ["w-full space-y-3", "block w-full"]],
   ["src/components/notification/notification-list.tsx", ["w-full space-y-3"]],
   ["src/components/message/direct-conversation-list.tsx", ["flex w-full gap-3", "min-h-0 w-full flex-col"]],
 ]);

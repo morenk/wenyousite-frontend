@@ -1,6 +1,10 @@
 "use client";
 
-import type { IconControlTone } from "@wenyousite/foundation/icons";
+import {
+  ICON_CONTROL_STATES,
+  type IconControlTone,
+  type IconVisualVariant,
+} from "@wenyousite/foundation/icons";
 import { useId, type ComponentProps, type MouseEventHandler, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { WenyouIcon, type WenyouIconId } from "@/components/ui/wenyou-icon";
@@ -33,24 +37,34 @@ type InteractionToggleProps = Omit<
 };
 
 const selectedToneClassNames: Record<IconControlTone, string> = {
-  default: "bg-accent text-accent-foreground",
-  like: "bg-like-soft text-foreground",
-  bookmark: "bg-bookmark-soft text-foreground",
+  default: "text-foreground",
+  like: "text-foreground",
+  bookmark: "text-foreground",
+  subscription: "text-foreground",
 };
 
 const selectedIconClassNames: Record<IconControlTone, string | undefined> = {
-  default: undefined,
-  like: "fill-like text-like",
-  bookmark: "fill-bookmark text-bookmark",
+  default: "text-accent-foreground",
+  like: "text-like",
+  bookmark: "text-bookmark",
+  subscription: "text-brand-strong",
 };
 
 const selectedPendingIconClassNames: Record<IconControlTone, string | undefined> = {
-  default: undefined,
+  default: "text-accent-foreground",
   like: "text-like",
   bookmark: "text-bookmark",
+  subscription: "text-brand-strong",
 };
 
-/** Foundation 驱动的二态互动按钮；鲜粉与金色只作用于状态图标。 */
+const selectedIconVariants = Object.fromEntries(
+  Object.entries(ICON_CONTROL_STATES.selected).map(([tone, state]) => [
+    tone,
+    state.glyph === "filled" ? "filled" : "outline",
+  ]),
+) as unknown as Record<IconControlTone, IconVisualVariant>;
+
+/** Foundation 驱动的二态互动按钮；常驻选中态只改变图标本身。 */
 export function InteractionToggle({
   tone = "default",
   pressed,
@@ -93,22 +107,25 @@ export function InteractionToggle({
       data-interaction-tone={tone}
       onClick={handleClick}
       className={cn(
-        "group/interaction-toggle text-muted-foreground aria-disabled:cursor-wait disabled:bg-transparent disabled:opacity-[var(--icon-control-disabled-content-opacity)]",
+        "group/interaction-toggle bg-transparent text-muted-foreground hover:bg-transparent hover:text-muted-foreground active:translate-y-0 disabled:bg-transparent disabled:text-muted-foreground disabled:opacity-[var(--icon-control-disabled-content-opacity)] aria-disabled:cursor-wait",
         className,
         pressed && selectedToneClassNames[tone],
       )}
       {...props}
     >
-      <WenyouIcon
-        id={pending ? "status.loading" : icon}
-        data-slot="interaction-toggle-icon"
-        className={cn(
-          "transition-[color,fill,transform] duration-[var(--motion-fast)] ease-[var(--ease-standard)] motion-safe:group-active/interaction-toggle:scale-90",
-          pending && "animate-spin motion-reduce:animate-none",
-          pressed && (pending ? selectedPendingIconClassNames[tone] : selectedIconClassNames[tone]),
-          iconClassName,
-        )}
-      />
+      <span data-slot="interaction-toggle-icon-target">
+        <WenyouIcon
+          id={pending ? "status.loading" : icon}
+          variant={pending ? "outline" : pressed ? selectedIconVariants[tone] : "outline"}
+          data-slot="interaction-toggle-icon"
+          className={cn(
+            "transition-[color,fill] duration-[var(--motion-fast)] ease-[var(--ease-standard)]",
+            pending && "animate-spin motion-reduce:animate-none",
+            pressed && (pending ? selectedPendingIconClassNames[tone] : selectedIconClassNames[tone]),
+            iconClassName,
+          )}
+        />
+      </span>
       {children}
       {accessibleDescription ? (
         <span id={descriptionId} className="sr-only">

@@ -47,11 +47,13 @@ export function useDirectMessageActions(
 ) {
   const queryClient = useQueryClient();
   const invalidateConversation = () => {
-    queryClient.invalidateQueries({
-      queryKey: queryKeys.directMessages.conversation(userId, conversationId),
-    });
-    queryClient.invalidateQueries({ queryKey: queryKeys.directMessages.lists(userId) });
-    queryClient.invalidateQueries({ queryKey: queryKeys.directMessages.unread(userId) });
+    return Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.directMessages.conversation(userId, conversationId),
+      }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.directMessages.lists(userId) }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.directMessages.unread(userId) }),
+    ]);
   };
 
   const send = useMutation({

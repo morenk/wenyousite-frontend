@@ -128,6 +128,7 @@ describe("ThreadList", () => {
     );
     expect(screen.getByText("测试帖")).toBeInTheDocument();
     expect(screen.getByText("author")).toBeInTheDocument();
+    expect(document.querySelector('[data-slot="category-marker"]')).toBeNull();
   });
 
   test("无更多数据时显示'没有更多了'", () => {

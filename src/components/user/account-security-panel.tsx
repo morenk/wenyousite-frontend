@@ -57,7 +57,6 @@ export function AccountSecurityPanel() {
   async function handleUnblock(userId: string) {
     try {
       await unblockUser.mutateAsync(userId);
-      toast.success("已取消拉黑");
     } catch (error: unknown) {
       toast.error(getApiErrorMessage(error, "操作失败，请稍后重试"));
     }

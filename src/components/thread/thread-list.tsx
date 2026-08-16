@@ -3,8 +3,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import type { ThreadCardData } from "@/api/hooks/use-threads";
-import { ThreadCard } from "./thread-card";
+import { ThreadCard, type ThreadCardViewData } from "./thread-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LoadError } from "@/components/shared/load-error";
@@ -15,7 +14,7 @@ import { NavigationProgress } from "@/components/layout/navigation-progress";
 import { ListRefreshIndicator } from "@/components/shared/list-refresh-indicator";
 
 interface ThreadListProps {
-  threads: ThreadCardData[];
+  threads: ThreadCardViewData[];
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   isLoading: boolean;

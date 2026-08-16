@@ -7,9 +7,9 @@ import { CategoryTabs } from "@/components/thread/category-tabs";
 const { categoryState } = vi.hoisted(() => ({
   categoryState: {
     categories: [
-      { id: "deduction", slug: "DEDUCTION", name: "演绎", color: null },
-      { id: "nation", slug: "NATION", name: "国策", color: null },
-      { id: "rpg", slug: "RPG", name: "RPG", color: null },
+      { id: "deduction", slug: "DEDUCTION", name: "演绎" },
+      { id: "nation", slug: "NATION", name: "国策" },
+      { id: "rpg", slug: "RPG", name: "RPG" },
       { id: "mystery", slug: "MYSTERY", name: "悬疑" },
     ],
   },
@@ -37,6 +37,7 @@ describe("CategoryTabs", () => {
     expect(screen.getByText("国策")).toBeInTheDocument();
     expect(screen.getByText("RPG")).toBeInTheDocument();
     expect(screen.getByText("悬疑")).toBeInTheDocument();
+    expect(document.querySelector('[data-slot="category-marker"]')).toBeNull();
   });
 
   test("默认选中'全部'（selected 为 undefined）", () => {

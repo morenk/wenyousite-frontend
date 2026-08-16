@@ -19,9 +19,7 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-like: var(--like);
-  --color-like-soft: var(--like-soft);
   --color-bookmark: var(--bookmark);
-  --color-bookmark-soft: var(--bookmark-soft);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-destructive-soft: var(--destructive-soft);
@@ -89,69 +87,72 @@ select {
   font: inherit;
 }
 
-/* Foundation iconControls 状态层；pending 的 aria-disabled 保留提交前视觉。 */
-[data-interaction-tone]:not([aria-disabled="true"]):not([aria-pressed="true"]):hover {
-  background-color: color-mix(
-    in srgb,
-    var(--muted),
-    var(--foreground) calc(var(--icon-control-hover-state-opacity) * 100%)
-  );
-  color: var(--foreground);
+/* Foundation iconControls：常驻态透明；只有图标命中区显示瞬时同色状态层。 */
+[data-interaction-tone] {
+  --interaction-tone-color: var(--accent-foreground);
 }
 
-[data-interaction-tone]:not([aria-disabled="true"]):not([aria-pressed="true"]):active {
-  background-color: color-mix(
-    in srgb,
-    var(--muted),
-    var(--foreground) calc(var(--icon-control-pressed-state-opacity) * 100%)
-  );
+[data-interaction-tone="like"] {
+  --interaction-tone-color: var(--like);
 }
 
-[data-interaction-tone="default"][aria-pressed="true"]:not([aria-disabled="true"]):hover {
-  background-color: color-mix(
-    in srgb,
-    var(--accent),
-    var(--accent-foreground) calc(var(--icon-control-hover-state-opacity) * 100%)
-  );
+[data-interaction-tone="bookmark"] {
+  --interaction-tone-color: var(--bookmark);
 }
 
-[data-interaction-tone="default"][aria-pressed="true"]:not([aria-disabled="true"]):active {
-  background-color: color-mix(
-    in srgb,
-    var(--accent),
-    var(--accent-foreground) calc(var(--icon-control-pressed-state-opacity) * 100%)
-  );
+[data-interaction-tone="subscription"] {
+  --interaction-tone-color: var(--brand-strong);
 }
 
-[data-interaction-tone="like"][aria-pressed="true"]:not([aria-disabled="true"]):hover {
-  background-color: color-mix(
-    in srgb,
-    var(--like-soft),
-    var(--like) calc(var(--icon-control-hover-state-opacity) * 100%)
-  );
+[data-slot="interaction-toggle-icon-target"] {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted-foreground);
+  transition: color var(--motion-fast) var(--ease-standard);
+  isolation: isolate;
 }
 
-[data-interaction-tone="like"][aria-pressed="true"]:not([aria-disabled="true"]):active {
-  background-color: color-mix(
-    in srgb,
-    var(--like-soft),
-    var(--like) calc(var(--icon-control-pressed-state-opacity) * 100%)
-  );
+[data-slot="interaction-toggle-icon-target"]::before {
+  position: absolute;
+  z-index: -1;
+  inset: -0.5rem;
+  border-radius: var(--icon-control-state-layer-radius);
+  background-color: transparent;
+  content: "";
+  pointer-events: none;
+  transition: background-color var(--motion-fast) var(--ease-standard);
 }
 
-[data-interaction-tone="bookmark"][aria-pressed="true"]:not([aria-disabled="true"]):hover {
+[data-interaction-tone][aria-pressed="true"] [data-slot="interaction-toggle-icon-target"],
+[data-interaction-tone]:not([aria-disabled="true"]):hover [data-slot="interaction-toggle-icon-target"],
+[data-interaction-tone]:not([aria-disabled="true"]):focus-visible [data-slot="interaction-toggle-icon-target"] {
+  color: var(--interaction-tone-color);
+}
+
+[data-interaction-tone]:not([aria-disabled="true"]):hover [data-slot="interaction-toggle-icon-target"]::before {
   background-color: color-mix(
     in srgb,
-    var(--bookmark-soft),
-    var(--bookmark) calc(var(--icon-control-hover-state-opacity) * 100%)
+    currentColor calc(var(--icon-control-hover-state-opacity) * 100%),
+    transparent
   );
 }
 
-[data-interaction-tone="bookmark"][aria-pressed="true"]:not([aria-disabled="true"]):active {
+[data-interaction-tone]:not([aria-disabled="true"]):focus-visible [data-slot="interaction-toggle-icon-target"]::before {
   background-color: color-mix(
     in srgb,
-    var(--bookmark-soft),
-    var(--bookmark) calc(var(--icon-control-pressed-state-opacity) * 100%)
+    currentColor calc(var(--icon-control-focus-state-opacity) * 100%),
+    transparent
+  );
+}
+
+[data-interaction-tone]:not([aria-disabled="true"]):active [data-slot="interaction-toggle-icon-target"]::before {
+  background-color: color-mix(
+    in srgb,
+    currentColor calc(var(--icon-control-pressed-state-opacity) * 100%),
+    transparent
   );
 }
 
@@ -159,24 +160,8 @@ select {
   transform: none;
 }
 
-[data-interaction-tone][aria-busy="true"] {
+[data-interaction-tone][aria-busy="true"] [data-slot="interaction-toggle-icon-target"]::before {
   background-color: transparent;
-  color: var(--muted-foreground);
-}
-
-[data-interaction-tone="default"][aria-busy="true"][aria-pressed="true"] {
-  background-color: var(--accent);
-  color: var(--accent-foreground);
-}
-
-[data-interaction-tone="like"][aria-busy="true"][aria-pressed="true"] {
-  background-color: var(--like-soft);
-  color: var(--foreground);
-}
-
-[data-interaction-tone="bookmark"][aria-busy="true"][aria-pressed="true"] {
-  background-color: var(--bookmark-soft);
-  color: var(--foreground);
 }
 
 .font-display {
@@ -597,12 +582,6 @@ select {
 .dice-inline-pending {
   background: var(--element-dice-pending-surface);
   color: var(--element-dice-pending-foreground);
-}
-
-/* 分类只保留 Foundation 中性结构线索。 */
-[data-slot="category-marker"] {
-  width: var(--element-category-marker-width);
-  background-color: var(--element-category-marker-foreground);
 }
 
 /* 正文图片兜底：任何 markdown 内容图片都不超出容器宽度 */

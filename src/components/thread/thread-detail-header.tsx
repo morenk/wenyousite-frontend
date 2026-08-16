@@ -24,10 +24,7 @@ import { useThreadPermissions } from "@/components/thread/thread-permissions-con
 import type { SubthreadDetail, ThreadDetail } from "@/api/hooks/use-thread-detail";
 import { ThreadSubscriptionControls } from "@/components/thread/thread-subscription-controls";
 import { WenyouTipButton } from "@/components/economy/wenyou-tip-button";
-import {
-  ThreadCategoryLabel,
-  ThreadCategoryMarker,
-} from "@/components/thread/thread-category";
+import { ThreadCategoryLabel } from "@/components/thread/thread-category";
 import { SubthreadSwitcher } from "@/components/thread/subthread-tabs";
 import { ThreadDetailMore } from "@/components/thread/thread-detail-more";
 import { getSubthreadHref } from "@/lib/post-navigation";
@@ -164,9 +161,6 @@ export function ThreadDetailHeader({
         data-slot="thread-document"
         className="relative overflow-hidden rounded-2xl border border-border bg-card"
       >
-        <ThreadCategoryMarker
-          className="absolute inset-y-0 left-0"
-        />
         <header data-slot="thread-detail-header">
           <div
             data-slot="thread-detail-identity"

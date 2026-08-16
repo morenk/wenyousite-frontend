@@ -47,7 +47,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 
 | Method | Path | Guard | 用途 |
 |--------|------|-------|------|
-| GET | `/thread-categories` | Public | 解析动态分类 slug 的名称、顺序和可选颜色 |
+| GET | `/thread-categories` | Public | 解析动态分类 slug 的名称与顺序 |
 | GET | `/threads/:id` | OptionalAuth | 主题帖详情（含子贴列表、owner、_count；登录时附加 isBookmarked/isLiked） |
 | GET | `/threads/:threadId/search/posts` | OptionalAuth | 帖内楼层搜索（至少 2 字符，相关度游标分页，继承主题帖权限） |
 | DELETE | `/threads/:id` | Auth | 删除主题帖：未发布帖硬删除，已发布帖软删除，仅 OWNER |
@@ -254,7 +254,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 | 当前选中子贴 | 用户通过目录、搜索结果或左右游标切换 | URL `subthread` 参数 + 本地派生（默认 `defaultSubthreadId`） |
 | 当前编辑会话 | 用户点击发表/回复/编辑 | `ThreadComposerProvider`（全页唯一 session + content + pending） |
 | 点赞状态 | `GET /threads/:id` 的 `isLiked` + `POST/DELETE /threads/:id/like` | useMutation + query invalidation；`likeCount` 仅用于展示总数 |
-| 订阅状态 | `GET /subscriptions` + `GET /threads/:id/members` | THREAD 通过单个图标切换官方更新；USER 在弹层中选择普通已标记玩家；楼主/协作者隐藏全部订阅控件 |
+| 订阅状态 | `GET /subscriptions` + `GET /threads/:id/members` | THREAD 通过单个图标切换官方更新；USER 在弹层中选择普通已标记玩家；楼主/协作者隐藏全部订阅控件；成功只更新控件状态，失败显示错误 Toast |
 | 当前用户帖内权限 | `GET /threads/:id` 的 `currentMembership` + `capabilities` | 与详情共用缓存，只查询当前用户成员关系；不为权限判断预取全量成员 |
 | 帖内搜索 | `GET /threads/:threadId/search/posts` | `useThreadSearchPosts` 游标分页；面板开关与待提交输入为详情页/组件本地状态 |
 | 表情收藏 | `GET /stickers` 与导入/排序/删除端点 | `useStickers` 用户级缓存；编辑器点选插入，正文图片可快速收藏 |
@@ -268,7 +268,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 | ThreadDetailPage | `src/app/threads/[id]/page.tsx` | 详情页主逻辑；管理入口关闭当前编辑器后导航到 workspace 编辑路由 |
 | ThreadDetailHeader | `src/components/thread/thread-detail-header.tsx` | 两段式排头卡：上层展示主题信息与搜索/分享/管理工具，下层以禁止换行的单行工具带合并弹性子贴目录与紧凑图标互动操作；点赞与收藏相邻 |
 | ThreadReadingBar | `src/components/thread/thread-reading-bar.tsx` | 排头卡离开视口后的帖内阅读书签条；保留标题、子贴目录、搜索和回顶，并遵循减少动态效果设置 |
-| ThreadSubscriptionControls | `src/components/thread/thread-subscription-controls.tsx` | 普通用户的官方更新图标开关与玩家订阅弹层、成员候选查询 |
+| ThreadSubscriptionControls | `src/components/thread/thread-subscription-controls.tsx` | 普通用户的官方更新图标开关与玩家订阅弹层、成员候选查询；官方更新激活态使用透明容器上的品牌深紫实心铃铛 |
 | ThreadPostSearch | `src/components/thread/thread-post-search.tsx` | 内联搜索全部子贴与楼中楼；处理短词、分页及四态 |
 | PostSearchResultList | `src/components/search/post-search-result-list.tsx` | 与全站搜索共用的结果列表、加载更多和精确帖子导航 |
 | SubthreadSwitcher | `src/components/thread/subthread-tabs.tsx` | 排头卡与阅读书签条共用的子贴目录；弹出紧凑的固定高度纵向菜单，显示当前项与各子贴楼层数；左右游标在首尾循环衔接 |
@@ -362,7 +362,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 
 > **子贴正文 vs 回复串：** 子贴正文（kind=BODY）与楼层/回复串（kind=FLOOR）定位不同——正文由子贴生命周期管理（管理面板 upsert，删除帖子接口对 BODY 返回 403 拦截），**楼层列表中的楼层（含 #1）作者均可删除/编辑**，不存在「首楼禁删」。
 
-**页面布局：** 主题帖排头卡为带玩法线路色的两段式信息面板（`ThreadDetailHeader`：上层为徽章/标题/作者/标签与低频工具，下层为禁止换行的子贴目录和图标互动工具带；目录标题弹性截断，左右游标首尾循环）→ 排头卡离开视口后出现阅读书签条（标题、目录、搜索、回顶）→ 当前子贴标题与正文（不重复显示定位说明）→ 楼层列表（不额外显示“讨论 n 楼”标题）→ 语义上位于列表底部、视觉上浮在视口底部的轻量发布入口。
+**页面布局：** 主题帖排头卡为不带分类色块的两段式信息面板（`ThreadDetailHeader`：上层为徽章/标题/作者/标签与低频工具，下层为禁止换行的子贴目录和图标互动工具带；目录标题弹性截断，左右游标首尾循环）→ 排头卡离开视口后出现阅读书签条（标题、目录、搜索、回顶）→ 当前子贴标题与正文（不重复显示定位说明）→ 楼层列表（不额外显示“讨论 n 楼”标题）→ 语义上位于列表底部、视觉上浮在视口底部的轻量发布入口。
 
 ```
 用户点击 FloorForm 的「发表回复」入口

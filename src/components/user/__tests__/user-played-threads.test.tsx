@@ -50,11 +50,12 @@ const sampleThread = {
   visibility: "PUBLIC",
   published: true,
   pinned: false,
+  tipTotal: "4",
   createdAt: "2026-01-01T00:00:00Z",
   updatedAt: "2026-01-01T00:00:00Z",
   deletedAt: null,
-  owner: { id: "u1", username: "testuser", avatar: null },
-  defaultSubthread: { id: "s1", title: "测试帖" },
+  owner: { id: "u1", username: "testuser", avatar: null, level: 2 },
+  defaultSubthread: { id: "s1", title: "测试帖", lastPostAt: null },
   topicTags: [],
   _count: { members: 1, players: 1, posts: 2 },
   preview: "预览",
@@ -72,7 +73,7 @@ describe("UserPlayedThreads", () => {
       error: undefined,
     });
     render(<UserPlayedThreads userId="u1" isSelf={false} />, { wrapper: createWrapper() });
-    expect(screen.getByText("加载中…")).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "正在加载主题帖" })).toBeInTheDocument();
   });
 
   test("空列表显示空状态", () => {
@@ -169,6 +170,6 @@ describe("UserPlayedThreads", () => {
 
     render(<UserPlayedThreads userId="u1" isSelf />, { wrapper: createWrapper() });
 
-    expect(within(screen.getByRole("link", { name: /测试帖/ })).getByText("私密帖")).toBeInTheDocument();
+    expect(within(screen.getByRole("listitem")).getByText("私密帖")).toBeInTheDocument();
   });
 });

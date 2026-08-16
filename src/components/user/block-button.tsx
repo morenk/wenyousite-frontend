@@ -32,7 +32,6 @@ export function BlockButton({ userId, isBlocked }: BlockButtonProps) {
     }))) return;
     try {
       await block.mutateAsync();
-      toast.success("已拉黑");
     } catch {
       toast.error("操作失败，请稍后重试");
     }
@@ -41,7 +40,6 @@ export function BlockButton({ userId, isBlocked }: BlockButtonProps) {
   const handleUnblock = async () => {
     try {
       await unblock.mutateAsync();
-      toast.success("已取消拉黑");
     } catch {
       toast.error("操作失败，请稍后重试");
     }

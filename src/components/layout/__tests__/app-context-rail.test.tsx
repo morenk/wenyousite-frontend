@@ -22,10 +22,6 @@ vi.mock("@/api/hooks/use-economy", () => ({
   useWallet: () => ({ data: { balance: "18" } }),
 }));
 
-vi.mock("@/components/thread/thread-categories-provider", () => ({
-  useThreadCategoriesContext: () => ({ categories: [] }),
-}));
-
 describe("AppContextRail", () => {
   beforeEach(() => vi.clearAllMocks());
   afterEach(() => cleanup());
@@ -53,6 +49,8 @@ describe("AppContextRail", () => {
     expect(screen.getByRole("link", { name: "收藏" })).toHaveAttribute("href", "/bookmarks");
     expect(screen.getByRole("link", { name: "资料与设置" })).toHaveAttribute("href", "/me");
     expect(screen.getByText("18 升")).toBeInTheDocument();
+    expect(screen.queryByText("按玩法发现")).not.toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "玩法分类" })).not.toBeInTheDocument();
   });
 
   test("访客只显示注册与登录入口", () => {

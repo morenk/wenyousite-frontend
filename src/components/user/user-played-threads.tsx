@@ -1,11 +1,11 @@
-/** 用户参与的帖子列表（薄包装：useUserPlayedThreads + UserThreadList） */
+/** 用户参与的帖子列表（薄包装：useUserPlayedThreads + 首页 ThreadList） */
 
 "use client";
 
 import { useState } from "react";
 import { useUserPlayedThreads } from "@/api/hooks/use-user-played-threads";
 import type { PlayedThreadVisibility } from "@/api/hooks/use-user-played-threads";
-import { UserThreadList } from "@/components/user/user-thread-list";
+import { ThreadList } from "@/components/thread/thread-list";
 import { Button } from "@/components/ui/button";
 
 interface UserPlayedThreadsProps {
@@ -28,6 +28,8 @@ export function UserPlayedThreads({ userId, isSelf }: UserPlayedThreadsProps) {
     isFetchingNextPage,
     isLoading,
     isError,
+    error,
+    refetch,
   } = useUserPlayedThreads(userId, isSelf ? visibility : undefined);
 
   const threads = data?.pages.flatMap((page) => page?.data ?? []) ?? [];
@@ -59,13 +61,14 @@ export function UserPlayedThreads({ userId, isSelf }: UserPlayedThreadsProps) {
           })}
         </div>
       )}
-      <UserThreadList
+      <ThreadList
         threads={threads}
         isLoading={isLoading}
-        isError={isError}
-        hasNextPage={hasNextPage}
+        error={isError ? error ?? new Error(isSelf ? "参与的帖子加载失败" : "该用户未公开参与的帖子") : null}
+        hasNextPage={!!hasNextPage}
         isFetchingNextPage={isFetchingNextPage}
-        fetchNextPage={fetchNextPage}
+        onLoadMore={() => void fetchNextPage()}
+        onRetry={() => void refetch()}
         emptyTitle={emptyTitle}
         errorTitle={isSelf ? "参与的帖子加载失败" : "该用户未公开参与的帖子"}
       />

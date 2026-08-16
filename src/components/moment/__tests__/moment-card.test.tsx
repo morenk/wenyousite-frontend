@@ -123,10 +123,13 @@ describe("MomentCard", () => {
     const likeButton = screen.getByRole("button", { name: "点赞" });
     expect(likeButton).toHaveAttribute("aria-pressed", "true");
     expect(likeButton).toHaveAccessibleDescription("当前 2 个赞");
-    expect(likeButton).toHaveClass("bg-like-soft", "text-foreground");
+    expect(likeButton).toHaveClass("bg-transparent", "text-foreground");
+    expect(likeButton).not.toHaveClass("bg-like-soft");
     expect(likeButton).not.toHaveClass("text-destructive", "text-brand-strong");
     expect(likeButton.querySelector('[data-slot="interaction-toggle-icon"]'))
-      .toHaveClass("fill-like", "text-like");
+      .toHaveClass("text-like");
+    expect(likeButton.querySelector('[data-slot="interaction-toggle-icon"]'))
+      .toHaveAttribute("data-icon-variant", "filled");
   });
 
   test("接口失败显示明确错误", async () => {
@@ -145,8 +148,7 @@ describe("MomentCard", () => {
     expect(button).toHaveAttribute("aria-busy", "true");
     expect(button).not.toBeDisabled();
     expect(button.querySelector('[data-slot="interaction-toggle-icon"]')).toHaveClass(
-      "transition-[color,fill,transform]",
-      "motion-safe:group-active/interaction-toggle:scale-90",
+      "transition-[color,fill]",
       "animate-spin",
     );
   });

@@ -80,7 +80,7 @@ describe("economy hooks", () => {
     expect(mockGET).not.toHaveBeenCalled();
   });
 
-  test("钱包流水按服务端 cursor 加载下一页", async () => {
+  test("钱包流水按服务端 cursor 查询并分别缓存每一页", async () => {
     mockGET
       .mockResolvedValueOnce({
         data: {
@@ -98,31 +98,37 @@ describe("economy hooks", () => {
           meta: { cursor: null, hasMore: false },
         },
       });
-    const { wrapper } = createHarness();
-    const { result } = renderHook(() => useWalletTransactions("user-1"), { wrapper });
+    const { client, wrapper } = createHarness();
+    const { result, rerender } = renderHook(
+      ({ cursor }: { cursor?: string }) => useWalletTransactions("user-1", cursor),
+      { wrapper, initialProps: { cursor: undefined as string | undefined } },
+    );
 
-    await waitFor(() => expect(result.current.hasNextPage).toBe(true));
-    await act(async () => {
-      await result.current.fetchNextPage();
-    });
+    await waitFor(() => expect(result.current.data?.meta.hasMore).toBe(true));
+    rerender({ cursor: "cursor-2" });
+    await waitFor(() => expect(result.current.data?.data).toEqual([{ id: "transaction-2" }]));
 
-    await waitFor(() => expect(result.current.data?.pages).toHaveLength(2));
     expect(mockGET).toHaveBeenNthCalledWith(1, "/api/v1/wallet/transactions", {
       params: { query: { limit: 20 } },
     });
     expect(mockGET).toHaveBeenNthCalledWith(2, "/api/v1/wallet/transactions", {
       params: { query: { limit: 20, cursor: "cursor-2" } },
     });
-    expect(result.current.hasNextPage).toBe(false);
+    expect(client.getQueryData(queryKeys.wallet.transactionPage("user-1")))
+      .toMatchObject({ data: [{ id: "transaction-1" }] });
+    expect(client.getQueryData(queryKeys.wallet.transactionPage("user-1", "cursor-2")))
+      .toMatchObject({ data: [{ id: "transaction-2" }] });
   });
 
   test("签到返回服务端幂等结果并刷新余额、流水和等级相关缓存", async () => {
     mockPOST.mockResolvedValue({ data: { data: checkInResult } });
     const { client, wrapper } = createHarness();
-    const transactionsKey = queryKeys.wallet.transactions("user-1");
+    const firstTransactionsKey = queryKeys.wallet.transactionPage("user-1");
+    const nextTransactionsKey = queryKeys.wallet.transactionPage("user-1", "cursor-2");
     const profileKey = queryKeys.users.detailForViewer("user-1", "viewer-user-1");
     client.setQueryData(queryKeys.wallet.detail("user-1"), wallet);
-    client.setQueryData(transactionsKey, { pages: [] });
+    client.setQueryData(firstTransactionsKey, { data: [] });
+    client.setQueryData(nextTransactionsKey, { data: [] });
     client.setQueryData(queryKeys.me, { level: 1 });
     client.setQueryData(profileKey, { level: 1 });
     const { result } = renderHook(() => useDailyCheckIn("user-1"), { wrapper });
@@ -138,7 +144,8 @@ describe("economy hooks", () => {
       ...wallet,
       balance: "12",
     });
-    expect(client.getQueryState(transactionsKey)?.isInvalidated).toBe(true);
+    expect(client.getQueryState(firstTransactionsKey)?.isInvalidated).toBe(true);
+    expect(client.getQueryState(nextTransactionsKey)?.isInvalidated).toBe(true);
     expect(client.getQueryState(queryKeys.me)?.isInvalidated).toBe(true);
     expect(client.getQueryState(profileKey)?.isInvalidated).toBe(true);
   });
@@ -159,12 +166,14 @@ describe("economy hooks", () => {
     mockPOST.mockResolvedValue({ data: { data: tipResult } });
     const { client, wrapper } = createHarness();
     const walletKey = queryKeys.wallet.detail("user-1");
-    const transactionsKey = queryKeys.wallet.transactions("user-1");
+    const firstTransactionsKey = queryKeys.wallet.transactionPage("user-1");
+    const nextTransactionsKey = queryKeys.wallet.transactionPage("user-1", "cursor-2");
     const threadKey = queryKeys.threads.detailForViewer("thread-1", "viewer-user-1");
     const listKey = queryKeys.threads.list({ sort: "active" });
     const recipientKey = queryKeys.users.detailForViewer("owner-1", "viewer-user-1");
     client.setQueryData(walletKey, wallet);
-    client.setQueryData(transactionsKey, { pages: [] });
+    client.setQueryData(firstTransactionsKey, { data: [] });
+    client.setQueryData(nextTransactionsKey, { data: [] });
     client.setQueryData(threadKey, { tipTotal: "0" });
     client.setQueryData(listKey, { pages: [] });
     client.setQueryData(recipientKey, { receivedTipTotal: "0" });
@@ -192,7 +201,8 @@ describe("economy hooks", () => {
       },
     });
     expect(client.getQueryData(walletKey)).toEqual({ ...wallet, balance: "2" });
-    expect(client.getQueryState(transactionsKey)?.isInvalidated).toBe(true);
+    expect(client.getQueryState(firstTransactionsKey)?.isInvalidated).toBe(true);
+    expect(client.getQueryState(nextTransactionsKey)?.isInvalidated).toBe(true);
     expect(client.getQueryState(threadKey)?.isInvalidated).toBe(true);
     expect(client.getQueryState(listKey)?.isInvalidated).toBe(true);
     expect(client.getQueryState(recipientKey)?.isInvalidated).toBe(true);

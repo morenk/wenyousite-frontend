@@ -1,6 +1,6 @@
 /** 温油钱包、签到、流水与打赏 API hooks。 */
 
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
 import type { components, operations } from "@/api/types";
@@ -48,15 +48,15 @@ export function useDailyCheckIn(userId: string | undefined) {
   });
 }
 
-export function useWalletTransactions(userId: string | undefined) {
-  return useInfiniteQuery({
-    queryKey: queryKeys.wallet.transactions(userId),
-    queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
+export function useWalletTransactions(userId: string | undefined, cursor?: string) {
+  return useQuery({
+    queryKey: queryKeys.wallet.transactionPage(userId, cursor),
+    queryFn: async () => {
       const { data, error } = await apiClient.GET("/api/v1/wallet/transactions", {
         params: {
           query: {
             limit: 20,
-            ...(pageParam ? { cursor: pageParam } : {}),
+            ...(cursor ? { cursor } : {}),
           },
         },
       });
@@ -71,8 +71,6 @@ export function useWalletTransactions(userId: string | undefined) {
       }
       return data;
     },
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (page) => page.meta.hasMore ? page.meta.cursor ?? undefined : undefined,
     enabled: !!userId,
     staleTime: 10 * 1000,
   });

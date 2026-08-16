@@ -146,7 +146,6 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
     if (!conversation) return;
     try {
       await actions.setArchived.mutateAsync(!conversation.archivedAt);
-      toast.success(conversation.archivedAt ? "已移回会话列表" : "已归档");
     } catch (error) {
       toast.error(getApiErrorMessage(error, "归档操作失败"));
     }
@@ -163,7 +162,6 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
     if (!confirmed) return;
     try {
       await blockActions.block.mutateAsync();
-      toast.success("已拉黑");
     } catch (error) {
       toast.error(getApiErrorMessage(error, "操作失败，请稍后重试"));
     }

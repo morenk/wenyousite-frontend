@@ -90,10 +90,11 @@
 | 组件 | 路径 | 说明 |
 |------|------|------|
 | BookmarkButton | `src/components/user/bookmark-button.tsx` | 详情页收藏/取消切换 |
-| BookmarkFolderBar | `src/components/user/bookmark-folder-bar.tsx` | 分类筛选、数量与 RHF + Zod 新建弹窗 |
+| BookmarkFolderBar | `src/components/user/bookmark-folder-bar.tsx` | 分类筛选、数量与共享新建收藏夹入口 |
+| CreateBookmarkFolderButton | `src/components/user/create-bookmark-folder-button.tsx` | RHF + Zod 新建收藏夹弹窗；管理页与本人资料收藏页复用 |
 | BookmarkThreadCard | `src/components/user/bookmark-thread-card.tsx` | 收藏帖卡片（分类/标题/作者/时间/移动/取消） |
 | BookmarkList | `src/components/user/bookmark-list.tsx` | 我的收藏管理列表（分类分页 + 移动 + 取消） |
-| UserBookmarksSection | `src/components/user/user-bookmarks-section.tsx` | 资料页收藏 Tab 的只读列表（404=未公开） |
+| UserBookmarksSection | `src/components/user/user-bookmarks-section.tsx` | 资料页收藏 Tab 复用首页主题帖列表卡片，保持只读（404=未公开） |
 | UserBookmarksPage | `src/components/user/user-bookmarks-page.tsx` | 收藏 Tab 页面与权限门；无权限时不挂载列表查询 |
 | useBookmarks | `src/api/hooks/use-bookmarks.ts` | 我的收藏 hook |
 | useUserBookmarks | `src/api/hooks/use-user-bookmarks.ts` | 他人收藏 hook |
@@ -103,8 +104,10 @@
 ## 7. 交互规则
 
 - 详情页按钮：已收藏 → 取消（按 bookmarkId DELETE）；未收藏 → 不传 folderId 收藏到默认收藏夹
-- 可操作收藏未选中时使用中性描边，选中后使用 Foundation 金色实心书签与柔和金底；文字保持正文色，请求中保留原状态视觉，并通过稳定“收藏”名称与 `aria-pressed` 暴露状态
+- 可操作收藏未选中时使用中性描边，选中后仅使用 Foundation 金色实心书签，容器保持透明；文字保持正文色，请求中保留原状态视觉，并通过稳定“收藏”名称与 `aria-pressed` 暴露状态
+- 收藏与取消收藏成功后只刷新按钮或列表状态，不显示成功 Toast；失败继续显示错误 Toast
 - `/bookmarks` 分类条固定“全部”在首位，服务端默认收藏夹其次；可新建 1–24 字分类
+- 本人资料收藏页标题区直接提供“新建收藏夹”，他人资料收藏页不显示管理操作
 - 每条收藏可从选择器移动分类，当前筛选与所有分类计数同步刷新
 - 资料页收藏 Tab read-only，点击跳转帖子；未公开时隐藏主 Tab，直达路由不发起列表请求
 - 私密帖仅参与人可收藏（后端校验）
@@ -133,5 +136,5 @@
 - 可操作收藏按钮正确呈现金色选中态；导航入口、收藏列表指标等只读书签继续使用通用导航/信息色
 - `/bookmarks` 我的收藏夹筛选、新建、移动、取消收藏与 cursor 分页
 - 登录后全局导航栏显示收藏入口
-- 用户资料页收藏 Tab（read-only），未公开时隐藏入口且直达显示占位
+- 用户资料页收藏 Tab 复用首页主题帖卡片并保持 read-only；本人可新建收藏夹，未公开时隐藏入口且直达显示占位
 - 私密帖收藏权限由后端保证

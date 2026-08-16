@@ -57,7 +57,7 @@ describe("BookmarkButton", () => {
     await user.click(btn);
 
     expect(addMutate).toHaveBeenCalled();
-    expect(toast.success).toHaveBeenCalledWith("已收藏");
+    expect(toast.success).not.toHaveBeenCalled();
   });
 
   test("已收藏显示「已收藏」，点击调用 remove(bookmarkId)", async () => {
@@ -72,12 +72,28 @@ describe("BookmarkButton", () => {
     const btn = screen.getByRole("button", { name: "收藏" });
     expect(btn).toHaveTextContent("已收藏");
     expect(btn).toHaveAttribute("aria-pressed", "true");
-    expect(btn).toHaveClass("bg-bookmark-soft", "text-foreground");
+    expect(btn).toHaveClass("bg-transparent", "text-foreground");
+    expect(btn).not.toHaveClass("bg-bookmark-soft");
     expect(btn.querySelector('[data-slot="interaction-toggle-icon"]'))
-      .toHaveClass("fill-bookmark", "text-bookmark");
+      .toHaveClass("text-bookmark");
+    expect(btn.querySelector('[data-slot="interaction-toggle-icon"]'))
+      .toHaveAttribute("data-icon-variant", "filled");
     await user.click(btn);
 
     expect(removeMutate).toHaveBeenCalledWith("bm1");
-    expect(toast.success).toHaveBeenCalledWith("已取消收藏");
+    expect(toast.success).not.toHaveBeenCalled();
+  });
+
+  test("收藏失败时保留错误提示", async () => {
+    const user = userEvent.setup();
+    mockUseBookmarkActions.mockReturnValue({
+      add: { isPending: false, mutateAsync: vi.fn().mockRejectedValue(new Error("failed")) },
+      remove: { isPending: false, mutateAsync: vi.fn() },
+    });
+
+    renderWithQC(<BookmarkButton threadId="t1" isBookmarked={false} bookmarkId={null} />);
+    await user.click(screen.getByRole("button", { name: "收藏" }));
+
+    expect(toast.error).toHaveBeenCalledWith("操作失败，请稍后重试");
   });
 });
