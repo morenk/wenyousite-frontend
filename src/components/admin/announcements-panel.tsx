@@ -31,6 +31,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { WenyouTime } from "@/components/shared/wenyou-time";
 import { adminAnnouncementFilterParsers, adminAnnouncementUrlKeys } from "@/lib/admin-url-state";
 
 const schema = z.object({
@@ -100,7 +101,7 @@ export function AnnouncementsPanel() {
       <section className="self-start rounded-lg border border-border bg-card p-6">
         <div className="flex items-center gap-3">
           <span className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground"><BellRing className="size-5" /></span>
-          <div><h2 className="font-display text-xl font-bold">新建站内通知</h2><p className="text-xs text-muted-foreground">系统会分批投递，可立即或定时发送。</p></div>
+          <div><h2 className="font-display text-xl font-medium">新建站内通知</h2><p className="text-xs text-muted-foreground">系统会分批投递，可立即或定时发送。</p></div>
         </div>
         <form
           className="mt-6 space-y-4"
@@ -149,7 +150,7 @@ export function AnnouncementsPanel() {
       <section className="overflow-hidden rounded-lg border border-border bg-card">
         <div className="flex items-center gap-3 border-b border-border px-6 py-5">
           <CalendarClock className="size-5 text-brand-strong" />
-          <div><h2 className="font-display text-lg font-bold">发送计划与历史</h2><p className="text-xs text-muted-foreground">进入发送队列后不允许取消，避免部分用户收到后回滚。</p></div>
+          <div><h2 className="font-display text-lg font-medium">发送计划与历史</h2><p className="text-xs text-muted-foreground">进入发送队列后不允许取消，避免部分用户收到后回滚。</p></div>
         </div>
         <AdminFilterBar
           activeCount={activeCount}
@@ -207,7 +208,7 @@ export function AnnouncementsPanel() {
                 <p className="font-bold">{campaign.title}</p>
                 <p className="mt-0.5 line-clamp-2 text-xs leading-5 text-muted-foreground">{campaign.content}</p>
               </AdminTableCell>
-              <AdminTableCell className="font-utility text-xs whitespace-nowrap text-muted-foreground">{format(new Date(campaign.scheduledAt), "yyyy-MM-dd HH:mm")}</AdminTableCell>
+              <AdminTableCell className="text-xs whitespace-nowrap text-muted-foreground"><WenyouTime value={campaign.scheduledAt} /></AdminTableCell>
               <AdminTableCell className="text-right font-utility text-xs whitespace-nowrap"><span className="font-bold text-foreground">{campaign.recipientCount}</span><span className="text-muted-foreground"> / 预计 {campaign.estimatedCount}</span></AdminTableCell>
               <AdminTableCell className="whitespace-nowrap">{campaign.createdBy.username}</AdminTableCell>
               <AdminTableCell className="text-right">

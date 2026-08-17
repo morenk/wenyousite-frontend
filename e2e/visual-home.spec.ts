@@ -33,6 +33,7 @@ const threads = [
     ],
     _count: { members: 5, players: 4, posts: 36 },
     preview: "午夜之后，旧站台会驶来一班时刻表上不存在的列车。我们需要在天亮前找到回程的路。",
+    coverImages: [],
   },
   {
     id: "visual-thread-2",
@@ -58,6 +59,7 @@ const threads = [
     ],
     _count: { members: 8, players: 6, posts: 18 },
     preview: "本轮议题包括边境航道、共同防务与下一年度的资源交换协议。",
+    coverImages: [],
   },
   {
     id: "visual-thread-3",
@@ -76,6 +78,7 @@ const threads = [
     topicTags: [],
     _count: { members: 3, players: 3, posts: 24 },
     preview: "每逢暴雨，电梯都会在不存在的十三层停下。最新的住户档案里又少了一个名字。",
+    coverImages: [],
   },
 ] as const;
 

@@ -60,7 +60,7 @@ export function ThreadReadingBar({
             transition={{ duration: 0.16, ease: [0.2, 0.8, 0.2, 1] }}
             className="pointer-events-auto mx-1 flex min-w-0 items-center gap-2 overflow-visible rounded-2xl border border-border bg-card/95 p-2 shadow-floating backdrop-blur-md"
           >
-            <span className="min-w-0 max-w-40 truncate px-2 font-display text-sm font-bold text-foreground">
+            <span className="min-w-0 max-w-40 truncate px-2 text-sm font-semibold text-foreground">
               {threadTitle}
             </span>
             <div className="h-5 w-px shrink-0 bg-border" aria-hidden="true" />

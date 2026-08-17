@@ -3,8 +3,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { formatDistanceToNow } from "date-fns";
-import { zhCN } from "date-fns/locale";
 import {
   X,
   Trash2,
@@ -21,6 +19,7 @@ import { useSaveDraft } from "@/api/hooks/use-save-draft";
 import { useDeleteContentDraft } from "@/api/hooks/use-delete-content-draft";
 import { getApiErrorMessage } from "@/api/errors";
 import { Button } from "@/components/ui/button";
+import { WenyouTime } from "@/components/shared/wenyou-time";
 import { useConfirm } from "@/components/ui/confirm-provider";
 import { parseInlineDiceNodes, replaceInlineDiceNodes } from "@/lib/dice-inline";
 
@@ -266,7 +265,7 @@ export function ContentDraftsPanel({
                     key={slot}
                     className="group flex min-h-20 items-center gap-3 rounded-lg border border-dashed border-border bg-background/60 px-3 py-2.5"
                   >
-                    <span className="font-display text-xl font-bold tabular-nums text-muted-foreground/45">
+                    <span className="font-utility text-xl font-medium tabular-nums text-muted-foreground/45">
                       {String(slot).padStart(2, "0")}
                     </span>
                     <div className="min-w-0 flex-1">
@@ -289,19 +288,14 @@ export function ContentDraftsPanel({
                   key={draft.id}
                   className="relative min-h-28 overflow-hidden rounded-lg border border-border bg-background px-3 py-2.5 pl-12"
                 >
-                  <span className="absolute inset-y-0 left-0 flex w-9 items-start justify-center border-r border-border bg-muted/35 pt-2.5 font-display text-base font-bold tabular-nums text-brand-strong">
+                  <span className="absolute inset-y-0 left-0 flex w-9 items-start justify-center border-r border-border bg-muted/35 pt-2.5 font-utility text-base font-medium tabular-nums text-brand-strong">
                     {String(slot).padStart(2, "0")}
                   </span>
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-[11px] font-medium text-muted-foreground">
                       {slot === 1 && autoSaveEnabled ? "自动保存中" : "正文快照"}
                     </span>
-                    <span className="text-[11px] text-muted-foreground">
-                      {formatDistanceToNow(new Date(draft.updatedAt), {
-                        addSuffix: true,
-                        locale: zhCN,
-                      })}
-                    </span>
+                    <WenyouTime value={draft.updatedAt} className="text-[11px] text-muted-foreground" />
                   </div>
                   <p className="mt-1 line-clamp-2 min-h-8 whitespace-pre-wrap break-words text-xs leading-4 text-foreground">
                     {replaceInlineDiceNodes(draft.content, (node) => `${node.notation} = ?`) || "（无正文）"}

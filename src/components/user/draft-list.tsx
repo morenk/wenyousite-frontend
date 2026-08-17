@@ -3,8 +3,6 @@
 "use client";
 
 import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
-import { zhCN } from "date-fns/locale";
 import { FileEdit, Trash2, Loader2, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { useDrafts } from "@/api/hooks/use-drafts";
@@ -12,6 +10,7 @@ import { useDeleteThread } from "@/api/hooks/use-delete-thread";
 import { getApiErrorMessage } from "@/api/errors";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
+import { WenyouTime } from "@/components/shared/wenyou-time";
 import { useConfirm } from "@/components/ui/confirm-provider";
 import { buttonVariants } from "@/components/ui/button";
 import { ThreadCategoryLabel } from "@/components/thread/thread-category";
@@ -81,17 +80,14 @@ export function DraftList() {
             </div>
             <Link
               href={`/threads/${draft.id}/edit`}
-              className="block truncate font-display text-base font-bold text-foreground hover:text-brand-strong"
+              className="block truncate text-base font-semibold text-foreground hover:text-brand-strong"
             >
               {draft.title || "未命名草稿"}
             </Link>
             <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
               <Clock className="h-3 w-3" />
               更新于{" "}
-              {formatDistanceToNow(new Date(draft.updatedAt), {
-                addSuffix: true,
-                locale: zhCN,
-              })}
+              <WenyouTime value={draft.updatedAt} />
             </p>
           </div>
 

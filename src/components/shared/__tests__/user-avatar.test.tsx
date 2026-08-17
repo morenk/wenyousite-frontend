@@ -1,7 +1,7 @@
 /** UserAvatar 组件测试：有 URL 用缩略图，无则首字符占位 */
 
 import { describe, test, expect, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import { UserAvatar, UserAvatarLink } from "@/components/shared/user-avatar";
 
 afterEach(() => cleanup());
@@ -35,6 +35,17 @@ describe("UserAvatar", () => {
   test("svg 头像保持原 URL", () => {
     render(<UserAvatar name="alice" src="https://example.com/icon.svg" />);
     expect(screen.getByRole("img")).toHaveAttribute("src", "https://example.com/icon.svg");
+  });
+
+  test("头像加载失败后降级为首字符", () => {
+    render(<UserAvatar name="南枝" src="https://example.com/uploads/broken.png" />);
+    fireEvent.error(screen.getByRole("img", { name: "南枝" }));
+
+    expect(screen.getByTestId("user-avatar-placeholder")).toHaveTextContent("南");
+    expect(screen.getByTestId("user-avatar-placeholder")).toHaveAttribute(
+      "data-avatar-fallback",
+      "first-readable-character",
+    );
   });
 
   test("已注销用户统一显示灰色用户图标且忽略旧头像", () => {

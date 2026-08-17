@@ -53,7 +53,11 @@ const sample = {
   updatedAt: "2026-01-01T00:00:00Z",
   deletedAt: null,
   owner: { id: "u1", username: "morenk", avatar: null, level: 3 },
-  _count: { members: 1, posts: 2 },
+  defaultSubthread: { id: "s1", title: "主贴", lastPostAt: null },
+  topicTags: [],
+  _count: { members: 1, players: 1, posts: 2 },
+  preview: "公开收藏摘要",
+  coverImages: [],
 };
 
 describe("UserBookmarksSection", () => {
@@ -112,6 +116,7 @@ describe("UserBookmarksSection", () => {
     render(<UserBookmarksSection userId="u1" />, { wrapper: createWrapper() });
     expect(screen.getByRole("link", { name: /他人收藏/ })).toHaveAttribute("href", "/threads/t1");
     expect(screen.getByText("morenk")).toBeInTheDocument();
+    expect(screen.getByText("公开收藏摘要")).toBeInTheDocument();
     expect(screen.getByText("8 升")).toBeInTheDocument();
     expect(screen.queryByTitle("取消收藏")).not.toBeInTheDocument();
   });

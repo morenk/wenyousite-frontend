@@ -47,7 +47,7 @@ export function MomentCover({ moment, priority = false, className }: MomentCover
         className,
       )}
     >
-      <p className="line-clamp-5 font-display text-[clamp(1.35rem,2.2vw,1.8rem)] font-bold leading-[1.55] tracking-wide">
+      <p className="line-clamp-5 font-display text-[clamp(1.35rem,2.2vw,1.8rem)] font-medium leading-[1.55] tracking-wide">
         {moment.title}
       </p>
     </div>

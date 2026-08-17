@@ -70,21 +70,21 @@ describe("dice-inline", () => {
     );
   });
 
-  test("格式化多骰、正修正和负修正的逐骰结果", () => {
+  test("可见文案只显示总计，完整语义保留逐骰结果和修正值", () => {
     expect(formatInlineDiceRoll({
       nodeId: NODE_ID,
       notation: "2d50",
       results: [33, 48],
       modifier: 0,
       total: 81,
-    })).toBe("2d50 = [33, 48] = 81");
+    })).toBe("2d50 = 81");
     expect(formatInlineDiceRoll({
       nodeId: NODE_ID,
       notation: "2d6+3",
       results: [2, 5],
       modifier: 3,
       total: 10,
-    })).toBe("2d6+3 = [2, 5] + 3 = 10");
+    })).toBe("2d6+3 = 10");
     expect(describeInlineDiceRoll({
       nodeId: NODE_ID,
       notation: "2d6-3",

@@ -282,7 +282,7 @@ export function ThreadEditForm({
             <p className="font-utility text-xs font-bold uppercase tracking-[0.12em] text-brand-strong">
               帖子内容
             </p>
-            <h2 className="mt-1 font-display text-xl font-bold text-foreground">
+            <h2 className="mt-1 font-display text-xl font-medium text-foreground">
               标题与主帖正文
             </h2>
           </div>
@@ -328,7 +328,7 @@ export function ThreadEditForm({
         <aside className="sticky top-4 space-y-4">
           <section className="rounded-2xl border border-border bg-muted/25 p-4">
             <div className="mb-4 flex items-center justify-between gap-3">
-              <h2 className="font-display text-lg font-bold text-foreground">发布设置</h2>
+              <h2 className="font-display text-lg font-medium text-foreground">发布设置</h2>
               {!isOwner ? <Badge tone="info">协作者只读部分</Badge> : null}
             </div>
             <div className="space-y-4">

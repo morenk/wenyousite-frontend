@@ -562,15 +562,16 @@ select {
   border-block-start: var(--element-divider-width) solid var(--border);
 }
 
-/* 骰子是正文内联原子节点：继承周围文字，只用底色区分待掷与正式结果。 */
+/* 骰子是正文内联原子节点：整体随段落换行，内部不拆分，并与正文基线对齐。 */
 .dice-inline {
-  display: inline;
+  display: inline-flex;
+  align-items: baseline;
   padding: var(--element-dice-padding-block) var(--element-dice-padding-inline);
   border-radius: var(--element-dice-radius);
   font-family: var(--font-utility);
   line-height: inherit;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
+  vertical-align: baseline;
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 

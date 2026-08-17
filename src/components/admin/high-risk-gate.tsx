@@ -25,7 +25,7 @@ export function HighRiskGate({ children }: { children: React.ReactNode }) {
       <span className="mx-auto flex size-12 items-center justify-center rounded-xl bg-warning-soft text-warning">
         {challengeId ? <MailCheck className="size-5" /> : <ShieldEllipsis className="size-5" />}
       </span>
-      <h2 className="mt-5 font-display text-2xl font-bold">确认这次高风险操作</h2>
+      <h2 className="mt-5 text-2xl font-semibold">确认这次高风险操作</h2>
       <p className="mt-3 text-sm leading-6 text-muted-foreground">
         {challengeId
           ? "验证码已发送到管理员绑定邮箱。验证后 10 分钟内无需重复确认。"

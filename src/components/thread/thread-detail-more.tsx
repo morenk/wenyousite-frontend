@@ -98,7 +98,7 @@ export function ThreadDetailMore({
         >
           <Popover.Popup className="w-[min(20rem,calc(100vw-2rem))] rounded-2xl border border-border bg-popover p-2 text-popover-foreground shadow-popover outline-none">
             <div className="px-2 pb-2 pt-1.5">
-              <Popover.Title className="font-display text-sm font-bold">
+              <Popover.Title className="text-sm font-semibold">
                 帖子信息
               </Popover.Title>
             </div>

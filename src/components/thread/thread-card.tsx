@@ -4,12 +4,13 @@
 
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
-import { formatDistanceToNow } from "date-fns";
-import { zhCN } from "date-fns/locale";
+import { CONTENT_PRESENTATION } from "@wenyousite/foundation/collections";
 import { Fuel, LockKeyhole, MessageSquare, Users } from "lucide-react";
 import { formatMarkdownPreview } from "@/lib/markdown-preview";
 import { THREAD_STATUS_META } from "@/lib/thread-presentation";
 import { UserAvatar } from "@/components/shared/user-avatar";
+import { WenyouTime } from "@/components/shared/wenyou-time";
+import { WenyouCount } from "@/components/shared/wenyou-count";
 import type { ThreadCardData } from "@/api/hooks/use-threads";
 import { floorsQueryOptions } from "@/api/hooks/use-floors";
 import { TopicTagLink } from "./topic-tag-link";
@@ -20,25 +21,7 @@ import { stackListRowVariants } from "@/components/ui/stack-list";
 import { ThreadCategoryBadge } from "./thread-category";
 import { ThreadCover } from "./thread-cover";
 
-export interface ThreadCardViewData {
-  id: ThreadCardData["id"];
-  title: ThreadCardData["title"];
-  category: ThreadCardData["category"];
-  status: ThreadCardData["status"];
-  visibility: ThreadCardData["visibility"];
-  pinned: ThreadCardData["pinned"];
-  tipTotal: ThreadCardData["tipTotal"];
-  updatedAt: ThreadCardData["updatedAt"];
-  owner: ThreadCardData["owner"];
-  defaultSubthread?: ThreadCardData["defaultSubthread"];
-  topicTags?: ThreadCardData["topicTags"];
-  preview?: ThreadCardData["preview"];
-  coverImages?: ThreadCardData["coverImages"];
-  _count: {
-    posts: number;
-    players?: number;
-  };
-}
+export type ThreadCardViewData = ThreadCardData;
 
 interface ThreadCardProps {
   thread: ThreadCardViewData;
@@ -46,12 +29,12 @@ interface ThreadCardProps {
 
 export function ThreadCard({ thread }: ThreadCardProps) {
   const queryClient = useQueryClient();
-  const coverImage = thread.coverImages?.[0] ?? null;
-  const formattedPreview = formatMarkdownPreview(thread.preview ?? "");
+  const coverImage = thread.coverImages[0] ?? null;
+  const formattedPreview = formatMarkdownPreview(thread.preview);
   const preview = coverImage
     ? formattedPreview.replace(/\[图片\]/gu, " ").replace(/\s{2,}/gu, " ").trim()
     : formattedPreview;
-  const topicTags = thread.topicTags ?? [];
+  const topicTags = thread.topicTags;
   const prefetchThread = () => {
     // 详情接口会记录浏览量，不能在悬停/聚焦时调用；楼层列表是无副作用查询。
     if (thread.defaultSubthread?.id) {
@@ -65,6 +48,8 @@ export function ThreadCard({ thread }: ThreadCardProps) {
     <article
       role="listitem"
       data-category={thread.category}
+      data-content-purpose={CONTENT_PRESENTATION.list.purpose}
+      data-content-surface={CONTENT_PRESENTATION.list.surface}
       className={stackListRowVariants()}
     >
       <div className="flex gap-3.5">
@@ -83,12 +68,7 @@ export function ThreadCard({ thread }: ThreadCardProps) {
               </span>
               <LevelBadge level={thread.owner.level} />
               <span aria-hidden="true">·</span>
-              <time dateTime={thread.updatedAt} className="shrink-0">
-                {formatDistanceToNow(new Date(thread.updatedAt), {
-                  addSuffix: true,
-                  locale: zhCN,
-                })}
-              </time>
+              <WenyouTime value={thread.updatedAt} className="shrink-0" />
             </div>
 
             <div className="relative z-10 flex shrink-0 flex-wrap items-center justify-end gap-1.5">
@@ -116,7 +96,7 @@ export function ThreadCard({ thread }: ThreadCardProps) {
             </div>
           </div>
 
-          <h3 className="mt-2 font-display text-[1.0625rem] leading-6 font-bold tracking-[0.01em] text-foreground line-clamp-2">
+          <h3 className="mt-2 text-[1.0625rem] font-semibold leading-6 tracking-[0.01em] text-foreground line-clamp-2">
             <Link
               href={`/threads/${thread.id}`}
               aria-label={`查看主题帖：${thread.title}`}
@@ -146,15 +126,13 @@ export function ThreadCard({ thread }: ThreadCardProps) {
           )}
 
           <div className="mt-3 flex flex-wrap items-center gap-3 font-utility text-xs font-semibold text-muted-foreground">
-            {typeof thread._count.players === "number" && (
-              <span className="flex items-center gap-1">
-                <Users className="h-3.5 w-3.5" />
-                {thread._count.players}
-              </span>
-            )}
+            <span className="flex items-center gap-1">
+              <Users className="h-3.5 w-3.5" />
+                <WenyouCount value={thread._count.players} label="玩家" />
+            </span>
             <span className="flex items-center gap-1">
               <MessageSquare className="h-3.5 w-3.5" />
-              {thread._count.posts}
+              <WenyouCount value={thread._count.posts} label="楼层" />
             </span>
             <span className="flex items-center gap-1" title="累计获得温油">
               <Fuel className="h-3.5 w-3.5" />

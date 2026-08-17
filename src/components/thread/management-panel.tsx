@@ -137,7 +137,7 @@ export function ManagementPanel({
                 <p className="font-utility text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-brand-strong">
                   章节目录
                 </p>
-                <h2 className="mt-0.5 font-display text-lg font-bold text-foreground">子贴内容</h2>
+                <h2 className="mt-0.5 font-display text-lg font-medium text-foreground">子贴内容</h2>
               </div>
               <span className="font-utility text-xs tabular-nums text-muted-foreground">
                 {controller.subthreads.length} 篇
@@ -212,7 +212,7 @@ export function ManagementPanel({
                       <p className="font-utility text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-brand-strong">
                         正文画布
                       </p>
-                      <h2 className="mt-0.5 font-display text-lg font-bold text-foreground">
+                      <h2 className="mt-0.5 font-display text-lg font-medium text-foreground">
                         {controller.title || "未命名子贴"}
                       </h2>
                     </div>
@@ -249,7 +249,7 @@ export function ManagementPanel({
               </div>
             ) : (
               <div className="flex min-h-[32rem] flex-col items-center justify-center text-center">
-                <p className="font-display text-xl font-bold text-foreground">从第一篇子贴开始</p>
+                <p className="text-xl font-semibold text-foreground">从第一篇子贴开始</p>
                 <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
                   子贴像章节一样组织设定、剧情和讨论。创建后会自动打开正文画布。
                 </p>
@@ -329,7 +329,7 @@ function ManagementToolbar({
         <div className="h-7 w-px bg-border" aria-hidden="true" />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="truncate font-display text-lg font-bold text-foreground" title={title}>
+            <h1 className="truncate font-display text-lg font-medium text-foreground" title={title}>
               {title}
             </h1>
             <Badge tone={role === "楼主" ? "brand" : "info"}>{role}</Badge>

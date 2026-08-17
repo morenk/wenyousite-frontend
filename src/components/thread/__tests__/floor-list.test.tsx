@@ -52,7 +52,8 @@ describe("FloorList", () => {
   test("加载、错误和空态互斥显示", async () => {
     const user = userEvent.setup();
     const loading = renderList({ isLoading: true });
-    expect(loading.container.querySelector(".animate-spin")).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "正在加载楼层" })).toBeInTheDocument();
+    expect(loading.container.querySelector('[data-slot="skeleton"]')).toBeInTheDocument();
     loading.unmount();
 
     const error = renderList({ floors: [], error: new Error("network") });

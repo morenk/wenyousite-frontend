@@ -108,7 +108,7 @@ function SummaryMetric({
       </div>
       <dd
         className={cn(
-          "mt-2 font-display font-bold text-foreground tabular-nums",
+          "mt-2 font-utility font-medium text-foreground tabular-nums",
           value === null ? "text-sm" : "text-2xl",
         )}
       >

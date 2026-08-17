@@ -14,10 +14,10 @@ import { getApiErrorMessage } from "@/api/errors";
 import { DirectMessageBubble } from "@/components/message/direct-message-bubble";
 import { DirectMessageComposer } from "@/components/message/direct-message-composer";
 import { UserAvatar } from "@/components/shared/user-avatar";
+import { WenyouTime } from "@/components/shared/wenyou-time";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-provider";
 import {
-  formatDirectMessageTime,
   shouldShowDirectMessageTime,
 } from "@/lib/direct-message-timeline";
 
@@ -351,12 +351,11 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
                     className="absolute left-0 top-0 w-full"
                   >
                     {showTime && now > 0 && (
-                      <time
-                        dateTime={message.createdAt}
+                      <WenyouTime
+                        value={message.createdAt}
+                        reference={new Date(now)}
                         className="mb-3 block text-center text-xs text-muted-foreground"
-                      >
-                        {formatDirectMessageTime(message.createdAt, new Date(now))}
-                      </time>
+                      />
                     )}
                     <DirectMessageBubble
                       message={message}

@@ -66,7 +66,7 @@ function DialogTitle({
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn("font-display text-foreground [font-size:var(--type-subsection-title-size)] [font-weight:var(--type-subsection-title-weight)] [line-height:var(--type-subsection-title-line-height)]", className)}
+      className={cn("font-semibold text-foreground [font-size:var(--type-subsection-title-size)] [line-height:var(--type-subsection-title-line-height)]", className)}
       {...props}
     />
   );

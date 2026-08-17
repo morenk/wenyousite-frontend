@@ -4,7 +4,9 @@ import { Plugin } from "@milkdown/kit/prose/state";
 import {
   DICE_INLINE_MARKER_SOURCE,
   DICE_INLINE_NODE_NAME,
+  describeInlineDicePending,
   describeInlineDiceRoll,
+  formatInlineDicePending,
   formatInlineDiceRoll,
   serializeInlineDiceNode,
   type InlineDiceRoll,
@@ -118,9 +120,9 @@ export function createDiceInlineEditorPlugins(rolls: InlineDiceRoll[] = []) {
       dom.setAttribute("role", "note");
       dom.setAttribute(
         "aria-label",
-        roll ? describeInlineDiceRoll(roll) : `骰子 ${notation}，待掷`,
+        roll ? describeInlineDiceRoll(roll) : describeInlineDicePending(notation),
       );
-      dom.textContent = roll ? formatInlineDiceRoll(roll) : `${notation} = ?`;
+      dom.textContent = roll ? formatInlineDiceRoll(roll) : formatInlineDicePending(notation);
       return dom;
     },
     parseMarkdown: {

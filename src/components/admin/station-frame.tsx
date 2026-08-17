@@ -100,7 +100,7 @@ export function StationFrame({
               <Gauge className="size-5" />
             </span>
             <span>
-              <span className="block font-display text-lg font-bold">温油站务台</span>
+              <span className="block font-display text-lg font-medium">温油站务台</span>
               <span className="block font-utility text-[0.6875rem] font-bold tracking-[0.14em] text-background/60 uppercase">
                 站务工作区
               </span>
@@ -197,7 +197,7 @@ export function StationFrame({
             <p className="font-utility text-xs font-bold tracking-[0.12em] text-muted-foreground uppercase">
               {eyebrow}
             </p>
-            <h1 className="font-display text-2xl font-bold tracking-tight">{title}</h1>
+            <h1 className="font-display text-2xl font-medium tracking-tight">{title}</h1>
           </div>
           <p className="border-l-2 border-success pl-3 font-utility text-xs font-bold text-success">
             安全会话已连接

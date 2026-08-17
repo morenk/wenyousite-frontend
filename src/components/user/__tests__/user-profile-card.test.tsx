@@ -67,8 +67,6 @@ describe("UserProfileCard", () => {
     renderWithQC(<UserProfileCard user={sampleUser} />);
     expect(screen.getByText("testuser")).toBeInTheDocument();
     expect(screen.getByText("你好")).toBeInTheDocument();
-    expect(screen.getByText("关注 3")).toBeInTheDocument();
-    expect(screen.getByText("粉丝 5")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /关注 3/ })).toHaveAttribute(
       "href",
       "/users/u2/following",
@@ -83,7 +81,9 @@ describe("UserProfileCard", () => {
 
   test("查看他人时显示关注/拉黑按钮", () => {
     renderWithQC(<UserProfileCard user={sampleUser} />);
-    expect(screen.getByText("获得 12 升 · 2 次")).toBeInTheDocument();
+    expect(screen.getByTitle("累计收到的用户投入总额与次数")).toHaveTextContent(
+      "获得 12 升 · 2 次",
+    );
     expect(screen.getByRole("button", { name: "加油" })).not.toHaveClass("bg-primary");
     expect(screen.getByRole("button", { name: "加油" })).not.toHaveClass("border-border");
     const messageLink = screen.getByRole("link", { name: "私聊" });

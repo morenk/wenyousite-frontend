@@ -28,7 +28,7 @@ export function SubthreadBody({
         id={titleId}
         className={hideRepeatedTitle
           ? "sr-only"
-          : "font-display text-xl font-bold leading-8 text-foreground"}
+          : "font-display text-xl font-medium leading-8 text-foreground"}
       >
         {subthread.title}
       </h2>

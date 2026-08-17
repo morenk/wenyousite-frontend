@@ -5,10 +5,10 @@ import type { components } from "@/api/types";
 import type { BadgeTone } from "@/lib/presentation-types";
 
 export type ThreadCategory = NonNullable<
-  components["schemas"]["HomeThreadListItemResponseDto"]["category"]
+  components["schemas"]["ThreadListItemResponseDto"]["category"]
 >;
-export type ThreadStatus = components["schemas"]["HomeThreadListItemResponseDto"]["status"];
-export type ThreadVisibility = components["schemas"]["HomeThreadListItemResponseDto"]["visibility"];
+export type ThreadStatus = components["schemas"]["ThreadListItemResponseDto"]["status"];
+export type ThreadVisibility = components["schemas"]["ThreadListItemResponseDto"]["visibility"];
 
 export function getThreadCategoryPresentation(
   slug: string | null | undefined,

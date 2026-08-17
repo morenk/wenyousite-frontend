@@ -55,7 +55,7 @@
 | AppContextRail | `src/components/layout/app-context-rail.tsx` | 宽屏账户主页、钱包、通知/私聊未读数、收藏、设置和访客入口；不重复分类筛选 |
 | TagThreadsPage | `src/app/tags/[id]/page.tsx` | 指定标签主题帖列表，复用首页筛选和无限滚动 |
 | ThreadList | `src/components/thread/thread-list.tsx` | 首页、标签页和个人资料主题帖共用的 Panel 外框、行分隔、四态与无限滚动 |
-| ThreadCard | `src/components/thread/thread-card.tsx` | 首页与个人资料创建/参与/收藏列表共用的单行内容；按接口实际字段隐藏缺省预览、封面、标签或玩家数 |
+| ThreadCard | `src/components/thread/thread-card.tsx` | 首页、搜索与个人资料创建/参与/收藏列表共用的完整主题帖卡片；所有入口消费同一基础生成类型 |
 | ThreadCover | `src/components/thread/thread-cover.tsx` | 首页与搜索共用的半宽 16:9 单封面，支持 feed 衍生图回退 |
 | TopicTagLink | `src/components/thread/topic-tag-link.tsx` | 卡片与详情页共用的标签浏览入口 |
 

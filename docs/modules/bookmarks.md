@@ -23,12 +23,12 @@
 
 | Method | Path | Guard | 用途 |
 |--------|------|-------|------|
-| GET | `/bookmarks?cursor=&limit=&folderId=` | AuthRead | 我的收藏列表（每条含 `bookmarkId` / `bookmarkFolderId`） |
+| GET | `/bookmarks?cursor=&limit=&folderId=` | AuthRead | 我的收藏列表（完整主题帖卡片 + `bookmarkId` / `bookmarkFolderId`） |
 | GET / POST | `/bookmarks/folders` | AuthRead | 获取分类计数 / 新建分类 |
 | POST | `/bookmarks` | AuthRead | 收藏主题帖；不传可选 `folderId` 时进入默认收藏夹 |
 | PATCH | `/bookmarks/:id` | AuthRead | 移动到自己的其他收藏夹 |
 | DELETE | `/bookmarks/:id` | AuthRead | 取消收藏（按记录 id） |
-| GET | `/users/:id/bookmarks` | OptionalAuth | 该用户公开收藏（cursor 分页，showBookmarks 关闭返回 404，私密帖非参与人过滤） |
+| GET | `/users/:id/bookmarks` | OptionalAuth | 该用户公开收藏（完整主题帖卡片；不返回私有收藏元数据） |
 | GET | `/threads/:id` | AuthRead | 登录态附加 `isBookmarked` + `bookmarkId`（详情页按钮状态） |
 
 ## 4. 响应结构
@@ -48,10 +48,19 @@
       "status": "RECRUITING",
       "visibility": "PUBLIC",
       "published": true,
+      "pinned": false,
+      "tipTotal": "0",
       "createdAt": "2026-08-01T18:25:11.069Z",
-      "owner": { "id": "<redacted-id>", "username": "testuser", "avatar": null },
-      "_count": { "members": 1, "posts": 3 },
-      "bookmarkId": "<redacted-id>"
+      "updatedAt": "2026-08-01T18:25:11.069Z",
+      "deletedAt": null,
+      "owner": { "id": "<redacted-id>", "username": "testuser", "avatar": null, "level": 1 },
+      "defaultSubthread": { "id": "<redacted-id>", "title": "主贴", "lastPostAt": null },
+      "topicTags": [],
+      "_count": { "members": 1, "players": 1, "posts": 3 },
+      "preview": "主题帖正文摘要",
+      "coverImages": [],
+      "bookmarkId": "<redacted-id>",
+      "bookmarkFolderId": "<redacted-id>"
     }
   ],
   "meta": { "cursor": "<redacted-id>", "hasMore": false }
@@ -74,6 +83,8 @@
 ```
 
 > 私密帖：非参与人收藏返回 404；`/users/:id/bookmarks` 对他人只暴露 PUBLIC + 查看者参与中的私密帖。
+
+> 合同 `5.1.0-dev.20260817.1` 起，收藏与首页、搜索、个人创建/参与列表共用 `ThreadListItemResponseDto` 基础字段；我的收藏只在基础卡片上叠加管理 ID。
 
 ## 5. 状态管理
 

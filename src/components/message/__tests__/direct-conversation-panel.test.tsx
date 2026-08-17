@@ -301,8 +301,8 @@ describe("DirectConversationPanel", () => {
     const { container } = render(<DirectConversationPanel conversationId="c1" />);
 
     await waitFor(() => expect(container.querySelectorAll("time")).toHaveLength(2));
-    expect(container.querySelectorAll("time")[0]).toHaveTextContent("14:00");
-    expect(container.querySelectorAll("time")[1]).toHaveTextContent("14:07");
+    expect(container.querySelectorAll("time")[0]).toHaveTextContent("1 小时前");
+    expect(container.querySelectorAll("time")[1]).toHaveTextContent("53 分钟前");
   });
 
   test("收到的待处理请求可接受、拒绝且隐藏陌生图片", async () => {

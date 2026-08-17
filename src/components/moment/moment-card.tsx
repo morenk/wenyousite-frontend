@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { CONTENT_PRESENTATION } from "@wenyousite/foundation/collections";
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { MomentCard as MomentCardData } from "@/api/hooks/use-moments";
 import { useMomentLike } from "@/api/hooks/use-moments";
 import { getApiErrorMessage } from "@/api/errors";
 import { UserAvatar } from "@/components/shared/user-avatar";
+import { WenyouCount } from "@/components/shared/wenyou-count";
 import { MomentCover } from "@/components/moment/moment-cover";
 import { InteractionToggle } from "@/components/ui/interaction-toggle";
 import { useAuth } from "@/lib/auth";
@@ -34,7 +36,12 @@ export function MomentCard({ moment, priority = false }: { moment: MomentCardDat
   };
 
   return (
-    <article className="group/moment min-w-0 pb-3" data-moment-id={moment.id}>
+    <article
+      className="group/moment min-w-0 pb-3"
+      data-moment-id={moment.id}
+      data-content-purpose={CONTENT_PRESENTATION.list.purpose}
+      data-content-surface={CONTENT_PRESENTATION.list.surface}
+    >
       <Link
         href={`/moments/${moment.id}`}
         onNavigate={() => markMomentFeedReturn(moment.id, pathname)}
@@ -69,7 +76,7 @@ export function MomentCard({ moment, priority = false }: { moment: MomentCardDat
           onClick={() => void toggleLike()}
         >
           {moment.likeCount > 0 ? (
-            <span className="font-utility">{moment.likeCount}</span>
+            <WenyouCount value={moment.likeCount} label="点赞" />
           ) : null}
         </InteractionToggle>
       </div>

@@ -3,14 +3,16 @@
 "use client";
 
 import Link from "next/link";
-import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
+import { IDENTITY_PRESENTATION } from "@wenyousite/foundation/elements";
 import { CalendarDays, Fuel, MessageCircle, ShieldAlert, Users } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { FollowButton } from "@/components/user/follow-button";
 import { BlockButton } from "@/components/user/block-button";
 import { UserAvatar } from "@/components/shared/user-avatar";
+import { WenyouTime } from "@/components/shared/wenyou-time";
+import { WenyouCount } from "@/components/shared/wenyou-count";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import type { ActiveUserPublic } from "@/api/hooks/use-user-profile";
 import { LevelBadge } from "@/components/shared/level-badge";
@@ -92,14 +94,12 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
 function ProfileName({ user }: { user: ActiveUserPublic }) {
   return (
     <div className="flex min-w-0 flex-wrap items-center gap-2">
-      <h1 className="truncate font-display text-xl font-bold text-foreground sm:text-2xl">
+      <h1 className="truncate text-xl font-semibold text-foreground sm:text-2xl">
         {user.username}
       </h1>
       <LevelBadge level={user.level} />
       {user.role === "ADMIN" ? (
-        <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-          管理员
-        </span>
+        <Badge tone={IDENTITY_PRESENTATION.roleTones.staff} size="compact">管理员</Badge>
       ) : null}
     </div>
   );
@@ -113,21 +113,21 @@ function ProfileMetadata({ user }: { user: ActiveUserPublic }) {
         className="flex items-center gap-1 hover:text-brand-strong"
       >
         <Users className="size-3.5" />
-        关注 {user._count.following}
+        关注 <WenyouCount value={user._count.following} label="关注" announceLabel={false} />
       </Link>
       <Link
         href={`/users/${user.id}/followers`}
         className="flex items-center gap-1 hover:text-brand-strong"
       >
-        粉丝 {user._count.followers}
+        粉丝 <WenyouCount value={user._count.followers} label="粉丝" announceLabel={false} />
       </Link>
       <span className="flex items-center gap-1">
         <CalendarDays className="size-3.5" />
-        {format(new Date(user.createdAt), "yyyy-MM-dd", { locale: zhCN })}
+        <WenyouTime value={user.createdAt} />
       </span>
       <span className="flex items-center gap-1" title="累计收到的用户投入总额与次数">
         <Fuel className="size-3.5" />
-        获得 {formatWenyou(user.receivedTipTotal)} 升 · {user.receivedTipCount} 次
+        获得 {formatWenyou(user.receivedTipTotal)} 升 · <WenyouCount value={user.receivedTipCount} label="投入次数" announceLabel={false} /> 次
       </span>
     </div>
   );

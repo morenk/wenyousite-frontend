@@ -112,7 +112,7 @@ describe("MarkdownContent", () => {
     expect(result.querySelector("svg")).toBeNull();
   });
 
-  test("多骰展示每一枚点数和总计", () => {
+  test("多骰可见文案保持紧凑，完整语义包含每一枚点数", () => {
     render(
       <MarkdownContent
         content={`概率 ${DICE_MARKER}`}
@@ -126,7 +126,7 @@ describe("MarkdownContent", () => {
       />,
     );
 
-    const result = screen.getByText("2d50 = [33, 48] = 81");
+    const result = screen.getByText("2d50 = 81");
     expect(result).toHaveAttribute(
       "aria-label",
       "骰子 2d50，逐骰结果 33、48，总计 81",

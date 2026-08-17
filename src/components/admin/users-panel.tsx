@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import { format } from "date-fns";
 import { Search, UserRoundCog } from "lucide-react";
 import { useQueryStates } from "nuqs";
 import { useMemo, useState } from "react";
@@ -29,6 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { WenyouTime } from "@/components/shared/wenyou-time";
 import { adminUserFilterParsers, adminUserUrlKeys } from "@/lib/admin-url-state";
 
 const sanctionSchema = z.object({
@@ -70,7 +70,7 @@ export function UsersPanel() {
     { header: "用户", cell: ({ row }) => <div><p className="font-bold">{row.original.username}</p><p className="text-xs text-muted-foreground">{row.original.email}</p></div> },
     { header: "角色", cell: ({ row }) => row.original.role === "USER" ? "普通用户" : row.original.role === "ADMIN" ? "管理员" : "超级管理员" },
     { header: "状态", cell: ({ row }) => <Badge tone={tone(row.original.moderationStatus)}>{row.original.moderationStatus === "ACTIVE" ? "正常" : row.original.moderationStatus === "SUSPENDED" ? "暂停" : "封禁"}</Badge> },
-    { header: "加入时间", cell: ({ row }) => <span className="font-utility text-xs text-muted-foreground">{format(new Date(row.original.createdAt), "yyyy-MM-dd")}</span> },
+    { header: "加入时间", cell: ({ row }) => <WenyouTime value={row.original.createdAt} className="text-xs text-muted-foreground" /> },
     {
       id: "actions",
       header: "操作",
@@ -190,7 +190,7 @@ export function UsersPanel() {
         ) : (
           <>
             <p className="font-utility text-xs font-bold text-muted-foreground">用户处置</p>
-            <h2 className="mt-1 font-display text-xl font-bold">{selected.username}</h2>
+            <h2 className="mt-1 text-xl font-semibold">{selected.username}</h2>
             <p className="mt-1 text-xs text-muted-foreground">{selected.email}</p>
             {selected.currentSanction ? (
               <div className="mt-5 rounded-lg bg-destructive-soft p-4 text-sm text-destructive">

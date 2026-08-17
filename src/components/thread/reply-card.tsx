@@ -3,14 +3,13 @@
 "use client";
 
 import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
-import { zhCN } from "date-fns/locale";
 import { toast } from "sonner";
 import { useDeletePost } from "@/api/hooks/use-delete-post";
 import type { ReplyData, ReplyDisplayData } from "@/api/hooks/use-floors";
 import { getApiErrorMessage } from "@/api/errors";
 import { ReplyActionButton } from "@/components/shared/reply-action-button";
 import { UserAvatarLink } from "@/components/shared/user-avatar";
+import { WenyouTime } from "@/components/shared/wenyou-time";
 import { LevelBadge } from "@/components/shared/level-badge";
 import { MarkdownContent } from "@/components/thread/markdown-content";
 import {
@@ -179,12 +178,7 @@ export function ReplyCard({
         data-testid="reply-card-meta"
         className="mt-3 flex min-h-8 items-center justify-between gap-3"
       >
-        <time dateTime={reply.createdAt} className="text-xs text-muted-foreground">
-          {formatDistanceToNow(new Date(reply.createdAt), {
-            addSuffix: true,
-            locale: zhCN,
-          })}
-        </time>
+        <WenyouTime value={reply.createdAt} className="text-xs text-muted-foreground" />
         {!isEditing && user ? (
           <ReplyActionButton
             presentation="labeled"

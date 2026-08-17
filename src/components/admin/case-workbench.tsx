@@ -7,8 +7,6 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { format, formatDistanceToNowStrict } from "date-fns";
-import { zhCN } from "date-fns/locale";
 import { Scale, ShieldAlert } from "lucide-react";
 import { useQueryStates } from "nuqs";
 import { useCallback, useEffect, useMemo } from "react";
@@ -51,6 +49,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { WenyouTime } from "@/components/shared/wenyou-time";
 import { adminCaseFilterParsers, adminCaseUrlKeys } from "@/lib/admin-url-state";
 import { cn } from "@/lib/utils";
 
@@ -158,7 +157,7 @@ function caseColumns(onSelect: (id: string) => void): ColumnDef<CaseSummary>[] {
       },
     },
     { id: "reports", header: "举报", cell: ({ row }) => <span className="font-utility text-xs whitespace-nowrap">{row.original._count.reports} 份</span> },
-    { id: "createdAt", header: "建案", cell: ({ row }) => <span className="font-utility text-xs whitespace-nowrap text-muted-foreground">{formatDistanceToNowStrict(new Date(row.original.createdAt), { addSuffix: true, locale: zhCN })}</span> },
+    { id: "createdAt", header: "建案", cell: ({ row }) => <WenyouTime value={row.original.createdAt} className="text-xs whitespace-nowrap text-muted-foreground" /> },
     { id: "actions", header: "操作", cell: ({ row }) => <Button type="button" size="compact" variant="ghost" onClick={() => onSelect(row.original.id)}>查看</Button> },
   ];
 }
@@ -325,11 +324,11 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
             <Badge tone={statusTone(detail.status)}>{detail.status === "OPEN" ? "待处理" : detail.status === "RESOLVED" ? "已处置" : "已驳回"}</Badge>
             <span className="font-utility text-xs text-muted-foreground">案件编号 {detail.id.slice(-8).toUpperCase()}</span>
           </div>
-          <h2 className="mt-3 font-display text-2xl font-bold">{targetLabels[detail.targetType]}治理案件</h2>
+          <h2 className="mt-3 font-display text-2xl font-medium">{targetLabels[detail.targetType]}治理案件</h2>
           <p className="mt-2 font-utility text-xs text-muted-foreground">目标编号 · {detail.targetId}</p>
         </div>
         <div className="text-right text-xs text-muted-foreground">
-          <p>建案 {format(new Date(detail.createdAt), "yyyy-MM-dd HH:mm")}</p>
+          <p>建案 <WenyouTime value={detail.createdAt} /></p>
           <p className="mt-1">累计 {detail.reports.length} 份举报</p>
         </div>
       </div>
@@ -339,7 +338,7 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
           <section>
             <div className="mb-3 flex items-center gap-2">
               <ShieldAlert className="size-4 text-brand-strong" />
-              <h3 className="font-display text-lg font-bold">举报与留存证据</h3>
+              <h3 className="font-display text-lg font-medium">举报与留存证据</h3>
             </div>
             <div className="space-y-3">
               {detail.reports.map((report) => (
@@ -349,7 +348,7 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
                       <Badge tone="danger">{reasonLabels[report.reasonCode]}</Badge>
                       <span className="text-xs text-muted-foreground">举报人 {report.reporter?.username ?? "账号已注销"}</span>
                     </div>
-                    <time className="font-utility text-xs text-muted-foreground">{format(new Date(report.createdAt), "MM-dd HH:mm")}</time>
+                    <WenyouTime value={report.createdAt} className="text-xs text-muted-foreground" />
                   </div>
                   {report.details ? <p className="mt-4 text-sm leading-6">{report.details}</p> : null}
                   <details className="mt-4 rounded-lg bg-muted px-4 py-3">
@@ -366,7 +365,7 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
           <section>
             <div className="mb-3 flex items-center gap-2">
               <Scale className="size-4 text-brand-strong" />
-              <h3 className="font-display text-lg font-bold">决定轨迹</h3>
+              <h3 className="font-display text-lg font-medium">决定轨迹</h3>
             </div>
             {detail.decisions.length === 0 ? (
               <div className="rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground">尚未作出治理决定。</div>
@@ -379,7 +378,7 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
                       <span className="text-sm font-bold">{actionOptions.find((item) => item.value === decision.action)?.label}</span>
                     </div>
                     <p className="mt-3 text-sm leading-6">{decision.publicExplanation}</p>
-                    <p className="mt-3 text-xs text-muted-foreground">由 {decision.actor.username} 于 {format(new Date(decision.createdAt), "yyyy-MM-dd HH:mm")} 作出</p>
+                    <p className="mt-3 text-xs text-muted-foreground">由 {decision.actor.username} 于 <WenyouTime value={decision.createdAt} /> 作出</p>
                   </li>
                 ))}
               </ol>
@@ -390,7 +389,7 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
         {detail.status === "OPEN" ? (
           <aside className="self-start rounded-2xl border border-border bg-card p-5">
             <p className="font-utility text-xs font-bold tracking-[0.1em] text-muted-foreground">案件处置</p>
-            <h3 className="mt-1 font-display text-xl font-bold">形成治理决定</h3>
+            <h3 className="mt-1 font-display text-xl font-medium">形成治理决定</h3>
             <p className="mt-2 text-xs leading-5 text-muted-foreground">公开说明会提供给被处置用户，并成为申诉依据。</p>
             <form
               className="mt-5 space-y-4"

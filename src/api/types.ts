@@ -3160,8 +3160,29 @@ export interface components {
              */
             mobileMediaId?: string;
         };
-        BookmarkThreadCountResponseDto: {
+        ThreadListDefaultSubthreadResponseDto: {
+            id: string;
+            title: string;
+            /** Format: date-time */
+            lastPostAt: string | null;
+        };
+        ThreadTagResponseDto: {
+            id: string;
+            name: string;
+            color: string | null;
+            description: string | null;
+            sortOrder: number;
+            isActive: boolean;
+        };
+        ThreadTagRelationResponseDto: {
+            id: string;
+            threadId: string;
+            tagId: string;
+            tag: components["schemas"]["ThreadTagResponseDto"];
+        };
+        ThreadListCountResponseDto: {
             members: number;
+            players: number;
             posts: number;
         };
         BookmarkThreadResponseDto: {
@@ -3187,36 +3208,17 @@ export interface components {
             /** Format: date-time */
             deletedAt: string | null;
             owner: components["schemas"]["PostAuthorResponseDto"];
-            _count: components["schemas"]["BookmarkThreadCountResponseDto"];
+            defaultSubthread: components["schemas"]["ThreadListDefaultSubthreadResponseDto"] | null;
+            topicTags: components["schemas"]["ThreadTagRelationResponseDto"][];
+            _count: components["schemas"]["ThreadListCountResponseDto"];
+            /** @description 默认主贴正文的纯文本预览 */
+            preview: string;
+            /** @description 默认主贴正文中的第一张普通图片 URL；无图时返回空数组 */
+            coverImages: string[];
             /** @description 查看自己的收藏时返回收藏记录 ID */
             bookmarkId?: string;
             /** @description 查看自己的收藏时返回所属收藏夹 ID */
             bookmarkFolderId?: string;
-        };
-        ThreadListDefaultSubthreadResponseDto: {
-            id: string;
-            title: string;
-            /** Format: date-time */
-            lastPostAt: string | null;
-        };
-        ThreadTagResponseDto: {
-            id: string;
-            name: string;
-            color: string | null;
-            description: string | null;
-            sortOrder: number;
-            isActive: boolean;
-        };
-        ThreadTagRelationResponseDto: {
-            id: string;
-            threadId: string;
-            tagId: string;
-            tag: components["schemas"]["ThreadTagResponseDto"];
-        };
-        ThreadListCountResponseDto: {
-            members: number;
-            players: number;
-            posts: number;
         };
         ThreadListItemResponseDto: {
             id: string;
@@ -3244,8 +3246,10 @@ export interface components {
             defaultSubthread: components["schemas"]["ThreadListDefaultSubthreadResponseDto"] | null;
             topicTags: components["schemas"]["ThreadTagRelationResponseDto"][];
             _count: components["schemas"]["ThreadListCountResponseDto"];
-            /** @description 首页列表正文预览；用户活动列表可能不返回 */
-            preview?: string;
+            /** @description 默认主贴正文的纯文本预览 */
+            preview: string;
+            /** @description 默认主贴正文中的第一张普通图片 URL；无图时返回空数组 */
+            coverImages: string[];
         };
         UserActivitySummaryResponseDto: {
             /** @description 当前查看者可见的未删除动态数 */
@@ -3465,11 +3469,17 @@ export interface components {
             /** Format: date-time */
             deletedAt: string | null;
             owner: components["schemas"]["PostAuthorResponseDto"];
-            _count: components["schemas"]["BookmarkThreadCountResponseDto"];
+            defaultSubthread: components["schemas"]["ThreadListDefaultSubthreadResponseDto"] | null;
+            topicTags: components["schemas"]["ThreadTagRelationResponseDto"][];
+            _count: components["schemas"]["ThreadListCountResponseDto"];
+            /** @description 默认主贴正文的纯文本预览 */
+            preview: string;
+            /** @description 默认主贴正文中的第一张普通图片 URL；无图时返回空数组 */
+            coverImages: string[];
             /** @description 收藏记录 ID */
-            bookmarkId?: string;
+            bookmarkId: string;
             /** @description 所属收藏夹 ID */
-            bookmarkFolderId?: string;
+            bookmarkFolderId: string;
         };
         BookmarkFolderResponseDto: {
             id: string;
@@ -3563,8 +3573,8 @@ export interface components {
             defaultSubthread: components["schemas"]["ThreadListDefaultSubthreadResponseDto"] | null;
             topicTags: components["schemas"]["ThreadTagRelationResponseDto"][];
             _count: components["schemas"]["ThreadListCountResponseDto"];
-            /** @description 首页列表正文预览 */
-            preview?: string;
+            /** @description 默认主贴正文的纯文本预览 */
+            preview: string;
             /** @description 默认主贴正文中的第一张普通图片 URL；无图时返回空数组 */
             coverImages: string[];
         };
@@ -5019,8 +5029,8 @@ export interface components {
             defaultSubthread: components["schemas"]["ThreadListDefaultSubthreadResponseDto"] | null;
             topicTags: components["schemas"]["ThreadTagRelationResponseDto"][];
             _count: components["schemas"]["ThreadListCountResponseDto"];
-            /** @description 首页列表正文预览 */
-            preview?: string;
+            /** @description 默认主贴正文的纯文本预览 */
+            preview: string;
             /** @description 默认主贴正文中的第一张普通图片 URL；无图时返回空数组 */
             coverImages: string[];
             /** @description 仅说明本次查询的标题相关度；客户端不得作为稳定业务字段依赖 */

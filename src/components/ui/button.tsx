@@ -1,4 +1,8 @@
 import * as React from "react"
+import {
+  ACTION_CONTROL_CONTRACT,
+  type ActionControlRole,
+} from "@wenyousite/foundation/controls"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
@@ -44,6 +48,15 @@ const buttonVariants = cva(
   }
 )
 
+const buttonRoles = {
+  default: ACTION_CONTROL_CONTRACT.roles[0],
+  outline: ACTION_CONTROL_CONTRACT.roles[1],
+  secondary: ACTION_CONTROL_CONTRACT.roles[1],
+  ghost: ACTION_CONTROL_CONTRACT.roles[2],
+  destructive: ACTION_CONTROL_CONTRACT.roles[3],
+  link: ACTION_CONTROL_CONTRACT.roles[4],
+} satisfies Record<NonNullable<VariantProps<typeof buttonVariants>["variant"]>, ActionControlRole>
+
 function Button({
   className,
   variant = "default",
@@ -53,6 +66,7 @@ function Button({
   return (
     <button
       data-slot="button"
+      data-control-role={buttonRoles[variant ?? "default"]}
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     />

@@ -74,12 +74,12 @@ export function NavBar({
           !compact && "xl:justify-start xl:px-3",
         )}
       >
-        <span className="relative flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary font-display text-xl font-bold text-primary-foreground transition-transform duration-[var(--motion-standard)] group-hover:-rotate-2">
+        <span className="relative flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary font-display text-xl font-medium text-primary-foreground transition-transform duration-[var(--motion-standard)] group-hover:-rotate-2">
           温
           <span className="absolute -right-1 top-1 size-2.5 rounded-full border-2 border-white bg-secondary" aria-hidden="true" />
         </span>
         <span className={cn(
-          "ml-3 hidden font-display text-xl font-bold tracking-wide text-foreground",
+          "ml-3 hidden font-display text-xl font-medium tracking-wide text-foreground",
           !compact && "xl:block",
         )}>温油站</span>
       </Link>

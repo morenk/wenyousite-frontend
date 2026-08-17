@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { format } from "date-fns";
 import { AlertCircle, ArrowLeft, ChevronRight, FolderArchive, Inbox, Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import {
@@ -10,6 +9,7 @@ import {
   useDirectConversations,
 } from "@/api/hooks/use-direct-conversations";
 import { UserAvatar } from "@/components/shared/user-avatar";
+import { WenyouTime } from "@/components/shared/wenyou-time";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { UnreadCountBadge } from "@/components/ui/unread-count-badge";
@@ -61,9 +61,7 @@ function ConversationLink({
             {conversation.otherUser.username}
           </span>
           {conversation.lastMessageAt && (
-            <time className="shrink-0 font-utility text-[10px] text-muted-foreground">
-              {format(new Date(conversation.lastMessageAt), "MM-dd HH:mm")}
-            </time>
+            <WenyouTime value={conversation.lastMessageAt} className="shrink-0 text-[10px] text-muted-foreground" />
           )}
         </div>
         <div className="mt-1 flex items-center gap-2">

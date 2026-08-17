@@ -1,7 +1,5 @@
 "use client";
 
-import { formatDistanceToNow } from "date-fns";
-import { zhCN } from "date-fns/locale";
 import { ShieldAlert, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -12,6 +10,7 @@ import { ImageLightbox } from "@/components/shared/image-lightbox";
 import { InternalReferenceText } from "@/components/shared/internal-reference-text";
 import { ReplyActionButton } from "@/components/shared/reply-action-button";
 import { UserAvatar } from "@/components/shared/user-avatar";
+import { WenyouTime } from "@/components/shared/wenyou-time";
 import type { MomentReplyTarget } from "@/components/moment/moment-comment-types";
 import { useAuth } from "@/lib/auth";
 import { getStickerDisplayUrl, STICKER_DISPLAY_STYLE } from "@/lib/sticker-display";
@@ -72,9 +71,7 @@ export function MomentCommentRow({
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="truncate text-sm font-semibold">{comment.author.username}</span>
-          <time className="font-utility text-[0.6875rem] text-muted-foreground" dateTime={comment.createdAt}>
-            {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: zhCN })}
-          </time>
+          <WenyouTime value={comment.createdAt} className="text-[0.6875rem] text-muted-foreground" />
         </div>
         {comment.deleted ? (
           <p className="mt-1 text-sm leading-6 text-muted-foreground">该评论已删除</p>

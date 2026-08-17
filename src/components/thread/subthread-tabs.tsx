@@ -86,7 +86,7 @@ export function SubthreadSwitcher({
           }
         >
           <ListTree className="size-4 text-brand-strong" aria-hidden="true" />
-          <span className="min-w-0 flex-1 truncate text-left font-display text-sm font-bold text-foreground">
+          <span className="min-w-0 flex-1 truncate text-left text-sm font-semibold text-foreground">
             {selected.title}
           </span>
           <span className="hidden shrink-0 font-utility text-xs tabular-nums text-muted-foreground sm:inline">
@@ -113,7 +113,7 @@ export function SubthreadSwitcher({
                 data-slot="subthread-menu-header"
                 className="flex items-center justify-between border-b border-border px-3.5 py-2.5"
               >
-                <p className="font-display text-sm font-bold">主题目录</p>
+                <p className="text-sm font-semibold">主题目录</p>
                 <div className="flex items-center gap-1.5">
                   <span className="font-utility text-xs text-muted-foreground">
                     共 {subthreads.length} 个子贴

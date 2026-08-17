@@ -9,6 +9,7 @@ import { Loader2, ChevronRight } from "lucide-react";
 import { useForm, useWatch } from "react-hook-form";
 import type { UseFormRegisterReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { levelTier } from "@wenyousite/foundation/elements";
 import { toast } from "sonner";
 import { useMe } from "@/api/hooks/use-me";
 import { useUpdateProfile } from "@/api/hooks/use-update-profile";
@@ -102,6 +103,20 @@ export function ProfileEditForm() {
     );
   }
 
+  const experienceTier = me ? levelTier(me.level) : undefined;
+  const experiencePercent = me
+    ? me.nextLevelExperience === null
+      ? 100
+      : Math.max(
+          0,
+          Math.min(
+            100,
+            ((me.experience - me.currentLevelExperience)
+              / (me.nextLevelExperience - me.currentLevelExperience)) * 100,
+          ),
+        )
+    : 0;
+
   return (
     <div className="space-y-5">
       {me && (
@@ -120,13 +135,21 @@ export function ProfileEditForm() {
                     : `下一级 ${me.nextLevelExperience}`}
                 </span>
               </div>
-              <div className="h-2 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-2 overflow-hidden rounded-full bg-muted"
+                role="progressbar"
+                aria-label="当前等级经验进度"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.round(experiencePercent)}
+              >
                 <div
-                  className="h-full rounded-full bg-primary transition-[width]"
+                  className="h-full rounded-full transition-[width] duration-[var(--motion-standard)]"
                   style={{
-                    width: me.nextLevelExperience === null
-                      ? "100%"
-                      : `${Math.max(0, Math.min(100, ((me.experience - me.currentLevelExperience) / (me.nextLevelExperience - me.currentLevelExperience)) * 100))}%`,
+                    width: `${experiencePercent}%`,
+                    backgroundColor: experienceTier
+                      ? `var(--element-level-${experienceTier.id}-surface)`
+                      : "var(--muted-foreground)",
                   }}
                 />
               </div>

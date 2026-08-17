@@ -7,7 +7,6 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { format } from "date-fns";
 import { Search, Send, ShieldCheck, UserMinus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useQueryStates } from "nuqs";
@@ -24,6 +23,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-provider";
+import { WenyouTime } from "@/components/shared/wenyou-time";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -110,9 +110,9 @@ export function AdminAccountsPanel() {
         header: "当前会话",
         cell: ({ row }) => (
           <span className="font-utility text-xs text-muted-foreground">
-            {row.original.adminSessions.length > 0
-              ? `活跃至 ${format(new Date(row.original.adminSessions[0].expiresAt), "MM-dd HH:mm")}`
-              : "未登录"}
+            {row.original.adminSessions.length > 0 ? (
+              <>活跃至 <WenyouTime value={row.original.adminSessions[0].expiresAt} /></>
+            ) : "未登录"}
           </span>
         ),
       },
@@ -211,7 +211,7 @@ export function AdminAccountsPanel() {
         <section className="overflow-hidden rounded-lg border border-border bg-card">
           <div className="flex items-center justify-between border-b border-border px-5 py-4">
             <div>
-              <h2 className="font-display text-lg font-bold">现有站务</h2>
+              <h2 className="font-display text-lg font-medium">现有站务</h2>
               <p className="mt-1 text-xs text-muted-foreground">一个账号同一时间只允许一个后台会话。</p>
             </div>
             <Badge tone="neutral">{filteredAccounts.length} / {accounts.data.accounts.length} 人</Badge>
@@ -279,7 +279,7 @@ export function AdminAccountsPanel() {
           <div className="flex items-center gap-3 px-5 py-5">
             <ShieldCheck className="size-5 text-brand-strong" />
             <div>
-              <h2 className="font-display text-lg font-bold">待接受邀请</h2>
+              <h2 className="font-display text-lg font-medium">待接受邀请</h2>
               <p className="text-xs text-muted-foreground">邀请 24 小时后自动失效。</p>
             </div>
           </div>
@@ -316,7 +316,7 @@ export function AdminAccountsPanel() {
                 <AdminTableRow key={invite.id}>
                   <AdminTableCell className="font-bold">{invite.user.username}</AdminTableCell>
                   <AdminTableCell className="text-xs text-muted-foreground">{invite.user.email}</AdminTableCell>
-                  <AdminTableCell className="font-utility text-xs whitespace-nowrap text-muted-foreground">{format(new Date(invite.expiresAt), "yyyy-MM-dd HH:mm")}</AdminTableCell>
+                  <AdminTableCell className="text-xs whitespace-nowrap text-muted-foreground"><WenyouTime value={invite.expiresAt} /></AdminTableCell>
                   <AdminTableCell><Badge tone={new Date(invite.expiresAt).getTime() > referenceTime ? "info" : "neutral"}>{new Date(invite.expiresAt).getTime() > referenceTime ? "有效" : "已过期"}</Badge></AdminTableCell>
                   <AdminTableCell className="text-right">
                   <Button
@@ -353,7 +353,7 @@ export function AdminAccountsPanel() {
 
       <aside className="self-start rounded-lg border border-border bg-card p-5">
         <p className="font-utility text-xs font-bold tracking-[0.1em] text-muted-foreground">邀请站务账号</p>
-        <h2 className="mt-1 font-display text-xl font-bold">邀请现有用户</h2>
+        <h2 className="mt-1 font-display text-xl font-medium">邀请现有用户</h2>
         <p className="mt-2 text-xs leading-5 text-muted-foreground">管理员继承现有温油账号。普通用户可以被邀请。</p>
         <div className="relative mt-5">
           <Search className="pointer-events-none absolute top-3.5 left-3.5 size-4 text-muted-foreground" />

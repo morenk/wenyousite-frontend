@@ -12,12 +12,12 @@ import {
 import { WEB_TYPE_SCALE } from "@wenyousite/foundation/typography";
 import { describe, expect, test } from "vitest";
 
-describe("Foundation v2.2 public contracts", () => {
+describe("Foundation public contracts", () => {
   test("exports semantic typography and accessible feedback contracts", () => {
     expect(WEB_TYPE_SCALE.pageTitle).toMatchObject({
       family: "display",
       size: 28,
-      weight: 700,
+      weight: 500,
     });
     expect(FEEDBACK_RESOURCE_STATES).toContain("loading-more");
     expect(ACCESSIBILITY_CONTRACT.invariants.asyncAnnouncement).toBe(

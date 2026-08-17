@@ -396,7 +396,10 @@ describe("NotificationItem", () => {
   test("有操作者时显示头像（无头像则首字符占位）", () => {
     renderWithQC(<NotificationItem notification={baseNotification()} />);
     expect(screen.getByTestId("user-avatar-placeholder").textContent).toBe("M");
-    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "morenk头像" })).toHaveAttribute(
+      "data-avatar-fallback",
+      "first-readable-character",
+    );
   });
 
   test("操作者有头像时渲染缩略图", () => {

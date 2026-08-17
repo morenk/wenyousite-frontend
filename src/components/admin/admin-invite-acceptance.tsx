@@ -21,7 +21,7 @@ export function AdminInviteAcceptance() {
           <ShieldCheck className="size-5" />
         </span>
         <p className="mt-7 font-utility text-xs font-bold tracking-[0.12em] text-muted-foreground">站务账号邀请</p>
-        <h1 className="mt-2 font-display text-3xl font-bold">接受温油站务邀请</h1>
+        <h1 className="mt-2 font-display text-3xl font-medium">接受温油站务邀请</h1>
         <p className="mt-4 text-sm leading-7 text-muted-foreground">
           邀请只会把当前已登录的温油账号升级为管理员。接受后普通网页会话会失效，请使用同一账号在独立站务台完成邮箱二次确认。
         </p>

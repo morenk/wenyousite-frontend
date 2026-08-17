@@ -14,6 +14,7 @@ const openapi = JSON.parse(read("contracts/openapi.json"));
 const failures = [];
 const repositoryOnlyArtifacts = new Set([
   "packages/flutter/lib/src/foundation_tokens.dart",
+  "packages/flutter/lib/src/foundation_formatters.dart",
   "packages/flutter/lib/src/wenyou_icons.dart",
 ]);
 
@@ -23,17 +24,17 @@ if (packageJson.dependencies?.["@wenyousite/foundation"] !== `github:morenk/weny
 if (manifest.version !== lock.version) failures.push("已安装 foundation 版本与锁文件不一致");
 if (manifest.contractSha256 !== lock.contractSha256) failures.push("已安装 foundation 契约哈希与锁文件不一致");
 if (!read("pnpm-lock.yaml").includes(lock.revision)) failures.push("pnpm-lock.yaml 未锁定指定 foundation revision");
-if (foundationContract.version !== "5.1.0" || foundationContract.schemaVersion !== 1) {
-  failures.push("Web 必须消费 Foundation v5.1.0 schema 1 契约");
+if (foundationContract.version !== "6.0.1" || foundationContract.schemaVersion !== 2) {
+  failures.push("Web 必须消费 Foundation v6.0.1 schema 2 契约");
 }
-if (!manifest.features?.typography || !manifest.features?.interaction || !manifest.features?.iconControls || !manifest.features?.navigation || !manifest.features?.language || !manifest.features?.elements) {
+if (!manifest.features?.typography || !manifest.features?.interaction || !manifest.features?.controls || !manifest.features?.formatting || !manifest.features?.contentPresentation || !manifest.features?.iconControls || !manifest.features?.navigation || !manifest.features?.language || !manifest.features?.elements) {
   failures.push("已安装 Foundation 缺少共享语义能力");
 }
 if (
   foundationContract.experiences.editor.contentPolicy?.markdownContractVersion !== 3 ||
   foundationContract.experiences.editor.contentPolicy?.structuredCapabilitySource !== "toolbar"
 ) failures.push("已安装 Foundation 未绑定 Markdown v3 工具栏白名单");
-if (Object.keys(manifest.artifactSha256 ?? {}).length !== 24) {
+if (Object.keys(manifest.artifactSha256 ?? {}).length !== 29) {
   failures.push("已安装 Foundation 生成产物清单不完整");
 }
 for (const [relativePath, expectedHash] of Object.entries(manifest.artifactSha256 ?? {})) {
@@ -62,13 +63,16 @@ for (const claim of ["--type-body-size", "--type-body-line-height"]) {
   if (!globalStyles.includes(`var(${claim})`)) failures.push(`globals.css 未消费语义排版 Token ${claim}`);
 }
 const foundationTokens = read("node_modules/@wenyousite/foundation/web/tokens.css");
-for (const token of ["--type-page-title-size", "--overlay-scrim", "--layer-modal", "--layer-global-progress", "--like", "--bookmark", "--icon-control-state-layer-color", "--icon-control-state-layer-radius", "--icon-control-hover-state-opacity", "--icon-control-focus-state-opacity", "--icon-control-pressed-state-opacity", "--icon-control-disabled-content-opacity", "--element-internal-reference-surface", "--element-badge-default-height"]) {
+for (const token of ["--type-page-title-size", "--overlay-scrim", "--layer-modal", "--layer-global-progress", "--like", "--bookmark", "--icon-control-state-layer-color", "--icon-control-state-layer-radius", "--icon-control-hover-state-opacity", "--icon-control-focus-state-opacity", "--icon-control-pressed-state-opacity", "--icon-control-disabled-content-opacity", "--element-internal-reference-surface", "--element-badge-default-height", "--element-level-mist-surface", "--element-level-berry-surface"]) {
   if (!foundationTokens.includes(`${token}:`)) failures.push(`Foundation Web Token 缺少 ${token}`);
 }
 if (
   foundationContract.experiences.elements?.inline?.internalReference?.icon !== "content.internal-reference"
   || foundationContract.experiences.elements?.metadata?.unreadCount?.maximumDisplay !== "99+"
   || foundationContract.experiences.elements?.metadata?.categoryMarker?.colorOwner !== "foundation"
+  || foundationContract.experiences.elements?.identity?.emailVerification?.publicIdentity !== "hidden"
+  || foundationContract.experiences.elements?.inline?.dice?.labels?.visibleResult !== "total-only"
+  || foundationContract.experiences.elements?.inline?.dice?.data?.resultSource !== "server-only"
 ) {
   failures.push("Foundation 缺少核心正文与元数据元素语义");
 }
@@ -133,6 +137,18 @@ for (const [fileName, moduleName] of [
   ["src/components/ui/badge.tsx", "@wenyousite/foundation/elements"],
   ["src/components/shared/internal-reference-link.tsx", "@wenyousite/foundation/elements"],
   ["src/components/ui/unread-count-badge.tsx", "@wenyousite/foundation/elements"],
+  ["src/components/ui/button.tsx", "@wenyousite/foundation/controls"],
+  ["src/components/ui/input.tsx", "@wenyousite/foundation/controls"],
+  ["src/components/ui/skeleton.tsx", "@wenyousite/foundation/interaction"],
+  ["src/components/shared/wenyou-time.tsx", "@wenyousite/foundation/formatting"],
+  ["src/components/shared/wenyou-count.tsx", "@wenyousite/foundation/formatting"],
+  ["src/components/shared/level-badge.tsx", "@wenyousite/foundation/elements"],
+  ["src/components/shared/user-avatar.tsx", "@wenyousite/foundation/elements"],
+  ["src/lib/dice-inline.ts", "@wenyousite/foundation/elements"],
+  ["src/components/thread/thread-card.tsx", "@wenyousite/foundation/collections"],
+  ["src/components/thread/thread-detail-header.tsx", "@wenyousite/foundation/collections"],
+  ["src/components/moment/moment-card.tsx", "@wenyousite/foundation/collections"],
+  ["src/components/moment/moment-detail-view.tsx", "@wenyousite/foundation/collections"],
 ]) {
   if (!read(fileName).includes(moduleName)) failures.push(`${fileName} 未直接消费 ${moduleName}`);
 }

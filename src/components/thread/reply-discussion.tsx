@@ -3,8 +3,6 @@
 "use client";
 
 import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
-import { zhCN } from "date-fns/locale";
 import { ArrowLeft } from "lucide-react";
 import { MarkdownContent } from "@/components/thread/markdown-content";
 import { ReplyList } from "@/components/thread/reply-list";
@@ -14,6 +12,7 @@ import {
 } from "@/components/thread/reply-form";
 import { FloatingComposerDock } from "@/components/thread/floating-composer-dock";
 import { UserAvatarLink } from "@/components/shared/user-avatar";
+import { WenyouTime } from "@/components/shared/wenyou-time";
 import { LevelBadge } from "@/components/shared/level-badge";
 import { getPostHref } from "@/lib/post-navigation";
 import type { ReplyDisplayData } from "@/api/hooks/use-floors";
@@ -70,10 +69,7 @@ export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps
                 </Link>
                 <LevelBadge level={rootPost.author.level} />
                 <p className="text-xs text-muted-foreground">
-                  #{rootPost.floorNumber} · {formatDistanceToNow(new Date(rootPost.createdAt), {
-                    addSuffix: true,
-                    locale: zhCN,
-                  })}
+                  #{rootPost.floorNumber} · <WenyouTime value={rootPost.createdAt} />
                 </p>
               </div>
             </div>

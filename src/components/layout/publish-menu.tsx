@@ -29,7 +29,7 @@ export function PublishMenu({ userId, compact = false }: { userId: string; compa
               aria-label="打开发布菜单"
               title={NAVIGATION_LABELS.publish}
               className={cn(
-                "group relative isolate mt-5 flex h-12 w-full items-center justify-center overflow-hidden rounded-2xl bg-primary font-display text-primary-foreground transition-[background-color,transform] duration-[var(--motion-fast)] ease-[var(--ease-standard)] hover:bg-accent active:translate-y-px",
+                "group relative isolate mt-5 flex h-12 w-full items-center justify-center overflow-hidden rounded-2xl bg-primary text-primary-foreground transition-[background-color,transform] duration-[var(--motion-fast)] ease-[var(--ease-standard)] hover:bg-accent active:translate-y-px",
                 !compact && "xl:justify-start xl:gap-2.5 xl:px-4",
               )}
             />
@@ -41,7 +41,7 @@ export function PublishMenu({ userId, compact = false }: { userId: string; compa
           />
           <WenyouIcon id={NAVIGATION_ICONS.publish} className="size-5" />
           <span className={cn(
-            "hidden font-display text-[1.0625rem] font-bold tracking-[0.12em]",
+            "hidden text-[1.0625rem] font-semibold tracking-[0.12em]",
             !compact && "xl:inline",
           )}>{NAVIGATION_LABELS.publish}</span>
           <WenyouIcon id="navigation.expand" className={cn(
@@ -54,7 +54,7 @@ export function PublishMenu({ userId, compact = false }: { userId: string; compa
           <Popover.Positioner side="right" align="start" sideOffset={12} className="z-[var(--layer-popup)]">
             <Popover.Popup className="w-64 rounded-2xl bg-popover p-2 text-popover-foreground shadow-popover outline-none">
               <div className="px-3 pb-2 pt-2">
-                <Popover.Title className="font-display text-base font-bold tracking-wide">选择发布方式</Popover.Title>
+                <Popover.Title className="text-base font-semibold tracking-wide">选择发布方式</Popover.Title>
               </div>
               <nav className="grid gap-1" aria-label="发布选项">
                 <Link
@@ -64,7 +64,7 @@ export function PublishMenu({ userId, compact = false }: { userId: string; compa
                 >
                   <WenyouIcon id="status.file" className="size-5 text-brand-strong" />
                   <span className="min-w-0 flex-1">
-                    <span className="block font-display text-[0.9375rem] font-bold">发布主题帖</span>
+                    <span className="block text-[0.9375rem] font-semibold">发布主题帖</span>
                   </span>
                   <WenyouIcon id="navigation.next" className="size-4 text-muted-foreground transition-transform group-hover/item:translate-x-0.5" />
                 </Link>
@@ -78,7 +78,7 @@ export function PublishMenu({ userId, compact = false }: { userId: string; compa
                 >
                   <WenyouIcon id="status.gallery" className="size-5 text-brand-strong" />
                   <span className="min-w-0 flex-1">
-                    <span className="block font-display text-[0.9375rem] font-bold">发布动态</span>
+                    <span className="block text-[0.9375rem] font-semibold">发布动态</span>
                   </span>
                   <WenyouIcon id="navigation.next" className="size-4 text-muted-foreground transition-transform group-hover/item:translate-x-0.5" />
                 </button>

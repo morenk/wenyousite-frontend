@@ -58,7 +58,7 @@ export default function JoinByInvitePage() {
         <CardHeader><CardTitle>私密主题帖邀请</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <h1 className="font-display text-xl font-bold">{thread.title}</h1>
+            <h1 className="font-display text-xl font-medium">{thread.title}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               <ThreadCategoryLabel category={thread.category} /> · 楼主 {thread.owner.username} · {thread.memberCount} 位参与人
             </p>

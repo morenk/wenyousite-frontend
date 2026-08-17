@@ -5,8 +5,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
 import { Loader2, Monitor, RefreshCw, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
@@ -20,14 +18,11 @@ import {
 } from "@/api/hooks/use-account-security";
 import { getApiError, getApiErrorMessage } from "@/api/errors";
 import { UserAvatar } from "@/components/shared/user-avatar";
+import { WenyouTime } from "@/components/shared/wenyou-time";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useConfirm } from "@/components/ui/confirm-provider";
-
-function formatTime(value: string) {
-  return format(new Date(value), "yyyy-MM-dd HH:mm", { locale: zhCN });
-}
 
 function getSessionErrorMessage(error: unknown) {
   const code = getApiError(error).code;
@@ -116,10 +111,10 @@ export function AccountSecurityPanel() {
                         {session.isCurrent && <span className="ml-2 text-xs text-brand-strong">当前终端</span>}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        登录于 {formatTime(session.signedInAt ?? session.createdAt)} · 最近活动 {formatTime(session.lastActiveAt ?? session.createdAt)}
+                        登录于 <WenyouTime value={session.signedInAt ?? session.createdAt} /> · 最近活动 <WenyouTime value={session.lastActiveAt ?? session.createdAt} />
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        有效期至 {formatTime(session.expiresAt)}
+                        有效期至 <WenyouTime value={session.expiresAt} />
                       </p>
                     </div>
                   </div>

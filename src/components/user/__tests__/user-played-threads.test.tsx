@@ -59,6 +59,7 @@ const sampleThread = {
   topicTags: [],
   _count: { members: 1, players: 1, posts: 2 },
   preview: "预览",
+  coverImages: [],
 };
 
 describe("UserPlayedThreads", () => {

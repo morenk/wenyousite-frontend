@@ -4,7 +4,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { format } from "date-fns";
+import { IDENTITY_PRESENTATION } from "@wenyousite/foundation/elements";
 import {
   Loader2,
   Search,
@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/shared/empty-state";
 import { UserAvatar } from "@/components/shared/user-avatar";
+import { WenyouTime } from "@/components/shared/wenyou-time";
 import { useConfirm } from "@/components/ui/confirm-provider";
 import { cn } from "@/lib/utils";
 import type { ThreadMember } from "@/api/hooks/use-members";
@@ -120,7 +121,7 @@ export function MemberManager({ threadId, isOwner, isCollaborator }: MemberManag
           <p className="font-utility text-xs font-bold uppercase tracking-[0.12em] text-brand-strong">
             成员权限
           </p>
-          <h2 className="mt-1 font-display text-xl font-bold text-foreground">
+          <h2 className="mt-1 font-display text-xl font-medium text-foreground">
             谁可以共同创作
           </h2>
           <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
@@ -329,13 +330,13 @@ function MemberTableRow({
             {member.playerMarked ? "已标记玩家" : "标记为玩家"}
           </Button>
         ) : member.playerMarked ? (
-          <Badge tone="success">玩家</Badge>
+          <Badge tone={IDENTITY_PRESENTATION.roleTones.player}>玩家</Badge>
         ) : (
           <span className="text-sm text-muted-foreground">未标记</span>
         )}
       </td>
       <td className="px-5 py-3.5 text-right font-utility text-xs tabular-nums text-muted-foreground">
-        <time dateTime={member.joinedAt}>{format(new Date(member.joinedAt), "yyyy-MM-dd")}</time>
+        <WenyouTime value={member.joinedAt} />
       </td>
     </tr>
   );

@@ -61,7 +61,7 @@ describe("NavBar", () => {
     render(<NavBar />);
 
     expect(screen.getByRole("button", { name: "打开发布菜单" })).toBeInTheDocument();
-    expect(screen.getByText("发布")).toHaveClass("font-display");
+    expect(screen.getByText("发布")).not.toHaveClass("font-display");
     expect(screen.getByRole("link", { name: "收藏" })).toHaveClass("xl:hidden");
     expect(screen.getByRole("link", { name: "通知" })).toHaveClass("xl:hidden");
     expect(screen.getByRole("link", { name: "私聊" })).toHaveClass("xl:hidden");

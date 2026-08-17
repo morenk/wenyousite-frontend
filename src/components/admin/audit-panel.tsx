@@ -1,6 +1,5 @@
 "use client";
 
-import { format } from "date-fns";
 import { Download, ScrollText } from "lucide-react";
 import { useQueryStates } from "nuqs";
 import {
@@ -21,6 +20,7 @@ import { useCursorPagination } from "./use-cursor-pagination";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { WenyouTime } from "@/components/shared/wenyou-time";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { adminAuditFilterParsers, adminAuditUrlKeys } from "@/lib/admin-url-state";
 
@@ -117,7 +117,7 @@ export function AuditPanel() {
         <div className="flex items-center gap-3">
           <span className="flex size-10 items-center justify-center rounded-xl bg-accent text-accent-foreground"><ScrollText className="size-5" /></span>
           <div>
-            <h2 className="font-display text-lg font-bold">不可变决定轨迹</h2>
+            <h2 className="font-display text-lg font-medium">不可变决定轨迹</h2>
             <p className="text-xs text-muted-foreground">业务记录永久保留；表格筛选与导出使用同一查询范围。</p>
           </div>
         </div>
@@ -171,7 +171,7 @@ export function AuditPanel() {
         {logs.isError ? <AdminTableEmpty colSpan={5}><span className="text-destructive">决定轨迹加载失败</span></AdminTableEmpty> : null}
         {logs.data?.items.map((log) => (
           <AdminTableRow key={log.id}>
-            <AdminTableCell className="font-utility text-xs whitespace-nowrap text-muted-foreground"><time>{format(new Date(log.createdAt), "yyyy-MM-dd HH:mm")}</time></AdminTableCell>
+            <AdminTableCell className="text-xs whitespace-nowrap text-muted-foreground"><WenyouTime value={log.createdAt} /></AdminTableCell>
             <AdminTableCell><Badge tone="neutral">{actionLabels[log.action]}</Badge></AdminTableCell>
             <AdminTableCell>
               <p className="font-semibold">{targetLabels[log.targetType]}</p>

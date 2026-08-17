@@ -3,13 +3,11 @@
 "use client";
 
 import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
-import { zhCN } from "date-fns/locale";
 import { Loader2, Trash2 } from "lucide-react";
-import type { ThreadCategory } from "@/lib/thread-presentation";
 import { ThreadCategoryBadge } from "@/components/thread/thread-category";
-import type { ThreadOwner } from "@/api/hooks/use-threads";
+import type { ThreadCardData } from "@/api/hooks/use-threads";
 import { LevelBadge } from "@/components/shared/level-badge";
+import { WenyouTime } from "@/components/shared/wenyou-time";
 import type { BookmarkFolder } from "@/api/hooks/use-bookmark-folders";
 import {
   Select,
@@ -19,16 +17,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+type BookmarkThreadCardData = ThreadCardData & {
+  bookmarkId?: string;
+  bookmarkFolderId?: string;
+};
+
 interface BookmarkThreadCardProps {
-  thread: {
-    id: string;
-    title: string;
-    category: ThreadCategory | null;
-    createdAt: string;
-    owner: ThreadOwner;
-    bookmarkId?: string;
-    bookmarkFolderId?: string;
-  };
+  thread: BookmarkThreadCardData;
   folders?: BookmarkFolder[];
   onMove?: (bookmarkId: string, folderId: string) => void;
   onUnbookmark?: (bookmarkId: string, threadId: string) => void;
@@ -50,15 +45,12 @@ export function BookmarkThreadCard({
         <div className="mb-1.5 flex items-center gap-2">
           <ThreadCategoryBadge category={thread.category} />
         </div>
-        <h3 className="font-display text-base font-bold text-foreground line-clamp-1">
+        <h3 className="text-base font-semibold text-foreground line-clamp-1">
           {thread.title}
         </h3>
         <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
           {thread.owner.username} <LevelBadge level={thread.owner.level} /> ·{" "}
-          {formatDistanceToNow(new Date(thread.createdAt), {
-            addSuffix: true,
-            locale: zhCN,
-          })}
+          <WenyouTime value={thread.createdAt} />
         </p>
       </Link>
       <div className="flex shrink-0 items-center gap-1.5">

@@ -5,7 +5,6 @@ import { apiClient } from "@/api/client";
 import { BROWSING_RETURN_GC_TIME } from "@/api/query-policy";
 import { queryKeys } from "@/api/query-keys";
 import type { components } from "@/api/types";
-import type { MomentCard } from "@/api/hooks/use-moments";
 
 export type SearchUser = components["schemas"]["SearchUserResponseDto"];
 export type SearchThread = components["schemas"]["SearchThreadResponseDto"];
@@ -133,7 +132,7 @@ export function useSearchMoments(
       });
       if (error) throw error;
       return {
-        data: (data?.data ?? []) as MomentCard[],
+        data: data?.data ?? [],
         meta: data?.meta ?? { cursor: null, hasMore: false },
       };
     },

@@ -122,7 +122,11 @@
 
 公开资料的 `accountStatus` 为 `ACTIVE / SUSPENDED / BANNED`。资料卡只在后两种状态显示“该用户已被暂时封禁 / 永久封禁”，不显示处罚原因或具体截止时间。
 
+邮箱是否验证不属于公开身份状态：用户列表、主题/动态详情和个人资料卡均不显示验证徽标；未验证用户仍从本人账号安全入口或受限操作上下文进入验证流程。
+
 用户公开资料、最近动态、创建帖、收藏和参与帖使用 60 秒新鲜期，并在离开页面后保留 30 分钟，返回上一页面时优先复用缓存；关注列表继续使用默认缓存策略。其中会随身份变化的 OptionalAuth 数据在 query key 中加入查看者 ID，认证恢复或账号切换后不会复用匿名/其他账号的权限结果。关注、收藏、资料修改等写操作仍主动失效对应查询。
+
+个人主页的创建帖、参与帖和公开收藏与首页、主题帖搜索统一消费完整 `ThreadListItemResponseDto` 基础卡片字段；页面只保留自己的查询 key、权限、排序和空态，不维护较窄的帖子传输模型。个人动态继续与动态首页、搜索和动态收藏共用 `MomentCardResponseDto`。
 
 ### GET /users/:id/recent-replies → RecentReply[]
 
@@ -240,7 +244,7 @@
 | UserActivitySummaryCard | `src/components/user/user-activity-summary.tsx` | 概览四项创作统计；精确数字、隐私占位及动态/帖子/最近回复入口 |
 | UserProfileCard | `src/components/user/user-profile-card.tsx` | 用户主页头部：有背景图时显示 3:1 背景墙和明确置顶的半覆盖头像；无背景图时回退紧凑默认资料卡 |
 | ProfileCover | `src/components/user/profile-cover.tsx` | 背景图展示：支持 Web 3:1 / 移动端 2:1 占位，通过 `srcset` 按视口/DPR 自适应选择 800px 中图或高清原图，并保留原图回退与加载失败状态 |
-| UserAvatar | `src/components/shared/user-avatar.tsx` | 共享头像组件：有 URL 用 `_thumb.webp` 缩略图，无则首字母占位；“已注销用户”始终忽略 URL 并使用统一灰色用户图标；尺寸通过 className 控制（资料卡/关注列表/通知/主题帖列表/楼层/楼中楼复用） |
+| UserAvatar | `src/components/shared/user-avatar.tsx` | 共享头像组件：有 URL 用 `_thumb.webp` 缩略图，无图或加载失败时显示首个可读字符；匿名、已注销或不可用身份忽略旧 URL 并使用中性用户图标；公开资料不显示邮箱验证状态 |
 | FollowButton | `src/components/user/follow-button.tsx` | 关注/取消关注切换（未登录跳 /login） |
 | BlockButton | `src/components/user/block-button.tsx` | 拉黑/取消拉黑切换（全局无障碍确认框二次确认） |
 | UserFollowList | `src/components/user/user-follow-list.tsx` | 关注/粉丝列表（头像 + 用户名链接 + 三态，复用两种列表） |

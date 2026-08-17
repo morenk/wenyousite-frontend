@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { CONTENT_PRESENTATION } from "@wenyousite/foundation/collections";
 import { usePathname, useRouter } from "next/navigation";
-import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
 import { Loader2, Pencil, Save, ShieldAlert, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
@@ -20,6 +19,8 @@ import { InternalReferenceInsert } from "@/components/shared/internal-reference-
 import { InternalReferenceText } from "@/components/shared/internal-reference-text";
 import { LoadError } from "@/components/shared/load-error";
 import { UserAvatar } from "@/components/shared/user-avatar";
+import { WenyouTime } from "@/components/shared/wenyou-time";
+import { WenyouCount } from "@/components/shared/wenyou-count";
 import { Button } from "@/components/ui/button";
 import { InteractionToggle } from "@/components/ui/interaction-toggle";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,7 @@ import { Tooltip } from "@/components/ui/tooltip";
 import { useConfirm } from "@/components/ui/confirm-provider";
 import { useAuth } from "@/lib/auth";
 import { AdminContentModerationDialog } from "@/components/admin/admin-content-moderation-dialog";
+import { PageRouteFallback } from "@/components/layout/page-route-fallback";
 
 export function MomentDetailView({ momentId, onDeleted }: { momentId: string; onDeleted?: () => void }) {
   const { user } = useAuth();
@@ -47,7 +49,7 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
   const canModerate = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
 
   if (detail.isLoading) {
-    return <div className="flex min-h-[32rem] items-center justify-center" role="status"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>;
+    return <PageRouteFallback variant="detail" />;
   }
   if (detail.isError || !moment) {
     return <LoadError title="动态不存在" description="它可能已被删除，或当前不可见。" onRetry={() => void detail.refetch()} className="py-24" />;
@@ -109,7 +111,11 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
   };
   return (
     <>
-      <article className="w-full bg-background">
+      <article
+        className="w-full bg-background"
+        data-content-purpose={CONTENT_PRESENTATION.detail.purpose}
+        data-content-surface={CONTENT_PRESENTATION.detail.surface}
+      >
       <section
         data-slot="moment-detail-title-card"
         className="mb-3 w-full rounded-2xl bg-muted/35 px-5 py-4 sm:px-7"
@@ -118,7 +124,7 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
         <header data-slot="moment-detail-header" className="flex items-center gap-3">
           <Link href={`/users/${moment.author.id}`} className="flex min-w-0 items-center gap-3 rounded-xl">
             <UserAvatar name={moment.author.username} src={moment.author.avatar} className="size-10" />
-            <div className="min-w-0"><p className="truncate text-sm font-bold">{moment.author.username}</p><time className="font-utility text-xs text-muted-foreground" dateTime={moment.createdAt}>{format(new Date(moment.createdAt), "yyyy年M月d日 HH:mm", { locale: zhCN })}</time></div>
+            <div className="min-w-0"><p className="truncate text-sm font-bold">{moment.author.username}</p><WenyouTime value={moment.createdAt} className="text-xs text-muted-foreground" /></div>
           </Link>
           <div className="ml-auto flex items-center gap-1">
             {moment.canEdit && !editing ? (
@@ -177,7 +183,7 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
             </div>
           </div>
         ) : (
-          <h1 id="moment-detail-title" className="mt-4 whitespace-pre-wrap font-display text-2xl font-bold leading-[1.5] tracking-wide sm:text-3xl">{moment.title}</h1>
+          <h1 id="moment-detail-title" className="mt-4 whitespace-pre-wrap font-display text-2xl font-medium leading-[1.5] tracking-wide sm:text-3xl">{moment.title}</h1>
         )}
 
         {!editing ? (
@@ -195,7 +201,7 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
               accessibleDescription={`当前 ${moment.likeCount} 个赞`}
               actionTitle={moment.viewerLiked ? "取消点赞" : "点赞"}
             >
-              {moment.likeCount || "点赞"}
+              {moment.likeCount ? <WenyouCount value={moment.likeCount} label="点赞" /> : "点赞"}
             </InteractionToggle>
             <InteractionToggle
               tone="bookmark"
@@ -207,7 +213,7 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
               accessibleDescription={`当前 ${moment.bookmarkCount} 个收藏`}
               actionTitle={moment.viewerBookmarked ? "取消收藏" : "收藏"}
             >
-              {moment.bookmarkCount || "收藏"}
+              {moment.bookmarkCount ? <WenyouCount value={moment.bookmarkCount} label="收藏" /> : "收藏"}
             </InteractionToggle>
             {user?.id !== moment.authorId ? <WenyouTipButton target={{ type: "MOMENT", id: moment.id, recipientUserId: moment.authorId }} recipientName={moment.author.username} /> : null}
             <span className="ml-auto font-utility text-xs text-muted-foreground">累计加油 {moment.tipTotal} 升</span>

@@ -1,6 +1,5 @@
 "use client";
 
-import { format } from "date-fns";
 import { Gavel } from "lucide-react";
 import { useQueryStates } from "nuqs";
 import { useState } from "react";
@@ -23,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { WenyouTime } from "@/components/shared/wenyou-time";
 import { adminAppealFilterParsers, adminAppealUrlKeys } from "@/lib/admin-url-state";
 import { HighRiskGate } from "./high-risk-gate";
 
@@ -82,7 +82,7 @@ export function AppealsPanel() {
     <div className="grid min-h-[42rem] grid-cols-[34rem_minmax(0,1fr)] overflow-hidden rounded-lg border border-border bg-card">
       <section className="flex min-h-0 flex-col border-r border-border">
         <div className="border-b border-border px-5 py-4">
-          <h2 className="font-display text-lg font-bold">申诉台账</h2>
+          <h2 className="font-display text-lg font-medium">申诉台账</h2>
           <p className="mt-1 text-xs text-muted-foreground">推翻决定将自动恢复原处置。</p>
         </div>
         <AdminFilterBar
@@ -143,7 +143,7 @@ export function AppealsPanel() {
                 <p className="font-semibold">{actionLabels[appeal.decision.action]}</p>
                 <p className="text-xs text-muted-foreground">{targetLabels[appeal.decision.targetType]}</p>
               </AdminTableCell>
-              <AdminTableCell className="font-utility text-xs whitespace-nowrap text-muted-foreground"><time>{format(new Date(appeal.createdAt), "MM-dd HH:mm")}</time></AdminTableCell>
+              <AdminTableCell className="text-xs whitespace-nowrap text-muted-foreground"><WenyouTime value={appeal.createdAt} /></AdminTableCell>
               <AdminTableCell className="text-right">
                 <Button type="button" size="compact" variant={effectiveSelectedId === appeal.id ? "secondary" : "ghost"} onClick={() => { setSelectedId(appeal.id); setNote(""); }}>
                   {effectiveSelectedId === appeal.id ? "已选择" : "查看"}
@@ -181,7 +181,7 @@ export function AppealsPanel() {
               <span className="flex size-11 items-center justify-center rounded-xl bg-warning-soft text-warning"><Gavel className="size-5" /></span>
               <div>
                 <p className="font-utility text-xs text-muted-foreground">申诉编号 {selected.id.slice(-8).toUpperCase()}</p>
-                <h2 className="font-display text-2xl font-bold">复核 {selected.appellant.username} 的申诉</h2>
+                <h2 className="font-display text-2xl font-medium">复核 {selected.appellant.username} 的申诉</h2>
               </div>
             </div>
 
@@ -241,7 +241,7 @@ export function AppealsPanel() {
               <div className="mt-6 rounded-xl border border-border bg-muted/60 p-5">
                 <div className="flex items-center gap-2">
                   <Badge tone={statusTone(selected.status)}>{statusLabels[selected.status]}</Badge>
-                  {selected.handledAt ? <time className="font-utility text-xs text-muted-foreground">{format(new Date(selected.handledAt), "yyyy-MM-dd HH:mm")}</time> : null}
+                  {selected.handledAt ? <WenyouTime value={selected.handledAt} className="text-xs text-muted-foreground" /> : null}
                 </div>
                 <p className="mt-3 text-sm leading-6">{selected.handledNote || "未记录复核说明"}</p>
               </div>

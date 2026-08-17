@@ -80,6 +80,35 @@ for (const file of sourceRoots.flatMap(sourceFiles)) {
       `${fileName}: 页面不得直接声明任意 max-width，请为 PageShell 增加语义宽度`,
     );
   }
+
+  if (source.includes("formatDistanceToNow")) {
+    failures.push(`${fileName}: 列表与详情时间必须通过 WenyouTime 消费 Foundation 72 小时窗口`);
+  }
+}
+
+const bodyTypographyFiles = [
+  "src/components/ui/card.tsx",
+  "src/components/ui/dialog.tsx",
+  "src/components/shared/user-avatar.tsx",
+  "src/components/thread/thread-card.tsx",
+  "src/components/thread/subthread-tabs.tsx",
+  "src/components/thread/thread-reading-bar.tsx",
+  "src/components/thread/thread-detail-more.tsx",
+  "src/components/user/bookmark-thread-card.tsx",
+  "src/components/user/draft-list.tsx",
+  "src/components/user/user-activity-summary.tsx",
+  "src/components/user/user-profile-card.tsx",
+  "src/components/layout/publish-menu.tsx",
+  "src/components/layout/app-context-rail.tsx",
+  "src/components/admin/high-risk-gate.tsx",
+  "src/app/not-found.tsx",
+  "src/app/error.tsx",
+  "src/app/moments/page.tsx",
+];
+for (const fileName of bodyTypographyFiles) {
+  if (readFileSync(resolve(root, fileName), "utf8").includes("font-display")) {
+    failures.push(`${fileName}: 列表、弹层、状态、控件、用户名或数字不得使用文楷`);
+  }
 }
 
 const governedIconFiles = [
@@ -117,7 +146,19 @@ const semanticContractClaims = new Map([
   ["src/components/ui/content-link.tsx", ["@wenyousite/foundation/elements", "data-slot", "externalBehavior"]],
   ["src/components/shared/internal-reference-link.tsx", ["@wenyousite/foundation/elements", "internalReference.icon", "internal-reference-element"]],
   ["src/components/shared/internal-reference-editor-dom.ts", ["@wenyousite/foundation/elements", "iconNode", "editorBehavior"]],
-  ["src/components/shared/level-badge.tsx", ["@wenyousite/foundation/elements", "--element-level-height", "data-slot=\"level-badge\""]],
+  ["src/components/shared/level-badge.tsx", ["@wenyousite/foundation/elements", "--element-level-height", "data-slot=\"level-badge\"", "levelTier", "data-level-tier", "--element-level-${tier.id}-surface"]],
+  ["src/components/shared/user-avatar.tsx", ["IDENTITY_PRESENTATION", "onError", "avatarFallback.missingOrFailed"]],
+  ["src/components/shared/wenyou-time.tsx", ["@wenyousite/foundation/formatting", "formatWenyouTime", "formatWenyouExactTime", "title="]],
+  ["src/components/shared/wenyou-count.tsx", ["@wenyousite/foundation/formatting", "formatWenyouCompactCount", "aria-label"]],
+  ["src/components/ui/button.tsx", ["@wenyousite/foundation/controls", "data-control-role"]],
+  ["src/components/ui/input.tsx", ["@wenyousite/foundation/controls", "data-control-state"]],
+  ["src/components/ui/skeleton.tsx", ["MOTION_USAGE", "motion-reduce:animate-none"]],
+  ["src/lib/dice-inline.ts", ["INLINE_ELEMENT_STYLES", "labels.settled", "semantics.settled"]],
+  ["src/app/globals.css", ["white-space: nowrap", "vertical-align: baseline"]],
+  ["src/components/thread/thread-card.tsx", ["CONTENT_PRESENTATION.list", "data-content-purpose"]],
+  ["src/components/thread/thread-detail-header.tsx", ["CONTENT_PRESENTATION.detail", "data-content-purpose"]],
+  ["src/components/moment/moment-card.tsx", ["CONTENT_PRESENTATION.list", "data-content-purpose"]],
+  ["src/components/moment/moment-detail-view.tsx", ["CONTENT_PRESENTATION.detail", "data-content-purpose"]],
   ["src/components/thread/topic-tag-link.tsx", ["@wenyousite/foundation/elements", "--element-topic-tag-min-height", "data-slot=\"topic-tag\""]],
   ["src/components/thread/thread-category.tsx", ["data-slot=\"category-badge\""]],
   ["src/lib/thread-presentation.ts", ["METADATA_ELEMENT_STYLES", "categoryMarker.badgeTone"]],

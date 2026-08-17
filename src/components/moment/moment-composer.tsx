@@ -323,7 +323,7 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
               className="moment-text-cover flex aspect-[3/4] w-full max-w-sm items-center rounded-2xl px-9 py-10"
               data-cover-theme="ROSE"
             >
-              <p className="line-clamp-5 font-display text-3xl font-bold leading-[1.55] tracking-wide">{title.trim() || "标题会用于文字封面"}</p>
+              <p className="line-clamp-5 font-display text-3xl font-medium leading-[1.55] tracking-wide">{title.trim() || "标题会用于文字封面"}</p>
             </div>
           )}
         </div>

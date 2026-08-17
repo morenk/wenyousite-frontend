@@ -3,8 +3,6 @@
 "use client";
 
 import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
-import { zhCN } from "date-fns/locale";
 import {
   MessageSquare,
   AtSign,
@@ -23,6 +21,7 @@ import { formatMarkdownPreview } from "@/lib/markdown-preview";
 import { getPostHref } from "@/lib/post-navigation";
 import { useNotificationActions } from "@/api/hooks/use-notification-actions";
 import { UserAvatar } from "@/components/shared/user-avatar";
+import { WenyouTime } from "@/components/shared/wenyou-time";
 import type { NotificationItem as NotificationItemData } from "@/api/hooks/use-notifications";
 
 interface NotificationItemProps {
@@ -113,10 +112,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
           <p className="mt-1 text-xs font-medium text-destructive">{deletedHint}</p>
         )}
         <p className="mt-0.5 text-xs text-muted-foreground">
-          {formatDistanceToNow(new Date(notification.createdAt), {
-            addSuffix: true,
-            locale: zhCN,
-          })}
+          <WenyouTime value={notification.createdAt} />
         </p>
       </div>
       {!notification.isRead && (

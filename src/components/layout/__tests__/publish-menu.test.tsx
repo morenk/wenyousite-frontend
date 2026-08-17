@@ -22,7 +22,7 @@ describe("PublishMenu", () => {
     render(<PublishMenu userId="user-1" />);
 
     const trigger = screen.getByRole("button", { name: "打开发布菜单" });
-    expect(screen.getByText("发布")).toHaveClass("font-display");
+    expect(screen.getByText("发布")).not.toHaveClass("font-display");
     expect(trigger).toHaveClass("bg-primary", "rounded-2xl");
     await userEvent.click(trigger);
 

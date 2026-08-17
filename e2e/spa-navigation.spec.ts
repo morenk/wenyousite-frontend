@@ -30,6 +30,7 @@ function makeThread(index: number) {
     topicTags: [],
     _count: { members: 4, players: 3, posts: index },
     preview: `这是第 ${index} 条用于验证列表返回位置的公开主题帖摘要。`,
+    coverImages: [],
   };
 }
 

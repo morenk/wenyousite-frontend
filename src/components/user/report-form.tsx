@@ -45,7 +45,7 @@ export function ReportForm({ targetType, targetId }: { targetType: TargetType; t
   return (
     <section className="mx-auto mt-8 max-w-xl rounded-2xl border border-border bg-card p-7">
       <span className="flex size-11 items-center justify-center rounded-xl bg-destructive-soft text-destructive"><Flag className="size-5" /></span>
-      <h1 className="mt-5 font-display text-2xl font-bold">举报这项内容</h1>
+      <h1 className="mt-5 font-display text-2xl font-medium">举报这项内容</h1>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">举报会保留当前内容快照；同一目标的多份举报由站务合并处理。</p>
       <p className="mt-4 rounded-lg bg-muted px-4 py-3 font-utility text-xs text-muted-foreground">{targetType} · {targetId}</p>
       <form className="mt-6 space-y-4" onSubmit={form.handleSubmit(async (values) => {

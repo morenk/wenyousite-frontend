@@ -2,7 +2,6 @@
 
 import { LANGUAGE_ACTIONS } from "@wenyousite/foundation/language";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
 import Link from "next/link";
 import { ExternalLink, Loader2, RotateCcw } from "lucide-react";
 import { useQueryStates } from "nuqs";
@@ -33,6 +32,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { WenyouTime } from "@/components/shared/wenyou-time";
 import {
   adminHiddenContentFilterParsers,
   adminHiddenContentUrlKeys,
@@ -116,7 +116,7 @@ export function HiddenContentList() {
             <RotateCcw className="size-5" />
           </span>
           <div>
-            <h2 className="font-display text-lg font-bold">当前隐藏内容</h2>
+            <h2 className="font-display text-lg font-medium">当前隐藏内容</h2>
             <p className="text-xs text-muted-foreground">这里只显示仍处于站务隐藏状态的内容；恢复后会立即移出列表。</p>
           </div>
         </div>
@@ -172,7 +172,7 @@ export function HiddenContentList() {
                 </AdminTableCell>
                 <AdminTableCell className="font-bold whitespace-nowrap">{item.author.username}</AdminTableCell>
                 <AdminTableCell className="max-w-sm text-xs leading-5">
-                  <time className="font-utility text-muted-foreground">{format(new Date(item.hiddenAt), "yyyy-MM-dd HH:mm")}</time>
+                  <WenyouTime value={item.hiddenAt} className="text-muted-foreground" />
                   <p className="mt-1 line-clamp-2" title={item.reason ?? undefined}>{item.reason || "未填写理由"}</p>
                   <p className="text-muted-foreground">站务：{item.moderator?.username ?? "未知"}</p>
                 </AdminTableCell>

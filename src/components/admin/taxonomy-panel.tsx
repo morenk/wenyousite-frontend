@@ -128,7 +128,7 @@ export function TaxonomyPanel() {
           <div className="flex items-center gap-3 px-6 py-5">
             <span className="flex size-10 items-center justify-center rounded-xl bg-accent text-accent-foreground"><FolderTree className="size-5" /></span>
             <div>
-              <h2 className="font-display text-xl font-bold">主题帖分类</h2>
+              <h2 className="font-display text-xl font-medium">主题帖分类</h2>
               <p className="text-xs text-muted-foreground">名称来自数据库；标识创建后保持稳定。</p>
             </div>
           </div>
@@ -238,7 +238,7 @@ export function TaxonomyPanel() {
         <section className="overflow-hidden rounded-lg border border-border bg-card">
           <div className="flex items-center gap-3 px-6 py-5">
             <span className="flex size-10 items-center justify-center rounded-xl bg-info-soft text-info"><Tags className="size-5" /></span>
-            <div><h2 className="font-display text-xl font-bold">平台标签</h2><p className="text-xs text-muted-foreground">标签停用不会移除已有主题帖关系。</p></div>
+            <div><h2 className="font-display text-xl font-medium">平台标签</h2><p className="text-xs text-muted-foreground">标签停用不会移除已有主题帖关系。</p></div>
           </div>
           <AdminFilterBar
             activeCount={(tagQuery.trim() ? 1 : 0) + (tagStatus ? 1 : 0)}

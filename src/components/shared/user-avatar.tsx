@@ -1,11 +1,17 @@
-/** 用户头像：已注销用户统一用灰色图标；其他用户有 URL 用缩略图，无则显示用户名首字符。 */
+/** 用户头像：缺失或加载失败显示首字符；匿名、注销或不可用身份显示中性图标。 */
 
+"use client";
+
+import { IDENTITY_PRESENTATION } from "@wenyousite/foundation/elements";
+import { UserRound } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
+
 import { cn } from "@/lib/utils";
 import { getImageUrlBySize } from "@/lib/upload-image";
-import { UserRound } from "lucide-react";
 
 const DEACTIVATED_USER_NAME = "已注销用户";
+const ANONYMOUS_USER_NAME = "匿名用户";
 
 interface UserAvatarProps {
   name: string;
@@ -21,45 +27,70 @@ interface UserAvatarLinkProps extends UserAvatarProps {
   linkClassName?: string;
 }
 
-export function UserAvatar({ name, src, className, textClassName = "text-sm" }: UserAvatarProps) {
-  if (name === DEACTIVATED_USER_NAME) {
-    return (
-      <div
-        role="img"
-        aria-label="已注销用户头像"
-        data-testid="deactivated-user-avatar"
-        className={cn(
-          "flex shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground",
-          className,
-        )}
-      >
-        <UserRound aria-hidden="true" className="h-1/2 w-1/2" />
-      </div>
-    );
-  }
-
-  if (src) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={getImageUrlBySize(src, "thumb")}
-        alt={name}
-        className={cn("shrink-0 overflow-hidden rounded-full object-cover", className)}
-      />
-    );
-  }
+function UnavailableAvatar({ name, className }: Pick<UserAvatarProps, "name" | "className">) {
   return (
     <div
-      data-testid="user-avatar-placeholder"
+      role="img"
+      aria-label={`${name || "不可用用户"}头像`}
+      data-testid="deactivated-user-avatar"
+      data-avatar-fallback={IDENTITY_PRESENTATION.avatarFallback.unavailableOrAnonymous}
       className={cn(
-        "flex shrink-0 items-center justify-center rounded-full bg-accent font-display font-bold text-brand-strong",
+        "flex shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground",
+        className,
+      )}
+    >
+      <UserRound aria-hidden="true" className="h-1/2 w-1/2" />
+    </div>
+  );
+}
+
+function InitialAvatar({ name, className, textClassName }: UserAvatarProps) {
+  const initial = Array.from(name.trim())[0]?.toLocaleUpperCase("zh-CN");
+  if (!initial) return <UnavailableAvatar name={name} className={className} />;
+  return (
+    <div
+      role="img"
+      aria-label={`${name}头像`}
+      data-testid="user-avatar-placeholder"
+      data-avatar-fallback={IDENTITY_PRESENTATION.avatarFallback.missingOrFailed}
+      className={cn(
+        "flex shrink-0 items-center justify-center rounded-full bg-accent font-bold text-brand-strong",
         textClassName,
         className,
       )}
     >
-      {name.slice(0, 1).toUpperCase()}
+      {initial}
     </div>
   );
+}
+
+function AvatarImage({ name, src, className, textClassName }: UserAvatarProps & { src: string }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) {
+    return <InitialAvatar name={name} src={null} className={className} textClassName={textClassName} />;
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={getImageUrlBySize(src, "thumb")}
+      alt={name}
+      className={cn("shrink-0 overflow-hidden rounded-full object-cover", className)}
+      onError={() => setFailed(true)}
+    />
+  );
+}
+
+export function UserAvatar({ name, src, className, textClassName = "text-sm" }: UserAvatarProps) {
+  if (!name.trim() || name === DEACTIVATED_USER_NAME || name === ANONYMOUS_USER_NAME) {
+    return (
+      <UnavailableAvatar name={name} className={className} />
+    );
+  }
+
+  if (src) {
+    return <AvatarImage key={src} name={name} src={src} className={className} textClassName={textClassName} />;
+  }
+  return <InitialAvatar name={name} src={null} className={className} textClassName={textClassName} />;
 }
 
 export function UserAvatarLink({

@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
 import { Scale } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -12,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth";
+import { WenyouTime } from "@/components/shared/wenyou-time";
 
 const schema = z.object({ statement: z.string().trim().min(10, "请至少写 10 个字").max(2000) });
 
@@ -35,7 +35,7 @@ function DecisionCard({ decision, userId }: { decision: UserModerationDecision; 
     <article className="w-full rounded-2xl border border-border bg-card p-6">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-2"><Badge tone={decision.active ? "warning" : "neutral"}>{decision.active ? "生效中" : "已撤销"}</Badge><span className="text-sm font-bold">{decision.action}</span></div>
-        <time className="font-utility text-xs text-muted-foreground">{format(new Date(decision.createdAt), "yyyy-MM-dd HH:mm")}</time>
+        <WenyouTime value={decision.createdAt} className="text-xs text-muted-foreground" />
       </div>
       <p className="mt-4 text-sm leading-7">{decision.publicExplanation}</p>
       <p className="mt-3 font-utility text-xs text-muted-foreground">规则 {decision.policyCode} · {decision.targetType} {decision.targetId}</p>

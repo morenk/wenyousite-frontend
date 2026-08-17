@@ -18,7 +18,9 @@ import { getImageUrlBySize } from "@/lib/upload-image";
 import { sanitizeMilkdownMarkdown } from "@/lib/markdown";
 import {
   DICE_INLINE_MARKER_SOURCE,
+  describeInlineDicePending,
   describeInlineDiceRoll,
+  formatInlineDicePending,
   formatInlineDiceRoll,
   type InlineDiceRoll,
 } from "@/lib/dice-inline";
@@ -219,7 +221,7 @@ function remarkInlineDice(rolls: InlineDiceRoll[]) {
           const nodeId = match[1]!.toLowerCase();
           const notation = match[2]!;
           const roll = byNodeId.get(nodeId);
-          const label = roll ? formatInlineDiceRoll(roll) : `${notation} = ?`;
+          const label = roll ? formatInlineDiceRoll(roll) : formatInlineDicePending(notation);
           children.push({
             type: "diceInline",
             children: [{ type: "text", value: label }],
@@ -233,7 +235,7 @@ function remarkInlineDice(rolls: InlineDiceRoll[]) {
                 role: "note",
                 ariaLabel: roll
                   ? describeInlineDiceRoll(roll)
-                  : `骰子 ${notation}，待掷`,
+                  : describeInlineDicePending(notation),
                 dataDiceNodeId: nodeId,
               },
             },

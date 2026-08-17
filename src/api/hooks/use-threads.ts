@@ -9,7 +9,7 @@ import type { components, operations } from "@/api/types";
 export type ThreadOwner = components["schemas"]["PostAuthorResponseDto"];
 export type ThreadTag = components["schemas"]["ThreadTagResponseDto"];
 export type ThreadCardData =
-  components["schemas"]["HomeThreadListItemResponseDto"];
+  components["schemas"]["ThreadListItemResponseDto"];
 export type ThreadListResponse =
   operations["threadsFindAll"]["responses"][200]["content"]["application/json"];
 

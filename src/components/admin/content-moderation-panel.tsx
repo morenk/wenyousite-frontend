@@ -107,7 +107,7 @@ export function ContentModerationPanel() {
             {action === "hide" ? <ShieldAlert className="size-5" /> : <RotateCcw className="size-5" />}
           </span>
           <div>
-            <h2 className="font-display text-xl font-bold">直接处置公开内容</h2>
+            <h2 className="font-display text-xl font-medium">直接处置公开内容</h2>
             <p className="mt-1 text-sm leading-6 text-muted-foreground">
               粘贴前台链接会自动识别目标；也可以选择类型后直接填写内容编号。
             </p>
@@ -195,7 +195,7 @@ export function ContentModerationPanel() {
         <div className="space-y-5">
           <Panel tone="soft">
           <p className="font-utility text-xs font-bold tracking-[0.12em] text-muted-foreground uppercase">处置边界</p>
-          <h3 className="mt-2 font-display text-lg font-bold">隐藏不是删除</h3>
+          <h3 className="mt-2 font-display text-lg font-medium">隐藏不是删除</h3>
           <ul className="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
             <li>公开读路径立即排除内容，原作者无法自行恢复。</li>
             <li>站务人员、理由和时间进入审计轨迹。</li>

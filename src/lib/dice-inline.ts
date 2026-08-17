@@ -1,4 +1,5 @@
 import { parseDiceNotation } from "@/lib/dice";
+import { INLINE_ELEMENT_STYLES } from "@wenyousite/foundation/elements";
 
 export const DICE_INLINE_NODE_NAME = "dice_inline";
 export const DICE_INLINE_MARKER_PREFIX = "[[dice:v1:";
@@ -16,27 +17,35 @@ export interface InlineDiceRoll extends InlineDiceNode {
   total: number;
 }
 
-/** 阅读态和编辑态共用的正式结果文案；多骰展示每一枚原始点数。 */
+const DICE_PRESENTATION = INLINE_ELEMENT_STYLES.dice;
+
+/** 阅读态和编辑态共用的紧凑正式结果文案；逐骰明细进入完整语义描述。 */
 export function formatInlineDiceRoll(roll: InlineDiceRoll): string {
-  if (roll.results.length <= 1 && roll.modifier === 0) {
-    return `${roll.notation} = ${roll.total}`;
-  }
-  const modifier = roll.modifier > 0
-    ? ` + ${roll.modifier}`
-    : roll.modifier < 0
-      ? ` - ${Math.abs(roll.modifier)}`
-      : "";
-  return `${roll.notation} = [${roll.results.join(", ")}]${modifier} = ${roll.total}`;
+  return DICE_PRESENTATION.labels.settled
+    .replace("{notation}", roll.notation)
+    .replace("{total}", String(roll.total));
+}
+
+export function formatInlineDicePending(notation: string): string {
+  return DICE_PRESENTATION.labels.pending.replace("{notation}", notation);
 }
 
 export function describeInlineDiceRoll(roll: InlineDiceRoll): string {
-  const parts = roll.results.join("、");
+  const parts = roll.results.join(DICE_PRESENTATION.labels.resultsSeparator);
   const modifier = roll.modifier > 0
-    ? `，修正加 ${roll.modifier}`
+    ? `，${DICE_PRESENTATION.labels.positiveModifier.replace("{modifier}", String(roll.modifier))}`
     : roll.modifier < 0
-      ? `，修正减 ${Math.abs(roll.modifier)}`
+      ? `，${DICE_PRESENTATION.labels.negativeModifier.replace("{absoluteModifier}", String(Math.abs(roll.modifier)))}`
       : "";
-  return `骰子 ${roll.notation}，逐骰结果 ${parts}${modifier}，总计 ${roll.total}`;
+  return DICE_PRESENTATION.semantics.settled
+    .replace("{notation}", roll.notation)
+    .replace("{results}", parts)
+    .replace("{modifierPhrase}", modifier)
+    .replace("{total}", String(roll.total));
+}
+
+export function describeInlineDicePending(notation: string): string {
+  return DICE_PRESENTATION.semantics.pending.replace("{notation}", notation);
 }
 
 export function serializeInlineDiceNode(node: InlineDiceNode): string {

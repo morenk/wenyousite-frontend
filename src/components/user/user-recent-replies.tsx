@@ -3,10 +3,9 @@
 "use client";
 
 import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
-import { zhCN } from "date-fns/locale";
 import { MessageSquare, CornerDownRight, FileText } from "lucide-react";
 import { EmptyState } from "@/components/shared/empty-state";
+import { WenyouTime } from "@/components/shared/wenyou-time";
 import { getPostHref } from "@/lib/post-navigation";
 import { formatMarkdownPreview } from "@/lib/markdown-preview";
 import type { RecentReply } from "@/api/hooks/use-user-recent-replies";
@@ -72,10 +71,7 @@ export function UserRecentReplies({
                 </span>
               </span>
               <span>·</span>
-              {formatDistanceToNow(new Date(reply.createdAt), {
-                addSuffix: true,
-                locale: zhCN,
-              })}
+              <WenyouTime value={reply.createdAt} />
             </span>
           </div>
           <p className="line-clamp-2 text-sm text-foreground/90">

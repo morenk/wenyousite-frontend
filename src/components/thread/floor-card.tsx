@@ -4,8 +4,6 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
-import { zhCN } from "date-fns/locale";
 import { ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -18,6 +16,7 @@ import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
 import { useThreadComposer } from "@/components/thread/thread-composer-context";
 import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
 import { UserAvatarLink } from "@/components/shared/user-avatar";
+import { WenyouTime } from "@/components/shared/wenyou-time";
 import { ReplyActionButton } from "@/components/shared/reply-action-button";
 import { buttonVariants } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-provider";
@@ -176,15 +175,7 @@ export function FloorCard({ floor, focused = false }: FloorCardProps) {
         data-testid="floor-card-meta"
         className="mt-3 flex min-h-6 items-center justify-between gap-3"
       >
-        <time
-          dateTime={floor.createdAt}
-          className="text-xs text-muted-foreground"
-        >
-          {formatDistanceToNow(new Date(floor.createdAt), {
-            addSuffix: true,
-            locale: zhCN,
-          })}
-        </time>
+        <WenyouTime value={floor.createdAt} className="text-xs text-muted-foreground" />
         {!isEditing && user ? (
           <div data-testid="floor-card-actions" className="ml-auto flex items-center gap-1">
             <ReplyActionButton presentation="labeled" onClick={handleStartReply} />

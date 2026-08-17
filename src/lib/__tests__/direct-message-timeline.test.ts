@@ -19,18 +19,16 @@ describe("direct message timeline", () => {
 
   test("异常时间独立显示，避免误吞时间节点", () => {
     expect(shouldShowDirectMessageTime("invalid", "2026-08-07T14:00:00Z")).toBe(true);
-    expect(formatDirectMessageTime("invalid", new Date("2026-08-07T15:00:00Z"))).toBe(
-      "时间未知",
-    );
+    expect(formatDirectMessageTime("invalid", new Date("2026-08-07T15:00:00Z"))).toBe("—");
   });
 
   test("当天、昨天、同年和跨年时间使用渐进式日期文案", () => {
     const now = new Date("2026-08-07T15:00:00Z");
-    expect(formatDirectMessageTime("2026-08-07T14:05:00Z", now)).toBe("14:05");
-    expect(formatDirectMessageTime("2026-08-06T23:59:00Z", now)).toBe("昨天 23:59");
-    expect(formatDirectMessageTime("2026-07-01T08:30:00Z", now)).toBe("07月01日 08:30");
+    expect(formatDirectMessageTime("2026-08-07T14:05:00Z", now)).toBe("55 分钟前");
+    expect(formatDirectMessageTime("2026-08-06T23:59:00Z", now)).toBe("15 小时前");
+    expect(formatDirectMessageTime("2026-07-01T08:30:00Z", now)).toBe("07-01 08:30");
     expect(formatDirectMessageTime("2025-12-31T23:59:00Z", now)).toBe(
-      "2025年12月31日 23:59",
+      "2025-12-31 23:59",
     );
   });
 });

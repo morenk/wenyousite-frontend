@@ -1,7 +1,5 @@
 "use client";
 
-import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Loader2, WalletCards } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { formatWenyou } from "@/lib/wenyou";
@@ -9,6 +7,7 @@ import { useWallet, useWalletTransactions, type WalletTransaction } from "@/api/
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
+import { WenyouTime } from "@/components/shared/wenyou-time";
 import { useCursorPagination } from "@/hooks/use-cursor-pagination";
 
 function transactionTitle(transaction: WalletTransaction): string {
@@ -94,7 +93,7 @@ export function WalletHistory() {
                       {transactionTitle(transaction)}
                     </p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                      {format(new Date(transaction.createdAt), "yyyy-MM-dd HH:mm", { locale: zhCN })}
+                      <WenyouTime value={transaction.createdAt} />
                       {transaction.type === "TIP" && transaction.direction === "INCOME" && (
                         <> · 对方投入 {formatWenyou(transaction.grossAmount)} 升，实际到账 {formatWenyou(transaction.recipientAmount)} 升</>
                       )}

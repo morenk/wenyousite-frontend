@@ -99,7 +99,7 @@ export default function MomentsPage() {
 
       {feed === "FOLLOWING" && !user ? (
         <div className="rounded-3xl bg-muted/60 px-6 py-20 text-center">
-          <h2 className="font-display text-xl font-bold">登录后查看关注动态</h2>
+          <h2 className="text-xl font-semibold">登录后查看关注动态</h2>
           <Button variant="ghost" className="mt-5 text-brand-strong" onClick={() => router.push(`/login?next=${encodeURIComponent(pathname)}`)}>登录</Button>
         </div>
       ) : (

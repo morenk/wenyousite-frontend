@@ -120,7 +120,11 @@ describe("AccountSecurityPanel", () => {
 
     render(<AccountSecurityPanel />);
 
-    expect(screen.getByText(/登录于 2026-08-03 02:04 · 最近活动 2026-08-03 02:04/)).toBeInTheDocument();
+    const session = screen.getByText("Web 端登录").closest("li");
+    const times = session?.querySelectorAll("time") ?? [];
+    expect(times).toHaveLength(3);
+    expect(times[0]).toHaveAttribute("datetime", "2026-08-03T02:04:00Z");
+    expect(times[1]).toHaveAttribute("datetime", "2026-08-03T02:04:00Z");
     expect(screen.queryByText(/legacy raw UA/)).not.toBeInTheDocument();
   });
 });

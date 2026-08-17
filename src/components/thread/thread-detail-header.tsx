@@ -3,12 +3,11 @@
 "use client";
 
 import Link from "next/link";
+import { CONTENT_PRESENTATION } from "@wenyousite/foundation/collections";
 import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { Search } from "lucide-react";
 import { toast } from "sonner";
-import { formatDistanceToNow } from "date-fns";
-import { zhCN } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { THREAD_STATUS_META } from "@/lib/thread-presentation";
 import { useAuth } from "@/lib/auth";
@@ -29,6 +28,8 @@ import { SubthreadSwitcher } from "@/components/thread/subthread-tabs";
 import { ThreadDetailMore } from "@/components/thread/thread-detail-more";
 import { getSubthreadHref } from "@/lib/post-navigation";
 import { AdminContentModerationDialog } from "@/components/admin/admin-content-moderation-dialog";
+import { WenyouTime } from "@/components/shared/wenyou-time";
+import { WenyouCount } from "@/components/shared/wenyou-count";
 import type { FloorOrder } from "@/api/floor-query";
 
 interface ThreadDetailHeaderProps {
@@ -159,6 +160,8 @@ export function ThreadDetailHeader({
     <>
       <article
         data-slot="thread-document"
+        data-content-purpose={CONTENT_PRESENTATION.detail.purpose}
+        data-content-surface={CONTENT_PRESENTATION.detail.surface}
         className="relative overflow-hidden rounded-2xl border border-border bg-card"
       >
         <header data-slot="thread-detail-header">
@@ -167,7 +170,7 @@ export function ThreadDetailHeader({
             className="px-4 py-2.5 sm:px-5 sm:py-3"
           >
             <div className="relative">
-              <h1 className="px-10 text-center font-display text-[1.375rem] font-bold leading-8 tracking-[0.01em] text-foreground sm:text-2xl sm:leading-9">
+              <h1 className="px-10 text-center font-display text-[1.375rem] font-medium leading-8 tracking-[0.01em] text-foreground sm:text-2xl sm:leading-9">
                 {thread.title}
               </h1>
 
@@ -226,12 +229,7 @@ export function ThreadDetailHeader({
                 {thread.owner.username}
               </Link>
               <span aria-hidden="true">·</span>
-              <time dateTime={thread.createdAt} className="shrink-0">
-                {formatDistanceToNow(new Date(thread.createdAt), {
-                  addSuffix: true,
-                  locale: zhCN,
-                })}
-              </time>
+              <WenyouTime value={thread.createdAt} className="shrink-0" />
             </div>
           </div>
           <div
@@ -294,9 +292,7 @@ export function ThreadDetailHeader({
                   }
                   className={cn(actionButtonClassName, "px-2")}
                 >
-                  <span className="font-utility text-xs tabular-nums">
-                    {thread.likeCount}
-                  </span>
+                  <WenyouCount value={thread.likeCount} label="点赞" className="text-xs" />
                 </InteractionToggle>
 
                 {user ? (
