@@ -87,11 +87,21 @@ pnpm check:full
 
 ### 前端切换规则
 
-- Next.js 使用 `output: "standalone"`，宿主机进程监听 `3001`；PostgreSQL/Redis 才由 Docker Compose 管理。
+- Next.js 使用 `output: "standalone"`，由宿主机 `wenyousite-frontend.service` 托管并只监听 `127.0.0.1:3001`；PostgreSQL/Redis 才由 Docker Compose 管理。
 - `pnpm check` 已包含 `next build`。源码未再变化时不要重复 build。
 - 线上进程必须从 `/var/lib/wenyousite/frontend/releases/` 下的不可变 release 运行，不能直接运行会被 `next build` 重写的 `.next/standalone`。
-- 只要运行过 `pnpm check` 或 `pnpm build`，必须使用切换脚本组装 static/public、预检并切换 3001；脚本失败时保留或恢复上一成功版本。
+- 只要运行过 `pnpm check` 或 `pnpm build`，必须使用切换脚本组装 static/public、预检并通过 systemd 切换 3001；脚本失败时保留或恢复上一成功版本。
 - 纯前端变化只切换前端；后端或契约同时变化时，先切换并验证后端，再同步契约、检查和切换前端。
+
+新宿主机首次安装或更新 unit：
+
+```bash
+cd /root/wenyousite/wenyousite-frontend
+install -m 0755 ops/wenyousite-frontend-start /usr/local/sbin/wenyousite-frontend-start
+install -m 0644 ops/wenyousite-frontend.service /etc/systemd/system/wenyousite-frontend.service
+systemctl daemon-reload
+systemctl enable --now wenyousite-frontend.service
+```
 
 检查完成后的前端切换：
 
@@ -105,7 +115,7 @@ bash scripts/deploy-standalone.sh
 ```bash
 curl --fail --silent --show-error --head https://wenyou.site >/dev/null
 curl --fail --silent --show-error https://wenyou.site/api/v1/health >/dev/null
-tail -n 100 /tmp/opencode/wenyousite-frontend.log
+journalctl -u wenyousite-frontend.service --no-pager -n 100
 ```
 
 再验证本次实际受影响页面。启动失败、持续 5xx 或关键路径失败时，优先前滚修复；不要让损坏构建继续在线。

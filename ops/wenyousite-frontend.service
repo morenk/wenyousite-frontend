@@ -1,0 +1,22 @@
+[Unit]
+Description=Wenyou Site Next.js frontend
+After=network-online.target wenyousite-backend.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=/usr/local/sbin/wenyousite-frontend-start
+Restart=on-failure
+RestartSec=2s
+TimeoutStopSec=15s
+KillSignal=SIGTERM
+SuccessExitStatus=143
+NoNewPrivileges=true
+LimitNOFILE=65535
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

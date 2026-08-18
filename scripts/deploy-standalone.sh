@@ -6,11 +6,11 @@ FRONTEND_DIR=$(cd -- "$SCRIPT_DIR/.." && pwd)
 RUNTIME_ROOT=${FRONTEND_RUNTIME_ROOT:-/var/lib/wenyousite/frontend}
 RELEASE_ROOT="$RUNTIME_ROOT/releases"
 LOG_DIR=${FRONTEND_LOG_DIR:-/tmp/opencode}
-PRODUCTION_LOG="$LOG_DIR/wenyousite-frontend.log"
 PREFLIGHT_LOG="$LOG_DIR/wenyousite-frontend-preflight.log"
 PRODUCTION_PORT=${FRONTEND_PORT:-3001}
 PREFLIGHT_PORT=${FRONTEND_PREFLIGHT_PORT:-3102}
 PUBLIC_BASE_URL=${FRONTEND_PUBLIC_BASE_URL:-https://wenyou.site}
+FRONTEND_SERVICE=${FRONTEND_SYSTEMD_SERVICE:-wenyousite-frontend.service}
 VERIFY_SCRIPT="$SCRIPT_DIR/verify-static-assets.mjs"
 
 staging_dir=""
@@ -79,8 +79,25 @@ wait_for_http() {
   done
 
   echo "$service_name 未能在 10 秒内通过健康检查: $url" >&2
-  tail -n 100 "$log_file" >&2 || true
+  if [ -n "$log_file" ] && [ -f "$log_file" ]; then
+    tail -n 100 "$log_file" >&2 || true
+  else
+    journalctl -u "$FRONTEND_SERVICE" --no-pager -n 100 >&2 || true
+  fi
   return 1
+}
+
+restart_production_service() {
+  if ! systemctl restart "$FRONTEND_SERVICE"; then
+    echo "前端 systemd 服务重启失败: $FRONTEND_SERVICE" >&2
+    journalctl -u "$FRONTEND_SERVICE" --no-pager -n 100 >&2 || true
+    return 1
+  fi
+  if ! systemctl is-active --quiet "$FRONTEND_SERVICE"; then
+    echo "前端 systemd 服务未处于 active 状态: $FRONTEND_SERVICE" >&2
+    journalctl -u "$FRONTEND_SERVICE" --no-pager -n 100 >&2 || true
+    return 1
+  fi
 }
 
 safe_remove_release() {
@@ -123,10 +140,6 @@ cleanup() {
 
 rollback_to() {
   local previous_release=$1
-  local failed_pid
-
-  failed_pid=$(listener_pid "$PRODUCTION_PORT")
-  stop_process "$failed_pid" "失败的前端进程" || true
 
   if [ -z "$previous_release" ] || [ ! -f "$previous_release/server.js" ]; then
     echo "没有可用的上一版前端 release，无法自动回滚" >&2
@@ -134,8 +147,9 @@ rollback_to() {
   fi
 
   echo "正在回滚到上一版前端: $previous_release" >&2
-  start_server "$previous_release" "$PRODUCTION_PORT" "$PRODUCTION_LOG"
-  if ! wait_for_http "http://127.0.0.1:$PRODUCTION_PORT/login" "回滚后的前端" "$PRODUCTION_LOG"; then
+  atomic_link "$previous_release" current
+  if ! restart_production_service ||
+    ! wait_for_http "http://127.0.0.1:$PRODUCTION_PORT/login" "回滚后的前端" ""; then
     return 1
   fi
   node "$VERIFY_SCRIPT" "http://127.0.0.1:$PRODUCTION_PORT" / /login
@@ -148,12 +162,16 @@ if [ "$PRODUCTION_PORT" = "$PREFLIGHT_PORT" ]; then
   exit 1
 fi
 
-for command_name in curl flock node ss; do
+for command_name in curl flock journalctl node ss systemctl; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
     echo "缺少部署命令: $command_name" >&2
     exit 1
   fi
 done
+if ! systemctl cat "$FRONTEND_SERVICE" >/dev/null 2>&1; then
+  echo "前端 systemd 服务未安装: $FRONTEND_SERVICE" >&2
+  exit 1
+fi
 
 mkdir -p "$RELEASE_ROOT" "$LOG_DIR"
 exec 9>"$RUNTIME_ROOT/deploy.lock"
@@ -216,15 +234,10 @@ mv -- "$staging_dir" "$release_dir"
 staging_dir=""
 
 previous_release=$(readlink -f "$RUNTIME_ROOT/current" 2>/dev/null || true)
-old_pid=$(listener_pid "$PRODUCTION_PORT")
-if [ -n "$old_pid" ] && [ -z "$previous_release" ]; then
-  previous_release=$(readlink -f "/proc/$old_pid/cwd" 2>/dev/null || true)
-fi
+atomic_link "$release_dir" current
 
-stop_process "$old_pid" "旧前端进程"
-start_server "$release_dir" "$PRODUCTION_PORT" "$PRODUCTION_LOG"
-
-if ! wait_for_http "http://127.0.0.1:$PRODUCTION_PORT/login" "新前端" "$PRODUCTION_LOG" ||
+if ! restart_production_service ||
+  ! wait_for_http "http://127.0.0.1:$PRODUCTION_PORT/login" "新前端" "" ||
   ! node "$VERIFY_SCRIPT" "http://127.0.0.1:$PRODUCTION_PORT" / /login; then
   rollback_to "$previous_release" || true
   safe_remove_release "$release_dir"
@@ -240,7 +253,6 @@ fi
 if [ -n "$previous_release" ] && [ "$previous_release" != "$release_dir" ]; then
   atomic_link "$previous_release" previous
 fi
-atomic_link "$release_dir" current
 
 current_release=$(readlink -f "$RUNTIME_ROOT/current")
 previous_release=$(readlink -f "$RUNTIME_ROOT/previous" 2>/dev/null || true)
@@ -252,8 +264,8 @@ for candidate in "$RELEASE_ROOT"/*; do
   fi
 done
 
-new_pid=$(listener_pid "$PRODUCTION_PORT")
+new_pid=$(systemctl show "$FRONTEND_SERVICE" --property MainPID --value)
 echo "前端切换完成"
 echo "release: $current_release"
 echo "pid: $new_pid"
-echo "log: $PRODUCTION_LOG"
+echo "journal: journalctl -u $FRONTEND_SERVICE"

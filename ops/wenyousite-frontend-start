@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+RUNTIME_ROOT=${WENYOU_FRONTEND_RUNTIME_ROOT:-/var/lib/wenyousite/frontend}
+RELEASE_ROOT="$RUNTIME_ROOT/releases"
+CURRENT_LINK="$RUNTIME_ROOT/current"
+NODE_BINARY=${WENYOU_NODE_BINARY:-/root/.local/share/fnm/node-versions/v24.18.0/installation/bin/node}
+FRONTEND_HOSTNAME=${WENYOU_FRONTEND_HOSTNAME:-127.0.0.1}
+FRONTEND_PORT=${WENYOU_FRONTEND_PORT:-3001}
+
+if [[ ! "$FRONTEND_PORT" =~ ^[0-9]+$ ]] || ((FRONTEND_PORT < 1 || FRONTEND_PORT > 65535)); then
+  echo "前端端口无效: $FRONTEND_PORT" >&2
+  exit 1
+fi
+if [ ! -x "$NODE_BINARY" ]; then
+  echo "Node 不可执行: $NODE_BINARY" >&2
+  exit 1
+fi
+
+current_release=$(readlink -f -- "$CURRENT_LINK" 2>/dev/null || true)
+case "$current_release" in
+  "$RELEASE_ROOT"/*) ;;
+  *)
+    echo "前端 current 未指向 release 目录: ${current_release:-missing}" >&2
+    exit 1
+    ;;
+esac
+
+if [ ! -f "$current_release/server.js" ]; then
+  echo "前端 release 缺少 server.js: $current_release" >&2
+  exit 1
+fi
+if [ ! -f "$current_release/.next/BUILD_ID" ]; then
+  echo "前端 release 缺少 BUILD_ID: $current_release" >&2
+  exit 1
+fi
+
+cd "$current_release"
+exec env \
+  NODE_ENV=production \
+  HOSTNAME="$FRONTEND_HOSTNAME" \
+  PORT="$FRONTEND_PORT" \
+  "$NODE_BINARY" server.js
