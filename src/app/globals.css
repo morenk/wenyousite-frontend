@@ -459,6 +459,7 @@ select {
   padding: var(--element-internal-reference-padding-block) var(--element-internal-reference-padding-inline);
   color: var(--element-internal-reference-foreground);
   font-weight: 600;
+  line-height: var(--element-internal-reference-line-height, 1.5);
   text-decoration: none;
   vertical-align: baseline;
   white-space: normal;
@@ -566,10 +567,12 @@ select {
 .dice-inline {
   display: inline-flex;
   align-items: baseline;
+  border: 0;
   padding: var(--element-dice-padding-block) var(--element-dice-padding-inline);
   border-radius: var(--element-dice-radius);
+  font-size: inherit;
   font-family: var(--font-utility);
-  line-height: inherit;
+  line-height: var(--element-dice-line-height, 1.5);
   vertical-align: baseline;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
@@ -580,9 +583,60 @@ select {
   color: var(--element-dice-settled-foreground);
 }
 
+button.dice-inline-result {
+  appearance: none;
+  cursor: pointer;
+  transition: background-color var(--motion-fast) var(--ease-standard);
+}
+
+button.dice-inline-result:hover {
+  background: color-mix(
+    in srgb,
+    var(--element-dice-settled-surface),
+    var(--element-dice-settled-foreground) calc(var(--element-dice-hover-state-opacity, 0.08) * 100%)
+  );
+}
+
+button.dice-inline-result:active {
+  background: color-mix(
+    in srgb,
+    var(--element-dice-settled-surface),
+    var(--element-dice-settled-foreground) calc(var(--element-dice-pressed-state-opacity, 0.12) * 100%)
+  );
+}
+
+button.dice-inline-result:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
 .dice-inline-pending {
   background: var(--element-dice-pending-surface);
   color: var(--element-dice-pending-foreground);
+}
+
+.dice-result-tray {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(var(--element-dice-detail-cell-min-width, 2.75em), 1fr)
+  );
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dice-result-cell {
+  min-width: var(--element-dice-detail-cell-min-width, 2.75em);
+  border-radius: var(--element-dice-detail-cell-radius, 0.45em);
+  background: var(--element-dice-detail-cell-surface, var(--muted));
+  padding: var(--element-dice-detail-cell-padding-block, 0.3em)
+    var(--element-dice-detail-cell-padding-inline, 0.5em);
+  color: var(--element-dice-detail-cell-foreground, var(--foreground));
+  font-family: var(--font-utility);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
 }
 
 /* 正文图片兜底：任何 markdown 内容图片都不超出容器宽度 */

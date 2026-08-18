@@ -70,7 +70,7 @@ describe("dice-inline", () => {
     );
   });
 
-  test("可见文案只显示总计，完整语义保留逐骰结果和修正值", () => {
+  test("可见文案和触发器语义只包含表达式与总计", () => {
     expect(formatInlineDiceRoll({
       nodeId: NODE_ID,
       notation: "2d50",
@@ -91,6 +91,6 @@ describe("dice-inline", () => {
       results: [2, 5],
       modifier: -3,
       total: 4,
-    })).toBe("骰子 2d6-3，逐骰结果 2、5，修正减 3，总计 4");
+    })).toBe("骰子 2d6-3，总计 4");
   });
 });

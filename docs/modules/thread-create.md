@@ -57,7 +57,7 @@
 **响应数据类型说明（与真实 API 对齐）：**
 - `ThreadDetail` 的 `_count` 字段为 `{ members, posts }`（非 `{ subthreads, posts }`）。
 - 子贴对象通过 `normalizeThreadDetail()` 处理：后端返回 `subthreads` 数组 + `defaultSubthreadId`，前端按 ID 匹配出 `defaultSubthread` 字段。
-- 后端 `includeSubthreads` 已带 `bodyPost: { id, content, version, diceRolls }`。草稿期节点保存在 content 内并显示 `?`；发布成功后按 `diceRolls[].nodeId` 在原位置显示正式结果。
+- 后端 `includeSubthreads` 已带 `bodyPost: { id, content, version, diceRolls }`。草稿期节点保存在 content 内并显示 `?`；结构化插入器分别收集骰子数、面数和修正，发布成功后按 `diceRolls[].nodeId` 在原位置显示紧凑总计，逐骰结果由阅读态详情浮层按需展示。
 
 ## 4. 状态管理
 

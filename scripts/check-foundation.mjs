@@ -24,8 +24,8 @@ if (packageJson.dependencies?.["@wenyousite/foundation"] !== `github:morenk/weny
 if (manifest.version !== lock.version) failures.push("已安装 foundation 版本与锁文件不一致");
 if (manifest.contractSha256 !== lock.contractSha256) failures.push("已安装 foundation 契约哈希与锁文件不一致");
 if (!read("pnpm-lock.yaml").includes(lock.revision)) failures.push("pnpm-lock.yaml 未锁定指定 foundation revision");
-if (foundationContract.version !== "6.0.1" || foundationContract.schemaVersion !== 2) {
-  failures.push("Web 必须消费 Foundation v6.0.1 schema 2 契约");
+if (foundationContract.version !== "6.2.0" || foundationContract.schemaVersion !== 2) {
+  failures.push("Web 必须消费 Foundation v6.2.0 schema 2 契约");
 }
 if (!manifest.features?.typography || !manifest.features?.interaction || !manifest.features?.controls || !manifest.features?.formatting || !manifest.features?.contentPresentation || !manifest.features?.iconControls || !manifest.features?.navigation || !manifest.features?.language || !manifest.features?.elements) {
   failures.push("已安装 Foundation 缺少共享语义能力");
@@ -72,7 +72,9 @@ if (
   || foundationContract.experiences.elements?.metadata?.categoryMarker?.colorOwner !== "foundation"
   || foundationContract.experiences.elements?.identity?.emailVerification?.publicIdentity !== "hidden"
   || foundationContract.experiences.elements?.inline?.dice?.labels?.visibleResult !== "total-only"
+  || foundationContract.experiences.elements?.inline?.dice?.labels?.resultBreakdown !== "interactive-detail"
   || foundationContract.experiences.elements?.inline?.dice?.data?.resultSource !== "server-only"
+  || foundationContract.experiences.elements?.web?.dice?.detailSurface !== "anchored-popover"
 ) {
   failures.push("Foundation 缺少核心正文与元数据元素语义");
 }

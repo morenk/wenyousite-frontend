@@ -19,9 +19,7 @@ import { sanitizeMilkdownMarkdown } from "@/lib/markdown";
 import {
   DICE_INLINE_MARKER_SOURCE,
   describeInlineDicePending,
-  describeInlineDiceRoll,
   formatInlineDicePending,
-  formatInlineDiceRoll,
   type InlineDiceRoll,
 } from "@/lib/dice-inline";
 import { ImageLightbox } from "@/components/shared/image-lightbox";
@@ -35,6 +33,7 @@ import {
 } from "@/lib/internal-reference";
 import { InternalReferenceLink } from "@/components/shared/internal-reference-link";
 import { ContentLink } from "@/components/ui/content-link";
+import { DiceInlineResult } from "@/components/thread/dice-inline-result";
 
 /** 判断是否为本站上传图片（objectKey 统一以 uploads/ 开头）且非派生图 */
 function isUploadedMediaUrl(url: string): boolean {
@@ -52,6 +51,9 @@ function isGifUrl(url: string): boolean {
 
 type ImageProps = ComponentProps<"img"> & ExtraProps;
 type AnchorProps = ComponentProps<"a"> & ExtraProps;
+type SpanProps = ComponentProps<"span"> & ExtraProps & {
+  "data-dice-node-id"?: string;
+};
 
 function getNodeText(node: ReactNode): string {
   if (typeof node === "string" || typeof node === "number") return String(node);
@@ -221,22 +223,19 @@ function remarkInlineDice(rolls: InlineDiceRoll[]) {
           const nodeId = match[1]!.toLowerCase();
           const notation = match[2]!;
           const roll = byNodeId.get(nodeId);
-          const label = roll ? formatInlineDiceRoll(roll) : formatInlineDicePending(notation);
           children.push({
             type: "diceInline",
-            children: [{ type: "text", value: label }],
+            children: [{
+              type: "text",
+              value: roll ? roll.notation : formatInlineDicePending(notation),
+            }],
             data: {
               hName: "span",
               hProperties: {
-                className: [
-                  "dice-inline",
-                  roll ? "dice-inline-result" : "dice-inline-pending",
-                ],
-                role: "note",
-                ariaLabel: roll
-                  ? describeInlineDiceRoll(roll)
-                  : describeInlineDicePending(notation),
-                dataDiceNodeId: nodeId,
+                className: roll ? undefined : ["dice-inline", "dice-inline-pending"],
+                role: roll ? undefined : "note",
+                ariaLabel: roll ? undefined : describeInlineDicePending(notation),
+                "data-dice-node-id": nodeId,
               },
             },
           });
@@ -311,6 +310,7 @@ function CollapsibleMarkdown({
   const contentId = useId();
   const normalizedContent = sanitizeMilkdownMarkdown(content);
   const expanded = expandedContent === content;
+  const diceRollsByNodeId = new Map(diceRolls.map((roll) => [roll.nodeId, roll]));
 
   useEffect(() => {
     const element = contentRef.current;
@@ -373,6 +373,13 @@ function CollapsibleMarkdown({
           components={{
             a: MarkdownLink,
             img: (props) => <MarkdownImage {...props} sourcePostId={sourcePostId} />,
+            span: ({ node: _node, ...props }: SpanProps) => {
+              void _node;
+              const nodeId = props["data-dice-node-id"];
+              const roll = nodeId ? diceRollsByNodeId.get(nodeId) : undefined;
+              if (roll) return <DiceInlineResult roll={roll} />;
+              return <span {...props} />;
+            },
           }}
           skipHtml
         >

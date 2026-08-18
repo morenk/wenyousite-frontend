@@ -47,9 +47,14 @@ import {
   DICE_INLINE_NODE_NAME,
   parseInlineDiceNodes,
   restoreSerializedInlineDiceNodes,
+  DICE_INSERTION_PRESENTATION,
   type InlineDiceRoll,
 } from "@/lib/dice-inline";
-import { getDiceNotationError, MAX_DICE_ROLLS_PER_POST } from "@/lib/dice";
+import {
+  getDiceNotationError,
+  MAX_DICE_ROLLS_PER_POST,
+  type DiceExpressionInput,
+} from "@/lib/dice";
 import {
   fitMilkdownToolbar,
   getMilkdownMoreCapabilities,
@@ -94,8 +99,6 @@ import {
   handleInternalReferenceUrlPaste,
 } from "@/components/shared/internal-reference-editor-dom";
 import "@/components/editor/milkdown-editor.css";
-
-const QUICK_DICE_SIDES = [4, 6, 8, 10, 12, 20, 100];
 
 const toolbarHeadingInputRule = $inputRule((ctx) =>
   textblockTypeInputRule(
@@ -195,7 +198,11 @@ export function MilkdownEditorHost({
   const [diceNodeCount, setDiceNodeCount] = useState(
     () => parseInlineDiceNodes(initialValue).length,
   );
-  const [customDiceNotation, setCustomDiceNotation] = useState("1d20");
+  const [diceInput, setDiceInput] = useState<DiceExpressionInput>(() => ({
+    quantity: String(DICE_INSERTION_PRESENTATION.defaults.quantity),
+    sides: String(DICE_INSERTION_PRESENTATION.defaults.sides),
+    modifier: String(DICE_INSERTION_PRESENTATION.defaults.modifier),
+  }));
   const [mentionMenu, setMentionMenu] = useState<EditorMentionMenu | null>(null);
   const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
   const [uploadProgress, setUploadProgress] = useState<UploadImageProgressValue | null>(null);
@@ -365,8 +372,8 @@ export function MilkdownEditorHost({
     setMoreMenuPosition(null);
     setDicePopover(positionEditorPopover(
       menuAnchor ?? directTrigger?.getBoundingClientRect() ?? topBar.getBoundingClientRect(),
-      288,
-      220,
+      320,
+      390,
     ));
   }, [disabled]);
 
@@ -836,9 +843,8 @@ export function MilkdownEditorHost({
         position={dicePopover}
         count={diceNodeCount}
         maxCount={MAX_DICE_ROLLS_PER_POST}
-        quickSides={QUICK_DICE_SIDES}
-        notation={customDiceNotation}
-        onNotationChange={setCustomDiceNotation}
+        input={diceInput}
+        onInputChange={setDiceInput}
         onInsert={handleInsertDice}
       />
       <EditorMoreMenu

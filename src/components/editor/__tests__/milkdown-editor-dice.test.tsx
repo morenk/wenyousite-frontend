@@ -61,11 +61,11 @@ describe("MilkdownEditor 内联骰子", () => {
       expect(dialog).toBeInTheDocument();
       expect(dialog.parentElement).toBe(document.body);
       expect(dialog).toHaveClass("fixed", "z-[var(--layer-nested-popup)]");
-      expect(dialog).toHaveStyle({ top: "58px", left: "64px" });
+      expect(dialog).toHaveStyle({ top: "58px", left: "32px" });
     });
   });
 
-  test("插入 d100 后向表单输出可供服务端结算的骰子节点", async () => {
+  test("结构化输入数量、d100 与正修正后输出规范骰子节点", async () => {
     const onChange = vi.fn();
     render(
       <QueryClientProvider client={new QueryClient()}>
@@ -74,18 +74,22 @@ describe("MilkdownEditor 内联骰子", () => {
     );
 
     fireEvent.pointerDown(await screen.findByRole("button", { name: "骰子" }));
+    fireEvent.change(await screen.findByLabelText("骰子数"), { target: { value: "2" } });
+    fireEvent.change(screen.getByLabelText("修正"), { target: { value: "3" } });
     fireEvent.click(await screen.findByRole("button", { name: "d100" }));
+    expect(screen.getByText("2d100+3 = ?")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "插入" }));
 
     await waitFor(() => {
-      expect(screen.getByRole("note", { name: "骰子 1d100，待掷" })).toHaveTextContent(
-        "1d100 = ?",
+      expect(screen.getByRole("note", { name: "骰子 2d100+3，待掷" })).toHaveTextContent(
+        "2d100+3 = ?",
       );
       expect(onChange).toHaveBeenCalled();
     });
 
     const markdown = onChange.mock.calls.at(-1)?.[0] as string;
     expect(markdown).toContain("玛利亚发财的概率：");
-    expect(markdown).toMatch(/\[\[dice:v1:[0-9a-f-]{36}:1d100\]\]/u);
+    expect(markdown).toMatch(/\[\[dice:v1:[0-9a-f-]{36}:2d100\+3\]\]/u);
     expect(markdown).not.toMatch(/\n$/u);
     expect(markdown).not.toContain("\\[\\[dice:v1:");
   });
@@ -108,11 +112,12 @@ describe("MilkdownEditor 内联骰子", () => {
     );
     fireEvent.pointerDown(screen.getByRole("button", { name: "骰子" }));
     fireEvent.click(await screen.findByRole("button", { name: "d20" }));
+    fireEvent.click(screen.getByRole("button", { name: "插入" }));
 
     await waitFor(() => expect(latestOnChange).toHaveBeenCalled());
   });
 
-  test("编辑已发布正文时显示紧凑总计并保留逐骰语义", async () => {
+  test("编辑已发布正文时显示紧凑总计且仍保持选择型原子语义", async () => {
     const nodeId = "550e8400-e29b-41d4-a716-446655440000";
     render(
       <QueryClientProvider client={new QueryClient()}>
@@ -130,7 +135,7 @@ describe("MilkdownEditor 内联骰子", () => {
     );
 
     expect(await screen.findByRole("note", {
-      name: "骰子 2d50，逐骰结果 33、48，总计 81",
+      name: "骰子 2d50，总计 81",
     })).toHaveTextContent("2d50 = 81");
   });
 });

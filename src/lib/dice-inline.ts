@@ -19,7 +19,23 @@ export interface InlineDiceRoll extends InlineDiceNode {
 
 const DICE_PRESENTATION = INLINE_ELEMENT_STYLES.dice;
 
-/** 阅读态和编辑态共用的紧凑正式结果文案；逐骰明细进入完整语义描述。 */
+const DICE_DETAIL = DICE_PRESENTATION.detail;
+
+export const DICE_DETAIL_PRESENTATION = {
+  title: DICE_DETAIL.title,
+  resultsLabel: DICE_DETAIL.resultsLabel,
+  resultIndexOrigin: DICE_DETAIL.resultIndexOrigin,
+  resultItem: DICE_PRESENTATION.semantics.resultItem,
+  subtotalLabel: DICE_DETAIL.calculation.subtotalLabel,
+  modifierLabel: DICE_DETAIL.calculation.modifierLabel,
+  totalLabel: DICE_DETAIL.calculation.totalLabel,
+  positiveModifier: DICE_DETAIL.calculation.positiveModifier,
+  negativeModifier: DICE_DETAIL.calculation.negativeModifier,
+} as const;
+
+export const DICE_INSERTION_PRESENTATION = DICE_PRESENTATION.editor.insertion;
+
+/** 阅读态和编辑态共用的紧凑正式结果文案；逐骰明细进入交互详情。 */
 export function formatInlineDiceRoll(roll: InlineDiceRoll): string {
   return DICE_PRESENTATION.labels.settled
     .replace("{notation}", roll.notation)
@@ -31,17 +47,24 @@ export function formatInlineDicePending(notation: string): string {
 }
 
 export function describeInlineDiceRoll(roll: InlineDiceRoll): string {
-  const parts = roll.results.join(DICE_PRESENTATION.labels.resultsSeparator);
-  const modifier = roll.modifier > 0
-    ? `，${DICE_PRESENTATION.labels.positiveModifier.replace("{modifier}", String(roll.modifier))}`
-    : roll.modifier < 0
-      ? `，${DICE_PRESENTATION.labels.negativeModifier.replace("{absoluteModifier}", String(Math.abs(roll.modifier)))}`
-      : "";
   return DICE_PRESENTATION.semantics.settled
     .replace("{notation}", roll.notation)
-    .replace("{results}", parts)
-    .replace("{modifierPhrase}", modifier)
     .replace("{total}", String(roll.total));
+}
+
+export function describeInlineDiceResultItem(index: number, value: number): string {
+  return DICE_DETAIL_PRESENTATION.resultItem
+    .replace("{index}", String(index))
+    .replace("{value}", String(value));
+}
+
+export function formatInlineDiceModifier(modifier: number): string {
+  return modifier > 0
+    ? DICE_DETAIL_PRESENTATION.positiveModifier.replace("{modifier}", String(modifier))
+    : DICE_DETAIL_PRESENTATION.negativeModifier.replace(
+        "{absoluteModifier}",
+        String(Math.abs(modifier)),
+      );
 }
 
 export function describeInlineDicePending(notation: string): string {

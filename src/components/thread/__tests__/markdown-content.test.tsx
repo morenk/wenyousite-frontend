@@ -91,7 +91,7 @@ describe("MarkdownContent", () => {
     expect(portal).not.toHaveAttribute("target");
   });
 
-  test("骰子结果以和文字混排的背景色标签显示", () => {
+  test("骰子结果以和文字混排且无可见展开提示的按钮显示", () => {
     render(
       <MarkdownContent
         content={`前文 ${DICE_MARKER} 后文`}
@@ -106,31 +106,69 @@ describe("MarkdownContent", () => {
     );
 
     const result = screen.getByText("1d20 = 14");
-    expect(result.tagName).toBe("SPAN");
+    expect(result.tagName).toBe("BUTTON");
     expect(result).toHaveClass("dice-inline", "dice-inline-result");
     expect(result.closest("p")).toHaveTextContent("前文 1d20 = 14 后文");
     expect(result.querySelector("svg")).toBeNull();
+    expect(result).toHaveAttribute("aria-expanded", "false");
   });
 
-  test("多骰可见文案保持紧凑，完整语义包含每一枚点数", () => {
+  test("多骰点击后按服务端顺序展示数字骰盘与计算过程", async () => {
+    const user = userEvent.setup();
     render(
       <MarkdownContent
         content={`概率 ${DICE_MARKER}`}
         diceRolls={[{
           nodeId: DICE_NODE_ID,
-          notation: "2d50",
+          notation: "2d50+3",
           results: [33, 48],
-          modifier: 0,
-          total: 81,
+          modifier: 3,
+          total: 84,
         }]}
       />,
     );
 
-    const result = screen.getByText("2d50 = 81");
-    expect(result).toHaveAttribute(
-      "aria-label",
-      "骰子 2d50，逐骰结果 33、48，总计 81",
+    const result = screen.getByRole("button", { name: "骰子 2d50+3，总计 84" });
+    expect(result).toHaveTextContent("2d50+3 = 84");
+    expect(result).not.toHaveAccessibleName(/33|48/u);
+
+    await user.click(result);
+
+    const dialog = await screen.findByRole("dialog", { name: "骰子结果" });
+    expect(result).toHaveAttribute("aria-expanded", "true");
+    expect(within(dialog).getByLabelText("第 1 枚，33 点")).toHaveTextContent("33");
+    expect(within(dialog).getByLabelText("第 2 枚，48 点")).toHaveTextContent("48");
+    expect(within(dialog).getByText("骰面小计").nextElementSibling).toHaveTextContent("81");
+    expect(within(dialog).getByText("修正").nextElementSibling).toHaveTextContent("+3");
+    expect(within(dialog).getByText("总计").nextElementSibling).toHaveTextContent("84");
+
+    await user.click(within(dialog).getByRole("button", { name: "关闭骰子结果" }));
+    await waitFor(() => expect(dialog).not.toBeInTheDocument());
+    expect(result).toHaveFocus();
+  });
+
+  test("100 枚骰子的详情在固定上限浮层内完整渲染", async () => {
+    const user = userEvent.setup();
+    const results = Array.from({ length: 100 }, (_, index) => (index % 100) + 1);
+    render(
+      <MarkdownContent
+        content={DICE_MARKER}
+        diceRolls={[{
+          nodeId: DICE_NODE_ID,
+          notation: "100d100",
+          results,
+          modifier: 0,
+          total: results.reduce((sum, value) => sum + value, 0),
+        }]}
+      />,
     );
+
+    await user.click(screen.getByRole("button", { name: "骰子 100d100，总计 5050" }));
+    const dialog = await screen.findByRole("dialog", { name: "骰子结果" });
+    expect(dialog).toHaveClass("overflow-y-auto", "overscroll-contain");
+    expect(within(dialog).getAllByRole("listitem")).toHaveLength(100);
+    expect(within(dialog).getByLabelText("第 100 枚，100 点")).toBeInTheDocument();
+    expect(within(dialog).queryByText("修正")).not.toBeInTheDocument();
   });
 
   test("未发布骰子节点以内联待掷状态显示", () => {
