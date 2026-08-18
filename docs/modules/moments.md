@@ -58,18 +58,20 @@
 | GET | `/moments?feed=DISCOVER\|FOLLOWING` | 动态流；关注流要求登录 |
 | POST / PATCH / DELETE | `/moments`、`/moments/:id` | 幂等发布、乐观锁编辑、软删除 |
 | POST / DELETE | `/moments/:id/like` | 幂等点赞 / 取消 |
-| POST / DELETE | `/moments/:id/bookmark` | 幂等收藏 / 取消 |
+| POST / DELETE | `/moments/:id/bookmark` | 幂等收藏 / 取消；收藏可指定私有收藏夹 |
+| PATCH | `/moments/:id/bookmark` | 移动到其他私有收藏夹 |
 | GET / POST | `/moments/:id/comments` | 主评论列表 / 发布评论 |
 | GET | `/moments/:id/comment-authors` | 当前查看者可见的评论作者筛选候选 |
 | GET | `/moments/:id/comments/:commentId/replies` | 楼中楼分页 |
 | GET | `/moments/:id/comments/:commentId/context` | 按主评论或楼中楼 ID 获取精确定位上下文 |
 | DELETE | `/moments/:id/comments/:commentId` | 软删除评论 |
 | GET | `/users/:id/moments` | 用户动态 |
-| GET | `/moments/bookmarks` | 当前用户动态收藏 |
+| GET | `/moments/bookmarks?folderId=` | 当前用户动态收藏，可按收藏夹筛选 |
+| GET | `/users/:id/moment-bookmarks` | 用户公开动态收藏，服从 showBookmarks |
 | GET | `/search/moments` | 标题与正文搜索 |
 | POST | `/moments/:id/tips` | 给动态作者加油 |
 
-所有查询通过 `src/api/hooks/use-moments.ts` 和 `useSearchMoments` 管理；发现/关注、搜索、用户动态和动态收藏直接消费同一 `MomentCardResponseDto` 基础字段，搜索仅额外携带相关度，不使用手写类型断言。query key 包含流类型、查看者、用户动态页容量与筛选条件；个人主页的 2 条预览和完整动态页的 20 条分页缓存互不污染。点赞在 mutation 发出前同步乐观修补详情、信息流、用户动态、收藏及搜索缓存，服务端失败时只回滚该动态；请求期间不改变按钮颜色或透明度。主题帖与动态的已点赞状态统一使用 Foundation 鲜粉实心心形，动态详情的已收藏状态使用金色实心书签；选中容器保持透明，计数保持正文色，未选中均为中性描边，hover、focus 与 pressed 只在图标命中区显示瞬时状态层。请求中用 loading 图标阻止重复提交但保留提交前的选中视觉、稳定动作名称和 `aria-pressed`。瀑布流使用 TanStack Virtual measured lanes，只挂载可视区域附近卡片；`ResizeObserver` 回写真实卡片高度，较短封面会自然形成左右错落。虚拟项进入距列表末尾约两行的预取区时触发游标翻页，不依赖未挂载的 DOM sentinel。
+所有查询通过 `src/api/hooks/use-moments.ts` 和 `useSearchMoments` 管理；发现/关注、搜索、用户动态和动态收藏消费同一动态卡片基础字段，本人收藏额外带 `bookmarkFolderId`，公开用户收藏不带任何私有归类字段。query key 包含流类型、查看者、收藏夹、用户动态页容量与筛选条件。首次收藏先在共享弹窗选择收藏夹，成功后同步修补动态状态并失效收藏列表和分类计数；取消仍保持直接开关语义。点赞在 mutation 发出前同步乐观修补详情、信息流、用户动态、收藏及搜索缓存，服务端失败时只回滚该动态；请求期间不改变按钮颜色或透明度。主题帖与动态的已点赞状态统一使用 Foundation 鲜粉实心心形，动态详情的已收藏状态使用金色实心书签；选中容器保持透明，计数保持正文色，未选中均为中性描边，hover、focus 与 pressed 只在图标命中区显示瞬时状态层。请求中用 loading 图标阻止重复提交但保留提交前的选中视觉、稳定动作名称和 `aria-pressed`。瀑布流使用 TanStack Virtual measured lanes，只挂载可视区域附近卡片；`ResizeObserver` 回写真实卡片高度，较短封面会自然形成左右错落。虚拟项进入距列表末尾约两行的预取区时触发游标翻页，不依赖未挂载的 DOM sentinel。
 
 ## 前端库采用边界
 

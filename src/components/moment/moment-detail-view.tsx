@@ -29,6 +29,7 @@ import { useConfirm } from "@/components/ui/confirm-provider";
 import { useAuth } from "@/lib/auth";
 import { AdminContentModerationDialog } from "@/components/admin/admin-content-moderation-dialog";
 import { PageRouteFallback } from "@/components/layout/page-route-fallback";
+import { BookmarkFolderPickerDialog } from "@/components/user/bookmark-folder-picker-dialog";
 
 export function MomentDetailView({ momentId, onDeleted }: { momentId: string; onDeleted?: () => void }) {
   const { user } = useAuth();
@@ -39,6 +40,7 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
   const [moderationOpen, setModerationOpen] = useState(false);
+  const [bookmarkPickerOpen, setBookmarkPickerOpen] = useState(false);
   const editContentRef = useRef<InternalReferenceEditorHandle>(null);
   const confirm = useConfirm();
   const remove = useDeleteMoment();
@@ -66,7 +68,11 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
   };
   const toggleBookmark = async () => {
     if (!requireLogin()) return;
-    try { await bookmark.mutateAsync(); } catch (error) { toast.error(getApiErrorMessage(error, "收藏失败")); }
+    if (!moment.viewerBookmarked) {
+      setBookmarkPickerOpen(true);
+      return;
+    }
+    try { await bookmark.mutateAsync(undefined); } catch (error) { toast.error(getApiErrorMessage(error, "收藏失败")); }
   };
   const deleteMoment = async () => {
     const accepted = await confirm({ title: "删除这条动态？", description: "删除后不会再出现在动态区，操作无法撤销。", confirmLabel: "删除", destructive: true });
@@ -247,6 +253,20 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
           }}
         />
       ) : null}
+      <BookmarkFolderPickerDialog
+        open={bookmarkPickerOpen}
+        onOpenChange={setBookmarkPickerOpen}
+        contentLabel={moment.title}
+        isPending={bookmark.isPending}
+        onConfirm={async (folderId) => {
+          try {
+            await bookmark.mutateAsync(folderId);
+          } catch (error) {
+            toast.error(getApiErrorMessage(error, "收藏失败"));
+            throw error;
+          }
+        }}
+      />
     </>
   );
 }

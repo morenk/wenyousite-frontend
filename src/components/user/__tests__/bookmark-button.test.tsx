@@ -13,6 +13,20 @@ vi.mock("@/api/hooks/use-bookmark-actions", () => ({
   useBookmarkActions: () => mockUseBookmarkActions(),
 }));
 
+vi.mock("@/components/user/bookmark-folder-picker-dialog", () => ({
+  BookmarkFolderPickerDialog: ({
+    open,
+    onConfirm,
+  }: {
+    open: boolean;
+    onConfirm: (folderId: string) => Promise<void>;
+  }) => open ? (
+    <div role="dialog" aria-label="收藏到">
+      <button type="button" onClick={() => void onConfirm("folder-1").catch(() => undefined)}>确认收藏</button>
+    </div>
+  ) : null,
+}));
+
 vi.mock("@tanstack/react-query", async () => {
   const actual = await vi.importActual("@tanstack/react-query");
   return {
@@ -44,7 +58,7 @@ describe("BookmarkButton", () => {
 
   afterEach(() => cleanup());
 
-  test("未收藏显示「收藏」，点击调用 add", async () => {
+  test("未收藏先打开选择弹窗，确认后带收藏夹调用 add", async () => {
     const user = userEvent.setup();
     const addMutate = vi.fn().mockResolvedValue(undefined);
     mockUseBookmarkActions.mockReturnValue({
@@ -56,7 +70,10 @@ describe("BookmarkButton", () => {
     const btn = screen.getByRole("button", { name: "收藏" });
     await user.click(btn);
 
-    expect(addMutate).toHaveBeenCalled();
+    expect(addMutate).not.toHaveBeenCalled();
+    expect(screen.getByRole("dialog", { name: "收藏到" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "确认收藏" }));
+    expect(addMutate).toHaveBeenCalledWith("folder-1");
     expect(toast.success).not.toHaveBeenCalled();
   });
 
@@ -93,6 +110,7 @@ describe("BookmarkButton", () => {
 
     renderWithQC(<BookmarkButton threadId="t1" isBookmarked={false} bookmarkId={null} />);
     await user.click(screen.getByRole("button", { name: "收藏" }));
+    await user.click(screen.getByRole("button", { name: "确认收藏" }));
 
     expect(toast.error).toHaveBeenCalledWith("操作失败，请稍后重试");
   });

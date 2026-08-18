@@ -39,10 +39,10 @@ describe("useBookmarkActions", () => {
       wrapper: createWrapper(),
     });
 
-    result.current.add.mutate();
+    result.current.add.mutate("folder-1");
     await waitFor(() => expect(result.current.add.isSuccess).toBe(true));
     expect(mockPOST).toHaveBeenCalledWith("/api/v1/bookmarks", {
-      body: { threadId: "t1" },
+      body: { threadId: "t1", folderId: "folder-1" },
     });
   });
 

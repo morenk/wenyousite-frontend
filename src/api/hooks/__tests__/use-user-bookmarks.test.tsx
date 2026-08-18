@@ -3,7 +3,10 @@
 import { describe, test, expect, vi } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useUserBookmarks } from "@/api/hooks/use-user-bookmarks";
+import {
+  useUserBookmarks,
+  useUserMomentBookmarks,
+} from "@/api/hooks/use-user-bookmarks";
 import React from "react";
 
 const { mockGET } = vi.hoisted(() => ({
@@ -68,5 +71,27 @@ describe("useUserBookmarks", () => {
     });
 
     await waitFor(() => expect(result.current.isError).toBe(true));
+  });
+
+  test("公开动态收藏使用独立端点且不请求分类信息", async () => {
+    mockGET.mockResolvedValue({
+      data: {
+        code: 0,
+        message: "ok",
+        data: [{ id: "moment-1", title: "公开动态收藏" }],
+        meta: { cursor: null, hasMore: false },
+      },
+      error: undefined,
+    });
+
+    const { result } = renderHook(() => useUserMomentBookmarks("u1"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockGET).toHaveBeenCalledWith("/api/v1/users/{id}/moment-bookmarks", {
+      params: { path: { id: "u1" }, query: { limit: 20 } },
+    });
+    expect(result.current.data?.pages[0].data[0].title).toBe("公开动态收藏");
   });
 });

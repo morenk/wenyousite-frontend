@@ -46,6 +46,19 @@ vi.mock("@/components/admin/admin-content-moderation-dialog", () => ({
   AdminContentModerationDialog: ({ open, target }: { open: boolean; target: { id: string } }) => open ? <div>处置 {target.id}</div> : null,
 }));
 vi.mock("@/components/economy/wenyou-tip-button", () => ({ WenyouTipButton: () => <button>加油</button> }));
+vi.mock("@/components/user/bookmark-folder-picker-dialog", () => ({
+  BookmarkFolderPickerDialog: ({
+    open,
+    onConfirm,
+  }: {
+    open: boolean;
+    onConfirm: (folderId: string) => Promise<void>;
+  }) => open ? (
+    <div role="dialog" aria-label="收藏到">
+      <button type="button" onClick={() => void onConfirm("folder-1").catch(() => undefined)}>确认收藏</button>
+    </div>
+  ) : null,
+}));
 vi.mock("@/components/shared/gallery-lightbox", () => ({
   GalleryLightbox: ({
     images,
@@ -386,7 +399,9 @@ describe("MomentDetailView", () => {
     fireEvent.click(screen.getByRole("button", { name: "点赞" }));
     fireEvent.click(screen.getByRole("button", { name: "收藏" }));
     await waitFor(() => expect(mockLike).toHaveBeenCalledOnce());
-    expect(mockBookmark).toHaveBeenCalledOnce();
+    expect(mockBookmark).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "确认收藏" }));
+    await waitFor(() => expect(mockBookmark).toHaveBeenCalledWith("folder-1"));
 
     fireEvent.click(screen.getByRole("button", { name: "查看大图：原动态标题，第 1 张图片" }));
     expect(await screen.findByText("原动态标题，第 1 张图片 大图")).toBeInTheDocument();

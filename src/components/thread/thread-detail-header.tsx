@@ -300,6 +300,7 @@ export function ThreadDetailHeader({
                     threadId={thread.id}
                     isBookmarked={thread.isBookmarked}
                     bookmarkId={thread.bookmarkId}
+                    contentLabel={thread.title}
                     iconOnly
                     className={actionButtonClassName}
                   />

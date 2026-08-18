@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { Loader2 } from "lucide-react";
 import type { MomentCard as MomentCardData } from "@/api/hooks/use-moments";
@@ -23,6 +23,7 @@ interface MomentMasonryProps {
   showPaginationStatus?: boolean;
   emptyTitle?: string;
   emptyDescription?: string;
+  renderMoment?: (moment: MomentCardData) => ReactNode;
 }
 
 function lanesForWidth(width: number, maxLanes: 1 | 2 | 3) {
@@ -43,6 +44,7 @@ export function MomentMasonry({
   showPaginationStatus = true,
   emptyTitle = "还没有动态",
   emptyDescription = "发布后会显示在这里。",
+  renderMoment,
 }: MomentMasonryProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [layout, setLayout] = useState({ lanes: 1, scrollMargin: 0 });
@@ -125,7 +127,9 @@ export function MomentMasonry({
                 contain: "layout paint style",
               }}
             >
-              <MomentCard moment={moment} priority={item.index < layout.lanes} />
+              {renderMoment
+                ? renderMoment(moment)
+                : <MomentCard moment={moment} priority={item.index < layout.lanes} />}
             </div>
           );
         })}

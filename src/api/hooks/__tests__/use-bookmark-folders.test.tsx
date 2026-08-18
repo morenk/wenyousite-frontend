@@ -32,6 +32,7 @@ const folder = {
   name: "默认收藏夹",
   isDefault: true,
   bookmarkCount: 2,
+  momentBookmarkCount: 3,
   createdAt: "2026-08-09T00:00:00.000Z",
 };
 
@@ -76,6 +77,20 @@ describe("bookmark folder hooks", () => {
     expect(mockPATCH).toHaveBeenCalledWith("/api/v1/bookmarks/{id}", {
       params: { path: { id: "cbookmark00000000000000001" } },
       body: { folderId: "cfoldercustom00000000001" },
+    });
+  });
+
+  test("移动动态收藏提交动态与目标收藏夹", async () => {
+    const { useMoveMomentBookmark } = await import("@/api/hooks/use-bookmark-folders");
+    mockPATCH.mockResolvedValue({ data: { code: 0, message: "ok", data: {} }, error: undefined });
+    const { result } = renderHook(() => useMoveMomentBookmark(), { wrapper: createWrapper() });
+
+    await act(async () => {
+      await result.current.mutateAsync({ momentId: "moment-1", folderId: "folder-2" });
+    });
+    expect(mockPATCH).toHaveBeenCalledWith("/api/v1/moments/{id}/bookmark", {
+      params: { path: { id: "moment-1" } },
+      body: { folderId: "folder-2" },
     });
   });
 });

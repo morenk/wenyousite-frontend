@@ -11,6 +11,8 @@ export type UserBookmarkedThread =
   components["schemas"]["BookmarkThreadResponseDto"];
 export type UserBookmarksResponse =
   operations["usersGetUserBookmarks"]["responses"][200]["content"]["application/json"];
+export type UserMomentBookmarksResponse =
+  operations["usersGetUserMomentBookmarks"]["responses"][200]["content"]["application/json"];
 
 export function useUserBookmarks(userId: string | undefined) {
   const viewerScope = useViewerScope();
@@ -42,6 +44,39 @@ export function useUserBookmarks(userId: string | undefined) {
       return lastPage.meta.cursor ?? undefined;
     },
     enabled: !!userId,
+    staleTime: 60 * 1000,
+    gcTime: BROWSING_RETURN_GC_TIME,
+    retry: false,
+  });
+}
+
+export function useUserMomentBookmarks(userId: string | undefined, enabled = true) {
+  const viewerScope = useViewerScope();
+  return useInfiniteQuery({
+    queryKey: queryKeys.users.momentBookmarksForViewer(userId, viewerScope),
+    queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
+      if (!userId) throw new Error("缺少用户 ID");
+      const { data, error } = await apiClient.GET("/api/v1/users/{id}/moment-bookmarks", {
+        params: {
+          path: { id: userId },
+          query: { limit: 20, ...(pageParam ? { cursor: pageParam } : {}) },
+        },
+      });
+      if (error) throw error;
+      if (!data?.data) {
+        return {
+          code: 0,
+          message: "ok",
+          data: [],
+          meta: { cursor: null, hasMore: false },
+        } satisfies UserMomentBookmarksResponse;
+      }
+      return data;
+    },
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) =>
+      lastPage.meta.hasMore ? lastPage.meta.cursor ?? undefined : undefined,
+    enabled: enabled && !!userId,
     staleTime: 60 * 1000,
     gcTime: BROWSING_RETURN_GC_TIME,
     retry: false,

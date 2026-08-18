@@ -8,6 +8,7 @@ import type { ReplyFilters } from "@/api/reply-query";
 import { getApiError } from "@/api/errors";
 
 export type MomentCard = components["schemas"]["MomentCardResponseDto"];
+export type MomentBookmarkCard = components["schemas"]["OwnMomentBookmarkResponseDto"];
 export type MomentDetail = components["schemas"]["MomentDetailResponseDto"];
 export type MomentComment = components["schemas"]["MomentCommentResponseDto"];
 export type MomentRootComment = components["schemas"]["MomentRootCommentResponseDto"];
@@ -172,10 +173,13 @@ export function useMomentLike(id: string, active: boolean) {
 export function useMomentBookmark(id: string, active: boolean) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async () => {
+    mutationFn: async (folderId?: string) => {
       const response = active
         ? await apiClient.DELETE("/api/v1/moments/{id}/bookmark", { params: { path: { id } } })
-        : await apiClient.POST("/api/v1/moments/{id}/bookmark", { params: { path: { id } } });
+        : await apiClient.POST("/api/v1/moments/{id}/bookmark", {
+            params: { path: { id } },
+            body: folderId ? { folderId } : undefined,
+          });
       if (response.error) throw response.error;
       return response.data?.data;
     },
@@ -185,6 +189,8 @@ export function useMomentBookmark(id: string, active: boolean) {
         bookmarkCount: result.count,
         viewerBookmarked: result.active,
       }));
+      void queryClient.invalidateQueries({ queryKey: queryKeys.moments.bookmarksRoot });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.bookmarks.folders });
     },
   });
 }
@@ -367,16 +373,22 @@ export function useUserMoments(
   );
 }
 
-export function useMomentBookmarks(userId?: string) {
+export function useMomentBookmarks(userId?: string, folderId?: string) {
   return useMomentCardPages<MomentBookmarkListResponse>(
-    queryKeys.moments.bookmarks(userId ?? "anonymous"),
+    queryKeys.moments.bookmarks(userId ?? "anonymous", folderId),
     !!userId,
     async (cursor) => {
       const { data, error } = await apiClient.GET("/api/v1/moments/bookmarks", {
-        params: { query: { limit: 20, ...(cursor ? { cursor } : {}) } },
+        params: {
+          query: {
+            limit: 20,
+            ...(folderId ? { folderId } : {}),
+            ...(cursor ? { cursor } : {}),
+          },
+        },
       });
       if (error) throw error;
-      return data ?? (emptyPage<MomentCard>() satisfies MomentBookmarkListResponse);
+      return data ?? (emptyPage<MomentBookmarkCard>() satisfies MomentBookmarkListResponse);
     },
   );
 }

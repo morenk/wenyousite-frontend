@@ -31,8 +31,9 @@ export const queryKeys = {
       ["moments", "comment-authors", momentId, viewerScope] as const,
     user: (userId: string | undefined, viewerScope: string, pageSize = 20) =>
       ["moments", "user", userId, viewerScope, pageSize] as const,
-    bookmarks: (viewerScope: string) =>
-      ["moments", "bookmarks", viewerScope] as const,
+    bookmarksRoot: ["moments", "bookmarks"] as const,
+    bookmarks: (viewerScope: string, folderId?: string) =>
+      ["moments", "bookmarks", viewerScope, folderId ?? "all"] as const,
   },
   floors: {
     all: ["floors"] as const,
@@ -89,6 +90,8 @@ export const queryKeys = {
       ["user", "activity-summary", userId, "viewer", viewerScope] as const,
     bookmarksForViewer: (userId: string | undefined, viewerScope: string) =>
       ["user", "bookmarks", userId, "viewer", viewerScope] as const,
+    momentBookmarksForViewer: (userId: string | undefined, viewerScope: string) =>
+      ["user", "moment-bookmarks", userId, "viewer", viewerScope] as const,
     followLists: (kind?: "following" | "followers", userId?: string) =>
       kind === undefined
         ? (["user"] as const)

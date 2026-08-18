@@ -35,9 +35,9 @@ export function useBookmarkActions(threadId: string) {
   };
 
   const add = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (folderId: string) => {
       const { error } = await apiClient.POST("/api/v1/bookmarks", {
-        body: { threadId },
+        body: { threadId, folderId },
       });
       if (error) throw error;
     },

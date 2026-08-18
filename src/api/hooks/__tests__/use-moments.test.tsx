@@ -148,7 +148,7 @@ describe("moment hooks", () => {
     const bookmark = renderHook(() => useMomentBookmark("moment-1", false), { wrapper });
 
     await act(async () => { await like.result.current.mutateAsync(); });
-    await act(async () => { await bookmark.result.current.mutateAsync(); });
+    await act(async () => { await bookmark.result.current.mutateAsync("folder-1"); });
 
     const cached = client.getQueryData<{ pages: { data: typeof card[] }[] }>(listKey);
     expect(cached?.pages[0].data[0]).toMatchObject({
@@ -410,7 +410,7 @@ describe("moment hooks", () => {
     const bookmark = renderHook(() => useMomentBookmark("moment-1", true), { wrapper });
 
     await act(async () => { await like.result.current.mutateAsync(); });
-    await act(async () => { await bookmark.result.current.mutateAsync(); });
+    await act(async () => { await bookmark.result.current.mutateAsync(undefined); });
 
     expect(mockDELETE).toHaveBeenNthCalledWith(1, "/api/v1/moments/{id}/like", {
       params: { path: { id: "moment-1" } },

@@ -7,7 +7,7 @@ import type { components } from "@/api/types";
 
 export type BookmarkFolder = components["schemas"]["BookmarkFolderResponseDto"];
 
-export function useBookmarkFolders() {
+export function useBookmarkFolders(enabled = true) {
   return useQuery({
     queryKey: queryKeys.bookmarks.folders,
     queryFn: async () => {
@@ -16,6 +16,7 @@ export function useBookmarkFolders() {
       return data?.data ?? [];
     },
     staleTime: 30 * 1000,
+    enabled,
   });
 }
 
@@ -50,6 +51,24 @@ export function useMoveBookmark() {
         queryClient.invalidateQueries({ queryKey: queryKeys.bookmarks.all }),
         queryClient.invalidateQueries({ queryKey: queryKeys.bookmarks.folders }),
         queryClient.invalidateQueries({ queryKey: queryKeys.users.bookmarks() }),
+      ]),
+  });
+}
+
+export function useMoveMomentBookmark() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ momentId, folderId }: { momentId: string; folderId: string }) => {
+      const { error } = await apiClient.PATCH("/api/v1/moments/{id}/bookmark", {
+        params: { path: { id: momentId } },
+        body: { folderId },
+      });
+      if (error) throw error;
+    },
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.moments.bookmarksRoot }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.bookmarks.folders }),
       ]),
   });
 }

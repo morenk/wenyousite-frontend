@@ -9,17 +9,21 @@ interface BookmarkFolderBarProps {
   folders: BookmarkFolder[];
   selectedFolderId?: string;
   onSelect: (folderId?: string) => void;
+  kind?: "threads" | "moments";
 }
 
 export function BookmarkFolderBar({
   folders,
   selectedFolderId,
   onSelect,
+  kind = "threads",
 }: BookmarkFolderBarProps) {
-  const total = folders.reduce((sum, folder) => sum + folder.bookmarkCount, 0);
+  const countFor = (folder: BookmarkFolder) =>
+    kind === "moments" ? folder.momentBookmarkCount : folder.bookmarkCount;
+  const total = folders.reduce((sum, folder) => sum + countFor(folder), 0);
   const options = [
     { id: undefined, name: "全部", bookmarkCount: total, isDefault: false },
-    ...folders,
+    ...folders.map((folder) => ({ ...folder, bookmarkCount: countFor(folder) })),
   ];
 
   return (
@@ -27,7 +31,7 @@ export function BookmarkFolderBar({
       <div
         className="flex min-w-0 flex-1 gap-1 overflow-x-auto"
         role="group"
-        aria-label="主题帖收藏夹"
+        aria-label={kind === "moments" ? "动态收藏夹" : "主题帖收藏夹"}
       >
         {options.map((folder) => {
           const active = selectedFolderId === folder.id;
