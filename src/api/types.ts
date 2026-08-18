@@ -3215,10 +3215,6 @@ export interface components {
             preview: string;
             /** @description 默认主贴正文中的第一张普通图片 URL；无图时返回空数组 */
             coverImages: string[];
-            /** @description 查看自己的收藏时返回收藏记录 ID */
-            bookmarkId?: string;
-            /** @description 查看自己的收藏时返回所属收藏夹 ID */
-            bookmarkFolderId?: string;
         };
         ThreadListItemResponseDto: {
             id: string;

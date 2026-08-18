@@ -18180,14 +18180,6 @@
             "items": {
               "type": "string"
             }
-          },
-          "bookmarkId": {
-            "type": "string",
-            "description": "查看自己的收藏时返回收藏记录 ID"
-          },
-          "bookmarkFolderId": {
-            "type": "string",
-            "description": "查看自己的收藏时返回所属收藏夹 ID"
           }
         },
         "required": [
