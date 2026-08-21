@@ -53,6 +53,7 @@ export function MomentCommentForm({
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const uploadAbortRef = useRef<AbortController | null>(null);
   const uploadedRef = useRef<{ file: File; mediaId: string } | null>(null);
+  const preparedImageRef = useRef<{ source: File; file: File } | null>(null);
   const requestRef = useRef<{ signature: string; requestId: string } | null>(null);
   const [image, setImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -114,6 +115,7 @@ export function MomentCommentForm({
     uploadAbortRef.current?.abort();
     uploadAbortRef.current = null;
     uploadedRef.current = null;
+    preparedImageRef.current = null;
     requestRef.current = null;
     setUploadStage(null);
     setUploadProgress(null);
@@ -132,6 +134,7 @@ export function MomentCommentForm({
       return;
     }
     uploadedRef.current = null;
+    preparedImageRef.current = null;
     requestRef.current = null;
     setSticker(null);
     setImage(file);
@@ -143,6 +146,7 @@ export function MomentCommentForm({
     uploadAbortRef.current?.abort();
     uploadAbortRef.current = null;
     uploadedRef.current = null;
+    preparedImageRef.current = null;
     requestRef.current = null;
     setUploadStage(null);
     setUploadProgress(null);
@@ -185,7 +189,13 @@ export function MomentCommentForm({
         } else {
           setUploadStage("compressing");
           setUploadProgress(null);
-          const compressed = await compressMomentImage(submittedImage, { signal: controller.signal });
+          let compressed = preparedImageRef.current?.source === submittedImage
+            ? preparedImageRef.current.file
+            : null;
+          if (!compressed) {
+            compressed = await compressMomentImage(submittedImage, { signal: controller.signal });
+            preparedImageRef.current = { source: submittedImage, file: compressed };
+          }
           const uploaded = await uploadImageFile(compressed, {
             signal: controller.signal,
             onStage: setUploadStage,

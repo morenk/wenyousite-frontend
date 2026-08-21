@@ -139,6 +139,25 @@ describe("AvatarUploader", () => {
     await waitFor(() => expect(mockSetAvatar.mutateAsync).toHaveBeenCalledWith("m1"));
   });
 
+  test("头像绑定失败后重试复用已上传 mediaId", async () => {
+    mockSetAvatar.mutateAsync
+      .mockRejectedValueOnce(new Error("offline"))
+      .mockResolvedValueOnce(undefined);
+    renderUploader();
+    fireEvent.change(screen.getByTestId("avatar-file-input"), {
+      target: { files: [new File(["x"], "photo.png", { type: "image/png" })] },
+    });
+    await waitFor(() => expect(screen.getByRole("dialog", { name: "裁剪头像" })).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole("button", { name: "保存头像" }));
+    await waitFor(() => expect(toast.error).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole("button", { name: "保存头像" }));
+
+    await waitFor(() => expect(mockSetAvatar.mutateAsync).toHaveBeenCalledTimes(2));
+    expect(mockUploadImageFile).toHaveBeenCalledTimes(1);
+    expect(mockSetAvatar.mutateAsync).toHaveBeenLastCalledWith("m1");
+  });
+
   test("非法文件直接提示错误，不打开裁剪", () => {
     mockValidateAvatarFile.mockReturnValue("头像仅支持 jpg/png/webp 格式");
     renderUploader();

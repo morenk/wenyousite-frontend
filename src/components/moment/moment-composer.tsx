@@ -65,6 +65,7 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
   const composerClosedRef = useRef(!open);
   const uploadAbortRef = useRef<AbortController | null>(null);
   const compressedFilesRef = useRef(new Map<string, File>());
+  const uploadedMediaIdsRef = useRef(new Map<string, string>());
   const publishRef = useRef<{ signature: string; requestId: string; mediaIds: string[] } | null>(null);
   const [images, setImages] = useState<LocalImage[]>([]);
   const [coverFileId, setCoverFileId] = useState<string | null>(null);
@@ -177,6 +178,7 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
 
   const removeImage = (id: string) => {
     compressedFilesRef.current.delete(id);
+    uploadedMediaIdsRef.current.delete(id);
     setImages((current) => {
       const target = current.find((image) => image.id === id);
       if (target) URL.revokeObjectURL(target.previewUrl);
@@ -203,6 +205,7 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
     setImages([]);
     setCoverFileId(null);
     compressedFilesRef.current.clear();
+    uploadedMediaIdsRef.current.clear();
     reset({ title: "", content: "" });
     publishRef.current = null;
     await deleteMomentDraft(userId).catch(() => undefined);
@@ -231,6 +234,11 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
           const position = `第 ${index + 1}/${images.length} 张图片`;
           setActiveImagePosition(position);
           const image = images[index];
+          const existingMediaId = uploadedMediaIdsRef.current.get(image.id);
+          if (existingMediaId) {
+            mediaIds.push(existingMediaId);
+            continue;
+          }
           let uploadFile = compressedFilesRef.current.get(image.id);
           if (!uploadFile) {
             setImageUploadProgress(null);
@@ -255,6 +263,7 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
             },
           });
           mediaIds.push(uploaded.mediaId);
+          uploadedMediaIdsRef.current.set(image.id, uploaded.mediaId);
         }
         if (composerClosedRef.current || uploadController?.signal.aborted) return;
         if (uploadAbortRef.current === uploadController) uploadAbortRef.current = null;
@@ -278,6 +287,7 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
       setImages([]);
       setCoverFileId(null);
       compressedFilesRef.current.clear();
+      uploadedMediaIdsRef.current.clear();
       publishRef.current = null;
       toast.success("动态已发布");
       onClose();

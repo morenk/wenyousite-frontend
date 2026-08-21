@@ -1,6 +1,6 @@
 /** uploadImage 工具函数测试 */
 
-import { describe, test, expect, vi, afterEach } from "vitest";
+import { describe, test, expect, vi, afterEach, beforeEach } from "vitest";
 
 vi.mock("@/api/client", () => ({
   apiClient: { POST: vi.fn(), GET: vi.fn() },
@@ -8,6 +8,10 @@ vi.mock("@/api/client", () => ({
 
 import { apiClient } from "@/api/client";
 import {
+  RecoverableImageUploadError,
+  getImageUploadKey,
+  isUploadAbortError,
+  uploadImage,
   uploadImageFile,
   validateImageFile,
   validateAvatarFile,
@@ -15,7 +19,7 @@ import {
   getImageUrlBySize,
 } from "@/lib/upload-image";
 
-type XhrMode = "success" | "pending" | "timeout";
+type XhrMode = "success" | "pending" | "timeout" | "error" | "http-error" | "throw";
 
 class FakeEventTarget {
   private listeners = new Map<string, Array<(event: ProgressEvent | Event) => void>>();
@@ -59,11 +63,17 @@ class FakeXMLHttpRequest extends FakeEventTarget {
 
   send(body: Document | XMLHttpRequestBodyInit | null) {
     this.body = body;
+    if (FakeXMLHttpRequest.mode === "throw") throw new Error("send failed");
     if (FakeXMLHttpRequest.mode === "pending") return;
     if (FakeXMLHttpRequest.mode === "timeout") {
       window.setTimeout(() => this.emit("timeout"), this.timeout);
       return;
     }
+    if (FakeXMLHttpRequest.mode === "error") {
+      queueMicrotask(() => this.emit("error"));
+      return;
+    }
+    if (FakeXMLHttpRequest.mode === "http-error") this.status = 503;
     const total = body instanceof File ? body.size : 1;
     const progress = new Event("progress") as ProgressEvent;
     Object.defineProperties(progress, {
@@ -228,7 +238,34 @@ describe("getImageUrlBySize", () => {
 });
 
 describe("uploadImageFile", () => {
-  const file = new File(["dummy"], "photo.jpg", { type: "image/jpeg" });
+  let file: File;
+  let fileSequence = 0;
+  const mediaPayload = (
+    id: string,
+    url: string,
+    status: "UPLOADING" | "PROCESSING" | "COMPLETED" | "FAILED",
+  ) => ({
+    id,
+    userId: "u1",
+    url,
+    thumbnailUrl: status === "COMPLETED" ? `${url}_thumb` : null,
+    feedUrl: status === "COMPLETED" ? `${url}_feed` : null,
+    mediumUrl: status === "COMPLETED" ? `${url}_md` : null,
+    key: `uploads/${id}.jpg`,
+    contentType: "image/jpeg",
+    size: file.size,
+    width: status === "COMPLETED" ? 800 : null,
+    height: status === "COMPLETED" ? 600 : null,
+    status,
+    createdAt: "2026-08-21T00:00:00.000Z",
+  });
+
+  beforeEach(() => {
+    file = new File(["dummy"], "photo.jpg", {
+      type: "image/jpeg",
+      lastModified: 1_700_000_000_000 + fileSequence++,
+    });
+  });
 
   afterEach(() => {
     vi.mocked(apiClient.POST).mockReset();
@@ -254,6 +291,27 @@ describe("uploadImageFile", () => {
     await expect(uploadImageFile(file)).rejects.toThrow("文件类型不支持或超过大小限制");
   });
 
+  test("无上传地址响应时使用稳定兜底错误，且文件键包含完整指纹", async () => {
+    vi.mocked(apiClient.POST).mockResolvedValueOnce({ data: undefined, error: undefined });
+
+    expect(getImageUploadKey(file)).toBe(
+      [file.name, file.size, file.type, file.lastModified].join(":"),
+    );
+    await expect(uploadImageFile(file)).rejects.toThrow("获取上传地址失败");
+  });
+
+  test("开始前已取消时不发起请求，并可识别取消错误", async () => {
+    const controller = new AbortController();
+    controller.abort();
+
+    const error = await uploadImageFile(file, { signal: controller.signal }).catch(
+      (cause: unknown) => cause,
+    );
+    expect(isUploadAbortError(error)).toBe(true);
+    expect(isUploadAbortError(new Error("普通错误"))).toBe(false);
+    expect(apiClient.POST).not.toHaveBeenCalled();
+  });
+
   test("完整上传流程返回公开 URL", async () => {
     const uploadUrl = "https://s3.example.com/upload";
     const publicUrl = "https://cdn.example.com/uploads/2026/08/03/u/a.png";
@@ -277,9 +335,12 @@ describe("uploadImageFile", () => {
           code: 0,
           message: "ok",
           data: {
-            id: "media-1",
-            status: "PROCESSING",
-            url: publicUrl,
+            media: {
+              id: "media-1",
+              status: "PROCESSING",
+              url: publicUrl,
+            },
+            processing: true,
           },
         },
         error: undefined,
@@ -289,7 +350,17 @@ describe("uploadImageFile", () => {
       data: {
         code: 0,
         message: "ok",
-        data: { id: "media-1", status: "COMPLETED", url: publicUrl },
+        data: {
+          id: "media-1",
+          status: "COMPLETED",
+          url: publicUrl,
+          thumbnailUrl: `${publicUrl}_thumb`,
+          feedUrl: `${publicUrl}_feed`,
+          mediumUrl: `${publicUrl}_md`,
+          width: 800,
+          height: 600,
+          contentType: "image/jpeg",
+        },
       },
       error: undefined,
     } as never);
@@ -297,10 +368,14 @@ describe("uploadImageFile", () => {
     stubXhr("success");
     const onProgress = vi.fn();
 
-    await expect(uploadImageFile(file, { onProgress })).resolves.toEqual({
-      url: publicUrl,
-      mediaId: "media-1",
-    });
+    await expect(uploadImageFile(file, { onProgress })).resolves.toEqual(
+      expect.objectContaining({
+        url: publicUrl,
+        mediaId: "media-1",
+        width: 800,
+        height: 600,
+      }),
+    );
     const request = FakeXMLHttpRequest.instances[0];
     expect(request.method).toBe("PUT");
     expect(request.url).toBe(uploadUrl);
@@ -359,7 +434,357 @@ describe("uploadImageFile", () => {
     });
     stubXhr("timeout");
 
-    await expect(uploadImageFile(file, { timeoutMs: 1 })).rejects.toThrow("图片上传超时，请检查网络后重试");
+    const onReservation = vi.fn();
+    const upload = uploadImageFile(file, { timeoutMs: 1, onReservation });
+
+    await expect(upload).rejects.toMatchObject({
+      message: "图片上传超时，请检查网络后重试",
+      reservation: { mediaId: "media-timeout" },
+    });
+    await expect(upload).rejects.toBeInstanceOf(RecoverableImageUploadError);
+    expect(onReservation).toHaveBeenCalledWith({ mediaId: "media-timeout" });
     expect(apiClient.POST).toHaveBeenCalledTimes(1);
+  });
+
+  test.each(["error", "http-error", "throw"] as const)(
+    "对象存储 %s 异常保留 mediaId 供重试",
+    async (mode) => {
+      vi.mocked(apiClient.POST).mockResolvedValueOnce({
+        data: {
+          code: 0,
+          message: "ok",
+          data: {
+            uploadUrl: "https://s3.example.com/upload",
+            mediaId: `media-${mode}`,
+            objectKey: `uploads/${mode}.jpg`,
+            publicUrl: `https://cdn.example.com/uploads/${mode}.jpg`,
+          },
+        },
+        error: undefined,
+      });
+      stubXhr(mode);
+
+      await expect(uploadImageFile(file)).rejects.toMatchObject({
+        message: "上传失败，请检查网络后重试",
+        reservation: { mediaId: `media-${mode}` },
+      });
+    },
+  );
+
+  test("确认发现对象缺失时重签同一 mediaId 并重新直传", async () => {
+    const publicUrl = "https://cdn.example.com/uploads/recover.jpg";
+    vi.mocked(apiClient.POST)
+      .mockResolvedValueOnce({
+        data: {
+          code: 0,
+          message: "ok",
+          data: {
+            uploadUrl: "https://s3.example.com/first",
+            mediaId: "media-recover",
+            objectKey: "uploads/recover.jpg",
+            publicUrl,
+          },
+        },
+        error: undefined,
+      })
+      .mockResolvedValueOnce({
+        data: undefined,
+        error: { code: 40419, message: "文件不存在或上传未完成", data: null },
+      } as never)
+      .mockResolvedValueOnce({
+        data: {
+          code: 0,
+          message: "ok",
+          data: {
+            uploadUrl: "https://s3.example.com/reissued",
+            mediaId: "media-recover",
+            objectKey: "uploads/recover.jpg",
+            publicUrl,
+          },
+        },
+        error: undefined,
+      })
+      .mockResolvedValueOnce({
+        data: {
+          code: 0,
+          message: "ok",
+          data: { media: mediaPayload("media-recover", publicUrl, "PROCESSING"), processing: true },
+        },
+        error: undefined,
+      });
+    vi.mocked(apiClient.GET).mockResolvedValueOnce({
+      data: { code: 0, message: "ok", data: mediaPayload("media-recover", publicUrl, "COMPLETED") },
+      error: undefined,
+    } as never);
+    stubXhr("success");
+
+    await expect(uploadImageFile(file)).resolves.toMatchObject({
+      mediaId: "media-recover",
+      url: publicUrl,
+    });
+
+    expect(FakeXMLHttpRequest.instances.map((request) => request.url)).toEqual([
+      "https://s3.example.com/first",
+      "https://s3.example.com/reissued",
+    ]);
+    expect(vi.mocked(apiClient.POST).mock.calls[2]?.[0]).toBe(
+      "/api/v1/media/{id}/upload-url",
+    );
+  });
+
+  test("手动重试会从原 UPLOADING mediaId 继续，不新建媒体记录", async () => {
+    const publicUrl = "https://cdn.example.com/uploads/resume.jpg";
+    vi.mocked(apiClient.GET)
+      .mockResolvedValueOnce({
+        data: { code: 0, message: "ok", data: mediaPayload("media-resume", publicUrl, "UPLOADING") },
+        error: undefined,
+      } as never)
+      .mockResolvedValueOnce({
+        data: { code: 0, message: "ok", data: mediaPayload("media-resume", publicUrl, "COMPLETED") },
+        error: undefined,
+      } as never);
+    vi.mocked(apiClient.POST)
+      .mockResolvedValueOnce({
+        data: undefined,
+        error: { code: 40419, message: "文件不存在或上传未完成", data: null },
+      } as never)
+      .mockResolvedValueOnce({
+        data: {
+          code: 0,
+          message: "ok",
+          data: {
+            uploadUrl: "https://s3.example.com/resume",
+            mediaId: "media-resume",
+            objectKey: "uploads/resume.jpg",
+            publicUrl,
+          },
+        },
+        error: undefined,
+      })
+      .mockResolvedValueOnce({
+        data: {
+          code: 0,
+          message: "ok",
+          data: { media: mediaPayload("media-resume", publicUrl, "PROCESSING"), processing: true },
+        },
+        error: undefined,
+      });
+    stubXhr("success");
+
+    await expect(
+      uploadImageFile(file, { resume: { mediaId: "media-resume" } }),
+    ).resolves.toMatchObject({ mediaId: "media-resume", url: publicUrl });
+
+    const postPaths = vi.mocked(apiClient.POST).mock.calls as unknown as Array<[string]>;
+    expect(postPaths.map(([path]) => path)).not.toContain("/api/v1/media/upload-url");
+  });
+
+  test("已完成的 reservation 直接复用，uploadImage 只返回 URL", async () => {
+    const publicUrl = "https://cdn.example.com/uploads/already-complete.jpg";
+    vi.mocked(apiClient.GET).mockResolvedValueOnce({
+      data: {
+        code: 0,
+        message: "ok",
+        data: mediaPayload("media-complete", publicUrl, "COMPLETED"),
+      },
+      error: undefined,
+    } as never);
+
+    await expect(
+      uploadImage(file, { resume: { mediaId: "media-complete" } }),
+    ).resolves.toBe(publicUrl);
+    expect(apiClient.POST).not.toHaveBeenCalled();
+  });
+
+  test("PROCESSING reservation 从状态轮询继续，不重复直传", async () => {
+    const publicUrl = "https://cdn.example.com/uploads/processing.jpg";
+    vi.mocked(apiClient.GET)
+      .mockResolvedValueOnce({
+        data: {
+          code: 0,
+          message: "ok",
+          data: mediaPayload("media-processing", publicUrl, "PROCESSING"),
+        },
+        error: undefined,
+      } as never)
+      .mockResolvedValueOnce({
+        data: {
+          code: 0,
+          message: "ok",
+          data: mediaPayload("media-processing", publicUrl, "COMPLETED"),
+        },
+        error: undefined,
+      } as never);
+
+    await expect(
+      uploadImageFile(file, {
+        resume: { mediaId: "media-processing" },
+        processingTimeoutMs: 1_000,
+      }),
+    ).resolves.toMatchObject({ mediaId: "media-processing", url: publicUrl });
+    expect(apiClient.POST).not.toHaveBeenCalled();
+  });
+
+  test("不可继续的 reservation 会丢弃并创建新媒体记录", async () => {
+    const publicUrl = "https://cdn.example.com/uploads/replaced.jpg";
+    vi.mocked(apiClient.GET).mockResolvedValueOnce({
+      data: {
+        code: 0,
+        message: "ok",
+        data: mediaPayload("media-failed", publicUrl, "FAILED"),
+      },
+      error: undefined,
+    } as never);
+    vi.mocked(apiClient.POST)
+      .mockResolvedValueOnce({
+        data: {
+          code: 0,
+          message: "ok",
+          data: {
+            uploadUrl: "https://s3.example.com/replaced",
+            mediaId: "media-replaced",
+            objectKey: "uploads/replaced.jpg",
+            publicUrl,
+          },
+        },
+        error: undefined,
+      })
+      .mockResolvedValueOnce({
+        data: {
+          code: 0,
+          message: "ok",
+          data: {
+            media: mediaPayload("media-replaced", publicUrl, "COMPLETED"),
+            processing: false,
+          },
+        },
+        error: undefined,
+      });
+    stubXhr("success");
+
+    await expect(
+      uploadImageFile(file, { resume: { mediaId: "media-failed" } }),
+    ).resolves.toMatchObject({ mediaId: "media-replaced" });
+    expect(vi.mocked(apiClient.POST).mock.calls[0]?.[0]).toBe("/api/v1/media/upload-url");
+  });
+
+  test("确认的网络和 5xx 错误会重试，最终沿用同一 mediaId", async () => {
+    const publicUrl = "https://cdn.example.com/uploads/confirm-retry.jpg";
+    vi.mocked(apiClient.POST)
+      .mockResolvedValueOnce({
+        data: {
+          code: 0,
+          message: "ok",
+          data: {
+            uploadUrl: "https://s3.example.com/confirm-retry",
+            mediaId: "media-confirm-retry",
+            objectKey: "uploads/confirm-retry.jpg",
+            publicUrl,
+          },
+        },
+        error: undefined,
+      })
+      .mockRejectedValueOnce(new Error("network down"))
+      .mockResolvedValueOnce({
+        data: undefined,
+        error: { code: 50000, message: "temporary", data: null },
+        response: { status: 503 },
+      } as never)
+      .mockResolvedValueOnce({
+        data: {
+          code: 0,
+          message: "ok",
+          data: {
+            media: mediaPayload("media-confirm-retry", publicUrl, "COMPLETED"),
+            processing: false,
+          },
+        },
+        error: undefined,
+      });
+    stubXhr("success");
+
+    await expect(uploadImageFile(file)).resolves.toMatchObject({
+      mediaId: "media-confirm-retry",
+    });
+    expect(apiClient.POST).toHaveBeenCalledTimes(4);
+  });
+
+  test("处理轮询的 4xx 和超时均保留 reservation", async () => {
+    const publicUrl = "https://cdn.example.com/uploads/poll-error.jpg";
+    vi.mocked(apiClient.POST)
+      .mockResolvedValueOnce({
+        data: {
+          code: 0,
+          message: "ok",
+          data: {
+            uploadUrl: "https://s3.example.com/poll-error",
+            mediaId: "media-poll-error",
+            objectKey: "uploads/poll-error.jpg",
+            publicUrl,
+          },
+        },
+        error: undefined,
+      })
+      .mockResolvedValueOnce({
+        data: {
+          code: 0,
+          message: "ok",
+          data: {
+            media: mediaPayload("media-poll-error", publicUrl, "PROCESSING"),
+            processing: true,
+          },
+        },
+        error: undefined,
+      });
+    vi.mocked(apiClient.GET).mockResolvedValueOnce({
+      data: undefined,
+      error: { code: 40400, message: "媒体不存在", data: null },
+      response: { status: 404 },
+    } as never);
+    stubXhr("success");
+
+    await expect(
+      uploadImageFile(file, { processingTimeoutMs: 1_000 }),
+    ).rejects.toMatchObject({
+      message: "媒体不存在",
+      reservation: { mediaId: "media-poll-error" },
+    });
+
+    const timeoutFile = new File(["dummy"], "timeout-poll.jpg", {
+      type: "image/jpeg",
+      lastModified: file.lastModified + 1,
+    });
+    vi.mocked(apiClient.POST)
+      .mockResolvedValueOnce({
+        data: {
+          code: 0,
+          message: "ok",
+          data: {
+            uploadUrl: "https://s3.example.com/poll-timeout",
+            mediaId: "media-poll-timeout",
+            objectKey: "uploads/poll-timeout.jpg",
+            publicUrl,
+          },
+        },
+        error: undefined,
+      })
+      .mockResolvedValueOnce({
+        data: {
+          code: 0,
+          message: "ok",
+          data: {
+            media: mediaPayload("media-poll-timeout", publicUrl, "PROCESSING"),
+            processing: true,
+          },
+        },
+        error: undefined,
+      });
+
+    await expect(
+      uploadImageFile(timeoutFile, { processingTimeoutMs: 0 }),
+    ).rejects.toMatchObject({
+      message: "图片处理超时，请稍后重试",
+      reservation: { mediaId: "media-poll-timeout" },
+    });
   });
 });

@@ -24,6 +24,7 @@ vi.mock("@/api/hooks/use-stickers", () => ({
 }));
 vi.mock("@/lib/auth-store", () => ({ getKnownUserId: () => mockGetKnownUserId() }));
 vi.mock("@/lib/upload-image", () => ({
+  getImageUploadKey: (file: File) => `${file.name}:${file.size}:${file.lastModified}`,
   uploadImageFile: (...args: unknown[]) => mockUpload(...args),
   validateImageFile: (...args: unknown[]) => mockValidate(...args),
 }));
@@ -68,6 +69,7 @@ const sticker = {
 };
 const refresh = vi.fn();
 const remove = { mutateAsync: vi.fn(), isPending: false };
+const importMedia = { mutateAsync: vi.fn() };
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -83,7 +85,7 @@ beforeEach(() => {
     refresh,
     remove,
     reorder: { mutateAsync: vi.fn() },
-    importMedia: { mutateAsync: vi.fn() },
+    importMedia,
   });
 });
 
@@ -228,5 +230,34 @@ describe("StickerPickerPopover", () => {
     expect(screen.getByText("50%")).toBeInTheDocument();
     resolveUpload({ mediaId: "media-1" });
     await waitFor(() => expect(refresh).toHaveBeenCalled());
+  });
+
+  test("媒体上传成功但导入失败时，重选同一文件不会重复上传", async () => {
+    mockUpload.mockResolvedValue({ mediaId: "media-1" });
+    importMedia.mutateAsync
+      .mockRejectedValueOnce(new Error("offline"))
+      .mockResolvedValueOnce(undefined);
+    const file = new File(["image"], "sticker.png", {
+      type: "image/png",
+      lastModified: 1_700_000_000_000,
+    });
+    const user = userEvent.setup();
+    render(<StickerPickerPopover onSelect={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: "表情" }));
+    const input = document.querySelector<HTMLInputElement>('input[type="file"]');
+
+    fireEvent.change(input!, { target: { files: [file] } });
+    await waitFor(() => expect(mockToastError).toHaveBeenCalledWith("1 个表情添加失败，成功项已保留"));
+    fireEvent.change(input!, {
+      target: {
+        files: [new File(["image"], "sticker.png", {
+          type: "image/png",
+          lastModified: file.lastModified,
+        })],
+      },
+    });
+
+    await waitFor(() => expect(importMedia.mutateAsync).toHaveBeenCalledTimes(2));
+    expect(mockUpload).toHaveBeenCalledTimes(1);
   });
 });

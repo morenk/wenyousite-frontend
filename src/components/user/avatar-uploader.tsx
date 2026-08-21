@@ -39,6 +39,8 @@ export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
   const { setAvatar, removeAvatar } = useSetAvatar();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadAbortRef = useRef<AbortController | null>(null);
+  const preparedAvatarRef = useRef<File | null>(null);
+  const uploadedMediaIdRef = useRef<string | null>(null);
 
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -53,6 +55,11 @@ export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
   const avatarUrl = avatar ? getImageUrlBySize(avatar, "thumb") : null;
   const pending = isUploading || setAvatar.isPending || removeAvatar.isPending;
 
+  const invalidatePreparedAvatar = () => {
+    preparedAvatarRef.current = null;
+    uploadedMediaIdRef.current = null;
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = "";
@@ -63,9 +70,11 @@ export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
       return;
     }
     setImageSrc(URL.createObjectURL(file));
+    invalidatePreparedAvatar();
     setCrop({ x: 0, y: 0 });
     setZoom(1);
     setCroppedArea(undefined);
+    invalidatePreparedAvatar();
     setCropOpen(true);
   };
 
@@ -85,12 +94,21 @@ export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
     uploadAbortRef.current = controller;
     setIsUploading(true);
     try {
-      const blob = await getCroppedBlob(imageSrc, croppedArea);
-      const file = new File([blob], "avatar.webp", { type: "image/webp" });
-      const { mediaId } = await uploadImageFile(file, {
-        signal: controller.signal,
-        onProgress: setUploadProgress,
-      });
+      let mediaId = uploadedMediaIdRef.current;
+      if (!mediaId) {
+        let file = preparedAvatarRef.current;
+        if (!file) {
+          const blob = await getCroppedBlob(imageSrc, croppedArea);
+          file = new File([blob], "avatar.webp", { type: "image/webp" });
+          preparedAvatarRef.current = file;
+        }
+        const uploaded = await uploadImageFile(file, {
+          signal: controller.signal,
+          onProgress: setUploadProgress,
+        });
+        mediaId = uploaded.mediaId;
+        uploadedMediaIdRef.current = mediaId;
+      }
       await setAvatar.mutateAsync(mediaId);
       toast.success("头像已更新");
       closeCrop();
@@ -187,8 +205,14 @@ export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
                     crop={crop}
                     zoom={zoom}
                     aspect={1}
-                    onCropChange={setCrop}
-                    onZoomChange={setZoom}
+                    onCropChange={(nextCrop) => {
+                      invalidatePreparedAvatar();
+                      setCrop(nextCrop);
+                    }}
+                    onZoomChange={(nextZoom) => {
+                      invalidatePreparedAvatar();
+                      setZoom(nextZoom);
+                    }}
                     onCropComplete={(_area, areaPixels) => setCroppedArea(areaPixels)}
                   />
                 </div>
@@ -203,7 +227,10 @@ export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
                     max={3}
                     step={0.01}
                     value={zoom}
-                    onChange={(event) => setZoom(Number(event.target.value))}
+                    onChange={(event) => {
+                      invalidatePreparedAvatar();
+                      setZoom(Number(event.target.value));
+                    }}
                     className="w-full accent-brand-strong"
                   />
                 </div>

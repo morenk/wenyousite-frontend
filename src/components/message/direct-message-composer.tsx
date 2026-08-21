@@ -10,6 +10,7 @@ import {
   isUploadAbortError,
   uploadImageFile,
   validateImageFile,
+  type UploadedImage,
   type UploadImageProgress as UploadImageProgressValue,
 } from "@/lib/upload-image";
 import { normalizeDirectMessageContent } from "@/lib/direct-message-content";
@@ -46,6 +47,7 @@ export function DirectMessageComposer({
   const imageInputRef = useRef<HTMLInputElement>(null);
   const uploadAbortRef = useRef<AbortController | null>(null);
   const requestIdRef = useRef<string | null>(null);
+  const uploadedImageRef = useRef<{ file: File; uploaded: UploadedImage } | null>(null);
   const restoreFocusRef = useRef(false);
   const [uploadProgress, setUploadProgress] = useState<UploadImageProgressValue | null>(null);
 
@@ -69,6 +71,7 @@ export function DirectMessageComposer({
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(null);
     setImage(null);
+    uploadedImageRef.current = null;
     if (imageInputRef.current) imageInputRef.current.value = "";
     requestIdRef.current = null;
   };
@@ -83,6 +86,7 @@ export function DirectMessageComposer({
     }
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setImage(file);
+    uploadedImageRef.current = null;
     setPreviewUrl(URL.createObjectURL(file));
     requestIdRef.current = null;
   };
@@ -102,10 +106,17 @@ export function DirectMessageComposer({
     uploadAbortRef.current = uploadController;
     let clearedForOptimisticSend = false;
     try {
-      const uploaded = image ? await uploadImageFile(image, {
-        signal: uploadController?.signal,
-        onProgress: setUploadProgress,
-      }) : undefined;
+      const uploaded = image
+        ? uploadedImageRef.current?.file === image
+          ? uploadedImageRef.current.uploaded
+          : await uploadImageFile(image, {
+              signal: uploadController?.signal,
+              onProgress: setUploadProgress,
+            }).then((result) => {
+              uploadedImageRef.current = { file: image, uploaded: result };
+              return result;
+            })
+        : undefined;
       setUploadProgress(null);
       const sendPromise = onSend({
         ...(normalized ? { content: normalized } : {}),
@@ -114,11 +125,11 @@ export function DirectMessageComposer({
           optimisticMedia: {
             id: uploaded.mediaId,
             url: uploaded.url,
-            thumbnailUrl: null,
-            mediumUrl: null,
-            contentType: image?.type ?? null,
-            width: null,
-            height: null,
+            thumbnailUrl: uploaded.thumbnailUrl ?? null,
+            mediumUrl: uploaded.mediumUrl ?? null,
+            contentType: uploaded.contentType ?? image?.type ?? null,
+            width: uploaded.width ?? null,
+            height: uploaded.height ?? null,
           },
         } : {}),
         clientRequestId: requestIdRef.current ??= crypto.randomUUID(),
@@ -131,6 +142,7 @@ export function DirectMessageComposer({
       if (imageInputRef.current) imageInputRef.current.value = "";
       await sendPromise;
       requestIdRef.current = null;
+      uploadedImageRef.current = null;
     } catch (error) {
       if (clearedForOptimisticSend) {
         setContent(submittedContent);

@@ -674,6 +674,27 @@ describe("MomentComments", () => {
     expect(mockToastError).toHaveBeenCalled();
   });
 
+  test("图片上传中断后重试复用同一份压缩文件", async () => {
+    mockUpload
+      .mockRejectedValueOnce(new Error("upload interrupted"))
+      .mockResolvedValueOnce({ mediaId: "media-1", url: "https://cdn.example.com/comment.webp" });
+    render(<MomentComments momentId="moment-1" />);
+    fireEvent.click(screen.getByRole("button", { name: "发表评论…" }));
+    fireEvent.change(screen.getByLabelText("上传评论图片"), {
+      target: { files: [new File(["image"], "camera.jpg", { type: "image/jpeg" })] },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "发送" }));
+    await waitFor(() => expect(mockToastError).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole("button", { name: "发送" }));
+
+    await waitFor(() => expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({
+      mediaId: "media-1",
+    })));
+    expect(mockCompress).toHaveBeenCalledTimes(1);
+    expect(mockUpload).toHaveBeenCalledTimes(2);
+  });
+
   test("删除失败保留评论并给出反馈", async () => {
     mockDelete.mockRejectedValueOnce(new Error("forbidden"));
     render(<MomentComments momentId="moment-1" />);

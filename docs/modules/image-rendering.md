@@ -9,8 +9,9 @@
 **当前能力：**
 - 上传安全契约与后端对齐：仅接受 JPEG / PNG / GIF / WebP / AVIF，拒绝空文件与未经净化的 SVG
 - 页面 CSP 的 `connect-src` 放行 RainS3 媒体源，允许浏览器通过预签名 URL 直接 PUT 上传
-- 统一上传管线通过 XHR 的上传字节事件报告真实进度；所有图片入口在准备、直传、媒体处理三个阶段持续反馈，直传阶段显示已传/总量和百分比，支持 `AbortSignal` 取消并保留 120 秒超时
-- `upload-done` 由后端核对对象存储实际大小和 MIME，并支持网络超时后的幂等重试；Web/Flutter 都只把 `COMPLETED` 媒体写入正文、头像或主页背景
+- 统一上传管线通过 XHR 的上传字节事件报告真实进度；所有图片入口在准备、直传、媒体处理三个阶段持续反馈，直传阶段显示已传/总量和百分比，支持 `AbortSignal` 取消；直传与异步处理各自保留 120 秒等待上限
+- `upload-done` 由后端核对对象存储实际大小和 MIME；确认网络/5xx 有限重试，对象缺失时调用同 ID 重签端点并重新 PUT。失败或取消后按文件指纹保留恢复点，重试沿用原 `mediaId`
+- 动态多图、评论、私聊、头像、双画幅主页背景和批量表情导入会保存已经完成的 `mediaId`；后续业务请求失败时只重试未完成上传或业务提交，不重复上传成功字节
 - GIF 动图在正文进入视口并加载后默认播放，不再以静态 `_md.webp` 首帧代替；循环次数遵循文件自身设置
 - 正文图片渲染约束：`max-width: 100%` + `max-height: 50vh` + `height: auto` + `loading="lazy"`，长图不会撑满楼层
 - 本站上传的静态图自动显示 `_md.webp` 中图，点击打开 lightbox 查看原图
@@ -33,6 +34,7 @@
 |--------|------|-------|------|
 | POST | `/media/upload-url` | Auth | 获取 S3 预签名 URL |
 | POST | `/media/upload-done` | Auth | 幂等确认上传；后端核对对象实际大小/MIME并原子入队 |
+| POST | `/media/:id/upload-url` | Auth | 为同一 UPLOADING 媒体和对象 key 重签 PUT 地址 |
 | GET | `/media/:id` | Auth | 轮询图片处理状态 |
 
 上传链路由 `src/lib/upload-image.ts` 统一实现。允许 MIME 为 `image/jpeg`、`image/png`、`image/gif`、`image/webp`、`image/avif`，文件大小范围为 1B–10MB；Web 先给出友好错误，后端仍是最终校验边界。对象存储 PUT 使用 XHR，是因为当前 Fetch 上传体不提供可消费的字节进度；API 凭证与状态轮询仍统一经过 `apiClient`。Flutter 必须复用同一范围并在选择器中排除 SVG。
@@ -86,3 +88,5 @@
 - CSP 允许连接 RainS3 媒体源，预签名直传不会在发起请求前被浏览器拦截
 - 本站 GIF 正文默认请求原图并播放，不需要先打开 lightbox
 - 所有 Web 图片上传入口持续显示阶段状态，直传阶段显示真实字节与百分比
+- 对象缺失、签名过期、取消或网络中断后重试继续使用原 `mediaId`；处理轮询最多等待 120 秒
+- 业务提交失败后重试不重复上传已完成的图片；多图场景只续传失败项

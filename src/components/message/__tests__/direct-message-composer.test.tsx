@@ -224,7 +224,9 @@ describe("DirectMessageComposer", () => {
   });
 
   test("图片消息发送失败时恢复待发图片并保留重试入口", async () => {
-    const onSend = vi.fn().mockRejectedValue(new Error("图片发送失败"));
+    const onSend = vi.fn()
+      .mockRejectedValueOnce(new Error("图片发送失败"))
+      .mockResolvedValueOnce(undefined);
     const { container } = render(<DirectMessageComposer onSend={onSend} />);
     const file = new File(["image"], "photo.jpg", { type: "image/jpeg" });
     fireEvent.change(container.querySelector("input[type=file]")!, { target: { files: [file] } });
@@ -241,6 +243,11 @@ describe("DirectMessageComposer", () => {
     expect(URL.createObjectURL).toHaveBeenCalledTimes(2);
     expect(screen.getByRole("button", { name: "发送" })).toBeEnabled();
     expect(mockToastError).toHaveBeenCalledWith("图片发送失败");
+
+    await userEvent.click(screen.getByRole("button", { name: "发送" }));
+    await waitFor(() => expect(onSend).toHaveBeenCalledTimes(2));
+    expect(mockUpload).toHaveBeenCalledTimes(1);
+    expect(onSend.mock.calls[1][0].mediaId).toBe("media1");
   });
 
   test("无效图片提示错误，已选图片可移除", async () => {

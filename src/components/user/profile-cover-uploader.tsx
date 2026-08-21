@@ -61,6 +61,7 @@ export function ProfileCoverUploader({
   const { setProfileCover, removeProfileCover } = useSetProfileCover();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadAbortRef = useRef<AbortController | null>(null);
+  const preparedFilesRef = useRef(new Map<ProfileCoverSurface, File>());
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [crops, setCrops] = useState(INITIAL_CROPS);
   const [zooms, setZooms] = useState(INITIAL_ZOOMS);
@@ -87,6 +88,7 @@ export function ProfileCoverUploader({
   const mobilePreviewCover = profileCover?.mobile ?? profileCover;
 
   const invalidateUploadedSurface = (surface: ProfileCoverSurface) => {
+    preparedFilesRef.current.delete(surface);
     setPendingMediaIds((current) => {
       if (!current[surface]) return current;
       return { ...current, [surface]: undefined };
@@ -107,6 +109,7 @@ export function ProfileCoverUploader({
     setZooms(INITIAL_ZOOMS);
     setCroppedAreas({});
     setPendingMediaIds({});
+    preparedFilesRef.current.clear();
     setCropOpen(true);
   };
 
@@ -119,6 +122,7 @@ export function ProfileCoverUploader({
     setImageSrc(null);
     setCroppedAreas({});
     setPendingMediaIds({});
+    preparedFilesRef.current.clear();
   };
 
   const handleConfirm = async () => {
@@ -138,8 +142,12 @@ export function ProfileCoverUploader({
         setActiveSurface(surface);
         setUploadProgress(null);
         const spec = PROFILE_COVER_SPECS[surface];
-        const blob = await getCroppedProfileCoverBlob(imageSrc, croppedAreas[surface]!, surface);
-        const file = new File([blob], spec.filename, { type: "image/webp" });
+        let file = preparedFilesRef.current.get(surface);
+        if (!file) {
+          const blob = await getCroppedProfileCoverBlob(imageSrc, croppedAreas[surface]!, surface);
+          file = new File([blob], spec.filename, { type: "image/webp" });
+          preparedFilesRef.current.set(surface, file);
+        }
         const { mediaId } = await uploadImageFile(file, {
           signal: controller.signal,
           onProgress: setUploadProgress,

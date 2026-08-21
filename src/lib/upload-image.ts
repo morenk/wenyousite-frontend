@@ -65,9 +65,27 @@ export function validateProfileCoverFile(file: File): string | null {
   return null;
 }
 
-interface UploadedImage {
+export interface UploadedImage {
   url: string;
   mediaId: string;
+  thumbnailUrl: string | null;
+  feedUrl: string | null;
+  mediumUrl: string | null;
+  width: number | null;
+  height: number | null;
+  contentType: string | null;
+}
+
+export interface UploadReservation {
+  mediaId: string;
+}
+
+/** 上传中断后携带原 mediaId，调用方可用同一文件继续而不制造重复记录。 */
+export class RecoverableImageUploadError extends Error {
+  constructor(message: string, readonly reservation: UploadReservation) {
+    super(message);
+    this.name = "RecoverableImageUploadError";
+  }
 }
 
 export type UploadImageStage = "preparing" | "uploading" | "processing";
@@ -89,9 +107,42 @@ export interface UploadImageOptions {
   onStage?: (stage: UploadImageStage) => void;
   /** 包含真实已上传字节数的进度回调。 */
   onProgress?: (progress: UploadImageProgress) => void;
+  /** 继续一个先前中断的上传；必须仍使用同一文件。 */
+  resume?: UploadReservation;
+  /** 预建媒体记录后立即回传，供业务入口跨失败重试保存。 */
+  onReservation?: (reservation: UploadReservation) => void;
+  /** 图片异步处理最长等待时间，默认 120 秒。 */
+  processingTimeoutMs?: number;
 }
 
 const DIRECT_UPLOAD_TIMEOUT_MS = 120_000;
+const PROCESSING_TIMEOUT_MS = 120_000;
+const MEDIA_OBJECT_MISSING_CODE = 40419;
+const CONFIRM_RETRY_DELAYS_MS = [0, 400, 1_000] as const;
+const activeReservations = new WeakMap<File, UploadReservation>();
+const interruptedReservations = new Map<string, UploadReservation>();
+const MAX_INTERRUPTED_RESERVATIONS = 100;
+
+class MediaObjectMissingError extends Error {}
+class MediaStatusRequestError extends Error {
+  constructor(message: string, readonly status?: number) {
+    super(message);
+  }
+}
+
+export function getImageUploadKey(file: File): string {
+  return [file.name, file.size, file.type, file.lastModified].join(":");
+}
+
+function rememberInterrupted(uploadKey: string, reservation: UploadReservation) {
+  interruptedReservations.delete(uploadKey);
+  interruptedReservations.set(uploadKey, reservation);
+  while (interruptedReservations.size > MAX_INTERRUPTED_RESERVATIONS) {
+    const oldest = interruptedReservations.keys().next().value;
+    if (!oldest) break;
+    interruptedReservations.delete(oldest);
+  }
+}
 
 function createUploadAbortError(): DOMException {
   return new DOMException("图片上传已取消", "AbortError");
@@ -175,6 +226,109 @@ function putImageFile(
   });
 }
 
+function apiErrorMessage(error: unknown, fallback: string): string {
+  if (error && typeof error === "object" && "message" in error) {
+    const message = (error as ApiErrorBody).message;
+    if (typeof message === "string" && message.trim()) return message;
+  }
+  return fallback;
+}
+
+function toUploadedImage(media: {
+  id: string;
+  url: string;
+  thumbnailUrl: string | null;
+  feedUrl: string | null;
+  mediumUrl: string | null;
+  width: number | null;
+  height: number | null;
+  contentType: string | null;
+}): UploadedImage {
+  return {
+    mediaId: media.id,
+    url: media.url,
+    thumbnailUrl: media.thumbnailUrl,
+    feedUrl: media.feedUrl,
+    mediumUrl: media.mediumUrl,
+    width: media.width,
+    height: media.height,
+    contentType: media.contentType,
+  };
+}
+
+async function confirmMedia(mediaId: string, signal?: AbortSignal) {
+  for (let attempt = 0; attempt < CONFIRM_RETRY_DELAYS_MS.length; attempt++) {
+    throwIfUploadAborted(signal);
+    const delay = CONFIRM_RETRY_DELAYS_MS[attempt];
+    if (delay > 0) await abortableDelay(delay, signal);
+
+    let result;
+    try {
+      result = await apiClient.POST("/api/v1/media/upload-done", {
+        body: { mediaId },
+        signal,
+      });
+    } catch (error) {
+      if (attempt < CONFIRM_RETRY_DELAYS_MS.length - 1) continue;
+      throw new Error(apiErrorMessage(error, "文件确认失败，请重试"));
+    }
+
+    if (result.data) return result.data.data.media;
+    const error = result.error as ApiErrorBody | undefined;
+    if (error?.code === MEDIA_OBJECT_MISSING_CODE) throw new MediaObjectMissingError();
+
+    const retryable = !result.response || result.response.status >= 500;
+    if (retryable && attempt < CONFIRM_RETRY_DELAYS_MS.length - 1) continue;
+    throw new Error(apiErrorMessage(error, "文件确认失败，请重试"));
+  }
+  throw new Error("文件确认失败，请重试");
+}
+
+async function getMedia(mediaId: string, signal?: AbortSignal) {
+  const { data, error, response } = await apiClient.GET("/api/v1/media/{id}", {
+    params: { path: { id: mediaId } },
+    signal,
+  });
+  if (error) {
+    throw new MediaStatusRequestError(
+      apiErrorMessage(error, "查询图片状态失败"),
+      response?.status,
+    );
+  }
+  if (!data) throw new MediaStatusRequestError("查询图片状态失败");
+  return data.data;
+}
+
+async function pollCompletedMedia(
+  mediaId: string,
+  signal: AbortSignal | undefined,
+  timeoutMs: number,
+) {
+  const deadline = Date.now() + timeoutMs;
+  let attempt = 0;
+  while (Date.now() < deadline) {
+    const delay = Math.min(250 * 2 ** Math.min(attempt, 4), 4_000);
+    await abortableDelay(delay, signal);
+    attempt++;
+
+    let media;
+    try {
+      media = await getMedia(mediaId, signal);
+    } catch (error) {
+      if (isUploadAbortError(error)) throw error;
+      if (error instanceof MediaStatusRequestError && error.status && error.status < 500) {
+        throw error;
+      }
+      // 状态查询的短暂网络/5xx 故障不应让已经入队的上传失去恢复机会。
+      if (Date.now() >= deadline) throw error;
+      continue;
+    }
+    if (media.status === "COMPLETED") return toUploadedImage(media);
+    if (media.status === "FAILED") throw new Error("图片处理失败，请重新上传");
+  }
+  throw new Error("图片处理超时，请稍后重试");
+}
+
 export async function uploadImageFile(
   file: File,
   options: UploadImageOptions = {},
@@ -189,6 +343,9 @@ export async function uploadImageFile(
     timeoutMs = DIRECT_UPLOAD_TIMEOUT_MS,
     onStage,
     onProgress,
+    resume,
+    onReservation,
+    processingTimeoutMs = PROCESSING_TIMEOUT_MS,
   } = options;
   throwIfUploadAborted(signal);
 
@@ -212,77 +369,111 @@ export async function uploadImageFile(
     });
   };
 
-  // 1. 获取预签名 URL
+  const uploadKey = getImageUploadKey(file);
+  let reservation = resume ?? activeReservations.get(file) ?? interruptedReservations.get(uploadKey);
+  if (reservation) activeReservations.set(file, reservation);
+  const finish = (uploaded: UploadedImage) => {
+    activeReservations.delete(file);
+    interruptedReservations.delete(uploadKey);
+    return uploaded;
+  };
   try {
     reportStage("preparing");
-    const { data: urlData, error: urlError } = await apiClient.POST(
-      "/api/v1/media/upload-url",
-      {
-        body: {
-          filename: file.name,
-          contentType: file.type as AllowedMimeType,
-          size: file.size,
-        },
-        signal,
-      },
-    );
-    if (urlError) {
-      const err = urlError as ApiErrorBody;
-      if (err.code === UPLOAD_RATE_LIMIT_CODE) {
-        throw new Error(RATE_LIMIT_MESSAGE);
+    let mediaId: string;
+    let needsDirectUpload = true;
+    let uploadUrl: string | null = null;
+
+    if (reservation) {
+      const media = await getMedia(reservation.mediaId, signal);
+      if (media.status === "COMPLETED") return finish(toUploadedImage(media));
+      if (media.status === "PROCESSING") {
+        reportStage("processing");
+        return finish(await pollCompletedMedia(media.id, signal, processingTimeoutMs));
       }
-      throw new Error(err.message || "获取上传地址失败");
+      if (media.status === "UPLOADING") {
+        mediaId = media.id;
+        needsDirectUpload = false;
+      } else {
+        reservation = undefined;
+        activeReservations.delete(file);
+        interruptedReservations.delete(uploadKey);
+      }
     }
 
-    if (!urlData) throw new Error("获取上传地址失败");
-    const upload = urlData.data;
-
-    // 2. 直传 S3。XHR 提供真实上传字节进度，并保留超时与主动取消能力。
-    onStage?.("uploading");
-    await putImageFile(upload.uploadUrl, file, signal, timeoutMs, reportUploadProgress);
-    throwIfUploadAborted(signal);
-
-    // 3. 确认上传完成
-    reportStage("processing");
-    const { data: doneData, error: doneError } = await apiClient.POST(
-      "/api/v1/media/upload-done",
-      {
-        body: { mediaId: upload.mediaId },
-        signal,
-      },
-    );
-    if (doneError) throw doneError;
-
-    if (!doneData) throw new Error("文件确认失败");
-
-    // 4. 轮询处理状态
-    await abortableDelay(500, signal);
-    for (let i = 0; i < 30; i++) {
-      const { data: statusData, error: statusError } = await apiClient.GET(
-        "/api/v1/media/{id}",
+    if (!reservation) {
+      const { data: urlData, error: urlError } = await apiClient.POST(
+        "/api/v1/media/upload-url",
         {
-          params: { path: { id: upload.mediaId } },
+          body: {
+            filename: file.name,
+            contentType: file.type as AllowedMimeType,
+            size: file.size,
+          },
           signal,
         },
       );
-      if (statusError) throw statusError;
-
-      if (!statusData) throw new Error("查询图片状态失败");
-      const media = statusData.data;
-
-      if (media.status === "COMPLETED") {
-        return { url: media.url, mediaId: upload.mediaId };
+      if (urlError) {
+        const error = urlError as ApiErrorBody;
+        if (error.code === UPLOAD_RATE_LIMIT_CODE) throw new Error(RATE_LIMIT_MESSAGE);
+        throw new Error(apiErrorMessage(error, "获取上传地址失败"));
       }
-      if (media.status === "FAILED") {
-        throw new Error("图片处理失败，请重新上传");
-      }
+      if (!urlData) throw new Error("获取上传地址失败");
 
-      await abortableDelay(1000, signal);
+      mediaId = urlData.data.mediaId;
+      uploadUrl = urlData.data.uploadUrl;
+      reservation = { mediaId };
+      activeReservations.set(file, reservation);
+      onReservation?.(reservation);
+    } else {
+      mediaId = reservation.mediaId;
     }
 
-    throw new Error("图片处理超时，请稍后重试");
+    if (needsDirectUpload) {
+      onStage?.("uploading");
+      await putImageFile(uploadUrl!, file, signal, timeoutMs, reportUploadProgress);
+      throwIfUploadAborted(signal);
+    }
+
+    reportStage("processing");
+    let media;
+    try {
+      media = await confirmMedia(mediaId, signal);
+    } catch (error) {
+      if (!(error instanceof MediaObjectMissingError)) throw error;
+      const { data: reissueData, error: reissueError } = await apiClient.POST(
+        "/api/v1/media/{id}/upload-url",
+        { params: { path: { id: mediaId } }, signal },
+      );
+      if (reissueError || !reissueData) {
+        throw new Error(apiErrorMessage(reissueError, "恢复上传地址失败，请重试"));
+      }
+      onStage?.("uploading");
+      await putImageFile(
+        reissueData.data.uploadUrl,
+        file,
+        signal,
+        timeoutMs,
+        reportUploadProgress,
+      );
+      reportStage("processing");
+      media = await confirmMedia(mediaId, signal);
+    }
+
+    if (media.status === "COMPLETED") return finish(toUploadedImage(media));
+    if (media.status === "FAILED") throw new Error("图片处理失败，请重新上传");
+    return finish(await pollCompletedMedia(mediaId, signal, processingTimeoutMs));
   } catch (error) {
+    if (reservation) {
+      activeReservations.set(file, reservation);
+      rememberInterrupted(uploadKey, reservation);
+    }
     if (signal?.aborted || isUploadAbortError(error)) throw createUploadAbortError();
+    if (reservation && !(error instanceof RecoverableImageUploadError)) {
+      throw new RecoverableImageUploadError(
+        apiErrorMessage(error, "图片上传失败，请重试"),
+        reservation,
+      );
+    }
     throw error;
   }
 }

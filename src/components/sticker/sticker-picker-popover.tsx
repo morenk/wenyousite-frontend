@@ -26,9 +26,11 @@ import { ImageUploadProgress } from "@/components/shared/image-upload-progress";
 import { useStickerActions, useStickers, type UserSticker } from "@/api/hooks/use-stickers";
 import { getKnownUserId } from "@/lib/auth-store";
 import {
+  getImageUploadKey,
   uploadImageFile,
   validateImageFile,
   type UploadImageProgress as UploadImageProgressValue,
+  type UploadReservation,
 } from "@/lib/upload-image";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -147,6 +149,9 @@ function StickerPickerPanel({
   const [uploadProgress, setUploadProgress] = useState<UploadImageProgressValue | null>(null);
   const [uploadFileCount, setUploadFileCount] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
+  const pendingUploadsRef = useRef(
+    new Map<string, { mediaId?: string; reservation?: UploadReservation }>(),
+  );
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -250,10 +255,23 @@ function StickerPickerPanel({
     };
     const results = await runWithConcurrency(
       candidates.map((file, index) => async () => {
-        const uploaded = await uploadImageFile(file, {
-          onProgress: (progress) => updateBatchProgress(index, file, progress),
-        });
-        return actions.importMedia.mutateAsync(uploaded.mediaId);
+        const uploadKey = getImageUploadKey(file);
+        const pendingUpload = pendingUploadsRef.current.get(uploadKey) ?? {};
+        let mediaId = pendingUpload.mediaId;
+        if (!mediaId) {
+          const uploaded = await uploadImageFile(file, {
+            resume: pendingUpload.reservation,
+            onReservation: (reservation) => {
+              pendingUploadsRef.current.set(uploadKey, { reservation });
+            },
+            onProgress: (progress) => updateBatchProgress(index, file, progress),
+          });
+          mediaId = uploaded.mediaId;
+          pendingUploadsRef.current.set(uploadKey, { mediaId });
+        }
+        const imported = await actions.importMedia.mutateAsync(mediaId);
+        pendingUploadsRef.current.delete(uploadKey);
+        return imported;
       }),
       3,
     );

@@ -118,7 +118,7 @@
 }
 ```
 
-> 已注销用户的公开主页被屏蔽为 `{ id, username: "已注销用户", isDeactivated: true }`；帖子作者、楼主、成员、关注列表、收藏、搜索和通知中的用户摘要也统一显示“已注销用户”与灰色用户图标，不显示内部墓碑用户名或旧头像。注销事务清空头像引用后，后端确认该 URL 未被正文、草稿或其他头像引用时立即删除原图和派生图；失败由每日孤儿回收兜底。
+> 已注销用户的公开主页被屏蔽为 `{ id, username: "已注销用户", isDeactivated: true }`；帖子作者、楼主、成员、关注列表、收藏、搜索和通知中的用户摘要也统一显示“已注销用户”与灰色用户图标，不显示内部墓碑用户名或旧头像。注销事务会解除头像与双画幅背景的结构化媒体引用；后端在引用账本对账和宽限期后统一执行孤儿回收。
 
 公开资料的 `accountStatus` 为 `ACTIVE / SUSPENDED / BANNED`。资料卡只在后两种状态显示“该用户已被暂时封禁 / 永久封禁”，不显示处罚原因或具体截止时间。
 
@@ -256,7 +256,7 @@
 | UserBookmarksPage | `src/components/user/user-bookmarks-page.tsx` | 收藏 Tab：尊重公开权限，无权限时不发起收藏请求 |
 | DraftList | `src/components/user/draft-list.tsx` | 草稿箱列表（标题/分类/更新时间/继续编辑/删除） |
 | UsernameEdit | `src/components/user/username-edit.tsx` | 独立用户名修改（默认只读，点「修改用户名」才进入编辑态，未改动不提交） |
-| AvatarUploader | `src/components/user/avatar-uploader.tsx` | 头像上传器：预览（`_thumb.webp` 缩略图/首字母占位）→ 文件选择校验（仅 jpg/png/webp，排除 svg）→ 共享 Dialog 内用 react-easy-crop 1:1 裁剪 → canvas 导出 512×512 webp → 上传（预签名+真实字节进度+可取消直传+轮询）→ `PATCH /me/avatar` 立即生效；「移除头像」调 `DELETE /me/avatar` |
+| AvatarUploader | `src/components/user/avatar-uploader.tsx` | 头像上传器：预览（`_thumb.webp` 缩略图/首字母占位）→ 文件选择校验（仅 jpg/png/webp，排除 svg）→ 共享 Dialog 内用 react-easy-crop 1:1 裁剪 → canvas 导出 512×512 webp → 上传（预签名+真实字节进度+可取消直传+同 ID 恢复）→ `PATCH /me/avatar` 立即生效；绑定失败重试复用已上传 mediaId；「移除头像」调 `DELETE /me/avatar` |
 | ProfileCoverUploader | `src/components/user/profile-cover-uploader.tsx` | 双画幅背景上传器：同一原图分别调整 Web 3:1 与移动端 2:1 取景框 → 输出 1920×640 / 1600×800 高质量 WebP → 依次上传并原子绑定；支持分步进度、失败续传、取消、更换和同时移除 |
 | ChangePasswordForm | `src/components/user/change-password-form.tsx` | 修改密码表单（当前/新/确认密码，PasswordInput 显隐切换），成功后登出跳登录 |
 | ChangeEmailForm | `src/components/user/change-email-form.tsx` | 更换邮箱表单（当前密码二次认证 → 新邮箱 → 验证码），成功后失效 me 缓存并跳转 `/me` |

@@ -254,6 +254,34 @@ describe("MomentComposer", () => {
     expect(mockToastError).toHaveBeenCalled();
   });
 
+  test("多图上传中断后重试只续传失败项", async () => {
+    mockUpload
+      .mockResolvedValueOnce({ mediaId: "media-first" })
+      .mockRejectedValueOnce(new Error("second upload failed"))
+      .mockResolvedValueOnce({ mediaId: "media-second" });
+    render(<MomentComposer open userId="user-1" onClose={vi.fn()} />);
+    const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]');
+    fireEvent.change(fileInput!, {
+      target: {
+        files: [
+          new File(["first"], "first.jpg", { type: "image/jpeg" }),
+          new File(["second"], "second.jpg", { type: "image/jpeg" }),
+        ],
+      },
+    });
+    fireEvent.change(screen.getByLabelText("标题"), { target: { value: "续传双图" } });
+
+    fireEvent.click(screen.getByRole("button", { name: "发布动态" }));
+    await waitFor(() => expect(mockToastError).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole("button", { name: "发布动态" }));
+
+    await waitFor(() => expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({
+      mediaIds: ["media-first", "media-second"],
+    })));
+    expect(mockCompress).toHaveBeenCalledTimes(2);
+    expect(mockUpload).toHaveBeenCalledTimes(3);
+  });
+
   test("多图选择封面后按上传位置映射 coverMediaId", async () => {
     mockUpload
       .mockResolvedValueOnce({ mediaId: "media-first" })
