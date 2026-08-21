@@ -17,6 +17,7 @@ interface ThreadReadingBarProps {
   subthreads: SubthreadDetail[];
   selectedSubthreadId?: string;
   onSubthreadChange: (id: string) => void;
+  onSubthreadPrefetch?: (id: string) => void;
   onSearch: () => void;
   isSearchOpen: boolean;
 }
@@ -26,6 +27,7 @@ export function ThreadReadingBar({
   subthreads,
   selectedSubthreadId,
   onSubthreadChange,
+  onSubthreadPrefetch,
   onSearch,
   isSearchOpen,
 }: ThreadReadingBarProps) {
@@ -69,6 +71,7 @@ export function ThreadReadingBar({
                 subthreads={subthreads}
                 selectedId={selectedSubthreadId}
                 onChange={onSubthreadChange}
+                onPrefetch={onSubthreadPrefetch}
                 className="min-w-0 flex-1"
               />
             ) : (

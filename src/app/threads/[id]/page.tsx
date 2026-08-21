@@ -2,15 +2,15 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useQueryState } from "nuqs";
+import { useCallback, useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useQueryState, useQueryStates } from "nuqs";
 import { AlertCircle } from "lucide-react";
 
 import { useAuth } from "@/lib/auth";
-import { getPostHref, getSubthreadHref } from "@/lib/post-navigation";
+import { getPostHref } from "@/lib/post-navigation";
 import { useThreadDetail } from "@/api/hooks/use-thread-detail";
-import { useFloors } from "@/api/hooks/use-floors";
+import { useFloors, usePrefetchFloors } from "@/api/hooks/use-floors";
 import { usePost } from "@/api/hooks/use-post";
 import type { FloorOrder } from "@/api/floor-query";
 import { ThreadDetailHeader } from "@/components/thread/thread-detail-header";
@@ -37,7 +37,10 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageShell } from "@/components/layout/page-shell";
 import { PageRouteFallback } from "@/components/layout/page-route-fallback";
-import { floorOrderParser } from "@/lib/thread-url-state";
+import {
+  floorOrderParser,
+  threadContentCoordinateParsers,
+} from "@/lib/thread-url-state";
 
 export default function ThreadDetailPage() {
   const params = useParams();
@@ -53,11 +56,18 @@ export default function ThreadDetailPage() {
 
 function ThreadDetailPageContent() {
   const params = useParams();
-  const searchParams = useSearchParams();
   const router = useRouter();
   const threadId = params.id as string;
-  const targetPostId = searchParams.get("post") ?? undefined;
-  const querySubthreadId = searchParams.get("subthread") ?? undefined;
+  const [contentCoordinate, setContentCoordinate] = useQueryStates(
+    threadContentCoordinateParsers,
+    {
+      history: "replace",
+      shallow: true,
+      clearOnDefault: true,
+    },
+  );
+  const targetPostId = contentCoordinate.post ?? undefined;
+  const querySubthreadId = contentCoordinate.subthread ?? undefined;
   const [floorOrder, setFloorOrder] = useQueryState(
     "order",
     floorOrderParser.withOptions({
@@ -114,29 +124,52 @@ function ThreadDetailPageContent() {
   useEffect(() => {
     if (!thread) return;
     if (targetPostId && querySubthreadId) {
-      router.replace(getPostHref({
-        threadId,
-        postId: targetPostId,
-        parentPostId: targetPost?.parentPostId,
-        floorOrder,
-      }));
+      void setContentCoordinate({ subthread: null });
       return;
     }
-    if (!targetPostId && querySubthreadId && !querySubthread) {
-      router.replace(getSubthreadHref(
-        threadId,
-        thread.defaultSubthreadId,
-        thread.defaultSubthreadId,
-        floorOrder,
-      ));
+    if (
+      !targetPostId &&
+      querySubthreadId &&
+      (!querySubthread || querySubthreadId === thread.defaultSubthreadId)
+    ) {
+      void setContentCoordinate({ subthread: null });
     }
-  }, [floorOrder, querySubthread, querySubthreadId, router, targetPost?.parentPostId, targetPostId, thread, threadId]);
+  }, [
+    querySubthread,
+    querySubthreadId,
+    setContentCoordinate,
+    targetPostId,
+    thread,
+  ]);
 
   const selectedSubthread = thread?.subthreads.find(
     (s) => s.id === effectiveSubthreadId,
   );
   const { isThreadManager } = useThreadPermissions();
   const canManageThread = isThreadManager || user?.id === thread?.ownerId;
+  const prefetchFloors = usePrefetchFloors(floorOrder);
+
+  const prefetchSubthread = useCallback((subthreadId: string) => {
+    if (!subthreadId || subthreadId === effectiveSubthreadId) return;
+    prefetchFloors(subthreadId);
+  }, [effectiveSubthreadId, prefetchFloors]);
+
+  useEffect(() => {
+    if (!thread || !effectiveSubthreadId || thread.subthreads.length <= 1) return;
+    const selectedIndex = thread.subthreads.findIndex(
+      (subthread) => subthread.id === effectiveSubthreadId,
+    );
+    if (selectedIndex < 0) return;
+    const adjacentIds = new Set([
+      thread.subthreads[
+        (selectedIndex - 1 + thread.subthreads.length) % thread.subthreads.length
+      ]?.id,
+      thread.subthreads[(selectedIndex + 1) % thread.subthreads.length]?.id,
+    ]);
+    adjacentIds.forEach((subthreadId) => {
+      if (subthreadId) prefetchSubthread(subthreadId);
+    });
+  }, [effectiveSubthreadId, prefetchSubthread, thread]);
 
   useEffect(() => {
     if (!isSearching) return;
@@ -184,13 +217,14 @@ function ThreadDetailPageContent() {
   if (!thread) return null;
 
   const handleSubthreadChange = async (subthreadId: string) => {
+    if (subthreadId === effectiveSubthreadId) return;
     if (await closeComposer()) {
-      router.replace(getSubthreadHref(
-        thread.id,
-        subthreadId,
-        thread.defaultSubthreadId,
-        floorOrder,
-      ));
+      await setContentCoordinate({
+        post: null,
+        subthread: subthreadId === thread.defaultSubthreadId
+          ? null
+          : subthreadId,
+      });
     }
   };
 
@@ -210,6 +244,7 @@ function ThreadDetailPageContent() {
         onSubthreadChange={(subthreadId) =>
           void handleSubthreadChange(subthreadId)
         }
+        onSubthreadPrefetch={prefetchSubthread}
         onSearch={() => setIsSearching((open) => !open)}
         isSearchOpen={isSearching}
       />
@@ -223,6 +258,7 @@ function ThreadDetailPageContent() {
         selectedSubthreadId={effectiveSubthreadId}
         defaultSubthreadId={thread.defaultSubthreadId}
         onSubthreadChange={handleSubthreadChange}
+        onSubthreadPrefetch={prefetchSubthread}
         onManage={
           canManageThread
             ? async () => {

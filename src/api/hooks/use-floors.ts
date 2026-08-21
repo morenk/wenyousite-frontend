@@ -1,6 +1,7 @@
 /** 楼层列表 API hook（cursor 分页） */
 
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useCallback } from "react";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
 import { DEFAULT_FLOOR_ORDER, type FloorOrder } from "@/api/floor-query";
@@ -73,4 +74,17 @@ export function useFloors(
     ...floorsQueryOptions(subthreadId ?? "", order),
     enabled: !!subthreadId,
   });
+}
+
+/** 预取子贴首屏楼层；调用方只表达阅读意图，不直接编排 QueryClient。 */
+export function usePrefetchFloors(
+  order: FloorOrder = DEFAULT_FLOOR_ORDER,
+) {
+  const queryClient = useQueryClient();
+  return useCallback((subthreadId: string) => {
+    if (!subthreadId) return;
+    void queryClient.prefetchInfiniteQuery(
+      floorsQueryOptions(subthreadId, order),
+    );
+  }, [order, queryClient]);
 }

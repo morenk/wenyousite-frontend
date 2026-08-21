@@ -76,6 +76,31 @@ function makeThreadDetail(index: number) {
   };
 }
 
+function makeMultiSubthreadDetail(index: number) {
+  const detail = makeThreadDetail(index);
+  const makeSubthread = (id: string, title: string, sortOrder: number) => ({
+    ...detail.subthreads[0],
+    id,
+    title,
+    sortOrder,
+    bodyPost: {
+      id: `body-${id}`,
+      content: `${title}正文`,
+      version: 1,
+      diceRolls: [],
+    },
+  });
+  return {
+    ...detail,
+    subthreads: [
+      makeSubthread(detail.defaultSubthreadId, "主帖", 0),
+      makeSubthread(`${detail.defaultSubthreadId}-setting`, "设定区", 1),
+      makeSubthread(`${detail.defaultSubthreadId}-plot`, "剧情区", 2),
+      makeSubthread(`${detail.defaultSubthreadId}-chat`, "闲聊区", 3),
+    ],
+  };
+}
+
 async function fulfill(route: Route, data: unknown, meta?: Record<string, unknown>) {
   await route.fulfill({
     contentType: "application/json",
@@ -83,7 +108,11 @@ async function fulfill(route: Route, data: unknown, meta?: Record<string, unknow
   });
 }
 
-async function mockPublicBrowsing(page: Page, detailDelayMs = 0) {
+async function mockPublicBrowsing(
+  page: Page,
+  detailDelayMs = 0,
+  detailFactory: (index: number) => unknown = makeThreadDetail,
+) {
   const threads = Array.from({ length: 40 }, (_, index) => makeThread(index + 1));
   await page.clock.setFixedTime(fixedNow);
   await page.route("**/api/v1/**", async (route) => {
@@ -141,10 +170,10 @@ async function mockPublicBrowsing(page: Page, detailDelayMs = 0) {
       if (detailDelayMs > 0) {
         await new Promise((resolve) => setTimeout(resolve, detailDelayMs));
       }
-      return fulfill(route, makeThreadDetail(Number(detailMatch[1])));
+      return fulfill(route, detailFactory(Number(detailMatch[1])));
     }
 
-    if (/\/subthreads\/spa-subthread-\d+\/posts$/.test(pathname)) {
+    if (/\/subthreads\/spa-subthread-[^/]+\/posts$/.test(pathname)) {
       return fulfill(route, [], { cursor: null, hasMore: false });
     }
 
@@ -202,5 +231,62 @@ test.describe("公开浏览的单页式导航体验", () => {
 
     await expect(page.getByRole("heading", { name: "漫游记录 01" })).toBeVisible();
     await expect(page.getByRole("status", { name: "页面加载中" })).toHaveCount(0);
+  });
+
+  test("子贴使用浅层 URL 切换，并复用预取的楼层缓存", async ({ page }) => {
+    const rscRequests: string[] = [];
+    const floorRequests: string[] = [];
+    page.on("request", (request) => {
+      const url = new URL(request.url());
+      if (
+        url.pathname === "/threads/spa-thread-1" &&
+        url.searchParams.has("_rsc")
+      ) {
+        rscRequests.push(request.url());
+      }
+      if (url.pathname.startsWith("/api/v1/subthreads/") && url.pathname.endsWith("/posts")) {
+        floorRequests.push(url.pathname);
+      }
+    });
+
+    await mockPublicBrowsing(page, 0, makeMultiSubthreadDetail);
+    await page.goto(
+      "/threads/spa-thread-1?subthread=spa-subthread-1&order=NEWEST",
+    );
+    await expect(page.getByRole("heading", { name: "漫游记录 01" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "主帖", exact: true })).toBeVisible();
+    await expect(page).toHaveURL(
+      /\/threads\/spa-thread-1\?order=NEWEST$/,
+    );
+    await expect.poll(() => floorRequests.length).toBeGreaterThanOrEqual(3);
+
+    rscRequests.length = 0;
+    const plotFloorPath = "/api/v1/subthreads/spa-subthread-1-plot/posts";
+    const switchTo = async (label: string) => {
+      await page.getByRole("combobox", { name: /切换子贴/ }).first().click();
+      await page.getByRole("option", { name: new RegExp(`^${label}`) }).click();
+    };
+
+    await switchTo("剧情区");
+    await expect(page).toHaveURL((url) =>
+      url.pathname === "/threads/spa-thread-1" &&
+      url.searchParams.get("subthread") === "spa-subthread-1-plot" &&
+      url.searchParams.get("order") === "NEWEST",
+    );
+    await expect(page.getByRole("heading", { name: "剧情区", exact: true })).toBeVisible();
+    await expect.poll(() => floorRequests.filter((path) => path === plotFloorPath).length).toBe(1);
+    expect(rscRequests).toHaveLength(0);
+
+    await switchTo("主帖");
+    await expect(page).toHaveURL(
+      /\/threads\/spa-thread-1\?order=NEWEST$/,
+    );
+    await expect(page.getByRole("heading", { name: "主帖", exact: true })).toBeVisible();
+
+    await switchTo("剧情区");
+    await expect(page.getByRole("heading", { name: "剧情区", exact: true })).toBeVisible();
+    await page.waitForTimeout(50);
+    expect(floorRequests.filter((path) => path === plotFloorPath)).toHaveLength(1);
+    expect(rscRequests).toHaveLength(0);
   });
 });

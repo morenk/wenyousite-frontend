@@ -3,7 +3,7 @@
 import { beforeEach, describe, test, expect, vi } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useFloors } from "@/api/hooks/use-floors";
+import { useFloors, usePrefetchFloors } from "@/api/hooks/use-floors";
 import React from "react";
 
 const { mockGET } = vi.hoisted(() => ({
@@ -151,5 +151,29 @@ describe("useFloors", () => {
     });
 
     await waitFor(() => expect(result.current.isError).toBe(true));
+  });
+
+  test("按目标子贴和排序预取首屏楼层", async () => {
+    mockGET.mockResolvedValue({
+      data: { ...sampleResponse, data: [], meta: { cursor: null, hasMore: false } },
+      error: undefined,
+    });
+    const { result } = renderHook(() => usePrefetchFloors("NEWEST"), {
+      wrapper: createWrapper(),
+    });
+
+    result.current("s2");
+
+    await waitFor(() => {
+      expect(mockGET).toHaveBeenCalledWith(
+        "/api/v1/subthreads/{subthreadId}/posts",
+        {
+          params: {
+            path: { subthreadId: "s2" },
+            query: { limit: 20, order: "NEWEST" },
+          },
+        },
+      );
+    });
   });
 });

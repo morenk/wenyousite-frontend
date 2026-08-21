@@ -40,6 +40,7 @@ interface ThreadDetailHeaderProps {
   selectedSubthreadId?: string;
   defaultSubthreadId?: string;
   onSubthreadChange?: (id: string) => void;
+  onSubthreadPrefetch?: (id: string) => void;
   children?: ReactNode;
 }
 
@@ -77,6 +78,7 @@ export function ThreadDetailHeader({
   selectedSubthreadId,
   defaultSubthreadId,
   onSubthreadChange,
+  onSubthreadPrefetch,
   children,
 }: ThreadDetailHeaderProps) {
   const { user } = useAuth();
@@ -238,6 +240,7 @@ export function ThreadDetailHeader({
                   subthreads={subthreads}
                   selectedId={selectedSubthreadId}
                   onChange={onSubthreadChange}
+                  onPrefetch={onSubthreadPrefetch}
                   onCopyCurrent={handleCopySubthreadLink}
                   className="min-w-0 max-w-sm flex-1"
                 />

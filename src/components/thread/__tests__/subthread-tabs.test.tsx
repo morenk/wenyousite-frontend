@@ -147,6 +147,31 @@ describe("SubthreadSwitcher", () => {
     expect(onChange).toHaveBeenNthCalledWith(4, "s1");
   });
 
+  test("在游标和目录项表达切换意图时预取目标子贴", async () => {
+    const user = userEvent.setup();
+    const onPrefetch = vi.fn();
+    render(
+      <SubthreadSwitcher
+        subthreads={[
+          makeSub({ id: "s1", title: "主帖" }),
+          makeSub({ id: "s2", title: "设定区" }),
+          makeSub({ id: "s3", title: "闲聊区" }),
+        ]}
+        selectedId="s2"
+        onChange={() => {}}
+        onPrefetch={onPrefetch}
+      />,
+    );
+
+    await user.hover(screen.getByRole("button", { name: "上一个子贴：主帖" }));
+    expect(onPrefetch).toHaveBeenCalledWith("s1");
+
+    await user.click(screen.getByRole("combobox", { name: /切换子贴/ }));
+    onPrefetch.mockClear();
+    await user.hover(screen.getByRole("option", { name: "闲聊区 5 楼" }));
+    expect(onPrefetch).toHaveBeenCalledWith("s3");
+  });
+
   test("几十个子贴收纳在固定高度的纵向菜单中", async () => {
     const user = userEvent.setup();
     const subthreads = Array.from({ length: 40 }, (_, index) => makeSub({

@@ -14,6 +14,7 @@ interface SubthreadSwitcherProps {
   subthreads: SubthreadDetail[];
   selectedId: string | undefined;
   onChange: (id: string) => void;
+  onPrefetch?: (id: string) => void;
   onCopyCurrent?: () => void;
   className?: string;
 }
@@ -25,6 +26,7 @@ export function SubthreadSwitcher({
   subthreads,
   selectedId,
   onChange,
+  onPrefetch,
   onCopyCurrent,
   className,
 }: SubthreadSwitcherProps) {
@@ -60,6 +62,9 @@ export function SubthreadSwitcher({
           size="icon-sm"
           className="hidden rounded-lg text-muted-foreground hover:text-foreground sm:inline-flex"
           aria-label={`上一个子贴：${previous.title}`}
+          onPointerEnter={() => onPrefetch?.(previous.id)}
+          onPointerDown={() => onPrefetch?.(previous.id)}
+          onFocus={() => onPrefetch?.(previous.id)}
           onClick={() => onChange(previous.id)}
         >
           <ChevronLeft className="size-4" aria-hidden="true" />
@@ -148,6 +153,9 @@ export function SubthreadSwitcher({
                       value={subthread.id}
                       label={subthread.title}
                       aria-current={isSelected ? "page" : undefined}
+                      onPointerEnter={() => onPrefetch?.(subthread.id)}
+                      onPointerDown={() => onPrefetch?.(subthread.id)}
+                      onFocus={() => onPrefetch?.(subthread.id)}
                       className={cn(
                         "grid min-h-11 w-full cursor-default grid-cols-[1rem_minmax(0,1fr)_auto] items-center gap-2 rounded-lg px-2.5 py-2 outline-none select-none data-highlighted:bg-accent/70 data-highlighted:text-accent-foreground",
                         isSelected && "bg-accent text-accent-foreground",
@@ -182,6 +190,9 @@ export function SubthreadSwitcher({
           size="icon-sm"
           className="hidden rounded-lg text-muted-foreground hover:text-foreground sm:inline-flex"
           aria-label={`下一个子贴：${next.title}`}
+          onPointerEnter={() => onPrefetch?.(next.id)}
+          onPointerDown={() => onPrefetch?.(next.id)}
+          onFocus={() => onPrefetch?.(next.id)}
           onClick={() => onChange(next.id)}
         >
           <ChevronRight className="size-4" aria-hidden="true" />
