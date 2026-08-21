@@ -22,6 +22,7 @@ import { useUploadImage } from "@/api/hooks/use-upload-image";
 import type { UploadImageOptions } from "@/lib/upload-image";
 import { API_ERROR_CODE, getApiError } from "@/api/errors";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
+import { usePublicInviteConfirmation } from "@/components/shared/use-public-invite-confirmation";
 
 interface ThreadCreateFormProps {
   thread: ThreadDetail;
@@ -41,6 +42,7 @@ export function ThreadCreateForm({
   const [isPublishing, setIsPublishing] = useState(false);
   const saveThread = useSaveThreadAggregate();
   const uploadImage = useUploadImage();
+  const { confirmPublicInvite, resetPublicInviteConfirmation } = usePublicInviteConfirmation();
   const CancelIcon = cancelMode === "back" ? ArrowLeft : Trash2;
   const form = useForm<ThreadCreateFormData>({
     resolver: zodResolver(threadCreateSchema),
@@ -88,6 +90,9 @@ export function ThreadCreateForm({
       toast.error(validationError);
       return;
     }
+    if (!(await confirmPublicInvite(values.content ?? "", values.visibility === "PUBLIC"))) {
+      return;
+    }
 
     try {
       setIsPublishing(true);
@@ -109,6 +114,7 @@ export function ThreadCreateForm({
         },
       });
 
+      resetPublicInviteConfirmation();
       toast.success("发布成功");
       onPublished(savedThread.id);
     } catch (error: unknown) {

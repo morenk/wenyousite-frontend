@@ -21,6 +21,7 @@ import type { ThreadDetail, SubthreadDetail } from "@/api/hooks/use-thread-detai
 import type { SubthreadFormData } from "@/components/forms/subthread-form";
 import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
 import { useConfirm } from "@/components/ui/confirm-provider";
+import { usePublicInviteConfirmation } from "@/components/shared/use-public-invite-confirmation";
 import {
   SAVED_MANAGEMENT_STATUS,
   type ManagementEditorStatus,
@@ -55,6 +56,7 @@ export function useManagementPanelController({
   const { user } = useAuth();
   const permissions = useThreadPermissions();
   const confirmAction = useConfirm();
+  const { confirmPublicInvite, resetPublicInviteConfirmation } = usePublicInviteConfirmation();
   const [{ view, subthread: requestedSubthreadId }, setUrlState] = useQueryStates(
     managementUrlParsers,
     { history: "replace", shallow: true, clearOnDefault: true },
@@ -288,6 +290,10 @@ export function useManagementPanelController({
       });
       return;
     }
+    if (
+      contentDirty
+      && !(await confirmPublicInvite(state.content, thread.visibility === "PUBLIC"))
+    ) return;
 
     dispatch({
       type: "subthread-status",
@@ -326,6 +332,7 @@ export function useManagementPanelController({
         });
         savedPart = true;
       }
+      if (contentDirty) resetPublicInviteConfirmation();
       dispatch({ type: "subthread-status", status: SAVED_MANAGEMENT_STATUS });
       await onRefetch();
       toast.success("子贴修改已保存");

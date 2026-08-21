@@ -30,6 +30,7 @@ import { useAuth } from "@/lib/auth";
 import { AdminContentModerationDialog } from "@/components/admin/admin-content-moderation-dialog";
 import { PageRouteFallback } from "@/components/layout/page-route-fallback";
 import { BookmarkFolderPickerDialog } from "@/components/user/bookmark-folder-picker-dialog";
+import { usePublicInviteConfirmation } from "@/components/shared/use-public-invite-confirmation";
 
 export function MomentDetailView({ momentId, onDeleted }: { momentId: string; onDeleted?: () => void }) {
   const { user } = useAuth();
@@ -43,6 +44,7 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
   const [bookmarkPickerOpen, setBookmarkPickerOpen] = useState(false);
   const editContentRef = useRef<InternalReferenceEditorHandle>(null);
   const confirm = useConfirm();
+  const { confirmPublicInvite, resetPublicInviteConfirmation } = usePublicInviteConfirmation();
   const remove = useDeleteMoment();
   const update = useUpdateMoment();
   const moment = detail.data;
@@ -101,11 +103,13 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
       toast.error("正文最多 1000 个字");
       return;
     }
+    if (!(await confirmPublicInvite(editContent))) return;
     try {
       await update.mutateAsync({
         id: moment.id,
         body: { title, content: editContent, version: moment.version },
       });
+      resetPublicInviteConfirmation();
       setEditing(false);
       toast.success("动态已更新");
     } catch (error) {

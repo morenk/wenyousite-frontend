@@ -15,6 +15,7 @@ import {
   type InternalReferenceEditorHandle,
 } from "@/components/shared/internal-reference-editor";
 import { InternalReferenceInsert } from "@/components/shared/internal-reference-insert";
+import { usePublicInviteConfirmation } from "@/components/shared/use-public-invite-confirmation";
 import { StickerPickerPopover } from "@/components/sticker/sticker-picker-popover";
 import { Button } from "@/components/ui/button";
 import type { UserSticker } from "@/api/hooks/use-stickers";
@@ -47,6 +48,7 @@ export function MomentCommentForm({
   const pathname = usePathname();
   const router = useRouter();
   const create = useCreateMomentComment(momentId, user?.id);
+  const { confirmPublicInvite, resetPublicInviteConfirmation } = usePublicInviteConfirmation();
   const contentEditorRef = useRef<InternalReferenceEditorHandle | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const uploadAbortRef = useRef<AbortController | null>(null);
@@ -157,6 +159,7 @@ export function MomentCommentForm({
       setError("content", { message: "请输入评论或选择一张图片/表情包" });
       return;
     }
+    if (!(await confirmPublicInvite(normalized))) return;
     const submittedReplyTarget = replyTarget;
     const submittedImage = image;
     const submittedSticker = sticker;
@@ -199,6 +202,7 @@ export function MomentCommentForm({
         replyToCommentId: submittedReplyTarget?.id,
         clientRequestId: request.requestId,
       });
+      resetPublicInviteConfirmation();
       requestRef.current = null;
       uploadedRef.current = null;
       reset();

@@ -15,6 +15,7 @@ import {
   type InternalReferenceEditorHandle,
 } from "@/components/shared/internal-reference-editor";
 import { InternalReferenceInsert } from "@/components/shared/internal-reference-insert";
+import { usePublicInviteConfirmation } from "@/components/shared/use-public-invite-confirmation";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -56,6 +57,7 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
   const router = useRouter();
   const pathname = usePathname();
   const createMoment = useCreateMoment();
+  const { confirmPublicInvite, resetPublicInviteConfirmation } = usePublicInviteConfirmation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const contentEditorRef = useRef<InternalReferenceEditorHandle>(null);
   const draftReadyRef = useRef(false);
@@ -209,6 +211,7 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
 
   const submit = async (values: FormValues) => {
     if (composerClosedRef.current) return;
+    if (!(await confirmPublicInvite(values.content))) return;
     const signature = JSON.stringify({
       title: values.title.trim(),
       content: values.content,
@@ -268,6 +271,7 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
         coverMediaId: coverIndex >= 0 ? request.mediaIds[coverIndex] : null,
         clientRequestId: request.requestId,
       });
+      resetPublicInviteConfirmation();
       await deleteMomentDraft(userId).catch(() => undefined);
       images.forEach((image) => URL.revokeObjectURL(image.previewUrl));
       reset({ title: "", content: "" });

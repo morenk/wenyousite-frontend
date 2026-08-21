@@ -34,6 +34,7 @@ import { API_ERROR_CODE, getApiError, getApiErrorMessage } from "@/api/errors";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
 import type { ManagementEditorStatus } from "@/components/thread/management-types";
 import { useConfirm } from "@/components/ui/confirm-provider";
+import { usePublicInviteConfirmation } from "@/components/shared/use-public-invite-confirmation";
 
 interface ThreadEditFormProps {
   thread: ThreadDetail;
@@ -72,6 +73,7 @@ export function ThreadEditForm({
 }: ThreadEditFormProps) {
   const router = useRouter();
   const confirmAction = useConfirm();
+  const { confirmPublicInvite, resetPublicInviteConfirmation } = usePublicInviteConfirmation();
   const [isSaving, setIsSaving] = useState(false);
   const [status, setStatus] = useState<ThreadDetail["status"]>(thread.status);
   const [saveState, setSaveState] = useState<ManagementEditorStatus["state"]>("saved");
@@ -135,11 +137,13 @@ export function ThreadEditForm({
   }
 
   async function handleSave(values: ThreadCreateFormData) {
+    const content = values.content ?? "";
+    const nextVisibility = isOwner ? values.visibility : thread.visibility;
+    if (!(await confirmPublicInvite(content, nextVisibility === "PUBLIC"))) return;
     try {
       setIsSaving(true);
       setSaveState("saving");
       setSaveMessage(undefined);
-      const content = values.content ?? "";
       const savedThread = await saveThread.mutateAsync({
         threadId: thread.id,
         body: {
@@ -156,6 +160,7 @@ export function ThreadEditForm({
           tagNames: values.tagNames ?? [],
         },
       });
+      resetPublicInviteConfirmation();
       resetFromThread(savedThread);
       toast.success("帖子修改已保存");
     } catch (error: unknown) {

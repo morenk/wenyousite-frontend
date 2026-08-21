@@ -8,6 +8,7 @@ import {
 } from "@/api/hooks/use-thread-detail";
 
 interface ThreadPermissionsValue {
+  visibility?: "PUBLIC" | "PRIVATE";
   currentMember?: CurrentThreadMembership;
   isOwner: boolean;
   isCollaborator: boolean;
@@ -59,6 +60,7 @@ export function ThreadPermissionsProvider({
   return (
     <ThreadPermissionsContext.Provider
       value={{
+        visibility: threadQuery.data?.visibility,
         currentMember,
         isOwner,
         isCollaborator,

@@ -14,6 +14,8 @@ import { Button } from "@/components/ui/button";
 import { useThreadComposer } from "@/components/thread/thread-composer-context";
 import { hasVisibleMarkdownContent } from "@/lib/markdown";
 import type { UploadImageOptions } from "@/lib/upload-image";
+import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
+import { usePublicInviteConfirmation } from "@/components/shared/use-public-invite-confirmation";
 
 function getErrorMessage(error: unknown, fallback: string) {
   const err = getApiError(error);
@@ -38,6 +40,8 @@ function ThreadComposer() {
   const createPost = useCreatePost();
   const updatePost = useUpdatePost();
   const uploadImage = useUploadImage();
+  const { visibility } = useThreadPermissions();
+  const { confirmPublicInvite, resetPublicInviteConfirmation } = usePublicInviteConfirmation();
   const containerRef = useRef<HTMLDivElement>(null);
   const createRequestRef = useRef<{ fingerprint: string; id: string } | null>(null);
 
@@ -60,6 +64,7 @@ function ThreadComposer() {
       toast.error("正文和骰子不能同时为空");
       return;
     }
+    if (!(await confirmPublicInvite(nextContent, visibility !== "PRIVATE"))) return;
 
     setPending(true);
     try {
@@ -94,6 +99,7 @@ function ThreadComposer() {
         });
       }
 
+      resetPublicInviteConfirmation();
       createRequestRef.current = null;
       await close({ force: true });
       toast.success(isEdit ? "已保存" : isReply ? "回复成功" : "发布成功");
