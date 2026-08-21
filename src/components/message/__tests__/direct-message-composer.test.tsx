@@ -125,6 +125,40 @@ describe("DirectMessageComposer", () => {
     await waitFor(() => expect(onSend).toHaveBeenCalledTimes(1));
   });
 
+  test("整段粘贴站内地址会用选区名称写入规范化传送门", async () => {
+    const onSend = vi.fn().mockResolvedValue(undefined);
+    render(<DirectMessageComposer onSend={onSend} />);
+    const textarea = screen.getByPlaceholderText("输入消息…") as HTMLTextAreaElement;
+    fireEvent.change(textarea, { target: { value: "A [x] \\ path" } });
+    textarea.setSelectionRange(0, textarea.value.length);
+
+    fireEvent.paste(textarea, {
+      clipboardData: {
+        getData: () => "https://www.wenyou.site/threads/cmsewdo0h000x7qv6aa77ll1v",
+      },
+    });
+
+    expect(textarea).toHaveValue(
+      "[A \\[x\\] \\\\ path](/threads/cmsewdo0h000x7qv6aa77ll1v)",
+    );
+    await userEvent.click(screen.getByRole("button", { name: "发送" }));
+    await waitFor(() => expect(onSend).toHaveBeenCalledWith({
+      content: "[A \\[x\\] \\\\ path](/threads/cmsewdo0h000x7qv6aa77ll1v)",
+      clientRequestId: "99454040-6a52-4bf3-8bad-42683c4d09be",
+    }));
+  });
+
+  test("混合文本中的站内地址沿用普通粘贴", () => {
+    render(<DirectMessageComposer onSend={vi.fn()} />);
+    const textarea = screen.getByPlaceholderText("输入消息…");
+    fireEvent.paste(textarea, {
+      clipboardData: {
+        getData: () => "入口 https://wenyou.site/join/AbCdEfGh_123-XYZ",
+      },
+    });
+    expect(textarea).toHaveValue("");
+  });
+
   test("选择单图后展示公开链接警告并上传 mediaId", async () => {
     const onSend = vi.fn().mockResolvedValue(undefined);
     const { container } = render(<DirectMessageComposer onSend={onSend} submitLabel="发送首条消息" />);

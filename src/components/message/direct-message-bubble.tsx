@@ -4,16 +4,18 @@ import { memo, useState } from "react";
 import { ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ImageLightbox } from "@/components/shared/image-lightbox";
+import { InternalReferenceLink } from "@/components/shared/internal-reference-link";
 import { normalizeDirectMessageContent } from "@/lib/direct-message-content";
+import { tokenizeInternalReferenceText } from "@/lib/internal-reference";
 import { cn } from "@/lib/utils";
 import type { DirectMessage } from "@/api/hooks/use-direct-messages";
 import { SaveStickerButton } from "@/components/sticker/save-sticker-button";
 import { getStickerDisplayUrl, STICKER_DISPLAY_STYLE } from "@/lib/sticker-display";
 
-function PlainTextWithLinks({ content }: { content: string }) {
+function ExternalTextLinks({ content }: { content: string }) {
   const parts = content.split(/(https?:\/\/[^\s]+)/g);
   return (
-    <p className="whitespace-pre-wrap break-words text-base leading-7">
+    <>
       {parts.map((part, index) =>
         /^https?:\/\//.test(part) ? (
           <a
@@ -27,6 +29,24 @@ function PlainTextWithLinks({ content }: { content: string }) {
           </a>
         ) : (
           part
+        ),
+      )}
+    </>
+  );
+}
+
+function DirectMessageText({ content }: { content: string }) {
+  return (
+    <p className="whitespace-pre-wrap break-words text-base leading-7">
+      {tokenizeInternalReferenceText(content).map((segment, index) =>
+        segment.type === "portal" ? (
+          <InternalReferenceLink
+            key={`${segment.reference.href}-${index}`}
+            href={segment.reference.href}
+            label={segment.label}
+          />
+        ) : (
+          <ExternalTextLinks key={index} content={segment.value} />
         ),
       )}
     </p>
@@ -87,7 +107,7 @@ export const DirectMessageBubble = memo(function DirectMessageBubble({
             <p className="text-sm">{mine ? "你撤回了一条消息" : "对方撤回了一条消息"}</p>
           ) : (
             <>
-              {normalizedContent && <PlainTextWithLinks content={normalizedContent} />}
+              {normalizedContent && <DirectMessageText content={normalizedContent} />}
               {imageUrl && (
                 <div className={cn(normalizedContent && "mt-2")}>
                   {!imageRevealed ? (

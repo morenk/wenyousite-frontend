@@ -13,6 +13,10 @@ import {
   type UploadImageProgress as UploadImageProgressValue,
 } from "@/lib/upload-image";
 import { normalizeDirectMessageContent } from "@/lib/direct-message-content";
+import {
+  insertTextAtSelection,
+  resolveInternalReferencePaste,
+} from "@/lib/internal-reference";
 import { StickerPickerPopover } from "@/components/sticker/sticker-picker-popover";
 import type { DirectMessageSendInput } from "@/lib/direct-message";
 import type { UserSticker } from "@/api/hooks/use-stickers";
@@ -199,6 +203,28 @@ export function DirectMessageComposer({
           setContent(event.target.value.slice(0, 1000));
           requestIdRef.current = null;
         }}
+        onPaste={(event) => {
+          const textarea = event.currentTarget;
+          const start = textarea.selectionStart ?? content.length;
+          const end = textarea.selectionEnd ?? start;
+          const paste = resolveInternalReferencePaste({
+            clipboardText: event.clipboardData.getData("text/plain"),
+            selectedText: content.slice(start, end),
+          });
+          if (!paste) return;
+          const inserted = insertTextAtSelection(content, paste.serialized, start, end);
+          if (inserted.value.length > 1000) {
+            event.preventDefault();
+            toast.error("消息最多 1000 个字");
+            return;
+          }
+          event.preventDefault();
+          setContent(inserted.value);
+          requestIdRef.current = null;
+          window.requestAnimationFrame(() => {
+            textareaRef.current?.setSelectionRange(inserted.cursor, inserted.cursor);
+          });
+        }}
         onKeyDown={(event) => {
           if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
             event.preventDefault();
@@ -243,7 +269,7 @@ export function DirectMessageComposer({
             onSelect={handleSticker}
           />
           <span className="text-xs text-muted-foreground">
-            {content.length}/1000 · 纯文本 · 支持 GIF
+            {content.length}/1000 · 支持传送门与 GIF
           </span>
         </div>
         <Button type="button" onClick={() => void handleSubmit()} disabled={isPending}>

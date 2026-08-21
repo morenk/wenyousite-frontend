@@ -165,6 +165,37 @@ describe("DirectConversationList", () => {
     expect(screen.queryByRole("link", { name: /归档用户/ })).not.toBeInTheDocument();
   });
 
+  test("兼容旧响应时隐藏会话预览中的邀请 token", () => {
+    mockConversations.mockImplementation((view: string) => view === "INBOX" ? query({
+      data: { pages: [{ data: [{
+        id: "invite-preview",
+        status: "ACCEPTED",
+        requestDirection: "NONE",
+        otherUser: { id: "u5", username: "邀请用户", avatar: null, isDeactivated: false },
+        lastMessage: {
+          id: "m5",
+          senderId: "u5",
+          contentPreview: "请用 [入口](/join/AbCdEfGh_123-XYZ)",
+          hasImage: false,
+          isRecalled: false,
+          createdAt: "2026-08-07T20:00:00Z",
+        },
+        unreadCount: 0,
+        archivedAt: null,
+        lastMessageAt: "2026-08-07T20:00:00Z",
+        createdAt: "2026-08-07T19:00:00Z",
+        canSend: true,
+        canAccept: false,
+        canDecline: false,
+        isBlocked: false,
+      }], meta: { cursor: null, hasMore: false } }] },
+    }) : query());
+
+    render(<DirectConversationList />);
+    expect(screen.getByText("请用 邀请传送门")).toBeInTheDocument();
+    expect(screen.queryByText(/AbCdEfGh/u)).not.toBeInTheDocument();
+  });
+
   test("没有归档会话时不显示归档文件夹", () => {
     mockConversations.mockReturnValue(query());
     render(<DirectConversationList />);

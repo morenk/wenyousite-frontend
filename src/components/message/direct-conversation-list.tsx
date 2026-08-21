@@ -13,11 +13,14 @@ import { WenyouTime } from "@/components/shared/wenyou-time";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { UnreadCountBadge } from "@/components/ui/unread-count-badge";
+import { formatDirectMessagePreview } from "@/lib/internal-reference";
 
 function previewText(conversation: DirectConversation) {
   if (!conversation.lastMessage) return "暂无消息";
   if (conversation.lastMessage.isRecalled) return "消息已撤回";
-  if (conversation.lastMessage.contentPreview) return conversation.lastMessage.contentPreview;
+  if (conversation.lastMessage.contentPreview) {
+    return formatDirectMessagePreview(conversation.lastMessage.contentPreview);
+  }
   if (conversation.lastMessage.hasImage) return "[图片]";
   return "暂无消息";
 }

@@ -5389,6 +5389,7 @@ export interface components {
         DirectMessagePreviewResponseDto: {
             id: string;
             senderId: string;
+            /** @description 去除传送门语法并隐藏邀请 token 后的纯文本预览，最多 120 字符 */
             contentPreview: string | null;
             hasImage: boolean;
             hasSticker: boolean;

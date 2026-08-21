@@ -38,6 +38,27 @@ describe("DirectMessageBubble", () => {
     expect(container.querySelector("p")).toHaveClass("text-base", "leading-7");
   });
 
+  test("只激活站内传送门并保留普通外链策略", () => {
+    render(
+      <DirectMessageBubble
+        message={message({
+          content: "查看 [主线](/threads/cmsewdo0h000x7qv6aa77ll1v) 和 https://example.com",
+        })}
+        mine={false}
+      />,
+    );
+
+    expect(screen.getByRole("link", { name: "站内传送门：主线" })).toHaveAttribute(
+      "href",
+      "/threads/cmsewdo0h000x7qv6aa77ll1v",
+    );
+    expect(screen.getByRole("link", { name: "https://example.com" })).toHaveAttribute(
+      "target",
+      "_blank",
+    );
+    expect(screen.queryByText(/\[主线\]/u)).not.toBeInTheDocument();
+  });
+
   test("展示旧消息时不保留会撑宽气泡的行尾空白", () => {
     const { container } = render(
       <DirectMessageBubble
