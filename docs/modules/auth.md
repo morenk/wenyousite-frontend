@@ -195,7 +195,7 @@ if (error) {
 | 场景 | 处理 |
 |------|------|
 | 已登录用户访问 `/login`、`/register` 等 | 路由 `layout.tsx` 统一挂载 `GuestRoute`；等待会话恢复后跳转 `next` 或 `/` |
-| 未登录用户访问需登录页面 | 受保护路由的 `layout.tsx` 统一挂载 `RequireAuth`，等待启动恢复后保留 `next` 路径跳登录 |
+| 未登录用户访问需登录页面 | 受保护路由的 `layout.tsx` 统一挂载 `RequireAuth`，等待启动恢复后通过共享登录跳转保留完整 pathname、query 与 hash；外站、双斜杠或反斜杠开头的 `next` 回退 `/` |
 | 登出 | 调 `POST /auth/logout`；服务端成功后清除内存会话和无凭证标记并跳首页，失败则保留登录态并提示重试 |
 
 ## 9. 用户流程

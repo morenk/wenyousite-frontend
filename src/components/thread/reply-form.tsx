@@ -2,13 +2,13 @@
 
 "use client";
 
-import { useRouter } from "next/navigation";
 import { LogIn } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useThreadComposer } from "@/components/thread/thread-composer-context";
 import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
 import { Button } from "@/components/ui/button";
 import { WenyouIcon } from "@/components/ui/wenyou-icon";
+import { useLoginRedirect } from "@/hooks/use-login-redirect";
 
 interface ReplyFormProps {
   subthreadId: string;
@@ -28,7 +28,7 @@ export function ReplyForm({
   label,
 }: ReplyFormProps) {
   const { user } = useAuth();
-  const router = useRouter();
+  const redirectToLogin = useLoginRedirect();
   const { session, open } = useThreadComposer();
   const anchorId = getReplyComposerAnchorId(parentPostId);
   const isActive = session?.anchorId === anchorId;
@@ -37,7 +37,7 @@ export function ReplyForm({
     return (
       <div className="rounded-xl border border-border bg-card p-4">
         <p className="mb-3 text-sm text-muted-foreground">登录后即可参与讨论</p>
-        <Button variant="outline" size="sm" onClick={() => router.push("/login")}>
+        <Button variant="outline" size="sm" onClick={() => redirectToLogin()}>
           <LogIn className="mr-1.5 h-4 w-4" />
           登录
         </Button>

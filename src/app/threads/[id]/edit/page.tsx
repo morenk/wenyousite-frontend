@@ -2,7 +2,6 @@
 
 "use client";
 
-import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Loader2, AlertCircle, ShieldAlert } from "lucide-react";
 
@@ -44,13 +43,6 @@ function EditThreadPageContent() {
   } = useThreadDetail(threadId);
   const { isOwner, isCollaborator, isLoading: isPermissionsLoading } =
     useThreadPermissions();
-
-  useEffect(() => {
-    if (!isInitialized) return;
-    if (!user) {
-      router.replace("/login");
-    }
-  }, [user, router, isInitialized]);
 
   const canEdit = isOwner || isCollaborator;
 

@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -39,15 +39,6 @@ export default function CreateThreadPage() {
     isLoading: isThreadLoading,
     error: threadError,
   } = useThreadDetail(createdThreadId ?? undefined);
-
-  // 等 auth 初始化完成后再判断，避免 hydration 期间误判为未登录
-  useEffect(() => {
-    if (!isInitialized) return;
-    if (!user) {
-      router.replace("/login");
-      return;
-    }
-  }, [user, router, isInitialized]);
 
   async function handleCreateNew() {
     if (!isInitialized || !user) return;

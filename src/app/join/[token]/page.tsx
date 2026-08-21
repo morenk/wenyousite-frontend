@@ -4,7 +4,6 @@
 
 import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { useInvitePreview, useJoinThreadByInvite } from "@/api/hooks/use-thread-access-actions";
@@ -13,19 +12,22 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThreadCategoryLabel } from "@/components/thread/thread-category";
 import { PageShell } from "@/components/layout/page-shell";
+import { LoadingState } from "@/components/shared/loading-state";
+import { useLoginRedirect } from "@/hooks/use-login-redirect";
 
 export default function JoinByInvitePage() {
   const { token } = useParams<{ token: string }>();
   const router = useRouter();
+  const redirectToLogin = useLoginRedirect();
   const { user, isInitialized } = useAuth();
   const preview = useInvitePreview(isInitialized && user ? token : undefined);
   const join = useJoinThreadByInvite();
 
   useEffect(() => {
     if (isInitialized && !user) {
-      router.replace(`/login?next=${encodeURIComponent(`/join/${token}`)}`);
+      redirectToLogin({ replace: true });
     }
-  }, [isInitialized, router, token, user]);
+  }, [isInitialized, redirectToLogin, user]);
 
   useEffect(() => {
     if (preview.data?.alreadyJoined) {
@@ -44,7 +46,7 @@ export default function JoinByInvitePage() {
   }
 
   if (!isInitialized || !user || preview.isLoading || preview.data?.alreadyJoined) {
-    return <Loader2 className="mx-auto mt-24 h-6 w-6 animate-spin text-muted-foreground" />;
+    return <LoadingState label="" className="min-h-0 pt-24" />;
   }
 
   if (preview.error || !preview.data) {
@@ -63,8 +65,12 @@ export default function JoinByInvitePage() {
               <ThreadCategoryLabel category={thread.category} /> · 楼主 {thread.owner.username} · {thread.memberCount} 位参与人
             </p>
           </div>
-          <Button className="w-full" disabled={join.isPending} onClick={handleJoin}>
-            {join.isPending && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
+          <Button
+            className="w-full"
+            pending={join.isPending}
+            pendingLabel="正在加入…"
+            onClick={handleJoin}
+          >
             接受邀请并加入
           </Button>
         </CardContent>

@@ -16,6 +16,7 @@ const {
 vi.mock("next/navigation", () => ({
   useParams: () => ({ token: "invite-token" }),
   useRouter: () => ({ replace: mockReplace }),
+  usePathname: () => "/join/invite-token",
 }));
 
 vi.mock("@/lib/auth", () => ({ useAuth: () => mockUseAuth() }));
@@ -38,7 +39,10 @@ const thread = {
 };
 
 describe("私密帖邀请页", () => {
-  afterEach(() => cleanup());
+  afterEach(() => {
+    cleanup();
+    window.history.replaceState(null, "", "/");
+  });
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -70,5 +74,18 @@ describe("私密帖邀请页", () => {
 
     expect(screen.getByRole("button", { name: "接受邀请并加入" })).toBeInTheDocument();
     expect(mockReplace).not.toHaveBeenCalledWith("/threads/t1");
+  });
+
+  test("未登录时保留邀请页的查询参数与锚点", async () => {
+    window.history.replaceState(null, "", "/join/invite-token?source=share#accept");
+    mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
+    mockUseInvitePreview.mockReturnValue({ data: undefined, isLoading: false, error: null });
+
+    render(<JoinByInvitePage />);
+
+    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith(
+      "/login?next=%2Fjoin%2Finvite-token%3Fsource%3Dshare%23accept",
+    ));
+    expect(mockUseInvitePreview).toHaveBeenCalledWith(undefined);
   });
 });

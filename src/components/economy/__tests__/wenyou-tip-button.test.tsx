@@ -8,6 +8,10 @@ const { mockMutateAsync, mockToastSuccess, mockToastError } = vi.hoisted(() => (
   mockToastError: vi.fn(),
 }));
 
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/users/recipient-1",
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+}));
 vi.mock("@/lib/auth", () => ({ useAuth: () => ({ user: { id: "sender-1" } }) }));
 vi.mock("@/api/hooks/use-economy", () => ({
   useTipWenyou: () => ({ mutateAsync: mockMutateAsync, isPending: false }),

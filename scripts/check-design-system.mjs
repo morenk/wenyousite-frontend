@@ -49,6 +49,14 @@ const sharedRules = [
     pattern: /(?:group-)?data-(?:horizontal|vertical)(?:\/[\w-]+)?:/,
   },
   {
+    label: "密码字段必须复用 PasswordInput",
+    pattern: /type=["']password["']/,
+  },
+  {
+    label: "登录返回地址必须通过 useLoginRedirect/buildLoginHref 生成",
+    pattern: /\/login\?next=/,
+  },
+  {
     label: "动态模块不得建立“温油便笺”第二品牌文案",
     pattern: /温油便笺/,
   },
@@ -150,8 +158,10 @@ const semanticContractClaims = new Map([
   ["src/components/shared/user-avatar.tsx", ["IDENTITY_PRESENTATION", "onError", "avatarFallback.missingOrFailed"]],
   ["src/components/shared/wenyou-time.tsx", ["@wenyousite/foundation/formatting", "formatWenyouTime", "formatWenyouExactTime", "title="]],
   ["src/components/shared/wenyou-count.tsx", ["@wenyousite/foundation/formatting", "formatWenyouCompactCount", "aria-label"]],
-  ["src/components/ui/button.tsx", ["@wenyousite/foundation/controls", "data-control-role"]],
+  ["src/components/ui/button.tsx", ["@wenyousite/foundation/controls", "data-control-role", "pendingLabel", 'id="status.loading"', "aria-busy"]],
   ["src/components/ui/input.tsx", ["@wenyousite/foundation/controls", "data-control-state"]],
+  ["src/components/ui/form-field.tsx", ["data-slot=\"form-field\"", "aria-describedby", "aria-invalid", "labelAction"]],
+  ["src/components/ui/password-input.tsx", ['id={show ? "action.hide" : "action.show"}', "cn(\"pr-11\", className)"]],
   ["src/components/ui/skeleton.tsx", ["MOTION_USAGE", "motion-reduce:animate-none"]],
   ["src/lib/dice-inline.ts", ["INLINE_ELEMENT_STYLES", "labels.settled", "semantics.settled"]],
   ["src/app/globals.css", ["white-space: nowrap", "vertical-align: baseline"]],

@@ -1,6 +1,5 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useMoments, type MomentFeed } from "@/api/hooks/use-moments";
 import { MomentMasonry } from "@/components/moment/moment-masonry";
@@ -15,11 +14,11 @@ import {
   takeMomentFeedRestore,
   type MomentFeedRestoreState,
 } from "@/lib/moment-navigation";
+import { useLoginRedirect } from "@/hooks/use-login-redirect";
 
 export default function MomentsPage() {
   const { user } = useAuth();
-  const router = useRouter();
-  const pathname = usePathname();
+  const redirectToLogin = useLoginRedirect();
   const [feed, setFeed] = useState<MomentFeed>("DISCOVER");
   const pendingRestore = useRef<MomentFeedRestoreState | null>(null);
   const query = useMoments(feed, user?.id);
@@ -100,7 +99,7 @@ export default function MomentsPage() {
       {feed === "FOLLOWING" && !user ? (
         <div className="rounded-3xl bg-muted/60 px-6 py-20 text-center">
           <h2 className="text-xl font-semibold">登录后查看关注动态</h2>
-          <Button variant="ghost" className="mt-5 text-brand-strong" onClick={() => router.push(`/login?next=${encodeURIComponent(pathname)}`)}>登录</Button>
+          <Button variant="ghost" className="mt-5 text-brand-strong" onClick={() => redirectToLogin()}>登录</Button>
         </div>
       ) : (
         <MomentMasonry

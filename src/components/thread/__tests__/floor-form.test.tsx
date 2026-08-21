@@ -53,6 +53,7 @@ vi.mock("@tanstack/react-query", async () => {
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
+  usePathname: () => "/threads/thread-1",
 }));
 
 import { toast } from "sonner";

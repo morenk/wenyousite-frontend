@@ -3,9 +3,9 @@
 "use client";
 
 import { useEffect, type ReactNode } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { LoadingState } from "@/components/shared/loading-state";
+import { useLoginRedirect } from "@/hooks/use-login-redirect";
 
 export function RequireAuth({
   children,
@@ -13,27 +13,18 @@ export function RequireAuth({
   children: ReactNode;
 }) {
   const { user, isInitialized } = useAuth();
-  const pathname = usePathname();
-  const router = useRouter();
+  const redirectToLogin = useLoginRedirect();
 
   useEffect(() => {
     if (!isInitialized) return;
     if (!user) {
-      router.replace(`/login?next=${encodeURIComponent(pathname)}`);
+      redirectToLogin({ replace: true });
       return;
     }
-  }, [isInitialized, pathname, router, user]);
+  }, [isInitialized, redirectToLogin, user]);
 
   if (!isInitialized || !user) {
-    return (
-      <div
-        className="flex min-h-screen items-center justify-center"
-        role="status"
-        aria-label="正在验证登录状态"
-      >
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <LoadingState variant="page" label="正在验证登录状态" />;
   }
 
   return children;

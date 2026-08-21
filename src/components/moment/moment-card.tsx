@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { CONTENT_PRESENTATION } from "@wenyousite/foundation/collections";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { toast } from "sonner";
 import type { MomentCard as MomentCardData } from "@/api/hooks/use-moments";
 import { useMomentLike } from "@/api/hooks/use-moments";
@@ -13,16 +13,17 @@ import { MomentCover } from "@/components/moment/moment-cover";
 import { InteractionToggle } from "@/components/ui/interaction-toggle";
 import { useAuth } from "@/lib/auth";
 import { markMomentFeedReturn } from "@/lib/moment-navigation";
+import { useLoginRedirect } from "@/hooks/use-login-redirect";
 
 export function MomentCard({ moment, priority = false }: { moment: MomentCardData; priority?: boolean }) {
   const { user } = useAuth();
-  const router = useRouter();
   const pathname = usePathname();
+  const redirectToLogin = useLoginRedirect();
   const like = useMomentLike(moment.id, moment.viewerLiked);
 
   const requireLogin = () => {
     if (user) return true;
-    router.push(`/login?next=${encodeURIComponent(pathname)}`);
+    redirectToLogin();
     return false;
   };
 

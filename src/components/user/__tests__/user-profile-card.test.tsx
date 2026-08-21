@@ -10,6 +10,11 @@ vi.mock("@/lib/auth", () => ({
   useAuth: () => mockUseAuth(),
 }));
 
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/users/u2",
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+}));
+
 vi.mock("@/components/user/follow-button", () => ({
   FollowButton: ({ userId, isFollowing }: { userId: string; isFollowing: boolean }) => (
     <span data-testid="follow-btn">{userId}:{String(isFollowing)}</span>

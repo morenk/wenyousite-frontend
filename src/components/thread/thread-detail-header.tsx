@@ -30,6 +30,7 @@ import { getSubthreadHref } from "@/lib/post-navigation";
 import { AdminContentModerationDialog } from "@/components/admin/admin-content-moderation-dialog";
 import { WenyouTime } from "@/components/shared/wenyou-time";
 import { WenyouCount } from "@/components/shared/wenyou-count";
+import { useLoginRedirect } from "@/hooks/use-login-redirect";
 
 interface ThreadDetailHeaderProps {
   thread: ThreadDetail;
@@ -83,6 +84,7 @@ export function ThreadDetailHeader({
 }: ThreadDetailHeaderProps) {
   const { user } = useAuth();
   const router = useRouter();
+  const redirectToLogin = useLoginRedirect();
   const { like, unlike } = useLikeThread(thread.id);
   const {
     currentMember,
@@ -281,7 +283,7 @@ export function ThreadDetailHeader({
                   pending={like.isPending || unlike.isPending}
                   icon="action.like"
                   size="compact"
-                  onClick={user ? handleLike : () => router.push("/login")}
+                  onClick={user ? handleLike : () => redirectToLogin()}
                   accessibleName="点赞"
                   accessibleDescription={`当前 ${thread.likeCount} 个赞`}
                   actionTitle={

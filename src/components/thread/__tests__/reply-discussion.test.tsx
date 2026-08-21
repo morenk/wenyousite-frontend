@@ -16,6 +16,7 @@ vi.mock("next/link", () => ({
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
+  usePathname: () => "/threads/t1/posts/p1/replies",
 }));
 
 vi.mock("@/lib/auth", () => ({

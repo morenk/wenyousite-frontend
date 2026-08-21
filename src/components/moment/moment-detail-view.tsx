@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { CONTENT_PRESENTATION } from "@wenyousite/foundation/collections";
-import { usePathname, useRouter } from "next/navigation";
-import { Loader2, Pencil, Save, ShieldAlert, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Pencil, Save, ShieldAlert, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { useDeleteMoment, useMoment, useMomentBookmark, useMomentLike, useUpdateMoment } from "@/api/hooks/use-moments";
@@ -31,11 +31,12 @@ import { AdminContentModerationDialog } from "@/components/admin/admin-content-m
 import { PageRouteFallback } from "@/components/layout/page-route-fallback";
 import { BookmarkFolderPickerDialog } from "@/components/user/bookmark-folder-picker-dialog";
 import { usePublicInviteConfirmation } from "@/components/shared/use-public-invite-confirmation";
+import { useLoginRedirect } from "@/hooks/use-login-redirect";
 
 export function MomentDetailView({ momentId, onDeleted }: { momentId: string; onDeleted?: () => void }) {
   const { user } = useAuth();
   const router = useRouter();
-  const pathname = usePathname();
+  const redirectToLogin = useLoginRedirect();
   const detail = useMoment(momentId, user?.id);
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState("");
@@ -61,7 +62,7 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
 
   const requireLogin = () => {
     if (user) return true;
-    router.push(`/login?next=${encodeURIComponent(pathname)}`);
+    redirectToLogin();
     return false;
   };
   const toggleLike = async () => {
@@ -188,7 +189,16 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
               </div>
               <div className="flex gap-1">
                 <Button variant="ghost" size="sm" onClick={() => setEditing(false)} disabled={update.isPending}>取消</Button>
-                <Button variant="ghost" size="sm" className="text-brand-strong" onClick={() => void saveEdit()} disabled={update.isPending}>{update.isPending ? <Loader2 className="animate-spin" /> : <Save />}保存</Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-brand-strong"
+                  onClick={() => void saveEdit()}
+                  pending={update.isPending}
+                  pendingLabel="保存中…"
+                >
+                  <Save />保存
+                </Button>
               </div>
             </div>
           </div>

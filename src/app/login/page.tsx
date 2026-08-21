@@ -9,18 +9,20 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 
 import { useAuth } from "@/lib/auth";
+import { safeLoginNextPath } from "@/lib/login-redirect";
 import { loginSchema, type LoginFormData } from "@/lib/validations/auth";
 import { useLogin } from "@/api/hooks/use-login";
 import { API_ERROR_CODE, getApiError } from "@/api/errors";
 import { Button } from "@/components/ui/button";
+import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 import { AuthPageShell } from "@/components/auth/auth-page-shell";
 
 function getNextPath() {
   if (typeof window === "undefined") return "/";
   const next = new URLSearchParams(window.location.search).get("next");
-  return next?.startsWith("/") && !next.startsWith("//") ? next : "/";
+  return safeLoginNextPath(next);
 }
 
 export default function LoginPage() {
@@ -77,50 +79,50 @@ export default function LoginPage() {
       )}
     >
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="account">邮箱或用户名</Label>
-                <Input
-                  id="account"
+        <FormField id="account" label="邮箱或用户名" error={errors.account?.message}>
+          {(controlProps) => (
+              <Input
+                  {...controlProps}
                   type="text"
                   placeholder="your@email.com 或用户名"
                   autoComplete="username"
                   {...register("account")}
                 />
-                {errors.account && (
-                  <p className="text-xs text-destructive">{errors.account.message}</p>
-                )}
-              </div>
+          )}
+        </FormField>
 
-              <div className="flex flex-col gap-1.5">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">密码</Label>
-                  <Link
-                    href="/forgot-password"
-                    className="text-xs text-muted-foreground hover:text-brand-strong underline-offset-2 hover:underline"
-                  >
-                    忘记密码？
-                  </Link>
-                </div>
-                <Input
-                  id="password"
-                  type="password"
+        <FormField
+          id="password"
+          label="密码"
+          labelAction={(
+            <Link
+              href="/forgot-password"
+              className="text-xs text-muted-foreground underline-offset-2 hover:text-brand-strong hover:underline"
+            >
+              忘记密码？
+            </Link>
+          )}
+          error={errors.password?.message}
+        >
+          {(controlProps) => (
+                <PasswordInput
+                  {...controlProps}
                   placeholder="输入密码"
                   autoComplete="current-password"
                   {...register("password")}
                 />
-                {errors.password && (
-                  <p className="text-xs text-destructive">{errors.password.message}</p>
-                )}
-              </div>
+          )}
+        </FormField>
 
-              <Button
-                type="submit"
-                size="lg"
-                className="w-full"
-                disabled={loginMutation.isPending}
-              >
-                {loginMutation.isPending ? "登录中..." : "登录"}
-              </Button>
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full"
+          pending={loginMutation.isPending}
+          pendingLabel="登录中..."
+        >
+          登录
+        </Button>
       </form>
     </AuthPageShell>
   );

@@ -2,13 +2,13 @@
 
 "use client";
 
-import { useRouter } from "next/navigation";
 import { LogIn } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useThreadComposer } from "@/components/thread/thread-composer-context";
 import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
 import { Button } from "@/components/ui/button";
 import { WenyouIcon } from "@/components/ui/wenyou-icon";
+import { useLoginRedirect } from "@/hooks/use-login-redirect";
 
 interface FloorFormProps {
   subthreadId: string;
@@ -20,7 +20,7 @@ export function getFloorComposerAnchorId(subthreadId: string) {
 
 export function FloorForm({ subthreadId }: FloorFormProps) {
   const { user } = useAuth();
-  const router = useRouter();
+  const redirectToLogin = useLoginRedirect();
   const { session, open } = useThreadComposer();
   const anchorId = getFloorComposerAnchorId(subthreadId);
   const isActive = session?.anchorId === anchorId;
@@ -34,7 +34,7 @@ export function FloorForm({ subthreadId }: FloorFormProps) {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => router.push("/login")}
+          onClick={() => redirectToLogin()}
         >
           <LogIn className="mr-1.5 h-4 w-4" />
           登录

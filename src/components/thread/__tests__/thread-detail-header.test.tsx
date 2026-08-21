@@ -88,6 +88,7 @@ vi.mock("@tanstack/react-query", async () => {
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockRouterPush }),
+  usePathname: () => "/threads/thread-1",
 }));
 
 vi.mock("next/link", () => ({

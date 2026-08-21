@@ -1,10 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ImagePlus, Loader2, X } from "lucide-react";
+import { ImagePlus, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useCreateMomentComment } from "@/api/hooks/use-moments";
@@ -29,6 +28,7 @@ import {
 } from "@/lib/upload-image";
 import { getStickerDisplayUrl, STICKER_DISPLAY_STYLE } from "@/lib/sticker-display";
 import type { MomentReplyTarget } from "@/components/moment/moment-comment-types";
+import { useLoginRedirect } from "@/hooks/use-login-redirect";
 
 const commentSchema = z.object({
   content: z.string().trim().max(500, "评论最多 500 个字"),
@@ -45,8 +45,7 @@ export function MomentCommentForm({
   onCancelReply: () => void;
 }) {
   const { user } = useAuth();
-  const pathname = usePathname();
-  const router = useRouter();
+  const redirectToLogin = useLoginRedirect();
   const create = useCreateMomentComment(momentId, user?.id);
   const { confirmPublicInvite, resetPublicInviteConfirmation } = usePublicInviteConfirmation();
   const contentEditorRef = useRef<InternalReferenceEditorHandle | null>(null);
@@ -89,7 +88,7 @@ export function MomentCommentForm({
     return (
       <button
         type="button"
-        onClick={() => router.push(`/login?next=${encodeURIComponent(pathname)}`)}
+        onClick={() => redirectToLogin()}
         className="w-full rounded-2xl bg-background/95 px-4 py-3 text-left text-sm text-muted-foreground backdrop-blur-xl transition-colors hover:bg-muted hover:text-foreground"
       >
         登录后发表评论
@@ -327,8 +326,15 @@ export function MomentCommentForm({
             限 1 张图片或表情 · {contentLength}/500
           </span>
         </div>
-        <Button type="submit" variant="ghost" size="sm" className="shrink-0 text-brand-strong" disabled={pending}>
-          {pending && <Loader2 className="animate-spin" />}{pendingLabel}
+        <Button
+          type="submit"
+          variant="ghost"
+          size="sm"
+          className="shrink-0 text-brand-strong"
+          pending={pending}
+          pendingLabel={pendingLabel}
+        >
+          发送
         </Button>
       </div>
       {errors.content?.message ? <p className="mt-1 px-1 text-xs text-destructive">{errors.content.message}</p> : null}

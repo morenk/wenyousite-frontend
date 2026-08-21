@@ -2,7 +2,7 @@
 
 import { AlertDialog } from "@base-ui/react/alert-dialog";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Fuel, Loader2 } from "lucide-react";
+import { Fuel } from "lucide-react";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -13,7 +13,7 @@ import { useAuth } from "@/lib/auth";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
+import { useLoginRedirect } from "@/hooks/use-login-redirect";
 
 const tipSchema = z.object({
   amount: z
@@ -42,6 +42,7 @@ export function WenyouTipButton({
   className,
 }: WenyouTipButtonProps) {
   const { user } = useAuth();
+  const redirectToLogin = useLoginRedirect();
   const [open, setOpen] = useState(false);
   const requestRef = useRef<{
     amount: string;
@@ -89,10 +90,7 @@ export function WenyouTipButton({
         className={className}
         onClick={() => {
           if (!user) {
-            if (typeof window !== "undefined") {
-              const next = `${window.location.pathname}${window.location.search}`;
-              window.location.assign(`/login?next=${encodeURIComponent(next)}`);
-            }
+            redirectToLogin();
             return;
           }
           setOpen(true);
@@ -138,14 +136,13 @@ export function WenyouTipButton({
                   >
                     取消
                   </AlertDialog.Close>
-                  <button
+                  <Button
                     type="submit"
-                    className={cn(buttonVariants())}
-                    disabled={tip.isPending}
+                    pending={tip.isPending}
+                    pendingLabel="正在加油…"
                   >
-                    {tip.isPending && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
                     确认加油
-                  </button>
+                  </Button>
                 </div>
               </form>
             </AlertDialog.Popup>
