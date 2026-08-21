@@ -215,7 +215,9 @@ describe("MomentComposer", () => {
     render(<MomentComposer open userId="user-1" onClose={vi.fn()} />);
 
     expect(await screen.findByDisplayValue("恢复的标题")).toBeInTheDocument();
-    expect(screen.getByRole("textbox", { name: "正文" })).toHaveTextContent("恢复的正文");
+    await waitFor(() => {
+      expect(screen.getByRole("textbox", { name: "正文" })).toHaveTextContent("恢复的正文");
+    });
     expect(screen.getByAltText("第 1 张图片")).toHaveAttribute("src", expect.stringMatching(/^blob:/));
     expect(screen.getByAltText("第 2 张图片")).toBeInTheDocument();
     expect(screen.getByAltText("封面预览")).toHaveAttribute(
