@@ -12,6 +12,8 @@ PREFLIGHT_PORT=${FRONTEND_PREFLIGHT_PORT:-3102}
 PUBLIC_BASE_URL=${FRONTEND_PUBLIC_BASE_URL:-https://wenyou.site}
 FRONTEND_SERVICE=${FRONTEND_SYSTEMD_SERVICE:-wenyousite-frontend.service}
 VERIFY_SCRIPT="$SCRIPT_DIR/verify-static-assets.mjs"
+RELEASE_METADATA_NAME=.wenyousite-release.json
+EXPECTED_GIT_SHA=${FRONTEND_EXPECTED_SHA:-}
 
 staging_dir=""
 preflight_pid=""
@@ -155,6 +157,16 @@ rollback_to() {
   node "$VERIFY_SCRIPT" "http://127.0.0.1:$PRODUCTION_PORT" / /login
 }
 
+read_release_git_sha() {
+  local release_dir=$1
+
+  node -e '
+    const fs = require("node:fs");
+    const metadata = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+    process.stdout.write(typeof metadata.gitSha === "string" ? metadata.gitSha : "");
+  ' "$release_dir/$RELEASE_METADATA_NAME"
+}
+
 validate_port "$PRODUCTION_PORT" "FRONTEND_PORT"
 validate_port "$PREFLIGHT_PORT" "FRONTEND_PREFLIGHT_PORT"
 if [ "$PRODUCTION_PORT" = "$PREFLIGHT_PORT" ]; then
@@ -162,7 +174,7 @@ if [ "$PRODUCTION_PORT" = "$PREFLIGHT_PORT" ]; then
   exit 1
 fi
 
-for command_name in curl flock journalctl node ss systemctl; do
+for command_name in curl flock git journalctl node ss systemctl; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
     echo "缺少部署命令: $command_name" >&2
     exit 1
@@ -170,6 +182,12 @@ for command_name in curl flock journalctl node ss systemctl; do
 done
 if ! systemctl cat "$FRONTEND_SERVICE" >/dev/null 2>&1; then
   echo "前端 systemd 服务未安装: $FRONTEND_SERVICE" >&2
+  exit 1
+fi
+
+FRONTEND_GIT_SHA=$(bash "$SCRIPT_DIR/assert-releasable-repo.sh" "$FRONTEND_DIR" dev)
+if [ -n "$EXPECTED_GIT_SHA" ] && [ "$FRONTEND_GIT_SHA" != "$EXPECTED_GIT_SHA" ]; then
+  echo "前端部署提交与调用方期望不一致: $FRONTEND_GIT_SHA != $EXPECTED_GIT_SHA" >&2
   exit 1
 fi
 
@@ -205,6 +223,12 @@ if [ ! -f "$FRONTEND_DIR/.next/standalone/server.js" ] || [ ! -d "$FRONTEND_DIR/
   exit 1
 fi
 
+source_sha_before_copy=$(bash "$SCRIPT_DIR/assert-releasable-repo.sh" "$FRONTEND_DIR" dev)
+if [ "$source_sha_before_copy" != "$FRONTEND_GIT_SHA" ]; then
+  echo "前端提交在准备 release 前发生变化" >&2
+  exit 1
+fi
+
 staging_dir=$(mktemp -d "$RELEASE_ROOT/.staging.XXXXXX")
 cp -a "$FRONTEND_DIR/.next/standalone/." "$staging_dir/"
 mkdir -p "$staging_dir/.next"
@@ -220,6 +244,13 @@ if [ "$staged_build_id" != "$build_id" ] || [ "$source_build_id_after_copy" != "
   exit 1
 fi
 
+release_created_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+printf '{\n  "gitSha": "%s",\n  "buildId": "%s",\n  "createdAt": "%s"\n}\n' \
+  "$FRONTEND_GIT_SHA" \
+  "$build_id" \
+  "$release_created_at" \
+  >"$staging_dir/$RELEASE_METADATA_NAME"
+
 start_server "$staging_dir" "$PREFLIGHT_PORT" "$PREFLIGHT_LOG"
 preflight_pid=$STARTED_PID
 if ! wait_for_http "http://127.0.0.1:$PREFLIGHT_PORT/login" "前端预检进程" "$PREFLIGHT_LOG" ||
@@ -229,7 +260,15 @@ fi
 stop_process "$preflight_pid" "前端预检进程"
 preflight_pid=""
 
-release_dir="$RELEASE_ROOT/$(date -u +%Y%m%dT%H%M%SZ)-$build_id-${staging_dir##*.staging.}"
+source_sha_before_switch=$(bash "$SCRIPT_DIR/assert-releasable-repo.sh" "$FRONTEND_DIR" dev)
+if [ "$source_sha_before_switch" != "$FRONTEND_GIT_SHA" ]; then
+  echo "前端提交在候选预检期间发生变化" >&2
+  exit 1
+fi
+
+release_timestamp=$(date -u +%Y%m%dT%H%M%SZ)
+release_short_sha=${FRONTEND_GIT_SHA:0:12}
+release_dir="$RELEASE_ROOT/$release_timestamp-$release_short_sha-$build_id-${staging_dir##*.staging.}"
 mv -- "$staging_dir" "$release_dir"
 staging_dir=""
 
@@ -255,6 +294,18 @@ if [ -n "$previous_release" ] && [ "$previous_release" != "$release_dir" ]; then
 fi
 
 current_release=$(readlink -f "$RUNTIME_ROOT/current")
+if ! deployed_git_sha=$(read_release_git_sha "$current_release"); then
+  echo "无法读取当前前端 release 元数据" >&2
+  rollback_to "$previous_release" || true
+  safe_remove_release "$release_dir"
+  exit 1
+fi
+if [ "$deployed_git_sha" != "$FRONTEND_GIT_SHA" ]; then
+  echo "当前前端 release 元数据与待部署提交不一致" >&2
+  rollback_to "$previous_release" || true
+  safe_remove_release "$release_dir"
+  exit 1
+fi
 previous_release=$(readlink -f "$RUNTIME_ROOT/previous" 2>/dev/null || true)
 for candidate in "$RELEASE_ROOT"/*; do
   [ -d "$candidate" ] || continue
@@ -267,5 +318,7 @@ done
 new_pid=$(systemctl show "$FRONTEND_SERVICE" --property MainPID --value)
 echo "前端切换完成"
 echo "release: $current_release"
+echo "gitSha: $deployed_git_sha"
+echo "buildId: $build_id"
 echo "pid: $new_pid"
 echo "journal: journalctl -u $FRONTEND_SERVICE"

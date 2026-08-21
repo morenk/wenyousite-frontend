@@ -14,13 +14,14 @@
     "test:e2e": "playwright test",
     "test:e2e:candidate": "bash scripts/test-standalone-e2e.sh",
     "test:e2e:a11y": "playwright test e2e/accessibility.spec.ts",
+    "test:deploy-preflight": "bash scripts/assert-releasable-repo.test.sh",
     "contract:sync": "node scripts/sync-api-contract.mjs",
     "generate:api": "openapi-typescript contracts/openapi.json -o src/api/types.ts",
     "contract:check": "node scripts/check-generated-api.mjs && node scripts/check-flutter-contract.mjs",
     "arch:check": "node scripts/check-query-keys.mjs && node scripts/check-architecture.mjs",
     "design:check": "node scripts/check-foundation.mjs && node scripts/check-design-system.mjs",
     "docs:check": "tsx scripts/check-doc-links.ts && tsx scripts/check-doc-truth.ts",
-    "check": "pnpm lint && pnpm typecheck && pnpm contract:check && pnpm arch:check && pnpm design:check && pnpm test:coverage && pnpm docs:check && pnpm build",
+    "check": "pnpm lint && pnpm typecheck && pnpm contract:check && pnpm arch:check && pnpm design:check && pnpm test:coverage && pnpm test:deploy-preflight && pnpm docs:check && pnpm build",
     "check:full": "pnpm check && pnpm test:e2e:candidate"
   },
   "dependencies": {

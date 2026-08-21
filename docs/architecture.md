@@ -29,4 +29,4 @@ lib ──> api/types（只允许契约类型），不能反向依赖组件
 
 `pnpm arch:check` 校验查询键、UI/API 访问方式、通用组件反向依赖、`api`/`lib` 层方向、生产源码循环依赖，以及已拆分热点入口的规模。`pnpm docs:check` 从 OpenAPI、源码、Foundation 锁和模块索引推导文档事实。覆盖率除全局阈值外，对站务 hooks、站务组件、主题帖组件与 `lib` 分域设阈值。
 
-构建和交付语义见根目录 `AGENTS.md`：`pnpm check:full` 在 3101 测试刚生成的候选 standalone，验证通过后才由切换脚本更新不可变 release，并通过 `wenyousite-frontend.service` 切换 3001。systemd 从 `current` 链接启动版本，负责开机启动、异常重启和 journal 日志；候选预检仍使用隔离的临时进程。
+构建和交付语义见根目录 `AGENTS.md`：`pnpm check:full` 在 3101 测试刚生成的候选 standalone，提交推送后由切换脚本验证工作区与 `origin/dev` 完全一致，再把 Git SHA、Next.js Build ID 和创建时间写入不可变 release 元数据，并通过 `wenyousite-frontend.service` 切换 3001。systemd 从 `current` 链接启动版本，负责开机启动、异常重启和 journal 日志；候选预检仍使用隔离的临时进程。

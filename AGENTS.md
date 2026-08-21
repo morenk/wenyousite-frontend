@@ -4,6 +4,7 @@
 
 - 本仓库是温油站 **PC Web 前端**；移动端由 Flutter 项目承担，不在这里实现响应式移动版。
 - 技术主线：Next.js App Router、React、TypeScript、Tailwind CSS、TanStack Query、React Hook Form + Zod、Vitest、Playwright。
+- 本文件继承工作区根 `AGENTS.md` 的变更隔离、自动提交推送和部署不变量；这里只补充 Web 专属约束。
 - 公网运行拓扑以工作区 [README](../README.md) 为唯一事实源；脚本和依赖命令以 `package.json` 为准。
 - 修改前先读受影响模块及其测试、`docs/modules/` 文档；不要为小改动复制新的流程说明。
 
@@ -79,19 +80,21 @@ pnpm check:full
 
 1. 实现并运行相关测试。
 2. 运行 `pnpm check`；认证/权限、核心旅程或高风险变更补充带专用账号的 `pnpm check:full`。
-3. 自动重启受影响服务，不另行等待部署授权。
-4. 检查公网健康、受影响页面/旅程和最近日志。
-5. 汇报变更与验证结果。
+3. 显式暂存本任务差异，复核 staged diff 与敏感信息，创建 `feat|fix|refactor|test|docs|chore(scope): 中文说明` 原子提交。
+4. fetch 并确认可安全更新 `origin/dev` 后默认推送；用户明确要求不提交或不推送时除外。
+5. 只从工作区干净且与 `origin/dev` 完全一致的提交组装不可变 release 并切换服务。
+6. 检查公网健康、受影响页面/旅程和最近日志，并汇报提交 SHA、release 元数据与验证结果。
 
-除非用户明确要求，**不要创建 Git commit，也不要 push**。若明确要求提交，使用 `feat|fix|refactor|test|docs|chore(scope): 中文说明`，且只包含本任务相关文件。
+纯文档任务不构建、不切换服务，但完成文档检查后仍按同样的原子提交和推送规则交付。实际相关门禁失败时不得提交半成品；外部环境或无关既有失败只能在提供定向等价验证并明确记录后例外处理。
 
 ### 前端切换规则
 
 - Next.js 使用 `output: "standalone"`，由宿主机 `wenyousite-frontend.service` 托管并只监听 `127.0.0.1:3001`；PostgreSQL/Redis 才由 Docker Compose 管理。
 - `pnpm check` 已包含 `next build`。源码未再变化时不要重复 build。
 - 线上进程必须从 `/var/lib/wenyousite/frontend/releases/` 下的不可变 release 运行，不能直接运行会被 `next build` 重写的 `.next/standalone`。
-- 只要运行过 `pnpm check` 或 `pnpm build`，必须使用切换脚本组装 static/public、预检并通过 systemd 切换 3001；脚本失败时保留或恢复上一成功版本。
-- 纯前端变化只切换前端；后端或契约同时变化时，先切换并验证后端，再同步契约、检查和切换前端。
+- 代码任务提交并推送后，使用切换脚本组装 static/public、写入 Git SHA 与 Build ID 元数据、预检并通过 systemd 切换 3001；脚本失败时保留或恢复上一成功版本。
+- 切换脚本会拒绝错误分支、脏工作区、未跟踪文件、缺失 upstream、未推送提交和组装期间发生的源码变化；不得使用环境变量或手工重启绕过。
+- 纯前端变化只切换前端；后端或契约同时变化时，先让兼容的后端与 Web 提交都存在于远端，再切换并验证后端，然后切换前端。
 
 新宿主机首次安装或更新 unit：
 
