@@ -14,6 +14,14 @@ import { join, resolve } from "node:path";
 const frontendRoot = process.cwd();
 const backendContract = resolve(frontendRoot, "../wenyousite-backend/contracts/openapi.json");
 const trackedContract = resolve(frontendRoot, "contracts/openapi.json");
+const backendInternalReferenceContract = resolve(
+  frontendRoot,
+  "../wenyousite-backend/contracts/internal-reference-v1-fixtures.json",
+);
+const trackedInternalReferenceContract = resolve(
+  frontendRoot,
+  "contracts/internal-reference-v1-fixtures.json",
+);
 const trackedTypes = resolve(frontendRoot, "src/api/types.ts");
 const hooksRoot = resolve(frontendRoot, "src/api/hooks");
 const tempRoot = mkdtempSync(join(tmpdir(), "wenyousite-api-contract-"));
@@ -34,6 +42,13 @@ try {
       readFileSync(backendContract, "utf8") !== readFileSync(trackedContract, "utf8")) {
     throw new Error(
       "contracts/openapi.json 与相邻后端已审核产物不一致；请运行 pnpm contract:sync。",
+    );
+  }
+  if (statSync(backendInternalReferenceContract, { throwIfNoEntry: false })?.isFile() &&
+      readFileSync(backendInternalReferenceContract, "utf8")
+        !== readFileSync(trackedInternalReferenceContract, "utf8")) {
+    throw new Error(
+      "contracts/internal-reference-v1-fixtures.json 与相邻后端已审核产物不一致；请运行 pnpm contract:sync。",
     );
   }
   execFileSync(

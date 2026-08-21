@@ -222,7 +222,6 @@ function ThreadDetailPageContent() {
         subthreads={thread.subthreads}
         selectedSubthreadId={effectiveSubthreadId}
         defaultSubthreadId={thread.defaultSubthreadId}
-        floorOrder={floorOrder}
         onSubthreadChange={handleSubthreadChange}
         onManage={
           canManageThread

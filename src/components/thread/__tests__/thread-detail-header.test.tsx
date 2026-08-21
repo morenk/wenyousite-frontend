@@ -337,6 +337,39 @@ describe("ThreadDetailHeader", () => {
     expect(onSubthreadChange).toHaveBeenCalledWith("s2");
   });
 
+  test("复制当前子贴只包含内容坐标，不携带阅读排序状态", async () => {
+    const user = userEvent.setup();
+    const subthreads = [
+      baseThread.defaultSubthread,
+      {
+        ...baseThread.defaultSubthread,
+        id: "s2",
+        title: "设定区",
+        sortOrder: 1,
+      },
+    ];
+    Object.defineProperty(window.navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: mockClipboardWriteText },
+    });
+    renderWithQC(
+      <ThreadDetailHeader
+        thread={{ ...baseThread, subthreads }}
+        subthreads={subthreads}
+        selectedSubthreadId="s2"
+        defaultSubthreadId="s1"
+        onSubthreadChange={() => {}}
+      />,
+    );
+
+    await user.click(screen.getByRole("combobox", { name: "切换子贴，当前：设定区" }));
+    await user.click(screen.getByRole("button", { name: "复制当前子贴链接" }));
+
+    expect(mockClipboardWriteText).toHaveBeenCalledWith(
+      "http://localhost:3000/threads/thread-1?subthread=s2",
+    );
+  });
+
   test("仅登录的非楼主用户可为已发布主题帖加油", () => {
     mockUseAuth.mockReturnValue({
       user: { id: "other-user", username: "别人" },

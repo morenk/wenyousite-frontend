@@ -4,26 +4,265 @@
   "productionOrigin": "https://wenyou.site",
   "defaultLabel": "传送门",
   "cases": [
-    { "id": "thread-relative", "input": "/threads/cmsewdo0h000x7qv6aa77ll1v", "recognized": true, "kind": "THREAD", "canonical": "/threads/cmsewdo0h000x7qv6aa77ll1v" },
-    { "id": "thread-absolute", "input": "https://wenyou.site/threads/cmsewdo0h000x7qv6aa77ll1v", "recognized": true, "kind": "THREAD", "canonical": "/threads/cmsewdo0h000x7qv6aa77ll1v" },
-    { "id": "subthread", "input": "/threads/cmsewdo0h000x7qv6aa77ll1v?subthread=cmsewdp4i00147qv6gjc85l9p", "recognized": true, "kind": "SUBTHREAD", "canonical": "/threads/cmsewdo0h000x7qv6aa77ll1v?subthread=cmsewdp4i00147qv6gjc85l9p" },
-    { "id": "floor", "input": "/threads/cmsewdo0h000x7qv6aa77ll1v?post=cmsewdqcr001a7qv6cy0y38bd", "recognized": true, "kind": "FLOOR", "canonical": "/threads/cmsewdo0h000x7qv6aa77ll1v?post=cmsewdqcr001a7qv6cy0y38bd" },
-    { "id": "discussion", "input": "/threads/cmsewdo0h000x7qv6aa77ll1v/posts/cmsewdrqj001h7qv6dwfca3fe/replies", "recognized": true, "kind": "DISCUSSION", "canonical": "/threads/cmsewdo0h000x7qv6aa77ll1v/posts/cmsewdrqj001h7qv6dwfca3fe/replies" },
-    { "id": "reply-absolute", "input": "https://wenyou.site/threads/cmsewdo0h000x7qv6aa77ll1v/posts/cmsewdrqj001h7qv6dwfca3fe/replies?post=cmsewdt0w001n7qv6f6ttylff", "recognized": true, "kind": "REPLY", "canonical": "/threads/cmsewdo0h000x7qv6aa77ll1v/posts/cmsewdrqj001h7qv6dwfca3fe/replies?post=cmsewdt0w001n7qv6f6ttylff" },
-    { "id": "invite-relative", "input": "/join/AbCdEfGh_123-XYZ", "recognized": true, "kind": "INVITE", "canonical": "/join/AbCdEfGh_123-XYZ" },
-    { "id": "invite-absolute", "input": "https://wenyou.site/join/AbCdEfGh_123-XYZ", "recognized": true, "kind": "INVITE", "canonical": "/join/AbCdEfGh_123-XYZ" },
-    { "id": "invite-invalid-token", "input": "/join/too-short", "recognized": false },
-    { "id": "invite-query-not-allowed", "input": "/join/AbCdEfGh_123-XYZ?from=share", "recognized": false },
-    { "id": "external-origin", "input": "https://example.com/threads/cmsewdo0h000x7qv6aa77ll1v", "recognized": false },
-    { "id": "ambiguous-thread-query", "input": "/threads/cmsewdo0h000x7qv6aa77ll1v?subthread=cmsewdp4i00147qv6gjc85l9p&post=cmsewdqcr001a7qv6cy0y38bd", "recognized": false },
-    { "id": "unknown-query", "input": "/threads/cmsewdo0h000x7qv6aa77ll1v?from=feed", "recognized": false },
-    { "id": "non-thread-route", "input": "/moments/cmsewdo0h000x7qv6aa77ll1v", "recognized": false }
+    {
+      "id": "thread-relative",
+      "input": "/threads/cmsewdo0h000x7qv6aa77ll1v",
+      "recognized": true,
+      "kind": "THREAD",
+      "canonical": "/threads/cmsewdo0h000x7qv6aa77ll1v"
+    },
+    {
+      "id": "thread-absolute",
+      "input": "https://wenyou.site/threads/cmsewdo0h000x7qv6aa77ll1v",
+      "recognized": true,
+      "kind": "THREAD",
+      "canonical": "/threads/cmsewdo0h000x7qv6aa77ll1v"
+    },
+    {
+      "id": "thread-www-absolute",
+      "input": "https://www.wenyou.site/threads/cmsewdo0h000x7qv6aa77ll1v",
+      "recognized": true,
+      "kind": "THREAD",
+      "canonical": "/threads/cmsewdo0h000x7qv6aa77ll1v"
+    },
+    {
+      "id": "subthread",
+      "input": "/threads/cmsewdo0h000x7qv6aa77ll1v?subthread=cmsewdp4i00147qv6gjc85l9p",
+      "recognized": true,
+      "kind": "SUBTHREAD",
+      "canonical": "/threads/cmsewdo0h000x7qv6aa77ll1v?subthread=cmsewdp4i00147qv6gjc85l9p"
+    },
+    {
+      "id": "floor",
+      "input": "/threads/cmsewdo0h000x7qv6aa77ll1v?post=cmsewdqcr001a7qv6cy0y38bd",
+      "recognized": true,
+      "kind": "FLOOR",
+      "canonical": "/threads/cmsewdo0h000x7qv6aa77ll1v?post=cmsewdqcr001a7qv6cy0y38bd"
+    },
+    {
+      "id": "discussion",
+      "input": "/threads/cmsewdo0h000x7qv6aa77ll1v/posts/cmsewdrqj001h7qv6dwfca3fe/replies",
+      "recognized": true,
+      "kind": "DISCUSSION",
+      "canonical": "/threads/cmsewdo0h000x7qv6aa77ll1v/posts/cmsewdrqj001h7qv6dwfca3fe/replies"
+    },
+    {
+      "id": "reply-absolute",
+      "input": "https://wenyou.site/threads/cmsewdo0h000x7qv6aa77ll1v/posts/cmsewdrqj001h7qv6dwfca3fe/replies?post=cmsewdt0w001n7qv6f6ttylff",
+      "recognized": true,
+      "kind": "REPLY",
+      "canonical": "/threads/cmsewdo0h000x7qv6aa77ll1v/posts/cmsewdrqj001h7qv6dwfca3fe/replies?post=cmsewdt0w001n7qv6f6ttylff"
+    },
+    {
+      "id": "invite-relative",
+      "input": "/join/AbCdEfGh_123-XYZ",
+      "recognized": true,
+      "kind": "INVITE",
+      "canonical": "/join/AbCdEfGh_123-XYZ"
+    },
+    {
+      "id": "invite-absolute",
+      "input": "https://wenyou.site/join/AbCdEfGh_123-XYZ",
+      "recognized": true,
+      "kind": "INVITE",
+      "canonical": "/join/AbCdEfGh_123-XYZ"
+    },
+    {
+      "id": "invite-invalid-token",
+      "input": "/join/too-short",
+      "recognized": false
+    },
+    {
+      "id": "invite-query-not-allowed",
+      "input": "/join/AbCdEfGh_123-XYZ?from=share",
+      "recognized": false
+    },
+    {
+      "id": "external-origin",
+      "input": "https://example.com/threads/cmsewdo0h000x7qv6aa77ll1v",
+      "recognized": false
+    },
+    {
+      "id": "ambiguous-thread-query",
+      "input": "/threads/cmsewdo0h000x7qv6aa77ll1v?subthread=cmsewdp4i00147qv6gjc85l9p&post=cmsewdqcr001a7qv6cy0y38bd",
+      "recognized": true,
+      "kind": "FLOOR",
+      "canonical": "/threads/cmsewdo0h000x7qv6aa77ll1v?post=cmsewdqcr001a7qv6cy0y38bd"
+    },
+    {
+      "id": "unknown-query",
+      "input": "/threads/cmsewdo0h000x7qv6aa77ll1v?from=feed",
+      "recognized": false
+    },
+    {
+      "id": "non-thread-route",
+      "input": "/moments/cmsewdo0h000x7qv6aa77ll1v",
+      "recognized": false
+    }
   ],
   "renderingCases": [
-    { "id": "custom-label", "source": "参见 [设定 A](/threads/cmsewdo0h000x7qv6aa77ll1v?post=cmsewdqcr001a7qv6cy0y38bd)。", "visibleText": "参见 设定 A。", "portalCount": 1 },
-    { "id": "bare-absolute", "source": "入口：https://wenyou.site/threads/cmsewdo0h000x7qv6aa77ll1v/posts/cmsewdrqj001h7qv6dwfca3fe/replies", "visibleText": "入口：传送门", "portalCount": 1 },
-    { "id": "bare-invite", "source": "私密入口：https://wenyou.site/join/AbCdEfGh_123-XYZ", "visibleText": "私密入口：传送门", "portalCount": 1 },
-    { "id": "ordinary-markdown-is-literal-in-plain-content", "source": "**不是粗体**，外链 [官网](https://example.com)。", "visibleText": "**不是粗体**，外链 [官网](https://example.com)。", "portalCount": 0 },
-    { "id": "external-thread-shaped-url-is-literal", "source": "外链：https://example.com/threads/cmsewdo0h000x7qv6aa77ll1v", "visibleText": "外链：https://example.com/threads/cmsewdo0h000x7qv6aa77ll1v", "portalCount": 0 }
+    {
+      "id": "custom-label",
+      "source": "参见 [设定 A](/threads/cmsewdo0h000x7qv6aa77ll1v?post=cmsewdqcr001a7qv6cy0y38bd)。",
+      "visibleText": "参见 设定 A。",
+      "portalCount": 1
+    },
+    {
+      "id": "bare-absolute",
+      "source": "入口：https://wenyou.site/threads/cmsewdo0h000x7qv6aa77ll1v/posts/cmsewdrqj001h7qv6dwfca3fe/replies",
+      "visibleText": "入口：传送门",
+      "portalCount": 1
+    },
+    {
+      "id": "bare-invite",
+      "source": "私密入口：https://wenyou.site/join/AbCdEfGh_123-XYZ",
+      "visibleText": "私密入口：传送门",
+      "portalCount": 1
+    },
+    {
+      "id": "bare-www",
+      "source": "入口：https://www.wenyou.site/threads/cmsewdo0h000x7qv6aa77ll1v",
+      "visibleText": "入口：传送门",
+      "portalCount": 1
+    },
+    {
+      "id": "escaped-label",
+      "source": "查看 [A \\[x\\] \\\\ path](/threads/cmsewdo0h000x7qv6aa77ll1v)",
+      "visibleText": "查看 A [x] \\ path",
+      "portalCount": 1
+    },
+    {
+      "id": "absolute-left-boundary",
+      "source": "前缀https://wenyou.site/threads/cmsewdo0h000x7qv6aa77ll1v",
+      "visibleText": "前缀https://wenyou.site/threads/cmsewdo0h000x7qv6aa77ll1v",
+      "portalCount": 0
+    },
+    {
+      "id": "relative-left-boundary",
+      "source": "x/threads/cmsewdo0h000x7qv6aa77ll1v",
+      "visibleText": "x/threads/cmsewdo0h000x7qv6aa77ll1v",
+      "portalCount": 0
+    },
+    {
+      "id": "bare-right-boundary",
+      "source": "https://wenyou.site/threads/cmsewdo0h000x7qv6aa77ll1v/extra",
+      "visibleText": "https://wenyou.site/threads/cmsewdo0h000x7qv6aa77ll1v/extra",
+      "portalCount": 0
+    },
+    {
+      "id": "ordinary-markdown-is-literal-in-plain-content",
+      "source": "**不是粗体**，外链 [官网](https://example.com)。",
+      "visibleText": "**不是粗体**，外链 [官网](https://example.com)。",
+      "portalCount": 0
+    },
+    {
+      "id": "external-thread-shaped-url-is-literal",
+      "source": "外链：https://example.com/threads/cmsewdo0h000x7qv6aa77ll1v",
+      "visibleText": "外链：https://example.com/threads/cmsewdo0h000x7qv6aa77ll1v",
+      "portalCount": 0
+    }
+  ],
+  "editorPasteCases": [
+    {
+      "id": "paste-invite-absolute-default-label",
+      "clipboardText": "https://wenyou.site/join/AbCdEfGh_123-XYZ",
+      "selectedText": "",
+      "handled": true,
+      "kind": "INVITE",
+      "canonical": "/join/AbCdEfGh_123-XYZ",
+      "label": "传送门",
+      "serialized": "[传送门](/join/AbCdEfGh_123-XYZ)"
+    },
+    {
+      "id": "paste-invite-relative-selected-label",
+      "clipboardText": "/join/AbCdEfGh_123-XYZ",
+      "selectedText": "私密团入口",
+      "handled": true,
+      "kind": "INVITE",
+      "canonical": "/join/AbCdEfGh_123-XYZ",
+      "label": "私密团入口",
+      "serialized": "[私密团入口](/join/AbCdEfGh_123-XYZ)"
+    },
+    {
+      "id": "paste-thread-trims-clipboard",
+      "clipboardText": "  https://wenyou.site/threads/cmsewdo0h000x7qv6aa77ll1v  ",
+      "selectedText": "  设定入口  ",
+      "handled": true,
+      "kind": "THREAD",
+      "canonical": "/threads/cmsewdo0h000x7qv6aa77ll1v",
+      "label": "设定入口",
+      "serialized": "[设定入口](/threads/cmsewdo0h000x7qv6aa77ll1v)"
+    },
+    {
+      "id": "paste-www-selected-escaped-label",
+      "clipboardText": "https://www.wenyou.site/threads/cmsewdo0h000x7qv6aa77ll1v",
+      "selectedText": "A [x] \\ path",
+      "handled": true,
+      "kind": "THREAD",
+      "canonical": "/threads/cmsewdo0h000x7qv6aa77ll1v",
+      "label": "A [x] \\ path",
+      "serialized": "[A \\[x\\] \\\\ path](/threads/cmsewdo0h000x7qv6aa77ll1v)"
+    },
+    {
+      "id": "paste-invite-invalid-token-falls-through",
+      "clipboardText": "/join/too-short",
+      "selectedText": "",
+      "handled": false
+    },
+    {
+      "id": "paste-invite-query-falls-through",
+      "clipboardText": "/join/AbCdEfGh_123-XYZ?from=share",
+      "selectedText": "",
+      "handled": false
+    },
+    {
+      "id": "paste-mixed-text-falls-through",
+      "clipboardText": "入口 https://wenyou.site/join/AbCdEfGh_123-XYZ",
+      "selectedText": "",
+      "handled": false
+    },
+    {
+      "id": "paste-external-link-falls-through",
+      "clipboardText": "https://example.com/threads/cmsewdo0h000x7qv6aa77ll1v",
+      "selectedText": "",
+      "handled": false
+    }
+  ],
+  "directMessagePreviewCases": [
+    {
+      "id": "direct-message-named-thread",
+      "source": "看看 [主线](/threads/cmsewdo0h000x7qv6aa77ll1v)  继续",
+      "preview": "看看 主线 继续"
+    },
+    {
+      "id": "direct-message-bare-www-thread",
+      "source": "看看 https://www.wenyou.site/threads/cmsewdo0h000x7qv6aa77ll1v",
+      "preview": "看看 传送门"
+    },
+    {
+      "id": "direct-message-named-invite",
+      "source": "请用 [加入](/join/AbCdEfGh_123-XYZ)",
+      "preview": "请用 邀请传送门"
+    },
+    {
+      "id": "direct-message-bare-invite",
+      "source": "请用 https://www.wenyou.site/join/AbCdEfGh_123-XYZ",
+      "preview": "请用 邀请传送门"
+    },
+    {
+      "id": "direct-message-malformed-invite",
+      "source": "失效 [旧邀请](/join/too-short)",
+      "preview": "失效 邀请传送门"
+    },
+    {
+      "id": "direct-message-truncated-invite",
+      "source": "截断 https://www.wenyou.site/join/AbCdEfGhIj",
+      "preview": "截断 邀请传送门"
+    },
+    {
+      "id": "direct-message-normalized-whitespace",
+      "source": "第一行\n\n[入口](/threads/cmsewdo0h000x7qv6aa77ll1v)\t继续",
+      "preview": "第一行 入口 继续"
+    }
   ]
 }

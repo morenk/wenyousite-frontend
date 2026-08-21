@@ -30,7 +30,6 @@ import { getSubthreadHref } from "@/lib/post-navigation";
 import { AdminContentModerationDialog } from "@/components/admin/admin-content-moderation-dialog";
 import { WenyouTime } from "@/components/shared/wenyou-time";
 import { WenyouCount } from "@/components/shared/wenyou-count";
-import type { FloorOrder } from "@/api/floor-query";
 
 interface ThreadDetailHeaderProps {
   thread: ThreadDetail;
@@ -40,7 +39,6 @@ interface ThreadDetailHeaderProps {
   subthreads?: SubthreadDetail[];
   selectedSubthreadId?: string;
   defaultSubthreadId?: string;
-  floorOrder?: FloorOrder;
   onSubthreadChange?: (id: string) => void;
   children?: ReactNode;
 }
@@ -78,7 +76,6 @@ export function ThreadDetailHeader({
   subthreads = [],
   selectedSubthreadId,
   defaultSubthreadId,
-  floorOrder = "OLDEST",
   onSubthreadChange,
   children,
 }: ThreadDetailHeaderProps) {
@@ -129,7 +126,6 @@ export function ThreadDetailHeader({
           thread.id,
           selectedSubthreadId,
           defaultSubthreadId,
-          floorOrder,
         )}`,
       );
       toast.success("当前子贴链接已复制");
