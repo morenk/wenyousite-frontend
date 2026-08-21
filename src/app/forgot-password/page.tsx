@@ -14,8 +14,8 @@ import {
 import { useForgotPassword } from "@/api/hooks/use-auth-actions";
 import { API_ERROR_CODE, getApiError } from "@/api/errors";
 import { Button } from "@/components/ui/button";
+import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { AuthPageShell } from "@/components/auth/auth-page-shell";
 import {
   EMAIL_SEND_UNCERTAIN_MESSAGE,
@@ -73,34 +73,28 @@ export default function ForgotPasswordPage() {
       )}
     >
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="email">邮箱</Label>
+        <FormField id="email" label="邮箱" error={errors.email?.message}>
+          {(controlProps) => (
                 <Input
-                  id="email"
+                  {...controlProps}
                   type="email"
                   placeholder="your@email.com"
                   autoComplete="email"
                   {...register("email")}
                 />
-                {errors.email && (
-                  <p className="text-xs text-destructive">
-                    {errors.email.message}
-                  </p>
-                )}
-              </div>
+          )}
+        </FormField>
 
-              <Button
-                type="submit"
-                size="lg"
-                className="w-full"
-                disabled={sending || countdown > 0}
-              >
-                {sending
-                  ? "发送中..."
-                  : countdown > 0
-                    ? `${countdown} 秒后可重试`
-                    : "发送重置验证码"}
-              </Button>
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full"
+          disabled={countdown > 0}
+          pending={sending}
+          pendingLabel="发送中..."
+        >
+          {countdown > 0 ? `${countdown} 秒后可重试` : "发送重置验证码"}
+        </Button>
       </form>
     </AuthPageShell>
   );

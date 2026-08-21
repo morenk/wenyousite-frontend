@@ -4,12 +4,12 @@
 
 import { Suspense, useCallback } from "react";
 import { useQueryState } from "nuqs";
-import { Loader2 } from "lucide-react";
 import { NotificationList } from "@/components/notification/notification-list";
 import { MessageCenterTabs } from "@/components/message/message-center-tabs";
 import { notificationTypeParser } from "@/lib/url-state";
 import { PageHeader } from "@/components/layout/page-header";
 import { PageShell } from "@/components/layout/page-shell";
+import { LoadingState } from "@/components/shared/loading-state";
 
 function NotificationsPageInner() {
   const [type, setType] = useQueryState("type", notificationTypeParser.withOptions({
@@ -38,11 +38,7 @@ function NotificationsPageInner() {
 export default function NotificationsPage() {
   return (
     <Suspense
-      fallback={
-        <div className="flex min-h-screen items-center justify-center">
-          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-        </div>
-      }
+      fallback={<LoadingState variant="page" label="" />}
     >
       <NotificationsPageInner />
     </Suspense>

@@ -4,7 +4,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -25,9 +24,9 @@ import {
 } from "@/hooks/use-email-code";
 import { SendCodeButton } from "@/components/auth/send-code-button";
 import { Button } from "@/components/ui/button";
+import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
-import { Label } from "@/components/ui/label";
 
 export function ChangeEmailForm() {
   const router = useRouter();
@@ -97,62 +96,58 @@ export function ChangeEmailForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="space-y-1.5">
-        <Label htmlFor="change-old-password">当前密码</Label>
-        <PasswordInput
-          id="change-old-password"
-          autoComplete="current-password"
-          placeholder="输入当前密码以验证身份"
-          {...register("oldPassword")}
-        />
-        {errors.oldPassword && (
-          <p className="text-xs text-destructive">{errors.oldPassword.message}</p>
+      <FormField id="change-old-password" label="当前密码" error={errors.oldPassword?.message}>
+        {(controlProps) => (
+          <PasswordInput
+            {...controlProps}
+            autoComplete="current-password"
+            placeholder="输入当前密码以验证身份"
+            {...register("oldPassword")}
+          />
         )}
-      </div>
+      </FormField>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="new-email">新邮箱</Label>
-        <Input
-          id="new-email"
-          type="email"
-          autoComplete="email"
-          placeholder="输入新邮箱地址"
-          {...register("newEmail")}
-        />
-        {errors.newEmail && (
-          <p className="text-xs text-destructive">{errors.newEmail.message}</p>
-        )}
-      </div>
-
-      <div className="space-y-1.5">
-        <Label htmlFor="email-code">验证码</Label>
-        <div className="flex items-center gap-2">
+      <FormField id="new-email" label="新邮箱" error={errors.newEmail?.message}>
+        {(controlProps) => (
           <Input
-            id="email-code"
-            inputMode="numeric"
-            maxLength={6}
-            placeholder="6 位数字"
-            disabled={!codeSent}
-            {...register("code")}
+            {...controlProps}
+            type="email"
+            autoComplete="email"
+            placeholder="输入新邮箱地址"
+            {...register("newEmail")}
           />
-          <SendCodeButton
-            countdown={countdown}
-            sending={sending}
-            sent={codeSent}
-            onSend={handleSendCode}
-            className="shrink-0"
-          />
-        </div>
-        {errors.code && (
-          <p className="text-xs text-destructive">{errors.code.message}</p>
         )}
-      </div>
+      </FormField>
+
+      <FormField id="email-code" label="验证码" error={errors.code?.message}>
+        {(controlProps) => (
+          <div className="flex items-center gap-2">
+            <Input
+              {...controlProps}
+              inputMode="numeric"
+              maxLength={6}
+              placeholder="6 位数字"
+              disabled={!codeSent}
+              {...register("code")}
+            />
+            <SendCodeButton
+              countdown={countdown}
+              sending={sending}
+              sent={codeSent}
+              onSend={handleSendCode}
+              className="shrink-0"
+            />
+          </div>
+        )}
+      </FormField>
 
       <div className="flex justify-end">
-        <Button type="submit" disabled={changeEmailVerify.isPending || !codeSent}>
-          {changeEmailVerify.isPending ? (
-            <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-          ) : null}
+        <Button
+          type="submit"
+          disabled={!codeSent}
+          pending={changeEmailVerify.isPending}
+          pendingLabel="更换中…"
+        >
           确认更换
         </Button>
       </div>

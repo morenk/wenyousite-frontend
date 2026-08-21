@@ -2,9 +2,12 @@
 
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button, type ButtonProps } from "@/components/ui/button";
 
-interface SendCodeButtonProps {
+export interface SendCodeButtonProps extends Omit<
+  ButtonProps,
+  "children" | "disabled" | "onClick" | "pending" | "pendingLabel" | "type"
+> {
   countdown: number;
   sending: boolean;
   onSend: () => void;
@@ -13,7 +16,6 @@ interface SendCodeButtonProps {
   disabled?: boolean;
   /** 首次文案，默认「发送验证码」 */
   initialLabel?: string;
-  className?: string;
 }
 
 export function SendCodeButton({
@@ -23,11 +25,10 @@ export function SendCodeButton({
   sent,
   disabled,
   initialLabel = "发送验证码",
-  className,
+  variant = "outline",
+  ...buttonProps
 }: SendCodeButtonProps) {
-  const label = sending
-    ? "发送中..."
-    : countdown > 0
+  const label = countdown > 0
       ? `${countdown} 秒后重发`
       : sent
         ? "重新发送"
@@ -36,10 +37,12 @@ export function SendCodeButton({
   return (
     <Button
       type="button"
-      variant="outline"
-      className={className}
+      variant={variant}
       onClick={onSend}
-      disabled={disabled || sending || countdown > 0}
+      disabled={disabled || countdown > 0}
+      pending={sending}
+      pendingLabel="发送中..."
+      {...buttonProps}
     >
       {label}
     </Button>

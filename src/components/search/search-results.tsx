@@ -4,7 +4,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { FileText, Images, Loader2, MessageSquare, Users } from "lucide-react";
+import { FileText, Images, MessageSquare, Users } from "lucide-react";
 import {
   isPostSearchKeywordValid,
   useSearchPosts,
@@ -13,8 +13,9 @@ import {
   useSearchMoments,
 } from "@/api/hooks/use-search";
 import { EmptyState } from "@/components/shared/empty-state";
+import { LoadError } from "@/components/shared/load-error";
+import { LoadingState } from "@/components/shared/loading-state";
 import { UserAvatar } from "@/components/shared/user-avatar";
-import { Button } from "@/components/ui/button";
 import { PostSearchResultList } from "@/components/search/post-search-result-list";
 import { ListRefreshIndicator } from "@/components/shared/list-refresh-indicator";
 import { MomentMasonry } from "@/components/moment/moment-masonry";
@@ -26,29 +27,6 @@ type SearchTab = "moments" | "threads" | "posts" | "users";
 
 interface SearchResultsProps {
   keyword: string;
-}
-
-interface SearchErrorProps {
-  onRetry: () => void;
-}
-
-function SearchLoading() {
-  return (
-    <div className="flex items-center justify-center py-16">
-      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-    </div>
-  );
-}
-
-function SearchError({ onRetry }: SearchErrorProps) {
-  return (
-    <div className="flex flex-col items-center gap-4 py-12">
-      <EmptyState title="搜索失败" />
-      <Button variant="outline" size="sm" onClick={onRetry}>
-        重试
-      </Button>
-    </div>
-  );
 }
 
 export function SearchResults({ keyword }: SearchResultsProps) {
@@ -156,9 +134,9 @@ export function SearchResults({ keyword }: SearchResultsProps) {
               description="用户名和主题帖仍支持单字符搜索"
             />
           ) : postsQuery.isLoading ? (
-            <SearchLoading />
+            <LoadingState label="" className="min-h-0 py-16" />
           ) : postsQuery.isError ? (
-            <SearchError onRetry={() => void postsQuery.refetch()} />
+            <LoadError title="搜索失败" onRetry={() => void postsQuery.refetch()} />
           ) : posts.length === 0 ? (
             <EmptyState title="没有匹配的楼层内容" />
           ) : (
@@ -173,9 +151,9 @@ export function SearchResults({ keyword }: SearchResultsProps) {
 
       <TabsContent value="users" className="mt-4 w-full min-w-0">
         {usersQuery.isLoading ? (
-            <SearchLoading />
+            <LoadingState label="" className="min-h-0 py-16" />
           ) : usersQuery.isError ? (
-            <SearchError onRetry={() => void usersQuery.refetch()} />
+            <LoadError title="搜索失败" onRetry={() => void usersQuery.refetch()} />
           ) : !usersQuery.data || usersQuery.data.length === 0 ? (
             <EmptyState title="没有匹配的用户" />
           ) : (

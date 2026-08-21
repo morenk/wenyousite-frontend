@@ -23,8 +23,9 @@ import {
 } from "@/hooks/use-email-code";
 import { SendCodeButton } from "@/components/auth/send-code-button";
 import { Button } from "@/components/ui/button";
+import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 import { AuthPageShell } from "@/components/auth/auth-page-shell";
 
 export default function ResetPasswordPage() {
@@ -105,27 +106,23 @@ export default function ResetPasswordPage() {
       )}
     >
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="email">邮箱</Label>
+        <FormField id="email" label="邮箱" error={errors.email?.message}>
+          {(controlProps) => (
                 <Input
-                  id="email"
+                  {...controlProps}
                   type="email"
                   placeholder="your@email.com"
                   autoComplete="email"
                   {...register("email")}
                 />
-                {errors.email && (
-                  <p className="text-xs text-destructive">
-                    {errors.email.message}
-                  </p>
-                )}
-              </div>
+          )}
+        </FormField>
 
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="token">验证码</Label>
+        <FormField id="token" label="验证码" error={errors.token?.message}>
+          {(controlProps) => (
                 <div className="flex items-center gap-2">
                   <Input
-                    id="token"
+                    {...controlProps}
                     placeholder="6 位数字"
                     maxLength={6}
                     inputMode="numeric"
@@ -141,37 +138,29 @@ export default function ResetPasswordPage() {
                     className="shrink-0"
                   />
                 </div>
-                {errors.token && (
-                  <p className="text-xs text-destructive">
-                    {errors.token.message}
-                  </p>
-                )}
-              </div>
+          )}
+        </FormField>
 
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="newPassword">新密码</Label>
-                <Input
-                  id="newPassword"
-                  type="password"
+        <FormField id="newPassword" label="新密码" error={errors.newPassword?.message}>
+          {(controlProps) => (
+                <PasswordInput
+                  {...controlProps}
                   placeholder="至少 8 位，含字母和数字"
                   autoComplete="new-password"
                   {...register("newPassword")}
                 />
-                {errors.newPassword && (
-                  <p className="text-xs text-destructive">
-                    {errors.newPassword.message}
-                  </p>
-                )}
-              </div>
+          )}
+        </FormField>
 
-              <Button
-                type="submit"
-                size="lg"
-                className="w-full"
-                disabled={resetMutation.isPending}
-              >
-                {resetMutation.isPending ? "重置中..." : "重置密码"}
-              </Button>
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full"
+          pending={resetMutation.isPending}
+          pendingLabel="重置中..."
+        >
+          重置密码
+        </Button>
       </form>
     </AuthPageShell>
   );

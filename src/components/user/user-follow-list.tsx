@@ -3,11 +3,11 @@
 "use client";
 
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
 import { useUserFollowList, type FollowListKind } from "@/api/hooks/use-user-follow-list";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { EmptyState } from "@/components/shared/empty-state";
-import { Button } from "@/components/ui/button";
+import { LoadError } from "@/components/shared/load-error";
+import { LoadingState } from "@/components/shared/loading-state";
 import { LevelBadge } from "@/components/shared/level-badge";
 
 interface UserFollowListProps {
@@ -19,22 +19,11 @@ export function UserFollowList({ userId, kind }: UserFollowListProps) {
   const { data: users, isLoading, isError, refetch } = useUserFollowList(userId, kind);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <LoadingState label="" className="min-h-0 py-16" />;
   }
 
   if (isError) {
-    return (
-      <div className="flex flex-col items-center gap-4 py-16">
-        <EmptyState title="加载失败" />
-        <Button variant="outline" size="sm" onClick={() => refetch()}>
-          重试
-        </Button>
-      </div>
-    );
+    return <LoadError title="加载失败" onRetry={() => void refetch()} className="py-16" />;
   }
 
   if (!users || users.length === 0) {

@@ -3,13 +3,15 @@
 "use client";
 
 import Link from "next/link";
-import { FileEdit, Trash2, Loader2, Clock } from "lucide-react";
+import { FileEdit, Trash2, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { useDrafts } from "@/api/hooks/use-drafts";
 import { useDeleteThread } from "@/api/hooks/use-delete-thread";
 import { getApiErrorMessage } from "@/api/errors";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
+import { LoadError } from "@/components/shared/load-error";
+import { LoadingState } from "@/components/shared/loading-state";
 import { WenyouTime } from "@/components/shared/wenyou-time";
 import { useConfirm } from "@/components/ui/confirm-provider";
 import { buttonVariants } from "@/components/ui/button";
@@ -36,22 +38,11 @@ export function DraftList() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <LoadingState label="" className="min-h-0 py-16" />;
   }
 
   if (error) {
-    return (
-      <div className="flex flex-col items-center gap-4 py-16">
-        <EmptyState title="草稿加载失败" />
-        <Button variant="outline" size="sm" onClick={() => refetch()}>
-          重试
-        </Button>
-      </div>
-    );
+    return <LoadError title="草稿加载失败" onRetry={() => void refetch()} className="py-16" />;
   }
 
   if (!drafts || drafts.length === 0) {

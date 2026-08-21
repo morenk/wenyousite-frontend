@@ -48,4 +48,17 @@ describe("视觉系统基础组件", () => {
 
     expect(screen.getByRole("button", { name: "旧尺寸按钮" })).toHaveClass("h-8");
   });
+
+  test("按钮 pending 时统一禁用、播报忙碌状态并使用语义加载图标", () => {
+    render(<Button pending pendingLabel="保存中…">保存</Button>);
+
+    const button = screen.getByRole("button", { name: "保存中…" });
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute("aria-busy", "true");
+    expect(button).not.toHaveTextContent("保存保存中");
+    expect(button.querySelector("svg")).toHaveAttribute(
+      "data-icon-semantic",
+      "status.loading",
+    );
+  });
 });

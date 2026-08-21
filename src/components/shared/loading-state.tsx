@@ -21,6 +21,7 @@ export function LoadingState({
     <div
       role="status"
       aria-live="polite"
+      aria-label={label || undefined}
       data-feedback-state={feedbackState}
       className={cn(
         "flex items-center justify-center text-muted-foreground",

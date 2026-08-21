@@ -6,6 +6,7 @@ import {
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
+import { WenyouIcon } from "@/components/ui/wenyou-icon"
 
 const buttonVariants = cva(
   "inline-flex shrink-0 items-center justify-center rounded-xl border border-transparent bg-clip-padding text-sm font-bold whitespace-nowrap outline-none select-none transition-[background-color,border-color,color,transform] duration-[var(--motion-fast)] ease-[var(--ease-standard)] focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:border-border disabled:bg-muted disabled:text-muted-foreground aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
@@ -57,19 +58,39 @@ const buttonRoles = {
   link: ACTION_CONTROL_CONTRACT.roles[4],
 } satisfies Record<NonNullable<VariantProps<typeof buttonVariants>["variant"]>, ActionControlRole>
 
+export type ButtonProps = React.ComponentProps<"button"> &
+  VariantProps<typeof buttonVariants> & {
+    pending?: boolean
+    pendingLabel?: React.ReactNode
+  }
+
 function Button({
   className,
   variant = "default",
   size = "default",
+  pending = false,
+  pendingLabel,
+  disabled,
+  children,
+  "aria-busy": ariaBusy,
   ...props
-}: React.ComponentProps<"button"> & VariantProps<typeof buttonVariants>) {
+}: ButtonProps) {
   return (
     <button
       data-slot="button"
       data-control-role={buttonRoles[variant ?? "default"]}
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
-    />
+      disabled={disabled || pending}
+      aria-busy={pending ? true : ariaBusy}
+    >
+      {pending ? (
+        <>
+          <WenyouIcon id="status.loading" className="animate-spin" />
+          {pendingLabel ?? children}
+        </>
+      ) : children}
+    </button>
   )
 }
 

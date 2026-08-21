@@ -10,6 +10,8 @@ import { useNotificationActions } from "@/api/hooks/use-notification-actions";
 import { useAuth } from "@/lib/auth";
 import { NotificationItem } from "@/components/notification/notification-item";
 import { EmptyState } from "@/components/shared/empty-state";
+import { LoadError } from "@/components/shared/load-error";
+import { LoadingState } from "@/components/shared/loading-state";
 import { Button } from "@/components/ui/button";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { NOTIFICATION_FILTERS } from "@/lib/notification-filters";
@@ -89,16 +91,9 @@ export function NotificationList({ type, onTypeChange }: NotificationListProps) 
       </div>
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-        </div>
+        <LoadingState label="" className="min-h-0 py-16" />
       ) : isError ? (
-        <div className="flex flex-col items-center gap-4 py-16">
-          <EmptyState title="通知加载失败" />
-          <Button variant="outline" size="sm" onClick={() => refetch()}>
-            重试
-          </Button>
-        </div>
+        <LoadError title="通知加载失败" onRetry={() => void refetch()} className="py-16" />
       ) : notifications.length === 0 ? (
         <EmptyState title="暂无通知" />
       ) : (

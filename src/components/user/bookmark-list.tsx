@@ -9,6 +9,8 @@ import { useBookmarks } from "@/api/hooks/use-bookmarks";
 import { useRemoveBookmark } from "@/api/hooks/use-bookmark-actions";
 import { BookmarkThreadCard } from "@/components/user/bookmark-thread-card";
 import { EmptyState } from "@/components/shared/empty-state";
+import { LoadError } from "@/components/shared/load-error";
+import { LoadingState } from "@/components/shared/loading-state";
 import { Button } from "@/components/ui/button";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import {
@@ -45,22 +47,11 @@ export function BookmarkList({
   const bookmarks = data?.pages.flatMap((page) => page?.data ?? []) ?? [];
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <LoadingState label="" className="min-h-0 py-16" />;
   }
 
   if (isError) {
-    return (
-      <div className="flex flex-col items-center gap-4 py-16">
-        <EmptyState title="收藏加载失败" />
-        <Button variant="outline" size="sm" onClick={() => refetch()}>
-          重试
-        </Button>
-      </div>
-    );
+    return <LoadError title="收藏加载失败" onRetry={() => void refetch()} className="py-16" />;
   }
 
   if (bookmarks.length === 0) {

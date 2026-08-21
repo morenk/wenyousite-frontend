@@ -10,8 +10,9 @@ import { z } from "zod";
 import { useAdminLogin, useAdminSession } from "@/api/hooks/use-admin";
 import { getApiErrorMessage } from "@/api/errors";
 import { Button } from "@/components/ui/button";
+import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 
 const credentialsSchema = z.object({
   account: z.string().trim().min(1, "请输入管理员账号"),
@@ -117,18 +118,38 @@ export function StationLogin() {
                 }
               })}
             >
-              <div className="space-y-2">
-                <Label htmlFor="station-account">账号</Label>
-                <Input id="station-account" autoComplete="username" {...credentials.register("account")} />
-                {credentials.formState.errors.account ? <p className="text-xs text-destructive">{credentials.formState.errors.account.message}</p> : null}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="station-password">密码</Label>
-                <Input id="station-password" type="password" autoComplete="current-password" {...credentials.register("password")} />
-                {credentials.formState.errors.password ? <p className="text-xs text-destructive">{credentials.formState.errors.password.message}</p> : null}
-              </div>
-              <Button type="submit" size="large" className="w-full" disabled={challenge.isPending}>
-                {challenge.isPending ? "正在核验…" : "继续邮箱确认"}<ArrowRight />
+              <FormField
+                id="station-account"
+                label="账号"
+                error={credentials.formState.errors.account?.message}
+                className="gap-2"
+              >
+                {(controlProps) => (
+                  <Input {...controlProps} autoComplete="username" {...credentials.register("account")} />
+                )}
+              </FormField>
+              <FormField
+                id="station-password"
+                label="密码"
+                error={credentials.formState.errors.password?.message}
+                className="gap-2"
+              >
+                {(controlProps) => (
+                  <PasswordInput
+                    {...controlProps}
+                    autoComplete="current-password"
+                    {...credentials.register("password")}
+                  />
+                )}
+              </FormField>
+              <Button
+                type="submit"
+                size="large"
+                className="w-full"
+                pending={challenge.isPending}
+                pendingLabel="正在核验…"
+              >
+                继续邮箱确认<ArrowRight />
               </Button>
             </form>
           ) : (
@@ -143,20 +164,31 @@ export function StationLogin() {
                 }
               })}
             >
-              <div className="space-y-2">
-                <Label htmlFor="station-code">6 位验证码</Label>
-                <Input
-                  id="station-code"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  maxLength={6}
-                  className="font-utility text-center text-xl tracking-[0.45em]"
-                  {...code.register("code")}
-                />
-                {code.formState.errors.code ? <p className="text-xs text-destructive">{code.formState.errors.code.message}</p> : null}
-              </div>
-              <Button type="submit" size="large" className="w-full" disabled={verify.isPending}>
-                {verify.isPending ? "正在建立安全会话…" : "进入站务台"}<ArrowRight />
+              <FormField
+                id="station-code"
+                label="6 位验证码"
+                error={code.formState.errors.code?.message}
+                className="gap-2"
+              >
+                {(controlProps) => (
+                  <Input
+                    {...controlProps}
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    className="font-utility text-center text-xl tracking-[0.45em]"
+                    {...code.register("code")}
+                  />
+                )}
+              </FormField>
+              <Button
+                type="submit"
+                size="large"
+                className="w-full"
+                pending={verify.isPending}
+                pendingLabel="正在建立安全会话…"
+              >
+                进入站务台<ArrowRight />
               </Button>
               <Button type="button" variant="ghost" className="w-full" onClick={() => setChallengeId(undefined)}>
                 返回修改账号

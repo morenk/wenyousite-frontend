@@ -23,9 +23,11 @@ import {
   useEmailCode,
 } from "@/hooks/use-email-code";
 import { AuthPageShell } from "@/components/auth/auth-page-shell";
+import { SendCodeButton } from "@/components/auth/send-code-button";
 import { Button } from "@/components/ui/button";
+import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -136,12 +138,12 @@ export default function RegisterPage() {
       )}
     >
       {step === "email" ? (
-              <div className="flex flex-col gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="email">邮箱</Label>
+        <div className="flex flex-col gap-4">
+          <FormField id="email" label="邮箱">
+            {(controlProps) => (
                   <Input
+                    {...controlProps}
                     ref={emailRef}
-                    id="email"
                     type="email"
                     placeholder="your@email.com"
                     autoComplete="email"
@@ -149,25 +151,27 @@ export default function RegisterPage() {
                       if (e.key === "Enter") handleSendCode();
                     }}
                   />
-                </div>
+            )}
+          </FormField>
 
-                <Button
-                  type="button"
-                  size="lg"
-                  onClick={handleSendCode}
-                  disabled={sending}
-                  className="w-full"
-                >
-                  {sending ? "发送中..." : "获取验证码"}
-                </Button>
-              </div>
+          <SendCodeButton
+            countdown={countdown}
+            sending={sending}
+            sent={false}
+            onSend={handleSendCode}
+            initialLabel="获取验证码"
+            variant="default"
+            size="lg"
+            className="w-full"
+          />
+        </div>
           ) : (
               <form
                 onSubmit={handleSubmit(onSubmit)}
                 className="flex flex-col gap-4"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <Label>邮箱</Label>
+                  <span className="text-sm font-medium">邮箱</span>
                   <Button
                     type="button"
                     variant="link"
@@ -180,92 +184,75 @@ export default function RegisterPage() {
                 </div>
                 <p className="text-sm text-muted-foreground">{email}</p>
 
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="code">验证码</Label>
+                <FormField
+                  id="code"
+                  label="验证码"
+                  labelAction={(
+                    <SendCodeButton
+                      countdown={countdown}
+                      sending={sending}
+                      sent
+                      onSend={handleSendCode}
+                      variant="link"
+                      size="xs"
+                      className="h-auto p-0 align-baseline"
+                    />
+                  )}
+                  error={errors.code?.message}
+                >
+                  {(controlProps) => (
                   <Input
-                    id="code"
+                    {...controlProps}
                     placeholder="6 位数字"
                     maxLength={6}
                     inputMode="numeric"
                     autoComplete="one-time-code"
                     {...rhfRegister("code")}
                   />
-                  {errors.code && (
-                    <p className="text-xs text-destructive">
-                      {errors.code.message}
-                    </p>
                   )}
-                  <p className="text-xs text-muted-foreground">
-                    {countdown > 0
-                      ? `${countdown} 秒后可重新发送`
-                      : countdown === 0 && !sending && (
-                          <Button
-                            type="button"
-                            variant="link"
-                            size="xs"
-                            className="h-auto p-0 align-baseline"
-                            onClick={handleSendCode}
-                          >
-                            重新发送验证码
-                          </Button>
-                        )}
-                  </p>
-                </div>
+                </FormField>
 
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="username">用户名</Label>
+                <FormField id="username" label="用户名" error={errors.username?.message}>
+                  {(controlProps) => (
                   <Input
-                    id="username"
+                    {...controlProps}
                     placeholder="2-24 位，字母、数字、中文"
                     autoComplete="username"
                     {...rhfRegister("username")}
                   />
-                  {errors.username && (
-                    <p className="text-xs text-destructive">
-                      {errors.username.message}
-                    </p>
                   )}
-                </div>
+                </FormField>
 
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="password">密码</Label>
-                  <Input
-                    id="password"
-                    type="password"
+                <FormField id="password" label="密码" error={errors.password?.message}>
+                  {(controlProps) => (
+                  <PasswordInput
+                    {...controlProps}
                     placeholder="至少 8 位，含字母和数字"
                     autoComplete="new-password"
                     {...rhfRegister("password")}
                   />
-                  {errors.password && (
-                    <p className="text-xs text-destructive">
-                      {errors.password.message}
-                    </p>
                   )}
-                </div>
+                </FormField>
 
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="confirm-password">确认密码</Label>
-                  <Input
-                    id="confirm-password"
-                    type="password"
+                <FormField id="confirm-password" label="确认密码" error={errors.confirmPassword?.message}>
+                  {(controlProps) => (
+                  <PasswordInput
+                    {...controlProps}
                     placeholder="再次输入密码"
                     autoComplete="new-password"
                     {...rhfRegister("confirmPassword")}
                   />
-                  {errors.confirmPassword && (
-                    <p className="text-xs text-destructive">
-                      {errors.confirmPassword.message}
-                    </p>
                   )}
-                </div>
+                </FormField>
 
                 <Button
                   type="submit"
                   size="lg"
-                  disabled={registerMutation.isPending}
                   className="w-full"
+                  pending={registerMutation.isPending}
+                  pendingLabel="注册中..."
                 >
-                  {registerMutation.isPending ? "注册中..." : "注册"}
+                  注册
                 </Button>
               </form>
           )}

@@ -3,7 +3,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -15,8 +14,8 @@ import {
 } from "@/lib/validations/auth";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { FormField } from "@/components/ui/form-field";
 import { PasswordInput } from "@/components/ui/password-input";
-import { Label } from "@/components/ui/label";
 
 export function ChangePasswordForm() {
   const router = useRouter();
@@ -48,45 +47,40 @@ export function ChangePasswordForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="space-y-1.5">
-        <Label htmlFor="old-password">当前密码</Label>
-        <PasswordInput
-          id="old-password"
-          autoComplete="current-password"
-          {...register("oldPassword")}
-        />
-        {errors.oldPassword && (
-          <p className="text-xs text-destructive">{errors.oldPassword.message}</p>
+      <FormField id="old-password" label="当前密码" error={errors.oldPassword?.message}>
+        {(controlProps) => (
+          <PasswordInput
+            {...controlProps}
+            autoComplete="current-password"
+            {...register("oldPassword")}
+          />
         )}
-      </div>
-      <div className="space-y-1.5">
-        <Label htmlFor="new-password">新密码</Label>
-        <PasswordInput
-          id="new-password"
-          autoComplete="new-password"
-          placeholder="至少 8 位，需包含字母和数字"
-          {...register("newPassword")}
-        />
-        {errors.newPassword && (
-          <p className="text-xs text-destructive">{errors.newPassword.message}</p>
+      </FormField>
+      <FormField id="new-password" label="新密码" error={errors.newPassword?.message}>
+        {(controlProps) => (
+          <PasswordInput
+            {...controlProps}
+            autoComplete="new-password"
+            placeholder="至少 8 位，需包含字母和数字"
+            {...register("newPassword")}
+          />
         )}
-      </div>
-      <div className="space-y-1.5">
-        <Label htmlFor="confirm-password">确认新密码</Label>
-        <PasswordInput
-          id="confirm-password"
-          autoComplete="new-password"
-          {...register("confirmPassword")}
-        />
-        {errors.confirmPassword && (
-          <p className="text-xs text-destructive">{errors.confirmPassword.message}</p>
+      </FormField>
+      <FormField id="confirm-password" label="确认新密码" error={errors.confirmPassword?.message}>
+        {(controlProps) => (
+          <PasswordInput
+            {...controlProps}
+            autoComplete="new-password"
+            {...register("confirmPassword")}
+          />
         )}
-      </div>
+      </FormField>
       <div className="flex justify-end">
-        <Button type="submit" disabled={changePassword.isPending}>
-          {changePassword.isPending ? (
-            <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-          ) : null}
+        <Button
+          type="submit"
+          pending={changePassword.isPending}
+          pendingLabel="保存中…"
+        >
           保存新密码
         </Button>
       </div>

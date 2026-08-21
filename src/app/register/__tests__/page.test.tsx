@@ -65,7 +65,7 @@ describe("RegisterPage", () => {
 
     // 换个邮箱 → 返回第一步
     fireEvent.click(screen.getByRole("button", { name: "换个邮箱" }));
-    expect(screen.getByRole("button", { name: "获取验证码" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /秒后重发/ })).toBeDisabled();
     expect(screen.queryByRole("button", { name: "换个邮箱" })).not.toBeInTheDocument();
   });
 
@@ -92,7 +92,7 @@ describe("RegisterPage", () => {
     await waitFor(() => {
       expect(screen.getByText("maybe@b.com")).toBeInTheDocument();
     });
-    expect(screen.getByText(/秒后可重新发送/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /秒后重发/ })).toBeDisabled();
   });
 
   test("仅有 HTTP 429 状态时也进入验证码步骤和冷却", async () => {
@@ -105,6 +105,6 @@ describe("RegisterPage", () => {
     await waitFor(() => {
       expect(screen.getByText("rate@b.com")).toBeInTheDocument();
     });
-    expect(screen.getByText(/秒后可重新发送/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /秒后重发/ })).toBeDisabled();
   });
 });
