@@ -9,8 +9,8 @@ import { toast } from "sonner";
 import { useSetAvatar } from "@/api/hooks/use-set-avatar";
 import { getApiErrorMessage } from "@/api/errors";
 import { ImageUploadProgress } from "@/components/shared/image-upload-progress";
+import { UserAvatar } from "@/components/shared/user-avatar";
 import {
-  getImageUrlBySize,
   isUploadAbortError,
   uploadImageFile,
   validateAvatarFile,
@@ -52,7 +52,6 @@ export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
 
   useEffect(() => () => uploadAbortRef.current?.abort(), []);
 
-  const avatarUrl = avatar ? getImageUrlBySize(avatar, "thumb") : null;
   const pending = isUploading || setAvatar.isPending || removeAvatar.isPending;
 
   const invalidatePreparedAvatar = () => {
@@ -134,19 +133,12 @@ export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
 
   return (
     <div className="flex items-center gap-4">
-      <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full border border-border bg-muted">
-        {avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={avatarUrl} alt={username} className="h-full w-full object-cover" />
-        ) : (
-          <div
-            data-testid="avatar-placeholder"
-            className="flex h-full w-full items-center justify-center text-3xl font-bold text-brand-strong"
-          >
-            {username.slice(0, 1).toUpperCase()}
-          </div>
-        )}
-      </div>
+      <UserAvatar
+        name={username}
+        src={avatar}
+        className="size-20 border border-border bg-muted"
+        textClassName="text-3xl"
+      />
 
       <div className="flex flex-col gap-1.5">
         <div className="flex gap-2">
@@ -160,7 +152,7 @@ export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
             <Camera className="mr-1.5 h-4 w-4" />
             更换头像
           </Button>
-          {avatarUrl && (
+          {avatar ? (
             <Button
               type="button"
               variant="ghost"
@@ -170,7 +162,7 @@ export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
             >
               移除头像
             </Button>
-          )}
+          ) : null}
         </div>
         <p className="text-xs text-muted-foreground">支持 jpg/png/webp，裁剪后 512×512</p>
         <input

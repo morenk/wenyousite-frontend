@@ -58,6 +58,7 @@ vi.mock("next/navigation", () => ({
 
 import { toast } from "sonner";
 import { FloorForm } from "@/components/thread/floor-form";
+import { ReplyForm } from "@/components/thread/reply-form";
 
 vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
@@ -179,5 +180,32 @@ describe("FloorForm", () => {
     await user.click(screen.getByText("发布"));
 
     expect(toast.error).toHaveBeenCalledWith("内容不能为空");
+  });
+
+  test("楼中楼入口复用相同挂载逻辑并保留回复会话参数", async () => {
+    const user = userEvent.setup();
+    mockUseAuth.mockReturnValue({ user: loggedInUser, isInitialized: true });
+    renderWithQC(
+      <ReplyForm
+        subthreadId="s1"
+        parentPostId="floor-1"
+        replyToPostId="post-2"
+        label="回复 tester"
+      />,
+    );
+
+    expect(document.querySelector('[data-icon-semantic="action.reply"]')).not.toBeNull();
+    await user.click(screen.getByRole("button", { name: "发表回复…" }));
+    await user.type(screen.getByTestId("milkdown-editor"), "楼中楼回复");
+    await user.click(screen.getByRole("button", { name: "回复" }));
+
+    expect(mockMutateAsync).toHaveBeenCalledWith({
+      subthreadId: "s1",
+      content: "楼中楼回复",
+      clientRequestId: expect.any(String),
+      parentPostId: "floor-1",
+      replyToPostId: "post-2",
+    });
+    expect(toast.success).toHaveBeenCalledWith("回复成功");
   });
 });

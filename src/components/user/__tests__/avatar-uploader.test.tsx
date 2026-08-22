@@ -67,30 +67,38 @@ beforeEach(() => {
   mockUploadImageFile.mockResolvedValue({ url: "https://example.com/avatar.webp", mediaId: "m1" });
   mockSetAvatar.mutateAsync.mockResolvedValue(undefined);
   mockRemoveAvatar.mutateAsync.mockResolvedValue(undefined);
-  vi.stubGlobal("URL", { ...URL, createObjectURL: vi.fn(() => "blob:fake"), revokeObjectURL: vi.fn() });
+  vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:fake");
+  vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => undefined);
 });
 
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
 
 describe("AvatarUploader", () => {
   test("无头像显示首字母占位与更换按钮，无移除按钮", () => {
     renderUploader();
-    expect(screen.getByTestId("avatar-placeholder").textContent).toBe("T");
+    expect(screen.getByTestId("user-avatar-placeholder").textContent).toBe("T");
     expect(screen.getByRole("button", { name: /更换头像/ })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /移除头像/ })).not.toBeInTheDocument();
   });
 
   test("有头像显示缩略图与移除按钮", () => {
     renderUploader({ avatar: "https://example.com/uploads/avatar.png" });
-    expect(screen.queryByTestId("avatar-placeholder")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("user-avatar-placeholder")).not.toBeInTheDocument();
     expect(screen.getByRole("img")).toHaveAttribute(
       "src",
       "https://example.com/uploads/avatar_thumb.webp",
     );
     expect(screen.getByRole("button", { name: /移除头像/ })).toBeInTheDocument();
+  });
+
+  test("头像加载失败时复用统一首字符占位", () => {
+    renderUploader({ username: "茶馆", avatar: "https://example.com/uploads/broken.png" });
+    fireEvent.error(screen.getByRole("img", { name: "茶馆" }));
+    expect(screen.getByTestId("user-avatar-placeholder")).toHaveTextContent("茶");
   });
 
   test("选择文件后裁剪确认触发上传并设置头像", async () => {

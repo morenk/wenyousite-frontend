@@ -237,8 +237,9 @@ const semanticContractClaims = new Map([
   ["src/components/thread/floor-card.tsx", ["ReplyActionButton"]],
   ["src/components/thread/reply-card.tsx", ["ReplyActionButton"]],
   ["src/components/moment/moment-comment-row.tsx", ["ReplyActionButton"]],
-  ["src/components/thread/reply-form.tsx", ["id=\"action.reply\""]],
-  ["src/components/thread/floor-form.tsx", ["id=\"action.add-comment\""]],
+  ["src/components/thread/thread-composer-entry.tsx", ["WenyouIcon", "id={iconId}"]],
+  ["src/components/thread/reply-form.tsx", ["ThreadComposerEntry", "iconId=\"action.reply\""]],
+  ["src/components/thread/floor-form.tsx", ["ThreadComposerEntry", "iconId=\"action.add-comment\""]],
 ]);
 for (const [fileName, claims] of semanticContractClaims) {
   const source = readFileSync(resolve(root, fileName), "utf8");

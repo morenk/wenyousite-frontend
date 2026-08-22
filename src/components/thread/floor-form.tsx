@@ -1,14 +1,6 @@
 /** 楼层发布入口：点击后才按需挂载详情页唯一 Markdown 编辑器 */
 
-"use client";
-
-import { LogIn } from "lucide-react";
-import { useAuth } from "@/lib/auth";
-import { useThreadComposer } from "@/components/thread/thread-composer-context";
-import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
-import { Button } from "@/components/ui/button";
-import { WenyouIcon } from "@/components/ui/wenyou-icon";
-import { useLoginRedirect } from "@/hooks/use-login-redirect";
+import { ThreadComposerEntry } from "@/components/thread/thread-composer-entry";
 
 interface FloorFormProps {
   subthreadId: string;
@@ -19,51 +11,20 @@ export function getFloorComposerAnchorId(subthreadId: string) {
 }
 
 export function FloorForm({ subthreadId }: FloorFormProps) {
-  const { user } = useAuth();
-  const redirectToLogin = useLoginRedirect();
-  const { session, open } = useThreadComposer();
   const anchorId = getFloorComposerAnchorId(subthreadId);
-  const isActive = session?.anchorId === anchorId;
-
-  if (!user) {
-    return (
-      <div className="rounded-xl border border-border bg-card p-4">
-        <p className="mb-3 text-sm text-muted-foreground">
-          登录后即可参与讨论
-        </p>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => redirectToLogin()}
-        >
-          <LogIn className="mr-1.5 h-4 w-4" />
-          登录
-        </Button>
-      </div>
-    );
-  }
 
   return (
-    <div className="space-y-3 rounded-xl border border-border bg-card p-4">
-      {!isActive && (
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full justify-start text-muted-foreground"
-          onClick={() => open({
-            key: anchorId,
-            anchorId,
-            type: "create-floor",
-            subthreadId,
-            label: "发表回复",
-            initialContent: "",
-          })}
-        >
-          <WenyouIcon id="action.add-comment" className="mr-2 size-4" />
-          发表回复…
-        </Button>
-      )}
-      <ThreadComposerOutlet anchorId={anchorId} />
-    </div>
+    <ThreadComposerEntry
+      anchorId={anchorId}
+      iconId="action.add-comment"
+      composerSession={{
+        key: anchorId,
+        anchorId,
+        type: "create-floor",
+        subthreadId,
+        label: "发表回复",
+        initialContent: "",
+      }}
+    />
   );
 }
