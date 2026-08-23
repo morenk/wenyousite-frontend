@@ -99,14 +99,38 @@ describe("编辑器正文字体", () => {
     expect(published).toContain("max-width: 40em");
   });
 
-  test("编辑态与发布态的引用块均使用正常字形和元素 Token", () => {
+  test("编辑态与发布态的引用块均映射为 Foundation 书签纸条", () => {
     const editorQuote = getRule(editorCss, ".milkdown .ProseMirror blockquote");
     const publishedQuote = getRule(globalCss, ".wenyou-prose blockquote");
 
     for (const rule of [editorQuote, publishedQuote]) {
+      expect(rule).toContain("inline-size: 100%");
+      expect(rule).toContain(
+        "border-inline-start: var(--element-quote-marker-width) solid var(--element-quote-marker)",
+      );
+      expect(rule).toContain("border-start-start-radius: 0");
+      expect(rule).toContain("border-end-start-radius: 0");
+      expect(rule).toContain("border-start-end-radius: var(--element-quote-radius)");
+      expect(rule).toContain("border-end-end-radius: var(--element-quote-radius)");
+      expect(rule).toContain("background: var(--element-quote-surface)");
+      expect(rule).toContain("color: var(--element-quote-foreground)");
       expect(rule).toContain("font-style: normal");
       expect(rule).toContain("font-synthesis: none");
+      expect(rule).toContain("font-weight: var(--element-quote-font-weight)");
       expect(rule).toContain("var(--element-quote-padding-block)");
+      expect(rule).toContain("var(--element-quote-padding-inline)");
+      expect(rule).toContain("box-shadow: none");
+      expect(rule).not.toContain("var(--primary)");
+      expect(rule).not.toContain("var(--font-display)");
     }
+
+    expect(getRule(globalCss, ".wenyou-prose blockquote > :first-child"))
+      .toContain("margin-block-start: 0");
+    expect(getRule(globalCss, ".wenyou-prose blockquote > :last-child"))
+      .toContain("margin-block-end: 0");
+    expect(getRule(editorCss, ".milkdown .ProseMirror blockquote > :first-child"))
+      .toContain("padding-block-start: 0");
+    expect(getRule(editorCss, ".milkdown .ProseMirror blockquote > :last-child"))
+      .toContain("padding-block-end: 0");
   });
 });

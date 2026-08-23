@@ -69,7 +69,7 @@
 | lightbox 图片单击 | 在适应屏幕与 1:1 原图之间切换；事件不会冒泡触发遮罩关闭 |
 | lightbox 其他操作 | 滚轮/工具栏缩放，放大后拖拽平移；Esc、点背景或关闭按钮退出 |
 | Milkdown 空段落 | 独占行 `<br />` / `<br>` / `<br/>` 规范化为安全空段落；围栏代码块中的同名示例原样保留 |
-| 引用（blockquote） | 由 `@tailwindcss/typography` 插件（`prose` 类）提供左边框、斜体和引号；插件必须在 `globals.css` 以 `@plugin` 注册 |
+| 引用（blockquote） | 保留原生语义并消费 Foundation 引用 Token：`muted` 底色、2px `brandStrong` 起始边标记、只圆结束侧、正文排版继承；首尾内容贴合内边距，不生成引号、图标或阴影 |
 | 原始 HTML | `react-markdown` 使用 `skipHtml` 忽略，不执行用户输入的标签或脚本 |
 
 **识别本站上传图的判定**：objectKey 统一以 `uploads/` 开头（后端生成规则），故以 URL 包含 `/uploads/` 判断，无需前端持有 COS 域名配置。

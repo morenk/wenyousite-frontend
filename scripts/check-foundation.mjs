@@ -24,8 +24,8 @@ if (packageJson.dependencies?.["@wenyousite/foundation"] !== `github:morenk/weny
 if (manifest.version !== lock.version) failures.push("已安装 foundation 版本与锁文件不一致");
 if (manifest.contractSha256 !== lock.contractSha256) failures.push("已安装 foundation 契约哈希与锁文件不一致");
 if (!read("pnpm-lock.yaml").includes(lock.revision)) failures.push("pnpm-lock.yaml 未锁定指定 foundation revision");
-if (foundationContract.version !== "6.2.0" || foundationContract.schemaVersion !== 2) {
-  failures.push("Web 必须消费 Foundation v6.2.0 schema 2 契约");
+if (foundationContract.version !== "6.3.0" || foundationContract.schemaVersion !== 2) {
+  failures.push("Web 必须消费 Foundation v6.3.0 schema 2 契约");
 }
 if (!manifest.features?.typography || !manifest.features?.interaction || !manifest.features?.controls || !manifest.features?.formatting || !manifest.features?.contentPresentation || !manifest.features?.iconControls || !manifest.features?.navigation || !manifest.features?.language || !manifest.features?.elements) {
   failures.push("已安装 Foundation 缺少共享语义能力");
@@ -63,8 +63,31 @@ for (const claim of ["--type-body-size", "--type-body-line-height"]) {
   if (!globalStyles.includes(`var(${claim})`)) failures.push(`globals.css 未消费语义排版 Token ${claim}`);
 }
 const foundationTokens = read("node_modules/@wenyousite/foundation/web/tokens.css");
-for (const token of ["--type-page-title-size", "--overlay-scrim", "--layer-modal", "--layer-global-progress", "--like", "--bookmark", "--icon-control-state-layer-color", "--icon-control-state-layer-radius", "--icon-control-hover-state-opacity", "--icon-control-focus-state-opacity", "--icon-control-pressed-state-opacity", "--icon-control-disabled-content-opacity", "--element-internal-reference-surface", "--element-badge-default-height", "--element-level-mist-surface", "--element-level-berry-surface"]) {
+for (const token of ["--type-page-title-size", "--overlay-scrim", "--layer-modal", "--layer-global-progress", "--like", "--bookmark", "--icon-control-state-layer-color", "--icon-control-state-layer-radius", "--icon-control-hover-state-opacity", "--icon-control-focus-state-opacity", "--icon-control-pressed-state-opacity", "--icon-control-disabled-content-opacity", "--element-internal-reference-surface", "--element-badge-default-height", "--element-level-mist-surface", "--element-level-berry-surface", "--element-quote-foreground", "--element-quote-surface", "--element-quote-marker", "--element-quote-marker-width", "--element-quote-radius", "--element-quote-font-weight", "--element-quote-padding-block", "--element-quote-padding-inline"]) {
   if (!foundationTokens.includes(`${token}:`)) failures.push(`Foundation Web Token 缺少 ${token}`);
+}
+const quoteContract = foundationContract.experiences.elements?.block?.quote;
+if (JSON.stringify(quoteContract) !== JSON.stringify({
+  foreground: "foreground",
+  surface: "muted",
+  marker: "brandStrong",
+  markerWidthPx: 2,
+  radius: "compact",
+  radiusApplication: "trailing-only",
+  width: "available",
+  fontFamily: "body",
+  fontSize: "inherit",
+  lineHeight: "inherit",
+  fontWeight: 400,
+  fontStyle: "normal",
+  paddingBlockEm: 0.5,
+  paddingInlineEm: 0.75,
+  outerSpacing: "native-block-rhythm",
+  contentSpacing: "trim-outer-preserve-inner",
+  generatedAdornment: "none",
+  shadow: "none",
+})) {
+  failures.push("Foundation 缺少统一的书签纸条引用契约");
 }
 if (
   foundationContract.experiences.elements?.inline?.internalReference?.icon !== "content.internal-reference"

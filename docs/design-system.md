@@ -4,18 +4,18 @@
 
 跨端审美、共享 Token、字体角色和编辑器能力的唯一事实源是公开仓库
 [`morenk/wenyousite-foundation`](https://github.com/morenk/wenyousite-foundation)。本仓库由
-[`foundation.lock.json`](../foundation.lock.json) 固定到 `v6.2.0`，实现前必须读取同版本的：
+[`foundation.lock.json`](../foundation.lock.json) 固定到 `v6.3.0`，实现前必须读取同版本的：
 
-- [`docs/foundation.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.2.0/docs/foundation.md)
-- [`docs/platforms/web.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.2.0/docs/platforms/web.md)
-- [`docs/elements.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.2.0/docs/elements.md)
-- [`docs/images.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.2.0/docs/images.md)
-- [`docs/icons.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.2.0/docs/icons.md)
-- [`docs/notifications.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.2.0/docs/notifications.md)
-- [`docs/interaction.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.2.0/docs/interaction.md)
-- [`docs/presentation.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.2.0/docs/presentation.md)
-- [`docs/navigation-language.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.2.0/docs/navigation-language.md)
-- [`contracts/foundation.v1.json`](https://github.com/morenk/wenyousite-foundation/blob/v6.2.0/contracts/foundation.v1.json)
+- [`docs/foundation.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.3.0/docs/foundation.md)
+- [`docs/platforms/web.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.3.0/docs/platforms/web.md)
+- [`docs/elements.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.3.0/docs/elements.md)
+- [`docs/images.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.3.0/docs/images.md)
+- [`docs/icons.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.3.0/docs/icons.md)
+- [`docs/notifications.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.3.0/docs/notifications.md)
+- [`docs/interaction.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.3.0/docs/interaction.md)
+- [`docs/presentation.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.3.0/docs/presentation.md)
+- [`docs/navigation-language.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.3.0/docs/navigation-language.md)
+- [`contracts/foundation.v1.json`](https://github.com/morenk/wenyousite-foundation/blob/v6.3.0/contracts/foundation.v1.json)
 
 本地只保留实现映射，不复制规范：
 
@@ -31,7 +31,7 @@
 - 核心导航、操作、编辑器能力和常见状态使用 Foundation 语义图标；图标型操作统一通过共享 `Tooltip` 补足悬停/聚焦说明；全局 Provider 使用短延迟并保留可访问名称，不能以 `title` 属性或仅悬停内容替代按钮的 `aria-label`。
 - 二态互动统一通过 `InteractionToggle` 消费 Foundation `iconControls`：未选中使用 `mutedForeground` 描边；选中态始终保持容器透明，只让点赞的实心心形变为鲜粉 `like`、收藏的实心书签变为金色 `bookmark`、官方更新订阅的实心铃铛变为品牌深紫 `brandStrong`。计数和文字保持中性 `foreground`。hover、focus 与 pressed 只在图标命中区显示同色圆形瞬时状态层，不能重新给整个按钮添加柔和底色；危险操作继续使用 destructive 语义。请求中保留提交前视觉和焦点能力，以 loading 图标、`aria-busy` 与 `aria-disabled` 阻止重复提交；按钮名称稳定为动作词，状态和数量置于可访问说明并用 `aria-pressed` 表示。
 - 收藏、订阅、关注、拉黑、归档等轻量状态操作由 pending 与更新后的控件/列表状态反馈成功，不再重复弹出成功 Toast；失败仍使用错误 Toast。金额或奖励结果、复制、发布删除、消息决策、安全与站务操作等需要补充结果信息的反馈继续保留。
-- 正文与元数据元素统一消费 Foundation `experiences.elements`：传送门使用同源门图标和可换行轻量胶囊；普通链接保留下划线，提及保留 `@`，行内代码、骰子、引用和分隔线使用 `--element-*`。骰子以无图标原子节点显示 `{notation} = {total}`，多骰明细保留在完整可访问说明中；待掷显示 `{notation} = ?`。Badge 只有默认/紧凑两档，等级固定 `Lv.N` 并按雾灰、杏桃、玫瑰、珊瑚、深莓五档渐进，未读数隐藏零并封顶 `99+`，主题标签保留 `#` 与 32px 命中区。
+- 正文与元数据元素统一消费 Foundation `experiences.elements`：传送门使用同源门图标和可换行轻量胶囊；普通链接保留下划线，提及保留 `@`，行内代码、骰子、引用和分隔线使用 `--element-*`。引用在编辑态和发布态都映射为占满可用正文宽度的“书签纸条”：`muted` 底色、2px `brandStrong` 起始边标记、只圆结束侧、正文排版继承，裁掉首尾子节点外间距且不生成引号、图标或阴影。骰子以无图标原子节点显示 `{notation} = {total}`，多骰明细保留在完整可访问说明中；待掷显示 `{notation} = ?`。Badge 只有默认/紧凑两档，等级固定 `Lv.N` 并按雾灰、杏桃、玫瑰、珊瑚、深莓五档渐进，未读数隐藏零并封顶 `99+`，主题标签保留 `#` 与 32px 命中区。
 - 头像缺失或图片失败时显示首个可读字符，匿名或不可用身份显示中性用户图标；邮箱验证状态不进入列表、详情或公开资料，只保留账号安全入口与受限操作引导。
 - 分类只使用文字与 neutral Badge 表达，不渲染分类色块或线路；分类 API 不定义颜色字段。
 - 页面标题、区块标题、正文、标签和说明消费 Foundation 语义排版 Token；加载、空结果、失败和 Mutation pending 遵循 `interaction` 契约。

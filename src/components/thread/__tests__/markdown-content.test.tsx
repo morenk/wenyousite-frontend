@@ -35,6 +35,17 @@ describe("MarkdownContent", () => {
     expect(content).toHaveClass("wenyou-prose-compact");
   });
 
+  test("引用保留原生 blockquote 语义与多段内容", () => {
+    render(<MarkdownContent content={"> 第一段\n>\n> 第二段"} />);
+
+    const quote = document.querySelector("blockquote");
+    expect(quote).toBeInTheDocument();
+    expect(quote).toHaveTextContent("第一段");
+    expect(quote).toHaveTextContent("第二段");
+    expect(quote?.querySelectorAll(":scope > p")).toHaveLength(2);
+    expect(quote?.querySelector("svg")).toBeNull();
+  });
+
   test("站内链接统一渲染为同页传送门，名称可自定义", () => {
     const threadId = "cmsewdo0h000x7qv6aa77ll1v";
     render(<MarkdownContent content={`参见 [设定 A](/threads/${threadId})`} />);
