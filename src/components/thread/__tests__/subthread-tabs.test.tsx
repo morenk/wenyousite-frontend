@@ -7,6 +7,10 @@ import { SubthreadSwitcher } from "@/components/thread/subthread-tabs";
 import type { SubthreadDetail } from "@/api/hooks/use-thread-detail";
 
 function makeSub(overrides: Partial<SubthreadDetail> = {}): SubthreadDetail {
+  const postingCapability = overrides.postingCapability ?? {
+    canPost: true,
+    denialReason: null,
+  };
   return {
     id: "s1",
     threadId: "t1",
@@ -20,6 +24,7 @@ function makeSub(overrides: Partial<SubthreadDetail> = {}): SubthreadDetail {
     bodyPost: null,
     _count: { posts: 5 },
     ...overrides,
+    postingCapability,
   };
 }
 

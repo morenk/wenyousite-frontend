@@ -13,6 +13,7 @@ const baseSubthread: SubthreadDetail = {
   title: "设定区",
   sortOrder: 0,
   postingPolicy: "PARTICIPANTS",
+  postingCapability: { canPost: true, denialReason: null },
   version: 1,
   lastPostAt: null,
   deletedAt: null,

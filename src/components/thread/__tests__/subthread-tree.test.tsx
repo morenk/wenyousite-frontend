@@ -26,6 +26,7 @@ function makeSub(
     title,
     sortOrder: 0,
     postingPolicy,
+    postingCapability: { canPost: true, denialReason: null },
     version: 1,
     lastPostAt: null,
     deletedAt: null,

@@ -86,6 +86,7 @@ function makeThread(visibility: ThreadDetail["visibility"] = "PUBLIC"): ThreadDe
     title: "测试帖",
     sortOrder: 0,
     postingPolicy: "PARTICIPANTS" as const,
+    postingCapability: { canPost: true, denialReason: null },
     version: 1,
     lastPostAt: null,
     deletedAt: null,

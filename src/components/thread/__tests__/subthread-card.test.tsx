@@ -17,6 +17,7 @@ const mockSubthread: SubthreadDetail = {
   title: "主帖讨论区",
   sortOrder: 0,
   postingPolicy: "PARTICIPANTS",
+  postingCapability: { canPost: true, denialReason: null },
   version: 1,
   lastPostAt: null,
   deletedAt: null,

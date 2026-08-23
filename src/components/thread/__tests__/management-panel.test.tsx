@@ -191,6 +191,7 @@ function makeSub(
     title,
     sortOrder,
     postingPolicy: "PARTICIPANTS" as const,
+    postingCapability: { canPost: true, denialReason: null },
     version: 1,
     lastPostAt: null,
     deletedAt: null,

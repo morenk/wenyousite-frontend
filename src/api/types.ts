@@ -278,6 +278,23 @@ export interface paths {
         patch: operations["usersUpdateMe"];
         trace?: never;
     };
+    "/api/v1/users/me/collaborated-threads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取当前用户担任协作者的已发布主题帖（含公开与私密主题） */
+        get: operations["usersGetMyCollaboratedThreads"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/users/me/avatar": {
         parameters: {
             query?: never;
@@ -3174,6 +3191,75 @@ export interface components {
             updatedAt: string;
             _count: components["schemas"]["UserSocialCountResponseDto"];
         };
+        ThreadCategoryInfoDto: {
+            /** @example MYSTERY */
+            slug: string;
+            /**
+             * @description 分类注册表中的当前名称
+             * @example 悬疑推理
+             */
+            name: string;
+            /** @description 当前是否允许新主题选择该分类 */
+            isActive: boolean;
+        };
+        ThreadListDefaultSubthreadResponseDto: {
+            id: string;
+            title: string;
+            /** Format: date-time */
+            lastPostAt: string | null;
+        };
+        ThreadTagResponseDto: {
+            id: string;
+            name: string;
+            color: string | null;
+            description: string | null;
+            sortOrder: number;
+            isActive: boolean;
+        };
+        ThreadTagRelationResponseDto: {
+            id: string;
+            threadId: string;
+            tagId: string;
+            tag: components["schemas"]["ThreadTagResponseDto"];
+        };
+        ThreadListCountResponseDto: {
+            members: number;
+            players: number;
+            posts: number;
+        };
+        ThreadListItemResponseDto: {
+            id: string;
+            title: string;
+            /**
+             * @description 动态分类 slug
+             * @example MYSTERY
+             */
+            category: string | null;
+            /** @description 分类展示读模型；名称来自当前分类注册表，历史未知 slug 使用 slug 兜底 */
+            categoryInfo: components["schemas"]["ThreadCategoryInfoDto"] | null;
+            /** @enum {string} */
+            status: "RECRUITING" | "CLOSED" | "FINISHED";
+            /** @enum {string} */
+            visibility: "PUBLIC" | "PRIVATE";
+            published: boolean;
+            pinned: boolean;
+            /** @description 用户投入的累计打赏升数 */
+            tipTotal: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: date-time */
+            deletedAt: string | null;
+            owner: components["schemas"]["PostAuthorResponseDto"];
+            defaultSubthread: components["schemas"]["ThreadListDefaultSubthreadResponseDto"] | null;
+            topicTags: components["schemas"]["ThreadTagRelationResponseDto"][];
+            _count: components["schemas"]["ThreadListCountResponseDto"];
+            /** @description 默认主贴正文的纯文本预览 */
+            preview: string;
+            /** @description 默认主贴正文中的第一张普通图片 URL；无图时返回空数组 */
+            coverImages: string[];
+        };
         UpdateUserDto: {
             /**
              * @description 用户名（字母、数字、中文，修改后 7 天内不可再次修改）
@@ -3246,42 +3332,6 @@ export interface components {
              */
             mobileMediaId?: string;
         };
-        ThreadCategoryInfoDto: {
-            /** @example MYSTERY */
-            slug: string;
-            /**
-             * @description 分类注册表中的当前名称
-             * @example 悬疑推理
-             */
-            name: string;
-            /** @description 当前是否允许新主题选择该分类 */
-            isActive: boolean;
-        };
-        ThreadListDefaultSubthreadResponseDto: {
-            id: string;
-            title: string;
-            /** Format: date-time */
-            lastPostAt: string | null;
-        };
-        ThreadTagResponseDto: {
-            id: string;
-            name: string;
-            color: string | null;
-            description: string | null;
-            sortOrder: number;
-            isActive: boolean;
-        };
-        ThreadTagRelationResponseDto: {
-            id: string;
-            threadId: string;
-            tagId: string;
-            tag: components["schemas"]["ThreadTagResponseDto"];
-        };
-        ThreadListCountResponseDto: {
-            members: number;
-            players: number;
-            posts: number;
-        };
         BookmarkThreadResponseDto: {
             id: string;
             title: string;
@@ -3352,39 +3402,6 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
-        };
-        ThreadListItemResponseDto: {
-            id: string;
-            title: string;
-            /**
-             * @description 动态分类 slug
-             * @example MYSTERY
-             */
-            category: string | null;
-            /** @description 分类展示读模型；名称来自当前分类注册表，历史未知 slug 使用 slug 兜底 */
-            categoryInfo: components["schemas"]["ThreadCategoryInfoDto"] | null;
-            /** @enum {string} */
-            status: "RECRUITING" | "CLOSED" | "FINISHED";
-            /** @enum {string} */
-            visibility: "PUBLIC" | "PRIVATE";
-            published: boolean;
-            pinned: boolean;
-            /** @description 用户投入的累计打赏升数 */
-            tipTotal: string;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-            /** Format: date-time */
-            deletedAt: string | null;
-            owner: components["schemas"]["PostAuthorResponseDto"];
-            defaultSubthread: components["schemas"]["ThreadListDefaultSubthreadResponseDto"] | null;
-            topicTags: components["schemas"]["ThreadTagRelationResponseDto"][];
-            _count: components["schemas"]["ThreadListCountResponseDto"];
-            /** @description 默认主贴正文的纯文本预览 */
-            preview: string;
-            /** @description 默认主贴正文中的第一张普通图片 URL；无图时返回空数组 */
-            coverImages: string[];
         };
         UserActivitySummaryResponseDto: {
             /** @description 当前查看者可见的未删除动态数 */
@@ -3480,6 +3497,11 @@ export interface components {
             preview?: string | null;
             subthreadTitle?: string | null;
             threadTitle?: string | null;
+            threadId?: string | null;
+            /** @enum {string|null} */
+            oldRole?: "COLLABORATOR" | "PARTICIPANT" | null;
+            /** @enum {string|null} */
+            newRole?: "COLLABORATOR" | "PARTICIPANT" | null;
             momentTitle?: string | null;
             totalCount?: number | null;
             likers?: components["schemas"]["NotificationLikerResponseDto"][];
@@ -3761,6 +3783,11 @@ export interface components {
              */
             visibility: "PUBLIC" | "PRIVATE";
         };
+        PostingCapabilityResponseDto: {
+            canPost: boolean;
+            /** @enum {string|null} */
+            denialReason: "AUTHENTICATION_REQUIRED" | "BLOCKED_RELATION" | "COLLABORATOR_REQUIRED" | "PLAYER_REQUIRED" | null;
+        };
         DiceRollResponseDto: {
             id: string;
             postId: string;
@@ -3805,6 +3832,7 @@ export interface components {
             sortOrder: number;
             /** @enum {string} */
             postingPolicy: "PARTICIPANTS" | "COLLABORATORS" | "PLAYERS";
+            postingCapability: components["schemas"]["PostingCapabilityResponseDto"];
             version: number;
             /** Format: date-time */
             lastPostAt: string | null;
@@ -5887,6 +5915,9 @@ export interface components {
         UsersUpdateMe200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["PrivateUserResponseDto"];
         };
+        UsersGetMyCollaboratedThreads200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["ThreadListItemResponseDto"][];
+        };
         UsersRemoveAvatar200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["PrivateUserResponseDto"];
         };
@@ -7348,6 +7379,55 @@ export interface operations {
             };
             /** @description 用户名已被占用 */
             409: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    usersGetMyCollaboratedThreads: {
+        parameters: {
+            query?: {
+                /** @description 服务端返回的不透明分页游标；首次请求不传，后续必须原样回传 */
+                cursor?: string;
+                /** @description 每页条数（默认 20，最大 50） */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 协作主题列表，按 updatedAt DESC、id DESC 稳定游标分页 */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsersGetMyCollaboratedThreads200Response"];
+                };
+            };
+            /** @description 未登录或 Token 无效 */
+            401: {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];

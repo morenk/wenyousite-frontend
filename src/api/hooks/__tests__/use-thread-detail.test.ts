@@ -14,6 +14,7 @@ function makeSub(id: string): SubthreadDetail {
     title: "子贴" + id,
     sortOrder: 0,
     postingPolicy: "PARTICIPANTS",
+    postingCapability: { canPost: true, denialReason: null },
     version: 1,
     lastPostAt: null,
     deletedAt: null,

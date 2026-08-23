@@ -22,12 +22,15 @@
 | 媒体 | `POST /media/upload-url`、`POST /media/upload-done`、`GET /media/:id`（具名缩略图/中图 URL） |
 | 草稿 | `/drafts`、`/drafts/slots`、`/drafts/:id` |
 | 帖子 | `/subthreads/:subthreadId/posts`、`/subthreads/:subthreadId/body`、`/posts/:id`、`/posts/:id/replies` |
+| 协作 | `GET /users/me/collaborated-threads`（当前仅同步契约与生成类型，不新增 Web 页面） |
 
 成功响应统一为 `{ code, message, data, meta? }`。业务 DTO 位于 `data`，cursor 分页位于 `meta`。
 
 `scripts/check-flutter-contract.mjs` 验证 OpenAPI 3.0、稳定 lowerCamel operationId、具名 2xx 响应、非空查询 schema、移动基线端点、动态分类开放字符串与错误码 schema，作为 `pnpm contract:check` 的本地静态门禁。
 
 契约版本以 `contracts/openapi.json` 的 `info.version` 为准，不在说明文档中复制易过期的版本号。主题帖分类字段是可空字符串而非封闭枚举：草稿可为 `null`，发布必须使用 `GET /thread-categories` 返回的启用 slug。Web 与 Flutter 均消费 `contracts/thread-category-v3-fixtures.json` 黄金用例；既有线程展示直接读取响应 `categoryInfo.name`，不得再用仅含启用项的发现列表反查。分类是纯文本能力，旧 `icon / mergedIntoId` 只作兼容且不应消费；未知 slug 显示原值，空值显示“未分类”，未知响应字段必须忽略。
+
+主题详情子贴现包含必填 `postingCapability`，通知 payload 可包含协作者任免的 `threadId / oldRole / newRole`。Web 当前只通过生成类型接受这些向后兼容字段，不据此改变发言控件、通知渲染或增加协作列表入口。
 
 ## 4. 状态管理
 
