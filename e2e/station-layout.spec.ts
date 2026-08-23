@@ -58,17 +58,6 @@ const campaign = {
   createdBy: { id: adminSession.user.id, username: adminSession.user.username },
 };
 
-const operationsSettings = {
-  id: "station-layout-settings",
-  registrationPausedUntil: null,
-  contentWritesPausedUntil: null,
-  maintenanceTitle: null,
-  maintenanceContent: null,
-  maintenanceStartsAt: null,
-  maintenanceEndsAt: null,
-  updatedAt: fixedNow,
-};
-
 async function mockStation(page: Page) {
   await page.clock.setFixedTime(new Date(fixedNow));
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -91,7 +80,6 @@ async function mockStation(page: Page) {
     if (pathname.endsWith("/admin/notification-campaigns")) {
       return response([campaign], { cursor: null, hasMore: false });
     }
-    if (pathname.endsWith("/admin/operations/settings")) return response(operationsSettings);
     return response([]);
   });
 }
@@ -101,25 +89,29 @@ test.describe("1600px 站务操作台布局", () => {
     await mockStation(page);
   });
 
-  test("1600px 下用户表格和 26rem 处置栏同时保有操作空间", async ({ page }) => {
+  test("1600px 下用户台账占满工作区，管理动作按需弹出", async ({ page }) => {
     await page.setViewportSize({ width: 1600, height: 900 });
     await page.goto("/station/users");
     await expect(page.getByRole("heading", { name: "用户与处罚" })).toBeVisible();
     await expect(page.getByText(managedUser.username)).toBeVisible();
 
     const shell = page.locator('[data-slot="station-shell"]');
-    const actionRail = page.locator('[data-slot="admin-action-rail"]');
+    const workspace = page.locator('[data-layout="full-table"]');
     const tableScroller = page.locator('[data-slot="admin-table-scroll"]');
     await expect(shell).toHaveCSS("min-width", "1600px");
+    await expect(workspace).toHaveCSS("width", "1312px");
+    await expect(page.locator('[data-slot="admin-action-rail"]')).toHaveCount(0);
 
-    const railBox = await actionRail.boundingBox();
-    expect(railBox).not.toBeNull();
-    expect(railBox!.width).toBeCloseTo(416, 0);
-    expect(await tableScroller.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
+    const tableBox = await tableScroller.boundingBox();
+    expect(tableBox).not.toBeNull();
+    expect(tableBox!.width).toBeGreaterThan(1280);
+    expect(await tableScroller.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(false);
 
     await page.getByRole("button", { name: "管理" }).click();
-    await expect(actionRail.getByRole("button", { name: "暂停账号" })).toBeVisible();
-    await expect(actionRail.getByRole("button", { name: "永久封禁" })).toBeVisible();
+    const dialog = page.getByRole("dialog", { name: `管理 ${managedUser.username}` });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "暂停账号" })).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "永久封禁" })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1600);
     await expect(page).toHaveScreenshot("station-users-1600.png", {
       animations: "disabled",
@@ -128,55 +120,60 @@ test.describe("1600px 站务操作台布局", () => {
     });
   });
 
-  test("1920px 下操作表单和运行设置使用完整剩余工作区", async ({ page }) => {
+  test("1920px 下通知台账全宽展示，新建表单按需弹出", async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     await page.goto("/station/announcements");
     await expect(page.getByRole("heading", { name: "站内通知", exact: true })).toBeVisible();
     await expect(page.getByText(campaign.title)).toBeVisible();
 
-    const composerBox = await page.locator('[data-slot="admin-action-rail"]').boundingBox();
-    expect(composerBox).not.toBeNull();
-    expect(composerBox!.width).toBeCloseTo(448, 0);
+    const workspaceBox = await page.locator('[data-layout="full-table"]').boundingBox();
+    expect(workspaceBox).not.toBeNull();
+    expect(workspaceBox!.width).toBeGreaterThan(1600);
+    await expect(page.locator('[data-slot="admin-action-rail"]')).toHaveCount(0);
 
-    await page.goto("/station/operations");
-    await expect(page.getByRole("heading", { name: "运行与紧急开关" })).toBeVisible();
-    const operationsBox = await page.locator('[data-slot="admin-operations-workspace"]').boundingBox();
-    expect(operationsBox).not.toBeNull();
-    expect(operationsBox!.width).toBeGreaterThan(1500);
+    await page.getByRole("button", { name: "新建通知" }).click();
+    const dialog = page.getByRole("dialog", { name: "新建站内通知" });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByLabel("标题")).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "创建发送计划" })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1920);
-    await expect(page).toHaveScreenshot("station-operations-1920.png", {
+    await expect(page).toHaveScreenshot("station-announcements-1920.png", {
       animations: "disabled",
       fullPage: true,
       maxDiffPixels: 20,
     });
   });
 
-  test("1366px 下保留固定画布，案件队列内部滚动时操作列仍固定", async ({ page }) => {
+  test("1366px 下保留固定画布，案件台账全宽且操作弹窗可用", async ({ page }) => {
     await page.setViewportSize({ width: 1366, height: 900 });
     await page.goto("/station/cases");
     await expect(page.getByRole("heading", { name: "案件工作台" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "形成治理决定" })).toBeAttached();
+    await expect(page.getByRole("heading", { name: "形成治理决定" })).toHaveCount(0);
 
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeGreaterThanOrEqual(1600);
-    const primary = page.locator('[data-slot="admin-primary-detail"]');
-    const queue = primary.locator("section").first();
+    const workspace = page.locator('[data-layout="full-table"]');
+    const queue = workspace.locator("section").first();
     const queueBox = await queue.boundingBox();
     expect(queueBox).not.toBeNull();
-    expect(queueBox!.width).toBeCloseTo(512, 0);
+    expect(queueBox!.width).toBeGreaterThan(1300);
+    await expect(page.locator('[data-slot="admin-action-rail"]')).toHaveCount(0);
 
     const tableScroller = queue.locator('[data-slot="admin-table-scroll"]');
     await tableScroller.evaluate((element) => {
       element.scrollLeft = element.scrollWidth;
     });
     const scrollBox = await tableScroller.boundingBox();
-    const actionCellBox = await queue.getByRole("cell", { name: "查看" }).boundingBox();
+    const actionCellBox = await queue.getByRole("cell", { name: "处理", exact: true }).boundingBox();
     expect(scrollBox).not.toBeNull();
     expect(actionCellBox).not.toBeNull();
     expect(actionCellBox!.x + actionCellBox!.width).toBeCloseTo(scrollBox!.x + scrollBox!.width, 0);
 
-    const decisionRail = primary.locator('[data-slot="admin-action-rail"]');
-    const decisionRailBox = await decisionRail.boundingBox();
-    expect(decisionRailBox).not.toBeNull();
-    expect(decisionRailBox!.width).toBeCloseTo(416, 0);
+    await queue.getByRole("button", { name: "处理", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "主题帖治理案件" });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("heading", { name: "形成治理决定" })).toBeVisible();
+    const dialogBox = await dialog.boundingBox();
+    expect(dialogBox).not.toBeNull();
+    expect(dialogBox!.width).toBeGreaterThan(1100);
   });
 });

@@ -22,6 +22,16 @@ import {
 import { useCursorPagination } from "./use-cursor-pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogBackdrop,
+  DialogCloseButton,
+  DialogDescription,
+  DialogPopup,
+  DialogPortal,
+  DialogTitle,
+  DialogViewport,
+} from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { WenyouTime } from "@/components/shared/wenyou-time";
@@ -74,15 +84,12 @@ export function AppealsPanel() {
   const [selectedId, setSelectedId] = useState<string>();
   const [note, setNote] = useState("");
 
-  const effectiveSelectedId = appeals.data?.items.some((appeal) => appeal.id === selectedId)
-    ? selectedId
-    : appeals.data?.items[0]?.id;
-  const selected = appeals.data?.items.find((appeal) => appeal.id === effectiveSelectedId);
+  const selected = appeals.data?.items.find((appeal) => appeal.id === selectedId);
   const activeCount = (status === "PENDING" ? 0 : 1) + (targetType ? 1 : 0) + (action ? 1 : 0);
 
   return (
-    <div data-slot="admin-primary-detail" className="grid min-h-[42rem] grid-cols-[32rem_minmax(0,1fr)] overflow-hidden rounded-lg border border-border bg-card">
-      <section className="flex min-h-0 flex-col border-r border-border">
+    <div data-slot="admin-appeals-workspace" data-layout="full-table" className="w-full">
+      <section className="flex min-h-[42rem] min-w-0 flex-col overflow-hidden rounded-lg border border-border bg-card">
         <div className="border-b border-border px-5 py-4">
           <h2 className="font-display text-lg font-medium">申诉台账</h2>
           <p className="mt-1 text-xs text-muted-foreground">推翻决定将自动恢复原处置。</p>
@@ -135,7 +142,7 @@ export function AppealsPanel() {
           {appeals.isLoading ? <AdminTableEmpty colSpan={5}>正在读取申诉…</AdminTableEmpty> : null}
           {appeals.isError ? <AdminTableEmpty colSpan={5}><span className="text-destructive">申诉列表加载失败</span></AdminTableEmpty> : null}
           {appeals.data?.items.map((appeal) => (
-            <AdminTableRow key={appeal.id} data-selected={effectiveSelectedId === appeal.id}>
+            <AdminTableRow key={appeal.id} data-selected={selectedId === appeal.id}>
               <AdminTableCell><Badge tone={statusTone(appeal.status)}>{statusLabels[appeal.status]}</Badge></AdminTableCell>
               <AdminTableCell className="max-w-56">
                 <p className="font-bold">{appeal.appellant.username}</p>
@@ -147,8 +154,8 @@ export function AppealsPanel() {
               </AdminTableCell>
               <AdminTableCell className="text-xs whitespace-nowrap text-muted-foreground"><WenyouTime value={appeal.createdAt} /></AdminTableCell>
               <AdminTableActionCell>
-                <Button type="button" size="compact" variant={effectiveSelectedId === appeal.id ? "secondary" : "ghost"} onClick={() => { setSelectedId(appeal.id); setNote(""); }}>
-                  {effectiveSelectedId === appeal.id ? "已选择" : "查看"}
+                <Button type="button" size="compact" variant="ghost" onClick={() => { setSelectedId(appeal.id); setNote(""); }}>
+                  {appeal.status === "PENDING" ? "复核" : "查看"}
                 </Button>
               </AdminTableActionCell>
             </AdminTableRow>
@@ -174,20 +181,34 @@ export function AppealsPanel() {
         />
       </section>
 
-      <section className="min-w-0 p-7">
-        {!selected ? (
-          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">选择一份申诉查看</div>
-        ) : (
-          <div className="w-full">
-            <div className="flex items-center gap-3">
-              <span className="flex size-11 items-center justify-center rounded-xl bg-warning-soft text-warning"><Gavel className="size-5" /></span>
-              <div>
-                <p className="font-utility text-xs text-muted-foreground">申诉编号 {selected.id.slice(-8).toUpperCase()}</p>
-                <h2 className="font-display text-2xl font-medium">复核 {selected.appellant.username} 的申诉</h2>
-              </div>
-            </div>
+      {selected ? (
+        <Dialog
+          open
+          onOpenChange={(open) => {
+            if (!open && !resolve.isPending) {
+              setSelectedId(undefined);
+              setNote("");
+            }
+          }}
+        >
+          <DialogPortal>
+            <DialogBackdrop />
+            <DialogViewport>
+              <DialogPopup data-admin-action-dialog className="max-w-4xl">
+                <div className="flex items-start justify-between gap-5 border-b border-border px-7 py-6">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-warning-soft text-warning"><Gavel className="size-5" /></span>
+                    <div className="min-w-0">
+                      <p className="font-utility text-xs text-muted-foreground">申诉编号 {selected.id.slice(-8).toUpperCase()}</p>
+                      <DialogTitle className="font-display text-2xl font-medium">复核 {selected.appellant.username} 的申诉</DialogTitle>
+                      <DialogDescription className="mt-1">对照原决定与用户陈述后形成复核结论。</DialogDescription>
+                    </div>
+                  </div>
+                  <DialogCloseButton type="button" label="关闭申诉复核" disabled={resolve.isPending} />
+                </div>
 
-            <div className="mt-7 grid grid-cols-2 gap-4">
+                <div className="px-7 py-7">
+            <div className="grid grid-cols-2 gap-4">
               <article className="rounded-xl border border-border p-5">
                 <p className="text-xs font-bold text-muted-foreground">原治理决定</p>
                 <p className="mt-3 text-sm font-bold">{actionLabels[selected.decision.action]}</p>
@@ -214,6 +235,7 @@ export function AppealsPanel() {
                         await resolve.mutateAsync({ id: selected.id, outcome: "UPHELD", note });
                         toast.success("原治理决定已维持");
                         setSelectedId(undefined);
+                        setNote("");
                       } catch (error) {
                         toast.error(getApiErrorMessage(error, "申诉处理失败"));
                       }
@@ -229,6 +251,7 @@ export function AppealsPanel() {
                         await resolve.mutateAsync({ id: selected.id, outcome: "OVERTURNED", note });
                         toast.success("治理决定已推翻并撤销原处置");
                         setSelectedId(undefined);
+                        setNote("");
                       } catch (error) {
                         toast.error(getApiErrorMessage(error, "申诉处理失败"));
                       }
@@ -248,9 +271,12 @@ export function AppealsPanel() {
                 <p className="mt-3 text-sm leading-6">{selected.handledNote || "未记录复核说明"}</p>
               </div>
             )}
-          </div>
-        )}
-      </section>
+                </div>
+              </DialogPopup>
+            </DialogViewport>
+          </DialogPortal>
+        </Dialog>
+      ) : null}
     </div>
   );
 }

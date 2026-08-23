@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { ExternalLink, Loader2, RotateCcw } from "lucide-react";
 import { useQueryStates } from "nuqs";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -72,7 +72,7 @@ const restoreSchema = z.object({
 
 type RestoreValues = z.infer<typeof restoreSchema>;
 
-export function HiddenContentList() {
+export function HiddenContentList({ headerAction }: { headerAction?: ReactNode } = {}) {
   const [{ targetType }, setFilters] = useQueryStates(adminHiddenContentFilterParsers, {
     shallow: true,
     urlKeys: adminHiddenContentUrlKeys,
@@ -90,7 +90,7 @@ export function HiddenContentList() {
     defaultValues: { reason: "" },
   });
 
-  const openRestore = (item: AdminHiddenContent) => {
+  const openActions = (item: AdminHiddenContent) => {
     form.reset({ reason: "" });
     setSelected(item);
   };
@@ -113,14 +113,17 @@ export function HiddenContentList() {
   return (
     <>
       <section className="overflow-hidden rounded-lg border border-border bg-card">
-        <div className="flex items-center gap-3 border-b border-border px-6 py-5">
-          <span className="flex size-10 items-center justify-center rounded-xl bg-success-soft text-success">
-            <RotateCcw className="size-5" />
-          </span>
-          <div>
-            <h2 className="font-display text-lg font-medium">当前隐藏内容</h2>
-            <p className="text-xs text-muted-foreground">这里只显示仍处于站务隐藏状态的内容；恢复后会立即移出列表。</p>
+        <div className="flex items-center justify-between gap-5 border-b border-border px-6 py-5">
+          <div className="flex items-center gap-3">
+            <span className="flex size-10 items-center justify-center rounded-xl bg-success-soft text-success">
+              <RotateCcw className="size-5" />
+            </span>
+            <div>
+              <h2 className="font-display text-lg font-medium">当前隐藏内容</h2>
+              <p className="text-xs text-muted-foreground">这里只显示仍处于站务隐藏状态的内容；恢复后会立即移出列表。</p>
+            </div>
           </div>
+          {headerAction}
         </div>
         <AdminFilterBar
           activeCount={targetType ? 1 : 0}
@@ -189,23 +192,7 @@ export function HiddenContentList() {
                   )}
                 </AdminTableCell>
                 <AdminTableActionCell className="min-w-36 whitespace-nowrap">
-                  <div className="flex justify-end gap-2">
-                    <Link
-                      href={`/station/audit?action=CONTENT_HIDDEN&target=${item.targetType}&id=${encodeURIComponent(item.targetId)}`}
-                      className={cn(buttonVariants({ variant: "ghost", size: "compact" }), "gap-1.5")}
-                    >
-                      记录<ExternalLink />
-                    </Link>
-                    <Button
-                      type="button"
-                      size="compact"
-                      variant="outline"
-                      disabled={!item.canRestore}
-                      onClick={() => openRestore(item)}
-                    >
-                      <RotateCcw />{LANGUAGE_ACTIONS.restore}
-                    </Button>
-                  </div>
+                  <Button type="button" size="compact" variant="ghost" onClick={() => openActions(item)}>操作</Button>
                 </AdminTableActionCell>
               </AdminTableRow>
             ))}
@@ -234,20 +221,29 @@ export function HiddenContentList() {
         <DialogPortal>
           <DialogBackdrop />
           <DialogViewport>
-            <DialogPopup className="max-w-2xl">
+            <DialogPopup data-admin-action-dialog className="max-w-2xl">
               <div className="flex items-start justify-between gap-5 border-b border-border px-6 py-5">
                 <div>
-                  <DialogTitle>恢复{selected ? targetLabels[selected.targetType] : "内容"}</DialogTitle>
-                  <DialogDescription className="mt-1">内容将重新进入公开读路径，并写入一条恢复审计记录。</DialogDescription>
+                  <DialogTitle>{selected ? targetLabels[selected.targetType] : "内容"}操作</DialogTitle>
+                  <DialogDescription className="mt-1">查看审计记录，或在允许时填写理由恢复内容。</DialogDescription>
                 </div>
-                <DialogCloseButton type="button" label="关闭恢复内容" disabled={actions.restore.isPending} />
+                <DialogCloseButton type="button" label="关闭内容操作" disabled={actions.restore.isPending} />
               </div>
-              <form onSubmit={submitRestore}>
-                <div className="space-y-4 px-6 py-6">
+              <div className="space-y-4 px-6 py-6">
                   <div className="rounded-xl bg-muted px-4 py-3">
                     <p className="line-clamp-2 text-sm font-bold">{selected?.summary}</p>
                     <code className="mt-1 block truncate font-utility text-xs text-muted-foreground">{selected?.targetId}</code>
                   </div>
+                  {selected ? (
+                    <Link
+                      href={`/station/audit?action=CONTENT_HIDDEN&target=${selected.targetType}&id=${encodeURIComponent(selected.targetId)}`}
+                      className={cn(buttonVariants({ variant: "outline", size: "compact" }), "gap-1.5")}
+                    >
+                      查看审计记录<ExternalLink />
+                    </Link>
+                  ) : null}
+                  {selected?.canRestore ? (
+                    <form onSubmit={submitRestore} className="space-y-4 border-t border-border pt-4">
                   <div className="space-y-2">
                     <Label htmlFor="hidden-content-restore-reason">恢复理由</Label>
                     <Textarea
@@ -262,17 +258,23 @@ export function HiddenContentList() {
                       <p className="text-xs text-destructive">{form.formState.errors.reason.message}</p>
                     ) : null}
                   </div>
-                </div>
-                <DialogFooter className="border-t border-border px-6 py-4">
-                  <Button type="button" variant="ghost" disabled={actions.restore.isPending} onClick={() => setSelected(null)}>
-                    {LANGUAGE_ACTIONS.cancel}
-                  </Button>
-                  <Button type="submit" disabled={actions.restore.isPending}>
-                    {actions.restore.isPending ? <Loader2 className="animate-spin" /> : <RotateCcw />}
-                    确认{LANGUAGE_ACTIONS.restore}
-                  </Button>
-                </DialogFooter>
-              </form>
+                      <DialogFooter>
+                        <Button type="button" variant="ghost" disabled={actions.restore.isPending} onClick={() => setSelected(null)}>
+                          {LANGUAGE_ACTIONS.cancel}
+                        </Button>
+                        <Button type="submit" disabled={actions.restore.isPending}>
+                          {actions.restore.isPending ? <Loader2 className="animate-spin" /> : <RotateCcw />}
+                          确认{LANGUAGE_ACTIONS.restore}
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  ) : selected ? (
+                    <div className="rounded-xl border border-warning/30 bg-warning-soft p-4 text-sm">
+                      <p className="font-bold text-warning">当前无法恢复</p>
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">{selected.restoreBlockedReason || "父级内容当前不可见。"}</p>
+                    </div>
+                  ) : null}
+              </div>
             </DialogPopup>
           </DialogViewport>
         </DialogPortal>

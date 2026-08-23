@@ -26,6 +26,16 @@ import {
 import { useCursorPagination } from "./use-cursor-pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogBackdrop,
+  DialogCloseButton,
+  DialogDescription,
+  DialogPopup,
+  DialogPortal,
+  DialogTitle,
+  DialogViewport,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -62,7 +72,6 @@ export function UsersPanel() {
   });
   const actions = useAdminUserActions();
   const [selectedId, setSelectedId] = useState<string>();
-  const [sanctionType, setSanctionType] = useState<"SUSPENSION" | "BAN">("SUSPENSION");
   const selected = users.data?.items.find((user) => user.id === selectedId);
   const form = useForm<SanctionValues>({
     resolver: zodResolver(sanctionSchema),
@@ -80,45 +89,47 @@ export function UsersPanel() {
         <Button
           type="button"
           size="compact"
-          variant={selectedId === row.original.id ? "secondary" : "ghost"}
+          variant="ghost"
           onClick={() => {
             setSelectedId(row.original.id);
             form.reset();
           }}
         >
-          {selectedId === row.original.id ? "已选择" : "管理"}
+          管理
         </Button>
       ),
     },
-  ], [form, selectedId]);
+  ], [form]);
   // TanStack Table intentionally exposes mutable table methods; React Compiler skips this component.
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({ data: users.data?.items ?? emptyUsers, columns, getCoreRowModel: getCoreRowModel() });
   const activeCount = (query.trim() ? 1 : 0) + (role ? 1 : 0) + (status ? 1 : 0);
 
-  const applySanction = form.handleSubmit(async (values) => {
-    if (!selected) return;
-    const type = sanctionType;
-    if (type === "SUSPENSION" && !values.endsAt) {
-      form.setError("endsAt", { message: "暂停账号需要结束时间" });
-      return;
-    }
-    try {
-      await actions.sanction.mutateAsync({
-        id: selected.id,
-        type,
-        reason: values.reason,
-        endsAt: type === "SUSPENSION" ? new Date(values.endsAt).toISOString() : undefined,
-      });
-      toast.success(type === "BAN" ? "账号已永久封禁" : "账号已暂停");
-      form.reset();
-    } catch (error) {
-      toast.error(getApiErrorMessage(error, "处罚失败"));
-    }
-  });
+  const applySanction = (type: "SUSPENSION" | "BAN") => {
+    void form.handleSubmit(async (values) => {
+      if (!selected) return;
+      if (type === "SUSPENSION" && !values.endsAt) {
+        form.setError("endsAt", { message: "暂停账号需要结束时间" });
+        return;
+      }
+      try {
+        await actions.sanction.mutateAsync({
+          id: selected.id,
+          type,
+          reason: values.reason,
+          endsAt: type === "SUSPENSION" ? new Date(values.endsAt).toISOString() : undefined,
+        });
+        toast.success(type === "BAN" ? "账号已永久封禁" : "账号已暂停");
+        form.reset();
+        setSelectedId(undefined);
+      } catch (error) {
+        toast.error(getApiErrorMessage(error, "处罚失败"));
+      }
+    })();
+  };
 
   return (
-    <div data-slot="admin-users-workspace" className="grid grid-cols-[minmax(0,1fr)_26rem] gap-6">
+    <div data-slot="admin-users-workspace" data-layout="full-table" className="w-full">
       <section className="overflow-hidden rounded-lg border border-border bg-card">
         <AdminFilterBar
           activeCount={activeCount}
@@ -203,58 +214,83 @@ export function UsersPanel() {
         />
       </section>
 
-      <aside data-slot="admin-action-rail" className="self-start rounded-lg border border-border bg-card p-5">
-        {!selected ? (
-          <div className="py-12 text-center">
-            <UserRoundCog className="mx-auto size-7 text-muted-foreground" />
-            <p className="mt-3 text-sm text-muted-foreground">选择用户后管理处罚</p>
-          </div>
-        ) : (
-          <>
-            <p className="font-utility text-xs font-bold text-muted-foreground">用户处置</p>
-            <h2 className="mt-1 text-xl font-semibold">{selected.username}</h2>
-            <p className="mt-1 text-xs text-muted-foreground">{selected.email}</p>
-            {selected.currentSanction ? (
-              <div className="mt-5 rounded-lg bg-destructive-soft p-4 text-sm text-destructive">
-                <p className="font-bold">当前处罚 · {selected.currentSanction.type === "SUSPENSION" ? "暂停账号" : "永久封禁"}</p>
-                <p className="mt-1 text-xs leading-5">{selected.currentSanction.reason}</p>
-                <Button
-                  size="compact"
-                  variant="outline"
-                  className="mt-3"
-                  onClick={async () => {
-                    try {
-                      await actions.revoke.mutateAsync({ id: selected.id, reason: "管理员复核后解除处罚" });
-                      toast.success("处罚已解除");
-                    } catch (error) {
-                      toast.error(getApiErrorMessage(error, "解除处罚失败"));
-                    }
-                  }}
-                >解除处罚</Button>
-              </div>
-            ) : selected.role !== "USER" ? (
-              <p className="mt-5 rounded-lg bg-muted p-4 text-sm text-muted-foreground">管理员账号需由超级管理员管理。</p>
-            ) : (
-              <form className="mt-5 space-y-4" onSubmit={applySanction}>
-                <div className="space-y-2">
-                  <Label htmlFor="sanction-reason">处罚理由</Label>
-                  <Textarea id="sanction-reason" rows={4} {...form.register("reason")} />
-                  {form.formState.errors.reason ? <p className="text-xs text-destructive">{form.formState.errors.reason.message}</p> : null}
+      {selected ? (
+        <Dialog
+          open
+          onOpenChange={(open) => {
+            if (!open && !actions.sanction.isPending && !actions.revoke.isPending) {
+              setSelectedId(undefined);
+              form.reset();
+            }
+          }}
+        >
+          <DialogPortal>
+            <DialogBackdrop />
+            <DialogViewport>
+              <DialogPopup data-admin-action-dialog className="max-w-2xl">
+                <div className="flex items-start justify-between gap-5 border-b border-border px-6 py-5">
+                  <div className="flex min-w-0 items-start gap-3">
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-foreground">
+                      <UserRoundCog className="size-5" />
+                    </span>
+                    <div className="min-w-0">
+                      <DialogTitle>管理 {selected.username}</DialogTitle>
+                      <DialogDescription className="mt-1">{selected.email} · 处罚会立即影响账号访问。</DialogDescription>
+                    </div>
+                  </div>
+                  <DialogCloseButton
+                    type="button"
+                    label="关闭用户操作"
+                    disabled={actions.sanction.isPending || actions.revoke.isPending}
+                  />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="sanction-until">暂停至</Label>
-                  <Input id="sanction-until" type="datetime-local" {...form.register("endsAt")} />
-                  {form.formState.errors.endsAt ? <p className="text-xs text-destructive">{form.formState.errors.endsAt.message}</p> : null}
+                <div className="px-6 py-6">
+                  {selected.currentSanction ? (
+                    <div className="rounded-lg bg-destructive-soft p-4 text-sm text-destructive">
+                      <p className="font-bold">当前处罚 · {selected.currentSanction.type === "SUSPENSION" ? "暂停账号" : "永久封禁"}</p>
+                      <p className="mt-1 text-xs leading-5">{selected.currentSanction.reason}</p>
+                      <Button
+                        size="compact"
+                        variant="outline"
+                        className="mt-3"
+                        disabled={actions.revoke.isPending}
+                        onClick={async () => {
+                          try {
+                            await actions.revoke.mutateAsync({ id: selected.id, reason: "管理员复核后解除处罚" });
+                            toast.success("处罚已解除");
+                            setSelectedId(undefined);
+                          } catch (error) {
+                            toast.error(getApiErrorMessage(error, "解除处罚失败"));
+                          }
+                        }}
+                      >解除处罚</Button>
+                    </div>
+                  ) : selected.role !== "USER" ? (
+                    <p className="rounded-lg bg-muted p-4 text-sm text-muted-foreground">管理员账号需由超级管理员管理。</p>
+                  ) : (
+                    <form className="space-y-5" onSubmit={(event) => event.preventDefault()}>
+                      <div className="space-y-2">
+                        <Label htmlFor="sanction-reason">处罚理由</Label>
+                        <Textarea id="sanction-reason" rows={4} {...form.register("reason")} />
+                        {form.formState.errors.reason ? <p className="text-xs text-destructive">{form.formState.errors.reason.message}</p> : null}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="sanction-until">暂停至</Label>
+                        <Input id="sanction-until" type="datetime-local" {...form.register("endsAt")} />
+                        {form.formState.errors.endsAt ? <p className="text-xs text-destructive">{form.formState.errors.endsAt.message}</p> : null}
+                      </div>
+                      <div className="flex justify-end gap-2 border-t border-border pt-5">
+                        <Button type="button" variant="outline" disabled={actions.sanction.isPending} onClick={() => applySanction("SUSPENSION")}>暂停账号</Button>
+                        <Button type="button" variant="destructive" disabled={actions.sanction.isPending} onClick={() => applySanction("BAN")}>永久封禁</Button>
+                      </div>
+                    </form>
+                  )}
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <Button type="submit" variant="outline" disabled={actions.sanction.isPending} onClick={() => setSanctionType("SUSPENSION")}>暂停账号</Button>
-                  <Button type="submit" variant="destructive" disabled={actions.sanction.isPending} onClick={() => setSanctionType("BAN")}>永久封禁</Button>
-                </div>
-              </form>
-            )}
-          </>
-        )}
-      </aside>
+              </DialogPopup>
+            </DialogViewport>
+          </DialogPortal>
+        </Dialog>
+      ) : null}
     </div>
   );
 }

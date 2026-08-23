@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { addMinutes, format } from "date-fns";
 import { BellRing, CalendarClock, Search, Send } from "lucide-react";
 import { useQueryStates } from "nuqs";
+import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
@@ -29,6 +30,16 @@ import {
 import { useCursorPagination } from "./use-cursor-pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogBackdrop,
+  DialogCloseButton,
+  DialogDescription,
+  DialogPopup,
+  DialogPortal,
+  DialogTitle,
+  DialogViewport,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -71,6 +82,7 @@ function statusTone(status: string) {
 }
 
 export function AnnouncementsPanel() {
+  const [composerOpen, setComposerOpen] = useState(false);
   const [{ query, status, destination }, setFilters] = useQueryStates(adminAnnouncementFilterParsers, {
     shallow: true,
     urlKeys: adminAnnouncementUrlKeys,
@@ -99,60 +111,14 @@ export function AnnouncementsPanel() {
   const activeCount = (query.trim() ? 1 : 0) + (status ? 1 : 0) + (destination ? 1 : 0);
 
   return (
-    <div data-slot="admin-announcements-workspace" className="grid grid-cols-[28rem_minmax(0,1fr)] gap-6">
-      <section data-slot="admin-action-rail" className="self-start rounded-lg border border-border bg-card p-6">
-        <div className="flex items-center gap-3">
-          <span className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground"><BellRing className="size-5" /></span>
-          <div><h2 className="font-display text-xl font-medium">新建站内通知</h2><p className="text-xs text-muted-foreground">系统会分批投递，可立即或定时发送。</p></div>
-        </div>
-        <form
-          className="mt-6 space-y-4"
-          onSubmit={form.handleSubmit(async (values) => {
-            try {
-              await actions.create.mutateAsync({
-                title: values.title,
-                content: values.content,
-                scheduledAt: new Date(values.scheduledAt).toISOString(),
-                audience: audienceBody(values.audience),
-                ...(values.destinationId ? { destinationType: "THREAD" as const, destinationId: values.destinationId } : {}),
-              });
-              toast.success("通知计划已创建");
-              form.reset({ ...values, title: "", content: "", scheduledAt: format(addMinutes(new Date(), 5), "yyyy-MM-dd'T'HH:mm") });
-            } catch (error) { toast.error(getApiErrorMessage(error, "通知计划创建失败")); }
-          })}
-        >
-          <div className="space-y-2"><Label htmlFor="campaign-title">标题</Label><Input id="campaign-title" {...form.register("title")} /></div>
-          <div className="space-y-2"><Label htmlFor="campaign-content">正文</Label><Textarea id="campaign-content" rows={5} {...form.register("content")} /></div>
-          <div className="space-y-2">
-            <Label>接收范围</Label>
-            <Select items={audienceItems} value={audience} onValueChange={(value) => form.setValue("audience", value as Values["audience"])}>
-              <SelectTrigger className="w-full"><SelectValue>{audienceItems.find((item) => item.value === audience)?.label}</SelectValue></SelectTrigger>
-              <SelectContent align="start">{audienceItems.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2"><Label htmlFor="campaign-time">发送时间</Label><Input id="campaign-time" type="datetime-local" {...form.register("scheduledAt")} /></div>
-          <div className="space-y-2"><Label htmlFor="campaign-thread">跳转到主题帖（填写主题帖编号，可选）</Label><Input id="campaign-thread" placeholder="粘贴主题帖编号" {...form.register("destinationId")} /></div>
-          <div className="flex items-center justify-between gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={actions.preview.isPending}
-              onClick={async () => {
-                try {
-                  const result = await actions.preview.mutateAsync(audienceBody(form.getValues("audience")));
-                  toast.info(`预计送达 ${result.recipientCount} 个账号`);
-                } catch (error) { toast.error(getApiErrorMessage(error, "人数预估失败")); }
-              }}
-            >预估人数</Button>
-            <Button type="submit" disabled={actions.create.isPending}><Send />{actions.create.isPending ? "正在创建…" : "创建发送计划"}</Button>
-          </div>
-        </form>
-      </section>
-
+    <div data-slot="admin-announcements-workspace" data-layout="full-table" className="w-full">
       <section className="overflow-hidden rounded-lg border border-border bg-card">
-        <div className="flex items-center gap-3 border-b border-border px-6 py-5">
-          <CalendarClock className="size-5 text-brand-strong" />
-          <div><h2 className="font-display text-lg font-medium">发送计划与历史</h2><p className="text-xs text-muted-foreground">进入发送队列后不允许取消，避免部分用户收到后回滚。</p></div>
+        <div className="flex items-center justify-between gap-5 border-b border-border px-6 py-5">
+          <div className="flex items-center gap-3">
+            <CalendarClock className="size-5 text-brand-strong" />
+            <div><h2 className="font-display text-lg font-medium">发送计划与历史</h2><p className="text-xs text-muted-foreground">进入发送队列后不允许取消，避免部分用户收到后回滚。</p></div>
+          </div>
+          <Button type="button" onClick={() => setComposerOpen(true)}><BellRing />新建通知</Button>
         </div>
         <AdminFilterBar
           activeCount={activeCount}
@@ -243,6 +209,73 @@ export function AnnouncementsPanel() {
           busy={campaigns.isFetching}
         />
       </section>
+
+      <Dialog open={composerOpen} onOpenChange={(open) => {
+        if (!actions.create.isPending) setComposerOpen(open);
+      }}>
+        <DialogPortal>
+          <DialogBackdrop />
+          <DialogViewport>
+            <DialogPopup data-admin-action-dialog className="max-w-3xl">
+              <div className="flex items-start justify-between gap-5 border-b border-border px-6 py-5">
+                <div className="flex items-start gap-3">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground"><BellRing className="size-5" /></span>
+                  <div>
+                    <DialogTitle>新建站内通知</DialogTitle>
+                    <DialogDescription className="mt-1">系统会分批投递，可立即或定时发送。</DialogDescription>
+                  </div>
+                </div>
+                <DialogCloseButton type="button" label="关闭新建通知" disabled={actions.create.isPending} />
+              </div>
+              <form
+                className="space-y-5 px-6 py-6"
+                onSubmit={form.handleSubmit(async (values) => {
+                  try {
+                    await actions.create.mutateAsync({
+                      title: values.title,
+                      content: values.content,
+                      scheduledAt: new Date(values.scheduledAt).toISOString(),
+                      audience: audienceBody(values.audience),
+                      ...(values.destinationId ? { destinationType: "THREAD" as const, destinationId: values.destinationId } : {}),
+                    });
+                    toast.success("通知计划已创建");
+                    form.reset({ ...values, title: "", content: "", scheduledAt: format(addMinutes(new Date(), 5), "yyyy-MM-dd'T'HH:mm") });
+                    setComposerOpen(false);
+                  } catch (error) { toast.error(getApiErrorMessage(error, "通知计划创建失败")); }
+                })}
+              >
+                <div className="space-y-2"><Label htmlFor="campaign-title">标题</Label><Input id="campaign-title" {...form.register("title")} /></div>
+                <div className="space-y-2"><Label htmlFor="campaign-content">正文</Label><Textarea id="campaign-content" rows={5} {...form.register("content")} /></div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>接收范围</Label>
+                    <Select items={audienceItems} value={audience} onValueChange={(value) => form.setValue("audience", value as Values["audience"])}>
+                      <SelectTrigger className="w-full"><SelectValue>{audienceItems.find((item) => item.value === audience)?.label}</SelectValue></SelectTrigger>
+                      <SelectContent align="start">{audienceItems.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2"><Label htmlFor="campaign-time">发送时间</Label><Input id="campaign-time" type="datetime-local" {...form.register("scheduledAt")} /></div>
+                </div>
+                <div className="space-y-2"><Label htmlFor="campaign-thread">跳转到主题帖（填写主题帖编号，可选）</Label><Input id="campaign-thread" placeholder="粘贴主题帖编号" {...form.register("destinationId")} /></div>
+                <div className="flex items-center justify-between gap-3 border-t border-border pt-5">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={actions.preview.isPending}
+                    onClick={async () => {
+                      try {
+                        const result = await actions.preview.mutateAsync(audienceBody(form.getValues("audience")));
+                        toast.info(`预计送达 ${result.recipientCount} 个账号`);
+                      } catch (error) { toast.error(getApiErrorMessage(error, "人数预估失败")); }
+                    }}
+                  >预估人数</Button>
+                  <Button type="submit" disabled={actions.create.isPending}><Send />{actions.create.isPending ? "正在创建…" : "创建发送计划"}</Button>
+                </div>
+              </form>
+            </DialogPopup>
+          </DialogViewport>
+        </DialogPortal>
+      </Dialog>
     </div>
   );
 }

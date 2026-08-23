@@ -23,6 +23,16 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-provider";
+import {
+  Dialog,
+  DialogBackdrop,
+  DialogCloseButton,
+  DialogDescription,
+  DialogPopup,
+  DialogPortal,
+  DialogTitle,
+  DialogViewport,
+} from "@/components/ui/dialog";
 import { WenyouTime } from "@/components/shared/wenyou-time";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -51,6 +61,8 @@ export function AdminAccountsPanel() {
   const accounts = useAdminAccounts(session.data?.user.role === "SUPER_ADMIN");
   const actions = useAdminAccountActions();
   const [inviteQuery, setInviteQuery] = useState("");
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState<AdminAccount>();
   const [referenceTime] = useState(() => Date.now());
   const search = useAdminUserSearch(inviteQuery);
   const [{
@@ -125,55 +137,12 @@ export function AdminAccountsPanel() {
           const account = row.original;
           if (account.role === "SUPER_ADMIN") return <span className="text-xs text-muted-foreground">唯一席位</span>;
           return (
-            <div className="flex justify-end gap-2">
-              <Button
-                size="compact"
-                variant="outline"
-                onClick={async () => {
-                  const accepted = await confirm({
-                    title: "移交超级管理员？",
-                    description: `移交给 ${account.username} 后，双方站务会话都会退出。`,
-                    confirmLabel: "确认移交",
-                  });
-                  if (!accepted) return;
-                  try {
-                    await actions.transfer.mutateAsync({ userId: account.id, reason: "超级管理员主动移交" });
-                    toast.success("超级管理员已移交");
-                    router.replace("/station");
-                  } catch (error) {
-                    toast.error(getApiErrorMessage(error, "移交失败"));
-                  }
-                }}
-              >
-                移交席位
-              </Button>
-              <Button
-                size="compact"
-                variant="destructive"
-                onClick={async () => {
-                  const accepted = await confirm({
-                    title: "撤销管理员身份？",
-                    description: `${account.username} 的普通登录和站务会话都会立即退出。`,
-                    confirmLabel: "撤销身份",
-                    destructive: true,
-                  });
-                  if (!accepted) return;
-                  try {
-                    await actions.revoke.mutateAsync({ id: account.id, reason: "超级管理员撤销站务权限" });
-                    toast.success("管理员身份已撤销");
-                  } catch (error) {
-                    toast.error(getApiErrorMessage(error, "撤销失败"));
-                  }
-                }}
-              >
-                <UserMinus />撤权
-              </Button>
-            </div>
+            <Button type="button" size="compact" variant="ghost" onClick={() => setSelectedAccount(account)}>操作</Button>
           );
         },
       },
     ],
-    [actions.revoke, actions.transfer, confirm, router],
+    [],
   );
   // TanStack Table intentionally exposes mutable table methods; React Compiler skips this component.
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -208,15 +177,17 @@ export function AdminAccountsPanel() {
   if (accounts.isError || !accounts.data) return <p className="text-sm text-destructive">站务账号加载失败</p>;
 
   return (
-    <div data-slot="admin-accounts-workspace" className="grid grid-cols-[minmax(0,1fr)_26rem] gap-6">
-      <div className="space-y-6">
+    <div data-slot="admin-accounts-workspace" data-layout="full-table" className="w-full space-y-6">
         <section className="overflow-hidden rounded-lg border border-border bg-card">
           <div className="flex items-center justify-between border-b border-border px-5 py-4">
             <div>
               <h2 className="font-display text-lg font-medium">现有站务</h2>
               <p className="mt-1 text-xs text-muted-foreground">一个账号同一时间只允许一个后台会话。</p>
             </div>
-            <Badge tone="neutral">{filteredAccounts.length} / {accounts.data.accounts.length} 人</Badge>
+            <div className="flex items-center gap-3">
+              <Badge tone="neutral">{filteredAccounts.length} / {accounts.data.accounts.length} 人</Badge>
+              <Button type="button" onClick={() => setInviteOpen(true)}><Send />邀请站务</Button>
+            </div>
           </div>
           <AdminFilterBar
             activeCount={(accountQuery.trim() ? 1 : 0) + (role ? 1 : 0) + (sessionState ? 1 : 0)}
@@ -254,7 +225,7 @@ export function AdminAccountsPanel() {
               {table.getHeaderGroups().map((group) => (
                 <tr key={group.id}>
                   {group.headers.map((header) => header.column.id === "actions" ? (
-                    <AdminTableActionHeader key={header.id} className="min-w-48">
+                    <AdminTableActionHeader key={header.id}>
                       {flexRender(header.column.columnDef.header, header.getContext())}
                     </AdminTableActionHeader>
                   ) : (
@@ -267,9 +238,9 @@ export function AdminAccountsPanel() {
             </AdminTableHead>
             <AdminTableBody>
               {table.getRowModel().rows.map((row) => (
-                <AdminTableRow key={row.id}>
+                <AdminTableRow key={row.id} data-selected={selectedAccount?.id === row.original.id}>
                   {row.getVisibleCells().map((cell) => cell.column.id === "actions" ? (
-                    <AdminTableActionCell key={cell.id} className="min-w-48">
+                    <AdminTableActionCell key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </AdminTableActionCell>
                   ) : (
@@ -367,44 +338,145 @@ export function AdminAccountsPanel() {
             onNext={() => inviteTable.nextPage()}
           />
         </section>
-      </div>
 
-      <aside data-slot="admin-action-rail" className="self-start rounded-lg border border-border bg-card p-5">
-        <p className="font-utility text-xs font-bold tracking-[0.1em] text-muted-foreground">邀请站务账号</p>
-        <h2 className="mt-1 font-display text-xl font-medium">邀请现有用户</h2>
-        <p className="mt-2 text-xs leading-5 text-muted-foreground">管理员继承现有温油账号。普通用户可以被邀请。</p>
-        <div className="relative mt-5">
-          <Search className="pointer-events-none absolute top-3.5 left-3.5 size-4 text-muted-foreground" />
-          <Input value={inviteQuery} onChange={(event) => setInviteQuery(event.target.value)} placeholder="用户名或邮箱" className="pl-10" />
-        </div>
-        <div className="mt-3 space-y-2">
-          {search.data?.filter((user) => user.role === "USER").map((user) => (
-            <div key={user.id} className="flex items-center justify-between rounded-lg border border-border p-3">
-              <div className="min-w-0">
-                <p className="truncate text-sm font-bold">{user.username}</p>
-                <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+      <Dialog open={inviteOpen} onOpenChange={(open) => {
+        if (!actions.invite.isPending) {
+          setInviteOpen(open);
+          if (!open) setInviteQuery("");
+        }
+      }}>
+        <DialogPortal>
+          <DialogBackdrop />
+          <DialogViewport>
+            <DialogPopup data-admin-action-dialog className="max-w-2xl">
+              <div className="flex items-start justify-between gap-5 border-b border-border px-6 py-5">
+                <div>
+                  <DialogTitle>邀请现有用户</DialogTitle>
+                  <DialogDescription className="mt-1">管理员继承现有温油账号，只有普通用户可以被邀请。</DialogDescription>
+                </div>
+                <DialogCloseButton type="button" label="关闭邀请站务" disabled={actions.invite.isPending} />
               </div>
-              <Button
-                size="icon-compact"
-                title="发送邀请"
-                disabled={actions.invite.isPending}
-                onClick={async () => {
-                  try {
-                    await actions.invite.mutateAsync(user.id);
-                    toast.success("管理员邀请已发送");
-                    setInviteQuery("");
-                  } catch (error) {
-                    toast.error(getApiErrorMessage(error, "邀请失败"));
-                  }
-                }}
-              >
-                <Send />
-              </Button>
-            </div>
-          ))}
-          {inviteQuery.length >= 2 && !search.isLoading && search.data?.length === 0 ? <p className="py-4 text-center text-xs text-muted-foreground">没有匹配用户</p> : null}
-        </div>
-      </aside>
+              <div className="px-6 py-6">
+                <div className="relative">
+                  <Search className="pointer-events-none absolute top-3.5 left-3.5 size-4 text-muted-foreground" />
+                  <Input value={inviteQuery} onChange={(event) => setInviteQuery(event.target.value)} placeholder="用户名或邮箱" className="pl-10" />
+                </div>
+                <div className="mt-3 space-y-2">
+                  {search.data?.filter((user) => user.role === "USER").map((user) => (
+                    <div key={user.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold">{user.username}</p>
+                        <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+                      </div>
+                      <Button
+                        size="compact"
+                        disabled={actions.invite.isPending}
+                        onClick={async () => {
+                          try {
+                            await actions.invite.mutateAsync(user.id);
+                            toast.success("管理员邀请已发送");
+                            setInviteQuery("");
+                            setInviteOpen(false);
+                          } catch (error) {
+                            toast.error(getApiErrorMessage(error, "邀请失败"));
+                          }
+                        }}
+                      >
+                        <Send />发送邀请
+                      </Button>
+                    </div>
+                  ))}
+                  {inviteQuery.length >= 2 && !search.isLoading && search.data?.length === 0 ? <p className="py-4 text-center text-xs text-muted-foreground">没有匹配用户</p> : null}
+                </div>
+              </div>
+            </DialogPopup>
+          </DialogViewport>
+        </DialogPortal>
+      </Dialog>
+
+      {selectedAccount ? (
+        <Dialog
+          open
+          onOpenChange={(open) => {
+            if (!open && !actions.transfer.isPending && !actions.revoke.isPending) setSelectedAccount(undefined);
+          }}
+        >
+          <DialogPortal>
+            <DialogBackdrop />
+            <DialogViewport>
+              <DialogPopup data-admin-action-dialog className="max-w-2xl">
+                <div className="flex items-start justify-between gap-5 border-b border-border px-6 py-5">
+                  <div>
+                    <DialogTitle>管理 {selectedAccount.username}</DialogTitle>
+                    <DialogDescription className="mt-1">{selectedAccount.email} · 高风险操作仍需二次确认。</DialogDescription>
+                  </div>
+                  <DialogCloseButton
+                    type="button"
+                    label="关闭站务账号操作"
+                    disabled={actions.transfer.isPending || actions.revoke.isPending}
+                  />
+                </div>
+                <div className="space-y-3 px-6 py-6">
+                  <div className="flex items-center justify-between gap-5 rounded-xl border border-border p-4">
+                    <div>
+                      <p className="text-sm font-bold">移交超级管理员席位</p>
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">移交后双方站务会话都会退出。</p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={actions.transfer.isPending}
+                      onClick={async () => {
+                        const accepted = await confirm({
+                          title: "移交超级管理员？",
+                          description: `移交给 ${selectedAccount.username} 后，双方站务会话都会退出。`,
+                          confirmLabel: "确认移交",
+                        });
+                        if (!accepted) return;
+                        try {
+                          await actions.transfer.mutateAsync({ userId: selectedAccount.id, reason: "超级管理员主动移交" });
+                          toast.success("超级管理员已移交");
+                          setSelectedAccount(undefined);
+                          router.replace("/station");
+                        } catch (error) {
+                          toast.error(getApiErrorMessage(error, "移交失败"));
+                        }
+                      }}
+                    >移交席位</Button>
+                  </div>
+                  <div className="flex items-center justify-between gap-5 rounded-xl border border-destructive/25 bg-destructive-soft/40 p-4">
+                    <div>
+                      <p className="text-sm font-bold">撤销管理员身份</p>
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">普通登录和站务会话都会立即退出。</p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      disabled={actions.revoke.isPending}
+                      onClick={async () => {
+                        const accepted = await confirm({
+                          title: "撤销管理员身份？",
+                          description: `${selectedAccount.username} 的普通登录和站务会话都会立即退出。`,
+                          confirmLabel: "撤销身份",
+                          destructive: true,
+                        });
+                        if (!accepted) return;
+                        try {
+                          await actions.revoke.mutateAsync({ id: selectedAccount.id, reason: "超级管理员撤销站务权限" });
+                          toast.success("管理员身份已撤销");
+                          setSelectedAccount(undefined);
+                        } catch (error) {
+                          toast.error(getApiErrorMessage(error, "撤销失败"));
+                        }
+                      }}
+                    ><UserMinus />撤权</Button>
+                  </div>
+                </div>
+              </DialogPopup>
+            </DialogViewport>
+          </DialogPortal>
+        </Dialog>
+      ) : null}
     </div>
   );
 }

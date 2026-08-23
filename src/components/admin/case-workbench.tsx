@@ -9,7 +9,7 @@ import {
 } from "@tanstack/react-table";
 import { Scale, ShieldAlert } from "lucide-react";
 import { useQueryStates } from "nuqs";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -41,6 +41,16 @@ import {
 import { useCursorPagination } from "@/components/admin/use-cursor-pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogBackdrop,
+  DialogCloseButton,
+  DialogDescription,
+  DialogPopup,
+  DialogPortal,
+  DialogTitle,
+  DialogViewport,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -160,7 +170,7 @@ function caseColumns(onSelect: (id: string) => void): ColumnDef<CaseSummary>[] {
     },
     { id: "reports", header: "举报", cell: ({ row }) => <span className="font-utility text-xs whitespace-nowrap">{row.original._count.reports} 份</span> },
     { id: "createdAt", header: "建案", cell: ({ row }) => <WenyouTime value={row.original.createdAt} className="text-xs whitespace-nowrap text-muted-foreground" /> },
-    { id: "actions", header: "操作", cell: ({ row }) => <Button type="button" size="compact" variant="ghost" onClick={() => onSelect(row.original.id)}>查看</Button> },
+    { id: "actions", header: "操作", cell: ({ row }) => <Button type="button" size="compact" variant="ghost" onClick={() => onSelect(row.original.id)}>{row.original.status === "OPEN" ? "处理" : "查看"}</Button> },
   ];
 }
 
@@ -191,19 +201,13 @@ export function CaseWorkbench() {
     getCoreRowModel: getCoreRowModel(),
   });
 
-  useEffect(() => {
-    const first = cases.data?.items[0];
-    const selectionVisible = cases.data?.items.some((item) => item.id === selectedId);
-    if (first && !selectionVisible) selectCase(first.id);
-  }, [cases.data?.items, selectCase, selectedId]);
-
   const setStatus = (nextStatus: CaseStatus) => {
     void setFilters({ status: nextStatus, selectedCaseId: null }, { history: "push" });
   };
 
   return (
-    <div data-slot="admin-primary-detail" className="grid h-full grid-cols-[32rem_minmax(0,1fr)] overflow-hidden">
-      <section className="flex min-h-0 flex-col border-r border-border bg-card">
+    <div data-slot="admin-cases-workspace" data-layout="full-table" className="h-full w-full overflow-hidden bg-card">
+      <section className="flex h-full min-h-0 min-w-0 flex-col">
         <div className="border-b border-border p-4">
           <div className="grid grid-cols-3 rounded-lg bg-muted p-1 text-xs font-bold">
             {(["OPEN", "RESOLVED", "DISMISSED"] as CaseStatus[]).map((value) => (
@@ -298,17 +302,44 @@ export function CaseWorkbench() {
         />
       </section>
 
-      <section className="min-w-0 overflow-y-auto bg-background">
-        {!selectedId ? (
-          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">从左侧选择一个案件</div>
-        ) : detail.isLoading ? (
-          <p className="p-8 text-sm text-muted-foreground">正在整理证据与决定轨迹…</p>
-        ) : detail.isError || !detail.data ? (
-          <p className="p-8 text-sm text-destructive">案件详情加载失败</p>
-        ) : (
-          <CaseDetail detail={detail.data} />
-        )}
-      </section>
+      {selectedId ? (
+        <Dialog open onOpenChange={(open) => {
+          if (!open) void setFilters({ selectedCaseId: null });
+        }}>
+          <DialogPortal>
+            <DialogBackdrop />
+            <DialogViewport>
+              <DialogPopup data-admin-action-dialog className="max-w-6xl">
+                {detail.isLoading ? (
+                  <>
+                    <div className="flex items-start justify-between gap-5 border-b border-border px-7 py-6">
+                      <div>
+                        <DialogTitle>案件操作</DialogTitle>
+                        <DialogDescription className="mt-1">正在整理证据与决定轨迹…</DialogDescription>
+                      </div>
+                      <DialogCloseButton type="button" label="关闭案件操作" />
+                    </div>
+                    <p className="px-7 py-10 text-sm text-muted-foreground">正在读取案件详情…</p>
+                  </>
+                ) : detail.isError || !detail.data ? (
+                  <>
+                    <div className="flex items-start justify-between gap-5 border-b border-border px-7 py-6">
+                      <div>
+                        <DialogTitle>案件操作</DialogTitle>
+                        <DialogDescription className="mt-1">案件详情暂时无法读取。</DialogDescription>
+                      </div>
+                      <DialogCloseButton type="button" label="关闭案件操作" />
+                    </div>
+                    <p className="px-7 py-10 text-sm text-destructive">案件详情加载失败，请关闭后重试。</p>
+                  </>
+                ) : (
+                  <CaseDetail key={detail.data.id} detail={detail.data} />
+                )}
+              </DialogPopup>
+            </DialogViewport>
+          </DialogPortal>
+        </Dialog>
+      ) : null}
     </div>
   );
 }
@@ -340,17 +371,19 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
             <Badge tone={statusTone(detail.status)}>{detail.status === "OPEN" ? "待处理" : detail.status === "RESOLVED" ? "已处置" : "已驳回"}</Badge>
             <span className="font-utility text-xs text-muted-foreground">案件编号 {detail.id.slice(-8).toUpperCase()}</span>
           </div>
-          <h2 className="mt-3 font-display text-2xl font-medium">{targetLabels[detail.targetType]}治理案件</h2>
+          <DialogTitle className="mt-3 font-display text-2xl font-medium">{targetLabels[detail.targetType]}治理案件</DialogTitle>
           <p className="mt-2 font-utility text-xs text-muted-foreground">目标编号 · {detail.targetId}</p>
         </div>
-        <div className="text-right text-xs text-muted-foreground">
-          <p>建案 <WenyouTime value={detail.createdAt} /></p>
-          <p className="mt-1">累计 {detail.reports.length} 份举报</p>
+        <div className="flex items-start gap-4">
+          <div className="text-right text-xs text-muted-foreground">
+            <p>建案 <WenyouTime value={detail.createdAt} /></p>
+            <p className="mt-1">累计 {detail.reports.length} 份举报</p>
+          </div>
+          <DialogCloseButton type="button" label="关闭案件操作" disabled={resolve.isPending} />
         </div>
       </div>
 
-      <div className={cn("grid gap-7 py-7", detail.status === "OPEN" ? "grid-cols-[minmax(0,1fr)_26rem]" : "grid-cols-1")}>
-        <div className="min-w-0 space-y-7">
+      <div className="space-y-7 py-7">
           <section>
             <div className="mb-3 flex items-center gap-2">
               <ShieldAlert className="size-4 text-brand-strong" />
@@ -400,15 +433,13 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
               </ol>
             )}
           </section>
-        </div>
-
         {detail.status === "OPEN" ? (
-          <aside data-slot="admin-action-rail" className="self-start rounded-2xl border border-border bg-card p-5">
+          <section data-slot="admin-popup-operation" className="rounded-2xl border border-border bg-muted/35 p-6">
             <p className="font-utility text-xs font-bold tracking-[0.1em] text-muted-foreground">案件处置</p>
             <h3 className="mt-1 font-display text-xl font-medium">形成治理决定</h3>
             <p className="mt-2 text-xs leading-5 text-muted-foreground">公开说明会提供给被处置用户，并成为申诉依据。</p>
             <form
-              className="mt-5 space-y-4"
+              className="mt-6 space-y-5"
               onSubmit={form.handleSubmit(async (values) => {
                 try {
                   await resolve.mutateAsync({
@@ -424,6 +455,7 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
                 }
               })}
             >
+              <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>案件结论</Label>
                 <Select
@@ -477,6 +509,8 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
                   {form.formState.errors.suspendUntil ? <p className="text-xs text-destructive">{form.formState.errors.suspendUntil.message}</p> : null}
                 </div>
               ) : null}
+              </div>
+              <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="public-explanation">公开说明</Label>
                 <Textarea id="public-explanation" rows={4} placeholder="说明违反了什么规则，以及为什么采取这个动作。" {...form.register("publicExplanation")} />
@@ -486,11 +520,15 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
                 <Label htmlFor="internal-note">内部备注（可选）</Label>
                 <Textarea id="internal-note" rows={3} placeholder="交接信息、相似案件等，仅站务可见。" {...form.register("internalNote")} />
               </div>
-              <Button type="submit" className="w-full" disabled={resolve.isPending}>
-                {resolve.isPending ? "正在写入决定…" : outcome === "RESOLVED" ? "确认并结案" : "驳回并结案"}
-              </Button>
+              </div>
+              <div className="flex items-center justify-between gap-5 border-t border-border pt-5">
+                <p className="text-xs leading-5 text-muted-foreground">提交后会写入决定轨迹，并按所选动作立即更新公开内容或账号状态。</p>
+                <Button type="submit" disabled={resolve.isPending}>
+                  {resolve.isPending ? "正在写入决定…" : outcome === "RESOLVED" ? "确认并结案" : "驳回并结案"}
+                </Button>
+              </div>
             </form>
-          </aside>
+          </section>
         ) : null}
       </div>
     </div>

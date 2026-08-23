@@ -167,36 +167,22 @@ describe("station panels", () => {
     }
   });
 
-  it("站务工作页遵守固定宽分栏和全宽操作区契约", () => {
-    const cases = renderWithUrl(<CaseWorkbench />);
-    expect(cases.container.querySelector('[data-slot="admin-primary-detail"]'))
-      .toHaveClass("grid-cols-[32rem_minmax(0,1fr)]");
-    cases.unmount();
+  it("列表型站务页只保留全宽台账，不渲染常驻操作栏", () => {
+    const panels = [
+      <CaseWorkbench key="cases" />,
+      <AppealsPanel key="appeals" />,
+      <UsersPanel key="users" />,
+      <AnnouncementsPanel key="announcements" />,
+      <AdminAccountsPanel key="accounts" />,
+      <ContentModerationPanel key="content" />,
+    ];
 
-    const appeals = renderWithUrl(<AppealsPanel />);
-    expect(appeals.container.querySelector('[data-slot="admin-primary-detail"]'))
-      .toHaveClass("grid-cols-[32rem_minmax(0,1fr)]");
-    appeals.unmount();
-
-    const users = renderWithUrl(<UsersPanel />);
-    expect(users.container.querySelector('[data-slot="admin-users-workspace"]'))
-      .toHaveClass("grid-cols-[minmax(0,1fr)_26rem]");
-    users.unmount();
-
-    const announcements = renderWithUrl(<AnnouncementsPanel />);
-    expect(announcements.container.querySelector('[data-slot="admin-announcements-workspace"]'))
-      .toHaveClass("grid-cols-[28rem_minmax(0,1fr)]");
-    announcements.unmount();
-
-    const accounts = renderWithUrl(<AdminAccountsPanel />);
-    expect(accounts.container.querySelector('[data-slot="admin-accounts-workspace"]'))
-      .toHaveClass("grid-cols-[minmax(0,1fr)_26rem]");
-    accounts.unmount();
-
-    const content = renderWithUrl(<ContentModerationPanel />);
-    expect(content.container.querySelector('[data-slot="admin-content-workspace"]'))
-      .toHaveClass("w-full");
-    content.unmount();
+    for (const panel of panels) {
+      const view = renderWithUrl(panel);
+      expect(view.container.querySelector('[data-layout="full-table"]')).toHaveClass("w-full");
+      expect(view.container.querySelector('[data-slot="admin-action-rail"]')).not.toBeInTheDocument();
+      view.unmount();
+    }
 
     const operations = renderWithUrl(<OperationsSettingsPanel />);
     expect(operations.container.querySelector('[data-slot="admin-operations-workspace"]'))
@@ -235,7 +221,8 @@ describe("station panels", () => {
     const panel = within(view.container);
     expect(panel.getByText("被隐藏的楼层内容")).toBeInTheDocument();
     expect(panel.getByText("违反社区规则")).toBeInTheDocument();
-    fireEvent.click(panel.getByRole("button", { name: "恢复" }));
+    fireEvent.click(panel.getByRole("button", { name: "操作" }));
+    expect(screen.getByRole("dialog", { name: "帖子 / 楼层 / 回复操作" })).toHaveAttribute("data-slot", "dialog-popup");
     fireEvent.change(screen.getByLabelText("恢复理由"), { target: { value: "复核后恢复" } });
     fireEvent.click(screen.getByRole("button", { name: "确认恢复" }));
 
@@ -271,6 +258,55 @@ describe("station panels", () => {
     expect(panel.getByRole("columnheader", { name: "用户" })).toBeInTheDocument();
     expect(panel.getByText("普通用户")).toBeInTheDocument();
     fireEvent.click(panel.getByRole("button", { name: "管理" }));
-    expect(panel.getByRole("button", { name: "已选择" })).toBeInTheDocument();
+    const dialog = screen.getByRole("dialog", { name: "管理 小温" });
+    expect(dialog).toHaveAttribute("data-admin-action-dialog");
+    expect(within(dialog).getByRole("button", { name: "暂停账号" })).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "永久封禁" })).toBeInTheDocument();
+  });
+
+  it("页头创建动作也通过弹窗完成", () => {
+    const announcements = renderWithUrl(<AnnouncementsPanel />);
+    fireEvent.click(within(announcements.container).getByRole("button", { name: "新建通知" }));
+    expect(screen.getByRole("dialog", { name: "新建站内通知" })).toHaveAttribute("data-admin-action-dialog");
+    announcements.unmount();
+
+    const accounts = renderWithUrl(<AdminAccountsPanel />);
+    fireEvent.click(within(accounts.container).getByRole("button", { name: "邀请站务" }));
+    expect(screen.getByRole("dialog", { name: "邀请现有用户" })).toHaveAttribute("data-admin-action-dialog");
+    accounts.unmount();
+
+    const content = renderWithUrl(<ContentModerationPanel />);
+    fireEvent.click(within(content.container).getByRole("button", { name: "直接处置内容" }));
+    expect(screen.getByRole("dialog", { name: "直接处置公开内容" })).toHaveAttribute("data-admin-action-dialog");
+  });
+
+  it("申诉只在点击复核后弹出决定操作", () => {
+    hooks.useAdminAppeals.mockReturnValue({
+      data: {
+        items: [{
+          id: "appeal-1",
+          status: "PENDING",
+          statement: "希望站务重新查看上下文",
+          createdAt: "2026-08-14T08:00:00.000Z",
+          handledAt: null,
+          handledNote: null,
+          appellant: { id: "user-1", username: "小温" },
+          decision: {
+            action: "HIDE_CONTENT",
+            targetType: "THREAD",
+            targetId: "thread-1",
+            publicExplanation: "主题内容违反社区规则",
+          },
+        }],
+        meta: { cursor: null, hasMore: false },
+      },
+      isLoading: false,
+      isFetching: false,
+    });
+
+    const view = renderWithUrl(<AppealsPanel />);
+    expect(screen.queryByRole("dialog", { name: "复核 小温 的申诉" })).not.toBeInTheDocument();
+    fireEvent.click(within(view.container).getByRole("button", { name: "复核" }));
+    expect(screen.getByRole("dialog", { name: "复核 小温 的申诉" })).toHaveAttribute("data-admin-action-dialog");
   });
 });
