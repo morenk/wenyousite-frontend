@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { BRAND_NAME, BRAND_TAGLINE } from "@wenyousite/foundation/brand";
 import "@wenyousite/foundation/web/fonts.css";
 import "@wenyousite/foundation/web/tokens.css";
 import "yet-another-react-lightbox/styles.css";
@@ -7,8 +8,21 @@ import { Providers } from "./providers";
 import { AppChrome } from "@/components/layout/app-chrome";
 
 export const metadata: Metadata = {
-  title: "温油站",
-  description: "面向文字共同创作的主题帖社区",
+  applicationName: BRAND_NAME,
+  title: BRAND_NAME,
+  description: BRAND_TAGLINE,
+  manifest: "/site.webmanifest",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-48x48.png", sizes: "48x48", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
 };
 
 export default function RootLayout({

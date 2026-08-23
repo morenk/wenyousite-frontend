@@ -79,6 +79,18 @@ describe("NavBar", () => {
     expect(screen.queryByRole("button", { name: "打开发布菜单" })).not.toBeInTheDocument();
   });
 
+  test("首页入口使用 Foundation 品牌标识并保持图形装饰语义", () => {
+    mockUseAuth.mockReturnValue({ user: null, logout: vi.fn() });
+    const { container } = render(<NavBar />);
+
+    const home = screen.getByRole("link", { name: "温油站首页" });
+    const mark = home.querySelector("img");
+    expect(mark).toHaveAttribute("src", expect.stringContaining("brand-title-icon-40.png"));
+    expect(mark).toHaveAttribute("alt", "");
+    expect(mark).toHaveAttribute("aria-hidden", "true");
+    expect(container).toHaveTextContent("温油站");
+  });
+
   test("工作区紧凑模式只收窄布局，不改变宽屏按钮集合", () => {
     mockUseAuth.mockReturnValue({ user: { id: "u1", username: "用户" }, logout: vi.fn() });
     render(<NavBar compact />);

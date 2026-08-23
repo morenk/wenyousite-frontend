@@ -3,8 +3,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { BRAND_NAME } from "@wenyousite/foundation/brand";
 import { NAVIGATION_ICONS, NAVIGATION_LABELS } from "@wenyousite/foundation/navigation";
 
 import { useLogout } from "@/api/hooks/use-auth-actions";
@@ -68,20 +70,26 @@ export function NavBar({
     >
       <Link
         href="/"
-        aria-label="温油站首页"
+        aria-label={`${BRAND_NAME}首页`}
         className={cn(
           "group flex h-14 items-center justify-center rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
           !compact && "xl:justify-start xl:px-3",
         )}
       >
-        <span className="relative flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary font-display text-xl font-medium text-primary-foreground transition-transform duration-[var(--motion-standard)] group-hover:-rotate-2">
-          温
-          <span className="absolute -right-1 top-1 size-2.5 rounded-full border-2 border-white bg-secondary" aria-hidden="true" />
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary">
+          <Image
+            src="/brand-title-icon-40.png"
+            width={40}
+            height={40}
+            alt=""
+            aria-hidden="true"
+            priority
+          />
         </span>
         <span className={cn(
           "ml-3 hidden font-display text-xl font-medium tracking-wide text-foreground",
           !compact && "xl:block",
-        )}>温油站</span>
+        )}>{BRAND_NAME}</span>
       </Link>
 
       {user ? <PublishMenu userId={user.id} compact={compact} /> : null}

@@ -4,22 +4,24 @@
 
 跨端审美、共享 Token、字体角色和编辑器能力的唯一事实源是公开仓库
 [`morenk/wenyousite-foundation`](https://github.com/morenk/wenyousite-foundation)。本仓库由
-[`foundation.lock.json`](../foundation.lock.json) 固定到 `v6.3.0`，实现前必须读取同版本的：
+[`foundation.lock.json`](../foundation.lock.json) 固定到 `v6.4.0`，实现前必须读取同版本的：
 
-- [`docs/foundation.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.3.0/docs/foundation.md)
-- [`docs/platforms/web.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.3.0/docs/platforms/web.md)
-- [`docs/elements.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.3.0/docs/elements.md)
-- [`docs/images.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.3.0/docs/images.md)
-- [`docs/icons.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.3.0/docs/icons.md)
-- [`docs/notifications.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.3.0/docs/notifications.md)
-- [`docs/interaction.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.3.0/docs/interaction.md)
-- [`docs/presentation.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.3.0/docs/presentation.md)
-- [`docs/navigation-language.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.3.0/docs/navigation-language.md)
-- [`contracts/foundation.v1.json`](https://github.com/morenk/wenyousite-foundation/blob/v6.3.0/contracts/foundation.v1.json)
+- [`docs/foundation.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.4.0/docs/foundation.md)
+- [`docs/platforms/web.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.4.0/docs/platforms/web.md)
+- [`docs/brand.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.4.0/docs/brand.md)
+- [`docs/elements.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.4.0/docs/elements.md)
+- [`docs/images.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.4.0/docs/images.md)
+- [`docs/icons.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.4.0/docs/icons.md)
+- [`docs/notifications.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.4.0/docs/notifications.md)
+- [`docs/interaction.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.4.0/docs/interaction.md)
+- [`docs/presentation.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.4.0/docs/presentation.md)
+- [`docs/navigation-language.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.4.0/docs/navigation-language.md)
+- [`contracts/foundation.v1.json`](https://github.com/morenk/wenyousite-foundation/blob/v6.4.0/contracts/foundation.v1.json)
 
 本地只保留实现映射，不复制规范：
 
 - `src/app/layout.tsx` 引入中央字体与 Token CSS，`globals.css` 只做 Tailwind 映射和 Web 组件样式。
+- 根布局直接消费 Foundation 的正式品牌名称与文案；侧栏首页入口使用相邻可见名称与装饰性标题标识。favicon、Apple touch icon、PWA 图标、标题标识和 Web Manifest 由 `pnpm brand:sync` 从锁定包同步，并由 `pnpm design:check` 逐项校验哈希。
 - `src/lib/editor-capabilities.ts` 是中央编辑器契约的薄转发层。
 - `src/components/ui/wenyou-icon.tsx` 根据产品语义渲染 Foundation 同源 Lucide 节点；Crepe 顶栏消费相同来源生成的 SVG 字符串，并在 Web 接入边界覆盖其默认实心 `fill`，保持 Lucide 无填充描边。
 - 编辑器使用 Foundation 的 50rem 框架承载工具栏，但正文块固定为 680px 测量宽度；正文 24px 首列偏移与工具栏 12px 外层加首控件 12px 内缩共用基线。

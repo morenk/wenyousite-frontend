@@ -45,8 +45,8 @@ importers:
         specifier: ^3.14.9
         version: 3.14.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@wenyousite/foundation':
-        specifier: github:morenk/wenyousite-foundation#v6.3.0
-        version: https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/73ed49ea76f803c938e959105b94b78e116244fd
+        specifier: github:morenk/wenyousite-foundation#v6.4.0
+        version: https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/0297a99b63fc8ad066bb15fed3d8c63731696d39
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -1860,9 +1860,9 @@ packages:
   '@vue/shared@3.5.40':
     resolution: {integrity: sha512-WxnBtruIqOoV3rA4jeKDWzrYI5h7Cp4+pjwDi8kWGHz+IslhiN+wguLVVhtv2l8VoU02rzDCVfDjgCl1lNpZVg==}
 
-  '@wenyousite/foundation@https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/73ed49ea76f803c938e959105b94b78e116244fd':
-    resolution: {gitHosted: true, integrity: sha512-x7teZaM4o3aiw+9FeLOejXr45QQ3SRMC3wSH2fNEStHoXB4nRDCwdKYo4X3rrlSdibE/9YehV+8kp0qQcnoqXA==, tarball: https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/73ed49ea76f803c938e959105b94b78e116244fd}
-    version: 6.3.0
+  '@wenyousite/foundation@https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/0297a99b63fc8ad066bb15fed3d8c63731696d39':
+    resolution: {gitHosted: true, integrity: sha512-XWEEexRZI2XaIY+DJZkEjzUyCGDLJvVZsmhA0Q2vwXpU4+fUz7xoATelIBhcmDmLdyzoeL5pkLJtbghfEJgarg==, tarball: https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/0297a99b63fc8ad066bb15fed3d8c63731696d39}
+    version: 6.4.0
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -6126,7 +6126,7 @@ snapshots:
 
   '@vue/shared@3.5.40': {}
 
-  '@wenyousite/foundation@https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/73ed49ea76f803c938e959105b94b78e116244fd':
+  '@wenyousite/foundation@https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/0297a99b63fc8ad066bb15fed3d8c63731696d39':
     dependencies:
       '@fontsource-variable/noto-sans-sc': 5.3.0
       '@fontsource-variable/nunito': 5.3.0

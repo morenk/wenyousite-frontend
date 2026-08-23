@@ -6,6 +6,7 @@ import crypto from "node:crypto";
 
 const root = process.cwd();
 const read = (relativePath) => fs.readFileSync(path.resolve(root, relativePath), "utf8");
+const sha256 = (filePath) => crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
 const lock = JSON.parse(read("foundation.lock.json"));
 const packageJson = JSON.parse(read("package.json"));
 const manifest = JSON.parse(read("node_modules/@wenyousite/foundation/foundation-manifest.json"));
@@ -15,6 +16,7 @@ const failures = [];
 const repositoryOnlyArtifacts = new Set([
   "packages/flutter/lib/src/foundation_tokens.dart",
   "packages/flutter/lib/src/foundation_formatters.dart",
+  "packages/flutter/lib/src/foundation_brand.dart",
   "packages/flutter/lib/src/wenyou_icons.dart",
 ]);
 
@@ -24,27 +26,27 @@ if (packageJson.dependencies?.["@wenyousite/foundation"] !== `github:morenk/weny
 if (manifest.version !== lock.version) failures.push("已安装 foundation 版本与锁文件不一致");
 if (manifest.contractSha256 !== lock.contractSha256) failures.push("已安装 foundation 契约哈希与锁文件不一致");
 if (!read("pnpm-lock.yaml").includes(lock.revision)) failures.push("pnpm-lock.yaml 未锁定指定 foundation revision");
-if (foundationContract.version !== "6.3.0" || foundationContract.schemaVersion !== 2) {
-  failures.push("Web 必须消费 Foundation v6.3.0 schema 2 契约");
+if (foundationContract.version !== "6.4.0" || foundationContract.schemaVersion !== 2) {
+  failures.push("Web 必须消费 Foundation v6.4.0 schema 2 契约");
 }
-if (!manifest.features?.typography || !manifest.features?.interaction || !manifest.features?.controls || !manifest.features?.formatting || !manifest.features?.contentPresentation || !manifest.features?.iconControls || !manifest.features?.navigation || !manifest.features?.language || !manifest.features?.elements) {
+if (!manifest.features?.typography || !manifest.features?.interaction || !manifest.features?.controls || !manifest.features?.formatting || !manifest.features?.contentPresentation || !manifest.features?.iconControls || !manifest.features?.navigation || !manifest.features?.language || !manifest.features?.elements || !manifest.features?.brand) {
   failures.push("已安装 Foundation 缺少共享语义能力");
 }
 if (
   foundationContract.experiences.editor.contentPolicy?.markdownContractVersion !== 3 ||
   foundationContract.experiences.editor.contentPolicy?.structuredCapabilitySource !== "toolbar"
 ) failures.push("已安装 Foundation 未绑定 Markdown v3 工具栏白名单");
-if (Object.keys(manifest.artifactSha256 ?? {}).length !== 29) {
+if (Object.keys(manifest.artifactSha256 ?? {}).length !== 58) {
   failures.push("已安装 Foundation 生成产物清单不完整");
 }
 for (const [relativePath, expectedHash] of Object.entries(manifest.artifactSha256 ?? {})) {
   const installedPath = path.resolve(root, "node_modules/@wenyousite/foundation", relativePath);
   if (!fs.existsSync(installedPath)) {
-    if (repositoryOnlyArtifacts.has(relativePath)) continue;
+    if (repositoryOnlyArtifacts.has(relativePath) || relativePath.startsWith("packages/flutter/brand_assets/")) continue;
     failures.push(`已安装 Foundation 缺少生成产物 ${relativePath}`);
     continue;
   }
-  const actualHash = crypto.createHash("sha256").update(fs.readFileSync(installedPath)).digest("hex");
+  const actualHash = sha256(installedPath);
   if (actualHash !== expectedHash) failures.push(`已安装 Foundation 生成产物哈希不一致 ${relativePath}`);
 }
 if (manifest.icons?.family !== "Lucide" || manifest.icons?.version !== "1.28.0") {
@@ -57,6 +59,48 @@ if (packageJson.dependencies?.["lucide-react"] !== "1.28.0") {
 const layout = read("src/app/layout.tsx");
 if (!layout.includes('@wenyousite/foundation/web/fonts.css')) failures.push("根布局未消费中央字体");
 if (!layout.includes('@wenyousite/foundation/web/tokens.css')) failures.push("根布局未消费中央 Token");
+if (!layout.includes('@wenyousite/foundation/brand') || !layout.includes("BRAND_NAME") || !layout.includes("BRAND_TAGLINE")) {
+  failures.push("根布局未消费 Foundation 正式品牌文案");
+}
+for (const metadataClaim of ["/site.webmanifest", "/favicon.ico", "/apple-touch-icon.png"]) {
+  if (!layout.includes(metadataClaim)) failures.push(`根布局元数据缺少 ${metadataClaim}`);
+}
+
+const webBrandAssetTargets = new Map([
+  ["brand/ui/title-icon-40.png", "public/brand-title-icon-40.png"],
+  ["brand/web/favicon.ico", "src/app/favicon.ico"],
+  ["brand/web/favicon-16x16.png", "public/favicon-16x16.png"],
+  ["brand/web/favicon-32x32.png", "public/favicon-32x32.png"],
+  ["brand/web/favicon-48x48.png", "public/favicon-48x48.png"],
+  ["brand/web/apple-touch-icon.png", "public/apple-touch-icon.png"],
+  ["brand/web/pwa-icon-192.png", "public/pwa-icon-192.png"],
+  ["brand/web/pwa-icon-512.png", "public/pwa-icon-512.png"],
+  ["brand/web/pwa-icon-1024.png", "public/pwa-icon-1024.png"],
+  ["brand/web/pwa-icon-maskable-512.png", "public/pwa-icon-maskable-512.png"],
+  ["brand/web/site.webmanifest", "public/site.webmanifest"],
+]);
+if (manifest.brand?.name !== "温油站" || manifest.brand?.tagline !== "最温油的文字共创社区") {
+  failures.push("已安装 Foundation 缺少正式品牌身份");
+}
+for (const [sourcePath, targetPath] of webBrandAssetTargets) {
+  const expectedHash = manifest.brand?.assets?.[sourcePath];
+  const installedPath = path.resolve(root, "node_modules/@wenyousite/foundation", sourcePath);
+  const target = path.resolve(root, targetPath);
+  if (!expectedHash) {
+    failures.push(`Foundation 品牌清单缺少 ${sourcePath}`);
+    continue;
+  }
+  if (!fs.existsSync(installedPath) || sha256(installedPath) !== expectedHash) {
+    failures.push(`已安装 Foundation 品牌资源哈希不一致 ${sourcePath}`);
+  }
+  if (!fs.existsSync(target) || sha256(target) !== expectedHash) {
+    failures.push(`Web 品牌资源未同步 ${targetPath}`);
+  }
+}
+const navBar = read("src/components/layout/nav-bar.tsx");
+if (!navBar.includes('@wenyousite/foundation/brand') || !navBar.includes("/brand-title-icon-40.png")) {
+  failures.push("全局导航未消费 Foundation 标题品牌标识");
+}
 const globalStyles = read("src/app/globals.css");
 if (/^:root\s*\{/mu.test(globalStyles)) failures.push("globals.css 不得复制中央 :root Token");
 for (const claim of ["--type-body-size", "--type-body-line-height"]) {
