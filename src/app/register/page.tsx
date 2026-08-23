@@ -124,7 +124,6 @@ export default function RegisterPage() {
   return (
     <AuthPageShell
       title="注册温油站"
-      description="设置邮箱、用户名和密码。"
       footer={(
         <p className="text-sm text-muted-foreground">
           已有账号？{" "}

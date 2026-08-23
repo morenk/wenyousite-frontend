@@ -88,8 +88,7 @@ describe("FloorForm", () => {
     renderWithQC(
       <FloorForm subthreadId="s1" />,
     );
-    expect(screen.getByText("登录后即可参与讨论")).toBeInTheDocument();
-    expect(screen.getByText("登录")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "登录后参与讨论" })).toBeInTheDocument();
   });
 
   test("已登录仅显示轻量入口，点击后才挂载编辑器", async () => {

@@ -64,8 +64,8 @@ describe("ContentDraftsPanel", () => {
     const onRestore = vi.fn();
     const onClose = vi.fn();
     renderPanel({ onRestore, onClose });
-    expect(screen.getByRole("region", { name: "正文草稿" })).toHaveTextContent("已用 1/5");
-    expect(screen.getAllByText("空闲槽位")).toHaveLength(4);
+    expect(screen.getByRole("region", { name: "正文草稿" })).toHaveTextContent("1/5");
+    expect(screen.getAllByText("未保存")).toHaveLength(4);
     await user.click(screen.getByText("恢复"));
     expect(onRestore).toHaveBeenCalledWith({ content: draft.content });
     expect(onClose).toHaveBeenCalled();
@@ -90,9 +90,9 @@ describe("ContentDraftsPanel", () => {
     vi.stubGlobal("confirm", vi.fn(() => true));
     renderPanel({ initialContent: "新正文", onAutoSaveChange });
 
-    await user.click(screen.getByRole("button", { name: "覆盖槽位 1" }));
+    await user.click(screen.getByRole("button", { name: "覆盖草稿 1" }));
     await user.click(screen.getByRole("button", { name: "删除草稿" }));
-    await user.click(screen.getByRole("switch", { name: "槽位 1 自动保存" }));
+    await user.click(screen.getByRole("switch", { name: "自动保存到草稿 1" }));
 
     expect(save).toHaveBeenCalledWith({
       draftId: "draft-1",

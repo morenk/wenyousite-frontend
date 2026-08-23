@@ -232,7 +232,7 @@ export function MomentCommentForm({
   };
 
   const pendingLabel = uploadStage === "compressing"
-    ? "正在压缩"
+    ? "正在准备"
     : uploadStage === "preparing"
       ? "正在准备"
       : uploadStage === "uploading"

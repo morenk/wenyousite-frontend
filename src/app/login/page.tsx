@@ -65,7 +65,6 @@ export default function LoginPage() {
   return (
     <AuthPageShell
       title="登录温油站"
-      description="使用用户名或邮箱登录。"
       footer={(
         <p className="text-sm text-muted-foreground">
           还没有账号？{" "}

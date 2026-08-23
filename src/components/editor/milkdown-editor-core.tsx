@@ -95,10 +95,7 @@ function EditorCore({
         autoFocus={autoFocus}
         ariaLabel={editorAriaLabel}
       />
-      <div className="flex items-center justify-between border-t border-border px-3 py-2">
-        <span className="text-xs text-muted-foreground">
-          仅工具栏中的格式会作为正文结构
-        </span>
+      <div className="flex items-center justify-end border-t border-border px-3 py-2">
         <div className="flex items-center gap-3">
           {(autoSaveEnabled || autoSaveStatus === "error") && (
             <span className={cn(

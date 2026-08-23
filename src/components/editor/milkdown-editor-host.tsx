@@ -489,7 +489,7 @@ export function MilkdownEditorHost({
       if (node.type.name === DICE_INLINE_NODE_NAME) diceCount++;
     });
     if (diceCount >= MAX_DICE_ROLLS_PER_POST) {
-      toast.error(`每个帖子最多包含 ${MAX_DICE_ROLLS_PER_POST} 个骰子节点`);
+      toast.error(`每个帖子最多可插入 ${MAX_DICE_ROLLS_PER_POST} 个骰子`);
       return;
     }
     const dice = createInlineDiceNode(notationInput);

@@ -135,7 +135,7 @@ export function InternalReferenceInsert({
                 {errors.href?.message ? (
                   <p className="text-xs text-destructive">{errors.href.message}</p>
                 ) : (
-                  <p className="text-xs text-muted-foreground">可直接粘贴浏览器中的帖子坐标或私密邀请地址。</p>
+                  <p className="text-xs text-muted-foreground">粘贴帖子或私密邀请链接。</p>
                 )}
               </div>
               <DialogFooter>

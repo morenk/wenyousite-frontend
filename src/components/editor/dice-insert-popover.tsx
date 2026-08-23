@@ -141,7 +141,7 @@ export function DiceInsertPopover({
         </Button>
       </div>
       <p className="mt-2 text-xs text-muted-foreground">
-        {limitReached ? `已达到每帖 ${maxCount} 个骰子上限` : "提交帖子后由服务器生成结果"}
+        {limitReached ? `已达到每帖 ${maxCount} 个骰子上限` : "发布后生成结果"}
       </p>
     </form>,
     document.body,

@@ -9,7 +9,6 @@ import {
   Dialog,
   DialogBackdrop,
   DialogCloseButton,
-  DialogDescription,
   DialogPopup,
   DialogPortal,
   DialogTitle,
@@ -46,12 +45,7 @@ export function CreateBookmarkFolderButton({
           <DialogViewport>
             <DialogPopup className="max-w-sm p-6">
               <div className="flex items-start justify-between gap-4">
-                <div>
-                  <DialogTitle>新建收藏夹</DialogTitle>
-                  <DialogDescription className="mt-1">
-                    用分类把想继续阅读的主题帖和动态收在一起。
-                  </DialogDescription>
-                </div>
+                <DialogTitle>新建收藏夹</DialogTitle>
                 <DialogCloseButton type="button" label="关闭新建收藏夹" />
               </div>
 

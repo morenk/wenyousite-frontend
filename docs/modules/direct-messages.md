@@ -53,7 +53,7 @@ Web 端提供低频轮询的一对一私聊。入口位于全局导航和用户�
 - 普通消息正文使用 Noto Sans SC Variable、`16px / 28px`，保留系统和浏览器缩放；链接继承同一字号。气泡最大宽度为会话面板 72%，但短消息由正文宽度决定。
 - 站内传送门使用同标签页导航；其余 `http/https` 片段转换为新窗口链接，并设置 `noopener noreferrer nofollow`。消息气泡与复制保留服务端完整原正文。
 - 会话列表消费服务端脱敏 `contentPreview`，并对旧响应中的邀请语法或残留 `/join/{token}` 再做防御清理；邀请统一显示“邀请传送门”，不得把 token 写入预览、日志、诊断或推送正文。
-- 图片复用媒体上传管线并传 `DIRECT_MESSAGE` 用途。发送前显示“公开 URL、不要发送敏感内容”的提示；点击发送后立即在当前会话插入 blob 预览气泡，显示准备/上传百分比/发送状态，完成后以同一 `clientRequestId` 原位替换为正式消息。失败气泡可取消，输入区恢复原草稿并复用已完成的 `mediaId`；对象 URL 在成功、替换、清空和卸载时释放。
+- 图片复用媒体上传管线并传 `DIRECT_MESSAGE` 用途。发送前用用户可理解的语言提醒图片链接无需登录即可打开，不展示 URL 或上传实现说明；点击发送后立即在当前会话插入 blob 预览气泡，显示准备/上传百分比/发送状态，完成后以同一 `clientRequestId` 原位替换为正式消息。失败气泡可取消，输入区恢复原草稿并复用已完成的 `mediaId`；对象 URL 在成功、替换、清空和卸载时释放。
 - 消息响应的 `media` 始终显式返回 `url`、`thumbnailUrl`、`mediumUrl`（派生图未就绪时后二者为 `null`）。普通静态图优先显示 `mediumUrl`，GIF 使用 `url` 原图；Web/Flutter 均不得通过文件名拼接派生图地址。
 - GIF 可在选择预览和消息气泡中播放。气泡直接请求 GIF 原图，不替换为只含首帧的 `_md.webp`；陌生消息请求仍需用户点击后才加载。
 - 编辑器内可打开最近/收藏表情面板；点选后立即发送独立 `stickerAssetId`，不清空已输入文字或待发图片。纯表情气泡最大 128px、无背景；静态表情优先加载缩略图，动图加载规范化动画资产。普通消息图片和表情都可悬停或聚焦后收藏。
@@ -70,7 +70,7 @@ Web 端提供低频轮询的一对一私聊。入口位于全局导航和用户�
 | `message-center-tabs.tsx` | 私聊/通知页签与分项徽标 |
 | `direct-conversation-list.tsx` | 普通会话与请求合并、条件归档文件夹、归档子列表及各自游标加载 |
 | `direct-conversation-panel.tsx` | 请求、历史、已读、归档、拉黑、发送和撤回编排 |
-| `direct-message-composer.tsx` | 1000 字纯文本、单图上传、表情面板和公开 URL 提示 |
+| `direct-message-composer.tsx` | 1000 字纯文本、单图上传、表情面板和图片隐私提醒 |
 | `direct-message-bubble.tsx` | 安全文本链接、GIF/表情播放、快速收藏、陌生图片延迟展示和撤回占位 |
 | `direct-conversation-entry-copy.ts` | 首聊页按互关、拉黑与拒绝关系生成准确提示 |
 | `use-direct-conversations.ts` | 列表、详情、联系状态、未读查询 |

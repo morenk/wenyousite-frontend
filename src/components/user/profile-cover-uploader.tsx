@@ -192,7 +192,7 @@ export function ProfileCoverUploader({
         mediaId: mediaIds.web!,
         mobileMediaId: mediaIds.mobile!,
       });
-      toast.success("电脑端与移动端背景已更新");
+      toast.success("主页背景已更新");
       closeCrop();
     } catch (error) {
       if (!isUploadAbortError(error)) {
@@ -209,7 +209,7 @@ export function ProfileCoverUploader({
   const handleRemove = async () => {
     try {
       await removeProfileCover.mutateAsync();
-      toast.success("电脑端与移动端背景已移除");
+      toast.success("主页背景已移除");
     } catch (error) {
       toast.error(getApiErrorMessage(error, "主页背景移除失败，请稍后重试"));
     }
@@ -219,7 +219,7 @@ export function ProfileCoverUploader({
     <div>
       <div className="grid gap-3 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <section aria-labelledby="profile-cover-web-preview">
-          <div className="mb-2 flex items-center justify-between gap-3">
+          <div className="mb-2 flex items-center gap-3">
             <p
               id="profile-cover-web-preview"
               className="flex items-center gap-1.5 text-xs font-medium text-foreground"
@@ -227,7 +227,6 @@ export function ProfileCoverUploader({
               <Monitor className="size-3.5 text-brand-strong" aria-hidden="true" />
               电脑端 · 3:1
             </p>
-            <span className="font-utility text-[11px] text-muted-foreground">1920 × 640</span>
           </div>
           <div className="relative mb-9">
             <ProfileCover
@@ -245,7 +244,7 @@ export function ProfileCoverUploader({
         </section>
 
         <section aria-labelledby="profile-cover-mobile-preview">
-          <div className="mb-2 flex items-center justify-between gap-3">
+          <div className="mb-2 flex items-center gap-3">
             <p
               id="profile-cover-mobile-preview"
               className="flex items-center gap-1.5 text-xs font-medium text-foreground"
@@ -253,7 +252,6 @@ export function ProfileCoverUploader({
               <Smartphone className="size-3.5 text-brand-strong" aria-hidden="true" />
               移动端 · 2:1
             </p>
-            <span className="font-utility text-[11px] text-muted-foreground">1600 × 800</span>
           </div>
           <ProfileCover
             cover={mobilePreviewCover}
@@ -262,15 +260,12 @@ export function ProfileCoverUploader({
             className="rounded-xl border border-border"
           />
           {profileCover && !profileCover.mobile ? (
-            <p className="mt-1.5 text-[11px] text-muted-foreground">当前暂用电脑端背景兜底</p>
+            <p className="mt-1.5 text-[11px] text-muted-foreground">沿用电脑端背景</p>
           ) : null}
         </section>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
-        <p className="max-w-md text-xs leading-5 text-muted-foreground">
-          选择一张 jpg/png/webp，分别调整两个展示画幅；保存后不保留原图，再次调整需重新选择。
-        </p>
+      <div className="mt-4 flex flex-wrap items-center justify-end gap-3 border-t border-border pt-4">
         <div className="flex shrink-0 gap-2">
           {profileCover ? (
             <Button
@@ -281,7 +276,7 @@ export function ProfileCoverUploader({
               disabled={pending}
             >
               <Trash2 className="size-4" />
-              移除两端背景
+              移除背景
             </Button>
           ) : null}
           <Button
@@ -317,8 +312,8 @@ export function ProfileCoverUploader({
             <DialogBackdrop />
             <DialogViewport>
               <DialogPopup className="max-w-5xl p-5 sm:p-6">
-                <DialogTitle>为两个展示端分别取景</DialogTitle>
-                <DialogDescription className="mt-1">
+                <DialogTitle>调整主页背景</DialogTitle>
+                <DialogDescription className="sr-only">
                   两个取景框使用同一张原图，可以独立拖动和缩放。保存时会一起更新。
                 </DialogDescription>
 
@@ -332,23 +327,13 @@ export function ProfileCoverUploader({
                         aria-labelledby={`profile-cover-${surface}-crop-title`}
                         className="rounded-2xl border border-border bg-muted/35 p-3"
                       >
-                        <div className="mb-3 flex items-start justify-between gap-3">
-                          <div>
-                            <h3
-                              id={`profile-cover-${surface}-crop-title`}
-                              className="flex items-center gap-2 text-sm font-semibold text-foreground"
-                            >
-                              <Icon className="size-4 text-brand-strong" aria-hidden="true" />
-                              {spec.label}画幅
-                            </h3>
-                            <p className="mt-0.5 text-xs text-muted-foreground">
-                              {spec.aspect}:1 · {spec.width} × {spec.height}
-                            </p>
-                          </div>
-                          <span className="rounded-full bg-accent px-2 py-1 font-utility text-[10px] font-semibold text-accent-foreground">
-                            {surface === "web" ? "宽屏主页" : "紧凑头部"}
-                          </span>
-                        </div>
+                        <h3
+                          id={`profile-cover-${surface}-crop-title`}
+                          className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground"
+                        >
+                          <Icon className="size-4 text-brand-strong" aria-hidden="true" />
+                          {spec.label}画幅
+                        </h3>
                         <div
                           className={`relative overflow-hidden rounded-xl bg-foreground ${
                             surface === "web" ? "aspect-3/1" : "aspect-2/1"
@@ -408,7 +393,7 @@ export function ProfileCoverUploader({
                   uploadProgress ? (
                     <ImageUploadProgress
                       progress={uploadProgress}
-                      label="正在并行上传电脑端与移动端画幅"
+                      label="正在上传主页背景"
                       onCancel={() => uploadAbortRef.current?.abort()}
                       className="mt-4"
                       compact
@@ -416,13 +401,13 @@ export function ProfileCoverUploader({
                   ) : (
                     <div className="mt-4 flex items-center gap-2 rounded-lg bg-muted/70 px-3 py-2 text-xs text-muted-foreground">
                       <Loader2 className="size-3.5 animate-spin text-brand-strong" />
-                      正在并行生成电脑端与移动端画幅…
+                      正在准备主页背景…
                     </div>
                   )
                 ) : setProfileCover.isPending ? (
                   <div className="mt-4 flex items-center gap-2 rounded-lg bg-muted/70 px-3 py-2 text-xs text-muted-foreground">
                     <Loader2 className="size-3.5 animate-spin text-brand-strong" />
-                    两张图片已上传，正在一起保存…
+                    正在保存主页背景…
                   </div>
                 ) : null}
 
@@ -439,7 +424,7 @@ export function ProfileCoverUploader({
                     disabled={isUploading || !croppedAreas.web || !croppedAreas.mobile}
                   >
                     {isUploading ? <Loader2 className="size-4 animate-spin" /> : null}
-                    {isUploading ? "正在保存" : "保存两端背景"}
+                    {isUploading ? "正在保存" : "保存背景"}
                   </Button>
                 </DialogFooter>
               </DialogPopup>

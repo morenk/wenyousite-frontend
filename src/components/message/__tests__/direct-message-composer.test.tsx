@@ -169,14 +169,15 @@ describe("DirectMessageComposer", () => {
     expect(textarea).toHaveValue("");
   });
 
-  test("选择单图后展示公开链接警告并上传 mediaId", async () => {
+  test("选择单图后展示隐私提醒并上传 mediaId", async () => {
     const onSend = vi.fn().mockResolvedValue(undefined);
     const { container } = render(<DirectMessageComposer onSend={onSend} submitLabel="发送首条消息" />);
     const file = new File(["image"], "photo.jpg", { type: "image/jpeg" });
     fireEvent.change(container.querySelector("input[type=file]")!, { target: { files: [file] } });
 
     expect(screen.getByRole("img", { name: "待发送图片预览" })).toHaveAttribute("src", "blob:preview");
-    expect(screen.getByText(/公开访问的链接/)).toBeInTheDocument();
+    expect(screen.getByText("图片链接无需登录即可打开，请勿发送敏感内容。")).toBeInTheDocument();
+    expect(screen.queryByText(/公开访问的链接/)).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "发送首条消息" }));
     await waitFor(() => expect(onSend).toHaveBeenCalledWith({
       mediaId: "media1",

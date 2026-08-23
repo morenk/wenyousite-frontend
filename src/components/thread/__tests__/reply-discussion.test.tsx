@@ -89,7 +89,7 @@ describe("ReplyDiscussion", () => {
       list.compareDocumentPosition(anchor!) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
     expect(screen.queryByRole("button", { name: "参与讨论" })).not.toBeInTheDocument();
-    expect(screen.getByText("登录后即可参与讨论")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "登录后参与讨论" })).toBeInTheDocument();
   });
 
   test("登录用户在浮动输入坞中看到发表回复入口", () => {

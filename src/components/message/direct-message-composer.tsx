@@ -365,7 +365,7 @@ export function DirectMessageComposer({
             onSelect={handleSticker}
           />
           <span className="text-xs text-muted-foreground">
-            {content.length}/1000 · 支持传送门与 GIF
+            {content.length}/1000
           </span>
         </div>
         <Button type="button" onClick={() => void handleSubmit()} disabled={isPending}>
@@ -382,7 +382,7 @@ export function DirectMessageComposer({
       {image && (
         <p className="mt-2 text-xs text-warning">
           {image.type === "image/gif" && "GIF 动图会保留动画效果；"}
-          图片将使用可公开访问的链接，请勿发送敏感内容。
+          图片链接无需登录即可打开，请勿发送敏感内容。
         </p>
       )}
     </div>

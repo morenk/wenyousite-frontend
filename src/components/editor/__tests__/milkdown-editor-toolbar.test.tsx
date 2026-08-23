@@ -89,6 +89,7 @@ describe("MilkdownEditor 能力分层", () => {
     const { container } = renderEditor("正文", "主帖正文");
 
     expect(await getEditor(container)).toHaveAttribute("aria-label", "主帖正文");
+    expect(screen.queryByText("仅工具栏中的格式会作为正文结构")).toBeNull();
   });
 
   test("宽栏直接展示全部常用能力，不显示多余的更多按钮", async () => {

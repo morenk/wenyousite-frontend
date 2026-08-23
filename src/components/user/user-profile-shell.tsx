@@ -85,7 +85,7 @@ export function UserProfileShell({ userId, children }: UserProfileShellProps) {
       <PageShell className="py-12">
         <Card>
           <CardContent className="pt-6">
-            <EmptyState title="已注销用户" description="该用户已注销账号" />
+            <EmptyState title="已注销用户" />
           </CardContent>
         </Card>
       </PageShell>

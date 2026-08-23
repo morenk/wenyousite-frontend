@@ -142,7 +142,7 @@ export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
         textClassName="text-3xl"
       />
 
-      <div className="flex flex-col gap-1.5">
+      <div>
         <div className="flex gap-2">
           <Button
             type="button"
@@ -166,7 +166,6 @@ export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
             </Button>
           ) : null}
         </div>
-        <p className="text-xs text-muted-foreground">支持 jpg/png/webp，裁剪后 512×512</p>
         <input
           data-testid="avatar-file-input"
           ref={fileInputRef}

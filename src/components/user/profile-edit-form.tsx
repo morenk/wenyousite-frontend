@@ -168,10 +168,7 @@ export function ProfileEditForm() {
           </CardHeader>
           <CardContent className="space-y-6 pt-2">
             <div>
-              <div className="mb-3">
-                <p className="text-sm font-medium text-foreground">主页背景</p>
-                <p className="text-xs text-muted-foreground">显示在个人主页顶部，头像会覆盖背景下缘。</p>
-              </div>
+              <p className="mb-3 text-sm font-medium text-foreground">主页背景</p>
               <ProfileCoverUploader
                 username={me.username}
                 avatar={me.avatar}
@@ -255,12 +252,7 @@ export function ProfileEditForm() {
               href="/me/password"
               className="flex items-center justify-between rounded-lg px-3 py-3 transition-colors hover:bg-muted/50"
             >
-              <div>
-                <p className="text-sm font-medium text-foreground">修改密码</p>
-                <p className="text-xs text-muted-foreground">
-                  定期更换密码，保护账号安全
-                </p>
-              </div>
+              <p className="text-sm font-medium text-foreground">修改密码</p>
               <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
             </Link>
             <Link
@@ -279,10 +271,7 @@ export function ProfileEditForm() {
               href="/me/security"
               className="flex items-center justify-between rounded-lg px-3 py-3 transition-colors hover:bg-muted/50"
             >
-              <div>
-                <p className="text-sm font-medium text-foreground">登录终端与账号安全</p>
-                <p className="text-xs text-muted-foreground">管理登录终端、黑名单和账号注销</p>
-              </div>
+              <p className="text-sm font-medium text-foreground">登录终端与账号安全</p>
               <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
             </Link>
           </CardContent>

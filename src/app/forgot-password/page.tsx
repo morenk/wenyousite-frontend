@@ -60,7 +60,6 @@ export default function ForgotPasswordPage() {
   return (
     <AuthPageShell
       title="忘记密码"
-      description="输入注册邮箱，我们将发送重置验证码"
       footer={(
         <p className="text-sm text-muted-foreground">
           <Link

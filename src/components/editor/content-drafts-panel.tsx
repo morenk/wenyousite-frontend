@@ -115,7 +115,7 @@ export function ContentDraftsPanel({
   const handleDelete = async (draft: DraftItem) => {
     const deletingAutoSave = draft.slot === 1 && autoSaveEnabled;
     const message = deletingAutoSave
-      ? "删除槽位 1 会同时关闭当前编辑器的自动保存，是否继续？"
+      ? "删除草稿 1 还会关闭自动保存，是否继续？"
       : "确定要删除这条正文草稿吗？删除后无法恢复。";
     if (!(await confirmAction({
       title: "删除正文草稿",
@@ -137,8 +137,8 @@ export function ContentDraftsPanel({
     if (!text.trim()) return;
     const occupied = slot === undefined ? undefined : draftBySlot.get(slot);
     if (occupied && !(await confirmAction({
-      title: `覆盖槽位 ${slot}`,
-      description: `确定要覆盖槽位 ${slot} 的正文草稿吗？`,
+      title: `覆盖草稿 ${slot}`,
+      description: `这会替换草稿 ${slot} 的内容，是否继续？`,
       confirmLabel: "覆盖",
       destructive: true,
     }))) return;
@@ -161,7 +161,7 @@ export function ContentDraftsPanel({
           version: savedDraft.version,
         });
       }
-      toast.success(occupied ? `已覆盖槽位 ${slot}` : "正文草稿已保存");
+      toast.success(occupied ? `草稿 ${slot} 已覆盖` : "正文草稿已保存");
     } catch (err) {
       toast.error(getApiErrorMessage(err, "保存失败，请稍后重试"));
     }
@@ -176,7 +176,7 @@ export function ContentDraftsPanel({
       !!freshSlotOne &&
       !(await confirmAction({
         title: "开启自动保存",
-        description: "开启自动保存后，槽位 1 将由当前编辑器持续覆盖，是否继续？",
+        description: "开启后会用当前正文覆盖草稿 1，是否继续？",
         confirmLabel: "开启并覆盖",
       }))
     ) {
@@ -205,7 +205,7 @@ export function ContentDraftsPanel({
           <div className="min-w-0">
             <h2 className="text-sm font-bold text-foreground">正文草稿</h2>
             <p className="mt-0.5 text-[11px] text-muted-foreground">
-              当前编辑器的临时书架 · 已用 {usedSlots}/{maxSlots}
+              {usedSlots}/{maxSlots}
             </p>
           </div>
         </div>
@@ -222,21 +222,21 @@ export function ContentDraftsPanel({
       <div className="max-h-[min(22rem,52vh)] overflow-y-auto border-t border-border px-3 py-3 overscroll-contain">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-background px-3 py-2.5">
           <div className="min-w-0">
-            <p className="text-xs font-medium text-foreground">槽位 1 自动保存</p>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">
-              {autoSaveStatus === "error"
-                ? "自动保存失败并已关闭，请重新开启"
-                : autoSaveEnabled
-                ? autoSaveStatus === "saving"
-                  ? "正在保存当前编辑器内容…"
-                  : autoSaveStatus === "saved"
-                      ? "当前内容已自动保存"
-                      : "编辑后将自动更新到槽位 1"
-                : "开启后，当前编辑器全文会自动更新到槽位 1"}
-            </p>
+            <p className="text-xs font-medium text-foreground">自动保存到草稿 1</p>
+            {autoSaveEnabled || autoSaveStatus === "error" ? (
+              <p className="mt-0.5 text-[11px] text-muted-foreground">
+                {autoSaveStatus === "error"
+                  ? "保存失败，请重新开启"
+                  : autoSaveStatus === "saving"
+                    ? "保存中…"
+                    : autoSaveStatus === "saved"
+                      ? "已保存"
+                      : "等待编辑"}
+              </p>
+            ) : null}
             <p className="mt-1 text-[11px] tabular-nums text-muted-foreground">
-              当前正文 {hasCurrentSnapshot ? `${currentContent.length} 字` : "为空"}
-              {currentDiceCount > 0 ? ` · ${currentDiceCount} 个待掷节点` : ""}
+              {hasCurrentSnapshot ? `${currentContent.length} 字` : "正文为空"}
+              {currentDiceCount > 0 ? ` · ${currentDiceCount} 个待掷骰子` : ""}
             </p>
           </div>
           <button
@@ -244,7 +244,7 @@ export function ContentDraftsPanel({
             data-slot="content-drafts-autosave-switch"
             role="switch"
             aria-checked={autoSaveEnabled}
-            aria-label="槽位 1 自动保存"
+            aria-label="自动保存到草稿 1"
             onClick={() => void handleAutoSaveToggle()}
             disabled={!onAutoSaveChange || isLoading}
             className={`relative h-6 w-11 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 ${
@@ -287,7 +287,7 @@ export function ContentDraftsPanel({
                       {String(slot).padStart(2, "0")}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs text-muted-foreground">空闲槽位</p>
+                      <p className="text-xs text-muted-foreground">未保存</p>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -309,10 +309,12 @@ export function ContentDraftsPanel({
                   <span className="absolute inset-y-0 left-0 flex w-9 items-start justify-center border-r border-border bg-muted/35 pt-2.5 font-utility text-base font-medium tabular-nums text-brand-strong">
                     {String(slot).padStart(2, "0")}
                   </span>
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-medium text-muted-foreground">
-                      {slot === 1 && autoSaveEnabled ? "自动保存中" : "正文快照"}
-                    </span>
+                  <div className="flex items-center justify-end gap-2">
+                    {slot === 1 && autoSaveEnabled ? (
+                      <span className="text-[11px] font-medium text-muted-foreground">
+                        自动保存
+                      </span>
+                    ) : null}
                     <WenyouTime value={draft.updatedAt} className="text-[11px] text-muted-foreground" />
                   </div>
                   <p className="mt-1 line-clamp-2 min-h-8 whitespace-pre-wrap break-words text-xs leading-4 text-foreground">
@@ -334,7 +336,7 @@ export function ContentDraftsPanel({
                       className="h-7 px-2 text-xs"
                       onClick={() => handleSave(slot)}
                       disabled={!hasCurrentSnapshot || saveDraft.isPending}
-                      aria-label={`覆盖槽位 ${slot}`}
+                      aria-label={`覆盖草稿 ${slot}`}
                     >
                       <Save className="mr-1 h-3 w-3" />
                       覆盖

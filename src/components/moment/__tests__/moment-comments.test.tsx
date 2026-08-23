@@ -504,7 +504,7 @@ describe("MomentComments", () => {
     });
 
     fireEvent.click(screen.getByRole("button", { name: "发送" }));
-    await screen.findByRole("button", { name: "正在压缩" });
+    await screen.findByRole("button", { name: "正在准备" });
     fireEvent.click(screen.getByRole("button", { name: "移除评论图片" }));
 
     await waitFor(() => expect(screen.getByRole("button", { name: "发送" })).toBeEnabled());

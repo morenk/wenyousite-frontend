@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -23,7 +22,6 @@ export function UserActivitySummaryCard({ userId }: { userId: string }) {
     <Card>
       <CardHeader>
         <CardTitle className="text-base">创作概览</CardTitle>
-        <CardDescription>公开内容与共同创作足迹</CardDescription>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -49,28 +47,24 @@ export function UserActivitySummaryCard({ userId }: { userId: string }) {
           <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <SummaryMetric
               label="发布动态"
-              hint="短内容"
               value={data.momentCount}
               href={`/users/${userId}/moments`}
               icon={Images}
             />
             <SummaryMetric
               label="创建主题"
-              hint="担任楼主"
               value={data.createdThreadCount}
               href={`/users/${userId}/threads`}
               icon={FilePenLine}
             />
             <SummaryMetric
               label="参与主题"
-              hint="玩家身份"
               value={data.playedThreadCount}
               href={data.playedThreadCount === null ? undefined : `/users/${userId}/threads`}
               icon={UsersRound}
             />
             <SummaryMetric
               label="累计回复"
-              hint="楼层讨论"
               value={data.replyCount}
               href={data.replyCount === null ? undefined : "#recent-replies"}
               icon={MessageSquareText}
@@ -84,13 +78,11 @@ export function UserActivitySummaryCard({ userId }: { userId: string }) {
 
 function SummaryMetric({
   label,
-  hint,
   value,
   href,
   icon: Icon,
 }: {
   label: string;
-  hint: string;
   value: number | null;
   href?: string;
   icon: typeof Images;
@@ -98,7 +90,7 @@ function SummaryMetric({
   return (
     <div
       className={cn(
-        "relative min-h-24 overflow-hidden rounded-xl bg-muted/55 p-3.5",
+        "relative min-h-20 overflow-hidden rounded-xl bg-muted/55 p-3.5",
         href && "transition-colors has-[a:hover]:bg-accent/70",
       )}
     >
@@ -114,7 +106,6 @@ function SummaryMetric({
       >
         {value === null ? "未公开" : countFormatter.format(value)}
       </dd>
-      <p className="mt-0.5 text-[0.6875rem] text-muted-foreground">{hint}</p>
       {href ? (
         <Link
           href={href}

@@ -91,7 +91,7 @@ export function MemberManager({ threadId, isOwner, isCollaborator }: MemberManag
   if (error) {
     return (
       <div className="flex flex-col items-center gap-4 py-20">
-        <EmptyState title="成员列表加载失败" description="检查网络后重试，现有权限不会受到影响。" />
+        <EmptyState title="成员列表加载失败" />
         <Button variant="outline" size="compact" onClick={() => void refetch()}>
           重试
         </Button>
@@ -102,7 +102,7 @@ export function MemberManager({ threadId, isOwner, isCollaborator }: MemberManag
   if (!members || members.length === 0) {
     return (
       <div className="py-20">
-        <EmptyState title="暂无参与人" description="用户回复帖子后会自动进入成员候选池。" />
+        <EmptyState title="暂无参与人" description="有人参与讨论后，会显示在这里。" />
       </div>
     );
   }

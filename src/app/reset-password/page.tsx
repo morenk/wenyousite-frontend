@@ -93,7 +93,6 @@ export default function ResetPasswordPage() {
   return (
     <AuthPageShell
       title="重置密码"
-      description="输入邮箱、收到的验证码和新的密码"
       footer={(
         <p className="text-sm text-muted-foreground">
           <Link

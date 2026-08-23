@@ -21,7 +21,6 @@ import {
   Dialog,
   DialogBackdrop,
   DialogCloseButton,
-  DialogDescription,
   DialogPopup,
   DialogPortal,
   DialogTitle,
@@ -143,7 +142,7 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
       }).catch(() => {
         if (quotaWarningRef.current) return;
         quotaWarningRef.current = true;
-        toast.warning("浏览器空间不足，图片草稿可能无法恢复；文字内容仍可继续发布");
+        toast.warning("设备存储空间不足，图片草稿可能无法恢复；文字仍可继续发布");
       });
     }, 600);
     return () => window.clearTimeout(timeout);
@@ -242,7 +241,7 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
           let uploadFile = compressedFilesRef.current.get(image.id);
           if (!uploadFile) {
             setImageUploadProgress(null);
-            setUploadProgress(`正在压缩${position}`);
+            setUploadProgress(`正在准备${position}`);
             uploadFile = await compressMomentImage(image.file, {
               signal: uploadController?.signal,
             });
@@ -346,10 +345,7 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
 
         <form data-slot="moment-composer-form" onSubmit={(event) => void handleSubmit(submit)(event)} className="grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden">
           <header className="relative z-10 flex items-center justify-between bg-background px-6 py-4">
-            <div>
-              <DialogTitle className="text-xl">发布动态</DialogTitle>
-              <DialogDescription className="mt-0.5 text-xs">可发布最多 1000 字或 9 张图片。</DialogDescription>
-            </div>
+            <DialogTitle className="text-xl">发布动态</DialogTitle>
             <DialogCloseButton
               disabled={isPublishing}
               label={isUploading ? "取消上传并关闭发布器" : "关闭发布器"}
@@ -418,7 +414,7 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
                 ) : null}
               </div>
               <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple className="sr-only" onChange={(event) => addFiles(event.target.files)} />
-              <p className="text-xs leading-5 text-muted-foreground">点击星标选择封面；发布时压缩为 WebP，不上传原图。无图时自动生成文字封面。</p>
+              <p className="text-xs leading-5 text-muted-foreground">点击星标选择封面；无图时使用文字封面。</p>
             </div>
           </div>
 

@@ -33,10 +33,9 @@ export function ThreadComposerEntry({
   if (!user) {
     return (
       <div className="rounded-xl border border-border bg-card p-4">
-        <p className="mb-3 text-sm text-muted-foreground">登录后即可参与讨论</p>
         <Button variant="outline" size="sm" onClick={() => redirectToLogin()}>
           <LogIn className="mr-1.5 h-4 w-4" />
-          登录
+          登录后参与讨论
         </Button>
       </div>
     );

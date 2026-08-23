@@ -74,11 +74,11 @@ async function openCropDialog() {
   });
   await waitFor(() =>
     expect(
-      screen.getByRole("dialog", { name: "为两个展示端分别取景" }),
+      screen.getByRole("dialog", { name: "调整主页背景" }),
     ).toBeInTheDocument(),
   );
   await waitFor(() =>
-    expect(screen.getByRole("button", { name: "保存两端背景" })).toBeEnabled(),
+    expect(screen.getByRole("button", { name: "保存背景" })).toBeEnabled(),
   );
 }
 
@@ -110,7 +110,7 @@ describe("ProfileCoverUploader", () => {
 
     expect(screen.getByText("电脑端 · 3:1")).toBeInTheDocument();
     expect(screen.getByText("移动端 · 2:1")).toBeInTheDocument();
-    expect(screen.getByText("当前暂用电脑端背景兜底")).toBeInTheDocument();
+    expect(screen.getByText("沿用电脑端背景")).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "tester 的移动端主页背景" })).toHaveAttribute(
       "src",
       legacyCover.url,
@@ -122,7 +122,7 @@ describe("ProfileCoverUploader", () => {
     await openCropDialog();
 
     expect(screen.getAllByTestId("profile-cover-cropper")).toHaveLength(2);
-    fireEvent.click(screen.getByRole("button", { name: "保存两端背景" }));
+    fireEvent.click(screen.getByRole("button", { name: "保存背景" }));
 
     await waitFor(() => expect(mockUploadImageFile).toHaveBeenCalledTimes(2));
     const webFile = mockUploadImageFile.mock.calls[0][0] as File;
@@ -150,7 +150,7 @@ describe("ProfileCoverUploader", () => {
         mobileMediaId: "mobile-media",
       }),
     );
-    expect(toast.success).toHaveBeenCalledWith("电脑端与移动端背景已更新");
+    expect(toast.success).toHaveBeenCalledWith("主页背景已更新");
   });
 
   test("第二张上传失败后重试会复用已上传的 Web mediaId", async () => {
@@ -162,9 +162,9 @@ describe("ProfileCoverUploader", () => {
     renderUploader();
     await openCropDialog();
 
-    fireEvent.click(screen.getByRole("button", { name: "保存两端背景" }));
+    fireEvent.click(screen.getByRole("button", { name: "保存背景" }));
     await waitFor(() => expect(toast.error).toHaveBeenCalled());
-    fireEvent.click(screen.getByRole("button", { name: "保存两端背景" }));
+    fireEvent.click(screen.getByRole("button", { name: "保存背景" }));
 
     await waitFor(() => expect(mockUploadImageFile).toHaveBeenCalledTimes(3));
     await waitFor(() =>
@@ -177,9 +177,9 @@ describe("ProfileCoverUploader", () => {
 
   test("移除操作会清除两端背景", async () => {
     renderUploader(legacyCover);
-    fireEvent.click(screen.getByRole("button", { name: "移除两端背景" }));
+    fireEvent.click(screen.getByRole("button", { name: "移除背景" }));
 
     await waitFor(() => expect(mockRemoveProfileCover.mutateAsync).toHaveBeenCalledOnce());
-    expect(toast.success).toHaveBeenCalledWith("电脑端与移动端背景已移除");
+    expect(toast.success).toHaveBeenCalledWith("主页背景已移除");
   });
 });
