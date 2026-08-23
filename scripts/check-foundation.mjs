@@ -67,7 +67,7 @@ for (const metadataClaim of ["/site.webmanifest", "/favicon.ico", "/apple-touch-
 }
 
 const webBrandAssetTargets = new Map([
-  ["brand/ui/title-icon-40.png", "public/brand-title-icon-40.png"],
+  ["brand/ui/title-icon-128.png", "public/brand-title-icon-128.png"],
   ["brand/web/favicon.ico", "src/app/favicon.ico"],
   ["brand/web/favicon-16x16.png", "public/favicon-16x16.png"],
   ["brand/web/favicon-32x32.png", "public/favicon-32x32.png"],
@@ -98,7 +98,7 @@ for (const [sourcePath, targetPath] of webBrandAssetTargets) {
   }
 }
 const navBar = read("src/components/layout/nav-bar.tsx");
-if (!navBar.includes('@wenyousite/foundation/brand') || !navBar.includes("/brand-title-icon-40.png")) {
+if (!navBar.includes('@wenyousite/foundation/brand') || !navBar.includes("/brand-title-icon-128.png")) {
   failures.push("全局导航未消费 Foundation 标题品牌标识");
 }
 const globalStyles = read("src/app/globals.css");

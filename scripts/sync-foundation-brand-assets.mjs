@@ -9,7 +9,7 @@ const foundationBrandModule = fileURLToPath(import.meta.resolve("@wenyousite/fou
 const foundationRoot = path.resolve(path.dirname(foundationBrandModule), "..");
 
 const assetTargets = new Map([
-  ["brand/ui/title-icon-40.png", "public/brand-title-icon-40.png"],
+  ["brand/ui/title-icon-128.png", "public/brand-title-icon-128.png"],
   ["brand/web/favicon.ico", "src/app/favicon.ico"],
   ["brand/web/favicon-16x16.png", "public/favicon-16x16.png"],
   ["brand/web/favicon-32x32.png", "public/favicon-32x32.png"],

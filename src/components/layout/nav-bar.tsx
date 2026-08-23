@@ -78,7 +78,7 @@ export function NavBar({
       >
         <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary">
           <Image
-            src="/brand-title-icon-40.png"
+            src="/brand-title-icon-128.png"
             width={40}
             height={40}
             alt=""

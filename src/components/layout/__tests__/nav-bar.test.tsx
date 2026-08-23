@@ -85,7 +85,7 @@ describe("NavBar", () => {
 
     const home = screen.getByRole("link", { name: "温油站首页" });
     const mark = home.querySelector("img");
-    expect(mark).toHaveAttribute("src", expect.stringContaining("brand-title-icon-40.png"));
+    expect(mark).toHaveAttribute("src", expect.stringContaining("brand-title-icon-128.png"));
     expect(mark).toHaveAttribute("alt", "");
     expect(mark).toHaveAttribute("aria-hidden", "true");
     expect(container).toHaveTextContent("温油站");
