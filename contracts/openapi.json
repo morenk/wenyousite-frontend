@@ -8466,6 +8466,16 @@
               ],
               "type": "string"
             }
+          },
+          {
+            "name": "authorId",
+            "required": false,
+            "in": "query",
+            "description": "只返回指定楼主、协作者或玩家创建的主楼层；接受现有 CUID 与 UUID 用户 ID",
+            "schema": {
+              "pattern": "^(?:[a-z0-9]{24,26}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -8645,6 +8655,70 @@
         "x-auth-mode": "authenticated"
       }
     },
+    "/api/v1/subthreads/{subthreadId}/posts/authors": {
+      "get": {
+        "operationId": "postsFindFloorAuthors",
+        "parameters": [
+          {
+            "name": "subthreadId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostsFindFloorAuthors200Response"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              },
+              "X-API-Contract-Version": {
+                "$ref": "#/components/headers/XApiContractVersion"
+              }
+            }
+          },
+          "default": {
+            "description": "未在此操作中单独列出的错误响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              },
+              "X-API-Contract-Version": {
+                "$ref": "#/components/headers/XApiContractVersion"
+              }
+            }
+          }
+        },
+        "summary": "获取当前子贴中实际发布过主楼层的角色作者候选",
+        "tags": [
+          "Posts"
+        ],
+        "x-auth-mode": "optional",
+        "security": [
+          {
+            "bearer": []
+          },
+          {}
+        ]
+      }
+    },
     "/api/v1/posts/{id}/replies": {
       "get": {
         "operationId": "postsFindReplies",
@@ -8745,6 +8819,70 @@
         ],
         "x-auth-mode": "optional",
         "x-pagination": "cursor",
+        "security": [
+          {
+            "bearer": []
+          },
+          {}
+        ]
+      }
+    },
+    "/api/v1/posts/{id}/replies/authors": {
+      "get": {
+        "operationId": "postsFindReplyAuthors",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostsFindReplyAuthors200Response"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              },
+              "X-API-Contract-Version": {
+                "$ref": "#/components/headers/XApiContractVersion"
+              }
+            }
+          },
+          "default": {
+            "description": "未在此操作中单独列出的错误响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              },
+              "X-API-Contract-Version": {
+                "$ref": "#/components/headers/XApiContractVersion"
+              }
+            }
+          }
+        },
+        "summary": "获取当前楼层下实际回复过的角色作者候选",
+        "tags": [
+          "Posts"
+        ],
+        "x-auth-mode": "optional",
         "security": [
           {
             "bearer": []
@@ -17359,7 +17497,7 @@
   "info": {
     "title": "温油站 API",
     "description": "温油站共同创作社区后端接口文档 | [前端接入指南](../docs/frontend-guide.md)",
-    "version": "5.4.0-dev.20260821.1",
+    "version": "5.6.0-dev.20260823.1",
     "contact": {}
   },
   "tags": [
@@ -22316,6 +22454,46 @@
           "author",
           "_count",
           "replies"
+        ]
+      },
+      "DiscussionAuthorResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "avatar": {
+            "type": "string",
+            "nullable": true
+          },
+          "level": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 9
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "OWNER",
+              "COLLABORATOR",
+              "PARTICIPANT"
+            ]
+          },
+          "playerMarked": {
+            "type": "boolean",
+            "description": "是否为当前主题帖已标记玩家"
+          }
+        },
+        "required": [
+          "id",
+          "username",
+          "avatar",
+          "level",
+          "role",
+          "playerMarked"
         ]
       },
       "UpsertBodyDto": {
@@ -28494,6 +28672,27 @@
           }
         ]
       },
+      "PostsFindFloorAuthors200Response": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiSuccessEnvelope"
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/DiscussionAuthorResponseDto"
+                }
+              }
+            }
+          }
+        ]
+      },
       "PostsFindReplies200Response": {
         "allOf": [
           {
@@ -28509,6 +28708,27 @@
                 "type": "array",
                 "items": {
                   "$ref": "#/components/schemas/ReplyResponseDto"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "PostsFindReplyAuthors200Response": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiSuccessEnvelope"
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/DiscussionAuthorResponseDto"
                 }
               }
             }

@@ -1365,6 +1365,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/subthreads/{subthreadId}/posts/authors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取当前子贴中实际发布过主楼层的角色作者候选 */
+        get: operations["postsFindFloorAuthors"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/posts/{id}/replies": {
         parameters: {
             query?: never;
@@ -1374,6 +1391,23 @@ export interface paths {
         };
         /** 获取楼中楼回复列表（支持顺序与玩家/楼主/协作者筛选） */
         get: operations["postsFindReplies"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/posts/{id}/replies/authors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取当前楼层下实际回复过的角色作者候选 */
+        get: operations["postsFindReplyAuthors"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4405,6 +4439,16 @@ export interface components {
             _count: components["schemas"]["PostCountResponseDto"];
             replies: components["schemas"]["ReplyResponseDto"][];
         };
+        DiscussionAuthorResponseDto: {
+            id: string;
+            username: string;
+            avatar: string | null;
+            level: number;
+            /** @enum {string} */
+            role: "OWNER" | "COLLABORATOR" | "PARTICIPANT";
+            /** @description 是否为当前主题帖已标记玩家 */
+            playerMarked: boolean;
+        };
         UpsertBodyDto: {
             /**
              * @description 正文（Markdown）；骰子使用内联节点，发布时仍必须包含非骰子可见文字
@@ -6003,8 +6047,14 @@ export interface components {
         PostsCreate201Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["PostResponseDto"];
         };
+        PostsFindFloorAuthors200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["DiscussionAuthorResponseDto"][];
+        };
         PostsFindReplies200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
             data: components["schemas"]["ReplyResponseDto"][];
+        };
+        PostsFindReplyAuthors200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["DiscussionAuthorResponseDto"][];
         };
         PostsUpsertBody200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["PostResponseDto"];
@@ -10983,6 +11033,8 @@ export interface operations {
                 limit?: number;
                 /** @description 主楼层顺序，默认 OLDEST */
                 order?: "OLDEST" | "NEWEST";
+                /** @description 只返回指定楼主、协作者或玩家创建的主楼层；接受现有 CUID 与 UUID 用户 ID */
+                authorId?: string;
             };
             header?: never;
             path: {
@@ -11088,6 +11140,40 @@ export interface operations {
             };
         };
     };
+    postsFindFloorAuthors: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subthreadId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostsFindFloorAuthors200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
     postsFindReplies: {
         parameters: {
             query?: {
@@ -11117,6 +11203,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PostsFindReplies200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    postsFindReplyAuthors: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostsFindReplyAuthors200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */

@@ -9,9 +9,9 @@ import { ThreadComposerProvider } from "@/components/thread/thread-composer-cont
 const { mockUseReplies } = vi.hoisted(() => ({
   mockUseReplies: vi.fn(),
 }));
-const { mockUseRepliesCall, mockUseMembers } = vi.hoisted(() => ({
+const { mockUseRepliesCall, mockUseReplyAuthors } = vi.hoisted(() => ({
   mockUseRepliesCall: vi.fn(),
-  mockUseMembers: vi.fn(),
+  mockUseReplyAuthors: vi.fn(),
 }));
 const { mockUseAuth, mockUseThreadPermissions } = vi.hoisted(() => ({
   mockUseAuth: vi.fn(),
@@ -32,8 +32,8 @@ vi.mock("@/api/hooks/use-replies", () => ({
   },
 }));
 
-vi.mock("@/api/hooks/use-members", () => ({
-  useMembers: () => mockUseMembers(),
+vi.mock("@/api/hooks/use-discussion-authors", () => ({
+  useReplyAuthors: (...args: unknown[]) => mockUseReplyAuthors(...args),
 }));
 
 vi.mock("@/api/hooks/use-update-post", () => ({
@@ -103,7 +103,13 @@ beforeEach(() => {
   mockClipboardWriteText.mockClear();
   mockToastSuccess.mockClear();
   mockUseRepliesCall.mockClear();
-  mockUseMembers.mockReturnValue({ data: [] });
+  mockUseReplyAuthors.mockReturnValue({
+    data: [],
+    isLoading: false,
+    isError: false,
+    isSuccess: true,
+    refetch: vi.fn(),
+  });
 });
 
 function createWrapper() {
@@ -178,19 +184,22 @@ describe("ReplyList", () => {
     );
   });
 
-  test("独立回复串只提供玩家、楼主和协作者作为作者筛选候选", async () => {
+  test("独立回复串使用当前楼层预筛选的作者候选", async () => {
     const user = userEvent.setup();
     mockUseReplies.mockReturnValue(dataWithReplies([baseReply()]));
-    mockUseMembers.mockReturnValue({
+    mockUseReplyAuthors.mockReturnValue({
       data: [
-        { userId: "owner", role: "OWNER", playerMarked: false, user: { username: "楼主甲" } },
-        { userId: "collab", role: "COLLABORATOR", playerMarked: false, user: { username: "协作者乙" } },
-        { userId: "player", role: "PARTICIPANT", playerMarked: true, user: { username: "玩家丙" } },
-        { userId: "candidate", role: "PARTICIPANT", playerMarked: false, user: { username: "普通候选" } },
+        { id: "owner", username: "楼主甲", avatar: null, level: 3, role: "OWNER", playerMarked: false },
+        { id: "collab", username: "协作者乙", avatar: null, level: 2, role: "COLLABORATOR", playerMarked: false },
+        { id: "player", username: "玩家丙", avatar: null, level: 2, role: "PARTICIPANT", playerMarked: true },
       ],
+      isLoading: false,
+      isError: false,
+      isSuccess: true,
+      refetch: vi.fn(),
     });
 
-    render(<ReplyList postId="post-1" threadId="t1" variant="discussion" />, {
+    render(<ReplyList postId="post-1" variant="discussion" />, {
       wrapper: createWrapper(),
     });
     expect(screen.getByText("#1")).toBeInTheDocument();
@@ -199,13 +208,44 @@ describe("ReplyList", () => {
     expect(screen.getByText("楼主甲")).toBeInTheDocument();
     expect(screen.getByText("协作者乙")).toBeInTheDocument();
     expect(screen.getByText("玩家丙")).toBeInTheDocument();
-    expect(screen.queryByText("普通候选")).not.toBeInTheDocument();
 
     await user.click(screen.getByText("玩家丙"));
     expect(mockUseRepliesCall).toHaveBeenLastCalledWith("post-1", {
       order: "OLDEST",
       authorId: "player",
     });
+    expect(mockUseReplyAuthors).toHaveBeenCalledWith("post-1", undefined);
+  });
+
+  test("只看某人时不注入其他作者的定位回复", async () => {
+    const user = userEvent.setup();
+    mockUseReplies.mockReturnValue(dataWithReplies([]));
+    mockUseReplyAuthors.mockReturnValue({
+      data: [
+        { id: "player", username: "玩家丙", avatar: null, level: 2, role: "PARTICIPANT", playerMarked: true },
+      ],
+      isLoading: false,
+      isError: false,
+      isSuccess: true,
+      refetch: vi.fn(),
+    });
+    const focusedReply = baseReply({
+      id: "focused-other-author",
+      authorId: "other-author",
+      content: "其他作者的定位回复",
+    });
+
+    render(
+      <ReplyList postId="post-1" focusedReply={focusedReply} variant="discussion" />,
+      { wrapper: createWrapper() },
+    );
+    expect(screen.getByText("其他作者的定位回复")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("combobox", { name: "只看某人的回复" }));
+    await user.click(screen.getByText("玩家丙"));
+
+    expect(screen.queryByText("其他作者的定位回复")).not.toBeInTheDocument();
+    expect(screen.getByText("这位成员还没有回复")).toBeInTheDocument();
   });
 
   test("定位回复时立即滚动且只高亮目标回复卡片", async () => {

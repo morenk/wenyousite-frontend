@@ -83,7 +83,6 @@ export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps
       <section className="mt-4" aria-label={`楼层回复，共 ${rootPost._count.replies} 条`}>
         <ReplyList
           postId={rootPost.id}
-          threadId={rootPost.thread.id}
           focusedReply={focusedReply}
           variant="discussion"
         />

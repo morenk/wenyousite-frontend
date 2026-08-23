@@ -86,7 +86,10 @@ describe("useFloors", () => {
         error: undefined,
       });
 
-    const { result } = renderHook(() => useFloors("s1", "NEWEST"), {
+    const { result } = renderHook(() => useFloors("s1", {
+      order: "NEWEST",
+      authorId: "author-1",
+    }), {
       wrapper: createWrapper(),
     });
     await waitFor(() => expect(result.current.hasNextPage).toBe(true));
@@ -97,7 +100,12 @@ describe("useFloors", () => {
       {
         params: {
           path: { subthreadId: "s1" },
-          query: { limit: 20, order: "NEWEST", cursor: "post-1" },
+          query: {
+            limit: 20,
+            order: "NEWEST",
+            authorId: "author-1",
+            cursor: "post-1",
+          },
         },
       },
     );

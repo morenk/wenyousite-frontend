@@ -5,43 +5,36 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { useReplies } from "@/api/hooks/use-replies";
+import { useReplyAuthors } from "@/api/hooks/use-discussion-authors";
 import { Button } from "@/components/ui/button";
 import type { ReplyDisplayData } from "@/api/hooks/use-floors";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
-import { useMembers } from "@/api/hooks/use-members";
-import {
-  ReplyThreadControls,
-  type ReplyAuthorOption,
-} from "@/components/shared/reply-thread-controls";
+import { DiscussionListControls } from "@/components/shared/discussion-list-controls";
 import type { ReplyOrder } from "@/api/reply-query";
 import { ReplyCard } from "@/components/thread/reply-card";
+import { useAuth } from "@/lib/auth";
 
 interface ReplyListProps {
   postId: string;
-  threadId?: string;
   focusedReply?: ReplyDisplayData;
   variant?: "embedded" | "discussion";
 }
 
-export function ReplyList({ postId, threadId, focusedReply, variant = "embedded" }: ReplyListProps) {
+export function ReplyList({ postId, focusedReply, variant = "embedded" }: ReplyListProps) {
+  const { user } = useAuth();
   const [order, setOrder] = useState<ReplyOrder>("OLDEST");
-  const [authorId, setAuthorId] = useState<string>();
+  const [requestedAuthorId, setAuthorId] = useState<string>();
+  const authorsQuery = useReplyAuthors(
+    variant === "discussion" ? postId : undefined,
+    user?.id,
+  );
+  const authorId = requestedAuthorId && (
+    !authorsQuery.isSuccess ||
+    authorsQuery.data.some((author) => author.id === requestedAuthorId)
+  )
+    ? requestedAuthorId
+    : undefined;
   const filters = useMemo(() => ({ order, ...(authorId ? { authorId } : {}) }), [authorId, order]);
-  const membersQuery = useMembers(variant === "discussion" ? threadId : undefined);
-  const authorOptions = useMemo<ReplyAuthorOption[]>(() => {
-    const roleRank = { OWNER: 0, COLLABORATOR: 1, PARTICIPANT: 2 } as const;
-    return (membersQuery.data ?? [])
-      .filter((member) => member.playerMarked || member.role === "OWNER" || member.role === "COLLABORATOR")
-      .sort((first, second) =>
-        roleRank[first.role] - roleRank[second.role] ||
-        first.user.username.localeCompare(second.user.username, "zh-CN"),
-      )
-      .map((member) => ({
-        id: member.userId,
-        username: member.user.username,
-        detail: member.role === "OWNER" ? "楼主" : member.role === "COLLABORATOR" ? "协作者" : "玩家",
-      }));
-  }, [membersQuery.data]);
   const {
     data,
     fetchNextPage,
@@ -79,13 +72,16 @@ export function ReplyList({ postId, threadId, focusedReply, variant = "embedded"
   return (
     <div className={variant === "discussion" ? "space-y-3" : "mt-3 space-y-2 border-l-2 border-border pl-3"}>
       {variant === "discussion" ? (
-        <ReplyThreadControls
+        <DiscussionListControls
+          subject="回复"
           order={order}
           onOrderChange={setOrder}
           authorId={authorId}
           onAuthorChange={setAuthorId}
-          authors={authorOptions}
-          authorScopeLabel="全部玩家与管理者"
+          authors={authorsQuery.data ?? []}
+          authorsLoading={authorsQuery.isLoading}
+          authorsError={authorsQuery.isError}
+          onRetryAuthors={() => void authorsQuery.refetch()}
         />
       ) : null}
 

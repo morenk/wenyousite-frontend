@@ -429,14 +429,16 @@ describe("MomentComments", () => {
     render(<MomentComments momentId="moment-1" />);
     expect(screen.queryByRole("combobox")).toBeNull();
 
-    fireEvent.click(screen.getByRole("button", { name: "评论排序：最新在前" }));
+    const sortToggle = screen.getByRole("button", { name: "评论排序" });
+    expect(sortToggle).toHaveTextContent("最新在前");
+    fireEvent.click(sortToggle);
 
     await waitFor(() => expect(mockUseMomentComments).toHaveBeenLastCalledWith(
       "moment-1",
       "viewer-1",
       { order: "OLDEST" },
     ));
-    expect(screen.getByRole("button", { name: "评论排序：最早在前" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "评论排序" })).toHaveTextContent("最早在前");
   });
 
   test("评论框固定在内容列底部，回复深处评论时聚焦但不滚动页面", async () => {

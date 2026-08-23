@@ -41,6 +41,8 @@ export const queryKeys = {
       filters === undefined
         ? (["floors", subthreadId] as const)
         : (["floors", subthreadId, filters] as const),
+    authors: (subthreadId: string | undefined, viewerScope: string) =>
+      ["floors", subthreadId, "authors", viewerScope] as const,
   },
   replies: {
     all: ["replies"] as const,
@@ -48,6 +50,8 @@ export const queryKeys = {
       filters === undefined
         ? (["replies", postId] as const)
         : (["replies", postId, filters] as const),
+    authors: (postId: string | undefined, viewerScope: string) =>
+      ["replies", postId, "authors", viewerScope] as const,
   },
   posts: {
     detail: (postId: string | undefined) => ["post", postId] as const,

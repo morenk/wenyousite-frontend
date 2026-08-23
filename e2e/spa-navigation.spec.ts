@@ -173,6 +173,21 @@ async function mockPublicBrowsing(
       return fulfill(route, detailFactory(Number(detailMatch[1])));
     }
 
+    const floorAuthorMatch = pathname.match(/\/subthreads\/spa-subthread-(\d+)[^/]*\/posts\/authors$/);
+    if (floorAuthorMatch) {
+      const index = Number(floorAuthorMatch[1]);
+      return fulfill(route, [
+        {
+          id: `spa-user-${index}`,
+          username: `旅人 ${index}`,
+          avatar: null,
+          level: (index % 9) + 1,
+          role: "OWNER",
+          playerMarked: false,
+        },
+      ]);
+    }
+
     if (/\/subthreads\/spa-subthread-[^/]+\/posts$/.test(pathname)) {
       return fulfill(route, [], { cursor: null, hasMore: false });
     }
@@ -288,5 +303,27 @@ test.describe("公开浏览的单页式导航体验", () => {
     await page.waitForTimeout(50);
     expect(floorRequests.filter((path) => path === plotFloorPath)).toHaveLength(1);
     expect(rscRequests).toHaveLength(0);
+  });
+
+  test("主楼层直接切换时间顺序，并从当前子贴候选只看某人", async ({ page }) => {
+    const filteredRequests: string[] = [];
+    page.on("request", (request) => {
+      const url = new URL(request.url());
+      if (url.searchParams.get("authorId")) filteredRequests.push(url.href);
+    });
+    await mockPublicBrowsing(page);
+    await page.goto("/threads/spa-thread-1");
+
+    const sortToggle = page.getByRole("button", { name: "楼层排序" });
+    await expect(sortToggle).toContainText("最早在前");
+    await sortToggle.click();
+    await expect(page).toHaveURL(/\/threads\/spa-thread-1\?order=NEWEST$/);
+    await expect(sortToggle).toContainText("最新在前");
+
+    await page.getByRole("combobox", { name: "只看某人的楼层" }).click();
+    await page.getByRole("option", { name: "旅人 1 楼主" }).click();
+    await expect.poll(() => filteredRequests.length).toBe(1);
+    expect(new URL(filteredRequests[0]).searchParams.get("authorId")).toBe("spa-user-1");
+    await expect(page).toHaveURL(/\/threads\/spa-thread-1\?order=NEWEST$/);
   });
 });

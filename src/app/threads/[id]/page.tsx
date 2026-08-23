@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQueryState, useQueryStates } from "nuqs";
 import { AlertCircle } from "lucide-react";
@@ -12,13 +12,14 @@ import { getPostHref } from "@/lib/post-navigation";
 import { useThreadDetail } from "@/api/hooks/use-thread-detail";
 import { useFloors, usePrefetchFloors } from "@/api/hooks/use-floors";
 import { usePost } from "@/api/hooks/use-post";
-import type { FloorOrder } from "@/api/floor-query";
+import { useFloorAuthors } from "@/api/hooks/use-discussion-authors";
+import type { FloorFilters, FloorOrder } from "@/api/floor-query";
 import { ThreadDetailHeader } from "@/components/thread/thread-detail-header";
 import { ThreadReadingBar } from "@/components/thread/thread-reading-bar";
 import { ThreadPostSearch } from "@/components/thread/thread-post-search";
 import { SubthreadBody } from "@/components/thread/subthread-body";
 import { FloorList } from "@/components/thread/floor-list";
-import { FloorOrderControl } from "@/components/thread/floor-order-control";
+import { FloorListControls } from "@/components/thread/floor-list-controls";
 import {
   FloorForm,
   getFloorComposerAnchorId,
@@ -78,6 +79,10 @@ function ThreadDetailPageContent() {
   );
   const { user, isInitialized } = useAuth();
   const { close: closeComposer } = useThreadComposer();
+  const [floorAuthorSelection, setFloorAuthorSelection] = useState<{
+    subthreadId: string;
+    authorId: string;
+  }>();
 
   const {
     data: thread,
@@ -99,6 +104,22 @@ function ThreadDetailPageContent() {
     ? targetPost?.subthreadId ?? thread?.defaultSubthreadId
     : querySubthread?.id ?? thread?.defaultSubthreadId;
 
+  const floorAuthorsQuery = useFloorAuthors(effectiveSubthreadId, user?.id);
+  const requestedFloorAuthorId = floorAuthorSelection &&
+    floorAuthorSelection.subthreadId === effectiveSubthreadId
+    ? floorAuthorSelection.authorId
+    : undefined;
+  const floorAuthorId = requestedFloorAuthorId && (
+    !floorAuthorsQuery.isSuccess ||
+    floorAuthorsQuery.data.some((author) => author.id === requestedFloorAuthorId)
+  )
+    ? requestedFloorAuthorId
+    : undefined;
+  const floorFilters = useMemo<FloorFilters>(() => ({
+    order: floorOrder,
+    ...(floorAuthorId ? { authorId: floorAuthorId } : {}),
+  }), [floorAuthorId, floorOrder]);
+
   const {
     data: floorsData,
     fetchNextPage,
@@ -107,7 +128,7 @@ function ThreadDetailPageContent() {
     isLoading: isFloorsLoading,
     error: floorsError,
     refetch: refetchFloors,
-  } = useFloors(effectiveSubthreadId, floorOrder);
+  } = useFloors(effectiveSubthreadId, floorFilters);
 
   const floors = floorsData?.pages.flatMap((page) => page?.data ?? []) ?? [];
 
@@ -219,6 +240,7 @@ function ThreadDetailPageContent() {
   const handleSubthreadChange = async (subthreadId: string) => {
     if (subthreadId === effectiveSubthreadId) return;
     if (await closeComposer()) {
+      setFloorAuthorSelection(undefined);
       await setContentCoordinate({
         post: null,
         subthread: subthreadId === thread.defaultSubthreadId
@@ -232,6 +254,17 @@ function ThreadDetailPageContent() {
     if (nextOrder === floorOrder) return;
     if (await closeComposer()) {
       await setFloorOrder(nextOrder);
+    }
+  };
+
+  const handleFloorAuthorChange = async (nextAuthorId?: string) => {
+    if (nextAuthorId === floorAuthorId) return;
+    if (await closeComposer()) {
+      setFloorAuthorSelection(
+        nextAuthorId && effectiveSubthreadId
+          ? { subthreadId: effectiveSubthreadId, authorId: nextAuthorId }
+          : undefined,
+      );
     }
   };
 
@@ -293,12 +326,16 @@ function ThreadDetailPageContent() {
       <div className="mt-4 space-y-4">
         {effectiveSubthreadId && (
           <section aria-label="帖子回复">
-            {floors.length > 1 || hasNextPage ? (
-              <FloorOrderControl
-                order={floorOrder}
-                onOrderChange={(nextOrder) => void handleFloorOrderChange(nextOrder)}
-              />
-            ) : null}
+            <FloorListControls
+              order={floorOrder}
+              onOrderChange={(nextOrder) => void handleFloorOrderChange(nextOrder)}
+              authorId={floorAuthorId}
+              onAuthorChange={(nextAuthorId) => void handleFloorAuthorChange(nextAuthorId)}
+              authors={floorAuthorsQuery.data ?? []}
+              authorsLoading={floorAuthorsQuery.isLoading}
+              authorsError={floorAuthorsQuery.isError}
+              onRetryAuthors={() => void floorAuthorsQuery.refetch()}
+            />
             <FloorList
               floors={floors}
               hasNextPage={!!hasNextPage}
@@ -308,7 +345,13 @@ function ThreadDetailPageContent() {
               onLoadMore={() => fetchNextPage()}
               onRetry={() => refetchFloors()}
               // 旧楼中楼链接重定向期间不高亮父楼层，最终只在独立页高亮目标回复。
-              focusedFloor={targetPost?.parentPostId ? undefined : targetFloor}
+              focusedFloor={
+                targetPost?.parentPostId ||
+                (floorAuthorId && targetFloor?.authorId !== floorAuthorId)
+                  ? undefined
+                  : targetFloor
+              }
+              emptyTitle={floorAuthorId ? "这位成员在当前子贴还没有楼层" : undefined}
             />
           </section>
         )}

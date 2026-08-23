@@ -19,6 +19,7 @@ interface FloorListProps {
   onLoadMore: () => void;
   onRetry: () => void;
   focusedFloor?: FloorDisplayData;
+  emptyTitle?: string;
 }
 
 export function FloorList({
@@ -30,6 +31,7 @@ export function FloorList({
   onLoadMore,
   onRetry,
   focusedFloor,
+  emptyTitle = "暂无回复",
 }: FloorListProps) {
   const sentinelRef = useInfiniteScroll({
     hasNextPage,
@@ -71,7 +73,7 @@ export function FloorList({
 
   if (floors.length === 0) {
     return (
-      <EmptyState title="暂无回复" />
+      <EmptyState title={emptyTitle} />
     );
   }
 

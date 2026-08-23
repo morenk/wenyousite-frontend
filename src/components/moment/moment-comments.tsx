@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDownUp, ChevronDown, Loader2 } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
@@ -16,6 +16,7 @@ import type { ReplyFilters, ReplyOrder } from "@/api/reply-query";
 import { MomentCommentForm } from "@/components/moment/moment-comment-form";
 import { MomentCommentThread } from "@/components/moment/moment-comment-thread";
 import type { MomentReplyTarget } from "@/components/moment/moment-comment-types";
+import { ChronologicalOrderToggle } from "@/components/shared/chronological-order-toggle";
 
 export function MomentComments({ momentId }: { momentId: string }) {
   const { user } = useAuth();
@@ -56,17 +57,11 @@ export function MomentComments({ momentId }: { momentId: string }) {
   return (
     <section id="comments" className="scroll-mt-6 pt-5" aria-label="动态回复">
       <div className="flex justify-end">
-        <button
-          type="button"
-          aria-label={`评论排序：${order === "NEWEST" ? "最新在前" : "最早在前"}`}
-          aria-pressed={order === "NEWEST"}
-          title={order === "NEWEST" ? "切换为最早在前" : "切换为最新在前"}
-          onClick={() => setOrder((current) => current === "NEWEST" ? "OLDEST" : "NEWEST")}
-          className="inline-flex min-h-8 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        >
-          <ArrowDownUp className="size-3.5" />
-          {order === "NEWEST" ? "最新在前" : "最早在前"}
-        </button>
+        <ChronologicalOrderToggle
+          order={order}
+          onOrderChange={setOrder}
+          accessibleName="评论排序"
+        />
       </div>
 
       {targetCommentId && contextQuery.isLoading ? (

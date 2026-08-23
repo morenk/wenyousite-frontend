@@ -4,7 +4,12 @@ import { useCallback } from "react";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
-import { DEFAULT_FLOOR_ORDER, type FloorOrder } from "@/api/floor-query";
+import {
+  DEFAULT_FLOOR_FILTERS,
+  DEFAULT_FLOOR_ORDER,
+  type FloorFilters,
+  type FloorOrder,
+} from "@/api/floor-query";
 import type { components, operations } from "@/api/types";
 
 export type PostAuthor = components["schemas"]["PostAuthorResponseDto"];
@@ -28,14 +33,15 @@ export const FLOORS_STALE_TIME = 30 * 1000;
 
 export function floorsQueryOptions(
   subthreadId: string,
-  order: FloorOrder = DEFAULT_FLOOR_ORDER,
+  filters: FloorFilters = DEFAULT_FLOOR_FILTERS,
 ) {
   return {
-    queryKey: queryKeys.floors.list(subthreadId, { order }),
+    queryKey: queryKeys.floors.list(subthreadId, filters),
     queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
       const queryParams = {
         limit: 20,
-        order,
+        order: filters.order,
+        ...(filters.authorId ? { authorId: filters.authorId } : {}),
         ...(pageParam ? { cursor: pageParam } : {}),
       };
 
@@ -68,10 +74,10 @@ export function floorsQueryOptions(
 
 export function useFloors(
   subthreadId: string | undefined,
-  order: FloorOrder = DEFAULT_FLOOR_ORDER,
+  filters: FloorFilters = DEFAULT_FLOOR_FILTERS,
 ) {
   return useInfiniteQuery({
-    ...floorsQueryOptions(subthreadId ?? "", order),
+    ...floorsQueryOptions(subthreadId ?? "", filters),
     enabled: !!subthreadId,
   });
 }
@@ -84,7 +90,7 @@ export function usePrefetchFloors(
   return useCallback((subthreadId: string) => {
     if (!subthreadId) return;
     void queryClient.prefetchInfiniteQuery(
-      floorsQueryOptions(subthreadId, order),
+      floorsQueryOptions(subthreadId, { order }),
     );
   }, [order, queryClient]);
 }
