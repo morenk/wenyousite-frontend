@@ -41,7 +41,11 @@ vi.mock("@/api/hooks/use-moments", () => ({
   useMomentBookmark: () => ({ mutateAsync: mockBookmark, isPending: false }),
 }));
 vi.mock("@/components/ui/confirm-provider", () => ({ useConfirm: () => mockConfirm }));
-vi.mock("@/components/moment/moment-comments", () => ({ MomentComments: () => <div>评论区</div> }));
+vi.mock("@/components/moment/moment-comments", () => ({
+  MomentComments: ({ canInteract }: { canInteract?: boolean }) => (
+    <div data-can-interact={String(canInteract)}>评论区</div>
+  ),
+}));
 vi.mock("@/components/admin/admin-content-moderation-dialog", () => ({
   AdminContentModerationDialog: ({ open, target }: { open: boolean; target: { id: string } }) => open ? <div>处置 {target.id}</div> : null,
 }));
@@ -311,6 +315,44 @@ describe("MomentDetailView", () => {
       .toHaveClass("text-bookmark");
     expect(bookmarkButton.querySelector('[data-slot="interaction-toggle-icon"]'))
       .toHaveAttribute("data-icon-variant", "filled");
+  });
+
+  test("历史动态仅禁用新互动，保留取消旧状态", async () => {
+    mockUseAuth.mockReturnValue({ user: { id: "viewer-1" } });
+    mockUseMoment.mockReturnValue({
+      data: { ...detail, canEdit: false, canDelete: false, canInteract: false },
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+    const { rerender } = render(<MomentDetailView momentId="moment-1" />);
+
+    expect(screen.getByRole("button", { name: "点赞" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "收藏" })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "加油" })).toBeNull();
+    expect(screen.getByText("作者已注销，历史动态仅供阅读")).toBeInTheDocument();
+    expect(screen.getByText("评论区")).toHaveAttribute("data-can-interact", "false");
+
+    mockUseMoment.mockReturnValue({
+      data: {
+        ...detail,
+        canEdit: false,
+        canDelete: false,
+        canInteract: false,
+        viewerLiked: true,
+        viewerBookmarked: true,
+      },
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+    rerender(<MomentDetailView momentId="moment-1" />);
+    fireEvent.click(screen.getByRole("button", { name: "点赞" }));
+    fireEvent.click(screen.getByRole("button", { name: "收藏" }));
+    await waitFor(() => {
+      expect(mockLike).toHaveBeenCalledOnce();
+      expect(mockBookmark).toHaveBeenCalledOnce();
+    });
   });
 
   test("动态正文将命名站内坐标渲染为同页传送门", () => {

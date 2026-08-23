@@ -425,6 +425,15 @@ describe("MomentComments", () => {
     expect(mockPush).toHaveBeenCalledWith("/login?next=%2Fmoments%2Fmoment-1");
   });
 
+  test("历史动态隐藏发表与回复入口，保留删除旧评论", () => {
+    render(<MomentComments momentId="moment-1" canInteract={false} />);
+
+    expect(screen.getByText("历史动态仅供阅读，不再接收新评论")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "回复" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "发表评论…" })).toBeNull();
+    expect(screen.getByRole("button", { name: "删除" })).toBeInTheDocument();
+  });
+
   test("只用按钮切换正倒序，不显示回复者筛选", async () => {
     render(<MomentComments momentId="moment-1" />);
     expect(screen.queryByRole("combobox")).toBeNull();

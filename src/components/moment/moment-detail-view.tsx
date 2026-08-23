@@ -60,17 +60,21 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
     return <LoadError title="动态不存在" description="它可能已被删除，或当前不可见。" onRetry={() => void detail.refetch()} className="py-24" />;
   }
 
+  const canAddInteraction = moment.canInteract !== false;
+  const canToggleLike = canAddInteraction || moment.viewerLiked;
+  const canToggleBookmark = canAddInteraction || moment.viewerBookmarked;
+
   const requireLogin = () => {
     if (user) return true;
     redirectToLogin();
     return false;
   };
   const toggleLike = async () => {
-    if (like.isPending || !requireLogin()) return;
+    if (!canToggleLike || like.isPending || !requireLogin()) return;
     try { await like.mutateAsync(); } catch (error) { toast.error(getApiErrorMessage(error, "点赞失败")); }
   };
   const toggleBookmark = async () => {
-    if (!requireLogin()) return;
+    if (!canToggleBookmark || !requireLogin()) return;
     if (!moment.viewerBookmarked) {
       setBookmarkPickerOpen(true);
       return;
@@ -215,11 +219,16 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
               tone="like"
               pressed={moment.viewerLiked}
               pending={like.isPending}
+              disabled={!canToggleLike}
               icon="action.like"
               onClick={() => void toggleLike()}
               accessibleName="点赞"
               accessibleDescription={`当前 ${moment.likeCount} 个赞`}
-              actionTitle={moment.viewerLiked ? "取消点赞" : "点赞"}
+              actionTitle={
+                canToggleLike
+                  ? moment.viewerLiked ? "取消点赞" : "点赞"
+                  : "作者已注销，历史动态仅供阅读"
+              }
             >
               {moment.likeCount ? <WenyouCount value={moment.likeCount} label="点赞" /> : "点赞"}
             </InteractionToggle>
@@ -227,15 +236,23 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
               tone="bookmark"
               pressed={moment.viewerBookmarked}
               pending={bookmark.isPending}
+              disabled={!canToggleBookmark}
               icon="action.bookmark"
               onClick={() => void toggleBookmark()}
               accessibleName="收藏"
               accessibleDescription={`当前 ${moment.bookmarkCount} 个收藏`}
-              actionTitle={moment.viewerBookmarked ? "取消收藏" : "收藏"}
+              actionTitle={
+                canToggleBookmark
+                  ? moment.viewerBookmarked ? "取消收藏" : "收藏"
+                  : "作者已注销，历史动态仅供阅读"
+              }
             >
               {moment.bookmarkCount ? <WenyouCount value={moment.bookmarkCount} label="收藏" /> : "收藏"}
             </InteractionToggle>
-            {user?.id !== moment.authorId ? <WenyouTipButton target={{ type: "MOMENT", id: moment.id, recipientUserId: moment.authorId }} recipientName={moment.author.username} /> : null}
+            {canAddInteraction && user?.id !== moment.authorId ? <WenyouTipButton target={{ type: "MOMENT", id: moment.id, recipientUserId: moment.authorId }} recipientName={moment.author.username} /> : null}
+            {!canAddInteraction ? (
+              <span className="text-xs text-muted-foreground" role="status">作者已注销，历史动态仅供阅读</span>
+            ) : null}
             <span className="ml-auto font-utility text-xs text-muted-foreground">累计加油 {moment.tipTotal} 升</span>
           </div>
         ) : null}
@@ -253,7 +270,7 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
       >
         {!editing && moment.content ? <p className="whitespace-pre-wrap break-words text-[1.0625rem] leading-8 text-foreground"><InternalReferenceText content={moment.content} /></p> : null}
 
-        <MomentComments momentId={moment.id} />
+        <MomentComments momentId={moment.id} canInteract={canAddInteraction} />
       </div>
       </article>
       {canModerate ? (

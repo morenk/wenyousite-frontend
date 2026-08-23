@@ -3343,6 +3343,11 @@ export interface components {
             tipTotal: string;
             viewerLiked: boolean;
             viewerBookmarked: boolean;
+            /**
+             * @description 是否允许新增点赞、评论、收藏和加油；字段缺失时客户端按 true 兼容旧服务
+             * @example true
+             */
+            canInteract?: boolean;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -4159,6 +4164,11 @@ export interface components {
             tipTotal: string;
             viewerLiked: boolean;
             viewerBookmarked: boolean;
+            /**
+             * @description 是否允许新增点赞、评论、收藏和加油；字段缺失时客户端按 true 兼容旧服务
+             * @example true
+             */
+            canInteract?: boolean;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -4206,6 +4216,11 @@ export interface components {
             tipTotal: string;
             viewerLiked: boolean;
             viewerBookmarked: boolean;
+            /**
+             * @description 是否允许新增点赞、评论、收藏和加油；字段缺失时客户端按 true 兼容旧服务
+             * @example true
+             */
+            canInteract?: boolean;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -5365,6 +5380,11 @@ export interface components {
             tipTotal: string;
             viewerLiked: boolean;
             viewerBookmarked: boolean;
+            /**
+             * @description 是否允许新增点赞、评论、收藏和加油；字段缺失时客户端按 true 兼容旧服务
+             * @example true
+             */
+            canInteract?: boolean;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */

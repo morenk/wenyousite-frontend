@@ -152,4 +152,26 @@ describe("MomentCard", () => {
       "animate-spin",
     );
   });
+
+  test("历史动态禁止新点赞，但允许取消已有点赞", async () => {
+    const { rerender } = render(
+      <MomentCard moment={{ ...moment, canInteract: false } as never} />,
+    );
+
+    const disabledLike = screen.getByRole("button", { name: "点赞" });
+    expect(disabledLike).toBeDisabled();
+    expect(disabledLike).toHaveAttribute("title", "作者已注销，历史动态仅供阅读");
+    fireEvent.click(disabledLike);
+    expect(mockLike).not.toHaveBeenCalled();
+
+    rerender(
+      <MomentCard
+        moment={{ ...moment, canInteract: false, viewerLiked: true } as never}
+      />,
+    );
+    const unlike = screen.getByRole("button", { name: "点赞" });
+    expect(unlike).not.toBeDisabled();
+    fireEvent.click(unlike);
+    await waitFor(() => expect(mockLike).toHaveBeenCalledOnce());
+  });
 });

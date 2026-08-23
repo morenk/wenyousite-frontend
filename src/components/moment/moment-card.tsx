@@ -20,6 +20,7 @@ export function MomentCard({ moment, priority = false }: { moment: MomentCardDat
   const pathname = usePathname();
   const redirectToLogin = useLoginRedirect();
   const like = useMomentLike(moment.id, moment.viewerLiked);
+  const canToggleLike = moment.canInteract !== false || moment.viewerLiked;
 
   const requireLogin = () => {
     if (user) return true;
@@ -28,7 +29,7 @@ export function MomentCard({ moment, priority = false }: { moment: MomentCardDat
   };
 
   const toggleLike = async () => {
-    if (like.isPending || !requireLogin()) return;
+    if (!canToggleLike || like.isPending || !requireLogin()) return;
     try {
       await like.mutateAsync();
     } catch (error) {
@@ -68,10 +69,15 @@ export function MomentCard({ moment, priority = false }: { moment: MomentCardDat
           tone="like"
           pressed={moment.viewerLiked}
           pending={like.isPending}
+          disabled={!canToggleLike}
           icon="action.like"
           accessibleName="点赞"
           accessibleDescription={`当前 ${moment.likeCount} 个赞`}
-          actionTitle={moment.viewerLiked ? "取消点赞" : "点赞"}
+          actionTitle={
+            canToggleLike
+              ? moment.viewerLiked ? "取消点赞" : "点赞"
+              : "作者已注销，历史动态仅供阅读"
+          }
           size="compact"
           className="min-h-8 gap-1 rounded-lg px-1.5 text-xs"
           onClick={() => void toggleLike()}

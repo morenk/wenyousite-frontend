@@ -18,7 +18,13 @@ import { MomentCommentThread } from "@/components/moment/moment-comment-thread";
 import type { MomentReplyTarget } from "@/components/moment/moment-comment-types";
 import { ChronologicalOrderToggle } from "@/components/shared/chronological-order-toggle";
 
-export function MomentComments({ momentId }: { momentId: string }) {
+export function MomentComments({
+  momentId,
+  canInteract = true,
+}: {
+  momentId: string;
+  canInteract?: boolean;
+}) {
   const { user } = useAuth();
   const searchParams = useSearchParams();
   const [order, setOrder] = useState<ReplyOrder>("NEWEST");
@@ -105,6 +111,7 @@ export function MomentComments({ momentId }: { momentId: string }) {
               comment={comment}
               filters={filters}
               onReply={setReplyTarget}
+              canInteract={canInteract}
               focusedCommentId={comment.id === focusedRootId ? focusedCommentId : undefined}
               focusedReply={comment.id === focusedRootId ? focusedReply : undefined}
             />
@@ -127,11 +134,17 @@ export function MomentComments({ momentId }: { momentId: string }) {
       ) : null}
 
       <FloatingInputDock slotPrefix="floating-moment-comment">
-        <MomentCommentForm
-          momentId={momentId}
-          replyTarget={replyTarget}
-          onCancelReply={() => setReplyTarget(null)}
-        />
+        {canInteract ? (
+          <MomentCommentForm
+            momentId={momentId}
+            replyTarget={replyTarget}
+            onCancelReply={() => setReplyTarget(null)}
+          />
+        ) : (
+          <p className="w-full rounded-2xl bg-background/95 px-4 py-3 text-sm text-muted-foreground backdrop-blur-xl">
+            历史动态仅供阅读，不再接收新评论
+          </p>
+        )}
       </FloatingInputDock>
     </section>
   );

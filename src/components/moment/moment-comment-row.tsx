@@ -21,12 +21,14 @@ export function MomentCommentRow({
   comment,
   compact = false,
   onReply,
+  canInteract = true,
   focused = false,
 }: {
   momentId: string;
   comment: MomentComment;
   compact?: boolean;
   onReply: (target: MomentReplyTarget) => void;
+  canInteract?: boolean;
   focused?: boolean;
 }) {
   const { user } = useAuth();
@@ -109,9 +111,11 @@ export function MomentCommentRow({
         ) : null}
         {!comment.deleted ? (
           <div className="mt-1 flex items-center gap-1">
-            <ReplyActionButton
-              onClick={() => onReply({ id: comment.id, username: comment.author.username })}
-            />
+            {canInteract ? (
+              <ReplyActionButton
+                onClick={() => onReply({ id: comment.id, username: comment.author.username })}
+              />
+            ) : null}
             {comment.canDelete ? (
               <button
                 type="button"

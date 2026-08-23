@@ -47,7 +47,7 @@ export function BookmarkMomentCard({
               },
             );
           }}
-          disabled={move.isPending || remove.isPending}
+          disabled={moment.canInteract === false || move.isPending || remove.isPending}
         >
           <SelectTrigger
             size="compact"

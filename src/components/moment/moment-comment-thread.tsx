@@ -19,6 +19,7 @@ export function MomentCommentThread({
   comment,
   filters,
   onReply,
+  canInteract = true,
   focusedCommentId,
   focusedReply,
 }: {
@@ -26,6 +27,7 @@ export function MomentCommentThread({
   comment: MomentRootComment;
   filters: ReplyFilters;
   onReply: (target: MomentReplyTarget) => void;
+  canInteract?: boolean;
   focusedCommentId?: string;
   focusedReply?: MomentComment;
 }) {
@@ -63,6 +65,7 @@ export function MomentCommentThread({
         momentId={momentId}
         comment={comment}
         onReply={onReply}
+        canInteract={canInteract}
         focused={focusedCommentId === comment.id}
       />
       {replies.length > 0 ? (
@@ -87,6 +90,7 @@ export function MomentCommentThread({
               comment={reply}
               compact
               onReply={onReply}
+              canInteract={canInteract}
               focused={focusedCommentId === reply.id}
             />
           ))}
