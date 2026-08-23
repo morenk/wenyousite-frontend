@@ -69,7 +69,7 @@ TanStack Query 容器由当前认证身份隔离；首次 AuthContext hydration 
 | ForgotPasswordPage | `src/app/forgot-password/page.tsx` | 忘记密码页面 |
 | ResetPasswordPage | `src/app/reset-password/page.tsx` | 重置密码页面 |
 | GuestRoute / GuestOnly | `src/components/auth/guest-route.tsx` | 登录、注册和找回密码路由共享的访客边界与认证恢复等待 |
-| AuthPageShell | `src/components/auth/auth-page-shell.tsx` | 认证流程统一双栏布局；左侧功能分区，右侧表单卡片 |
+| AuthPageShell | `src/components/auth/auth-page-shell.tsx` | 认证流程统一双栏布局；左侧与窄屏顶部使用无背景的 Foundation 品牌标识、正式名称和文案，右侧承载表单卡片 |
 | NavBar | `src/components/layout/nav-bar.tsx` | 非认证路由的左侧全局导航栏 |
 | Button | `src/components/ui/button.tsx` | shadcn Button |
 | Input | `src/components/ui/input.tsx` | shadcn Input |

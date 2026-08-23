@@ -88,6 +88,7 @@ describe("NavBar", () => {
     expect(mark).toHaveAttribute("src", expect.stringContaining("brand-title-icon-128.png"));
     expect(mark).toHaveAttribute("alt", "");
     expect(mark).toHaveAttribute("aria-hidden", "true");
+    expect(mark?.parentElement).not.toHaveClass("bg-primary");
     expect(container).toHaveTextContent("温油站");
   });
 

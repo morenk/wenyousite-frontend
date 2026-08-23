@@ -76,7 +76,7 @@ export function NavBar({
           !compact && "xl:justify-start xl:px-3",
         )}
       >
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary">
+        <span className="flex size-11 shrink-0 items-center justify-center">
           <Image
             src="/brand-title-icon-128.png"
             width={40}

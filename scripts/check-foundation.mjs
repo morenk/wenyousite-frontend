@@ -101,6 +101,15 @@ const navBar = read("src/components/layout/nav-bar.tsx");
 if (!navBar.includes('@wenyousite/foundation/brand') || !navBar.includes("/brand-title-icon-128.png")) {
   failures.push("全局导航未消费 Foundation 标题品牌标识");
 }
+const authPageShell = read("src/components/auth/auth-page-shell.tsx");
+if (
+  !authPageShell.includes('@wenyousite/foundation/brand')
+  || !authPageShell.includes("BRAND_TAGLINE")
+  || !authPageShell.includes("/brand-title-icon-128.png")
+  || authPageShell.includes("bg-primary")
+) {
+  failures.push("认证页面未消费无背景的 Foundation 品牌标识与正式文案");
+}
 const globalStyles = read("src/app/globals.css");
 if (/^:root\s*\{/mu.test(globalStyles)) failures.push("globals.css 不得复制中央 :root Token");
 for (const claim of ["--type-body-size", "--type-body-line-height"]) {
