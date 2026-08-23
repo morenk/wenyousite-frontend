@@ -83,29 +83,25 @@ test("编辑器格式、窄栏、骰子与正文草稿工具在真实浏览器�
       },
     }),
   );
-  await page.route("**/api/v1/drafts/slots", (route) =>
+  await page.route("**/api/v1/drafts/state", (route) =>
     route.fulfill({
       json: {
         code: 0,
         message: "ok",
-        data: { usedSlots: 1, maxSlots: 5, slots: [1] },
-      },
-    }),
-  );
-  await page.route("**/api/v1/drafts", (route) =>
-    route.fulfill({
-      json: {
-        code: 0,
-        message: "ok",
-        data: [{
-          id: "draft-editor-e2e",
-          userId: "u-dice-e2e",
-          slot: 1,
-          content: "浏览器内的正文草稿",
-          version: 1,
-          createdAt: "2026-08-08T00:00:00.000Z",
-          updatedAt: "2026-08-08T00:00:00.000Z",
-        }],
+        data: {
+          drafts: [{
+            id: "draft-editor-e2e",
+            userId: "u-dice-e2e",
+            slot: 1,
+            content: "浏览器内的正文草稿",
+            version: 1,
+            createdAt: "2026-08-08T00:00:00.000Z",
+            updatedAt: "2026-08-08T00:00:00.000Z",
+          }],
+          usedSlots: 1,
+          maxSlots: 5,
+          slots: [1],
+        },
       },
     }),
   );
@@ -289,6 +285,7 @@ test("编辑器格式、窄栏、骰子与正文草稿工具在真实浏览器�
   const popover = page.getByRole("dialog", { name: "插入骰子" });
   await expect(popover).toBeVisible();
   await popover.getByRole("button", { name: "d100" }).click();
+  await popover.getByRole("button", { name: "插入", exact: true }).click();
   await expect(page.getByRole("note", { name: "骰子 1d100，待掷" })).toHaveText(
     "1d100 = ?",
   );

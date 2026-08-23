@@ -83,15 +83,15 @@ describe("useEditorDraftController", () => {
     expect(mockToastError).not.toHaveBeenCalled();
   });
 
-  test("已登录时窗口重新聚焦会刷新草稿与槽位", () => {
+  test("已登录时窗口重新聚焦只刷新原子草稿状态", () => {
     const { client, Wrapper } = createQueryWrapper();
     const refetch = vi.spyOn(client, "refetchQueries");
     renderHook(() => useEditorDraftController({ defaultValue: "" }), { wrapper: Wrapper });
 
     act(() => window.dispatchEvent(new Event("focus")));
 
-    expect(refetch).toHaveBeenCalledWith({ queryKey: queryKeys.contentDrafts });
-    expect(refetch).toHaveBeenCalledWith({ queryKey: queryKeys.draftSlots });
+    expect(refetch).toHaveBeenCalledTimes(1);
+    expect(refetch).toHaveBeenCalledWith({ queryKey: queryKeys.draftState });
   });
 
   test("自动保存完整保留首尾内容并串接服务端版本", async () => {
@@ -113,8 +113,8 @@ describe("useEditorDraftController", () => {
     act(() => result.current.handleChange("第二版"));
     await flushAutoSave();
     expect(mockSaveDraft).toHaveBeenNthCalledWith(2, {
+      draftId: "d1",
       content: "第二版",
-      slot: 1,
       version: 3,
     });
   });

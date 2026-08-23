@@ -40,11 +40,11 @@ describe("useDeleteContentDraft", () => {
       wrapper: createWrapper(),
     });
 
-    result.current.mutate("d1");
+    result.current.mutate({ id: "d1", version: 3 });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(mockDELETE).toHaveBeenCalledWith("/api/v1/drafts/{id}", {
-      params: { path: { id: "d1" } },
+      params: { path: { id: "d1" }, query: { version: 3 } },
     });
   });
 });

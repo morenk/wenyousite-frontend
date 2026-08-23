@@ -1,21 +1,15 @@
-/** 正文草稿槽位使用情况 API hook（GET /drafts/slots） */
+/** 正文草稿槽位使用情况 hook（复用 GET /drafts/state 的原子快照） */
 
 import { useQuery } from "@tanstack/react-query";
-import { apiClient } from "@/api/client";
-import { queryKeys } from "@/api/query-keys";
 import type { components } from "@/api/types";
+import { draftStateQueryOptions } from "@/api/hooks/use-content-drafts";
 
 export type DraftSlotsInfo = components["schemas"]["DraftSlotUsageResponseDto"];
 
 export function useDraftSlots(enabled = true) {
   return useQuery({
-    queryKey: queryKeys.draftSlots,
-    queryFn: async () => {
-      const { data, error } = await apiClient.GET("/api/v1/drafts/slots");
-      if (error) throw error;
-      return data?.data ?? { usedSlots: 0, maxSlots: 5, slots: [] };
-    },
+    ...draftStateQueryOptions,
+    select: ({ usedSlots, maxSlots, slots }) => ({ usedSlots, maxSlots, slots }),
     enabled,
-    staleTime: 10 * 1000,
   });
 }

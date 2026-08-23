@@ -1487,6 +1487,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/drafts/state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 原子获取草稿列表与槽位使用情况 */
+        get: operations["draftsState"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/drafts/{id}": {
         parameters: {
             query?: never;
@@ -4589,7 +4606,20 @@ export interface components {
             /** @description 已占用槽位编号 */
             slots: number[];
         };
+        DraftStateResponseDto: {
+            usedSlots: number;
+            /** @example 5 */
+            maxSlots: number;
+            /** @description 已占用槽位编号 */
+            slots: number[];
+            drafts: components["schemas"]["DraftResponseDto"][];
+        };
         CreateDraftDto: {
+            /**
+             * Format: uuid
+             * @description 客户端创建幂等键；同一次提交和网络重试必须复用
+             */
+            clientRequestId?: string;
             /**
              * @description 草稿正文；待掷骰子作为内联节点包含在正文中
              * @example 这是一段草稿内容...
@@ -6076,6 +6106,9 @@ export interface components {
         };
         DraftsSlotUsage200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["DraftSlotUsageResponseDto"];
+        };
+        DraftsState200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["DraftStateResponseDto"];
         };
         DraftsFindById200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["DraftResponseDto"];
@@ -11589,7 +11622,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
-            /** @description 覆盖已有槽位时 version 缺失或已过期 */
+            /** @description 覆盖已有槽位时 version 缺失或已过期，或幂等键被复用 */
             409: {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];
@@ -11631,6 +11664,50 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DraftsSlotUsage200Response"];
+                };
+            };
+            /** @description 未登录或 Token 无效 */
+            401: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    draftsState: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 同一数据库快照中的草稿与槽位状态 */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DraftsState200Response"];
                 };
             };
             /** @description 未登录或 Token 无效 */
@@ -11716,7 +11793,10 @@ export interface operations {
     };
     draftsRemove: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description 要删除的当前乐观锁版本；提供后不会删除其他设备更新出的新版本 */
+                version?: number;
+            };
             header?: never;
             path: {
                 id: string;
@@ -11747,8 +11827,8 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
-            /** @description 草稿不存在 */
-            404: {
+            /** @description version 已过期 */
+            409: {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];

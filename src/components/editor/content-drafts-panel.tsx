@@ -32,7 +32,10 @@ interface ContentDraftsPanelProps {
   initialContent?: string;
   autoSaveEnabled?: boolean;
   autoSaveStatus?: "idle" | "saving" | "saved" | "error";
-  onAutoSaveChange?: (enabled: boolean, version?: number) => void;
+  onAutoSaveChange?: (
+    enabled: boolean,
+    draft?: Pick<DraftItem, "id" | "version">,
+  ) => void;
 }
 
 export interface EditorDraftSnapshot {
@@ -121,7 +124,7 @@ export function ContentDraftsPanel({
       destructive: true,
     }))) return;
     try {
-      await deleteDraft.mutateAsync(draft.id);
+      await deleteDraft.mutateAsync({ id: draft.id, version: draft.version });
       if (deletingAutoSave) onAutoSaveChange?.(false);
       toast.success("正文草稿已删除");
     } catch (err) {
@@ -140,13 +143,23 @@ export function ContentDraftsPanel({
       destructive: true,
     }))) return;
     try {
-      const savedDraft = await saveDraft.mutateAsync({
-        content: text,
-        ...(slot ? { slot } : {}),
-        ...(occupied ? { version: occupied.version } : {}),
-      });
+      const savedDraft = await saveDraft.mutateAsync(
+        occupied
+          ? {
+              draftId: occupied.id,
+              content: text,
+              version: occupied.version,
+            }
+          : {
+              content: text,
+              ...(slot ? { slot } : {}),
+            },
+      );
       if (slot === 1 && autoSaveEnabled) {
-        onAutoSaveChange?.(true, savedDraft.version);
+        onAutoSaveChange?.(true, {
+          id: savedDraft.id,
+          version: savedDraft.version,
+        });
       }
       toast.success(occupied ? `已覆盖槽位 ${slot}` : "正文草稿已保存");
     } catch (err) {
@@ -169,7 +182,12 @@ export function ContentDraftsPanel({
     ) {
       return;
     }
-    onAutoSaveChange?.(next, next ? freshSlotOne?.version : undefined);
+    onAutoSaveChange?.(
+      next,
+      next && freshSlotOne
+        ? { id: freshSlotOne.id, version: freshSlotOne.version }
+        : undefined,
+    );
   };
 
   return (

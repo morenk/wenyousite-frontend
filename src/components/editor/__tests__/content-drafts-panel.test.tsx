@@ -94,9 +94,16 @@ describe("ContentDraftsPanel", () => {
     await user.click(screen.getByRole("button", { name: "删除草稿" }));
     await user.click(screen.getByRole("switch", { name: "槽位 1 自动保存" }));
 
-    expect(save).toHaveBeenCalledWith({ content: "新正文", slot: 1, version: 2 });
-    expect(remove).toHaveBeenCalledWith("draft-1");
-    expect(onAutoSaveChange).toHaveBeenCalledWith(true, 2);
+    expect(save).toHaveBeenCalledWith({
+      draftId: "draft-1",
+      content: "新正文",
+      version: 2,
+    });
+    expect(remove).toHaveBeenCalledWith({ id: "draft-1", version: 2 });
+    expect(onAutoSaveChange).toHaveBeenCalledWith(true, {
+      id: "draft-1",
+      version: 2,
+    });
   });
 
   it("覆盖非空正文时可取消恢复", async () => {

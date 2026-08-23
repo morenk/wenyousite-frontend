@@ -38,12 +38,11 @@
 
 | Method | Path | Guard | 用途 |
 |--------|------|-------|------|
-| GET | `/drafts/slots` | AuthRead | 槽位使用情况（usedSlots / maxSlots=5 / slots[]） |
-| GET | `/drafts` | AuthRead | 当前用户全部草稿（按 slot 排序） |
-| POST | `/drafts` | Auth | 保存草稿（指定 slot 覆盖；不指定自动分配空闲位） |
+| GET | `/drafts/state` | AuthRead | 原子读取草稿列表及由同一列表推导的槽位状态 |
+| POST | `/drafts` | Auth | 创建草稿；携带 `clientRequestId` 幂等重放 |
 | GET | `/drafts/:id` | AuthRead | 单条草稿 |
-| PATCH | `/drafts/:id` | Auth | 更新草稿内容 |
-| DELETE | `/drafts/:id` | Auth | 删除草稿（硬删除） |
+| PATCH | `/drafts/:id` | Auth | 按稳定 ID 和当前 `version` 更新草稿内容 |
+| DELETE | `/drafts/:id?version=N` | Auth | 按当前版本删除草稿（硬删除，可安全重放） |
 
 **响应数据类型（与 OpenAPI 生成类型对齐）：**
 
@@ -59,11 +58,10 @@ interface DraftItem {
 }
 ```
 
-- `GET /drafts` → `data: DraftItem[]`
-- `GET /drafts/slots` → `data: { usedSlots: number; maxSlots: number; slots: number[] }`（`slots` 顺序不保证稳定）
-- `POST /drafts`（body `{ content, slot?, version? }`）→ 201，覆盖已有槽位时必须提交当前 version
+- `GET /drafts/state` → `data: { drafts: DraftItem[]; usedSlots: number; maxSlots: number; slots: number[] }`，四个字段来自同一有序快照
+- `POST /drafts`（body `{ content, slot?, clientRequestId }`）→ 201；Web 仅用它创建空槽位，不再用 POST 覆盖已有槽位
 - `GET/PATCH /drafts/:id` → `data: DraftItem`
-- `DELETE /drafts/:id` → `data: { message: "草稿已删除" }`
+- `DELETE /drafts/:id?version=N` → `data: { message: "草稿已删除" }`
 
 > **内容存储策略（全站统一）**：content 按 **Markdown 存储**，后端不做 HTML 转义。Web 编辑器输出时只清理 Milkdown 自身产生的空图片并规范化独占行空段落 `<br />`；提交和保存链路不做全局 `trim()`，因此首尾空段落及空白可原样保留。XSS 由渲染层净化：Web 端 react-markdown 启用 `skipHtml`，移动端需使用安全的 Markdown 渲染器。
 
@@ -71,9 +69,8 @@ interface DraftItem {
 
 | 状态 | 来源 | 管理方式 |
 |------|------|----------|
-| 草稿列表 | `GET /drafts` | TanStack Query `useQuery`（`queryKeys.contentDrafts`） |
-| 槽位使用 | `GET /drafts/slots` | TanStack Query `useQuery`（`queryKeys.draftSlots`） |
-| 保存/删除 | mutation | `useMutation`，成功后 invalidate 列表与槽位 |
+| 草稿与槽位 | `GET /drafts/state` | TanStack Query 单一缓存 `queryKeys.draftState`；列表和槽位 hook 用 `select` 观察同一原子快照 |
+| 保存/删除 | mutation | 成功时先从同一 drafts 列表重算槽位摘要，再 invalidate `draftState` 与服务端对账 |
 | 面板开关 | 编辑器工具栏入口 | useState（MilkdownEditor 持有） |
 | 自动保存 | 当前编辑器状态 | 800ms 防抖串行写入完整 content 到 slot 1；成功后推进 version，409 或保存失败时关闭自动保存并保持错误状态可见 |
 
@@ -83,16 +80,16 @@ interface DraftItem {
 |------|------|------|
 | ContentDraftsPanel | `src/components/editor/content-drafts-panel.tsx` | 5 槽位卡片；当前编辑器全文保存/覆盖/恢复/删除；槽位 1 自动保存开关 |
 | 编辑器入口 | `src/components/editor/milkdown-editor-core.tsx` | 顶部工具栏按钮、面板挂载、恢复回填及 slot 1 防抖自动保存 |
-| useContentDrafts | `src/api/hooks/use-content-drafts.ts` | 草稿列表 hook（集中式 query key） |
-| useDraftSlots | `src/api/hooks/use-draft-slots.ts` | 槽位使用 hook（集中式 query key） |
-| useSaveDraft | `src/api/hooks/use-save-draft.ts` | 保存草稿 hook（成功 invalidate 列表+槽位） |
-| useDeleteContentDraft | `src/api/hooks/use-delete-content-draft.ts` | 删除草稿 hook（成功 invalidate 列表+槽位） |
+| useContentDrafts | `src/api/hooks/use-content-drafts.ts` | 原子状态请求与草稿列表 selector |
+| useDraftSlots | `src/api/hooks/use-draft-slots.ts` | 同一原子状态缓存的槽位 selector |
+| useSaveDraft | `src/api/hooks/use-save-draft.ts` | 空槽位幂等 POST；已有记录按 ID/version PATCH |
+| useDeleteContentDraft | `src/api/hooks/use-delete-content-draft.ts` | 携带当前 version 条件删除并重算统一缓存 |
 
 > 面板形态：当前 Milkdown 编辑器内的折叠托盘。托盘不创建遮罩、不拦截页面级导航，使用两列槽位索引和内部滚动限制高度；楼中楼的浮动回复框会随托盘实际高度重新预留页面底部空间。
 
 ## 6. 表单与校验
 
-无二次输入表单。`POST /drafts` 直接提交当前编辑器的完整 Markdown；内联骰子节点是 content 的一部分，因此天然与前后文字处于同一版本快照。允许纯正文或只含骰子节点，但 content 不能为空。`slot` 可选（1-5），不传由后端自动分配。覆盖已有槽位时同时提交该记录当前的正整数 `version`。
+无二次输入表单。创建空槽位时 `POST /drafts` 直接提交当前编辑器的完整 Markdown、可选 `slot` 和本次操作生成的 UUID v4 `clientRequestId`；认证刷新造成的请求重放会复用同一请求体。内联骰子节点是 content 的一部分，因此天然与前后文字处于同一版本快照。允许纯正文或只含骰子节点，但 content 不能为空。覆盖已有槽位和自动保存后续版本只调用 `PATCH /drafts/:id`，同时提交该记录当前的正整数 `version`，避免槽位删除再创建后的 ABA 覆盖。
 
 打开面板、窗口重新获得焦点、开启自动保存前都会重新拉取远端快照。发生 409 时停止当前自动保存并提示刷新，不拆解或合并 content 内的骰子节点，避免跨设备把两个版本拼成非用户意图的状态。
 
@@ -103,8 +100,9 @@ interface DraftItem {
 | 40100 | 未登录 / 缺少认证凭证 | 登录守卫跳转 `/login` |
 | 40101 | access token 过期 | apiClient 自动刷新并重放请求 |
 | 40000 | 草稿位已满（5/5） | toast「草稿位已满（5/5），请先删除旧草稿」 |
-| 40400 | 草稿不存在（已被删） | toast「草稿不存在或已删除」并刷新列表 |
+| 40405 | 草稿不存在（已被删或旧 ID 已被替换） | toast「草稿不存在或已删除」并刷新原子状态 |
 | 40002 / HTTP 409 | 草稿已在其他标签页或设备修改 | 停止自动保存，刷新列表并提示用户重新确认 |
+| 40912 / HTTP 409 | 创建幂等键被错误复用于另一载荷 | 视为提交失败并刷新原子状态，不生成第二份草稿 |
 | 网络错误 | fetch 失败 | toast「网络连接失败，请稍后重试」 |
 | 兜底 | 其它 | toast「操作失败，请稍后重试」 |
 
@@ -129,8 +127,10 @@ interface DraftItem {
 - 自动保存失败时关闭开关并持续显示错误状态，直到用户重新开启
 - 手动保存和自动保存均保留首尾 Markdown 内容，不做全局 `trim()`
 - 恢复草稿会覆盖非空当前正文时要求二次确认
-- 删除草稿确认后调用 DELETE，成功后列表刷新
+- 删除草稿确认后携带当前 version 调用 DELETE，成功后统一状态刷新；相同删除可安全重放
 - 与主题帖草稿在入口/命名/视觉/数据上完全隔离
 - 手动覆盖与自动保存均携带当前 version，成功后使用响应中的新版本
+- 已有槽位始终 PATCH 其稳定 ID；删除后重建同槽位时，旧 ID/旧版本不能覆盖新草稿
+- 草稿列表与槽位摘要只发起一次 `/drafts/state` 请求，不展示跨请求拼接出的矛盾状态
 - 409 冲突不覆盖远端内容，并停止当前编辑器自动保存
 - 面板打开、窗口聚焦和启用自动保存时刷新远端版本，支持多设备接续

@@ -1,6 +1,6 @@
 /** useDraftSlots hook 测试：正文草稿槽位使用情况 */
 
-import { describe, test, expect, vi } from "vitest";
+import { beforeEach, describe, test, expect, vi } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useDraftSlots } from "@/api/hooks/use-draft-slots";
@@ -24,12 +24,16 @@ function createWrapper() {
 }
 
 describe("useDraftSlots", () => {
+  beforeEach(() => {
+    mockGET.mockReset();
+  });
+
   test("成功获取槽位使用情况", async () => {
     mockGET.mockResolvedValue({
       data: {
         code: 0,
         message: "ok",
-        data: { usedSlots: 2, maxSlots: 5, slots: [1, 2] },
+        data: { drafts: [], usedSlots: 2, maxSlots: 5, slots: [1, 2] },
       },
       error: undefined,
     });
@@ -39,7 +43,7 @@ describe("useDraftSlots", () => {
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(mockGET).toHaveBeenCalledWith("/api/v1/drafts/slots");
+    expect(mockGET).toHaveBeenCalledWith("/api/v1/drafts/state");
     expect(result.current.data).toEqual({
       usedSlots: 2,
       maxSlots: 5,

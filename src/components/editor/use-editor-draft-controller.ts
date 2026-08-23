@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "@/api/errors";
 import { useSaveDraft } from "@/api/hooks/use-save-draft";
+import type { DraftItem } from "@/api/hooks/use-content-drafts";
 import { queryKeys } from "@/api/query-keys";
 import { useAuth } from "@/lib/auth";
 import { sanitizeMilkdownMarkdown } from "@/lib/markdown";
@@ -34,7 +35,9 @@ export function useEditorDraftController({
   const latestContentRef = useRef(initialValue);
   const autoSaveQueueRef = useRef<Promise<unknown>>(Promise.resolve());
   const autoSaveSequenceRef = useRef(0);
-  const autoSaveVersionRef = useRef<number | undefined>(undefined);
+  const autoSaveDraftRef = useRef<Pick<DraftItem, "id" | "version"> | undefined>(
+    undefined,
+  );
   const autoSaveEnabledRef = useRef(false);
 
   useEffect(() => {
@@ -72,8 +75,7 @@ export function useEditorDraftController({
   useEffect(() => {
     if (!user) return;
     const refreshDrafts = () => {
-      void queryClient.refetchQueries({ queryKey: queryKeys.contentDrafts });
-      void queryClient.refetchQueries({ queryKey: queryKeys.draftSlots });
+      void queryClient.refetchQueries({ queryKey: queryKeys.draftState });
     };
     window.addEventListener("focus", refreshDrafts);
     return () => window.removeEventListener("focus", refreshDrafts);
@@ -91,17 +93,18 @@ export function useEditorDraftController({
         .catch(() => undefined)
         .then(() => {
           if (!autoSaveEnabledRef.current) return null;
-          return saveDraftAutomatically({
-            content,
-            slot: 1,
-            ...(autoSaveVersionRef.current !== undefined
-              ? { version: autoSaveVersionRef.current }
-              : {}),
-          });
+          const currentDraft = autoSaveDraftRef.current;
+          return currentDraft
+            ? saveDraftAutomatically({
+                draftId: currentDraft.id,
+                content,
+                version: currentDraft.version,
+              })
+            : saveDraftAutomatically({ content, slot: 1 });
         })
         .then((draft) => {
           if (!draft || !autoSaveEnabledRef.current) return;
-          autoSaveVersionRef.current = draft.version;
+          autoSaveDraftRef.current = { id: draft.id, version: draft.version };
           if (autoSaveSequenceRef.current === sequence) setAutoSaveStatus("saved");
         })
         .catch((error) => {
@@ -116,12 +119,15 @@ export function useEditorDraftController({
     return () => window.clearTimeout(timer);
   }, [autoSaveEnabled, currentContent, saveDraftAutomatically]);
 
-  const handleAutoSaveChange = useCallback((enabled: boolean, draftVersion?: number) => {
-    autoSaveEnabledRef.current = enabled;
-    autoSaveVersionRef.current = enabled ? draftVersion : undefined;
-    setAutoSaveEnabled(enabled);
-    setAutoSaveStatus("idle");
-  }, []);
+  const handleAutoSaveChange = useCallback(
+    (enabled: boolean, draft?: Pick<DraftItem, "id" | "version">) => {
+      autoSaveEnabledRef.current = enabled;
+      autoSaveDraftRef.current = enabled ? draft : undefined;
+      setAutoSaveEnabled(enabled);
+      setAutoSaveStatus("idle");
+    },
+    [],
+  );
 
   return {
     user,
