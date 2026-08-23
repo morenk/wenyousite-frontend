@@ -193,7 +193,7 @@ export function MilkdownEditorHost({
   const uploadAbortRef = useRef<AbortController | null>(null);
   const diceSelectionRef = useRef<{ from: number; to: number } | null>(null);
   const [dicePopover, setDicePopover] = useState<{ top: number; left: number } | null>(null);
-  const [moreMenuPosition, setMoreMenuPosition] = useState<{ top: number; left: number } | null>(null);
+  const [moreMenuAnchor, setMoreMenuAnchor] = useState<HTMLElement | null>(null);
   const [toolbarDensity, setToolbarDensity] = useState<MilkdownToolbarDensity>("expanded");
   const [diceNodeCount, setDiceNodeCount] = useState(
     () => parseInlineDiceNodes(initialValue).length,
@@ -369,7 +369,7 @@ export function MilkdownEditorHost({
     const topBar = host?.querySelector<HTMLElement>(".milkdown-top-bar");
     const directTrigger = host?.querySelector<HTMLElement>('[data-editor-tool="dice"]');
     if (!host || !topBar) return;
-    setMoreMenuPosition(null);
+    setMoreMenuAnchor(null);
     setDicePopover(positionEditorPopover(
       menuAnchor ?? directTrigger?.getBoundingClientRect() ?? topBar.getBoundingClientRect(),
       320,
@@ -382,11 +382,7 @@ export function MilkdownEditorHost({
     const trigger = hostRef.current?.querySelector<HTMLElement>('[data-editor-tool="more"]');
     if (!trigger) return;
     setDicePopover(null);
-    setMoreMenuPosition(positionEditorPopover(
-      trigger.getBoundingClientRect(),
-      240,
-      360,
-    ));
+    setMoreMenuAnchor(trigger);
   }, [disabled]);
 
   const runMoreCommand = useCallback((capability: EditorCapabilityId) => {
@@ -434,7 +430,7 @@ export function MilkdownEditorHost({
       emitCurrentMarkdown(view);
       view.focus();
     });
-    setMoreMenuPosition(null);
+    setMoreMenuAnchor(null);
   }, [emitCurrentMarkdown]);
 
   const moreMenuItems = useMemo<EditorMoreMenuItem[]>(() => {
@@ -464,7 +460,7 @@ export function MilkdownEditorHost({
       return;
     }
     if (capability === "draft") {
-      setMoreMenuPosition(null);
+      setMoreMenuAnchor(null);
       onOpenDrafts?.();
       return;
     }
@@ -472,7 +468,7 @@ export function MilkdownEditorHost({
   }, [handleOpenDice, onOpenDrafts, runMoreCommand]);
 
   const handleCloseMore = useCallback(() => {
-    setMoreMenuPosition(null);
+    setMoreMenuAnchor(null);
     crepeRef.current?.editor.action((ctx) => ctx.get(editorViewCtx)).focus();
   }, []);
 
@@ -810,9 +806,9 @@ export function MilkdownEditorHost({
 
   useEffect(() => {
     if (hostRef.current) {
-      syncMilkdownMoreMenuState(hostRef.current, moreMenuPosition !== null);
+      syncMilkdownMoreMenuState(hostRef.current, moreMenuAnchor !== null);
     }
-  }, [moreMenuPosition]);
+  }, [moreMenuAnchor]);
 
   return (
     <div ref={hostRef} className="milkdown-editor relative">
@@ -848,7 +844,7 @@ export function MilkdownEditorHost({
         onInsert={handleInsertDice}
       />
       <EditorMoreMenu
-        position={moreMenuPosition}
+        anchor={moreMenuAnchor}
         items={moreMenuItems}
         onSelect={handleMoreSelect}
         onClose={handleCloseMore}

@@ -1,5 +1,22 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator } from "@playwright/test";
 import { openFreshThreadDraft } from "./fixtures/auth";
+
+async function expectMenuTethered(trigger: Locator, menu: Locator) {
+  const [triggerBox, menuBox] = await Promise.all([
+    trigger.boundingBox(),
+    menu.boundingBox(),
+  ]);
+  expect(triggerBox).not.toBeNull();
+  expect(menuBox).not.toBeNull();
+  const verticalGap = menuBox!.y >= triggerBox!.y
+    ? menuBox!.y - (triggerBox!.y + triggerBox!.height)
+    : triggerBox!.y - (menuBox!.y + menuBox!.height);
+  expect(verticalGap).toBeGreaterThanOrEqual(4);
+  expect(verticalGap).toBeLessThanOrEqual(8);
+  expect(Math.abs(
+    menuBox!.x + menuBox!.width - (triggerBox!.x + triggerBox!.width),
+  )).toBeLessThanOrEqual(8);
+}
 
 const thread = {
   id: "t-dice-e2e",
@@ -213,12 +230,16 @@ test("编辑器格式、窄栏、骰子与正文草稿工具在真实浏览器�
   for (const label of ["行内代码", "无序列表", "有序列表"]) {
     await expect(toolbar.getByRole("button", { name: label })).not.toBeVisible();
   }
-  await toolbar.getByRole("button", { name: "更多" }).click();
+  const moreButton = toolbar.getByRole("button", { name: "更多" });
+  await moreButton.click();
+  const moreMenu = page.getByRole("menu", { name: "更多正文格式" });
+  await expect(moreMenu).toBeVisible();
+  await expectMenuTethered(moreButton, moreMenu);
   for (const label of ["行内代码", "无序列表", "有序列表"]) {
-    await expect(page.getByRole("menuitem", { name: label })).toBeVisible();
+    await expect(moreMenu.getByRole("menuitem", { name: label })).toBeVisible();
   }
   for (const label of ["链接", "引用", "分隔线", "骰子"]) {
-    await expect(page.getByRole("menuitem", { name: label })).toHaveCount(0);
+    await expect(moreMenu.getByRole("menuitem", { name: label })).toHaveCount(0);
   }
   await page.keyboard.press("Escape");
 
@@ -251,8 +272,9 @@ test("编辑器格式、窄栏、骰子与正文草稿工具在真实浏览器�
   } else {
     await expect(toolbar.getByRole("button", { name: "删除线" })).toBeVisible();
   }
-  await toolbar.getByRole("button", { name: "更多" }).click();
-  await expect(page.getByRole("menuitem", { name: "骰子" })).toBeVisible();
+  await moreButton.click();
+  await expect(moreMenu.getByRole("menuitem", { name: "骰子" })).toBeVisible();
+  await expectMenuTethered(moreButton, moreMenu);
   await page.keyboard.press("Escape");
   const headingButton = toolbar.locator(".top-bar-heading-button");
   await headingButton.click();
@@ -297,7 +319,7 @@ test("编辑器格式、窄栏、骰子与正文草稿工具在真实浏览器�
   await expect(draftPanel).toBeVisible();
   await expect(draftPanel).toContainText("浏览器内的正文草稿");
   await draftPanel.scrollIntoViewIfNeeded();
-  const autoSaveSwitch = draftPanel.getByRole("switch", { name: "槽位 1 自动保存" });
+  const autoSaveSwitch = draftPanel.getByRole("switch", { name: "自动保存到草稿 1" });
   const switchGeometry = await autoSaveSwitch.evaluate((track) => {
     const thumb = track.querySelector<HTMLElement>(
       '[data-slot="content-drafts-autosave-thumb"]',

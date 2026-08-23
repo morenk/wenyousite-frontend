@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import {
@@ -12,14 +12,37 @@ const ITEMS: EditorMoreMenuItem[] = [
   { id: "dice", label: "骰子", group: "创作" },
 ];
 
-afterEach(() => cleanup());
+function createAnchor() {
+  const anchor = document.createElement("button");
+  anchor.dataset.editorTool = "more";
+  anchor.dataset.editorMoreTestAnchor = "true";
+  document.body.appendChild(anchor);
+  const measure = vi.spyOn(anchor, "getBoundingClientRect").mockReturnValue({
+    x: 280,
+    y: 120,
+    top: 120,
+    right: 320,
+    bottom: 152,
+    left: 280,
+    width: 40,
+    height: 32,
+    toJSON: () => ({}),
+  });
+  return { anchor, measure };
+}
+
+afterEach(() => {
+  cleanup();
+  document.querySelectorAll("[data-editor-more-test-anchor]").forEach((anchor) => anchor.remove());
+});
 
 describe("EditorMoreMenu", () => {
   test("按语义分组、自动聚焦并支持方向键与选择", async () => {
     const onSelect = vi.fn();
+    const { anchor, measure } = createAnchor();
     render(
       <EditorMoreMenu
-        position={{ top: 48, left: 24 }}
+        anchor={anchor}
         items={ITEMS}
         onSelect={onSelect}
         onClose={vi.fn()}
@@ -27,11 +50,14 @@ describe("EditorMoreMenu", () => {
     );
 
     const menu = screen.getByRole("menu", { name: "更多正文格式" });
-    expect(menu).toHaveStyle({ top: "48px", left: "24px" });
+    expect(document.querySelector("[data-editor-more-positioner]")).toHaveStyle({
+      position: "fixed",
+    });
+    await waitFor(() => expect(measure).toHaveBeenCalled());
     expect(within(menu).getByText("文字")).toBeInTheDocument();
     expect(within(menu).getByText("段落")).toBeInTheDocument();
     expect(within(menu).getByText("创作")).toBeInTheDocument();
-    expect(screen.getByRole("menuitem", { name: "链接" })).toHaveFocus();
+    await waitFor(() => expect(screen.getByRole("menuitem", { name: "链接" })).toHaveFocus());
 
     await userEvent.setup().keyboard("{ArrowDown}{End}{Home}");
     expect(screen.getByRole("menuitem", { name: "链接" })).toHaveFocus();
@@ -39,14 +65,15 @@ describe("EditorMoreMenu", () => {
     expect(onSelect).toHaveBeenCalledWith("quote", expect.any(Object));
   });
 
-  test("Escape 与菜单外指针都会请求关闭，菜单内操作不会", () => {
+  test("菜单内与锚点操作不关闭，菜单外指针请求关闭", async () => {
     const onClose = vi.fn();
-    const trigger = document.createElement("button");
-    trigger.dataset.editorTool = "more";
-    document.body.appendChild(trigger);
+    const { anchor } = createAnchor();
+    const outside = document.createElement("button");
+    outside.dataset.editorMoreTestAnchor = "true";
+    document.body.appendChild(outside);
     render(
       <EditorMoreMenu
-        position={{ top: 48, left: 24 }}
+        anchor={anchor}
         items={ITEMS}
         onSelect={vi.fn()}
         onClose={onClose}
@@ -54,18 +81,32 @@ describe("EditorMoreMenu", () => {
     );
 
     fireEvent.pointerDown(screen.getByRole("menuitem", { name: "链接" }));
-    fireEvent.pointerDown(trigger);
+    await userEvent.setup().click(anchor);
     expect(onClose).not.toHaveBeenCalled();
+    await userEvent.setup().click(outside);
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  test("Escape 请求关闭菜单", () => {
+    const onClose = vi.fn();
+    const { anchor } = createAnchor();
+    render(
+      <EditorMoreMenu
+        anchor={anchor}
+        items={ITEMS}
+        onSelect={vi.fn()}
+        onClose={onClose}
+      />,
+    );
+
     fireEvent.keyDown(document, { key: "Escape" });
-    fireEvent.pointerDown(document.body);
-    expect(onClose).toHaveBeenCalledTimes(2);
-    trigger.remove();
+    expect(onClose).toHaveBeenCalledOnce();
   });
 
   test("关闭状态不创建浮层", () => {
     render(
       <EditorMoreMenu
-        position={null}
+        anchor={null}
         items={ITEMS}
         onSelect={vi.fn()}
         onClose={vi.fn()}
