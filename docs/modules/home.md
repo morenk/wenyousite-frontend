@@ -74,7 +74,7 @@
 |------|------|------|
 | 标题 | thread.title | 文本 |
 | 分类 | thread.category + `GET /thread-categories` | 动态 slug → 管理员配置的名称与顺序；空值/未知值安全降级 |
-| 正文预览 | 默认子贴正文（kind=BODY） | Markdown 纯文本截断（~120 字） |
+| 正文预览 | 默认子贴正文（kind=BODY） | 紧凑纯文本（实体单遍解码、连续空白折叠，最多约 100 字） |
 | 正文封面 | thread.coverImages[0] | 标题下方只展示默认主贴正文中的第一张普通图片，按半宽 16:9 裁切预览 |
 | 标签 | thread.topicTags[] | 可点击标签徽章，进入 `/tags/{tag.id}` |
 | 状态 | thread.status | 招募中/已停招/已结束 |

@@ -7,6 +7,33 @@ const REFERENCE_LINK_RE = /\[([^\]\r\n]+)\]\[[^\]\r\n]*\]/gu;
 const AUTOLINK_RE = /<(?:https?:\/\/|mailto:)[^>\r\n]+>/giu;
 const BARE_URL_RE = /(?:https?:\/\/|www\.)[^\s<\])]+/giu;
 const EMPTY_PARAGRAPH_RE = /^ {0,3}<br\s*\/?>[\t ]*$/gimu;
+const HTML_ENTITY_RE = /&(amp|lt|gt|quot|apos|nbsp|#\d+|#x[\da-f]+);/giu;
+
+function decodeHtmlEntityOnce(entity: string, name: string): string {
+  switch (name.toLowerCase()) {
+    case "amp":
+      return "&";
+    case "lt":
+      return "<";
+    case "gt":
+      return ">";
+    case "quot":
+      return '"';
+    case "apos":
+      return "'";
+    case "nbsp":
+      return "\u00a0";
+    default: {
+      const hex = name[1]?.toLowerCase() === "x";
+      const code = Number.parseInt(name.slice(hex ? 2 : 1), hex ? 16 : 10);
+      try {
+        return String.fromCodePoint(code);
+      } catch {
+        return entity;
+      }
+    }
+  }
+}
 
 /** 将 Markdown 正文转换为适合卡片、搜索和通知使用的紧凑纯文本预览。 */
 export function formatMarkdownPreview(markdown: string): string {
@@ -32,6 +59,7 @@ export function formatMarkdownPreview(markdown: string): string {
     .replace(/\*([^*\r\n]+)\*/gu, "$1")
     .replace(/_([^_\r\n]+)_/gu, "$1")
     .replace(/\\([!-/:-@[-`{-~])/gu, "$1")
+    .replace(HTML_ENTITY_RE, decodeHtmlEntityOnce)
     .replace(/[\t ]*\n[\t ]*/gu, " ")
     .replace(/\s{2,}/gu, " ")
     .trim();

@@ -288,6 +288,30 @@ function remarkBareInternalReferences() {
   };
 }
 
+/** 完整正文把 CommonMark 软换行显式渲染为换行，与 Flutter 阅读态保持一致。 */
+function remarkPreserveSoftLineBreaks() {
+  return (tree: MarkdownNode) => {
+    const transform = (node: MarkdownNode) => {
+      if (!node.children) return;
+      const children: MarkdownNode[] = [];
+      for (const child of node.children) {
+        if (child.type !== "text" || !child.value?.includes("\n")) {
+          transform(child);
+          children.push(child);
+          continue;
+        }
+        const lines = child.value.split("\n");
+        for (let index = 0; index < lines.length; index++) {
+          if (index > 0) children.push({ type: "break" });
+          if (lines[index]) children.push({ ...child, value: lines[index] });
+        }
+      }
+      node.children = children;
+    };
+    transform(tree);
+  };
+}
+
 const COLLAPSE_TRIGGER_VIEWPORT_RATIO = 1.2;
 
 interface CollapsibleMarkdownProps {
@@ -369,6 +393,7 @@ function CollapsibleMarkdown({
             remarkMilkdownEmptyParagraphs,
             remarkInlineDice(diceRolls),
             remarkBareInternalReferences,
+            remarkPreserveSoftLineBreaks,
           ]}
           components={{
             a: MarkdownLink,

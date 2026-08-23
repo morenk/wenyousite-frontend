@@ -34,4 +34,16 @@ describe("formatMarkdownPreview", () => {
       `[设定 A](/threads/${threadId}) 和 https://wenyou.site/threads/${threadId}`,
     )).toBe("设定 A 和 传送门");
   });
+
+  test("空格实体和软换行在紧凑预览中统一折叠", () => {
+    expect(
+      formatMarkdownPreview(
+        "另一种形式的开\n始？\n\n&#x20;  没有死亡的人，无法给出答案。",
+      ),
+    ).toBe("另一种形式的开 始？ 没有死亡的人，无法给出答案。");
+  });
+
+  test("实体只解码一遍，不展开用户原本输入的二次实体", () => {
+    expect(formatMarkdownPreview("&amp;lt;")).toBe("&lt;");
+  });
 });

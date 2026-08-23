@@ -198,6 +198,21 @@ describe("MarkdownContent", () => {
     expect(document.querySelectorAll("br")).toHaveLength(1);
   });
 
+  test("完整正文保留段落内软换行并按阅读语义解码空格实体", () => {
+    render(
+      <MarkdownContent
+        content={"另一种形式的开\n始？\n\n&#x20;  没有死亡的人，无法给出答案。"}
+      />,
+    );
+
+    const paragraphs = document.querySelectorAll('[data-slot="markdown-content"] p');
+    expect(paragraphs).toHaveLength(2);
+    expect(paragraphs[0]?.querySelectorAll("br")).toHaveLength(1);
+    expect(paragraphs[0]).toHaveTextContent("另一种形式的开 始？");
+    expect(paragraphs[1]).toHaveTextContent("没有死亡的人，无法给出答案。");
+    expect(document.body).not.toHaveTextContent("&#x20;");
+  });
+
   test("历史白名单外结构只显示源码字符，不生成结构节点", () => {
     render(
       <MarkdownContent
