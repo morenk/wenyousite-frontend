@@ -50,7 +50,17 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockRandomUUID.mockReset();
   mockValidate.mockReturnValue(null);
-  mockUpload.mockResolvedValue({ url: "https://cdn.example.com/a.jpg", mediaId: "media1" });
+  mockUpload.mockResolvedValue({
+    url: "https://cdn.example.com/a.jpg",
+    mediaId: "media1",
+    thumbnailUrl: null,
+    feedUrl: null,
+    mediumUrl: null,
+    width: null,
+    height: null,
+    contentType: "image/jpeg",
+    animated: false,
+  });
   mockRandomUUID
     .mockReturnValueOnce("99454040-6a52-4bf3-8bad-42683c4d09be")
     .mockReturnValueOnce("3af69fe1-826e-4777-83fb-5ecec0b3a2ed")
@@ -179,13 +189,27 @@ describe("DirectMessageComposer", () => {
         contentType: "image/jpeg",
         width: null,
         height: null,
+        animated: false,
       },
+    }));
+    expect(mockUpload).toHaveBeenCalledWith(file, expect.objectContaining({
+      purpose: "DIRECT_MESSAGE",
     }));
     expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:preview");
   });
 
   test("图片直传期间展示真实字节和百分比", async () => {
-    let resolveUpload!: (value: { url: string; mediaId: string }) => void;
+    let resolveUpload!: (value: {
+      url: string;
+      mediaId: string;
+      thumbnailUrl: null;
+      feedUrl: null;
+      mediumUrl: null;
+      width: null;
+      height: null;
+      contentType: string;
+      animated: boolean;
+    }) => void;
     mockUpload.mockImplementationOnce((_file: File, options: {
       onProgress?: (progress: Record<string, unknown>) => void;
     }) => {
@@ -207,7 +231,17 @@ describe("DirectMessageComposer", () => {
 
     expect(await screen.findByText("2.5 MB / 5.0 MB")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "上传 50%" })).toBeDisabled();
-    resolveUpload({ url: "https://cdn.example.com/a.jpg", mediaId: "media1" });
+    resolveUpload({
+      url: "https://cdn.example.com/a.jpg",
+      mediaId: "media1",
+      thumbnailUrl: null,
+      feedUrl: null,
+      mediumUrl: null,
+      width: null,
+      height: null,
+      contentType: "image/jpeg",
+      animated: false,
+    });
     await waitFor(() => expect(onSend).toHaveBeenCalled());
   });
 
@@ -240,7 +274,7 @@ describe("DirectMessageComposer", () => {
         "blob:preview",
       ),
     );
-    expect(URL.createObjectURL).toHaveBeenCalledTimes(2);
+    expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
     expect(screen.getByRole("button", { name: "发送" })).toBeEnabled();
     expect(mockToastError).toHaveBeenCalledWith("图片发送失败");
 
@@ -248,6 +282,44 @@ describe("DirectMessageComposer", () => {
     await waitFor(() => expect(onSend).toHaveBeenCalledTimes(2));
     expect(mockUpload).toHaveBeenCalledTimes(1);
     expect(onSend.mock.calls[1][0].mediaId).toBe("media1");
+  });
+
+  test("已有会话在上传开始前插入本地气泡，并用同一幂等键原位进入发送态", async () => {
+    let resolveUpload!: (value: Awaited<ReturnType<typeof mockUpload>>) => void;
+    mockUpload.mockReturnValueOnce(new Promise((resolve) => { resolveUpload = resolve; }));
+    const onSend = vi.fn().mockResolvedValue(undefined);
+    const onPendingChange = vi.fn();
+    const { container } = render(
+      <DirectMessageComposer onSend={onSend} onPendingChange={onPendingChange} />,
+    );
+    const file = new File(["image"], "photo.jpg", { type: "image/jpeg" });
+    fireEvent.change(container.querySelector("input[type=file]")!, { target: { files: [file] } });
+
+    await userEvent.click(screen.getByRole("button", { name: "发送" }));
+
+    expect(onPendingChange).toHaveBeenCalledWith(expect.objectContaining({
+      clientRequestId: "99454040-6a52-4bf3-8bad-42683c4d09be",
+      deliveryState: "uploading",
+      optimisticMedia: expect.objectContaining({ url: "blob:preview", animated: false }),
+    }));
+    expect(screen.queryByRole("img", { name: "待发送图片预览" })).not.toBeInTheDocument();
+
+    resolveUpload({
+      url: "https://cdn.example.com/a.jpg",
+      mediaId: "media1",
+      thumbnailUrl: null,
+      feedUrl: null,
+      mediumUrl: null,
+      width: null,
+      height: null,
+      contentType: "image/webp",
+      animated: false,
+    });
+    await waitFor(() => expect(onSend).toHaveBeenCalledWith(expect.objectContaining({
+      clientRequestId: "99454040-6a52-4bf3-8bad-42683c4d09be",
+      mediaId: "media1",
+      optimisticAlreadyStaged: true,
+    })));
   });
 
   test("无效图片提示错误，已选图片可移除", async () => {

@@ -101,6 +101,7 @@ describe("DirectMessageBubble", () => {
           contentType: "image/jpeg",
           width: 100,
           height: 100,
+          animated: false,
         } })}
         mine={false}
         hideRequestImage
@@ -129,6 +130,7 @@ describe("DirectMessageBubble", () => {
           contentType: "image/jpeg",
           width: null,
           height: null,
+          animated: false,
         } })}
         mine
         canRecall
@@ -154,6 +156,7 @@ describe("DirectMessageBubble", () => {
           contentType: "image/gif",
           width: 320,
           height: 180,
+          animated: true,
         } })}
         mine={false}
       />,
@@ -173,6 +176,7 @@ describe("DirectMessageBubble", () => {
           contentType: "image/jpeg",
           width: 1600,
           height: 900,
+          animated: false,
         } })}
         mine={false}
       />,

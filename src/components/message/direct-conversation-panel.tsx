@@ -337,7 +337,7 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
                 const message = history.messages[messageIndex];
                 if (!message) return null;
                 const mine = message.senderId === user?.id;
-                const canRecall = mine && message.deliveryState !== "sending" && !message.recalledAt
+                const canRecall = mine && !message.deliveryState && !message.recalledAt
                   && now - new Date(message.createdAt).getTime() <= 10 * 60 * 1000;
                 const showTime = shouldShowDirectMessageTime(
                   message.createdAt,
@@ -364,6 +364,9 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
                       canRecall={canRecall}
                       recalling={actions.recall.isPending}
                       onRecall={handleRecall}
+                      onDiscardPending={(messageId) => {
+                        actions.removePending(messageId.replace(/^optimistic:/, ""));
+                      }}
                     />
                   </div>
                 );
@@ -393,7 +396,11 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
       </div>
 
       {conversation.canSend ? (
-        <DirectMessageComposer onSend={(value) => actions.send.mutateAsync(value)} />
+        <DirectMessageComposer
+          onSend={(value) => actions.send.mutateAsync(value)}
+          onPendingChange={actions.setPending}
+          onPendingRemove={actions.removePending}
+        />
       ) : (
         <div className="border-t border-border px-4 py-4 text-center text-sm text-muted-foreground">
           {requestIncoming ? "请先接受或拒绝这条消息请求。" : sendingDisabledReason ?? "当前无法发送消息。"}

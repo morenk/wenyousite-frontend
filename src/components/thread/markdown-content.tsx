@@ -35,10 +35,10 @@ import { InternalReferenceLink } from "@/components/shared/internal-reference-li
 import { ContentLink } from "@/components/ui/content-link";
 import { DiceInlineResult } from "@/components/thread/dice-inline-result";
 
-/** 判断是否为本站上传图片（objectKey 统一以 uploads/ 开头）且非派生图 */
+/** 新媒体使用 media/ 标准化主图；uploads/ 仅为历史兼容。 */
 function isUploadedMediaUrl(url: string): boolean {
   return (
-    url.includes("/uploads/") &&
+    (url.includes("/media/") || url.includes("/uploads/")) &&
     !url.endsWith("_md.webp") &&
     !url.endsWith("_thumb.webp")
   );

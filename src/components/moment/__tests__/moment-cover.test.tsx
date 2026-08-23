@@ -39,8 +39,10 @@ describe("MomentCover", () => {
             thumbnailUrl: "https://cdn.test/thumb.webp",
             mediumUrl: "https://cdn.test/medium.webp",
             feedUrl: "https://cdn.test/feed.webp",
+            contentType: "image/webp",
             width: 4000,
             height: 1000,
+            animated: false,
           },
         }}
       />,

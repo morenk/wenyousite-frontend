@@ -157,7 +157,7 @@ export function useDirectMessages(conversationId?: string, userId?: string) {
         return leftTime - rightTime;
       });
   }, [history.data?.pages]);
-  const latestMessageId = messages.findLast((message) => message.deliveryState !== "sending")?.id;
+  const latestMessageId = messages.findLast((message) => !message.deliveryState)?.id;
   const updates = useQuery({
     // The cursor is part of the query identity: once a batch is merged, start a
     // fresh request from the new tail instead of reusing data fetched for an old tail.

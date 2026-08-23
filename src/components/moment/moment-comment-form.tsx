@@ -197,6 +197,8 @@ export function MomentCommentForm({
           }
           const uploaded = await uploadImageFile(compressed, {
             signal: controller.signal,
+            purpose: "MOMENT_COMMENT",
+            clientNormalized: true,
             onStage: setUploadStage,
             onProgress: setUploadProgress,
           });

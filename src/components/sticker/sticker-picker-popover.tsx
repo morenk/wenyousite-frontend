@@ -260,6 +260,7 @@ function StickerPickerPanel({
         let mediaId = pendingUpload.mediaId;
         if (!mediaId) {
           const uploaded = await uploadImageFile(file, {
+            purpose: "STICKER_SOURCE",
             resume: pendingUpload.reservation,
             onReservation: (reservation) => {
               pendingUploadsRef.current.set(uploadKey, { reservation });

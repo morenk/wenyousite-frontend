@@ -19,7 +19,10 @@ import {
   resolveInternalReferencePaste,
 } from "@/lib/internal-reference";
 import { StickerPickerPopover } from "@/components/sticker/sticker-picker-popover";
-import type { DirectMessageSendInput } from "@/lib/direct-message";
+import type {
+  DirectMessagePendingDraft,
+  DirectMessageSendInput,
+} from "@/lib/direct-message";
 import type { UserSticker } from "@/api/hooks/use-stickers";
 
 export type DirectMessageComposerValue = DirectMessageSendInput;
@@ -30,6 +33,8 @@ interface DirectMessageComposerProps {
   placeholder?: string;
   disabled?: boolean;
   requestHint?: boolean | string;
+  onPendingChange?: (draft: DirectMessagePendingDraft) => void;
+  onPendingRemove?: (clientRequestId: string) => void;
 }
 
 export function DirectMessageComposer({
@@ -38,6 +43,8 @@ export function DirectMessageComposer({
   placeholder = "输入消息…",
   disabled = false,
   requestHint = false,
+  onPendingChange,
+  onPendingRemove,
 }: DirectMessageComposerProps) {
   const [content, setContent] = useState("");
   const [image, setImage] = useState<File | null>(null);
@@ -49,14 +56,14 @@ export function DirectMessageComposer({
   const requestIdRef = useRef<string | null>(null);
   const uploadedImageRef = useRef<{ file: File; uploaded: UploadedImage } | null>(null);
   const restoreFocusRef = useRef(false);
+  const objectUrlsRef = useRef(new Set<string>());
   const [uploadProgress, setUploadProgress] = useState<UploadImageProgressValue | null>(null);
 
-  useEffect(() => {
-    return () => {
-      uploadAbortRef.current?.abort();
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-    };
-  }, [previewUrl]);
+  useEffect(() => () => {
+    uploadAbortRef.current?.abort();
+    for (const url of objectUrlsRef.current) URL.revokeObjectURL(url);
+    objectUrlsRef.current.clear();
+  }, []);
 
   useEffect(() => {
     if (isSending || disabled || !restoreFocusRef.current) return;
@@ -68,11 +75,26 @@ export function DirectMessageComposer({
     uploadAbortRef.current?.abort();
     uploadAbortRef.current = null;
     setUploadProgress(null);
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      objectUrlsRef.current.delete(previewUrl);
+    }
     setPreviewUrl(null);
     setImage(null);
     uploadedImageRef.current = null;
     if (imageInputRef.current) imageInputRef.current.value = "";
+    if (requestIdRef.current) onPendingRemove?.(requestIdRef.current);
+    requestIdRef.current = null;
+  };
+
+  const createPreviewUrl = (file: File) => {
+    const url = URL.createObjectURL(file);
+    objectUrlsRef.current.add(url);
+    return url;
+  };
+
+  const resetPendingRequest = () => {
+    if (requestIdRef.current) onPendingRemove?.(requestIdRef.current);
     requestIdRef.current = null;
   };
 
@@ -84,10 +106,14 @@ export function DirectMessageComposer({
       if (imageInputRef.current) imageInputRef.current.value = "";
       return;
     }
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      objectUrlsRef.current.delete(previewUrl);
+    }
+    if (requestIdRef.current) onPendingRemove?.(requestIdRef.current);
     setImage(file);
     uploadedImageRef.current = null;
-    setPreviewUrl(URL.createObjectURL(file));
+    setPreviewUrl(createPreviewUrl(file));
     requestIdRef.current = null;
   };
 
@@ -102,16 +128,58 @@ export function DirectMessageComposer({
     setIsSending(true);
     const submittedContent = content;
     const submittedImage = image;
+    const submittedPreviewUrl = previewUrl;
+    const clientRequestId = requestIdRef.current ??= crypto.randomUUID();
     const uploadController = image ? new AbortController() : null;
     uploadAbortRef.current = uploadController;
-    let clearedForOptimisticSend = false;
+    const stagedBeforeUpload = !!image && !!submittedPreviewUrl && !!onPendingChange;
+    let clearedComposer = stagedBeforeUpload;
+    const pendingMedia = submittedImage && submittedPreviewUrl
+      ? {
+          id: `local:${clientRequestId}`,
+          url: submittedPreviewUrl,
+          thumbnailUrl: null,
+          mediumUrl: null,
+          contentType: submittedImage.type || null,
+          width: null,
+          height: null,
+          animated: submittedImage.type === "image/gif",
+        }
+      : null;
+
+    if (stagedBeforeUpload && pendingMedia) {
+      onPendingChange({
+        ...(normalized ? { content: normalized } : {}),
+        clientRequestId,
+        optimisticMedia: pendingMedia,
+        deliveryState: "uploading",
+        uploadProgress: null,
+      });
+      setContent("");
+      setImage(null);
+      setPreviewUrl(null);
+      if (imageInputRef.current) imageInputRef.current.value = "";
+    }
+
     try {
       const uploaded = image
         ? uploadedImageRef.current?.file === image
           ? uploadedImageRef.current.uploaded
           : await uploadImageFile(image, {
               signal: uploadController?.signal,
-              onProgress: setUploadProgress,
+              purpose: "DIRECT_MESSAGE",
+              onProgress: (progress) => {
+                setUploadProgress(progress);
+                if (stagedBeforeUpload && pendingMedia) {
+                  onPendingChange?.({
+                    ...(normalized ? { content: normalized } : {}),
+                    clientRequestId,
+                    optimisticMedia: pendingMedia,
+                    deliveryState: "uploading",
+                    uploadProgress: progress.percent,
+                  });
+                }
+              },
             }).then((result) => {
               uploadedImageRef.current = { file: image, uploaded: result };
               return result;
@@ -130,25 +198,41 @@ export function DirectMessageComposer({
             contentType: uploaded.contentType ?? image?.type ?? null,
             width: uploaded.width ?? null,
             height: uploaded.height ?? null,
+            animated: uploaded.animated,
           },
         } : {}),
-        clientRequestId: requestIdRef.current ??= crypto.randomUUID(),
+        clientRequestId,
+        ...(stagedBeforeUpload ? { optimisticAlreadyStaged: true } : {}),
       });
-      clearedForOptimisticSend = true;
-      setContent("");
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-      setPreviewUrl(null);
-      setImage(null);
-      if (imageInputRef.current) imageInputRef.current.value = "";
+      if (!stagedBeforeUpload) {
+        clearedComposer = true;
+        setContent("");
+        setImage(null);
+        setPreviewUrl(null);
+        if (imageInputRef.current) imageInputRef.current.value = "";
+      }
       await sendPromise;
+      if (submittedPreviewUrl) {
+        URL.revokeObjectURL(submittedPreviewUrl);
+        objectUrlsRef.current.delete(submittedPreviewUrl);
+      }
       requestIdRef.current = null;
       uploadedImageRef.current = null;
     } catch (error) {
-      if (clearedForOptimisticSend) {
+      if (stagedBeforeUpload && pendingMedia) {
+        onPendingChange?.({
+          ...(normalized ? { content: normalized } : {}),
+          clientRequestId,
+          optimisticMedia: pendingMedia,
+          deliveryState: "failed",
+          uploadProgress: null,
+        });
+      }
+      if (clearedComposer) {
         setContent(submittedContent);
         if (submittedImage) {
           setImage(submittedImage);
-          setPreviewUrl(URL.createObjectURL(submittedImage));
+          setPreviewUrl(submittedPreviewUrl);
         }
       }
       if (!isUploadAbortError(error)) {
@@ -213,7 +297,7 @@ export function DirectMessageComposer({
         value={content}
         onChange={(event) => {
           setContent(event.target.value.slice(0, 1000));
-          requestIdRef.current = null;
+          resetPendingRequest();
         }}
         onPaste={(event) => {
           const textarea = event.currentTarget;
@@ -232,7 +316,7 @@ export function DirectMessageComposer({
           }
           event.preventDefault();
           setContent(inserted.value);
-          requestIdRef.current = null;
+          resetPendingRequest();
           window.requestAnimationFrame(() => {
             textareaRef.current?.setSelectionRange(inserted.cursor, inserted.cursor);
           });

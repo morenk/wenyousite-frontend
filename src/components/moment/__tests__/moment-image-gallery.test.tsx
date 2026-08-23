@@ -61,8 +61,10 @@ const images = [
     thumbnailUrl: "/image-1-thumb.webp",
     feedUrl: null,
     mediumUrl: "/image-1-medium.webp",
+    contentType: "image/webp",
     width: 1200,
     height: 1600,
+    animated: false,
   },
   {
     id: "image-2",
@@ -70,8 +72,10 @@ const images = [
     thumbnailUrl: null,
     feedUrl: "/image-2-feed.webp",
     mediumUrl: "/image-2-medium.webp",
+    contentType: "image/webp",
     width: 1600,
     height: 1000,
+    animated: false,
   },
 ];
 

@@ -74,7 +74,18 @@ export interface UploadedImage {
   width: number | null;
   height: number | null;
   contentType: string | null;
+  animated: boolean;
 }
+
+export type MediaUploadPurpose =
+  | "AVATAR"
+  | "PROFILE_COVER"
+  | "DIRECT_MESSAGE"
+  | "MOMENT"
+  | "MOMENT_COMMENT"
+  | "RICH_CONTENT"
+  | "STICKER_SOURCE"
+  | "LEGACY";
 
 export interface UploadReservation {
   mediaId: string;
@@ -113,6 +124,10 @@ export interface UploadImageOptions {
   onReservation?: (reservation: UploadReservation) => void;
   /** 图片异步处理最长等待时间，默认 120 秒。 */
   processingTimeoutMs?: number;
+  /** 业务用途决定服务端实际生成哪些派生图。 */
+  purpose?: MediaUploadPurpose;
+  /** 调用方已通过 Canvas 完成裁切、方向修正和元数据移除时跳过重复编码。 */
+  clientNormalized?: boolean;
 }
 
 const DIRECT_UPLOAD_TIMEOUT_MS = 120_000;
@@ -122,11 +137,70 @@ const CONFIRM_RETRY_DELAYS_MS = [0, 400, 1_000] as const;
 const activeReservations = new WeakMap<File, UploadReservation>();
 const interruptedReservations = new Map<string, UploadReservation>();
 const MAX_INTERRUPTED_RESERVATIONS = 100;
+const MAX_NORMALIZED_EDGE = 2560;
+const NORMALIZED_WEBP_QUALITY = 0.85;
+const preparedFiles = new WeakMap<File, Promise<File>>();
 
 class MediaObjectMissingError extends Error {}
 class MediaStatusRequestError extends Error {
   constructor(message: string, readonly status?: number) {
     super(message);
+  }
+}
+
+function normalizedFilename(filename: string) {
+  const stem = filename.replace(/\.[^.]*$/, "") || "image";
+  return `${stem}.webp`;
+}
+
+async function canvasToWebp(canvas: HTMLCanvasElement): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => blob ? resolve(blob) : reject(new Error("图片压缩失败，请重新选择")),
+      "image/webp",
+      NORMALIZED_WEBP_QUALITY,
+    );
+  });
+}
+
+/** GIF 保留原件；其他静态图在离开浏览器前统一去元数据并限制像素。 */
+export async function normalizeImageForUpload(file: File): Promise<File> {
+  if (file.type === "image/gif" || typeof createImageBitmap !== "function") return file;
+  const existing = preparedFiles.get(file);
+  if (existing) return existing;
+
+  const prepared = (async () => {
+    let bitmap: ImageBitmap;
+    try {
+      bitmap = await createImageBitmap(file);
+    } catch {
+      throw new Error("无法读取图片，请换一张后重试");
+    }
+    try {
+      const scale = Math.min(1, MAX_NORMALIZED_EDGE / Math.max(bitmap.width, bitmap.height));
+      const width = Math.max(1, Math.round(bitmap.width * scale));
+      const height = Math.max(1, Math.round(bitmap.height * scale));
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("当前浏览器无法处理图片");
+      context.drawImage(bitmap, 0, 0, width, height);
+      const blob = await canvasToWebp(canvas);
+      return new File([blob], normalizedFilename(file.name), {
+        type: "image/webp",
+        lastModified: file.lastModified,
+      });
+    } finally {
+      bitmap.close();
+    }
+  })();
+  preparedFiles.set(file, prepared);
+  try {
+    return await prepared;
+  } catch (error) {
+    preparedFiles.delete(file);
+    throw error;
   }
 }
 
@@ -243,6 +317,7 @@ function toUploadedImage(media: {
   width: number | null;
   height: number | null;
   contentType: string | null;
+  animated: boolean;
 }): UploadedImage {
   return {
     mediaId: media.id,
@@ -253,6 +328,7 @@ function toUploadedImage(media: {
     width: media.width,
     height: media.height,
     contentType: media.contentType,
+    animated: media.animated,
   };
 }
 
@@ -346,15 +422,26 @@ export async function uploadImageFile(
     resume,
     onReservation,
     processingTimeoutMs = PROCESSING_TIMEOUT_MS,
+    purpose = "LEGACY",
+    clientNormalized = false,
   } = options;
   throwIfUploadAborted(signal);
+
+  const uploadFile = clientNormalized ? file : await normalizeImageForUpload(file);
+  const normalizedValidationError = validateImageFile(uploadFile);
+  if (normalizedValidationError) throw new Error(normalizedValidationError);
 
   const reportStage = (stage: UploadImageStage) => {
     onStage?.(stage);
     if (stage === "preparing") {
       onProgress?.({ stage, loadedBytes: null, totalBytes: null, percent: null });
     } else if (stage === "processing") {
-      onProgress?.({ stage, loadedBytes: file.size, totalBytes: file.size, percent: 100 });
+      onProgress?.({
+        stage,
+        loadedBytes: uploadFile.size,
+        totalBytes: uploadFile.size,
+        percent: 100,
+      });
     }
   };
   const reportUploadProgress = (loadedBytes: number, totalBytes: number) => {
@@ -405,9 +492,10 @@ export async function uploadImageFile(
         "/api/v1/media/upload-url",
         {
           body: {
-            filename: file.name,
-            contentType: file.type as AllowedMimeType,
-            size: file.size,
+            filename: uploadFile.name,
+            contentType: uploadFile.type as AllowedMimeType,
+            size: uploadFile.size,
+            purpose,
           },
           signal,
         },
@@ -430,7 +518,7 @@ export async function uploadImageFile(
 
     if (needsDirectUpload) {
       onStage?.("uploading");
-      await putImageFile(uploadUrl!, file, signal, timeoutMs, reportUploadProgress);
+      await putImageFile(uploadUrl!, uploadFile, signal, timeoutMs, reportUploadProgress);
       throwIfUploadAborted(signal);
     }
 
@@ -450,7 +538,7 @@ export async function uploadImageFile(
       onStage?.("uploading");
       await putImageFile(
         reissueData.data.uploadUrl,
-        file,
+        uploadFile,
         signal,
         timeoutMs,
         reportUploadProgress,

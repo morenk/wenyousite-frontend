@@ -178,6 +178,7 @@ describe("direct message action hooks", () => {
         contentType: "image/jpeg",
         width: null,
         height: null,
+        animated: false,
       },
     };
     let request!: Promise<DirectMessage>;
@@ -217,6 +218,52 @@ describe("direct message action hooks", () => {
         clientRequestId: "99454040-6a52-4bf3-8bad-42683c4d09be",
       })).rejects.toEqual({ message: "send failed" });
     });
+    expect(cachedMessages(client).map((item) => item.id)).toEqual(["m0"]);
+  });
+
+  test("图片上传占位原位切换发送态，发送失败后保留可取消气泡", async () => {
+    mockPOST.mockResolvedValueOnce({ error: { message: "send failed" } });
+    const { result, client } = setup(() => useDirectMessageActions("c1", "u1", "u2"));
+    seedHistory(client);
+    const clientRequestId = "99454040-6a52-4bf3-8bad-42683c4d09be";
+    const optimisticMedia = {
+      id: `local:${clientRequestId}`,
+      url: "blob:preview",
+      thumbnailUrl: null,
+      mediumUrl: null,
+      contentType: "image/jpeg",
+      width: null,
+      height: null,
+      animated: false,
+    };
+
+    act(() => result.current.setPending({
+      clientRequestId,
+      optimisticMedia,
+      deliveryState: "uploading",
+      uploadProgress: 25,
+    }));
+    expect(cachedMessages(client).at(-1)).toMatchObject({
+      id: `optimistic:${clientRequestId}`,
+      deliveryState: "uploading",
+      uploadProgress: 25,
+    });
+
+    await act(async () => {
+      await expect(result.current.send.mutateAsync({
+        mediaId: "media1",
+        clientRequestId,
+        optimisticMedia,
+        optimisticAlreadyStaged: true,
+      })).rejects.toEqual({ message: "send failed" });
+    });
+    expect(cachedMessages(client).map((item) => item.id)).toEqual([
+      "m0",
+      `optimistic:${clientRequestId}`,
+    ]);
+    expect(cachedMessages(client).at(-1)?.deliveryState).toBe("failed");
+
+    act(() => result.current.removePending(clientRequestId));
     expect(cachedMessages(client).map((item) => item.id)).toEqual(["m0"]);
   });
 

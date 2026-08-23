@@ -10,6 +10,7 @@ afterEach(() => cleanup());
 const UPLOADED_URL =
   "https://cos.example.com/wenyou/uploads/2026/01/01/u1/123-abc.jpg";
 const UPLOADED_MD_URL = UPLOADED_URL.replace(/\.jpg$/, "_md.webp");
+const NORMALIZED_URL = "https://cos.example.com/wenyou/media/2026/08/23/u1/123-abc.webp";
 const EXTERNAL_URL = "https://example.com/pic.png";
 const DICE_NODE_ID = "550e8400-e29b-41d4-a716-446655440000";
 const DICE_MARKER = `[[dice:v1:${DICE_NODE_ID}:1d20]]`;
@@ -253,6 +254,14 @@ describe("MarkdownContent", () => {
     expect(img).toHaveAttribute(
       "style",
       expect.stringContaining("max-height: 50vh"),
+    );
+  });
+
+  test("新标准化主图路径同样使用正文中图", () => {
+    render(<MarkdownContent content={`![标准化图片](${NORMALIZED_URL})`} />);
+    expect(screen.getByRole("img", { name: "标准化图片" })).toHaveAttribute(
+      "src",
+      NORMALIZED_URL.replace(/\.webp$/, "_md.webp"),
     );
   });
 

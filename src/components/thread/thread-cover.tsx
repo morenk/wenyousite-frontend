@@ -13,7 +13,7 @@ interface ThreadCoverProps {
 
 function isUploadedMediaUrl(url: string): boolean {
   return (
-    url.includes("/uploads/") &&
+    (url.includes("/media/") || url.includes("/uploads/")) &&
     !url.endsWith("_feed.webp") &&
     !url.endsWith("_md.webp") &&
     !url.endsWith("_thumb.webp")

@@ -3371,8 +3371,10 @@ export interface components {
             thumbnailUrl: string | null;
             feedUrl: string | null;
             mediumUrl: string | null;
+            contentType: string | null;
             width: number | null;
             height: number | null;
+            animated: boolean;
         };
         MomentCardResponseDto: {
             id: string;
@@ -5529,15 +5531,21 @@ export interface components {
              * @example 204800
              */
             size: number;
+            /**
+             * @description 图片业务用途；旧客户端省略时按 LEGACY 生成全部兼容派生图
+             * @default LEGACY
+             * @enum {string}
+             */
+            purpose: "AVATAR" | "PROFILE_COVER" | "DIRECT_MESSAGE" | "MOMENT" | "MOMENT_COMMENT" | "RICH_CONTENT" | "STICKER_SOURCE" | "LEGACY";
         };
         UploadUrlResponseDto: {
             /** @description 对象存储预签名 PUT 地址 */
             uploadUrl: string;
             /** @description 媒体记录 ID，后续确认和轮询使用 */
             mediaId: string;
-            /** @description 对象存储 key */
+            /** @description 本次 PUT 使用的临时对象 key；客户端不得据此拼接读取地址 */
             objectKey: string;
-            /** @description 原图公开访问地址 */
+            /** @description 处理完成后的正式媒体地址；静态图为归一化母版，GIF 为保留的动画原件 */
             publicUrl: string;
         };
         ConfirmUploadDto: {
@@ -5550,7 +5558,7 @@ export interface components {
         MediaResponseDto: {
             id: string;
             userId: string;
-            /** @description 原图公开访问地址 */
+            /** @description 正式媒体地址；静态图为归一化母版，GIF 为保留的动画原件 */
             url: string;
             /** @description 处理完成后的 300px WebP 缩略图地址 */
             thumbnailUrl: string | null;
@@ -5566,6 +5574,10 @@ export interface components {
             size: number | null;
             width: number | null;
             height: number | null;
+            /** @enum {string} */
+            purpose: "AVATAR" | "PROFILE_COVER" | "DIRECT_MESSAGE" | "MOMENT" | "MOMENT_COMMENT" | "RICH_CONTENT" | "STICKER_SOURCE" | "LEGACY";
+            /** @description 是否为保留动画的 GIF */
+            animated: boolean;
             /** @enum {string} */
             status: "UPLOADING" | "PROCESSING" | "COMPLETED" | "FAILED";
             /** Format: date-time */
@@ -5647,6 +5659,7 @@ export interface components {
             contentType: string | null;
             width: number | null;
             height: number | null;
+            animated: boolean;
         };
         DirectMessageStickerResponseDto: {
             id: string;

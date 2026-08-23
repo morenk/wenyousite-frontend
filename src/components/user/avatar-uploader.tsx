@@ -104,6 +104,8 @@ export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
         const uploaded = await uploadImageFile(file, {
           signal: controller.signal,
           onProgress: setUploadProgress,
+          purpose: "AVATAR",
+          clientNormalized: true,
         });
         mediaId = uploaded.mediaId;
         uploadedMediaIdRef.current = mediaId;

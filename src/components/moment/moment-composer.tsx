@@ -250,6 +250,8 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
           }
           const uploaded = await uploadImageFile(uploadFile, {
             signal: uploadController?.signal,
+            purpose: "MOMENT",
+            clientNormalized: true,
             onStage: (stage) => {
               if (stage === "preparing") setUploadProgress(`正在准备${position}`);
               if (stage === "uploading") setUploadProgress(`正在上传${position}`);

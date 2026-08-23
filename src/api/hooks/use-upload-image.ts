@@ -10,7 +10,8 @@ interface UploadImageVariables {
 
 export function useUploadImage() {
   const mutation = useMutation({
-    mutationFn: ({ file, options }: UploadImageVariables) => uploadImage(file, options),
+    mutationFn: ({ file, options }: UploadImageVariables) =>
+      uploadImage(file, { purpose: "RICH_CONTENT", ...options }),
   });
 
   return {

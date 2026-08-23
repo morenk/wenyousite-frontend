@@ -27,6 +27,12 @@ describe("ThreadCover", () => {
       "https://cdn.wenyou.site/uploads/cover_feed.webp",
     );
 
+    rerender(<ThreadCover image="https://cdn.wenyou.site/media/cover.webp" />);
+    expect(container.querySelector("img")).toHaveAttribute(
+      "src",
+      "https://cdn.wenyou.site/media/cover_feed.webp",
+    );
+
     rerender(<ThreadCover image="https://cdn.wenyou.site/uploads/animated.gif" />);
     expect(container.querySelector("img")).toHaveAttribute(
       "src",

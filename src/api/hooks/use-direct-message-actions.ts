@@ -6,7 +6,11 @@ import {
   removeDirectMessageFromCache,
   replaceDirectMessageInCache,
 } from "@/api/hooks/use-direct-messages";
-import type { DirectMessage, DirectMessageSendInput } from "@/lib/direct-message";
+import type {
+  DirectMessage,
+  DirectMessagePendingDraft,
+  DirectMessageSendInput,
+} from "@/lib/direct-message";
 
 function toMessageBody(input: DirectMessageSendInput) {
   return {
@@ -56,6 +60,33 @@ export function useDirectMessageActions(
     ]);
   };
 
+  const setPending = (draft: DirectMessagePendingDraft) => {
+    if (!userId || !recipientId) return;
+    const optimisticId = `optimistic:${draft.clientRequestId}`;
+    replaceDirectMessageInCache(queryClient, userId, conversationId, optimisticId, {
+      id: optimisticId,
+      conversationId,
+      senderId: userId,
+      recipientId,
+      content: draft.content ?? null,
+      media: draft.optimisticMedia,
+      sticker: null,
+      recalledAt: null,
+      createdAt: new Date().toISOString(),
+      deliveryState: draft.deliveryState,
+      uploadProgress: draft.uploadProgress ?? null,
+    });
+  };
+
+  const removePending = (clientRequestId: string) => {
+    removeDirectMessageFromCache(
+      queryClient,
+      userId,
+      conversationId,
+      `optimistic:${clientRequestId}`,
+    );
+  };
+
   const send = useMutation({
     mutationFn: async (input: DirectMessageSendInput) => {
       const { data, error } = await apiClient.POST(
@@ -84,22 +115,47 @@ export function useDirectMessageActions(
         createdAt: new Date().toISOString(),
         deliveryState: "sending",
       };
-      appendDirectMessageToCache(
-        queryClient,
-        userId,
-        conversationId,
-        [optimisticMessage],
-      );
+      if (input.optimisticAlreadyStaged) {
+        replaceDirectMessageInCache(
+          queryClient,
+          userId,
+          conversationId,
+          optimisticId,
+          optimisticMessage,
+        );
+      } else {
+        appendDirectMessageToCache(
+          queryClient,
+          userId,
+          conversationId,
+          [optimisticMessage],
+        );
+      }
       return { optimisticId };
     },
-    onError: (_error, _input, context) => {
+    onError: (_error, input, context) => {
       if (!context?.optimisticId) return;
-      removeDirectMessageFromCache(
-        queryClient,
-        userId,
-        conversationId,
-        context.optimisticId,
-      );
+      if (input.optimisticAlreadyStaged && userId && recipientId) {
+        replaceDirectMessageInCache(queryClient, userId, conversationId, context.optimisticId, {
+          id: context.optimisticId,
+          conversationId,
+          senderId: userId,
+          recipientId,
+          content: input.content ?? null,
+          media: input.optimisticMedia ?? null,
+          sticker: input.optimisticSticker ?? null,
+          recalledAt: null,
+          createdAt: new Date().toISOString(),
+          deliveryState: "failed",
+        });
+      } else {
+        removeDirectMessageFromCache(
+          queryClient,
+          userId,
+          conversationId,
+          context.optimisticId,
+        );
+      }
     },
     onSuccess: (message, _input, context) => {
       if (context?.optimisticId) {
@@ -172,5 +228,5 @@ export function useDirectMessageActions(
     },
   });
 
-  return { send, handleRequest, setArchived, markRead, recall };
+  return { send, setPending, removePending, handleRequest, setArchived, markRead, recall };
 }

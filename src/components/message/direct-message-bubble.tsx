@@ -60,6 +60,7 @@ interface DirectMessageBubbleProps {
   canRecall?: boolean;
   onRecall?: (messageId: string) => void;
   recalling?: boolean;
+  onDiscardPending?: (messageId: string) => void;
 }
 
 export const DirectMessageBubble = memo(function DirectMessageBubble({
@@ -69,17 +70,22 @@ export const DirectMessageBubble = memo(function DirectMessageBubble({
   canRecall = false,
   onRecall,
   recalling = false,
+  onDiscardPending,
 }: DirectMessageBubbleProps) {
   const [imageRevealed, setImageRevealed] = useState(!hideRequestImage);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const recalled = !!message.recalledAt;
   const sending = message.deliveryState === "sending";
+  const uploading = message.deliveryState === "uploading";
+  const failed = message.deliveryState === "failed";
+  const pending = sending || uploading;
   const normalizedContent = message.content
     ? normalizeDirectMessageContent(message.content)
     : "";
   const pureSticker = !!message.sticker && !normalizedContent && !recalled;
   const imageUrl = message.sticker?.url ?? message.media?.url;
-  const isAnimatedGif = message.media?.contentType?.toLowerCase() === "image/gif"
+  const isAnimatedGif = !!message.media?.animated
+    || message.media?.contentType?.toLowerCase() === "image/gif"
     || !!imageUrl && /\.gif(?:[?#]|$)/iu.test(imageUrl);
   const displayImageUrl = imageUrl
     ? message.sticker
@@ -145,7 +151,7 @@ export const DirectMessageBubble = memo(function DirectMessageBubble({
             </>
           )}
         </div>
-        {!recalled && !sending && imageUrl && imageRevealed && (
+        {!recalled && !message.deliveryState && imageUrl && imageRevealed && (
           <SaveStickerButton
             source={{ directMessageId: message.id }}
             className={cn(
@@ -154,15 +160,32 @@ export const DirectMessageBubble = memo(function DirectMessageBubble({
             )}
           />
         )}
-        {(sending || canRecall && !recalled) && (
+        {(pending || failed || canRecall && !recalled) && (
           <div
             className={cn(
               "mt-1 flex items-center gap-2 px-1 text-[11px] text-muted-foreground",
               mine && "justify-end",
             )}
           >
+            {uploading && (
+              <span role="status">
+                {message.uploadProgress == null ? "正在准备图片…" : `上传中 ${message.uploadProgress}%`}
+              </span>
+            )}
             {sending && <span role="status">发送中…</span>}
-            {canRecall && !recalled && !sending && (
+            {failed && (
+              <>
+                <span role="status">发送失败，可在输入框重试</span>
+                <button
+                  type="button"
+                  onClick={() => onDiscardPending?.(message.id)}
+                  className="hover:text-foreground"
+                >
+                  取消
+                </button>
+              </>
+            )}
+            {canRecall && !recalled && !pending && !failed && (
               <button
                 type="button"
                 onClick={() => onRecall?.(message.id)}

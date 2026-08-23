@@ -11,6 +11,7 @@ import {
   RecoverableImageUploadError,
   getImageUploadKey,
   isUploadAbortError,
+  normalizeImageForUpload,
   uploadImage,
   uploadImageFile,
   validateImageFile,
@@ -237,6 +238,49 @@ describe("getImageUrlBySize", () => {
   });
 });
 
+describe("normalizeImageForUpload", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  test("静态大图限制最长边、清除源格式并输出 WebP", async () => {
+    const close = vi.fn();
+    const drawImage = vi.fn();
+    vi.stubGlobal("createImageBitmap", vi.fn().mockResolvedValue({
+      width: 4000,
+      height: 2000,
+      close,
+    }));
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({ drawImage } as never);
+    vi.spyOn(HTMLCanvasElement.prototype, "toBlob").mockImplementation((callback) => {
+      callback(new Blob(["webp"], { type: "image/webp" }));
+    });
+
+    const source = new File(["jpeg-with-exif"], "camera.JPG", {
+      type: "image/jpeg",
+      lastModified: 123,
+    });
+    const result = await normalizeImageForUpload(source);
+
+    expect(result).not.toBe(source);
+    expect(result.name).toBe("camera.webp");
+    expect(result.type).toBe("image/webp");
+    expect(result.lastModified).toBe(123);
+    expect(drawImage).toHaveBeenCalledWith(expect.anything(), 0, 0, 2560, 1280);
+    expect(close).toHaveBeenCalledOnce();
+  });
+
+  test("GIF 绕过 Canvas 转码以保留动画", async () => {
+    const createBitmap = vi.fn();
+    vi.stubGlobal("createImageBitmap", createBitmap);
+    const source = new File(["gif"], "animated.gif", { type: "image/gif" });
+
+    await expect(normalizeImageForUpload(source)).resolves.toBe(source);
+    expect(createBitmap).not.toHaveBeenCalled();
+  });
+});
+
 describe("uploadImageFile", () => {
   let file: File;
   let fileSequence = 0;
@@ -256,11 +300,14 @@ describe("uploadImageFile", () => {
     size: file.size,
     width: status === "COMPLETED" ? 800 : null,
     height: status === "COMPLETED" ? 600 : null,
+    purpose: "LEGACY" as const,
+    animated: false,
     status,
     createdAt: "2026-08-21T00:00:00.000Z",
   });
 
   beforeEach(() => {
+    vi.stubGlobal("createImageBitmap", undefined);
     file = new File(["dummy"], "photo.jpg", {
       type: "image/jpeg",
       lastModified: 1_700_000_000_000 + fileSequence++,

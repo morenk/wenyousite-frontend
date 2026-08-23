@@ -131,16 +131,12 @@ export function ProfileCoverUploader({
     uploadAbortRef.current = controller;
     setIsUploading(true);
 
-    let webMediaId = pendingMediaIds.web;
-    let mobileMediaId = pendingMediaIds.mobile;
-
     try {
-      for (const surface of SURFACES) {
-        const existingMediaId = surface === "web" ? webMediaId : mobileMediaId;
-        if (existingMediaId) continue;
-
-        setActiveSurface(surface);
-        setUploadProgress(null);
+      const mediaIds: Partial<Record<ProfileCoverSurface, string>> = { ...pendingMediaIds };
+      const files = new Map<ProfileCoverSurface, File>();
+      setActiveSurface("web");
+      setUploadProgress(null);
+      await Promise.all(SURFACES.map(async (surface) => {
         const spec = PROFILE_COVER_SPECS[surface];
         let file = preparedFilesRef.current.get(surface);
         if (!file) {
@@ -148,20 +144,53 @@ export function ProfileCoverUploader({
           file = new File([blob], spec.filename, { type: "image/webp" });
           preparedFilesRef.current.set(surface, file);
         }
+        files.set(surface, file);
+      }));
+
+      const progressBySurface = new Map<ProfileCoverSurface, UploadImageProgressValue>();
+      const uploadSurfaces = SURFACES.filter((surface) => !mediaIds[surface]);
+      await Promise.all(uploadSurfaces.map(async (surface) => {
+        const file = files.get(surface)!;
         const { mediaId } = await uploadImageFile(file, {
           signal: controller.signal,
-          onProgress: setUploadProgress,
+          purpose: "PROFILE_COVER",
+          clientNormalized: true,
+          onProgress: (progress) => {
+            progressBySurface.set(surface, progress);
+            const values = uploadSurfaces.map((item) => progressBySurface.get(item));
+            const totalBytes = uploadSurfaces.reduce(
+              (total, item) => total + files.get(item)!.size,
+              0,
+            );
+            const loadedBytes = uploadSurfaces.reduce(
+              (total, item) => total + (progressBySurface.get(item)?.loadedBytes ?? 0),
+              0,
+            );
+            setUploadProgress({
+              stage: values.every((value) => value?.stage === "processing")
+                ? "processing"
+                : values.some((value) => value?.stage === "uploading")
+                  ? "uploading"
+                  : "preparing",
+              loadedBytes: values.every((value) => value?.loadedBytes === null)
+                ? null
+                : loadedBytes,
+              totalBytes: values.every((value) => value?.totalBytes === null)
+                ? null
+                : totalBytes,
+              percent: totalBytes > 0 ? Math.round((loadedBytes / totalBytes) * 100) : null,
+            });
+          },
         });
+        mediaIds[surface] = mediaId;
         setPendingMediaIds((current) => ({ ...current, [surface]: mediaId }));
-        if (surface === "web") webMediaId = mediaId;
-        else mobileMediaId = mediaId;
-      }
+      }));
 
       setActiveSurface(null);
       setUploadProgress(null);
       await setProfileCover.mutateAsync({
-        mediaId: webMediaId!,
-        mobileMediaId: mobileMediaId!,
+        mediaId: mediaIds.web!,
+        mobileMediaId: mediaIds.mobile!,
       });
       toast.success("电脑端与移动端背景已更新");
       closeCrop();
@@ -379,9 +408,7 @@ export function ProfileCoverUploader({
                   uploadProgress ? (
                     <ImageUploadProgress
                       progress={uploadProgress}
-                      label={`正在上传${PROFILE_COVER_SPECS[activeSurface].label}画幅（${
-                        activeSurface === "web" ? "1/2" : "2/2"
-                      }）`}
+                      label="正在并行上传电脑端与移动端画幅"
                       onCancel={() => uploadAbortRef.current?.abort()}
                       className="mt-4"
                       compact
@@ -389,7 +416,7 @@ export function ProfileCoverUploader({
                   ) : (
                     <div className="mt-4 flex items-center gap-2 rounded-lg bg-muted/70 px-3 py-2 text-xs text-muted-foreground">
                       <Loader2 className="size-3.5 animate-spin text-brand-strong" />
-                      正在生成{PROFILE_COVER_SPECS[activeSurface].label}画幅…
+                      正在并行生成电脑端与移动端画幅…
                     </div>
                   )
                 ) : setProfileCover.isPending ? (
