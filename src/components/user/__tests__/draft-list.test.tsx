@@ -36,12 +36,6 @@ vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
-vi.mock("@/components/thread/thread-categories-provider", () => ({
-  useThreadCategoriesContext: () => ({
-    categories: [{ id: "deduction", slug: "DEDUCTION", name: "演绎", color: null }],
-  }),
-}));
-
 import { toast } from "sonner";
 import { DraftList } from "@/components/user/draft-list";
 
@@ -54,6 +48,7 @@ const sampleDraft = {
   id: "d1",
   title: "我的草稿",
   category: "RPG",
+  categoryInfo: { slug: "RPG", name: "角色扮演", isActive: false },
   status: "RECRUITING",
   visibility: "PUBLIC",
   published: false,
@@ -95,7 +90,11 @@ describe("DraftList", () => {
 
   test("渲染草稿并跳转编辑", () => {
     mockUseDrafts.mockReturnValue({
-      data: [{ ...sampleDraft, category: "DEDUCTION" }],
+      data: [{
+        ...sampleDraft,
+        category: "DEDUCTION",
+        categoryInfo: { slug: "DEDUCTION", name: "演绎", isActive: true },
+      }],
       isLoading: false,
       error: undefined,
       refetch: vi.fn(),

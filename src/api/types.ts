@@ -3246,6 +3246,17 @@ export interface components {
              */
             mobileMediaId?: string;
         };
+        ThreadCategoryInfoDto: {
+            /** @example MYSTERY */
+            slug: string;
+            /**
+             * @description 分类注册表中的当前名称
+             * @example 悬疑推理
+             */
+            name: string;
+            /** @description 当前是否允许新主题选择该分类 */
+            isActive: boolean;
+        };
         ThreadListDefaultSubthreadResponseDto: {
             id: string;
             title: string;
@@ -3279,6 +3290,8 @@ export interface components {
              * @example MYSTERY
              */
             category: string | null;
+            /** @description 分类展示读模型；名称来自当前分类注册表，历史未知 slug 使用 slug 兜底 */
+            categoryInfo: components["schemas"]["ThreadCategoryInfoDto"] | null;
             /** @enum {string} */
             status: "RECRUITING" | "CLOSED" | "FINISHED";
             /** @enum {string} */
@@ -3343,6 +3356,8 @@ export interface components {
              * @example MYSTERY
              */
             category: string | null;
+            /** @description 分类展示读模型；名称来自当前分类注册表，历史未知 slug 使用 slug 兜底 */
+            categoryInfo: components["schemas"]["ThreadCategoryInfoDto"] | null;
             /** @enum {string} */
             status: "RECRUITING" | "CLOSED" | "FINISHED";
             /** @enum {string} */
@@ -3569,6 +3584,8 @@ export interface components {
              * @example MYSTERY
              */
             category: string | null;
+            /** @description 分类展示读模型；名称来自当前分类注册表，历史未知 slug 使用 slug 兜底 */
+            categoryInfo: components["schemas"]["ThreadCategoryInfoDto"] | null;
             /** @enum {string} */
             status: "RECRUITING" | "CLOSED" | "FINISHED";
             /** @enum {string} */
@@ -3648,6 +3665,7 @@ export interface components {
              * @example MYSTERY
              */
             category: string | null;
+            categoryInfo: components["schemas"]["ThreadCategoryInfoDto"] | null;
             /** @enum {string} */
             status: "RECRUITING" | "CLOSED" | "FINISHED";
             /** @enum {string} */
@@ -3672,6 +3690,8 @@ export interface components {
              * @example MYSTERY
              */
             category: string | null;
+            /** @description 分类展示读模型；名称来自当前分类注册表，历史未知 slug 使用 slug 兜底 */
+            categoryInfo: components["schemas"]["ThreadCategoryInfoDto"] | null;
             /** @enum {string} */
             status: "RECRUITING" | "CLOSED" | "FINISHED";
             /** @enum {string} */
@@ -3707,7 +3727,7 @@ export interface components {
              */
             title?: string;
             /**
-             * @description 管理员配置的主题帖分类 slug；草稿可暂不选择
+             * @description 管理员配置的主题帖分类 slug；服务端会去除首尾空白并转为大写，草稿可暂不选择
              * @example MYSTERY
              */
             category?: string;
@@ -3816,6 +3836,8 @@ export interface components {
              * @example MYSTERY
              */
             category: string | null;
+            /** @description 分类展示读模型；名称来自当前分类注册表，历史未知 slug 使用 slug 兜底 */
+            categoryInfo: components["schemas"]["ThreadCategoryInfoDto"] | null;
             /** @enum {string} */
             status: "RECRUITING" | "CLOSED" | "FINISHED";
             /** @enum {string} */
@@ -3855,7 +3877,7 @@ export interface components {
             /** @example 奇幻大陆·重置版 */
             title?: string;
             /**
-             * @description 管理员配置的分类 slug
+             * @description 管理员配置的分类 slug；服务端会去除首尾空白并转为大写
              * @example MYSTERY
              */
             category?: string;
@@ -3884,7 +3906,7 @@ export interface components {
         SaveThreadAggregateDto: {
             title?: string;
             /**
-             * @description 管理员配置的分类 slug
+             * @description 管理员配置的分类 slug；服务端会去除首尾空白并转为大写
              * @example MYSTERY
              */
             category?: string;
@@ -3942,6 +3964,7 @@ export interface components {
              * @example MYSTERY
              */
             category: string | null;
+            categoryInfo: components["schemas"]["ThreadCategoryInfoDto"] | null;
             /**
              * @description 主题帖状态
              * @enum {string}
@@ -4099,11 +4122,18 @@ export interface components {
             /** @example 悬疑推理 */
             name: string;
             description: string | null;
-            /** @example search */
+            /**
+             * @deprecated
+             * @description 兼容预留字段；文本分类不使用图标键
+             * @example search
+             */
             icon: string | null;
             sortOrder: number;
             isActive: boolean;
-            /** @description 合并目标分类 ID；未合并时为 null */
+            /**
+             * @deprecated
+             * @description 合并目标分类 ID；未合并时为 null
+             */
             mergedIntoId: string | null;
             /** Format: date-time */
             createdAt: string;
@@ -4660,6 +4690,7 @@ export interface components {
              * @example MYSTERY
              */
             category: string | null;
+            categoryInfo: components["schemas"]["ThreadCategoryInfoDto"] | null;
         };
         SubscriptionResponseDto: {
             id: string;
@@ -5236,23 +5267,43 @@ export interface components {
             /** @example 42 */
             count: number;
         };
+        AdminDashboardCategoryDistributionItemDto: {
+            /** @example USER */
+            key: string;
+            /** @example 42 */
+            count: number;
+            /**
+             * @description 当前分类名称
+             * @example 角色扮演
+             */
+            name: string;
+            /**
+             * @description 分类当前是否可供新建和筛选选择
+             * @example true
+             */
+            isActive: boolean;
+        };
         AdminDashboardDistributionsResponseDto: {
             usersByRole: components["schemas"]["AdminDashboardDistributionItemDto"][];
             reportsByStatus: components["schemas"]["AdminDashboardDistributionItemDto"][];
             reportsByReason: components["schemas"]["AdminDashboardDistributionItemDto"][];
-            threadsByCategory: components["schemas"]["AdminDashboardDistributionItemDto"][];
+            threadsByCategory: components["schemas"]["AdminDashboardCategoryDistributionItemDto"][];
             activeSanctionsByType: components["schemas"]["AdminDashboardDistributionItemDto"][];
         };
         CreateThreadCategoryDto: {
             /**
-             * @description 稳定机器标识，创建后不可修改
+             * @description 稳定机器标识；服务端会去除首尾空白并转为大写，创建后不可修改
              * @example MYSTERY
              */
             slug: string;
             /** @example 悬疑推理 */
             name: string;
             description?: string;
-            /** @example search */
+            /**
+             * @deprecated
+             * @description 兼容旧管理客户端；文本分类不再使用图标键
+             * @example search
+             */
             icon?: string;
             /** @default 0 */
             sortOrder: number;
@@ -5264,6 +5315,10 @@ export interface components {
         UpdateThreadCategoryDto: {
             name?: string;
             description?: string | null;
+            /**
+             * @deprecated
+             * @description 兼容旧管理客户端；文本分类不再使用图标键
+             */
             icon?: string | null;
             sortOrder?: number;
             isActive?: boolean;
@@ -5325,6 +5380,8 @@ export interface components {
              * @example MYSTERY
              */
             category: string | null;
+            /** @description 分类展示读模型；名称来自当前分类注册表，历史未知 slug 使用 slug 兜底 */
+            categoryInfo: components["schemas"]["ThreadCategoryInfoDto"] | null;
             /** @enum {string} */
             status: "RECRUITING" | "CLOSED" | "FINISHED";
             /** @enum {string} */
@@ -8823,7 +8880,7 @@ export interface operations {
                 limit?: number;
                 /** @description all=全部公开帖, playing=我参与的帖（playerMarked=true，需登录） */
                 filter?: "all" | "playing";
-                /** @description 按动态分类 slug 筛选 */
+                /** @description 按动态分类 slug 筛选；服务端会去除首尾空白并转为大写 */
                 category?: string;
                 /** @description recommended=智能排序, newest=最新创建, active=最新回复 */
                 sort?: "recommended" | "newest" | "active";

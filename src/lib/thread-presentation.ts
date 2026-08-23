@@ -1,28 +1,24 @@
 import { METADATA_ELEMENT_STYLES } from "@wenyousite/foundation/elements";
 
-import type { ThreadCategoryDefinition } from "@/api/hooks/use-thread-categories";
 import type { components } from "@/api/types";
 import type { BadgeTone } from "@/lib/presentation-types";
 
 export type ThreadCategory = NonNullable<
   components["schemas"]["ThreadListItemResponseDto"]["category"]
 >;
+export type ThreadCategoryInfo = components["schemas"]["ThreadCategoryInfoDto"];
 export type ThreadStatus = components["schemas"]["ThreadListItemResponseDto"]["status"];
 export type ThreadVisibility = components["schemas"]["ThreadListItemResponseDto"]["visibility"];
 
 export function getThreadCategoryPresentation(
-  slug: string | null | undefined,
-  categories: Pick<ThreadCategoryDefinition, "slug" | "name">[],
+  categoryInfo: ThreadCategoryInfo | null | undefined,
+  fallbackSlug?: string | null,
 ): {
   label: string;
   badgeTone: BadgeTone;
 } {
-  const definition = slug
-    ? categories.find((category) => category.slug === slug)
-    : undefined;
-
   return {
-    label: definition?.name ?? slug ?? "未分类",
+    label: categoryInfo?.name ?? fallbackSlug ?? "未分类",
     badgeTone: METADATA_ELEMENT_STYLES.categoryMarker.badgeTone,
   };
 }

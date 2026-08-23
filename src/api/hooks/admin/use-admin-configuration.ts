@@ -26,7 +26,17 @@ export function useAdminTaxonomyActions() {
   const queryClient = useQueryClient();
   const refreshCategories = () => Promise.all([
     queryClient.invalidateQueries({ queryKey: queryKeys.admin.taxonomy }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.admin.dashboard }),
     queryClient.invalidateQueries({ queryKey: queryKeys.threadCategories }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.threads.all }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.threads.details }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.draftState }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.threadDrafts }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.bookmarks.all }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.users.all }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.subscriptions }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.search.all }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.invitePreviews }),
   ]);
   const refreshTags = () => Promise.all([
     queryClient.invalidateQueries({ queryKey: queryKeys.admin.taxonomy }),

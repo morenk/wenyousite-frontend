@@ -203,7 +203,10 @@ export function ThreadDetailHeader({
               className="mt-0.5 flex min-w-0 items-center justify-center gap-1.5 overflow-hidden whitespace-nowrap font-utility text-[11px] leading-5 text-muted-foreground sm:text-xs"
             >
               <span className="shrink-0 font-bold text-foreground">
-                <ThreadCategoryLabel category={thread.category} />
+                <ThreadCategoryLabel
+                  category={thread.category}
+                  categoryInfo={thread.categoryInfo}
+                />
               </span>
               <span aria-hidden="true">·</span>
               <span className="shrink-0 font-medium">

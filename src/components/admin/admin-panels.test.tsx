@@ -95,7 +95,15 @@ describe("station panels", () => {
           previous: { activeUsers: 18, newUsers: 2, publishedThreads: 4, newPosts: 7, reportsReceived: 1, reportsHandled: 1 },
         },
         timeseries: { items: [{ date: "2026-08-09", dau: 8, newUsers: 1, publishedThreads: 1, newPosts: 2, reportsReceived: 3, reportsHandled: 2 }] },
-        distributions: {},
+        distributions: {
+          usersByRole: [],
+          reportsByStatus: [],
+          reportsByReason: [],
+          threadsByCategory: [
+            { key: "RPG", name: "角色扮演", isActive: false, count: 7 },
+          ],
+          activeSanctionsByType: [],
+        },
         health: { status: "ok", info: { database: { status: "up" }, redis: { status: "up" } } },
       },
     });
@@ -134,6 +142,15 @@ describe("station panels", () => {
       expect(view.container).not.toBeEmptyDOMElement();
       view.unmount();
     }
+  });
+
+  it("站务总览用当前名称展示分类分布并标记停用项", () => {
+    renderWithUrl(<AdminDashboardPanel />);
+
+    expect(screen.getByText("已发布主题分布")).toBeInTheDocument();
+    expect(screen.getByText("角色扮演")).toBeInTheDocument();
+    expect(screen.getByText("RPG")).toBeInTheDocument();
+    expect(screen.getByText("已停用")).toBeInTheDocument();
   });
 
   it("所有远程列表使用契约筛选和 20 条游标分页", () => {

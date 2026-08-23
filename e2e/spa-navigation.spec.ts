@@ -4,10 +4,16 @@ const fixedNow = new Date("2026-08-08T12:00:00Z");
 
 function makeThread(index: number) {
   const id = `spa-thread-${index}`;
+  const category = index % 2 === 0 ? "RPG" : "NATION";
   return {
     id,
     title: `漫游记录 ${String(index).padStart(2, "0")}`,
-    category: index % 2 === 0 ? "RPG" : "NATION",
+    category,
+    categoryInfo: {
+      slug: category,
+      name: category === "NATION" ? "国策" : "角色扮演",
+      isActive: true,
+    },
     status: "RECRUITING",
     visibility: "PUBLIC",
     published: true,
@@ -41,6 +47,7 @@ function makeThreadDetail(index: number) {
     title: listItem.title,
     ownerId: listItem.owner.id,
     category: listItem.category,
+    categoryInfo: listItem.categoryInfo,
     status: listItem.status,
     visibility: listItem.visibility,
     published: true,
@@ -133,10 +140,10 @@ async function mockPublicBrowsing(
           slug: "RPG",
           name: "角色扮演",
           description: null,
-          color: null,
           icon: null,
           sortOrder: 0,
           isActive: true,
+          mergedIntoId: null,
           createdAt: "2026-08-01T00:00:00Z",
           updatedAt: "2026-08-01T00:00:00Z",
         },
@@ -145,10 +152,10 @@ async function mockPublicBrowsing(
           slug: "NATION",
           name: "国策",
           description: null,
-          color: null,
           icon: null,
           sortOrder: 1,
           isActive: true,
+          mergedIntoId: null,
           createdAt: "2026-08-01T00:00:00Z",
           updatedAt: "2026-08-01T00:00:00Z",
         },

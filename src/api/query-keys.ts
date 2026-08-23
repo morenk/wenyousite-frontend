@@ -3,6 +3,7 @@
 export const queryKeys = {
   threads: {
     all: ["threads"] as const,
+    details: ["thread"] as const,
     list: (params: object) => ["threads", params] as const,
     detail: (threadId: string) => ["thread", threadId] as const,
     detailForViewer: (threadId: string, viewerScope: string) =>
@@ -163,10 +164,12 @@ export const queryKeys = {
   blockedUsers: (userId?: string) => ["blocked-users", userId] as const,
   invitePreview: (token: string | undefined) =>
     ["invite-preview", token] as const,
+  invitePreviews: ["invite-preview"] as const,
   moderationDecisions: (userId?: string) => ["moderation-decisions", userId] as const,
   mentionCandidates: (threadId: string, query: string) =>
     ["mention-candidates", threadId, query] as const,
   search: {
+    all: ["search"] as const,
     threads: (keyword: string) => ["search", "threads", keyword] as const,
     users: (keyword: string) => ["search", "users", keyword] as const,
     moments: (keyword: string, viewerScope: string) =>

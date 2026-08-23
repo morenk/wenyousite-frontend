@@ -1,24 +1,21 @@
-"use client";
-
 import type { ComponentProps } from "react";
 
 import { Badge } from "@/components/ui/badge";
-import { useThreadCategoriesContext } from "@/components/thread/thread-categories-provider";
-import { getThreadCategoryPresentation } from "@/lib/thread-presentation";
-
-export function useThreadCategoryPresentation(category: string | null | undefined) {
-  const { categories } = useThreadCategoriesContext();
-  return getThreadCategoryPresentation(category, categories);
-}
+import {
+  getThreadCategoryPresentation,
+  type ThreadCategoryInfo,
+} from "@/lib/thread-presentation";
 
 export function ThreadCategoryBadge({
   category,
+  categoryInfo,
   className,
   ...props
 }: Omit<ComponentProps<typeof Badge>, "tone"> & {
   category: string | null | undefined;
+  categoryInfo: ThreadCategoryInfo | null | undefined;
 }) {
-  const presentation = useThreadCategoryPresentation(category);
+  const presentation = getThreadCategoryPresentation(categoryInfo, category);
   return (
     <Badge
       tone={presentation.badgeTone}
@@ -33,9 +30,11 @@ export function ThreadCategoryBadge({
 
 export function ThreadCategoryLabel({
   category,
+  categoryInfo,
 }: {
   category: string | null | undefined;
+  categoryInfo: ThreadCategoryInfo | null | undefined;
 }) {
-  const presentation = useThreadCategoryPresentation(category);
+  const presentation = getThreadCategoryPresentation(categoryInfo, category);
   return <>{presentation.label}</>;
 }

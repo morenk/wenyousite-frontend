@@ -12,11 +12,6 @@ import React from "react";
 vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
-vi.mock("@/components/thread/thread-categories-provider", () => ({
-  useThreadCategoriesContext: () => ({
-    categories: [{ id: "deduction", slug: "DEDUCTION", name: "演绎", color: null }],
-  }),
-}));
 import { toast } from "sonner";
 
 const mockUseAuth = vi.fn();
@@ -146,6 +141,7 @@ const baseThread: ThreadDetail = {
   title: "测试主题帖",
   ownerId: "owner-1",
   category: "RPG",
+  categoryInfo: { slug: "RPG", name: "角色扮演", isActive: false },
   status: "RECRUITING",
   visibility: "PUBLIC",
   published: true,
@@ -269,7 +265,7 @@ describe("ThreadDetailHeader", () => {
   test("渲染分类和状态中文映射", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
-    expect(screen.getByText("RPG")).toBeInTheDocument();
+    expect(screen.getByText("角色扮演")).toBeInTheDocument();
     expect(screen.getByText("招募中")).toBeInTheDocument();
   });
 
@@ -601,7 +597,11 @@ describe("ThreadDetailHeader", () => {
 
   test("演绎分类显示'演绎'", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
-    const deduction = { ...baseThread, category: "DEDUCTION" as const };
+    const deduction = {
+      ...baseThread,
+      category: "DEDUCTION" as const,
+      categoryInfo: { slug: "DEDUCTION", name: "演绎", isActive: true },
+    };
     renderWithQC(<ThreadDetailHeader thread={deduction} />);
     expect(screen.getByText("演绎")).toBeInTheDocument();
   });

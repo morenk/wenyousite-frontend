@@ -74,6 +74,7 @@ export function ThreadCard({ thread }: ThreadCardProps) {
             <div className="relative z-10 flex shrink-0 flex-wrap items-center justify-end gap-1.5">
               <ThreadCategoryBadge
                 category={thread.category}
+                categoryInfo={thread.categoryInfo}
                 size="compact"
               />
               <Badge

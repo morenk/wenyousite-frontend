@@ -13,7 +13,8 @@ import {
 import { TagInput } from "@/components/forms/tag-input";
 import type { ThreadCreateFormData } from "@/lib/validations/thread-create";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
-import { useThreadCategoriesContext } from "@/components/thread/thread-categories-provider";
+import { useThreadCategories } from "@/api/hooks/use-thread-categories";
+import type { ThreadCategoryInfo } from "@/lib/thread-presentation";
 import {
   THREAD_STATUS_OPTIONS,
   THREAD_VISIBILITY_OPTIONS,
@@ -29,6 +30,7 @@ export function ThreadMetadataFields({
   sections = "all",
   status,
   onStatusChange,
+  currentCategoryInfo,
 }: {
   form: UseFormReturn<ThreadCreateFormData>;
   disabled: boolean;
@@ -37,13 +39,15 @@ export function ThreadMetadataFields({
   sections?: "all" | "identity" | "publication";
   status?: ThreadDetail["status"];
   onStatusChange?: (status: ThreadDetail["status"]) => void;
+  currentCategoryInfo?: ThreadCategoryInfo | null;
 }) {
+  const categoriesQuery = useThreadCategories();
+  const categories = categoriesQuery.data ?? [];
   const {
-    categories,
     isLoading: categoriesLoading,
     isError: categoriesError,
     refetch: refetchCategories,
-  } = useThreadCategoriesContext();
+  } = categoriesQuery;
   const category = useWatch({ control: form.control, name: "category" });
   const visibility = useWatch({ control: form.control, name: "visibility" });
   const tagNames = useWatch({ control: form.control, name: "tagNames" });
@@ -59,7 +63,10 @@ export function ThreadMetadataFields({
       label: categoriesLoading ? "正在加载分区…" : "请选择分区",
     },
     ...(currentCategoryUnavailable && category
-      ? [{ value: category, label: `${category}（已停用或不可用）` }]
+      ? [{
+          value: category,
+          label: `${currentCategoryInfo?.slug === category ? currentCategoryInfo.name : category}（已停用或不可用）`,
+        }]
       : []),
     ...categories.map((option) => ({ value: option.slug, label: option.name })),
   ];
@@ -123,7 +130,11 @@ export function ThreadMetadataFields({
         {categoriesError ? (
           <p className="text-sm text-destructive">
             分区加载失败。{" "}
-            <button type="button" className="font-semibold underline" onClick={refetchCategories}>
+            <button
+              type="button"
+              className="font-semibold underline"
+              onClick={() => void refetchCategories()}
+            >
               重试
             </button>
           </p>

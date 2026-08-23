@@ -5,6 +5,9 @@ import { resolve } from "node:path";
 
 const contractPath = resolve(process.cwd(), "contracts/openapi.json");
 const spec = JSON.parse(readFileSync(contractPath, "utf8"));
+const categoryFixture = JSON.parse(
+  readFileSync(resolve(process.cwd(), "contracts/thread-category-v3-fixtures.json"), "utf8"),
+);
 const failures = [];
 const operationIds = new Set();
 const methods = ["get", "post", "put", "patch", "delete"];
@@ -98,11 +101,36 @@ if (!spec.components?.schemas?.BusinessErrorCode) {
 }
 
 const categoryDefinition = spec.components?.schemas?.ThreadCategoryResponseDto;
+const categorySlugPolicy = categoryFixture.slugPolicy;
 if (
   categoryDefinition?.properties?.slug?.type !== "string"
   || Array.isArray(categoryDefinition?.properties?.slug?.enum)
 ) {
   failures.push("ThreadCategoryResponseDto.slug 必须是开放字符串，不能固化为枚举");
+}
+if (
+  categoryFixture.version !== 3
+  || categorySlugPolicy?.normalization !== "trim-uppercase"
+  || categorySlugPolicy?.pattern !== "^[A-Z][A-Z0-9_]{0,49}$"
+  || categorySlugPolicy?.minLength !== 1
+  || categorySlugPolicy?.maxLength !== 50
+) {
+  failures.push("动态分类 v3 黄金 slugPolicy 无效");
+}
+for (const schemaName of ["ThreadCategoryResponseDto", "CreateThreadCategoryDto"]) {
+  const slug = spec.components?.schemas?.[schemaName]?.properties?.slug;
+  if (
+    slug?.pattern !== categorySlugPolicy.pattern
+    || slug?.minLength !== categorySlugPolicy.minLength
+    || slug?.maxLength !== categorySlugPolicy.maxLength
+  ) {
+    failures.push(`${schemaName}.slug 与动态分类黄金 slugPolicy 不一致`);
+  }
+}
+for (const field of ["icon", "mergedIntoId"]) {
+  if (categoryDefinition?.properties?.[field]?.deprecated !== true) {
+    failures.push(`ThreadCategoryResponseDto.${field} 必须标记废弃`);
+  }
 }
 if ("slug" in (spec.components?.schemas?.UpdateThreadCategoryDto?.properties ?? {})) {
   failures.push("UpdateThreadCategoryDto 不得允许修改稳定 slug");
@@ -117,6 +145,54 @@ for (const [schemaName, schema] of Object.entries(spec.components?.schemas ?? {}
   if (!categoryInputSchemas.has(schemaName) && category.nullable !== true) {
     failures.push(`${schemaName}.category 必须允许历史草稿或无分类值为 null`);
   }
+  if (
+    categoryInputSchemas.has(schemaName)
+    && (
+      category.pattern !== categorySlugPolicy.pattern
+      || category.minLength !== categorySlugPolicy.minLength
+      || category.maxLength !== categorySlugPolicy.maxLength
+    )
+  ) {
+    failures.push(`${schemaName}.category 与动态分类黄金 slugPolicy 不一致`);
+  }
+}
+
+const categoryInfo = spec.components?.schemas?.ThreadCategoryInfoDto;
+if (
+  JSON.stringify(Object.keys(categoryInfo?.properties ?? {}).sort())
+    !== JSON.stringify(["isActive", "name", "slug"])
+  || JSON.stringify([...(categoryInfo?.required ?? [])].sort())
+    !== JSON.stringify(["isActive", "name", "slug"])
+) {
+  failures.push("ThreadCategoryInfoDto 必须且只能要求 slug/name/isActive");
+}
+for (const schemaName of [
+  "ThreadListItemResponseDto",
+  "DraftThreadResponseDto",
+  "ThreadDetailResponseDto",
+  "InviteThreadPreviewResponseDto",
+  "SubscriptionThreadResponseDto",
+]) {
+  const schema = spec.components?.schemas?.[schemaName];
+  const info = schema?.properties?.categoryInfo;
+  if (
+    info?.nullable !== true
+    || info?.allOf?.[0]?.$ref !== "#/components/schemas/ThreadCategoryInfoDto"
+    || !schema?.required?.includes("categoryInfo")
+  ) {
+    failures.push(`${schemaName}.categoryInfo 必须是必填且可空的展示读模型`);
+  }
+}
+
+const threadCategoryQuery = spec.paths?.["/api/v1/threads"]?.get?.parameters?.find(
+  (parameter) => parameter?.in === "query" && parameter?.name === "category",
+)?.schema;
+if (
+  threadCategoryQuery?.pattern !== categorySlugPolicy.pattern
+  || threadCategoryQuery?.minLength !== categorySlugPolicy.minLength
+  || threadCategoryQuery?.maxLength !== categorySlugPolicy.maxLength
+) {
+  failures.push("GET /threads category 查询参数与动态分类黄金 slugPolicy 不一致");
 }
 
 if (failures.length > 0) {

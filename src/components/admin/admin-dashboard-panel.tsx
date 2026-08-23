@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, CircleGauge, Flag, ShieldAlert, UsersRound } from "lucide-react";
+import { Activity, CircleGauge, Flag, FolderTree, ShieldAlert, UsersRound } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -39,13 +39,22 @@ export function AdminDashboardPanel() {
     return <p className="text-sm text-destructive">站务总览加载失败，请检查服务状态。</p>;
   }
 
-  const { overview, timeseries, health } = dashboard.data;
+  const { overview, timeseries, distributions, health } = dashboard.data;
   const healthItems = Object.entries(health.info ?? {});
   const current = overview.current;
   const reportPace = timeseries.items.map((item) => ({
     ...item,
     day: item.date.slice(5),
   }));
+  const categoryDistribution = distributions.threadsByCategory ?? [];
+  const categoryMaximum = Math.max(
+    1,
+    ...categoryDistribution.map((category) => category.count),
+  );
+  const categorizedThreadCount = categoryDistribution.reduce(
+    (total, category) => total + category.count,
+    0,
+  );
 
   return (
     <div className="space-y-6">
@@ -106,6 +115,62 @@ export function AdminDashboardPanel() {
             )}
           </div>
         </div>
+      </section>
+
+      <section className="overflow-hidden rounded-2xl border border-border bg-card">
+        <div className="flex items-start justify-between gap-5 border-b border-border px-6 py-5">
+          <div className="flex items-center gap-3">
+            <span className="flex size-10 items-center justify-center rounded-xl bg-muted text-foreground">
+              <FolderTree className="size-5" />
+            </span>
+            <div>
+              <p className="font-utility text-xs font-bold tracking-[0.12em] text-muted-foreground">
+                分类登记册
+              </p>
+              <h2 className="mt-1 font-display text-xl font-medium">已发布主题分布</h2>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="font-utility text-2xl font-medium text-foreground">
+              {categorizedThreadCount}
+            </p>
+            <p className="text-xs text-muted-foreground">已归类主题</p>
+          </div>
+        </div>
+
+        {categoryDistribution.length > 0 ? (
+          <div className="divide-y divide-border" aria-label="已发布主题分类分布">
+            {categoryDistribution.map((category) => (
+              <div
+                key={category.key}
+                className="grid grid-cols-[minmax(10rem,15rem)_minmax(10rem,1fr)_auto] items-center gap-5 px-6 py-4"
+              >
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="truncate text-sm font-semibold text-foreground">
+                      {category.name}
+                    </p>
+                    {!category.isActive ? <Badge tone="neutral">已停用</Badge> : null}
+                  </div>
+                  <p className="mt-0.5 truncate font-utility text-[11px] text-muted-foreground">
+                    {category.key}
+                  </p>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className={category.isActive ? "h-full rounded-full bg-primary" : "h-full rounded-full bg-muted-foreground/45"}
+                    style={{ width: `${Math.max(2, (category.count / categoryMaximum) * 100)}%` }}
+                  />
+                </div>
+                <p className="min-w-12 text-right font-utility text-sm font-bold text-foreground">
+                  {category.count}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="px-6 py-8 text-sm text-muted-foreground">当前没有可展示的分类统计。</p>
+        )}
       </section>
 
       <section className="rounded-2xl border border-border bg-card p-6">

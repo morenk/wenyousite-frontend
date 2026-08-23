@@ -219,6 +219,7 @@ const mockThread: ThreadDetail = {
   title: "测试帖",
   ownerId: "u1",
   category: "RPG",
+  categoryInfo: { slug: "RPG", name: "角色扮演", isActive: true },
   status: "RECRUITING",
   visibility: "PUBLIC",
   published: true,

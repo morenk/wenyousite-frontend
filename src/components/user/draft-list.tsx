@@ -61,7 +61,10 @@ export function DraftList() {
           <div className="min-w-0">
             <div className="mb-1 flex items-center gap-2">
               <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                <ThreadCategoryLabel category={draft.category} />
+                <ThreadCategoryLabel
+                  category={draft.category}
+                  categoryInfo={draft.categoryInfo}
+                />
               </span>
               {draft._count.posts > 0 && (
                 <span className="text-xs text-muted-foreground">

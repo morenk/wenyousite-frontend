@@ -23,12 +23,6 @@ vi.mock("next/link", () => ({
   },
 }));
 
-vi.mock("@/components/thread/thread-categories-provider", () => ({
-  useThreadCategoriesContext: () => ({
-    categories: [{ id: "nation", slug: "NATION", name: "国策", color: null }],
-  }),
-}));
-
 afterEach(() => cleanup());
 
 function renderThreadCard(
@@ -51,6 +45,7 @@ const baseThread: ThreadCardData = {
   id: "thread-1",
   title: "测试帖子标题",
   category: "RPG",
+  categoryInfo: { slug: "RPG", name: "角色扮演", isActive: false },
   status: "RECRUITING",
   visibility: "PUBLIC",
   published: true,
@@ -87,9 +82,9 @@ describe("ThreadCard", () => {
     expect(screen.getByRole("listitem")).toBeInTheDocument();
   });
 
-  test("渲染分类（中文映射）", () => {
+  test("直接渲染后端分类读模型名称", () => {
     renderThreadCard(baseThread);
-    expect(screen.getByText("RPG")).toBeInTheDocument();
+    expect(screen.getByText("角色扮演")).toBeInTheDocument();
   });
 
   test("渲染状态（中文映射）", () => {
@@ -203,7 +198,11 @@ describe("ThreadCard", () => {
   });
 
   test("国策分类显示'国策'", () => {
-    const nation = { ...baseThread, category: "NATION" as const };
+    const nation = {
+      ...baseThread,
+      category: "NATION" as const,
+      categoryInfo: { slug: "NATION", name: "国策", isActive: true },
+    };
     renderThreadCard(nation);
     expect(screen.getByText("国策")).toBeInTheDocument();
   });

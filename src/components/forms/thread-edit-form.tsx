@@ -343,6 +343,7 @@ export function ThreadEditForm({
                 sections="publication"
                 showVisibility
                 visibilityReadOnly={!isOwner}
+                currentCategoryInfo={thread.categoryInfo}
                 status={status}
                 onStatusChange={(nextStatus) => {
                   setStatus(nextStatus);

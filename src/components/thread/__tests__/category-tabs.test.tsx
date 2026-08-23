@@ -15,9 +15,9 @@ const { categoryState } = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("@/components/thread/thread-categories-provider", () => ({
-  useThreadCategoriesContext: () => ({
-    categories: categoryState.categories,
+vi.mock("@/api/hooks/use-thread-categories", () => ({
+  useThreadCategories: () => ({
+    data: categoryState.categories,
     isLoading: false,
     isError: false,
     refetch: vi.fn(),

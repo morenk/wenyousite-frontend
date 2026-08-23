@@ -27,7 +27,7 @@
 
 `scripts/check-flutter-contract.mjs` 验证 OpenAPI 3.0、稳定 lowerCamel operationId、具名 2xx 响应、非空查询 schema、移动基线端点、动态分类开放字符串与错误码 schema，作为 `pnpm contract:check` 的本地静态门禁。
 
-契约版本以 `contracts/openapi.json` 的 `info.version` 为准，不在说明文档中复制易过期的版本号。主题帖分类字段是可空字符串而非封闭枚举：草稿可为 `null`，发布必须使用 `GET /thread-categories` 返回的启用 slug。Web 与 Flutter 均消费 `contracts/thread-category-v2-fixtures.json` 黄金用例，分类 API 不包含颜色字段；客户端不得复制任何现有 slug 或名称作为运行时回退。未知 slug 显示原值，空值显示“未分类”，未知响应字段必须忽略。
+契约版本以 `contracts/openapi.json` 的 `info.version` 为准，不在说明文档中复制易过期的版本号。主题帖分类字段是可空字符串而非封闭枚举：草稿可为 `null`，发布必须使用 `GET /thread-categories` 返回的启用 slug。Web 与 Flutter 均消费 `contracts/thread-category-v3-fixtures.json` 黄金用例；既有线程展示直接读取响应 `categoryInfo.name`，不得再用仅含启用项的发现列表反查。分类是纯文本能力，旧 `icon / mergedIntoId` 只作兼容且不应消费；未知 slug 显示原值，空值显示“未分类”，未知响应字段必须忽略。
 
 ## 4. 状态管理
 

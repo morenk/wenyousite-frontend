@@ -62,7 +62,10 @@ export default function JoinByInvitePage() {
           <div>
             <h1 className="font-display text-xl font-medium">{thread.title}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              <ThreadCategoryLabel category={thread.category} /> · 楼主 {thread.owner.username} · {thread.memberCount} 位参与人
+              <ThreadCategoryLabel
+                category={thread.category}
+                categoryInfo={thread.categoryInfo}
+              /> · 楼主 {thread.owner.username} · {thread.memberCount} 位参与人
             </p>
           </div>
           <Button

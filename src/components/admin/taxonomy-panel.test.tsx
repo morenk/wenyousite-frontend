@@ -96,7 +96,7 @@ describe("TaxonomyPanel", () => {
     renderPanel();
 
     await user.type(screen.getByPlaceholderText("分类名称"), "悬疑");
-    await user.type(screen.getByPlaceholderText("大写英文标识，如 MYSTERY"), "MYSTERY");
+    await user.type(screen.getByPlaceholderText("大写英文标识，如 MYSTERY"), "mystery");
     await user.click(screen.getByRole("button", { name: "新增分类" }));
 
     expect(hooks.createCategory).toHaveBeenCalledWith({

@@ -22,6 +22,10 @@ import {
   adminTaxonomyUrlKeys,
   boundedAdminPageIndex,
 } from "@/lib/admin-url-state";
+import {
+  normalizeThreadCategorySlug,
+  THREAD_CATEGORY_SLUG_PATTERN,
+} from "@/lib/thread-category-slug";
 import { AdminFilterBar, AdminFilterField, AdminPagination } from "./admin-list-controls";
 import {
   AdminTable,
@@ -39,7 +43,10 @@ type Category = components["schemas"]["ThreadCategoryResponseDto"];
 type Tag = components["schemas"]["TagResponseDto"];
 
 const categorySchema = z.object({
-  slug: z.string().trim().regex(/^[A-Z][A-Z0-9_]{1,31}$/, "使用 2–32 位大写字母、数字或下划线"),
+  slug: z.string().trim().regex(
+    THREAD_CATEGORY_SLUG_PATTERN,
+    "使用 1–50 位字符，以大写字母开头，仅含大写字母、数字或下划线",
+  ),
   name: z.string().trim().min(1).max(50),
 });
 const tagSchema = z.object({ name: z.string().trim().min(1).max(20) });
@@ -71,6 +78,7 @@ export function TaxonomyPanel() {
     resolver: zodResolver(tagSchema),
     defaultValues: { name: "" },
   });
+  const categorySlugField = categoryForm.register("slug");
   const filteredCategories = useMemo(() => {
     const keyword = categoryQuery.trim().toLocaleLowerCase();
     return (taxonomy.data?.categories ?? []).filter((category) => {
@@ -230,10 +238,27 @@ export function TaxonomyPanel() {
             })}
           >
             <div><Label htmlFor="category-name" className="sr-only">分类名称</Label><Input id="category-name" placeholder="分类名称" {...categoryForm.register("name")} /></div>
-            <div><Label htmlFor="category-slug" className="sr-only">稳定标识（大写英文）</Label><Input id="category-slug" placeholder="大写英文标识，如 MYSTERY" className="font-utility" {...categoryForm.register("slug")} /></div>
+            <div>
+              <Label htmlFor="category-slug" className="sr-only">稳定标识（大写英文）</Label>
+              <Input
+                id="category-slug"
+                placeholder="大写英文标识，如 MYSTERY"
+                className="font-utility"
+                {...categorySlugField}
+                onChange={(event) => {
+                  event.currentTarget.value = normalizeThreadCategorySlug(event.currentTarget.value);
+                  void categorySlugField.onChange(event);
+                }}
+                aria-invalid={Boolean(categoryForm.formState.errors.slug)}
+              />
+              {categoryForm.formState.errors.slug ? (
+                <p className="mt-1 text-xs text-destructive">
+                  {categoryForm.formState.errors.slug.message}
+                </p>
+              ) : null}
+            </div>
             <Button type="submit" size="icon" title="新增分类"><Plus /></Button>
           </form>
-          {categoryForm.formState.errors.slug ? <p className="px-6 pb-2 text-xs text-destructive">{categoryForm.formState.errors.slug.message}</p> : null}
           {categoryForm.formState.errors.name ? <p className="px-6 pb-2 text-xs text-destructive">{categoryForm.formState.errors.name.message}</p> : null}
         </section>
 

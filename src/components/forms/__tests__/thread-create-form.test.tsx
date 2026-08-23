@@ -87,6 +87,7 @@ const mockThread: ThreadDetail = {
   title: "未命名草稿",
   ownerId: "u1",
   category: null,
+  categoryInfo: null,
   status: "RECRUITING",
   visibility: "PUBLIC",
   published: false,
