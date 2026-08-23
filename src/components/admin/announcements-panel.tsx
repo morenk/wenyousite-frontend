@@ -17,6 +17,8 @@ import {
 import { AdminFilterBar, AdminFilterField, AdminPagination } from "./admin-list-controls";
 import {
   AdminTable,
+  AdminTableActionCell,
+  AdminTableActionHeader,
   AdminTableBody,
   AdminTableCell,
   AdminTableEmpty,
@@ -97,8 +99,8 @@ export function AnnouncementsPanel() {
   const activeCount = (query.trim() ? 1 : 0) + (status ? 1 : 0) + (destination ? 1 : 0);
 
   return (
-    <div className="grid grid-cols-[24rem_minmax(0,1fr)] gap-6">
-      <section className="self-start rounded-lg border border-border bg-card p-6">
+    <div data-slot="admin-announcements-workspace" className="grid grid-cols-[28rem_minmax(0,1fr)] gap-6">
+      <section data-slot="admin-action-rail" className="self-start rounded-lg border border-border bg-card p-6">
         <div className="flex items-center gap-3">
           <span className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground"><BellRing className="size-5" /></span>
           <div><h2 className="font-display text-xl font-medium">新建站内通知</h2><p className="text-xs text-muted-foreground">系统会分批投递，可立即或定时发送。</p></div>
@@ -187,7 +189,7 @@ export function AnnouncementsPanel() {
             </Select>
           </AdminFilterField>
         </AdminFilterBar>
-        <AdminTable aria-label="通知发送计划">
+        <AdminTable aria-label="通知发送计划" className="min-w-[64rem]">
           <AdminTableHead>
             <tr>
               <AdminTableHeader>状态</AdminTableHeader>
@@ -195,7 +197,7 @@ export function AnnouncementsPanel() {
               <AdminTableHeader>发送时间</AdminTableHeader>
               <AdminTableHeader className="text-right">送达人数</AdminTableHeader>
               <AdminTableHeader>创建人</AdminTableHeader>
-              <AdminTableHeader className="text-right">操作</AdminTableHeader>
+              <AdminTableActionHeader>操作</AdminTableActionHeader>
             </tr>
           </AdminTableHead>
           <AdminTableBody>
@@ -211,7 +213,7 @@ export function AnnouncementsPanel() {
               <AdminTableCell className="text-xs whitespace-nowrap text-muted-foreground"><WenyouTime value={campaign.scheduledAt} /></AdminTableCell>
               <AdminTableCell className="text-right font-utility text-xs whitespace-nowrap"><span className="font-bold text-foreground">{campaign.recipientCount}</span><span className="text-muted-foreground"> / 预计 {campaign.estimatedCount}</span></AdminTableCell>
               <AdminTableCell className="whitespace-nowrap">{campaign.createdBy.username}</AdminTableCell>
-              <AdminTableCell className="text-right">
+              <AdminTableActionCell>
                 {campaign.status === "SCHEDULED" ? (
                   <Button
                     size="compact"
@@ -222,7 +224,7 @@ export function AnnouncementsPanel() {
                     }}
                   >取消</Button>
                 ) : <span className="text-xs text-muted-foreground">—</span>}
-              </AdminTableCell>
+              </AdminTableActionCell>
             </AdminTableRow>
           ))}
           {!campaigns.isLoading && !campaigns.isError && campaigns.data?.items.length === 0 ? <AdminTableEmpty colSpan={6}>当前筛选下没有通知计划</AdminTableEmpty> : null}

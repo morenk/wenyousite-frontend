@@ -156,7 +156,7 @@ export function AuditPanel() {
           <Input type="date" value={dateTo} onChange={(event) => void setFilters({ dateTo: event.target.value }, { history: "push" })} />
         </AdminFilterField>
       </AdminFilterBar>
-      <AdminTable aria-label="决定轨迹">
+      <AdminTable aria-label="决定轨迹" className="min-w-[56rem]">
         <AdminTableHead>
           <tr>
             <AdminTableHeader>发生时间</AdminTableHeader>

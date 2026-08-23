@@ -3,8 +3,9 @@ import { cn } from "@/lib/utils";
 
 export function AdminTable({ className, ...props }: ComponentProps<"table">) {
   return (
-    <div className="overflow-x-auto">
+    <div data-slot="admin-table-scroll" className="max-w-full overflow-x-auto">
       <table
+        data-slot="admin-table"
         className={cn("w-full border-separate border-spacing-0 text-left text-sm", className)}
         {...props}
       />
@@ -37,7 +38,7 @@ export function AdminTableRow({ className, ...props }: ComponentProps<"tr">) {
   return (
     <tr
       className={cn(
-        "transition-colors duration-[var(--motion-fast)] hover:bg-muted/70 data-[selected=true]:bg-accent/60",
+        "group/admin-row transition-colors duration-[var(--motion-fast)] hover:bg-muted/70 data-[selected=true]:bg-accent/60",
         className,
       )}
       {...props}
@@ -49,6 +50,29 @@ export function AdminTableCell({ className, ...props }: ComponentProps<"td">) {
   return (
     <td
       className={cn("px-4 py-3 align-middle first:pl-5 last:pr-5", className)}
+      {...props}
+    />
+  );
+}
+
+export function AdminTableActionHeader({ className, ...props }: ComponentProps<"th">) {
+  return (
+    <AdminTableHeader
+      data-slot="admin-table-action-header"
+      className={cn("sticky right-0 z-10 min-w-24 border-l bg-muted text-right", className)}
+      {...props}
+    />
+  );
+}
+
+export function AdminTableActionCell({ className, ...props }: ComponentProps<"td">) {
+  return (
+    <AdminTableCell
+      data-slot="admin-table-action-cell"
+      className={cn(
+        "sticky right-0 z-10 min-w-24 border-l border-border bg-card text-right transition-colors group-hover/admin-row:bg-muted/70 group-data-[selected=true]/admin-row:bg-accent/60",
+        className,
+      )}
       {...props}
     />
   );

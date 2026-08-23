@@ -92,7 +92,7 @@ export function ContentModerationPanel() {
   });
 
   return (
-    <div className="mx-auto max-w-[76rem] space-y-6">
+    <div data-slot="admin-content-workspace" className="w-full space-y-6">
       <div className="grid grid-cols-[minmax(0,1fr)_22rem] gap-6">
         <Panel padding="none" className="overflow-hidden">
         <div className={cn(

@@ -167,6 +167,43 @@ describe("station panels", () => {
     }
   });
 
+  it("站务工作页遵守固定宽分栏和全宽操作区契约", () => {
+    const cases = renderWithUrl(<CaseWorkbench />);
+    expect(cases.container.querySelector('[data-slot="admin-primary-detail"]'))
+      .toHaveClass("grid-cols-[32rem_minmax(0,1fr)]");
+    cases.unmount();
+
+    const appeals = renderWithUrl(<AppealsPanel />);
+    expect(appeals.container.querySelector('[data-slot="admin-primary-detail"]'))
+      .toHaveClass("grid-cols-[32rem_minmax(0,1fr)]");
+    appeals.unmount();
+
+    const users = renderWithUrl(<UsersPanel />);
+    expect(users.container.querySelector('[data-slot="admin-users-workspace"]'))
+      .toHaveClass("grid-cols-[minmax(0,1fr)_26rem]");
+    users.unmount();
+
+    const announcements = renderWithUrl(<AnnouncementsPanel />);
+    expect(announcements.container.querySelector('[data-slot="admin-announcements-workspace"]'))
+      .toHaveClass("grid-cols-[28rem_minmax(0,1fr)]");
+    announcements.unmount();
+
+    const accounts = renderWithUrl(<AdminAccountsPanel />);
+    expect(accounts.container.querySelector('[data-slot="admin-accounts-workspace"]'))
+      .toHaveClass("grid-cols-[minmax(0,1fr)_26rem]");
+    accounts.unmount();
+
+    const content = renderWithUrl(<ContentModerationPanel />);
+    expect(content.container.querySelector('[data-slot="admin-content-workspace"]'))
+      .toHaveClass("w-full");
+    content.unmount();
+
+    const operations = renderWithUrl(<OperationsSettingsPanel />);
+    expect(operations.container.querySelector('[data-slot="admin-operations-workspace"]'))
+      .toHaveClass("w-full");
+    operations.unmount();
+  });
+
   it("隐藏内容列表展示当前状态并可填写理由直接恢复", async () => {
     const restore = mutation();
     hooks.useAdminContentActions.mockReturnValue({ hide: mutation(), restore });

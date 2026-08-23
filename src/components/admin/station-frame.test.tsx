@@ -54,4 +54,15 @@ describe("StationFrame navigation", () => {
     expect(screen.queryByRole("link", { name: "站务账号" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "决定轨迹" })).toBeInTheDocument();
   });
+
+  it("以 1600px 固定桌面画布保护站务工作区", () => {
+    const { container } = render(
+      <StationFrame title="分类与标签" eyebrow="Taxonomy"><div>内容</div></StationFrame>,
+    );
+
+    expect(container.querySelector('[data-slot="station-shell"]'))
+      .toHaveClass("min-w-[1600px]");
+    expect(container.querySelector('[data-slot="station-workspace"]'))
+      .toHaveClass("p-6");
+  });
 });

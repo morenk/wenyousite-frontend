@@ -41,6 +41,8 @@ import { cn } from "@/lib/utils";
 import { AdminFilterBar, AdminFilterField, AdminPagination } from "./admin-list-controls";
 import {
   AdminTable,
+  AdminTableActionCell,
+  AdminTableActionHeader,
   AdminTableBody,
   AdminTableCell,
   AdminTableEmpty,
@@ -144,14 +146,14 @@ export function HiddenContentList() {
             </Select>
           </AdminFilterField>
         </AdminFilterBar>
-        <AdminTable aria-label="当前隐藏内容">
+        <AdminTable aria-label="当前隐藏内容" className="min-w-[56rem]">
           <AdminTableHead>
             <tr>
               <AdminTableHeader>内容</AdminTableHeader>
               <AdminTableHeader>作者</AdminTableHeader>
               <AdminTableHeader>隐藏记录</AdminTableHeader>
               <AdminTableHeader>恢复状态</AdminTableHeader>
-              <AdminTableHeader className="text-right">操作</AdminTableHeader>
+              <AdminTableActionHeader className="min-w-36">操作</AdminTableActionHeader>
             </tr>
           </AdminTableHead>
           <AdminTableBody>
@@ -186,7 +188,7 @@ export function HiddenContentList() {
                     </div>
                   )}
                 </AdminTableCell>
-                <AdminTableCell className="text-right whitespace-nowrap">
+                <AdminTableActionCell className="min-w-36 whitespace-nowrap">
                   <div className="flex justify-end gap-2">
                     <Link
                       href={`/station/audit?action=CONTENT_HIDDEN&target=${item.targetType}&id=${encodeURIComponent(item.targetId)}`}
@@ -204,7 +206,7 @@ export function HiddenContentList() {
                       <RotateCcw />{LANGUAGE_ACTIONS.restore}
                     </Button>
                   </div>
-                </AdminTableCell>
+                </AdminTableActionCell>
               </AdminTableRow>
             ))}
             {!hiddenContent.isLoading && !hiddenContent.isError && hiddenContent.data?.items.length === 0 ? (
@@ -232,7 +234,7 @@ export function HiddenContentList() {
         <DialogPortal>
           <DialogBackdrop />
           <DialogViewport>
-            <DialogPopup className="max-w-lg">
+            <DialogPopup className="max-w-2xl">
               <div className="flex items-start justify-between gap-5 border-b border-border px-6 py-5">
                 <div>
                   <DialogTitle>恢复{selected ? targetLabels[selected.targetType] : "内容"}</DialogTitle>

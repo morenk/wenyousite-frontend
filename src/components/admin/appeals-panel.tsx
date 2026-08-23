@@ -10,6 +10,8 @@ import { useAdminAppeals, useResolveAdminAppeal } from "@/api/hooks/use-admin";
 import { AdminFilterBar, AdminFilterField, AdminPagination } from "./admin-list-controls";
 import {
   AdminTable,
+  AdminTableActionCell,
+  AdminTableActionHeader,
   AdminTableBody,
   AdminTableCell,
   AdminTableEmpty,
@@ -79,7 +81,7 @@ export function AppealsPanel() {
   const activeCount = (status === "PENDING" ? 0 : 1) + (targetType ? 1 : 0) + (action ? 1 : 0);
 
   return (
-    <div className="grid min-h-[42rem] grid-cols-[34rem_minmax(0,1fr)] overflow-hidden rounded-lg border border-border bg-card">
+    <div data-slot="admin-primary-detail" className="grid min-h-[42rem] grid-cols-[32rem_minmax(0,1fr)] overflow-hidden rounded-lg border border-border bg-card">
       <section className="flex min-h-0 flex-col border-r border-border">
         <div className="border-b border-border px-5 py-4">
           <h2 className="font-display text-lg font-medium">申诉台账</h2>
@@ -119,14 +121,14 @@ export function AppealsPanel() {
           </AdminFilterField>
         </AdminFilterBar>
         <div className="min-h-0 flex-1 overflow-y-auto">
-          <AdminTable aria-label="申诉台账">
+          <AdminTable aria-label="申诉台账" className="min-w-[56rem]">
             <AdminTableHead className="sticky top-0 z-10">
               <tr>
                 <AdminTableHeader>状态</AdminTableHeader>
                 <AdminTableHeader>申诉用户与陈述</AdminTableHeader>
                 <AdminTableHeader>原处置</AdminTableHeader>
                 <AdminTableHeader>提交时间</AdminTableHeader>
-                <AdminTableHeader className="text-right">操作</AdminTableHeader>
+                <AdminTableActionHeader>操作</AdminTableActionHeader>
               </tr>
             </AdminTableHead>
             <AdminTableBody>
@@ -144,11 +146,11 @@ export function AppealsPanel() {
                 <p className="text-xs text-muted-foreground">{targetLabels[appeal.decision.targetType]}</p>
               </AdminTableCell>
               <AdminTableCell className="text-xs whitespace-nowrap text-muted-foreground"><WenyouTime value={appeal.createdAt} /></AdminTableCell>
-              <AdminTableCell className="text-right">
+              <AdminTableActionCell>
                 <Button type="button" size="compact" variant={effectiveSelectedId === appeal.id ? "secondary" : "ghost"} onClick={() => { setSelectedId(appeal.id); setNote(""); }}>
                   {effectiveSelectedId === appeal.id ? "已选择" : "查看"}
                 </Button>
-              </AdminTableCell>
+              </AdminTableActionCell>
             </AdminTableRow>
           ))}
           {!appeals.isLoading && appeals.data?.items.length === 0 ? (
@@ -176,7 +178,7 @@ export function AppealsPanel() {
         {!selected ? (
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground">选择一份申诉查看</div>
         ) : (
-          <div className="mx-auto max-w-3xl">
+          <div className="w-full">
             <div className="flex items-center gap-3">
               <span className="flex size-11 items-center justify-center rounded-xl bg-warning-soft text-warning"><Gavel className="size-5" /></span>
               <div>

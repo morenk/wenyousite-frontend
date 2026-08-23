@@ -14,6 +14,8 @@ import { type AdminUser, useAdminUserActions, useAdminUsers } from "@/api/hooks/
 import { AdminFilterBar, AdminFilterField, AdminPagination } from "./admin-list-controls";
 import {
   AdminTable,
+  AdminTableActionCell,
+  AdminTableActionHeader,
   AdminTableBody,
   AdminTableCell,
   AdminTableEmpty,
@@ -116,7 +118,7 @@ export function UsersPanel() {
   });
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_23rem] gap-6">
+    <div data-slot="admin-users-workspace" className="grid grid-cols-[minmax(0,1fr)_26rem] gap-6">
       <section className="overflow-hidden rounded-lg border border-border bg-card">
         <AdminFilterBar
           activeCount={activeCount}
@@ -152,16 +154,36 @@ export function UsersPanel() {
             </Select>
           </AdminFilterField>
         </AdminFilterBar>
-        <AdminTable aria-label="用户列表">
+        <AdminTable aria-label="用户列表" className="min-w-[56rem]">
           <AdminTableHead>
-            {table.getHeaderGroups().map((group) => <tr key={group.id}>{group.headers.map((header) => <AdminTableHeader key={header.id} className={header.column.id === "actions" ? "text-right" : undefined}>{flexRender(header.column.columnDef.header, header.getContext())}</AdminTableHeader>)}</tr>)}
+            {table.getHeaderGroups().map((group) => (
+              <tr key={group.id}>
+                {group.headers.map((header) => header.column.id === "actions" ? (
+                  <AdminTableActionHeader key={header.id}>
+                    {flexRender(header.column.columnDef.header, header.getContext())}
+                  </AdminTableActionHeader>
+                ) : (
+                  <AdminTableHeader key={header.id}>
+                    {flexRender(header.column.columnDef.header, header.getContext())}
+                  </AdminTableHeader>
+                ))}
+              </tr>
+            ))}
           </AdminTableHead>
           <AdminTableBody>
             {users.isLoading ? <AdminTableEmpty colSpan={5}>正在读取用户…</AdminTableEmpty> : null}
             {users.isError ? <AdminTableEmpty colSpan={5}><span className="text-destructive">用户列表加载失败</span></AdminTableEmpty> : null}
             {table.getRowModel().rows.map((row) => (
               <AdminTableRow key={row.id} data-selected={selectedId === row.original.id}>
-                {row.getVisibleCells().map((cell) => <AdminTableCell key={cell.id} className={cell.column.id === "actions" ? "text-right" : undefined}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</AdminTableCell>)}
+                {row.getVisibleCells().map((cell) => cell.column.id === "actions" ? (
+                  <AdminTableActionCell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </AdminTableActionCell>
+                ) : (
+                  <AdminTableCell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </AdminTableCell>
+                ))}
               </AdminTableRow>
             ))}
             {!users.isLoading && !users.isError && table.getRowModel().rows.length === 0 ? <AdminTableEmpty colSpan={5}>当前筛选下没有用户</AdminTableEmpty> : null}
@@ -181,7 +203,7 @@ export function UsersPanel() {
         />
       </section>
 
-      <aside className="self-start rounded-lg border border-border bg-card p-5">
+      <aside data-slot="admin-action-rail" className="self-start rounded-lg border border-border bg-card p-5">
         {!selected ? (
           <div className="py-12 text-center">
             <UserRoundCog className="mx-auto size-7 text-muted-foreground" />

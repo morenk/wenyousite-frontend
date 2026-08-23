@@ -21,19 +21,19 @@ export function AdminFilterBar({
 }) {
   return (
     <div
+      data-slot="admin-filter-bar"
       className={cn(
-        "border-b border-border bg-card px-5 py-3 [&_input]:h-9 [&_input]:rounded-md [&_[data-slot=select-trigger]]:h-9 [&_[data-slot=select-trigger]]:rounded-md",
+        "border-b border-border bg-card px-5 py-4 [&_input]:h-9 [&_input]:rounded-md [&_[data-slot=select-trigger]]:h-9 [&_[data-slot=select-trigger]]:rounded-md",
         className,
       )}
     >
-      <div className="flex items-end gap-3">
-        <div className="flex min-h-9 shrink-0 items-center gap-2 pb-0.5 text-xs font-bold text-foreground">
+      <div className="flex min-h-8 items-center justify-between gap-4">
+        <div className="flex shrink-0 items-center gap-2 text-xs font-bold text-foreground">
           <Filter className="size-4" />
           <span>筛选条件</span>
           {activeCount > 0 ? <Badge tone="brand">{activeCount}</Badge> : null}
         </div>
-        <div className="flex min-w-0 flex-1 flex-wrap items-end gap-3">{children}</div>
-        <div className="ml-auto flex min-h-9 shrink-0 items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3">
           {summary ? <span className="font-utility text-xs font-semibold text-foreground">{summary}</span> : null}
           <Button
             type="button"
@@ -45,6 +45,9 @@ export function AdminFilterBar({
             <RotateCcw />重置
           </Button>
         </div>
+      </div>
+      <div data-slot="admin-filter-fields" className="mt-3 flex min-w-0 flex-wrap items-end gap-3">
+        {children}
       </div>
     </div>
   );
@@ -61,7 +64,7 @@ export function AdminFilterField({
 }) {
   const labelId = useId();
   return (
-    <div role="group" aria-labelledby={labelId} className={cn("grid gap-1", className)}>
+    <div role="group" aria-labelledby={labelId} className={cn("grid shrink-0 gap-1", className)}>
       <span id={labelId} className="font-utility text-[0.6875rem] font-bold tracking-wide text-muted-foreground">
         {label}
       </span>

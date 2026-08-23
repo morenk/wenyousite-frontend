@@ -34,6 +34,8 @@ import {
 import { AdminFilterBar, AdminFilterField, AdminPagination } from "./admin-list-controls";
 import {
   AdminTable,
+  AdminTableActionCell,
+  AdminTableActionHeader,
   AdminTableBody,
   AdminTableCell,
   AdminTableEmpty,
@@ -206,7 +208,7 @@ export function AdminAccountsPanel() {
   if (accounts.isError || !accounts.data) return <p className="text-sm text-destructive">站务账号加载失败</p>;
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_22rem] gap-6">
+    <div data-slot="admin-accounts-workspace" className="grid grid-cols-[minmax(0,1fr)_26rem] gap-6">
       <div className="space-y-6">
         <section className="overflow-hidden rounded-lg border border-border bg-card">
           <div className="flex items-center justify-between border-b border-border px-5 py-4">
@@ -247,18 +249,34 @@ export function AdminAccountsPanel() {
               </Select>
             </AdminFilterField>
           </AdminFilterBar>
-          <AdminTable aria-label="现有站务账号">
+          <AdminTable aria-label="现有站务账号" className="min-w-[48rem]">
             <AdminTableHead>
               {table.getHeaderGroups().map((group) => (
                 <tr key={group.id}>
-                  {group.headers.map((header) => <AdminTableHeader key={header.id} className={header.column.id === "actions" ? "text-right" : undefined}>{flexRender(header.column.columnDef.header, header.getContext())}</AdminTableHeader>)}
+                  {group.headers.map((header) => header.column.id === "actions" ? (
+                    <AdminTableActionHeader key={header.id} className="min-w-48">
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                    </AdminTableActionHeader>
+                  ) : (
+                    <AdminTableHeader key={header.id}>
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                    </AdminTableHeader>
+                  ))}
                 </tr>
               ))}
             </AdminTableHead>
             <AdminTableBody>
               {table.getRowModel().rows.map((row) => (
                 <AdminTableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => <AdminTableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</AdminTableCell>)}
+                  {row.getVisibleCells().map((cell) => cell.column.id === "actions" ? (
+                    <AdminTableActionCell key={cell.id} className="min-w-48">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </AdminTableActionCell>
+                  ) : (
+                    <AdminTableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </AdminTableCell>
+                  ))}
                 </AdminTableRow>
               ))}
               {table.getRowModel().rows.length === 0 ? <AdminTableEmpty colSpan={4}>当前筛选下没有站务账号</AdminTableEmpty> : null}
@@ -301,14 +319,14 @@ export function AdminAccountsPanel() {
               </Select>
             </AdminFilterField>
           </AdminFilterBar>
-          <AdminTable aria-label="待接受站务邀请">
+          <AdminTable aria-label="待接受站务邀请" className="min-w-[56rem]">
             <AdminTableHead>
               <tr>
                 <AdminTableHeader>受邀用户</AdminTableHeader>
                 <AdminTableHeader>邮箱</AdminTableHeader>
                 <AdminTableHeader>到期时间</AdminTableHeader>
                 <AdminTableHeader>状态</AdminTableHeader>
-                <AdminTableHeader className="text-right">操作</AdminTableHeader>
+                <AdminTableActionHeader>操作</AdminTableActionHeader>
               </tr>
             </AdminTableHead>
             <AdminTableBody>
@@ -318,22 +336,22 @@ export function AdminAccountsPanel() {
                   <AdminTableCell className="text-xs text-muted-foreground">{invite.user.email}</AdminTableCell>
                   <AdminTableCell className="text-xs whitespace-nowrap text-muted-foreground"><WenyouTime value={invite.expiresAt} /></AdminTableCell>
                   <AdminTableCell><Badge tone={new Date(invite.expiresAt).getTime() > referenceTime ? "info" : "neutral"}>{new Date(invite.expiresAt).getTime() > referenceTime ? "有效" : "已过期"}</Badge></AdminTableCell>
-                  <AdminTableCell className="text-right">
-                  <Button
-                    size="compact"
-                    variant="ghost"
-                    onClick={async () => {
-                      try {
-                        await actions.cancelInvite.mutateAsync({ id: invite.id, reason: "邀请不再需要" });
-                        toast.success("邀请已取消");
-                      } catch (error) {
-                        toast.error(getApiErrorMessage(error, "取消失败"));
-                      }
-                    }}
-                  >
-                    取消邀请
-                  </Button>
-                  </AdminTableCell>
+                  <AdminTableActionCell>
+                    <Button
+                      size="compact"
+                      variant="ghost"
+                      onClick={async () => {
+                        try {
+                          await actions.cancelInvite.mutateAsync({ id: invite.id, reason: "邀请不再需要" });
+                          toast.success("邀请已取消");
+                        } catch (error) {
+                          toast.error(getApiErrorMessage(error, "取消失败"));
+                        }
+                      }}
+                    >
+                      取消邀请
+                    </Button>
+                  </AdminTableActionCell>
                 </AdminTableRow>
               ))}
               {filteredInvites.length === 0 ? <AdminTableEmpty colSpan={5}>当前筛选下没有待处理邀请</AdminTableEmpty> : null}
@@ -351,7 +369,7 @@ export function AdminAccountsPanel() {
         </section>
       </div>
 
-      <aside className="self-start rounded-lg border border-border bg-card p-5">
+      <aside data-slot="admin-action-rail" className="self-start rounded-lg border border-border bg-card p-5">
         <p className="font-utility text-xs font-bold tracking-[0.1em] text-muted-foreground">邀请站务账号</p>
         <h2 className="mt-1 font-display text-xl font-medium">邀请现有用户</h2>
         <p className="mt-2 text-xs leading-5 text-muted-foreground">管理员继承现有温油账号。普通用户可以被邀请。</p>

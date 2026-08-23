@@ -73,7 +73,7 @@ export function AdminContentModerationDialog({
       <DialogPortal>
         <DialogBackdrop />
         <DialogViewport>
-          <DialogPopup className="max-w-lg">
+          <DialogPopup className="max-w-2xl">
             <div className="h-1 bg-destructive" aria-hidden="true" />
             <div className="flex items-start justify-between gap-5 border-b border-border px-6 py-5">
               <div className="flex min-w-0 gap-3">

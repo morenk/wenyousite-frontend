@@ -25,6 +25,8 @@ import {
 import { AdminFilterBar, AdminFilterField, AdminPagination } from "./admin-list-controls";
 import {
   AdminTable,
+  AdminTableActionCell,
+  AdminTableActionHeader,
   AdminTableBody,
   AdminTableCell,
   AdminTableEmpty,
@@ -152,14 +154,14 @@ export function TaxonomyPanel() {
             </AdminFilterField>
           </AdminFilterBar>
 
-          <AdminTable aria-label="主题帖分类">
+          <AdminTable aria-label="主题帖分类" className="min-w-[56rem]">
             <AdminTableHead>
               <tr>
                 <AdminTableHeader>分类</AdminTableHeader>
                 <AdminTableHeader>稳定标识</AdminTableHeader>
                 <AdminTableHeader className="text-right">排序</AdminTableHeader>
                 <AdminTableHeader>状态</AdminTableHeader>
-                <AdminTableHeader className="text-right">操作</AdminTableHeader>
+                <AdminTableActionHeader className="min-w-28">操作</AdminTableActionHeader>
               </tr>
             </AdminTableHead>
             <AdminTableBody>
@@ -172,7 +174,7 @@ export function TaxonomyPanel() {
                 <AdminTableCell className="font-utility text-xs text-muted-foreground">{category.slug}</AdminTableCell>
                 <AdminTableCell className="text-right font-utility text-xs">{category.sortOrder}</AdminTableCell>
                 <AdminTableCell><Badge tone={category.isActive ? "success" : "neutral"}>{category.isActive ? "启用" : "停用"}</Badge></AdminTableCell>
-                <AdminTableCell>
+                <AdminTableActionCell className="min-w-28">
                   <div className="flex justify-end gap-1">
                     <Button type="button" size="icon-compact" variant="ghost" title={`编辑 ${category.name}`} aria-label={`编辑 ${category.name}`} onClick={() => setEditingCategory(category)}>
                       <PencilLine />
@@ -194,7 +196,7 @@ export function TaxonomyPanel() {
                       {category.isActive ? "停用" : "启用"}
                     </Button>
                   </div>
-                </AdminTableCell>
+                </AdminTableActionCell>
               </AdminTableRow>
             ))}
             {categoryTable.getRowModel().rows.length === 0 ? <AdminTableEmpty colSpan={5}>当前筛选下没有分类</AdminTableEmpty> : null}
@@ -258,13 +260,13 @@ export function TaxonomyPanel() {
               </Select>
             </AdminFilterField>
           </AdminFilterBar>
-          <AdminTable aria-label="平台标签">
+          <AdminTable aria-label="平台标签" className="min-w-[48rem]">
             <AdminTableHead>
               <tr>
                 <AdminTableHeader>标签名称</AdminTableHeader>
                 <AdminTableHeader className="text-right">排序</AdminTableHeader>
                 <AdminTableHeader>状态</AdminTableHeader>
-                <AdminTableHeader className="text-right">操作</AdminTableHeader>
+                <AdminTableActionHeader>操作</AdminTableActionHeader>
               </tr>
             </AdminTableHead>
             <AdminTableBody>
@@ -273,7 +275,7 @@ export function TaxonomyPanel() {
                 <AdminTableCell className="font-bold">#{tag.name}</AdminTableCell>
                 <AdminTableCell className="text-right font-utility text-xs">{tag.sortOrder}</AdminTableCell>
                 <AdminTableCell><Badge tone={tag.isActive ? "success" : "neutral"}>{tag.isActive ? "启用" : "停用"}</Badge></AdminTableCell>
-                <AdminTableCell>
+                <AdminTableActionCell>
                   <div className="flex justify-end">
                   <Button
                     type="button"
@@ -291,7 +293,7 @@ export function TaxonomyPanel() {
                     {tag.isActive ? "停用" : "启用"}
                   </Button>
                   </div>
-                </AdminTableCell>
+                </AdminTableActionCell>
               </AdminTableRow>
             ))}
             {tagTable.getRowModel().rows.length === 0 ? <AdminTableEmpty colSpan={4}>当前筛选下没有标签</AdminTableEmpty> : null}

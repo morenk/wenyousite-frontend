@@ -73,7 +73,8 @@ export function OperationsSettingsPanel() {
 
   return (
     <form
-      className="mx-auto max-w-5xl space-y-6"
+      data-slot="admin-operations-workspace"
+      className="w-full space-y-6"
       onSubmit={form.handleSubmit(async (values) => {
         try {
           await update.mutateAsync({

@@ -92,7 +92,7 @@ export function StationFrame({
   const dashboardActive = pathname === "/station/dashboard";
 
   return (
-    <div className="min-h-screen min-w-[1180px] bg-muted/55 text-foreground">
+    <div data-slot="station-shell" className="min-h-screen min-w-[1600px] bg-muted/55 text-foreground">
       <aside className="fixed inset-y-0 left-0 z-20 flex w-60 flex-col bg-foreground text-background">
         <div className="border-b border-background/15 px-6 py-5">
           <Link href="/station/dashboard" className="flex items-center gap-3">
@@ -203,7 +203,12 @@ export function StationFrame({
             安全会话已连接
           </p>
         </header>
-        <main className={cn(fullBleed ? "h-[calc(100vh-4.75rem)]" : "p-6")}>{children}</main>
+        <main
+          data-slot="station-workspace"
+          className={cn(fullBleed ? "h-[calc(100vh-4.75rem)]" : "p-6")}
+        >
+          {children}
+        </main>
       </div>
     </div>
   );

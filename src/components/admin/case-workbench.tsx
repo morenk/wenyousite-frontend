@@ -29,6 +29,8 @@ import {
 } from "@/components/admin/admin-list-controls";
 import {
   AdminTable,
+  AdminTableActionCell,
+  AdminTableActionHeader,
   AdminTableBody,
   AdminTableCell,
   AdminTableEmpty,
@@ -200,7 +202,7 @@ export function CaseWorkbench() {
   };
 
   return (
-    <div className="grid h-full grid-cols-[34rem_minmax(0,1fr)] overflow-hidden">
+    <div data-slot="admin-primary-detail" className="grid h-full grid-cols-[32rem_minmax(0,1fr)] overflow-hidden">
       <section className="flex min-h-0 flex-col border-r border-border bg-card">
         <div className="border-b border-border p-4">
           <div className="grid grid-cols-3 rounded-lg bg-muted p-1 text-xs font-bold">
@@ -245,11 +247,19 @@ export function CaseWorkbench() {
           </AdminFilterField>
         </AdminFilterBar>
         <div className="min-h-0 flex-1 overflow-y-auto">
-          <AdminTable aria-label="治理案件队列">
+          <AdminTable aria-label="治理案件队列" className="min-w-[56rem]">
             <AdminTableHead className="sticky top-0 z-10">
               {table.getHeaderGroups().map((group) => (
                 <tr key={group.id}>
-                  {group.headers.map((header) => <AdminTableHeader key={header.id} className={header.column.id === "actions" ? "text-right" : undefined}>{flexRender(header.column.columnDef.header, header.getContext())}</AdminTableHeader>)}
+                  {group.headers.map((header) => header.column.id === "actions" ? (
+                    <AdminTableActionHeader key={header.id}>
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                    </AdminTableActionHeader>
+                  ) : (
+                    <AdminTableHeader key={header.id}>
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                    </AdminTableHeader>
+                  ))}
                 </tr>
               ))}
             </AdminTableHead>
@@ -258,8 +268,14 @@ export function CaseWorkbench() {
               {cases.isError ? <AdminTableEmpty colSpan={5}><span className="text-destructive">案件队列加载失败</span></AdminTableEmpty> : null}
               {table.getRowModel().rows.map((row) => (
                 <AdminTableRow key={row.id} data-selected={selectedId === row.original.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <AdminTableCell key={cell.id} className={cell.column.id === "actions" ? "text-right" : undefined}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</AdminTableCell>
+                  {row.getVisibleCells().map((cell) => cell.column.id === "actions" ? (
+                    <AdminTableActionCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </AdminTableActionCell>
+                  ) : (
+                    <AdminTableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </AdminTableCell>
                   ))}
                 </AdminTableRow>
               ))}
@@ -317,7 +333,7 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
     : actionOptions;
 
   return (
-    <div className="mx-auto max-w-[76rem] px-7 py-7">
+    <div className="w-full px-7 py-7">
       <div className="flex items-start justify-between gap-6 border-b border-border pb-6">
         <div>
           <div className="flex items-center gap-2">
@@ -333,7 +349,7 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
         </div>
       </div>
 
-      <div className={cn("grid gap-7 py-7", detail.status === "OPEN" ? "grid-cols-[minmax(0,1fr)_23rem]" : "grid-cols-1")}>
+      <div className={cn("grid gap-7 py-7", detail.status === "OPEN" ? "grid-cols-[minmax(0,1fr)_26rem]" : "grid-cols-1")}>
         <div className="min-w-0 space-y-7">
           <section>
             <div className="mb-3 flex items-center gap-2">
@@ -387,7 +403,7 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
         </div>
 
         {detail.status === "OPEN" ? (
-          <aside className="self-start rounded-2xl border border-border bg-card p-5">
+          <aside data-slot="admin-action-rail" className="self-start rounded-2xl border border-border bg-card p-5">
             <p className="font-utility text-xs font-bold tracking-[0.1em] text-muted-foreground">案件处置</p>
             <h3 className="mt-1 font-display text-xl font-medium">形成治理决定</h3>
             <p className="mt-2 text-xs leading-5 text-muted-foreground">公开说明会提供给被处置用户，并成为申诉依据。</p>
