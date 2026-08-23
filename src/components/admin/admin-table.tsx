@@ -3,7 +3,10 @@ import { cn } from "@/lib/utils";
 
 export function AdminTable({ className, ...props }: ComponentProps<"table">) {
   return (
-    <div data-slot="admin-table-scroll" className="max-w-full overflow-x-auto">
+    <div
+      data-slot="admin-table-scroll"
+      className="w-full min-w-0 max-w-full overflow-x-auto overscroll-x-contain"
+    >
       <table
         data-slot="admin-table"
         className={cn("w-full border-separate border-spacing-0 text-left text-sm", className)}

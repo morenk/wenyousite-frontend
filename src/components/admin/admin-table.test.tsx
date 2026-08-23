@@ -25,7 +25,13 @@ describe("管理员数据表", () => {
     );
 
     expect(container.querySelector('[data-slot="admin-table-scroll"]'))
-      .toHaveClass("max-w-full", "overflow-x-auto");
+      .toHaveClass(
+        "w-full",
+        "min-w-0",
+        "max-w-full",
+        "overflow-x-auto",
+        "overscroll-x-contain",
+      );
     expect(screen.getByRole("table", { name: "测试登记册" }))
       .toHaveClass("min-w-[56rem]");
     expect(screen.getByRole("columnheader", { name: "操作" }))

@@ -84,7 +84,7 @@ async function mockStation(page: Page) {
   });
 }
 
-test.describe("1600px 站务操作台布局", () => {
+test.describe("站务台流体工作区布局", () => {
   test.beforeEach(async ({ page }) => {
     await mockStation(page);
   });
@@ -98,8 +98,19 @@ test.describe("1600px 站务操作台布局", () => {
     const shell = page.locator('[data-slot="station-shell"]');
     const workspace = page.locator('[data-layout="full-table"]');
     const tableScroller = page.locator('[data-slot="admin-table-scroll"]');
-    await expect(shell).toHaveCSS("min-width", "1600px");
-    await expect(workspace).toHaveCSS("width", "1312px");
+    const pageWidth = await page.evaluate(() => ({
+      client: document.documentElement.clientWidth,
+      scroll: document.documentElement.scrollWidth,
+    }));
+    expect(pageWidth.scroll).toBeLessThanOrEqual(pageWidth.client);
+
+    const shellBox = await shell.boundingBox();
+    const workspaceBox = await workspace.boundingBox();
+    expect(shellBox).not.toBeNull();
+    expect(workspaceBox).not.toBeNull();
+    expect(shellBox!.width).toBeCloseTo(pageWidth.scroll, 0);
+    expect(workspaceBox!.x).toBeCloseTo(264, 0);
+    expect(workspaceBox!.x + workspaceBox!.width).toBeCloseTo(shellBox!.width - 24, 0);
     await expect(page.locator('[data-slot="admin-action-rail"]')).toHaveCount(0);
 
     const tableBox = await tableScroller.boundingBox();
@@ -112,7 +123,9 @@ test.describe("1600px 站务操作台布局", () => {
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole("button", { name: "暂停账号" })).toBeVisible();
     await expect(dialog.getByRole("button", { name: "永久封禁" })).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1600);
+    expect(await page.evaluate(() => (
+      document.documentElement.scrollWidth <= document.documentElement.clientWidth
+    ))).toBe(true);
     await expect(page).toHaveScreenshot("station-users-1600.png", {
       animations: "disabled",
       fullPage: true,
@@ -144,18 +157,25 @@ test.describe("1600px 站务操作台布局", () => {
     });
   });
 
-  test("1366px 下保留固定画布，案件台账全宽且操作弹窗可用", async ({ page }) => {
+  test("1366px 下页面不横向滚动，案件台账占满导航右侧", async ({ page }) => {
     await page.setViewportSize({ width: 1366, height: 900 });
     await page.goto("/station/cases");
     await expect(page.getByRole("heading", { name: "案件工作台" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "形成治理决定" })).toHaveCount(0);
 
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeGreaterThanOrEqual(1600);
+    const pageWidth = await page.evaluate(() => ({
+      client: document.documentElement.clientWidth,
+      scroll: document.documentElement.scrollWidth,
+    }));
+    expect(pageWidth.client).toBe(1366);
+    expect(pageWidth.scroll).toBeLessThanOrEqual(pageWidth.client);
     const workspace = page.locator('[data-layout="full-table"]');
     const queue = workspace.locator("section").first();
     const queueBox = await queue.boundingBox();
     expect(queueBox).not.toBeNull();
-    expect(queueBox!.width).toBeGreaterThan(1300);
+    expect(queueBox!.x).toBeCloseTo(240, 0);
+    expect(queueBox!.width).toBeCloseTo(pageWidth.scroll - 240, 0);
+    expect(queueBox!.x + queueBox!.width).toBeCloseTo(pageWidth.scroll, 0);
     await expect(page.locator('[data-slot="admin-action-rail"]')).toHaveCount(0);
 
     const tableScroller = queue.locator('[data-slot="admin-table-scroll"]');
@@ -175,5 +195,35 @@ test.describe("1600px 站务操作台布局", () => {
     const dialogBox = await dialog.boundingBox();
     expect(dialogBox).not.toBeNull();
     expect(dialogBox!.width).toBeGreaterThan(1100);
+  });
+
+  test("窄桌面下只有表格容器横向滚动，操作列固定在表格右缘", async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 900 });
+    await page.goto("/station/announcements");
+    await expect(page.getByRole("heading", { name: "站内通知", exact: true })).toBeVisible();
+    await expect(page.getByText(campaign.title)).toBeVisible();
+
+    const tableScroller = page.locator('[data-slot="admin-table-scroll"]');
+    const tableOverflow = await tableScroller.evaluate((element) => ({
+      clientWidth: element.clientWidth,
+      scrollWidth: element.scrollWidth,
+    }));
+    expect(tableOverflow.clientWidth).toBeLessThan(tableOverflow.scrollWidth);
+    expect(tableOverflow.scrollWidth).toBeGreaterThanOrEqual(1024);
+
+    await tableScroller.evaluate((element) => {
+      element.scrollLeft = element.scrollWidth;
+    });
+    expect(await tableScroller.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+    expect(await page.evaluate(() => document.scrollingElement?.scrollLeft ?? 0)).toBe(0);
+    expect(await page.evaluate(() => (
+      document.documentElement.scrollWidth <= document.documentElement.clientWidth
+    ))).toBe(true);
+
+    const scrollBox = await tableScroller.boundingBox();
+    const actionCellBox = await page.getByRole("cell", { name: "取消", exact: true }).boundingBox();
+    expect(scrollBox).not.toBeNull();
+    expect(actionCellBox).not.toBeNull();
+    expect(actionCellBox!.x + actionCellBox!.width).toBeCloseTo(scrollBox!.x + scrollBox!.width, 0);
   });
 });

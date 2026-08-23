@@ -55,14 +55,18 @@ describe("StationFrame navigation", () => {
     expect(screen.getByRole("link", { name: "决定轨迹" })).toBeInTheDocument();
   });
 
-  it("以 1600px 固定桌面画布保护站务工作区", () => {
+  it("固定全局导航并让右侧工作区适配剩余视口", () => {
     const { container } = render(
       <StationFrame title="分类与标签" eyebrow="Taxonomy"><div>内容</div></StationFrame>,
     );
 
     expect(container.querySelector('[data-slot="station-shell"]'))
-      .toHaveClass("min-w-[1600px]");
+      .toHaveClass("w-full", "min-w-0", "overflow-x-hidden");
+    expect(container.querySelector('[data-slot="station-shell"]'))
+      .not.toHaveClass("min-w-[1600px]");
+    expect(container.querySelector('[data-slot="station-content"]'))
+      .toHaveClass("min-w-0", "pl-60");
     expect(container.querySelector('[data-slot="station-workspace"]'))
-      .toHaveClass("p-6");
+      .toHaveClass("min-w-0", "max-w-full", "p-6");
   });
 });
