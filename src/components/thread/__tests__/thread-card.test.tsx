@@ -104,7 +104,7 @@ describe("ThreadCard", () => {
     );
   });
 
-  test("作者有头像时渲染缩略图", () => {
+  test("作者有头像时渲染接口返回的母版", () => {
     const withAvatar = {
       ...baseThread,
       owner: {
@@ -117,7 +117,7 @@ describe("ThreadCard", () => {
     renderThreadCard(withAvatar);
     expect(screen.getByRole("img")).toHaveAttribute(
       "src",
-      "https://example.com/u_thumb.webp",
+      "https://example.com/u.png",
     );
   });
 

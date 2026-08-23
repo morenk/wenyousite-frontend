@@ -8,7 +8,6 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { cn } from "@/lib/utils";
-import { getImageUrlBySize } from "@/lib/upload-image";
 
 const DEACTIVATED_USER_NAME = "已注销用户";
 const ANONYMOUS_USER_NAME = "匿名用户";
@@ -69,10 +68,11 @@ function AvatarImage({ name, src, className, textClassName }: UserAvatarProps & 
   if (failed) {
     return <InitialAvatar name={name} src={null} className={className} textClassName={textClassName} />;
   }
+  // AVATAR 只生成 512×512 WebP 母版；接口 URL 可直接展示，不能拼接通用派生图后缀。
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={getImageUrlBySize(src, "thumb")}
+      src={src}
       alt={name}
       className={cn("shrink-0 overflow-hidden rounded-full object-cover", className)}
       onError={() => setFailed(true)}

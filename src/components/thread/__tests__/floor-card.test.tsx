@@ -175,7 +175,7 @@ describe("FloorCard", () => {
     expect(card?.parentElement).not.toHaveClass("border-primary", "ring-2");
   });
 
-  test("作者有头像时渲染缩略图", () => {
+  test("作者有头像时渲染接口返回的母版", () => {
     const withAvatar = {
       ...baseFloor,
       author: { id: "u1", username: "测试用户", avatar: "https://example.com/a.png", level: 1 },
@@ -183,7 +183,7 @@ describe("FloorCard", () => {
     renderWithQC(<FloorCard floor={withAvatar} />);
     expect(screen.getByRole("img")).toHaveAttribute(
       "src",
-      "https://example.com/a_thumb.webp",
+      "https://example.com/a.png",
     );
   });
 

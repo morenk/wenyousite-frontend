@@ -1,4 +1,4 @@
-/** UserAvatar 组件测试：有 URL 用缩略图，无则首字符占位 */
+/** UserAvatar 组件测试：有 URL 用头像母版，无则首字符占位 */
 
 import { describe, test, expect, afterEach } from "vitest";
 import { render, screen, cleanup, fireEvent } from "@testing-library/react";
@@ -22,11 +22,11 @@ describe("UserAvatar", () => {
     expect(el.className).toContain("text-[10px]");
   });
 
-  test("有头像渲染 _thumb.webp 缩略图", () => {
+  test("有头像直接使用接口返回的母版 URL", () => {
     render(<UserAvatar name="alice" src="https://example.com/uploads/avatar.png" />);
     expect(screen.getByRole("img")).toHaveAttribute(
       "src",
-      "https://example.com/uploads/avatar_thumb.webp",
+      "https://example.com/uploads/avatar.png",
     );
     expect(screen.getByRole("img")).toHaveAttribute("alt", "alice");
     expect(screen.queryByTestId("user-avatar-placeholder")).not.toBeInTheDocument();

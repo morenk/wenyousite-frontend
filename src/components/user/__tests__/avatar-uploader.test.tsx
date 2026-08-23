@@ -26,8 +26,6 @@ vi.mock("@/lib/upload-image", () => ({
   uploadImageFile: mockUploadImageFile,
   validateAvatarFile: mockValidateAvatarFile,
   isUploadAbortError: (error: unknown) => error instanceof DOMException && error.name === "AbortError",
-  getImageUrlBySize: (url: string, size: "md" | "thumb") =>
-    size === "thumb" && !url.endsWith(".svg") ? url.replace(/\.[^.]+$/, "_thumb.webp") : url,
 }));
 
 vi.mock("@/lib/avatar-crop", () => ({
@@ -85,12 +83,12 @@ describe("AvatarUploader", () => {
     expect(screen.queryByRole("button", { name: /移除头像/ })).not.toBeInTheDocument();
   });
 
-  test("有头像显示缩略图与移除按钮", () => {
+  test("有头像显示母版与移除按钮", () => {
     renderUploader({ avatar: "https://example.com/uploads/avatar.png" });
     expect(screen.queryByTestId("user-avatar-placeholder")).not.toBeInTheDocument();
     expect(screen.getByRole("img")).toHaveAttribute(
       "src",
-      "https://example.com/uploads/avatar_thumb.webp",
+      "https://example.com/uploads/avatar.png",
     );
     expect(screen.getByRole("button", { name: /移除头像/ })).toBeInTheDocument();
   });

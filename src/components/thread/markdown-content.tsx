@@ -14,7 +14,7 @@ import {
 import ReactMarkdown, { type ExtraProps } from "react-markdown";
 import { createPortal } from "react-dom";
 import remarkGfm from "remark-gfm";
-import { getImageUrlBySize } from "@/lib/upload-image";
+import { getMarkdownImageVariantUrl } from "@/lib/upload-image";
 import { sanitizeMilkdownMarkdown } from "@/lib/markdown";
 import {
   DICE_INLINE_MARKER_SOURCE,
@@ -123,7 +123,7 @@ function MarkdownImage({ src, alt, title, sourcePostId }: ImageProps & { sourceP
   const originalUrl = typeof src === "string" ? src : "";
   const sticker = typeof title === "string" && title.startsWith("wenyousite-sticker:v1:");
   const mediumUrl = isUploadedMediaUrl(originalUrl) && !isGifUrl(originalUrl)
-    ? getImageUrlBySize(originalUrl, "md")
+    ? getMarkdownImageVariantUrl(originalUrl, "md")
     : originalUrl;
   const [failed, setFailed] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);

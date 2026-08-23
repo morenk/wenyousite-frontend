@@ -80,7 +80,7 @@
 | 状态 | thread.status | 招募中/已停招/已结束 |
 | 玩家数 | thread._count.players | 数字（被楼主授予玩家身份者） |
 | 楼层数 | thread._count.posts | 数字 |
-| 作者 | thread.owner | 头像（`_thumb.webp`，无则首字符占位）+ 用户名 + Lv.等级 |
+| 作者 | thread.owner | 头像母版（无则首字符占位）+ 用户名 + Lv.等级 |
 | 创作激励 | thread.tipTotal | 公开累计获得温油总额（整数升） |
 | 最后活跃 | thread.updatedAt | date-fns 相对时间 |
 

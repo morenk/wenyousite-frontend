@@ -243,8 +243,8 @@
 | UserProfileTabFallback | `src/components/user/user-profile-tab-fallback.tsx` | Tab 路由慢速切换的局部内容骨架，不重复资料头部、导航或 PageShell |
 | UserActivitySummaryCard | `src/components/user/user-activity-summary.tsx` | 概览四项创作统计；精确数字、隐私占位及动态/帖子/最近回复入口 |
 | UserProfileCard | `src/components/user/user-profile-card.tsx` | 用户主页头部：有背景图时显示 3:1 背景墙和明确置顶的半覆盖头像；无背景图时回退紧凑默认资料卡 |
-| ProfileCover | `src/components/user/profile-cover.tsx` | 背景图展示：支持 Web 3:1 / 移动端 2:1 占位，通过 `srcset` 按视口/DPR 自适应选择 800px 中图或高清原图，并保留原图回退与加载失败状态 |
-| UserAvatar | `src/components/shared/user-avatar.tsx` | 共享头像组件：有 URL 用 `_thumb.webp` 缩略图，无图或加载失败时显示首个可读字符；匿名、已注销或不可用身份忽略旧 URL 并使用中性用户图标；公开资料不显示邮箱验证状态 |
+| ProfileCover | `src/components/user/profile-cover.tsx` | 背景图展示：支持 Web 3:1 / 移动端 2:1 占位；当前 `PROFILE_COVER` 不生成通用派生图，直接使用接口母版，历史响应若含 `mediumUrl` 则通过 `srcset` 按视口/DPR 选择，并保留原图回退与加载失败状态 |
+| UserAvatar | `src/components/shared/user-avatar.tsx` | 共享头像组件：直接使用接口返回的 512×512 WebP 头像母版，不猜测不存在的派生图 URL；无图或加载失败时显示首个可读字符；匿名、已注销或不可用身份忽略旧 URL 并使用中性用户图标；公开资料不显示邮箱验证状态 |
 | FollowButton | `src/components/user/follow-button.tsx` | 关注/取消关注切换（未登录跳 /login） |
 | BlockButton | `src/components/user/block-button.tsx` | 拉黑/取消拉黑切换（全局无障碍确认框二次确认） |
 | UserFollowList | `src/components/user/user-follow-list.tsx` | 关注/粉丝列表（头像 + 用户名链接 + 三态，复用两种列表） |
@@ -256,7 +256,7 @@
 | UserBookmarksPage | `src/components/user/user-bookmarks-page.tsx` | 收藏 Tab：尊重公开权限，无权限时不发起收藏请求 |
 | DraftList | `src/components/user/draft-list.tsx` | 草稿箱列表（标题/分类/更新时间/继续编辑/删除） |
 | UsernameEdit | `src/components/user/username-edit.tsx` | 独立用户名修改（默认只读，点「修改用户名」才进入编辑态，未改动不提交） |
-| AvatarUploader | `src/components/user/avatar-uploader.tsx` | 头像上传器：预览（`_thumb.webp` 缩略图/首字母占位）→ 文件选择校验（仅 jpg/png/webp，排除 svg）→ 共享 Dialog 内用 react-easy-crop 1:1 裁剪 → canvas 导出 512×512 webp → 上传（预签名+真实字节进度+可取消直传+同 ID 恢复）→ `PATCH /me/avatar` 立即生效；绑定失败重试复用已上传 mediaId；「移除头像」调 `DELETE /me/avatar` |
+| AvatarUploader | `src/components/user/avatar-uploader.tsx` | 头像上传器：预览（512×512 WebP 母版/首字母占位）→ 文件选择校验（仅 jpg/png/webp，排除 svg）→ 共享 Dialog 内用 react-easy-crop 1:1 裁剪 → canvas 导出 512×512 webp → 上传（预签名+真实字节进度+可取消直传+同 ID 恢复）→ `PATCH /me/avatar` 立即生效；绑定失败重试复用已上传 mediaId；「移除头像」调 `DELETE /me/avatar` |
 | ProfileCoverUploader | `src/components/user/profile-cover-uploader.tsx` | 双画幅背景上传器：同一原图分别调整 Web 3:1 与移动端 2:1 取景框 → 并行生成 1920×640 / 1600×800 高质量 WebP → 并行上传并聚合进度 → 原子绑定；支持失败续传、取消、更换和同时移除 |
 | ChangePasswordForm | `src/components/user/change-password-form.tsx` | 修改密码表单（当前/新/确认密码，PasswordInput 显隐切换），成功后登出跳登录 |
 | ChangeEmailForm | `src/components/user/change-email-form.tsx` | 更换邮箱表单（当前密码二次认证 → 新邮箱 → 验证码），成功后失效 me 缓存并跳转 `/me` |

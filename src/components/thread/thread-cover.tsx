@@ -3,7 +3,7 @@
 "use client";
 
 import { useState } from "react";
-import { getImageUrlBySize } from "@/lib/upload-image";
+import { getMarkdownImageVariantUrl } from "@/lib/upload-image";
 import { cn } from "@/lib/utils";
 
 interface ThreadCoverProps {
@@ -27,7 +27,7 @@ function isGifUrl(url: string): boolean {
 export function ThreadCover({ image, className }: ThreadCoverProps) {
   const originalUrl = image?.trim() ?? "";
   const feedUrl = isUploadedMediaUrl(originalUrl) && !isGifUrl(originalUrl)
-    ? getImageUrlBySize(originalUrl, "feed")
+    ? getMarkdownImageVariantUrl(originalUrl, "feed")
     : originalUrl;
   const [originalFallbackUrl, setOriginalFallbackUrl] = useState<string | null>(null);
   const [failedUrl, setFailedUrl] = useState<string | null>(null);

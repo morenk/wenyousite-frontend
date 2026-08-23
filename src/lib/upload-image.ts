@@ -575,9 +575,10 @@ export async function uploadImage(
   return result.url;
 }
 
-export function getImageUrlBySize(
+/** Markdown 仅持久化主图 URL；RICH_CONTENT/LEGACY 明确生成的中图与信息流图由此定位。 */
+export function getMarkdownImageVariantUrl(
   url: string,
-  size: "feed" | "md" | "thumb",
+  size: "feed" | "md",
 ): string {
   if (url.endsWith(".svg")) return url;
   const suffix = `_${size}.webp`;

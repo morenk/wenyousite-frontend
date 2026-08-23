@@ -49,7 +49,7 @@
 | ImageLightbox | `src/components/shared/image-lightbox.tsx` | 基于共享 Dialog 的原图查看器：焦点圈定、滚动锁定、适应屏幕 / 1:1 / 滚轮缩放 / 拖拽 / Esc / 点背景关闭；thread 路径仅保留兼容导出 |
 | Progress | `src/components/ui/progress.tsx` | 基于已安装 Base UI Progress 的统一无障碍进度原语 |
 | ImageUploadProgress | `src/components/shared/image-upload-progress.tsx` | 准备/上传/处理三阶段反馈；上传阶段显示真实字节、百分比并可按场景提供取消 |
-| getImageUrlBySize | `src/lib/upload-image.ts` | Markdown 历史兼容：本站主图 URL → 确定性派生图 URL（SVG 原样返回） |
+| getMarkdownImageVariantUrl | `src/lib/upload-image.ts` | Markdown 图片专用：本站正文主图 URL → 后端明确生成的中图/信息流图 URL（SVG 原样返回）；结构化媒体不得调用 |
 | DirectMessageBubble | `src/components/message/direct-message-bubble.tsx` | 私聊静态图消费 `media.mediumUrl`，GIF 使用 `media.url`，不推导对象存储 key |
 
 **接入点：**

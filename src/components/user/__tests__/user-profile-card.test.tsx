@@ -146,6 +146,27 @@ describe("UserProfileCard", () => {
     );
   });
 
+  test("背景图不生成通用派生图时直接使用接口母版", () => {
+    renderWithQC(
+      <UserProfileCard
+        user={{
+          ...sampleUser,
+          profileCover: {
+            url: "https://example.com/cover.webp",
+            mediumUrl: null,
+            width: 1920,
+            height: 640,
+            mobile: null,
+          },
+        }}
+      />,
+    );
+
+    const cover = screen.getByRole("img", { name: "testuser 的主页背景" });
+    expect(cover).toHaveAttribute("src", "https://example.com/cover.webp");
+    expect(cover).not.toHaveAttribute("srcset");
+  });
+
   test("响应式候选图失败后回退原图，原图也失败才显示错误状态", () => {
     renderWithQC(
       <UserProfileCard

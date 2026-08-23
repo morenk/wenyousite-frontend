@@ -17,7 +17,7 @@ import {
   validateImageFile,
   validateAvatarFile,
   validateProfileCoverFile,
-  getImageUrlBySize,
+  getMarkdownImageVariantUrl,
 } from "@/lib/upload-image";
 
 type XhrMode = "success" | "pending" | "timeout" | "error" | "http-error" | "throw";
@@ -198,42 +198,35 @@ describe("validateProfileCoverFile", () => {
   });
 });
 
-describe("getImageUrlBySize", () => {
+describe("getMarkdownImageVariantUrl", () => {
   const baseUrl = "https://example.com/uploads/image.png";
 
   test("md 尺寸返回 _md.webp 后缀", () => {
-    expect(getImageUrlBySize(baseUrl, "md")).toBe(
+    expect(getMarkdownImageVariantUrl(baseUrl, "md")).toBe(
       "https://example.com/uploads/image_md.webp",
     );
   });
 
-  test("thumb 尺寸返回 _thumb.webp 后缀", () => {
-    expect(getImageUrlBySize(baseUrl, "thumb")).toBe(
-      "https://example.com/uploads/image_thumb.webp",
-    );
-  });
-
   test("feed 尺寸返回 _feed.webp 后缀", () => {
-    expect(getImageUrlBySize(baseUrl, "feed")).toBe(
+    expect(getMarkdownImageVariantUrl(baseUrl, "feed")).toBe(
       "https://example.com/uploads/image_feed.webp",
     );
   });
 
   test("svg 文件不添加后缀（保持原 URL）", () => {
     const svgUrl = "https://example.com/uploads/icon.svg";
-    expect(getImageUrlBySize(svgUrl, "md")).toBe(svgUrl);
-    expect(getImageUrlBySize(svgUrl, "thumb")).toBe(svgUrl);
+    expect(getMarkdownImageVariantUrl(svgUrl, "md")).toBe(svgUrl);
   });
 
   test("无扩展名的 URL 按 lastIndexOf '.' 处理", () => {
-    const result = getImageUrlBySize("https://example.com/uploads/img", "md");
+    const result = getMarkdownImageVariantUrl("https://example.com/uploads/img", "md");
     expect(result).toContain("_md.webp");
   });
 
   test("多级路径的图片正确替换", () => {
     const url = "https://cdn.example.com/a/b/c/photo.jpeg";
-    expect(getImageUrlBySize(url, "thumb")).toBe(
-      "https://cdn.example.com/a/b/c/photo_thumb.webp",
+    expect(getMarkdownImageVariantUrl(url, "feed")).toBe(
+      "https://cdn.example.com/a/b/c/photo_feed.webp",
     );
   });
 });

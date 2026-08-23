@@ -305,7 +305,7 @@ describe("ReplyList", () => {
     expect(mockToastSuccess).toHaveBeenCalledWith("文本已复制");
   });
 
-  test("作者有头像时渲染缩略图", () => {
+  test("作者有头像时渲染接口返回的母版", () => {
     mockUseReplies.mockReturnValue(
       dataWithReplies([
         baseReply({ author: { id: "u2", username: "replier", avatar: "https://example.com/r.png", level: 1 } }),
@@ -314,7 +314,7 @@ describe("ReplyList", () => {
     render(<ReplyList postId="post-1" />, { wrapper: createWrapper() });
     expect(screen.getByRole("img")).toHaveAttribute(
       "src",
-      "https://example.com/r_thumb.webp",
+      "https://example.com/r.png",
     );
   });
 

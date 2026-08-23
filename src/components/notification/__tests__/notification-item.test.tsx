@@ -402,7 +402,7 @@ describe("NotificationItem", () => {
     );
   });
 
-  test("操作者有头像时渲染缩略图", () => {
+  test("操作者有头像时渲染接口返回的母版", () => {
     renderWithQC(
       <NotificationItem
         notification={baseNotification({
@@ -412,7 +412,7 @@ describe("NotificationItem", () => {
     );
     expect(screen.getByRole("img")).toHaveAttribute(
       "src",
-      "https://example.com/uploads/a_thumb.webp",
+      "https://example.com/uploads/a.png",
     );
     expect(screen.queryByTestId("user-avatar-placeholder")).not.toBeInTheDocument();
   });
