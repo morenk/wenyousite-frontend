@@ -29,15 +29,8 @@ export function AuthPageShell({ title, description, children, footer }: AuthPage
           <span className="font-display text-2xl font-medium text-foreground">温油站</span>
         </Link>
         <h1 className="mt-9 font-display text-4xl leading-[1.35] font-medium tracking-wide text-foreground">
-          文字共同创作社区
+          最温油的文字共创社区
         </h1>
-        <div className="mt-8 flex max-w-sm items-center font-utility text-sm font-bold text-muted-foreground" aria-label="从构思到共同留存">
-          <span className="rounded-full border border-border bg-card px-3 py-1">构思</span>
-          <span className="mx-2 h-px flex-1 bg-border" aria-hidden="true" />
-          <span className="rounded-full border border-border bg-card px-3 py-1">共创</span>
-          <span className="mx-2 h-px flex-1 bg-border" aria-hidden="true" />
-          <span className="rounded-full border border-border bg-card px-3 py-1">留存</span>
-        </div>
       </section>
 
       <div className="mx-auto w-full max-w-md">
