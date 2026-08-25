@@ -37,7 +37,10 @@ import { $inputRule, $view } from "@milkdown/kit/utils";
 import { useDebounce } from "use-debounce";
 import { toast } from "sonner";
 import { ImageUploadProgress } from "@/components/shared/image-upload-progress";
-import { sanitizeMilkdownMarkdown } from "@/lib/markdown";
+import {
+  prepareMilkdownEditorMarkdown,
+  sanitizeMilkdownMarkdown,
+} from "@/lib/markdown";
 import type {
   UploadImageOptions,
   UploadImageProgress as UploadImageProgressValue,
@@ -536,7 +539,7 @@ export function MilkdownEditorHost({
     (root) => {
       const crepe = new CrepeBuilder({
         root,
-        defaultValue: sanitizeMilkdownMarkdown(initialValue),
+        defaultValue: prepareMilkdownEditorMarkdown(initialValue),
       });
 
       // H2/H3 以外的标题以及代码块、任务列表、表格输入规则不属于工具栏能力白名单。

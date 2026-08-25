@@ -85,6 +85,49 @@ afterAll(async () => {
 });
 
 describe("MilkdownEditor 能力分层", () => {
+  test("重开时逐个恢复连续空段，编辑后仍按相同数量序列化", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const { container } = renderEditor(
+      "第一段\n\n<br />\n<br />\n<br />\n\n第二段",
+      "楼层正文",
+      onChange,
+    );
+    const editor = await getEditor(container);
+    const paragraphs = editor.querySelectorAll(":scope > p");
+
+    expect(paragraphs).toHaveLength(5);
+    expect([...paragraphs].map((paragraph) => paragraph.textContent)).toEqual([
+      "第一段",
+      "",
+      "",
+      "",
+      "第二段",
+    ]);
+
+    await user.click(paragraphs[4]!);
+    await user.type(paragraphs[4]!, "补充");
+    await waitFor(() => {
+      const value = onChange.mock.calls.at(-1)?.[0] as string | undefined;
+      expect(value?.match(/^<br \/>$/gmu)).toHaveLength(3);
+      expect(value).toContain("第二段补充");
+    });
+  });
+
+  test("重开历史正文时把原始多余空行恢复为可编辑空段", async () => {
+    const { container } = renderEditor("第一段\n\n\n\n第二段", "历史楼层正文");
+    const editor = await getEditor(container);
+    const paragraphs = editor.querySelectorAll(":scope > p");
+
+    expect(paragraphs).toHaveLength(4);
+    expect([...paragraphs].map((paragraph) => paragraph.textContent)).toEqual([
+      "第一段",
+      "",
+      "",
+      "第二段",
+    ]);
+  });
+
   test("正文输入区提供可配置的可访问名称", async () => {
     const { container } = renderEditor("正文", "主帖正文");
 

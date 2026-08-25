@@ -6,6 +6,8 @@ import {
   findUnsupportedMarkdownFormats,
   hasVisibleMarkdownContent,
   literalizeUnsupportedMarkdown,
+  prepareMilkdownEditorMarkdown,
+  recoverLegacyMarkdownEmptyParagraphs,
   sanitizeMilkdownMarkdown,
 } from "@/lib/markdown";
 import markdownV3Fixtures from "../../../contracts/markdown-v3-fixtures.json";
@@ -125,6 +127,63 @@ describe("sanitizeMilkdownMarkdown", () => {
   test("清理空 URL 图片但保留空段落", () => {
     expect(sanitizeMilkdownMarkdown("![1.00]()\n\n<br />\n正文")).toBe(
       "\n\n<br />\n正文",
+    );
+  });
+});
+
+describe("recoverLegacyMarkdownEmptyParagraphs", () => {
+  test("保留普通段落边界，只恢复内部多余空行", () => {
+    expect(recoverLegacyMarkdownEmptyParagraphs("第一段\n\n第二段")).toBe(
+      "第一段\n\n第二段",
+    );
+    expect(recoverLegacyMarkdownEmptyParagraphs("第一段\n\n\n第二段")).toBe(
+      "第一段\n\n<br />\n\n第二段",
+    );
+    expect(recoverLegacyMarkdownEmptyParagraphs("第一段\n\n\n\n第二段")).toBe(
+      "第一段\n\n<br />\n\n<br />\n\n第二段",
+    );
+  });
+
+  test("逐个恢复首部空行，尾部只忽略一个格式化换行", () => {
+    expect(recoverLegacyMarkdownEmptyParagraphs("\n\n正文")).toBe(
+      "<br />\n\n<br />\n\n正文",
+    );
+    expect(recoverLegacyMarkdownEmptyParagraphs("正文\n")).toBe("正文\n");
+    expect(recoverLegacyMarkdownEmptyParagraphs("正文\n\n\n")).toBe(
+      "正文\n\n<br />\n\n<br />",
+    );
+  });
+
+  test("显式协议标记幂等且统一跨平台换行", () => {
+    const canonical = "第一段\n\n<br />\n<br />\n\n第二段";
+    expect(recoverLegacyMarkdownEmptyParagraphs(canonical)).toBe(canonical);
+    expect(
+      recoverLegacyMarkdownEmptyParagraphs("第一段\r\n\r\n\r\n第二段"),
+    ).toBe("第一段\n\n<br />\n\n第二段");
+  });
+
+  test("围栏和缩进代码中的空行不参与历史恢复", () => {
+    const fenced = "```text\n第一行\n\n\n第二行\n```";
+    const indented = "    第一行\n\n\n    第二行";
+    expect(recoverLegacyMarkdownEmptyParagraphs(fenced)).toBe(fenced);
+    expect(recoverLegacyMarkdownEmptyParagraphs(indented)).toBe(indented);
+  });
+});
+
+describe("prepareMilkdownEditorMarkdown", () => {
+  test("将相邻空段标记隔开供 Milkdown 逐段恢复", () => {
+    expect(
+      prepareMilkdownEditorMarkdown(
+        "第一段\n\n<br />\n<br>\n<br/>\n\n第二段",
+      ),
+    ).toBe(
+      "第一段\n\n<br />\n\n<br />\n\n<br />\n\n第二段",
+    );
+  });
+
+  test("历史原始空行在进入编辑器前转换为协议空段", () => {
+    expect(prepareMilkdownEditorMarkdown("第一段\n\n\n\n第二段")).toBe(
+      "第一段\n\n<br />\n\n<br />\n\n第二段",
     );
   });
 });

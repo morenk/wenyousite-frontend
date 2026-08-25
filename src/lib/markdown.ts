@@ -4,6 +4,7 @@ import MarkdownIt from "markdown-it";
 
 /** 匹配图片语法中括号为空的写法：![alt]() 或 ![alt]( ) */
 const EMPTY_IMAGE_REGEX = /!\[[^\]]*\]\(\s*\)/g;
+const markdownParser = new MarkdownIt({ html: true, linkify: true, typographer: false });
 
 /** 移除空 URL 的图片语法，避免序列化出破图（本站不支持外链图片，src 必填） */
 export function sanitizeEmptyImages(markdown: string): string {
@@ -57,10 +58,122 @@ function normalizeMilkdownMarkdown(markdown: string): string {
 }
 
 const EMPTY_PARAGRAPH_RE = /^ {0,3}<br\s*\/?>[\t ]*$/iu;
+const BLANK_LINE_RE = /^[\t ]*$/u;
 const TASK_LIST_RE = /^(?: {0,3}>[\t ]*)*[\t ]*(?:[-+*]|\d+[.)])[\t ]+\[[ xX]\](?:[\t ]|$)/u;
 const UNKNOWN_PROTOCOL_RE = /\[\[([a-z][a-z0-9_-]*):v(\d+):/giu;
 const WORD_JOINER = "\u2060";
 const MAX_LIST_DEPTH = 3;
+
+function legacyBlankLineProtectedLines(markdown: string): Set<number> {
+  const protectedLines = new Set<number>();
+  for (const token of markdownParser.parse(markdown, {})) {
+    if (!["fence", "code_block", "html_block"].includes(token.type) || !token.map) {
+      continue;
+    }
+    for (let line = token.map[0]; line < token.map[1]; line++) {
+      protectedLines.add(line);
+    }
+  }
+  return protectedLines;
+}
+
+function hasRecoverableLegacyBlankRun(lines: string[]): boolean {
+  let index = 0;
+  while (index < lines.length) {
+    if (!BLANK_LINE_RE.test(lines[index]!)) {
+      index++;
+      continue;
+    }
+    const start = index;
+    while (index < lines.length && BLANK_LINE_RE.test(lines[index]!)) index++;
+    const runLength = index - start;
+    if (start === 0 || runLength > 1) return true;
+  }
+  return false;
+}
+
+/**
+ * 阅读/编辑历史正文时恢复旧客户端写入的原始空行。
+ *
+ * CommonMark 会把段落之间任意数量的空行折叠为一次分段，因此仅把第二个及之后的
+ * 内部空行恢复为协议空段；首部空行逐个恢复，尾部保留一个格式化换行。代码与原始
+ * HTML 区域属于字面保护区，不参与这项启发式兼容。显式 `<br />` 本身保持幂等。
+ */
+export function recoverLegacyMarkdownEmptyParagraphs(markdown: string): string {
+  const normalized = markdown.replace(/\r\n?/g, "\n");
+  if (!normalized.includes("\n")) return normalized;
+
+  const lines = normalized.split("\n");
+  if (lines.every((line) => BLANK_LINE_RE.test(line))) return normalized;
+  if (!hasRecoverableLegacyBlankRun(lines)) return normalized;
+  const protectedLines = legacyBlankLineProtectedLines(normalized);
+
+  const output: string[] = [];
+  let index = 0;
+  while (index < lines.length) {
+    const line = lines[index]!;
+    if (!BLANK_LINE_RE.test(line) || protectedLines.has(index)) {
+      output.push(line);
+      index++;
+      continue;
+    }
+
+    const start = index;
+    while (
+      index < lines.length &&
+      BLANK_LINE_RE.test(lines[index]!) &&
+      !protectedLines.has(index)
+    ) {
+      index++;
+    }
+    const runLength = index - start;
+    const atStart = start === 0;
+    const atEnd = index === lines.length;
+
+    if (atStart) {
+      for (let count = 0; count < runLength; count++) {
+        output.push("<br />", "");
+      }
+      continue;
+    }
+
+    // 一个空行是普通段落边界（或尾部格式化换行），其余才是历史空段落。
+    output.push("");
+    for (let count = 1; count < runLength; count++) {
+      output.push("<br />");
+      if (!atEnd || count < runLength - 1) output.push("");
+    }
+  }
+
+  return output.join("\n");
+}
+
+/** 为 Milkdown 解析器隔开相邻协议标记；这些分隔空行不会成为编辑器段落。 */
+export function prepareMilkdownEditorMarkdown(markdown: string): string {
+  const lines = sanitizeMilkdownMarkdown(
+    recoverLegacyMarkdownEmptyParagraphs(markdown),
+  ).split("\n");
+  const output: string[] = [];
+
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index]!;
+    if (!EMPTY_PARAGRAPH_RE.test(line)) {
+      output.push(line);
+      continue;
+    }
+
+    if (output.length > 0 && !BLANK_LINE_RE.test(output.at(-1)!)) {
+      output.push("");
+    }
+    output.push("<br />");
+    const nextLine = lines[index + 1];
+    if (nextLine !== undefined && !BLANK_LINE_RE.test(nextLine)) {
+      output.push("");
+    }
+  }
+
+  return output.join("\n");
+}
 
 export const UNSUPPORTED_MARKDOWN_TYPE_LABELS = {
   table: "表格",
@@ -84,8 +197,6 @@ export interface UnsupportedMarkdownIssue {
   startLine: number;
   endLine: number;
 }
-
-const markdownParser = new MarkdownIt({ html: true, linkify: true, typographer: false });
 
 function issue(
   type: UnsupportedMarkdownType,

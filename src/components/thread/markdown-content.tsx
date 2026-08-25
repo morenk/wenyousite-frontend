@@ -15,7 +15,10 @@ import ReactMarkdown, { type ExtraProps } from "react-markdown";
 import { createPortal } from "react-dom";
 import remarkGfm from "remark-gfm";
 import { getMarkdownImageVariantUrl } from "@/lib/upload-image";
-import { sanitizeMilkdownMarkdown } from "@/lib/markdown";
+import {
+  recoverLegacyMarkdownEmptyParagraphs,
+  sanitizeMilkdownMarkdown,
+} from "@/lib/markdown";
 import {
   DICE_INLINE_MARKER_SOURCE,
   describeInlineDicePending,
@@ -190,14 +193,14 @@ const EMPTY_PARAGRAPH_RE = /^ {0,3}<br\s*\/?>[\t ]*$/iu;
 function remarkMilkdownEmptyParagraphs() {
   return (tree: MarkdownNode) => {
     if (!tree.children) return;
-    tree.children = tree.children.map((node) => {
-      if (node.type === "html" && EMPTY_PARAGRAPH_RE.test(node.value ?? "")) {
-        return {
-          type: "paragraph",
-          children: [{ type: "break" }],
-        };
-      }
-      return node;
+    tree.children = tree.children.flatMap((node) => {
+      if (node.type !== "html") return [node];
+      const lines = (node.value ?? "").split("\n");
+      if (!lines.every((line) => EMPTY_PARAGRAPH_RE.test(line))) return [node];
+      return lines.map(() => ({
+        type: "paragraph",
+        children: [{ type: "break" }],
+      }));
     });
   };
 }
@@ -332,7 +335,9 @@ function CollapsibleMarkdown({
   const [tooTall, setTooTall] = useState(false);
   const [expandedContent, setExpandedContent] = useState<string | null>(null);
   const contentId = useId();
-  const normalizedContent = sanitizeMilkdownMarkdown(content);
+  const normalizedContent = sanitizeMilkdownMarkdown(
+    recoverLegacyMarkdownEmptyParagraphs(content),
+  );
   const expanded = expandedContent === content;
   const diceRollsByNodeId = new Map(diceRolls.map((roll) => [roll.nodeId, roll]));
 

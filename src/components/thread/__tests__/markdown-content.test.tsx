@@ -198,6 +198,32 @@ describe("MarkdownContent", () => {
     expect(document.querySelectorAll("br")).toHaveLength(1);
   });
 
+  test("连续协议空段逐个渲染，不会被 HTML 解析合并后丢弃", () => {
+    render(
+      <MarkdownContent
+        content={"第一段\n\n<br />\n<br>\n<br/>\n\n第二段"}
+      />,
+    );
+
+    expect(screen.queryByText(/<br\s*\/?\s*>/iu)).not.toBeInTheDocument();
+    expect(document.querySelectorAll('[data-slot="markdown-content"] br')).toHaveLength(3);
+  });
+
+  test("历史原始连续空行按多余行数恢复，普通段落间隔不增加留白", () => {
+    const { rerender } = render(
+      <MarkdownContent content={"第一段\n\n第二段"} />,
+    );
+    expect(document.querySelectorAll('[data-slot="markdown-content"] br')).toHaveLength(0);
+
+    rerender(<MarkdownContent content={"第一段\n\n\n\n第二段"} />);
+    expect(document.querySelectorAll('[data-slot="markdown-content"] br')).toHaveLength(2);
+  });
+
+  test("历史首尾连续空行也逐个恢复", () => {
+    render(<MarkdownContent content={"\n\n正文\n\n\n"} />);
+    expect(document.querySelectorAll('[data-slot="markdown-content"] br')).toHaveLength(4);
+  });
+
   test("完整正文保留段落内软换行并按阅读语义解码空格实体", () => {
     render(
       <MarkdownContent
@@ -354,12 +380,13 @@ describe("MarkdownContent", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  test("正文超过视口高度时可展开并收起", async () => {
+  test("含连续空段的正文超过视口高度时仍可展开并收起", async () => {
     Object.defineProperty(window, "innerHeight", { configurable: true, value: 800 });
     const scrollIntoView = vi.fn();
     HTMLElement.prototype.scrollIntoView = scrollIntoView;
-    render(<MarkdownContent content={"很长的正文"} />);
+    render(<MarkdownContent content={"很长的正文\n\n<br />\n<br />\n<br />\n\n结尾"} />);
     const prose = document.querySelector(".prose") as HTMLDivElement;
+    expect(prose.querySelectorAll("br")).toHaveLength(3);
     Object.defineProperty(prose, "scrollHeight", { configurable: true, value: 1000 });
     fireEvent.resize(window);
     const expand = await screen.findByRole("button", { name: "展开全文" });
@@ -369,6 +396,7 @@ describe("MarkdownContent", () => {
     const collapse = screen.getByRole("button", { name: "收起" });
     expect(collapse).toHaveAttribute("aria-expanded", "true");
     expect(collapse).toHaveClass("font-bold");
+    expect(prose.querySelectorAll("br")).toHaveLength(3);
     await userEvent.setup().click(collapse);
     await waitFor(() => expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "auto", block: "start" }));
   });
