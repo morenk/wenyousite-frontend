@@ -54,6 +54,16 @@ vi.mock("sonner", () => ({
 const nodeFixtures = JSON.parse(
   readFileSync(resolve(process.cwd(), "contracts/markdown-v3-nodes-fixtures.json"), "utf8"),
 ) as { cases: Array<{ id: string; markdown: string; serialized: string }> };
+const editorRoundTripFixtures = JSON.parse(
+  readFileSync(
+    resolve(process.cwd(), "contracts/markdown-editor-roundtrip-v4-fixtures.json"),
+    "utf8",
+  ),
+) as { cases: Array<{ id: string; markdown: string; serialized: string }> };
+
+function editorRoundTripFixture(id: string) {
+  return editorRoundTripFixtures.cases.find((item) => item.id === id)!;
+}
 
 function renderEditor(props: React.ComponentProps<typeof MilkdownEditor>) {
   return render(
@@ -69,6 +79,47 @@ afterEach(() => {
 });
 
 describe("MilkdownEditor 自定义内联节点", () => {
+  test("规范分隔线重开为真实块节点并按 v4 原样写回", async () => {
+    const fixture = editorRoundTripFixture("horizontal-rule");
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    const { container } = renderEditor({ defaultValue: fixture.markdown, onChange });
+    const editor = await waitFor(() => {
+      const element = container.querySelector<HTMLElement>(".ProseMirror");
+      expect(element).toBeInTheDocument();
+      return element!;
+    });
+
+    expect(editor.querySelector("hr")).toBeInTheDocument();
+    const trailingParagraph = editor.querySelectorAll("p").item(1);
+    await user.type(trailingParagraph, "临");
+    await user.keyboard("{Backspace}");
+
+    await waitFor(() => {
+      expect(onChange.mock.calls.at(-1)?.[0]).toBe(fixture.serialized);
+    });
+  });
+
+  test("历史 Setext H2 重开后编辑保存为 ATX H2", async () => {
+    const fixture = editorRoundTripFixture("setext-heading-2");
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    const { container } = renderEditor({ defaultValue: fixture.markdown, onChange });
+    const heading = await waitFor(() => {
+      const element = container.querySelector<HTMLHeadingElement>(".ProseMirror h2");
+      expect(element).toHaveTextContent("正文");
+      return element!;
+    });
+
+    expect(container.querySelector(".ProseMirror hr")).toBeNull();
+    await user.type(heading, "临");
+    await user.keyboard("{Backspace}");
+
+    await waitFor(() => {
+      expect(onChange.mock.calls.at(-1)?.[0]).toBe(fixture.serialized);
+    });
+  });
+
   test("已保存的普通软换行重开后仍显示为编辑器换行节点", async () => {
     const { container } = renderEditor({ defaultValue: "**阿罗**\n下一行" });
     const editor = await waitFor(() => {

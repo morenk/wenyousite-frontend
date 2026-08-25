@@ -70,6 +70,9 @@ function serializeDiceMarkdownNode(node: DiceMarkdownNode): string {
 export function configureEditorMarkdownSerializer(ctx: Ctx) {
   ctx.update(remarkStringifyOptionsCtx, (options) => ({
     ...options,
+    rule: "-" as const,
+    ruleRepetition: 3,
+    ruleSpaces: false,
     handlers: {
       ...options.handlers,
       break: () => "\n",
