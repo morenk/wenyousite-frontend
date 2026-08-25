@@ -265,8 +265,8 @@ describe("ReplyList", () => {
     });
 
     const card = container.querySelector("#post-reply-target");
-    expect(card).toHaveClass("border-primary", "ring-2");
-    expect(card?.parentElement).not.toHaveClass("border-primary", "ring-2");
+    expect(card).toHaveClass("border-brand-strong", "ring-2");
+    expect(card?.parentElement).not.toHaveClass("border-brand-strong", "ring-2");
   });
 
   test("回复卡片可复制楼中楼精确链接", async () => {

@@ -33,7 +33,7 @@ export function SubthreadCard({
     <div
       className={cn(
         "rounded-lg border border-border bg-card",
-        isDefault && "ring-1 ring-primary/20",
+        isDefault && "ring-1 ring-brand-strong/25",
       )}
     >
       <div

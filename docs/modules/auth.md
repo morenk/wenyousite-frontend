@@ -15,7 +15,7 @@
 - Access Token 过期后使用 httpOnly refresh cookie 单飞刷新并重放原请求
 - 使用 Web Locks 协调多个浏览器标签页的 refresh token 轮转
 - access token 仅驻留内存，页面启动时用 httpOnly refresh cookie 恢复会话
-- `localStorage` 只保存不含凭证的用户 ID/修订号会话标记，用于跨标签页同步
+- 认证模块在 `localStorage` 中只保存不含凭证的用户 ID/修订号会话标记，用于跨标签页同步；独立外观模块另存不含账号信息的主题偏好
 - 登出时检查服务端错误，确保 refresh cookie 与当前登录终端确实退出
 - 双端登录：每个账号最多一个 Web 登录终端和一个原生移动端登录终端，PC/手机网页共用 Web 槽位
 - 登录/注册使用 OpenAPI 生成请求与响应类型，Web 响应体不假定存在 refresh token
@@ -70,6 +70,7 @@ TanStack Query 容器由当前认证身份隔离；首次 AuthContext hydration 
 | ResetPasswordPage | `src/app/reset-password/page.tsx` | 重置密码页面 |
 | GuestRoute / GuestOnly | `src/components/auth/guest-route.tsx` | 登录、注册和找回密码路由共享的访客边界与认证恢复等待 |
 | AuthPageShell | `src/components/auth/auth-page-shell.tsx` | 认证流程统一双栏布局；左侧与窄屏顶部使用无背景的 Foundation 品牌标识、正式名称和文案，右侧承载表单卡片 |
+| ThemeMenu | `src/components/layout/theme-menu.tsx` | 认证壳右上角的外观入口；偏好行为见 `docs/modules/theme.md` |
 | NavBar | `src/components/layout/nav-bar.tsx` | 非认证路由的左侧全局导航栏 |
 | Button | `src/components/ui/button.tsx` | shadcn Button |
 | Input | `src/components/ui/input.tsx` | shadcn Input |

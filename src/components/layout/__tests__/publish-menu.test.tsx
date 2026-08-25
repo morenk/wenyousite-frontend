@@ -23,7 +23,7 @@ describe("PublishMenu", () => {
 
     const trigger = screen.getByRole("button", { name: "打开发布菜单" });
     expect(screen.getByText("发布")).not.toHaveClass("font-display");
-    expect(trigger).toHaveClass("bg-primary", "rounded-2xl");
+    expect(trigger).toHaveClass("bg-action-primary", "rounded-2xl");
     await userEvent.click(trigger);
 
     expect(await screen.findByRole("navigation", { name: "发布选项" })).toBeInTheDocument();

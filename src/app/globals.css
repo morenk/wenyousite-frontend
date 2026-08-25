@@ -11,6 +11,8 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-action-primary: var(--action-primary);
+  --color-action-primary-foreground: var(--action-primary-foreground);
   --color-brand-strong: var(--brand-strong);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
@@ -67,6 +69,9 @@ body {
 }
 
 html {
+  --image-viewer-control-foreground: var(--background);
+  --image-viewer-control-active: var(--primary);
+
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   /* 路由占位与长页面切换时始终预留纵向滚动条槽，避免居中应用框架横向跳动。 */
@@ -173,12 +178,49 @@ select {
 }
 
 ::placeholder {
-  color: color-mix(in srgb, var(--muted-foreground) 78%, white);
+  color: var(--muted-foreground);
+  opacity: 0.78;
 }
 
 ::selection {
   background-color: var(--primary);
-  color: var(--foreground);
+  color: var(--primary-foreground);
+}
+
+/* 标题标识保持原图几何；黑夜仅把透明蒙版映射到品牌强调色。 */
+.brand-title-mark-dark {
+  display: none;
+  background: var(--brand-strong);
+  -webkit-mask: url("/brand-title-icon-128.png") center / contain no-repeat;
+  mask: url("/brand-title-icon-128.png") center / contain no-repeat;
+}
+
+[data-theme="dark"] {
+  --image-viewer-control-foreground: var(--foreground);
+  --image-viewer-control-active: var(--brand-strong);
+}
+
+[data-theme="dark"] .brand-title-mark-light {
+  display: none;
+}
+
+[data-theme="dark"] .brand-title-mark-dark {
+  display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) {
+    --image-viewer-control-foreground: var(--foreground);
+    --image-viewer-control-active: var(--brand-strong);
+  }
+
+  :root:not([data-theme="light"]):not([data-theme="dark"]) .brand-title-mark-light {
+    display: none;
+  }
+
+  :root:not([data-theme="light"]):not([data-theme="dark"]) .brand-title-mark-dark {
+    display: block;
+  }
 }
 
 /* 文字动态封面只复用既有语义色，不建立独立品牌色板。 */
@@ -292,9 +334,9 @@ select {
 
 /* 大图查看器只接管手势与可访问性，视觉仍映射到站内语义 Token。 */
 .yarl__root {
-  --yarl__color_backdrop: color-mix(in srgb, var(--foreground) 88%, transparent);
-  --yarl__color_button: var(--background);
-  --yarl__color_button_active: var(--primary);
+  --yarl__color_backdrop: var(--image-viewer-backdrop);
+  --yarl__color_button: var(--image-viewer-control-foreground);
+  --yarl__color_button_active: var(--image-viewer-control-active);
   --yarl__color_button_disabled: var(--muted-foreground);
 }
 

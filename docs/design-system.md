@@ -4,24 +4,27 @@
 
 跨端审美、共享 Token、字体角色和编辑器能力的唯一事实源是公开仓库
 [`morenk/wenyousite-foundation`](https://github.com/morenk/wenyousite-foundation)。本仓库由
-[`foundation.lock.json`](../foundation.lock.json) 固定到 `v6.4.0`，实现前必须读取同版本的：
+[`foundation.lock.json`](../foundation.lock.json) 固定到 `v6.5.1`，实现前必须读取同版本的：
 
-- [`docs/foundation.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.4.0/docs/foundation.md)
-- [`docs/platforms/web.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.4.0/docs/platforms/web.md)
-- [`docs/brand.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.4.0/docs/brand.md)
-- [`docs/elements.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.4.0/docs/elements.md)
-- [`docs/images.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.4.0/docs/images.md)
-- [`docs/icons.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.4.0/docs/icons.md)
-- [`docs/notifications.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.4.0/docs/notifications.md)
-- [`docs/interaction.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.4.0/docs/interaction.md)
-- [`docs/presentation.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.4.0/docs/presentation.md)
-- [`docs/navigation-language.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.4.0/docs/navigation-language.md)
-- [`contracts/foundation.v1.json`](https://github.com/morenk/wenyousite-foundation/blob/v6.4.0/contracts/foundation.v1.json)
+- [`docs/foundation.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.5.1/docs/foundation.md)
+- [`docs/platforms/web.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.5.1/docs/platforms/web.md)
+- [`docs/brand.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.5.1/docs/brand.md)
+- [`docs/elements.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.5.1/docs/elements.md)
+- [`docs/images.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.5.1/docs/images.md)
+- [`docs/icons.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.5.1/docs/icons.md)
+- [`docs/notifications.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.5.1/docs/notifications.md)
+- [`docs/interaction.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.5.1/docs/interaction.md)
+- [`docs/presentation.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.5.1/docs/presentation.md)
+- [`docs/navigation-language.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.5.1/docs/navigation-language.md)
+- [`contracts/foundation.v1.json`](https://github.com/morenk/wenyousite-foundation/blob/v6.5.1/contracts/foundation.v1.json)
 
 本地只保留实现映射，不复制规范：
 
 - `src/app/layout.tsx` 引入中央字体与 Token CSS，`globals.css` 只做 Tailwind 映射和 Web 组件样式。
+- 根布局在 hydration 前运行由中央偏好与调色板生成的静态脚本；默认跟随系统，`ThemeProvider` 负责运行时解析、跨标签页同步、`color-scheme`、浏览器主题色与 Sonner 主题。显式偏好只以 `wenyousite-theme` 保存在当前浏览器，不进入账号资料。
+- `ThemeMenu` 在社区/工作区全局导航和认证/站务壳右上角提供“跟随系统、亮色、黑夜”原生单选组；键盘选择即时生效，不发送请求或成功 Toast。
 - 根布局直接消费 Foundation 的正式品牌名称与文案；侧栏首页入口使用相邻可见名称与装饰性标题标识。favicon、Apple touch icon、PWA 图标、标题标识和 Web Manifest 由 `pnpm brand:sync` 从锁定包同步，并由 `pnpm design:check` 逐项校验哈希。
+- 标题标识在亮色保留原资源，在黑夜通过同一透明轮廓蒙版映射 `brandStrong`；正文图片、头像、封面和外部资源不做反色或全局亮度滤镜。
 - `src/lib/editor-capabilities.ts` 是中央编辑器契约的薄转发层。
 - `src/components/ui/wenyou-icon.tsx` 根据产品语义渲染 Foundation 同源 Lucide 节点；Crepe 顶栏消费相同来源生成的 SVG 字符串，并在 Web 接入边界覆盖其默认实心 `fill`，保持 Lucide 无填充描边。
 - 编辑器使用 Foundation 的 50rem 框架承载工具栏，但正文块固定为 680px 测量宽度；正文 24px 首列偏移与工具栏 12px 外层加首控件 12px 内缩共用基线。
@@ -37,6 +40,7 @@
 - 头像缺失或图片失败时显示首个可读字符，匿名或不可用身份显示中性用户图标；邮箱验证状态不进入列表、详情或公开资料，只保留账号安全入口与受限操作引导。
 - 分类只使用文字与 neutral Badge 表达，不渲染分类色块或线路；分类 API 不定义颜色字段。
 - 页面标题、区块标题、正文、标签和说明消费 Foundation 语义排版 Token；加载、空结果、失败和 Mutation pending 遵循 `interaction` 契约。
+- 主要行动按钮消费 `actionPrimary`，柔和容器和选中面消费 `primary`，导航线路、未读点、进度和焦点定位消费 `brandStrong`。Milkdown Crepe、图片查看器、原生表单与 Toast 都映射当前主题语义，避免黑夜模式出现亮白孤岛。
 - 可见辅助文案只保留操作后果、输入限制、权限边界、错误恢复和空态引导；不向用户解释格式白名单、服务端结算、编码压缩、存储协议或内部编号，也不重复字段、计数器和按钮已经表达的信息。必要的无障碍名称与隐藏说明继续保留。
 - Sticky、应用框架、悬浮操作、菜单、模态、Tooltip、模态内浮层和全局进度消费 Foundation layer Token，业务组件不写任意全局 z-index。
 - 导航标签、目的地图标及稳定动作词直接消费 `navigation` 与 `language` 导出，路由地址仍由 Web 拥有。

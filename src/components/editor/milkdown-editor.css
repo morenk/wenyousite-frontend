@@ -9,6 +9,25 @@
 @import "@milkdown/crepe/theme/common/top-bar.css";
 
 .milkdown {
+  --crepe-color-background: var(--background);
+  --crepe-color-on-background: var(--foreground);
+  --crepe-color-surface: var(--card);
+  --crepe-color-surface-low: var(--muted);
+  --crepe-color-on-surface: var(--foreground);
+  --crepe-color-on-surface-variant: var(--muted-foreground);
+  --crepe-color-outline: var(--muted-foreground);
+  --crepe-color-primary: var(--brand-strong);
+  --crepe-color-secondary: var(--primary);
+  --crepe-color-on-secondary: var(--primary-foreground);
+  --crepe-color-inverse: var(--foreground);
+  --crepe-color-on-inverse: var(--background);
+  --crepe-color-inline-code: var(--element-code-foreground);
+  --crepe-color-error: var(--destructive);
+  --crepe-color-hover: var(--muted);
+  --crepe-color-selected: var(--accent);
+  --crepe-color-inline-area: var(--muted);
+  --crepe-shadow-1: var(--wenyou-shadow-popover);
+  --crepe-shadow-2: var(--wenyou-shadow-dialog);
   --crepe-font-default: var(--font-sans);
   --crepe-font-title: var(--font-sans);
   --crepe-font-code: var(--font-mono);
@@ -141,7 +160,7 @@
 }
 
 .milkdown .ProseMirror .dice-inline.ProseMirror-selectednode {
-  outline: 2px solid color-mix(in srgb, var(--primary) 55%, transparent);
+  outline: 2px solid color-mix(in srgb, var(--ring) 55%, transparent);
   outline-offset: 1px;
 }
 
@@ -158,7 +177,7 @@
 }
 
 .milkdown .ProseMirror .sticker-inline.ProseMirror-selectednode {
-  outline: 2px solid color-mix(in srgb, var(--primary) 55%, transparent);
+  outline: 2px solid color-mix(in srgb, var(--ring) 55%, transparent);
   outline-offset: 2px;
 }
 
@@ -232,7 +251,7 @@
 /* 横向 overflow 会裁切普通绝对定位菜单；JS 按触发按钮坐标将其固定到视口。 */
 .milkdown .milkdown-top-bar .top-bar-heading-dropdown[data-editor-floating="true"] {
   position: fixed;
-  z-index: 100;
+  z-index: var(--layer-nested-popup);
   min-width: min(120px, calc(100vw - 16px));
   max-width: calc(100vw - 16px);
   max-height: calc(100vh - 16px);

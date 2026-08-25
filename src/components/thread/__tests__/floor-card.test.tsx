@@ -171,8 +171,8 @@ describe("FloorCard", () => {
     });
 
     const card = container.querySelector("#post-post-1");
-    expect(card).toHaveClass("border-primary", "ring-2");
-    expect(card?.parentElement).not.toHaveClass("border-primary", "ring-2");
+    expect(card).toHaveClass("border-brand-strong", "ring-2");
+    expect(card?.parentElement).not.toHaveClass("border-brand-strong", "ring-2");
   });
 
   test("作者有头像时渲染接口返回的母版", () => {

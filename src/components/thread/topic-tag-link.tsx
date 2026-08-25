@@ -20,7 +20,7 @@ export function TopicTagLink({ tag, className }: TopicTagLinkProps) {
       aria-label={`查看 #${tag.name} 标签下的主题帖`}
       data-slot="topic-tag"
       className={cn(
-        "inline-flex min-h-[var(--element-topic-tag-min-height)] items-center rounded-full border border-border px-2.5 text-xs font-medium text-muted-foreground transition-[background-color,border-color,color] duration-[var(--motion-fast)] hover:border-primary hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+        "inline-flex min-h-[var(--element-topic-tag-min-height)] items-center rounded-full border border-border px-2.5 text-xs font-medium text-muted-foreground transition-[background-color,border-color,color] duration-[var(--motion-fast)] hover:border-brand-strong hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
         className,
       )}
     >

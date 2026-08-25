@@ -116,7 +116,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         </p>
       </div>
       {!notification.isRead && (
-        <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" />
+        <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-brand-strong" />
       )}
     </>
   );
@@ -143,7 +143,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         "relative w-full rounded-xl border p-3.5",
         notification.isRead
           ? "border-border bg-card"
-          : "border-primary/20 bg-primary/[0.03]",
+          : "border-brand-strong/35 bg-primary/[0.08]",
       )}
     >
       {content}

@@ -6,6 +6,7 @@ import "yet-another-react-lightbox/styles.css";
 import "./globals.css";
 import { Providers } from "./providers";
 import { AppChrome } from "@/components/layout/app-chrome";
+import { THEME_BOOTSTRAP_SCRIPT } from "@/lib/theme-bootstrap";
 
 export const metadata: Metadata = {
   applicationName: BRAND_NAME,
@@ -31,7 +32,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" className="h-full antialiased">
+    <html lang="zh-CN" className="h-full antialiased" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP_SCRIPT }} />
+      </head>
       <body className="min-h-screen">
         <Providers>
           <AppChrome>{children}</AppChrome>

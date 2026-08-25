@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { BRAND_NAME, BRAND_TAGLINE } from "@wenyousite/foundation/brand";
 import {
@@ -9,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { BrandTitleMark } from "@/components/ui/brand-title-mark";
 
 interface AuthPageShellProps {
   title: string;
@@ -26,14 +26,7 @@ export function AuthPageShell({ title, children, footer }: AuthPageShellProps) {
           aria-label={`${BRAND_NAME}首页`}
           className="inline-flex items-center gap-3 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
         >
-          <Image
-            src="/brand-title-icon-128.png"
-            width={48}
-            height={48}
-            alt=""
-            aria-hidden="true"
-            priority
-          />
+          <BrandTitleMark size={48} priority />
           <span className="font-display text-2xl font-medium text-foreground">{BRAND_NAME}</span>
         </Link>
         <h1 className="mt-9 font-display text-4xl leading-[1.35] font-medium tracking-wide text-foreground">
@@ -47,14 +40,7 @@ export function AuthPageShell({ title, children, footer }: AuthPageShellProps) {
           aria-label={`${BRAND_NAME}首页`}
           className="mb-5 inline-flex items-center gap-2 font-display text-lg font-medium text-foreground lg:hidden"
         >
-          <Image
-            src="/brand-title-icon-128.png"
-            width={36}
-            height={36}
-            alt=""
-            aria-hidden="true"
-            priority
-          />
+          <BrandTitleMark size={36} priority />
           {BRAND_NAME}
         </Link>
         <Card>

@@ -14,7 +14,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground hover:bg-[color-mix(in_srgb,var(--primary)_86%,var(--brand-strong))]",
+          "bg-action-primary text-action-primary-foreground hover:bg-[color-mix(in_srgb,var(--action-primary)_86%,var(--brand-strong))]",
         outline:
           "border-border bg-card text-foreground hover:bg-muted aria-expanded:bg-muted",
         secondary:

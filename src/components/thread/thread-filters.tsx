@@ -53,7 +53,7 @@ export function ThreadFilters({
         <SelectTrigger
           size="compact"
           aria-label="排序"
-          className="group h-10 w-full min-w-0 gap-1.5 rounded-xl border-border/80 bg-card py-0 pr-2.5 pl-2 text-[0.8125rem] hover:border-primary hover:bg-accent/15 data-[size=compact]:h-10 data-popup-open:border-primary data-popup-open:bg-accent/20 data-popup-open:ring-2 data-popup-open:ring-primary/25 sm:w-auto sm:min-w-32"
+          className="group h-10 w-full min-w-0 gap-1.5 rounded-xl border-border/80 bg-card py-0 pr-2.5 pl-2 text-[0.8125rem] hover:border-brand-strong hover:bg-accent/15 data-[size=compact]:h-10 data-popup-open:border-brand-strong data-popup-open:bg-accent/20 data-popup-open:ring-2 data-popup-open:ring-brand-strong/35 sm:w-auto sm:min-w-32"
         >
           <span
             aria-hidden="true"
@@ -91,7 +91,7 @@ export function ThreadFilters({
         <SelectTrigger
           size="compact"
           aria-label="状态"
-          className="group h-10 w-full min-w-0 gap-1.5 rounded-xl border-border/80 bg-card py-0 pr-2.5 pl-2 text-[0.8125rem] hover:border-primary hover:bg-accent/15 data-[size=compact]:h-10 data-popup-open:border-primary data-popup-open:bg-accent/20 data-popup-open:ring-2 data-popup-open:ring-primary/25 sm:w-auto sm:min-w-32"
+          className="group h-10 w-full min-w-0 gap-1.5 rounded-xl border-border/80 bg-card py-0 pr-2.5 pl-2 text-[0.8125rem] hover:border-brand-strong hover:bg-accent/15 data-[size=compact]:h-10 data-popup-open:border-brand-strong data-popup-open:bg-accent/20 data-popup-open:ring-2 data-popup-open:ring-brand-strong/35 sm:w-auto sm:min-w-32"
         >
           <span
             aria-hidden="true"

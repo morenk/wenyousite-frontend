@@ -128,6 +128,7 @@ const governedIconFiles = [
   "src/components/layout/nav-bar.tsx",
   "src/components/layout/page-header.tsx",
   "src/components/layout/publish-menu.tsx",
+  "src/components/layout/theme-menu.tsx",
   "src/components/ui/dialog.tsx",
 ];
 for (const fileName of governedIconFiles) {
@@ -165,7 +166,7 @@ const semanticContractClaims = new Map([
   ["src/components/shared/user-avatar.tsx", ["IDENTITY_PRESENTATION", "onError", "avatarFallback.missingOrFailed"]],
   ["src/components/shared/wenyou-time.tsx", ["@wenyousite/foundation/formatting", "formatWenyouTime", "formatWenyouExactTime", "title="]],
   ["src/components/shared/wenyou-count.tsx", ["@wenyousite/foundation/formatting", "formatWenyouCompactCount", "aria-label"]],
-  ["src/components/ui/button.tsx", ["@wenyousite/foundation/controls", "data-control-role", "pendingLabel", 'id="status.loading"', "aria-busy"]],
+  ["src/components/ui/button.tsx", ["@wenyousite/foundation/controls", "data-control-role", "pendingLabel", 'id="status.loading"', "aria-busy", "bg-action-primary", "text-action-primary-foreground"]],
   ["src/components/ui/input.tsx", ["@wenyousite/foundation/controls", "data-control-state"]],
   ["src/components/ui/form-field.tsx", ["data-slot=\"form-field\"", "aria-describedby", "aria-invalid", "labelAction"]],
   ["src/components/ui/password-input.tsx", ['id={show ? "action.hide" : "action.show"}', "cn(\"pr-11\", className)"]],
@@ -186,6 +187,8 @@ const semanticContractClaims = new Map([
   ["src/components/shared/floating-input-dock.tsx", ["--layer-floating"]],
   ["src/components/layout/nav-bar.tsx", ["@wenyousite/foundation/navigation", "--layer-chrome"]],
   ["src/components/layout/navigation-progress.tsx", ["--layer-global-progress"]],
+  ["src/components/layout/theme-menu.tsx", ["@wenyousite/foundation/theme", "THEME_PREFERENCES", 'type="radio"', "WenyouIcon"]],
+  ["src/components/ui/theme-provider.tsx", ["syncThemeDocument", 'window.addEventListener("storage"', "resolvedTheme"]],
   ["src/components/editor/editor-more-menu.tsx", ["--layer-nested-popup"]],
   ["src/components/shared/loading-state.tsx", ["@wenyousite/foundation/interaction", "data-feedback-state"]],
   ["src/components/shared/load-error.tsx", ["@wenyousite/foundation/language", "data-feedback-state"]],

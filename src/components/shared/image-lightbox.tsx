@@ -158,11 +158,11 @@ export function ImageLightbox({ src, alt, onClose }: ImageLightboxProps) {
       }}
     >
       <DialogPortal>
-        <DialogBackdrop className="bg-foreground/80 backdrop-blur-none" />
+        <DialogBackdrop className="bg-[var(--image-viewer-backdrop)] backdrop-blur-none" />
         <DialogViewport className="overflow-hidden p-4">
           <DialogPopup
             ref={containerRef}
-            className="relative flex h-full max-h-none max-w-none select-none items-center justify-center overflow-hidden rounded-none border-0 bg-transparent text-background shadow-none"
+            className="relative flex h-full max-h-none max-w-none select-none items-center justify-center overflow-hidden rounded-none border-0 bg-transparent text-foreground shadow-none"
             onClick={onClose}
           >
       <DialogTitle className="sr-only">查看原图</DialogTitle>
@@ -198,13 +198,13 @@ export function ImageLightbox({ src, alt, onClose }: ImageLightboxProps) {
 
       {/* 工具条 */}
       <div
-        className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-0.5 rounded-full border border-background/10 bg-foreground/75 px-2 py-1 text-background shadow-popover"
+        className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-0.5 rounded-full border border-border bg-card/90 px-2 py-1 text-foreground shadow-popover"
         onClick={(e) => e.stopPropagation()}
       >
         <Button
           variant="ghost"
           size="icon-sm"
-          className="text-background hover:bg-background/10 hover:text-background"
+          className="text-foreground hover:bg-muted hover:text-foreground"
           aria-label="缩小"
           onClick={() => setView((v) => ({ ...v, scale: clampScale(v.scale / ZOOM_STEP) }))}
         >
@@ -212,7 +212,7 @@ export function ImageLightbox({ src, alt, onClose }: ImageLightboxProps) {
         </Button>
         <button
           type="button"
-          className="min-h-8 min-w-12 rounded-md px-1 text-center text-xs tabular-nums hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+          className="min-h-8 min-w-12 rounded-md px-1 text-center text-xs tabular-nums hover:text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
           onClick={toggleZoom}
           aria-label="切换 1:1 显示"
         >
@@ -221,7 +221,7 @@ export function ImageLightbox({ src, alt, onClose }: ImageLightboxProps) {
         <Button
           variant="ghost"
           size="icon-sm"
-          className="text-background hover:bg-background/10 hover:text-background"
+          className="text-foreground hover:bg-muted hover:text-foreground"
           aria-label="放大"
           onClick={() => setView((v) => ({ ...v, scale: clampScale(v.scale * ZOOM_STEP) }))}
         >
@@ -230,7 +230,7 @@ export function ImageLightbox({ src, alt, onClose }: ImageLightboxProps) {
         <Button
           variant="ghost"
           size="icon-sm"
-          className="text-background hover:bg-background/10 hover:text-background"
+          className="text-foreground hover:bg-muted hover:text-foreground"
           aria-label="1:1 原图"
           onClick={() => setView((v) => ({ scale: maxScale, x: v.x, y: v.y }))}
         >
@@ -239,17 +239,17 @@ export function ImageLightbox({ src, alt, onClose }: ImageLightboxProps) {
         <Button
           variant="ghost"
           size="icon-sm"
-          className="text-background hover:bg-background/10 hover:text-background"
+          className="text-foreground hover:bg-muted hover:text-foreground"
           aria-label="适应屏幕"
           onClick={() => setView({ scale: 1, x: 0, y: 0 })}
         >
           <Maximize className="h-4 w-4" />
         </Button>
-        <div className="mx-1 h-4 w-px bg-background/20" />
+        <div className="mx-1 h-4 w-px bg-border" />
         <Button
           variant="ghost"
           size="icon-sm"
-          className="text-background hover:bg-background/10 hover:text-background"
+          className="text-foreground hover:bg-muted hover:text-foreground"
           aria-label="关闭"
           onClick={onClose}
         >

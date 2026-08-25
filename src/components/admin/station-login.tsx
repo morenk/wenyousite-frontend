@@ -75,7 +75,7 @@ export function StationLogin() {
             举报按目标聚合，证据、处置、公开说明和申诉形成同一条决定轨迹。这里仅对获邀站务开放。
           </p>
           <div className="mt-10 grid grid-cols-2 gap-4 text-sm">
-            <div className="border-l-2 border-primary pl-4">
+            <div className="border-l-2 border-brand-strong pl-4">
               <p className="font-bold">独立后台会话</p>
               <p className="mt-1 text-muted-foreground">不复用普通用户登录凭证</p>
             </div>

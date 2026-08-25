@@ -9,6 +9,7 @@ import { AuthProvider, useAuth } from "@/lib/auth";
 import { ConfirmProvider } from "@/components/ui/confirm-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DailyCheckInBootstrap } from "@/components/economy/daily-check-in-bootstrap";
+import { ThemeProvider, useTheme } from "@/components/ui/theme-provider";
 
 function createQueryClient() {
   return new QueryClient({
@@ -23,6 +24,7 @@ function createQueryClient() {
 
 function IdentityScopedQueries({ children }: { children: React.ReactNode }) {
   const { user, isInitialized } = useAuth();
+  const { resolvedTheme } = useTheme();
   const [queryScope, setQueryScope] = useState(() => ({
     client: createQueryClient(),
     version: 0,
@@ -49,6 +51,7 @@ function IdentityScopedQueries({ children }: { children: React.ReactNode }) {
     <QueryClientProvider key={queryScope.version} client={queryScope.client}>
       {children}
       <Toaster
+        theme={resolvedTheme}
         position="top-center"
         richColors
         closeButton
@@ -62,19 +65,21 @@ function IdentityScopedQueries({ children }: { children: React.ReactNode }) {
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <NuqsAdapter>
-      <AuthProvider>
-        <IdentityScopedQueries>
-          <ConfirmProvider>
-            <TooltipProvider>
-              <MotionConfig reducedMotion="user">
-                <DailyCheckInBootstrap />
-                {children}
-              </MotionConfig>
-            </TooltipProvider>
-          </ConfirmProvider>
-        </IdentityScopedQueries>
-      </AuthProvider>
-    </NuqsAdapter>
+    <ThemeProvider>
+      <NuqsAdapter>
+        <AuthProvider>
+          <IdentityScopedQueries>
+            <ConfirmProvider>
+              <TooltipProvider>
+                <MotionConfig reducedMotion="user">
+                  <DailyCheckInBootstrap />
+                  {children}
+                </MotionConfig>
+              </TooltipProvider>
+            </ConfirmProvider>
+          </IdentityScopedQueries>
+        </AuthProvider>
+      </NuqsAdapter>
+    </ThemeProvider>
   );
 }

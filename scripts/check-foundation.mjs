@@ -26,17 +26,17 @@ if (packageJson.dependencies?.["@wenyousite/foundation"] !== `github:morenk/weny
 if (manifest.version !== lock.version) failures.push("已安装 foundation 版本与锁文件不一致");
 if (manifest.contractSha256 !== lock.contractSha256) failures.push("已安装 foundation 契约哈希与锁文件不一致");
 if (!read("pnpm-lock.yaml").includes(lock.revision)) failures.push("pnpm-lock.yaml 未锁定指定 foundation revision");
-if (foundationContract.version !== "6.4.0" || foundationContract.schemaVersion !== 2) {
-  failures.push("Web 必须消费 Foundation v6.4.0 schema 2 契约");
+if (foundationContract.version !== "6.5.1" || foundationContract.schemaVersion !== 2) {
+  failures.push("Web 必须消费 Foundation v6.5.1 schema 2 契约");
 }
-if (!manifest.features?.typography || !manifest.features?.interaction || !manifest.features?.controls || !manifest.features?.formatting || !manifest.features?.contentPresentation || !manifest.features?.iconControls || !manifest.features?.navigation || !manifest.features?.language || !manifest.features?.elements || !manifest.features?.brand) {
+if (!manifest.features?.themes || !manifest.features?.typography || !manifest.features?.interaction || !manifest.features?.controls || !manifest.features?.formatting || !manifest.features?.contentPresentation || !manifest.features?.iconControls || !manifest.features?.navigation || !manifest.features?.language || !manifest.features?.elements || !manifest.features?.brand) {
   failures.push("已安装 Foundation 缺少共享语义能力");
 }
 if (
   foundationContract.experiences.editor.contentPolicy?.markdownContractVersion !== 3 ||
   foundationContract.experiences.editor.contentPolicy?.structuredCapabilitySource !== "toolbar"
 ) failures.push("已安装 Foundation 未绑定 Markdown v3 工具栏白名单");
-if (Object.keys(manifest.artifactSha256 ?? {}).length !== 58) {
+if (Object.keys(manifest.artifactSha256 ?? {}).length !== 60) {
   failures.push("已安装 Foundation 生成产物清单不完整");
 }
 for (const [relativePath, expectedHash] of Object.entries(manifest.artifactSha256 ?? {})) {
@@ -57,10 +57,14 @@ if (packageJson.dependencies?.["lucide-react"] !== "1.28.0") {
 }
 
 const layout = read("src/app/layout.tsx");
+const themeBootstrap = read("src/lib/theme-bootstrap.ts");
 if (!layout.includes('@wenyousite/foundation/web/fonts.css')) failures.push("根布局未消费中央字体");
 if (!layout.includes('@wenyousite/foundation/web/tokens.css')) failures.push("根布局未消费中央 Token");
 if (!layout.includes('@wenyousite/foundation/brand') || !layout.includes("BRAND_NAME") || !layout.includes("BRAND_TAGLINE")) {
   failures.push("根布局未消费 Foundation 正式品牌文案");
+}
+if (!themeBootstrap.includes('@wenyousite/foundation/theme') || !layout.includes("THEME_BOOTSTRAP_SCRIPT") || !layout.includes("suppressHydrationWarning")) {
+  failures.push("根布局未在 hydration 前消费 Foundation 主题契约");
 }
 for (const metadataClaim of ["/site.webmanifest", "/favicon.ico", "/apple-touch-icon.png"]) {
   if (!layout.includes(metadataClaim)) failures.push(`根布局元数据缺少 ${metadataClaim}`);
@@ -97,27 +101,54 @@ for (const [sourcePath, targetPath] of webBrandAssetTargets) {
     failures.push(`Web 品牌资源未同步 ${targetPath}`);
   }
 }
+const globalStyles = read("src/app/globals.css");
 const navBar = read("src/components/layout/nav-bar.tsx");
-if (!navBar.includes('@wenyousite/foundation/brand') || !navBar.includes("/brand-title-icon-128.png")) {
+if (!navBar.includes('@wenyousite/foundation/brand') || !navBar.includes("BrandTitleMark") || !navBar.includes("ThemeMenu")) {
   failures.push("全局导航未消费 Foundation 标题品牌标识");
+}
+const brandTitleMark = read("src/components/ui/brand-title-mark.tsx");
+if (!brandTitleMark.includes("/brand-title-icon-128.png") || !globalStyles.includes("brand-title-mark-dark")) {
+  failures.push("标题品牌标识缺少黑夜可读映射");
 }
 const authPageShell = read("src/components/auth/auth-page-shell.tsx");
 if (
   !authPageShell.includes('@wenyousite/foundation/brand')
   || !authPageShell.includes("BRAND_TAGLINE")
-  || !authPageShell.includes("/brand-title-icon-128.png")
+  || !authPageShell.includes("BrandTitleMark")
   || authPageShell.includes("bg-primary")
 ) {
   failures.push("认证页面未消费无背景的 Foundation 品牌标识与正式文案");
 }
-const globalStyles = read("src/app/globals.css");
 if (/^:root\s*\{/mu.test(globalStyles)) failures.push("globals.css 不得复制中央 :root Token");
 for (const claim of ["--type-body-size", "--type-body-line-height"]) {
   if (!globalStyles.includes(`var(${claim})`)) failures.push(`globals.css 未消费语义排版 Token ${claim}`);
 }
 const foundationTokens = read("node_modules/@wenyousite/foundation/web/tokens.css");
-for (const token of ["--type-page-title-size", "--overlay-scrim", "--layer-modal", "--layer-global-progress", "--like", "--bookmark", "--icon-control-state-layer-color", "--icon-control-state-layer-radius", "--icon-control-hover-state-opacity", "--icon-control-focus-state-opacity", "--icon-control-pressed-state-opacity", "--icon-control-disabled-content-opacity", "--element-internal-reference-surface", "--element-badge-default-height", "--element-level-mist-surface", "--element-level-berry-surface", "--element-quote-foreground", "--element-quote-surface", "--element-quote-marker", "--element-quote-marker-width", "--element-quote-radius", "--element-quote-font-weight", "--element-quote-padding-block", "--element-quote-padding-inline"]) {
+for (const token of ["--action-primary", "--action-primary-foreground", "--image-viewer-backdrop", "--type-page-title-size", "--overlay-scrim", "--layer-modal", "--layer-global-progress", "--like", "--bookmark", "--icon-control-state-layer-color", "--icon-control-state-layer-radius", "--icon-control-hover-state-opacity", "--icon-control-focus-state-opacity", "--icon-control-pressed-state-opacity", "--icon-control-disabled-content-opacity", "--element-internal-reference-surface", "--element-badge-default-height", "--element-level-mist-surface", "--element-level-berry-surface", "--element-quote-foreground", "--element-quote-surface", "--element-quote-marker", "--element-quote-marker-width", "--element-quote-radius", "--element-quote-font-weight", "--element-quote-padding-block", "--element-quote-padding-inline"]) {
   if (!foundationTokens.includes(`${token}:`)) failures.push(`Foundation Web Token 缺少 ${token}`);
+}
+if (!foundationTokens.includes('[data-theme="dark"]') || !foundationTokens.includes("prefers-color-scheme: dark")) {
+  failures.push("Foundation Web Token 缺少显式黑夜模式或系统偏好回退");
+}
+if (
+  foundationContract.themes?.defaultPreference !== "system"
+  || foundationContract.themes?.preferences?.join(",") !== "system,light,dark"
+  || foundationContract.themes?.icons?.dark !== "appearance.dark"
+) {
+  failures.push("Foundation 缺少稳定的系统、亮色与黑夜偏好契约");
+}
+const themeRuntime = read("src/lib/theme.ts");
+const themeProvider = read("src/components/ui/theme-provider.tsx");
+const themeMenu = read("src/components/layout/theme-menu.tsx");
+if (
+  !themeRuntime.includes('@wenyousite/foundation/theme')
+  || !themeRuntime.includes('THEME_STORAGE_KEY = "wenyousite-theme"')
+  || !themeProvider.includes("syncThemeDocument")
+  || !themeProvider.includes('window.addEventListener("storage"')
+  || !themeMenu.includes("THEME_PREFERENCES")
+  || !themeMenu.includes('type="radio"')
+) {
+  failures.push("Web 主题运行时未完整消费中央偏好、持久化与可访问选择器");
 }
 const quoteContract = foundationContract.experiences.elements?.block?.quote;
 if (JSON.stringify(quoteContract) !== JSON.stringify({

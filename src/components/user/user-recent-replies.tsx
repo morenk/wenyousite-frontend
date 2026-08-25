@@ -47,7 +47,7 @@ export function UserRecentReplies({
             postId: reply.id,
             parentPostId: reply.parentPostId,
           })}
-          className="block w-full rounded-lg border border-border bg-card p-3 transition-colors hover:border-primary/40 hover:bg-muted/50"
+          className="block w-full rounded-lg border border-border bg-card p-3 transition-colors hover:border-brand-strong/50 hover:bg-muted/50"
         >
           <div className="mb-1 flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">

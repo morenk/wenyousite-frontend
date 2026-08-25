@@ -29,7 +29,7 @@ export function PublishMenu({ userId, compact = false }: { userId: string; compa
               aria-label="打开发布菜单"
               title={NAVIGATION_LABELS.publish}
               className={cn(
-                "group relative isolate mt-5 flex h-12 w-full items-center justify-center overflow-hidden rounded-2xl bg-primary text-primary-foreground transition-[background-color,transform] duration-[var(--motion-fast)] ease-[var(--ease-standard)] hover:bg-accent active:translate-y-px",
+                "group relative isolate mt-5 flex h-12 w-full items-center justify-center overflow-hidden rounded-2xl bg-action-primary text-action-primary-foreground transition-[background-color,transform] duration-[var(--motion-fast)] ease-[var(--ease-standard)] hover:bg-[color-mix(in_srgb,var(--action-primary)_86%,var(--brand-strong))] active:translate-y-px",
                 !compact && "xl:justify-start xl:gap-2.5 xl:px-4",
               )}
             />

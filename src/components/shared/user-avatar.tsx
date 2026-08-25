@@ -106,7 +106,7 @@ export function UserAvatarLink({
       href={`/users/${userId}`}
       aria-label={`查看${name}的用户主页`}
       className={cn(
-        "inline-flex shrink-0 rounded-full outline-none transition-shadow hover:ring-2 hover:ring-primary/25 focus-visible:ring-2 focus-visible:ring-ring/40",
+        "inline-flex shrink-0 rounded-full outline-none transition-shadow hover:ring-2 hover:ring-brand-strong/25 focus-visible:ring-2 focus-visible:ring-ring/40",
         linkClassName,
       )}
     >

@@ -236,6 +236,10 @@ function operation(method: string, apiPath: string) {
     ],
     ["docs/modules/bookmarks.md", ["全局导航栏显示收藏入口"]],
     [
+      "docs/modules/theme.md",
+      ["wenyousite-theme", "跟随系统、亮色、黑夜", "hydration", "不显示成功 Toast"],
+    ],
+    [
       "docs/modules/markdown-content-protocol.md",
       [
         "markdown-v3-fixtures.json",

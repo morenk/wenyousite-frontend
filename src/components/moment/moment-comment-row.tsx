@@ -61,7 +61,7 @@ export function MomentCommentRow({
       aria-current={focused ? "location" : undefined}
       className={cn(
         "flex scroll-mt-24 gap-3 rounded-xl transition-[background-color,box-shadow]",
-        focused && "bg-primary/[0.06] ring-2 ring-primary/25 ring-offset-4 ring-offset-background",
+        focused && "bg-primary/[0.12] ring-2 ring-brand-strong/55 ring-offset-4 ring-offset-background",
       )}
     >
       <UserAvatar

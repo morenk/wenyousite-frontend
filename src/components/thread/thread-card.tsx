@@ -56,7 +56,7 @@ export function ThreadCard({ thread }: ThreadCardProps) {
         <UserAvatar
           name={thread.owner.username}
           src={thread.owner.avatar}
-          className="mt-0.5 h-11 w-11 ring-2 ring-white outline outline-1 outline-border"
+          className="mt-0.5 h-11 w-11 ring-2 ring-card outline outline-1 outline-border"
           textClassName="text-sm"
         />
 

@@ -27,7 +27,7 @@ export function AppContextRail() {
     >
       {user ? (
         <Panel className="overflow-hidden" padding="none">
-          <div className="h-1 bg-primary" aria-hidden="true" />
+          <div className="h-1 bg-brand-strong" aria-hidden="true" />
           <div className="p-4">
             <Link
               href={`/users/${user.id}`}
@@ -42,7 +42,7 @@ export function AppContextRail() {
 
             <Link
               href="/wallet"
-              className="mt-4 flex items-center justify-between rounded-lg bg-primary/55 px-3 py-2.5 text-sm text-primary-foreground transition-colors hover:bg-primary/75"
+              className="mt-4 flex items-center justify-between rounded-lg bg-primary px-3 py-2.5 text-sm text-primary-foreground transition-colors hover:bg-accent"
             >
               <span className="flex items-center gap-2 font-semibold">
                 <Wallet className="size-4" />
@@ -73,7 +73,7 @@ export function AppContextRail() {
         </Panel>
       ) : (
         <Panel className="overflow-hidden" padding="none">
-          <div className="h-1 bg-primary" aria-hidden="true" />
+          <div className="h-1 bg-brand-strong" aria-hidden="true" />
           <div className="p-5">
             <p className="text-xl font-semibold text-foreground">登录温油站</p>
             <div className="mt-4 grid gap-2">

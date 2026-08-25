@@ -27,6 +27,7 @@
 | 文档 | 模块 | 状态 |
 |------|------|------|
 | [auth](./modules/auth.md) | 认证 | active |
+| [theme](./modules/theme.md) | 系统、亮色与黑夜外观偏好 | active |
 | [home](./modules/home.md) | 首页 | active |
 | [moments](./modules/moments.md) | 动态瀑布流、发布、详情与楼中楼评论 | active |
 | [thread-create](./modules/thread-create.md) | 创建主题帖 | active |

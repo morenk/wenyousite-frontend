@@ -248,7 +248,7 @@ export function ContentDraftsPanel({
             onClick={() => void handleAutoSaveToggle()}
             disabled={!onAutoSaveChange || isLoading}
             className={`relative h-6 w-11 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 ${
-              autoSaveEnabled ? "bg-primary" : "bg-muted-foreground/30"
+              autoSaveEnabled ? "bg-brand-strong" : "bg-muted-foreground/30"
             }`}
           >
             <span

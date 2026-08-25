@@ -10,7 +10,7 @@ const panelVariants = cva(
       tone: {
         plain: "border-border bg-card",
         soft: "border-border/70 bg-muted",
-        accent: "border-primary/70 bg-accent/45",
+        accent: "border-brand-strong/70 bg-accent/45",
         floating: "border-border bg-popover shadow-popover",
       },
       padding: {

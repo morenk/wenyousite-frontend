@@ -86,8 +86,8 @@ function SortableStickerTile(props: TileProps) {
         disabled={props.busy}
         aria-label={props.managing ? "选择收藏表情" : "使用收藏表情"}
         className={cn(
-          "h-full w-full rounded-lg border border-transparent bg-muted/40 p-1.5 hover:border-primary/40 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
-          props.selected && "border-primary bg-primary/10",
+          "h-full w-full rounded-lg border border-transparent bg-muted/40 p-1.5 hover:border-brand-strong/55 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
+          props.selected && "border-brand-strong bg-primary/20",
         )}
       >
         <StickerImage sticker={props.sticker} />

@@ -1,4 +1,8 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
+import { THEME_PALETTES } from "@wenyousite/foundation/theme";
+
+import { THEME_STORAGE_KEY } from "../src/lib/theme";
 
 const fixedNow = new Date("2026-08-08T12:00:00Z");
 
@@ -163,8 +167,9 @@ for (const viewport of [
   { width: 1024, height: 900 },
   { width: 1440, height: 1100 },
 ] as const) {
-  test(`首页纯白轻二次元视觉基线 ${viewport.width}px`, async ({ page }) => {
+  test(`首页亮色阅读视觉基线 ${viewport.width}px`, async ({ page }) => {
     await page.setViewportSize(viewport);
+    await page.addInitScript((storageKey) => localStorage.setItem(storageKey, "light"), THEME_STORAGE_KEY);
     await mockHome(page);
     await page.goto("/");
     await hideDevIndicator(page);
@@ -198,6 +203,7 @@ for (const viewport of [
 
 test("宽屏保持三栏社区壳且减少动态效果", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.addInitScript((storageKey) => localStorage.setItem(storageKey, "light"), THEME_STORAGE_KEY);
   await mockHome(page);
   await page.goto("/");
   await hideDevIndicator(page);
@@ -222,6 +228,32 @@ test("宽屏保持三栏社区壳且减少动态效果", async ({ page }) => {
   expect(Number.parseFloat(transitionDuration)).toBeLessThanOrEqual(0.00001);
 
   await expect(page).toHaveScreenshot("home-1920.png", {
+    fullPage: true,
+    animations: "disabled",
+  });
+});
+
+test("首页温暖墨紫黑夜视觉基线", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
+  await page.addInitScript((storageKey) => localStorage.setItem(storageKey, "dark"), THEME_STORAGE_KEY);
+  await mockHome(page);
+  await page.goto("/");
+  await hideDevIndicator(page);
+  await expect(page.getByRole("heading", { name: "发现主题帖" })).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  const themeColor = page.locator('meta[name="theme-color"]');
+  await expect(themeColor).toHaveCount(1);
+  await expect(themeColor).toHaveAttribute(
+    "content",
+    THEME_PALETTES.dark.background,
+  );
+  await expect(page.getByRole("button", { name: "外观：黑夜" })).toBeVisible();
+  const accessibility = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+    .analyze();
+  expect(accessibility.violations).toEqual([]);
+  await expect(page).toHaveScreenshot("home-dark-1440.png", {
     fullPage: true,
     animations: "disabled",
   });

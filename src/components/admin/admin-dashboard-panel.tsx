@@ -158,7 +158,7 @@ export function AdminDashboardPanel() {
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-muted">
                   <div
-                    className={category.isActive ? "h-full rounded-full bg-primary" : "h-full rounded-full bg-muted-foreground/45"}
+                    className={category.isActive ? "h-full rounded-full bg-brand-strong" : "h-full rounded-full bg-muted-foreground/45"}
                     style={{ width: `${Math.max(2, (category.count / categoryMaximum) * 100)}%` }}
                   />
                 </div>

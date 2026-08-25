@@ -70,6 +70,7 @@ async function expectCompactWorkspaceNav(page: Page) {
     "发现",
     "动态",
     "搜索",
+    "外观：跟随系统",
     "退出",
   ]);
 

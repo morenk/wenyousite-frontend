@@ -3,7 +3,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { BRAND_NAME } from "@wenyousite/foundation/brand";
@@ -17,6 +16,8 @@ import { useUnreadCounts } from "@/components/layout/unread-counts-context";
 import { UnreadCountBadge } from "@/components/ui/unread-count-badge";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
+import { BrandTitleMark } from "@/components/ui/brand-title-mark";
+import { ThemeMenu } from "@/components/layout/theme-menu";
 
 type NavItem = {
   href: string;
@@ -77,14 +78,7 @@ export function NavBar({
         )}
       >
         <span className="flex size-11 shrink-0 items-center justify-center">
-          <Image
-            src="/brand-title-icon-128.png"
-            width={40}
-            height={40}
-            alt=""
-            aria-hidden="true"
-            priority
-          />
+          <BrandTitleMark size={40} priority />
         </span>
         <span className={cn(
           "ml-3 hidden font-display text-xl font-medium tracking-wide text-foreground",
@@ -106,65 +100,65 @@ export function NavBar({
         ))}
       </nav>
 
-      <div className={cn(
-        "mt-auto grid gap-2 border-t border-border pt-4",
-        !user && "xl:hidden",
-      )}>
-        {user ? (
-          <>
-            <Link
-              href={`/users/${user.id}`}
-              aria-label={user.username}
-              title={user.username}
-              className={cn(
+      <div className="mt-auto grid gap-2 border-t border-border pt-4">
+        <ThemeMenu compact={compact} />
+        <div className={cn("grid gap-2", !user && "xl:hidden")}>
+          {user ? (
+            <>
+              <Link
+                href={`/users/${user.id}`}
+                aria-label={user.username}
+                title={user.username}
+                className={cn(
+                  "flex min-h-11 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+                  !compact && "xl:justify-start xl:gap-3 xl:px-2.5",
+                  "xl:hidden",
+                  pathname.startsWith(`/users/${user.id}`) && "bg-accent/55 text-foreground",
+                )}
+              >
+                <UserAvatar name={user.username} src={user.avatar ?? null} className="size-8" textClassName="text-xs" />
+                <span className={cn(
+                  "hidden min-w-0 flex-1 truncate text-sm font-bold",
+                  !compact && "xl:block",
+                )}>{user.username}</span>
+              </Link>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className={cn(
+                  "flex min-h-10 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+                  !compact && "xl:justify-start xl:gap-3 xl:px-3",
+                )}
+                title="退出"
+              >
+                <WenyouIcon id="action.logout" className="size-4" />
+                <span className={cn("hidden text-sm font-medium", !compact && "xl:inline")}>退出</span>
+              </button>
+            </>
+          ) : (
+            <>
+              <Link href="/login" className={cn(
                 "flex min-h-11 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
-                !compact && "xl:justify-start xl:gap-3 xl:px-2.5",
-                "xl:hidden",
-                pathname.startsWith(`/users/${user.id}`) && "bg-accent/55 text-foreground",
-              )}
-            >
-              <UserAvatar name={user.username} src={user.avatar ?? null} className="size-8" textClassName="text-xs" />
-              <span className={cn(
-                "hidden min-w-0 flex-1 truncate text-sm font-bold",
-                !compact && "xl:block",
-              )}>{user.username}</span>
-            </Link>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className={cn(
-                "flex min-h-10 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
-                !compact && "xl:justify-start xl:gap-3 xl:px-3",
-              )}
-              title="退出"
-            >
-              <WenyouIcon id="action.logout" className="size-4" />
-              <span className={cn("hidden text-sm font-medium", !compact && "xl:inline")}>退出</span>
-            </button>
-          </>
-        ) : (
-          <>
-            <Link href="/login" className={cn(
-              "flex min-h-11 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
-              !compact && "xl:gap-3",
-            )} title="登录">
-              <WenyouIcon id="action.login" className="size-5" />
-              <span className={cn("hidden text-sm font-semibold", !compact && "xl:inline")}>登录</span>
-            </Link>
-            <Link
-              href="/register"
-              aria-label="注册"
-              title="注册"
-              className={cn(
-                "flex min-h-11 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-colors hover:bg-primary/80",
-                !compact && "xl:px-3",
-              )}
-            >
-              <WenyouIcon id="action.follow" className={cn("size-5", !compact && "xl:hidden")} />
-              <span className={cn("hidden text-sm font-bold", !compact && "xl:inline")}>注册</span>
-            </Link>
-          </>
-        )}
+                !compact && "xl:gap-3",
+              )} title="登录">
+                <WenyouIcon id="action.login" className="size-5" />
+                <span className={cn("hidden text-sm font-semibold", !compact && "xl:inline")}>登录</span>
+              </Link>
+              <Link
+                href="/register"
+                aria-label="注册"
+                title="注册"
+                className={cn(
+                  "flex min-h-11 items-center justify-center rounded-xl bg-action-primary text-action-primary-foreground transition-colors hover:bg-[color-mix(in_srgb,var(--action-primary)_86%,var(--brand-strong))]",
+                  !compact && "xl:px-3",
+                )}
+              >
+                <WenyouIcon id="action.follow" className={cn("size-5", !compact && "xl:hidden")} />
+                <span className={cn("hidden text-sm font-bold", !compact && "xl:inline")}>注册</span>
+              </Link>
+            </>
+          )}
+        </div>
       </div>
     </aside>
   );

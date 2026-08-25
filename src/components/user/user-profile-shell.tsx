@@ -124,7 +124,7 @@ export function UserProfileShell({ userId, children }: UserProfileShellProps) {
                     prefetch
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "relative flex min-h-12 min-w-0 items-center justify-center px-1 text-xs font-semibold text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-ring/30 after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full after:bg-primary after:opacity-0 after:transition-opacity sm:px-4 sm:text-sm sm:after:inset-x-4",
+                      "relative flex min-h-12 min-w-0 items-center justify-center px-1 text-xs font-semibold text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-ring/30 after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full after:bg-brand-strong after:opacity-0 after:transition-opacity sm:px-4 sm:text-sm sm:after:inset-x-4",
                       active && "text-foreground after:opacity-100",
                     )}
                   >

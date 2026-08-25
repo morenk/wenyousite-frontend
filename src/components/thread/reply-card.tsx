@@ -111,7 +111,7 @@ export function ReplyCard({
         isDiscussion
           ? "rounded-xl border border-border bg-card p-4"
           : "rounded-lg border border-border bg-background p-3",
-        focused && "border-primary bg-primary/[0.06] ring-2 ring-primary/20",
+        focused && "border-brand-strong bg-primary/[0.12] ring-2 ring-brand-strong/35",
       )}
     >
       <div className="mb-1.5 flex items-start justify-between gap-2">

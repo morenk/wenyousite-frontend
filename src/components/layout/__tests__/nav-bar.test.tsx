@@ -48,6 +48,10 @@ vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: mockToastError },
 }));
 
+vi.mock("@/components/layout/theme-menu", () => ({
+  ThemeMenu: () => <button type="button" aria-label="外观：跟随系统" />,
+}));
+
 beforeEach(() => {
   vi.clearAllMocks();
   mockLogoutMutate.mockResolvedValue(undefined);
@@ -76,6 +80,7 @@ describe("NavBar", () => {
     expect(login).toHaveAttribute("href", "/login");
     expect(screen.getByRole("link", { name: "注册" })).toHaveAttribute("href", "/register");
     expect(login.parentElement).toHaveClass("xl:hidden");
+    expect(screen.getByRole("button", { name: "外观：跟随系统" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "打开发布菜单" })).not.toBeInTheDocument();
   });
 

@@ -122,7 +122,7 @@ export function FloorCard({ floor, focused = false }: FloorCardProps) {
       id={`post-${floor.id}`}
       className={cn(
         "rounded-xl border border-border bg-card p-4 transition-colors",
-        focused && "border-primary bg-accent/30 ring-2 ring-primary/20",
+        focused && "border-brand-strong bg-accent/30 ring-2 ring-brand-strong/35",
       )}
     >
       {/* 楼层头部 */}

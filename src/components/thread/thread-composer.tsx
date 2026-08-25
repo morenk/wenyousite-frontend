@@ -114,7 +114,7 @@ function ThreadComposer() {
   );
 
   return (
-    <div ref={containerRef} className="space-y-3 rounded-lg border border-primary/30 bg-background p-3">
+    <div ref={containerRef} className="space-y-3 rounded-lg border border-brand-strong/40 bg-background p-3">
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm font-medium text-foreground">{session.label}</p>
         <Button

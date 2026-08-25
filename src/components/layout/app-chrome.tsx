@@ -9,6 +9,7 @@ import { useUnreadCount } from "@/api/hooks/use-unread-count";
 import { UnreadCountsProvider } from "@/components/layout/unread-counts-context";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
+import { ThemeMenu } from "@/components/layout/theme-menu";
 
 export type AppChromeMode = "community" | "workspace" | "auth";
 
@@ -41,7 +42,10 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
 
   if (mode === "auth") {
     return (
-      <div data-slot="app-chrome" data-mode={mode} className="min-h-screen bg-background">
+      <div data-slot="app-chrome" data-mode={mode} className="relative min-h-screen bg-background">
+        <div className="fixed right-4 top-4 z-[var(--layer-chrome)] w-10">
+          <ThemeMenu compact side="bottom" align="end" />
+        </div>
         <main className="min-h-screen">{children}</main>
       </div>
     );
