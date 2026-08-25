@@ -5,6 +5,7 @@ import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
 import type { components } from "@/api/types";
 import { useViewerScope } from "@/api/use-viewer-scope";
+import { shouldRetryContentQuery } from "@/api/errors";
 
 type GeneratedPostDetail = components["schemas"]["PostDetailResponseDto"];
 export type PostDetail = Omit<GeneratedPostDetail, "diceRolls"> & {
@@ -27,5 +28,7 @@ export function usePost(id?: string) {
     },
     enabled: !!id,
     staleTime: 30 * 1000,
+    refetchOnMount: "always",
+    retry: shouldRetryContentQuery,
   });
 }

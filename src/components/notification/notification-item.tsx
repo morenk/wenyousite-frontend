@@ -34,12 +34,16 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const Icon = typeIconMap[notification.type] ?? MessageSquare;
   const displayContent = sanitizeNotificationContent(notification);
   const structuredContent = getStructuredNotificationContent(notification);
-  const deletedHint = getDeletedHint(notification);
+  const unavailableHint = getUnavailableHint(notification);
+  const targetActive = notification.target.state === "ACTIVE";
+  const effectivelyRead = notification.isRead || unavailableHint !== null;
   const targetMomentId = notification.target.momentId ?? notification.momentId;
   const targetMomentCommentId = notification.target.momentCommentId ?? notification.momentCommentId;
-  const href = notification.target.kind === "post" &&
-    notification.target.postId && notification.target.threadId
-    ? getPostHref({
+  const href = !targetActive
+    ? null
+    : notification.target.kind === "post" &&
+        notification.target.postId && notification.target.threadId
+      ? getPostHref({
         threadId: notification.target.threadId,
         postId: notification.target.postId,
         parentPostId: notification.post?.parentPostId,
@@ -57,11 +61,11 @@ export function NotificationItem({ notification }: NotificationItemProps) {
       : null;
 
   const handleOpen = () => {
-    if (!notification.isRead) {
+    if (!effectivelyRead && targetActive) {
       markRead.mutate(notification.id);
     }
-    if (deletedHint) {
-      toast.info(deletedHint);
+    if (unavailableHint) {
+      toast.info(unavailableHint);
     }
   };
 
@@ -89,7 +93,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         <div
           className={cn(
             "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
-            notification.isRead
+            effectivelyRead
               ? "bg-muted text-muted-foreground"
               : "bg-primary/10 text-brand-strong",
           )}
@@ -101,27 +105,27 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         <p
           className={cn(
             "text-sm leading-relaxed",
-            notification.isRead
+            effectivelyRead
               ? "text-muted-foreground"
               : "text-foreground",
           )}
         >
           {structuredContent ?? (displayContent || "（图片内容）")}
         </p>
-        {deletedHint && (
-          <p className="mt-1 text-xs font-medium text-destructive">{deletedHint}</p>
+        {unavailableHint && (
+          <p className="mt-1 text-xs font-medium text-destructive">{unavailableHint}</p>
         )}
         <p className="mt-0.5 text-xs text-muted-foreground">
           <WenyouTime value={notification.createdAt} />
         </p>
       </div>
-      {!notification.isRead && (
+      {!effectivelyRead && (
         <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-brand-strong" />
       )}
     </>
   );
 
-  const content = href && !deletedHint ? (
+  const content = href ? (
     <Link
       href={href}
       onClick={handleOpen}
@@ -129,8 +133,12 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     >
       {inner}
     </Link>
-  ) : deletedHint ? (
-    <div onClick={handleOpen} className="flex cursor-default items-start gap-3">
+  ) : unavailableHint ? (
+    <div
+      aria-disabled="true"
+      onClick={handleOpen}
+      className="flex cursor-default items-start gap-3"
+    >
       {inner}
     </div>
   ) : (
@@ -141,7 +149,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     <div
       className={cn(
         "relative w-full rounded-xl border p-3.5",
-        notification.isRead
+        effectivelyRead
           ? "border-border bg-card"
           : "border-brand-strong/35 bg-primary/[0.08]",
       )}
@@ -159,14 +167,15 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   );
 }
 
-/** 跳转对象已被删除时的提示文案；目标存在则返回 null（不拦截跳转） */
-function getDeletedHint(notification: NotificationItemData): string | null {
-  if (notification.threadId && notification.thread?.deletedAt) return "该内容已删除";
-  if (notification.postId && notification.post?.deletedAt) return "该内容已删除";
-  if (notification.momentId && notification.moment?.deletedAt) return "该动态已删除";
-  if (notification.momentCommentId && notification.momentComment?.deletedAt) return "该评论已删除";
-  if (notification.fromUserId && notification.fromUser?.deletedAt) return "该用户已注销";
-  return null;
+/** 后端状态是导航资格的唯一事实源；关联对象只用于选择更具体的历史提示。 */
+function getUnavailableHint(notification: NotificationItemData): string | null {
+  if (notification.target.state === "USER_DEACTIVATED") return "该用户已注销";
+  if (notification.target.state !== "CONTENT_DELETED") return null;
+  if (notification.momentComment || notification.momentCommentId) return "该评论已删除";
+  if (notification.moment || notification.momentId) return "该动态已删除";
+  if (notification.post || notification.postId) return "该内容已删除";
+  if (notification.thread || notification.threadId) return "该内容已删除";
+  return "该内容已删除或不可访问";
 }
 
 function getMomentNotificationHref(

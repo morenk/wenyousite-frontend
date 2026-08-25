@@ -3517,6 +3517,11 @@ export interface components {
         NotificationTargetResponseDto: {
             /** @enum {string} */
             kind: "post" | "thread" | "moment" | "user" | "none";
+            /**
+             * @description 目标当前状态；只有 ACTIVE 可以导航
+             * @enum {string}
+             */
+            state: "ACTIVE" | "CONTENT_DELETED" | "USER_DEACTIVATED" | "NO_TARGET";
             threadId: string | null;
             postId: string | null;
             momentId: string | null;

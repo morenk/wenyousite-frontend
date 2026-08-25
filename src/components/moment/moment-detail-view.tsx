@@ -4,10 +4,11 @@ import Link from "next/link";
 import { CONTENT_PRESENTATION } from "@wenyousite/foundation/collections";
 import { useRouter } from "next/navigation";
 import { Pencil, Save, ShieldAlert, Trash2 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useDeleteMoment, useMoment, useMomentBookmark, useMomentLike, useUpdateMoment } from "@/api/hooks/use-moments";
-import { getApiErrorMessage } from "@/api/errors";
+import { getApiErrorMessage, isContentUnavailableError } from "@/api/errors";
+import { useContentAccessCache } from "@/api/hooks/use-content-access-cache";
 import { MomentComments } from "@/components/moment/moment-comments";
 import { MomentImageGallery } from "@/components/moment/moment-image-gallery";
 import { WenyouTipButton } from "@/components/economy/wenyou-tip-button";
@@ -36,6 +37,7 @@ import { useLoginRedirect } from "@/hooks/use-login-redirect";
 export function MomentDetailView({ momentId, onDeleted }: { momentId: string; onDeleted?: () => void }) {
   const { user } = useAuth();
   const router = useRouter();
+  const { clearMoment } = useContentAccessCache();
   const redirectToLogin = useLoginRedirect();
   const detail = useMoment(momentId, user?.id);
   const [editing, setEditing] = useState(false);
@@ -53,11 +55,26 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
   const bookmark = useMomentBookmark(momentId, moment?.viewerBookmarked ?? false);
   const canModerate = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
 
-  if (detail.isLoading) {
+  const unavailable = isContentUnavailableError(detail.error);
+
+  useEffect(() => {
+    if (!unavailable) return;
+    clearMoment(momentId, { preserveActive: true });
+  }, [clearMoment, momentId, unavailable]);
+
+  const awaitingValidation = detail.isFetching && !detail.isFetchedAfterMount;
+  if (detail.isLoading || awaitingValidation) {
     return <PageRouteFallback variant="detail" />;
   }
   if (detail.isError || !moment) {
-    return <LoadError title="动态不存在" description="它可能已被删除，或当前不可见。" onRetry={() => void detail.refetch()} className="py-24" />;
+    return (
+      <LoadError
+        title="动态不存在"
+        description="它可能已被删除，或当前不可见。"
+        onRetry={unavailable ? undefined : () => void detail.refetch()}
+        className="py-24"
+      />
+    );
   }
 
   const canAddInteraction = moment.canInteract !== false;

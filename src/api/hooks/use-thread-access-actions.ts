@@ -33,6 +33,7 @@ export function useInvitePreview(token: string | undefined) {
       return data.data;
     },
     enabled: !!token,
+    refetchOnMount: "always",
     // 邀请 token 的 404/403 是确定结果；重试只会让失效页多转数秒并重复刷请求。
     retry: false,
   });

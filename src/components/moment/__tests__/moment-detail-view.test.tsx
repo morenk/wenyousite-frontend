@@ -12,6 +12,7 @@ const {
   mockPush,
   mockReplace,
   mockToastError,
+  mockRemoveQueries,
 } = vi.hoisted(() => ({
   mockUseAuth: vi.fn(),
   mockUseMoment: vi.fn(),
@@ -23,6 +24,11 @@ const {
   mockPush: vi.fn(),
   mockReplace: vi.fn(),
   mockToastError: vi.fn(),
+  mockRemoveQueries: vi.fn(),
+}));
+
+vi.mock("@/api/hooks/use-content-access-cache", () => ({
+  useContentAccessCache: () => ({ clearMoment: mockRemoveQueries }),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -379,6 +385,37 @@ describe("MomentDetailView", () => {
     mockUseMoment.mockReturnValue({ data: undefined, isLoading: false, isError: true, refetch: vi.fn() });
     rerender(<MomentDetailView momentId="moment-1" />);
     expect(screen.getByText("动态不存在")).toBeInTheDocument();
+  });
+
+  test("挂载复核期间不展示缓存动态，404 后清除内容缓存", async () => {
+    mockUseMoment.mockReturnValue({
+      data: detail,
+      error: null,
+      isLoading: false,
+      isFetching: true,
+      isFetchedAfterMount: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+    const { rerender } = render(<MomentDetailView momentId="moment-1" />);
+
+    expect(screen.queryByRole("heading", { name: "原动态标题" })).toBeNull();
+    expect(screen.getByRole("status")).toBeInTheDocument();
+
+    mockUseMoment.mockReturnValue({
+      data: detail,
+      error: { code: 40415, message: "动态不存在" },
+      isLoading: false,
+      isFetching: false,
+      isFetchedAfterMount: true,
+      isError: true,
+      refetch: vi.fn(),
+    });
+    rerender(<MomentDetailView momentId="moment-1" />);
+
+    expect(screen.queryByRole("heading", { name: "原动态标题" })).toBeNull();
+    expect(screen.getByText("动态不存在")).toBeInTheDocument();
+    await waitFor(() => expect(mockRemoveQueries).toHaveBeenCalled());
   });
 
   test("删除需确认，成功后由详情页统一执行返回", async () => {

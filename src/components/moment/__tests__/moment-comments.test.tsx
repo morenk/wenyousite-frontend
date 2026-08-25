@@ -18,6 +18,7 @@ const {
   mockValidate,
   mockFetchComments,
   mockToastError,
+  mockRemoveQueries,
 } = vi.hoisted(() => ({
   mockUseAuth: vi.fn(),
   mockCreate: vi.fn(),
@@ -35,6 +36,14 @@ const {
   mockValidate: vi.fn(),
   mockFetchComments: vi.fn(),
   mockToastError: vi.fn(),
+  mockRemoveQueries: vi.fn(),
+}));
+
+vi.mock("@/api/hooks/use-content-access-cache", () => ({
+  useContentAccessCache: () => ({
+    clearMoment: mockRemoveQueries,
+    clearMomentComments: mockRemoveQueries,
+  }),
 }));
 
 const reply = {
@@ -237,6 +246,22 @@ describe("MomentComments", () => {
     expect(screen.getByText("楼中楼内容")).toBeInTheDocument();
   });
 
+  test("回复提交时目标已失效会清空编辑器和动态评论缓存", async () => {
+    mockCreate.mockRejectedValueOnce({ code: 40415, message: "目标评论不存在" });
+    render(<MomentComments momentId="moment-1" />);
+
+    fireEvent.click(screen.getAllByRole("button", { name: "回复" })[1]);
+    const editor = await screen.findByPlaceholderText("回复 回复者");
+    fireEvent.paste(editor, { clipboardData: clipboardData("失效回复") });
+    fireEvent.click(screen.getByRole("button", { name: "发送" }));
+
+    await waitFor(() => {
+      expect(screen.queryByPlaceholderText("回复 回复者")).not.toBeInTheDocument();
+    });
+    expect(mockToastError).toHaveBeenCalledWith("目标已删除或当前无法访问");
+    expect(mockRemoveQueries).toHaveBeenCalled();
+  });
+
   test("通知目标会自动展开楼中楼、定位并高亮具体回复", async () => {
     mockSearchParams.mockReturnValue(
       new URLSearchParams("comment=root-1&reply=reply-1"),
@@ -356,7 +381,11 @@ describe("MomentComments", () => {
     expect(screen.getByText("正在定位目标回复…")).toBeInTheDocument();
 
     mockUseMomentCommentContext.mockReturnValue({
-      data: undefined,
+      data: {
+        root: { ...root, id: "hidden-comment", content: "不应显示的缓存评论" },
+        target: { ...root, id: "hidden-comment", content: "不应显示的缓存评论" },
+        replyCount: 0,
+      },
       error: { code: 40400, message: "目标评论不存在或不可见" },
       isLoading: false,
       isError: true,
@@ -366,6 +395,7 @@ describe("MomentComments", () => {
 
     expect(screen.getByText("目标回复不存在或不可见")).toBeInTheDocument();
     expect(screen.getByText("主评论内容")).toBeInTheDocument();
+    expect(screen.queryByText("不应显示的缓存评论")).toBeNull();
     expect(screen.queryByRole("button", { name: "重试定位" })).toBeNull();
   });
 

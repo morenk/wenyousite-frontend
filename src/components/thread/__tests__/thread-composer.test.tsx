@@ -106,11 +106,12 @@ function renderHarness() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <QueryClientProvider client={queryClient}>
-      <ThreadComposerProvider>
+      <ThreadComposerProvider threadId="thread-1">
         <Harness />
       </ThreadComposerProvider>
     </QueryClientProvider>,
   );
+  return queryClient;
 }
 
 describe("ThreadComposer", () => {
@@ -241,6 +242,25 @@ describe("ThreadComposer", () => {
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(2));
     expect(mocks.create.mock.calls[0]?.[0].clientRequestId).toBe(REQUEST_ID);
     expect(mocks.create.mock.calls[1]?.[0].clientRequestId).toBe(nextRequestId);
+  });
+
+  test("回复目标失效时强制关闭编辑器并清除主题正文缓存", async () => {
+    const user = userEvent.setup();
+    mocks.create.mockRejectedValueOnce({ code: 40403, message: "帖子不存在" });
+    const queryClient = renderHarness();
+    queryClient.setQueryData(["thread", "thread-1", "viewer", "u1"], { title: "私密正文" });
+    queryClient.setQueryData(["floors", "subthread-1"], [{ id: "post-1" }]);
+
+    await user.click(screen.getByRole("button", { name: "回复入口" }));
+    await user.type(screen.getByTestId("milkdown-editor"), "已经失效的回复");
+    await user.click(screen.getByRole("button", { name: /^回复$/ }));
+
+    await waitFor(() => {
+      expect(screen.queryByTestId("milkdown-editor")).not.toBeInTheDocument();
+    });
+    expect(queryClient.getQueryData(["thread", "thread-1", "viewer", "u1"])).toBeUndefined();
+    expect(queryClient.getQueryData(["floors", "subthread-1"])).toBeUndefined();
+    expect(mocks.error).toHaveBeenCalledWith("内容已删除或当前无法访问");
   });
 
   test("编辑楼中楼回填原文并使用乐观锁保存", async () => {

@@ -47,7 +47,7 @@ function baseNotification(
     type: "reply",
     content: "morenk 回复了：内容",
     payload: null,
-    target: { kind: "post", threadId: "t1", postId: "p1", userId: null },
+    target: { kind: "post", state: "ACTIVE", threadId: "t1", postId: "p1", userId: null },
     postId: "p1",
     threadId: "t1",
     fromUserId: "u2",
@@ -98,7 +98,7 @@ describe("NotificationItem", () => {
       <NotificationItem
         notification={baseNotification({
           postId: "r1",
-          target: { kind: "post", threadId: "t1", postId: "r1", userId: null },
+          target: { kind: "post", state: "ACTIVE", threadId: "t1", postId: "r1", userId: null },
           post: { id: "r1", floorNumber: null, parentPostId: "p1" },
         })}
       />,
@@ -119,6 +119,7 @@ describe("NotificationItem", () => {
           momentCommentId: "comment-root",
           target: {
             kind: "moment",
+            state: "ACTIVE",
             threadId: null,
             postId: null,
             momentId: "moment-1",
@@ -149,6 +150,7 @@ describe("NotificationItem", () => {
           momentCommentId: "reply-108",
           target: {
             kind: "moment",
+            state: "ACTIVE",
             threadId: null,
             postId: null,
             momentId: "moment-1",
@@ -175,14 +177,15 @@ describe("NotificationItem", () => {
         notification={baseNotification({
           postId: null,
           threadId: null,
-          momentId: "moment-1",
-          momentCommentId: "comment-deleted",
+          momentId: null,
+          momentCommentId: null,
           target: {
-            kind: "moment",
+            kind: "none",
+            state: "CONTENT_DELETED",
             threadId: null,
             postId: null,
-            momentId: "moment-1",
-            momentCommentId: "comment-deleted",
+            momentId: null,
+            momentCommentId: null,
             userId: null,
           },
           post: null,
@@ -302,7 +305,7 @@ describe("NotificationItem", () => {
       <NotificationItem
         notification={baseNotification({
           type: "follow",
-          target: { kind: "user", threadId: null, postId: null, userId: "u2" },
+          target: { kind: "user", state: "ACTIVE", threadId: null, postId: null, userId: "u2" },
           threadId: null,
           postId: null,
           content: "morenk 关注了你",
@@ -317,7 +320,7 @@ describe("NotificationItem", () => {
       <NotificationItem
         notification={baseNotification({
           type: "system",
-          target: { kind: "none", threadId: null, postId: null, userId: null },
+          target: { kind: "none", state: "NO_TARGET", threadId: null, postId: null, userId: null },
           threadId: null,
           postId: null,
           fromUserId: null,
@@ -333,6 +336,10 @@ describe("NotificationItem", () => {
     renderWithQC(
       <NotificationItem
         notification={baseNotification({
+          target: { kind: "none", state: "CONTENT_DELETED", threadId: null, postId: null, userId: null },
+          threadId: null,
+          postId: null,
+          isRead: false,
           thread: { id: "t1", title: "测试帖", deletedAt: "2026-01-02T00:00:00Z" },
         })}
       />,
@@ -341,11 +348,15 @@ describe("NotificationItem", () => {
     expect(screen.getByText("该内容已删除")).toBeInTheDocument();
   });
 
-  test("帖子已删除时不渲染跳转链接，展示已删除提示", () => {
+  test("父级被管理员隐藏时即使回复关联仍存活也不渲染链接", () => {
     renderWithQC(
       <NotificationItem
         notification={baseNotification({
-          post: { id: "p1", floorNumber: 1, parentPostId: null, deletedAt: "2026-01-02T00:00:00Z" },
+          target: { kind: "none", state: "CONTENT_DELETED", threadId: null, postId: null, userId: null },
+          threadId: null,
+          postId: null,
+          isRead: true,
+          post: { id: "p1", floorNumber: null, parentPostId: "root-hidden" },
         })}
       />,
     );
@@ -358,9 +369,11 @@ describe("NotificationItem", () => {
       <NotificationItem
         notification={baseNotification({
           type: "follow",
-          target: { kind: "user", threadId: null, postId: null, userId: "u2" },
+          target: { kind: "none", state: "USER_DEACTIVATED", threadId: null, postId: null, userId: null },
           threadId: null,
           postId: null,
+          fromUserId: null,
+          isRead: true,
           content: "morenk 关注了你",
           fromUser: { id: "u2", username: "morenk", avatar: null, level: 1, deletedAt: "2026-01-02T00:00:00Z" },
         })}
@@ -370,7 +383,7 @@ describe("NotificationItem", () => {
     expect(screen.getByText("该用户已注销")).toBeInTheDocument();
   });
 
-  test("点击已删除目标触发提示且不跳转（仍标记已读）", async () => {
+  test("点击已删除历史只提示且不会重复标记已读", async () => {
     const user = userEvent.setup();
     const markReadMutate = vi.fn();
     mockUseNotificationActions.mockReturnValue({
@@ -383,13 +396,17 @@ describe("NotificationItem", () => {
     renderWithQC(
       <NotificationItem
         notification={baseNotification({
+          target: { kind: "none", state: "CONTENT_DELETED", threadId: null, postId: null, userId: null },
+          threadId: null,
+          postId: null,
+          isRead: false,
           thread: { id: "t1", title: "测试帖", deletedAt: "2026-01-02T00:00:00Z" },
         })}
       />,
     );
     await user.click(screen.getByText("该内容已删除"));
 
-    expect(markReadMutate).toHaveBeenCalledWith("n1");
+    expect(markReadMutate).not.toHaveBeenCalled();
     expect(toast.info).toHaveBeenCalledWith("该内容已删除");
   });
 
@@ -422,7 +439,7 @@ describe("NotificationItem", () => {
       <NotificationItem
         notification={baseNotification({
           type: "system",
-          target: { kind: "none", threadId: null, postId: null, userId: null },
+          target: { kind: "none", state: "NO_TARGET", threadId: null, postId: null, userId: null },
           fromUserId: null,
           fromUser: null,
           content: "欢迎使用温油站",

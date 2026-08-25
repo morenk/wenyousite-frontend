@@ -5,6 +5,7 @@ import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
 import type { components } from "@/api/types";
 import { useViewerScope } from "@/api/use-viewer-scope";
+import { shouldRetryContentQuery } from "@/api/errors";
 
 export const THREAD_DETAIL_STALE_TIME = 30 * 1000;
 
@@ -69,6 +70,8 @@ export function threadDetailQueryOptions(threadId: string, viewerScope = "anonym
       return normalizeThreadDetail(data.data);
     },
     staleTime: THREAD_DETAIL_STALE_TIME,
+    refetchOnMount: "always" as const,
+    retry: shouldRetryContentQuery,
   };
 }
 

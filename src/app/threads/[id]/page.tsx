@@ -12,6 +12,8 @@ import { getPostHref } from "@/lib/post-navigation";
 import { useThreadDetail } from "@/api/hooks/use-thread-detail";
 import { useFloors, usePrefetchFloors } from "@/api/hooks/use-floors";
 import { usePost } from "@/api/hooks/use-post";
+import { isContentUnavailableError } from "@/api/errors";
+import { useContentAccessCache } from "@/api/hooks/use-content-access-cache";
 import { useFloorAuthors } from "@/api/hooks/use-discussion-authors";
 import type { FloorFilters, FloorOrder } from "@/api/floor-query";
 import { ThreadDetailHeader } from "@/components/thread/thread-detail-header";
@@ -58,6 +60,7 @@ export default function ThreadDetailPage() {
 function ThreadDetailPageContent() {
   const params = useParams();
   const router = useRouter();
+  const { clearPost, clearThread } = useContentAccessCache();
   const threadId = params.id as string;
   const [contentCoordinate, setContentCoordinate] = useQueryStates(
     threadContentCoordinateParsers,
@@ -87,14 +90,51 @@ function ThreadDetailPageContent() {
   const {
     data: thread,
     isLoading,
+    isFetching,
+    isFetchedAfterMount,
     error,
     refetch,
   } = useThreadDetail(threadId);
 
   const [isSearching, setIsSearching] = useState(false);
-  const { data: targetPost } = usePost(targetPostId);
+  const targetPostQuery = usePost(targetPostId);
+  const { data: targetPost } = targetPostQuery;
+  const parentFloorId = targetPost?.parentPostId ?? undefined;
   const targetFloorId = targetPost?.parentPostId ?? targetPost?.id;
-  const { data: targetFloor } = usePost(targetFloorId);
+  const targetFloorQuery = usePost(parentFloorId);
+  const targetFloor = parentFloorId ? targetFloorQuery.data : targetPost;
+
+  const targetContextInvalid = Boolean(
+    targetPost && targetPost.thread.id !== threadId,
+  );
+  const threadUnavailable = isContentUnavailableError(error);
+  const targetUnavailable = Boolean(
+    targetPostId &&
+      (isContentUnavailableError(targetPostQuery.error) ||
+        isContentUnavailableError(targetFloorQuery.error) ||
+        targetContextInvalid),
+  );
+
+  useEffect(() => {
+    if (!threadUnavailable) return;
+    void closeComposer({ force: true });
+    clearThread(threadId, { preserveActive: true });
+  }, [clearThread, closeComposer, threadId, threadUnavailable]);
+
+  useEffect(() => {
+    if (!targetPostId || !targetUnavailable) return;
+    void closeComposer({ force: true });
+    clearPost(targetPostId, { preserveActive: true });
+    if (targetFloorId && targetFloorId !== targetPostId) {
+      clearPost(targetFloorId, { preserveActive: true });
+    }
+  }, [
+    closeComposer,
+    clearPost,
+    targetFloorId,
+    targetPostId,
+    targetUnavailable,
+  ]);
 
   const querySubthread = thread?.subthreads.find(
     (subthread) => subthread.id === querySubthreadId,
@@ -201,29 +241,42 @@ function ThreadDetailPageContent() {
   }, [isSearching]);
 
   // Loading
-  if (isLoading || (!isInitialized && error)) {
+  const awaitingThreadValidation = isFetching && !isFetchedAfterMount;
+  const awaitingTargetValidation = Boolean(
+    targetPostId &&
+      ((targetPostQuery.isFetching && !targetPostQuery.isFetchedAfterMount) ||
+        (parentFloorId &&
+          targetFloorQuery.isFetching &&
+          !targetFloorQuery.isFetchedAfterMount)),
+  );
+
+  if (isLoading || awaitingThreadValidation || awaitingTargetValidation || (!isInitialized && error)) {
     return <PageRouteFallback variant="detail" />;
   }
 
-  // 404
-  if (error) {
-    const err = error as { code?: number };
-    const is404 = err?.code === 40400;
+  if (error || targetPostQuery.error || targetFloorQuery.error || targetContextInvalid) {
+    const unavailable = threadUnavailable || targetUnavailable;
+    const retry = targetPostQuery.error || targetFloorQuery.error || targetContextInvalid
+      ? () => {
+          void targetPostQuery.refetch();
+          if (parentFloorId) void targetFloorQuery.refetch();
+        }
+      : () => void refetch();
     return (
       <PageShell width="feed" className="py-12">
         <Card>
           <CardContent className="pt-6">
             <div className="flex flex-col items-center gap-4 py-8">
               <AlertCircle className="h-10 w-10 text-muted-foreground" />
-              {is404 ? (
+              {unavailable ? (
                 <EmptyState
-                  title="主题帖不存在或已被删除"
-                  description="该帖子可能尚未发布、已被删除或为私密帖"
+                  title={targetUnavailable ? "内容不存在或已被删除" : "主题帖不存在或已被删除"}
+                  description="内容可能已被删除、尚未发布，或你没有访问权限"
                 />
               ) : (
                 <>
                   <EmptyState title="加载失败" />
-                  <Button variant="outline" size="sm" onClick={() => refetch()}>
+                  <Button variant="outline" size="sm" onClick={retry}>
                     重试
                   </Button>
                 </>

@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDown, Loader2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   type MomentRootComment,
@@ -11,7 +11,8 @@ import {
 import { FloatingInputDock } from "@/components/shared/floating-input-dock";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
-import { getApiError } from "@/api/errors";
+import { isContentUnavailableError } from "@/api/errors";
+import { useContentAccessCache } from "@/api/hooks/use-content-access-cache";
 import type { ReplyFilters, ReplyOrder } from "@/api/reply-query";
 import { MomentCommentForm } from "@/components/moment/moment-comment-form";
 import { MomentCommentThread } from "@/components/moment/moment-comment-thread";
@@ -27,10 +28,11 @@ export function MomentComments({
 }) {
   const { user } = useAuth();
   const searchParams = useSearchParams();
+  const { clearMomentComments } = useContentAccessCache();
   const [order, setOrder] = useState<ReplyOrder>("NEWEST");
   const filters = useMemo<ReplyFilters>(() => ({ order }), [order]);
   const commentsQuery = useMomentComments(momentId, user?.id, filters);
-  const commentPages = commentsQuery.data?.pages;
+  const commentPages = commentsQuery.isRefetching ? undefined : commentsQuery.data?.pages;
   const comments = useMemo(
     () => commentPages?.flatMap((page) => page.data) ?? [],
     [commentPages],
@@ -40,7 +42,15 @@ export function MomentComments({
   const replyParam = rootCommentParam ? searchParams.get("reply") : null;
   const targetCommentId = replyParam ?? rootCommentParam ?? undefined;
   const contextQuery = useMomentCommentContext(momentId, targetCommentId, user?.id);
-  const context = contextQuery.data;
+  const targetUnavailable = Boolean(
+    targetCommentId && isContentUnavailableError(contextQuery.error),
+  );
+  const contextValidating = Boolean(
+    targetCommentId && (contextQuery.isFetching || contextQuery.isLoading),
+  );
+  const context = contextValidating || targetUnavailable || contextQuery.isError
+    ? undefined
+    : contextQuery.data;
   const focusedRoot = useMemo<MomentRootComment | null>(() => context ? {
     ...context.root,
     replyCount: context.replyCount,
@@ -55,10 +65,14 @@ export function MomentComments({
   const focusedRootId = context?.root.id;
   const focusedCommentId = context?.target.id;
   const focusedReply = context?.target.parentCommentId ? context.target : undefined;
-  const contextError = getApiError(contextQuery.error);
-  const targetUnavailable = contextError.code === 40400 || contextError.status === 404;
-  const showCommentsLoading = commentsQuery.isLoading && displayedComments.length === 0;
+  const showCommentsLoading = (commentsQuery.isLoading || commentsQuery.isRefetching) &&
+    displayedComments.length === 0;
   const showCommentsError = commentsQuery.isError && displayedComments.length === 0;
+
+  useEffect(() => {
+    if (!targetCommentId || !targetUnavailable) return;
+    clearMomentComments(momentId, { preserveActive: true });
+  }, [clearMomentComments, momentId, targetCommentId, targetUnavailable]);
 
   return (
     <section id="comments" className="scroll-mt-6 pt-5" aria-label="动态回复">
@@ -70,14 +84,14 @@ export function MomentComments({
         />
       </div>
 
-      {targetCommentId && contextQuery.isLoading ? (
+      {targetCommentId && contextValidating && !targetUnavailable ? (
         <div className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-muted/45 px-4 py-3 text-sm text-muted-foreground" role="status">
           <Loader2 className="size-4 animate-spin" />
           正在定位目标回复…
         </div>
       ) : null}
 
-      {contextQuery.isError ? (
+      {targetUnavailable || contextQuery.isError ? (
         <div
           className="mt-4 rounded-xl border border-border/70 bg-muted/35 px-4 py-3 text-center text-sm text-muted-foreground"
           role={targetUnavailable ? "status" : "alert"}

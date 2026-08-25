@@ -8,7 +8,12 @@ import { toast } from "sonner";
 import { useCreatePost } from "@/api/hooks/use-create-post";
 import { useUpdatePost } from "@/api/hooks/use-update-post";
 import { useUploadImage } from "@/api/hooks/use-upload-image";
-import { API_ERROR_CODE, getApiError } from "@/api/errors";
+import {
+  API_ERROR_CODE,
+  getApiError,
+  isContentUnavailableError,
+} from "@/api/errors";
+import { useContentAccessCache } from "@/api/hooks/use-content-access-cache";
 import { MilkdownEditor } from "@/components/editor/milkdown-editor";
 import { Button } from "@/components/ui/button";
 import { useThreadComposer } from "@/components/thread/thread-composer-context";
@@ -28,6 +33,7 @@ function getErrorMessage(error: unknown, fallback: string) {
 }
 
 function ThreadComposer() {
+  const { clearThread } = useContentAccessCache();
   const {
     session,
     threadId,
@@ -105,6 +111,12 @@ function ThreadComposer() {
       toast.success(isEdit ? "已保存" : isReply ? "回复成功" : "发布成功");
     } catch (error: unknown) {
       setPending(false);
+      if (isContentUnavailableError(error)) {
+        await close({ force: true });
+        if (threadId) clearThread(threadId);
+        toast.error("内容已删除或当前无法访问");
+        return;
+      }
       toast.error(getErrorMessage(error, isEdit ? "保存失败，请稍后重试" : "发布失败，请稍后重试"));
     }
   };

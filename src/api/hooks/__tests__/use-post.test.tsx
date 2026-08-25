@@ -45,7 +45,7 @@ describe("usePost", () => {
   });
 
   test("API 错误与空响应都进入错误态", async () => {
-    const apiError = { message: "无权查看" };
+    const apiError = { code: 40300, message: "无权查看" };
     mockGET.mockResolvedValueOnce({ data: undefined, error: apiError });
     const first = createQueryWrapper();
     const apiResult = renderHook(() => usePost("p1"), { wrapper: first.Wrapper });

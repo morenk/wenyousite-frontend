@@ -5,7 +5,7 @@ import { BROWSING_RETURN_GC_TIME } from "@/api/query-policy";
 import type { components, operations } from "@/api/types";
 import { isMomentCacheQuery, patchMomentCaches } from "@/api/moment-cache";
 import type { ReplyFilters } from "@/api/reply-query";
-import { getApiError } from "@/api/errors";
+import { shouldRetryContentQuery } from "@/api/errors";
 
 export type MomentCard = components["schemas"]["MomentCardResponseDto"];
 export type MomentBookmarkCard = components["schemas"]["OwnMomentBookmarkResponseDto"];
@@ -65,6 +65,8 @@ export function useMoment(id: string | undefined, userId?: string) {
     },
     enabled: !!id,
     staleTime: 20_000,
+    refetchOnMount: "always",
+    retry: shouldRetryContentQuery,
   });
 }
 
@@ -224,6 +226,7 @@ export function useMomentComments(
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (page) => page.meta.hasMore ? page.meta.cursor ?? undefined : undefined,
     enabled: !!momentId,
+    refetchOnMount: "always",
   });
 }
 
@@ -254,6 +257,7 @@ export function useMomentReplies(
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (page) => page.meta.hasMore ? page.meta.cursor ?? undefined : undefined,
     enabled,
+    refetchOnMount: "always",
   });
 }
 
@@ -275,8 +279,9 @@ export function useMomentCommentContext(
       return data.data satisfies MomentCommentContextResponse["data"];
     },
     enabled: !!commentId,
-    retry: (failureCount, error) => getApiError(error).code !== 40400 && failureCount < 1,
+    retry: shouldRetryContentQuery,
     staleTime: 20_000,
+    refetchOnMount: "always",
   });
 }
 

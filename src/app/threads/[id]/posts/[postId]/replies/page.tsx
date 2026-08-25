@@ -2,11 +2,17 @@
 
 "use client";
 
+import { useEffect } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { usePost } from "@/api/hooks/use-post";
+import { isContentUnavailableError } from "@/api/errors";
+import { useContentAccessCache } from "@/api/hooks/use-content-access-cache";
 import { ReplyDiscussion } from "@/components/thread/reply-discussion";
-import { ThreadComposerProvider } from "@/components/thread/thread-composer-context";
+import {
+  ThreadComposerProvider,
+  useThreadComposer,
+} from "@/components/thread/thread-composer-context";
 import { ThreadPermissionsProvider } from "@/components/thread/thread-permissions-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth";
@@ -26,12 +32,59 @@ export default function ReplyDiscussionPage() {
 function ReplyDiscussionPageContent() {
   const params = useParams<{ id: string; postId: string }>();
   const searchParams = useSearchParams();
+  const { clearPost, clearThread } = useContentAccessCache();
   const { isInitialized } = useAuth();
+  const { close: closeComposer } = useThreadComposer();
   const focusedReplyId = searchParams.get("post") ?? undefined;
-  const { data: rootPost, isLoading, error } = usePost(params.postId);
-  const { data: focusedReply } = usePost(focusedReplyId);
+  const rootPostQuery = usePost(params.postId);
+  const focusedReplyQuery = usePost(focusedReplyId);
+  const { data: rootPost, isLoading, error } = rootPostQuery;
+  const { data: focusedReply } = focusedReplyQuery;
 
-  if (isLoading || (!isInitialized && error)) {
+  const invalidRoot = Boolean(
+    rootPost &&
+      (rootPost.thread.id !== params.id ||
+        rootPost.parentPostId !== null ||
+        rootPost.floorNumber === null),
+  );
+  const invalidFocusedReply = Boolean(
+    focusedReplyId &&
+      focusedReply &&
+      (!rootPost ||
+        focusedReply.thread.id !== params.id ||
+        focusedReply.parentPostId !== rootPost.id),
+  );
+  const rootUnavailable = isContentUnavailableError(error) || invalidRoot;
+  const focusedReplyUnavailable = Boolean(
+    focusedReplyId &&
+      (isContentUnavailableError(focusedReplyQuery.error) || invalidFocusedReply),
+  );
+
+  useEffect(() => {
+    if (!rootUnavailable) return;
+    void closeComposer({ force: true });
+    clearThread(params.id, { preserveActive: true });
+  }, [clearThread, closeComposer, params.id, rootUnavailable]);
+
+  useEffect(() => {
+    if (!focusedReplyId || !focusedReplyUnavailable) return;
+    void closeComposer({ force: true });
+    clearPost(focusedReplyId, { preserveActive: true });
+  }, [
+    closeComposer,
+    clearPost,
+    focusedReplyId,
+    focusedReplyUnavailable,
+  ]);
+
+  const awaitingRootValidation = rootPostQuery.isFetching && !rootPostQuery.isFetchedAfterMount;
+  const awaitingFocusedValidation = Boolean(
+    focusedReplyId &&
+      focusedReplyQuery.isFetching &&
+      !focusedReplyQuery.isFetchedAfterMount,
+  );
+
+  if (isLoading || awaitingRootValidation || awaitingFocusedValidation || (!isInitialized && error)) {
     return (
       <div className="flex min-h-screen items-center justify-center text-muted-foreground">
         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -40,13 +93,13 @@ function ReplyDiscussionPageContent() {
     );
   }
 
-  const invalidRoot =
-    !rootPost ||
-    rootPost.thread.id !== params.id ||
-    rootPost.parentPostId !== null ||
-    rootPost.floorNumber === null;
-
-  if (error || invalidRoot) {
+  if (
+    error ||
+    invalidRoot ||
+    focusedReplyQuery.error ||
+    invalidFocusedReply ||
+    !rootPost
+  ) {
     return (
       <PageShell width="content" className="py-12">
         <Card>
@@ -60,8 +113,7 @@ function ReplyDiscussionPageContent() {
     );
   }
 
-  const validFocusedReply =
-    focusedReply?.parentPostId === rootPost.id ? focusedReply : undefined;
+  const validFocusedReply = focusedReplyId ? focusedReply : undefined;
 
   return <ReplyDiscussion rootPost={rootPost} focusedReply={validFocusedReply} />;
 }

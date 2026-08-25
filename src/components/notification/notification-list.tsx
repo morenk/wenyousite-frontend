@@ -42,7 +42,11 @@ export function NotificationList({ type, onTypeChange }: NotificationListProps) 
   });
 
   const notifications = data?.pages.flatMap((page) => page?.data ?? []) ?? [];
-  const hasUnread = notifications.some((notification) => !notification.isRead);
+  const hasUnread = notifications.some(
+    (notification) =>
+      !notification.isRead &&
+      (notification.target.state === "ACTIVE" || notification.target.state === "NO_TARGET"),
+  );
   const loadMoreFailed = Boolean(isFetchNextPageError);
 
   useEffect(() => {

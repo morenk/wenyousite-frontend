@@ -67,6 +67,7 @@ const sampleNotification = {
   type: "reply",
   content: "morenk 回复了：内容",
   payload: null,
+  target: { kind: "post", state: "ACTIVE", threadId: "t1", postId: "p1", userId: null },
   postId: "p1",
   threadId: "t1",
   fromUserId: "u2",
@@ -181,5 +182,39 @@ describe("NotificationList", () => {
     await user.click(screen.getByRole("button", { name: "全部已读" }));
     expect(markAllReadMutate).toHaveBeenCalled();
     expect(toast.success).toHaveBeenCalledWith("已全部标记为已读");
+  });
+
+  test("失效历史即使旧响应残留未读值也不展示全部已读入口", () => {
+    mockUseNotifications.mockReturnValue({
+      data: {
+        pages: [{
+          data: [{
+            ...sampleNotification,
+            target: {
+              kind: "none",
+              state: "CONTENT_DELETED",
+              threadId: null,
+              postId: null,
+              userId: null,
+            },
+          }],
+          meta: { cursor: null, hasMore: false },
+        }],
+      },
+      fetchNextPage: vi.fn(),
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      isLoading: false,
+      isError: false,
+      error: undefined,
+      refetch: vi.fn(),
+    });
+    mockUseNotificationActions.mockReturnValue({
+      markAllRead: { isPending: false, mutateAsync: vi.fn() },
+    });
+
+    renderList();
+
+    expect(screen.queryByRole("button", { name: "全部已读" })).toBeNull();
   });
 });

@@ -15,6 +15,7 @@
 - 页面重新获得焦点时刷新通知；补齐加载更多失败重试
 - 「全部已读」仅在有未读时展示，并即时更新列表与红点
 - payload 结构化渲染：`actorName`、动作和 `preview` 分段排版；点赞聚合继续使用后端生成的完整文案
+- 删除、注销或越权目标保留为不可点击的已读历史；PRIVATE 主题通知按当前成员资格隔离
 
 提及通知使用后端稳定 `eventKey` 幂等；同一帖子中显式提及已覆盖的用户不会再重复收到该帖的普通回复/新楼层提醒。正文中的 `[@用户名](/users/{userId})` 由 MarkdownContent 渲染为本站用户链接，兼容历史纯文本提及。
 
@@ -65,7 +66,7 @@
       "type": "reply",
       "content": "morenk 回复了：楼中楼回复内容",
       "payload": { "schemaVersion": 1, "actorName": "morenk", "action": "reply", "preview": "楼中楼回复内容" },
-      "target": { "kind": "post", "threadId": "cmsttt", "postId": "cmsppp", "userId": null },
+      "target": { "kind": "post", "state": "ACTIVE", "threadId": "cmsttt", "postId": "cmsppp", "userId": null },
       "postId": "cmsppp",
       "threadId": "cmsttt",
       "fromUserId": "cmsuuu",
@@ -80,7 +81,7 @@
 }
 ```
 
-> **内容与导航字段**：新通知的 `payload.schemaVersion` 固定为 `1`，结构化字段用于展示；`content` 只承担旧数据和未知类型降级。客户端导航只读取必有的 `target.kind` 与对应 ID，不再从通知类型或可空关联字段猜测目的地。系统通知通常为 `target.kind: "none"`、`fromUserId: null`。
+> **内容与导航字段**：新通知的 `payload.schemaVersion` 固定为 `1`，结构化字段用于展示；`content` 只承担旧数据和未知类型降级。`target.state` 是导航资格的唯一事实源：只有 `ACTIVE` 才按 `kind` 与对应 ID 导航；`CONTENT_DELETED` / `USER_DEACTIVATED` 返回 `kind=none`、空导航 ID 且强制已读，`NO_TARGET` 表示普通无目标系统通知。
 
 ### GET /notifications/unread
 
@@ -117,10 +118,10 @@
 
 ## 7. 跳转与交互规则
 
-- 跳转以 `target.kind` 为唯一分支：`post` → 通过共享 `getPostHref` 精确定位楼层/楼中楼；`thread` → `/threads/{threadId}`；`user` → `/users/{userId}`；`none` 不可点。顶层 `postId/threadId/fromUserId` 与关联对象仅保留展示、删除状态和旧数据兼容用途。
-- **跳转对象已删除不跳转**：列表接口返回 thread/post/fromUser 的 `deletedAt`；目标已删除时该通知不渲染链接，行内显示提示（帖子/楼层 →「该内容已删除」，用户 →「该用户已注销」），点击仅标记已读并 toast 提示，不导航
-- 详情页读取 `post` 参数后通过 `GET /posts/:id` 查询目标上下文：切换子贴并立即滚动到目标楼层；楼中楼采用二阶段定位，在父楼展开且回复渲染完成后立即滚动到目标回复。定位不使用平滑移动动画；高亮只加在目标楼层/回复卡片本身，父楼层和列表容器不高亮。已删除内容维持后端列表过滤策略。
-- 动态详情以 `reply ?? comment` 查询评论上下文；目标不在已加载分页时直接注入并去重，不连续扫描主评论或楼中楼分页。目标 404 时保留动态与普通评论并提示“目标回复不存在或不可见”，其他定位错误提供重试。
+- 先检查 `target.state=ACTIVE`，再按 `target.kind` 分支：`post` → 通过共享 `getPostHref` 精确定位楼层/楼中楼；`thread` → `/threads/{threadId}`；`moment` → 动态/评论；`user` → `/users/{userId}`；`none` 不可点。关联对象只用于历史提示，不得覆盖 state 重新生成链接。
+- **失效历史不跳转**：`CONTENT_DELETED` 显示删除提示，`USER_DEACTIVATED` 显示注销提示；两者不渲染链接或未读圆点，点击只提示，不再发送标记已读请求。
+- 详情页读取 `post` 参数后通过 `GET /posts/:id` 查询目标上下文。主题、父楼和精确回复在每次挂载时都强制复核，完成前不展示缓存正文；403/404 会关闭编辑器、清除主题/楼层/回复缓存并显示统一不可访问态，绝不回落到仍可回复的父楼页面。
+- 动态详情及 `reply ?? comment` 上下文同样在挂载时复核。目标不在已加载分页时直接注入并去重；目标 403/404 时丢弃缓存上下文和回复编辑目标，只保留重新验证后的动态与普通评论并提示“目标回复不存在或不可见”。
 - 点击通知（有跳转目标）：若未读，立即乐观标记为已读并异步提交，不阻塞跳转
 - 删除按钮：硬删除 + 失效列表/未读数
 - 类型图标：reply/mention/new_post/thread_created → MessageSquare/AtSign/PenLine/FilePlus；follow → UserPlus；like → Heart；tip → Fuel；level_up → TrendingUp；system → Megaphone

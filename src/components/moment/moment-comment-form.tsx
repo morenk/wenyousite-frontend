@@ -7,7 +7,8 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useCreateMomentComment } from "@/api/hooks/use-moments";
-import { getApiErrorMessage } from "@/api/errors";
+import { getApiErrorMessage, isContentUnavailableError } from "@/api/errors";
+import { useContentAccessCache } from "@/api/hooks/use-content-access-cache";
 import { ImageUploadProgress } from "@/components/shared/image-upload-progress";
 import {
   InternalReferenceEditor,
@@ -45,6 +46,7 @@ export function MomentCommentForm({
   onCancelReply: () => void;
 }) {
   const { user } = useAuth();
+  const { clearMoment } = useContentAccessCache();
   const redirectToLogin = useLoginRedirect();
   const create = useCreateMomentComment(momentId, user?.id);
   const { confirmPublicInvite, resetPublicInviteConfirmation } = usePublicInviteConfirmation();
@@ -223,6 +225,17 @@ export function MomentCommentForm({
       toast.success(submittedReplyTarget ? "回复已发送" : "评论已发送");
     } catch (error) {
       if (isUploadAbortError(error)) return;
+      if (isContentUnavailableError(error)) {
+        resetPublicInviteConfirmation();
+        requestRef.current = null;
+        reset();
+        clearMedia();
+        onCancelReply();
+        setExpanded(false);
+        clearMoment(momentId);
+        toast.error("目标已删除或当前无法访问");
+        return;
+      }
       toast.error(getApiErrorMessage(error, "发送失败，请稍后重试"));
     } finally {
       if (uploadAbortRef.current === controller) uploadAbortRef.current = null;

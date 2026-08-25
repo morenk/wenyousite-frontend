@@ -55,6 +55,7 @@ export const queryKeys = {
       ["replies", postId, "authors", viewerScope] as const,
   },
   posts: {
+    all: ["post"] as const,
     detail: (postId: string | undefined) => ["post", postId] as const,
     detailForViewer: (postId: string | undefined, viewerScope: string) =>
       ["post", postId, "viewer", viewerScope] as const,

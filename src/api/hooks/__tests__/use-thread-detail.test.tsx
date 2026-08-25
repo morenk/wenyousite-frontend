@@ -1,9 +1,10 @@
 /** useThreadDetail query hook 测试 */
 
-import { describe, test, expect, vi } from "vitest";
+import { beforeEach, describe, test, expect, vi } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useThreadDetail, normalizeThreadDetail } from "@/api/hooks/use-thread-detail";
+import { queryKeys } from "@/api/query-keys";
 import type { RawThreadDetail } from "@/api/hooks/use-thread-detail";
 import React from "react";
 
@@ -14,14 +15,19 @@ const { mockGET } = vi.hoisted(() => ({
 vi.mock("@/api/client", () => ({
   apiClient: { GET: mockGET },
 }));
+vi.mock("@/api/use-viewer-scope", () => ({ useViewerScope: () => "anonymous" }));
 
-function createWrapper() {
+function createHarness() {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   function Wrapper({ children }: { children: React.ReactNode }) {
     return <QueryClientProvider client={qc}>{children}</QueryClientProvider>;
   }
   Wrapper.displayName = "QueryClientWrapper";
-  return Wrapper;
+  return { qc, Wrapper };
+}
+
+function createWrapper() {
+  return createHarness().Wrapper;
 }
 
 const rawThread: RawThreadDetail = {
@@ -68,6 +74,8 @@ const responseData = {
   data: rawThread,
 };
 
+beforeEach(() => vi.clearAllMocks());
+
 describe("useThreadDetail", () => {
   test("loading 状态", () => {
     mockGET.mockReturnValue(new Promise(() => {}));
@@ -106,6 +114,28 @@ describe("useThreadDetail", () => {
     });
 
     await waitFor(() => expect(result.current.isError).toBe(true));
+  });
+
+  test("挂载时即使缓存仍新鲜也重新验证私密访问资格", async () => {
+    const { qc, Wrapper } = createHarness();
+    qc.setQueryData(
+      queryKeys.threads.detailForViewer("thread-1", "anonymous"),
+      normalizeThreadDetail(rawThread),
+    );
+    mockGET.mockResolvedValue({
+      data: undefined,
+      error: { code: 40402, message: "主题帖不存在" },
+    });
+
+    const { result } = renderHook(() => useThreadDetail("thread-1"), {
+      wrapper: Wrapper,
+    });
+
+    expect(result.current.data?.title).toBe("测试帖");
+    expect(result.current.isFetching).toBe(true);
+    expect(result.current.isFetchedAfterMount).toBe(false);
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(mockGET).toHaveBeenCalledOnce();
   });
 
   test("返回正确的 defaultSubthread 匹配", async () => {

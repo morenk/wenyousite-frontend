@@ -2,12 +2,12 @@
 
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { useInvitePreview, useJoinThreadByInvite } from "@/api/hooks/use-thread-access-actions";
-import { getApiErrorMessage } from "@/api/errors";
+import { getApiErrorMessage, isContentUnavailableError } from "@/api/errors";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThreadCategoryLabel } from "@/components/thread/thread-category";
@@ -20,8 +20,11 @@ export default function JoinByInvitePage() {
   const router = useRouter();
   const redirectToLogin = useLoginRedirect();
   const { user, isInitialized } = useAuth();
+  const [joinFailureToken, setJoinFailureToken] = useState<string>();
   const preview = useInvitePreview(isInitialized && user ? token : undefined);
   const join = useJoinThreadByInvite();
+  const joinUnavailable = joinFailureToken === token;
+  const awaitingValidation = preview.isFetching && !preview.isFetchedAfterMount;
 
   useEffect(() => {
     if (isInitialized && !user) {
@@ -30,10 +33,10 @@ export default function JoinByInvitePage() {
   }, [isInitialized, redirectToLogin, user]);
 
   useEffect(() => {
-    if (preview.data?.alreadyJoined) {
+    if (!awaitingValidation && !preview.error && preview.data?.alreadyJoined) {
       router.replace(`/threads/${preview.data.thread.id}`);
     }
-  }, [preview.data, router]);
+  }, [awaitingValidation, preview.data, preview.error, router]);
 
   async function handleJoin() {
     try {
@@ -41,15 +44,26 @@ export default function JoinByInvitePage() {
       toast.success("已加入私密主题帖");
       router.replace(`/threads/${preview.data?.thread.id}`);
     } catch (error: unknown) {
+      if (isContentUnavailableError(error)) {
+        setJoinFailureToken(token);
+        toast.error("邀请链接无效或已失效");
+        return;
+      }
       toast.error(getApiErrorMessage(error, "加入失败，请稍后重试"));
     }
   }
 
-  if (!isInitialized || !user || preview.isLoading || preview.data?.alreadyJoined) {
+  if (
+    !isInitialized ||
+    !user ||
+    preview.isLoading ||
+    awaitingValidation ||
+    preview.data?.alreadyJoined
+  ) {
     return <LoadingState label="" className="min-h-0 pt-24" />;
   }
 
-  if (preview.error || !preview.data) {
+  if (joinUnavailable || preview.error || !preview.data) {
     return <p className="mx-auto mt-24 max-w-lg text-center text-sm text-muted-foreground">邀请链接无效或已失效</p>;
   }
 
