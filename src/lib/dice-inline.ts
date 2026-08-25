@@ -75,18 +75,6 @@ export function serializeInlineDiceNode(node: InlineDiceNode): string {
   return `[[dice:v1:${node.nodeId}:${node.notation}]]`;
 }
 
-/** Milkdown 会转义文本节点开头的 `[[`；只恢复编辑器中真实骰子节点对应的标记。 */
-export function restoreSerializedInlineDiceNodes(
-  content: string,
-  nodes: InlineDiceNode[],
-): string {
-  return nodes.reduce((markdown, node) => {
-    const marker = serializeInlineDiceNode(node);
-    const escapedMarker = marker.replace("[[", "\\[\\[");
-    return markdown.replaceAll(escapedMarker, marker);
-  }, content);
-}
-
 export function createInlineDiceNode(notationInput: string): InlineDiceNode | null {
   const parsed = parseDiceNotation(notationInput);
   if (!parsed) return null;

@@ -11,7 +11,6 @@ import {
 } from "react";
 import { CrepeBuilder } from "@milkdown/crepe/builder";
 import { editorViewCtx } from "@milkdown/core";
-import type { EditorView } from "@milkdown/kit/prose/view";
 import { getMentionUserId, markEditorMentionAnchors } from "@/lib/mention";
 import type { MentionMenuItem } from "@/components/editor/mention-candidate-menu";
 
@@ -32,8 +31,6 @@ interface UseEditorMentionControllerOptions {
   items: MentionMenuItem[];
   setMenu: Dispatch<SetStateAction<EditorMentionMenu | null>>;
   setSelectedIndex: Dispatch<SetStateAction<number>>;
-  /** 直接事务完成后立即向外层同步 Markdown，避免抢在 Milkdown 防抖事件前提交旧正文。 */
-  onDocumentChange: (view: EditorView) => void;
 }
 
 /** 管理编辑器内 @提及的 DOM 监听、原子删除、键盘导航与插入事务。 */
@@ -46,7 +43,6 @@ export function useEditorMentionController({
   items,
   setMenu,
   setSelectedIndex,
-  onDocumentChange,
 }: UseEditorMentionControllerOptions) {
   const editorDomRef = useRef<HTMLElement | null>(null);
   const editorCleanupRef = useRef<(() => void) | null>(null);
@@ -83,11 +79,10 @@ export function useEditorMentionController({
       view.dispatch(transaction);
     }
 
-    onDocumentChange(view);
     view.focus();
     menuRef.current = null;
     setMenu(null);
-  }, [crepeRef, onDocumentChange, setMenu]);
+  }, [crepeRef, setMenu]);
 
   const handleMentionSelect = useCallback((event: ReactMouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -230,7 +225,6 @@ export function useEditorMentionController({
           if (range) {
             event.preventDefault();
             view.dispatch(view.state.tr.delete(range.from, range.to).scrollIntoView());
-            onDocumentChange(view);
             window.requestAnimationFrame(updateMentionMenu);
             return;
           }
@@ -289,7 +283,7 @@ export function useEditorMentionController({
       menuRef.current = null;
       setMenu(null);
     };
-  }, [crepeRef, disabled, hostRef, insertMention, loading, onDocumentChange, setMenu, setSelectedIndex, threadId]);
+  }, [crepeRef, disabled, hostRef, insertMention, loading, setMenu, setSelectedIndex, threadId]);
 
   return { handleMentionSelect };
 }

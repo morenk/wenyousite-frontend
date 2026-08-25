@@ -69,6 +69,38 @@ afterEach(() => {
 });
 
 describe("MilkdownEditor 自定义内联节点", () => {
+  test("已保存的普通软换行重开后仍显示为编辑器换行节点", async () => {
+    const { container } = renderEditor({ defaultValue: "**阿罗**\n下一行" });
+    const editor = await waitFor(() => {
+      const element = container.querySelector<HTMLElement>(".ProseMirror");
+      expect(element).toBeInTheDocument();
+      return element!;
+    });
+
+    expect(editor.querySelector('br[data-type="hardbreak"]')).toBeInTheDocument();
+  });
+
+  test("粗体末尾软换行同步为普通 LF，不泄漏星号或反斜杠", async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    const { container } = renderEditor({ defaultValue: "", onChange });
+    const editor = await waitFor(() => {
+      const element = container.querySelector<HTMLElement>(".ProseMirror");
+      expect(element).toBeInTheDocument();
+      return element!;
+    });
+
+    await user.click(editor);
+    fireEvent.pointerDown(await screen.findByRole("button", { name: "粗体" }));
+    await user.type(editor, "阿罗");
+    await user.keyboard("{Shift>}{Enter}{/Shift}下一行");
+
+    await waitFor(() => {
+      expect(onChange.mock.calls.at(-1)?.[0]).toBe("**阿罗**\n下一行");
+    });
+    expect(onChange.mock.calls.at(-1)?.[0]).not.toContain("\\\n");
+  });
+
   test("表情黄金样例经编辑器解析后可序列化往返", async () => {
     const fixture = nodeFixtures.cases.find((item) => item.id === "sticker-round-trip")!;
     const onChange = vi.fn();

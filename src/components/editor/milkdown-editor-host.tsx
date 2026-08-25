@@ -37,10 +37,6 @@ import { $inputRule, $view } from "@milkdown/kit/utils";
 import { useDebounce } from "use-debounce";
 import { toast } from "sonner";
 import { ImageUploadProgress } from "@/components/shared/image-upload-progress";
-import {
-  prepareMilkdownEditorMarkdown,
-  sanitizeMilkdownMarkdown,
-} from "@/lib/markdown";
 import type {
   UploadImageOptions,
   UploadImageProgress as UploadImageProgressValue,
@@ -49,7 +45,6 @@ import {
   createInlineDiceNode,
   DICE_INLINE_NODE_NAME,
   parseInlineDiceNodes,
-  restoreSerializedInlineDiceNodes,
   DICE_INSERTION_PRESENTATION,
   type InlineDiceRoll,
 } from "@/lib/dice-inline";
@@ -96,11 +91,14 @@ import {
 } from "@/lib/editor-capabilities";
 import { editorChevronDownSvg, editorIconSvg } from "@/lib/editor-icons";
 import { WenyouIcon } from "@/components/ui/wenyou-icon";
-import { handleUnsupportedMarkdownPaste } from "@/components/editor/markdown-literal-paste";
+import { editorMarkdownPastePlugin } from "@/components/editor/markdown-literal-paste";
 import {
-  createEditorLinkMarkView,
-  handleInternalReferenceUrlPaste,
-} from "@/components/shared/internal-reference-editor-dom";
+  configureEditorMarkdownSerializer,
+  createEditorMarkdownBridge,
+  editorSoftBreakParser,
+  prepareEditorMarkdown,
+} from "@/components/editor/milkdown-markdown-codec";
+import { createEditorLinkMarkView } from "@/components/shared/internal-reference-editor-dom";
 import "@/components/editor/milkdown-editor.css";
 
 const toolbarHeadingInputRule = $inputRule((ctx) =>
@@ -262,32 +260,6 @@ export function MilkdownEditorHost({
     Math.max(visibleMentionItems.length - 1, 0),
   );
 
-  const emitSerializedMarkdown = useCallback((markdown: string, view: EditorView) => {
-    const diceNodes: Array<{ nodeId: string; notation: string }> = [];
-    view.state.doc.descendants((node) => {
-      if (node.type.name !== DICE_INLINE_NODE_NAME) return;
-      diceNodes.push({
-        nodeId: String(node.attrs.nodeId),
-        notation: String(node.attrs.notation),
-      });
-    });
-    let serialized = restoreSerializedInlineDiceNodes(markdown, diceNodes);
-    const lastNode = view.state.doc.lastChild;
-    if (lastNode?.type.name === "paragraph" && lastNode.content.size === 0) {
-      serialized = `${serialized.replace(/\s+$/u, "")}\n\n<br />`;
-    } else {
-      // Milkdown 的序列化器会附加一个格式化换行；用户显式空段落由上面的 br 协议表达。
-      serialized = serialized.replace(/\n$/u, "");
-    }
-    onChangeRef.current?.(sanitizeMilkdownMarkdown(serialized));
-  }, []);
-
-  const emitCurrentMarkdown = useCallback((view: EditorView) => {
-    const markdown = crepeRef.current?.getMarkdown();
-    if (markdown === undefined) return;
-    emitSerializedMarkdown(markdown, view);
-  }, [emitSerializedMarkdown]);
-
   const { handleMentionSelect } = useEditorMentionController({
     hostRef,
     crepeRef,
@@ -297,31 +269,9 @@ export function MilkdownEditorHost({
     items: visibleMentionItems,
     setMenu: setMentionMenu,
     setSelectedIndex: setSelectedMentionIndex,
-    onDocumentChange: emitCurrentMarkdown,
   });
 
   useEffect(() => () => uploadAbortRef.current?.abort(), []);
-
-  useEffect(() => {
-    const host = hostRef.current;
-    if (!host) return;
-    const handlePaste = (event: Event) => {
-      if (!("clipboardData" in event)) return;
-      const target = event.target as Element | null;
-      if (!target?.closest(".ProseMirror")) return;
-      const view = crepeRef.current?.editor.action((ctx) => ctx.get(editorViewCtx));
-      if (!view) return;
-      const clipboardEvent = event as ClipboardEvent;
-      if (handleInternalReferenceUrlPaste(view, clipboardEvent)) {
-        emitCurrentMarkdown(view);
-        view.focus();
-        return;
-      }
-      handleUnsupportedMarkdownPaste(view, clipboardEvent);
-    };
-    host.addEventListener("paste", handlePaste, true);
-    return () => host.removeEventListener("paste", handlePaste, true);
-  }, [emitCurrentMarkdown]);
 
   /** 上传失败时统一弹 toast（Milkdown 内部会静默吞掉 onUpload 的 reject） */
   const handleUpload = useCallback(
@@ -430,11 +380,10 @@ export function MilkdownEditorHost({
           return;
       }
       const view = ctx.get(editorViewCtx);
-      emitCurrentMarkdown(view);
       view.focus();
     });
     setMoreMenuAnchor(null);
-  }, [emitCurrentMarkdown]);
+  }, []);
 
   const moreMenuItems = useMemo<EditorMoreMenuItem[]>(() => {
     const groups: Partial<Record<EditorCapabilityId, EditorMoreMenuItem["group"]>> = {
@@ -502,13 +451,11 @@ export function MilkdownEditorHost({
     const transaction = view.state.tr.replaceRangeWith(from, to, node);
     transaction.setSelection(TextSelection.near(transaction.doc.resolve(from + node.nodeSize)));
     view.dispatch(transaction);
-    // Milkdown 的 markdownUpdated 固定防抖 200ms；骰子插入后必须立即同步，避免紧接着发布拿到旧正文。
-    emitCurrentMarkdown(view);
     view.focus();
     setDiceNodeCount(diceCount + 1);
     diceSelectionRef.current = null;
     setDicePopover(null);
-  }, [emitCurrentMarkdown]);
+  }, []);
 
   const handleInsertSticker = useCallback((sticker: { asset: { id: string; url: string } }) => {
     if (disabled) return;
@@ -531,15 +478,14 @@ export function MilkdownEditorHost({
     const transaction = view.state.tr.replaceSelectionWith(node);
     transaction.setSelection(TextSelection.near(transaction.doc.resolve(transaction.selection.to)));
     view.dispatch(transaction);
-    emitCurrentMarkdown(view);
     view.focus();
-  }, [disabled, emitCurrentMarkdown]);
+  }, [disabled]);
 
   useEditor(
     (root) => {
       const crepe = new CrepeBuilder({
         root,
-        defaultValue: prepareMilkdownEditorMarkdown(initialValue),
+        defaultValue: prepareEditorMarkdown(initialValue),
       });
 
       // H2/H3 以外的标题以及代码块、任务列表、表格输入规则不属于工具栏能力白名单。
@@ -617,7 +563,6 @@ export function MilkdownEditorHost({
                     const node = nodeType.createAndFill({ src: url });
                     if (!node) return;
                     view.dispatch(view.state.tr.replaceSelectionWith(node));
-                    emitCurrentMarkdown(view);
                     view.focus();
                   })
                   .catch(() => {});
@@ -661,25 +606,32 @@ export function MilkdownEditorHost({
 
       const dicePlugins = createDiceInlineEditorPlugins(diceRolls);
       const stickerPlugins = createStickerInlineEditorPlugins();
+      let codecErrorShown = false;
+      const markdownBridge = createEditorMarkdownBridge({
+        onChange: (markdown) => {
+          codecErrorShown = false;
+          onChangeRef.current?.(markdown);
+        },
+        onError: (error) => {
+          console.error(error);
+          if (codecErrorShown) return;
+          codecErrorShown = true;
+          toast.error("正文格式同步失败，请撤销刚才的操作后重试");
+        },
+      });
       crepe.editor
+        .config(configureEditorMarkdownSerializer)
         .use(internalReferenceLinkView)
+        .use(editorMarkdownPastePlugin)
+        .use(editorSoftBreakParser)
         .use(dicePlugins.remarkDiceInline)
         .use(dicePlugins.diceInlineSchema)
         .use(dicePlugins.clonePastedDice)
         .use(stickerPlugins.remarkStickerInline)
-        .use(stickerPlugins.stickerInlineSchema);
+        .use(stickerPlugins.stickerInlineSchema)
+        .use(markdownBridge);
 
       crepeRef.current = crepe;
-
-      crepe.on((listener) => {
-        listener.markdownUpdated((ctx, markdown, prevMarkdown) => {
-          if (markdown !== prevMarkdown) {
-            // 清理空图片并规范化空段落协议；独占行 <br /> 必须保留以支持艺术化留白。
-            const view = ctx.get(editorViewCtx);
-            emitSerializedMarkdown(markdown, view);
-          }
-        });
-      });
 
       return crepe;
     },

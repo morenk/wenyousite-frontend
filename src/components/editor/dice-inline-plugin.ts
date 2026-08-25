@@ -8,7 +8,6 @@ import {
   describeInlineDiceRoll,
   formatInlineDicePending,
   formatInlineDiceRoll,
-  serializeInlineDiceNode,
   type InlineDiceRoll,
 } from "@/lib/dice-inline";
 
@@ -135,12 +134,13 @@ export function createDiceInlineEditorPlugins(rolls: InlineDiceRoll[] = []) {
       match: (node: ProseNode) => node.type.name === DICE_INLINE_NODE_NAME,
       runner: (state, node: ProseNode) => {
         state.addNode(
-          "text",
+          "diceInline",
           undefined,
-          serializeInlineDiceNode({
+          undefined,
+          {
             nodeId: String(node.attrs.nodeId),
             notation: String(node.attrs.notation),
-          }),
+          },
         );
       },
     },

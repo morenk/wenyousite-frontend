@@ -1,6 +1,9 @@
 import { Fragment, Slice } from "@milkdown/kit/prose/model";
+import { Plugin } from "@milkdown/kit/prose/state";
 import type { EditorView } from "@milkdown/kit/prose/view";
+import { $prose } from "@milkdown/kit/utils";
 import { findUnsupportedMarkdownFormats } from "@/lib/markdown";
+import { handleInternalReferenceUrlPaste } from "@/components/shared/internal-reference-editor-dom";
 
 const UNSUPPORTED_HTML_STRUCTURE_RE = /<(?:table|thead|tbody|tfoot|tr|th|td|caption|colgroup|col|pre|h1|h[4-6]|input)\b|\bdata-checked\s*=|\btype\s*=\s*["']?checkbox/iu;
 const BLOCK_TAGS = new Set([
@@ -74,3 +77,22 @@ export function handleUnsupportedMarkdownPaste(view: EditorView, event: Clipboar
   event.stopImmediatePropagation();
   return true;
 }
+
+/** 所有需要接管的剪贴板事务统一从 ProseMirror 插件入口进入文档。 */
+export const editorMarkdownPastePlugin = $prose(
+  () => new Plugin({
+    props: {
+      handleDOMEvents: {
+        // DOM paste 阶段早于 Milkdown clipboard 插件的 handlePaste，白名单外源码
+        // 必须先被转换为普通段落，不能短暂进入结构化文档。
+        paste: (view, event) => {
+          if (handleInternalReferenceUrlPaste(view, event)) {
+            view.focus();
+            return true;
+          }
+          return handleUnsupportedMarkdownPaste(view, event);
+        },
+      },
+    },
+  }),
+);

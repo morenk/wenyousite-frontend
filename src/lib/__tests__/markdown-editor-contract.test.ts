@@ -22,7 +22,7 @@ const fixture = JSON.parse(
   readFileSync(
     resolve(
       process.cwd(),
-      "contracts/markdown-editor-roundtrip-v2-fixtures.json",
+      "contracts/markdown-editor-roundtrip-v3-fixtures.json",
     ),
     "utf8",
   ),
@@ -34,10 +34,10 @@ const fixture = JSON.parse(
 };
 
 describe("Markdown 编辑器往返契约", () => {
-  test("固定在 Markdown v3 之上的编辑器 fixture v2", () => {
+  test("固定在 Markdown v3 之上的编辑器 fixture v3", () => {
     expect(fixture).toMatchObject({
       contract: "wenyousite-markdown-editor-roundtrip",
-      version: 2,
+      version: 3,
       markdownContractVersion: 3,
     });
     expect(new Set(fixture.cases.map((item) => item.id)).size).toBe(
