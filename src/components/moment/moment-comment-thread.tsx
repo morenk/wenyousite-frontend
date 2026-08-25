@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronUp, Loader2 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   type MomentComment,
   type MomentRootComment,
@@ -17,7 +17,7 @@ const LARGE_REPLY_THREAD_THRESHOLD = 10;
 export function MomentCommentThread({
   momentId,
   comment,
-  filters,
+  authorId,
   onReply,
   canInteract = true,
   focusedCommentId,
@@ -25,7 +25,7 @@ export function MomentCommentThread({
 }: {
   momentId: string;
   comment: MomentRootComment;
-  filters: ReplyFilters;
+  authorId?: string;
   onReply: (target: MomentReplyTarget) => void;
   canInteract?: boolean;
   focusedCommentId?: string;
@@ -37,7 +37,11 @@ export function MomentCommentThread({
     : null;
   const [expanded, setExpanded] = useState(() => !!targetReplyId);
   const threadRef = useRef<HTMLElement | null>(null);
-  const repliesQuery = useMomentReplies(momentId, comment.id, user?.id, expanded, filters);
+  const replyFilters = useMemo<ReplyFilters>(() => ({
+    order: "OLDEST",
+    ...(authorId ? { authorId } : {}),
+  }), [authorId]);
+  const repliesQuery = useMomentReplies(momentId, comment.id, user?.id, expanded, replyFilters);
   const expandedReplies = repliesQuery.data?.pages.flatMap((page) => page.data) ?? [];
   const loadedReplies = expanded
     ? repliesQuery.data ? expandedReplies : comment.replies

@@ -1214,7 +1214,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 主评论列表，支持顺序与作者筛选并内嵌三条楼中楼 */
+        /** 主评论列表，支持顺序与作者筛选并内嵌最早三条楼中楼 */
         get: operations["momentsCommentsList"];
         put?: never;
         /** 发表文字、单图或单表情评论；回复统一归入两层楼中楼 */
@@ -4347,7 +4347,7 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
             replyCount: number;
-            /** @description 按当前筛选与顺序返回的前三条可见楼中楼预览 */
+            /** @description 按当前作者筛选返回的最早三条可见楼中楼预览，固定时间正序 */
             replies: components["schemas"]["MomentCommentResponseDto"][];
         };
         CreateMomentCommentDto: {
@@ -10729,7 +10729,7 @@ export interface operations {
                 cursor?: string;
                 /** @description 每页条数（默认 20，最大 50） */
                 limit?: number;
-                /** @description 回复顺序；帖子回复默认 OLDEST，动态主评论默认 NEWEST */
+                /** @description 列表顺序；帖子回复与动态独立楼中楼默认 OLDEST，动态主评论默认 NEWEST；动态主评论内嵌回复固定 OLDEST */
                 order?: "OLDEST" | "NEWEST";
                 /** @description 只返回指定作者的回复 */
                 authorId?: string;
@@ -10891,7 +10891,7 @@ export interface operations {
                 cursor?: string;
                 /** @description 每页条数（默认 20，最大 50） */
                 limit?: number;
-                /** @description 回复顺序；帖子回复默认 OLDEST，动态主评论默认 NEWEST */
+                /** @description 列表顺序；帖子回复与动态独立楼中楼默认 OLDEST，动态主评论默认 NEWEST；动态主评论内嵌回复固定 OLDEST */
                 order?: "OLDEST" | "NEWEST";
                 /** @description 只返回指定作者的回复 */
                 authorId?: string;
@@ -11389,7 +11389,7 @@ export interface operations {
                 cursor?: string;
                 /** @description 每页条数（默认 20，最大 50） */
                 limit?: number;
-                /** @description 回复顺序；帖子回复默认 OLDEST，动态主评论默认 NEWEST */
+                /** @description 列表顺序；帖子回复与动态独立楼中楼默认 OLDEST，动态主评论默认 NEWEST；动态主评论内嵌回复固定 OLDEST */
                 order?: "OLDEST" | "NEWEST";
                 /** @description 只返回指定作者的回复 */
                 authorId?: string;

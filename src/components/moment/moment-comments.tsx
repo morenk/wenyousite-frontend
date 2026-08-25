@@ -123,7 +123,7 @@ export function MomentComments({
               key={`${comment.id}:${comment.id === focusedRootId ? focusedCommentId ?? "" : ""}`}
               momentId={momentId}
               comment={comment}
-              filters={filters}
+              authorId={filters.authorId}
               onReply={setReplyTarget}
               canInteract={canInteract}
               focusedCommentId={comment.id === focusedRootId ? focusedCommentId : undefined}

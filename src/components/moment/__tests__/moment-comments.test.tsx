@@ -244,6 +244,13 @@ describe("MomentComments", () => {
     await waitFor(() => expect(mockDelete).toHaveBeenCalledWith("root-1"));
     fireEvent.click(screen.getByRole("button", { name: "展开全部 2 条回复" }));
     expect(screen.getByText("楼中楼内容")).toBeInTheDocument();
+    expect(mockUseMomentReplies).toHaveBeenLastCalledWith(
+      "moment-1",
+      "root-1",
+      "viewer-1",
+      true,
+      { order: "OLDEST" },
+    );
   });
 
   test("回复提交时目标已失效会清空编辑器和动态评论缓存", async () => {
@@ -286,7 +293,7 @@ describe("MomentComments", () => {
       "root-1",
       "viewer-1",
       true,
-      { order: "NEWEST" },
+      { order: "OLDEST" },
     );
     expect(mockUseMomentCommentContext).toHaveBeenLastCalledWith(
       "moment-1",
@@ -477,6 +484,13 @@ describe("MomentComments", () => {
       "viewer-1",
       { order: "OLDEST" },
     ));
+    expect(mockUseMomentReplies).toHaveBeenLastCalledWith(
+      "moment-1",
+      "root-1",
+      "viewer-1",
+      false,
+      { order: "OLDEST" },
+    );
     expect(screen.getByRole("button", { name: "评论排序" })).toHaveTextContent("最早在前");
   });
 
