@@ -19,7 +19,11 @@ vi.mock("@/components/user/user-moment-bookmarks-section", () => ({
 }));
 
 vi.mock("@/components/user/create-bookmark-folder-button", () => ({
-  CreateBookmarkFolderButton: () => <button type="button">新建收藏夹</button>,
+  CreateBookmarkFolderButton: ({ kind }: { kind: "threads" | "moments" }) => (
+    <button type="button">
+      {kind === "moments" ? "新建动态收藏夹" : "新建主题帖收藏夹"}
+    </button>
+  ),
 }));
 
 import { UserBookmarksPage } from "@/components/user/user-bookmarks-page";
@@ -32,7 +36,7 @@ describe("UserBookmarksPage", () => {
     mockProfileContext.mockReturnValue({ canViewBookmarks: true, isSelf: true });
     render(<UserBookmarksPage userId="u1" />);
 
-    expect(screen.getByRole("button", { name: "新建收藏夹" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "新建主题帖收藏夹" })).toBeInTheDocument();
     expect(screen.getByText("收藏列表")).toBeInTheDocument();
   });
 
@@ -40,7 +44,7 @@ describe("UserBookmarksPage", () => {
     mockProfileContext.mockReturnValue({ canViewBookmarks: true, isSelf: false });
     render(<UserBookmarksPage userId="u2" />);
 
-    expect(screen.queryByRole("button", { name: "新建收藏夹" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /新建.*收藏夹/ })).not.toBeInTheDocument();
     expect(screen.getByText("收藏列表")).toBeInTheDocument();
   });
 
@@ -51,7 +55,19 @@ describe("UserBookmarksPage", () => {
 
     await user.click(screen.getByRole("tab", { name: "动态" }));
     expect(screen.getByText("动态收藏列表")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "新建收藏夹" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /新建.*收藏夹/ })).not.toBeInTheDocument();
+  });
+
+  test("本人切换到动态后创建入口随目录类型切换", async () => {
+    const user = userEvent.setup();
+    mockProfileContext.mockReturnValue({ canViewBookmarks: true, isSelf: true });
+    render(<UserBookmarksPage userId="u1" />);
+
+    await user.click(screen.getByRole("tab", { name: "动态" }));
+    expect(screen.getByRole("button", { name: "新建动态收藏夹" })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "新建主题帖收藏夹" }),
+    ).not.toBeInTheDocument();
   });
 
   test("无权限时不挂载主题帖和动态收藏", () => {

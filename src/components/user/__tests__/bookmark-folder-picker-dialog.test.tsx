@@ -2,25 +2,32 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-const { mockFolders, mockRefetch } = vi.hoisted(() => ({
+const { mockFolders, mockRefetch, mockUseBookmarkFolders } = vi.hoisted(() => ({
   mockFolders: vi.fn(),
   mockRefetch: vi.fn(),
+  mockUseBookmarkFolders: vi.fn(),
 }));
 
 vi.mock("@/api/hooks/use-bookmark-folders", () => ({
-  useBookmarkFolders: () => mockFolders(),
+  useBookmarkFolders: (...args: unknown[]) => mockUseBookmarkFolders(...args),
 }));
 
 vi.mock("@/components/user/bookmark-folder-form", () => ({
-  BookmarkFolderForm: ({ onCreated }: { onCreated: (folder: unknown) => void }) => (
+  BookmarkFolderForm: ({
+    kind,
+    onCreated,
+  }: {
+    kind: string;
+    onCreated: (folder: unknown) => void;
+  }) => (
     <button
       type="button"
+      data-kind={kind}
       onClick={() => onCreated({
         id: "folder-new",
         name: "新收藏夹",
         isDefault: false,
-        bookmarkCount: 0,
-        momentBookmarkCount: 0,
+        itemCount: 0,
         createdAt: "2026-08-18T00:00:00Z",
       })}
     >
@@ -36,16 +43,14 @@ const folders = [
     id: "folder-default",
     name: "默认收藏夹",
     isDefault: true,
-    bookmarkCount: 2,
-    momentBookmarkCount: 1,
+    itemCount: 2,
     createdAt: "2026-08-18T00:00:00Z",
   },
   {
     id: "folder-custom",
     name: "跑团资料",
     isDefault: false,
-    bookmarkCount: 1,
-    momentBookmarkCount: 3,
+    itemCount: 1,
     createdAt: "2026-08-18T00:00:00Z",
   },
 ];
@@ -58,6 +63,7 @@ beforeEach(() => {
     isError: false,
     refetch: mockRefetch,
   });
+  mockUseBookmarkFolders.mockImplementation(() => mockFolders());
 });
 
 afterEach(cleanup);
@@ -78,6 +84,7 @@ describe("BookmarkFolderPickerDialog", () => {
     );
 
     expect(screen.getByRole("dialog", { name: "收藏到" })).toBeInTheDocument();
+    expect(mockUseBookmarkFolders).toHaveBeenCalledWith("threads", true);
     expect(screen.getByRole("radio", { name: /默认收藏夹/ })).toBeChecked();
     await user.click(screen.getByRole("radio", { name: /跑团资料/ }));
     await user.click(screen.getByRole("button", { name: "收藏" }));
@@ -94,12 +101,18 @@ describe("BookmarkFolderPickerDialog", () => {
         open
         onOpenChange={vi.fn()}
         contentLabel="测试动态"
+        kind="moments"
         isPending={false}
         onConfirm={onConfirm}
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: "新建收藏夹" }));
+    expect(mockUseBookmarkFolders).toHaveBeenCalledWith("moments", true);
+    await user.click(screen.getByRole("button", { name: "新建动态收藏夹" }));
+    expect(screen.getByRole("button", { name: "完成新建" })).toHaveAttribute(
+      "data-kind",
+      "moments",
+    );
     await user.click(screen.getByRole("button", { name: "完成新建" }));
     await user.click(screen.getByRole("button", { name: "收藏" }));
     expect(onConfirm).toHaveBeenCalledWith("folder-new");

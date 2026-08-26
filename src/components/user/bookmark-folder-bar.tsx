@@ -1,7 +1,10 @@
 "use client";
 
 import { Folder, FolderOpen } from "lucide-react";
-import type { BookmarkFolder } from "@/api/hooks/use-bookmark-folders";
+import type {
+  BookmarkFolder,
+  BookmarkFolderKind,
+} from "@/api/hooks/use-bookmark-folders";
 import { CreateBookmarkFolderButton } from "@/components/user/create-bookmark-folder-button";
 import { cn } from "@/lib/utils";
 
@@ -9,7 +12,7 @@ interface BookmarkFolderBarProps {
   folders: BookmarkFolder[];
   selectedFolderId?: string;
   onSelect: (folderId?: string) => void;
-  kind?: "threads" | "moments";
+  kind?: BookmarkFolderKind;
 }
 
 export function BookmarkFolderBar({
@@ -18,12 +21,10 @@ export function BookmarkFolderBar({
   onSelect,
   kind = "threads",
 }: BookmarkFolderBarProps) {
-  const countFor = (folder: BookmarkFolder) =>
-    kind === "moments" ? folder.momentBookmarkCount : folder.bookmarkCount;
-  const total = folders.reduce((sum, folder) => sum + countFor(folder), 0);
+  const total = folders.reduce((sum, folder) => sum + folder.itemCount, 0);
   const options = [
-    { id: undefined, name: "全部", bookmarkCount: total, isDefault: false },
-    ...folders.map((folder) => ({ ...folder, bookmarkCount: countFor(folder) })),
+    { id: undefined, name: "全部", itemCount: total, isDefault: false },
+    ...folders,
   ];
 
   return (
@@ -49,12 +50,15 @@ export function BookmarkFolderBar({
             >
               <FolderIcon className="size-3.5" />
               <span>{folder.name}</span>
-              <span className="tabular-nums opacity-65">{folder.bookmarkCount}</span>
+              <span className="tabular-nums opacity-65">{folder.itemCount}</span>
             </button>
           );
         })}
       </div>
-      <CreateBookmarkFolderButton onCreated={(folder) => onSelect(folder.id)} />
+      <CreateBookmarkFolderButton
+        kind={kind}
+        onCreated={(folder) => onSelect(folder.id)}
+      />
     </div>
   );
 }

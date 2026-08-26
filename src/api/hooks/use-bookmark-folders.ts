@@ -5,34 +5,79 @@ import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
 import type { components } from "@/api/types";
 
-export type BookmarkFolder = components["schemas"]["BookmarkFolderResponseDto"];
+export type BookmarkFolderKind = "threads" | "moments";
 
-export function useBookmarkFolders(enabled = true) {
+export interface BookmarkFolder {
+  id: string;
+  name: string;
+  isDefault: boolean;
+  itemCount: number;
+  createdAt: string;
+}
+
+function mapThreadFolder(
+  folder: components["schemas"]["BookmarkFolderResponseDto"],
+): BookmarkFolder {
+  return {
+    id: folder.id,
+    name: folder.name,
+    isDefault: folder.isDefault,
+    itemCount: folder.bookmarkCount,
+    createdAt: folder.createdAt,
+  };
+}
+
+function mapMomentFolder(
+  folder: components["schemas"]["MomentBookmarkFolderResponseDto"],
+): BookmarkFolder {
+  return {
+    id: folder.id,
+    name: folder.name,
+    isDefault: folder.isDefault,
+    itemCount: folder.momentBookmarkCount,
+    createdAt: folder.createdAt,
+  };
+}
+
+export function useBookmarkFolders(kind: BookmarkFolderKind = "threads", enabled = true) {
   return useQuery({
-    queryKey: queryKeys.bookmarks.folders,
+    queryKey: queryKeys.bookmarks.folders(kind),
     queryFn: async () => {
+      if (kind === "moments") {
+        const { data, error } = await apiClient.GET("/api/v1/moments/bookmark-folders");
+        if (error) throw error;
+        return (data?.data ?? []).map(mapMomentFolder);
+      }
       const { data, error } = await apiClient.GET("/api/v1/bookmarks/folders");
       if (error) throw error;
-      return data?.data ?? [];
+      return (data?.data ?? []).map(mapThreadFolder);
     },
     staleTime: 30 * 1000,
     enabled,
   });
 }
 
-export function useCreateBookmarkFolder() {
+export function useCreateBookmarkFolder(kind: BookmarkFolderKind = "threads") {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (name: string) => {
+      if (kind === "moments") {
+        const { data, error } = await apiClient.POST("/api/v1/moments/bookmark-folders", {
+          body: { name },
+        });
+        if (error) throw error;
+        if (!data?.data) throw new Error("新建动态收藏夹响应为空");
+        return mapMomentFolder(data.data);
+      }
       const { data, error } = await apiClient.POST("/api/v1/bookmarks/folders", {
         body: { name },
       });
       if (error) throw error;
-      if (!data?.data) throw new Error("新建收藏夹响应为空");
-      return data.data;
+      if (!data?.data) throw new Error("新建主题帖收藏夹响应为空");
+      return mapThreadFolder(data.data);
     },
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: queryKeys.bookmarks.folders }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.bookmarks.folders(kind) }),
   });
 }
 
@@ -49,7 +94,7 @@ export function useMoveBookmark() {
     onSuccess: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.bookmarks.all }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.bookmarks.folders }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.bookmarks.folders("threads") }),
         queryClient.invalidateQueries({ queryKey: queryKeys.users.bookmarks() }),
       ]),
   });
@@ -68,7 +113,7 @@ export function useMoveMomentBookmark() {
     onSuccess: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.moments.bookmarksRoot }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.bookmarks.folders }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.bookmarks.folders("moments") }),
       ]),
   });
 }

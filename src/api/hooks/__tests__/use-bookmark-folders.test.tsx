@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import {
   useBookmarkFolders,
   useCreateBookmarkFolder,
@@ -36,6 +36,16 @@ const folder = {
   createdAt: "2026-08-09T00:00:00.000Z",
 };
 
+const mappedFolder = {
+  id: folder.id,
+  name: folder.name,
+  isDefault: folder.isDefault,
+  itemCount: folder.bookmarkCount,
+  createdAt: folder.createdAt,
+};
+
+beforeEach(() => vi.clearAllMocks());
+
 describe("bookmark folder hooks", () => {
   test("读取当前用户收藏夹和数量", async () => {
     mockGET.mockResolvedValue({
@@ -46,7 +56,35 @@ describe("bookmark folder hooks", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(mockGET).toHaveBeenCalledWith("/api/v1/bookmarks/folders");
-    expect(result.current.data).toEqual([folder]);
+    expect(result.current.data).toEqual([mappedFolder]);
+  });
+
+  test("动态夹读取独立端点并映射自己的数量", async () => {
+    mockGET.mockResolvedValue({
+      data: {
+        code: 0,
+        message: "ok",
+        data: [
+          {
+            id: "cmomentfolderdefault0000001",
+            name: "默认收藏夹",
+            isDefault: true,
+            momentBookmarkCount: 4,
+            createdAt: folder.createdAt,
+          },
+        ],
+      },
+      error: undefined,
+    });
+    const { result } = renderHook(() => useBookmarkFolders("moments"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockGET).toHaveBeenCalledWith("/api/v1/moments/bookmark-folders");
+    expect(result.current.data).toEqual([
+      expect.objectContaining({ name: "默认收藏夹", itemCount: 4 }),
+    ]);
   });
 
   test("新建收藏夹提交名称", async () => {
@@ -62,6 +100,38 @@ describe("bookmark folder hooks", () => {
     expect(mockPOST).toHaveBeenCalledWith("/api/v1/bookmarks/folders", {
       body: { name: "跑团资料" },
     });
+  });
+
+  test("动态夹可通过独立端点新建与主题帖夹同名的目录", async () => {
+    mockPOST.mockResolvedValue({
+      data: {
+        code: 0,
+        message: "ok",
+        data: {
+          id: "cmomentfoldercustom00000001",
+          name: "跑团资料",
+          isDefault: false,
+          momentBookmarkCount: 0,
+          createdAt: folder.createdAt,
+        },
+      },
+      error: undefined,
+    });
+    const { result } = renderHook(() => useCreateBookmarkFolder("moments"), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      await result.current.mutateAsync("跑团资料");
+    });
+    expect(mockPOST).toHaveBeenCalledWith("/api/v1/moments/bookmark-folders", {
+      body: { name: "跑团资料" },
+    });
+    await waitFor(() =>
+      expect(result.current.data).toEqual(
+        expect.objectContaining({ name: "跑团资料", itemCount: 0 }),
+      ),
+    );
   });
 
   test("移动收藏提交收藏记录与目标收藏夹", async () => {

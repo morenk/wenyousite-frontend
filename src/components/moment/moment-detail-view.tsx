@@ -305,6 +305,7 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
         open={bookmarkPickerOpen}
         onOpenChange={setBookmarkPickerOpen}
         contentLabel={moment.title}
+        kind="moments"
         isPending={bookmark.isPending}
         onConfirm={async (folderId) => {
           try {

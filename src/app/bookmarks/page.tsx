@@ -18,9 +18,12 @@ import { BookmarkMomentCard } from "@/components/user/bookmark-moment-card";
 export default function BookmarksPage() {
   const { user } = useAuth();
   const [tab, setTab] = useState<"threads" | "moments">("threads");
-  const [folderId, setFolderId] = useState<string | undefined>();
-  const momentsQuery = useMomentBookmarks(user?.id, folderId);
-  const foldersQuery = useBookmarkFolders();
+  const [threadFolderId, setThreadFolderId] = useState<string | undefined>();
+  const [momentFolderId, setMomentFolderId] = useState<string | undefined>();
+  const folderId = tab === "threads" ? threadFolderId : momentFolderId;
+  const setFolderId = tab === "threads" ? setThreadFolderId : setMomentFolderId;
+  const momentsQuery = useMomentBookmarks(user?.id, momentFolderId);
+  const foldersQuery = useBookmarkFolders(tab);
   const moments = momentsQuery.data?.pages.flatMap((page) => page.data) ?? [];
   return (
     <PageShell width="feed">

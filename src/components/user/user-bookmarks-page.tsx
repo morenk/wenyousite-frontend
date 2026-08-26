@@ -20,7 +20,7 @@ export function UserBookmarksPage({ userId }: { userId: string }) {
         <CardTitle className="text-base">收藏</CardTitle>
         {canViewBookmarks && isSelf ? (
           <CardAction>
-            <CreateBookmarkFolderButton />
+            <CreateBookmarkFolderButton kind={tab} />
           </CardAction>
         ) : null}
       </CardHeader>

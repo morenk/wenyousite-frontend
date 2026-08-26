@@ -5,6 +5,7 @@ import { useState } from "react";
 import {
   useBookmarkFolders,
   type BookmarkFolder,
+  type BookmarkFolderKind,
 } from "@/api/hooks/use-bookmark-folders";
 import { BookmarkFolderForm } from "@/components/user/bookmark-folder-form";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -30,14 +31,17 @@ export function BookmarkFolderPickerDialog({
   contentLabel,
   isPending,
   onConfirm,
+  kind = "threads",
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   contentLabel: string;
   isPending: boolean;
   onConfirm: (folderId: string) => Promise<void>;
+  kind?: BookmarkFolderKind;
 }) {
-  const folders = useBookmarkFolders(open);
+  const folders = useBookmarkFolders(kind, open);
+  const folderLabel = kind === "moments" ? "动态收藏夹" : "主题帖收藏夹";
   const [selectedId, setSelectedId] = useState<string>();
   const [creating, setCreating] = useState(false);
   const [createdFolder, setCreatedFolder] = useState<BookmarkFolder>();
@@ -78,7 +82,7 @@ export function BookmarkFolderPickerDialog({
               <div className="min-w-0">
                 <DialogTitle>收藏到</DialogTitle>
                 <DialogDescription className="mt-1 line-clamp-2">
-                  为“{contentLabel}”选择一个收藏夹。
+                  为“{contentLabel}”选择一个{folderLabel}。
                 </DialogDescription>
               </div>
               <DialogCloseButton label="关闭收藏夹选择" disabled={isPending} />
@@ -134,6 +138,7 @@ export function BookmarkFolderPickerDialog({
                     <div className="rounded-xl bg-muted/55 p-4">
                       <BookmarkFolderForm
                         autoFocus
+                        kind={kind}
                         onCancel={() => setCreating(false)}
                         onCreated={(folder) => {
                           setCreatedFolder(folder);
@@ -144,7 +149,7 @@ export function BookmarkFolderPickerDialog({
                     </div>
                   ) : (
                     <Button variant="ghost" size="compact" onClick={() => setCreating(true)}>
-                      <Plus />新建收藏夹
+                      <Plus />新建{folderLabel}
                     </Button>
                   )}
                 </div>

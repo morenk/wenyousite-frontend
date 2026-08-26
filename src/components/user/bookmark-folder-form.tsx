@@ -9,6 +9,7 @@ import { getApiErrorMessage } from "@/api/errors";
 import {
   useCreateBookmarkFolder,
   type BookmarkFolder,
+  type BookmarkFolderKind,
 } from "@/api/hooks/use-bookmark-folders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,12 +25,14 @@ export function BookmarkFolderForm({
   onCreated,
   onCancel,
   autoFocus = false,
+  kind = "threads",
 }: {
   onCreated: (folder: BookmarkFolder) => void;
   onCancel?: () => void;
   autoFocus?: boolean;
+  kind?: BookmarkFolderKind;
 }) {
-  const createFolder = useCreateBookmarkFolder();
+  const createFolder = useCreateBookmarkFolder(kind);
   const form = useForm<FolderFormValues>({
     resolver: zodResolver(folderSchema),
     defaultValues: { name: "" },

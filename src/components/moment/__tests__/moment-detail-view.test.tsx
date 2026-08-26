@@ -60,11 +60,13 @@ vi.mock("@/components/user/bookmark-folder-picker-dialog", () => ({
   BookmarkFolderPickerDialog: ({
     open,
     onConfirm,
+    kind,
   }: {
     open: boolean;
     onConfirm: (folderId: string) => Promise<void>;
+    kind?: string;
   }) => open ? (
-    <div role="dialog" aria-label="收藏到">
+    <div role="dialog" aria-label="收藏到" data-kind={kind}>
       <button type="button" onClick={() => void onConfirm("folder-1").catch(() => undefined)}>确认收藏</button>
     </div>
   ) : null,
@@ -479,6 +481,10 @@ describe("MomentDetailView", () => {
     fireEvent.click(screen.getByRole("button", { name: "收藏" }));
     await waitFor(() => expect(mockLike).toHaveBeenCalledOnce());
     expect(mockBookmark).not.toHaveBeenCalled();
+    expect(screen.getByRole("dialog", { name: "收藏到" })).toHaveAttribute(
+      "data-kind",
+      "moments",
+    );
     fireEvent.click(screen.getByRole("button", { name: "确认收藏" }));
     await waitFor(() => expect(mockBookmark).toHaveBeenCalledWith("folder-1"));
 

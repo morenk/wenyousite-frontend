@@ -192,7 +192,9 @@ export function useMomentBookmark(id: string, active: boolean) {
         viewerBookmarked: result.active,
       }));
       void queryClient.invalidateQueries({ queryKey: queryKeys.moments.bookmarksRoot });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.bookmarks.folders });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.bookmarks.folders("moments"),
+      });
     },
   });
 }

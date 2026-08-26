@@ -683,10 +683,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 获取我的收藏夹分类 */
+        /** 获取我的主题帖收藏夹分类 */
         get: operations["bookmarksFindFolders"];
         put?: never;
-        /** 新建收藏夹分类 */
+        /** 新建主题帖收藏夹分类 */
         post: operations["bookmarksCreateFolder"];
         delete?: never;
         options?: never;
@@ -1145,6 +1145,24 @@ export interface paths {
         get: operations["momentsBookmarks"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/moments/bookmark-folders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取我的动态收藏夹分类 */
+        get: operations["momentsBookmarkFolders"];
+        put?: never;
+        /** 新建动态收藏夹分类 */
+        post: operations["momentsCreateBookmarkFolder"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3654,7 +3672,10 @@ export interface components {
             name: string;
             isDefault: boolean;
             bookmarkCount: number;
-            /** @description 该收藏夹中的动态收藏数量 */
+            /**
+             * @deprecated
+             * @description 旧客户端兼容字段：同名动态收藏夹中的收藏数量
+             */
             momentBookmarkCount: number;
             /** Format: date-time */
             createdAt: string;
@@ -4212,6 +4233,18 @@ export interface components {
             updatedAt: string;
             /** @description 所属私有收藏夹 ID */
             bookmarkFolderId: string;
+        };
+        MomentBookmarkFolderResponseDto: {
+            id: string;
+            name: string;
+            isDefault: boolean;
+            momentBookmarkCount: number;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        CreateMomentBookmarkFolderDto: {
+            /** @example 稍后阅读 */
+            name: string;
         };
         CreateMomentDto: {
             /** @description 动态标题，纯文本 */
@@ -6135,6 +6168,12 @@ export interface components {
         };
         MomentsBookmarks200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
             data: components["schemas"]["OwnMomentBookmarkResponseDto"][];
+        };
+        MomentsBookmarkFolders200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MomentBookmarkFolderResponseDto"][];
+        };
+        MomentsCreateBookmarkFolder201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MomentBookmarkFolderResponseDto"];
         };
         MomentsDetail200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["MomentDetailResponseDto"];
@@ -10414,6 +10453,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MomentsBookmarks200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    momentsBookmarkFolders: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MomentsBookmarkFolders200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    momentsCreateBookmarkFolder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMomentBookmarkFolderDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MomentsCreateBookmarkFolder201Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
