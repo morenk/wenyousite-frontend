@@ -38,7 +38,16 @@ vi.mock("@/api/client", () => ({
 const mockCreateMutate = vi.fn().mockResolvedValue({});
 const mockDeleteMutate = vi.fn().mockResolvedValue({});
 const mockUseSubscriptions = vi.fn(() => ({ data: [], isLoading: false }));
-const mockUseMembers = vi.fn(() => ({ data: [], isLoading: false }));
+const mockMembersRefetch = vi.fn().mockResolvedValue({});
+const mockUseMembers = vi.fn((threadId?: string) => {
+  void threadId;
+  return {
+    data: [],
+    isLoading: false,
+    isError: false,
+    refetch: mockMembersRefetch,
+  };
+});
 const mockUseThreadDetail = vi.fn(() => ({
   data: undefined,
   isLoading: false,
@@ -47,7 +56,7 @@ vi.mock("@/api/hooks/use-subscriptions", () => ({
   useSubscriptions: () => mockUseSubscriptions(),
 }));
 vi.mock("@/api/hooks/use-members", () => ({
-  useMembers: () => mockUseMembers(),
+  useMembers: (threadId?: string) => mockUseMembers(threadId),
 }));
 vi.mock("@/api/hooks/use-thread-detail", async () => {
   const actual = await vi.importActual("@/api/hooks/use-thread-detail");
@@ -108,7 +117,13 @@ beforeEach(() => {
   mockPOST.mockResolvedValue({ error: undefined });
   mockDELETE.mockResolvedValue({ error: undefined });
   mockUseSubscriptions.mockReturnValue({ data: [], isLoading: false });
-  mockUseMembers.mockReturnValue({ data: [], isLoading: false });
+  mockUseMembers.mockReturnValue({
+    data: [],
+    isLoading: false,
+    isError: false,
+    refetch: mockMembersRefetch,
+  });
+  mockMembersRefetch.mockResolvedValue({});
   mockUseThreadDetail.mockReturnValue({ data: undefined, isLoading: false });
   mockDeleteThreadMutate.mockClear();
   mockDeleteThreadMutate.mockResolvedValue({});
@@ -185,6 +200,22 @@ const baseThread: ThreadDetail = {
   bookmarkId: null,
   isLiked: false,
 };
+
+function buildMember(
+  userId: string,
+  username: string,
+  options: { role?: "OWNER" | "COLLABORATOR" | "PARTICIPANT"; playerMarked?: boolean } = {},
+) {
+  return {
+    id: `member-${userId}`,
+    threadId: "thread-1",
+    userId,
+    role: options.role ?? "PARTICIPANT",
+    playerMarked: options.playerMarked ?? true,
+    joinedAt: "2026-01-01T00:00:00Z",
+    user: { id: userId, username, avatar: null },
+  };
+}
 
 describe("ThreadDetailHeader", () => {
   test("渲染标题", () => {
@@ -445,8 +476,7 @@ describe("ThreadDetailHeader", () => {
     ).toEqual([
       "点赞",
       "收藏",
-      "订阅官方更新",
-      "订阅玩家发言",
+      "管理更新订阅",
       "加油",
     ]);
     const actionButtons = within(interactionGroup).getAllByRole("button");
@@ -532,7 +562,7 @@ describe("ThreadDetailHeader", () => {
     );
     expect(screen.queryByText("编辑")).not.toBeInTheDocument();
     expect(screen.queryByTitle("删除主题帖")).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "订阅官方更新" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "管理更新订阅" })).not.toBeInTheDocument();
   });
 
   test("详情更多面板不再承载删除主题帖入口", async () => {
@@ -667,7 +697,7 @@ describe("ThreadDetailHeader", () => {
     expect(mockPOST).not.toHaveBeenCalled();
   });
 
-  test("登录用户显示订阅按钮，点击后订阅", async () => {
+  test("统一订阅面板延迟加载成员并可订阅官方更新", async () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({
       user: { id: "other-user", username: "别人" },
@@ -675,23 +705,23 @@ describe("ThreadDetailHeader", () => {
     });
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
 
-    expect(screen.getByRole("button", { name: "订阅官方更新" })).toHaveAttribute(
-      "title",
-      "订阅官方更新",
-    );
-    expect(screen.getByRole("button", { name: "订阅官方更新" }))
-      .toHaveAttribute("aria-pressed", "false");
+    const trigger = screen.getByRole("button", { name: "管理更新订阅" });
+    expect(trigger).toHaveAttribute("title", "管理更新订阅");
+    expect(trigger).toHaveAttribute("aria-pressed", "false");
+    expect(mockUseMembers).toHaveBeenLastCalledWith(undefined);
 
-    await user.click(screen.getByRole("button", { name: "订阅官方更新" }));
+    await user.click(trigger);
+    expect(mockUseMembers).toHaveBeenLastCalledWith("thread-1");
+    await user.click(screen.getByRole("switch", { name: "订阅官方更新" }));
 
     expect(mockCreateMutate).toHaveBeenCalledWith({
       threadId: "thread-1",
       type: "THREAD",
     });
-    expect(toast.success).not.toHaveBeenCalledWith("已订阅，帖子更新将通知你");
+    expect(screen.getByText("选择你想在本帖收到的更新。")).toBeInTheDocument();
   });
 
-  test("已订阅时按钮提供取消订阅操作", async () => {
+  test("官方更新已订阅时统一入口选中并可在面板取消", async () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({
       user: { id: "other-user", username: "别人" },
@@ -714,27 +744,27 @@ describe("ThreadDetailHeader", () => {
 
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
 
-    const subscriptionButton = screen.getByRole("button", { name: "订阅官方更新" });
-    expect(subscriptionButton).toHaveAttribute(
-      "title",
-      "取消订阅官方更新",
-    );
-    expect(subscriptionButton).toHaveAttribute("aria-pressed", "true");
-    expect(subscriptionButton).toHaveClass("bg-transparent", "text-foreground");
-    expect(subscriptionButton.querySelector('[data-slot="interaction-toggle-icon"]'))
+    const trigger = screen.getByRole("button", { name: "管理更新订阅" });
+    expect(trigger).toHaveAttribute("aria-pressed", "true");
+    expect(trigger).toHaveClass("bg-transparent", "text-foreground");
+    expect(trigger.querySelector('[data-slot="interaction-toggle-icon"]'))
       .toHaveClass("text-brand-strong");
-    expect(subscriptionButton.querySelector('[data-slot="interaction-toggle-icon"]'))
+    expect(trigger.querySelector('[data-slot="interaction-toggle-icon"]'))
       .toHaveAttribute("data-icon-semantic", "action.subscribe");
-    expect(subscriptionButton.querySelector('[data-slot="interaction-toggle-icon"]'))
+    expect(trigger.querySelector('[data-slot="interaction-toggle-icon"]'))
       .toHaveAttribute("data-icon-variant", "filled");
 
-    await user.click(subscriptionButton);
+    await user.click(trigger);
+    const officialSwitch = screen.getByRole("switch", { name: "取消订阅官方更新" });
+    expect(officialSwitch).toHaveAttribute("aria-checked", "true");
+    await user.click(officialSwitch);
 
     expect(mockDeleteMutate).toHaveBeenCalledWith("sub1");
-    expect(toast.success).not.toHaveBeenCalledWith("已取消订阅");
+    expect(screen.getByText("玩家更新")).toBeInTheDocument();
   });
 
-  test("USER 订阅不会被误认为整帖订阅", () => {
+  test("任一玩家订阅也会让统一入口显示选中态", async () => {
+    const user = userEvent.setup();
     mockUseAuth.mockReturnValue({
       user: { id: "other-user", username: "别人" },
       isInitialized: true,
@@ -755,65 +785,114 @@ describe("ThreadDetailHeader", () => {
     } as never);
 
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
-    expect(screen.getByRole("button", { name: "订阅官方更新" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "订阅官方更新" }))
-      .toHaveAttribute("aria-pressed", "false");
+    const trigger = screen.getByRole("button", { name: "管理更新订阅" });
+    expect(trigger).toHaveAttribute("aria-pressed", "true");
+    await user.click(trigger);
+    expect(screen.getByRole("switch", { name: "订阅官方更新" }))
+      .toHaveAttribute("aria-checked", "false");
   });
 
-  test("可选择参与人并创建 USER 订阅", async () => {
+  test("玩家列表加载中显示进度状态", async () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({
       user: { id: "other-user", username: "别人" },
       isInitialized: true,
     });
     mockUseMembers.mockReturnValue({
+      data: [],
+      isLoading: true,
+      isError: false,
+      refetch: mockMembersRefetch,
+    });
+
+    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
+    await user.click(screen.getByRole("button", { name: "管理更新订阅" }));
+    expect(screen.getByText("正在加载玩家…")).toBeInTheDocument();
+  });
+
+  test("玩家列表失败时只重试成员查询", async () => {
+    const user = userEvent.setup();
+    mockUseAuth.mockReturnValue({
+      user: { id: "other-user", username: "别人" },
+      isInitialized: true,
+    });
+    mockUseMembers.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isError: true,
+      refetch: mockMembersRefetch,
+    });
+
+    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
+    await user.click(screen.getByRole("button", { name: "管理更新订阅" }));
+    expect(screen.getByText("玩家列表加载失败")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "重试加载玩家列表" }));
+    expect(mockMembersRefetch).toHaveBeenCalledTimes(1);
+  });
+
+  test("没有玩家时仍保留入口并显示空态", async () => {
+    const user = userEvent.setup();
+    mockUseAuth.mockReturnValue({
+      user: { id: "other-user", username: "别人" },
+      isInitialized: true,
+    });
+
+    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
+    await user.click(screen.getByRole("button", { name: "管理更新订阅" }));
+    expect(screen.getByText("暂无可订阅的玩家")).toBeInTheDocument();
+  });
+
+  test("玩家列表可同时创建和取消多名 USER 订阅且面板保持打开", async () => {
+    const user = userEvent.setup();
+    mockUseAuth.mockReturnValue({
+      user: { id: "other-user", username: "别人" },
+      isInitialized: true,
+    });
+    mockUseSubscriptions.mockReturnValue({
       data: [
         {
-          id: "member-1",
+          id: "sub-player-b",
+          userId: "other-user",
           threadId: "thread-1",
-          userId: "target-user",
-          role: "PARTICIPANT",
-          playerMarked: true,
-          joinedAt: "2026-01-01T00:00:00Z",
-          user: { id: "target-user", username: "目标用户", avatar: null },
-        },
-        {
-          id: "member-owner",
-          threadId: "thread-1",
-          userId: "owner-1",
-          role: "OWNER",
-          playerMarked: true,
-          joinedAt: "2026-01-01T00:00:00Z",
-          user: { id: "owner-1", username: "帖主", avatar: null },
-        },
-        {
-          id: "member-unmarked",
-          threadId: "thread-1",
-          userId: "unmarked-user",
-          role: "PARTICIPANT",
-          playerMarked: false,
-          joinedAt: "2026-01-01T00:00:00Z",
-          user: { id: "unmarked-user", username: "未标记参与人", avatar: null },
+          type: "USER",
+          targetUserId: "player-b",
+          createdAt: "2026-01-01T00:00:00Z",
+          thread: { id: "thread-1", title: "测试主题帖" },
         },
       ],
       isLoading: false,
     } as never);
+    mockUseMembers.mockReturnValue({
+      data: [
+        buildMember("player-a", "玩家甲"),
+        buildMember("player-b", "玩家乙"),
+        buildMember("owner-1", "帖主", { role: "OWNER" }),
+        buildMember("unmarked-user", "未标记参与人", { playerMarked: false }),
+      ],
+      isLoading: false,
+      isError: false,
+      refetch: mockMembersRefetch,
+    } as never);
 
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
-    await user.click(screen.getByRole("button", { name: "订阅玩家发言" }));
-    await user.click(screen.getByRole("combobox", { name: "订阅帖内玩家" }));
-    expect(await screen.findByRole("option", { name: "目标用户" })).toBeInTheDocument();
-    expect(screen.queryByRole("option", { name: "帖主" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("option", { name: "未标记参与人" })).not.toBeInTheDocument();
-    await user.click(screen.getByRole("option", { name: "目标用户" }));
-    await user.click(screen.getByRole("button", { name: "订阅该玩家" }));
+    await user.click(screen.getByRole("button", { name: "管理更新订阅" }));
+    expect(screen.getByRole("switch", { name: "订阅玩家甲的发言" }))
+      .toHaveAttribute("aria-checked", "false");
+    expect(screen.getByRole("switch", { name: "取消订阅玩家乙的发言" }))
+      .toHaveAttribute("aria-checked", "true");
+    expect(screen.queryByRole("switch", { name: /帖主/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("switch", { name: /未标记参与人/ })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("switch", { name: "订阅玩家甲的发言" }));
+    await user.click(screen.getByRole("switch", { name: "取消订阅玩家乙的发言" }));
 
     expect(mockCreateMutate).toHaveBeenCalledWith({
       threadId: "thread-1",
       type: "USER",
-      targetUserId: "target-user",
+      targetUserId: "player-a",
     });
-    expect(toast.success).not.toHaveBeenCalledWith("已订阅该用户在本帖的发言");
+    expect(mockDeleteMutate).toHaveBeenCalledWith("sub-player-b");
+    expect(screen.getByText("可同时订阅多名已标记玩家")).toBeInTheDocument();
   });
 
   test("订阅失败时保留错误提示", async () => {
@@ -825,18 +904,19 @@ describe("ThreadDetailHeader", () => {
     mockCreateMutate.mockRejectedValueOnce({ message: "订阅失败" });
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
 
-    await user.click(screen.getByRole("button", { name: "订阅官方更新" }));
+    await user.click(screen.getByRole("button", { name: "管理更新订阅" }));
+    await user.click(screen.getByRole("switch", { name: "订阅官方更新" }));
 
     expect(toast.error).toHaveBeenCalledWith("订阅失败");
   });
 
-  test("楼主不显示整帖订阅按钮", () => {
+  test("楼主不显示更新订阅面板", () => {
     mockUseAuth.mockReturnValue({
       user: { id: "owner-1", username: "帖主" },
       isInitialized: true,
     });
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
-    expect(screen.queryByTitle("订阅官方更新")).toBeNull();
+    expect(screen.queryByRole("button", { name: "管理更新订阅" })).toBeNull();
   });
 
   test("私密帖邀请入口集中到管理页，更多面板只保留管理入口", async () => {
@@ -918,7 +998,6 @@ describe("ThreadDetailHeader", () => {
   test("未登录不显示订阅按钮", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
-    expect(screen.queryByRole("button", { name: "订阅官方更新" })).toBeNull();
-    expect(screen.queryByRole("button", { name: "取消订阅官方更新" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "管理更新订阅" })).toBeNull();
   });
 });

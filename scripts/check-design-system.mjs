@@ -234,7 +234,7 @@ const semanticContractClaims = new Map([
     "InteractionToggle",
     'tone="subscription"',
     'icon="action.subscribe"',
-    'accessibleName="订阅官方更新"',
+    'accessibleName="管理更新订阅"',
     "accessibleDescription",
   ]],
   ["src/components/shared/reply-action-button.tsx", [

@@ -101,6 +101,28 @@ describe("NotificationItem", () => {
     expect(screen.queryByText("旧版完整文案")).not.toBeInTheDocument();
   });
 
+  test("结构化 new_reply 显示楼中楼订阅更新文案", () => {
+    renderWithQC(
+      <NotificationItem
+        notification={baseNotification({
+          type: "new_post",
+          content: "旧版完整文案",
+          payload: {
+            schemaVersion: 1,
+            action: "new_reply",
+            actorName: "楼主",
+            preview: "新的楼中楼内容",
+          },
+        })}
+      />,
+    );
+
+    expect(screen.getByText("楼主")).toBeInTheDocument();
+    expect(screen.getByText("发布了楼中楼回复")).toBeInTheDocument();
+    expect(screen.getByText(/新的楼中楼内容/)).toBeInTheDocument();
+    expect(screen.queryByText("旧版完整文案")).not.toBeInTheDocument();
+  });
+
   test("楼中楼通知直接进入独立阅读页", () => {
     renderWithQC(
       <NotificationItem

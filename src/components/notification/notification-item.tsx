@@ -209,7 +209,14 @@ function getStructuredNotificationContent(notification: NotificationItemData): R
   const action = typeof payload?.action === "string" ? payload.action : "";
 
   // 点赞通知可能已经聚合了多人，必须保留后端生成的聚合文案。
-  if (!actorName || !["reply", "mention", "new_post", "moment_reply", "moment_comment"].includes(action)) return null;
+  if (!actorName || ![
+    "reply",
+    "mention",
+    "new_post",
+    "new_reply",
+    "moment_reply",
+    "moment_comment",
+  ].includes(action)) return null;
 
   const preview = typeof payload?.preview === "string"
     ? sanitizeNotificationText(payload.preview)
@@ -223,6 +230,8 @@ function getStructuredNotificationContent(notification: NotificationItemData): R
       ? "评论了你的动态"
       : action === "reply"
     ? "回复了"
+    : action === "new_reply"
+      ? "发布了楼中楼回复"
     : action === "mention"
       ? subthreadTitle ? `在「${subthreadTitle}」提到了你` : "提到了你"
       : subthreadTitle ? `创建了新子贴「${subthreadTitle}」` : "发布了新楼层";

@@ -5,13 +5,28 @@ import { render, screen, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-const { mockUseNotifications } = vi.hoisted(() => ({ mockUseNotifications: vi.fn() }));
+const { mockUseNotifications, mockUseUnreadCounts, mockUseInfiniteScroll } = vi.hoisted(() => ({
+  mockUseNotifications: vi.fn(),
+  mockUseUnreadCounts: vi.fn(() => ({ notificationCount: 0, directMessageCount: 0 })),
+  mockUseInfiniteScroll: vi.fn((options?: unknown) => {
+    void options;
+    return vi.fn();
+  }),
+}));
 const { mockUseNotificationActions } = vi.hoisted(() => ({
   mockUseNotificationActions: vi.fn(),
 }));
 
 vi.mock("@/api/hooks/use-notifications", () => ({
   useNotifications: () => mockUseNotifications(),
+}));
+
+vi.mock("@/components/layout/unread-counts-context", () => ({
+  useUnreadCounts: () => mockUseUnreadCounts(),
+}));
+
+vi.mock("@/hooks/use-infinite-scroll", () => ({
+  useInfiniteScroll: (options: unknown) => mockUseInfiniteScroll(options),
 }));
 
 vi.mock("@/api/hooks/use-notification-actions", () => ({
@@ -51,7 +66,10 @@ beforeAll(() => {
 });
 
 afterEach(() => cleanup());
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  vi.clearAllMocks();
+  mockUseUnreadCounts.mockReturnValue({ notificationCount: 0, directMessageCount: 0 });
+});
 
 function createWrapper() {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -162,6 +180,7 @@ describe("NotificationList", () => {
   test("渲染通知列表与全部已读按钮", async () => {
     const user = userEvent.setup();
     const markAllReadMutate = vi.fn().mockResolvedValue(undefined);
+    mockUseUnreadCounts.mockReturnValue({ notificationCount: 2, directMessageCount: 0 });
     mockUseNotifications.mockReturnValue({
       data: { pages: [{ data: [sampleNotification], meta: { cursor: null, hasMore: false } }] },
       fetchNextPage: vi.fn(),
@@ -184,7 +203,29 @@ describe("NotificationList", () => {
     expect(toast.success).toHaveBeenCalledWith("已全部标记为已读");
   });
 
-  test("失效历史即使旧响应残留未读值也不展示全部已读入口", () => {
+  test("当前筛选为空但全局仍有未读时保留全部已读入口", () => {
+    mockUseUnreadCounts.mockReturnValue({ notificationCount: 3, directMessageCount: 0 });
+    mockUseNotifications.mockReturnValue({
+      data: { pages: [] },
+      fetchNextPage: vi.fn(),
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      isLoading: false,
+      isError: false,
+      error: undefined,
+      refetch: vi.fn(),
+    });
+    mockUseNotificationActions.mockReturnValue({
+      markAllRead: { isPending: false, mutateAsync: vi.fn() },
+    });
+
+    renderList({ type: "new_post,thread_created" });
+
+    expect(screen.getByRole("button", { name: "全部已读" })).toBeInTheDocument();
+    expect(mockUseUnreadCounts).toHaveBeenCalled();
+  });
+
+  test("全局未读为零时即使当前页残留未读值也隐藏全部已读入口", () => {
     mockUseNotifications.mockReturnValue({
       data: {
         pages: [{
@@ -216,5 +257,37 @@ describe("NotificationList", () => {
     renderList();
 
     expect(screen.queryByRole("button", { name: "全部已读" })).toBeNull();
+  });
+
+  test("下一页失败时暂停自动加载且只重试 fetchNextPage", async () => {
+    const user = userEvent.setup();
+    const fetchNextPage = vi.fn().mockResolvedValue(undefined);
+    const refetch = vi.fn().mockResolvedValue(undefined);
+    mockUseNotifications.mockReturnValue({
+      data: { pages: [{ data: [sampleNotification], meta: { cursor: "next", hasMore: true } }] },
+      fetchNextPage,
+      hasNextPage: true,
+      isFetchingNextPage: false,
+      isFetchNextPageError: true,
+      isLoading: false,
+      isError: false,
+      error: undefined,
+      refetch,
+    });
+    mockUseNotificationActions.mockReturnValue({
+      markAllRead: { isPending: false, mutateAsync: vi.fn() },
+    });
+
+    renderList();
+
+    expect(screen.queryByRole("button", { name: "加载更多" })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "加载失败，重试" })).toHaveLength(1);
+    expect(mockUseInfiniteScroll).toHaveBeenLastCalledWith(expect.objectContaining({
+      hasNextPage: false,
+    }));
+
+    await user.click(screen.getByRole("button", { name: "加载失败，重试" }));
+    expect(fetchNextPage).toHaveBeenCalledTimes(1);
+    expect(refetch).not.toHaveBeenCalled();
   });
 });

@@ -12,12 +12,12 @@
 - 按 Foundation 分组过滤：全部、互动、订阅、系统
 - 通知跳转精确定位到主题帖楼层/楼中楼及动态主评论/楼中楼：目标不在首屏分页时仍可直接注入、高亮并滚动定位
 - 已读操作使用乐观缓存更新，跳转不再依赖请求完成
-- 页面重新获得焦点时刷新通知；补齐加载更多失败重试
-- 「全部已读」仅在有未读时展示，并即时更新列表与红点
+- 页面重新获得焦点时刷新通知；下一页失败后暂停自动滚动，只保留一个针对该页的重试入口
+- 「全部已读」按全局未读数判断，不受当前筛选或已加载分页限制，并即时更新列表与红点
 - payload 结构化渲染：`actorName`、动作和 `preview` 分段排版；点赞聚合继续使用后端生成的完整文案
 - 删除、注销或越权目标保留为不可点击的已读历史；PRIVATE 主题通知按当前成员资格隔离
 
-提及通知使用后端稳定 `eventKey` 幂等；同一帖子中显式提及已覆盖的用户不会再重复收到该帖的普通回复/新楼层提醒。正文中的 `[@用户名](/users/{userId})` 由 MarkdownContent 渲染为本站用户链接，兼容历史纯文本提及。
+提及通知使用后端稳定 `eventKey` 幂等；同一次发言按 mention → 直接 reply → 管理者/订阅 new_post 原因去重。正文中的 `[@用户名](/users/{userId})` 由 MarkdownContent 渲染为本站用户链接，兼容历史纯文本提及。
 
 ## 2. 页面与路由
 
@@ -41,7 +41,7 @@
 
 > `NotificationType`：reply / mention / new_post / thread_created / follow / like / tip / level_up / system。旧类型 `new_floor` / `subthread_created` 后端自动映射为 `new_post`。
 
-通知筛选分组由当前 Foundation v3.0.0 契约中的 `experiences.notifications` 定义，Web 直接消费生成产物，不在业务组件复制名称和成员：
+通知筛选分组由 [`foundation.lock.json`](../../foundation.lock.json) 固定的 Foundation v6.5.1 契约中 `experiences.notifications` 定义，Web 直接消费生成产物，不在业务组件复制名称和成员：
 
 | 分组 | 类型 |
 |------|------|
@@ -81,7 +81,7 @@
 }
 ```
 
-> **内容与导航字段**：新通知的 `payload.schemaVersion` 固定为 `1`，结构化字段用于展示；`content` 只承担旧数据和未知类型降级。`target.state` 是导航资格的唯一事实源：只有 `ACTIVE` 才按 `kind` 与对应 ID 导航；`CONTENT_DELETED` / `USER_DEACTIVATED` 返回 `kind=none`、空导航 ID 且强制已读，`NO_TARGET` 表示普通无目标系统通知。
+> **内容与导航字段**：新通知的 `payload.schemaVersion` 固定为 `1`，结构化字段用于展示；`content` 只承担旧数据和未知类型降级。订阅来源的楼中楼更新沿用 `type=new_post` 并以开放式 `action=new_reply` 显示“发布了楼中楼回复”，因此进入“订阅”分组；直接回复仍为 `reply/action=reply`。`target.state` 是导航资格的唯一事实源：只有 `ACTIVE` 才按 `kind` 与对应 ID 导航；`CONTENT_DELETED` / `USER_DEACTIVATED` 返回 `kind=none`、空导航 ID 且强制已读，`NO_TARGET` 表示普通无目标系统通知。
 
 ### GET /notifications/unread
 
@@ -100,7 +100,7 @@
 | 状态 | 来源 | 管理方式 |
 |------|------|----------|
 | 通知列表 | `GET /notifications` | TanStack Query `useInfiniteQuery`（`queryKeys.notifications.list(type, userId)`，按用户隔离） |
-| 未读数 | `GET /notifications/unread` | `useQuery`（`queryKeys.notifications.unread(userId)`，按用户隔离，`refetchInterval: 30s`） |
+| 未读数 | `GET /notifications/unread` | `AppChrome` 中的 `useQuery`（`queryKeys.notifications.unread(userId)`，按用户隔离，`refetchInterval: 30s`），通过 `unread-counts-context` 供列表和导航复用 |
 | 标记已读/删除/全部已读 | 各 mutation | 乐观更新当前用户的列表与未读数；失败时回滚，再后台校验 |
 
 > **缓存按用户隔离**：未读数与列表 key 均由 `queryKeys` 工厂生成并包含 `userId`。登录切换账号时还会重建 QueryClient，从 key 与容器两层避免私有通知串号。
@@ -110,7 +110,7 @@
 | 组件 | 路径 | 说明 |
 |------|------|------|
 | NotificationItem | `src/components/notification/notification-item.tsx` | 单条通知：类型图标 + payload/content 降级文案 + 时间 + 未读高亮 + 跳转 + 删除 |
-| NotificationList | `src/components/notification/notification-list.tsx` | 通知列表：无限滚动 + 三态 + 「全部已读」 |
+| NotificationList | `src/components/notification/notification-list.tsx` | 通知列表：无限滚动 + 三态 + 全局「全部已读」+ 独立下一页重试 |
 | useNotifications | `src/api/hooks/use-notifications.ts` | 通知列表 hook（cursor 分页，`{ type, userId }` 按用户隔离） |
 | useUnreadCount | `src/api/hooks/use-unread-count.ts` | 未读数 hook（`userId` 按用户隔离，30s 轮询） |
 | useNotificationActions | `src/api/hooks/use-notification-actions.ts` | 标记已读/删除/全部已读 mutation |
@@ -128,7 +128,7 @@
 - 有操作者（`fromUser`）时左侧显示接口返回的头像母版（无则首字符占位）；系统通知无操作者时保留类型图标
 - 未读：左侧圆点 + 背景高亮；点击后即时置为已读样式
 - 类型筛选由 URL `?type=` 驱动；nuqs 将历史组合归并为 Foundation 当前分组，切换时把规范组合写入浏览历史；非法值回退「全部」，点击导航栏「通知」入口回到 `/notifications`（无参数）即重置为「全部」
-- 类型筛选栏在任何状态下（加载中/出错/空数据）都保持渲染，空类型时不会丢失导航栏；「全部已读」仅在列表存在未读时显示
+- 类型筛选栏在任何状态下（加载中/出错/空数据）都保持渲染，空类型时不会丢失导航栏；「全部已读」只看 `/notifications/unread` 的全局计数，当前筛选为空或未读项尚未分页加载时仍可操作
 - 历史通知展示时移除残留图片 Markdown；仅当结构化 `payload.preview` 明确等于 `1.00` 时移除尾部比例 alt，避免误删正常数字正文
 - 展示时顺带还原 Milkdown 序列化残留的反斜杠转义（`\<`/`\>` → `<`/`>`）及硬换行反斜杠（`\`+换行 → 换行），兼容已入库的旧通知，避免预览出现孤立 `\`
 
@@ -138,7 +138,7 @@
 |--------|------|---------|
 | 40100 | 未登录 | apiClient 拦截器跳 /login（页面另有登录守卫） |
 | 网络错误 | 列表加载失败 | 错误态 + 重试按钮 |
-| 网络错误 | 加载下一页失败 | 保留已加载通知，在列表末尾显示重试按钮 |
+| 网络错误 | 加载下一页失败 | 保留已加载通知并暂停 IntersectionObserver 自动加载；列表末尾只显示一个调用 `fetchNextPage` 的重试按钮 |
 | 其他 | 标记/删除失败 | toast 后端 message 或"操作失败，请稍后重试" |
 
 ## 9. 权限与访问控制
@@ -155,7 +155,7 @@
 - 未读通知有醒目标识；点击已读并跳转
 - 「全部已读」一键清零未读
 - 单条删除
-- 无限滚动加载更多
+- 无限滚动加载更多；下一页失败时暂停自动触发并只重试下一页
 - 导航栏「通知」显示未读徽标，读数随操作更新
 - 未登录跳 /login
 - 类型筛选、精确定位与刷新策略（本轮）

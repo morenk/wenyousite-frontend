@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useNotifications } from "@/api/hooks/use-notifications";
 import { useNotificationActions } from "@/api/hooks/use-notification-actions";
 import { useAuth } from "@/lib/auth";
+import { useUnreadCounts } from "@/components/layout/unread-counts-context";
 import { NotificationItem } from "@/components/notification/notification-item";
 import { EmptyState } from "@/components/shared/empty-state";
 import { LoadError } from "@/components/shared/load-error";
@@ -33,21 +34,18 @@ export function NotificationList({ type, onTypeChange }: NotificationListProps) 
     isError,
     refetch,
   } = useNotifications({ type, userId: user?.id });
+  const { notificationCount } = useUnreadCounts();
   const { markAllRead } = useNotificationActions();
+  const loadMoreFailed = Boolean(isFetchNextPageError);
 
   const sentinelRef = useInfiniteScroll({
-    hasNextPage: !!hasNextPage,
+    hasNextPage: !!hasNextPage && !loadMoreFailed,
     isFetchingNextPage,
     onLoadMore: fetchNextPage,
   });
 
   const notifications = data?.pages.flatMap((page) => page?.data ?? []) ?? [];
-  const hasUnread = notifications.some(
-    (notification) =>
-      !notification.isRead &&
-      (notification.target.state === "ACTIVE" || notification.target.state === "NO_TARGET"),
-  );
-  const loadMoreFailed = Boolean(isFetchNextPageError);
+  const hasUnread = notificationCount > 0;
 
   useEffect(() => {
     const refresh = () => refetch();
@@ -110,7 +108,7 @@ export function NotificationList({ type, onTypeChange }: NotificationListProps) 
             {isFetchingNextPage && (
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             )}
-            {hasNextPage && !isFetchingNextPage && (
+            {hasNextPage && !isFetchingNextPage && !loadMoreFailed && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -122,11 +120,16 @@ export function NotificationList({ type, onTypeChange }: NotificationListProps) 
               </Button>
             )}
             {loadMoreFailed && (
-              <Button variant="outline" size="sm" onClick={() => refetch()} className="text-xs">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fetchNextPage()}
+                className="text-xs"
+              >
                 加载失败，重试
               </Button>
             )}
-            {!hasNextPage && (
+            {!hasNextPage && !loadMoreFailed && (
               <span className="text-xs text-muted-foreground">没有更多了</span>
             )}
           </div>

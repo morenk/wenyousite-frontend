@@ -29,8 +29,8 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 - Loading / Error / Empty / 404 状态
 - 头部“搜索本帖”内联面板：检索全部子贴的楼层与楼中楼并精确定位
 - 两层楼中楼、楼层编辑和权限删除；子贴正文由后端阻止当作普通楼层删除
-- 管理面板可授予/收回玩家身份，头部可管理主题帖与玩家订阅
-- 帖内订阅：THREAD 为楼主/协作者官方更新；USER 从头部图标弹层中选择 `PARTICIPANT + playerMarked=true` 的普通玩家
+- 管理面板可授予/收回玩家身份；普通登录用户从头部统一面板管理官方更新与玩家订阅
+- 帖内订阅：THREAD 为楼主/协作者官方更新；USER 可同时订阅多名 `PARTICIPANT + playerMarked=true` 的普通玩家。楼主/协作者自动接收且不显示面板
 - 私密帖邀请：楼主生成/刷新邀请链接，受邀用户在 `/join/[token]` 预览并加入；已加入用户再次打开同一邀请会直接进入主题帖
 - 公开帖发言即参与，不提供手动加入入口；已标记玩家可退出玩家身份
 
@@ -53,7 +53,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 | DELETE | `/threads/:id` | Auth | 删除主题帖：未发布帖硬删除，已发布帖软删除，仅 OWNER |
 | GET | `/subthreads/:subthreadId/posts` | Public | 楼层列表（cursor 分页，`order=OLDEST\|NEWEST`，含最多 5 条内联 replies） |
 | GET | `/subthreads/:subthreadId/posts/authors` | Public | 当前子贴中实际发布过未删除主楼层的楼主、协作者与已标记玩家 |
-| POST | `/subthreads/:subthreadId/posts` | Auth | 发布新楼层/楼中楼回复（kind=FLOOR，发帖自动成为参与人=玩家候选池；楼中楼带 parentPostId/replyToPostId） |
+| POST | `/subthreads/:subthreadId/posts` | Auth | 发布新楼层/楼中楼回复（kind=FLOOR，发帖自动成为参与人=玩家候选池；`replyToPostId` 必须同时带 `parentPostId` 且属于同一主楼层） |
 | GET | `/posts/:id/replies` | Public | 楼中楼回复列表（cursor 分页，支持正/倒序与玩家、楼主、协作者作者筛选） |
 | GET | `/posts/:id/replies/authors` | Public | 当前主楼层下实际发布过未删除回复的楼主、协作者与已标记玩家 |
 | GET | `/posts/:id` | Public | 查询通知目标帖的主题、子贴与父楼上下文 |
@@ -81,6 +81,8 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 > **分类显示契约**：`thread.category` 是可空的动态 slug，不再是封闭枚举。详情通过 `GET /thread-categories` 显示管理员配置的名称，并使用 Foundation 统一中性呈现；分类 API 不包含颜色字段。未知 slug 显示原 slug，空值显示“未分类”，不能导致页面崩溃。
 
 > **通知精确定位**：主楼层仍使用详情页 `?post=` 注入并定位；楼中楼通知直接进入 `/threads/{threadId}/posts/{parentPostId}/replies?post={replyId}`。主题、父楼和目标回复每次挂载都强制向服务端复核，复核前不渲染缓存正文或回复入口；任一目标返回 403/404 时关闭当前编辑器、清除相关正文缓存并显示统一不可访问态，不能回落到仍可回复的父楼页面。验证通过后才定位、高亮目标，且不使用平滑移动动画。
+
+> **楼中楼订阅通知**：直接被回复者继续收到互动类 `reply/action=reply`；管理者与 THREAD/USER 订阅来源收到订阅类 `new_post/action=new_reply`，显示“发布了楼中楼回复”。同一用户按 mention → reply → 订阅更新优先级只收到一条。
 
 > **楼中楼链接契约**：楼中楼回复可通过 `/threads/{threadId}/posts/{parentPostId}/replies?post={replyId}` 精确定位；回复卡片右上角操作菜单提供复制链接入口。该 URL 仅依赖现有 Post 字段，不新增 API。
 
@@ -257,7 +259,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 | 当前选中子贴 | 用户通过目录、搜索结果或左右游标切换 | URL `subthread` 参数 + 本地派生（默认 `defaultSubthreadId`） |
 | 当前编辑会话 | 用户点击发表/回复/编辑 | `ThreadComposerProvider`（全页唯一 session + content + pending） |
 | 点赞状态 | `GET /threads/:id` 的 `isLiked` + `POST/DELETE /threads/:id/like` | useMutation + query invalidation；`likeCount` 仅用于展示总数 |
-| 订阅状态 | `GET /subscriptions` + `GET /threads/:id/members` | THREAD 通过单个图标切换官方更新；USER 在弹层中选择普通已标记玩家；楼主/协作者隐藏全部订阅控件；成功只更新控件状态，失败显示错误 Toast |
+| 订阅状态 | `GET /subscriptions` + `GET /threads/:id/members` | 常驻统一入口由任一 THREAD/USER 订阅决定选中态；面板打开后才加载成员，分别展示加载、失败重试、无候选与多玩家开关；楼主/协作者隐藏控件；操作后面板保持打开 |
 | 当前用户帖内权限 | `GET /threads/:id` 的 `currentMembership` + `capabilities` | 与详情共用缓存，只查询当前用户成员关系；不为权限判断预取全量成员 |
 | 帖内搜索 | `GET /threads/:threadId/search/posts` | `useThreadSearchPosts` 游标分页；面板开关与待提交输入为详情页/组件本地状态 |
 | 表情收藏 | `GET /stickers` 与导入/排序/删除端点 | `useStickers` 用户级缓存；编辑器点选插入，正文图片可快速收藏 |
@@ -271,7 +273,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 | ThreadDetailPage | `src/app/threads/[id]/page.tsx` | 详情页主逻辑；管理入口关闭当前编辑器后导航到 workspace 编辑路由 |
 | ThreadDetailHeader | `src/components/thread/thread-detail-header.tsx` | 两段式排头卡：上层展示主题信息与搜索/分享/管理工具，下层以禁止换行的单行工具带合并弹性子贴目录与紧凑图标互动操作；点赞与收藏相邻 |
 | ThreadReadingBar | `src/components/thread/thread-reading-bar.tsx` | 排头卡离开视口后的帖内阅读书签条；保留标题、子贴目录、搜索和回顶，并遵循减少动态效果设置 |
-| ThreadSubscriptionControls | `src/components/thread/thread-subscription-controls.tsx` | 普通用户的官方更新图标开关与玩家订阅弹层、成员候选查询；官方更新激活态使用透明容器上的品牌深紫实心铃铛 |
+| ThreadSubscriptionControls | `src/components/thread/thread-subscription-controls.tsx` | 普通用户统一管理官方更新与多名玩家订阅；成员候选延迟加载，任一订阅激活时使用透明容器上的品牌深紫实心订阅图标 |
 | ThreadPostSearch | `src/components/thread/thread-post-search.tsx` | 内联搜索全部子贴与楼中楼；处理短词、分页及四态 |
 | PostSearchResultList | `src/components/search/post-search-result-list.tsx` | 与全站搜索共用的结果列表、加载更多和精确帖子导航 |
 | SubthreadSwitcher | `src/components/thread/subthread-tabs.tsx` | 排头卡与阅读书签条共用的子贴目录；弹出紧凑的固定高度纵向菜单，显示当前项与各子贴楼层数；左右游标在首尾循环衔接 |
@@ -308,7 +310,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 | useSyncThreadTags | `src/api/hooks/use-sync-thread-tags.ts` | 编辑帖时同步主题帖标签（diff 后添加/移除） |
 | useReplies | `src/api/hooks/use-replies.ts` | 楼中楼回复列表（排序、作者筛选条件进入 query key 与 cursor 分页请求） |
 | useFloorAuthors / useReplyAuthors | `src/api/hooks/use-discussion-authors.ts` | 与列表首页并行读取范围化作者候选，不从当前已加载分页推导 |
-| useMembers | `src/api/hooks/use-members.ts` | 仅成员管理页或普通用户订阅候选需要时加载全量参与人列表 |
+| useMembers | `src/api/hooks/use-members.ts` | 仅成员管理页或普通用户打开订阅面板后加载全量参与人列表 |
 | useUpdateMember | `src/api/hooks/use-update-member.ts` | 改参与人角色/玩家标记 |
 | useSubscriptions | `src/api/hooks/use-subscriptions.ts` | 我的订阅列表 |
 
@@ -420,8 +422,8 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 | 已发布帖 OWNER/COLLABORATOR | 管理类操作集中在独立图标组；协作者可进入三个管理页签，但保存主题帖时不包含 visibility/published |
 | 未发布草稿 OWNER | 从草稿列表进入 `/threads/[id]/edit` 后显示 ThreadCreateForm，可保存草稿或最终发布 |
 | OWNER 删除 | 显示 "删除" 按钮；确认后调用 `DELETE /threads/:id`，成功返回首页 |
-| OWNER/COLLABORATOR 订阅 | 不显示任何订阅控件；自动接收全部帖子动态 |
-| 普通用户订阅 | THREAD 使用铃铛图标切换官方更新；USER 通过玩家图标弹层选择 `PARTICIPANT + playerMarked=true` 普通玩家；用途由悬浮说明展示 |
+| OWNER/COLLABORATOR 订阅 | 不显示任何订阅控件；自动接收帖子动态 |
+| 普通用户订阅 | 一个常驻图标打开统一面板；THREAD 管理官方更新，USER 可同时管理多名 `PARTICIPANT + playerMarked=true` 普通玩家；无玩家时仍显示入口与空态 |
 | PRIVATE OWNER | 详情头部不显示普通分享；管理台「帖子设置 → 私密访问」可生成邀请，每次调用都会刷新旧 token |
 | PRIVATE 其他成员 | 不显示普通复制链接或邀请链接 |
 | PUBLIC 非成员 | 不显示手动加入；首次发言自动建立参与人记录 |
