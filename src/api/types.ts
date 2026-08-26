@@ -4601,7 +4601,7 @@ export interface components {
              */
             parentPostId?: string;
             /**
-             * @description 回复目标帖 ID（追踪具体回复哪个帖子，可为同楼层其他回复）
+             * @description 回复目标帖 ID；必须同时提供 parentPostId，且目标属于该主楼层
              * @example clxreply001...
              */
             replyToPostId?: string;
@@ -11324,6 +11324,17 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PostsCreate201Response"];
+                };
+            };
+            /** @description 回复目标缺少父楼层，或回复目标与父楼层不属于同一主楼层 */
+            400: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
             /** @description 未登录或 Token 无效 */
