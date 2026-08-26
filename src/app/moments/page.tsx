@@ -104,7 +104,7 @@ export default function MomentsPage() {
       ) : (
         <MomentMasonry
           moments={moments}
-          maxLanes={2}
+          maxLanes={3}
           isLoading={query.isLoading}
           error={query.error}
           hasNextPage={!!query.hasNextPage}

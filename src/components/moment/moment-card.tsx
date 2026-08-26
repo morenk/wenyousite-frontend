@@ -11,6 +11,7 @@ import { UserAvatar } from "@/components/shared/user-avatar";
 import { WenyouCount } from "@/components/shared/wenyou-count";
 import { MomentCover } from "@/components/moment/moment-cover";
 import { InteractionToggle } from "@/components/ui/interaction-toggle";
+import { WenyouIcon } from "@/components/ui/wenyou-icon";
 import { useAuth } from "@/lib/auth";
 import { markMomentFeedReturn } from "@/lib/moment-navigation";
 import { useLoginRedirect } from "@/hooks/use-login-redirect";
@@ -50,14 +51,14 @@ export function MomentCard({ moment, priority = false }: { moment: MomentCardDat
         className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
       >
         <MomentCover moment={moment} priority={priority} />
-        <div className="px-0.5 pt-2.5">
-          <h2 className="line-clamp-2 text-[0.9375rem] font-semibold leading-6 text-foreground">
+        <div className="px-0.5 pt-2">
+          <h2 className="line-clamp-2 text-[0.9375rem] font-semibold leading-[1.45] text-foreground">
             {moment.title}
           </h2>
         </div>
       </Link>
 
-      <div className="mt-1.5 flex min-w-0 items-center gap-2 px-0.5">
+      <div className="mt-1 flex min-w-0 items-center gap-0 px-0.5">
         <Link
           href={`/users/${moment.author.id}`}
           className="flex min-w-0 flex-1 items-center gap-1.5 rounded-lg py-1 text-muted-foreground hover:text-foreground"
@@ -65,6 +66,10 @@ export function MomentCard({ moment, priority = false }: { moment: MomentCardDat
           <UserAvatar name={moment.author.username} src={moment.author.avatar} className="size-5" textClassName="text-[0.5625rem]" />
           <span className="truncate text-[0.75rem]">{moment.author.username}</span>
         </Link>
+        <span className="inline-flex h-8 shrink-0 items-center gap-1 px-1 text-xs text-muted-foreground">
+          <WenyouIcon id="metric.replies" className="size-4" />
+          <WenyouCount value={moment.commentCount} label="回复" />
+        </span>
         <InteractionToggle
           tone="like"
           pressed={moment.viewerLiked}
@@ -79,7 +84,7 @@ export function MomentCard({ moment, priority = false }: { moment: MomentCardDat
               : "作者已注销，历史动态仅供阅读"
           }
           size="compact"
-          className="min-h-8 gap-1 rounded-lg px-1.5 text-xs"
+          className="min-h-8 gap-1 rounded-lg px-1 text-xs"
           onClick={() => void toggleLike()}
         >
           {moment.likeCount > 0 ? (

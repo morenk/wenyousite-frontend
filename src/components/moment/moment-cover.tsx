@@ -43,11 +43,11 @@ export function MomentCover({ moment, priority = false, className }: MomentCover
     <div
       data-cover-theme={moment.textCoverTheme}
       className={cn(
-        "moment-text-cover flex aspect-[3/4] items-center overflow-hidden rounded-xl px-6 py-7",
+        "moment-text-cover flex aspect-[3/4] items-center overflow-hidden rounded-xl px-4 py-5",
         className,
       )}
     >
-      <p className="line-clamp-5 font-display text-[clamp(1.35rem,2.2vw,1.8rem)] font-medium leading-[1.55] tracking-wide">
+      <p className="line-clamp-5 font-display text-[clamp(1.125rem,2vw,1.5rem)] font-medium leading-[1.5] tracking-wide">
         {moment.title}
       </p>
     </div>

@@ -93,8 +93,8 @@ describe("MomentCard", () => {
   });
   afterEach(cleanup);
 
-  test("列表只展示竖版封面、标题、作者和点赞", async () => {
-    render(<MomentCard moment={moment as never} />);
+  test("列表展示封面、标题、作者、回复数和点赞", async () => {
+    const { container } = render(<MomentCard moment={moment as never} />);
 
     const detailLink = screen.getByRole("link", { name: /动态标题/ });
     expect(detailLink).toHaveAttribute("href", "/moments/moment-1");
@@ -104,11 +104,22 @@ describe("MomentCard", () => {
     expect(screen.queryByText("5 升")).toBeNull();
     expect(screen.queryByRole("button", { name: /收藏/ })).toBeNull();
     expect(screen.queryByRole("button", { name: "加油" })).toBeNull();
+    expect(screen.getByLabelText("回复 3")).toHaveTextContent("3");
+    expect(container.querySelector('[data-icon-semantic="metric.replies"]')).toBeInTheDocument();
     const likeButton = screen.getByRole("button", { name: "点赞" });
     expect(likeButton).toHaveAccessibleDescription("当前 2 个赞");
     fireEvent.click(likeButton);
     await waitFor(() => expect(mockLike).toHaveBeenCalledTimes(1));
     expect(mockBookmark).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    [0, "0", "回复 0"],
+    [12_800, "1.3万", "回复 12,800"],
+  ])("回复数 %i 始终显示，并保留精确无障碍值", (commentCount, visible, accessibleName) => {
+    render(<MomentCard moment={{ ...moment, commentCount } as never} />);
+
+    expect(screen.getByLabelText(accessibleName)).toHaveTextContent(visible);
   });
 
   test("访客操作先跳转登录，并呈现已点赞状态", () => {

@@ -106,7 +106,7 @@ export function SearchResults({ keyword }: SearchResultsProps) {
         {!postKeywordValid ? (
             <EmptyState title="动态搜索至少需要 2 个字符" description="用户名和主题帖仍支持单字符搜索" />
           ) : (
-            <MomentMasonry moments={moments} maxLanes={2} isLoading={momentsQuery.isLoading} error={momentsQuery.error} hasNextPage={!isRefreshing && !!momentsQuery.hasNextPage} isFetchingNextPage={!isRefreshing && momentsQuery.isFetchingNextPage} onLoadMore={() => void momentsQuery.fetchNextPage()} onRetry={() => void momentsQuery.refetch()} emptyTitle="没有匹配的动态" />
+            <MomentMasonry moments={moments} maxLanes={3} isLoading={momentsQuery.isLoading} error={momentsQuery.error} hasNextPage={!isRefreshing && !!momentsQuery.hasNextPage} isFetchingNextPage={!isRefreshing && momentsQuery.isFetchingNextPage} onLoadMore={() => void momentsQuery.fetchNextPage()} onRetry={() => void momentsQuery.refetch()} emptyTitle="没有匹配的动态" />
           )}
       </TabsContent>
 

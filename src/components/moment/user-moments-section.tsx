@@ -11,7 +11,7 @@ export function UserMomentsSection({ userId }: { userId: string }) {
   return (
     <MomentMasonry
       moments={moments}
-      maxLanes={2}
+      maxLanes={3}
       isLoading={query.isLoading}
       error={query.error}
       hasNextPage={!!query.hasNextPage}

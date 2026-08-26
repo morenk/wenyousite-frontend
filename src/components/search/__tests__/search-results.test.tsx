@@ -17,12 +17,14 @@ const {
   mockUseSearchPosts,
   mockUseSearchMoments,
   mockFetchNextPage,
+  mockMomentMasonry,
 } = vi.hoisted(() => ({
   mockUseSearchThreads: vi.fn(),
   mockUseSearchUsers: vi.fn(),
   mockUseSearchPosts: vi.fn(),
   mockUseSearchMoments: vi.fn(),
   mockFetchNextPage: vi.fn(),
+  mockMomentMasonry: vi.fn(),
 }));
 
 vi.mock("next/link", () => ({
@@ -44,9 +46,10 @@ vi.mock("@/lib/auth", () => ({
 }));
 
 vi.mock("@/components/moment/moment-masonry", () => ({
-  MomentMasonry: ({ moments }: { moments: unknown[] }) => (
-    <div>动态结果 {moments.length}</div>
-  ),
+  MomentMasonry: (props: { moments: unknown[]; maxLanes?: number }) => {
+    mockMomentMasonry(props);
+    return <div>动态结果 {props.moments.length}</div>;
+  },
 }));
 
 const thread = {
@@ -110,6 +113,7 @@ function render(ui: ReactElement) {
 describe("SearchResults", () => {
   beforeEach(() => {
     mockFetchNextPage.mockReset();
+    mockMomentMasonry.mockClear();
     mockUseSearchThreads.mockImplementation((_q, enabled: boolean) =>
       enabled
         ? {
@@ -182,6 +186,9 @@ describe("SearchResults", () => {
     expect(mockUseSearchThreads).toHaveBeenLastCalledWith("测试", false);
     expect(mockUseSearchUsers).toHaveBeenLastCalledWith("测试", false);
     expect(mockUseSearchPosts).toHaveBeenLastCalledWith("测试", false);
+    expect(mockMomentMasonry).toHaveBeenLastCalledWith(
+      expect.objectContaining({ maxLanes: 3 }),
+    );
     expect(screen.getByRole("tab", { name: "动态" })).toHaveAttribute(
       "aria-selected",
       "true",

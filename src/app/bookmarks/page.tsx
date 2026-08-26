@@ -60,7 +60,7 @@ export default function BookmarksPage() {
       ) : (
         <MomentMasonry
           moments={moments}
-          maxLanes={2}
+          maxLanes={3}
           isLoading={momentsQuery.isLoading}
           error={momentsQuery.error}
           hasNextPage={!!momentsQuery.hasNextPage}

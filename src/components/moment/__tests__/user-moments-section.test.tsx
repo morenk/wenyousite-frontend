@@ -61,7 +61,7 @@ describe("UserMomentsSection", () => {
     };
     expect(props.moments.map((moment) => moment.id)).toEqual(["moment-1", "moment-2"]);
     expect(props).toMatchObject({
-      maxLanes: 2,
+      maxLanes: 3,
       hasNextPage: true,
       emptyTitle: "还没有发布动态",
     });

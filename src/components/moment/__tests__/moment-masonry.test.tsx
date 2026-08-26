@@ -73,7 +73,7 @@ describe("MomentMasonry", () => {
     expect(screen.getByRole("status")).toHaveTextContent("正在加载更多");
   });
 
-  test("首屏从加载态进入内容态后重新测量并恢复双列", async () => {
+  test("首屏加载骨架与内容都使用三列", async () => {
     vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({
       width: 648,
       height: 400,
@@ -87,9 +87,36 @@ describe("MomentMasonry", () => {
     });
     const { rerender } = render(<MomentMasonry moments={[]} isLoading />);
 
+    await waitFor(() => {
+      const skeleton = screen.getByRole("status", { name: "正在加载动态" });
+      expect(skeleton).toHaveClass("grid-cols-3");
+      expect(skeleton.children).toHaveLength(6);
+    });
+
     rerender(<MomentMasonry moments={[item("1"), item("2")] as never} />);
 
-    await waitFor(() => expect(mockLanes).toHaveBeenLastCalledWith(2));
+    await waitFor(() => expect(mockLanes).toHaveBeenLastCalledWith(3));
+  });
+
+  test.each([
+    [600, 2],
+    [520, 1],
+  ])("容器宽度 %ipx 时使用 %i 列", async (width, lanes) => {
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({
+      width,
+      height: 400,
+      top: 180,
+      left: 396,
+      right: 396 + width,
+      bottom: 580,
+      x: 396,
+      y: 180,
+      toJSON: () => ({}),
+    });
+
+    render(<MomentMasonry moments={[item("1"), item("2")] as never} />);
+
+    await waitFor(() => expect(mockLanes).toHaveBeenLastCalledWith(lanes));
   });
 
   test("资料页预览可隐藏无限列表的翻页状态区", () => {

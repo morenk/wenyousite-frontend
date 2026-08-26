@@ -10,6 +10,11 @@ import { LoadError } from "@/components/shared/load-error";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const GAP = 12;
+const TWO_LANE_MIN_WIDTH = 560;
+const THREE_LANE_MIN_WIDTH = 640;
+const DEFAULT_ESTIMATED_SIZE = 520;
+const CARD_CHROME_ESTIMATE = 96;
+type LaneCount = 1 | 2 | 3;
 
 interface MomentMasonryProps {
   moments: MomentCardData[];
@@ -19,17 +24,23 @@ interface MomentMasonryProps {
   isFetchingNextPage?: boolean;
   onLoadMore?: () => void;
   onRetry?: () => void;
-  maxLanes?: 1 | 2 | 3;
+  maxLanes?: LaneCount;
   showPaginationStatus?: boolean;
   emptyTitle?: string;
   emptyDescription?: string;
   renderMoment?: (moment: MomentCardData) => ReactNode;
 }
 
-function lanesForWidth(width: number, maxLanes: 1 | 2 | 3) {
-  if (maxLanes >= 3 && width >= 980) return 3;
-  if (maxLanes >= 2 && width >= 560) return 2;
+function lanesForWidth(width: number, maxLanes: LaneCount): LaneCount {
+  if (maxLanes >= 3 && width >= THREE_LANE_MIN_WIDTH) return 3;
+  if (maxLanes >= 2 && width >= TWO_LANE_MIN_WIDTH) return 2;
   return 1;
+}
+
+function estimateMomentCardSize(width: number, lanes: number) {
+  if (width <= 0) return DEFAULT_ESTIMATED_SIZE;
+  const columnWidth = (width - (lanes - 1) * GAP) / lanes;
+  return Math.round(columnWidth * 4 / 3 + CARD_CHROME_ESTIMATE);
 }
 
 export function MomentMasonry({
@@ -47,20 +58,30 @@ export function MomentMasonry({
   renderMoment,
 }: MomentMasonryProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [layout, setLayout] = useState({ lanes: 1, scrollMargin: 0 });
+  const [layout, setLayout] = useState<{
+    lanes: LaneCount;
+    width: number;
+    scrollMargin: number;
+  }>({ lanes: 1, width: 0, scrollMargin: 0 });
   const uniqueMoments = Array.from(new Map(moments.map((moment) => [moment.id, moment])).values());
-  const hasError = Boolean(error);
-  const hasMoments = uniqueMoments.length > 0;
 
   useLayoutEffect(() => {
     const element = containerRef.current;
     if (!element) return;
     const update = () => {
       const rect = element.getBoundingClientRect();
-      setLayout({
+      const nextLayout = {
         lanes: lanesForWidth(rect.width, maxLanes),
+        width: rect.width,
         scrollMargin: rect.top + window.scrollY,
-      });
+      };
+      setLayout((current) => (
+        current.lanes === nextLayout.lanes &&
+        current.width === nextLayout.width &&
+        current.scrollMargin === nextLayout.scrollMargin
+          ? current
+          : nextLayout
+      ));
     };
     update();
     const observer = new ResizeObserver(update);
@@ -70,12 +91,11 @@ export function MomentMasonry({
       observer.disconnect();
       window.removeEventListener("resize", update);
     };
-  // 首屏加载/错误/空态时瀑布流容器尚未挂载；状态切换后必须重新绑定测量。
-  }, [hasError, hasMoments, isLoading, maxLanes]);
+  }, [maxLanes]);
 
   const virtualizer = useWindowVirtualizer<HTMLDivElement>({
     count: uniqueMoments.length,
-    estimateSize: () => 520,
+    estimateSize: () => estimateMomentCardSize(layout.width, layout.lanes),
     getItemKey: (index) => uniqueMoments[index]?.id ?? index,
     lanes: layout.lanes,
     laneAssignmentMode: "measured",
@@ -93,61 +113,62 @@ export function MomentMasonry({
     }
   }, [hasNextPage, isFetchingNextPage, layout.lanes, onLoadMore, uniqueMoments.length, virtualItems]);
 
-  if (isLoading) return <MomentMasonrySkeleton lanes={maxLanes} />;
-  if (error) {
-    return <LoadError title="动态加载失败" onRetry={onRetry ?? (() => undefined)} className="py-20" />;
-  }
-  if (uniqueMoments.length === 0) {
-    return <EmptyState title={emptyTitle} description={emptyDescription} />;
-  }
-
   const columnWidth = `calc((100% - ${(layout.lanes - 1) * GAP}px) / ${layout.lanes})`;
   return (
-    <div className="w-full">
-      <div
-        ref={containerRef}
-        role="feed"
-        aria-label="动态瀑布流"
-        className="relative w-full"
-        style={{ height: virtualizer.getTotalSize() }}
-      >
-        {virtualItems.map((item) => {
-          const moment = uniqueMoments[item.index];
-          if (!moment) return null;
-          return (
-            <div
-              key={item.key}
-              ref={virtualizer.measureElement}
-              data-index={item.index}
-              className="absolute left-0 top-0"
-              style={{
-                width: columnWidth,
-                left: `calc(${item.lane * 100 / layout.lanes}% + ${item.lane * GAP / layout.lanes}px)`,
-                transform: `translate3d(0, ${item.start - layout.scrollMargin}px, 0)`,
-                contain: "layout paint style",
-              }}
-            >
-              {renderMoment
-                ? renderMoment(moment)
-                : <MomentCard moment={moment} priority={item.index < layout.lanes} />}
+    <div ref={containerRef} className="w-full">
+      {isLoading ? (
+        <MomentMasonrySkeleton lanes={layout.lanes} />
+      ) : error ? (
+        <LoadError title="动态加载失败" onRetry={onRetry ?? (() => undefined)} className="py-20" />
+      ) : uniqueMoments.length === 0 ? (
+        <EmptyState title={emptyTitle} description={emptyDescription} />
+      ) : (
+        <>
+          <div
+            role="feed"
+            aria-label="动态瀑布流"
+            className="relative w-full"
+            style={{ height: virtualizer.getTotalSize() }}
+          >
+            {virtualItems.map((item) => {
+              const moment = uniqueMoments[item.index];
+              if (!moment) return null;
+              return (
+                <div
+                  key={item.key}
+                  ref={virtualizer.measureElement}
+                  data-index={item.index}
+                  className="absolute left-0 top-0"
+                  style={{
+                    width: columnWidth,
+                    left: `calc(${item.lane * 100 / layout.lanes}% + ${item.lane * GAP / layout.lanes}px)`,
+                    transform: `translate3d(0, ${item.start - layout.scrollMargin}px, 0)`,
+                    contain: "layout paint style",
+                  }}
+                >
+                  {renderMoment
+                    ? renderMoment(moment)
+                    : <MomentCard moment={moment} priority={item.index < layout.lanes} />}
+                </div>
+              );
+            })}
+          </div>
+          {showPaginationStatus ? (
+            <div className="flex min-h-14 items-center justify-center text-sm text-muted-foreground">
+              {isFetchingNextPage ? (
+                <span className="inline-flex items-center gap-2" role="status">
+                  <Loader2 className="size-4 animate-spin" />正在加载更多
+                </span>
+              ) : !hasNextPage ? "没有更多了" : null}
             </div>
-          );
-        })}
-      </div>
-      {showPaginationStatus ? (
-        <div className="flex min-h-14 items-center justify-center text-sm text-muted-foreground">
-          {isFetchingNextPage ? (
-            <span className="inline-flex items-center gap-2" role="status">
-              <Loader2 className="size-4 animate-spin" />正在加载更多
-            </span>
-          ) : !hasNextPage ? "没有更多了" : null}
-        </div>
-      ) : null}
+          ) : null}
+        </>
+      )}
     </div>
   );
 }
 
-function MomentMasonrySkeleton({ lanes }: { lanes: 1 | 2 | 3 }) {
+function MomentMasonrySkeleton({ lanes }: { lanes: LaneCount }) {
   const count = lanes * 2;
   return (
     <div className={lanes === 3 ? "grid grid-cols-3 gap-4" : lanes === 2 ? "grid grid-cols-2 gap-4" : "grid grid-cols-1 gap-4"} role="status" aria-label="正在加载动态">

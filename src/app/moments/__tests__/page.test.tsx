@@ -125,6 +125,7 @@ describe("MomentsPage", () => {
     };
     expect(props.moments.map((moment) => moment.id)).toEqual(["moment-1", "moment-2"]);
     expect(props).toMatchObject({
+      maxLanes: 3,
       error: expect.any(Error),
       hasNextPage: true,
       isFetchingNextPage: true,
