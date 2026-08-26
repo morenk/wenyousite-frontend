@@ -9179,7 +9179,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
-            /** @description 主题帖不存在 */
+            /** @description 主题帖不存在、已删除，或当前用户无权访问未发布/PRIVATE 主题 */
             404: {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];
@@ -9391,6 +9391,17 @@ export interface operations {
                     "application/json": components["schemas"]["ThreadsLike201Response"];
                 };
             };
+            /** @description 主题帖不存在、已删除，或当前用户无权访问未发布/PRIVATE 主题 */
+            404: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
@@ -9424,6 +9435,17 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ThreadsUnlike200Response"];
+                };
+            };
+            /** @description 主题帖不存在、已删除，或当前用户无权访问未发布/PRIVATE 主题 */
+            404: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */

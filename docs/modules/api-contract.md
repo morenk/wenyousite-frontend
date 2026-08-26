@@ -23,6 +23,7 @@
 | 草稿 | `/drafts`、`/drafts/slots`、`/drafts/:id` |
 | 帖子 | `/subthreads/:subthreadId/posts`、`/subthreads/:subthreadId/body`、`/posts/:id`、`/posts/:id/replies` |
 | 协作 | `GET /users/me/collaborated-threads`（当前仅同步契约与生成类型，不新增 Web 页面） |
+| 主题权限 | `DELETE /threads/:id`、`POST /threads/:id/like`、`DELETE /threads/:id/like`（不可见主题显式声明 404） |
 
 成功响应统一为 `{ code, message, data, meta? }`。业务 DTO 位于 `data`，cursor 分页位于 `meta`。
 
@@ -31,6 +32,8 @@
 契约版本以 `contracts/openapi.json` 的 `info.version` 为准，不在说明文档中复制易过期的版本号。主题帖分类字段是可空字符串而非封闭枚举：草稿可为 `null`，发布必须使用 `GET /thread-categories` 返回的启用 slug。Web 与 Flutter 均消费 `contracts/thread-category-v3-fixtures.json` 黄金用例；既有线程展示直接读取响应 `categoryInfo.name`，不得再用仅含启用项的发现列表反查。分类是纯文本能力，旧 `icon / mergedIntoId` 只作兼容且不应消费；未知 slug 显示原值，空值显示“未分类”，未知响应字段必须忽略。
 
 主题详情子贴现包含必填 `postingCapability`，通知 payload 可包含协作者任免的 `threadId / oldRole / newRole`。Web 当前只通过生成类型接受这些向后兼容字段，不据此改变发言控件、通知渲染或增加协作列表入口。
+
+主题删除、点赞和取消点赞现显式声明不可见主题的 404 响应：不存在、他人草稿和 PRIVATE 非成员对 Web 都表现为资源不存在。同步仅更新固定 OpenAPI 与生成类型；现有详情错误态、缓存失效和界面文案保持不变。
 
 ## 4. 状态管理
 
@@ -52,7 +55,7 @@ HTTP/业务错误由 `src/api/errors.ts` 统一归一化；成功响应不得使
 
 ## 8. 权限与访问控制
 
-不改变后端 Guard。Web 继续通过 accessToken 调用相应端点。
+不改变后端 Guard。Web 继续通过 accessToken 调用相应端点；主题权限判断仍完全以后端响应为准。
 
 ## 9. 验收标准
 
