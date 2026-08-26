@@ -3496,6 +3496,8 @@ export interface components {
             action?: string | null;
             actorId?: string | null;
             actorName?: string | null;
+            replyTargetUserId?: string | null;
+            replyTargetName?: string | null;
             preview?: string | null;
             subthreadTitle?: string | null;
             threadTitle?: string | null;

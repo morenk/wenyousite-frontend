@@ -78,18 +78,26 @@ describe("NotificationItem", () => {
     expect(screen.getByRole("link")).toHaveAttribute("href", "/threads/t1?post=p1");
   });
 
-  test("优先使用结构化 payload 展示操作者、动作和正文预览", () => {
+  test("结构化 reply 保持中性动作并忽略回复目标字段", () => {
     renderWithQC(
       <NotificationItem
         notification={baseNotification({
           content: "旧版完整文案",
-          payload: { schemaVersion: 1, action: "reply", actorName: "新用户名", preview: "结构化预览" },
+          payload: {
+            schemaVersion: 1,
+            action: "reply",
+            actorName: "新用户名",
+            replyTargetUserId: "target-user",
+            replyTargetName: "阿忠",
+            preview: "结构化预览",
+          },
         })}
       />,
     );
     expect(screen.getByText("新用户名")).toBeInTheDocument();
     expect(screen.getByText("回复了")).toBeInTheDocument();
     expect(screen.getByText(/结构化预览/)).toBeInTheDocument();
+    expect(screen.queryByText("阿忠")).not.toBeInTheDocument();
     expect(screen.queryByText("旧版完整文案")).not.toBeInTheDocument();
   });
 
