@@ -135,6 +135,20 @@ describe("MilkdownEditor 能力分层", () => {
     expect(screen.queryByText("仅工具栏中的格式会作为正文结构")).toBeNull();
   });
 
+  test("表情入口位于正文滚动区外的编辑器底栏", async () => {
+    const { container } = renderEditor("正文");
+    const editor = await getEditor(container);
+    const stickerButton = await screen.findByRole("button", { name: "表情" });
+    const editorHost = container.querySelector<HTMLElement>(".milkdown-editor");
+    const footer = container.querySelector<HTMLElement>(
+      '[data-slot="milkdown-editor-footer"]',
+    );
+
+    expect(footer).toContainElement(stickerButton);
+    expect(editorHost).not.toContainElement(stickerButton);
+    expect(editor).not.toContainElement(stickerButton);
+  });
+
   test("宽栏直接展示全部常用能力，不显示多余的更多按钮", async () => {
     renderEditor("正文");
     const toolbar = await screen.findByRole("toolbar", { name: "正文格式工具栏" });

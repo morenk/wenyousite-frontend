@@ -94,29 +94,29 @@ function EditorCore({
         diceRolls={diceRolls}
         autoFocus={autoFocus}
         ariaLabel={editorAriaLabel}
-      />
-      <div className="flex items-center justify-end border-t border-border px-3 py-2">
-        <div className="flex items-center gap-3">
-          {(autoSaveEnabled || autoSaveStatus === "error") && (
-            <span className={cn(
-              "text-xs",
-              autoSaveStatus === "error" ? "text-destructive" : "text-muted-foreground",
-            )}>
-              自动草稿：
-              {autoSaveStatus === "saving"
-                ? "保存中"
-                : autoSaveStatus === "saved"
-                  ? "已保存"
-                  : autoSaveStatus === "error"
-                    ? "保存失败"
-                    : "等待编辑"}
+        footerStatus={(
+          <div className="flex items-center gap-3">
+            {(autoSaveEnabled || autoSaveStatus === "error") && (
+              <span className={cn(
+                "text-xs",
+                autoSaveStatus === "error" ? "text-destructive" : "text-muted-foreground",
+              )}>
+                自动草稿：
+                {autoSaveStatus === "saving"
+                  ? "保存中"
+                  : autoSaveStatus === "saved"
+                    ? "已保存"
+                    : autoSaveStatus === "error"
+                      ? "保存失败"
+                      : "等待编辑"}
+              </span>
+            )}
+            <span className={cn("text-xs tabular-nums", charWarning)}>
+              {charCount}/{MAX_CHARS}
             </span>
-          )}
-          <span className={cn("text-xs tabular-nums", charWarning)}>
-            {charCount}/{MAX_CHARS}
-          </span>
-        </div>
-      </div>
+          </div>
+        )}
+      />
       {draftOpen && (
         <ContentDraftsPanel
           open

@@ -2,7 +2,14 @@
 
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { Milkdown, useEditor, useInstance } from "@milkdown/react";
 import { CrepeBuilder } from "@milkdown/crepe/builder";
 import { cursor } from "@milkdown/crepe/feature/cursor";
@@ -171,6 +178,7 @@ export interface MilkdownEditorHostProps {
   diceRolls?: InlineDiceRoll[];
   autoFocus?: boolean;
   ariaLabel: string;
+  footerStatus: ReactNode;
 }
 
 /** Crepe 编辑器宿主：以 initialValue 初始化；被外层按 key 重挂载以回填恢复的正文草稿 */
@@ -185,6 +193,7 @@ export function MilkdownEditorHost({
   diceRolls = [],
   autoFocus = false,
   ariaLabel,
+  footerStatus,
 }: MilkdownEditorHostProps) {
   const [loading] = useInstance();
   const crepeRef = useRef<CrepeBuilder | null>(null);
@@ -766,53 +775,61 @@ export function MilkdownEditorHost({
   }, [moreMenuAnchor]);
 
   return (
-    <div ref={hostRef} className="milkdown-editor relative">
-      <Milkdown />
-      {uploadProgress ? (
-        <ImageUploadProgress
-          progress={uploadProgress}
-          onCancel={() => uploadAbortRef.current?.abort()}
-          className="absolute right-3 top-12 z-[var(--layer-popup)] w-[min(22rem,calc(100%-1.5rem))] bg-background/95 shadow-popover backdrop-blur"
-        />
-      ) : null}
-      {!loading && (
-        <div className="absolute bottom-2 left-2 z-20 rounded-lg border border-border bg-background/95 shadow-sm backdrop-blur">
-          <StickerPickerPopover
-            disabled={disabled}
-            label="表情"
-            onSelect={handleInsertSticker}
+    <>
+      <div ref={hostRef} className="milkdown-editor relative">
+        <Milkdown />
+        {uploadProgress ? (
+          <ImageUploadProgress
+            progress={uploadProgress}
+            onCancel={() => uploadAbortRef.current?.abort()}
+            className="absolute right-3 top-12 z-[var(--layer-popup)] w-[min(22rem,calc(100%-1.5rem))] bg-background/95 shadow-popover backdrop-blur"
           />
+        ) : null}
+        {loading && (
+          <div className="flex items-center justify-center py-12 text-muted-foreground">
+            <WenyouIcon id="status.loading" className="mr-2 h-5 w-5 animate-spin" />
+            编辑器加载中…
+          </div>
+        )}
+        <DiceInsertPopover
+          position={dicePopover}
+          count={diceNodeCount}
+          maxCount={MAX_DICE_ROLLS_PER_POST}
+          input={diceInput}
+          onInputChange={setDiceInput}
+          onInsert={handleInsertDice}
+        />
+        <EditorMoreMenu
+          anchor={moreMenuAnchor}
+          items={moreMenuItems}
+          onSelect={handleMoreSelect}
+          onClose={handleCloseMore}
+        />
+        <MentionCandidateMenu
+          position={mentionMenu}
+          items={visibleMentionItems}
+          activeIndex={activeMentionIndex}
+          pending={mentionQueryPending || isMentionFetching}
+          error={isMentionError}
+          onRetry={() => void refetchMentionCandidates()}
+          onSelect={handleMentionSelect}
+        />
+      </div>
+      <div
+        data-slot="milkdown-editor-footer"
+        className="flex items-center justify-between gap-3 border-t border-border px-3 py-2"
+      >
+        <div data-slot="milkdown-editor-context-actions" className="flex min-w-0 items-center">
+          {!loading ? (
+            <StickerPickerPopover
+              disabled={disabled}
+              label="表情"
+              onSelect={handleInsertSticker}
+            />
+          ) : null}
         </div>
-      )}
-      {loading && (
-        <div className="flex items-center justify-center py-12 text-muted-foreground">
-          <WenyouIcon id="status.loading" className="mr-2 h-5 w-5 animate-spin" />
-          编辑器加载中…
-        </div>
-      )}
-      <DiceInsertPopover
-        position={dicePopover}
-        count={diceNodeCount}
-        maxCount={MAX_DICE_ROLLS_PER_POST}
-        input={diceInput}
-        onInputChange={setDiceInput}
-        onInsert={handleInsertDice}
-      />
-      <EditorMoreMenu
-        anchor={moreMenuAnchor}
-        items={moreMenuItems}
-        onSelect={handleMoreSelect}
-        onClose={handleCloseMore}
-      />
-      <MentionCandidateMenu
-        position={mentionMenu}
-        items={visibleMentionItems}
-        activeIndex={activeMentionIndex}
-        pending={mentionQueryPending || isMentionFetching}
-        error={isMentionError}
-        onRetry={() => void refetchMentionCandidates()}
-        onSelect={handleMentionSelect}
-      />
-    </div>
+        {footerStatus}
+      </div>
+    </>
   );
 }
