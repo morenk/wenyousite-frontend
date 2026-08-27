@@ -27,15 +27,15 @@ import {
   PostActionsMenu,
 } from "@/components/thread/post-actions-menu";
 import { ReplyCard } from "@/components/thread/reply-card";
+import { useTransientTargetHighlight } from "@/hooks/use-transient-target-highlight";
 
 interface FloorCardProps {
   floor: FloorDisplayData;
   focused?: boolean;
 }
 
-/** 楼层卡片内联楼中楼预览的字符上限。 */
-export const INLINE_REPLY_LIMIT = 5;
-export const INLINE_REPLY_MAX_LENGTH = 500;
+/** 楼层卡片内联楼中楼预览的数量上限。 */
+export const INLINE_REPLY_LIMIT = 3;
 
 export function FloorCard({ floor, focused = false }: FloorCardProps) {
   const { user } = useAuth();
@@ -54,17 +54,7 @@ export function FloorCard({ floor, focused = false }: FloorCardProps) {
   const discussionHref = getPostDiscussionHref(floor.threadId, floor.id);
   const floorHref = getPostHref({ threadId: floor.threadId, postId: floor.id });
   const inlineReplies = (floor.replies ?? []).slice(0, INLINE_REPLY_LIMIT);
-  const inlineRepliesLength = inlineReplies.reduce(
-    (total, reply) => total + reply.content.length,
-    0,
-  );
-  const hasHiddenInlineReplies = floor._count.replies > inlineReplies.length;
-  const inlineRepliesOverflow =
-    hasHiddenInlineReplies || inlineRepliesLength > INLINE_REPLY_MAX_LENGTH;
-  const hasActiveInlineComposer = inlineReplies.some(
-    (reply) => session?.anchorId === `reply:${reply.id}`,
-  );
-  const shouldClipInlineReplies = inlineRepliesOverflow && !hasActiveInlineComposer;
+  const highlightVisible = useTransientTargetHighlight(focused ? floor.id : undefined);
 
   useEffect(() => {
     if (!focused) return;
@@ -121,8 +111,8 @@ export function FloorCard({ floor, focused = false }: FloorCardProps) {
       ref={cardRef}
       id={`post-${floor.id}`}
       className={cn(
-        "rounded-xl border border-border bg-card p-4 transition-colors",
-        focused && "border-brand-strong bg-accent/30 ring-2 ring-brand-strong/35",
+        "rounded-xl border border-border bg-card p-4 transition-[border-color] duration-[var(--motion-slow)] ease-out",
+        highlightVisible && "border-primary",
       )}
     >
       {/* 楼层头部 */}
@@ -189,14 +179,11 @@ export function FloorCard({ floor, focused = false }: FloorCardProps) {
         </div>
       ) : null}
 
-      {/* 楼中楼预览：数量或正文长度超限时截断并用渐变遮罩引导完整阅读。 */}
-      {!isEditing && inlineReplies.length > 0 && (
+      {/* 楼中楼固定预览前三条；只要存在回复就始终提供独立阅读入口。 */}
+      {!isEditing && floor._count.replies > 0 && (
         <div
           data-testid="inline-replies"
-          className={cn(
-            "relative mt-2 border-l-2 border-border pl-3",
-            shouldClipInlineReplies && "max-h-96 overflow-hidden",
-          )}
+          className="mt-2 border-l-2 border-border pl-3"
         >
           <div className="space-y-2">
             {inlineReplies.map((reply) => (
@@ -208,21 +195,16 @@ export function FloorCard({ floor, focused = false }: FloorCardProps) {
               />
             ))}
           </div>
-          {shouldClipInlineReplies && (
-            <>
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-card to-transparent" />
-              <Link
-                href={discussionHref}
-                className={cn(
-                  buttonVariants({ variant: "outline", size: "sm" }),
-                  "absolute bottom-3 left-1/2 z-10 -translate-x-1/2 bg-card/95",
-                )}
-              >
-                查看全部 {floor._count.replies} 条回复
-                <ArrowRight className="ml-1 h-3.5 w-3.5" />
-              </Link>
-            </>
-          )}
+          <Link
+            href={discussionHref}
+            className={cn(
+              buttonVariants({ variant: "ghost", size: "sm" }),
+              "mt-2 h-8 px-2 text-xs font-medium text-muted-foreground",
+            )}
+          >
+            展开楼中楼（{floor._count.replies} 条）
+            <ArrowRight className="ml-1 h-3.5 w-3.5" />
+          </Link>
         </div>
       )}
     </div>

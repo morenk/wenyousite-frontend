@@ -85,10 +85,22 @@ function isEmptyParagraph(node: ProseNode | null | undefined): boolean {
   return node?.type.name === "paragraph" && node.content.size === 0;
 }
 
+const EMPTY_BLOCKQUOTE_PARAGRAPH_RE = /^((?: {0,3}>[\t ]*)+)<br \/>[\t ]*$/gmu;
+
+/** Milkdown 会用 HTML break 保留引用内的空段；空引用本身用 CommonMark 标记即可无损表示。 */
+function normalizeEmptyBlockquoteParagraphs(markdown: string): string {
+  return markdown.replace(
+    EMPTY_BLOCKQUOTE_PARAGRAPH_RE,
+    (_line, prefix: string) => prefix.trimEnd(),
+  );
+}
+
 /** 只规范化编辑器自身的合法输出；这里禁止调用任何字面降级净化器。 */
 export function serializeEditorMarkdown(ctx: Ctx, doc: ProseNode): string {
-  let markdown = sanitizeEmptyImages(
-    ctx.get(serializerCtx)(doc).replace(/\r\n?/gu, "\n"),
+  let markdown = normalizeEmptyBlockquoteParagraphs(
+    sanitizeEmptyImages(
+      ctx.get(serializerCtx)(doc).replace(/\r\n?/gu, "\n"),
+    ),
   );
 
   if (doc.childCount === 1 && isEmptyParagraph(doc.lastChild)) {

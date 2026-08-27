@@ -1,12 +1,9 @@
-/** MarkdownContent：安全渲染 Markdown、保留空段落并折叠超高正文 */
+/** MarkdownContent：安全渲染完整 Markdown 正文并保留空段落。 */
 
 "use client";
 
 import {
   isValidElement,
-  useEffect,
-  useId,
-  useRef,
   useState,
   type ComponentProps,
   type ReactNode,
@@ -315,131 +312,6 @@ function remarkPreserveSoftLineBreaks() {
   };
 }
 
-const COLLAPSE_TRIGGER_VIEWPORT_RATIO = 1.2;
-
-interface CollapsibleMarkdownProps {
-  content: string;
-  diceRolls?: InlineDiceRoll[];
-  sourcePostId?: string;
-  size?: "reading" | "compact";
-}
-
-function CollapsibleMarkdown({
-  content,
-  diceRolls = [],
-  sourcePostId,
-  size = "reading",
-}: CollapsibleMarkdownProps) {
-  const contentRef = useRef<HTMLDivElement>(null);
-  const collapseButtonRef = useRef<HTMLButtonElement>(null);
-  const [tooTall, setTooTall] = useState(false);
-  const [expandedContent, setExpandedContent] = useState<string | null>(null);
-  const contentId = useId();
-  const normalizedContent = sanitizeMilkdownMarkdown(
-    recoverLegacyMarkdownEmptyParagraphs(content),
-  );
-  const expanded = expandedContent === content;
-  const diceRollsByNodeId = new Map(diceRolls.map((roll) => [roll.nodeId, roll]));
-
-  useEffect(() => {
-    const element = contentRef.current;
-    if (!element) return;
-
-    const measure = () => {
-      setTooTall(
-        element.scrollHeight >
-          window.innerHeight * COLLAPSE_TRIGGER_VIEWPORT_RATIO,
-      );
-    };
-
-    measure();
-    window.addEventListener("resize", measure);
-    const observer =
-      typeof ResizeObserver === "undefined"
-        ? null
-        : new ResizeObserver(measure);
-    observer?.observe(element);
-    return () => {
-      window.removeEventListener("resize", measure);
-      observer?.disconnect();
-    };
-  }, [normalizedContent]);
-
-  function handleToggle() {
-    if (expanded) {
-      setExpandedContent(null);
-      window.setTimeout(() => {
-        contentRef.current?.scrollIntoView({ behavior: "auto", block: "start" });
-        collapseButtonRef.current?.focus();
-      }, 0);
-      return;
-    }
-    setExpandedContent(content);
-  }
-
-  const collapsed = tooTall && !expanded;
-
-  return (
-    <div className="relative">
-      <div
-        ref={contentRef}
-        id={contentId}
-        data-slot="markdown-content"
-        data-size={size}
-        className={cn(
-          "prose wenyou-prose prose-headings:text-foreground prose-a:text-brand-strong",
-          size === "compact" && "wenyou-prose-compact",
-        )}
-        style={collapsed ? { maxHeight: "80vh", overflow: "hidden" } : undefined}
-      >
-        <ReactMarkdown
-          remarkPlugins={[
-            remarkGfm,
-            remarkMilkdownEmptyParagraphs,
-            remarkInlineDice(diceRolls),
-            remarkBareInternalReferences,
-            remarkPreserveSoftLineBreaks,
-          ]}
-          components={{
-            a: MarkdownLink,
-            img: (props) => <MarkdownImage {...props} sourcePostId={sourcePostId} />,
-            span: ({ node: _node, ...props }: SpanProps) => {
-              void _node;
-              const nodeId = props["data-dice-node-id"];
-              const roll = nodeId ? diceRollsByNodeId.get(nodeId) : undefined;
-              if (roll) return <DiceInlineResult roll={roll} />;
-              return <span {...props} />;
-            },
-          }}
-          skipHtml
-        >
-          {normalizedContent}
-        </ReactMarkdown>
-      </div>
-
-      {tooTall && (
-        <>
-          {collapsed && (
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-card to-transparent" />
-          )}
-          <div className={collapsed ? "absolute inset-x-0 bottom-3 flex justify-center" : "mt-3 flex justify-center"}>
-            <button
-              ref={collapseButtonRef}
-              type="button"
-              className="relative z-10 rounded-full border border-border bg-card px-4 py-1.5 text-sm font-bold text-muted-foreground shadow-sm hover:text-foreground"
-              aria-controls={contentId}
-              aria-expanded={expanded}
-              onClick={handleToggle}
-            >
-              {expanded ? "收起" : "展开全文"}
-            </button>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
 interface MarkdownContentProps {
   content: string;
   diceRolls?: InlineDiceRoll[];
@@ -447,13 +319,49 @@ interface MarkdownContentProps {
   size?: "reading" | "compact";
 }
 
-export function MarkdownContent({ content, diceRolls, sourcePostId, size }: MarkdownContentProps) {
+export function MarkdownContent({
+  content,
+  diceRolls = [],
+  sourcePostId,
+  size = "reading",
+}: MarkdownContentProps) {
+  const normalizedContent = sanitizeMilkdownMarkdown(
+    recoverLegacyMarkdownEmptyParagraphs(content),
+  );
+  const diceRollsByNodeId = new Map(diceRolls.map((roll) => [roll.nodeId, roll]));
+
   return (
-    <CollapsibleMarkdown
-      content={content}
-      diceRolls={diceRolls}
-      sourcePostId={sourcePostId}
-      size={size}
-    />
+    <div
+      data-slot="markdown-content"
+      data-size={size}
+      className={cn(
+        "prose wenyou-prose prose-headings:text-foreground prose-a:text-brand-strong",
+        size === "compact" && "wenyou-prose-compact",
+      )}
+    >
+      <ReactMarkdown
+        remarkPlugins={[
+          remarkGfm,
+          remarkMilkdownEmptyParagraphs,
+          remarkInlineDice(diceRolls),
+          remarkBareInternalReferences,
+          remarkPreserveSoftLineBreaks,
+        ]}
+        components={{
+          a: MarkdownLink,
+          img: (props) => <MarkdownImage {...props} sourcePostId={sourcePostId} />,
+          span: ({ node: _node, ...props }: SpanProps) => {
+            void _node;
+            const nodeId = props["data-dice-node-id"];
+            const roll = nodeId ? diceRollsByNodeId.get(nodeId) : undefined;
+            if (roll) return <DiceInlineResult roll={roll} />;
+            return <span {...props} />;
+          },
+        }}
+        skipHtml
+      >
+        {normalizedContent}
+      </ReactMarkdown>
+    </div>
   );
 }

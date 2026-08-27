@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { toast } from "sonner";
 import { afterAll, afterEach, describe, expect, test, vi } from "vitest";
 import { MilkdownEditor } from "@/components/editor/milkdown-editor-core";
 
@@ -230,6 +231,33 @@ describe("MilkdownEditor 能力分层", () => {
     expect(screen.getByRole("button", { name: "标题 3" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "标题 1" })).toBeNull();
     expect(screen.queryByRole("button", { name: "标题 4" })).toBeNull();
+  });
+
+  test("空正文可先切换为引用且不会报告格式同步失败", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const { container } = renderEditor("", "回复正文", onChange);
+    const editor = await getEditor(container);
+    vi.mocked(toast.error).mockClear();
+
+    fireEvent.pointerDown(await screen.findByRole("button", { name: "引用" }));
+
+    await waitFor(() => expect(editor.querySelector("blockquote")).toBeInTheDocument());
+    expect(toast.error).not.toHaveBeenCalled();
+    expect(onChange).toHaveBeenLastCalledWith(">\n\n<br />");
+
+    await user.type(editor.querySelector("blockquote p")!, "引用正文");
+    await waitFor(() => {
+      expect(onChange).toHaveBeenLastCalledWith("> 引用正文\n\n<br />");
+    });
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  test("空引用 Markdown 可重开为引用块", async () => {
+    const { container } = renderEditor(">");
+    const editor = await getEditor(container);
+
+    expect(editor.querySelector("blockquote")).toBeInTheDocument();
   });
 
   test.each(["- ", "+ ", "* "])("Markdown 快捷输入 %s 创建无序列表", async (marker) => {

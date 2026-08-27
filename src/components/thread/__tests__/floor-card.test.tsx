@@ -1,7 +1,7 @@
 /** FloorCard 组件测试：Markdown 渲染 + 作者编辑/删除 */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup, waitFor, within } from "@testing-library/react";
+import { act, render, screen, cleanup, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { FloorCard } from "@/components/thread/floor-card";
@@ -74,6 +74,7 @@ vi.mock("sonner", () => ({
 
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
   vi.restoreAllMocks();
 });
 
@@ -158,7 +159,8 @@ describe("FloorCard", () => {
     expect(await screen.findByRole("menuitem", { name: "站务隐藏" })).toBeInTheDocument();
   });
 
-  test("定位楼层时立即滚动且只高亮楼层卡片本身", async () => {
+  test("定位楼层时立即滚动，淡粉边框停留 1.2 秒后开始淡出", async () => {
+    vi.useFakeTimers();
     const scrollIntoView = vi
       .spyOn(HTMLElement.prototype, "scrollIntoView")
       .mockImplementation(() => {});
@@ -166,13 +168,20 @@ describe("FloorCard", () => {
       <FloorCard floor={baseFloor} focused />,
     );
 
-    await waitFor(() => {
-      expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "auto", block: "center" });
-    });
-
     const card = container.querySelector("#post-post-1");
-    expect(card).toHaveClass("border-brand-strong", "ring-2");
-    expect(card?.parentElement).not.toHaveClass("border-brand-strong", "ring-2");
+    expect(card).toHaveClass("border-primary", "duration-[var(--motion-slow)]");
+    expect(card).not.toHaveClass("bg-accent/30", "ring-2");
+
+    await act(async () => {
+      vi.advanceTimersByTime(100);
+    });
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "auto", block: "center" });
+
+    await act(async () => {
+      vi.advanceTimersByTime(1_100);
+    });
+    expect(card).not.toHaveClass("border-primary");
+    expect(card?.parentElement).not.toHaveClass("border-primary");
   });
 
   test("作者有头像时渲染接口返回的母版", () => {
@@ -258,18 +267,18 @@ describe("FloorCard", () => {
     });
   });
 
-  test("回复数量超限时展示前五条并显示带总数的渐变入口", () => {
+  test("楼中楼最多预览三条并始终显示带总数的展开入口", () => {
     const replies = Array.from({ length: 6 }, (_, index) => inlineReply(`reply-${index + 1}`));
     const withReplies = { ...baseFloor, _count: { replies: 6 }, replies };
     renderWithQC(<FloorCard floor={withReplies} />);
 
-    expect(screen.getAllByTestId("inline-reply")).toHaveLength(5);
+    expect(screen.getAllByTestId("inline-reply")).toHaveLength(3);
     expect(screen.getByText("回复 reply-1")).toBeInTheDocument();
-    expect(screen.queryByText("回复 reply-6")).not.toBeInTheDocument();
-    expect(screen.getByTestId("inline-replies")).toHaveClass("overflow-hidden");
-    const viewAll = screen.getByRole("link", { name: "查看全部 6 条回复" });
+    expect(screen.queryByText("回复 reply-4")).not.toBeInTheDocument();
+    expect(screen.getByTestId("inline-replies")).not.toHaveClass("overflow-hidden");
+    const viewAll = screen.getByRole("link", { name: "展开楼中楼（6 条）" });
     expect(viewAll).toHaveAttribute("href", "/threads/t1/posts/post-1/replies");
-    expect(viewAll).toHaveClass("font-bold");
+    expect(viewAll).toHaveClass("font-medium");
     expect(screen.queryByRole("link", { name: "6 条回复" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "查看用户reply-1的用户主页" })).toHaveAttribute(
       "href",
@@ -383,7 +392,7 @@ describe("FloorCard", () => {
     expect(meta).not.toHaveClass("border-t");
   });
 
-  test("超长内联预览在原位回复期间展开，取消后恢复截断", async () => {
+  test("超长内联回复始终完整显示，原位回复期间保留楼中楼入口", async () => {
     const user = userEvent.setup();
     const withReplies = {
       ...baseFloor,
@@ -398,20 +407,19 @@ describe("FloorCard", () => {
 
     const inline = screen.getByTestId("inline-reply");
     const preview = screen.getByTestId("inline-replies");
-    expect(preview).toHaveClass("overflow-hidden");
-    expect(screen.getByRole("link", { name: "查看全部 1 条回复" })).toHaveAttribute(
+    expect(preview).not.toHaveClass("overflow-hidden", "max-h-96");
+    expect(screen.getByRole("link", { name: "展开楼中楼（1 条）" })).toHaveAttribute(
       "href",
       "/threads/t1/posts/post-1/replies",
     );
-    expect(screen.getByRole("link", { name: "查看全部 1 条回复" })).toHaveClass("font-bold");
 
     await user.click(within(inline).getByRole("button", { name: "回复" }));
     expect(preview).not.toHaveClass("overflow-hidden");
-    expect(screen.queryByRole("link", { name: /查看全部/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "展开楼中楼（1 条）" })).toBeInTheDocument();
 
     await user.click(within(inline).getByRole("button", { name: "取消" }));
-    expect(preview).toHaveClass("overflow-hidden");
-    expect(screen.getByRole("link", { name: "查看全部 1 条回复" })).toBeInTheDocument();
+    expect(preview).not.toHaveClass("overflow-hidden");
+    expect(screen.getByRole("link", { name: "展开楼中楼（1 条）" })).toBeInTheDocument();
   });
 
   test("楼层使用弱于主题文档的紧凑圆角且不交替着色", () => {
@@ -575,7 +583,7 @@ describe("FloorCard", () => {
     vi.unstubAllGlobals();
   });
 
-  test("五条以内的短回复不提供独立楼中楼入口", () => {
+  test("五条以内也只预览前三条并提供独立楼中楼入口", () => {
     const withReplies = {
       ...baseFloor,
       _count: { replies: 5 },
@@ -587,9 +595,12 @@ describe("FloorCard", () => {
     });
     const { container } = renderWithQC(<FloorCard floor={withReplies} />);
 
-    expect(screen.getAllByTestId("inline-reply")).toHaveLength(5);
-    expect(screen.queryByRole("link", { name: /查看全部/ })).not.toBeInTheDocument();
-    expect(container.querySelector('a[href="/threads/t1/posts/post-1/replies"]')).toBeNull();
+    expect(screen.getAllByTestId("inline-reply")).toHaveLength(3);
+    expect(screen.getByRole("link", { name: "展开楼中楼（5 条）" })).toHaveAttribute(
+      "href",
+      "/threads/t1/posts/post-1/replies",
+    );
+    expect(container.querySelectorAll('a[href="/threads/t1/posts/post-1/replies"]')).toHaveLength(1);
   });
 
   test("无楼中楼回复时不显示占位，未登录不保留空操作栏", () => {

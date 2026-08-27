@@ -23,6 +23,7 @@ import { useConfirm } from "@/components/ui/confirm-provider";
 import { useAuth } from "@/lib/auth";
 import { getPostHref } from "@/lib/post-navigation";
 import { cn } from "@/lib/utils";
+import { useTransientTargetHighlight } from "@/hooks/use-transient-target-highlight";
 
 type ReplyCardVariant = "preview" | "embedded" | "discussion";
 
@@ -59,6 +60,7 @@ export function ReplyCard({
   });
   const replyToUser = reply.replyToPost?.author?.username;
   const replyToId = reply.replyToPost?.id ?? reply.replyToPostId;
+  const highlightVisible = useTransientTargetHighlight(focused ? reply.id : undefined);
 
   const handleStartReply = () => {
     void open({
@@ -109,9 +111,9 @@ export function ReplyCard({
       data-testid={isPreview ? "inline-reply" : undefined}
       className={cn(
         isDiscussion
-          ? "rounded-xl border border-border bg-card p-4"
-          : "rounded-lg border border-border bg-background p-3",
-        focused && "border-brand-strong bg-primary/[0.12] ring-2 ring-brand-strong/35",
+          ? "rounded-xl border border-border bg-card p-4 transition-[border-color] duration-[var(--motion-slow)] ease-out"
+          : "rounded-lg border border-border bg-background p-3 transition-[border-color] duration-[var(--motion-slow)] ease-out",
+        highlightVisible && "border-primary",
       )}
     >
       <div className="mb-1.5 flex items-start justify-between gap-2">

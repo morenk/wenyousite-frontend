@@ -1,6 +1,6 @@
 /** MarkdownContent 组件测试：图片约束尺寸、中图替换、lightbox 交互 */
 
-import { describe, test, expect, afterEach, vi } from "vitest";
+import { describe, test, expect, afterEach } from "vitest";
 import { render, screen, cleanup, fireEvent, within, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MarkdownContent } from "@/components/thread/markdown-content";
@@ -380,24 +380,16 @@ describe("MarkdownContent", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  test("含连续空段的正文超过视口高度时仍可展开并收起", async () => {
+  test("含连续空段的长正文始终完整显示且不提供折叠控件", () => {
     Object.defineProperty(window, "innerHeight", { configurable: true, value: 800 });
-    const scrollIntoView = vi.fn();
-    HTMLElement.prototype.scrollIntoView = scrollIntoView;
     render(<MarkdownContent content={"很长的正文\n\n<br />\n<br />\n<br />\n\n结尾"} />);
     const prose = document.querySelector(".prose") as HTMLDivElement;
     expect(prose.querySelectorAll("br")).toHaveLength(3);
     Object.defineProperty(prose, "scrollHeight", { configurable: true, value: 1000 });
     fireEvent.resize(window);
-    const expand = await screen.findByRole("button", { name: "展开全文" });
-    expect(expand).toHaveAttribute("aria-expanded", "false");
-    expect(expand).toHaveClass("font-bold");
-    await userEvent.setup().click(expand);
-    const collapse = screen.getByRole("button", { name: "收起" });
-    expect(collapse).toHaveAttribute("aria-expanded", "true");
-    expect(collapse).toHaveClass("font-bold");
+    expect(prose).not.toHaveStyle({ maxHeight: "80vh", overflow: "hidden" });
+    expect(screen.queryByRole("button", { name: "展开全文" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "收起" })).toBeNull();
     expect(prose.querySelectorAll("br")).toHaveLength(3);
-    await userEvent.setup().click(collapse);
-    await waitFor(() => expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "auto", block: "start" }));
   });
 });
