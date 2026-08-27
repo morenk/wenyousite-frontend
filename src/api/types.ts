@@ -1123,7 +1123,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 动态瀑布流；发现为热度，新鲜关注为时间倒序 */
+        /** 动态瀑布流；发现与关注均按最后回复时间顶帖 */
         get: operations["momentsList"];
         put?: never;
         /** 发布纯文本/图片动态，最多 9 张图片 */
