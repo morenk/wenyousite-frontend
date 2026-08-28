@@ -9,18 +9,25 @@ interface TopicTagLinkProps {
     id: string;
     name: string;
   };
+  appearance?: "pill" | "plain";
   className?: string;
 }
 
 /** 主题帖标签的统一浏览入口。 */
-export function TopicTagLink({ tag, className }: TopicTagLinkProps) {
+export function TopicTagLink({
+  tag,
+  appearance = "pill",
+  className,
+}: TopicTagLinkProps) {
   return (
     <Link
       href={`/tags/${tag.id}`}
       aria-label={`查看 #${tag.name} 标签下的主题帖`}
       data-slot="topic-tag"
       className={cn(
-        "inline-flex min-h-[var(--element-topic-tag-min-height)] items-center rounded-full border border-border px-2.5 text-xs font-medium text-muted-foreground transition-[background-color,border-color,color] duration-[var(--motion-fast)] hover:border-brand-strong hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+        appearance === "pill"
+          ? "inline-flex min-h-[var(--element-topic-tag-min-height)] items-center rounded-full border border-border px-2.5 text-xs font-medium text-muted-foreground transition-[background-color,border-color,color] duration-[var(--motion-fast)] hover:border-brand-strong hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+          : "inline-flex items-center font-medium text-current transition-colors duration-[var(--motion-fast)] hover:text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
         className,
       )}
     >

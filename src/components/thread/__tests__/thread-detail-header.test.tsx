@@ -231,7 +231,7 @@ describe("ThreadDetailHeader", () => {
     ).toHaveClass("py-2.5");
     expect(
       container.querySelector('[data-slot="thread-detail-context"]'),
-    ).toHaveClass("whitespace-nowrap", "justify-center");
+    ).toHaveClass("flex-wrap", "justify-center", "text-[11px]");
     expect(container.querySelector('[data-slot="category-marker"]')).toBeNull();
   });
 
@@ -294,29 +294,29 @@ describe("ThreadDetailHeader", () => {
     expect(toast.success).toHaveBeenCalledWith("链接已复制");
   });
 
-  test("渲染分类和状态中文映射", () => {
+  test("标题下只列举无胶囊包裹的主题标签", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
-    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
-    expect(screen.getByText("角色扮演")).toBeInTheDocument();
-    expect(screen.getByText("招募中")).toBeInTheDocument();
-  });
+    const { container } = renderWithQC(<ThreadDetailHeader thread={baseThread} />);
+    const context = container.querySelector('[data-slot="thread-detail-context"]');
+    const tag = screen.getByText("#测试标签").closest("a");
 
-  test("标签收纳在更多面板", async () => {
-    mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
-    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
-    expect(screen.queryByText("#测试标签")).not.toBeInTheDocument();
-    await openThreadDetails();
-    expect(screen.getByText("#测试标签")).toBeInTheDocument();
-    expect(screen.getByText("#测试标签").closest("a")).toHaveAttribute(
+    expect(context).toHaveAttribute("aria-label", "主题标签");
+    expect(tag).toHaveAttribute(
       "href",
       "/tags/tag-1",
     );
+    expect(tag).not.toHaveClass("rounded-full", "border", "px-2.5");
+    expect(screen.queryByText("角色扮演")).not.toBeInTheDocument();
+    expect(screen.queryByText("招募中")).not.toBeInTheDocument();
+    expect(screen.queryByText("帖主")).not.toBeInTheDocument();
   });
 
-  test("渲染作者名", () => {
+  test("没有主题标签时不保留空的标题下信息行", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
-    renderWithQC(<ThreadDetailHeader thread={baseThread} />);
-    expect(screen.getByText("帖主")).toBeInTheDocument();
+    const { container } = renderWithQC(
+      <ThreadDetailHeader thread={{ ...baseThread, topicTags: [] }} />,
+    );
+    expect(container.querySelector('[data-slot="thread-detail-context"]')).toBeNull();
   });
 
   test("统计信息收纳在更多面板", async () => {
@@ -603,38 +603,6 @@ describe("ThreadDetailHeader", () => {
 
     await user.click(screen.getByRole("button", { name: "管理主题帖" }));
     expect(onManage).toHaveBeenCalledTimes(1);
-  });
-
-  test("已结束状态显示'已结束'", () => {
-    mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
-    const finished = { ...baseThread, status: "FINISHED" as const };
-    renderWithQC(<ThreadDetailHeader thread={finished} />);
-    expect(screen.getByText("已结束")).toBeInTheDocument();
-  });
-
-  test("私密帖显示'私密'标签", () => {
-    mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
-    const privateThread = { ...baseThread, visibility: "PRIVATE" as const };
-    renderWithQC(<ThreadDetailHeader thread={privateThread} />);
-    expect(screen.getByText("私密")).toBeInTheDocument();
-  });
-
-  test("置顶帖显示'置顶'标签", () => {
-    mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
-    const pinned = { ...baseThread, pinned: true };
-    renderWithQC(<ThreadDetailHeader thread={pinned} />);
-    expect(screen.getByText("置顶")).toBeInTheDocument();
-  });
-
-  test("演绎分类显示'演绎'", () => {
-    mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
-    const deduction = {
-      ...baseThread,
-      category: "DEDUCTION" as const,
-      categoryInfo: { slug: "DEDUCTION", name: "演绎", isActive: true },
-    };
-    renderWithQC(<ThreadDetailHeader thread={deduction} />);
-    expect(screen.getByText("演绎")).toBeInTheDocument();
   });
 
   test("likeCount 为 0 时仍提供当前计数说明", () => {

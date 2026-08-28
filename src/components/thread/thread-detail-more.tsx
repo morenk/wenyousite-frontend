@@ -17,7 +17,6 @@ import {
 import { useState } from "react";
 
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
-import { TopicTagLink } from "@/components/thread/topic-tag-link";
 import { Button } from "@/components/ui/button";
 import { formatWenyou } from "@/lib/wenyou";
 import { cn } from "@/lib/utils";
@@ -125,19 +124,6 @@ export function ThreadDetailMore({
                 value={formatWenyou(thread.tipTotal)}
               />
             </dl>
-
-            {thread.topicTags.length > 0 ? (
-              <div className="mt-2 border-t border-border px-2 pt-2.5">
-                <p className="mb-2 font-utility text-[11px] text-muted-foreground">
-                  主题标签
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {thread.topicTags.map(({ tag }) => (
-                    <TopicTagLink key={tag.id} tag={tag} />
-                  ))}
-                </div>
-              </div>
-            ) : null}
 
             {hasActions ? (
               <div className="mt-2 border-t border-border pt-1.5">

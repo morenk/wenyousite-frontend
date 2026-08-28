@@ -2,11 +2,15 @@
 
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { ReplyDiscussion } from "@/components/thread/reply-discussion";
 import { ThreadComposerProvider } from "@/components/thread/thread-composer-context";
 import type { PostDetail } from "@/api/hooks/use-post";
 
-const { mockUseAuth } = vi.hoisted(() => ({ mockUseAuth: vi.fn() }));
+const { mockUseAuth, mockUpdatePost } = vi.hoisted(() => ({
+  mockUseAuth: vi.fn(),
+  mockUpdatePost: vi.fn().mockResolvedValue({ id: "p1" }),
+}));
 
 vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: { children: React.ReactNode; href: string }) => (
@@ -23,6 +27,56 @@ vi.mock("@/lib/auth", () => ({
   useAuth: () => mockUseAuth(),
 }));
 
+vi.mock("@/api/hooks/use-update-post", () => ({
+  useUpdatePost: () => ({ mutateAsync: mockUpdatePost }),
+}));
+
+vi.mock("@/api/hooks/use-create-post", () => ({
+  useCreatePost: () => ({ mutateAsync: vi.fn() }),
+}));
+
+vi.mock("@/api/hooks/use-upload-image", () => ({
+  useUploadImage: () => ({ mutateAsync: vi.fn(), isPending: false }),
+}));
+
+vi.mock("@/api/hooks/use-content-access-cache", () => ({
+  useContentAccessCache: () => ({ clearThread: vi.fn() }),
+}));
+
+vi.mock("@/components/thread/thread-permissions-context", () => ({
+  useThreadPermissions: () => ({ visibility: "PUBLIC" }),
+}));
+
+vi.mock("@/components/shared/use-public-invite-confirmation", () => ({
+  usePublicInviteConfirmation: () => ({
+    confirmPublicInvite: vi.fn().mockResolvedValue(true),
+    resetPublicInviteConfirmation: vi.fn(),
+  }),
+}));
+
+vi.mock("@/components/editor/milkdown-editor", () => ({
+  MilkdownEditor: ({
+    defaultValue,
+    onChange,
+    ariaLabel,
+  }: {
+    defaultValue?: string;
+    onChange?: (value: string) => void;
+    ariaLabel?: string;
+  }) => (
+    <textarea
+      aria-label={ariaLabel}
+      data-testid="milkdown-editor"
+      defaultValue={defaultValue}
+      onChange={(event) => onChange?.(event.target.value)}
+    />
+  ),
+}));
+
+vi.mock("sonner", () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
+}));
+
 vi.mock("@/components/thread/markdown-content", () => ({
   MarkdownContent: ({ content }: { content: string }) => <div>{content}</div>,
 }));
@@ -33,7 +87,10 @@ vi.mock("@/components/thread/reply-list", () => ({
   ),
 }));
 
-afterEach(() => cleanup());
+afterEach(() => {
+  cleanup();
+  vi.clearAllMocks();
+});
 
 const rootPost: PostDetail = {
   id: "p1",
@@ -106,5 +163,30 @@ describe("ReplyDiscussion", () => {
       "href",
       "/threads/t1?post=p1",
     );
+  });
+
+  test("原楼层作者可在楼中楼详情直接编辑主楼层正文", async () => {
+    const user = userEvent.setup();
+    mockUseAuth.mockReturnValue({ user: { id: "u1" }, isInitialized: true });
+    render(
+      <ThreadComposerProvider>
+        <ReplyDiscussion rootPost={rootPost} />
+      </ThreadComposerProvider>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "更多原楼层操作" }));
+    await user.click(screen.getByRole("menuitem", { name: "编辑" }));
+
+    const editor = screen.getByRole("textbox", { name: "编辑正文" });
+    expect(editor).toHaveValue("原楼层长文");
+    await user.clear(editor);
+    await user.type(editor, "楼中楼页修改后的主楼层");
+    await user.click(screen.getByRole("button", { name: "保存修改" }));
+
+    expect(mockUpdatePost).toHaveBeenCalledWith({
+      postId: "p1",
+      content: "楼中楼页修改后的主楼层",
+      version: 1,
+    });
   });
 });

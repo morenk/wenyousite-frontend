@@ -2,14 +2,12 @@
 
 "use client";
 
-import Link from "next/link";
 import { CONTENT_PRESENTATION } from "@wenyousite/foundation/collections";
 import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { Search } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { THREAD_STATUS_META } from "@/lib/thread-presentation";
 import { useAuth } from "@/lib/auth";
 import { useLikeThread } from "@/api/hooks/use-like-thread";
 import { getApiErrorMessage } from "@/api/errors";
@@ -23,12 +21,11 @@ import { useThreadPermissions } from "@/components/thread/thread-permissions-con
 import type { SubthreadDetail, ThreadDetail } from "@/api/hooks/use-thread-detail";
 import { ThreadSubscriptionControls } from "@/components/thread/thread-subscription-controls";
 import { WenyouTipButton } from "@/components/economy/wenyou-tip-button";
-import { ThreadCategoryLabel } from "@/components/thread/thread-category";
 import { SubthreadSwitcher } from "@/components/thread/subthread-tabs";
 import { ThreadDetailMore } from "@/components/thread/thread-detail-more";
+import { TopicTagLink } from "@/components/thread/topic-tag-link";
 import { getSubthreadHref } from "@/lib/post-navigation";
 import { AdminContentModerationDialog } from "@/components/admin/admin-content-moderation-dialog";
-import { WenyouTime } from "@/components/shared/wenyou-time";
 import { WenyouCount } from "@/components/shared/wenyou-count";
 import { useLoginRedirect } from "@/hooks/use-login-redirect";
 
@@ -198,42 +195,17 @@ export function ThreadDetailHeader({
               </div>
             </div>
 
-            <div
-              data-slot="thread-detail-context"
-              className="mt-0.5 flex min-w-0 items-center justify-center gap-1.5 overflow-hidden whitespace-nowrap font-utility text-[11px] leading-5 text-muted-foreground sm:text-xs"
-            >
-              <span className="shrink-0 font-bold text-foreground">
-                <ThreadCategoryLabel
-                  category={thread.category}
-                  categoryInfo={thread.categoryInfo}
-                />
-              </span>
-              <span aria-hidden="true">·</span>
-              <span className="shrink-0 font-medium">
-                {THREAD_STATUS_META[thread.status].label}
-              </span>
-              {thread.visibility === "PRIVATE" ? (
-                <>
-                  <span aria-hidden="true">·</span>
-                  <span className="shrink-0 font-bold text-warning">私密</span>
-                </>
-              ) : null}
-              {thread.pinned ? (
-                <>
-                  <span aria-hidden="true">·</span>
-                  <span className="shrink-0 font-bold text-brand-strong">置顶</span>
-                </>
-              ) : null}
-              <span aria-hidden="true">·</span>
-              <Link
-                href={`/users/${thread.ownerId}`}
-                className="min-w-0 truncate font-medium text-foreground hover:text-brand-strong"
+            {thread.topicTags.length > 0 ? (
+              <div
+                data-slot="thread-detail-context"
+                aria-label="主题标签"
+                className="mt-0.5 flex min-w-0 flex-wrap items-center justify-center gap-x-2 gap-y-0.5 font-utility text-[11px] leading-5 text-muted-foreground sm:text-xs"
               >
-                {thread.owner.username}
-              </Link>
-              <span aria-hidden="true">·</span>
-              <WenyouTime value={thread.createdAt} className="shrink-0" />
-            </div>
+                {thread.topicTags.map(({ tag }) => (
+                  <TopicTagLink key={tag.id} tag={tag} appearance="plain" />
+                ))}
+              </div>
+            ) : null}
           </div>
           <div
             data-slot="thread-detail-toolbar"

@@ -6,6 +6,8 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { MarkdownContent } from "@/components/thread/markdown-content";
 import { ReplyList } from "@/components/thread/reply-list";
+import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
+import { useThreadComposer } from "@/components/thread/thread-composer-context";
 import {
   getReplyComposerAnchorId,
   ReplyForm,
@@ -18,6 +20,11 @@ import { getPostHref } from "@/lib/post-navigation";
 import type { ReplyDisplayData } from "@/api/hooks/use-floors";
 import type { PostDetail } from "@/api/hooks/use-post";
 import { PageShell } from "@/components/layout/page-shell";
+import {
+  getVisibleContentText,
+  PostActionsMenu,
+} from "@/components/thread/post-actions-menu";
+import { useAuth } from "@/lib/auth";
 
 interface ReplyDiscussionProps {
   rootPost: PostDetail;
@@ -25,11 +32,31 @@ interface ReplyDiscussionProps {
 }
 
 export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps) {
+  const { user } = useAuth();
+  const { session, open } = useThreadComposer();
   const originalFloorHref = getPostHref({
     threadId: rootPost.thread.id,
     postId: rootPost.id,
   });
   const composerAnchorId = getReplyComposerAnchorId(rootPost.id);
+  const editAnchorId = `floor-edit:${rootPost.id}`;
+  const rootContentId = `discussion-root-content-${rootPost.id}`;
+  const isAuthor = user?.id === rootPost.authorId;
+  const isEditing = session?.key === `edit:${rootPost.id}`;
+
+  const handleStartEdit = () => {
+    void open({
+      key: `edit:${rootPost.id}`,
+      anchorId: editAnchorId,
+      type: "edit",
+      subthreadId: rootPost.subthreadId,
+      postId: rootPost.id,
+      version: rootPost.version,
+      label: `编辑 #${rootPost.floorNumber ?? ""}`.trim(),
+      initialContent: rootPost.content,
+      diceRolls: rootPost.diceRolls,
+    });
+  };
 
   return (
     <PageShell width="feed">
@@ -73,10 +100,35 @@ export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps
                 </p>
               </div>
             </div>
+            {!isEditing ? (
+              <PostActionsMenu
+                triggerLabel="更多原楼层操作"
+                menuLabel="原楼层操作"
+                copyText={() => getVisibleContentText(rootContentId, rootPost.content)}
+                copyContentId={rootContentId}
+                copyHref={originalFloorHref}
+                onEdit={isAuthor ? handleStartEdit : undefined}
+                moderationTarget={{
+                  type: "post",
+                  id: rootPost.id,
+                  label: `楼层 #${rootPost.floorNumber ?? ""}`.trim(),
+                }}
+              />
+            ) : null}
           </div>
         </div>
         <div className="px-5 py-5">
-          <MarkdownContent content={rootPost.content} diceRolls={rootPost.diceRolls} sourcePostId={rootPost.id} />
+          {isEditing ? (
+            <ThreadComposerOutlet anchorId={editAnchorId} />
+          ) : (
+            <div id={rootContentId}>
+              <MarkdownContent
+                content={rootPost.content}
+                diceRolls={rootPost.diceRolls}
+                sourcePostId={rootPost.id}
+              />
+            </div>
+          )}
         </div>
       </section>
 
