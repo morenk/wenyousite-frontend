@@ -244,7 +244,7 @@ function operation(method: string, apiPath: string) {
       [
         "markdown-v3-fixtures.json",
         "markdown-v3-nodes-fixtures.json",
-        "markdown-editor-roundtrip-v4-fixtures.json",
+        "markdown-editor-roundtrip-v5-fixtures.json",
         "Flutter 必须",
       ],
     ],
@@ -312,7 +312,7 @@ function operation(method: string, apiPath: string) {
   for (const fixtureName of [
     "markdown-v3-fixtures.json",
     "markdown-v3-nodes-fixtures.json",
-    "markdown-editor-roundtrip-v4-fixtures.json",
+    "markdown-editor-roundtrip-v5-fixtures.json",
     "thread-category-v3-fixtures.json",
   ]) {
     const frontendFixture = path.resolve(root, "contracts", fixtureName);

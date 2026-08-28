@@ -12,6 +12,7 @@ import {
   sanitizeEmptyImages,
 } from "@/lib/markdown";
 import { serializeInlineDiceNode } from "@/lib/dice-inline";
+import { remarkRecoverAttentionBoundaries } from "@/lib/markdown-attention";
 
 type DiceMarkdownNode = {
   nodeId?: unknown;
@@ -22,6 +23,37 @@ type EditorMarkdownNode = {
   type?: string;
   data?: Record<string, unknown>;
   children?: EditorMarkdownNode[];
+};
+
+type SerializerInfo = Record<string, unknown> & {
+  before: string;
+  after: string;
+};
+
+type SerializerTracker = {
+  move: (value: string) => string;
+  current: () => Record<string, unknown>;
+};
+
+type SerializerState = {
+  attentionEncodeSurroundingInfo: { before: boolean; after: boolean } | undefined;
+  containerPhrasing: (node: EditorMarkdownNode, info: SerializerInfo) => string;
+  createTracker: (info: SerializerInfo) => SerializerTracker;
+  enter: (name: string) => () => void;
+};
+
+type MarkdownHandler = ((
+  node: unknown,
+  parent: unknown,
+  state: unknown,
+  info: unknown,
+) => string) & {
+  peek?: (...args: unknown[]) => string;
+};
+
+type EncodeSides = {
+  inside: boolean;
+  outside: boolean;
 };
 
 export interface EditorMarkdownBridgeOptions {
@@ -55,6 +87,123 @@ export const editorSoftBreakParser = $remark(
   },
 );
 
+/** 阅读态与编辑态共用同一份标点/符号边界恢复规则。 */
+export const editorAttentionBoundaryParser = $remark(
+  "wenyousite-editor-attention-boundary",
+  () => remarkRecoverAttentionBoundaries,
+);
+
+function classifyAttentionCharacter(value: string): "word" | "whitespace" | "punctuation" {
+  if (!value || /[\s\p{Z}]/u.test(value)) return "whitespace";
+  return /[\p{P}\p{S}]/u.test(value) ? "punctuation" : "word";
+}
+
+/** GFM `~` 的开闭规则与星号 attention 相同。 */
+function getAttentionEncodeSides(
+  outside: string,
+  inside: string,
+  marker: "*" | "_" | "~",
+): EncodeSides {
+  const outsideKind = classifyAttentionCharacter(outside);
+  const insideKind = classifyAttentionCharacter(inside);
+  if (outsideKind === "word") {
+    if (insideKind === "word") {
+      return marker === "_"
+        ? { inside: true, outside: true }
+        : { inside: false, outside: false };
+    }
+    if (insideKind === "whitespace") return { inside: true, outside: true };
+    return { inside: false, outside: true };
+  }
+  if (outsideKind === "whitespace") {
+    if (insideKind === "word") return { inside: false, outside: false };
+    if (insideKind === "whitespace") return { inside: true, outside: true };
+    return { inside: false, outside: false };
+  }
+  if (insideKind === "whitespace") return { inside: true, outside: false };
+  return { inside: false, outside: false };
+}
+
+function firstCodePoint(value: string): string {
+  return Array.from(value)[0] ?? "";
+}
+
+function lastCodePoint(value: string): string {
+  return Array.from(value).at(-1) ?? "";
+}
+
+function encodeCharacterReference(value: string): string {
+  const codePoint = value.codePointAt(0);
+  return codePoint === undefined ? value : `&#x${codePoint.toString(16).toUpperCase()};`;
+}
+
+function encodeFirstCodePoint(value: string): string {
+  const first = firstCodePoint(value);
+  return first ? `${encodeCharacterReference(first)}${value.slice(first.length)}` : value;
+}
+
+function encodeLastCodePoint(value: string): string {
+  const last = lastCodePoint(value);
+  return last ? `${value.slice(0, -last.length)}${encodeCharacterReference(last)}` : value;
+}
+
+/** Milkdown 自带 mark handlers 未转发 attention 邻接保护；补齐标准 mdast 行为。 */
+function createSafeAttentionMarkdownHandler(
+  construct: "strong" | "emphasis" | "strikethrough",
+  repetitions: 1 | 2,
+): MarkdownHandler {
+  const fallbackMarker = construct === "strikethrough" ? "~" : "*";
+  const handler: MarkdownHandler = (nodeValue, _parent, stateValue, infoValue) => {
+    const node = nodeValue as EditorMarkdownNode & { marker?: unknown };
+    const state = stateValue as SerializerState;
+    const info = infoValue as SerializerInfo;
+    const marker = construct === "strikethrough"
+      ? "~"
+      : node.marker === "_"
+        ? "_"
+        : "*";
+    const delimiter = marker.repeat(repetitions);
+    const exit = state.enter(construct);
+    const tracker = state.createTracker(info);
+    const before = tracker.move(delimiter);
+    let between = tracker.move(state.containerPhrasing(node, {
+      after: marker,
+      before,
+      ...tracker.current(),
+    } as SerializerInfo));
+    const open = getAttentionEncodeSides(
+      lastCodePoint(info.before),
+      firstCodePoint(between),
+      marker,
+    );
+    if (open.inside) between = encodeFirstCodePoint(between);
+
+    const close = getAttentionEncodeSides(
+      firstCodePoint(info.after),
+      lastCodePoint(between),
+      marker,
+    );
+    if (close.inside) between = encodeLastCodePoint(between);
+    const after = tracker.move(delimiter);
+    exit();
+
+    state.attentionEncodeSurroundingInfo = {
+      before: open.outside,
+      after: close.outside,
+    };
+    return `${before}${between}${after}`;
+  };
+  handler.peek = (nodeValue) => {
+    const marker = (nodeValue as { marker?: unknown } | undefined)?.marker;
+    return construct !== "strikethrough" && marker === "_" ? "_" : fallbackMarker;
+  };
+  return handler;
+}
+
+const safeStrongMarkdownHandler = createSafeAttentionMarkdownHandler("strong", 2);
+const safeEmphasisMarkdownHandler = createSafeAttentionMarkdownHandler("emphasis", 1);
+const safeDeleteMarkdownHandler = createSafeAttentionMarkdownHandler("strikethrough", 2);
+
 function serializeDiceMarkdownNode(node: DiceMarkdownNode): string {
   if (typeof node.nodeId !== "string" || typeof node.notation !== "string") {
     throw new EditorMarkdownCodecError("骰子节点缺少稳定身份或表达式");
@@ -76,7 +225,10 @@ export function configureEditorMarkdownSerializer(ctx: Ctx) {
     handlers: {
       ...options.handlers,
       break: () => "\n",
+      delete: safeDeleteMarkdownHandler,
       diceInline: (node: DiceMarkdownNode) => serializeDiceMarkdownNode(node),
+      emphasis: safeEmphasisMarkdownHandler,
+      strong: safeStrongMarkdownHandler,
     } as NonNullable<typeof options.handlers>,
   }));
 }

@@ -5,7 +5,7 @@ Web 与 Flutter 共用数据库中的 Markdown 字符串，不修改既有字段
 ## 协议事实源
 
 - 协议标识为 `wenyousite-markdown`，当前版本为 `3`。
-- Web 仓库中的 `contracts/markdown-v3-fixtures.json`、`contracts/markdown-v3-nodes-fixtures.json` 与 `contracts/markdown-editor-roundtrip-v4-fixtures.json` 是后端同名黄金语料的同步副本，依次固定规范化/允许与拒绝结果、扩展节点身份，以及结构化格式、普通软换行、块语义与字面纯文本往返。
+- Web 仓库中的 `contracts/markdown-v3-fixtures.json`、`contracts/markdown-v3-nodes-fixtures.json` 与 `contracts/markdown-editor-roundtrip-v5-fixtures.json` 是后端同名黄金语料的同步副本，依次固定规范化/允许与拒绝结果、扩展节点身份，以及结构化格式、普通软换行、块语义、行内边界语义与字面纯文本往返。
 - 后端是写入校验的最终权威；Web 在编辑、粘贴、恢复草稿和阅读前执行同版本降级。Flutter 必须把三份语言无关 JSON 语料纳入单元测试。
 - 规则变更必须先修改黄金语料并提升协议版本，禁止单独修改某一端正则。
 - Web 的发布、回复、编辑和草稿入口传递完整规范正文，不做全局 `trim()`；`trim()` 只允许用于空内容判断，首尾空段落及空白必须保留。
@@ -43,6 +43,8 @@ Web 与 Flutter 共用数据库中的 Markdown 字符串，不修改既有字段
 - `milkdown-markdown-codec.ts` 是 ProseMirror 文档与持久化 Markdown 之间的唯一写出边界。所有 `docChanged` 事务完成后同步序列化一次，不依赖 Milkdown 的防抖 `markdownUpdated` 事件，也不允许骰子、表情、提及、图片等入口各自手动补发正文。
 - Shift+Enter 仍保留为编辑器内 break 节点，但 stringifier 直接写成普通 LF；因此粗体末尾换行稳定输出 `**阿罗**\n下一行`，不会先生成反斜杠硬换行再被整行转义。正文重开时普通 LF 也恢复为可见 break 节点，与完整阅读态一致，不折叠成空格。
 - 分隔线只写为与前后正文各隔一个空行的 `正文\n\n---\n\n正文`，并以 `horizontal-rule` 块语义验收；历史 `正文\n---` 按 CommonMark Setext H2 重开，任何编辑后统一写为 `## 正文`，不能按行级正则误判为分隔线。
+- 阅读态和编辑器解析态共享同一条 attention 边界兼容：只有严格 CommonMark 已留在普通 text 节点中、内容首尾无空白且至少一侧为 Unicode 标点或符号的 `* / _ / ~~` 成对定界符才恢复为粗体、斜体、粗斜体或删除线。恢复前用源码位置确认开闭定界符真实存在且未转义；代码、链接、图片、定义、未闭合/更长定界符和普通词内下划线不变。
+- 编辑器写回不插入可见空格，而由 stringifier 把会重新造成歧义的相邻正文字符编码为数字字符引用；下划线别名统一规范为星号。GFM 删除线使用与粗体/斜体相同的相邻字符保护，规范正文重开后保持幂等。
 - 骰子使用独立 Markdown AST 扩展节点和对应 stringifier handler，禁止先写成被转义的文本标记再做字符串回填。空图片清理、LF 统一、末尾格式化换行移除和独占 `<br />` 空段规范化属于无损规范化；输出阶段不得修改用户的格式语义。
 - 空正文先切换为引用时，Milkdown 内部生成的引用内 `<br />` 占位会在写出边界规范化为合法的 CommonMark 空引用标记；编辑器追加的顶层空段仍沿用 `<br />` 协议。该状态不构成可发布正文，继续输入后正常写为引用正文，不得因内部占位误报原始 HTML。
 - 站内地址和白名单外格式的粘贴在 ProseMirror DOM 事件阶段统一接管，早于默认 clipboard 解析器；其他支持内容继续走 Milkdown 原生粘贴链路。所有工具栏和自定义节点事务最终都由同一个同步桥写出。
@@ -69,7 +71,7 @@ Web 与 Flutter 共用数据库中的 Markdown 字符串，不修改既有字段
 
 ## 验收标准
 
-- Web 三份黄金语料与后端 Markdown v3 语料逐字一致，round-trip v4 的输入与规范输出均符合声明的块语义
+- Web 三份黄金语料与后端 Markdown v3 语料逐字一致，round-trip v5 的输入与规范输出分别符合声明的块语义和行内语义
 - 规范化、白名单判断、首个不支持类型和字面降级输出逐条符合 fixture 且幂等
 - 粘贴、手输、撤销、草稿恢复和重开均保留可见字符，且不生成 `table`、`pre`、任务复选框或额外标题
 - 阅读端对历史异常数据执行同一防御降级

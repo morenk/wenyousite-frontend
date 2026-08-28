@@ -56,10 +56,20 @@ const nodeFixtures = JSON.parse(
 ) as { cases: Array<{ id: string; markdown: string; serialized: string }> };
 const editorRoundTripFixtures = JSON.parse(
   readFileSync(
-    resolve(process.cwd(), "contracts/markdown-editor-roundtrip-v4-fixtures.json"),
+    resolve(process.cwd(), "contracts/markdown-editor-roundtrip-v5-fixtures.json"),
     "utf8",
   ),
 ) as { cases: Array<{ id: string; markdown: string; serialized: string }> };
+
+const attentionBoundarySelectors = {
+  "attention-boundary-bold-live-content": "strong",
+  "attention-boundary-italic": "em",
+  "attention-boundary-nested-emphasis": "em strong",
+  "attention-boundary-strikethrough": "del",
+  "attention-boundary-underscore-italic": "em",
+  "attention-boundary-underscore-bold": "strong",
+  "attention-boundary-underscore-nested": "em strong",
+} as const;
 
 function editorRoundTripFixture(id: string) {
   return editorRoundTripFixtures.cases.find((item) => item.id === id)!;
@@ -79,7 +89,7 @@ afterEach(() => {
 });
 
 describe("MilkdownEditor 自定义内联节点", () => {
-  test("规范分隔线重开为真实块节点并按 v4 原样写回", async () => {
+  test("规范分隔线重开为真实块节点并按 v5 原样写回", async () => {
     const fixture = editorRoundTripFixture("horizontal-rule");
     const onChange = vi.fn();
     const user = userEvent.setup();
@@ -115,6 +125,50 @@ describe("MilkdownEditor 自定义内联节点", () => {
     await user.type(heading, "临");
     await user.keyboard("{Backspace}");
 
+    await waitFor(() => {
+      expect(onChange.mock.calls.at(-1)?.[0]).toBe(fixture.serialized);
+    });
+  });
+
+  test.each(Object.entries(attentionBoundarySelectors))(
+    "%s 从歧义源码恢复真实 mark 并安全写回",
+    async (id, selector) => {
+      const fixture = editorRoundTripFixture(id);
+      const onChange = vi.fn();
+      const user = userEvent.setup();
+      const { container } = renderEditor({ defaultValue: fixture.markdown, onChange });
+      const editor = await waitFor(() => {
+        const element = container.querySelector<HTMLElement>(".ProseMirror");
+        expect(element?.querySelector(selector)).toBeInTheDocument();
+        return element!;
+      });
+
+      onChange.mockClear();
+      await user.type(editor.querySelector("p")!, "临");
+      await user.keyboard("{Backspace}");
+
+      await waitFor(() => {
+        expect(onChange.mock.calls.at(-1)?.[0]).toBe(fixture.serialized);
+      });
+    },
+  );
+
+  test("v5 规范粗体输出重开后保持幂等", async () => {
+    const fixture = editorRoundTripFixture("attention-boundary-bold-live-content");
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    const { container } = renderEditor({ defaultValue: fixture.serialized, onChange });
+    const paragraph = await waitFor(() => {
+      const element = container.querySelector<HTMLElement>(".ProseMirror p");
+      expect(element?.querySelector("strong")).toHaveTextContent(
+        "【注意注意！并不是真的AI！DeerSeek就是我！】",
+      );
+      return element!;
+    });
+
+    onChange.mockClear();
+    await user.type(paragraph, "临");
+    await user.keyboard("{Backspace}");
     await waitFor(() => {
       expect(onChange.mock.calls.at(-1)?.[0]).toBe(fixture.serialized);
     });

@@ -34,6 +34,7 @@ import {
 import { InternalReferenceLink } from "@/components/shared/internal-reference-link";
 import { ContentLink } from "@/components/ui/content-link";
 import { DiceInlineResult } from "@/components/thread/dice-inline-result";
+import { remarkRecoverAttentionBoundaries } from "@/lib/markdown-attention";
 
 /** 新媒体使用 media/ 标准化主图；uploads/ 仅为历史兼容。 */
 function isUploadedMediaUrl(url: string): boolean {
@@ -342,6 +343,7 @@ export function MarkdownContent({
       <ReactMarkdown
         remarkPlugins={[
           remarkGfm,
+          remarkRecoverAttentionBoundaries,
           remarkMilkdownEmptyParagraphs,
           remarkInlineDice(diceRolls),
           remarkBareInternalReferences,

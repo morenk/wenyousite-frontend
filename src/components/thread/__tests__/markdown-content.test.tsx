@@ -29,6 +29,106 @@ describe("MarkdownContent", () => {
     );
   });
 
+  test("实际 DeerSeek 文本恢复粗体且不显示星号或插入空格", () => {
+    const content = "选择你的DeerSeek模型：**【注意注意！并不是真的AI！DeerSeek就是我！】**DeerSeek v4 pro";
+    render(<MarkdownContent content={content} />);
+
+    const paragraph = document.querySelector('[data-slot="markdown-content"] p');
+    const strong = paragraph?.querySelector("strong");
+    expect(strong).toHaveTextContent("【注意注意！并不是真的AI！DeerSeek就是我！】");
+    expect(paragraph?.textContent).toBe(
+      "选择你的DeerSeek模型：【注意注意！并不是真的AI！DeerSeek就是我！】DeerSeek v4 pro",
+    );
+    expect(paragraph?.textContent).not.toContain("**");
+  });
+
+  test.each([
+    ["中文书名括号与中文相邻", "前**【注意】**后", "【注意】"],
+    ["全角圆括号与拉丁字母相邻", "A**（Notice）**B", "（Notice）"],
+    ["引号、句末感叹号与数字相邻", "1**“注意!”**2", "“注意!”"],
+    ["ASCII 方括号与中文感叹号", "左**[注意！]**右", "[注意！]"],
+    ["Emoji 符号边界", "前**🚨注意🚨**后", "🚨注意🚨"],
+  ])("恢复同类粗体边界：%s", (_label, content, expected) => {
+    render(<MarkdownContent content={content} />);
+    const strong = document.querySelector('[data-slot="markdown-content"] strong');
+    expect(strong).toHaveTextContent(expected);
+    expect(strong?.closest("p")?.textContent).not.toContain("**");
+  });
+
+  test.each([
+    ["星号斜体", "前*（斜体）*后", "em", "（斜体）"],
+    ["星号粗斜体", "前***【粗斜体】***后", "em > strong", "【粗斜体】"],
+    ["删除线", "前~~【删除】~~后", "del", "【删除】"],
+    ["下划线斜体别名", "前_（斜体）_后", "em", "（斜体）"],
+    ["下划线粗体别名", "前__【粗体】__后", "strong", "【粗体】"],
+    ["下划线粗斜体别名", "前___【粗斜体】___后", "em > strong", "【粗斜体】"],
+  ])("恢复其他 attention 格式：%s", (_label, content, selector, expected) => {
+    render(<MarkdownContent content={content} />);
+    expect(document.querySelector(`[data-slot="markdown-content"] ${selector}`))
+      .toHaveTextContent(expected);
+  });
+
+  test("同一文本节点线性恢复多个不同定界符", () => {
+    render(
+      <MarkdownContent content="A**【粗】**B / C_（斜）_D / E~~【删】~~F" />,
+    );
+
+    expect(document.querySelector("strong")).toHaveTextContent("【粗】");
+    expect(document.querySelector("em")).toHaveTextContent("（斜）");
+    expect(document.querySelector("del")).toHaveTextContent("【删】");
+  });
+
+  test("同一文本节点跳过已转义片段后仍恢复后续歧义片段", () => {
+    render(
+      <MarkdownContent content={String.raw`\**【字面】** x**【恢复】**y`} />,
+    );
+
+    const markdown = document.querySelector('[data-slot="markdown-content"]');
+    expect(markdown).toHaveTextContent("**【字面】** x【恢复】y");
+    expect(markdown?.querySelectorAll("strong")).toHaveLength(1);
+    expect(markdown?.querySelector("strong")).toHaveTextContent("【恢复】");
+  });
+
+  test.each([
+    ["反斜杠转义", String.raw`前\**【字面】**后`, "前**【字面】**后"],
+    ["未闭合定界符", "前**【未闭合】后", "前**【未闭合】后"],
+    ["内容起始空白", "前** 【空白】**后", "前** 【空白】**后"],
+    ["内容结束空白", "前**【空白】 **后", "前**【空白】 **后"],
+    ["普通词内下划线", "foo_bar_baz", "foo_bar_baz"],
+    ["更长的字面定界符", "x****【四星】****y", "x****【四星】****y"],
+  ])("不扩大恢复范围：%s", (_label, content, expected) => {
+    render(<MarkdownContent content={content} />);
+    const markdown = document.querySelector('[data-slot="markdown-content"]');
+    expect(markdown).toHaveTextContent(expected);
+    expect(markdown?.querySelector("strong, em, del")).toBeNull();
+  });
+
+  test("代码、链接和图片上下文中的字面定界符不恢复", () => {
+    const { rerender } = render(
+      <MarkdownContent content={"`前**【代码】**后`"} />,
+    );
+    expect(document.querySelector("code")).toHaveTextContent("前**【代码】**后");
+    expect(document.querySelector("strong, em, del")).toBeNull();
+
+    rerender(<MarkdownContent content={"```txt\n前**【围栏】**后\n```"} />);
+    expect(document.querySelector('[data-slot="markdown-content"]')).toHaveTextContent(
+      "前**【围栏】**后",
+    );
+    expect(document.querySelector("strong, em, del")).toBeNull();
+
+    rerender(
+      <MarkdownContent content="[前**【链接】**后](https://example.com)" />,
+    );
+    expect(screen.getByRole("link")).toHaveTextContent("前**【链接】**后");
+    expect(document.querySelector("strong, em, del")).toBeNull();
+
+    rerender(
+      <MarkdownContent content="![前**【图片】**后](https://example.com/image.png)" />,
+    );
+    expect(screen.getByRole("img", { name: "前**【图片】**后" })).toBeInTheDocument();
+    expect(document.querySelector("strong, em, del")).toBeNull();
+  });
+
   test("嵌套回复使用稍紧凑但不缩小到小号正文的排版", () => {
     render(<MarkdownContent content="回复正文" size="compact" />);
     const content = document.querySelector('[data-slot="markdown-content"]');

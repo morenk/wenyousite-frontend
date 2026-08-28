@@ -18,6 +18,7 @@ interface EditorRoundTripCase {
   markdown: string;
   serialized: string;
   blockSemantics?: string[];
+  inlineSemantics?: string[];
 }
 
 const markdownParser = new MarkdownIt({
@@ -53,11 +54,32 @@ function parseBlockSemantics(markdown: string): string[] {
   return semantics;
 }
 
+function parseInlineSemantics(markdown: string): string[] {
+  const semantics: string[] = [];
+  for (const token of markdownParser.parse(markdown, {})) {
+    if (token.type !== "inline" || !token.children) continue;
+    for (const child of token.children) {
+      switch (child.type) {
+        case "strong_open":
+          semantics.push("strong");
+          break;
+        case "em_open":
+          semantics.push("emphasis");
+          break;
+        case "s_open":
+          semantics.push("strikethrough");
+          break;
+      }
+    }
+  }
+  return semantics;
+}
+
 const fixture = JSON.parse(
   readFileSync(
     resolve(
       process.cwd(),
-      "contracts/markdown-editor-roundtrip-v4-fixtures.json",
+      "contracts/markdown-editor-roundtrip-v5-fixtures.json",
     ),
     "utf8",
   ),
@@ -69,10 +91,10 @@ const fixture = JSON.parse(
 };
 
 describe("Markdown 编辑器往返契约", () => {
-  test("固定在 Markdown v3 之上的编辑器 fixture v4", () => {
+  test("固定在 Markdown v3 之上的编辑器 fixture v5", () => {
     expect(fixture).toMatchObject({
       contract: "wenyousite-markdown-editor-roundtrip",
-      version: 4,
+      version: 5,
       markdownContractVersion: 3,
     });
     expect(new Set(fixture.cases.map((item) => item.id)).size).toBe(
@@ -96,6 +118,26 @@ describe("Markdown 编辑器往返契约", () => {
     if (item.blockSemantics) {
       expect(parseBlockSemantics(item.markdown)).toEqual(item.blockSemantics);
       expect(parseBlockSemantics(item.serialized)).toEqual(item.blockSemantics);
+    }
+    if (item.inlineSemantics) {
+      expect(parseInlineSemantics(item.serialized)).toEqual(item.inlineSemantics);
+    }
+  });
+
+  test("v5 固定各类 attention 边界歧义和下划线别名", () => {
+    for (const id of [
+      "attention-boundary-bold-live-content",
+      "attention-boundary-italic",
+      "attention-boundary-nested-emphasis",
+      "attention-boundary-strikethrough",
+      "attention-boundary-underscore-italic",
+      "attention-boundary-underscore-bold",
+      "attention-boundary-underscore-nested",
+    ]) {
+      expect(fixture.cases.find((item) => item.id === id)).toMatchObject({
+        mode: "structured",
+        inlineSemantics: expect.any(Array),
+      });
     }
   });
 

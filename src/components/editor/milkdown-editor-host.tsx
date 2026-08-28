@@ -102,6 +102,7 @@ import { editorMarkdownPastePlugin } from "@/components/editor/markdown-literal-
 import {
   configureEditorMarkdownSerializer,
   createEditorMarkdownBridge,
+  editorAttentionBoundaryParser,
   editorSoftBreakParser,
   prepareEditorMarkdown,
 } from "@/components/editor/milkdown-markdown-codec";
@@ -632,6 +633,7 @@ export function MilkdownEditorHost({
         .config(configureEditorMarkdownSerializer)
         .use(internalReferenceLinkView)
         .use(editorMarkdownPastePlugin)
+        .use(editorAttentionBoundaryParser)
         .use(editorSoftBreakParser)
         .use(dicePlugins.remarkDiceInline)
         .use(dicePlugins.diceInlineSchema)
