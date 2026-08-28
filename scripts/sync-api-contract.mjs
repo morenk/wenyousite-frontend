@@ -14,8 +14,17 @@ const internalReferenceTarget = resolve(
   frontendRoot,
   "contracts/internal-reference-v1-fixtures.json",
 );
+const editorClipboardSource = resolve(
+  frontendRoot,
+  "../wenyousite-backend/contracts/editor-clipboard-v1-fixtures.json",
+);
+const editorClipboardTarget = resolve(
+  frontendRoot,
+  "contracts/editor-clipboard-v1-fixtures.json",
+);
 const contract = JSON.parse(readFileSync(source, "utf8"));
 const internalReferenceContract = JSON.parse(readFileSync(internalReferenceSource, "utf8"));
+const editorClipboardContract = JSON.parse(readFileSync(editorClipboardSource, "utf8"));
 
 if (!/^3\.0\./.test(contract.openapi ?? "")) {
   throw new Error(`后端契约不是 OpenAPI 3.0.x：${contract.openapi ?? "missing"}`);
@@ -27,10 +36,17 @@ if (
 ) {
   throw new Error("后端站内传送门契约不是 wenyousite-internal-reference v1");
 }
+if (
+  editorClipboardContract.contract !== "wenyousite-editor-clipboard"
+  || editorClipboardContract.version !== 1
+) {
+  throw new Error("后端编辑器剪贴板契约不是 wenyousite-editor-clipboard v1");
+}
 
 mkdirSync(dirname(target), { recursive: true });
 copyFileSync(source, target);
 copyFileSync(internalReferenceSource, internalReferenceTarget);
+copyFileSync(editorClipboardSource, editorClipboardTarget);
 console.log(
-  `Synced API contract ${contract.info.version} and internal-reference v1 fixtures`,
+  `Synced API contract ${contract.info.version}, internal-reference v1 and editor-clipboard v1 fixtures`,
 );

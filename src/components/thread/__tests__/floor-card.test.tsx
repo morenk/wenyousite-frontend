@@ -257,13 +257,13 @@ describe("FloorCard", () => {
     });
     renderWithQC(<FloorCard floor={baseFloor} />);
 
-    expect(screen.queryByRole("menuitem", { name: "复制文本" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: "复制内容" })).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
-    await user.click(screen.getByRole("menuitem", { name: "复制文本" }));
+    await user.click(screen.getByRole("menuitem", { name: "复制内容" }));
 
     await waitFor(() => {
       expect(mockClipboardWriteText).toHaveBeenCalledWith("这是加粗的正文");
-      expect(toast.success).toHaveBeenCalledWith("文本已复制");
+      expect(toast.success).toHaveBeenCalledWith("内容已复制");
     });
   });
 
@@ -304,7 +304,7 @@ describe("FloorCard", () => {
     expect(within(inline).queryByRole("button", { name: "回复" })).not.toBeInTheDocument();
 
     await user.click(within(inline).getByRole("button", { name: "更多回复操作" }));
-    expect(screen.getByRole("menuitem", { name: "复制文本" })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "复制内容" })).toBeInTheDocument();
     expect(screen.getByRole("menuitem", { name: "复制链接" })).toBeInTheDocument();
     expect(screen.queryByRole("menuitem", { name: "编辑" })).not.toBeInTheDocument();
     expect(screen.queryByRole("menuitem", { name: "删除" })).not.toBeInTheDocument();

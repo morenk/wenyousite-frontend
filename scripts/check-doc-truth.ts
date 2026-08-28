@@ -245,6 +245,7 @@ function operation(method: string, apiPath: string) {
         "markdown-v3-fixtures.json",
         "markdown-v3-nodes-fixtures.json",
         "markdown-editor-roundtrip-v5-fixtures.json",
+        "editor-clipboard-v1-fixtures.json",
         "Flutter 必须",
       ],
     ],
@@ -276,7 +277,7 @@ function operation(method: string, apiPath: string) {
     `| 最窄核心一级栏 | ${capabilityRow(EDITOR_PRIMARY_NARROW)} |`,
     `| 最窄“更多”基础集合 | ${capabilityRow(EDITOR_MORE_FALLBACK)} |`,
     `| 继续变窄时追加收纳 | ${capabilityRow(EDITOR_MORE_PROGRESSIVE)} |`,
-    `| 结构化能力边界 | 仅工具栏入口；白名单外格式静默降为字面文本 |`,
+    `| 结构化能力边界 | 仅工具栏能力（含同能力显式快捷键）；Markdown 源码输入不自动建结构 |`,
     `| 新建标题层级 | ${[
       "正文",
       ...EDITOR_CREATABLE_HEADING_LEVELS.map((level) => `标题 ${level}`),
@@ -313,6 +314,7 @@ function operation(method: string, apiPath: string) {
     "markdown-v3-fixtures.json",
     "markdown-v3-nodes-fixtures.json",
     "markdown-editor-roundtrip-v5-fixtures.json",
+    "editor-clipboard-v1-fixtures.json",
     "thread-category-v3-fixtures.json",
   ]) {
     const frontendFixture = path.resolve(root, "contracts", fixtureName);

@@ -143,6 +143,7 @@ export function FloorCard({ floor, focused = false }: FloorCardProps) {
             triggerLabel="更多楼层操作"
             menuLabel="楼层操作"
             copyText={() => getVisibleContentText(`floor-content-${floor.id}`, floor.content)}
+            copyContentId={`floor-content-${floor.id}`}
             copyHref={floorHref}
             onEdit={isAuthor ? handleStartEdit : undefined}
             onDelete={canDelete ? () => void handleDelete() : undefined}

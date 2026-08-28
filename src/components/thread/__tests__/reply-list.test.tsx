@@ -305,13 +305,13 @@ describe("ReplyList", () => {
     mockUseReplies.mockReturnValue(dataWithReplies([baseReply({ content: "这是**加粗**文本" })]));
 
     render(<ReplyList postId="post-1" />, { wrapper: createWrapper() });
-    expect(screen.queryByRole("menuitem", { name: "复制文本" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: "复制内容" })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "更多回复操作" }));
-    await user.click(screen.getByRole("menuitem", { name: "复制文本" }));
+    await user.click(screen.getByRole("menuitem", { name: "复制内容" }));
 
     expect(mockClipboardWriteText).toHaveBeenCalledWith("这是加粗文本");
-    expect(mockToastSuccess).toHaveBeenCalledWith("文本已复制");
+    expect(mockToastSuccess).toHaveBeenCalledWith("内容已复制");
   });
 
   test("作者有头像时渲染接口返回的母版", () => {

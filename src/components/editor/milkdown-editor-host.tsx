@@ -21,26 +21,38 @@ import { topBar } from "@milkdown/crepe/feature/top-bar";
 import { commandsCtx, editorViewCtx } from "@milkdown/core";
 import { toggleLinkCommand } from "@milkdown/kit/component/link-tooltip";
 import {
+  codeBlockKeymap,
   createCodeBlockInputRule,
-  headingSchema,
+  emphasisStarInputRule,
+  emphasisUnderscoreInputRule,
+  headingKeymap,
+  inlineCodeInputRule,
   inlineCodeSchema,
   insertHrCommand,
+  insertHrInputRule,
+  insertImageInputRule,
   linkSchema,
+  strongInputRule,
   toggleInlineCodeCommand,
   wrapInBlockquoteCommand,
+  wrapInBlockquoteInputRule,
   wrapInBulletListCommand,
+  wrapInBulletListInputRule,
+  wrapInHeadingCommand,
   wrapInOrderedListCommand,
+  wrapInOrderedListInputRule,
   wrapInHeadingInputRule,
 } from "@milkdown/kit/preset/commonmark";
 import {
   insertTableInputRule,
+  strikethroughInputRule,
+  tableKeymap,
   toggleStrikethroughCommand,
   wrapInTaskListInputRule,
 } from "@milkdown/kit/preset/gfm";
-import { textblockTypeInputRule } from "@milkdown/kit/prose/inputrules";
 import { TextSelection } from "@milkdown/kit/prose/state";
 import type { EditorView } from "@milkdown/kit/prose/view";
-import { $inputRule, $view } from "@milkdown/kit/utils";
+import { $useKeymap, $view } from "@milkdown/kit/utils";
 import { useDebounce } from "use-debounce";
 import { toast } from "sonner";
 import { ImageUploadProgress } from "@/components/shared/image-upload-progress";
@@ -109,13 +121,22 @@ import {
 import { createEditorLinkMarkView } from "@/components/shared/internal-reference-editor-dom";
 import "@/components/editor/milkdown-editor.css";
 
-const toolbarHeadingInputRule = $inputRule((ctx) =>
-  textblockTypeInputRule(
-    /^(#{2,3})\s$/u,
-    headingSchema.type(ctx),
-    (match) => ({ level: match[1]?.length ?? 2 }),
-  ),
-);
+const toolbarHeadingKeymap = $useKeymap("wenyousiteHeadingKeymap", {
+  TurnIntoH2: {
+    shortcuts: "Mod-Alt-2",
+    command: (ctx) => {
+      const commands = ctx.get(commandsCtx);
+      return () => commands.call(wrapInHeadingCommand.key, 2);
+    },
+  },
+  TurnIntoH3: {
+    shortcuts: "Mod-Alt-3",
+    command: (ctx) => {
+      const commands = ctx.get(commandsCtx);
+      return () => commands.call(wrapInHeadingCommand.key, 3);
+    },
+  },
+});
 
 const internalReferenceLinkView = $view(
   linkSchema.mark,
@@ -498,14 +519,27 @@ export function MilkdownEditorHost({
         defaultValue: prepareEditorMarkdown(initialValue),
       });
 
-      // H2/H3 以外的标题以及代码块、任务列表、表格输入规则不属于工具栏能力白名单。
+      // Markdown 定界符永远按字面输入；仅保留与工具栏白名单一致的显式快捷键。
       void crepe.editor.remove([
+        wrapInBlockquoteInputRule,
+        wrapInBulletListInputRule,
+        wrapInOrderedListInputRule,
         wrapInHeadingInputRule,
         createCodeBlockInputRule,
+        insertHrInputRule,
+        emphasisStarInputRule,
+        emphasisUnderscoreInputRule,
+        inlineCodeInputRule,
+        insertImageInputRule,
+        strongInputRule,
+        strikethroughInputRule,
         wrapInTaskListInputRule,
         insertTableInputRule,
+        ...headingKeymap,
+        ...codeBlockKeymap,
+        ...tableKeymap,
       ]);
-      crepe.editor.use(toolbarHeadingInputRule);
+      crepe.editor.use(toolbarHeadingKeymap);
 
       // 只装载当前顶部工具栏实际依赖的交互特性；表格、代码编辑器、公式、AI、
       // 块菜单和选择气泡工具栏均不进入客户端包。

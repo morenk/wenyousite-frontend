@@ -1,6 +1,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { toast } from "sonner";
 import { afterAll, afterEach, describe, expect, test, vi } from "vitest";
 import { MilkdownEditor } from "@/components/editor/milkdown-editor-core";
@@ -16,6 +18,29 @@ vi.mock("@/api/hooks/use-save-draft", () => ({
 vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
+
+interface ClipboardGoldenCase {
+  id: string;
+  kind: string;
+  plainText?: string;
+  html?: string;
+  expectedText?: string;
+  expectedHref?: string;
+  expectedLabel?: string;
+}
+
+const clipboardGoldenCases = (JSON.parse(
+  readFileSync(
+    resolve(process.cwd(), "contracts/editor-clipboard-v1-fixtures.json"),
+    "utf8",
+  ),
+) as { goldenCases: ClipboardGoldenCase[] }).goldenCases;
+
+function clipboardGoldenCase(id: string) {
+  const fixture = clipboardGoldenCases.find((item) => item.id === id);
+  if (!fixture) throw new Error(`缺少剪贴板黄金用例：${id}`);
+  return fixture;
+}
 
 function renderEditor(defaultValue = "", ariaLabel?: string, onChange?: (value: string) => void) {
   return render(
@@ -260,7 +285,7 @@ describe("MilkdownEditor 能力分层", () => {
     expect(editor.querySelector("blockquote")).toBeInTheDocument();
   });
 
-  test.each(["- ", "+ ", "* "])("Markdown 快捷输入 %s 创建无序列表", async (marker) => {
+  test.each(["- ", "+ ", "* "])("Markdown 快捷输入 %s 保持字面文本", async (marker) => {
     const user = userEvent.setup();
     const { container } = renderEditor();
     const editor = await getEditor(container);
@@ -268,7 +293,8 @@ describe("MilkdownEditor 能力分层", () => {
     await user.click(editor);
     await user.type(editor, marker);
 
-    expect(editor.querySelector("ul")).toBeInTheDocument();
+    expect(editor).toHaveTextContent(marker.trim());
+    expect(editor.querySelector("ul")).toBeNull();
   });
 
   test("无序列表键盘命令继续作为专家入口", async () => {
@@ -285,43 +311,188 @@ describe("MilkdownEditor 能力分层", () => {
     expect(editor.querySelector("ul")).toBeInTheDocument();
   });
 
-  test("粘贴 Markdown 无序列表时保留列表结构", async () => {
-    const { container } = renderEditor();
-    const editor = await getEditor(container);
-
-    fireEvent.paste(editor, {
-      clipboardData: clipboardData({ text: "- 第一项\n- 第二项" }),
-    });
-
-    await waitFor(() => {
-      expect(editor.querySelector("ul")).toBeInTheDocument();
-      expect(editor.querySelectorAll("li")).toHaveLength(2);
-    });
-  });
-
-  test("粘贴 HTML 无序列表时保留结构和行内格式", async () => {
+  test("粘贴外部 Markdown 无序列表时保持字面文本", async () => {
+    const fixture = clipboardGoldenCase("external-markdown-is-literal");
     const { container } = renderEditor();
     const editor = await getEditor(container);
 
     fireEvent.paste(editor, {
       clipboardData: clipboardData({
-        text: "第一项\n第二项",
-        html: "<ul><li><strong>第一项</strong></li><li>第二项</li></ul>",
+        text: fixture.plainText,
+        html: fixture.html,
       }),
     });
 
     await waitFor(() => {
-      expect(editor.querySelector("ul")).toBeInTheDocument();
-      expect(editor.querySelectorAll("li")).toHaveLength(2);
-      expect(editor.querySelector("strong")).toHaveTextContent("第一项");
+      expect(editor).toHaveTextContent("## 标题");
+      expect(editor).toHaveTextContent("- **项目**");
+      expect(editor.querySelector("h2, ul, li, strong, table")).toBeNull();
     });
   });
 
-  test("粘贴 Markdown 有序列表时保留工具栏内结构", async () => {
+  test("粘贴外部 HTML 无序列表时优先使用纯文本且不保留格式", async () => {
+    const fixture = clipboardGoldenCase("external-html-prefers-visible-text");
+    const { container } = renderEditor();
+    const editor = await getEditor(container);
+
+    fireEvent.paste(editor, {
+      clipboardData: clipboardData({
+        text: fixture.plainText,
+        html: fixture.html,
+      }),
+    });
+
+    await waitFor(() => {
+      for (const line of fixture.expectedText!.split("\n")) {
+        expect(editor).toHaveTextContent(line);
+      }
+      expect(editor.querySelector("h2, ul, li, strong")).toBeNull();
+    });
+  });
+
+  test("外部 HTML 缺少纯文本时只提取可见内容", async () => {
+    const { container } = renderEditor();
+    const editor = await getEditor(container);
+    fireEvent.paste(editor, {
+      clipboardData: clipboardData({
+        html: [
+          "<style>.secret{display:none}</style>",
+          "<script>window.hidden = true</script>",
+          "<h2>可见标题</h2>",
+        ].join(""),
+      }),
+    });
+
+    await waitFor(() => expect(editor).toHaveTextContent("可见标题"));
+    expect(editor).not.toHaveTextContent("display:none");
+    expect(editor).not.toHaveTextContent("window.hidden");
+    expect(editor.querySelector("h2")).toBeNull();
+  });
+
+  test("粘贴外部 Markdown 有序列表时保持字面文本", async () => {
     const { container } = renderEditor();
     const editor = await getEditor(container);
     fireEvent.paste(editor, { clipboardData: clipboardData({ text: "1. 第一项\n2. 第二项" }) });
-    await waitFor(() => expect(editor.querySelector("ol")).toBeInTheDocument());
+    await waitFor(() => expect(editor).toHaveTextContent("1. 第一项"));
+    expect(editor.querySelector("ol, li")).toBeNull();
+  });
+
+  test("粘贴本站 v1 片段时恢复工具栏白名单结构", async () => {
+    const onChange = vi.fn();
+    const first = renderEditor("", undefined, onChange);
+    const { container } = first;
+    const editor = await getEditor(container);
+    fireEvent.paste(editor, {
+      clipboardData: clipboardData({
+        text: "标题\n粗体\n第一项\n第二项",
+        html: [
+          '<div data-wenyou-clipboard="1" data-wenyou-clipboard-source="reader">',
+          "<h2>标题</h2><p><strong>粗体</strong></p>",
+          "<ul><li><p>第一项</p></li><li><p>第二项</p></li></ul>",
+          "</div>",
+        ].join(""),
+      }),
+    });
+
+    await waitFor(() => {
+      expect(editor.querySelector("h2")).toHaveTextContent("标题");
+      expect(editor.querySelector("strong")).toHaveTextContent("粗体");
+      expect(editor.querySelectorAll("li")).toHaveLength(2);
+    });
+
+    const saved = await waitFor(() => {
+      const value = onChange.mock.calls.at(-1)?.[0] as string | undefined;
+      expect(value).toContain("## 标题");
+      expect(value).toContain("**粗体**");
+      expect(value).toMatch(/^[*-] 第一项$/mu);
+      return value!;
+    });
+    first.unmount();
+
+    const reopened = renderEditor(saved);
+    const reopenedEditor = await getEditor(reopened.container);
+    expect(reopenedEditor.querySelector("h2")).toHaveTextContent("标题");
+    expect(reopenedEditor.querySelector("strong")).toHaveTextContent("粗体");
+    expect(reopenedEditor.querySelectorAll("li")).toHaveLength(2);
+  });
+
+  test("编辑器原生复制写出 v1 结构片段且纯文本不泄漏 Markdown 定界符", async () => {
+    const { container } = renderEditor("**站内粗体**");
+    const editor = await getEditor(container);
+    fireEvent.keyDown(editor, { key: "a", code: "KeyA", ctrlKey: true });
+    const written = new Map<string, string>();
+
+    fireEvent.copy(editor, {
+      clipboardData: {
+        clearData: () => written.clear(),
+        setData: (type: string, value: string) => written.set(type, value),
+      },
+    });
+
+    expect(written.get("text/html")).toContain('data-wenyou-clipboard="1"');
+    expect(written.get("text/html")).toContain('data-wenyou-clipboard-source="editor"');
+    expect(written.get("text/html")).toContain("<strong>站内粗体</strong>");
+    expect(written.get("text/plain")).toBe("站内粗体");
+  });
+
+  test("外部 Markdown 保存重开后仍是可见字面文本", async () => {
+    const fixture = clipboardGoldenCase("external-markdown-is-literal");
+    const onChange = vi.fn();
+    const first = renderEditor("", undefined, onChange);
+    const editor = await getEditor(first.container);
+
+    fireEvent.paste(editor, {
+      clipboardData: clipboardData({ text: fixture.plainText }),
+    });
+    const saved = await waitFor(() => {
+      const value = onChange.mock.calls.at(-1)?.[0] as string | undefined;
+      expect(value).toBeTruthy();
+      return value!;
+    });
+    first.unmount();
+
+    const reopened = renderEditor(saved);
+    const reopenedEditor = await getEditor(reopened.container);
+    expect(reopenedEditor).toHaveTextContent("## 标题");
+    expect(reopenedEditor).toHaveTextContent("- **项目**");
+    expect(reopenedEditor).toHaveTextContent("| A | B |");
+    expect(reopenedEditor.querySelector("h2, ul, li, strong, table")).toBeNull();
+  });
+
+  test("未知本站 envelope 版本静默退回可见纯文本", async () => {
+    const fixture = clipboardGoldenCase("invalid-envelope-falls-back-silently");
+    const { container } = renderEditor();
+    const editor = await getEditor(container);
+    fireEvent.paste(editor, {
+      clipboardData: clipboardData({
+        text: fixture.plainText,
+        html: fixture.html,
+      }),
+    });
+    await waitFor(() => expect(editor).toHaveTextContent(fixture.expectedText!));
+    expect(editor.querySelector("strong")).toBeNull();
+  });
+
+  test("共享黄金用例中的单一站内链接继续生成传送门", async () => {
+    const fixture = clipboardGoldenCase("single-internal-url-keeps-portal-exception");
+    const onChange = vi.fn();
+    const { container } = renderEditor("", "正文编辑器", onChange);
+    const editor = await getEditor(container);
+
+    fireEvent.paste(editor, {
+      clipboardData: clipboardData({ text: fixture.plainText }),
+    });
+
+    const portal = await waitFor(() => {
+      const element = editor.querySelector<HTMLAnchorElement>('[data-slot="internal-reference-link"]');
+      expect(element).toBeInTheDocument();
+      return element!;
+    });
+    expect(portal).toHaveAttribute("href", fixture.expectedHref);
+    expect(portal).toHaveTextContent(fixture.expectedLabel!);
+    expect(onChange).toHaveBeenCalledWith(
+      `[${fixture.expectedLabel}](${fixture.expectedHref})`,
+    );
   });
 
   test("单独粘贴邀请链接时立即显示并序列化为传送门", async () => {
@@ -384,14 +555,131 @@ describe("MilkdownEditor 能力分层", () => {
     expect(editor.querySelector("table")).toBeNull();
   });
 
-  test("手动输入 H1 和围栏语法不会创建白名单外节点", async () => {
+  test("外部拖放的 HTML 和站内 URL 都只按可见文字插入", async () => {
+    const { container } = renderEditor();
+    const editor = await getEditor(container);
+    fireEvent.drop(editor, {
+      clientX: 0,
+      clientY: 0,
+      dataTransfer: {
+        files: [],
+        getData: (type: string) => {
+          if (type === "text/plain") {
+            return "https://wenyou.site/threads/cmsewdo0h000x7qv6aa77ll1v";
+          }
+          if (type === "text/html") return "<strong>站内地址</strong>";
+          return "";
+        },
+      },
+    });
+
+    await waitFor(() => {
+      expect(editor).toHaveTextContent(
+        "https://wenyou.site/threads/cmsewdo0h000x7qv6aa77ll1v",
+      );
+    });
+    expect(editor.querySelector("strong, [data-slot='internal-reference-link']")).toBeNull();
+  });
+
+  test("本地文件拖放被消费且不会绕过图片工具栏", async () => {
+    const { container } = renderEditor("原文");
+    const editor = await getEditor(container);
+    fireEvent.drop(editor, {
+      dataTransfer: {
+        files: [new File(["image"], "test.png", { type: "image/png" })],
+        getData: () => "不应插入",
+      },
+    });
+
+    await waitFor(() => expect(editor).toHaveTextContent("原文"));
+    expect(editor).not.toHaveTextContent("不应插入");
+    expect(editor.querySelector("img")).toBeNull();
+  });
+
+  test.each(["paste", "drop"] as const)(
+    "仅含外部图片 HTML 的 %s 被消费且不会绕过图片工具栏",
+    async (eventName) => {
+      const { container } = renderEditor("原文");
+      const editor = await getEditor(container);
+      const transfer = {
+        files: [],
+        getData: (type: string) => type === "text/html"
+          ? '<img src="https://external.example.com/image.png" alt="外部图片">'
+          : "",
+      };
+
+      if (eventName === "paste") {
+        fireEvent.paste(editor, { clipboardData: transfer });
+      } else {
+        fireEvent.drop(editor, { dataTransfer: transfer });
+      }
+
+      await waitFor(() => expect(editor).toHaveTextContent("原文"));
+      expect(editor).not.toHaveTextContent("外部图片");
+      expect(editor.querySelector("img")).toBeNull();
+    },
+  );
+
+  test("带站内 URL 文本的文件粘贴仍被忽略", async () => {
+    const { container } = renderEditor("原文");
+    const editor = await getEditor(container);
+    fireEvent.paste(editor, {
+      clipboardData: {
+        files: [new File(["image"], "test.png", { type: "image/png" })],
+        getData: (type: string) => type === "text/plain"
+          ? "https://wenyou.site/threads/cmsewdo0h000x7qv6aa77ll1v"
+          : "",
+      },
+    });
+
+    await waitFor(() => expect(editor).toHaveTextContent("原文"));
+    expect(editor.querySelector("img, [data-slot='internal-reference-link']")).toBeNull();
+  });
+
+  test("手动输入所有 Markdown 定界符都不会自动创建结构", async () => {
     const user = userEvent.setup();
     const { container } = renderEditor();
     const editor = await getEditor(container);
     await user.click(editor);
-    await user.type(editor, "# 一级标题{Enter}```js ");
-    expect(editor).toHaveTextContent("# 一级标题");
-    expect(editor.querySelector("h1, pre")).toBeNull();
+    await user.type(editor, "## 二级标题{Enter}> 引用{Enter}**粗体** `代码` ~~删除~~ ");
+    expect(editor).toHaveTextContent("## 二级标题");
+    expect(editor).toHaveTextContent("> 引用");
+    expect(editor).toHaveTextContent("**粗体** `代码` ~~删除~~");
+    expect(editor.querySelector("h2, blockquote, strong, code, del")).toBeNull();
+  });
+
+  test("手动输入图片 Markdown 不会绕过工具栏上传", async () => {
+    const user = userEvent.setup();
+    const { container } = renderEditor();
+    const editor = await getEditor(container);
+    await user.click(editor);
+    await user.keyboard("![[外部图片](https://cdn.example.com/not-allowed.png)");
+
+    expect(editor).toHaveTextContent(
+      "![外部图片](https://cdn.example.com/not-allowed.png)",
+    );
+    expect(editor.querySelector("img")).toBeNull();
+  });
+
+  test("标题快捷键只保留工具栏开放的 H2/H3", async () => {
+    const { container } = renderEditor("普通正文");
+    const editor = await getEditor(container);
+
+    fireEvent.keyDown(editor, {
+      key: "1",
+      code: "Digit1",
+      ctrlKey: true,
+      altKey: true,
+    });
+    expect(editor.querySelector("h1")).toBeNull();
+
+    fireEvent.keyDown(editor, {
+      key: "2",
+      code: "Digit2",
+      ctrlKey: true,
+      altKey: true,
+    });
+    expect(editor.querySelector("h2")).toHaveTextContent("普通正文");
   });
 
   test("更多菜单可创建无序列表并保持原选区", async () => {

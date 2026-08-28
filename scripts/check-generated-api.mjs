@@ -22,6 +22,14 @@ const trackedInternalReferenceContract = resolve(
   frontendRoot,
   "contracts/internal-reference-v1-fixtures.json",
 );
+const backendEditorClipboardContract = resolve(
+  frontendRoot,
+  "../wenyousite-backend/contracts/editor-clipboard-v1-fixtures.json",
+);
+const trackedEditorClipboardContract = resolve(
+  frontendRoot,
+  "contracts/editor-clipboard-v1-fixtures.json",
+);
 const trackedTypes = resolve(frontendRoot, "src/api/types.ts");
 const hooksRoot = resolve(frontendRoot, "src/api/hooks");
 const tempRoot = mkdtempSync(join(tmpdir(), "wenyousite-api-contract-"));
@@ -49,6 +57,13 @@ try {
         !== readFileSync(trackedInternalReferenceContract, "utf8")) {
     throw new Error(
       "contracts/internal-reference-v1-fixtures.json 与相邻后端已审核产物不一致；请运行 pnpm contract:sync。",
+    );
+  }
+  if (statSync(backendEditorClipboardContract, { throwIfNoEntry: false })?.isFile() &&
+      readFileSync(backendEditorClipboardContract, "utf8")
+        !== readFileSync(trackedEditorClipboardContract, "utf8")) {
+    throw new Error(
+      "contracts/editor-clipboard-v1-fixtures.json 与相邻后端已审核产物不一致；请运行 pnpm contract:sync。",
     );
   }
   execFileSync(

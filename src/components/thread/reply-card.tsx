@@ -157,6 +157,7 @@ export function ReplyCard({
               `reply-content-${reply.id}`,
               reply.content,
             )}
+            copyContentId={`reply-content-${reply.id}`}
             copyHref={replyHref}
             onEdit={isAuthor ? handleStartEdit : undefined}
             onDelete={canDelete ? () => void handleDelete() : undefined}

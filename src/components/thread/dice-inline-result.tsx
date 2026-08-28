@@ -29,6 +29,7 @@ export function DiceInlineResult({ roll }: DiceInlineResultProps) {
             className="dice-inline dice-inline-result"
             aria-label={describeInlineDiceRoll(roll)}
             data-dice-node-id={roll.nodeId}
+            data-dice-notation={roll.notation}
           />
         }
       >

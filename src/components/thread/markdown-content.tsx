@@ -6,6 +6,7 @@ import {
   isValidElement,
   useState,
   type ComponentProps,
+  type ClipboardEvent as ReactClipboardEvent,
   type ReactNode,
 } from "react";
 import ReactMarkdown, { type ExtraProps } from "react-markdown";
@@ -35,6 +36,11 @@ import { InternalReferenceLink } from "@/components/shared/internal-reference-li
 import { ContentLink } from "@/components/ui/content-link";
 import { DiceInlineResult } from "@/components/thread/dice-inline-result";
 import { remarkRecoverAttentionBoundaries } from "@/lib/markdown-attention";
+import {
+  createReaderSelectionClipboardPayload,
+  setSiteClipboardData,
+  SITE_CLIPBOARD_MEDIA_ATTRIBUTE,
+} from "@/lib/site-clipboard";
 
 /** 新媒体使用 media/ 标准化主图；uploads/ 仅为历史兼容。 */
 function isUploadedMediaUrl(url: string): boolean {
@@ -54,6 +60,7 @@ type ImageProps = ComponentProps<"img"> & ExtraProps;
 type AnchorProps = ComponentProps<"a"> & ExtraProps;
 type SpanProps = ComponentProps<"span"> & ExtraProps & {
   "data-dice-node-id"?: string;
+  "data-dice-notation"?: string;
 };
 
 function getNodeText(node: ReactNode): string {
@@ -138,11 +145,15 @@ function MarkdownImage({ src, alt, title, sourcePostId }: ImageProps & { sourceP
 
   return (
     <>
-      <span className={cn("group/sticker-image relative", sticker ? "mx-0.5 inline-flex align-middle" : "mx-auto my-2 block w-fit max-w-full")}>
+      <span
+        {...{ [SITE_CLIPBOARD_MEDIA_ATTRIBUTE]: sticker ? "sticker" : "image" }}
+        className={cn("group/sticker-image relative", sticker ? "mx-0.5 inline-flex align-middle" : "mx-auto my-2 block w-fit max-w-full")}
+      >
         {/* eslint-disable-next-line @next/next/no-img-element -- COS 远程图 + onError 回退 + lightbox，用原生 img */}
         <img
           src={displaySrc}
           alt={alt ?? ""}
+          {...{ [SITE_CLIPBOARD_MEDIA_ATTRIBUTE]: sticker ? "sticker" : "image" }}
           loading="lazy"
           className={cn(
             "cursor-zoom-in object-contain",
@@ -237,6 +248,7 @@ function remarkInlineDice(rolls: InlineDiceRoll[]) {
                 role: roll ? undefined : "note",
                 ariaLabel: roll ? undefined : describeInlineDicePending(notation),
                 "data-dice-node-id": nodeId,
+                "data-dice-notation": notation,
               },
             },
           });
@@ -330,11 +342,33 @@ export function MarkdownContent({
     recoverLegacyMarkdownEmptyParagraphs(content),
   );
   const diceRollsByNodeId = new Map(diceRolls.map((roll) => [roll.nodeId, roll]));
+  const handleCopy = (event: ReactClipboardEvent<HTMLDivElement>) => {
+    const selection = window.getSelection();
+    const payload = createReaderSelectionClipboardPayload(event.currentTarget, selection);
+    if (payload) {
+      setSiteClipboardData(event.clipboardData, payload);
+    } else if (
+      selection
+      && !selection.isCollapsed
+      && selection.rangeCount === 1
+      && (
+        event.currentTarget.contains(selection.getRangeAt(0).startContainer)
+        || event.currentTarget.contains(selection.getRangeAt(0).endContainer)
+      )
+    ) {
+      event.clipboardData.setData("text/plain", selection.toString());
+    } else {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+  };
 
   return (
     <div
       data-slot="markdown-content"
       data-size={size}
+      onCopy={handleCopy}
       className={cn(
         "prose wenyou-prose prose-headings:text-foreground prose-a:text-brand-strong",
         size === "compact" && "wenyou-prose-compact",

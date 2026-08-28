@@ -83,6 +83,16 @@ function renderEditor(props: React.ComponentProps<typeof MilkdownEditor>) {
   );
 }
 
+function clipboardData(values: { text: string; html: string }) {
+  return {
+    getData: (type: string) => {
+      if (type === "text/plain") return values.text;
+      if (type === "text/html") return values.html;
+      return "";
+    },
+  };
+}
+
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
@@ -226,6 +236,56 @@ describe("MilkdownEditor 自定义内联节点", () => {
     expect(onChange.mock.calls.at(-1)?.[0]).toContain(fixture.serialized);
   });
 
+  test("编辑器复制保留表情节点但纯文本只写可见标签", async () => {
+    const fixture = nodeFixtures.cases.find((item) => item.id === "sticker-round-trip")!;
+    const { container } = renderEditor({ defaultValue: `前 ${fixture.markdown} 后` });
+    const editor = await waitFor(() => {
+      const element = container.querySelector<HTMLElement>(".ProseMirror");
+      expect(element?.querySelector('[data-type="sticker-inline"]')).toBeInTheDocument();
+      return element!;
+    });
+    fireEvent.keyDown(editor, { key: "a", code: "KeyA", ctrlKey: true });
+    const written = new Map<string, string>();
+
+    fireEvent.copy(editor, {
+      clipboardData: {
+        clearData: () => written.clear(),
+        setData: (type: string, value: string) => written.set(type, value),
+      },
+    });
+
+    expect(written.get("text/html")).toContain('data-type="sticker-inline"');
+    expect(written.get("text/html")).toContain('data-asset-id="cm1234567890123456789012"');
+    expect(written.get("text/plain")).toBe("前 [表情] 后");
+    expect(written.get("text/plain")).not.toContain("cdn.example.com");
+  });
+
+  test("编辑器复制保留图片块但纯文本只写图片标签", async () => {
+    const { container } = renderEditor({
+      defaultValue: '![1.50](https://cdn.example.com/images/a.webp "地图")',
+      onUploadImage: vi.fn(),
+    });
+    const editor = await waitFor(() => {
+      const element = container.querySelector<HTMLElement>(".ProseMirror");
+      expect(element?.querySelector('[data-type="image-block"]')).toBeInTheDocument();
+      return element!;
+    });
+    fireEvent.keyDown(editor, { key: "a", code: "KeyA", ctrlKey: true });
+    const written = new Map<string, string>();
+
+    fireEvent.copy(editor, {
+      clipboardData: {
+        clearData: () => written.clear(),
+        setData: (type: string, value: string) => written.set(type, value),
+      },
+    });
+
+    expect(written.get("text/html")).toContain('data-type="image-block"');
+    expect(written.get("text/html")).toContain('caption="地图"');
+    expect(written.get("text/plain")).toBe("[图片]");
+    expect(written.get("text/plain")).not.toContain("cdn.example.com");
+  });
+
   test("插入收藏表情后立即同步版本化 Markdown", async () => {
     const onChange = vi.fn();
     renderEditor({ defaultValue: "正文", onChange });
@@ -256,6 +316,105 @@ describe("MilkdownEditor 自定义内联节点", () => {
 
     expect(onChange).toHaveBeenCalled();
     expect(onChange.mock.calls.at(-1)?.[0]).toContain("[@小明](/users/user-2)");
+  });
+
+  test("阅读态片段粘贴保留原子语义、媒体标签化且骰子生成新身份", async () => {
+    const oldDiceId = "550e8400-e29b-41d4-a716-446655440000";
+    const onChange = vi.fn();
+    const { container } = renderEditor({
+      defaultValue: "",
+      onChange,
+      threadId: "thread-1",
+    });
+    const editor = await waitFor(() => {
+      const element = container.querySelector<HTMLElement>(".ProseMirror");
+      expect(element).toBeInTheDocument();
+      return element!;
+    });
+
+    fireEvent.paste(editor, {
+      clipboardData: clipboardData({
+        text: "传送门 @张三 @全体玩家 1d20+2 = ? [表情] [图片]",
+        html: [
+          '<div data-wenyou-clipboard="1" data-wenyou-clipboard-source="reader">',
+          '<p><a href="/threads/cmsewdo0h000x7qv6aa77ll1v">传送门</a> ',
+          '<a href="/users/user-zhang">@张三</a> @全体玩家 ',
+          `<span data-type="dice_inline" data-node-id="${oldDiceId}" data-notation="1d20+2">1d20+2 = 99</span> `,
+          "[表情] [图片]</p></div>",
+        ].join(""),
+      }),
+    });
+
+    const dice = await waitFor(() => {
+      const element = editor.querySelector<HTMLElement>('[data-type="dice_inline"]');
+      expect(element).toBeInTheDocument();
+      return element!;
+    });
+    expect(editor.querySelector('[data-slot="internal-reference-link"]'))
+      .toHaveTextContent("传送门");
+    expect(editor.querySelector('[data-slot="mention-link"]')).toHaveTextContent("@张三");
+    expect(editor).toHaveTextContent("@全体玩家");
+    expect(editor).toHaveTextContent("[表情] [图片]");
+    expect(editor.querySelector("img")).toBeNull();
+    expect(dice.dataset.nodeId).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu,
+    );
+    expect(dice.dataset.nodeId).not.toBe(oldDiceId);
+    expect(dice).toHaveTextContent("1d20+2 = ?");
+
+    await waitFor(() => {
+      const markdown = onChange.mock.calls.at(-1)?.[0] as string | undefined;
+      expect(markdown).toContain("[传送门](/threads/cmsewdo0h000x7qv6aa77ll1v)");
+      expect(markdown).toContain("[@张三](/users/user-zhang)");
+      expect(markdown).toContain("@全体玩家");
+      expect(markdown).toContain(
+        `[[dice:v1:${dice.dataset.nodeId}:1d20+2]]`,
+      );
+      expect(markdown).toContain("\\[表情] \\[图片]");
+      expect(markdown).not.toContain(oldDiceId);
+      expect(markdown).not.toContain("1d20+2 = 99");
+    });
+  });
+
+  test("编辑器来源片段粘贴继续保留表情与站内图片节点", async () => {
+    const onChange = vi.fn();
+    const { container } = renderEditor({
+      defaultValue: "",
+      onChange,
+      onUploadImage: vi.fn(),
+    });
+    const editor = await waitFor(() => {
+      const element = container.querySelector<HTMLElement>(".ProseMirror");
+      expect(element).toBeInTheDocument();
+      return element!;
+    });
+
+    fireEvent.paste(editor, {
+      clipboardData: clipboardData({
+        text: "前 [表情] 后\n\n[图片]",
+        html: [
+          '<div data-wenyou-clipboard="1" data-wenyou-clipboard-source="editor">',
+          '<p>前 <img data-type="sticker-inline" data-asset-id="cm1234567890123456789012" ',
+          'src="https://cdn.example.com/stickers/a.webp" alt="表情"> 后</p>',
+          '<img data-type="image-block" src="https://cdn.example.com/images/a.webp" ',
+          'caption="地图" ratio="1.5"></div>',
+        ].join(""),
+      }),
+    });
+
+    await waitFor(() => {
+      expect(editor.querySelector('img[data-type="sticker-inline"]')).toBeInTheDocument();
+      expect(editor.querySelector('img[data-type="image-block"]')).toBeInTheDocument();
+    });
+    const markdown = await waitFor(() => {
+      const markdown = onChange.mock.calls.at(-1)?.[0] as string | undefined;
+      expect(markdown).toContain(
+        '![表情](https://cdn.example.com/stickers/a.webp "wenyousite-sticker:v1:cm1234567890123456789012")',
+      );
+      expect(markdown).toContain("![1.50](https://cdn.example.com/images/a.webp \"地图\")");
+      return markdown!;
+    });
+    expect(markdown).toBeTruthy();
   });
 
   test("工具栏图片上传完成后立即同步 Markdown", async () => {

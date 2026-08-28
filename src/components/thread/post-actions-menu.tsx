@@ -12,12 +12,17 @@ import {
 } from "@/components/admin/admin-content-moderation-dialog";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
+import {
+  createReaderClipboardPayload,
+  writeSiteClipboardPayload,
+} from "@/lib/site-clipboard";
 import { cn } from "@/lib/utils";
 
 interface PostActionsMenuProps {
   triggerLabel: string;
   menuLabel: string;
   copyText: () => string;
+  copyContentId?: string;
   copyHref: string;
   onEdit?: () => void;
   onDelete?: () => void;
@@ -37,6 +42,23 @@ async function copyToClipboard(value: string, successMessage: string) {
   }
 }
 
+async function copyContentToClipboard(elementId: string | undefined, fallback: string) {
+  const container = elementId ? document.getElementById(elementId) : null;
+  const content = container?.matches('[data-slot="markdown-content"]')
+    ? container
+    : container?.querySelector<HTMLElement>('[data-slot="markdown-content"]');
+  try {
+    if (content) {
+      await writeSiteClipboardPayload(createReaderClipboardPayload(content));
+    } else {
+      await navigator.clipboard.writeText(fallback);
+    }
+    toast.success("内容已复制");
+  } catch {
+    toast.error("复制失败，请稍后重试");
+  }
+}
+
 export function getVisibleContentText(elementId: string, fallback: string) {
   const contentElement = document.getElementById(elementId);
   return (contentElement?.innerText ?? "").trim()
@@ -48,6 +70,7 @@ export function PostActionsMenu({
   triggerLabel,
   menuLabel,
   copyText,
+  copyContentId,
   copyHref,
   onEdit,
   onDelete,
@@ -84,10 +107,10 @@ export function PostActionsMenu({
             >
             <Menu.Item
               className={menuItemClassName}
-              onClick={() => void copyToClipboard(copyText(), "文本已复制")}
+              onClick={() => void copyContentToClipboard(copyContentId, copyText())}
             >
               <Copy className="size-4" aria-hidden="true" />
-              复制文本
+              复制内容
             </Menu.Item>
             <Menu.Item
               className={menuItemClassName}
