@@ -26,8 +26,8 @@ if (packageJson.dependencies?.["@wenyousite/foundation"] !== `github:morenk/weny
 if (manifest.version !== lock.version) failures.push("已安装 foundation 版本与锁文件不一致");
 if (manifest.contractSha256 !== lock.contractSha256) failures.push("已安装 foundation 契约哈希与锁文件不一致");
 if (!read("pnpm-lock.yaml").includes(lock.revision)) failures.push("pnpm-lock.yaml 未锁定指定 foundation revision");
-if (foundationContract.version !== "6.5.1" || foundationContract.schemaVersion !== 2) {
-  failures.push("Web 必须消费 Foundation v6.5.1 schema 2 契约");
+if (foundationContract.version !== "6.6.0" || foundationContract.schemaVersion !== 2) {
+  failures.push("Web 必须消费 Foundation v6.6.0 schema 2 契约");
 }
 if (!manifest.features?.themes || !manifest.features?.typography || !manifest.features?.interaction || !manifest.features?.controls || !manifest.features?.formatting || !manifest.features?.contentPresentation || !manifest.features?.iconControls || !manifest.features?.navigation || !manifest.features?.language || !manifest.features?.elements || !manifest.features?.brand) {
   failures.push("已安装 Foundation 缺少共享语义能力");
@@ -124,7 +124,7 @@ for (const claim of ["--type-body-size", "--type-body-line-height"]) {
   if (!globalStyles.includes(`var(${claim})`)) failures.push(`globals.css 未消费语义排版 Token ${claim}`);
 }
 const foundationTokens = read("node_modules/@wenyousite/foundation/web/tokens.css");
-for (const token of ["--action-primary", "--action-primary-foreground", "--image-viewer-backdrop", "--type-page-title-size", "--overlay-scrim", "--layer-modal", "--layer-global-progress", "--like", "--bookmark", "--icon-control-state-layer-color", "--icon-control-state-layer-radius", "--icon-control-hover-state-opacity", "--icon-control-focus-state-opacity", "--icon-control-pressed-state-opacity", "--icon-control-disabled-content-opacity", "--element-internal-reference-surface", "--element-badge-default-height", "--element-level-mist-surface", "--element-level-berry-surface", "--element-quote-foreground", "--element-quote-surface", "--element-quote-marker", "--element-quote-marker-width", "--element-quote-radius", "--element-quote-font-weight", "--element-quote-padding-block", "--element-quote-padding-inline"]) {
+for (const token of ["--action-primary", "--action-primary-foreground", "--image-viewer-backdrop", "--type-page-title-size", "--overlay-scrim", "--layer-modal", "--layer-global-progress", "--like", "--bookmark", "--icon-control-state-layer-color", "--icon-control-state-layer-radius", "--icon-control-hover-state-opacity", "--icon-control-focus-state-opacity", "--icon-control-pressed-state-opacity", "--icon-control-disabled-content-opacity", "--element-internal-reference-surface", "--element-badge-default-height", "--element-level-mist-surface", "--element-level-berry-surface", "--element-quote-foreground", "--element-quote-surface", "--element-quote-marker", "--element-quote-marker-width", "--element-quote-radius", "--element-quote-font-weight", "--element-quote-padding-block", "--element-quote-padding-inline", "--element-divider-color", "--element-divider-width", "--element-divider-inline-size", "--element-divider-marker", "--element-divider-marker-size", "--element-divider-spacing-block"]) {
   if (!foundationTokens.includes(`${token}:`)) failures.push(`Foundation Web Token 缺少 ${token}`);
 }
 if (!foundationTokens.includes('[data-theme="dark"]') || !foundationTokens.includes("prefers-color-scheme: dark")) {
@@ -172,6 +172,19 @@ if (JSON.stringify(quoteContract) !== JSON.stringify({
   shadow: "none",
 })) {
   failures.push("Foundation 缺少统一的书签纸条引用契约");
+}
+const dividerContract = foundationContract.experiences.elements?.block?.divider;
+if (JSON.stringify(dividerContract) !== JSON.stringify({
+  color: "border",
+  widthPx: 1,
+  layout: "centered-short-line-with-dot",
+  alignment: "center",
+  inlineSizeEm: 5,
+  marker: "brandStrong",
+  markerDiameterPx: 5,
+  outerSpacingEm: 1.75,
+})) {
+  failures.push("Foundation 缺少区分正文停顿与满宽内容边界的分隔线契约");
 }
 if (
   foundationContract.experiences.elements?.inline?.internalReference?.icon !== "content.internal-reference"
@@ -221,6 +234,11 @@ if (!editorHost.includes("editorIconSvg") || /const\s+(?:DRAFT|DICE|MORE)_ICON/.
 const editorStyles = read("src/components/editor/milkdown-editor.css");
 if (!/svg\.lucide\s*\{[^}]*fill:\s*none;[^}]*stroke:\s*currentColor;/su.test(editorStyles)) {
   failures.push("Milkdown 必须覆盖 Crepe 的实心 fill，保持 Foundation Lucide 无填充描边");
+}
+for (const token of ["--element-divider-inline-size", "--element-divider-marker-size", "--element-divider-spacing-block", "--element-divider-width", "--element-divider-color", "--element-divider-marker"]) {
+  if (!globalStyles.includes(`var(${token})`) || !editorStyles.includes(`var(${token})`)) {
+    failures.push(`正文阅读态与编辑态必须共同消费 ${token}`);
+  }
 }
 
 const foundationNotificationTypes = foundationContract.experiences.notifications.groups

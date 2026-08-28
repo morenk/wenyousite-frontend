@@ -18,6 +18,13 @@ function getRule(css: string, selector: string): string {
   return end < 0 ? "" : css.slice(start, end + 1);
 }
 
+function getLastRule(css: string, selector: string): string {
+  const start = css.lastIndexOf(`${selector} {`);
+  if (start < 0) return "";
+  const end = css.indexOf("}", start);
+  return end < 0 ? "" : css.slice(start, end + 1);
+}
+
 describe("编辑器正文字体", () => {
   test("编辑态与发布态的斜体使用倾斜样式而非展示字体", () => {
     const editorItalic = getRule(editorCss, ".milkdown .ProseMirror em");
@@ -132,5 +139,30 @@ describe("编辑器正文字体", () => {
       .toContain("padding-block-start: 0");
     expect(getRule(editorCss, ".milkdown .ProseMirror blockquote > :last-child"))
       .toContain("padding-block-end: 0");
+  });
+
+  test("编辑态与发布态的正文分隔线均为居中短线圆点", () => {
+    for (const [css, selector] of [
+      [editorCss, ".milkdown .ProseMirror hr"],
+      [globalCss, ".wenyou-prose hr"],
+    ] as const) {
+      const divider = getRule(css, selector);
+      const generated = getRule(css, `${selector}::before,\n${selector}::after`);
+      const line = getRule(css, `${selector}::before`);
+      const marker = getLastRule(css, `${selector}::after`);
+
+      expect(divider).toContain("inline-size: min(var(--element-divider-inline-size), 100%)");
+      expect(divider).toContain("block-size: var(--element-divider-marker-size)");
+      expect(divider).toContain("margin-block: var(--element-divider-spacing-block)");
+      expect(divider).toContain("margin-inline: auto");
+      expect(divider).toContain("border: 0");
+      expect(generated).toContain('content: ""');
+      expect(line).toContain("block-size: var(--element-divider-width)");
+      expect(line).toContain("background: var(--element-divider-color)");
+      expect(marker).toContain("inline-size: var(--element-divider-marker-size)");
+      expect(marker).toContain("background: var(--element-divider-marker)");
+      expect(marker).toContain("border-radius: 50%");
+      expect(divider).not.toContain("solid var(--border)");
+    }
   });
 });

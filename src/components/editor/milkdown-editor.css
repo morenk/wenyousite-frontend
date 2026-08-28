@@ -142,8 +142,39 @@
 }
 
 .milkdown .ProseMirror hr {
+  position: relative;
+  overflow: visible;
+  inline-size: min(var(--element-divider-inline-size), 100%);
+  block-size: var(--element-divider-marker-size);
+  margin-block: var(--element-divider-spacing-block);
+  margin-inline: auto;
   border: 0;
-  border-block-start: var(--element-divider-width) solid var(--border);
+  background: transparent;
+}
+
+.milkdown .ProseMirror hr::before,
+.milkdown .ProseMirror hr::after {
+  position: absolute;
+  pointer-events: none;
+  content: "";
+}
+
+.milkdown .ProseMirror hr::before {
+  inset-block-start: 50%;
+  inset-inline: 0;
+  block-size: var(--element-divider-width);
+  background: var(--element-divider-color);
+  transform: translateY(-50%);
+}
+
+.milkdown .ProseMirror hr::after {
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  inline-size: var(--element-divider-marker-size);
+  block-size: var(--element-divider-marker-size);
+  border-radius: 50%;
+  background: var(--element-divider-marker);
+  transform: translate(-50%, -50%);
 }
 
 /* 历史代码节点即使短暂存在，也不得扩大编辑器。 */

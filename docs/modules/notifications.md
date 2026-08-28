@@ -41,7 +41,7 @@
 
 > `NotificationType`：reply / mention / new_post / thread_created / follow / like / tip / level_up / system。旧类型 `new_floor` / `subthread_created` 后端自动映射为 `new_post`。
 
-通知筛选分组由 [`foundation.lock.json`](../../foundation.lock.json) 固定的 Foundation v6.5.1 契约中 `experiences.notifications` 定义，Web 直接消费生成产物，不在业务组件复制名称和成员：
+通知筛选分组由 [`foundation.lock.json`](../../foundation.lock.json) 固定的 Foundation v6.6.0 契约中 `experiences.notifications` 定义，Web 直接消费生成产物，不在业务组件复制名称和成员：
 
 | 分组 | 类型 |
 |------|------|

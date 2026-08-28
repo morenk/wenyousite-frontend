@@ -147,6 +147,15 @@ describe("MarkdownContent", () => {
     expect(quote?.querySelector("svg")).toBeNull();
   });
 
+  test("分隔线保留原生 thematic break 语义且不生成可见文字", () => {
+    render(<MarkdownContent content={"上文\n\n---\n\n下文"} />);
+
+    const separator = screen.getByRole("separator");
+    expect(separator.tagName).toBe("HR");
+    expect(separator).toBeEmptyDOMElement();
+    expect(separator.querySelector("svg")).toBeNull();
+  });
+
   test("站内链接统一渲染为同页传送门，名称可自定义", () => {
     const threadId = "cmsewdo0h000x7qv6aa77ll1v";
     render(<MarkdownContent content={`参见 [设定 A](/threads/${threadId})`} />);
