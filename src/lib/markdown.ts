@@ -465,7 +465,21 @@ export function literalizeUnsupportedMarkdown(markdown: string): string {
 
 /** 发布、暂存和阅读前统一规范化，并无提示地把白名单外结构降为字面文本。 */
 export function sanitizeMilkdownMarkdown(markdown: string): string {
-  return literalizeUnsupportedMarkdown(markdown);
+  let sanitized = normalizeMilkdownMarkdown(markdown);
+  const maxPasses = sanitized.split("\n").length + 1;
+
+  for (let pass = 0; pass < maxPasses; pass++) {
+    if (findUnsupportedMarkdownFormats(sanitized).length === 0) return sanitized;
+    const next = literalizeUnsupportedMarkdown(sanitized);
+    if (next === sanitized) return sanitized;
+    sanitized = next;
+  }
+
+  // 防御性终点：理论上每轮至少消除一处结构；若未来解析器引入循环，整段按字面保留。
+  return sanitized
+    .split("\n")
+    .map(escapeLiteralLine)
+    .join("\n\n");
 }
 
 const IMAGE_RE = /!\[[^\]]*\]\(\s*[^)\s]+[^)]*\)/;

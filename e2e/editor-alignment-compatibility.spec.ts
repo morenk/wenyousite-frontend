@@ -558,16 +558,16 @@ test.describe("编辑器对齐真实浏览器兼容性", () => {
     await expect(reader.getByRole("note", { name: /骰子 1d20/u })).toBeVisible();
   });
 
-  test("宽窄 PC 容器中的工具栏密度、更多菜单和键盘路径保持可用", async ({
+  test("宽窄 PC 容器中的工具栏密度、更多菜单和指针路径保持可用", async ({
     page,
   }) => {
-    const harness = await mockAlignmentWorkspace(page, "键盘与密度测试");
+    const harness = await mockAlignmentWorkspace(page, "指针与密度测试");
     await openFreshThreadDraft(page);
     void harness;
 
     const host = page.locator(".milkdown-editor").first();
     const editor = host.locator(".ProseMirror");
-    const paragraph = editorParagraph(editor, "键盘与密度测试");
+    const paragraph = editorParagraph(editor, "指针与密度测试");
     const toolbar = page.getByRole("toolbar", { name: "正文格式工具栏" });
 
     await host.evaluate((element) => {
@@ -576,6 +576,11 @@ test.describe("编辑器对齐真实浏览器兼容性", () => {
     await expect(toolbar).toHaveAttribute("data-editor-density", "expanded");
     await expect(toolbar.locator('[data-editor-tool="alignment"]')).toBeVisible();
     await expect(toolbar.getByRole("button", { name: "更多" })).toHaveCount(0);
+    for (const control of await toolbar.locator(
+      ".top-bar-heading-button, .top-bar-item",
+    ).all()) {
+      await expect(control).toHaveAttribute("tabindex", "-1");
+    }
     let metrics = await visibleToolbarMetrics(toolbar);
     expect(metrics.topSpread).toBeLessThanOrEqual(4);
     expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.clientWidth + 1);
@@ -591,7 +596,6 @@ test.describe("编辑器对齐真实浏览器兼容性", () => {
     await more.click();
     const menu = page.getByRole("menu", { name: "更多正文格式" });
     await expect(menu).toBeVisible();
-    await expect(menu).toBeFocused();
     await expect(more).toHaveAttribute("aria-expanded", "true");
     const alignmentGroup = menu.getByRole("group", { name: "段落对齐" });
     for (const label of ["左对齐", "居中对齐", "右对齐"]) {
@@ -610,37 +614,28 @@ test.describe("编辑器对齐真实浏览器兼容性", () => {
         width: button.offsetWidth,
         height: button.offsetHeight,
         label: button.getAttribute("aria-label"),
+        tabIndex: button.tabIndex,
       })),
     }));
     expect(menuMetrics.width).toBeLessThanOrEqual(320);
     expect(menuMetrics.buttons.length).toBeGreaterThanOrEqual(6);
     expect(menuMetrics.buttons.every(({ label }) => Boolean(label))).toBe(true);
+    expect(menuMetrics.buttons.every(({ tabIndex }) => tabIndex === -1)).toBe(true);
     expect(Math.min(...menuMetrics.buttons.map(({ width }) => width)))
       .toBeGreaterThanOrEqual(36);
     expect(Math.min(...menuMetrics.buttons.map(({ height }) => height)))
       .toBeGreaterThanOrEqual(36);
 
-    let focusedCenter = false;
-    for (let index = 0; index < 12; index += 1) {
-      await page.keyboard.press("Tab");
-      focusedCenter = await page.evaluate(() =>
-        document.activeElement?.getAttribute("aria-label") === "居中对齐",
-      );
-      if (focusedCenter) break;
-    }
-    expect(focusedCenter).toBe(true);
+    const centerOption = alignmentGroup.getByRole("menuitemradio", {
+      name: "居中对齐",
+    });
+    await centerOption.hover();
     await expect(
       page.getByRole("tooltip", { name: "居中对齐", exact: true }),
     ).toBeVisible();
-    await page.keyboard.press("Space");
+    await centerOption.click();
     await expect(menu).toHaveCount(0);
     await expectBlockAlignment(paragraph, "center");
-    await expect(editor).toBeFocused();
-
-    await more.click();
-    await expect(menu).toBeFocused();
-    await page.keyboard.press("Escape");
-    await expect(menu).toHaveCount(0);
     await expect(editor).toBeFocused();
 
     metrics = await visibleToolbarMetrics(toolbar);
@@ -656,6 +651,7 @@ test.describe("编辑器对齐真实浏览器兼容性", () => {
     metrics = await visibleToolbarMetrics(toolbar);
     expect(metrics.visibleCount).toBe(5);
     expect(metrics.topSpread).toBeLessThanOrEqual(4);
+    expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.clientWidth + 1);
     expect(metrics.leftOverflow).toBeGreaterThanOrEqual(-1);
     expect(metrics.rightOverflow).toBeLessThanOrEqual(1);
 

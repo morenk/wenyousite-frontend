@@ -135,6 +135,17 @@ function appendEditorImage(source: Element, target: Node): boolean {
   return true;
 }
 
+function containsProjectedRegularImage(source: Element): boolean {
+  return [source, ...source.querySelectorAll("img, [data-wenyou-clipboard-media]")]
+    .some((element) => {
+      const media = element.getAttribute(SITE_CLIPBOARD_MEDIA_ATTRIBUTE);
+      if (media === "image") return true;
+      if (element.tagName.toUpperCase() !== "IMG") return false;
+      return media !== "sticker"
+        && element.getAttribute("data-type") !== STICKER_INLINE_NODE_NAME;
+    });
+}
+
 function appendNormalizedNode(
   source: Node,
   target: Node,
@@ -248,9 +259,10 @@ function appendNormalizedNode(
     target.nodeType === Node.ELEMENT_NODE
     && (target as Element).hasAttribute(SITE_CLIPBOARD_VERSION_ATTRIBUTE)
     && (normalizedTag === "p" || normalizedTag === "h2" || normalizedTag === "h3");
-  const hasRegularImage = Array.from(normalized.querySelectorAll("img")).some(
-    (image) => image.getAttribute("data-type") !== STICKER_INLINE_NODE_NAME,
-  );
+  const hasRegularImage = containsProjectedRegularImage(element)
+    || Array.from(normalized.querySelectorAll("img")).some(
+      (image) => image.getAttribute("data-type") !== STICKER_INLINE_NODE_NAME,
+    );
   const hasAlignableContent = Boolean(
     normalized.textContent?.trim()
     || normalized.querySelector(`img[data-type="${STICKER_INLINE_NODE_NAME}"]`),

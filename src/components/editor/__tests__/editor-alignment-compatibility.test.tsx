@@ -308,6 +308,26 @@ describe("Milkdown 段落对齐兼容性", () => {
     }
   });
 
+  test("P/H2/H3 × 五种内联样式从已保存标记重开后恢复左右对齐", async () => {
+    enableMarkdownVersion(4);
+    const source = styleMatrix.map((item, index) => {
+      const alignment = index % 2 === 0 ? "center" : "right";
+      return `[wenyousite-align-v1-${alignment}]: #\n${item.markdown}`;
+    }).join("\n\n");
+    const { container } = renderEditor({ defaultValue: source });
+    const editor = await getEditor(container);
+
+    for (const [index, item] of styleMatrix.entries()) {
+      const block = Array.from(editor.querySelectorAll<HTMLElement>(item.blockSelector))
+        .find((candidate) => candidate.textContent === item.label);
+      expect(block, item.label).toHaveAttribute(
+        "data-wenyou-align",
+        index % 2 === 0 ? "center" : "right",
+      );
+      expect(block?.querySelector(item.markSelector)).toHaveTextContent(item.label);
+    }
+  });
+
   test.each(["format-first", "alignment-first"] as const)(
     "%s：粗体与对齐的操作顺序不改变最终结构",
     async (order) => {
@@ -606,6 +626,27 @@ describe("Milkdown 段落对齐兼容性", () => {
     });
   });
 
+  test("伪造 v2 中被投影为占位文字的普通图片不能继承块对齐", async () => {
+    const onChange = vi.fn();
+    const { container } = renderEditor({ defaultValue: "", onChange });
+    const editor = await getEditor(container);
+    fireEvent.paste(editor, {
+      clipboardData: clipboardData({
+        text: "[图片]",
+        html: [
+          '<div data-wenyou-clipboard="2" data-wenyou-clipboard-source="reader">',
+          '<p data-wenyou-align="center">',
+          '<img data-wenyou-clipboard-media="image" src="https://cdn.example.com/forged.webp">',
+          "</p></div>",
+        ].join(""),
+      }),
+    });
+
+    await waitFor(() => expect(editor).toHaveTextContent("[图片]"));
+    expect(editor.querySelector("[data-wenyou-align]")).toBeNull();
+    expect(onChange.mock.calls.at(-1)?.[0]).not.toContain("wenyousite-align");
+  });
+
   test.each([
     {
       label: "v1 envelope",
@@ -628,13 +669,16 @@ describe("Milkdown 段落对齐兼容性", () => {
     expect(onChange.mock.calls.at(-1)?.[0]).not.toContain("wenyousite-align");
   });
 
-  test("窄栏三枚 radio 具有完整 ARIA 状态并支持键盘选择", async () => {
+  test("工具栏仅接受指针操作，窄栏三枚 radio 仍保留完整 ARIA 状态", async () => {
     enableMarkdownVersion(4);
     const user = userEvent.setup();
-    const { container } = renderEditor({ defaultValue: "键盘正文" });
+    const { container } = renderEditor({ defaultValue: "指针正文" });
     const editor = await getEditor(container);
     const toolbar = await screen.findByRole("toolbar", { name: "正文格式工具栏" });
     await user.click(editor.querySelector("p")!);
+    for (const control of within(toolbar).getAllByRole("button")) {
+      expect(control).toHaveAttribute("tabindex", "-1");
+    }
     await makeToolbarCompact(toolbar);
     fireEvent.pointerDown(within(toolbar).getByRole("button", { name: "更多" }));
 
@@ -646,9 +690,11 @@ describe("Milkdown 段落对齐兼容性", () => {
     expect(left).toHaveAttribute("aria-checked", "true");
     expect(center).toHaveAttribute("aria-checked", "false");
     expect(right).toHaveAttribute("aria-checked", "false");
+    expect(left).toHaveAttribute("tabindex", "-1");
+    expect(center).toHaveAttribute("tabindex", "-1");
+    expect(right).toHaveAttribute("tabindex", "-1");
 
-    center.focus();
-    await user.keyboard("{Enter}");
+    await user.click(center);
     await waitFor(() => {
       expect(editor.querySelector("p")).toHaveAttribute("data-wenyou-align", "center");
       expect(screen.queryByRole("menu", { name: "更多正文格式" })).toBeNull();
@@ -673,6 +719,23 @@ describe("Milkdown 段落对齐兼容性", () => {
         <MilkdownEditor defaultValue="动态只读正文" disabled onChange={onChange} />
       </QueryClientProvider>,
     );
+
+    await waitFor(() => expect(editor).toHaveAttribute("contenteditable", "false"));
+    expect(screen.queryByRole("toolbar", { name: "正文格式工具栏" })).toBeNull();
+    expect(screen.getByRole("button", { name: "测试表情" })).toBeDisabled();
+    fireEvent.keyDown(editor, { key: "a", code: "KeyA" });
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  test("初始禁用在异步创建完成时立即关闭正文输入和格式入口", async () => {
+    enableMarkdownVersion(4);
+    const onChange = vi.fn();
+    const { container } = renderEditor({
+      defaultValue: "初始只读正文",
+      disabled: true,
+      onChange,
+    });
+    const editor = await getEditor(container);
 
     await waitFor(() => expect(editor).toHaveAttribute("contenteditable", "false"));
     expect(screen.queryByRole("toolbar", { name: "正文格式工具栏" })).toBeNull();

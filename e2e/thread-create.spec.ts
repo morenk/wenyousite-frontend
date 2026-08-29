@@ -83,7 +83,7 @@ test.describe("主题帖创建流程", () => {
 
     await expect(toolbar).toHaveAttribute(
       "data-editor-density",
-      /^(?:with-more|without-draft|compact)$/u,
+      "compact",
     );
 
     const metrics = await toolbar.evaluate((element) => ({

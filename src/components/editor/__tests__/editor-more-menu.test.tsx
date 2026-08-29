@@ -39,7 +39,7 @@ afterEach(() => {
 });
 
 describe("EditorMoreMenu", () => {
-  test("扁平展示，打开仅聚焦托盘并保留标准 Tab 访问", async () => {
+  test("扁平展示且所有能力仅接受指针操作", async () => {
     const onSelect = vi.fn();
     const { anchor, measure } = createAnchor();
     render(
@@ -65,13 +65,16 @@ describe("EditorMoreMenu", () => {
     expect(within(menu).queryByText("链接")).toBeNull();
     await waitFor(() => expect(menu).toHaveFocus());
     expect(screen.getByRole("menuitem", { name: "行内代码" })).not.toHaveFocus();
+    for (const item of menu.querySelectorAll(
+      '[role="menuitem"], [role="menuitemradio"]',
+    )) {
+      expect(item).toHaveAttribute("tabindex", "-1");
+    }
 
     fireEvent.keyDown(menu, { key: "ArrowDown" });
     expect(menu).toHaveFocus();
 
     const user = userEvent.setup();
-    await user.tab();
-    expect(screen.getByRole("menuitem", { name: "行内代码" })).toHaveFocus();
     await user.hover(screen.getByRole("menuitem", { name: "链接" }));
     expect(await screen.findByText("链接")).toBeVisible();
     await user.unhover(screen.getByRole("menuitem", { name: "链接" }));

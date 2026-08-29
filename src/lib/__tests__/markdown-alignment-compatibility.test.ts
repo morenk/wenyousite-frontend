@@ -768,15 +768,24 @@ describe("字符串协议、兼容净化与幂等", () => {
     expect(sanitizeMilkdownMarkdown(sanitized)).toBe(sanitized);
   });
 
-  test("合法标记与协议外 HTML/CSS 组合最终收敛为安全字面文本", () => {
+  test("合法标记与协议外 HTML/CSS 组合一次净化即收敛为安全字面文本", () => {
     const input = `${CENTER_MARKER}\n<span style="text-align:right">正文</span>`;
-    const firstPass = sanitizeMilkdownMarkdown(input);
-    const fixedPoint = sanitizeMilkdownMarkdown(firstPass);
+    const sanitized = sanitizeMilkdownMarkdown(input);
 
-    expect(firstPass).toContain("\\<span");
-    expect(fixedPoint).toContain("wenyousite\\-align\\-v1\\-center");
-    expect(fixedPoint).toContain("\\<span");
-    expect(findUnsupportedMarkdownFormats(fixedPoint)).toEqual([]);
-    expect(sanitizeMilkdownMarkdown(fixedPoint)).toBe(fixedPoint);
+    expect(sanitized).toContain("wenyousite\\-align\\-v1\\-center");
+    expect(sanitized).toContain("\\<span");
+    expect(findUnsupportedMarkdownFormats(sanitized)).toEqual([]);
+    expect(sanitizeMilkdownMarkdown(sanitized)).toBe(sanitized);
+  });
+
+  test("合法标记与显式硬换行组合一次净化即收敛为安全字面文本", () => {
+    const input = `${RIGHT_MARKER}\n正文  \n下一行`;
+    const sanitized = sanitizeMilkdownMarkdown(input);
+
+    expect(sanitized).toContain("wenyousite\\-align\\-v1\\-right");
+    expect(sanitized).toContain("正文");
+    expect(sanitized).toContain("下一行");
+    expect(findUnsupportedMarkdownFormats(sanitized)).toEqual([]);
+    expect(sanitizeMilkdownMarkdown(sanitized)).toBe(sanitized);
   });
 });

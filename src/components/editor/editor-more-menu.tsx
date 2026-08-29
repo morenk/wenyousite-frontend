@@ -40,7 +40,7 @@ const iconButtonClassName = cn(
   "hover:bg-accent/60 hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring/30 active:scale-[0.96]",
 );
 
-/** PC 编辑器的纯图标次级工具托盘；文字名称只在悬浮或键盘聚焦时出现。 */
+/** PC 编辑器的纯图标次级工具托盘；工具仅接受指针选择，文字名称在悬浮时出现。 */
 export function EditorMoreMenu({
   anchor,
   items,
@@ -109,6 +109,7 @@ export function EditorMoreMenu({
                           <Tooltip key={option} content={label}>
                             <button
                               type="button"
+                              tabIndex={-1}
                               role="menuitemradio"
                               aria-label={label}
                               aria-checked={alignment === option}
@@ -138,6 +139,7 @@ export function EditorMoreMenu({
                   <Tooltip key={item.id} content={item.label}>
                     <button
                       type="button"
+                      tabIndex={-1}
                       role="menuitem"
                       aria-label={item.label}
                       data-editor-more-item={item.id}

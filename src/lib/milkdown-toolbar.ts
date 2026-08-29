@@ -46,6 +46,7 @@ export function syncMilkdownToolbarItems(
       heading.title = "切换正文样式";
       heading.setAttribute("aria-label", "切换正文样式");
       heading.dataset.editorTool = "heading";
+      heading.tabIndex = -1;
     }
 
     topBar
@@ -56,6 +57,7 @@ export function syncMilkdownToolbarItems(
         button.title = item.label;
         button.setAttribute("aria-label", item.label);
         button.dataset.editorTool = item.key;
+        button.tabIndex = -1;
         if (["bold", "italic", "strikethrough", "inline-code", "link"].includes(item.key)) {
           button.setAttribute("aria-pressed", String(button.classList.contains("active")));
         }
@@ -78,6 +80,7 @@ export function syncMilkdownHeadingOptions(
     .querySelectorAll<HTMLButtonElement>(".top-bar-heading-option")
     .forEach((option) => {
       option.hidden = !allowedLabels.has(option.textContent?.trim() ?? "");
+      option.tabIndex = -1;
     });
 }
 

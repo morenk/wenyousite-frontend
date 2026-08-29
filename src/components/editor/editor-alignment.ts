@@ -1,4 +1,4 @@
-import { editorViewCtx } from "@milkdown/core";
+import { editorViewCtx, remarkPluginsCtx } from "@milkdown/core";
 import type { Ctx } from "@milkdown/kit/ctx";
 import type {
   DOMOutputSpec,
@@ -14,7 +14,7 @@ import {
   paragraphAttr,
   paragraphSchema,
 } from "@milkdown/kit/preset/commonmark";
-import { $prose, $remark } from "@milkdown/kit/utils";
+import { $prose } from "@milkdown/kit/utils";
 import {
   isStoredWenyouTextAlignment,
   remarkWenyouAlignment,
@@ -157,10 +157,16 @@ export function configureEditorAlignmentSchemas(ctx: Ctx) {
   });
 }
 
-export const editorAlignmentParser = $remark(
-  "wenyousite-editor-alignment",
-  () => remarkWenyouAlignment,
-);
+/**
+ * 在 ConfigReady 阶段注册转换器，确保 core schema 快照 remarkPluginsCtx 前已就绪。
+ * Crepe 先装载 commonmark；事后追加 `$remark` 会与 schema 初始化竞争并偶发丢失对齐元数据。
+ */
+export function configureEditorAlignmentParser(ctx: Ctx) {
+  ctx.update(remarkPluginsCtx, (plugins) => [
+    ...plugins,
+    { plugin: remarkWenyouAlignment, options: {} },
+  ]);
+}
 
 function hasRegularImage(node: ProseNode): boolean {
   let found = false;

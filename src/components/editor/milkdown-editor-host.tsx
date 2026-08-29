@@ -126,9 +126,9 @@ import {
 import { createEditorLinkMarkView } from "@/components/shared/internal-reference-editor-dom";
 import {
   createEditorAlignmentPlugin,
+  configureEditorAlignmentParser,
   configureEditorAlignmentSchemas,
   cycleEditorAlignment,
-  editorAlignmentParser,
   getSelectedTextAlignment,
   setEditorAlignment,
   setSelectedEditorHeading,
@@ -735,11 +735,11 @@ export function MilkdownEditorHost({
         },
       });
       crepe.editor
+        .config(configureEditorAlignmentParser)
         .config(configureEditorAlignmentSchemas)
         .config(configureEditorMarkdownSerializer)
         .use(internalReferenceLinkView)
         .use(editorMarkdownPastePlugin)
-        .use(editorAlignmentParser)
         .use(alignmentPlugin)
         .use(editorAttentionBoundaryParser)
         .use(editorSoftBreakParser)
@@ -750,6 +750,8 @@ export function MilkdownEditorHost({
         .use(stickerPlugins.stickerInlineSchema)
         .use(markdownBridge);
 
+      // 初始 disabled effect 会早于异步编辑器 ref；创建前先写入初始只读值。
+      crepe.setReadonly(disabled ?? false);
       crepeRef.current = crepe;
 
       return crepe;

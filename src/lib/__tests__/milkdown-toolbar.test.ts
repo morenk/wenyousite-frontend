@@ -113,6 +113,9 @@ describe("syncMilkdownToolbarVisibility", () => {
     expect(
       root.querySelector('[data-editor-tool="more"]'),
     ).toHaveAccessibleName("更多");
+    for (const control of root.querySelectorAll("button")) {
+      expect(control).toHaveAttribute("tabindex", "-1");
+    }
   });
 
   test("窄容器依次收纳草稿与删除线，不启用横向滚动", () => {
@@ -321,6 +324,9 @@ describe("syncMilkdownToolbarVisibility", () => {
     expect(options[2]).not.toHaveAttribute("hidden");
     expect(options[3]).not.toHaveAttribute("hidden");
     expect(options[4]).toHaveAttribute("hidden");
+    for (const option of options) {
+      expect(option).toHaveAttribute("tabindex", "-1");
+    }
   });
 
   test("更多按钮同步弹出菜单状态", () => {
