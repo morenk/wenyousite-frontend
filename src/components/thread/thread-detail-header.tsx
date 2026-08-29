@@ -259,7 +259,7 @@ export function ThreadDetailHeader({
                         onClick={onJumpToLatest}
                         className={actionButtonClassName}
                       >
-                        <WenyouIcon id="navigation.down" className="size-4" />
+                        <WenyouIcon id="navigation.explore" className="size-4" />
                       </Button>
                     </Tooltip>
                   ) : null}

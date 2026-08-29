@@ -104,7 +104,7 @@ export function ThreadReadingBar({
                   onClick={onJumpToLatest}
                   className="rounded-lg text-muted-foreground hover:text-foreground"
                 >
-                  <WenyouIcon id="navigation.down" className="size-4" />
+                  <WenyouIcon id="navigation.explore" className="size-4" />
                 </Button>
               </Tooltip>
             ) : null}

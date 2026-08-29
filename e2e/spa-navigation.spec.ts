@@ -121,6 +121,55 @@ function makePostDetail(index: number) {
   };
 }
 
+function makeReply(index: number) {
+  const floor = makeFloor(index);
+  const author = {
+    id: `spa-reply-user-${index}`,
+    username: `回声 ${index}`,
+    avatar: null,
+    level: 2,
+  };
+  return {
+    id: `spa-reply-${index}`,
+    threadId: floor.threadId,
+    subthreadId: floor.subthreadId,
+    authorId: author.id,
+    kind: "FLOOR",
+    floorNumber: null,
+    parentPostId: floor.id,
+    replyToPostId: floor.id,
+    clientRequestId: null,
+    content: "这是主题内最新发布的楼中楼回复。",
+    diceRolls: [],
+    version: 1,
+    createdAt: "2026-08-08T11:59:00Z",
+    updatedAt: "2026-08-08T11:59:00Z",
+    deletedAt: null,
+    author,
+    replyToPost: {
+      id: floor.id,
+      authorId: floor.authorId,
+      author: floor.author,
+    },
+  };
+}
+
+function makeReplyPostDetail(index: number) {
+  const reply = makeReply(index);
+  const floor = makeFloor(index);
+  const thread = makeThread(index);
+  return {
+    ...reply,
+    thread: { id: thread.id, title: thread.title },
+    subthread: {
+      id: thread.defaultSubthread.id,
+      title: thread.defaultSubthread.title,
+    },
+    parentPost: floor,
+    _count: { replies: 0 },
+  };
+}
+
 function makeMultiSubthreadDetail(index: number) {
   const detail = makeThreadDetail(index);
   const makeSubthread = (id: string, title: string, sortOrder: number) => ({
@@ -157,7 +206,10 @@ async function mockPublicBrowsing(
   page: Page,
   detailDelayMs = 0,
   detailFactory: (index: number) => unknown = makeThreadDetail,
-  options: { withLatestPost?: boolean } = {},
+  options: {
+    withLatestPost?: boolean;
+    latestPostKind?: "floor" | "reply";
+  } = {},
 ) {
   const threads = Array.from({ length: 40 }, (_, index) => makeThread(index + 1));
   await page.clock.setFixedTime(fixedNow);
@@ -215,13 +267,17 @@ async function mockPublicBrowsing(
       /\/threads\/spa-thread-(\d+)\/posts\/latest$/,
     );
     if (latestPostMatch && options.withLatestPost) {
-      const floor = makeFloor(Number(latestPostMatch[1]));
+      const index = Number(latestPostMatch[1]);
+      const floor = makeFloor(index);
+      const target = options.latestPostKind === "reply"
+        ? makeReply(index)
+        : floor;
       return fulfill(route, {
-        id: floor.id,
-        threadId: floor.threadId,
-        subthreadId: floor.subthreadId,
-        parentPostId: null,
-        createdAt: floor.createdAt,
+        id: target.id,
+        threadId: target.threadId,
+        subthreadId: target.subthreadId,
+        parentPostId: target.parentPostId,
+        createdAt: target.createdAt,
       });
     }
 
@@ -236,6 +292,22 @@ async function mockPublicBrowsing(
     const postDetailMatch = pathname.match(/\/posts\/spa-floor-(\d+)$/);
     if (postDetailMatch && options.withLatestPost) {
       return fulfill(route, makePostDetail(Number(postDetailMatch[1])));
+    }
+
+    const replyDetailMatch = pathname.match(/\/posts\/spa-reply-(\d+)$/);
+    if (replyDetailMatch && options.withLatestPost) {
+      return fulfill(route, makeReplyPostDetail(Number(replyDetailMatch[1])));
+    }
+
+    const repliesMatch = pathname.match(/\/posts\/spa-floor-(\d+)\/replies$/);
+    if (repliesMatch && options.withLatestPost) {
+      return fulfill(
+        route,
+        options.latestPostKind === "reply"
+          ? [makeReply(Number(repliesMatch[1]))]
+          : [],
+        { cursor: null, hasMore: false },
+      );
     }
 
     const floorAuthorMatch = pathname.match(/\/subthreads\/spa-subthread-(\d+)[^/]*\/posts\/authors$/);
@@ -417,7 +489,7 @@ test.describe("公开浏览的单页式导航体验", () => {
       .first();
     await expect(latestButton).toBeEnabled();
     await expect(
-      latestButton.locator('[data-icon-semantic="navigation.down"]'),
+      latestButton.locator('[data-icon-semantic="navigation.explore"]'),
     ).toBeVisible();
 
     await latestButton.click();
@@ -427,7 +499,13 @@ test.describe("公开浏览的单页式导航体验", () => {
       url.searchParams.get("order") === "NEWEST",
     );
     await expect(page.locator("#post-spa-floor-1")).toBeVisible();
+    await expect(page.locator("#post-spa-floor-1")).toHaveClass(/border-primary/);
     expect(latestRequests).toHaveLength(1);
+
+    await expect(page.locator("#post-spa-floor-1")).not.toHaveClass(
+      /border-primary/,
+      { timeout: 3_000 },
+    );
 
     await page
       .getByRole("button", { name: "跳到最新发言" })
@@ -435,5 +513,30 @@ test.describe("公开浏览的单页式导航体验", () => {
       .click();
     await expect.poll(() => latestRequests.length).toBe(2);
     await expect(page.locator("#post-spa-floor-1")).toBeVisible();
+    await expect(page.locator("#post-spa-floor-1")).toHaveClass(/border-primary/);
+  });
+
+  test("最新发言为楼中楼时直达并高亮具体回复", async ({ page }) => {
+    await mockPublicBrowsing(page, 0, makeThreadDetail, {
+      withLatestPost: true,
+      latestPostKind: "reply",
+    });
+    await page.goto("/threads/spa-thread-1");
+
+    await page
+      .getByRole("button", { name: "跳到最新发言" })
+      .first()
+      .click();
+
+    await expect(page).toHaveURL((url) =>
+      url.pathname === "/threads/spa-thread-1/posts/spa-floor-1/replies" &&
+      url.searchParams.get("post") === "spa-reply-1",
+    );
+    const targetReply = page.locator("#post-spa-reply-1");
+    await expect(targetReply).toBeVisible();
+    await expect(targetReply).toHaveClass(/border-primary/);
+    await expect(targetReply).not.toHaveClass(/border-primary/, {
+      timeout: 3_000,
+    });
   });
 });

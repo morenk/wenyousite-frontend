@@ -159,14 +159,26 @@ describe("FloorCard", () => {
     expect(await screen.findByRole("menuitem", { name: "站务隐藏" })).toBeInTheDocument();
   });
 
-  test("定位楼层时立即滚动，淡粉边框停留 1.2 秒后开始淡出", async () => {
+  test("重复定位同一楼层时复用滚动并重新触发淡粉边框", async () => {
     vi.useFakeTimers();
     const scrollIntoView = vi
       .spyOn(HTMLElement.prototype, "scrollIntoView")
       .mockImplementation(() => {});
-    const { container } = renderWithQC(
-      <FloorCard floor={baseFloor} focused />,
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    const renderFocusedFloor = (activationKey: number) => (
+      <QueryClientProvider client={queryClient}>
+        <ThreadComposerProvider>
+          <FloorCard
+            floor={baseFloor}
+            focused
+            focusActivationKey={activationKey}
+          />
+        </ThreadComposerProvider>
+      </QueryClientProvider>
     );
+    const { container, rerender } = render(renderFocusedFloor(0));
 
     const card = container.querySelector("#post-post-1");
     expect(card).toHaveClass("border-primary", "duration-[var(--motion-slow)]");
@@ -182,6 +194,21 @@ describe("FloorCard", () => {
     });
     expect(card).not.toHaveClass("border-primary");
     expect(card?.parentElement).not.toHaveClass("border-primary");
+
+    rerender(renderFocusedFloor(1));
+    await act(async () => {
+      vi.advanceTimersByTime(0);
+    });
+    expect(card).toHaveClass("border-primary");
+
+    await act(async () => {
+      vi.advanceTimersByTime(100);
+    });
+    expect(scrollIntoView).toHaveBeenCalledTimes(2);
+    expect(scrollIntoView).toHaveBeenLastCalledWith({
+      behavior: "auto",
+      block: "center",
+    });
   });
 
   test("作者有头像时渲染接口返回的母版", () => {

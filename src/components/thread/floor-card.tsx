@@ -32,12 +32,17 @@ import { useTransientTargetHighlight } from "@/hooks/use-transient-target-highli
 interface FloorCardProps {
   floor: FloorDisplayData;
   focused?: boolean;
+  focusActivationKey?: string | number;
 }
 
 /** 楼层卡片内联楼中楼预览的数量上限。 */
 export const INLINE_REPLY_LIMIT = 3;
 
-export function FloorCard({ floor, focused = false }: FloorCardProps) {
+export function FloorCard({
+  floor,
+  focused = false,
+  focusActivationKey,
+}: FloorCardProps) {
   const { user } = useAuth();
   const cardRef = useRef<HTMLDivElement>(null);
   const deletePost = useDeletePost();
@@ -54,7 +59,10 @@ export function FloorCard({ floor, focused = false }: FloorCardProps) {
   const discussionHref = getPostDiscussionHref(floor.threadId, floor.id);
   const floorHref = getPostHref({ threadId: floor.threadId, postId: floor.id });
   const inlineReplies = (floor.replies ?? []).slice(0, INLINE_REPLY_LIMIT);
-  const highlightVisible = useTransientTargetHighlight(focused ? floor.id : undefined);
+  const highlightVisible = useTransientTargetHighlight(
+    focused ? floor.id : undefined,
+    focusActivationKey,
+  );
 
   useEffect(() => {
     if (!focused) return;
@@ -62,7 +70,7 @@ export function FloorCard({ floor, focused = false }: FloorCardProps) {
       cardRef.current?.scrollIntoView({ behavior: "auto", block: "center" });
     }, 100);
     return () => window.clearTimeout(timer);
-  }, [focused]);
+  }, [focusActivationKey, focused]);
 
   const handleStartEdit = () => {
     open({

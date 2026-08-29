@@ -13,11 +13,16 @@ vi.mock("@/hooks/use-infinite-scroll", () => ({
 }));
 
 vi.mock("@/components/thread/floor-card", () => ({
-  FloorCard: ({ floor, focused }: {
+  FloorCard: ({ floor, focused, focusActivationKey }: {
     floor: { id: string };
     focused: boolean;
+    focusActivationKey?: string | number;
   }) => (
-    <div data-testid="floor" data-focused={focused}>
+    <div
+      data-testid="floor"
+      data-focused={focused}
+      data-focus-activation-key={focusActivationKey}
+    >
       {floor.id}
     </div>
   ),
@@ -76,10 +81,17 @@ describe("FloorList", () => {
   });
 
   test("聚焦楼层已在列表中时不重复插入", () => {
-    renderList({ focusedFloor: floors[1] as FloorDisplayData });
+    renderList({
+      focusedFloor: floors[1] as FloorDisplayData,
+      focusedFloorActivationKey: 3,
+    });
 
     expect(screen.getAllByTestId("floor").map((card) => card.textContent)).toEqual(["p1", "p2"]);
     expect(screen.getAllByTestId("floor")[1]).toHaveAttribute("data-focused", "true");
+    expect(screen.getAllByTestId("floor")[1]).toHaveAttribute(
+      "data-focus-activation-key",
+      "3",
+    );
   });
 
   test("把分页状态和加载回调交给无限滚动 hook", () => {

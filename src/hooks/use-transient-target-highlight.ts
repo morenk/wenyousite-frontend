@@ -4,8 +4,11 @@ import { useEffect, useState } from "react";
 
 export const TRANSIENT_TARGET_HIGHLIGHT_HOLD_MS = 1_200;
 
-/** 定位目标只短暂显示强调边框；同一组件重新收到目标时会重新计时。 */
-export function useTransientTargetHighlight(targetId?: string): boolean {
+/** 定位目标只短暂显示强调边框；目标或本次定位序号变化时重新计时。 */
+export function useTransientTargetHighlight(
+  targetId?: string,
+  activationKey?: string | number,
+): boolean {
   const [visible, setVisible] = useState(() => Boolean(targetId));
 
   useEffect(() => {
@@ -22,7 +25,7 @@ export function useTransientTargetHighlight(targetId?: string): boolean {
       window.clearTimeout(activationTimer);
       window.clearTimeout(expirationTimer);
     };
-  }, [targetId]);
+  }, [activationKey, targetId]);
 
   return Boolean(targetId) && visible;
 }

@@ -94,6 +94,7 @@ function ThreadDetailPageContent() {
     subthreadId: string;
     authorId: string;
   }>();
+  const [latestFloorActivationKey, setLatestFloorActivationKey] = useState(0);
 
   const {
     data: thread,
@@ -338,14 +339,7 @@ function ThreadDetailPageContent() {
       setIsSearching(false);
 
       if (!target.parentPostId && targetPostId === target.id) {
-        const scrollToTarget = () => {
-          const element = document.getElementById(`post-${target.id}`);
-          element?.scrollIntoView({ behavior: "auto", block: "center" });
-          return Boolean(element);
-        };
-        window.requestAnimationFrame(() => {
-          if (!scrollToTarget()) window.requestAnimationFrame(scrollToTarget);
-        });
+        setLatestFloorActivationKey((key) => key + 1);
         return;
       }
 
@@ -456,6 +450,7 @@ function ThreadDetailPageContent() {
                   ? undefined
                   : targetFloor
               }
+              focusedFloorActivationKey={latestFloorActivationKey}
               emptyTitle={floorAuthorId ? "这位成员在当前子贴还没有楼层" : undefined}
             />
           </section>

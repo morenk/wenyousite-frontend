@@ -19,6 +19,7 @@ interface FloorListProps {
   onLoadMore: () => void;
   onRetry: () => void;
   focusedFloor?: FloorDisplayData;
+  focusedFloorActivationKey?: string | number;
   emptyTitle?: string;
 }
 
@@ -31,6 +32,7 @@ export function FloorList({
   onLoadMore,
   onRetry,
   focusedFloor,
+  focusedFloorActivationKey,
   emptyTitle = "暂无回复",
 }: FloorListProps) {
   const sentinelRef = useInfiniteScroll({
@@ -88,6 +90,11 @@ export function FloorList({
           key={floor.id}
           floor={floor}
           focused={floor.id === focusedFloor?.id}
+          focusActivationKey={
+            floor.id === focusedFloor?.id
+              ? focusedFloorActivationKey
+              : undefined
+          }
         />
       ))}
 
