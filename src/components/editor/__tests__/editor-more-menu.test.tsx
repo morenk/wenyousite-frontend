@@ -7,10 +7,11 @@ import {
 } from "@/components/editor/editor-more-menu";
 
 const ITEMS: EditorMoreMenuItem[] = [
-  { id: "link", label: "链接", group: "inline" },
-  { id: "quote", label: "引用", group: "paragraph" },
-  { id: "alignment", label: "段落对齐", group: "paragraph" },
-  { id: "dice", label: "骰子", group: "tools" },
+  { id: "inline-code", label: "行内代码" },
+  { id: "link", label: "链接" },
+  { id: "quote", label: "引用" },
+  { id: "alignment", label: "段落对齐" },
+  { id: "dice", label: "骰子" },
 ];
 
 function createAnchor() {
@@ -38,7 +39,7 @@ afterEach(() => {
 });
 
 describe("EditorMoreMenu", () => {
-  test("按语义分组、自动聚焦并支持方向键与选择", async () => {
+  test("扁平展示，打开仅聚焦托盘并保留标准 Tab 访问", async () => {
     const onSelect = vi.fn();
     const { anchor, measure } = createAnchor();
     render(
@@ -57,23 +58,28 @@ describe("EditorMoreMenu", () => {
       position: "fixed",
     });
     await waitFor(() => expect(measure).toHaveBeenCalled());
-    expect(within(menu).getByRole("group", { name: "文字格式" })).toBeInTheDocument();
-    expect(within(menu).getByRole("group", { name: "段落格式" })).toBeInTheDocument();
-    expect(within(menu).getByRole("group", { name: "编辑工具" })).toBeInTheDocument();
+    expect(within(menu).queryByRole("group", { name: "文字格式" })).toBeNull();
+    expect(within(menu).queryByRole("group", { name: "段落格式" })).toBeNull();
+    expect(within(menu).queryByRole("group", { name: "编辑工具" })).toBeNull();
+    expect(menu.querySelector("[data-editor-more-group]")).toBeNull();
     expect(within(menu).queryByText("链接")).toBeNull();
-    await waitFor(() => expect(screen.getByRole("menuitem", { name: "链接" })).toHaveFocus());
+    await waitFor(() => expect(menu).toHaveFocus());
+    expect(screen.getByRole("menuitem", { name: "行内代码" })).not.toHaveFocus();
+
+    fireEvent.keyDown(menu, { key: "ArrowDown" });
+    expect(menu).toHaveFocus();
 
     const user = userEvent.setup();
+    await user.tab();
+    expect(screen.getByRole("menuitem", { name: "行内代码" })).toHaveFocus();
     await user.hover(screen.getByRole("menuitem", { name: "链接" }));
     expect(await screen.findByText("链接")).toBeVisible();
     await user.unhover(screen.getByRole("menuitem", { name: "链接" }));
-    await userEvent.setup().keyboard("{ArrowDown}{End}{Home}");
-    expect(screen.getByRole("menuitem", { name: "链接" })).toHaveFocus();
     await userEvent.setup().click(screen.getByRole("menuitem", { name: "引用" }));
     expect(onSelect).toHaveBeenCalledWith("quote", expect.any(Object));
   });
 
-  test("段落区用三枚纯图标显式选择对齐并标记当前项", async () => {
+  test("用三枚纯图标显式选择对齐并标记当前项", async () => {
     const onSelectAlignment = vi.fn();
     const { anchor } = createAnchor();
     render(
@@ -87,8 +93,8 @@ describe("EditorMoreMenu", () => {
       />,
     );
 
-    const paragraph = screen.getByRole("group", { name: "段落格式" });
-    const alignment = within(paragraph).getByRole("group", { name: "段落对齐" });
+    const menu = screen.getByRole("menu", { name: "更多正文格式" });
+    const alignment = within(menu).getByRole("group", { name: "段落对齐" });
     expect(within(alignment).getByRole("menuitemradio", { name: "左对齐" }))
       .toHaveAttribute("aria-checked", "false");
     expect(within(alignment).getByRole("menuitemradio", { name: "居中对齐" }))

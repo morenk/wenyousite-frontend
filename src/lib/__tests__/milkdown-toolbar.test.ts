@@ -196,7 +196,7 @@ describe("syncMilkdownToolbarVisibility", () => {
     ]);
     expect(EDITOR_PRIMARY_BY_DENSITY.compact).toEqual(EDITOR_PRIMARY_NARROW);
     expect(EDITOR_MORE_BY_DENSITY["with-more"]).toEqual([
-      "inline-code",
+      "link",
       "bullet-list",
       "ordered-list",
       "alignment",
@@ -219,7 +219,7 @@ describe("syncMilkdownToolbarVisibility", () => {
     });
   });
 
-  test("展开态隐藏更多，标准栏保留链接、引用、分隔线和骰子直达", () => {
+  test("展开态隐藏更多，标准栏保留行内代码、引用、分隔线和骰子直达", () => {
     const root = document.createElement("div");
     root.innerHTML = `
       <div class="milkdown-top-bar">
@@ -259,11 +259,14 @@ describe("syncMilkdownToolbarVisibility", () => {
     applyMilkdownToolbarDensity(toolbar, "with-more");
     expect(
       root.querySelector<HTMLElement>('[data-editor-tool="inline-code"]'),
+    ).not.toHaveAttribute("hidden");
+    expect(
+      root.querySelector<HTMLElement>('[data-editor-tool="link"]'),
     ).toHaveAttribute("hidden");
     expect(
       root.querySelector<HTMLElement>('[data-editor-tool="bullet-list"]'),
     ).toHaveAttribute("hidden");
-    for (const tool of ["link", "quote", "hr", "dice"]) {
+    for (const tool of ["inline-code", "quote", "hr", "dice"]) {
       expect(
         root.querySelector<HTMLElement>(`[data-editor-tool="${tool}"]`),
       ).not.toHaveAttribute("hidden");
@@ -279,13 +282,13 @@ describe("syncMilkdownToolbarVisibility", () => {
 
   test("更多菜单按工具栏密度只返回当前隐藏能力", () => {
     expect(getMilkdownMoreCapabilities("with-more", true)).toEqual([
-      "inline-code",
+      "link",
       "bullet-list",
       "ordered-list",
       "alignment",
     ]);
     expect(getMilkdownMoreCapabilities("without-draft", true)).toEqual([
-      "inline-code",
+      "link",
       "bullet-list",
       "ordered-list",
       "alignment",

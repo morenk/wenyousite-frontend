@@ -262,20 +262,22 @@ test("编辑器格式、分隔线、窄栏、骰子与正文草稿工具在真�
     element.style.width = "640px";
   });
   await expect(toolbar).toHaveAttribute("data-editor-density", "with-more");
-  for (const label of ["链接", "引用", "分隔线", "骰子"]) {
+  for (const label of ["行内代码", "引用", "分隔线", "骰子"]) {
     await expect(toolbar.getByRole("button", { name: label })).toBeVisible();
   }
-  for (const label of ["行内代码", "无序列表", "有序列表", "左对齐，点击切换"]) {
+  for (const label of ["链接", "无序列表", "有序列表", "左对齐，点击切换"]) {
     await expect(toolbar.getByRole("button", { name: label })).not.toBeVisible();
   }
   const moreButton = toolbar.getByRole("button", { name: "更多" });
   await moreButton.click();
   const moreMenu = page.getByRole("menu", { name: "更多正文格式" });
   await expect(moreMenu).toBeVisible();
+  await expect(moreMenu).toBeFocused();
   await expectMenuTethered(moreButton, moreMenu);
-  for (const label of ["行内代码", "无序列表", "有序列表"]) {
+  for (const label of ["链接", "无序列表", "有序列表"]) {
     await expect(moreMenu.getByRole("menuitem", { name: label })).toBeVisible();
   }
+  await expect(moreMenu.getByRole("menuitem", { name: "链接" })).not.toBeFocused();
   const alignmentPicker = moreMenu.getByRole("group", { name: "段落对齐" });
   await expect(alignmentPicker.getByRole("menuitemradio", { name: "左对齐" }))
     .toHaveAttribute("aria-checked", "true");
@@ -284,6 +286,8 @@ test("编辑器格式、分隔线、窄栏、骰子与正文草稿工具在真�
   await expect(moreMenu).toHaveScreenshot("editor-more-menu.png", {
     animations: "disabled",
   });
+  await page.keyboard.press("ArrowDown");
+  await expect(moreMenu).toBeFocused();
   await alignmentPicker.getByRole("menuitemradio", { name: "居中对齐" }).hover();
   await expect(page.getByRole("tooltip")).toHaveText("居中对齐");
   await alignmentPicker.getByRole("menuitemradio", { name: "居中对齐" }).click();
@@ -297,7 +301,7 @@ test("编辑器格式、分隔线、窄栏、骰子与正文草稿工具在真�
     "data-wenyou-align",
   );
   await moreButton.click();
-  for (const label of ["链接", "引用", "分隔线", "骰子"]) {
+  for (const label of ["行内代码", "引用", "分隔线", "骰子"]) {
     await expect(moreMenu.getByRole("menuitem", { name: label })).toHaveCount(0);
   }
   await page.keyboard.press("Escape");

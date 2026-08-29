@@ -26,8 +26,8 @@ if (packageJson.dependencies?.["@wenyousite/foundation"] !== `github:morenk/weny
 if (manifest.version !== lock.version) failures.push("已安装 foundation 版本与锁文件不一致");
 if (manifest.contractSha256 !== lock.contractSha256) failures.push("已安装 foundation 契约哈希与锁文件不一致");
 if (!read("pnpm-lock.yaml").includes(lock.revision)) failures.push("pnpm-lock.yaml 未锁定指定 foundation revision");
-if (foundationContract.version !== "6.7.0" || foundationContract.schemaVersion !== 2) {
-  failures.push("Web 必须消费 Foundation v6.7.0 schema 2 契约");
+if (foundationContract.version !== "6.8.0" || foundationContract.schemaVersion !== 2) {
+  failures.push("Web 必须消费 Foundation v6.8.0 schema 2 契约");
 }
 if (!manifest.features?.themes || !manifest.features?.typography || !manifest.features?.interaction || !manifest.features?.controls || !manifest.features?.formatting || !manifest.features?.contentPresentation || !manifest.features?.iconControls || !manifest.features?.navigation || !manifest.features?.language || !manifest.features?.elements || !manifest.features?.brand) {
   failures.push("已安装 Foundation 缺少共享语义能力");

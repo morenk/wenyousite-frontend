@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { Popover } from "@base-ui/react/popover";
 import type { EditorCapabilityId } from "@/lib/editor-capabilities";
 import {
@@ -16,12 +17,9 @@ import {
   type WenyouTextAlignment,
 } from "@/lib/markdown-alignment";
 
-export type EditorMoreMenuGroup = "inline" | "paragraph" | "tools";
-
 export interface EditorMoreMenuItem {
   id: EditorCapabilityId;
   label: string;
-  group: EditorMoreMenuGroup;
   iconId?: IconSemanticId;
 }
 
@@ -34,15 +32,7 @@ interface EditorMoreMenuProps {
   onClose: () => void;
 }
 
-const GROUPS: readonly { id: EditorMoreMenuGroup; label: string }[] = [
-  { id: "inline", label: "文字格式" },
-  { id: "paragraph", label: "段落格式" },
-  { id: "tools", label: "编辑工具" },
-];
-
 const ALIGNMENTS: readonly WenyouTextAlignment[] = ["left", "center", "right"];
-
-const MENU_ITEM_SELECTOR = '[role="menuitem"], [role="menuitemradio"]';
 
 const iconButtonClassName = cn(
   "inline-flex size-10 shrink-0 items-center justify-center rounded-xl text-muted-foreground outline-none",
@@ -59,13 +49,8 @@ export function EditorMoreMenu({
   onSelectAlignment,
   onClose,
 }: EditorMoreMenuProps) {
+  const menuRef = useRef<HTMLDivElement>(null);
   if (!anchor) return null;
-  const groups = GROUPS
-    .map((group) => ({
-      ...group,
-      items: items.filter((item) => item.group === group.id),
-    }))
-    .filter((group) => group.items.length > 0);
 
   return (
     <Popover.Root
@@ -98,62 +83,21 @@ export function EditorMoreMenu({
           data-editor-more-positioner
         >
           <Popover.Popup
+            ref={menuRef}
             data-editor-more-menu
             role="menu"
             aria-label="更多正文格式"
+            tabIndex={-1}
+            initialFocus={menuRef}
             finalFocus={false}
-            className="max-h-[min(28rem,var(--available-height))] w-60 max-w-[var(--available-width)] origin-(--transform-origin) overflow-y-auto rounded-xl border border-border bg-popover p-2 text-popover-foreground shadow-popover outline-none duration-[var(--motion-standard)] data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 motion-reduce:animate-none"
-            onKeyDown={(event) => {
-              if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
-              const buttons = Array.from(
-                event.currentTarget.querySelectorAll<HTMLButtonElement>(MENU_ITEM_SELECTOR),
-              );
-              if (buttons.length === 0) return;
-              event.preventDefault();
-              const current = Math.max(0, buttons.indexOf(document.activeElement as HTMLButtonElement));
-              const next = event.key === "Home"
-                ? 0
-                : event.key === "End"
-                  ? buttons.length - 1
-                  : event.key === "ArrowDown"
-                    ? (current + 1) % buttons.length
-                    : (current - 1 + buttons.length) % buttons.length;
-              buttons[next]?.focus();
-            }}
+            className="max-h-[min(28rem,var(--available-height))] w-80 max-w-[var(--available-width)] origin-(--transform-origin) overflow-y-auto rounded-xl border border-border bg-popover p-2 text-popover-foreground shadow-popover outline-none duration-[var(--motion-standard)] data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 motion-reduce:animate-none"
           >
-            {groups.map((group, groupIndex) => (
-              <div
-                key={group.id}
-                role="group"
-                aria-label={group.label}
-                data-editor-more-group={group.id}
-                className={cn(groupIndex > 0 && "mt-2 border-t border-border pt-2")}
-              >
-                <div className="flex flex-wrap gap-1">
-                  {group.items.filter((item) => item.id !== "alignment").map((item) => {
-                    if (!isEditorIconCapability(item.id)) return null;
-                    const iconId = item.iconId ?? editorIconId(item.id);
-                    return (
-                      <Tooltip key={item.id} content={item.label}>
-                        <button
-                          type="button"
-                          role="menuitem"
-                          aria-label={item.label}
-                          data-editor-more-item={item.id}
-                          className={iconButtonClassName}
-                          onClick={(event) => onSelect(
-                            item.id,
-                            event.currentTarget.getBoundingClientRect(),
-                          )}
-                        >
-                          <WenyouIcon id={iconId} className="size-[18px]" />
-                        </button>
-                      </Tooltip>
-                    );
-                  })}
-                  {group.id === "paragraph"
-                    && group.items.some((item) => item.id === "alignment") && (
+            <div className="flex flex-wrap gap-1">
+              {items.map((item) => {
+                if (item.id === "alignment") {
+                  return (
                     <div
+                      key={item.id}
                       role="group"
                       aria-label="段落对齐"
                       data-editor-alignment-picker
@@ -186,10 +130,29 @@ export function EditorMoreMenu({
                         );
                       })}
                     </div>
-                  )}
-                </div>
-              </div>
-            ))}
+                  );
+                }
+                if (!isEditorIconCapability(item.id)) return null;
+                const iconId = item.iconId ?? editorIconId(item.id);
+                return (
+                  <Tooltip key={item.id} content={item.label}>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      aria-label={item.label}
+                      data-editor-more-item={item.id}
+                      className={iconButtonClassName}
+                      onClick={(event) => onSelect(
+                        item.id,
+                        event.currentTarget.getBoundingClientRect(),
+                      )}
+                    >
+                      <WenyouIcon id={iconId} className="size-[18px]" />
+                    </button>
+                  </Tooltip>
+                );
+              })}
+            </div>
           </Popover.Popup>
         </Popover.Positioner>
       </Popover.Portal>

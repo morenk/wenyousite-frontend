@@ -459,18 +459,6 @@ export function MilkdownEditorHost({
   }, []);
 
   const moreMenuItems = useMemo<EditorMoreMenuItem[]>(() => {
-    const groups: Partial<Record<EditorCapabilityId, EditorMoreMenuItem["group"]>> = {
-      strikethrough: "inline",
-      link: "inline",
-      "inline-code": "inline",
-      quote: "paragraph",
-      "bullet-list": "paragraph",
-      "ordered-list": "paragraph",
-      alignment: "paragraph",
-      hr: "paragraph",
-      dice: "tools",
-      draft: "tools",
-    };
     return getMilkdownMoreCapabilities(
       toolbarDensity,
       Boolean(onOpenDrafts),
@@ -478,7 +466,6 @@ export function MilkdownEditorHost({
     )
       .map((id) => ({
         id,
-        group: groups[id]!,
         label: id === "alignment" ? "段落对齐" : EDITOR_CAPABILITY_LABELS[id],
       }));
   }, [alignmentEnabled, onOpenDrafts, toolbarDensity]);

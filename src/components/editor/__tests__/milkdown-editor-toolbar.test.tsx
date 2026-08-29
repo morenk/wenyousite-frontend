@@ -411,24 +411,24 @@ describe("MilkdownEditor 能力分层", () => {
     ).toHaveAttribute("aria-checked", "true");
   });
 
-  test("标准内容栏保留链接、引用、分隔线和骰子直达", async () => {
+  test("标准内容栏保留行内代码、引用、分隔线和骰子直达", async () => {
     renderEditor("正文");
     const toolbar = await screen.findByRole("toolbar", { name: "正文格式工具栏" });
     await makeToolbarStandard(toolbar);
 
-    for (const label of ["链接", "引用", "分隔线", "骰子"]) {
+    for (const label of ["行内代码", "引用", "分隔线", "骰子"]) {
       expect(within(toolbar).getByRole("button", { name: label })).toBeInTheDocument();
     }
-    for (const label of ["行内代码", "无序列表", "有序列表"]) {
+    for (const label of ["链接", "无序列表", "有序列表"]) {
       expect(within(toolbar).queryByRole("button", { name: label })).toBeNull();
     }
 
     fireEvent.pointerDown(within(toolbar).getByRole("button", { name: "更多" }));
     const menu = await screen.findByRole("menu", { name: "更多正文格式" });
-    for (const label of ["行内代码", "无序列表", "有序列表"]) {
+    for (const label of ["链接", "无序列表", "有序列表"]) {
       expect(within(menu).getByRole("menuitem", { name: label })).toBeInTheDocument();
     }
-    for (const label of ["链接", "引用", "分隔线", "骰子"]) {
+    for (const label of ["行内代码", "引用", "分隔线", "骰子"]) {
       expect(within(menu).queryByRole("menuitem", { name: label })).toBeNull();
     }
   });

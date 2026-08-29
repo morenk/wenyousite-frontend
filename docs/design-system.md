@@ -4,19 +4,19 @@
 
 跨端审美、共享 Token、字体角色和编辑器能力的唯一事实源是公开仓库
 [`morenk/wenyousite-foundation`](https://github.com/morenk/wenyousite-foundation)。本仓库由
-[`foundation.lock.json`](../foundation.lock.json) 固定到 `v6.7.0`，实现前必须读取同版本的：
+[`foundation.lock.json`](../foundation.lock.json) 固定到 `v6.8.0`，实现前必须读取同版本的：
 
-- [`docs/foundation.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.7.0/docs/foundation.md)
-- [`docs/platforms/web.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.7.0/docs/platforms/web.md)
-- [`docs/brand.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.7.0/docs/brand.md)
-- [`docs/elements.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.7.0/docs/elements.md)
-- [`docs/images.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.7.0/docs/images.md)
-- [`docs/icons.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.7.0/docs/icons.md)
-- [`docs/notifications.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.7.0/docs/notifications.md)
-- [`docs/interaction.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.7.0/docs/interaction.md)
-- [`docs/presentation.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.7.0/docs/presentation.md)
-- [`docs/navigation-language.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.7.0/docs/navigation-language.md)
-- [`contracts/foundation.v1.json`](https://github.com/morenk/wenyousite-foundation/blob/v6.7.0/contracts/foundation.v1.json)
+- [`docs/foundation.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.8.0/docs/foundation.md)
+- [`docs/platforms/web.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.8.0/docs/platforms/web.md)
+- [`docs/brand.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.8.0/docs/brand.md)
+- [`docs/elements.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.8.0/docs/elements.md)
+- [`docs/images.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.8.0/docs/images.md)
+- [`docs/icons.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.8.0/docs/icons.md)
+- [`docs/notifications.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.8.0/docs/notifications.md)
+- [`docs/interaction.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.8.0/docs/interaction.md)
+- [`docs/presentation.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.8.0/docs/presentation.md)
+- [`docs/navigation-language.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.8.0/docs/navigation-language.md)
+- [`contracts/foundation.v1.json`](https://github.com/morenk/wenyousite-foundation/blob/v6.8.0/contracts/foundation.v1.json)
 
 本地只保留实现映射，不复制规范：
 
