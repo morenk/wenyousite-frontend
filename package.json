@@ -12,6 +12,7 @@
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:e2e:alignment": "E2E_BROWSER_MATRIX=true playwright test e2e/editor-alignment-compatibility.spec.ts",
     "test:e2e:candidate": "bash scripts/test-standalone-e2e.sh",
     "test:e2e:a11y": "playwright test e2e/accessibility.spec.ts",
     "test:deploy-preflight": "bash scripts/assert-releasable-repo.test.sh",

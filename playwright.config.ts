@@ -14,6 +14,8 @@ if (!new Set(["127.0.0.1", "localhost", "::1"]).has(appUrl.hostname)) {
   throw new Error("Playwright E2E 只允许访问本机前端");
 }
 
+const crossBrowserMatrix = process.env.E2E_BROWSER_MATRIX === "true";
+
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: false,
@@ -29,5 +31,15 @@ export default defineConfig({
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
     },
+    ...(crossBrowserMatrix ? [
+      {
+        name: "firefox",
+        use: { ...devices["Desktop Firefox"] },
+      },
+      {
+        name: "webkit",
+        use: { ...devices["Desktop Safari"] },
+      },
+    ] : []),
   ],
 });
