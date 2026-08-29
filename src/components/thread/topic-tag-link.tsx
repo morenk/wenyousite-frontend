@@ -26,8 +26,8 @@ export function TopicTagLink({
       data-slot="topic-tag"
       className={cn(
         appearance === "pill"
-          ? "inline-flex min-h-[var(--element-topic-tag-min-height)] items-center rounded-full border border-border px-2.5 text-xs font-medium text-muted-foreground transition-[background-color,border-color,color] duration-[var(--motion-fast)] hover:border-brand-strong hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-          : "inline-flex items-center font-medium text-current transition-colors duration-[var(--motion-fast)] hover:text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+          ? "inline-flex min-h-[var(--element-topic-tag-min-height)] items-center rounded-full border border-[var(--element-topic-tag-border)] bg-[var(--element-topic-tag-surface)] px-2.5 text-xs font-[number:var(--element-topic-tag-font-weight)] text-[var(--element-topic-tag-foreground)] transition-[background-color,border-color,color] duration-[var(--motion-fast)] hover:bg-[var(--element-topic-tag-hover-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--element-topic-tag-border)]"
+          : "inline-flex items-center font-[number:var(--element-topic-tag-font-weight)] text-[var(--element-topic-tag-foreground)] underline-offset-4 transition-[color,text-decoration-color] duration-[var(--motion-fast)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--element-topic-tag-border)]",
         className,
       )}
     >

@@ -163,6 +163,44 @@ async function hideDevIndicator(page: Page) {
   await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
 }
 
+async function expectBrandPinkTopicTag(page: Page) {
+  const tag = page.getByRole("link", {
+    name: "查看 #都市奇谭 标签下的主题帖",
+  });
+  await expect(tag).toHaveCSS("min-height", "32px");
+
+  const palette = await tag.evaluate((element) => {
+    const probe = document.createElement("span");
+    probe.style.cssText = [
+      "color:var(--element-topic-tag-foreground)",
+      "background-color:var(--element-topic-tag-surface)",
+      "border-color:var(--element-topic-tag-border)",
+    ].join(";");
+    document.body.append(probe);
+    const style = getComputedStyle(element);
+    const probeStyle = getComputedStyle(probe);
+    const result = {
+      color: style.color,
+      backgroundColor: style.backgroundColor,
+      borderColor: style.borderColor,
+      fontWeight: style.fontWeight,
+      expectedColor: probeStyle.color,
+      expectedBackgroundColor: probeStyle.backgroundColor,
+      expectedBorderColor: probeStyle.borderColor,
+      expectedFontWeight: getComputedStyle(document.documentElement)
+        .getPropertyValue("--element-topic-tag-font-weight")
+        .trim(),
+    };
+    probe.remove();
+    return result;
+  });
+
+  expect(palette.color).toBe(palette.expectedColor);
+  expect(palette.backgroundColor).toBe(palette.expectedBackgroundColor);
+  expect(palette.borderColor).toBe(palette.expectedBorderColor);
+  expect(palette.fontWeight).toBe(palette.expectedFontWeight);
+}
+
 for (const viewport of [
   { width: 1024, height: 900 },
   { width: 1440, height: 1100 },
@@ -176,7 +214,7 @@ for (const viewport of [
     await expect(page.getByRole("heading", { name: "发现主题帖" })).toBeVisible();
     await expect(page.getByText("暮色列车：寻找失落的终点站")).toBeVisible();
     await expect(page.locator('[data-slot="category-marker"]')).toHaveCount(0);
-    await expect(page.getByRole("link", { name: "查看 #都市奇谭 标签下的主题帖" })).toHaveCSS("min-height", "32px");
+    await expectBrandPinkTopicTag(page);
 
     const pageShell = page.locator('[data-slot="page-shell"]');
     const box = await pageShell.boundingBox();
@@ -249,6 +287,7 @@ test("首页温暖墨紫黑夜视觉基线", async ({ page }) => {
     THEME_PALETTES.dark.background,
   );
   await expect(page.getByRole("button", { name: "外观：黑夜" })).toBeVisible();
+  await expectBrandPinkTopicTag(page);
   const accessibility = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
     .analyze();

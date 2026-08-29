@@ -59,7 +59,7 @@
 | ThreadCover | `src/components/thread/thread-cover.tsx` | 首页与搜索共用的半宽 16:9 单封面，支持 feed 衍生图回退 |
 | TopicTagLink | `src/components/thread/topic-tag-link.tsx` | 卡片与详情页共用的标签浏览入口 |
 
-分类元数据不包含颜色字段，界面只通过文字或 neutral Badge 显示分类，不渲染色块或线路；主题标签统一保留 `#` 和 Web 32px 命中高度，状态 Badge 使用默认/紧凑尺寸而非页面手写高度。
+分类元数据不包含颜色字段，界面只通过文字或 neutral Badge 显示分类，不渲染色块或线路；可点击主题标签统一保留 `#`、Web 32px 命中高度，并消费 Foundation 的粉色品牌色对与悬停态，状态 Badge 使用默认/紧凑尺寸而非页面手写高度。
 | CategoryTabs | `src/components/thread/category-tabs.tsx` | 分类筛选 Tab |
 | ThreadFilters | `src/components/thread/thread-filters.tsx` | 排序与状态下拉筛选栏 |
 | EmptyState | `src/components/shared/empty-state.tsx` | 空状态提示 |

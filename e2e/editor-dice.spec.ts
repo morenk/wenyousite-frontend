@@ -18,6 +18,32 @@ async function expectMenuTethered(trigger: Locator, menu: Locator) {
   )).toBeLessThanOrEqual(8);
 }
 
+async function readEditorDividerMetrics(divider: Locator) {
+  return divider.evaluate((element) => {
+    const style = getComputedStyle(element);
+    const line = getComputedStyle(element, "::before");
+    const marker = getComputedStyle(element, "::after");
+    const parent = element.parentElement!;
+    const parentStyle = getComputedStyle(parent);
+    const availableWidth = parent.clientWidth
+      - Number.parseFloat(parentStyle.paddingLeft)
+      - Number.parseFloat(parentStyle.paddingRight);
+
+    return {
+      selected: element.classList.contains("ProseMirror-selectednode"),
+      widthRatio: element.getBoundingClientRect().width / availableWidth,
+      paddingTop: Number.parseFloat(style.paddingTop),
+      paddingBottom: Number.parseFloat(style.paddingBottom),
+      height: Number.parseFloat(style.height),
+      backgroundColor: style.backgroundColor,
+      lineTop: Number.parseFloat(line.top),
+      lineHeight: Number.parseFloat(line.height),
+      markerTop: Number.parseFloat(marker.top),
+      markerHeight: Number.parseFloat(marker.height),
+    };
+  });
+}
+
 const thread = {
   id: "t-dice-e2e",
   title: "未命名草稿",
@@ -58,7 +84,7 @@ const thread = {
   _count: { members: 1, players: 1, posts: 0 },
 };
 
-test("编辑器格式、窄栏、骰子与正文草稿工具在真实浏览器中正常工作", async ({ page }) => {
+test("编辑器格式、分隔线、窄栏、骰子与正文草稿工具在真实浏览器中正常工作", async ({ page }) => {
   let submittedBody = "";
   await page.route("**/api/v1/auth/refresh", (route) =>
     route.fulfill({
@@ -293,6 +319,41 @@ test("编辑器格式、窄栏、骰子与正文草稿工具在真实浏览器�
     element.style.width = "";
   });
   await expect(toolbar).toHaveAttribute("data-editor-density", "expanded");
+
+  await editor.fill("分隔线前");
+  await toolbar.getByRole("button", { name: "分隔线" }).click();
+  const editorDivider = editor.locator("hr").first();
+  await expect(editorDivider).toBeVisible();
+  await editorDivider.click();
+  await expect(editorDivider).toHaveClass(/\bProseMirror-selectednode\b/u);
+
+  const selectedDivider = await readEditorDividerMetrics(editorDivider);
+  expect(selectedDivider.selected).toBe(true);
+  expect(selectedDivider.widthRatio).toBeCloseTo(0.5, 2);
+  expect(selectedDivider.paddingTop).toBe(0);
+  expect(selectedDivider.paddingBottom).toBe(0);
+  expect(selectedDivider.height).toBe(5);
+  expect(selectedDivider.backgroundColor).toBe("rgba(0, 0, 0, 0)");
+  expect(selectedDivider.lineHeight).toBe(1);
+  expect(selectedDivider.markerHeight).toBe(5);
+  expect(selectedDivider.lineTop).toBeCloseTo(selectedDivider.markerTop, 3);
+
+  const trailingParagraph = editor.locator("hr + p");
+  await expect(trailingParagraph).toHaveCount(1);
+  await trailingParagraph.click();
+  await page.keyboard.type("分隔线后");
+  await expect(trailingParagraph).toHaveText("分隔线后");
+  await expect(editorDivider).not.toHaveClass(/\bProseMirror-selectednode\b/u);
+
+  const editingBelowDivider = await readEditorDividerMetrics(editorDivider);
+  expect(editingBelowDivider.selected).toBe(false);
+  expect(editingBelowDivider.widthRatio).toBeCloseTo(0.5, 2);
+  expect(editingBelowDivider.lineTop).toBeCloseTo(
+    editingBelowDivider.markerTop,
+    3,
+  );
+  expect(editingBelowDivider.lineTop).toBeCloseTo(selectedDivider.lineTop, 3);
+  expect(editingBelowDivider.markerTop).toBeCloseTo(selectedDivider.markerTop, 3);
 
   await editor.fill("需要删除的文字");
   await editor.selectText();

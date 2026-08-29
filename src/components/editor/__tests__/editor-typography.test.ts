@@ -156,6 +156,10 @@ describe("编辑器正文字体", () => {
       expect(divider).toContain("margin-block: var(--element-divider-spacing-block)");
       expect(divider).toContain("margin-inline: auto");
       expect(divider).toContain("border: 0");
+      if (selector === ".milkdown .ProseMirror hr") {
+        expect(divider).toContain("padding: 0");
+        expect(divider).toContain("background-clip: border-box");
+      }
       expect(generated).toContain('content: ""');
       expect(line).toContain("block-size: var(--element-divider-width)");
       expect(line).toContain("background: var(--element-divider-color)");
@@ -164,5 +168,25 @@ describe("编辑器正文字体", () => {
       expect(marker).toContain("border-radius: 50%");
       expect(divider).not.toContain("solid var(--border)");
     }
+  });
+
+  test("Crepe 原子选中态不改变分隔线与圆点的共同中心", () => {
+    const selectedDivider = getRule(
+      editorCss,
+      ".milkdown .ProseMirror hr.ProseMirror-selectednode",
+    );
+    const selectedLine = getRule(
+      editorCss,
+      ".milkdown .ProseMirror hr.ProseMirror-selectednode::before",
+    );
+
+    expect(selectedDivider).toContain("background: transparent");
+    expect(selectedDivider).toContain("background-clip: border-box");
+    expect(selectedLine).toContain("inset-block-start: 50%");
+    expect(selectedLine).toContain("inset-block-end: auto");
+    expect(selectedLine).toContain("inset-inline: 0");
+    expect(selectedLine).toContain("block-size: var(--element-divider-width)");
+    expect(selectedLine).toContain("background: var(--element-divider-color)");
+    expect(selectedLine).toContain("transform: translateY(-50%)");
   });
 });

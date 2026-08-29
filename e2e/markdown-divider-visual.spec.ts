@@ -200,11 +200,15 @@ for (const theme of ["light", "dark"] as const) {
       };
     });
     const floorBox = await firstFloor.boundingBox();
+    const proseBox = await firstFloor
+      .locator('[data-slot="markdown-content"]')
+      .boundingBox();
     const dividerBox = await divider.boundingBox();
 
     expect(floorBox).not.toBeNull();
+    expect(proseBox).not.toBeNull();
     expect(dividerBox).not.toBeNull();
-    expect(geometry.width).toBeCloseTo(geometry.fontSize * 5, 3);
+    expect(geometry.width / proseBox!.width).toBeCloseTo(0.5, 2);
     expect(geometry.height).toBe(5);
     expect(geometry.marginTop).toBeCloseTo(geometry.fontSize * 1.75, 3);
     expect(geometry.lineThickness).toBe(1);
@@ -212,11 +216,12 @@ for (const theme of ["light", "dark"] as const) {
     expect(geometry.markerWidth).toBe(5);
     expect(geometry.markerHeight).toBe(5);
     expect(geometry.markerColor).toBe(geometry.expectedMarkerColor);
-    expect(dividerBox!.width / floorBox!.width).toBeLessThan(0.2);
+    expect(dividerBox!.width / floorBox!.width).toBeGreaterThan(0.4);
+    expect(dividerBox!.width / floorBox!.width).toBeLessThan(0.55);
     expect(
       Math.abs(
         dividerBox!.x + dividerBox!.width / 2 -
-        (floorBox!.x + floorBox!.width / 2),
+        (proseBox!.x + proseBox!.width / 2),
       ),
     ).toBeLessThanOrEqual(1);
 

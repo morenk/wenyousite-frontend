@@ -183,7 +183,7 @@ const semanticContractClaims = new Map([
   ["src/components/thread/thread-detail-header.tsx", ["CONTENT_PRESENTATION.detail", "data-content-purpose"]],
   ["src/components/moment/moment-card.tsx", ["CONTENT_PRESENTATION.list", "data-content-purpose"]],
   ["src/components/moment/moment-detail-view.tsx", ["CONTENT_PRESENTATION.detail", "data-content-purpose"]],
-  ["src/components/thread/topic-tag-link.tsx", ["@wenyousite/foundation/elements", "--element-topic-tag-min-height", "data-slot=\"topic-tag\""]],
+  ["src/components/thread/topic-tag-link.tsx", ["@wenyousite/foundation/elements", "--element-topic-tag-min-height", "--element-topic-tag-foreground", "--element-topic-tag-surface", "--element-topic-tag-border", "--element-topic-tag-hover-surface", "--element-topic-tag-font-weight", "data-slot=\"topic-tag\""]],
   ["src/components/thread/thread-category.tsx", ["data-slot=\"category-badge\""]],
   ["src/lib/thread-presentation.ts", ["METADATA_ELEMENT_STYLES", "categoryMarker.badgeTone"]],
   ["src/components/layout/page-header.tsx", ["--type-page-title-size", "--type-section-title-size"]],

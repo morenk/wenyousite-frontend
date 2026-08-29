@@ -148,8 +148,10 @@
   block-size: var(--element-divider-marker-size);
   margin-block: var(--element-divider-spacing-block);
   margin-inline: auto;
+  padding: 0;
   border: 0;
   background: transparent;
+  background-clip: border-box;
 }
 
 .milkdown .ProseMirror hr::before,
@@ -175,6 +177,21 @@
   border-radius: 50%;
   background: var(--element-divider-marker);
   transform: translate(-50%, -50%);
+}
+
+/* Crepe 会在原子分隔线被选中时用 ::before 绘制满框；保持选中前后同一中心线，避免圆点视觉漂移。 */
+.milkdown .ProseMirror hr.ProseMirror-selectednode {
+  background: transparent;
+  background-clip: border-box;
+}
+
+.milkdown .ProseMirror hr.ProseMirror-selectednode::before {
+  inset-block-start: 50%;
+  inset-block-end: auto;
+  inset-inline: 0;
+  block-size: var(--element-divider-width);
+  background: var(--element-divider-color);
+  transform: translateY(-50%);
 }
 
 /* 历史代码节点即使短暂存在，也不得扩大编辑器。 */

@@ -99,10 +99,12 @@ vi.mock("next/link", () => ({
   default: ({
     children,
     href,
+    className,
   }: {
     children: React.ReactNode;
     href: string;
-  }) => <a href={href}>{children}</a>,
+    className?: string;
+  }) => <a href={href} className={className}>{children}</a>,
 }));
 
 afterEach(() => {
@@ -306,6 +308,11 @@ describe("ThreadDetailHeader", () => {
       "/tags/tag-1",
     );
     expect(tag).not.toHaveClass("rounded-full", "border", "px-2.5");
+    expect(tag).toHaveClass(
+      "text-[var(--element-topic-tag-foreground)]",
+      "font-[number:var(--element-topic-tag-font-weight)]",
+      "hover:underline",
+    );
     expect(screen.queryByText("角色扮演")).not.toBeInTheDocument();
     expect(screen.queryByText("招募中")).not.toBeInTheDocument();
     expect(screen.queryByText("帖主")).not.toBeInTheDocument();

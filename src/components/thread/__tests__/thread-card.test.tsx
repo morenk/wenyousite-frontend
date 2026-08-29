@@ -125,9 +125,14 @@ describe("ThreadCard", () => {
     renderThreadCard(baseThread);
     expect(screen.getByText("#测试标签")).toBeInTheDocument();
     expect(screen.getByText("#RPG")).toBeInTheDocument();
-    expect(screen.getByText("#测试标签").closest("a")).toHaveAttribute(
-      "href",
-      "/tags/tag-1",
+    const tag = screen.getByText("#测试标签").closest("a");
+    expect(tag).toHaveAttribute("href", "/tags/tag-1");
+    expect(tag).toHaveClass(
+      "bg-[var(--element-topic-tag-surface)]",
+      "border-[var(--element-topic-tag-border)]",
+      "text-[var(--element-topic-tag-foreground)]",
+      "font-[number:var(--element-topic-tag-font-weight)]",
+      "hover:bg-[var(--element-topic-tag-hover-surface)]",
     );
   });
 
