@@ -37,6 +37,7 @@ export function Tooltip({
       <TooltipPrimitive.Portal>
         <TooltipPrimitive.Positioner side={side} sideOffset={7} className="z-[var(--layer-tooltip)]">
           <TooltipPrimitive.Popup
+            role="tooltip"
             className={cn(
               "origin-(--transform-origin) rounded-lg bg-foreground px-2.5 py-1.5 font-utility text-xs font-medium text-background shadow-popover outline-none",
               "data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",

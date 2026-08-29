@@ -378,6 +378,39 @@ describe("MilkdownEditor 能力分层", () => {
     expect(more).toHaveAttribute("aria-expanded", "true");
   });
 
+  test("v4 窄栏托盘用段落内三图标显式设置对齐", async () => {
+    enableMarkdownV4();
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const { container } = renderEditor("正文", "托盘对齐正文", onChange);
+    const editor = await getEditor(container);
+    const toolbar = await screen.findByRole("toolbar", { name: "正文格式工具栏" });
+    await user.click(editor.querySelector("p")!);
+    await makeToolbarCompact(toolbar);
+
+    fireEvent.pointerDown(within(toolbar).getByRole("button", { name: "更多" }));
+    let menu = await screen.findByRole("menu", { name: "更多正文格式" });
+    const alignment = within(menu).getByRole("group", { name: "段落对齐" });
+    expect(within(alignment).getByRole("menuitemradio", { name: "左对齐" }))
+      .toHaveAttribute("aria-checked", "true");
+    expect(within(menu).queryByText(/对齐/u)).toBeNull();
+
+    await user.click(within(alignment).getByRole("menuitemradio", { name: "居中对齐" }));
+    await waitFor(() => {
+      expect(editor.querySelector("p")).toHaveAttribute("data-wenyou-align", "center");
+      expect(onChange).toHaveBeenLastCalledWith(
+        "[wenyousite-align-v1-center]: #\n正文",
+      );
+      expect(screen.queryByRole("menu", { name: "更多正文格式" })).toBeNull();
+    });
+
+    fireEvent.pointerDown(within(toolbar).getByRole("button", { name: "更多" }));
+    menu = await screen.findByRole("menu", { name: "更多正文格式" });
+    expect(
+      within(menu).getByRole("menuitemradio", { name: "居中对齐" }),
+    ).toHaveAttribute("aria-checked", "true");
+  });
+
   test("标准内容栏保留链接、引用、分隔线和骰子直达", async () => {
     renderEditor("正文");
     const toolbar = await screen.findByRole("toolbar", { name: "正文格式工具栏" });

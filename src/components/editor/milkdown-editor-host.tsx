@@ -110,7 +110,6 @@ import {
   type EditorCapabilityId,
 } from "@/lib/editor-capabilities";
 import {
-  editorAlignmentIconId,
   editorAlignmentIconSvg,
   editorChevronDownSvg,
   editorIconSvg,
@@ -131,6 +130,7 @@ import {
   cycleEditorAlignment,
   editorAlignmentParser,
   getSelectedTextAlignment,
+  setEditorAlignment,
   setSelectedEditorHeading,
 } from "@/components/editor/editor-alignment";
 import {
@@ -460,16 +460,16 @@ export function MilkdownEditorHost({
 
   const moreMenuItems = useMemo<EditorMoreMenuItem[]>(() => {
     const groups: Partial<Record<EditorCapabilityId, EditorMoreMenuItem["group"]>> = {
-      strikethrough: "文字",
-      link: "文字",
-      "inline-code": "文字",
-      quote: "段落",
-      "bullet-list": "段落",
-      "ordered-list": "段落",
-      alignment: "段落",
-      hr: "段落",
-      dice: "创作",
-      draft: "创作",
+      strikethrough: "inline",
+      link: "inline",
+      "inline-code": "inline",
+      quote: "paragraph",
+      "bullet-list": "paragraph",
+      "ordered-list": "paragraph",
+      alignment: "paragraph",
+      hr: "paragraph",
+      dice: "tools",
+      draft: "tools",
     };
     return getMilkdownMoreCapabilities(
       toolbarDensity,
@@ -479,14 +479,9 @@ export function MilkdownEditorHost({
       .map((id) => ({
         id,
         group: groups[id]!,
-        label: id === "alignment"
-          ? `${alignmentLabel(currentAlignment)}（点击切换）`
-          : EDITOR_CAPABILITY_LABELS[id],
-        iconId: id === "alignment"
-          ? editorAlignmentIconId(currentAlignment)
-          : undefined,
+        label: id === "alignment" ? "段落对齐" : EDITOR_CAPABILITY_LABELS[id],
       }));
-  }, [alignmentEnabled, currentAlignment, onOpenDrafts, toolbarDensity]);
+  }, [alignmentEnabled, onOpenDrafts, toolbarDensity]);
 
   const handleMoreSelect = useCallback((capability: EditorCapabilityId, anchor: DOMRect) => {
     if (capability === "dice") {
@@ -501,6 +496,11 @@ export function MilkdownEditorHost({
     }
     runMoreCommand(capability);
   }, [handleOpenDice, onOpenDrafts, runMoreCommand]);
+
+  const handleMoreAlignmentSelect = useCallback((alignment: WenyouTextAlignment) => {
+    crepeRef.current?.editor.action((ctx) => setEditorAlignment(ctx, alignment));
+    setMoreMenuAnchor(null);
+  }, []);
 
   const handleCloseMore = useCallback(() => {
     setMoreMenuAnchor(null);
@@ -926,7 +926,9 @@ export function MilkdownEditorHost({
         <EditorMoreMenu
           anchor={moreMenuAnchor}
           items={moreMenuItems}
+          alignment={currentAlignment}
           onSelect={handleMoreSelect}
+          onSelectAlignment={handleMoreAlignmentSelect}
           onClose={handleCloseMore}
         />
         <MentionCandidateMenu

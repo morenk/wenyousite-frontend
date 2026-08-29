@@ -7,9 +7,10 @@ import {
 } from "@/components/editor/editor-more-menu";
 
 const ITEMS: EditorMoreMenuItem[] = [
-  { id: "link", label: "链接", group: "文字" },
-  { id: "quote", label: "引用", group: "段落" },
-  { id: "dice", label: "骰子", group: "创作" },
+  { id: "link", label: "链接", group: "inline" },
+  { id: "quote", label: "引用", group: "paragraph" },
+  { id: "alignment", label: "段落对齐", group: "paragraph" },
+  { id: "dice", label: "骰子", group: "tools" },
 ];
 
 function createAnchor() {
@@ -44,7 +45,9 @@ describe("EditorMoreMenu", () => {
       <EditorMoreMenu
         anchor={anchor}
         items={ITEMS}
+        alignment="left"
         onSelect={onSelect}
+        onSelectAlignment={vi.fn()}
         onClose={vi.fn()}
       />,
     );
@@ -54,15 +57,50 @@ describe("EditorMoreMenu", () => {
       position: "fixed",
     });
     await waitFor(() => expect(measure).toHaveBeenCalled());
-    expect(within(menu).getByText("文字")).toBeInTheDocument();
-    expect(within(menu).getByText("段落")).toBeInTheDocument();
-    expect(within(menu).getByText("创作")).toBeInTheDocument();
+    expect(within(menu).getByRole("group", { name: "文字格式" })).toBeInTheDocument();
+    expect(within(menu).getByRole("group", { name: "段落格式" })).toBeInTheDocument();
+    expect(within(menu).getByRole("group", { name: "编辑工具" })).toBeInTheDocument();
+    expect(within(menu).queryByText("链接")).toBeNull();
     await waitFor(() => expect(screen.getByRole("menuitem", { name: "链接" })).toHaveFocus());
 
+    const user = userEvent.setup();
+    await user.hover(screen.getByRole("menuitem", { name: "链接" }));
+    expect(await screen.findByText("链接")).toBeVisible();
+    await user.unhover(screen.getByRole("menuitem", { name: "链接" }));
     await userEvent.setup().keyboard("{ArrowDown}{End}{Home}");
     expect(screen.getByRole("menuitem", { name: "链接" })).toHaveFocus();
     await userEvent.setup().click(screen.getByRole("menuitem", { name: "引用" }));
     expect(onSelect).toHaveBeenCalledWith("quote", expect.any(Object));
+  });
+
+  test("段落区用三枚纯图标显式选择对齐并标记当前项", async () => {
+    const onSelectAlignment = vi.fn();
+    const { anchor } = createAnchor();
+    render(
+      <EditorMoreMenu
+        anchor={anchor}
+        items={ITEMS}
+        alignment="center"
+        onSelect={vi.fn()}
+        onSelectAlignment={onSelectAlignment}
+        onClose={vi.fn()}
+      />,
+    );
+
+    const paragraph = screen.getByRole("group", { name: "段落格式" });
+    const alignment = within(paragraph).getByRole("group", { name: "段落对齐" });
+    expect(within(alignment).getByRole("menuitemradio", { name: "左对齐" }))
+      .toHaveAttribute("aria-checked", "false");
+    expect(within(alignment).getByRole("menuitemradio", { name: "居中对齐" }))
+      .toHaveAttribute("aria-checked", "true");
+    expect(within(alignment).getByRole("menuitemradio", { name: "右对齐" }))
+      .toHaveAttribute("aria-checked", "false");
+    expect(within(alignment).queryByText(/对齐/u)).toBeNull();
+
+    await userEvent.setup().click(
+      within(alignment).getByRole("menuitemradio", { name: "右对齐" }),
+    );
+    expect(onSelectAlignment).toHaveBeenCalledWith("right");
   });
 
   test("菜单内与锚点操作不关闭，菜单外指针请求关闭", async () => {
@@ -75,7 +113,9 @@ describe("EditorMoreMenu", () => {
       <EditorMoreMenu
         anchor={anchor}
         items={ITEMS}
+        alignment="left"
         onSelect={vi.fn()}
+        onSelectAlignment={vi.fn()}
         onClose={onClose}
       />,
     );
@@ -94,7 +134,9 @@ describe("EditorMoreMenu", () => {
       <EditorMoreMenu
         anchor={anchor}
         items={ITEMS}
+        alignment="left"
         onSelect={vi.fn()}
+        onSelectAlignment={vi.fn()}
         onClose={onClose}
       />,
     );
@@ -108,7 +150,9 @@ describe("EditorMoreMenu", () => {
       <EditorMoreMenu
         anchor={null}
         items={ITEMS}
+        alignment="left"
         onSelect={vi.fn()}
+        onSelectAlignment={vi.fn()}
         onClose={vi.fn()}
       />,
     );

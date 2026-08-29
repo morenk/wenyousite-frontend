@@ -232,19 +232,28 @@ export function getSelectedTextAlignment(state: EditorState): WenyouTextAlignmen
 }
 
 export function cycleSelectedTextAlignment(view: EditorView): boolean {
-  const blocks = selectedTopLevelBlocks(view.state);
-  if (blocks.length === 0) return false;
   const current = getSelectedTextAlignment(view.state);
   const next: WenyouTextAlignment = current === "left"
     ? "center"
     : current === "center"
       ? "right"
       : "left";
-  const transaction = blocks.reduce(
+  return setSelectedTextAlignment(view, next);
+}
+
+export function setSelectedTextAlignment(
+  view: EditorView,
+  alignment: WenyouTextAlignment,
+): boolean {
+  const blocks = selectedTopLevelBlocks(view.state);
+  if (blocks.length === 0) return false;
+  const changedBlocks = blocks.filter(({ node }) => node.attrs.textAlign !== alignment);
+  if (changedBlocks.length === 0) return true;
+  const transaction = changedBlocks.reduce(
     (nextTransaction, { node, position }) => nextTransaction.setNodeMarkup(
       position,
       undefined,
-      { ...node.attrs, textAlign: next },
+      { ...node.attrs, textAlign: alignment },
     ),
     view.state.tr,
   );
@@ -316,6 +325,16 @@ export function createEditorAlignmentPlugin(
 export function cycleEditorAlignment(ctx: Ctx): boolean {
   const view = ctx.get(editorViewCtx);
   const changed = cycleSelectedTextAlignment(view);
+  view.focus();
+  return changed;
+}
+
+export function setEditorAlignment(
+  ctx: Ctx,
+  alignment: WenyouTextAlignment,
+): boolean {
+  const view = ctx.get(editorViewCtx);
+  const changed = setSelectedTextAlignment(view, alignment);
   view.focus();
   return changed;
 }

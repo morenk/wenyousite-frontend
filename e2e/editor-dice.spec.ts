@@ -105,6 +105,16 @@ test("编辑器格式、分隔线、窄栏、骰子与正文草稿工具在真�
     }),
   );
 
+  await page.route("**/api/v1/meta", (route) =>
+    route.fulfill({
+      json: {
+        code: 0,
+        message: "ok",
+        data: { markdownContractVersion: 4 },
+      },
+    }),
+  );
+
   await page.route("**/api/v1/threads/draft", (route) =>
     route.fulfill({ json: { code: 0, message: "ok", data: [] } }),
   );
@@ -217,6 +227,7 @@ test("编辑器格式、分隔线、窄栏、骰子与正文草稿工具在真�
   const toolbar = page.getByRole("toolbar", { name: "正文格式工具栏" });
   await expect(toolbar.getByRole("button", { name: "删除线" })).toBeVisible();
   await expect(toolbar.getByRole("button", { name: "无序列表" })).toBeVisible();
+  await expect(toolbar.getByRole("button", { name: "左对齐，点击切换" })).toBeVisible();
   await expect(toolbar.getByRole("button", { name: "骰子" })).toBeVisible();
   await expect(toolbar.getByRole("button", { name: "更多" })).toHaveCount(0);
 
@@ -244,6 +255,7 @@ test("编辑器格式、分隔线、窄栏、骰子与正文草稿工具在真�
   await expect(boldButton).toHaveClass(/\bactive\b/u);
   await expect(boldButton.locator("svg.lucide")).toHaveCSS("fill", "none");
   await boldButton.click();
+  await editor.fill("对齐测试段落");
 
   const host = page.locator(".milkdown-editor").first();
   await host.evaluate((element) => {
@@ -253,7 +265,7 @@ test("编辑器格式、分隔线、窄栏、骰子与正文草稿工具在真�
   for (const label of ["链接", "引用", "分隔线", "骰子"]) {
     await expect(toolbar.getByRole("button", { name: label })).toBeVisible();
   }
-  for (const label of ["行内代码", "无序列表", "有序列表"]) {
+  for (const label of ["行内代码", "无序列表", "有序列表", "左对齐，点击切换"]) {
     await expect(toolbar.getByRole("button", { name: label })).not.toBeVisible();
   }
   const moreButton = toolbar.getByRole("button", { name: "更多" });
@@ -264,6 +276,27 @@ test("编辑器格式、分隔线、窄栏、骰子与正文草稿工具在真�
   for (const label of ["行内代码", "无序列表", "有序列表"]) {
     await expect(moreMenu.getByRole("menuitem", { name: label })).toBeVisible();
   }
+  const alignmentPicker = moreMenu.getByRole("group", { name: "段落对齐" });
+  await expect(alignmentPicker.getByRole("menuitemradio", { name: "左对齐" }))
+    .toHaveAttribute("aria-checked", "true");
+  await expect(alignmentPicker.getByRole("menuitemradio", { name: "居中对齐" }))
+    .toHaveAttribute("aria-checked", "false");
+  await expect(moreMenu).toHaveScreenshot("editor-more-menu.png", {
+    animations: "disabled",
+  });
+  await alignmentPicker.getByRole("menuitemradio", { name: "居中对齐" }).hover();
+  await expect(page.getByRole("tooltip")).toHaveText("居中对齐");
+  await alignmentPicker.getByRole("menuitemradio", { name: "居中对齐" }).click();
+  await expect(editor.locator(":scope > p").first()).toHaveAttribute(
+    "data-wenyou-align",
+    "center",
+  );
+  await moreButton.click();
+  await moreMenu.getByRole("menuitemradio", { name: "左对齐" }).click();
+  await expect(editor.locator(":scope > p").first()).not.toHaveAttribute(
+    "data-wenyou-align",
+  );
+  await moreButton.click();
   for (const label of ["链接", "引用", "分隔线", "骰子"]) {
     await expect(moreMenu.getByRole("menuitem", { name: label })).toHaveCount(0);
   }
