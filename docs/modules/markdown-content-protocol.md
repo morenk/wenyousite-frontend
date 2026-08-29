@@ -36,7 +36,7 @@ Web 与 Flutter 共用数据库中的 Markdown 字符串，不修改既有字段
 - 仅顶层非空普通段落和 H2/H3 可设为左、居中或右对齐；列表、引用、普通图片、分隔线、协议空段及其他节点不参与。提及、骰子和收藏表情作为行内原子组件继承所在块的对齐。
 - 左对齐是默认值且不写存储标记。居中和右对齐分别在目标块紧邻上一行写入 `[wenyousite-align-v1-center]: #` 与 `[wenyousite-align-v1-right]: #`；它们是旧 CommonMark 阅读器会隐藏的 reference definition。
 - 标记必须大小写、空格、版本、枚举和邻接关系完全匹配；孤立标记、未知版本、`left` 标记、嵌套目标、不合格目标及带普通图片的目标均按无效对齐处理。Web 编辑器事务还会主动清除列表/引用转换后遗留的块属性。
-- 阅读与编辑 DOM 只使用 `data-wenyou-align="center|right"`，不读取外部 `style`、`align` 或 CSS 推断。Web 始终具备 v4 只读解析与无损往返能力，但只有 `/api/v1/meta.markdownContractVersion >= 4` 时才显示可写对齐入口；这样可在旧移动端升级完成前保持分阶段启用。
+- 阅读与编辑 DOM 只使用 `data-wenyou-align="center|right"`，不读取外部 `style`、`align` 或 CSS 推断。Web 始终具备 v4 只读解析与无损往返能力，并只在 `/api/v1/meta.markdownContractVersion >= 4` 时显示可写对齐入口；当前服务端已声明 v4，因此对齐入口处于启用状态。
 
 ## 字面文本降级
 
