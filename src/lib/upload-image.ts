@@ -1,6 +1,7 @@
 /** 编辑器图片上传工具：预签名 URL → S3 直传 → 确认 → 轮询 */
 
 import { apiClient } from "@/api/client";
+import { createImageFileFromBlob } from "@/lib/image-file";
 
 const ALLOWED_MIME_TYPES = [
   "image/jpeg",
@@ -148,12 +149,11 @@ class MediaStatusRequestError extends Error {
   }
 }
 
-function normalizedFilename(filename: string) {
-  const stem = filename.replace(/\.[^.]*$/, "") || "image";
-  return `${stem}.webp`;
+function normalizedFilenameStem(filename: string) {
+  return filename.replace(/\.[^.]*$/, "") || "image";
 }
 
-async function canvasToWebp(canvas: HTMLCanvasElement): Promise<Blob> {
+async function canvasToPreferredImageBlob(canvas: HTMLCanvasElement): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => blob ? resolve(blob) : reject(new Error("图片压缩失败，请重新选择")),
@@ -186,11 +186,8 @@ export async function normalizeImageForUpload(file: File): Promise<File> {
       const context = canvas.getContext("2d");
       if (!context) throw new Error("当前浏览器无法处理图片");
       context.drawImage(bitmap, 0, 0, width, height);
-      const blob = await canvasToWebp(canvas);
-      return new File([blob], normalizedFilename(file.name), {
-        type: "image/webp",
-        lastModified: file.lastModified,
-      });
+      const blob = await canvasToPreferredImageBlob(canvas);
+      return createImageFileFromBlob(blob, normalizedFilenameStem(file.name), file.lastModified);
     } finally {
       bitmap.close();
     }

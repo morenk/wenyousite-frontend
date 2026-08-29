@@ -17,6 +17,7 @@ import {
   type UploadImageProgress as UploadImageProgressValue,
 } from "@/lib/upload-image";
 import { getCroppedBlob } from "@/lib/avatar-crop";
+import { createImageFileFromBlob } from "@/lib/image-file";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
@@ -98,7 +99,7 @@ export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
         let file = preparedAvatarRef.current;
         if (!file) {
           const blob = await getCroppedBlob(imageSrc, croppedArea);
-          file = new File([blob], "avatar.webp", { type: "image/webp" });
+          file = createImageFileFromBlob(blob, "avatar");
           preparedAvatarRef.current = file;
         }
         const uploaded = await uploadImageFile(file, {

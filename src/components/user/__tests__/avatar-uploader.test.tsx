@@ -5,9 +5,10 @@ import type { ReactNode } from "react";
 import { render, screen, cleanup, fireEvent, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-const { mockUploadImageFile, mockValidateAvatarFile } = vi.hoisted(() => ({
+const { mockUploadImageFile, mockValidateAvatarFile, mockGetCroppedBlob } = vi.hoisted(() => ({
   mockUploadImageFile: vi.fn(),
   mockValidateAvatarFile: vi.fn(),
+  mockGetCroppedBlob: vi.fn(),
 }));
 
 const { mockSetAvatar, mockRemoveAvatar } = vi.hoisted(() => ({
@@ -29,7 +30,7 @@ vi.mock("@/lib/upload-image", () => ({
 }));
 
 vi.mock("@/lib/avatar-crop", () => ({
-  getCroppedBlob: vi.fn(async () => new Blob(["fake-webp"])),
+  getCroppedBlob: mockGetCroppedBlob,
 }));
 
 vi.mock("@/api/hooks/use-set-avatar", () => ({
@@ -62,6 +63,7 @@ function renderUploader(props: Partial<{ username: string; avatar: string | null
 beforeEach(() => {
   vi.clearAllMocks();
   mockValidateAvatarFile.mockReturnValue(null);
+  mockGetCroppedBlob.mockResolvedValue(new Blob(["fake-webp"], { type: "image/webp" }));
   mockUploadImageFile.mockResolvedValue({ url: "https://example.com/avatar.webp", mediaId: "m1" });
   mockSetAvatar.mutateAsync.mockResolvedValue(undefined);
   mockRemoveAvatar.mutateAsync.mockResolvedValue(undefined);
@@ -118,6 +120,26 @@ describe("AvatarUploader", () => {
       expect(mockSetAvatar.mutateAsync).toHaveBeenCalledWith("m1");
     });
     expect(toast.success).toHaveBeenCalledWith("头像已更新");
+  });
+
+  test("Safari 裁剪回退为 PNG 时按真实格式上传", async () => {
+    mockGetCroppedBlob.mockResolvedValueOnce(
+      new Blob(["png-fallback"], { type: "image/png" }),
+    );
+    renderUploader();
+    fireEvent.change(screen.getByTestId("avatar-file-input"), {
+      target: { files: [new File(["x"], "photo.jpg", { type: "image/jpeg" })] },
+    });
+    await waitFor(() =>
+      expect(screen.getByRole("dialog", { name: "裁剪头像" })).toBeInTheDocument(),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "保存头像" }));
+
+    await waitFor(() => expect(mockUploadImageFile).toHaveBeenCalledOnce());
+    const uploaded = mockUploadImageFile.mock.calls[0][0] as File;
+    expect(uploaded.name).toBe("avatar.png");
+    expect(uploaded.type).toBe("image/png");
   });
 
   test("头像直传期间展示上传百分比", async () => {

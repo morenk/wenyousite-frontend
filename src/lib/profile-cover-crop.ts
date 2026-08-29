@@ -1,4 +1,4 @@
-/** 个人主页背景图双画幅裁剪：同一原图分别输出 Web 3:1 与移动端 2:1 WebP。 */
+/** 个人主页背景图双画幅裁剪：同一原图分别输出 Web 3:1 与移动端 2:1，优先 WebP。 */
 
 import { cropImageToBlob, type CropArea } from "@/lib/image-crop";
 
@@ -10,14 +10,14 @@ export const PROFILE_COVER_SPECS = {
     aspect: 3,
     width: 1920,
     height: 640,
-    filename: "profile-cover-web.webp",
+    filenameStem: "profile-cover-web",
   },
   mobile: {
     label: "移动端",
     aspect: 2,
     width: 1600,
     height: 800,
-    filename: "profile-cover-mobile.webp",
+    filenameStem: "profile-cover-mobile",
   },
 } as const;
 

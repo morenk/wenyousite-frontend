@@ -264,6 +264,32 @@ describe("normalizeImageForUpload", () => {
     expect(close).toHaveBeenCalledOnce();
   });
 
+  test("Safari 不支持 Canvas WebP 编码而回退 PNG 时保留真实格式", async () => {
+    const close = vi.fn();
+    vi.stubGlobal("createImageBitmap", vi.fn().mockResolvedValue({
+      width: 1200,
+      height: 800,
+      close,
+    }));
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
+      drawImage: vi.fn(),
+    } as never);
+    vi.spyOn(HTMLCanvasElement.prototype, "toBlob").mockImplementation((callback) => {
+      callback(new Blob(["png-fallback"], { type: "image/png" }));
+    });
+
+    const source = new File(["jpeg"], "camera.jpg", {
+      type: "image/jpeg",
+      lastModified: 456,
+    });
+    const result = await normalizeImageForUpload(source);
+
+    expect(result.name).toBe("camera.png");
+    expect(result.type).toBe("image/png");
+    expect(result.lastModified).toBe(456);
+    expect(close).toHaveBeenCalledOnce();
+  });
+
   test("GIF 绕过 Canvas 转码以保留动画", async () => {
     const createBitmap = vi.fn();
     vi.stubGlobal("createImageBitmap", createBitmap);

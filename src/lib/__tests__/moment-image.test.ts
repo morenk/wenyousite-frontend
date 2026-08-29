@@ -76,6 +76,36 @@ describe("动态图片压缩", () => {
     expect(close).toHaveBeenCalledOnce();
   });
 
+  test("Safari 的 Canvas PNG 回退不会被错误标记为 WebP", async () => {
+    const close = vi.fn();
+    vi.stubGlobal("createImageBitmap", vi.fn().mockResolvedValue({
+      width: 1000,
+      height: 750,
+      close,
+    }));
+    const createElement = document.createElement.bind(document);
+    vi.spyOn(document, "createElement").mockImplementation((tagName, options) => (
+      tagName === "canvas"
+        ? {
+            width: 0,
+            height: 0,
+            getContext: () => ({ drawImage: vi.fn() }),
+            toBlob: (callback: BlobCallback) => {
+              callback(new Blob(["png-fallback"], { type: "image/png" }));
+            },
+          } as unknown as HTMLCanvasElement
+        : createElement(tagName, options)
+    ));
+
+    const compressed = await compressMomentImage(
+      new File(["jpeg"], "moment.jpg", { type: "image/jpeg" }),
+    );
+
+    expect(compressed.name).toBe("moment.png");
+    expect(compressed.type).toBe("image/png");
+    expect(close).toHaveBeenCalledOnce();
+  });
+
   test("取消后不会继续编码或上传", async () => {
     const controller = new AbortController();
     controller.abort();

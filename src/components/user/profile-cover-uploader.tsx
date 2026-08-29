@@ -34,6 +34,7 @@ import {
   validateProfileCoverFile,
   type UploadImageProgress as UploadImageProgressValue,
 } from "@/lib/upload-image";
+import { createImageFileFromBlob } from "@/lib/image-file";
 
 interface ProfileCoverUploaderProps {
   username: string;
@@ -141,7 +142,7 @@ export function ProfileCoverUploader({
         let file = preparedFilesRef.current.get(surface);
         if (!file) {
           const blob = await getCroppedProfileCoverBlob(imageSrc, croppedAreas[surface]!, surface);
-          file = new File([blob], spec.filename, { type: "image/webp" });
+          file = createImageFileFromBlob(blob, spec.filenameStem);
           preparedFilesRef.current.set(surface, file);
         }
         files.set(surface, file);

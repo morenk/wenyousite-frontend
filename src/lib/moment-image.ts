@@ -1,6 +1,7 @@
-/** 动态图片预处理：浏览器端缩放并转为 WebP，原始文件不会上传。 */
+/** 动态图片预处理：浏览器端缩放并优先转为 WebP，原始文件不会上传。 */
 
 import { validateImageFile } from "@/lib/upload-image";
+import { createImageFileFromBlob } from "@/lib/image-file";
 
 export const MOMENT_IMAGE_MAX_EDGE = 1920;
 export const MOMENT_IMAGE_WEBP_QUALITY = 0.82;
@@ -52,7 +53,7 @@ export function getMomentFeedAspectRatio(
   return Math.max(MOMENT_FEED_MIN_ASPECT_RATIO, width / height);
 }
 
-function canvasToWebp(canvas: HTMLCanvasElement): Promise<Blob> {
+function canvasToPreferredImageBlob(canvas: HTMLCanvasElement): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => {
@@ -69,7 +70,8 @@ function canvasToWebp(canvas: HTMLCanvasElement): Promise<Blob> {
 }
 
 /**
- * 将动态图片限制在 1920px 长边并编码为 WebP。
+ * 将动态图片限制在 1920px 长边并优先编码为 WebP。
+ * 浏览器不支持 Canvas WebP 编码时保留其 PNG 回退格式，服务端仍会标准化为 WebP。
  * 返回的新 File 是唯一会交给上传链路的文件，原图只留在本地草稿中。
  */
 export async function compressMomentImage(
@@ -97,13 +99,10 @@ export async function compressMomentImage(
     if (!context) throw new Error("当前浏览器不支持图片压缩");
     context.drawImage(bitmap, 0, 0, dimensions.width, dimensions.height);
 
-    const blob = await canvasToWebp(canvas);
+    const blob = await canvasToPreferredImageBlob(canvas);
     throwIfAborted(signal);
     const basename = file.name.replace(/\.[^.]+$/u, "") || "moment-image";
-    return new File([blob], `${basename}.webp`, {
-      type: "image/webp",
-      lastModified: Date.now(),
-    });
+    return createImageFileFromBlob(blob, basename);
   } finally {
     bitmap.close();
   }

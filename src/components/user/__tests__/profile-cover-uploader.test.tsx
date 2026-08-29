@@ -86,7 +86,9 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockUploadImageFile.mockReset();
   mockValidateProfileCoverFile.mockReturnValue(null);
-  mockGetCroppedProfileCoverBlob.mockResolvedValue(new Blob(["fake-webp"]));
+  mockGetCroppedProfileCoverBlob.mockResolvedValue(
+    new Blob(["fake-webp"], { type: "image/webp" }),
+  );
   mockUploadImageFile
     .mockResolvedValueOnce({ url: "https://example.com/web.webp", mediaId: "web-media" })
     .mockResolvedValueOnce({ url: "https://example.com/mobile.webp", mediaId: "mobile-media" });
@@ -151,6 +153,24 @@ describe("ProfileCoverUploader", () => {
       }),
     );
     expect(toast.success).toHaveBeenCalledWith("主页背景已更新");
+  });
+
+  test("Safari 双画幅裁剪回退为 PNG 时按真实格式上传", async () => {
+    mockGetCroppedProfileCoverBlob.mockResolvedValue(
+      new Blob(["png-fallback"], { type: "image/png" }),
+    );
+    renderUploader();
+    await openCropDialog();
+
+    fireEvent.click(screen.getByRole("button", { name: "保存背景" }));
+
+    await waitFor(() => expect(mockUploadImageFile).toHaveBeenCalledTimes(2));
+    const files = mockUploadImageFile.mock.calls.map(([file]) => file as File);
+    expect(files.map((file) => file.name)).toEqual([
+      "profile-cover-web.png",
+      "profile-cover-mobile.png",
+    ]);
+    expect(files.every((file) => file.type === "image/png")).toBe(true);
   });
 
   test("第二张上传失败后重试会复用已上传的 Web mediaId", async () => {

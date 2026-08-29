@@ -256,14 +256,14 @@
 | UserBookmarksPage | `src/components/user/user-bookmarks-page.tsx` | 收藏 Tab：尊重公开权限，无权限时不发起收藏请求 |
 | DraftList | `src/components/user/draft-list.tsx` | 草稿箱列表（标题/分类/更新时间/继续编辑/删除） |
 | UsernameEdit | `src/components/user/username-edit.tsx` | 独立用户名修改（默认只读，点「修改用户名」才进入编辑态，未改动不提交） |
-| AvatarUploader | `src/components/user/avatar-uploader.tsx` | 头像上传器：预览（512×512 WebP 母版/首字母占位）→ 文件选择校验（仅 jpg/png/webp，排除 svg）→ 共享 Dialog 内用 react-easy-crop 1:1 裁剪 → canvas 导出 512×512 webp → 上传（预签名+真实字节进度+可取消直传+同 ID 恢复）→ `PATCH /me/avatar` 立即生效；绑定失败重试复用已上传 mediaId；「移除头像」调 `DELETE /me/avatar` |
-| ProfileCoverUploader | `src/components/user/profile-cover-uploader.tsx` | 双画幅背景上传器：同一原图分别调整 Web 3:1 与移动端 2:1 取景框 → 并行生成 1920×640 / 1600×800 高质量 WebP → 并行上传并聚合进度 → 原子绑定；支持失败续传、取消、更换和同时移除 |
+| AvatarUploader | `src/components/user/avatar-uploader.tsx` | 头像上传器：预览（512×512 WebP 母版/首字母占位）→ 文件选择校验（仅 jpg/png/webp，排除 svg）→ 共享 Dialog 内用 react-easy-crop 1:1 裁剪 → canvas 优先导出 512×512 WebP，Safari 编码回退时按真实 PNG/JPEG 上传 → 预签名直传（真实字节进度、可取消、同 ID 恢复）→ `PATCH /me/avatar` 立即生效；绑定失败重试复用已上传 mediaId；「移除头像」调 `DELETE /me/avatar` |
+| ProfileCoverUploader | `src/components/user/profile-cover-uploader.tsx` | 双画幅背景上传器：同一原图分别调整 Web 3:1 与移动端 2:1 取景框 → 并行生成 1920×640 / 1600×800 高质量图片（优先 WebP，按浏览器真实 PNG/JPEG 回退）→ 并行上传并聚合进度 → 原子绑定；支持失败续传、取消、更换和同时移除 |
 | ChangePasswordForm | `src/components/user/change-password-form.tsx` | 修改密码表单（当前/新/确认密码，PasswordInput 显隐切换），成功后登出跳登录 |
 | ChangeEmailForm | `src/components/user/change-email-form.tsx` | 更换邮箱表单（当前密码二次认证 → 新邮箱 → 验证码），成功后失效 me 缓存并跳转 `/me` |
 | PasswordInput | `src/components/ui/password-input.tsx` | 密码输入框（Eye/EyeOff 显示/隐藏切换） |
 | useSetAvatar | `src/api/hooks/use-set-avatar.ts` | 设置/移除头像 hook（PATCH/DELETE `/users/me/avatar`，成功后失效 me/user 缓存） |
 | useSetProfileCover | `src/api/hooks/use-set-profile-cover.ts` | 设置/移除双画幅主页背景 hook（PATCH 同时发送 `mediaId` 与 `mobileMediaId`，DELETE 清除两端；成功后失效 me/user 缓存） |
-| getCroppedBlob | `src/lib/avatar-crop.ts` | react-easy-crop 裁剪区域 → 512×512 webp Blob（canvas） |
+| getCroppedBlob | `src/lib/avatar-crop.ts` | react-easy-crop 裁剪区域 → 512×512 Canvas Blob（优先 WebP，浏览器可回退 PNG） |
 | useUserProfile | `src/api/hooks/use-user-profile.ts` | 用户公开资料 hook |
 | useUserActivitySummary | `src/api/hooks/use-user-activity-summary.ts` | 按查看者隔离的主页创作汇总 hook |
 | useUserFollowList | `src/api/hooks/use-user-follow-list.ts` | 关注/粉丝列表 hook（kind 复用） |
