@@ -351,9 +351,12 @@ describe("ThreadDetailHeader", () => {
     );
     expect(tag).not.toHaveClass("rounded-full", "border", "px-2.5");
     expect(tag).toHaveClass(
+      "min-h-[var(--element-topic-tag-min-height)]",
+      "min-w-[var(--element-topic-tag-min-height)]",
       "text-[var(--element-topic-tag-foreground)]",
       "font-[number:var(--element-topic-tag-font-weight)]",
       "hover:underline",
+      "focus-visible:ring-[var(--element-topic-tag-focus-ring)]",
     );
     expect(screen.queryByText("角色扮演")).not.toBeInTheDocument();
     expect(screen.queryByText("招募中")).not.toBeInTheDocument();

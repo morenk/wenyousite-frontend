@@ -168,25 +168,21 @@ async function expectBrandPinkTopicTag(page: Page) {
     name: "查看 #都市奇谭 标签下的主题帖",
   });
   await expect(tag).toHaveCSS("min-height", "32px");
+  await expect(tag).toHaveCSS("min-width", "32px");
 
   const palette = await tag.evaluate((element) => {
     const probe = document.createElement("span");
-    probe.style.cssText = [
-      "color:var(--element-topic-tag-foreground)",
-      "background-color:var(--element-topic-tag-surface)",
-      "border-color:var(--element-topic-tag-border)",
-    ].join(";");
+    probe.style.cssText = "color:var(--element-topic-tag-foreground)";
     document.body.append(probe);
     const style = getComputedStyle(element);
     const probeStyle = getComputedStyle(probe);
     const result = {
       color: style.color,
       backgroundColor: style.backgroundColor,
-      borderColor: style.borderColor,
+      borderTopWidth: style.borderTopWidth,
+      borderRadius: style.borderRadius,
       fontWeight: style.fontWeight,
       expectedColor: probeStyle.color,
-      expectedBackgroundColor: probeStyle.backgroundColor,
-      expectedBorderColor: probeStyle.borderColor,
       expectedFontWeight: getComputedStyle(document.documentElement)
         .getPropertyValue("--element-topic-tag-font-weight")
         .trim(),
@@ -196,9 +192,13 @@ async function expectBrandPinkTopicTag(page: Page) {
   });
 
   expect(palette.color).toBe(palette.expectedColor);
-  expect(palette.backgroundColor).toBe(palette.expectedBackgroundColor);
-  expect(palette.borderColor).toBe(palette.expectedBorderColor);
+  expect(palette.backgroundColor).toBe("rgba(0, 0, 0, 0)");
+  expect(palette.borderTopWidth).toBe("0px");
+  expect(palette.borderRadius).toBe("0px");
   expect(palette.fontWeight).toBe(palette.expectedFontWeight);
+  await tag.hover();
+  await expect.poll(() => tag.evaluate((element) => getComputedStyle(element).textDecorationLine)).toContain("underline");
+  await page.mouse.move(1, 1);
 }
 
 for (const viewport of [

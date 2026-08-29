@@ -128,12 +128,16 @@ describe("ThreadCard", () => {
     const tag = screen.getByText("#测试标签").closest("a");
     expect(tag).toHaveAttribute("href", "/tags/tag-1");
     expect(tag).toHaveClass(
-      "bg-[var(--element-topic-tag-surface)]",
-      "border-[var(--element-topic-tag-border)]",
+      "min-h-[var(--element-topic-tag-min-height)]",
+      "min-w-[var(--element-topic-tag-min-height)]",
       "text-[var(--element-topic-tag-foreground)]",
       "font-[number:var(--element-topic-tag-font-weight)]",
-      "hover:bg-[var(--element-topic-tag-hover-surface)]",
+      "hover:underline",
+      "focus-visible:ring-[var(--element-topic-tag-focus-ring)]",
     );
+    for (const capsuleClass of ["rounded-full", "border", "bg-[var(--element-topic-tag-surface)]", "px-2.5"]) {
+      expect(tag).not.toHaveClass(capsuleClass);
+    }
   });
 
   test("渲染玩家数和楼层数", () => {

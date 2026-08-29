@@ -59,7 +59,7 @@
 | ThreadCover | `src/components/thread/thread-cover.tsx` | 首页与搜索共用的半宽 16:9 单封面，支持 feed 衍生图回退 |
 | TopicTagLink | `src/components/thread/topic-tag-link.tsx` | 卡片与详情页共用的标签浏览入口 |
 
-分类元数据不包含颜色字段，界面只通过文字或 neutral Badge 显示分类，不渲染色块或线路；可点击主题标签统一保留 `#`、Web 32px 命中高度，并消费 Foundation 的粉色品牌色对与悬停态，状态 Badge 使用默认/紧凑尺寸而非页面手写高度。
+分类元数据不包含颜色字段，界面只通过文字或 neutral Badge 显示分类，不渲染色块或线路；可点击主题标签统一为带 `#` 的粉色纯文字入口，不使用底色、描边或胶囊包裹，同时保留 Web 32px 透明命中区、hover 下划线与键盘焦点环。状态 Badge 使用默认/紧凑尺寸而非页面手写高度。
 | CategoryTabs | `src/components/thread/category-tabs.tsx` | 分类筛选 Tab |
 | ThreadFilters | `src/components/thread/thread-filters.tsx` | 排序与状态下拉筛选栏 |
 | EmptyState | `src/components/shared/empty-state.tsx` | 空状态提示 |
@@ -76,7 +76,7 @@
 | 分类 | thread.category + `GET /thread-categories` | 动态 slug → 管理员配置的名称与顺序；空值/未知值安全降级 |
 | 正文预览 | 默认子贴正文（kind=BODY） | 紧凑纯文本（实体单遍解码、连续空白折叠，最多约 100 字） |
 | 正文封面 | thread.coverImages[0] | 标题下方只展示默认主贴正文中的第一张普通图片，按半宽 16:9 裁切预览 |
-| 标签 | thread.topicTags[] | 可点击标签徽章，进入 `/tags/{tag.id}` |
+| 标签 | thread.topicTags[] | 可点击粉色纯文字标签，进入 `/tags/{tag.id}` |
 | 状态 | thread.status | 招募中/已停招/已结束 |
 | 玩家数 | thread._count.players | 数字（被楼主授予玩家身份者） |
 | 楼层数 | thread._count.posts | 数字 |
