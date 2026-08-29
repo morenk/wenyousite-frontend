@@ -86,18 +86,19 @@ describe("ThreadReadingBar", () => {
 
   afterEach(cleanup);
 
-  test("排头卡离开视口后显示标题、搜索与回顶操作", () => {
+  test("排头卡离开视口后省略主题标题并显示子贴、最新、搜索与回顶操作", () => {
     const onSearch = vi.fn();
+    const onJumpToLatest = vi.fn();
     render(
       <>
         <header data-slot="thread-detail-header" />
         <ThreadReadingBar
-          threadTitle="很长的主题帖标题"
           subthreads={[subthread]}
           selectedSubthreadId="sub-1"
           onSubthreadChange={() => {}}
           onSearch={onSearch}
           isSearchOpen={false}
+          onJumpToLatest={onJumpToLatest}
         />
       </>,
     );
@@ -105,9 +106,13 @@ describe("ThreadReadingBar", () => {
     expect(screen.queryByRole("navigation", { name: "帖内阅读导航" })).toBeNull();
     publishIntersection(false, -1);
 
-    expect(screen.getByRole("navigation", { name: "帖内阅读导航" })).toHaveTextContent(
-      "很长的主题帖标题主帖",
-    );
+    const navigation = screen.getByRole("navigation", {
+      name: "帖内阅读导航",
+    });
+    expect(navigation).toHaveTextContent("主帖");
+    expect(navigation).not.toHaveTextContent("很长的主题帖标题");
+    fireEvent.click(screen.getByRole("button", { name: "跳到最新发言" }));
+    expect(onJumpToLatest).toHaveBeenCalledOnce();
     fireEvent.click(screen.getByRole("button", { name: "搜索本帖" }));
     expect(onSearch).toHaveBeenCalledOnce();
 
@@ -123,7 +128,6 @@ describe("ThreadReadingBar", () => {
       <>
         <header data-slot="thread-detail-header" />
         <ThreadReadingBar
-          threadTitle="主题"
           subthreads={[subthread]}
           selectedSubthreadId="sub-1"
           onSubthreadChange={() => {}}
@@ -135,5 +139,44 @@ describe("ThreadReadingBar", () => {
 
     unmount();
     expect(disconnect).toHaveBeenCalledOnce();
+  });
+
+  test("最新发言加载中或主题无楼层时禁用入口", () => {
+    const { rerender } = render(
+      <>
+        <header data-slot="thread-detail-header" />
+        <ThreadReadingBar
+          subthreads={[subthread]}
+          selectedSubthreadId="sub-1"
+          onSubthreadChange={() => {}}
+          onSearch={() => {}}
+          isSearchOpen={false}
+          onJumpToLatest={() => {}}
+          latestAvailable={false}
+        />
+      </>,
+    );
+    publishIntersection(false, -1);
+    expect(screen.getByRole("button", { name: "跳到最新发言" })).toBeDisabled();
+
+    rerender(
+      <>
+        <header data-slot="thread-detail-header" />
+        <ThreadReadingBar
+          subthreads={[subthread]}
+          selectedSubthreadId="sub-1"
+          onSubthreadChange={() => {}}
+          onSearch={() => {}}
+          isSearchOpen={false}
+          onJumpToLatest={() => {}}
+          latestPending
+        />
+      </>,
+    );
+    const pendingButton = screen.getByRole("button", {
+      name: "跳到最新发言",
+    });
+    expect(pendingButton).toBeDisabled();
+    expect(pendingButton).toHaveAttribute("aria-busy", "true");
   });
 });

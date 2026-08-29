@@ -6,15 +6,22 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQueryState, useQueryStates } from "nuqs";
 import { AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 
 import { useAuth } from "@/lib/auth";
 import { getPostHref } from "@/lib/post-navigation";
 import { useThreadDetail } from "@/api/hooks/use-thread-detail";
 import { useFloors, usePrefetchFloors } from "@/api/hooks/use-floors";
 import { usePost } from "@/api/hooks/use-post";
-import { isContentUnavailableError } from "@/api/errors";
+import {
+  API_ERROR_CODE,
+  getApiErrorMessage,
+  hasApiErrorCode,
+  isContentUnavailableError,
+} from "@/api/errors";
 import { useContentAccessCache } from "@/api/hooks/use-content-access-cache";
 import { useFloorAuthors } from "@/api/hooks/use-discussion-authors";
+import { useLatestThreadPost } from "@/api/hooks/use-latest-thread-post";
 import type { FloorFilters, FloorOrder } from "@/api/floor-query";
 import { ThreadDetailHeader } from "@/components/thread/thread-detail-header";
 import { ThreadReadingBar } from "@/components/thread/thread-reading-bar";
@@ -82,6 +89,7 @@ function ThreadDetailPageContent() {
   );
   const { user, isInitialized } = useAuth();
   const { close: closeComposer } = useThreadComposer();
+  const latestPost = useLatestThreadPost();
   const [floorAuthorSelection, setFloorAuthorSelection] = useState<{
     subthreadId: string;
     authorId: string;
@@ -321,10 +329,48 @@ function ThreadDetailPageContent() {
     }
   };
 
+  const handleJumpToLatest = async () => {
+    try {
+      const target = await latestPost.mutateAsync(thread.id);
+      if (!(await closeComposer())) return;
+
+      setFloorAuthorSelection(undefined);
+      setIsSearching(false);
+
+      if (!target.parentPostId && targetPostId === target.id) {
+        const scrollToTarget = () => {
+          const element = document.getElementById(`post-${target.id}`);
+          element?.scrollIntoView({ behavior: "auto", block: "center" });
+          return Boolean(element);
+        };
+        window.requestAnimationFrame(() => {
+          if (!scrollToTarget()) window.requestAnimationFrame(scrollToTarget);
+        });
+        return;
+      }
+
+      router.push(
+        getPostHref({
+          threadId: thread.id,
+          postId: target.id,
+          parentPostId: target.parentPostId,
+          floorOrder,
+        }),
+      );
+    } catch (error: unknown) {
+      toast.error(
+        hasApiErrorCode(error, API_ERROR_CODE.POST_NOT_FOUND)
+          ? "当前主题还没有楼层或回复"
+          : getApiErrorMessage(error, "最新发言加载失败，请稍后重试"),
+      );
+    }
+  };
+
+  const latestAvailable = thread._count.posts > 0 || floors.length > 0;
+
   return (
     <PageShell width="feed">
       <ThreadReadingBar
-        threadTitle={thread.title}
         subthreads={thread.subthreads}
         selectedSubthreadId={effectiveSubthreadId}
         onSubthreadChange={(subthreadId) =>
@@ -333,6 +379,9 @@ function ThreadDetailPageContent() {
         onSubthreadPrefetch={prefetchSubthread}
         onSearch={() => setIsSearching((open) => !open)}
         isSearchOpen={isSearching}
+        onJumpToLatest={() => void handleJumpToLatest()}
+        latestPending={latestPost.isPending}
+        latestAvailable={latestAvailable}
       />
 
       {/* 主题身份、目录与当前子贴正文共用同一个文档容器。 */}
@@ -340,6 +389,9 @@ function ThreadDetailPageContent() {
         thread={thread}
         isSearchOpen={isSearching}
         onSearch={() => setIsSearching((open) => !open)}
+        onJumpToLatest={() => void handleJumpToLatest()}
+        latestPending={latestPost.isPending}
+        latestAvailable={latestAvailable}
         subthreads={thread.subthreads}
         selectedSubthreadId={effectiveSubthreadId}
         defaultSubthreadId={thread.defaultSubthreadId}

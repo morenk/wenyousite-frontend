@@ -83,6 +83,44 @@ function makeThreadDetail(index: number) {
   };
 }
 
+function makeFloor(index: number) {
+  const thread = makeThread(index);
+  return {
+    id: `spa-floor-${index}`,
+    threadId: thread.id,
+    subthreadId: thread.defaultSubthread.id,
+    authorId: thread.owner.id,
+    kind: "FLOOR",
+    floorNumber: 1,
+    parentPostId: null,
+    replyToPostId: null,
+    clientRequestId: null,
+    content: "这是主题内最新发布的主楼层。",
+    diceRolls: [],
+    version: 1,
+    createdAt: "2026-08-08T11:55:00Z",
+    updatedAt: "2026-08-08T11:55:00Z",
+    deletedAt: null,
+    author: thread.owner,
+    _count: { replies: 0 },
+    replies: [],
+  };
+}
+
+function makePostDetail(index: number) {
+  const floor = makeFloor(index);
+  const thread = makeThread(index);
+  return {
+    ...floor,
+    thread: { id: thread.id, title: thread.title },
+    subthread: {
+      id: thread.defaultSubthread.id,
+      title: thread.defaultSubthread.title,
+    },
+    parentPost: null,
+  };
+}
+
 function makeMultiSubthreadDetail(index: number) {
   const detail = makeThreadDetail(index);
   const makeSubthread = (id: string, title: string, sortOrder: number) => ({
@@ -119,6 +157,7 @@ async function mockPublicBrowsing(
   page: Page,
   detailDelayMs = 0,
   detailFactory: (index: number) => unknown = makeThreadDetail,
+  options: { withLatestPost?: boolean } = {},
 ) {
   const threads = Array.from({ length: 40 }, (_, index) => makeThread(index + 1));
   await page.clock.setFixedTime(fixedNow);
@@ -172,12 +211,31 @@ async function mockPublicBrowsing(
       );
     }
 
+    const latestPostMatch = pathname.match(
+      /\/threads\/spa-thread-(\d+)\/posts\/latest$/,
+    );
+    if (latestPostMatch && options.withLatestPost) {
+      const floor = makeFloor(Number(latestPostMatch[1]));
+      return fulfill(route, {
+        id: floor.id,
+        threadId: floor.threadId,
+        subthreadId: floor.subthreadId,
+        parentPostId: null,
+        createdAt: floor.createdAt,
+      });
+    }
+
     const detailMatch = pathname.match(/\/threads\/spa-thread-(\d+)$/);
     if (detailMatch) {
       if (detailDelayMs > 0) {
         await new Promise((resolve) => setTimeout(resolve, detailDelayMs));
       }
       return fulfill(route, detailFactory(Number(detailMatch[1])));
+    }
+
+    const postDetailMatch = pathname.match(/\/posts\/spa-floor-(\d+)$/);
+    if (postDetailMatch && options.withLatestPost) {
+      return fulfill(route, makePostDetail(Number(postDetailMatch[1])));
     }
 
     const floorAuthorMatch = pathname.match(/\/subthreads\/spa-subthread-(\d+)[^/]*\/posts\/authors$/);
@@ -195,8 +253,15 @@ async function mockPublicBrowsing(
       ]);
     }
 
-    if (/\/subthreads\/spa-subthread-[^/]+\/posts$/.test(pathname)) {
-      return fulfill(route, [], { cursor: null, hasMore: false });
+    const floorsMatch = pathname.match(
+      /\/subthreads\/spa-subthread-(\d+)[^/]*\/posts$/,
+    );
+    if (floorsMatch) {
+      return fulfill(
+        route,
+        options.withLatestPost ? [makeFloor(Number(floorsMatch[1]))] : [],
+        { cursor: null, hasMore: false },
+      );
     }
 
     return fulfill(route, null);
@@ -332,5 +397,43 @@ test.describe("公开浏览的单页式导航体验", () => {
     await expect.poll(() => filteredRequests.length).toBe(1);
     expect(new URL(filteredRequests[0]).searchParams.get("authorId")).toBe("spa-user-1");
     await expect(page).toHaveURL(/\/threads\/spa-thread-1\?order=NEWEST$/);
+  });
+
+  test("主题头部按需定位最新发言并保留当前楼层顺序", async ({ page }) => {
+    const latestRequests: string[] = [];
+    page.on("request", (request) => {
+      const url = new URL(request.url());
+      if (url.pathname.endsWith("/posts/latest")) {
+        latestRequests.push(url.pathname);
+      }
+    });
+    await mockPublicBrowsing(page, 0, makeThreadDetail, {
+      withLatestPost: true,
+    });
+    await page.goto("/threads/spa-thread-1?order=NEWEST");
+
+    const latestButton = page
+      .getByRole("button", { name: "跳到最新发言" })
+      .first();
+    await expect(latestButton).toBeEnabled();
+    await expect(
+      latestButton.locator('[data-icon-semantic="navigation.down"]'),
+    ).toBeVisible();
+
+    await latestButton.click();
+    await expect(page).toHaveURL((url) =>
+      url.pathname === "/threads/spa-thread-1" &&
+      url.searchParams.get("post") === "spa-floor-1" &&
+      url.searchParams.get("order") === "NEWEST",
+    );
+    await expect(page.locator("#post-spa-floor-1")).toBeVisible();
+    expect(latestRequests).toHaveLength(1);
+
+    await page
+      .getByRole("button", { name: "跳到最新发言" })
+      .first()
+      .click();
+    await expect.poll(() => latestRequests.length).toBe(2);
+    await expect(page.locator("#post-spa-floor-1")).toBeVisible();
   });
 });

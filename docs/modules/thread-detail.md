@@ -18,7 +18,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 - 主题帖详情页 `/threads/[id]`
 - 详情排头卡（标题下只列举无胶囊主题标签；低频工具置顶，目录与紧凑图标互动工具带置底）
 - 排头卡子贴目录切换，并提供左右游标快速切换相邻子贴
-- 排头卡离开视口后显示紧凑阅读书签条，保留当前主题、子贴切换、本帖搜索和回顶入口
+- 排头卡与紧凑阅读书签条都提供“跳到最新发言”；阅读条省略重复的主题标题，只保留子贴切换、最新发言、本帖搜索和回顶入口
 - 楼层列表（cursor 分页 + 滚动加载 + 单击切换最早/最新在前 + 只看某人）
 - 楼层 Markdown 渲染（react-markdown + remark-gfm）
 - 通过全局唯一的上下文 Milkdown 发布、回复或编辑楼层
@@ -49,6 +49,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 |--------|------|-------|------|
 | GET | `/thread-categories` | Public | 解析动态分类 slug 的名称与顺序 |
 | GET | `/threads/:id` | OptionalAuth | 主题帖详情（含子贴列表、owner、_count；登录时附加 isBookmarked/isLiked） |
+| GET | `/threads/:threadId/posts/latest` | OptionalAuth | 跨全部存活子贴按创建时间定位最新有效主楼层或楼中楼回复 |
 | GET | `/threads/:threadId/search/posts` | OptionalAuth | 帖内楼层搜索（至少 2 字符，相关度游标分页，继承主题帖权限） |
 | DELETE | `/threads/:id` | Auth | 删除主题帖：未发布帖硬删除，已发布帖软删除，仅 OWNER |
 | GET | `/subthreads/:subthreadId/posts` | Public | 楼层列表（cursor 分页，`order=OLDEST\|NEWEST`，含最多 5 条内联 replies） |
@@ -93,6 +94,8 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 > **作者导航契约**：主楼层、内联楼中楼、独立回复列表与独立回复串原楼层的作者头像和用户名均进入 `/users/{userId}`；头像链接提供独立的键盘焦点和无障碍名称。
 
 > **统一导航契约**：`src/lib/post-navigation.ts` 集中生成主楼层、楼中楼讨论和目标回复地址，供搜索、通知、个人动态、复制链接、讨论列表及兼容重定向复用。各业务组件只负责呈现或触发导航，不再自行拼接帖子定位 URL。
+
+> **最新发言定位**：排头卡工具带与冻结阅读条共用同一动作。点击时按需调用 `postsFindLatestInThread`，只以创建时间判断最新，编辑旧内容不会顶帖。`parentPostId=null` 时复用主楼层 `?post=` 定位，否则直达父楼层的独立回复页；不遍历子贴或分页。接口成功后先处理未提交编辑器确认，再关闭搜索、清除可能遮蔽目标的主楼层作者筛选并导航；取消放弃编辑时留在原位。重复点击当前主楼层仍会重新居中定位。加载中两个入口同步禁用，已知 `_count.posts=0` 时禁用；删除竞态或空主题显示明确 toast。
 
 > **主题帖链接契约**：公开主题帖可通过 `/threads/{threadId}` 访问根页面，详情头部提供复制主题帖链接入口。私密帖不显示普通复制链接；生成或刷新邀请链接只放在管理台「帖子设置 → 私密访问」，详情头部不重复提供邀请与删除入口。
 
@@ -256,6 +259,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 | 楼层列表 | `GET /subthreads/:subthreadId/posts` | TanStack Query `useInfiniteQuery` |
 | 楼层顺序 | 用户切换最早/最新在前 | URL `order` + TanStack Query key；默认 `OLDEST` 不写入 URL |
 | 楼层作者 | `GET /subthreads/:subthreadId/posts/authors` | 本地 `authorId` + TanStack Query key；切换子贴时清空，不写入 URL |
+| 最新发言目标 | `GET /threads/:threadId/posts/latest` | `useMutation` 每次点击重新读取，不持久缓存；按 `parentPostId` 进入主楼层或独立回复页 |
 | 当前选中子贴 | 用户通过目录、搜索结果或左右游标切换 | URL `subthread` 参数 + 本地派生（默认 `defaultSubthreadId`） |
 | 当前编辑会话 | 用户点击发表/回复/编辑 | `ThreadComposerProvider`（全页唯一 session + content + pending） |
 | 点赞状态 | `GET /threads/:id` 的 `isLiked` + `POST/DELETE /threads/:id/like` | useMutation + query invalidation；`likeCount` 仅用于展示总数 |
@@ -271,8 +275,8 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 | 组件 | 路径 | 说明 |
 |------|------|------|
 | ThreadDetailPage | `src/app/threads/[id]/page.tsx` | 详情页主逻辑；管理入口关闭当前编辑器后导航到 workspace 编辑路由 |
-| ThreadDetailHeader | `src/components/thread/thread-detail-header.tsx` | 两段式排头卡：上层展示标题、无胶囊主题标签与搜索/分享/管理工具，下层以禁止换行的单行工具带合并弹性子贴目录与紧凑图标互动操作；点赞与收藏相邻 |
-| ThreadReadingBar | `src/components/thread/thread-reading-bar.tsx` | 排头卡离开视口后的帖内阅读书签条；保留标题、子贴目录、搜索和回顶，并遵循减少动态效果设置 |
+| ThreadDetailHeader | `src/components/thread/thread-detail-header.tsx` | 两段式排头卡：上层展示标题、无胶囊主题标签与分享/管理工具，下层以禁止换行的单行工具带合并弹性子贴目录、最新发言、搜索与紧凑互动操作；点赞与收藏相邻 |
+| ThreadReadingBar | `src/components/thread/thread-reading-bar.tsx` | 排头卡离开视口后的帖内阅读书签条；省略重复的主题标题，保留子贴目录、最新发言、搜索和回顶，并遵循减少动态效果设置 |
 | ThreadSubscriptionControls | `src/components/thread/thread-subscription-controls.tsx` | 普通用户统一管理官方更新与多名玩家订阅；成员候选延迟加载，任一订阅激活时使用透明容器上的品牌深紫实心订阅图标 |
 | ThreadPostSearch | `src/components/thread/thread-post-search.tsx` | 内联搜索全部子贴与楼中楼；处理短词、分页及四态 |
 | PostSearchResultList | `src/components/search/post-search-result-list.tsx` | 与全站搜索共用的结果列表、加载更多和精确帖子导航 |
@@ -298,6 +302,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 | SubthreadTree | `src/components/thread/subthread-tree.tsx` | 管理台左栏章节目录（真实顺序、权限/楼层摘要、@dnd-kit 鼠标与键盘排序） |
 | SubthreadForm | `src/components/forms/subthread-form.tsx` | 新建子贴 Dialog（焦点圈定、Esc/遮罩关闭）+ 共享 Select（title + postingPolicy + Zod 校验）；已有子贴在正文画布上方内联编辑元数据 |
 | useFloors | `src/api/hooks/use-floors.ts` | 楼层列表 hook；顺序与作者进入 query key 和每页请求 |
+| useLatestThreadPost | `src/api/hooks/use-latest-thread-post.ts` | 无缓存的按需定位 hook；返回主楼层/楼中楼稳定导航所需的最小上下文 |
 | useLikeThread | `src/api/hooks/use-like-thread.ts` | 点赞/取消点赞 hook |
 | useCreateSubthread | `src/api/hooks/use-create-subthread.ts` | 管理面板：添加子贴 |
 | useUpdateSubthread | `src/api/hooks/use-update-subthread.ts` | 管理面板：编辑子贴 |
@@ -370,7 +375,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 
 > **子贴正文 vs 回复串：** 子贴正文（kind=BODY）与楼层/回复串（kind=FLOOR）定位不同——正文由子贴生命周期管理（管理面板 upsert，删除帖子接口对 BODY 返回 403 拦截），**楼层列表中的楼层（含 #1）作者均可删除/编辑**，不存在「首楼禁删」。
 
-**页面布局：** 主题帖排头卡为不带分类色块的两段式信息面板（`ThreadDetailHeader`：上层为标题、纯文本标签与低频工具，不显示分类、招募状态、作者或发布时间；下层为禁止换行的子贴目录和图标互动工具带，目录标题弹性截断，左右游标首尾循环）→ 排头卡离开视口后出现阅读书签条（标题、目录、搜索、回顶）→ 当前子贴标题与正文（不重复显示定位说明）→ 楼层列表（不额外显示“讨论 n 楼”标题）→ 语义上位于列表底部、视觉上浮在视口底部的轻量发布入口。
+**页面布局：** 主题帖排头卡为不带分类色块的两段式信息面板（`ThreadDetailHeader`：上层为标题、纯文本标签与低频工具，不显示分类、招募状态、作者或发布时间；下层为禁止换行的子贴目录和图标互动工具带，目录标题弹性截断，左右游标首尾循环）→ 排头卡离开视口后出现阅读书签条（不重复主题标题，只保留目录、最新发言、搜索、回顶）→ 当前子贴标题与正文（不重复显示定位说明）→ 楼层列表（不额外显示“讨论 n 楼”标题）→ 语义上位于列表底部、视觉上浮在视口底部的轻量发布入口。
 
 ```
 用户点击 FloorForm 的「发表回复」入口
@@ -398,6 +403,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 | 错误码 | 场景 | UI 行为 |
 |--------|------|---------|
 | 404 | 主题帖不存在 / 未发布 / PRIVATE 帖非成员 | 显示 "主题帖不存在或已被删除" |
+| 40403 | 最新发言在请求期间被删除，或主题暂无有效楼层/回复 | toast "当前主题还没有楼层或回复" |
 | 403 / 404 | 已打开的主题、楼层或回复失效 | 强制关闭编辑器、清除正文缓存并显示不可访问态 |
 | 40100 | 未登录发帖/点赞 | 自动跳转 /login（apiClient 拦截器） |
 | 40302 | 该子贴仅限协作者发帖 | toast "该子贴仅限协作者发帖" |
@@ -434,6 +440,8 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 - 详情标题下只展示主题标签，不展示分类、招募状态、作者或发布时间
 - 详情标签保持原元信息字号，使用无胶囊的 `#标签名` 链接；无标签时不保留空信息行
 - 排头卡内可打开子贴目录并切换，当前子贴在按钮和菜单内均明确标记
+- 排头卡与冻结阅读条都可跳到跨全部子贴按创建时间最新的主楼层或楼中楼；编辑旧内容不改变目标，当前目标重复点击仍重新居中
+- 冻结阅读条不重复主题标题，只保留当前子贴导航、最新发言、搜索与回顶；最新发言请求中两个入口同步禁用
 - 子贴标题与正文（kind=BODY）同容器渲染（SubthreadBody），正文不进入楼层列表
 - 主题帖标题区独立置顶（ThreadDetailHeader），子贴标题取代原卡片内标题位置
 - OWNER 可删除主题帖：已发布帖软删除，草稿硬删除，成功后返回首页

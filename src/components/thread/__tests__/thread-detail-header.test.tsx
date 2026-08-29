@@ -278,6 +278,48 @@ describe("ThreadDetailHeader", () => {
     expect(onSearch).toHaveBeenCalledTimes(1);
   });
 
+  test("点击最新发言入口触发详情页定位", async () => {
+    const user = userEvent.setup();
+    const onJumpToLatest = vi.fn();
+    mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
+    renderWithQC(
+      <ThreadDetailHeader
+        thread={baseThread}
+        onJumpToLatest={onJumpToLatest}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "跳到最新发言" }));
+
+    expect(onJumpToLatest).toHaveBeenCalledTimes(1);
+  });
+
+  test("最新发言加载中或主题无楼层时禁用入口", () => {
+    mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
+    const view = renderWithQC(
+      <ThreadDetailHeader
+        thread={baseThread}
+        onJumpToLatest={() => {}}
+        latestAvailable={false}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "跳到最新发言" })).toBeDisabled();
+
+    view.unmount();
+    renderWithQC(
+      <ThreadDetailHeader
+        thread={baseThread}
+        onJumpToLatest={() => {}}
+        latestPending
+      />,
+    );
+    const pendingButton = screen.getByRole("button", {
+      name: "跳到最新发言",
+    });
+    expect(pendingButton).toBeDisabled();
+    expect(pendingButton).toHaveAttribute("aria-busy", "true");
+  });
+
   test("可复制主题帖链接", async () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });

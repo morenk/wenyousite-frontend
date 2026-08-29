@@ -10,26 +10,31 @@ import type { SubthreadDetail } from "@/api/hooks/use-thread-detail";
 import { SubthreadSwitcher } from "@/components/thread/subthread-tabs";
 import { Button } from "@/components/ui/button";
 import { Tooltip } from "@/components/ui/tooltip";
+import { WenyouIcon } from "@/components/ui/wenyou-icon";
 import { cn } from "@/lib/utils";
 
 interface ThreadReadingBarProps {
-  threadTitle: string;
   subthreads: SubthreadDetail[];
   selectedSubthreadId?: string;
   onSubthreadChange: (id: string) => void;
   onSubthreadPrefetch?: (id: string) => void;
   onSearch: () => void;
   isSearchOpen: boolean;
+  onJumpToLatest?: () => void;
+  latestPending?: boolean;
+  latestAvailable?: boolean;
 }
 
 export function ThreadReadingBar({
-  threadTitle,
   subthreads,
   selectedSubthreadId,
   onSubthreadChange,
   onSubthreadPrefetch,
   onSearch,
   isSearchOpen,
+  onJumpToLatest,
+  latestPending = false,
+  latestAvailable = true,
 }: ThreadReadingBarProps) {
   const [visible, setVisible] = useState(false);
 
@@ -62,10 +67,6 @@ export function ThreadReadingBar({
             transition={{ duration: 0.16, ease: [0.2, 0.8, 0.2, 1] }}
             className="pointer-events-auto mx-1 flex min-w-0 items-center gap-2 overflow-visible rounded-2xl border border-border bg-card/95 p-2 shadow-floating backdrop-blur-md"
           >
-            <span className="min-w-0 max-w-40 truncate px-2 text-sm font-semibold text-foreground">
-              {threadTitle}
-            </span>
-            <div className="h-5 w-px shrink-0 bg-border" aria-hidden="true" />
             {subthreads.length > 1 ? (
               <SubthreadSwitcher
                 subthreads={subthreads}
@@ -79,6 +80,34 @@ export function ThreadReadingBar({
                 {subthreads[0]?.title ?? "主帖"}
               </span>
             )}
+            {onJumpToLatest ? (
+              <Tooltip
+                content={
+                  latestPending
+                    ? "正在定位最新发言"
+                    : latestAvailable
+                      ? "跳到最新发言"
+                      : "暂无楼层或回复"
+                }
+              >
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="跳到最新发言"
+                  aria-busy={latestPending}
+                  disabled={!latestAvailable}
+                  pending={latestPending}
+                  pendingLabel={
+                    <span className="sr-only">正在定位最新发言</span>
+                  }
+                  onClick={onJumpToLatest}
+                  className="rounded-lg text-muted-foreground hover:text-foreground"
+                >
+                  <WenyouIcon id="navigation.down" className="size-4" />
+                </Button>
+              </Tooltip>
+            ) : null}
             <Tooltip content={isSearchOpen ? "关闭本帖搜索" : "搜索本帖"}>
               <Button
                 type="button"

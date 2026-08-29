@@ -1382,6 +1382,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/threads/{threadId}/posts/latest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 定位主题帖内最新发布的楼层或楼中楼回复 */
+        get: operations["postsFindLatestInThread"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/subthreads/{subthreadId}/posts": {
         parameters: {
             query?: never;
@@ -4502,6 +4519,14 @@ export interface components {
              */
             version: number;
         };
+        LatestThreadPostResponseDto: {
+            id: string;
+            threadId: string;
+            subthreadId: string;
+            parentPostId: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
         PostCountResponseDto: {
             replies: number;
         };
@@ -6237,6 +6262,9 @@ export interface components {
         };
         SubthreadsReorder200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["ReorderedSubthreadResponseDto"][];
+        };
+        PostsFindLatestInThread200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["LatestThreadPostResponseDto"];
         };
         PostsFindFloors200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
             data: components["schemas"]["FloorResponseDto"][];
@@ -11348,6 +11376,52 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SubthreadsReorder200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    postsFindLatestInThread: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                threadId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 跨全部存活子贴、按创建时间定位的最新有效发言 */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostsFindLatestInThread200Response"];
+                };
+            };
+            /** @description 主题帖不可访问，或主题帖内暂无有效楼层/回复 */
+            404: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */

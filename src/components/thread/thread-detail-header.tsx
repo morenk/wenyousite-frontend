@@ -15,6 +15,7 @@ import { useExitThreadPlayer } from "@/api/hooks/use-thread-access-actions";
 import { Button } from "@/components/ui/button";
 import { InteractionToggle } from "@/components/ui/interaction-toggle";
 import { Tooltip } from "@/components/ui/tooltip";
+import { WenyouIcon } from "@/components/ui/wenyou-icon";
 import { useConfirm } from "@/components/ui/confirm-provider";
 import { BookmarkButton } from "@/components/user/bookmark-button";
 import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
@@ -34,6 +35,9 @@ interface ThreadDetailHeaderProps {
   onManage?: () => void;
   onSearch?: () => void;
   isSearchOpen?: boolean;
+  onJumpToLatest?: () => void;
+  latestPending?: boolean;
+  latestAvailable?: boolean;
   subthreads?: SubthreadDetail[];
   selectedSubthreadId?: string;
   defaultSubthreadId?: string;
@@ -72,6 +76,9 @@ export function ThreadDetailHeader({
   onManage,
   onSearch,
   isSearchOpen = false,
+  onJumpToLatest,
+  latestPending = false,
+  latestAvailable = true,
   subthreads = [],
   selectedSubthreadId,
   defaultSubthreadId,
@@ -223,28 +230,58 @@ export function ThreadDetailHeader({
                 />
               ) : null}
 
-              {onSearch ? (
+              {onSearch || onJumpToLatest ? (
                 <ThreadActionGroup
                   label="浏览工具"
                   className={onSubthreadChange ? undefined : "ml-auto"}
                 >
-                  <Tooltip
-                    content={isSearchOpen ? "关闭本帖搜索" : "搜索本帖楼层"}
-                  >
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label="搜索本帖楼层"
-                      aria-expanded={isSearchOpen}
-                      onClick={onSearch}
-                      className={cn(
-                        actionButtonClassName,
-                        isSearchOpen && "bg-accent text-foreground",
-                      )}
+                  {onJumpToLatest ? (
+                    <Tooltip
+                      content={
+                        latestPending
+                          ? "正在定位最新发言"
+                          : latestAvailable
+                            ? "跳到最新发言"
+                            : "暂无楼层或回复"
+                      }
                     >
-                      <Search className="h-4 w-4" />
-                    </Button>
-                  </Tooltip>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label="跳到最新发言"
+                        aria-busy={latestPending}
+                        disabled={!latestAvailable}
+                        pending={latestPending}
+                        pendingLabel={
+                          <span className="sr-only">正在定位最新发言</span>
+                        }
+                        onClick={onJumpToLatest}
+                        className={actionButtonClassName}
+                      >
+                        <WenyouIcon id="navigation.down" className="size-4" />
+                      </Button>
+                    </Tooltip>
+                  ) : null}
+                  {onSearch ? (
+                    <Tooltip
+                      content={isSearchOpen ? "关闭本帖搜索" : "搜索本帖楼层"}
+                    >
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label="搜索本帖楼层"
+                        aria-expanded={isSearchOpen}
+                        onClick={onSearch}
+                        className={cn(
+                          actionButtonClassName,
+                          isSearchOpen && "bg-accent text-foreground",
+                        )}
+                      >
+                        <Search className="h-4 w-4" />
+                      </Button>
+                    </Tooltip>
+                  ) : null}
                 </ThreadActionGroup>
               ) : null}
 
