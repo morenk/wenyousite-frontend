@@ -4,8 +4,12 @@ import {
   formatInlineDicePending,
 } from "@/lib/dice-inline";
 import { STICKER_INLINE_NODE_NAME } from "@/lib/sticker-inline";
+import {
+  isStoredWenyouTextAlignment,
+  WENYOU_ALIGNMENT_ATTRIBUTE,
+} from "@/lib/markdown-alignment";
 
-export const SITE_CLIPBOARD_VERSION = "1";
+export const SITE_CLIPBOARD_VERSION = "2";
 export const SITE_CLIPBOARD_VERSION_ATTRIBUTE = "data-wenyou-clipboard";
 export const SITE_CLIPBOARD_SOURCE_ATTRIBUTE = "data-wenyou-clipboard-source";
 export const SITE_CLIPBOARD_MEDIA_ATTRIBUTE = "data-wenyou-clipboard-media";
@@ -57,6 +61,7 @@ function appendChildren(
   source: Element,
   target: Node,
   clipboardSource: SiteClipboardSource,
+  preserveAlignment: boolean,
 ) {
   for (const child of Array.from(source.childNodes)) {
     if (
@@ -66,7 +71,7 @@ function appendChildren(
     ) {
       continue;
     }
-    appendNormalizedNode(child, target, clipboardSource);
+    appendNormalizedNode(child, target, clipboardSource, preserveAlignment);
   }
 }
 
@@ -134,6 +139,7 @@ function appendNormalizedNode(
   source: Node,
   target: Node,
   clipboardSource: SiteClipboardSource,
+  preserveAlignment: boolean,
 ) {
   const document = target.ownerDocument!;
   if (source.nodeType === Node.TEXT_NODE) {
@@ -175,12 +181,12 @@ function appendNormalizedNode(
   if (tagName === "A") {
     const href = element.getAttribute("href") ?? "";
     if (!isSafeHref(href)) {
-      appendChildren(element, target, clipboardSource);
+      appendChildren(element, target, clipboardSource, preserveAlignment);
       return;
     }
     const anchor = document.createElement("a");
     anchor.setAttribute("href", href);
-    appendChildren(element, anchor, clipboardSource);
+    appendChildren(element, anchor, clipboardSource, preserveAlignment);
     target.appendChild(anchor);
     return;
   }
@@ -223,7 +229,7 @@ function appendNormalizedNode(
   })();
 
   if (!normalizedTag) {
-    appendChildren(element, target, clipboardSource);
+    appendChildren(element, target, clipboardSource, preserveAlignment);
     return;
   }
 
@@ -235,7 +241,28 @@ function appendNormalizedNode(
     }
   }
   if (normalizedTag !== "br" && normalizedTag !== "hr") {
-    appendChildren(element, normalized, clipboardSource);
+    appendChildren(element, normalized, clipboardSource, preserveAlignment);
+  }
+  const alignment = element.getAttribute(WENYOU_ALIGNMENT_ATTRIBUTE);
+  const topLevelEligible =
+    target.nodeType === Node.ELEMENT_NODE
+    && (target as Element).hasAttribute(SITE_CLIPBOARD_VERSION_ATTRIBUTE)
+    && (normalizedTag === "p" || normalizedTag === "h2" || normalizedTag === "h3");
+  const hasRegularImage = Array.from(normalized.querySelectorAll("img")).some(
+    (image) => image.getAttribute("data-type") !== STICKER_INLINE_NODE_NAME,
+  );
+  const hasAlignableContent = Boolean(
+    normalized.textContent?.trim()
+    || normalized.querySelector(`img[data-type="${STICKER_INLINE_NODE_NAME}"]`),
+  );
+  if (
+    preserveAlignment
+    && topLevelEligible
+    && isStoredWenyouTextAlignment(alignment)
+    && hasAlignableContent
+    && !hasRegularImage
+  ) {
+    normalized.setAttribute(WENYOU_ALIGNMENT_ATTRIBUTE, alignment);
   }
   target.appendChild(normalized);
 }
@@ -244,11 +271,14 @@ export function createSiteClipboardEnvelope(
   nodes: Iterable<Node>,
   source: SiteClipboardSource,
   document: Document = window.document,
+  preserveAlignment = true,
 ): HTMLElement {
   const envelope = document.createElement("div");
   envelope.setAttribute(SITE_CLIPBOARD_VERSION_ATTRIBUTE, SITE_CLIPBOARD_VERSION);
   envelope.setAttribute(SITE_CLIPBOARD_SOURCE_ATTRIBUTE, source);
-  for (const node of Array.from(nodes)) appendNormalizedNode(node, envelope, source);
+  for (const node of Array.from(nodes)) {
+    appendNormalizedNode(node, envelope, source, preserveAlignment);
+  }
   return envelope;
 }
 
@@ -325,8 +355,14 @@ export function createSiteClipboardPayloadFromNodes(
   nodes: Iterable<Node>,
   source: SiteClipboardSource,
   document: Document = window.document,
+  preserveAlignment = true,
 ): SiteClipboardPayload {
-  const envelope = createSiteClipboardEnvelope(nodes, source, document);
+  const envelope = createSiteClipboardEnvelope(
+    nodes,
+    source,
+    document,
+    preserveAlignment,
+  );
   return {
     source,
     html: envelope.outerHTML,
@@ -346,7 +382,7 @@ function closestAtomicReaderNode(root: HTMLElement, node: Node): Element | null 
   return atomic && root.contains(atomic) ? atomic : null;
 }
 
-function restoreSharedInlineSelectionAncestors(
+function restoreSharedSelectionAncestors(
   root: HTMLElement,
   range: Range,
   fragment: DocumentFragment,
@@ -356,7 +392,11 @@ function restoreSharedInlineSelectionAncestors(
     : range.commonAncestorContainer.parentElement;
   let wrapped: Node = fragment;
   while (ancestor && ancestor !== root) {
-    if (INLINE_SELECTION_WRAPPER_TAGS.has(ancestor.tagName.toUpperCase())) {
+    const tagName = ancestor.tagName.toUpperCase();
+    const alignment = ancestor.getAttribute(WENYOU_ALIGNMENT_ATTRIBUTE);
+    const alignedBlock = (tagName === "P" || tagName === "H2" || tagName === "H3")
+      && isStoredWenyouTextAlignment(alignment);
+    if (INLINE_SELECTION_WRAPPER_TAGS.has(tagName) || alignedBlock) {
       const wrapper = ancestor.cloneNode(false) as Element;
       wrapper.appendChild(wrapped);
       wrapped = wrapper;
@@ -384,7 +424,7 @@ export function createReaderSelectionClipboardPayload(
     return null;
   }
   const fragment = range.cloneContents();
-  restoreSharedInlineSelectionAncestors(root, range, fragment);
+  restoreSharedSelectionAncestors(root, range, fragment);
   return createSiteClipboardPayloadFromNodes(fragment.childNodes, "reader", root.ownerDocument);
 }
 
@@ -396,8 +436,9 @@ export function parseSiteClipboardHtml(html: string): SiteClipboardPayload | nul
   if (envelopes.length !== 1) return null;
   const envelope = envelopes[0]!;
   const source = envelope.getAttribute(SITE_CLIPBOARD_SOURCE_ATTRIBUTE);
+  const version = envelope.getAttribute(SITE_CLIPBOARD_VERSION_ATTRIBUTE);
   if (
-    envelope.getAttribute(SITE_CLIPBOARD_VERSION_ATTRIBUTE) !== SITE_CLIPBOARD_VERSION
+    (version !== "1" && version !== SITE_CLIPBOARD_VERSION)
     || (source !== "reader" && source !== "editor")
   ) {
     return null;
@@ -406,6 +447,7 @@ export function parseSiteClipboardHtml(html: string): SiteClipboardPayload | nul
     envelope.childNodes,
     source,
     envelope.ownerDocument,
+    version === SITE_CLIPBOARD_VERSION,
   );
 }
 

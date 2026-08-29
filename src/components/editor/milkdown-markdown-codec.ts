@@ -13,6 +13,7 @@ import {
 } from "@/lib/markdown";
 import { serializeInlineDiceNode } from "@/lib/dice-inline";
 import { remarkRecoverAttentionBoundaries } from "@/lib/markdown-attention";
+import { normalizeSerializedAlignmentMarkers } from "@/lib/markdown-alignment";
 
 type DiceMarkdownNode = {
   nodeId?: unknown;
@@ -249,9 +250,11 @@ function normalizeEmptyBlockquoteParagraphs(markdown: string): string {
 
 /** 只规范化编辑器自身的合法输出；这里禁止调用任何字面降级净化器。 */
 export function serializeEditorMarkdown(ctx: Ctx, doc: ProseNode): string {
-  let markdown = normalizeEmptyBlockquoteParagraphs(
-    sanitizeEmptyImages(
-      ctx.get(serializerCtx)(doc).replace(/\r\n?/gu, "\n"),
+  let markdown = normalizeSerializedAlignmentMarkers(
+    normalizeEmptyBlockquoteParagraphs(
+      sanitizeEmptyImages(
+        ctx.get(serializerCtx)(doc).replace(/\r\n?/gu, "\n"),
+      ),
     ),
   );
 

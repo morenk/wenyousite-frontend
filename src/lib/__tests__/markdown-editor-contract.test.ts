@@ -79,7 +79,7 @@ const fixture = JSON.parse(
   readFileSync(
     resolve(
       process.cwd(),
-      "contracts/markdown-editor-roundtrip-v5-fixtures.json",
+      "contracts/markdown-editor-roundtrip-v6-fixtures.json",
     ),
     "utf8",
   ),
@@ -91,11 +91,11 @@ const fixture = JSON.parse(
 };
 
 describe("Markdown 编辑器往返契约", () => {
-  test("固定在 Markdown v3 之上的编辑器 fixture v5", () => {
+  test("固定在 Markdown v4 之上的编辑器 fixture v6", () => {
     expect(fixture).toMatchObject({
       contract: "wenyousite-markdown-editor-roundtrip",
-      version: 5,
-      markdownContractVersion: 3,
+      version: 6,
+      markdownContractVersion: 4,
     });
     expect(new Set(fixture.cases.map((item) => item.id)).size).toBe(
       fixture.cases.length,
@@ -124,7 +124,7 @@ describe("Markdown 编辑器往返契约", () => {
     }
   });
 
-  test("v5 固定各类 attention 边界歧义和下划线别名", () => {
+  test("v6 固定各类 attention 边界歧义和下划线别名", () => {
     for (const id of [
       "attention-boundary-bold-live-content",
       "attention-boundary-italic",

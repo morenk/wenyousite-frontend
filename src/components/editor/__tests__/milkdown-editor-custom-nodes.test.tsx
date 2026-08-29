@@ -52,11 +52,11 @@ vi.mock("sonner", () => ({
 }));
 
 const nodeFixtures = JSON.parse(
-  readFileSync(resolve(process.cwd(), "contracts/markdown-v3-nodes-fixtures.json"), "utf8"),
+  readFileSync(resolve(process.cwd(), "contracts/markdown-v4-nodes-fixtures.json"), "utf8"),
 ) as { cases: Array<{ id: string; markdown: string; serialized: string }> };
 const editorRoundTripFixtures = JSON.parse(
   readFileSync(
-    resolve(process.cwd(), "contracts/markdown-editor-roundtrip-v5-fixtures.json"),
+    resolve(process.cwd(), "contracts/markdown-editor-roundtrip-v6-fixtures.json"),
     "utf8",
   ),
 ) as { cases: Array<{ id: string; markdown: string; serialized: string }> };
@@ -99,7 +99,7 @@ afterEach(() => {
 });
 
 describe("MilkdownEditor 自定义内联节点", () => {
-  test("规范分隔线重开为真实块节点并按 v5 原样写回", async () => {
+  test("规范分隔线重开为真实块节点并按 v6 原样写回", async () => {
     const fixture = editorRoundTripFixture("horizontal-rule");
     const onChange = vi.fn();
     const user = userEvent.setup();
@@ -163,7 +163,7 @@ describe("MilkdownEditor 自定义内联节点", () => {
     },
   );
 
-  test("v5 规范粗体输出重开后保持幂等", async () => {
+  test("v6 规范粗体输出重开后保持幂等", async () => {
     const fixture = editorRoundTripFixture("attention-boundary-bold-live-content");
     const onChange = vi.fn();
     const user = userEvent.setup();

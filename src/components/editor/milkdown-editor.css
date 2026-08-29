@@ -61,6 +61,14 @@
   line-height: 1.9;
 }
 
+.milkdown .ProseMirror > [data-wenyou-align="center"] {
+  text-align: center;
+}
+
+.milkdown .ProseMirror > [data-wenyou-align="right"] {
+  text-align: right;
+}
+
 .milkdown .ProseMirror strong {
   font-weight: 700;
   letter-spacing: 0.018em;

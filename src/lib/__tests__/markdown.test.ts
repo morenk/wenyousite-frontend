@@ -10,20 +10,21 @@ import {
   recoverLegacyMarkdownEmptyParagraphs,
   sanitizeMilkdownMarkdown,
 } from "@/lib/markdown";
-import markdownV3Fixtures from "../../../contracts/markdown-v3-fixtures.json";
+import { normalizeSerializedAlignmentMarkers } from "@/lib/markdown-alignment";
+import markdownV4Fixtures from "../../../contracts/markdown-v4-fixtures.json";
 
-type MarkdownFixture = (typeof markdownV3Fixtures.cases)[number];
+type MarkdownFixture = (typeof markdownV4Fixtures.cases)[number];
 
-describe("Markdown v3 黄金语料", () => {
+describe("Markdown v4 黄金语料", () => {
   test("协议版本正确且 case id 唯一", () => {
-    expect(markdownV3Fixtures.contract).toBe("wenyousite-markdown");
-    expect(markdownV3Fixtures.version).toBe(3);
-    expect(new Set(markdownV3Fixtures.cases.map(({ id }) => id)).size).toBe(
-      markdownV3Fixtures.cases.length,
+    expect(markdownV4Fixtures.contract).toBe("wenyousite-markdown");
+    expect(markdownV4Fixtures.version).toBe(4);
+    expect(new Set(markdownV4Fixtures.cases.map(({ id }) => id)).size).toBe(
+      markdownV4Fixtures.cases.length,
     );
   });
 
-  test.each(markdownV3Fixtures.cases)(
+  test.each(markdownV4Fixtures.cases)(
     "$id 字面降级为 literal 且保持幂等",
     ({ input, literal }: MarkdownFixture) => {
       expect(sanitizeMilkdownMarkdown(input)).toBe(literal);
@@ -31,7 +32,7 @@ describe("Markdown v3 黄金语料", () => {
     },
   );
 
-  test.each(markdownV3Fixtures.cases)(
+  test.each(markdownV4Fixtures.cases)(
     "$id 的发布可见性符合协议",
     ({ input, canonical, visible }: MarkdownFixture) => {
       expect(hasVisibleMarkdownContent(input)).toBe(visible);
@@ -39,7 +40,7 @@ describe("Markdown v3 黄金语料", () => {
     },
   );
 
-  test.each(markdownV3Fixtures.cases)(
+  test.each(markdownV4Fixtures.cases)(
     "$id 白名单结果与首个不支持类型一致",
     ({ canonical, supported, unsupportedType }: MarkdownFixture) => {
       expect(findUnsupportedMarkdownFormats(canonical)[0]?.type ?? null).toBe(
@@ -49,6 +50,14 @@ describe("Markdown v3 黄金语料", () => {
       expect(supported).toBe(unsupportedType === null);
     },
   );
+});
+
+describe("对齐标记序列化", () => {
+  test("移除 stringifier 空行且保留正文自身的行首空白", () => {
+    expect(normalizeSerializedAlignmentMarkers(
+      "[wenyousite-align-v1-center]: #\n\n  正文",
+    )).toBe("[wenyousite-align-v1-center]: #\n  正文");
+  });
 });
 
 describe("sanitizeEmptyImages", () => {

@@ -17,6 +17,7 @@ import {
   parseSiteClipboardHtml,
 } from "@/lib/site-clipboard";
 import { STICKER_INLINE_NODE_NAME } from "@/lib/sticker-inline";
+import { WENYOU_ALIGNMENT_ATTRIBUTE } from "@/lib/markdown-alignment";
 
 const BLOCK_TAGS = new Set([
   "ADDRESS", "ARTICLE", "ASIDE", "BLOCKQUOTE", "DIV", "FIGCAPTION", "FIGURE",
@@ -94,7 +95,7 @@ function finishHandledClipboardEvent(event: ClipboardEvent | DragEvent) {
   event.stopImmediatePropagation();
 }
 
-function pasteEditorSiteFragment(view: EditorView, html: string): boolean {
+function pasteStructuredSiteFragment(view: EditorView, html: string): boolean {
   const template = document.createElement("template");
   template.innerHTML = html;
   const envelope = template.content.firstElementChild;
@@ -109,10 +110,20 @@ function pasteEditorSiteFragment(view: EditorView, html: string): boolean {
       image.replaceWith(document.createTextNode("[表情]"));
     });
   }
-  let slice = createEditorClipboardParser(view.state.schema).parseSlice(envelope, {
-    preserveWhitespace: true,
-    context: view.state.selection.$from,
-  });
+  const parser = createEditorClipboardParser(view.state.schema);
+  const hasTopLevelAlignment = Array.from(envelope.children).some((child) =>
+    ["P", "H2", "H3"].includes(child.tagName)
+      && child.hasAttribute(WENYOU_ALIGNMENT_ATTRIBUTE),
+  );
+  let slice = hasTopLevelAlignment
+    ? new Slice(parser.parse(envelope, {
+        preserveWhitespace: true,
+        context: view.state.selection.$from,
+      }).content, 0, 0)
+    : parser.parseSlice(envelope, {
+        preserveWhitespace: true,
+        context: view.state.selection.$from,
+      });
   view.someProp("transformPasted", (transform) => {
     slice = transform(slice, view, false);
   });
@@ -132,7 +143,8 @@ function handleSiteFragmentPaste(view: EditorView, event: ClipboardEvent): boole
   const payload = parseSiteClipboardHtml(html);
   if (!payload) return false;
   const pasted = payload.source === "editor"
-    ? pasteEditorSiteFragment(view, payload.html)
+    || payload.html.includes(WENYOU_ALIGNMENT_ATTRIBUTE)
+    ? pasteStructuredSiteFragment(view, payload.html)
     : view.pasteHTML(payload.html, event);
   if (!pasted) return false;
   finishHandledClipboardEvent(event);
@@ -140,7 +152,7 @@ function handleSiteFragmentPaste(view: EditorView, event: ClipboardEvent): boole
   return true;
 }
 
-/** 无本站 v1 envelope 的内容一律按系统可见文字插入。 */
+/** 无本站 v1/v2 envelope 的内容一律按系统可见文字插入。 */
 export function handleLiteralClipboardPaste(view: EditorView, event: ClipboardEvent): boolean {
   const clipboard = event.clipboardData;
   if (!clipboard) return false;

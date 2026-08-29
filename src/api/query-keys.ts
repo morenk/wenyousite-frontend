@@ -1,6 +1,7 @@
 /** TanStack Query key 工厂：业务代码不得自行拼接缓存键。 */
 
 export const queryKeys = {
+  meta: ["api-meta"] as const,
   threads: {
     all: ["threads"] as const,
     details: ["thread"] as const,

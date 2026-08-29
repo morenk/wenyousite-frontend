@@ -397,6 +397,14 @@ select {
   margin-block: 0.78em;
 }
 
+.wenyou-prose > [data-wenyou-align="center"] {
+  text-align: center;
+}
+
+.wenyou-prose > [data-wenyou-align="right"] {
+  text-align: right;
+}
+
 .wenyou-prose strong {
   color: var(--foreground);
   font-weight: 700;

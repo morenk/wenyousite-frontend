@@ -36,6 +36,7 @@ import { InternalReferenceLink } from "@/components/shared/internal-reference-li
 import { ContentLink } from "@/components/ui/content-link";
 import { DiceInlineResult } from "@/components/thread/dice-inline-result";
 import { remarkRecoverAttentionBoundaries } from "@/lib/markdown-attention";
+import { remarkWenyouAlignment } from "@/lib/markdown-alignment";
 import {
   createReaderSelectionClipboardPayload,
   setSiteClipboardData,
@@ -377,6 +378,7 @@ export function MarkdownContent({
       <ReactMarkdown
         remarkPlugins={[
           remarkGfm,
+          remarkWenyouAlignment,
           remarkRecoverAttentionBoundaries,
           remarkMilkdownEmptyParagraphs,
           remarkInlineDice(diceRolls),

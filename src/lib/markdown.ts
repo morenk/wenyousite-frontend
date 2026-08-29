@@ -1,4 +1,4 @@
-/** Markdown v3 工具：规范化、工具栏能力白名单与字面文本降级。 */
+/** Markdown v4 工具：规范化、工具栏能力白名单与字面文本降级。 */
 
 import MarkdownIt from "markdown-it";
 
@@ -61,6 +61,9 @@ const EMPTY_PARAGRAPH_RE = /^ {0,3}<br\s*\/?>[\t ]*$/iu;
 const BLANK_LINE_RE = /^[\t ]*$/u;
 const TASK_LIST_RE = /^(?: {0,3}>[\t ]*)*[\t ]*(?:[-+*]|\d+[.)])[\t ]+\[[ xX]\](?:[\t ]|$)/u;
 const UNKNOWN_PROTOCOL_RE = /\[\[([a-z][a-z0-9_-]*):v(\d+):/giu;
+const ALIGNMENT_MARKER_RE = /^\[wenyousite-align-v1-(center|right)\]: #$/u;
+const ALIGNMENT_PROTOCOL_RE = /\[wenyousite-align-v(\d+)-([a-z][a-z-]*)\]:/giu;
+const STICKER_TITLE_PREFIX = "wenyousite-sticker:v1:";
 const WORD_JOINER = "\u2060";
 const MAX_LIST_DEPTH = 3;
 
@@ -185,6 +188,7 @@ export const UNSUPPORTED_MARKDOWN_TYPE_LABELS = {
   "hard-break": "显式硬换行",
   "raw-html": "原始 HTML",
   "unknown-protocol": "未知协议节点",
+  "invalid-alignment": "无效的段落对齐",
   "list-depth": "超过三层的嵌套列表",
   "unsafe-link": "不安全链接",
   "unknown-node": "未知 Markdown 节点",
@@ -263,8 +267,9 @@ export function findUnsupportedMarkdownFormats(markdown: string): UnsupportedMar
     .join("\n");
   const issues: UnsupportedMarkdownIssue[] = [];
   let listDepth = 0;
+  const tokens = markdownParser.parse(parseSource, {});
 
-  for (const token of markdownParser.parse(parseSource, {})) {
+  for (const token of tokens) {
     switch (token.type) {
       case "table_open":
         issues.push(issue("table", token.map));
@@ -352,11 +357,63 @@ export function findUnsupportedMarkdownFormats(markdown: string): UnsupportedMar
     }
   }
 
+  const topLevelBlocks = new Map(
+    tokens
+      .filter(
+        (token) =>
+          token.level === 0 &&
+          token.map &&
+          (token.type === "paragraph_open" || token.type === "heading_open"),
+      )
+      .map((token) => [token.map![0], token]),
+  );
+
   for (let line = 0; line < lines.length; line++) {
     if (TASK_LIST_RE.test(lines[line]!)) {
       issues.push({ type: "task-list", startLine: line, endLine: line });
     }
     const masked = maskInlineCode(lines[line]!);
+    const alignmentMarker = lines[line]!.match(ALIGNMENT_MARKER_RE);
+    if (alignmentMarker) {
+      const target = topLevelBlocks.get(line + 1);
+      const inline = target
+        ? tokens.find(
+            (token) =>
+              token.type === "inline" &&
+              token.map?.[0] === target.map?.[0] &&
+              token.map?.[1] === target.map?.[1],
+          )
+        : undefined;
+      const hasRegularImage = inline?.children?.some(
+        (child) =>
+          child.type === "image" &&
+          !child.attrGet("title")?.startsWith(STICKER_TITLE_PREFIX),
+      );
+      const hasInlineContent = Boolean(inline?.content.trim());
+      const eligibleHeading =
+        target?.type === "heading_open" &&
+        (target.tag === "h2" || target.tag === "h3") &&
+        hasInlineContent &&
+        !hasRegularImage;
+      const eligibleParagraph =
+        target?.type === "paragraph_open" &&
+        hasInlineContent &&
+        !EMPTY_PARAGRAPH_RE.test(lines[line + 1] ?? "") &&
+        !hasRegularImage;
+      if (!eligibleHeading && !eligibleParagraph) {
+        issues.push({ type: "invalid-alignment", startLine: line, endLine: line });
+      }
+      continue;
+    }
+    for (const match of masked.matchAll(ALIGNMENT_PROTOCOL_RE)) {
+      if (isEscaped(lines[line]!, match.index ?? 0)) continue;
+      issues.push({
+        type: match[1] === "1" ? "invalid-alignment" : "unknown-protocol",
+        startLine: line,
+        endLine: line,
+      });
+      break;
+    }
     for (const match of masked.matchAll(UNKNOWN_PROTOCOL_RE)) {
       if (isEscaped(lines[line]!, match.index ?? 0)) continue;
       if (match[1]!.toLowerCase() === "dice" && match[2] === "1") continue;
@@ -426,7 +483,7 @@ function hasNonIgnorableText(value: string): boolean {
 
 /** 判断 Markdown 是否包含可发布的可见内容（图片可单独发布，分隔线不可单独发布）。 */
 export function hasVisibleMarkdownContent(markdown: string): boolean {
-  const lines = sanitizeMilkdownMarkdown(markdown).split("\n");
+  const lines = normalizeMilkdownMarkdown(markdown).split("\n");
   let fence: { marker: "`" | "~"; length: number } | null = null;
 
   for (const rawLine of lines) {
@@ -451,7 +508,11 @@ export function hasVisibleMarkdownContent(markdown: string): boolean {
       };
       continue;
     }
-    if (!line || THEMATIC_BREAK_RE.test(rawLine)) continue;
+    if (
+      !line ||
+      THEMATIC_BREAK_RE.test(rawLine) ||
+      ALIGNMENT_MARKER_RE.test(rawLine)
+    ) continue;
     if (IMAGE_RE.test(line)) return true;
     // Milkdown 会把独占 URL 序列化为 CommonMark 自动链接；它不是 HTML 标签。
     if (HTTP_AUTOLINK_RE.test(line)) return true;

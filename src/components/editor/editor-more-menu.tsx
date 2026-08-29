@@ -5,11 +5,13 @@ import type { EditorCapabilityId } from "@/lib/editor-capabilities";
 import { editorIconId, isEditorIconCapability } from "@/lib/editor-icons";
 import { cn } from "@/lib/utils";
 import { WenyouIcon } from "@/components/ui/wenyou-icon";
+import type { IconSemanticId } from "@wenyousite/foundation/icons";
 
 export interface EditorMoreMenuItem {
   id: EditorCapabilityId;
   label: string;
   group: "文字" | "段落" | "创作";
+  iconId?: IconSemanticId;
 }
 
 interface EditorMoreMenuProps {
@@ -91,7 +93,7 @@ export function EditorMoreMenu({ anchor, items, onSelect, onClose }: EditorMoreM
                 <div className="grid grid-cols-2 gap-1">
                   {group.items.map((item) => {
                     if (!isEditorIconCapability(item.id)) return null;
-                    const iconId = editorIconId(item.id);
+                    const iconId = item.iconId ?? editorIconId(item.id);
                     return (
                       <button
                         key={item.id}

@@ -199,6 +199,7 @@ describe("syncMilkdownToolbarVisibility", () => {
       "inline-code",
       "bullet-list",
       "ordered-list",
+      "alignment",
     ]);
     expect(EDITOR_WEB_LAYOUT).toMatchObject({
       frameMaxRem: 50,
@@ -211,7 +212,7 @@ describe("syncMilkdownToolbarVisibility", () => {
       "identity-preserving",
     );
     expect(EDITOR_CONTENT_POLICY).toMatchObject({
-      markdownContractVersion: 3,
+      markdownContractVersion: 4,
       structuredCapabilitySource: "toolbar",
       unsupportedClientBehavior: "literal-text-silent",
       maximumListDepth: 3,
@@ -281,11 +282,13 @@ describe("syncMilkdownToolbarVisibility", () => {
       "inline-code",
       "bullet-list",
       "ordered-list",
+      "alignment",
     ]);
     expect(getMilkdownMoreCapabilities("without-draft", true)).toEqual([
       "inline-code",
       "bullet-list",
       "ordered-list",
+      "alignment",
       "draft",
     ]);
     expect(getMilkdownMoreCapabilities("compact", true)).toEqual([

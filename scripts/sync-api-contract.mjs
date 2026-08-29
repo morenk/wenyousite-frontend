@@ -16,11 +16,11 @@ const internalReferenceTarget = resolve(
 );
 const editorClipboardSource = resolve(
   frontendRoot,
-  "../wenyousite-backend/contracts/editor-clipboard-v1-fixtures.json",
+  "../wenyousite-backend/contracts/editor-clipboard-v2-fixtures.json",
 );
 const editorClipboardTarget = resolve(
   frontendRoot,
-  "contracts/editor-clipboard-v1-fixtures.json",
+  "contracts/editor-clipboard-v2-fixtures.json",
 );
 const contract = JSON.parse(readFileSync(source, "utf8"));
 const internalReferenceContract = JSON.parse(readFileSync(internalReferenceSource, "utf8"));
@@ -38,9 +38,9 @@ if (
 }
 if (
   editorClipboardContract.contract !== "wenyousite-editor-clipboard"
-  || editorClipboardContract.version !== 1
+  || editorClipboardContract.version !== 2
 ) {
-  throw new Error("后端编辑器剪贴板契约不是 wenyousite-editor-clipboard v1");
+  throw new Error("后端编辑器剪贴板契约不是 wenyousite-editor-clipboard v2");
 }
 
 mkdirSync(dirname(target), { recursive: true });
@@ -48,5 +48,5 @@ copyFileSync(source, target);
 copyFileSync(internalReferenceSource, internalReferenceTarget);
 copyFileSync(editorClipboardSource, editorClipboardTarget);
 console.log(
-  `Synced API contract ${contract.info.version}, internal-reference v1 and editor-clipboard v1 fixtures`,
+  `Synced API contract ${contract.info.version}, internal-reference v1 and editor-clipboard v2 fixtures`,
 );

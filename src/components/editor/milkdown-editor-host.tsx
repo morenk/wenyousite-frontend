@@ -85,6 +85,7 @@ import {
   type MilkdownToolbarItemMetadata,
 } from "@/lib/milkdown-toolbar";
 import { getApiErrorMessage } from "@/api/errors";
+import { useApiMeta } from "@/api/hooks/use-api-meta";
 import { useMentionCandidates } from "@/api/hooks/use-mention-candidates";
 import { createDiceInlineEditorPlugins } from "@/components/editor/dice-inline-plugin";
 import { DiceInsertPopover } from "@/components/editor/dice-insert-popover";
@@ -108,7 +109,12 @@ import {
   EDITOR_CREATABLE_HEADING_LEVELS,
   type EditorCapabilityId,
 } from "@/lib/editor-capabilities";
-import { editorChevronDownSvg, editorIconSvg } from "@/lib/editor-icons";
+import {
+  editorAlignmentIconId,
+  editorAlignmentIconSvg,
+  editorChevronDownSvg,
+  editorIconSvg,
+} from "@/lib/editor-icons";
 import { WenyouIcon } from "@/components/ui/wenyou-icon";
 import { editorMarkdownPastePlugin } from "@/components/editor/markdown-literal-paste";
 import {
@@ -119,6 +125,18 @@ import {
   prepareEditorMarkdown,
 } from "@/components/editor/milkdown-markdown-codec";
 import { createEditorLinkMarkView } from "@/components/shared/internal-reference-editor-dom";
+import {
+  createEditorAlignmentPlugin,
+  configureEditorAlignmentSchemas,
+  cycleEditorAlignment,
+  editorAlignmentParser,
+  getSelectedTextAlignment,
+  setSelectedEditorHeading,
+} from "@/components/editor/editor-alignment";
+import {
+  alignmentLabel,
+  type WenyouTextAlignment,
+} from "@/lib/markdown-alignment";
 import "@/components/editor/milkdown-editor.css";
 
 const toolbarHeadingKeymap = $useKeymap("wenyousiteHeadingKeymap", {
@@ -126,14 +144,16 @@ const toolbarHeadingKeymap = $useKeymap("wenyousiteHeadingKeymap", {
     shortcuts: "Mod-Alt-2",
     command: (ctx) => {
       const commands = ctx.get(commandsCtx);
-      return () => commands.call(wrapInHeadingCommand.key, 2);
+      return () => setSelectedEditorHeading(ctx, 2)
+        || commands.call(wrapInHeadingCommand.key, 2);
     },
   },
   TurnIntoH3: {
     shortcuts: "Mod-Alt-3",
     command: (ctx) => {
       const commands = ctx.get(commandsCtx);
-      return () => commands.call(wrapInHeadingCommand.key, 3);
+      return () => setSelectedEditorHeading(ctx, 3)
+        || commands.call(wrapInHeadingCommand.key, 3);
     },
   },
 });
@@ -157,6 +177,22 @@ const CREATABLE_HEADING_LABELS = new Set([
   "正文",
   ...EDITOR_CREATABLE_HEADING_LEVELS.map((level) => `标题 ${level}`),
 ]);
+
+function syncAlignmentToolbarState(
+  root: ParentNode,
+  alignment: WenyouTextAlignment,
+) {
+  const icon = editorAlignmentIconSvg(alignment);
+  const label = `${alignmentLabel(alignment)}，点击切换`;
+  root.querySelectorAll<HTMLButtonElement>('[data-editor-tool="alignment"]')
+    .forEach((button) => {
+      button.title = label;
+      button.setAttribute("aria-label", label);
+      const previousAlignment = button.dataset.editorAlignment;
+      button.dataset.editorAlignment = alignment;
+      if (previousAlignment !== alignment) button.innerHTML = icon;
+    });
+}
 
 function positionEditorPopover(
   anchor: DOMRect,
@@ -218,6 +254,8 @@ export function MilkdownEditorHost({
   footerStatus,
 }: MilkdownEditorHostProps) {
   const [loading] = useInstance();
+  const { data: apiMeta } = useApiMeta();
+  const alignmentEnabled = (apiMeta?.markdownContractVersion ?? 0) >= 4;
   const crepeRef = useRef<CrepeBuilder | null>(null);
   const hostRef = useRef<HTMLDivElement>(null);
   const onChangeRef = useRef(onChange);
@@ -227,6 +265,7 @@ export function MilkdownEditorHost({
   const [dicePopover, setDicePopover] = useState<{ top: number; left: number } | null>(null);
   const [moreMenuAnchor, setMoreMenuAnchor] = useState<HTMLElement | null>(null);
   const [toolbarDensity, setToolbarDensity] = useState<MilkdownToolbarDensity>("expanded");
+  const [currentAlignment, setCurrentAlignment] = useState<WenyouTextAlignment>("left");
   const [diceNodeCount, setDiceNodeCount] = useState(
     () => parseInlineDiceNodes(initialValue).length,
   );
@@ -373,6 +412,9 @@ export function MilkdownEditorHost({
     crepeRef.current?.editor.action((ctx) => {
       const commands = ctx.get(commandsCtx);
       switch (capability) {
+        case "alignment":
+          cycleEditorAlignment(ctx);
+          break;
         case "link":
           commands.call(toggleLinkCommand.key);
           break;
@@ -424,17 +466,27 @@ export function MilkdownEditorHost({
       quote: "段落",
       "bullet-list": "段落",
       "ordered-list": "段落",
+      alignment: "段落",
       hr: "段落",
       dice: "创作",
       draft: "创作",
     };
-    return getMilkdownMoreCapabilities(toolbarDensity, Boolean(onOpenDrafts))
+    return getMilkdownMoreCapabilities(
+      toolbarDensity,
+      Boolean(onOpenDrafts),
+      alignmentEnabled,
+    )
       .map((id) => ({
         id,
         group: groups[id]!,
-        label: EDITOR_CAPABILITY_LABELS[id],
+        label: id === "alignment"
+          ? `${alignmentLabel(currentAlignment)}（点击切换）`
+          : EDITOR_CAPABILITY_LABELS[id],
+        iconId: id === "alignment"
+          ? editorAlignmentIconId(currentAlignment)
+          : undefined,
       }));
-  }, [onOpenDrafts, toolbarDensity]);
+  }, [alignmentEnabled, currentAlignment, onOpenDrafts, toolbarDensity]);
 
   const handleMoreSelect = useCallback((capability: EditorCapabilityId, anchor: DOMRect) => {
     if (capability === "dice") {
@@ -581,7 +633,38 @@ export function MilkdownEditorHost({
           const more = builder.getGroup("more").group;
           more.items = more.items.filter((item) => ["quote", "hr"].includes(item.key));
 
+          const headingSelector = builder.getGroup("heading").group.items
+            .find((item) => item.key === "heading-selector");
+          headingSelector?.selector?.options.forEach((option) => {
+            const configured = CN_HEADING_OPTIONS.find((item) => item.label === option.label);
+            if (!configured) return;
+            option.onSelect = (ctx) => {
+              if (setSelectedEditorHeading(ctx, configured.level)) return;
+              ctx.get(commandsCtx).call(wrapInHeadingCommand.key, configured.level ?? 0);
+            };
+          });
+
+          builder.addGroup("alignment", "对齐").addItem("alignment", {
+            icon: editorAlignmentIconSvg("left"),
+            active: (ctx) => getSelectedTextAlignment(
+              ctx.get(editorViewCtx).state,
+            ) !== "left",
+            onRun: cycleEditorAlignment,
+          });
+
           const groups = builder.build();
+          const alignmentIndex = groups.findIndex((group) => group.key === "alignment");
+          const alignmentGroup = alignmentIndex === -1
+            ? undefined
+            : groups.splice(alignmentIndex, 1)[0];
+          const insertGroupIndex = groups.findIndex((group) => group.key === "insert");
+          if (alignmentGroup) {
+            groups.splice(
+              insertGroupIndex === -1 ? groups.length : insertGroupIndex,
+              0,
+              alignmentGroup,
+            );
+          }
           for (const groupKey of ["block"]) {
             const index = groups.findIndex((group) => group.key === groupKey);
             if (index !== -1) groups.splice(index, 1);
@@ -650,6 +733,7 @@ export function MilkdownEditorHost({
 
       const dicePlugins = createDiceInlineEditorPlugins(diceRolls);
       const stickerPlugins = createStickerInlineEditorPlugins();
+      const alignmentPlugin = createEditorAlignmentPlugin(setCurrentAlignment);
       let codecErrorShown = false;
       const markdownBridge = createEditorMarkdownBridge({
         onChange: (markdown) => {
@@ -664,9 +748,12 @@ export function MilkdownEditorHost({
         },
       });
       crepe.editor
+        .config(configureEditorAlignmentSchemas)
         .config(configureEditorMarkdownSerializer)
         .use(internalReferenceLinkView)
         .use(editorMarkdownPastePlugin)
+        .use(editorAlignmentParser)
+        .use(alignmentPlugin)
         .use(editorAttentionBoundaryParser)
         .use(editorSoftBreakParser)
         .use(dicePlugins.remarkDiceInline)
@@ -741,7 +828,7 @@ export function MilkdownEditorHost({
         layoutFrame = null;
         const topBar = host.querySelector<HTMLElement>(".milkdown-top-bar");
         if (!topBar) return;
-        setToolbarDensity(fitMilkdownToolbar(topBar));
+        setToolbarDensity(fitMilkdownToolbar(topBar, alignmentEnabled));
       });
     };
     const syncEditorSemantics = () => {
@@ -750,6 +837,7 @@ export function MilkdownEditorHost({
     const syncTopBar = () => {
       syncEditorSemantics();
       syncMilkdownToolbarItems(host, toolbarItemsRef.current);
+      syncAlignmentToolbarState(host, currentAlignment);
       syncMilkdownHeadingOptions(host, CREATABLE_HEADING_LABELS);
       syncMilkdownToolbarVisibility(host, disabled ?? false);
       syncMilkdownToolbarSemantics(host);
@@ -802,7 +890,7 @@ export function MilkdownEditorHost({
       if (positionFrame !== null) window.cancelAnimationFrame(positionFrame);
       if (layoutFrame !== null) window.cancelAnimationFrame(layoutFrame);
     };
-  }, [ariaLabel, disabled]);
+  }, [alignmentEnabled, ariaLabel, currentAlignment, disabled]);
 
   useEffect(() => {
     if (hostRef.current) {

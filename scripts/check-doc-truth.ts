@@ -242,10 +242,10 @@ function operation(method: string, apiPath: string) {
     [
       "docs/modules/markdown-content-protocol.md",
       [
-        "markdown-v3-fixtures.json",
-        "markdown-v3-nodes-fixtures.json",
-        "markdown-editor-roundtrip-v5-fixtures.json",
-        "editor-clipboard-v1-fixtures.json",
+        "markdown-v4-fixtures.json",
+        "markdown-v4-nodes-fixtures.json",
+        "markdown-editor-roundtrip-v6-fixtures.json",
+        "editor-clipboard-v2-fixtures.json",
         "Flutter 必须",
       ],
     ],
@@ -300,21 +300,21 @@ function operation(method: string, apiPath: string) {
     failures.push("编辑器窄栏固定出口必须命名为“更多”");
   }
   if (
-    EDITOR_CONTENT_POLICY.markdownContractVersion !== 3 ||
+    EDITOR_CONTENT_POLICY.markdownContractVersion !== 4 ||
     EDITOR_CONTENT_POLICY.structuredCapabilitySource !== "toolbar" ||
     EDITOR_CONTENT_POLICY.unsupportedClientBehavior !== "literal-text-silent" ||
     EDITOR_CONTENT_POLICY.unsupportedApiBehavior !== "reject" ||
     EDITOR_CONTENT_POLICY.maximumListDepth !== 3
   ) {
-    failures.push("Foundation 正文策略必须保持 Markdown v3 工具栏白名单契约");
+    failures.push("Foundation 正文策略必须保持 Markdown v4 工具栏白名单契约");
   }
 
   const backendRoot = path.resolve(root, "../wenyousite-backend");
   for (const fixtureName of [
-    "markdown-v3-fixtures.json",
-    "markdown-v3-nodes-fixtures.json",
-    "markdown-editor-roundtrip-v5-fixtures.json",
-    "editor-clipboard-v1-fixtures.json",
+    "markdown-v4-fixtures.json",
+    "markdown-v4-nodes-fixtures.json",
+    "markdown-editor-roundtrip-v6-fixtures.json",
+    "editor-clipboard-v2-fixtures.json",
     "thread-category-v3-fixtures.json",
   ]) {
     const frontendFixture = path.resolve(root, "contracts", fixtureName);

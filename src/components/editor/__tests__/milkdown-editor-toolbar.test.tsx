@@ -5,7 +5,9 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { toast } from "sonner";
 import { afterAll, afterEach, describe, expect, test, vi } from "vitest";
+import { http, HttpResponse } from "msw";
 import { MilkdownEditor } from "@/components/editor/milkdown-editor-core";
+import { server } from "@/test/msw/server";
 
 vi.mock("@/lib/auth", () => ({
   useAuth: () => ({ user: null }),
@@ -31,7 +33,7 @@ interface ClipboardGoldenCase {
 
 const clipboardGoldenCases = (JSON.parse(
   readFileSync(
-    resolve(process.cwd(), "contracts/editor-clipboard-v1-fixtures.json"),
+    resolve(process.cwd(), "contracts/editor-clipboard-v2-fixtures.json"),
     "utf8",
   ),
 ) as { goldenCases: ClipboardGoldenCase[] }).goldenCases;
@@ -53,6 +55,12 @@ function renderEditor(defaultValue = "", ariaLabel?: string, onChange?: (value: 
       />
     </QueryClientProvider>,
   );
+}
+
+function enableMarkdownV4() {
+  server.use(http.get("*/api/v1/meta", () => HttpResponse.json({
+    data: { markdownContractVersion: 4 },
+  })));
 }
 
 function clipboardData(values: { text?: string; html?: string }) {
@@ -199,7 +207,154 @@ describe("MilkdownEditor 能力分层", () => {
     for (const label of ["任务列表", "代码块", "表格"]) {
       expect(within(toolbar).queryByRole("button", { name: label })).toBeNull();
     }
+    expect(
+      within(toolbar).queryByRole("button", { name: "左对齐，点击切换" }),
+    ).toBeNull();
 
+  });
+
+  test("服务端启用 v4 后对齐按钮循环左中右并规范写出标记", async () => {
+    enableMarkdownV4();
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const { container } = renderEditor("正文", "对齐正文", onChange);
+    const editor = await getEditor(container);
+    const button = await screen.findByRole("button", {
+      name: "左对齐，点击切换",
+    });
+
+    await user.click(editor.querySelector("p")!);
+    await user.click(button);
+    await waitFor(() => {
+      expect(editor.querySelector("p")).toHaveAttribute(
+        "data-wenyou-align",
+        "center",
+      );
+      expect(onChange).toHaveBeenLastCalledWith(
+        "[wenyousite-align-v1-center]: #\n正文",
+      );
+      expect(button).toHaveAccessibleName("居中对齐，点击切换");
+    });
+
+    await user.click(button);
+    await waitFor(() => {
+      expect(editor.querySelector("p")).toHaveAttribute(
+        "data-wenyou-align",
+        "right",
+      );
+      expect(onChange).toHaveBeenLastCalledWith(
+        "[wenyousite-align-v1-right]: #\n正文",
+      );
+    });
+
+    await user.click(button);
+    await waitFor(() => {
+      expect(editor.querySelector("p")).not.toHaveAttribute(
+        "data-wenyou-align",
+      );
+      expect(onChange).toHaveBeenLastCalledWith("正文");
+    });
+  });
+
+  test("空白段落不能创建对齐标记", async () => {
+    enableMarkdownV4();
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const { container } = renderEditor("", undefined, onChange);
+    const editor = await getEditor(container);
+    const paragraph = editor.querySelector("p")!;
+    const button = await screen.findByRole("button", {
+      name: "左对齐，点击切换",
+    });
+
+    await user.click(paragraph);
+    await user.type(paragraph, "   ");
+    await user.click(button);
+
+    await waitFor(() => {
+      expect(editor.querySelector("p")).not.toHaveAttribute(
+        "data-wenyou-align",
+      );
+      expect(onChange.mock.calls.flat()).not.toContainEqual(
+        expect.stringContaining("wenyousite-align"),
+      );
+    });
+  });
+
+  test("对齐在标题转换中保留，进入列表时自动清除", async () => {
+    enableMarkdownV4();
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const { container } = renderEditor("正文", undefined, onChange);
+    const editor = await getEditor(container);
+    await user.click(editor.querySelector("p")!);
+    await user.click(await screen.findByRole("button", { name: "左对齐，点击切换" }));
+
+    await user.click(screen.getByRole("button", { name: "切换正文样式" }));
+    await user.click(await screen.findByRole("button", { name: "标题 2" }));
+    const heading = await waitFor(() => {
+      const node = editor.querySelector("h2");
+      expect(node).toHaveAttribute("data-wenyou-align", "center");
+      return node!;
+    });
+    expect(onChange.mock.calls.at(-1)?.[0]).toBe(
+      "[wenyousite-align-v1-center]: #\n## 正文",
+    );
+
+    await user.click(heading);
+    await user.click(screen.getByRole("button", { name: "切换正文样式" }));
+    await user.click(await screen.findByRole("button", { name: "正文" }));
+    const paragraph = await waitFor(() => {
+      const node = editor.querySelector("p");
+      expect(node).toHaveAttribute("data-wenyou-align", "center");
+      return node!;
+    });
+
+    await user.click(paragraph);
+    await user.click(screen.getByRole("button", { name: "无序列表" }));
+    await waitFor(() => {
+      expect(editor.querySelector("li p")).not.toHaveAttribute(
+        "data-wenyou-align",
+      );
+      expect(onChange.mock.calls.at(-1)?.[0]).not.toContain("wenyousite-align");
+    });
+  });
+
+  test("clipboard v2 恢复合法块对齐，v1 只恢复原有结构", async () => {
+    const v2Change = vi.fn();
+    const v2 = renderEditor("", undefined, v2Change);
+    const v2Editor = await getEditor(v2.container);
+    fireEvent.paste(v2Editor, {
+      clipboardData: clipboardData({
+        text: "居中",
+        html: '<div data-wenyou-clipboard="2" data-wenyou-clipboard-source="reader"><p data-wenyou-align="center">居中</p></div>',
+      }),
+    });
+    await waitFor(() => {
+      expect(
+        Array.from(v2Editor.querySelectorAll("p")).find(
+          (paragraph) => paragraph.textContent === "居中",
+        ),
+      ).toHaveAttribute("data-wenyou-align", "center");
+      expect(v2Change.mock.calls.at(-1)?.[0]).toContain(
+        "[wenyousite-align-v1-center]: #\n居中",
+      );
+    });
+    v2.unmount();
+
+    const v1Change = vi.fn();
+    const v1 = renderEditor("", undefined, v1Change);
+    const v1Editor = await getEditor(v1.container);
+    fireEvent.paste(v1Editor, {
+      clipboardData: clipboardData({
+        text: "旧片段",
+        html: '<div data-wenyou-clipboard="1" data-wenyou-clipboard-source="reader"><p data-wenyou-align="right">旧片段</p></div>',
+      }),
+    });
+    await waitFor(() => {
+      expect(v1Editor.querySelector("p")).not.toHaveAttribute("data-wenyou-align");
+      expect(v1Change.mock.calls.at(-1)?.[0]).not.toContain("wenyousite-align");
+    });
   });
 
   test("窄栏把低频能力收入更多菜单", async () => {
@@ -377,7 +532,7 @@ describe("MilkdownEditor 能力分层", () => {
     expect(editor.querySelector("ol, li")).toBeNull();
   });
 
-  test("粘贴本站 v1 片段时恢复工具栏白名单结构", async () => {
+  test("粘贴本站 v1 片段时向后兼容恢复工具栏白名单结构", async () => {
     const onChange = vi.fn();
     const first = renderEditor("", undefined, onChange);
     const { container } = first;
@@ -416,7 +571,7 @@ describe("MilkdownEditor 能力分层", () => {
     expect(reopenedEditor.querySelectorAll("li")).toHaveLength(2);
   });
 
-  test("编辑器原生复制写出 v1 结构片段且纯文本不泄漏 Markdown 定界符", async () => {
+  test("编辑器原生复制写出 v2 结构片段且纯文本不泄漏 Markdown 定界符", async () => {
     const { container } = renderEditor("**站内粗体**");
     const editor = await getEditor(container);
     fireEvent.keyDown(editor, { key: "a", code: "KeyA", ctrlKey: true });
@@ -429,7 +584,7 @@ describe("MilkdownEditor 能力分层", () => {
       },
     });
 
-    expect(written.get("text/html")).toContain('data-wenyou-clipboard="1"');
+    expect(written.get("text/html")).toContain('data-wenyou-clipboard="2"');
     expect(written.get("text/html")).toContain('data-wenyou-clipboard-source="editor"');
     expect(written.get("text/html")).toContain("<strong>站内粗体</strong>");
     expect(written.get("text/plain")).toBe("站内粗体");

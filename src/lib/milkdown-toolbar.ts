@@ -87,12 +87,13 @@ export type MilkdownToolbarDensity = EditorToolbarDensity;
 export function applyMilkdownToolbarDensity(
   topBar: HTMLElement,
   density: MilkdownToolbarDensity,
+  alignmentEnabled = true,
 ): void {
   topBar.dataset.editorDensity = density;
   const primary = new Set<string>(EDITOR_PRIMARY_BY_DENSITY[density]);
   topBar.querySelectorAll<HTMLElement>("[data-editor-tool]").forEach((item) => {
     const tool = item.dataset.editorTool ?? "";
-    item.hidden = !primary.has(tool);
+    item.hidden = !primary.has(tool) || (tool === "alignment" && !alignmentEnabled);
   });
 
   const inner = topBar.querySelector<HTMLElement>(".top-bar-inner");
@@ -116,22 +117,25 @@ export function applyMilkdownToolbarDensity(
 export function getMilkdownMoreCapabilities(
   density: MilkdownToolbarDensity,
   hasDraft: boolean,
+  alignmentEnabled = true,
 ): EditorCapabilityId[] {
   if (density === "expanded") return [];
 
   return EDITOR_MORE_BY_DENSITY[density].filter(
     (capability): capability is EditorCapabilityId =>
-      capability !== "draft" || hasDraft,
+      (capability !== "draft" || hasDraft)
+      && (capability !== "alignment" || alignmentEnabled),
   );
 }
 
 /** 按真实容器宽度逐级收纳可选一级项，始终不启用横向滚动。 */
 export function fitMilkdownToolbar(
   topBar: HTMLElement,
+  alignmentEnabled = true,
 ): MilkdownToolbarDensity {
   const inner = topBar.querySelector<HTMLElement>(".top-bar-inner");
   for (const density of EDITOR_DENSITY_ORDER) {
-    applyMilkdownToolbarDensity(topBar, density);
+    applyMilkdownToolbarDensity(topBar, density, alignmentEnabled);
     if (!inner || topBar.scrollWidth <= topBar.clientWidth) return density;
   }
   return "compact";

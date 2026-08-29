@@ -23,7 +23,7 @@ interface ReaderCopyCase {
 
 const contract = JSON.parse(
   readFileSync(
-    resolve(process.cwd(), "contracts/editor-clipboard-v1-fixtures.json"),
+    resolve(process.cwd(), "contracts/editor-clipboard-v2-fixtures.json"),
     "utf8",
   ),
 ) as {
@@ -59,11 +59,11 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("站内剪贴板 v1", () => {
+describe("站内剪贴板 v2", () => {
   test("共享契约固定 Web/Flutter 入口和六类节点", () => {
     expect(contract).toMatchObject({
       contract: "wenyousite-editor-clipboard",
-      version: 1,
+      version: 2,
       mobileTransport: {
         structuredCarrier: "in-process-delta",
         systemClipboardPayload: "visible-text",
@@ -114,7 +114,7 @@ describe("站内剪贴板 v1", () => {
     expect(payload.source).toBe("reader");
     expect(payload.text).toBe(fixture.expectedPlainText);
     expect(parsed).toEqual(payload);
-    expect(payload.html).toContain('data-wenyou-clipboard="1"');
+    expect(payload.html).toContain('data-wenyou-clipboard="2"');
     expect(payload.html).not.toMatch(/\s(?:class|style|onclick)=/iu);
   });
 
@@ -128,6 +128,39 @@ describe("站内剪贴板 v1", () => {
     for (const selector of ["h2", "strong", "em", "del", "code", "blockquote", "ul", "hr"]) {
       expect(template.content.querySelector(selector)).not.toBeNull();
     }
+  });
+
+  test("阅读整篇与同块局部选区都保留合法顶层对齐", () => {
+    const fixture = readerCases.find((item) => item.id === "reader-aligned-blocks")!;
+    const { container } = render(<MarkdownContent content={fixture.markdown} />);
+    const root = container.querySelector<HTMLElement>('[data-slot="markdown-content"]')!;
+    const payload = createReaderClipboardPayload(root);
+    const template = document.createElement("template");
+    template.innerHTML = payload.html;
+
+    expect(template.content.querySelector("h2")).toHaveAttribute(
+      "data-wenyou-align",
+      "center",
+    );
+    expect(template.content.querySelector("p")).toHaveAttribute(
+      "data-wenyou-align",
+      "right",
+    );
+    expect(payload.text).toBe("居中标题\n\n居右正文");
+    expect(payload.text).not.toContain("wenyousite-align");
+
+    const paragraphText = root.querySelector("p")!.firstChild!;
+    const range = document.createRange();
+    range.setStart(paragraphText, 0);
+    range.setEnd(paragraphText, 2);
+    const selection = window.getSelection()!;
+    selection.removeAllRanges();
+    selection.addRange(range);
+    const selectionPayload = createReaderSelectionClipboardPayload(root, selection)!;
+    expect(selectionPayload.html).toContain(
+      '<p data-wenyou-align="right">居右</p>',
+    );
+    expect(selectionPayload.text).toBe("居右");
   });
 
   test("阅读端原子节点保留语义而媒体只留下标签", () => {
@@ -307,6 +340,22 @@ describe("站内剪贴板 v1", () => {
     ].join(""))!;
     expect(parsed.text).toBe("安全文字");
     expect(parsed.html).not.toMatch(/script|style=|onclick=/iu);
+
+    const v1 = parseSiteClipboardHtml(
+      '<div data-wenyou-clipboard="1" data-wenyou-clipboard-source="reader"><p data-wenyou-align="center">旧片段</p></div>',
+    )!;
+    expect(v1.html).toContain('data-wenyou-clipboard="2"');
+    expect(v1.html).not.toContain("data-wenyou-align");
+
+    const nested = parseSiteClipboardHtml(
+      '<div data-wenyou-clipboard="2" data-wenyou-clipboard-source="reader"><blockquote><p data-wenyou-align="right">嵌套</p></blockquote></div>',
+    )!;
+    expect(nested.html).not.toContain("data-wenyou-align");
+
+    const empty = parseSiteClipboardHtml(
+      '<div data-wenyou-clipboard="2" data-wenyou-clipboard-source="reader"><p data-wenyou-align="center"><br></p></div>',
+    )!;
+    expect(empty.html).not.toContain("data-wenyou-align");
   });
 
   test("富剪贴板写入不可用时回退为可见纯文本", async () => {
