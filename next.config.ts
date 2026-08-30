@@ -1,31 +1,9 @@
-import { createHash } from "node:crypto";
 import type { NextConfig } from "next";
-
-import { THEME_BOOTSTRAP_SCRIPT } from "./src/lib/theme-bootstrap";
 
 const backendUrl = process.env.BACKEND_URL || "http://127.0.0.1:3000";
 const isDevelopment = process.env.NODE_ENV === "development";
-const mediaOrigin = "https://cn-nb1.rains3.com";
-const themeBootstrapHash = createHash("sha256")
-  .update(THEME_BOOTSTRAP_SCRIPT)
-  .digest("base64");
-
-const contentSecurityPolicy = [
-  "default-src 'self'",
-  `script-src 'self'${isDevelopment ? " 'unsafe-inline' 'unsafe-eval'" : ` 'sha256-${themeBootstrapHash}'`}`,
-  "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob: ${mediaOrigin}`,
-  "font-src 'self' data:",
-  `connect-src 'self' ${mediaOrigin}${isDevelopment ? " ws: wss:" : ""}`,
-  "media-src 'self' blob:",
-  "object-src 'none'",
-  "base-uri 'self'",
-  "form-action 'self'",
-  "frame-ancestors 'none'",
-].join("; ");
 
 const securityHeaders = [
-  { key: "Content-Security-Policy", value: contentSecurityPolicy },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
