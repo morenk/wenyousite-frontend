@@ -94,6 +94,11 @@ function clearStoredAuth() {
   clearAuthSession();
 }
 
+function redirectToLogin() {
+  if (typeof window === "undefined") return;
+  window.location.href = new URL("/login", window.location.origin).toString();
+}
+
 async function requestRefresh(
   fetchImpl: typeof fetch,
   origin: string,
@@ -212,7 +217,7 @@ export function createAuthenticatedFetch(fetchImpl: typeof fetch): typeof fetch 
       getKnownUserId() === userIdAtRequest
     ) {
       clearStoredAuth();
-      window.location.href = "/login";
+      redirectToLogin();
       return response;
     }
     if (
@@ -250,7 +255,7 @@ export function createAuthenticatedFetch(fetchImpl: typeof fetch): typeof fetch 
     }
     if (refreshOutcome.status === "rejected") {
       clearStoredAuth();
-      window.location.href = "/login";
+      redirectToLogin();
       return response;
     }
     if (refreshOutcome.status === "unavailable") return response;

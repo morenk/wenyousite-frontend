@@ -4,7 +4,7 @@ import {
   THEME_PREFERENCES,
 } from "@wenyousite/foundation/theme";
 
-import { THEME_MEDIA_QUERY, THEME_STORAGE_KEY } from "@/lib/theme";
+import { THEME_MEDIA_QUERY, THEME_STORAGE_KEY } from "./theme";
 
 const themeBackgrounds = {
   light: THEME_PALETTES.light.background,

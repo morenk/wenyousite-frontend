@@ -9,6 +9,8 @@ describe("Next.js 安全响应头", () => {
     expect(entries?.[0]?.source).toBe("/(.*)");
     expect(headers.get("Content-Security-Policy")).toContain("object-src 'none'");
     expect(headers.get("Content-Security-Policy")).toContain("frame-ancestors 'none'");
+    expect(headers.get("Content-Security-Policy")).toMatch(/script-src 'self' 'sha256-[^']+'/);
+    expect(headers.get("Content-Security-Policy")).not.toContain("script-src 'self' 'unsafe-inline'");
     expect(headers.get("Content-Security-Policy")).toContain(
       "img-src 'self' data: blob: https://cn-nb1.rains3.com",
     );

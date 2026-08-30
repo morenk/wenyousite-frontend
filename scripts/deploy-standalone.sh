@@ -11,6 +11,8 @@ PRODUCTION_PORT=${FRONTEND_PORT:-3001}
 PREFLIGHT_PORT=${FRONTEND_PREFLIGHT_PORT:-3102}
 PUBLIC_BASE_URL=${FRONTEND_PUBLIC_BASE_URL:-https://wenyou.site}
 FRONTEND_SERVICE=${FRONTEND_SYSTEMD_SERVICE:-wenyousite-frontend.service}
+FRONTEND_SERVICE_USER=wenyousite-frontend
+NODE_RUNTIME=${FRONTEND_NODE_RUNTIME:-/usr/local/lib/wenyousite/node}
 VERIFY_SCRIPT="$SCRIPT_DIR/verify-static-assets.mjs"
 RELEASE_METADATA_NAME=.wenyousite-release.json
 EXPECTED_GIT_SHA=${FRONTEND_EXPECTED_SHA:-}
@@ -26,6 +28,29 @@ validate_port() {
     echo "$name 不是有效端口: $port" >&2
     exit 1
   fi
+}
+
+ensure_runtime_user() {
+  if getent passwd "$FRONTEND_SERVICE_USER" >/dev/null 2>&1; then
+    return 0
+  fi
+  if ! useradd --system --user-group --home-dir "$RUNTIME_ROOT" \
+    --shell /usr/sbin/nologin "$FRONTEND_SERVICE_USER"; then
+    echo "无法创建前端非特权运行用户: $FRONTEND_SERVICE_USER" >&2
+    exit 1
+  fi
+}
+
+install_node_runtime() {
+  local source_node
+
+  source_node=${WENYOU_NODE_BINARY_SOURCE:-$(command -v node)}
+  if [ ! -x "$source_node" ]; then
+    echo "Node 源文件不可执行: $source_node" >&2
+    exit 1
+  fi
+  install -D -m 0755 "$source_node" "$NODE_RUNTIME"
+  chown root:root "$NODE_RUNTIME"
 }
 
 listener_pid() {
@@ -174,7 +199,7 @@ if [ "$PRODUCTION_PORT" = "$PREFLIGHT_PORT" ]; then
   exit 1
 fi
 
-for command_name in curl flock git journalctl node ss systemctl; do
+for command_name in chown curl flock getent git install journalctl node ss systemctl useradd; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
     echo "缺少部署命令: $command_name" >&2
     exit 1
@@ -265,6 +290,10 @@ if [ "$source_sha_before_switch" != "$FRONTEND_GIT_SHA" ]; then
   echo "前端提交在候选预检期间发生变化" >&2
   exit 1
 fi
+
+mkdir -p "$RUNTIME_ROOT"
+ensure_runtime_user
+install_node_runtime
 
 release_timestamp=$(date -u +%Y%m%dT%H%M%SZ)
 release_short_sha=${FRONTEND_GIT_SHA:0:12}

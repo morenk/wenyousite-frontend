@@ -4,7 +4,7 @@ set -euo pipefail
 RUNTIME_ROOT=${WENYOU_FRONTEND_RUNTIME_ROOT:-/var/lib/wenyousite/frontend}
 RELEASE_ROOT="$RUNTIME_ROOT/releases"
 CURRENT_LINK="$RUNTIME_ROOT/current"
-NODE_BINARY=${WENYOU_NODE_BINARY:-/root/.local/share/fnm/node-versions/v24.18.0/installation/bin/node}
+NODE_BINARY=${WENYOU_NODE_BINARY:-/usr/local/lib/wenyousite/node}
 FRONTEND_HOSTNAME=${WENYOU_FRONTEND_HOSTNAME:-127.0.0.1}
 FRONTEND_PORT=${WENYOU_FRONTEND_PORT:-3001}
 

@@ -5,8 +5,9 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=root
-Group=root
+User=wenyousite-frontend
+Group=wenyousite-frontend
+Environment=WENYOU_NODE_BINARY=/usr/local/lib/wenyousite/node
 ExecStart=/usr/local/sbin/wenyousite-frontend-start
 Restart=on-failure
 RestartSec=2s
@@ -14,6 +15,16 @@ TimeoutStopSec=15s
 KillSignal=SIGTERM
 SuccessExitStatus=143
 NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectHome=true
+ProtectSystem=strict
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
 LimitNOFILE=65535
 StandardOutput=journal
 StandardError=journal
