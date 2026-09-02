@@ -151,6 +151,38 @@ export function recoverLegacyMarkdownEmptyParagraphs(markdown: string): string {
   return output.join("\n");
 }
 
+/**
+ * 为完整阅读态隔离开头的协议空段与正文，避免 CommonMark 把后续正文吞入原始 HTML 块。
+ *
+ * `<br />` 是协议允许的独占空段标记，但 react-markdown 在它后面紧接正文时会把整段
+ * 识别为 raw HTML；阅读器随后跳过 raw HTML，导致正文完全不可见。这里只补充解析分隔，
+ * 不改变存储内容，也不影响正文中间的协议空段或真正的原始 HTML。
+ */
+export function prepareMarkdownForReader(markdown: string): string {
+  const normalized = sanitizeMilkdownMarkdown(
+    recoverLegacyMarkdownEmptyParagraphs(markdown),
+  );
+  const lines = normalized.split("\n");
+  let markerEnd = 0;
+
+  while (
+    markerEnd < lines.length &&
+    EMPTY_PARAGRAPH_RE.test(lines[markerEnd]!)
+  ) {
+    markerEnd++;
+  }
+
+  if (
+    markerEnd > 0 &&
+    markerEnd < lines.length &&
+    !BLANK_LINE_RE.test(lines[markerEnd]!)
+  ) {
+    lines.splice(markerEnd, 0, "");
+  }
+
+  return lines.join("\n");
+}
+
 /** 为 Milkdown 解析器隔开相邻协议标记；这些分隔空行不会成为编辑器段落。 */
 export function prepareMilkdownEditorMarkdown(markdown: string): string {
   const lines = sanitizeMilkdownMarkdown(

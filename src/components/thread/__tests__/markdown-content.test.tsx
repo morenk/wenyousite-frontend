@@ -318,6 +318,19 @@ describe("MarkdownContent", () => {
     expect(document.querySelectorAll('[data-slot="markdown-content"] br')).toHaveLength(3);
   });
 
+  test("开头协议空段与正文相邻时不会吞掉整篇正文", () => {
+    render(
+      <MarkdownContent
+        content={["<br />", "第一行正文", "<br />", "第二行正文"].join("\n")}
+      />,
+    );
+
+    const markdown = document.querySelector('[data-slot="markdown-content"]');
+    expect(markdown).toHaveTextContent("第一行正文");
+    expect(markdown).toHaveTextContent("第二行正文");
+    expect(markdown).not.toHaveTextContent(/<br\s*\/?\s*>/iu);
+  });
+
   test("历史原始连续空行按多余行数恢复，普通段落间隔不增加留白", () => {
     const { rerender } = render(
       <MarkdownContent content={"第一段\n\n第二段"} />,

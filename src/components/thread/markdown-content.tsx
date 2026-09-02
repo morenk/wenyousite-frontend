@@ -13,10 +13,7 @@ import ReactMarkdown, { type ExtraProps } from "react-markdown";
 import { createPortal } from "react-dom";
 import remarkGfm from "remark-gfm";
 import { getMarkdownImageVariantUrl } from "@/lib/upload-image";
-import {
-  recoverLegacyMarkdownEmptyParagraphs,
-  sanitizeMilkdownMarkdown,
-} from "@/lib/markdown";
+import { prepareMarkdownForReader } from "@/lib/markdown";
 import {
   DICE_INLINE_MARKER_SOURCE,
   describeInlineDicePending,
@@ -339,9 +336,7 @@ export function MarkdownContent({
   sourcePostId,
   size = "reading",
 }: MarkdownContentProps) {
-  const normalizedContent = sanitizeMilkdownMarkdown(
-    recoverLegacyMarkdownEmptyParagraphs(content),
-  );
+  const normalizedContent = prepareMarkdownForReader(content);
   const diceRollsByNodeId = new Map(diceRolls.map((roll) => [roll.nodeId, roll]));
   const handleCopy = (event: ReactClipboardEvent<HTMLDivElement>) => {
     const selection = window.getSelection();

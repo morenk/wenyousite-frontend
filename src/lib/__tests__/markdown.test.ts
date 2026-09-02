@@ -7,6 +7,7 @@ import {
   hasVisibleMarkdownContent,
   literalizeUnsupportedMarkdown,
   prepareMilkdownEditorMarkdown,
+  prepareMarkdownForReader,
   recoverLegacyMarkdownEmptyParagraphs,
   sanitizeMilkdownMarkdown,
 } from "@/lib/markdown";
@@ -194,6 +195,25 @@ describe("prepareMilkdownEditorMarkdown", () => {
     expect(prepareMilkdownEditorMarkdown("第一段\n\n\n\n第二段")).toBe(
       "第一段\n\n<br />\n\n<br />\n\n第二段",
     );
+  });
+});
+
+describe("prepareMarkdownForReader", () => {
+  test("隔离开头连续协议空段与正文", () => {
+    expect(prepareMarkdownForReader("<br />\n正文")).toBe(
+      "<br />\n\n正文",
+    );
+    expect(prepareMarkdownForReader("<br>\n<br/>\n正文")).toBe(
+      "<br />\n<br />\n\n正文",
+    );
+  });
+
+  test("已有分隔或正文中的协议空段不改写", () => {
+    const separated = "<br />\n\n正文";
+    const inline = "第一行\n<br />\n第二行";
+
+    expect(prepareMarkdownForReader(separated)).toBe(separated);
+    expect(prepareMarkdownForReader(inline)).toBe(inline);
   });
 });
 
