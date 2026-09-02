@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import type { Ctx } from "@milkdown/kit/ctx";
 import type { Node as ProseNode } from "@milkdown/kit/prose/model";
 import {
@@ -27,6 +29,20 @@ import { STICKER_INLINE_NODE_NAME } from "@/lib/sticker-inline";
 const CENTER_MARKER = "[wenyousite-align-v1-center]: #";
 const RIGHT_MARKER = "[wenyousite-align-v1-right]: #";
 const DICE_NODE_ID = "550e8400-e29b-41d4-a716-446655440000";
+const imageAlignmentFixtures = JSON.parse(
+  readFileSync(resolve(process.cwd(), "contracts/markdown-v5-image-alignment-fixtures.json"), "utf8"),
+) as {
+  contract: string;
+  version: number;
+  markdownContractVersion: number;
+  defaultAlignment: string;
+  cases: Array<{
+    id: string;
+    markdown: string;
+    supported: boolean;
+    expectedAlignment: "left" | "center" | "right" | null;
+  }>;
+};
 
 function marker(
   alignment: string,
@@ -58,9 +74,12 @@ function alignableBlock(
   };
 }
 
-function transformTree(children: AlignmentMarkdownNode[]): AlignmentMarkdownNode {
+function transformTree(
+  children: AlignmentMarkdownNode[],
+  markdownContractVersion = 4,
+): AlignmentMarkdownNode {
   const tree: AlignmentMarkdownNode = { type: "root", children };
-  remarkWenyouAlignment()(tree);
+  remarkWenyouAlignment({ markdownContractVersion })(tree);
   return tree;
 }
 
@@ -225,6 +244,69 @@ describe("Markdown v4 对齐枚举", () => {
 });
 
 describe("remark 顶层对齐标记绑定", () => {
+  test("图片对齐 fixture 保持独立图片、混排拒绝和表情继承规则", () => {
+    expect(imageAlignmentFixtures.contract).toBe("wenyousite-markdown-image-alignment");
+    expect(imageAlignmentFixtures.version).toBe(1);
+    expect(imageAlignmentFixtures.defaultAlignment).toBe("left");
+
+    for (const fixture of imageAlignmentFixtures.cases) {
+      const image = {
+        type: "image",
+        url: "https://cdn.example.com/image.webp",
+        title: fixture.id.startsWith("sticker-")
+          ? "wenyousite-sticker:v1:asset-1"
+          : fixture.id === "right-standalone-image-with-caption" ? "图注" : null,
+      };
+      const children = fixture.id === "default-left-image"
+        ? [image]
+        : fixture.id === "mixed-text-and-image-rejected"
+          ? [{ type: "text", value: "正文" }, image]
+          : [image];
+      const target: AlignmentMarkdownNode = {
+        type: "paragraph",
+        position: { start: { line: 2 }, end: { line: 2 } },
+        children: children as AlignmentMarkdownNode[],
+      };
+      const tree = transformTree(
+        fixture.id === "default-left-image"
+          ? [target]
+          : [marker(fixture.expectedAlignment === "right" ? "right" : "center", 1), target],
+        imageAlignmentFixtures.markdownContractVersion,
+      );
+      if (fixture.supported) {
+        expect(tree.children).toEqual([target]);
+      } else {
+        expect(tree.children).toEqual(expect.arrayContaining([target]));
+        expect(tree.children).toHaveLength(2);
+      }
+      if (fixture.expectedAlignment && fixture.expectedAlignment !== "left") {
+        expect(target.data?.wenyouAlign).toBe(fixture.expectedAlignment);
+      } else {
+        expect(target.data?.wenyouAlign).toBeUndefined();
+      }
+    }
+  });
+
+  test("v4 不消费普通图片的对齐标记，v5 才把独立图片绑定为目标块", () => {
+    const image: AlignmentMarkdownNode = {
+      type: "image",
+      url: "https://cdn.example.com/image.webp",
+      title: null,
+    };
+    const v4Target: AlignmentMarkdownNode = {
+      type: "paragraph",
+      children: [image],
+      position: { start: { line: 2 }, end: { line: 2 } },
+    };
+    const v5Target = structuredClone(v4Target);
+
+    transformTree([marker("center", 1), v4Target], 4);
+    transformTree([marker("center", 1), v5Target], 5);
+
+    expect(v4Target.data?.wenyouAlign).toBeUndefined();
+    expect(v5Target.data?.wenyouAlign).toBe("center");
+  });
+
   test.each([
     ["paragraph", undefined, "center"],
     ["paragraph", undefined, "right"],

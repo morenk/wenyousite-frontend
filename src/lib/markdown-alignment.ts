@@ -1,4 +1,9 @@
-/** Markdown v4 顶层正文对齐协议；存储标记与 DOM 属性都只接受受控枚举。 */
+/** Markdown 顶层正文对齐协议；存储标记与 DOM 属性都只接受受控枚举。 */
+
+import {
+  ACTIVE_MARKDOWN_CONTRACT_VERSION,
+  IMAGE_ALIGNMENT_MARKDOWN_CONTRACT_VERSION,
+} from "@/lib/markdown";
 
 export const WENYOU_ALIGNMENT_ATTRIBUTE = "data-wenyou-align";
 
@@ -15,6 +20,7 @@ export type AlignmentMarkdownNode = {
   identifier?: unknown;
   label?: unknown;
   url?: unknown;
+  alt?: unknown;
   title?: unknown;
   depth?: unknown;
   data?: Record<string, unknown>;
@@ -23,6 +29,9 @@ export type AlignmentMarkdownNode = {
 };
 
 const ALIGNMENT_IDENTIFIER_RE = /^wenyousite-align-v1-(center|right)$/u;
+export interface MarkdownAlignmentOptions extends Record<string, unknown> {
+  markdownContractVersion?: number;
+}
 
 export function isStoredWenyouTextAlignment(
   value: unknown,
@@ -52,9 +61,21 @@ function getMarkerAlignment(node: AlignmentMarkdownNode): StoredWenyouTextAlignm
   return isStoredWenyouTextAlignment(alignment) ? alignment : null;
 }
 
-function isEligibleTarget(node: AlignmentMarkdownNode): boolean {
-  return node.type === "paragraph"
-    || (node.type === "heading" && (node.depth === 2 || node.depth === 3));
+function isEligibleTarget(
+  node: AlignmentMarkdownNode,
+  imageAlignmentEnabled: boolean,
+): boolean {
+  if (node.type === "image-block") return imageAlignmentEnabled;
+  if (node.type === "heading") return node.depth === 2 || node.depth === 3;
+  if (node.type !== "paragraph") return false;
+
+  const regularImages = (node.children ?? []).filter(
+    (child) =>
+      child.type === "image" &&
+      !String(child.title ?? "").startsWith("wenyousite-sticker:v1:"),
+  );
+  return regularImages.length === 0
+    || (imageAlignmentEnabled && node.children?.length === 1 && regularImages.length === 1);
 }
 
 function isAdjacent(
@@ -70,7 +91,11 @@ function isAdjacent(
  * 把隐藏的 CommonMark reference definition 绑定到紧随其后的顶层正文块。
  * 输入已先经过 Markdown v4 校验；这里仍做邻接与节点类型防御检查。
  */
-export function remarkWenyouAlignment() {
+export function remarkWenyouAlignment(options: MarkdownAlignmentOptions = {}) {
+  const markdownContractVersion =
+    options.markdownContractVersion ?? ACTIVE_MARKDOWN_CONTRACT_VERSION;
+  const imageAlignmentEnabled =
+    markdownContractVersion >= IMAGE_ALIGNMENT_MARKDOWN_CONTRACT_VERSION;
   return (treeValue: unknown) => {
     const tree = treeValue as AlignmentMarkdownNode;
     if (tree.type !== "root" || !tree.children) return;
@@ -83,7 +108,7 @@ export function remarkWenyouAlignment() {
       if (
         !alignment ||
         !target ||
-        !isEligibleTarget(target) ||
+        !isEligibleTarget(target, imageAlignmentEnabled) ||
         !isAdjacent(marker, target)
       ) {
         output.push(marker);

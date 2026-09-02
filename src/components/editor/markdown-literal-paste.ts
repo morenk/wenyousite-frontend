@@ -254,6 +254,10 @@ function createEditorClipboardParser(schema: Schema): DOMParser {
         src: element.getAttribute("src") ?? "",
         caption: element.getAttribute("caption") ?? "",
         ratio: Number(element.getAttribute("ratio") ?? "1"),
+        textAlign: element.getAttribute(WENYOU_ALIGNMENT_ATTRIBUTE) === "center"
+          || element.getAttribute(WENYOU_ALIGNMENT_ATTRIBUTE) === "right"
+          ? element.getAttribute(WENYOU_ALIGNMENT_ATTRIBUTE)
+          : "left",
       }),
     });
   }

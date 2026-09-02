@@ -67,6 +67,14 @@ const STICKER_TITLE_PREFIX = "wenyousite-sticker:v1:";
 const WORD_JOINER = "\u2060";
 const MAX_LIST_DEPTH = 3;
 
+/** 当前公网仍声明 v4；v5 需等待移动端完成能力门控后再启用写入。 */
+export const ACTIVE_MARKDOWN_CONTRACT_VERSION = 4;
+export const IMAGE_ALIGNMENT_MARKDOWN_CONTRACT_VERSION = 5;
+
+export interface MarkdownValidationOptions {
+  markdownContractVersion?: number;
+}
+
 function legacyBlankLineProtectedLines(markdown: string): Set<number> {
   const protectedLines = new Set<number>();
   for (const token of markdownParser.parse(markdown, {})) {
@@ -158,9 +166,13 @@ export function recoverLegacyMarkdownEmptyParagraphs(markdown: string): string {
  * 识别为 raw HTML；阅读器随后跳过 raw HTML，导致正文完全不可见。这里只补充解析分隔，
  * 不改变存储内容，也不影响正文中间的协议空段或真正的原始 HTML。
  */
-export function prepareMarkdownForReader(markdown: string): string {
+export function prepareMarkdownForReader(
+  markdown: string,
+  options: MarkdownValidationOptions = {},
+): string {
   const normalized = sanitizeMilkdownMarkdown(
     recoverLegacyMarkdownEmptyParagraphs(markdown),
+    options,
   );
   const lines = normalized.split("\n");
   let markerEnd = 0;
@@ -184,9 +196,13 @@ export function prepareMarkdownForReader(markdown: string): string {
 }
 
 /** 为 Milkdown 解析器隔开相邻协议标记；这些分隔空行不会成为编辑器段落。 */
-export function prepareMilkdownEditorMarkdown(markdown: string): string {
+export function prepareMilkdownEditorMarkdown(
+  markdown: string,
+  options: MarkdownValidationOptions = {},
+): string {
   const lines = sanitizeMilkdownMarkdown(
     recoverLegacyMarkdownEmptyParagraphs(markdown),
+    options,
   ).split("\n");
   const output: string[] = [];
 
@@ -291,7 +307,14 @@ function maskInlineCode(line: string): string {
 }
 
 /** 返回按源码位置排序的全部工具栏白名单外结构。 */
-export function findUnsupportedMarkdownFormats(markdown: string): UnsupportedMarkdownIssue[] {
+export function findUnsupportedMarkdownFormats(
+  markdown: string,
+  options: MarkdownValidationOptions = {},
+): UnsupportedMarkdownIssue[] {
+  const markdownContractVersion =
+    options.markdownContractVersion ?? ACTIVE_MARKDOWN_CONTRACT_VERSION;
+  const imageAlignmentEnabled =
+    markdownContractVersion >= IMAGE_ALIGNMENT_MARKDOWN_CONTRACT_VERSION;
   const normalized = normalizeMilkdownMarkdown(markdown);
   const lines = normalized.split("\n");
   const parseSource = lines
@@ -416,11 +439,17 @@ export function findUnsupportedMarkdownFormats(markdown: string): UnsupportedMar
               token.map?.[1] === target.map?.[1],
           )
         : undefined;
-      const hasRegularImage = inline?.children?.some(
+      const inlineChildren = inline?.children ?? [];
+      const hasRegularImage = inlineChildren.some(
         (child) =>
           child.type === "image" &&
           !child.attrGet("title")?.startsWith(STICKER_TITLE_PREFIX),
       );
+      const hasStandaloneRegularImage =
+        imageAlignmentEnabled &&
+        inlineChildren.length === 1 &&
+        inlineChildren[0]?.type === "image" &&
+        !inlineChildren[0].attrGet("title")?.startsWith(STICKER_TITLE_PREFIX);
       const hasInlineContent = Boolean(inline?.content.trim());
       const eligibleHeading =
         target?.type === "heading_open" &&
@@ -429,9 +458,8 @@ export function findUnsupportedMarkdownFormats(markdown: string): UnsupportedMar
         !hasRegularImage;
       const eligibleParagraph =
         target?.type === "paragraph_open" &&
-        hasInlineContent &&
         !EMPTY_PARAGRAPH_RE.test(lines[line + 1] ?? "") &&
-        !hasRegularImage;
+        ((hasInlineContent && !hasRegularImage) || hasStandaloneRegularImage);
       if (!eligibleHeading && !eligibleParagraph) {
         issues.push({ type: "invalid-alignment", startLine: line, endLine: line });
       }
@@ -473,9 +501,12 @@ function escapeLiteralLine(line: string): string {
 }
 
 /** 把不支持节点的源码保留为可见普通文字，不生成结构节点。 */
-export function literalizeUnsupportedMarkdown(markdown: string): string {
+export function literalizeUnsupportedMarkdown(
+  markdown: string,
+  options: MarkdownValidationOptions = {},
+): string {
   const normalized = normalizeMilkdownMarkdown(markdown);
-  const issues = findUnsupportedMarkdownFormats(normalized);
+  const issues = findUnsupportedMarkdownFormats(normalized, options);
   if (issues.length === 0) return normalized;
   const lines = normalized.split("\n");
   const affected = new Set<number>();
@@ -496,13 +527,16 @@ export function literalizeUnsupportedMarkdown(markdown: string): string {
 }
 
 /** 发布、暂存和阅读前统一规范化，并无提示地把白名单外结构降为字面文本。 */
-export function sanitizeMilkdownMarkdown(markdown: string): string {
+export function sanitizeMilkdownMarkdown(
+  markdown: string,
+  options: MarkdownValidationOptions = {},
+): string {
   let sanitized = normalizeMilkdownMarkdown(markdown);
   const maxPasses = sanitized.split("\n").length + 1;
 
   for (let pass = 0; pass < maxPasses; pass++) {
-    if (findUnsupportedMarkdownFormats(sanitized).length === 0) return sanitized;
-    const next = literalizeUnsupportedMarkdown(sanitized);
+    if (findUnsupportedMarkdownFormats(sanitized, options).length === 0) return sanitized;
+    const next = literalizeUnsupportedMarkdown(sanitized, options);
     if (next === sanitized) return sanitized;
     sanitized = next;
   }

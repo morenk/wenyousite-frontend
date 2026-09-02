@@ -123,6 +123,10 @@ function appendEditorImage(source: Element, target: Node): boolean {
     const normalizedRatio = Number.isFinite(ratio) && ratio > 0 ? ratio : 1;
     image.setAttribute("caption", caption);
     image.setAttribute("ratio", String(normalizedRatio));
+    const alignment = source.getAttribute(WENYOU_ALIGNMENT_ATTRIBUTE);
+    if (isStoredWenyouTextAlignment(alignment)) {
+      image.setAttribute(WENYOU_ALIGNMENT_ATTRIBUTE, alignment);
+    }
     target.appendChild(image);
     return true;
   }

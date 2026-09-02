@@ -50,6 +50,7 @@ function EditorCore({
     user,
     restoredValue,
     version,
+    contractVersionReady,
     currentContent,
     draftOpen,
     setDraftOpen,
@@ -59,7 +60,11 @@ function EditorCore({
     handleRestore,
     handleOpenDrafts,
     handleAutoSaveChange,
-  } = useEditorDraftController({ defaultValue: defaultValue ?? "", onChange });
+  } = useEditorDraftController({
+    defaultValue: defaultValue ?? "",
+    onChange,
+    waitForMarkdownCapability: true,
+  });
 
   const charCount = currentContent.length;
   const editorAriaLabel = ariaLabel ?? placeholder ?? "正文编辑器";
@@ -80,21 +85,22 @@ function EditorCore({
         "--editor-max-height": `${maxHeight}px`,
       } as React.CSSProperties}
     >
-      <MilkdownEditorHost
-        key={`${version}-${user?.id ?? "guest"}`}
-        initialValue={restoredValue ?? ""}
-        onChange={handleChange}
-        onUploadImage={onUploadImage}
-        placeholder={placeholder}
-        disabled={disabled}
-        onOpenDrafts={user ? handleOpenDrafts : undefined}
-        maxHeight={maxHeight}
-        minHeight={minHeight}
-        threadId={threadId}
-        diceRolls={diceRolls}
-        autoFocus={autoFocus}
-        ariaLabel={editorAriaLabel}
-        footerStatus={(
+      {contractVersionReady && (
+        <MilkdownEditorHost
+          key={`${version}-${user?.id ?? "guest"}`}
+          initialValue={restoredValue ?? ""}
+          onChange={handleChange}
+          onUploadImage={onUploadImage}
+          placeholder={placeholder}
+          disabled={disabled}
+          onOpenDrafts={user ? handleOpenDrafts : undefined}
+          maxHeight={maxHeight}
+          minHeight={minHeight}
+          threadId={threadId}
+          diceRolls={diceRolls}
+          autoFocus={autoFocus}
+          ariaLabel={editorAriaLabel}
+          footerStatus={(
           <div className="flex items-center gap-3">
             {(autoSaveEnabled || autoSaveStatus === "error") && (
               <span className={cn(
@@ -115,8 +121,9 @@ function EditorCore({
               {charCount}/{MAX_CHARS}
             </span>
           </div>
-        )}
-      />
+          )}
+        />
+      )}
       {draftOpen && (
         <ContentDraftsPanel
           open

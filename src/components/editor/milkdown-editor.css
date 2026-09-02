@@ -69,6 +69,35 @@
   text-align: right;
 }
 
+/* 普通图片块默认贴正文首列；仅由受控对齐属性移动容器，不改变图片裁切。 */
+.milkdown .ProseMirror > .milkdown-image-block > .image-wrapper {
+  margin-inline: 0 auto;
+}
+
+.milkdown .ProseMirror > .milkdown-image-block[data-wenyou-align="center"] > .image-wrapper {
+  margin-inline: auto;
+}
+
+.milkdown .ProseMirror > .milkdown-image-block[data-wenyou-align="right"] > .image-wrapper {
+  margin-inline: auto 0;
+}
+
+.milkdown .ProseMirror > .milkdown-image-block > .image-wrapper img {
+  object-fit: contain;
+}
+
+.milkdown .ProseMirror > .milkdown-image-block > .caption-input {
+  text-align: start;
+}
+
+.milkdown .ProseMirror > .milkdown-image-block[data-wenyou-align="center"] > .caption-input {
+  text-align: center;
+}
+
+.milkdown .ProseMirror > .milkdown-image-block[data-wenyou-align="right"] > .caption-input {
+  text-align: end;
+}
+
 .milkdown .ProseMirror strong {
   font-weight: 700;
   letter-spacing: 0.018em;

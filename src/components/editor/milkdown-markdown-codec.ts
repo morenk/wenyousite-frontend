@@ -10,6 +10,7 @@ import {
   findUnsupportedMarkdownFormats,
   prepareMilkdownEditorMarkdown,
   sanitizeEmptyImages,
+  type MarkdownValidationOptions,
 } from "@/lib/markdown";
 import { serializeInlineDiceNode } from "@/lib/dice-inline";
 import { remarkRecoverAttentionBoundaries } from "@/lib/markdown-attention";
@@ -60,6 +61,7 @@ type EncodeSides = {
 export interface EditorMarkdownBridgeOptions {
   onChange: (markdown: string) => void;
   onError?: (error: unknown) => void;
+  markdownContractVersion?: number;
 }
 
 export class EditorMarkdownCodecError extends Error {
@@ -70,8 +72,11 @@ export class EditorMarkdownCodecError extends Error {
 }
 
 /** 原始正文只在进入编辑器时执行历史兼容与字面降级。 */
-export function prepareEditorMarkdown(markdown: string): string {
-  return prepareMilkdownEditorMarkdown(markdown);
+export function prepareEditorMarkdown(
+  markdown: string,
+  options: MarkdownValidationOptions = {},
+): string {
+  return prepareMilkdownEditorMarkdown(markdown, options);
 }
 
 /** 产品阅读态保留普通 LF；回填编辑器时也恢复成可见换行，而不是折叠为空格。 */
@@ -249,7 +254,11 @@ function normalizeEmptyBlockquoteParagraphs(markdown: string): string {
 }
 
 /** 只规范化编辑器自身的合法输出；这里禁止调用任何字面降级净化器。 */
-export function serializeEditorMarkdown(ctx: Ctx, doc: ProseNode): string {
+export function serializeEditorMarkdown(
+  ctx: Ctx,
+  doc: ProseNode,
+  options: MarkdownValidationOptions = {},
+): string {
   let markdown = normalizeSerializedAlignmentMarkers(
     normalizeEmptyBlockquoteParagraphs(
       sanitizeEmptyImages(
@@ -267,7 +276,7 @@ export function serializeEditorMarkdown(ctx: Ctx, doc: ProseNode): string {
     markdown = markdown.replace(/\n$/u, "");
   }
 
-  const unsupported = findUnsupportedMarkdownFormats(markdown);
+  const unsupported = findUnsupportedMarkdownFormats(markdown, options);
   if (unsupported.length > 0) {
     const first = unsupported[0]!;
     throw new EditorMarkdownCodecError(
@@ -284,18 +293,23 @@ export function serializeEditorMarkdown(ctx: Ctx, doc: ProseNode): string {
 export function createEditorMarkdownBridge({
   onChange,
   onError,
+  markdownContractVersion,
 }: EditorMarkdownBridgeOptions) {
   return $prose((ctx) => {
     let previousMarkdown: string | undefined;
     return new Plugin({
       key: new PluginKey("wenyousite-editor-markdown-bridge"),
       view: (view) => {
-        previousMarkdown = serializeEditorMarkdown(ctx, view.state.doc);
+        previousMarkdown = serializeEditorMarkdown(ctx, view.state.doc, {
+          markdownContractVersion,
+        });
         return {
           update: (nextView, previousState) => {
             if (nextView.state.doc.eq(previousState.doc)) return;
             try {
-              const markdown = serializeEditorMarkdown(ctx, nextView.state.doc);
+              const markdown = serializeEditorMarkdown(ctx, nextView.state.doc, {
+                markdownContractVersion,
+              });
               if (markdown === previousMarkdown) return;
               previousMarkdown = markdown;
               onChange(markdown);

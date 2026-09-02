@@ -7,6 +7,7 @@ import type {
 import type { EditorState, Transaction } from "@milkdown/kit/prose/state";
 import { Plugin, PluginKey } from "@milkdown/kit/prose/state";
 import type { EditorView } from "@milkdown/kit/prose/view";
+import { imageBlockSchema } from "@milkdown/kit/component/image-block";
 import {
   headingAttr,
   headingIdGenerator,
@@ -20,6 +21,7 @@ import {
   remarkWenyouAlignment,
   WENYOU_ALIGNMENT_ATTRIBUTE,
   type AlignmentMarkdownNode,
+  type MarkdownAlignmentOptions,
   type WenyouTextAlignment,
 } from "@/lib/markdown-alignment";
 
@@ -50,13 +52,40 @@ type MarkdownSerializerState = {
   ) => unknown;
 };
 
-function addAlignmentMarker(state: MarkdownSerializerState, node: ProseNode) {
+const EDITOR_ALIGNMENT_MARKER_RE = /^wenyousite-align-v1-(center|right)$/u;
+
+function getEditorMarkerAlignment(
+  node: AlignmentMarkdownNode,
+): WenyouTextAlignment | null {
+  if (node.type !== "definition" || node.url !== "#" || node.title != null) return null;
+  const identifier = typeof node.identifier === "string"
+    ? node.identifier
+    : typeof node.label === "string"
+      ? node.label
+      : "";
+  const alignment = identifier.match(EDITOR_ALIGNMENT_MARKER_RE)?.[1];
+  return alignment === "center" || alignment === "right" ? alignment : null;
+}
+
+function isAdjacentEditorMarker(
+  marker: AlignmentMarkdownNode,
+  target: AlignmentMarkdownNode,
+): boolean {
+  const markerLine = marker.position?.end?.line;
+  const targetLine = target.position?.start?.line;
+  return markerLine === undefined || targetLine === undefined || targetLine === markerLine + 1;
+}
+
+function addAlignmentMarker(
+  state: MarkdownSerializerState,
+  node: ProseNode,
+  imageAlignmentEnabled = false,
+) {
   const alignment = node.attrs.textAlign;
-  if (
-    !isStoredWenyouTextAlignment(alignment)
-    || !hasAlignableInlineContent(node)
-    || hasRegularImage(node)
-  ) return;
+  if (!isStoredWenyouTextAlignment(alignment)) return;
+  const imageBlock = node.type?.name === "image-block";
+  if (imageBlock && !imageAlignmentEnabled) return;
+  if (!imageBlock && (!hasAlignableInlineContent(node) || hasRegularImage(node))) return;
   const identifier = `wenyousite-align-v1-${alignment}`;
   state.addNode("definition", undefined, undefined, {
     identifier,
@@ -67,7 +96,12 @@ function addAlignmentMarker(state: MarkdownSerializerState, node: ProseNode) {
 }
 
 /** 原位扩展既有 schema factory，保持 paragraph 在 block group 中的默认首位。 */
-export function configureEditorAlignmentSchemas(ctx: Ctx) {
+export function configureEditorAlignmentSchemas(
+  ctx: Ctx,
+  options: MarkdownAlignmentOptions = {},
+) {
+  const imageAlignmentEnabled =
+    (options.markdownContractVersion ?? 0) >= 5;
   ctx.update(paragraphSchema.key, (previous) => (schemaCtx) => {
     const base = previous(schemaCtx);
     return {
@@ -155,17 +189,121 @@ export function configureEditorAlignmentSchemas(ctx: Ctx) {
       },
     };
   });
+
+  try {
+    ctx.update(imageBlockSchema.key, (previous) => (schemaCtx) => {
+      const base = previous(schemaCtx);
+      return {
+        ...base,
+        attrs: {
+          ...base.attrs,
+          textAlign: { default: "left", validate: "string" },
+        },
+        parseDOM: [{
+          tag: 'img[data-type="image-block"]',
+          getAttrs: (node) => {
+            if (typeof node === "string") {
+              return { textAlign: "left" };
+            }
+            const ratio = Number(node.getAttribute("ratio") ?? "1");
+            return {
+              src: node.getAttribute("src") ?? "",
+              caption: node.getAttribute("caption") ?? "",
+              ratio: Number.isFinite(ratio) && ratio !== 0 ? ratio : 1,
+              textAlign: imageAlignmentEnabled ? domAlignment(node) : "left",
+            };
+          },
+        }],
+        toDOM: (node): DOMOutputSpec => {
+          const attrs = Object.fromEntries(
+            Object.entries(node.attrs).filter(([key]) => key !== "textAlign"),
+          );
+          return [
+            "img",
+            {
+              "data-type": "image-block",
+              ...attrs,
+              ...alignmentDomAttributes(
+                imageAlignmentEnabled ? node.attrs.textAlign : "left",
+              ),
+            },
+          ];
+        },
+        parseMarkdown: {
+          ...base.parseMarkdown,
+          runner: (state, node, type) => {
+            const ratio = Number(node.alt || 1);
+            state.addNode(type, {
+              src: node.url,
+              caption: node.title,
+              ratio: Number.isFinite(ratio) && ratio !== 0 ? ratio : 1,
+              textAlign: imageAlignmentEnabled
+                ? markdownAlignment(node as unknown as AlignmentMarkdownNode)
+                : "left",
+            });
+          },
+        },
+        toMarkdown: {
+          ...base.toMarkdown,
+          runner: (state, node) => {
+            addAlignmentMarker(state as MarkdownSerializerState, node, imageAlignmentEnabled);
+            base.toMarkdown.runner(state, node);
+          },
+        },
+      };
+    });
+  } catch (error) {
+    if ((error as { code?: string }).code !== "contextNotFound") throw error;
+  }
 }
 
 /**
  * 在 ConfigReady 阶段注册转换器，确保 core schema 快照 remarkPluginsCtx 前已就绪。
  * Crepe 先装载 commonmark；事后追加 `$remark` 会与 schema 初始化竞争并偶发丢失对齐元数据。
  */
-export function configureEditorAlignmentParser(ctx: Ctx) {
+export function configureEditorAlignmentParser(
+  ctx: Ctx,
+  options: MarkdownAlignmentOptions = {},
+) {
   ctx.update(remarkPluginsCtx, (plugins) => [
     ...plugins,
-    { plugin: remarkWenyouAlignment, options: {} },
+    { plugin: editorAlignmentRemarkPlugin, options },
   ]);
+}
+
+/** 编辑器先把独立图片段落固定成 image-block，再绑定对齐，避免 Crepe 替换段落时丢失元数据。 */
+function editorAlignmentRemarkPlugin(options: MarkdownAlignmentOptions = {}) {
+  const markdownContractVersion = options.markdownContractVersion ?? 0;
+  const imageAlignmentEnabled = markdownContractVersion >= 5;
+  const transformAlignment = remarkWenyouAlignment(options);
+  return (treeValue: unknown) => {
+    if (imageAlignmentEnabled) {
+      const tree = treeValue as AlignmentMarkdownNode;
+      for (let index = 0; index < (tree.children?.length ?? 0) - 1; index++) {
+        const marker = tree.children?.[index];
+        const target = tree.children?.[index + 1];
+        if (
+          !marker
+          || !target
+          || !getEditorMarkerAlignment(marker)
+          || !isAdjacentEditorMarker(marker, target)
+          || target.type !== "paragraph"
+          || target.children?.length !== 1
+        ) continue;
+        const image = target.children[0];
+        if (
+          image?.type !== "image"
+          || String(image.title ?? "").startsWith("wenyousite-sticker:v1:")
+        ) continue;
+        target.type = "image-block";
+        target.url = image.url;
+        target.alt = image.alt;
+        target.title = image.title;
+        delete target.children;
+      }
+    }
+    transformAlignment(treeValue);
+  };
 }
 
 function hasRegularImage(node: ProseNode): boolean {
@@ -198,7 +336,11 @@ function hasAlignableInlineContent(node: ProseNode): boolean {
   return found;
 }
 
-function isEligibleTopLevelNode(node: ProseNode): boolean {
+function isEligibleTopLevelNode(
+  node: ProseNode,
+  imageAlignmentEnabled = false,
+): boolean {
+  if (node.type.name === "image-block") return imageAlignmentEnabled;
   if (node.type.name === "paragraph") {
     return hasAlignableInlineContent(node) && !hasRegularImage(node);
   }
@@ -211,10 +353,21 @@ function isEligibleTopLevelNode(node: ProseNode): boolean {
 type SelectedBlock = { node: ProseNode; position: number };
 
 function selectedTopLevelTextBlocks(state: EditorState): SelectedBlock[] {
+  return selectedTopLevelBlocksByKind(state, false);
+}
+
+function selectedTopLevelBlocksByKind(
+  state: EditorState,
+  includeImageBlocks: boolean,
+): SelectedBlock[] {
   const { from, to, empty } = state.selection;
   const result: SelectedBlock[] = [];
   state.doc.forEach((node, position) => {
-    if (node.type.name !== "paragraph" && node.type.name !== "heading") return;
+    if (
+      node.type.name !== "paragraph"
+      && node.type.name !== "heading"
+      && (!includeImageBlocks || node.type.name !== "image-block")
+    ) return;
     const end = position + node.nodeSize;
     const selected = empty
       ? from >= position && from <= end
@@ -224,12 +377,20 @@ function selectedTopLevelTextBlocks(state: EditorState): SelectedBlock[] {
   return result;
 }
 
-function selectedTopLevelBlocks(state: EditorState): SelectedBlock[] {
-  return selectedTopLevelTextBlocks(state).filter(({ node }) => isEligibleTopLevelNode(node));
+function selectedTopLevelBlocks(
+  state: EditorState,
+  imageAlignmentEnabled = false,
+): SelectedBlock[] {
+  return selectedTopLevelBlocksByKind(state, imageAlignmentEnabled).filter(({ node }) =>
+    isEligibleTopLevelNode(node, imageAlignmentEnabled),
+  );
 }
 
-export function getSelectedTextAlignment(state: EditorState): WenyouTextAlignment {
-  const blocks = selectedTopLevelBlocks(state);
+export function getSelectedTextAlignment(
+  state: EditorState,
+  imageAlignmentEnabled = false,
+): WenyouTextAlignment {
+  const blocks = selectedTopLevelBlocks(state, imageAlignmentEnabled);
   if (blocks.length === 0) return "left";
   const first = isStoredWenyouTextAlignment(blocks[0]!.node.attrs.textAlign)
     ? blocks[0]!.node.attrs.textAlign
@@ -237,21 +398,25 @@ export function getSelectedTextAlignment(state: EditorState): WenyouTextAlignmen
   return blocks.every((item) => item.node.attrs.textAlign === first) ? first : "left";
 }
 
-export function cycleSelectedTextAlignment(view: EditorView): boolean {
-  const current = getSelectedTextAlignment(view.state);
+export function cycleSelectedTextAlignment(
+  view: EditorView,
+  imageAlignmentEnabled = false,
+): boolean {
+  const current = getSelectedTextAlignment(view.state, imageAlignmentEnabled);
   const next: WenyouTextAlignment = current === "left"
     ? "center"
     : current === "center"
       ? "right"
       : "left";
-  return setSelectedTextAlignment(view, next);
+  return setSelectedTextAlignment(view, next, imageAlignmentEnabled);
 }
 
 export function setSelectedTextAlignment(
   view: EditorView,
   alignment: WenyouTextAlignment,
+  imageAlignmentEnabled = false,
 ): boolean {
-  const blocks = selectedTopLevelBlocks(view.state);
+  const blocks = selectedTopLevelBlocks(view.state, imageAlignmentEnabled);
   if (blocks.length === 0) return false;
   const changedBlocks = blocks.filter(({ node }) => node.attrs.textAlign !== alignment);
   if (changedBlocks.length === 0) return true;
@@ -290,11 +455,15 @@ export function setSelectedEditorHeading(ctx: Ctx, level: number | null): boolea
   return true;
 }
 
-function clearInvalidAlignment(state: EditorState): Transaction | null {
+function clearInvalidAlignment(
+  state: EditorState,
+  imageAlignmentEnabled = false,
+): Transaction | null {
   let transaction: Transaction | null = null;
   state.doc.descendants((node, position, parent) => {
     if (!isStoredWenyouTextAlignment(node.attrs.textAlign)) return true;
-    const valid = parent?.type.name === "doc" && isEligibleTopLevelNode(node);
+    const valid = parent?.type.name === "doc"
+      && isEligibleTopLevelNode(node, imageAlignmentEnabled);
     if (valid) return true;
     transaction ??= state.tr;
     transaction.setNodeMarkup(position, undefined, {
@@ -306,31 +475,51 @@ function clearInvalidAlignment(state: EditorState): Transaction | null {
   return transaction;
 }
 
+/** Crepe 的 image-block 使用 NodeView，需把模型对齐同步到可见外层容器。 */
+function syncImageBlockDomAlignment(view: EditorView, imageAlignmentEnabled: boolean) {
+  view.state.doc.forEach((node, position) => {
+    if (node.type.name !== "image-block") return;
+    const dom = view.nodeDOM(position);
+    if (!(dom instanceof HTMLElement)) return;
+    if (imageAlignmentEnabled && isStoredWenyouTextAlignment(node.attrs.textAlign)) {
+      dom.setAttribute(WENYOU_ALIGNMENT_ATTRIBUTE, node.attrs.textAlign);
+    } else {
+      dom.removeAttribute(WENYOU_ALIGNMENT_ATTRIBUTE);
+    }
+  });
+}
+
 /** 同步按钮状态，并确保粘贴/列表/引用转换不会留下协议外对齐。 */
 export function createEditorAlignmentPlugin(
   onAlignmentChange: (alignment: WenyouTextAlignment) => void,
+  imageAlignmentEnabled: () => boolean = () => false,
 ) {
   return $prose(() => new Plugin({
     key: new PluginKey("wenyousite-editor-alignment-invariant"),
-    appendTransaction: (_transactions, _oldState, state) => clearInvalidAlignment(state),
+    appendTransaction: (_transactions, _oldState, state) =>
+      clearInvalidAlignment(state, imageAlignmentEnabled()),
     view: (view) => {
-      onAlignmentChange(getSelectedTextAlignment(view.state));
+      syncImageBlockDomAlignment(view, imageAlignmentEnabled());
+      onAlignmentChange(getSelectedTextAlignment(view.state, imageAlignmentEnabled()));
       return {
         update: (nextView, previousState) => {
+          syncImageBlockDomAlignment(nextView, imageAlignmentEnabled());
           if (
             nextView.state.selection.eq(previousState.selection)
             && nextView.state.doc.eq(previousState.doc)
           ) return;
-          onAlignmentChange(getSelectedTextAlignment(nextView.state));
+          onAlignmentChange(
+            getSelectedTextAlignment(nextView.state, imageAlignmentEnabled()),
+          );
         },
       };
     },
   }));
 }
 
-export function cycleEditorAlignment(ctx: Ctx): boolean {
+export function cycleEditorAlignment(ctx: Ctx, imageAlignmentEnabled = false): boolean {
   const view = ctx.get(editorViewCtx);
-  const changed = cycleSelectedTextAlignment(view);
+  const changed = cycleSelectedTextAlignment(view, imageAlignmentEnabled);
   view.focus();
   return changed;
 }
@@ -338,9 +527,10 @@ export function cycleEditorAlignment(ctx: Ctx): boolean {
 export function setEditorAlignment(
   ctx: Ctx,
   alignment: WenyouTextAlignment,
+  imageAlignmentEnabled = false,
 ): boolean {
   const view = ctx.get(editorViewCtx);
-  const changed = setSelectedTextAlignment(view, alignment);
+  const changed = setSelectedTextAlignment(view, alignment, imageAlignmentEnabled);
   view.focus();
   return changed;
 }

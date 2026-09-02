@@ -8,7 +8,11 @@ import { useSaveDraft } from "@/api/hooks/use-save-draft";
 import type { DraftItem } from "@/api/hooks/use-content-drafts";
 import { queryKeys } from "@/api/query-keys";
 import { useAuth } from "@/lib/auth";
-import { sanitizeMilkdownMarkdown } from "@/lib/markdown";
+import {
+  ACTIVE_MARKDOWN_CONTRACT_VERSION,
+  sanitizeMilkdownMarkdown,
+} from "@/lib/markdown";
+import { useApiMeta } from "@/api/hooks/use-api-meta";
 import type { EditorDraftSnapshot } from "@/components/editor/content-drafts-panel";
 
 export type EditorAutoSaveStatus = "idle" | "saving" | "saved" | "error";
@@ -17,17 +21,30 @@ export type EditorAutoSaveStatus = "idle" | "saving" | "saved" | "error";
 export function useEditorDraftController({
   defaultValue,
   onChange,
+  waitForMarkdownCapability = false,
 }: {
   defaultValue: string;
   onChange?: (value: string) => void;
+  waitForMarkdownCapability?: boolean;
 }) {
   const { user } = useAuth();
+  const { data: apiMeta, isError: apiMetaError } = useApiMeta();
+  const capabilityReady = apiMeta !== undefined || apiMetaError;
+  const markdownContractVersion = apiMeta?.markdownContractVersion ?? 0;
   const queryClient = useQueryClient();
   const { mutateAsync: saveDraftAutomatically } = useSaveDraft();
-  const initialValue = sanitizeMilkdownMarkdown(defaultValue);
+  // Keep the hook's historical synchronous sanitization contract while the
+  // capability request is pending. EditorCore does not mount Milkdown until
+  // the version-aware value has been applied below.
+  const initialValue = waitForMarkdownCapability
+    ? defaultValue
+    : sanitizeMilkdownMarkdown(defaultValue, {
+      markdownContractVersion: ACTIVE_MARKDOWN_CONTRACT_VERSION,
+    });
   const [restoredValue, setRestoredValue] = useState(initialValue);
   const [version, setVersion] = useState(0);
   const [currentContent, setCurrentContent] = useState(initialValue);
+  const [contractVersionReady, setContractVersionReady] = useState(false);
   const [draftOpen, setDraftOpen] = useState(false);
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<EditorAutoSaveStatus>("idle");
@@ -39,14 +56,31 @@ export function useEditorDraftController({
     undefined,
   );
   const autoSaveEnabledRef = useRef(false);
+  const appliedContractVersionRef = useRef<number | null>(null);
 
   useEffect(() => {
     externalOnChangeRef.current = onChange;
   }, [onChange]);
 
   useEffect(() => {
-    if (initialValue !== defaultValue) externalOnChangeRef.current?.(initialValue);
-  }, [defaultValue, initialValue]);
+    if (!waitForMarkdownCapability && initialValue !== defaultValue) {
+      externalOnChangeRef.current?.(initialValue);
+    }
+  }, [defaultValue, initialValue, waitForMarkdownCapability]);
+
+  useEffect(() => {
+    if (!capabilityReady || appliedContractVersionRef.current === markdownContractVersion) {
+      return;
+    }
+    appliedContractVersionRef.current = markdownContractVersion;
+    const safeContent = sanitizeMilkdownMarkdown(defaultValue, { markdownContractVersion });
+    latestContentRef.current = safeContent;
+    setRestoredValue(safeContent);
+    setCurrentContent(safeContent);
+    setVersion((current) => current + 1);
+    setContractVersionReady(true);
+    if (safeContent !== initialValue) externalOnChangeRef.current?.(safeContent);
+  }, [capabilityReady, defaultValue, initialValue, markdownContractVersion]);
 
   const handleChange = useCallback(
     (value: string) => {
@@ -59,14 +93,14 @@ export function useEditorDraftController({
   );
 
   const handleRestore = useCallback((snapshot: EditorDraftSnapshot) => {
-    const safeContent = sanitizeMilkdownMarkdown(snapshot.content);
+    const safeContent = sanitizeMilkdownMarkdown(snapshot.content, { markdownContractVersion });
     latestContentRef.current = safeContent;
     setRestoredValue(safeContent);
     setCurrentContent(safeContent);
     setVersion((current) => current + 1);
     externalOnChangeRef.current?.(safeContent);
     toast.success("已恢复正文草稿");
-  }, []);
+  }, [markdownContractVersion]);
 
   const handleOpenDrafts = useCallback(() => {
     setDraftOpen(true);
@@ -133,6 +167,7 @@ export function useEditorDraftController({
     user,
     restoredValue,
     version,
+    contractVersionReady,
     currentContent,
     draftOpen,
     setDraftOpen,

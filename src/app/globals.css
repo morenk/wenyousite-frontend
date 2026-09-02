@@ -405,6 +405,21 @@ select {
   text-align: right;
 }
 
+/* 普通图片默认居左；图片块的对齐只移动容器，不改变 contain 与最大尺寸。 */
+.wenyou-prose > p > [data-wenyou-media="image"] {
+  margin-inline-start: 0;
+  margin-inline-end: auto;
+}
+
+.wenyou-prose > p[data-wenyou-align="center"] > [data-wenyou-media="image"] {
+  margin-inline: auto;
+}
+
+.wenyou-prose > p[data-wenyou-align="right"] > [data-wenyou-media="image"] {
+  margin-inline-start: auto;
+  margin-inline-end: 0;
+}
+
 .wenyou-prose strong {
   color: var(--foreground);
   font-weight: 700;

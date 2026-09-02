@@ -13,7 +13,10 @@ import ReactMarkdown, { type ExtraProps } from "react-markdown";
 import { createPortal } from "react-dom";
 import remarkGfm from "remark-gfm";
 import { getMarkdownImageVariantUrl } from "@/lib/upload-image";
-import { prepareMarkdownForReader } from "@/lib/markdown";
+import {
+  ACTIVE_MARKDOWN_CONTRACT_VERSION,
+  prepareMarkdownForReader,
+} from "@/lib/markdown";
 import {
   DICE_INLINE_MARKER_SOURCE,
   describeInlineDicePending,
@@ -145,7 +148,8 @@ function MarkdownImage({ src, alt, title, sourcePostId }: ImageProps & { sourceP
     <>
       <span
         {...{ [SITE_CLIPBOARD_MEDIA_ATTRIBUTE]: sticker ? "sticker" : "image" }}
-        className={cn("group/sticker-image relative", sticker ? "mx-0.5 inline-flex align-middle" : "mx-auto my-2 block w-fit max-w-full")}
+        {...(!sticker ? { "data-wenyou-media": "image" } : {})}
+        className={cn("group/sticker-image relative", sticker ? "mx-0.5 inline-flex align-middle" : "mx-0 my-2 block w-fit max-w-full")}
       >
         {/* eslint-disable-next-line @next/next/no-img-element -- COS 远程图 + onError 回退 + lightbox，用原生 img */}
         <img
@@ -328,6 +332,7 @@ interface MarkdownContentProps {
   diceRolls?: InlineDiceRoll[];
   sourcePostId?: string;
   size?: "reading" | "compact";
+  markdownContractVersion?: number;
 }
 
 export function MarkdownContent({
@@ -335,8 +340,10 @@ export function MarkdownContent({
   diceRolls = [],
   sourcePostId,
   size = "reading",
+  markdownContractVersion = ACTIVE_MARKDOWN_CONTRACT_VERSION,
 }: MarkdownContentProps) {
-  const normalizedContent = prepareMarkdownForReader(content);
+  const markdownOptions = { markdownContractVersion };
+  const normalizedContent = prepareMarkdownForReader(content, markdownOptions);
   const diceRollsByNodeId = new Map(diceRolls.map((roll) => [roll.nodeId, roll]));
   const handleCopy = (event: ReactClipboardEvent<HTMLDivElement>) => {
     const selection = window.getSelection();
@@ -373,7 +380,7 @@ export function MarkdownContent({
       <ReactMarkdown
         remarkPlugins={[
           remarkGfm,
-          remarkWenyouAlignment,
+          [remarkWenyouAlignment, markdownOptions],
           remarkRecoverAttentionBoundaries,
           remarkMilkdownEmptyParagraphs,
           remarkInlineDice(diceRolls),

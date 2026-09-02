@@ -647,6 +647,36 @@ describe("Milkdown 段落对齐兼容性", () => {
     expect(onChange.mock.calls.at(-1)?.[0]).not.toContain("wenyousite-align");
   });
 
+  test("v5 独立图片块默认居左且可切换到右对齐", async () => {
+    enableMarkdownVersion(5);
+    const onChange = vi.fn();
+    const { container } = renderEditor({
+      defaultValue: "[wenyousite-align-v1-center]: #\n![图片](https://cdn.example.com/image.webp)",
+      onChange,
+      onUploadImage: vi.fn().mockResolvedValue("https://cdn.example.com/uploaded.webp"),
+    });
+    const editor = await getEditor(container);
+    const imageBlock = await waitFor(() => {
+      const element = editor.querySelector<HTMLElement>(".milkdown-image-block");
+      expect(element).toBeInTheDocument();
+      return element!;
+    });
+
+    expect(imageBlock).toHaveAttribute("data-wenyou-align", "center");
+    const alignment = await screen.findByRole("button", {
+      name: "居中对齐，点击切换",
+    });
+    fireEvent.click(imageBlock);
+    await userEvent.setup().click(alignment);
+
+    await waitFor(() => {
+      expect(imageBlock).toHaveAttribute("data-wenyou-align", "right");
+      expect(onChange.mock.calls.at(-1)?.[0]).toContain(
+        "[wenyousite-align-v1-right]: #\n![1.00](https://cdn.example.com/image.webp)",
+      );
+    });
+  });
+
   test.each([
     {
       label: "v1 envelope",

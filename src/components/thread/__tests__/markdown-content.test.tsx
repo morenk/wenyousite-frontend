@@ -404,6 +404,34 @@ describe("MarkdownContent", () => {
     expect(screen.queryByRole("img")).toBeNull();
   });
 
+  test("普通图片默认居左，表情仍保持内联语义", () => {
+    const { container } = render(
+      <MarkdownContent
+        content={'![普通图](https://example.com/image.png) ![表情](https://example.com/sticker.webp "wenyousite-sticker:v1:asset-1")'}
+      />,
+    );
+
+    const image = screen.getByRole("img", { name: "普通图" });
+    const sticker = screen.getByRole("img", { name: "表情" });
+    expect(image.closest("span")).toHaveAttribute("data-wenyou-media", "image");
+    expect(image.closest("span")).toHaveClass("mx-0", "block");
+    expect(sticker.closest("span")).not.toHaveAttribute("data-wenyou-media");
+    expect(container.querySelector("p")).not.toHaveAttribute("data-wenyou-align");
+  });
+
+  test("契约 v5 的独立图片可读取并应用中心对齐", () => {
+    render(
+      <MarkdownContent
+        markdownContractVersion={5}
+        content={'[wenyousite-align-v1-center]: #\n![居中图](https://example.com/image.png)'}
+      />,
+    );
+
+    const paragraph = document.querySelector('[data-slot="markdown-content"] > p');
+    expect(paragraph).toHaveAttribute("data-wenyou-align", "center");
+    expect(screen.getByRole("img", { name: "居中图" })).toBeInTheDocument();
+  });
+
   test("本站上传图渲染为中图并带尺寸约束与懒加载", () => {
     render(<MarkdownContent content={`![测试图](${UPLOADED_URL})`} />);
     const img = screen.getByRole("img", { name: "测试图" });

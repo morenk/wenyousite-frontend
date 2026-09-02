@@ -254,13 +254,18 @@ export function MilkdownEditorHost({
   footerStatus,
 }: MilkdownEditorHostProps) {
   const [loading] = useInstance();
-  const { data: apiMeta } = useApiMeta();
-  const alignmentEnabled = (apiMeta?.markdownContractVersion ?? 0) >= 4;
+  const { data: apiMeta, isError: apiMetaError } = useApiMeta();
+  const advertisedMarkdownContractVersion = apiMeta?.markdownContractVersion ?? 0;
+  const capabilityReady = apiMeta !== undefined || apiMetaError;
+  const markdownContractVersion = apiMeta?.markdownContractVersion ?? 0;
+  const alignmentEnabled = advertisedMarkdownContractVersion >= 4;
+  const imageAlignmentEnabled = advertisedMarkdownContractVersion >= 5;
   const crepeRef = useRef<CrepeBuilder | null>(null);
   const hostRef = useRef<HTMLDivElement>(null);
   const onChangeRef = useRef(onChange);
   const toolbarItemsRef = useRef<MilkdownToolbarItemMetadata[]>([]);
   const uploadAbortRef = useRef<AbortController | null>(null);
+  const imageAlignmentEnabledRef = useRef(imageAlignmentEnabled);
   const diceSelectionRef = useRef<{ from: number; to: number } | null>(null);
   const [dicePopover, setDicePopover] = useState<{ top: number; left: number } | null>(null);
   const [moreMenuAnchor, setMoreMenuAnchor] = useState<HTMLElement | null>(null);
@@ -281,6 +286,10 @@ export function MilkdownEditorHost({
   useEffect(() => {
     onChangeRef.current = onChange;
   }, [onChange]);
+
+  useEffect(() => {
+    imageAlignmentEnabledRef.current = imageAlignmentEnabled;
+  }, [imageAlignmentEnabled]);
 
   useEffect(() => {
     if (!autoFocus || disabled || loading) return;
@@ -413,7 +422,7 @@ export function MilkdownEditorHost({
       const commands = ctx.get(commandsCtx);
       switch (capability) {
         case "alignment":
-          cycleEditorAlignment(ctx);
+          cycleEditorAlignment(ctx, imageAlignmentEnabledRef.current);
           break;
         case "link":
           commands.call(toggleLinkCommand.key);
@@ -485,7 +494,9 @@ export function MilkdownEditorHost({
   }, [handleOpenDice, onOpenDrafts, runMoreCommand]);
 
   const handleMoreAlignmentSelect = useCallback((alignment: WenyouTextAlignment) => {
-    crepeRef.current?.editor.action((ctx) => setEditorAlignment(ctx, alignment));
+    crepeRef.current?.editor.action((ctx) =>
+      setEditorAlignment(ctx, alignment, imageAlignmentEnabledRef.current),
+    );
     setMoreMenuAnchor(null);
   }, []);
 
@@ -553,9 +564,10 @@ export function MilkdownEditorHost({
 
   useEditor(
     (root) => {
+      if (!capabilityReady) return undefined;
       const crepe = new CrepeBuilder({
         root,
-        defaultValue: prepareEditorMarkdown(initialValue),
+        defaultValue: prepareEditorMarkdown(initialValue, { markdownContractVersion }),
       });
 
       // Markdown 定界符永远按字面输入；仅保留与工具栏白名单一致的显式快捷键。
@@ -635,8 +647,9 @@ export function MilkdownEditorHost({
             icon: editorAlignmentIconSvg("left"),
             active: (ctx) => getSelectedTextAlignment(
               ctx.get(editorViewCtx).state,
+              imageAlignmentEnabledRef.current,
             ) !== "left",
-            onRun: cycleEditorAlignment,
+            onRun: (ctx) => cycleEditorAlignment(ctx, imageAlignmentEnabledRef.current),
           });
 
           const groups = builder.build();
@@ -720,9 +733,13 @@ export function MilkdownEditorHost({
 
       const dicePlugins = createDiceInlineEditorPlugins(diceRolls);
       const stickerPlugins = createStickerInlineEditorPlugins();
-      const alignmentPlugin = createEditorAlignmentPlugin(setCurrentAlignment);
+      const alignmentPlugin = createEditorAlignmentPlugin(
+        setCurrentAlignment,
+        () => imageAlignmentEnabledRef.current,
+      );
       let codecErrorShown = false;
       const markdownBridge = createEditorMarkdownBridge({
+        markdownContractVersion,
         onChange: (markdown) => {
           codecErrorShown = false;
           onChangeRef.current?.(markdown);
@@ -735,8 +752,8 @@ export function MilkdownEditorHost({
         },
       });
       crepe.editor
-        .config(configureEditorAlignmentParser)
-        .config(configureEditorAlignmentSchemas)
+        .config((ctx) => configureEditorAlignmentParser(ctx, { markdownContractVersion }))
+        .config((ctx) => configureEditorAlignmentSchemas(ctx, { markdownContractVersion }))
         .config(configureEditorMarkdownSerializer)
         .use(internalReferenceLinkView)
         .use(editorMarkdownPastePlugin)
@@ -756,7 +773,7 @@ export function MilkdownEditorHost({
 
       return crepe;
     },
-    [],
+    [capabilityReady, markdownContractVersion],
   );
 
   useEffect(() => {
