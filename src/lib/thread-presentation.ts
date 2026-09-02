@@ -1,7 +1,7 @@
 import { METADATA_ELEMENT_STYLES } from "@wenyousite/foundation/elements";
 
 import type { components } from "@/api/types";
-import type { BadgeTone } from "@/lib/presentation-types";
+import type { ElementTone as BadgeTone } from "@wenyousite/foundation/elements";
 
 export type ThreadCategory = NonNullable<
   components["schemas"]["ThreadListItemResponseDto"]["category"]

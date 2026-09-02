@@ -2,7 +2,7 @@ import { act, render, renderHook, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { AdminFilterBar, AdminFilterField, AdminPagination } from "./admin-list-controls";
-import { useCursorPagination } from "./use-cursor-pagination";
+import { useCursorPagination } from "@/hooks/use-cursor-pagination";
 
 describe("管理员列表分页", () => {
   it("保留上一页游标栈并在筛选范围变化时回到第一页", () => {

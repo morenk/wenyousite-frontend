@@ -50,7 +50,7 @@ import {
   AdminTableHeader,
   AdminTableRow,
 } from "./admin-table";
-import { useCursorPagination } from "./use-cursor-pagination";
+import { useCursorPagination } from "@/hooks/use-cursor-pagination";
 
 const targetLabels = {
   THREAD: "主题帖",

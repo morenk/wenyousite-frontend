@@ -38,7 +38,7 @@ import {
   AdminTableHeader,
   AdminTableRow,
 } from "@/components/admin/admin-table";
-import { useCursorPagination } from "@/components/admin/use-cursor-pagination";
+import { useCursorPagination } from "@/hooks/use-cursor-pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {

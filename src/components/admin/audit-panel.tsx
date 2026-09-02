@@ -16,7 +16,7 @@ import {
   AdminTableHeader,
   AdminTableRow,
 } from "./admin-table";
-import { useCursorPagination } from "./use-cursor-pagination";
+import { useCursorPagination } from "@/hooks/use-cursor-pagination";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

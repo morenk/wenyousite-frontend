@@ -1048,6 +1048,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stickers/imports/moment-image": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 收藏可访问动态正文中的指定图片 */
+        post: operations["stickersImportMomentImage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stickers/imports/moment-comment-image": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 收藏可访问动态评论中的指定图片 */
+        post: operations["stickersImportMomentCommentImage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/stickers/imports/{id}": {
         parameters: {
             query?: never;
@@ -4190,6 +4224,28 @@ export interface components {
              */
             clientRequestId: string;
         };
+        ImportStickerMomentImageDto: {
+            /** @description 当前用户可访问动态中的图片媒体 ID 所属动态 */
+            momentId: string;
+            /** @description 动态图片的媒体 ID */
+            mediaId: string;
+            /**
+             * Format: uuid
+             * @description 导入幂等键
+             */
+            clientRequestId: string;
+        };
+        ImportStickerMomentCommentImageDto: {
+            /** @description 当前用户可访问动态中的评论 ID */
+            momentCommentId: string;
+            /** @description 动态评论图片的媒体 ID */
+            mediaId: string;
+            /**
+             * Format: uuid
+             * @description 导入幂等键
+             */
+            clientRequestId: string;
+        };
         ReorderStickersDto: {
             /** @description GET /stickers 返回的收藏夹版本 */
             version: number;
@@ -6171,6 +6227,12 @@ export interface components {
             data: components["schemas"]["StickerImportResponseDto"];
         };
         StickersImportPostImage201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["StickerImportResponseDto"];
+        };
+        StickersImportMomentImage201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["StickerImportResponseDto"];
+        };
+        StickersImportMomentCommentImage201Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["StickerImportResponseDto"];
         };
         StickersGetImport200Response: components["schemas"]["ApiSuccessEnvelope"] & {
@@ -10208,6 +10270,78 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StickersImportPostImage201Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    stickersImportMomentImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportStickerMomentImageDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StickersImportMomentImage201Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    stickersImportMomentCommentImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportStickerMomentCommentImageDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StickersImportMomentCommentImage201Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
