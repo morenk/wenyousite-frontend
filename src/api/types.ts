@@ -9485,7 +9485,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description ZIP 包含 thread.md、thread.txt、可选 media/ 和必要时的 export-notes.txt */
+            /** @description ZIP 包含以帖子标题命名的 .md/.txt 正文文件、可选 media/ 和必要时的 export-notes.txt */
             200: {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];

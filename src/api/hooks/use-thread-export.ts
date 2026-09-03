@@ -5,8 +5,16 @@ import type { components } from "@/api/types";
 
 export type ThreadExportOptions = components["schemas"]["ThreadExportDto"];
 
-function filenameFromResponse(response: Response, threadId: string) {
+export function filenameFromResponse(response: Response, threadId: string) {
   const header = response.headers.get("content-disposition");
+  const encodedFilename = header?.match(/filename\*\s*=\s*UTF-8''([^;]+)/i)?.[1]?.trim();
+  if (encodedFilename) {
+    try {
+      return decodeURIComponent(encodedFilename);
+    } catch {
+      // 使用兼容 filename，避免异常响应头阻断下载。
+    }
+  }
   const filename = header?.match(/filename="([^"]+)"/i)?.[1];
   return filename || `wenyou-thread-${threadId}.zip`;
 }
