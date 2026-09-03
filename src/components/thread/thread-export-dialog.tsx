@@ -44,11 +44,10 @@ const DEFAULT_OPTIONS: ThreadExportOptions = {
 const FORMAT_OPTIONS: Array<{
   value: ThreadExportOptions["format"];
   label: string;
-  description: string;
 }> = [
-  { value: "TXT", label: "TXT", description: "适合纯文字留存。" },
-  { value: "MARKDOWN", label: "Markdown", description: "保留标题、列表和链接格式。" },
-  { value: "BOTH", label: "两者都要", description: "同时生成 TXT 与 Markdown。" },
+  { value: "TXT", label: "TXT" },
+  { value: "MARKDOWN", label: "Markdown" },
+  { value: "BOTH", label: "两者都要" },
 ];
 
 const FORMAT_SUMMARIES: Record<ThreadExportOptions["format"], string> = {
@@ -62,14 +61,13 @@ type MetadataOptionKey = Exclude<keyof ThreadExportOptions, "format">;
 const OPTIONS: Array<{
   key: MetadataOptionKey;
   label: string;
-  description: string;
   icon: typeof UserRound;
 }> = [
-  { key: "includeAuthors", label: "保留作者名", description: "让每一段发言保留署名。", icon: UserRound },
-  { key: "includeTimestamps", label: "保留时间", description: "记录每段正文、楼层和回复的发布时间。", icon: FileText },
-  { key: "includeFloorNumbers", label: "保留楼层号", description: "保留原主题中的楼层位置。", icon: Archive },
-  { key: "includeReplyTargets", label: "保留回复目标", description: "标记回复针对的作者。", icon: UserRound },
-  { key: "includeSourceLinks", label: "保留站内来源链接", description: "方便从档案回到温油站；邀请链接仍会脱敏。", icon: Link2 },
+  { key: "includeAuthors", label: "保留作者名", icon: UserRound },
+  { key: "includeTimestamps", label: "保留时间", icon: FileText },
+  { key: "includeFloorNumbers", label: "保留楼层号", icon: Archive },
+  { key: "includeReplyTargets", label: "保留回复目标", icon: UserRound },
+  { key: "includeSourceLinks", label: "保留站内来源链接", icon: Link2 },
 ];
 
 function OptionRow({
@@ -154,7 +152,7 @@ export function ThreadExportDialog({
                     导出主题档案
                   </DialogTitle>
                   <DialogDescription className="mt-1.5 line-clamp-2">
-                    为“{threadTitle || "未命名主题帖"}”保存一份可本地留存的主题档案。
+                    “{threadTitle || "未命名主题帖"}”
                   </DialogDescription>
                 </div>
                 <DialogCloseButton label="关闭导出主题档案" disabled={exportMutation.isPending} />
@@ -169,10 +167,6 @@ export function ThreadExportDialog({
               className="flex min-h-0 flex-1 flex-col"
             >
               <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-6 py-5">
-                <p id="thread-export-scope" className="text-xs leading-5 text-muted-foreground">
-                  范围固定为已发布主题帖的可见正文、楼层与回复，并按原顺序整理。
-                </p>
-
                 <fieldset className="space-y-2">
                   <legend className="font-utility text-xs font-bold uppercase tracking-[0.08em] text-muted-foreground">导出格式</legend>
                   <div className="grid gap-2 sm:grid-cols-3">
@@ -201,7 +195,6 @@ export function ThreadExportDialog({
                         />
                         <span className="ml-2 min-w-0">
                           <span className="block text-sm font-semibold text-foreground">{option.label}</span>
-                          <span className="mt-1 block text-xs leading-5 text-muted-foreground">{option.description}</span>
                         </span>
                       </label>
                     ))}
@@ -212,12 +205,8 @@ export function ThreadExportDialog({
                   <div className="flex items-start gap-3">
                     <Archive className="mt-0.5 size-4 shrink-0 text-brand-strong" aria-hidden="true" />
                     <div className="min-w-0">
-                      <h2 className="text-sm font-semibold text-foreground">本次档案</h2>
-                      <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                        将生成 {FORMAT_SUMMARIES[options.format]} 文件{options.includeMedia ? "，并打包站内普通图片" : ""}。
-                      </p>
-                      <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                        文件名使用帖子标题，不适合文件系统的字符会自动清理。
+                      <p className="text-sm font-semibold text-foreground">
+                        {FORMAT_SUMMARIES[options.format]}{options.includeMedia ? " · 含图片" : ""}
                       </p>
                     </div>
                   </div>
@@ -232,18 +221,16 @@ export function ThreadExportDialog({
                   />
                   <span>
                     <span className="flex items-center gap-1.5 text-sm font-semibold text-foreground"><Download className="size-3.5 text-brand-strong" aria-hidden="true" />打包站内普通图片</span>
-                    <span className="mt-1 block text-xs leading-5 text-muted-foreground">图片会放入 ZIP 的 media/ 目录；表情只保留文字，外链图片不会被服务端抓取。</span>
                   </span>
                 </label>
 
                 <details className="group rounded-xl border border-border/70 bg-background/40">
                   <summary className="flex cursor-pointer list-none items-center gap-2 rounded-xl px-3 py-3 text-sm font-semibold text-foreground outline-none transition-colors hover:bg-muted/45 focus-visible:ring-2 focus-visible:ring-ring/30 [&::-webkit-details-marker]:hidden">
-                    <span className="flex-1">更多导出选项</span>
+                    <span className="flex-1">更多选项</span>
                     <span className="font-utility text-xs font-normal text-muted-foreground">5 项</span>
                     <ChevronDown className="size-4 text-muted-foreground transition-transform duration-[var(--motion-fast)] group-open:rotate-180" aria-hidden="true" />
                   </summary>
                   <fieldset className="space-y-2 border-t border-border/70 px-3 pb-3 pt-3">
-                    <legend className="font-utility text-xs font-bold uppercase tracking-[0.08em] text-muted-foreground">档案信息</legend>
                     <div className="grid gap-2 sm:grid-cols-2">
                       {OPTIONS.map((option) => (
                         <OptionRow

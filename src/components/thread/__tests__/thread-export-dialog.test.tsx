@@ -46,17 +46,17 @@ describe("ThreadExportDialog", () => {
 
     expect(screen.getAllByRole("radio")).toHaveLength(3);
     expect(screen.getByRole("radio", { name: /两者都要/ })).toBeChecked();
-    expect(screen.getByText(/将生成 Markdown 和 TXT 文件，并打包站内普通图片/)).toBeInTheDocument();
-    expect(screen.getByText("更多导出选项").closest("details")).not.toHaveAttribute("open");
+    expect(screen.getByText("Markdown 和 TXT · 含图片")).toBeInTheDocument();
+    expect(screen.getByText("更多选项").closest("details")).not.toHaveAttribute("open");
 
-    await user.click(screen.getByText("更多导出选项"));
+    await user.click(screen.getByText("更多选项"));
     const checkboxes = screen.getAllByRole("checkbox");
     expect(checkboxes).toHaveLength(6);
     expect(checkboxes.filter((checkbox) => (checkbox as HTMLInputElement).checked)).toHaveLength(5);
 
     await user.click(screen.getByRole("checkbox", { name: /保留站内来源链接/ }));
     await user.click(screen.getByRole("radio", { name: /^TXT\b/ }));
-    expect(screen.getByText(/将生成 TXT 文件，并打包站内普通图片/)).toBeInTheDocument();
+    expect(screen.getByText("TXT · 含图片")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "下载 ZIP" }));
 
     expect(mockMutateAsync).toHaveBeenCalledWith({
