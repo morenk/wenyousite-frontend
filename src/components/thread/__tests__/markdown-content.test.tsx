@@ -65,6 +65,14 @@ describe("MarkdownContent", () => {
     },
   );
 
+  test("格式节点之间保留源码中的可见空格", () => {
+    render(<MarkdownContent content={"**阿松大**     `撒旦`"} />);
+    const boundary = document.querySelector(
+      '[data-slot="markdown-content"] .markdown-inline-boundary-space',
+    );
+    expect(boundary?.textContent).toBe("     ");
+  });
+
   test.each([
     ["中文书名括号与中文相邻", "前**【注意】**后", "【注意】"],
     ["全角圆括号与拉丁字母相邻", "A**（Notice）**B", "（Notice）"],

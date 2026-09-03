@@ -199,6 +199,20 @@ type MarkdownNode = {
 };
 
 const EMPTY_PARAGRAPH_RE = /^ {0,3}<br\s*\/?>[\t ]*$/iu;
+const INLINE_BOUNDARY_NODE_TYPES = new Set([
+  "delete",
+  "emphasis",
+  "image",
+  "imageReference",
+  "inlineCode",
+  "link",
+  "linkReference",
+  "strong",
+]);
+
+function isInlineBoundaryNode(node: MarkdownNode): boolean {
+  return INLINE_BOUNDARY_NODE_TYPES.has(node.type ?? "") || node.data?.hName === "span";
+}
 
 /** 将 Milkdown 顶层空段落标记转换为安全的 Markdown break 节点，其他 HTML 不开放。 */
 function remarkMilkdownEmptyParagraphs() {
@@ -309,16 +323,34 @@ function remarkPreserveSoftLineBreaks() {
     const transform = (node: MarkdownNode) => {
       if (!node.children) return;
       const children: MarkdownNode[] = [];
-      for (const child of node.children) {
+      for (let index = 0; index < node.children.length; index++) {
+        const child = node.children[index]!;
+        if (
+          child.type === "text"
+          && /^[\t ]+$/u.test(child.value ?? "")
+          && index > 0
+          && index < node.children.length - 1
+          && isInlineBoundaryNode(node.children[index - 1]!)
+          && isInlineBoundaryNode(node.children[index + 1]!)
+        ) {
+          children.push({
+            ...child,
+            data: {
+              hName: "span",
+              hProperties: { className: ["markdown-inline-boundary-space"] },
+            },
+          });
+          continue;
+        }
         if (child.type !== "text" || !child.value?.includes("\n")) {
           transform(child);
           children.push(child);
           continue;
         }
         const lines = child.value.split("\n");
-        for (let index = 0; index < lines.length; index++) {
-          if (index > 0) children.push({ type: "break" });
-          if (lines[index]) children.push({ ...child, value: lines[index] });
+        for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+          if (lineIndex > 0) children.push({ type: "break" });
+          if (lines[lineIndex]) children.push({ ...child, value: lines[lineIndex] });
         }
       }
       node.children = children;

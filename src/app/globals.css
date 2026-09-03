@@ -637,6 +637,10 @@ select {
   content: none;
 }
 
+.wenyou-prose .markdown-inline-boundary-space {
+  white-space: pre-wrap;
+}
+
 .wenyou-prose pre {
   font-size: 0.88em;
   line-height: 1.7;
