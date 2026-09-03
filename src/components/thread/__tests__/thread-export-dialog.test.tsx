@@ -47,13 +47,17 @@ describe("ThreadExportDialog", () => {
     const checkboxes = screen.getAllByRole("checkbox");
     expect(checkboxes).toHaveLength(6);
     expect(checkboxes.filter((checkbox) => (checkbox as HTMLInputElement).checked)).toHaveLength(5);
+    expect(screen.getAllByRole("radio")).toHaveLength(3);
+    expect(screen.getByRole("radio", { name: /两者都要/ })).toBeChecked();
 
     await user.click(screen.getByRole("checkbox", { name: /保留站内来源链接/ }));
+    await user.click(screen.getByRole("radio", { name: /^TXT\b/ }));
     await user.click(screen.getByRole("button", { name: "下载 ZIP" }));
 
     expect(mockMutateAsync).toHaveBeenCalledWith({
       threadId: "thread-1",
       options: {
+        format: "TXT",
         includeAuthors: true,
         includeTimestamps: true,
         includeFloorNumbers: true,

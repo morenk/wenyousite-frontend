@@ -4006,6 +4006,12 @@ export interface components {
         };
         ThreadExportDto: {
             /**
+             * @description 导出格式：TXT、Markdown 或两者
+             * @default BOTH
+             * @enum {string}
+             */
+            format: "TXT" | "MARKDOWN" | "BOTH";
+            /**
              * @description 是否保留作者名
              * @default true
              */

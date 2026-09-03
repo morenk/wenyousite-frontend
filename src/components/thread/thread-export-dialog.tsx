@@ -32,6 +32,7 @@ interface ThreadExportDialogProps {
 }
 
 const DEFAULT_OPTIONS: ThreadExportOptions = {
+  format: "BOTH",
   includeAuthors: true,
   includeTimestamps: true,
   includeFloorNumbers: true,
@@ -40,8 +41,20 @@ const DEFAULT_OPTIONS: ThreadExportOptions = {
   includeMedia: true,
 };
 
+const FORMAT_OPTIONS: Array<{
+  value: ThreadExportOptions["format"];
+  label: string;
+  description: string;
+}> = [
+  { value: "TXT", label: "TXT", description: "适合纯文字留存。" },
+  { value: "MARKDOWN", label: "Markdown", description: "保留标题、列表和链接格式。" },
+  { value: "BOTH", label: "两者都要", description: "同时生成 TXT 与 Markdown。" },
+];
+
+type MetadataOptionKey = Exclude<keyof ThreadExportOptions, "format">;
+
 const OPTIONS: Array<{
-  key: keyof ThreadExportOptions;
+  key: MetadataOptionKey;
   label: string;
   description: string;
   icon: typeof UserRound;
@@ -100,7 +113,7 @@ export function ThreadExportDialog({
   const [options, setOptions] = useState(DEFAULT_OPTIONS);
   const exportMutation = useThreadExport();
 
-  const setOption = (key: keyof ThreadExportOptions) => (event: ChangeEvent<HTMLInputElement>) => {
+  const setOption = (key: MetadataOptionKey) => (event: ChangeEvent<HTMLInputElement>) => {
     setOptions((current) => ({ ...current, [key]: event.target.checked }));
   };
 
@@ -135,7 +148,7 @@ export function ThreadExportDialog({
                     导出主题档案
                   </DialogTitle>
                   <DialogDescription className="mt-1.5 line-clamp-2">
-                    为“{threadTitle || "未命名主题帖"}”整理一份可本地留存的 Markdown + TXT ZIP。
+                    为“{threadTitle || "未命名主题帖"}”整理一份可本地留存的档案 ZIP，可选择 TXT、Markdown 或两者。
                   </DialogDescription>
                 </div>
                 <DialogCloseButton label="关闭导出主题档案" disabled={exportMutation.isPending} />
@@ -160,6 +173,41 @@ export function ThreadExportDialog({
               </section>
 
               <fieldset className="space-y-2">
+                <legend className="font-utility text-xs font-bold uppercase tracking-[0.08em] text-muted-foreground">导出格式</legend>
+                <div className="grid gap-2 sm:grid-cols-3">
+                  {FORMAT_OPTIONS.map((option) => (
+                    <label
+                      key={option.value}
+                      htmlFor={`thread-export-format-${option.value}`}
+                      className={cn(
+                        "cursor-pointer rounded-xl border border-border/70 bg-background/40 px-3 py-3 transition-colors hover:bg-muted/45 focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/30",
+                        options.format === option.value && "border-brand/30 bg-brand/5",
+                      )}
+                    >
+                      <input
+                        id={`thread-export-format-${option.value}`}
+                        type="radio"
+                        name="thread-export-format"
+                        value={option.value}
+                        checked={options.format === option.value}
+                        onChange={(event) => {
+                          const value = event.target.value;
+                          if (value === "TXT" || value === "MARKDOWN" || value === "BOTH") {
+                            setOptions((current) => ({ ...current, format: value }));
+                          }
+                        }}
+                        className="mt-0.5 size-4 accent-[var(--brand-strong)]"
+                      />
+                      <span className="ml-2 align-top">
+                        <span className="block text-sm font-semibold text-foreground">{option.label}</span>
+                        <span className="mt-1 block text-xs leading-5 text-muted-foreground">{option.description}</span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+
+              <fieldset className="space-y-2">
                 <legend className="font-utility text-xs font-bold uppercase tracking-[0.08em] text-muted-foreground">档案信息</legend>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {OPTIONS.map((option) => (
@@ -181,8 +229,8 @@ export function ThreadExportDialog({
                   className="mt-0.5 size-4 shrink-0 accent-[var(--brand-strong)]"
                 />
                 <span>
-                  <span className="flex items-center gap-1.5 text-sm font-semibold text-foreground"><Download className="size-3.5 text-brand-strong" aria-hidden="true" />打包站内图片与表情</span>
-                  <span className="mt-1 block text-xs leading-5 text-muted-foreground">媒体会放入 ZIP 的 media/ 目录；外链图片不会被服务端抓取。</span>
+                  <span className="flex items-center gap-1.5 text-sm font-semibold text-foreground"><Download className="size-3.5 text-brand-strong" aria-hidden="true" />打包站内普通图片</span>
+                  <span className="mt-1 block text-xs leading-5 text-muted-foreground">图片会放入 ZIP 的 media/ 目录；表情只保留文字，外链图片不会被服务端抓取。</span>
                 </span>
               </label>
 
