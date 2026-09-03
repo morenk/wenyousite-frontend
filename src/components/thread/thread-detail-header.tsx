@@ -24,6 +24,7 @@ import { ThreadSubscriptionControls } from "@/components/thread/thread-subscript
 import { WenyouTipButton } from "@/components/economy/wenyou-tip-button";
 import { SubthreadSwitcher } from "@/components/thread/subthread-tabs";
 import { ThreadDetailMore } from "@/components/thread/thread-detail-more";
+import { ThreadExportDialog } from "@/components/thread/thread-export-dialog";
 import { TopicTagLink } from "@/components/thread/topic-tag-link";
 import { getSubthreadHref } from "@/lib/post-navigation";
 import { AdminContentModerationDialog } from "@/components/admin/admin-content-moderation-dialog";
@@ -100,6 +101,7 @@ export function ThreadDetailHeader({
   const exitThreadPlayer = useExitThreadPlayer();
   const confirmAction = useConfirm();
   const [moderationOpen, setModerationOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
   const canModerateThread =
     thread.visibility === "PUBLIC" &&
     (user?.role === "ADMIN" || user?.role === "SUPER_ADMIN");
@@ -193,6 +195,7 @@ export function ThreadDetailHeader({
                   }
                   exitPlayerPending={exitThreadPlayer.isPending}
                   onManage={canManageThread ? onManage : undefined}
+                  onExport={canManageThread ? () => setExportOpen(true) : undefined}
                   onModerate={
                     canModerateThread
                       ? () => setModerationOpen(true)
@@ -348,6 +351,14 @@ export function ThreadDetailHeader({
           </div>
         ) : null}
       </article>
+      {exportOpen ? (
+        <ThreadExportDialog
+          threadId={thread.id}
+          threadTitle={thread.title}
+          open
+          onOpenChange={setExportOpen}
+        />
+      ) : null}
       {canModerateThread ? (
         <AdminContentModerationDialog
           target={{ type: "thread", id: thread.id, label: "主题帖" }}

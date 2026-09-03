@@ -560,6 +560,7 @@ describe("ThreadDetailHeader", () => {
     renderWithQC(<ThreadDetailHeader thread={baseThread} onManage={vi.fn()} />);
     await openThreadDetails();
     expect(screen.getByRole("button", { name: "管理主题帖" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "导出主题档案" })).toBeInTheDocument();
     expect(screen.getByRole("group", { name: "互动操作" })).toHaveClass(
       "shrink-0",
       "flex-nowrap",

@@ -2,7 +2,7 @@
 
 ## 1. 目标与范围
 
-实现主题帖详情页，展示帖子头部信息、排头卡内的子贴目录切换、楼层列表（分页）、Markdown 渲染，以及发布新楼层。
+实现主题帖详情页，展示帖子头部信息、排头卡内的子贴目录切换、楼层列表（分页）、Markdown 渲染、发布新楼层，以及将已发布主题帖导出为本地档案。
 
 子贴目录状态写入稳定 URL：非默认子贴使用 `?subthread={id}`，默认子贴移除该参数；切换目录使用 shallow history replace，不发起 RSC 路由请求，并保留左右游标。当前子贴的相邻目录以及用户聚焦、悬停或按下的目标会预取首屏楼层，缓存命中时切换不重复请求。主楼层默认从早到晚，时间顺序使用与动态评论相同的单击按钮切换；最新在前时写入 `order=NEWEST`，使用 history push 并在页面内导航时保留。复制当前子贴链接只保留内容坐标，不携带排序状态。`post` 精确楼层参数优先于 `subthread`，二者并存时清理 `subthread`，无效子贴参数回落默认目录并清理。目录菜单不设置搜索框，打开后直接聚焦当前子贴项，可用方向键浏览、滚动承载几十个子贴并复制当前子贴链接。正文中的主题、子贴、楼层和回复链接统一按[站内传送门](./internal-references.md)内联显示。
 
@@ -33,6 +33,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 - 帖内订阅：THREAD 为楼主/协作者官方更新；USER 可同时订阅多名 `PARTICIPANT + playerMarked=true` 的普通玩家。楼主/协作者自动接收且不显示面板
 - 私密帖邀请：楼主生成/刷新邀请链接，受邀用户在 `/join/[token]` 预览并加入；已加入用户再次打开同一邀请会直接进入主题帖
 - 公开帖发言即参与，不提供手动加入入口；已标记玩家可退出玩家身份
+- OWNER/COLLABORATOR 可从头部“更多帖子信息与操作”打开导出配置，下载包含 Markdown 与 TXT 的 ZIP；默认包含作者、时间、楼层号、回复目标和站内媒体
 
 ## 2. 页面与路由
 
@@ -49,6 +50,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 |--------|------|-------|------|
 | GET | `/thread-categories` | Public | 解析动态分类 slug 的名称与顺序 |
 | GET | `/threads/:id` | OptionalAuth | 主题帖详情（含子贴列表、owner、_count；登录时附加 isBookmarked/isLiked） |
+| POST | `/threads/:id/export` | Auth | OWNER/COLLABORATOR 导出已发布主题帖 ZIP；Web 通过 `useThreadExport` 接收 Blob 并保存文件 |
 | GET | `/threads/:threadId/posts/latest` | OptionalAuth | 跨全部存活子贴按创建时间定位最新有效主楼层或楼中楼回复 |
 | GET | `/threads/:threadId/search/posts` | OptionalAuth | 帖内楼层搜索（至少 2 字符，相关度游标分页，继承主题帖权限） |
 | DELETE | `/threads/:id` | Auth | 删除主题帖：未发布帖硬删除，已发布帖软删除，仅 OWNER |
@@ -98,6 +100,8 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 > **最新发言定位**：排头卡工具带与冻结阅读条共用同一动作，并统一使用 Foundation `navigation.explore` 导航指南针图标。点击时按需调用 `postsFindLatestInThread`，只以创建时间判断最新，编辑旧内容不会顶帖。`parentPostId=null` 时复用主楼层 `?post=` 定位，否则直达父楼层的独立回复页；不遍历子贴或分页。接口成功后先处理未提交编辑器确认，再关闭搜索、清除可能遮蔽目标的主楼层作者筛选并导航；取消放弃编辑时留在原位。目标主楼层与楼中楼回复都复用精确定位组件的 1px Foundation 淡粉边框，停留 1.2 秒后淡出；重复点击当前主楼层会重新居中并重新触发同一高亮。加载中两个入口同步禁用，已知 `_count.posts=0` 时禁用；删除竞态或空主题显示明确 toast。
 
 > **主题帖链接契约**：公开主题帖可通过 `/threads/{threadId}` 访问根页面，详情头部提供复制主题帖链接入口。私密帖不显示普通复制链接；生成或刷新邀请链接只放在管理台「帖子设置 → 私密访问」，详情头部不重复提供邀请与删除入口。
+
+> **档案导出契约**：导出只允许已发布主题帖的 OWNER/COLLABORATOR。弹窗配置作者、时间、楼层号、回复目标、站内来源链接和媒体是否保留；服务端同步生成 `thread.md`、`thread.txt`、可选 `media/` 与 `export-notes.txt`。Web 不自行拼接正文或打包，避免与移动端产生不同的历史档案格式。
 
 > **主题标签导航**：详情标题下只列举 `#标签名` 纯文本链接，不使用胶囊、边框或填充，字号沿用原元信息行；每个标签链接到 `/tags/{tagId}`。标签页只列出关联该标签的公开已发布主题帖，私密帖不会因标签关系出现在公开列表中。
 
@@ -266,6 +270,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 | 订阅状态 | `GET /subscriptions` + `GET /threads/:id/members` | 常驻统一入口由任一 THREAD/USER 订阅决定选中态；面板打开后才加载成员，分别展示加载、失败重试、无候选与多玩家开关；楼主/协作者隐藏控件；操作后面板保持打开 |
 | 当前用户帖内权限 | `GET /threads/:id` 的 `currentMembership` + `capabilities` | 与详情共用缓存，只查询当前用户成员关系；不为权限判断预取全量成员 |
 | 帖内搜索 | `GET /threads/:threadId/search/posts` | `useThreadSearchPosts` 游标分页；面板开关与待提交输入为详情页/组件本地状态 |
+| 主题帖档案 | `POST /threads/:id/export` | `useThreadExport` mutation；成功后通过 Blob 下载，失败在弹窗内保留选项并提示 |
 | 表情收藏 | `GET /stickers` 与导入/排序/删除端点 | `useStickers` 用户级缓存；编辑器点选插入，正文图片可快速收藏 |
 | 动态分类 | `GET /thread-categories` | 全局 Query 缓存；详情、列表和管理表单共用同一 slug → 展示映射 |
 | 管理视图 | `/threads/[id]/edit` | `view=settings|subthreads|members` 与可选 `subthread={id}` URL 状态；默认参数省略，切换使用 history replace 并在离开前检查未保存内容 |
@@ -276,6 +281,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 |------|------|------|
 | ThreadDetailPage | `src/app/threads/[id]/page.tsx` | 详情页主逻辑；管理入口关闭当前编辑器后导航到 workspace 编辑路由 |
 | ThreadDetailHeader | `src/components/thread/thread-detail-header.tsx` | 两段式排头卡：上层展示标题、无胶囊主题标签与分享/管理工具，下层以禁止换行的单行工具带合并弹性子贴目录、最新发言、搜索与紧凑互动操作；点赞与收藏相邻 |
+| ThreadExportDialog | `src/components/thread/thread-export-dialog.tsx` | 主题档案导出配置弹窗；只负责选项与 Blob 下载，不复制后端正文转换逻辑 |
 | ThreadReadingBar | `src/components/thread/thread-reading-bar.tsx` | 排头卡离开视口后的帖内阅读书签条；省略重复的主题标题，保留子贴目录、最新发言、搜索和回顶，并遵循减少动态效果设置 |
 | ThreadSubscriptionControls | `src/components/thread/thread-subscription-controls.tsx` | 普通用户统一管理官方更新与多名玩家订阅；成员候选延迟加载，任一订阅激活时使用透明容器上的品牌深紫实心订阅图标 |
 | ThreadPostSearch | `src/components/thread/thread-post-search.tsx` | 内联搜索全部子贴与楼中楼；处理短词、分页及四态 |

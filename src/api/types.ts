@@ -769,6 +769,23 @@ export interface paths {
         patch: operations["threadsUpdate"];
         trace?: never;
     };
+    "/api/v1/threads/{id}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 导出已发布主题帖档案 ZIP（仅 OWNER/COLLABORATOR） */
+        post: operations["threadsExport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/threads/{id}/aggregate": {
         parameters: {
             query?: never;
@@ -3986,6 +4003,38 @@ export interface components {
             isLiked?: boolean;
             currentMembership?: components["schemas"]["CurrentThreadMembershipResponseDto"] | null;
             capabilities?: components["schemas"]["ThreadCapabilitiesResponseDto"];
+        };
+        ThreadExportDto: {
+            /**
+             * @description 是否保留作者名
+             * @default true
+             */
+            includeAuthors: boolean;
+            /**
+             * @description 是否保留时间戳
+             * @default true
+             */
+            includeTimestamps: boolean;
+            /**
+             * @description 是否保留楼层号
+             * @default true
+             */
+            includeFloorNumbers: boolean;
+            /**
+             * @description 是否保留回复目标
+             * @default true
+             */
+            includeReplyTargets: boolean;
+            /**
+             * @description 是否保留站内来源链接；邀请链接始终脱敏
+             * @default false
+             */
+            includeSourceLinks: boolean;
+            /**
+             * @description 是否将站内媒体打包到 ZIP
+             * @default true
+             */
+            includeMedia: boolean;
         };
         UpdateThreadDto: {
             /** @example 奇幻大陆·重置版 */
@@ -9393,6 +9442,89 @@ export interface operations {
             };
             /** @description 乐观锁冲突（version 过期）或已发布帖重复发布 */
             409: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    threadsExport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ThreadExportDto"];
+            };
+        };
+        responses: {
+            /** @description ZIP 包含 thread.md、thread.txt、可选 media/ 和必要时的 export-notes.txt */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/zip": string;
+                };
+            };
+            /** @description 导出选项格式不正确 */
+            400: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未登录 */
+            401: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 无主题帖管理权限 */
+            403: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 主题帖不存在、已删除或尚未发布 */
+            404: {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];

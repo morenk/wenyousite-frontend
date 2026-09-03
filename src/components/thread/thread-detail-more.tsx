@@ -10,6 +10,7 @@ import {
   Link2,
   LogOut,
   MessageSquare,
+  Download,
   Settings,
   ShieldAlert,
   Users,
@@ -28,6 +29,7 @@ interface ThreadDetailMoreProps {
   exitPlayerPending?: boolean;
   onManage?: () => void | Promise<void>;
   onModerate?: () => void;
+  onExport?: () => void;
 }
 
 const actionClassName =
@@ -62,9 +64,10 @@ export function ThreadDetailMore({
   exitPlayerPending = false,
   onManage,
   onModerate,
+  onExport,
 }: ThreadDetailMoreProps) {
   const [open, setOpen] = useState(false);
-  const hasActions = Boolean(onCopyLink || onExitPlayer || onManage || onModerate);
+  const hasActions = Boolean(onCopyLink || onExitPlayer || onManage || onModerate || onExport);
 
   const runAction = (action: () => void | Promise<void>) => {
     setOpen(false);
@@ -135,6 +138,16 @@ export function ThreadDetailMore({
                   >
                     <Link2 className="size-4" aria-hidden="true" />
                     复制主题帖链接
+                  </button>
+                ) : null}
+                {onExport ? (
+                  <button
+                    type="button"
+                    className={actionClassName}
+                    onClick={() => runAction(onExport)}
+                  >
+                    <Download className="size-4" aria-hidden="true" />
+                    导出主题档案
                   </button>
                 ) : null}
                 {onManage ? (
