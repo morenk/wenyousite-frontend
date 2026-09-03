@@ -3,7 +3,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { afterEach, describe, expect, test, vi } from "vitest";
+import { afterAll, afterEach, describe, expect, test, vi } from "vitest";
 import { MilkdownEditor } from "@/components/editor/milkdown-editor-core";
 import type { UploadImageOptions } from "@/lib/upload-image";
 
@@ -71,6 +71,16 @@ const attentionBoundarySelectors = {
   "attention-boundary-underscore-nested": "em strong",
 } as const;
 
+const inlineCodeBoundaryCases = [
+  ["粗体", "粗体", "**粗体 **`代码`", "**粗体** `代码`", "strong"],
+  ["斜体", "斜体", "*斜体 *`代码`", "*斜体* `代码`", "em"],
+  ["删除线", "删除", "~~删除 ~~`代码`", "~~删除~~ `代码`", "del"],
+  ["粗斜体", "粗斜体", "***粗斜体 ***`代码`", "***粗斜体*** `代码`", "em strong"],
+  ["下划线斜体", "斜体", "_斜体 _`代码`", "*斜体* `代码`", "em"],
+  ["下划线粗体", "粗体", "__粗体 __`代码`", "**粗体** `代码`", "strong"],
+  ["下划线粗斜体", "粗斜体", "___粗斜体 ___`代码`", "***粗斜体*** `代码`", "em strong"],
+] as const;
+
 function editorRoundTripFixture(id: string) {
   return editorRoundTripFixtures.cases.find((item) => item.id === id)!;
 }
@@ -96,6 +106,11 @@ function clipboardData(values: { text: string; html: string }) {
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+});
+
+afterAll(async () => {
+  // Milkdown 7 的 ctx Timer 在 resolve 后仍保留 3 秒原生 timeout。
+  await new Promise((resolve) => setTimeout(resolve, 3_100));
 });
 
 describe("MilkdownEditor 自定义内联节点", () => {
@@ -182,6 +197,77 @@ describe("MilkdownEditor 自定义内联节点", () => {
     await waitFor(() => {
       expect(onChange.mock.calls.at(-1)?.[0]).toBe(fixture.serialized);
     });
+  });
+
+  test.each(inlineCodeBoundaryCases)(
+    "%s 历史行内代码空格重开后恢复并规范写回",
+    async (_label, expectedText, source, serialized, selector) => {
+      const onChange = vi.fn();
+      const user = userEvent.setup();
+      const { container } = renderEditor({ defaultValue: source, onChange });
+      const paragraph = await waitFor(() => {
+        const element = container.querySelector<HTMLElement>(".ProseMirror p");
+        expect(element?.querySelector(selector)).toBeInTheDocument();
+        expect(element?.querySelector("code")).toHaveTextContent("代码");
+        expect(element?.textContent).toBe(`${expectedText} 代码`);
+        return element!;
+      });
+
+      onChange.mockClear();
+      await user.type(paragraph, "临");
+      await user.keyboard("{Backspace}");
+
+      await waitFor(() => {
+        expect(onChange.mock.calls.at(-1)?.[0]).toBe(serialized);
+      });
+    },
+  );
+
+  test("工具栏生成的格式尾随空格写在定界符外", async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    const { container } = renderEditor({ defaultValue: "", onChange });
+    const editor = await waitFor(() => {
+      const element = container.querySelector<HTMLElement>(".ProseMirror");
+      expect(element).toBeInTheDocument();
+      return element!;
+    });
+
+    await user.click(editor);
+    fireEvent.pointerDown(await screen.findByRole("button", { name: "粗体" }));
+    await user.type(editor, "粗体 ");
+    fireEvent.pointerDown(await screen.findByRole("button", { name: "粗体" }));
+    fireEvent.pointerDown(await screen.findByRole("button", { name: "行内代码" }));
+    await user.type(editor, "代码");
+
+    await waitFor(() => {
+      expect(editor.querySelector("strong")).toHaveTextContent("粗体");
+      expect(editor.querySelector("code")).toHaveTextContent("代码");
+      expect(editor).toHaveTextContent("粗体 代码");
+    });
+    await waitFor(() => expect(onChange.mock.calls.at(-1)?.[0]).toBe("**粗体** `代码`"));
+  });
+
+  test.each([
+    ["two spaces", "**粗体  **`代码`"],
+    ["unterminated code", "**粗体 **`代码"],
+    ["leading space", "** 粗体**`代码`"],
+  ])("不恢复不明确的行内代码空格：%s", async (_label, source) => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    const { container } = renderEditor({ defaultValue: source, onChange });
+    const paragraph = await waitFor(() => {
+      const element = container.querySelector<HTMLElement>(".ProseMirror p");
+      expect(element).toBeInTheDocument();
+      return element!;
+    });
+
+    onChange.mockClear();
+    await user.type(paragraph, "临");
+    await user.keyboard("{Backspace}");
+
+    await waitFor(() => expect(onChange).toHaveBeenCalled());
+    expect(onChange.mock.calls.at(-1)?.[0]).not.toBe("**粗体** `代码`");
   });
 
   test("已保存的普通软换行重开后仍显示为编辑器换行节点", async () => {

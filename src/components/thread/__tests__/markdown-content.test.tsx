@@ -14,6 +14,15 @@ const NORMALIZED_URL = "https://cos.example.com/wenyou/media/2026/08/23/u1/123-a
 const EXTERNAL_URL = "https://example.com/pic.png";
 const DICE_NODE_ID = "550e8400-e29b-41d4-a716-446655440000";
 const DICE_MARKER = `[[dice:v1:${DICE_NODE_ID}:1d20]]`;
+const inlineCodeBoundaryCases = [
+  ["粗体", "粗体", "**粗体 **`代码`", "strong"],
+  ["斜体", "斜体", "*斜体 *`代码`", "em"],
+  ["删除线", "删除", "~~删除 ~~`代码`", "del"],
+  ["粗斜体", "粗斜体", "***粗斜体 ***`代码`", "em strong"],
+  ["下划线斜体", "斜体", "_斜体 _`代码`", "em"],
+  ["下划线粗体", "粗体", "__粗体 __`代码`", "strong"],
+  ["下划线粗斜体", "粗斜体", "___粗斜体 ___`代码`", "em strong"],
+] as const;
 
 describe("MarkdownContent", () => {
   test("渲染普通 markdown 文本", () => {
@@ -41,6 +50,20 @@ describe("MarkdownContent", () => {
     );
     expect(paragraph?.textContent).not.toContain("**");
   });
+
+  test.each(inlineCodeBoundaryCases)(
+    "恢复历史格式与行内代码之间的空格：%s",
+    (_label, expectedText, content, selector) => {
+      render(<MarkdownContent content={content} />);
+
+      const paragraph = document.querySelector('[data-slot="markdown-content"] p');
+      expect(paragraph?.querySelector(selector)).toBeInTheDocument();
+      expect(paragraph?.querySelector("code")).toHaveTextContent("代码");
+      expect(paragraph?.textContent).toBe(`${expectedText} 代码`);
+      expect(paragraph?.textContent).not.toContain("**");
+      expect(paragraph?.textContent).not.toContain("~~");
+    },
+  );
 
   test.each([
     ["中文书名括号与中文相邻", "前**【注意】**后", "【注意】"],

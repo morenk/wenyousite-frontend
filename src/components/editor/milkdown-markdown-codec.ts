@@ -153,6 +153,24 @@ function encodeLastCodePoint(value: string): string {
   return last ? `${value.slice(0, -last.length)}${encodeCharacterReference(last)}` : value;
 }
 
+type InlineBoundaryWhitespace = {
+  leading: string;
+  core: string;
+  trailing: string;
+};
+
+function splitInlineBoundaryWhitespace(value: string): InlineBoundaryWhitespace {
+  const leading = value.match(/^[^\S\r\n]+/u)?.[0] ?? "";
+  const trailing = value.match(/[^\S\r\n]+$/u)?.[0] ?? "";
+  const coreStart = leading.length;
+  const coreEnd = Math.max(coreStart, value.length - trailing.length);
+  return {
+    leading,
+    core: value.slice(coreStart, coreEnd),
+    trailing,
+  };
+}
+
 /** Milkdown 自带 mark handlers 未转发 attention 邻接保护；补齐标准 mdast 行为。 */
 function createSafeAttentionMarkdownHandler(
   construct: "strong" | "emphasis" | "strikethrough",
@@ -172,24 +190,32 @@ function createSafeAttentionMarkdownHandler(
     const exit = state.enter(construct);
     const tracker = state.createTracker(info);
     const before = tracker.move(delimiter);
-    let between = tracker.move(state.containerPhrasing(node, {
+    const between = tracker.move(state.containerPhrasing(node, {
       after: marker,
       before,
       ...tracker.current(),
     } as SerializerInfo));
+
+    const boundary = splitInlineBoundaryWhitespace(between);
+    if (!boundary.core) {
+      exit();
+      state.attentionEncodeSurroundingInfo = undefined;
+      return between;
+    }
+
     const open = getAttentionEncodeSides(
-      lastCodePoint(info.before),
-      firstCodePoint(between),
+      lastCodePoint(boundary.leading) || lastCodePoint(info.before),
+      firstCodePoint(boundary.core),
       marker,
     );
-    if (open.inside) between = encodeFirstCodePoint(between);
+    if (open.inside) boundary.core = encodeFirstCodePoint(boundary.core);
 
     const close = getAttentionEncodeSides(
-      firstCodePoint(info.after),
-      lastCodePoint(between),
+      firstCodePoint(boundary.trailing) || firstCodePoint(info.after),
+      lastCodePoint(boundary.core),
       marker,
     );
-    if (close.inside) between = encodeLastCodePoint(between);
+    if (close.inside) boundary.core = encodeLastCodePoint(boundary.core);
     const after = tracker.move(delimiter);
     exit();
 
@@ -197,7 +223,7 @@ function createSafeAttentionMarkdownHandler(
       before: open.outside,
       after: close.outside,
     };
-    return `${before}${between}${after}`;
+    return `${boundary.leading}${before}${boundary.core}${after}${boundary.trailing}`;
   };
   handler.peek = (nodeValue) => {
     const marker = (nodeValue as { marker?: unknown } | undefined)?.marker;

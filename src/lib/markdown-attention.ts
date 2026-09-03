@@ -222,6 +222,45 @@ function hasRecoverableInnerBoundary(value: string): boolean {
     || UNICODE_PUNCTUATION_OR_SYMBOL_RE.test(last);
 }
 
+function findInlineCodeSpanEnd(source: string, start: number): number | null {
+  const opening = /^`+/u.exec(source.slice(start))?.[0];
+  if (!opening) return null;
+
+  let closing = source.indexOf(opening, start + opening.length);
+  while (closing >= 0) {
+    const touchesLongerRun = source[closing - 1] === "`"
+      || source[closing + opening.length] === "`";
+    if (!touchesLongerRun) return closing + opening.length;
+    closing = source.indexOf(opening, closing + opening.length);
+  }
+  return null;
+}
+
+function hasLegacyCodeSeparator(
+  source: string,
+  nodeStart: number,
+  end: number,
+  marker: string,
+  inner: string,
+): boolean {
+  if (
+    (marker !== "***" && marker !== "___" && marker !== "**" && marker !== "__"
+      && marker !== "*" && marker !== "_" && marker !== "~~")
+    || !inner.endsWith(" ")
+    || inner.endsWith("  ")
+  ) {
+    return false;
+  }
+
+  const core = inner.slice(0, -1);
+  if (!core || UNICODE_WHITESPACE_RE.test(firstCodePoint(core)) || UNICODE_WHITESPACE_RE.test(lastCodePoint(core))) {
+    return false;
+  }
+
+  const codeStart = nodeStart + end;
+  return source[codeStart] === "`" && findInlineCodeSpanEnd(source, codeStart) !== null;
+}
+
 function isEscapedAt(source: string, index: number): boolean {
   let slashCount = 0;
   for (let cursor = index - 1; cursor >= 0 && source[cursor] === "\\"; cursor--) {
@@ -299,16 +338,24 @@ function recoverTextNode(node: MarkdownNode, source: string): MarkdownNode[] | n
 
     const end = closingIndex + definition.marker.length;
     const inner = value.slice(index + definition.marker.length, closingIndex);
-    const recoverable = hasRecoverableInnerBoundary(inner)
-      && hasLiteralUnescapedMarkers(
-        source,
-        nodeStart,
-        raw,
-        sourceMap,
-        index,
-        end,
-        definition.marker,
-      );
+    const hasLiteralMarkers = hasLiteralUnescapedMarkers(
+      source,
+      nodeStart,
+      raw,
+      sourceMap,
+      index,
+      end,
+      definition.marker,
+    );
+    const legacyCodeSeparator = hasLegacyCodeSeparator(
+      source,
+      nodeStart,
+      end,
+      definition.marker,
+      inner,
+    );
+    const recoverable = hasLiteralMarkers
+      && (hasRecoverableInnerBoundary(inner) || legacyCodeSeparator);
     if (!recoverable) {
       index = end;
       continue;
@@ -317,7 +364,10 @@ function recoverTextNode(node: MarkdownNode, source: string): MarkdownNode[] | n
     if (index > unchangedStart) {
       children.push({ type: "text", value: value.slice(unchangedStart, index) });
     }
-    children.push(definition.createNode(inner));
+    children.push(definition.createNode(
+      legacyCodeSeparator ? inner.slice(0, -1) : inner,
+    ));
+    if (legacyCodeSeparator) children.push({ type: "text", value: " " });
     changed = true;
     unchangedStart = end;
     index = end;
@@ -346,7 +396,7 @@ function transformNode(node: MarkdownNode, source: string) {
 }
 
 /**
- * 只恢复解析器留在 text 节点中的边界歧义；代码、链接、图片、转义与普通词内下划线不变。
+ * 只恢复解析器留在 text 节点中的边界歧义和历史行内代码空格；代码、链接、图片、转义与普通词内下划线不变。
  */
 export function remarkRecoverAttentionBoundaries() {
   return (tree: MarkdownNode, file: MarkdownFile) => {
