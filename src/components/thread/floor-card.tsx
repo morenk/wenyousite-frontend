@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { getPostDiscussionHref, getPostHref } from "@/lib/post-navigation";
 import { useAuth } from "@/lib/auth";
 import { useDeletePost } from "@/api/hooks/use-delete-post";
+import { usePinPost } from "@/api/hooks/use-pin-post";
 import { getApiErrorMessage } from "@/api/errors";
 import { MarkdownContent } from "@/components/thread/markdown-content";
 import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
@@ -22,6 +23,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-provider";
 import type { FloorDisplayData } from "@/api/hooks/use-floors";
 import { LevelBadge } from "@/components/shared/level-badge";
+import { Badge } from "@/components/ui/badge";
+import { WenyouIcon } from "@/components/ui/wenyou-icon";
 import {
   getVisibleContentText,
   PostActionsMenu,
@@ -46,12 +49,14 @@ export function FloorCard({
   const { user } = useAuth();
   const cardRef = useRef<HTMLDivElement>(null);
   const deletePost = useDeletePost();
+  const pinPost = usePinPost();
   const confirmAction = useConfirm();
   const { session, open } = useThreadComposer();
   const { isManager } = useThreadPermissions();
 
   const isAuthor = !!user && user.id === floor.authorId;
   const canDelete = isAuthor || isManager;
+  const isPinned = Boolean(floor.pinnedAt);
   const editAnchorId = `floor-edit:${floor.id}`;
   const replyAnchorId = `reply:${floor.id}`;
   const isEditing = session?.key === `edit:${floor.id}`;
@@ -114,6 +119,15 @@ export function FloorCard({
     }
   };
 
+  const handlePin = async () => {
+    try {
+      await pinPost.mutateAsync({ postId: floor.id, pinned: !isPinned });
+      toast.success(isPinned ? "已取消置顶" : "已置顶到当前子贴");
+    } catch (error: unknown) {
+      toast.error(getApiErrorMessage(error, "置顶操作失败，请稍后重试"));
+    }
+  };
+
   return (
     <div
       ref={cardRef}
@@ -140,6 +154,12 @@ export function FloorCard({
             {floor.author.username}
           </Link>
           <LevelBadge level={floor.author.level} />
+          {isPinned ? (
+            <Badge tone="brand" size="compact" className="gap-1">
+              <WenyouIcon id="status.pinned" className="size-3" />
+              置顶
+            </Badge>
+          ) : null}
           {floor.floorNumber != null && (
             <span className="text-xs text-muted-foreground">
               #{floor.floorNumber}
@@ -154,6 +174,9 @@ export function FloorCard({
             copyContentId={`floor-content-${floor.id}`}
             copyHref={floorHref}
             onEdit={isAuthor ? handleStartEdit : undefined}
+            onPin={isManager ? () => void handlePin() : undefined}
+            pinned={isPinned}
+            pinPending={pinPost.isPending}
             onDelete={canDelete ? () => void handleDelete() : undefined}
             moderationTarget={{ type: "post", id: floor.id, label: `楼层 #${floor.floorNumber ?? ""}`.trim() }}
           />

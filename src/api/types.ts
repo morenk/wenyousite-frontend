@@ -1555,6 +1555,24 @@ export interface paths {
         patch: operations["postsUpdate"];
         trace?: never;
     };
+    "/api/v1/posts/{id}/pin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 将主楼层置顶到所属子贴 */
+        post: operations["postsPin"];
+        /** 取消主楼层在所属子贴的置顶 */
+        delete: operations["postsUnpin"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/drafts": {
         parameters: {
             query?: never;
@@ -4671,6 +4689,11 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
+            /**
+             * Format: date-time
+             * @description 主楼层置顶到当前子贴的时间；正文和楼中楼回复为 null
+             */
+            pinnedAt?: string | null;
             /** Format: date-time */
             deletedAt: string | null;
             author: components["schemas"]["PostAuthorResponseDto"];
@@ -4701,6 +4724,11 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
+            /**
+             * Format: date-time
+             * @description 主楼层置顶到当前子贴的时间；正文和楼中楼回复为 null
+             */
+            pinnedAt?: string | null;
             /** Format: date-time */
             deletedAt: string | null;
             author: components["schemas"]["PostAuthorResponseDto"];
@@ -4754,6 +4782,11 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
+            /**
+             * Format: date-time
+             * @description 主楼层置顶到当前子贴的时间；正文和楼中楼回复为 null
+             */
+            pinnedAt?: string | null;
             /** Format: date-time */
             deletedAt: string | null;
             author: components["schemas"]["PostAuthorResponseDto"];
@@ -4817,6 +4850,11 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
+            /**
+             * Format: date-time
+             * @description 主楼层置顶到当前子贴的时间；正文和楼中楼回复为 null
+             */
+            pinnedAt?: string | null;
             /** Format: date-time */
             deletedAt: string | null;
             author: components["schemas"]["PostAuthorResponseDto"];
@@ -6409,6 +6447,12 @@ export interface components {
         };
         PostsUpdate200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["PostResponseDto"];
+        };
+        PostsPin200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        PostsUnpin200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
         };
         DraftsFindAll200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["DraftResponseDto"][];
@@ -12183,6 +12227,164 @@ export interface operations {
                 };
             };
             /** @description 帖子不存在 */
+            404: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    postsPin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 楼层已置顶 */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostsPin200Response"];
+                };
+            };
+            /** @description 仅支持置顶主楼层，或当前子贴置顶数量已达上限 */
+            400: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未登录或 Token 无效 */
+            401: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 仅楼主或协作者可置顶 */
+            403: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 楼层不存在或当前不可访问 */
+            404: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    postsUnpin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 楼层已取消置顶 */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostsUnpin200Response"];
+                };
+            };
+            /** @description 仅支持取消主楼层置顶 */
+            400: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未登录或 Token 无效 */
+            401: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 仅楼主或协作者可取消置顶 */
+            403: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 楼层不存在或当前不可访问 */
             404: {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];

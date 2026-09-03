@@ -82,21 +82,29 @@ export function FloorList({
   const displayedFloors = focusedFloor && !floors.some((floor) => floor.id === focusedFloor.id)
     ? [focusedFloor, ...floors]
     : floors;
+  const pinnedFloors = displayedFloors.filter((floor) => Boolean(floor.pinnedAt));
+  const ordinaryFloors = displayedFloors.filter((floor) => !floor.pinnedAt);
+  const renderFloor = (floor: PostData | FloorDisplayData) => (
+    <FloorCard
+      key={floor.id}
+      floor={floor}
+      focused={floor.id === focusedFloor?.id}
+      focusActivationKey={
+        floor.id === focusedFloor?.id
+          ? focusedFloorActivationKey
+          : undefined
+      }
+    />
+  );
 
   return (
     <div className="flex flex-col gap-3">
-      {displayedFloors.map((floor) => (
-        <FloorCard
-          key={floor.id}
-          floor={floor}
-          focused={floor.id === focusedFloor?.id}
-          focusActivationKey={
-            floor.id === focusedFloor?.id
-              ? focusedFloorActivationKey
-              : undefined
-          }
-        />
-      ))}
+      {pinnedFloors.length > 0 ? (
+        <section data-testid="pinned-floors" aria-label="置顶楼层" className="contents">
+          {pinnedFloors.map(renderFloor)}
+        </section>
+      ) : null}
+      {ordinaryFloors.map(renderFloor)}
 
       {hasNextPage || isFetchingNextPage ? (
         <div

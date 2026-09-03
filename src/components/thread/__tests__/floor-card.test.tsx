@@ -14,10 +14,16 @@ vi.mock("next/link", () => ({
   },
 }));
 
-const { mockUseAuth, mockClipboardWriteText, mockUseThreadPermissions } = vi.hoisted(() => ({
+const {
+  mockUseAuth,
+  mockClipboardWriteText,
+  mockUseThreadPermissions,
+  mockPinMutateAsync,
+} = vi.hoisted(() => ({
   mockUseAuth: vi.fn(),
   mockClipboardWriteText: vi.fn().mockResolvedValue(undefined),
   mockUseThreadPermissions: vi.fn(),
+  mockPinMutateAsync: vi.fn().mockResolvedValue(undefined),
 }));
 vi.mock("@/lib/auth", () => ({
   useAuth: () => mockUseAuth(),
@@ -37,6 +43,9 @@ vi.mock("@/api/hooks/use-create-post", () => ({
 }));
 vi.mock("@/api/hooks/use-delete-post", () => ({
   useDeletePost: () => ({ mutateAsync: mockDeleteMutateAsync }),
+}));
+vi.mock("@/api/hooks/use-pin-post", () => ({
+  usePinPost: () => ({ mutateAsync: mockPinMutateAsync, isPending: false }),
 }));
 vi.mock("@/api/hooks/use-upload-image", () => ({
   useUploadImage: () => ({ mutateAsync: vi.fn() }),
@@ -157,6 +166,31 @@ describe("FloorCard", () => {
 
     await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
     expect(await screen.findByRole("menuitem", { name: "站务隐藏" })).toBeInTheDocument();
+  });
+
+  test("帖内管理者可将主楼层置顶到当前子贴", async () => {
+    const user = userEvent.setup();
+    mockUseThreadPermissions.mockReturnValue({ isManager: true });
+    renderWithQC(<FloorCard floor={baseFloor} />);
+
+    await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
+    await user.click(screen.getByRole("menuitem", { name: "置顶到当前子贴" }));
+
+    expect(mockPinMutateAsync).toHaveBeenCalledWith({ postId: "post-1", pinned: true });
+  });
+
+  test("已置顶楼层显示置顶标记并可取消置顶", async () => {
+    const user = userEvent.setup();
+    mockUseThreadPermissions.mockReturnValue({ isManager: true });
+    renderWithQC(
+      <FloorCard floor={{ ...baseFloor, pinnedAt: "2026-01-02T00:00:00Z" }} />,
+    );
+
+    expect(screen.getByText("置顶")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
+    await user.click(screen.getByRole("menuitem", { name: "取消置顶" }));
+
+    expect(mockPinMutateAsync).toHaveBeenCalledWith({ postId: "post-1", pinned: false });
   });
 
   test("重复定位同一楼层时复用滚动并重新触发淡粉边框", async () => {
@@ -296,7 +330,12 @@ describe("FloorCard", () => {
 
   test("楼中楼最多预览三条并始终显示带总数的展开入口", () => {
     const replies = Array.from({ length: 6 }, (_, index) => inlineReply(`reply-${index + 1}`));
-    const withReplies = { ...baseFloor, _count: { replies: 6 }, replies };
+    const withReplies = {
+      ...baseFloor,
+      pinnedAt: "2026-01-02T00:00:00Z",
+      _count: { replies: 6 },
+      replies,
+    };
     renderWithQC(<FloorCard floor={withReplies} />);
 
     expect(screen.getAllByTestId("inline-reply")).toHaveLength(3);
@@ -335,6 +374,8 @@ describe("FloorCard", () => {
     expect(screen.getByRole("menuitem", { name: "复制链接" })).toBeInTheDocument();
     expect(screen.queryByRole("menuitem", { name: "编辑" })).not.toBeInTheDocument();
     expect(screen.queryByRole("menuitem", { name: "删除" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: "置顶到当前子贴" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: "取消置顶" })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("menuitem", { name: "复制链接" }));
     await waitFor(() => {

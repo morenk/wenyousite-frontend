@@ -17,6 +17,7 @@ import {
   writeSiteClipboardPayload,
 } from "@/lib/site-clipboard";
 import { cn } from "@/lib/utils";
+import { WenyouIcon } from "@/components/ui/wenyou-icon";
 
 interface PostActionsMenuProps {
   triggerLabel: string;
@@ -26,6 +27,9 @@ interface PostActionsMenuProps {
   copyHref: string;
   onEdit?: () => void;
   onDelete?: () => void;
+  onPin?: () => void;
+  pinned?: boolean;
+  pinPending?: boolean;
   moderationTarget?: AdminModerationTarget;
   onModerated?: () => void;
 }
@@ -74,6 +78,9 @@ export function PostActionsMenu({
   copyHref,
   onEdit,
   onDelete,
+  onPin,
+  pinned = false,
+  pinPending = false,
   moderationTarget,
   onModerated,
 }: PostActionsMenuProps) {
@@ -103,7 +110,7 @@ export function PostActionsMenu({
           <Menu.Positioner side="bottom" align="end" sideOffset={4} className="z-[var(--layer-popup)]">
             <Menu.Popup
               aria-label={menuLabel}
-              className="w-44 origin-(--transform-origin) rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-popover outline-none duration-[var(--motion-standard)] data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"
+              className="w-52 origin-(--transform-origin) rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-popover outline-none duration-[var(--motion-standard)] data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"
             >
             <Menu.Item
               className={menuItemClassName}
@@ -126,6 +133,16 @@ export function PostActionsMenu({
               <Menu.Item className={menuItemClassName} onClick={onEdit}>
                 <Pencil className="size-4" aria-hidden="true" />
                 编辑
+              </Menu.Item>
+            ) : null}
+            {onPin ? (
+              <Menu.Item
+                className={menuItemClassName}
+                disabled={pinPending}
+                onClick={onPin}
+              >
+                <WenyouIcon id="action.pin" className="size-4" />
+                {pinned ? "取消置顶" : "置顶到当前子贴"}
               </Menu.Item>
             ) : null}
             {canModerate ? (

@@ -94,6 +94,23 @@ describe("FloorList", () => {
     );
   });
 
+  test("置顶楼层显示在普通楼层前，且保留接口返回顺序", () => {
+    renderList({
+      floors: [
+        { id: "floor-2", pinnedAt: null },
+        { id: "pinned-1", pinnedAt: "2026-01-02T00:00:00Z" },
+        { id: "pinned-2", pinnedAt: "2026-01-03T00:00:00Z" },
+      ] as PostData[],
+    });
+
+    expect(screen.getByTestId("pinned-floors")).toBeInTheDocument();
+    expect(screen.getAllByTestId("floor").map((card) => card.textContent)).toEqual([
+      "pinned-1",
+      "pinned-2",
+      "floor-2",
+    ]);
+  });
+
   test("把分页状态和加载回调交给无限滚动 hook", () => {
     const onLoadMore = vi.fn();
     renderList({ hasNextPage: true, isFetchingNextPage: true, onLoadMore });

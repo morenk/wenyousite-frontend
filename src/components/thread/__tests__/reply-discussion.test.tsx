@@ -31,6 +31,10 @@ vi.mock("@/api/hooks/use-update-post", () => ({
   useUpdatePost: () => ({ mutateAsync: mockUpdatePost }),
 }));
 
+vi.mock("@/api/hooks/use-pin-post", () => ({
+  usePinPost: () => ({ mutateAsync: vi.fn(), isPending: false }),
+}));
+
 vi.mock("@/api/hooks/use-create-post", () => ({
   useCreatePost: () => ({ mutateAsync: vi.fn() }),
 }));

@@ -4,6 +4,7 @@
 
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
 import { MarkdownContent } from "@/components/thread/markdown-content";
 import { ReplyList } from "@/components/thread/reply-list";
 import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
@@ -25,6 +26,11 @@ import {
   PostActionsMenu,
 } from "@/components/thread/post-actions-menu";
 import { useAuth } from "@/lib/auth";
+import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
+import { usePinPost } from "@/api/hooks/use-pin-post";
+import { getApiErrorMessage } from "@/api/errors";
+import { Badge } from "@/components/ui/badge";
+import { WenyouIcon } from "@/components/ui/wenyou-icon";
 
 interface ReplyDiscussionProps {
   rootPost: PostDetail;
@@ -33,6 +39,8 @@ interface ReplyDiscussionProps {
 
 export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps) {
   const { user } = useAuth();
+  const { isManager } = useThreadPermissions();
+  const pinPost = usePinPost();
   const { session, open } = useThreadComposer();
   const originalFloorHref = getPostHref({
     threadId: rootPost.thread.id,
@@ -43,6 +51,7 @@ export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps
   const rootContentId = `discussion-root-content-${rootPost.id}`;
   const isAuthor = user?.id === rootPost.authorId;
   const isEditing = session?.key === `edit:${rootPost.id}`;
+  const isPinned = Boolean(rootPost.pinnedAt);
 
   const handleStartEdit = () => {
     void open({
@@ -56,6 +65,15 @@ export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps
       initialContent: rootPost.content,
       diceRolls: rootPost.diceRolls,
     });
+  };
+
+  const handlePin = async () => {
+    try {
+      await pinPost.mutateAsync({ postId: rootPost.id, pinned: !isPinned });
+      toast.success(isPinned ? "已取消置顶" : "已置顶到当前子贴");
+    } catch (error: unknown) {
+      toast.error(getApiErrorMessage(error, "置顶操作失败，请稍后重试"));
+    }
   };
 
   return (
@@ -94,7 +112,15 @@ export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps
                 >
                   {rootPost.author.username}
                 </Link>
-                <LevelBadge level={rootPost.author.level} />
+                <div className="flex items-center gap-1.5">
+                  <LevelBadge level={rootPost.author.level} />
+                  {isPinned ? (
+                    <Badge tone="brand" size="compact" className="gap-1">
+                      <WenyouIcon id="status.pinned" className="size-3" />
+                      置顶
+                    </Badge>
+                  ) : null}
+                </div>
                 <p className="text-xs text-muted-foreground">
                   #{rootPost.floorNumber} · <WenyouTime value={rootPost.createdAt} />
                 </p>
@@ -108,6 +134,9 @@ export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps
                 copyContentId={rootContentId}
                 copyHref={originalFloorHref}
                 onEdit={isAuthor ? handleStartEdit : undefined}
+                onPin={isManager ? () => void handlePin() : undefined}
+                pinned={isPinned}
+                pinPending={pinPost.isPending}
                 moderationTarget={{
                   type: "post",
                   id: rootPost.id,
