@@ -100,9 +100,6 @@ function OptionRow({
           <Icon className="size-3.5 text-muted-foreground" aria-hidden="true" />
           {option.label}
         </span>
-        <span className="mt-1 block text-xs leading-5 text-muted-foreground">
-          {option.description}
-        </span>
       </span>
     </Label>
   );
