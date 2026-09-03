@@ -5860,7 +5860,7 @@ export interface components {
         ApiMetaResponseDto: {
             contractVersion: string;
             buildSha: string | null;
-            /** @example 4 */
+            /** @example 5 */
             markdownContractVersion: number;
             capabilities: components["schemas"]["ApiCapabilitiesResponseDto"];
             mobileCompatibility: components["schemas"]["MobileCompatibilityDto"];

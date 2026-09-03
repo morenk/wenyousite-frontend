@@ -419,10 +419,9 @@ describe("MarkdownContent", () => {
     expect(container.querySelector("p")).not.toHaveAttribute("data-wenyou-align");
   });
 
-  test("契约 v5 的独立图片可读取并应用中心对齐", () => {
+  test("当前契约的独立图片可读取并应用中心对齐", () => {
     render(
       <MarkdownContent
-        markdownContractVersion={5}
         content={'[wenyousite-align-v1-center]: #\n![居中图](https://example.com/image.png)'}
       />,
     );

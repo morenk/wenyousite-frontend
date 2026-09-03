@@ -89,7 +89,7 @@ function isAdjacent(
 
 /**
  * 把隐藏的 CommonMark reference definition 绑定到紧随其后的顶层正文块。
- * 输入已先经过 Markdown v4 校验；这里仍做邻接与节点类型防御检查。
+ * 输入已先经过 Markdown v4/v5 校验；这里仍做邻接与节点类型防御检查。
  */
 export function remarkWenyouAlignment(options: MarkdownAlignmentOptions = {}) {
   const markdownContractVersion =

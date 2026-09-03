@@ -15,6 +15,7 @@ import { normalizeSerializedAlignmentMarkers } from "@/lib/markdown-alignment";
 import markdownV4Fixtures from "../../../contracts/markdown-v4-fixtures.json";
 
 type MarkdownFixture = (typeof markdownV4Fixtures.cases)[number];
+const MARKDOWN_V4_OPTIONS = { markdownContractVersion: 4 };
 
 describe("Markdown v4 黄金语料", () => {
   test("协议版本正确且 case id 唯一", () => {
@@ -28,8 +29,8 @@ describe("Markdown v4 黄金语料", () => {
   test.each(markdownV4Fixtures.cases)(
     "$id 字面降级为 literal 且保持幂等",
     ({ input, literal }: MarkdownFixture) => {
-      expect(sanitizeMilkdownMarkdown(input)).toBe(literal);
-      expect(sanitizeMilkdownMarkdown(literal)).toBe(literal);
+      expect(sanitizeMilkdownMarkdown(input, MARKDOWN_V4_OPTIONS)).toBe(literal);
+      expect(sanitizeMilkdownMarkdown(literal, MARKDOWN_V4_OPTIONS)).toBe(literal);
     },
   );
 
@@ -44,10 +45,13 @@ describe("Markdown v4 黄金语料", () => {
   test.each(markdownV4Fixtures.cases)(
     "$id 白名单结果与首个不支持类型一致",
     ({ canonical, supported, unsupportedType }: MarkdownFixture) => {
-      expect(findUnsupportedMarkdownFormats(canonical)[0]?.type ?? null).toBe(
+      expect(findUnsupportedMarkdownFormats(canonical, MARKDOWN_V4_OPTIONS)[0]?.type ?? null).toBe(
         unsupportedType,
       );
-      expect(findUnsupportedMarkdownFormats(literalizeUnsupportedMarkdown(canonical))).toEqual([]);
+      expect(findUnsupportedMarkdownFormats(
+        literalizeUnsupportedMarkdown(canonical, MARKDOWN_V4_OPTIONS),
+        MARKDOWN_V4_OPTIONS,
+      )).toEqual([]);
       expect(supported).toBe(unsupportedType === null);
     },
   );

@@ -29,6 +29,7 @@ import { STICKER_INLINE_NODE_NAME } from "@/lib/sticker-inline";
 const CENTER_MARKER = "[wenyousite-align-v1-center]: #";
 const RIGHT_MARKER = "[wenyousite-align-v1-right]: #";
 const DICE_NODE_ID = "550e8400-e29b-41d4-a716-446655440000";
+const MARKDOWN_V4_OPTIONS = { markdownContractVersion: 4 };
 const imageAlignmentFixtures = JSON.parse(
   readFileSync(resolve(process.cwd(), "contracts/markdown-v5-image-alignment-fixtures.json"), "utf8"),
 ) as {
@@ -796,20 +797,20 @@ describe("字符串协议、兼容净化与幂等", () => {
     ["四级标题", "#### 四级标题", "四级标题"],
   ])("标记紧邻%s时不误绑定、不吞目标或后续内容", (_label, target, visible) => {
     const input = `${RIGHT_MARKER}\n${target}\n\n后续正文`;
-    expect(findUnsupportedMarkdownFormats(input)).toContainEqual({
+    expect(findUnsupportedMarkdownFormats(input, MARKDOWN_V4_OPTIONS)).toContainEqual({
       type: "invalid-alignment",
       startLine: 0,
       endLine: 0,
     });
 
-    const sanitized = sanitizeMilkdownMarkdown(input);
+    const sanitized = sanitizeMilkdownMarkdown(input, MARKDOWN_V4_OPTIONS);
     expect(sanitized).toContain(visible);
     expect(sanitized).toContain("后续正文");
-    expect(findUnsupportedMarkdownFormats(sanitized)).toEqual([]);
-    expect(sanitizeMilkdownMarkdown(sanitized)).toBe(sanitized);
+    expect(findUnsupportedMarkdownFormats(sanitized, MARKDOWN_V4_OPTIONS)).toEqual([]);
+    expect(sanitizeMilkdownMarkdown(sanitized, MARKDOWN_V4_OPTIONS)).toBe(sanitized);
   });
 
-  test("普通图片禁止对齐，但收藏表情作为行内原子允许对齐", () => {
+  test("图文混排禁止独立对齐，但收藏表情作为行内原子允许对齐", () => {
     const image = `${CENTER_MARKER}\n文字 ![图](https://example.com/a.png)`;
     const sticker = `${CENTER_MARKER}\n![表情](https://cdn.example.com/stickers/a.webp "wenyousite-sticker:v1:asset-1")`;
     expect(findUnsupportedMarkdownFormats(image)).toContainEqual({

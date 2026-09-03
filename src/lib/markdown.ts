@@ -1,4 +1,4 @@
-/** Markdown v4 工具：规范化、工具栏能力白名单与字面文本降级。 */
+/** Markdown v5 工具：规范化、工具栏能力白名单与字面文本降级。 */
 
 import MarkdownIt from "markdown-it";
 
@@ -67,8 +67,8 @@ const STICKER_TITLE_PREFIX = "wenyousite-sticker:v1:";
 const WORD_JOINER = "\u2060";
 const MAX_LIST_DEPTH = 3;
 
-/** 当前公网仍声明 v4；v5 需等待移动端完成能力门控后再启用写入。 */
-export const ACTIVE_MARKDOWN_CONTRACT_VERSION = 4;
+/** 当前公网声明的 Markdown 正文契约版本。 */
+export const ACTIVE_MARKDOWN_CONTRACT_VERSION = 5;
 export const IMAGE_ALIGNMENT_MARKDOWN_CONTRACT_VERSION = 5;
 
 export interface MarkdownValidationOptions {

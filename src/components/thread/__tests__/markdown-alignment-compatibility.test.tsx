@@ -113,7 +113,6 @@ describe("MarkdownContent 段落对齐兼容性", () => {
     ["有序列表", "1. 列表项目"],
     ["引用", "> 引用内容"],
     ["分隔线", "---"],
-    ["普通图片", "![普通图片](https://cdn.example.com/a.png)"],
     ["协议空段", "<br />"],
     ["一级标题", "# 一级标题"],
     ["四级标题", "#### 四级标题"],
@@ -121,6 +120,18 @@ describe("MarkdownContent 段落对齐兼容性", () => {
     render(
       <MarkdownContent
         content={[CENTER_MARKER, target, "", "后续正文"].join("\n")}
+      />,
+    );
+
+    expect(markdownRoot().querySelector("[data-wenyou-align]")).toBeNull();
+    expect(blockWithText("后续正文")).not.toHaveAttribute("data-wenyou-align");
+  });
+
+  test("v4 客户端仍将普通图片前的对齐标记降为字面内容", () => {
+    render(
+      <MarkdownContent
+        markdownContractVersion={4}
+        content={[CENTER_MARKER, "![普通图片](https://cdn.example.com/a.png)", "", "后续正文"].join("\n")}
       />,
     );
 
