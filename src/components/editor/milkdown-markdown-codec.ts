@@ -235,6 +235,12 @@ function createSafeAttentionMarkdownHandler(
 const safeStrongMarkdownHandler = createSafeAttentionMarkdownHandler("strong", 2);
 const safeEmphasisMarkdownHandler = createSafeAttentionMarkdownHandler("emphasis", 1);
 const safeDeleteMarkdownHandler = createSafeAttentionMarkdownHandler("strikethrough", 2);
+const INLINE_FORMAT_MARK_NAMES = new Set([
+  "strong",
+  "emphasis",
+  "strikethrough",
+  "strike_through",
+]);
 
 function serializeDiceMarkdownNode(node: DiceMarkdownNode): string {
   if (typeof node.nodeId !== "string" || typeof node.notation !== "string") {
@@ -325,6 +331,38 @@ export function createEditorMarkdownBridge({
     let previousMarkdown: string | undefined;
     return new Plugin({
       key: new PluginKey("wenyousite-editor-markdown-bridge"),
+      props: {
+        handleKeyDown: (nextView, event) => {
+          if (
+            event.key !== " "
+            || event.isComposing
+            || event.ctrlKey
+            || event.metaKey
+            || event.altKey
+          ) return false;
+
+          const { state } = nextView;
+          const { selection } = state;
+          if (selection.empty === false) return false;
+
+          const activeMarks = state.storedMarks ?? selection.$from.marks();
+          const beforeMarks = selection.$from.nodeBefore?.marks ?? [];
+          const afterMarks = selection.$from.nodeAfter?.marks ?? [];
+          const atFormatBoundary = beforeMarks.some((before) =>
+            INLINE_FORMAT_MARK_NAMES.has(before.type.name)
+            && !afterMarks.some((after) => after.type === before.type),
+          );
+          if (!atFormatBoundary) return false;
+
+          nextView.dispatch(
+            state.tr
+              .setStoredMarks([])
+              .insertText(" ", selection.from)
+              .setStoredMarks(activeMarks),
+          );
+          return true;
+        },
+      },
       view: (view) => {
         previousMarkdown = serializeEditorMarkdown(ctx, view.state.doc, {
           markdownContractVersion,

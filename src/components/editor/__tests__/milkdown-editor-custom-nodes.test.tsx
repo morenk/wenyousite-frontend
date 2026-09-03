@@ -93,6 +93,25 @@ function renderEditor(props: React.ComponentProps<typeof MilkdownEditor>) {
   );
 }
 
+function placeCaretAtEnd(element: HTMLElement) {
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+  let lastText: Node | null = null;
+  let text = walker.nextNode();
+  while (text) {
+    lastText = text;
+    text = walker.nextNode();
+  }
+  if (!lastText) throw new Error("目标节点没有文字");
+  const range = document.createRange();
+  range.setStart(lastText, lastText.textContent?.length ?? 0);
+  range.collapse(true);
+  const selection = window.getSelection();
+  selection?.removeAllRanges();
+  selection?.addRange(range);
+  element.closest<HTMLElement>(".ProseMirror")?.focus();
+  document.dispatchEvent(new Event("selectionchange"));
+}
+
 function clipboardData(values: { text: string; html: string }) {
   return {
     getData: (type: string) => {
@@ -246,6 +265,33 @@ describe("MilkdownEditor 自定义内联节点", () => {
       expect(editor).toHaveTextContent("粗体 代码");
     });
     await waitFor(() => expect(onChange.mock.calls.at(-1)?.[0]).toBe("**粗体** `代码`"));
+  });
+
+  test.each([
+    ["粗体", "**粗体**", "strong"],
+    ["斜体", "*斜体*", "em"],
+    ["删除线", "~~删除线~~", "del"],
+  ])("在%s末尾输入空格时，空格不继承格式", async (_label, source, selector) => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    const { container } = renderEditor({ defaultValue: source, onChange });
+    const editor = await waitFor(() => {
+      const element = container.querySelector<HTMLElement>(".ProseMirror");
+      expect(element).toBeInTheDocument();
+      return element!;
+    });
+    const mark = editor?.querySelector<HTMLElement>(selector);
+    expect(mark).toBeInTheDocument();
+    placeCaretAtEnd(mark!);
+
+    await user.keyboard(" ");
+
+    await waitFor(() => {
+      expect(editor?.textContent).toBe(`${_label} `);
+      expect(editor?.querySelector(selector)?.textContent).toBe(_label);
+      expect(onChange.mock.calls.at(-1)?.[0]).toBe(`${source} `);
+    });
+    expect(editor?.querySelector(`${selector} + *`)).toBeNull();
   });
 
   test.each([
