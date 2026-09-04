@@ -2917,7 +2917,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 按北京时间自动签到；每日幂等获得 1–3 升温油和 2 经验 */
+        /** 按北京时间自动签到；每日幂等获得 1–3 升温油，日活经验由签到或首次有效行为领取 */
         post: operations["economyCheckIn"];
         delete?: never;
         options?: never;
@@ -5978,7 +5978,10 @@ export interface components {
             date: string;
             /** @enum {string} */
             rewardAmount: "1" | "2" | "3";
-            /** @example 2 */
+            /**
+             * @description 当天尚未领取日活经验时为 2，否则为 0
+             * @example 2
+             */
             experienceAwarded: number;
             balance: string;
             progression: components["schemas"]["ProgressionResponseDto"];
