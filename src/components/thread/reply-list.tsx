@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { useReplies } from "@/api/hooks/use-replies";
 import { useReplyAuthors } from "@/api/hooks/use-discussion-authors";
@@ -56,18 +56,38 @@ export function ReplyList({ postId, focusedReply, variant = "embedded" }: ReplyL
   const replies = focusedReply && canShowFocusedReply && !loadedReplies.some((reply) => reply.id === focusedReply.id)
     ? [...loadedReplies, focusedReply]
     : loadedReplies;
+  const focusedReplyId = canShowFocusedReply ? focusedReply?.id : undefined;
+  const targetRevealReleased = useRef(false);
 
-  // 父楼展开、目标回复渲染完成后再执行第二阶段滚动，避免只停在父楼。
   useEffect(() => {
-    if (!focusedReply) return;
-    const timer = window.setTimeout(() => {
-      document.getElementById(`post-${focusedReply.id}`)?.scrollIntoView({
+    targetRevealReleased.current = false;
+    if (!focusedReplyId) return;
+
+    const release = () => {
+      targetRevealReleased.current = true;
+    };
+    window.addEventListener("wheel", release, { passive: true });
+    window.addEventListener("pointerdown", release, { passive: true });
+    window.addEventListener("keydown", release);
+    return () => {
+      window.removeEventListener("wheel", release);
+      window.removeEventListener("pointerdown", release);
+      window.removeEventListener("keydown", release);
+    };
+  }, [authorId, focusedReplyId, order, postId]);
+
+  // 目标先于分页到达时，后续回复会插入它前方，需继续校准至用户接管滚动。
+  useEffect(() => {
+    if (!focusedReplyId || targetRevealReleased.current) return;
+    const frame = window.requestAnimationFrame(() => {
+      if (targetRevealReleased.current) return;
+      document.getElementById(`post-${focusedReplyId}`)?.scrollIntoView({
         behavior: "auto",
         block: "center",
       });
-    }, 150);
-    return () => window.clearTimeout(timer);
-  }, [focusedReply]);
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [authorId, focusedReplyId, loadedReplies.length, order, postId]);
 
   return (
     <div className={variant === "discussion" ? "space-y-3" : "mt-3 space-y-2 border-l-2 border-border pl-3"}>

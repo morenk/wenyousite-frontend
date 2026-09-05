@@ -1,7 +1,7 @@
 /** ReplyList 组件测试：楼中楼回复列表 + 回复串内对用户回复 */
 
 import { describe, test, expect, vi, beforeAll, beforeEach, afterEach } from "vitest";
-import { act, render, screen, cleanup } from "@testing-library/react";
+import { act, render, screen, cleanup, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThreadComposerProvider } from "@/components/thread/thread-composer-context";
@@ -267,15 +267,61 @@ describe("ReplyList", () => {
     expect(card).not.toHaveClass("bg-primary/[0.12]", "ring-2");
 
     await act(async () => {
-      vi.advanceTimersByTime(150);
+      vi.advanceTimersByTime(20);
     });
     expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "auto", block: "center" });
 
     await act(async () => {
-      vi.advanceTimersByTime(1_050);
+      vi.advanceTimersByTime(1_180);
     });
     expect(card).not.toHaveClass("border-primary");
     expect(card?.parentElement).not.toHaveClass("border-primary");
+  });
+
+  test("分页在目标前补入时重新居中，用户操作后停止吸附", async () => {
+    vi.useFakeTimers();
+    const scrollIntoView = vi
+      .spyOn(HTMLElement.prototype, "scrollIntoView")
+      .mockImplementation(() => {});
+    const targetReply = baseReply({ id: "reply-target" });
+    mockUseReplies.mockReturnValue(dataWithReplies([]));
+
+    const view = render(
+      <ReplyList postId="post-1" focusedReply={targetReply} variant="discussion" />,
+      { wrapper: createWrapper() },
+    );
+    await act(async () => {
+      vi.advanceTimersByTime(20);
+    });
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+
+    mockUseReplies.mockReturnValue(dataWithReplies([baseReply({ id: "reply-before-1" })]));
+    view.rerender(
+      <ReplyList postId="post-1" focusedReply={targetReply} variant="discussion" />,
+    );
+    await act(async () => {
+      vi.advanceTimersByTime(20);
+    });
+    expect(scrollIntoView).toHaveBeenCalledTimes(2);
+
+    fireEvent.pointerDown(window);
+    mockUseReplies.mockReturnValue(dataWithReplies([
+      baseReply({ id: "reply-before-1" }),
+      baseReply({ id: "reply-before-2" }),
+    ]));
+    view.rerender(
+      <ReplyList postId="post-1" focusedReply={targetReply} variant="discussion" />,
+    );
+    await act(async () => {
+      vi.advanceTimersByTime(20);
+    });
+    expect(scrollIntoView).toHaveBeenCalledTimes(2);
+
+    fireEvent.click(screen.getByRole("button", { name: "回复排序" }));
+    await act(async () => {
+      vi.advanceTimersByTime(20);
+    });
+    expect(scrollIntoView).toHaveBeenCalledTimes(3);
   });
 
   test("回复卡片可复制楼中楼精确链接", async () => {
