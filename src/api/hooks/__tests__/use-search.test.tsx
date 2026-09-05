@@ -180,7 +180,7 @@ describe("分类搜索 hooks", () => {
     });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(mockGET).toHaveBeenNthCalledWith(1, "/api/v1/search/posts", {
-      params: { query: { q: "测试", limit: 20 } },
+      params: { query: { q: "测试", limit: 20, includeBody: true } },
     });
 
     let nextPageResult: Awaited<ReturnType<typeof result.current.fetchNextPage>> | undefined;
@@ -189,7 +189,7 @@ describe("分类搜索 hooks", () => {
     });
     expect(mockGET).toHaveBeenNthCalledWith(2, "/api/v1/search/posts", {
       params: {
-        query: { q: "测试", limit: 20, cursor: "next-cursor" },
+        query: { q: "测试", limit: 20, includeBody: true, cursor: "next-cursor" },
       },
     });
     expect(nextPageResult?.data?.pages).toHaveLength(2);
@@ -226,7 +226,7 @@ describe("分类搜索 hooks", () => {
       {
         params: {
           path: { threadId: "t1" },
-          query: { q: "测试", limit: 20 },
+          query: { q: "测试", limit: 20, includeBody: true },
         },
       },
     );
@@ -240,9 +240,28 @@ describe("分类搜索 hooks", () => {
       {
         params: {
           path: { threadId: "t1" },
-          query: { q: "测试", limit: 20, cursor: "thread-next" },
+          query: { q: "测试", limit: 20, includeBody: true, cursor: "thread-next" },
         },
       },
     );
   });
+  test("切换查看者时不复用旧搜索结果或占位数据", async () => {
+    mockGET.mockResolvedValueOnce({ data: { data: [post], meta: { cursor: null, hasMore: false } } });
+    const { result, rerender } = renderHook(
+      ({ viewerId }) => useSearchPosts("测试", true, viewerId),
+      { wrapper: createWrapper(), initialProps: { viewerId: "alice" } },
+    );
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data?.pages[0].data).toHaveLength(1);
+    let finish!: () => void;
+    mockGET.mockImplementationOnce(() => new Promise((resolve) => {
+      finish = () => resolve({ data: { data: [], meta: { cursor: null, hasMore: false } } });
+    }));
+    rerender({ viewerId: "bob" });
+    expect(result.current.data).toBeUndefined();
+    await act(async () => finish());
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data?.pages[0].data).toEqual([]);
+  });
+
 });

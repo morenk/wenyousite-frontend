@@ -164,17 +164,22 @@ export const queryKeys = {
   draftState: ["draft-state"] as const,
   threadDrafts: ["drafts"] as const,
   sessions: (userId?: string) => ["auth-sessions", userId] as const,
+  blockedUsersRoot: ["blocked-users"] as const,
   blockedUsers: (userId?: string) => ["blocked-users", userId] as const,
   invitePreview: (token: string | undefined) =>
     ["invite-preview", token] as const,
   invitePreviews: ["invite-preview"] as const,
   moderationDecisions: (userId?: string) => ["moderation-decisions", userId] as const,
+  mentionCandidatesRoot: ["mention-candidates"] as const,
   mentionCandidates: (threadId: string, query: string) =>
     ["mention-candidates", threadId, query] as const,
   search: {
     all: ["search"] as const,
-    threads: (keyword: string) => ["search", "threads", keyword] as const,
-    users: (keyword: string) => ["search", "users", keyword] as const,
+    threads: (keyword: string, viewerScope = "anonymous") => ["search", "threads", keyword, viewerScope] as const,
+    users: (keyword: string, viewerScope = "anonymous") => ["search", "users", keyword, viewerScope] as const,
+    posts: (keyword: string, viewerScope = "anonymous") => ["search", "posts", keyword, viewerScope] as const,
+    threadPosts: (threadId: string, keyword: string, viewerScope = "anonymous") =>
+      ["search", "thread-posts", threadId, keyword, viewerScope] as const,
     moments: (keyword: string, viewerScope: string) =>
       ["search", "moments", keyword, viewerScope] as const,
   },

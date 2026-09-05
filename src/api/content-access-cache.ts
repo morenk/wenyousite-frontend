@@ -15,7 +15,7 @@ function isThreadScopedKey(queryKey: QueryKey, threadId: string): boolean {
     (queryKey[0] === "thread" && queryKey[1] === threadId) ||
     (queryKey[0] === "members" && queryKey[1] === threadId) ||
     (queryKey[0] === "mention-candidates" && queryKey[1] === threadId) ||
-    (queryKey[0] === "thread-search" && queryKey[1] === threadId)
+    (queryKey[0] === "search" && queryKey[1] === "thread-posts" && queryKey[2] === threadId)
   );
 }
 
@@ -75,4 +75,19 @@ export function clearMomentContentCaches(
     type: queryType(options),
   });
   clearMomentCommentCaches(queryClient, momentId, options);
+}
+
+/** 双向关系改变后，所有内容入口取消在途请求并清除旧结果。 */
+export async function resetBlockRelatedQueries(queryClient: QueryClient) {
+  const keys = [
+    queryKeys.users.all, queryKeys.threads.all, queryKeys.threads.details,
+    queryKeys.floors.all, queryKeys.replies.all, queryKeys.posts.all,
+    queryKeys.members.all, queryKeys.moments.all, queryKeys.search.all,
+    queryKeys.directMessages.all, queryKeys.notifications.all, queryKeys.bookmarks.all,
+    queryKeys.subscriptions, queryKeys.blockedUsersRoot, queryKeys.mentionCandidatesRoot,
+    queryKeys.invitePreviews,
+  ];
+  await Promise.all(keys.map((queryKey) => queryClient.cancelQueries({ queryKey })));
+  // 清除已有结果后重取，避免拉黑成功后在后台刷新期间继续显示历史内容。
+  await Promise.all(keys.map((queryKey) => queryClient.resetQueries({ queryKey })));
 }

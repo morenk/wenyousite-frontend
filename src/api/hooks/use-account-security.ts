@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
 import type { components } from "@/api/types";
+import { resetBlockRelatedQueries } from "@/api/content-access-cache";
 import { hasApiErrorCode } from "@/api/errors";
 
 export type AccountSession = components["schemas"]["SessionResponseDto"];
@@ -71,7 +72,7 @@ export function useBlockedUsers(userId?: string) {
   });
 }
 
-export function useUnblockUser(userId?: string) {
+export function useUnblockUser() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (userId: string) => {
@@ -81,7 +82,7 @@ export function useUnblockUser(userId?: string) {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: blockedUsersQueryKey(userId) }),
+    onSuccess: () => resetBlockRelatedQueries(queryClient),
   });
 }
 

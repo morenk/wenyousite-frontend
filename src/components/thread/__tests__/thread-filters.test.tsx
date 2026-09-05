@@ -29,7 +29,7 @@ describe("ThreadFilters", () => {
     expect(screen.getByRole("option", { name: "全部状态" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "招募中" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "已停招" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "已结束" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "已完结" })).toBeInTheDocument();
   });
 
   test("切换排序和状态", async () => {
@@ -64,7 +64,7 @@ describe("ThreadFilters", () => {
     );
 
     expect(screen.getByRole("combobox", { name: "排序" })).toHaveTextContent("最新创建");
-    expect(screen.getByRole("combobox", { name: "状态" })).toHaveTextContent("已结束");
+    expect(screen.getByRole("combobox", { name: "状态" })).toHaveTextContent("已完结");
   });
 
   test("选择全部状态时回传 undefined", async () => {

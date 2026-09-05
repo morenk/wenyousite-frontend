@@ -13,14 +13,15 @@ export async function loginAsE2eUser(page: Page) {
   const loginInput = page.getByLabel("邮箱或用户名");
   await loginInput.waitFor({ state: "visible" });
   await loginInput.fill(requiredCredential("E2E_EMAIL"));
-  await page.getByLabel("密码").fill(requiredCredential("E2E_PASSWORD"));
+  await page.getByLabel("密码", { exact: true }).fill(requiredCredential("E2E_PASSWORD"));
   await page.getByRole("button", { name: "登录", exact: true }).click();
   await page.waitForURL("/");
 }
 
 /** 每个用例显式新建草稿，避免复用测试账号遗留草稿造成选择器分叉。 */
 export async function openFreshThreadDraft(page: Page) {
-  await page.goto("/threads/create");
+  await page.getByRole("button", { name: "打开发布菜单" }).click();
+  await page.getByRole("link", { name: "发布主题帖", exact: true }).click();
   const createButton = page.getByRole("button", { name: "新建主题帖" });
   await expect(createButton).toBeVisible();
   await createButton.click();

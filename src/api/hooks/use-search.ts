@@ -1,6 +1,6 @@
 /** 分类搜索 hooks：各 Tab 独立请求，楼层正文使用游标分页。 */
 
-import { keepPreviousData, useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
 import { BROWSING_RETURN_GC_TIME } from "@/api/query-policy";
 import { queryKeys } from "@/api/query-keys";
@@ -34,7 +34,8 @@ function usePostSearchPages(
     getNextPageParam: (lastPage) =>
       lastPage.meta.hasMore ? (lastPage.meta.cursor ?? undefined) : undefined,
     enabled,
-    placeholderData: keepPreviousData,
+    placeholderData: (previousData, previousQuery) =>
+      previousQuery?.queryKey.at(-1) === queryKey.at(-1) ? previousData : undefined,
     staleTime: 30 * 1000,
     gcTime: BROWSING_RETURN_GC_TIME,
   });
@@ -43,10 +44,10 @@ function usePostSearchPages(
 export const isPostSearchKeywordValid = (q: string) =>
   Array.from(q.trim()).length >= 2;
 
-export function useSearchThreads(q: string, enabled: boolean) {
+export function useSearchThreads(q: string, enabled: boolean, viewerId?: string) {
   const keyword = q.trim();
   return useInfiniteQuery({
-    queryKey: queryKeys.search.threads(keyword),
+    queryKey: queryKeys.search.threads(keyword, viewerId),
     queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
       const { data, error } = await apiClient.GET("/api/v1/search/threads", {
         params: {
@@ -67,16 +68,17 @@ export function useSearchThreads(q: string, enabled: boolean) {
     getNextPageParam: (lastPage) =>
       lastPage.meta.hasMore ? (lastPage.meta.cursor ?? undefined) : undefined,
     enabled: enabled && keyword.length > 0,
-    placeholderData: keepPreviousData,
+    placeholderData: (previousData, previousQuery) =>
+      previousQuery?.queryKey.at(-1) === (viewerId ?? "anonymous") ? previousData : undefined,
     staleTime: 30 * 1000,
     gcTime: BROWSING_RETURN_GC_TIME,
   });
 }
 
-export function useSearchUsers(q: string, enabled: boolean) {
+export function useSearchUsers(q: string, enabled: boolean, viewerId?: string) {
   const keyword = q.trim();
   return useQuery({
-    queryKey: queryKeys.search.users(keyword),
+    queryKey: queryKeys.search.users(keyword, viewerId),
     queryFn: async () => {
       const { data, error } = await apiClient.GET("/api/v1/search/users", {
         params: { query: { q: keyword } },
@@ -85,21 +87,22 @@ export function useSearchUsers(q: string, enabled: boolean) {
       return data?.data ?? [];
     },
     enabled: enabled && keyword.length > 0,
-    placeholderData: keepPreviousData,
+    placeholderData: (previousData, previousQuery) =>
+      previousQuery?.queryKey.at(-1) === (viewerId ?? "anonymous") ? previousData : undefined,
     staleTime: 30 * 1000,
     gcTime: BROWSING_RETURN_GC_TIME,
   });
 }
 
-export function useSearchPosts(q: string, enabled: boolean) {
+export function useSearchPosts(q: string, enabled: boolean, viewerId?: string) {
   const keyword = q.trim();
   return usePostSearchPages(
-    ["search", "posts", keyword],
+    queryKeys.search.posts(keyword, viewerId),
     enabled && isPostSearchKeywordValid(keyword),
     async (pageParam) => {
       const query = pageParam
-        ? { q: keyword, limit: 20, cursor: pageParam }
-        : { q: keyword, limit: 20 };
+        ? { q: keyword, limit: 20, includeBody: true, cursor: pageParam }
+        : { q: keyword, limit: 20, includeBody: true };
       const { data, error } = await apiClient.GET("/api/v1/search/posts", {
         params: { query },
       });
@@ -139,7 +142,8 @@ export function useSearchMoments(
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (page) => page.meta.hasMore ? page.meta.cursor ?? undefined : undefined,
     enabled: enabled && isPostSearchKeywordValid(keyword),
-    placeholderData: keepPreviousData,
+    placeholderData: (previousData, previousQuery) =>
+      previousQuery?.queryKey.at(-1) === (viewerId ?? "anonymous") ? previousData : undefined,
     staleTime: 30_000,
     gcTime: BROWSING_RETURN_GC_TIME,
   });
@@ -149,15 +153,16 @@ export function useThreadSearchPosts(
   threadId: string,
   q: string,
   enabled: boolean,
+  viewerId?: string,
 ) {
   const keyword = q.trim();
   return usePostSearchPages(
-    ["thread-search", threadId, "posts", keyword],
+    queryKeys.search.threadPosts(threadId, keyword, viewerId),
     enabled && !!threadId && isPostSearchKeywordValid(keyword),
     async (pageParam) => {
       const query = pageParam
-        ? { q: keyword, limit: 20, cursor: pageParam }
-        : { q: keyword, limit: 20 };
+        ? { q: keyword, limit: 20, includeBody: true, cursor: pageParam }
+        : { q: keyword, limit: 20, includeBody: true };
       const { data, error } = await apiClient.GET(
         "/api/v1/threads/{threadId}/search/posts",
         {

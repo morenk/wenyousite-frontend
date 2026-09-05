@@ -64,3 +64,5 @@ HTTP/业务错误由 `src/api/errors.ts` 统一归一化；成功响应不得使
 - 生成类型、query key、UI/API 分层均有静态门禁
 - 动态分类黄金用例与后端副本一致，Flutter 契约门禁拒绝分类枚举化
 - lint、typecheck、覆盖率测试和生产构建纳入 `pnpm check`
+
+本轮契约同步自后端实现 `c87966dd4644be7d3c2769245d2e0581fffd4154`，策略、基准和移动端 Windows 待办见 [后端交付记录](../../../wenyousite-backend/docs/backend-hardening-20260905.md)。

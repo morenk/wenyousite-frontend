@@ -76,7 +76,7 @@ describe("ThreadPostSearch", () => {
     await user.type(screen.getByRole("searchbox", { name: "搜索本帖楼层关键词" }), "字");
     await user.click(screen.getByRole("button", { name: "搜索" }));
 
-    expect(mockUseThreadSearchPosts).toHaveBeenLastCalledWith("t1", "字", false);
+    expect(mockUseThreadSearchPosts).toHaveBeenLastCalledWith("t1", "字", false, undefined);
     expect(screen.getByText("请输入至少 2 个字符")).toBeInTheDocument();
   });
 
@@ -94,7 +94,7 @@ describe("ThreadPostSearch", () => {
     await user.type(screen.getByRole("searchbox", { name: "搜索本帖楼层关键词" }), "测试");
     await user.click(screen.getByRole("button", { name: "搜索" }));
 
-    expect(mockUseThreadSearchPosts).toHaveBeenLastCalledWith("t1", "测试", true);
+    expect(mockUseThreadSearchPosts).toHaveBeenLastCalledWith("t1", "测试", true, undefined);
     const result = screen.getByRole("link", { name: /这是匹配的楼中楼回复/ });
     expect(result).toHaveAttribute(
       "href",
@@ -105,6 +105,22 @@ describe("ThreadPostSearch", () => {
     expect(onSelect).toHaveBeenCalledTimes(1);
     await user.click(screen.getByRole("button", { name: "加载更多楼层" }));
     expect(mockFetchNextPage).toHaveBeenCalledTimes(1);
+  });
+
+  test("正文命中跳转到所属子贴并显示正文标签", async () => {
+    mockUseThreadSearchPosts.mockReturnValue({
+      ...idleQuery,
+      data: { pages: [{ data: [{ ...post, kind: "BODY", parentPostId: null, content: "第二幕正文" }] }] },
+    });
+    render(<ThreadPostSearch threadId="t1" onClose={vi.fn()} viewerId="viewer" />);
+    const user = userEvent.setup();
+    await user.type(screen.getByRole("searchbox"), "正文");
+    await user.click(screen.getByRole("button", { name: "搜索" }));
+    const link = screen.getByRole("link", { name: /第二幕正文/ });
+    expect(link).toHaveAttribute("href", "/threads/t1?subthread=s2");
+    expect(link).toHaveTextContent("正文 · 第二幕");
+    expect(link).not.toHaveTextContent("楼中楼");
+    expect(mockUseThreadSearchPosts).toHaveBeenLastCalledWith("t1", "正文", true, "viewer");
   });
 
   test("搜索预览隐藏骰子协议和链接地址", async () => {

@@ -381,12 +381,11 @@ test.describe("公开浏览的单页式导航体验", () => {
     await expect(page.getByRole("complementary", { name: "全局导航" })).toBeVisible();
     await expect(page.getByRole("status", { name: "页面加载中" })).toBeVisible();
 
-    await page.waitForTimeout(180);
-    const progressOpacity = await page
+    await expect.poll(() => page
       .locator('[data-slot="navigation-progress"]')
       .first()
-      .evaluate((element) => Number.parseFloat(getComputedStyle(element).opacity));
-    expect(progressOpacity).toBeGreaterThan(0);
+      .evaluate((element) => Number.parseFloat(getComputedStyle(element).opacity)),
+    { timeout: 2000 }).toBeGreaterThan(0);
 
     await expect(page.getByRole("heading", { name: "漫游记录 01" })).toBeVisible();
     await expect(page.getByRole("status", { name: "页面加载中" })).toHaveCount(0);

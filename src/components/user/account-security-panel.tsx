@@ -35,7 +35,7 @@ export function AccountSecurityPanel() {
   const sessions = useAccountSessions(user?.id);
   const blockedUsers = useBlockedUsers(user?.id);
   const revokeSession = useRevokeSession(user?.id);
-  const unblockUser = useUnblockUser(user?.id);
+  const unblockUser = useUnblockUser();
   const deleteAccount = useDeleteAccount();
   const [confirmation, setConfirmation] = useState("");
   const confirmAction = useConfirm();

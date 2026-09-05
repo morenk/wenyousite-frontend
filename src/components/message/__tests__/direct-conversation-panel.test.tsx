@@ -325,7 +325,7 @@ describe("DirectConversationPanel", () => {
     expect(actionSet.handleRequest.mutateAsync).toHaveBeenCalledWith("DECLINE");
   });
 
-  test("拉黑需确认，已存在任一方向拉黑时保持历史只读且不误导为可解除", async () => {
+  test("拉黑需确认，已存在任一方向拉黑时隐藏会话且不误导为可解除", async () => {
     const first = render(<DirectConversationPanel conversationId="c1" />);
     await userEvent.click(screen.getByRole("button", { name: "拉黑" }));
     expect(blockSet.block.mutateAsync).toHaveBeenCalled();
@@ -335,8 +335,8 @@ describe("DirectConversationPanel", () => {
 
     setConversation({ isBlocked: true, canSend: false });
     render(<DirectConversationPanel conversationId="c1" />);
-    expect(screen.getByText(/历史消息仅供查看/)).toBeInTheDocument();
-    expect(screen.getByText("联系已被阻止")).toBeInTheDocument();
+    expect(screen.getByText("无法加载该会话")).toBeInTheDocument();
+    expect(screen.queryByText(/历史消息仅供查看/)).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "取消拉黑" })).not.toBeInTheDocument();
   });
 

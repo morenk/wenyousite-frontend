@@ -155,7 +155,7 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
     if (!conversation) return;
     const confirmed = await confirmAction({
       title: "拉黑用户",
-      description: "拉黑后，当前消息请求会被拒绝，既有私聊记录保留但不能继续发送。",
+      description: "拉黑后，双方内容和私聊将互相隐藏，历史记录保留。可在账号安全页解除拉黑。",
       confirmLabel: "拉黑",
       destructive: true,
     });
@@ -193,7 +193,7 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
     );
   }
 
-  if (conversationQuery.isError || !conversation) {
+  if (conversationQuery.isError || !conversation || conversation.isBlocked) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 text-sm text-muted-foreground">
         无法加载该会话
@@ -206,9 +206,7 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
 
   const requestIncoming = conversation.status === "PENDING" && conversation.requestDirection === "INCOMING";
   const requestOutgoing = conversation.status === "PENDING" && conversation.requestDirection === "OUTGOING";
-  const sendingDisabledReason = conversation.isBlocked
-    ? "你们之间存在拉黑关系，历史消息仅供查看。"
-    : conversation.otherUser.isDeactivated
+  const sendingDisabledReason = conversation.otherUser.isDeactivated
       ? "该用户已注销，历史消息仅供查看。"
       : requestOutgoing
         ? "对方接受消息请求后才能继续发送。"

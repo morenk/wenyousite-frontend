@@ -15,8 +15,7 @@ vi.mock("@/api/client", () => ({
   apiClient: { POST: mockPOST, DELETE: mockDELETE },
 }));
 
-function createWrapper() {
-  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+function createWrapper(qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })) {
   function Wrapper({ children }: { children: React.ReactNode }) {
     return <QueryClientProvider client={qc}>{children}</QueryClientProvider>;
   }
@@ -40,6 +39,22 @@ describe("useBlockActions", () => {
     expect(mockPOST).toHaveBeenCalledWith("/api/v1/users/me/block/{id}", {
       params: { path: { id: "u2" } },
     });
+  });
+
+  test("拉黑成功立即清除预热的内容缓存，保留无关账户数据", async () => {
+    const client = new QueryClient();
+    for (const root of ["thread", "search", "post", "moments", "direct-messages"]) {
+      client.setQueryData([root, "cached"], { content: "历史内容" });
+    }
+    client.setQueryData(["wallet", "me"], { balance: 7 });
+    mockPOST.mockResolvedValue({ data: { data: { message: "已拉黑" } } });
+    const { result } = renderHook(() => useBlockActions("u2"), { wrapper: createWrapper(client) });
+    result.current.block.mutate();
+    await waitFor(() => expect(result.current.block.isSuccess).toBe(true));
+    for (const root of ["thread", "search", "post", "moments", "direct-messages"]) {
+      expect(client.getQueryData([root, "cached"])).toBeUndefined();
+    }
+    expect(client.getQueryData(["wallet", "me"])).toEqual({ balance: 7 });
   });
 
   test("取消拉黑：DELETE 无 body", async () => {

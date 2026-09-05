@@ -1,4 +1,6 @@
-import { test, expect } from "@playwright/test";
+import { insertTestEditorImage } from "./fixtures/media";
+import { test, expect, type Page } from "@playwright/test";
+import { getPostDiscussionHref } from "../src/lib/post-navigation";
 import { loginAsE2eUser, openFreshThreadDraft } from "./fixtures/auth";
 
 /** 登录并发布一个测试帖，返回详情页 */
@@ -14,7 +16,7 @@ async function loginAndCreatePublishedThread(page: import("@playwright/test").Pa
   // 等待字数统计更新为非 0（markdownUpdated 已触发、form.content 已写入）
   await expect(page.locator(".tabular-nums")).not.toHaveText(/^0\/10000$/);
 
-  await page.getByText("发布").click();
+  await page.getByRole("button", { name: "发布", exact: true }).click();
   // 等待跳转到详情页（threadId 由后端生成，非 create）
   await page.waitForFunction(
     () => /\/threads\/[^/]+$/.test(location.pathname) && location.pathname !== "/threads/create",
@@ -32,7 +34,7 @@ async function postFloor(page: import("@playwright/test").Page, content: string)
   await editor.first().pressSequentially(content, { delay: 20 });
   // 等待字数统计更新为非 0（markdownUpdated 已触发）
   await expect(page.locator(".tabular-nums").first()).not.toHaveText(/^0\/10000$/);
-  await page.getByRole("button", { name: "发布" }).click();
+  await page.getByRole("button", { name: "发布", exact: true }).click();
   await expect(page.getByText("发布成功").first()).toBeVisible({ timeout: 10000 });
 }
 
@@ -41,13 +43,14 @@ test.describe("主题帖管理面板", () => {
     await loginAndCreatePublishedThread(page);
 
     // 进入管理面板
+    await page.getByRole("button", { name: "更多帖子信息与操作" }).click();
     await page.getByRole("button", { name: "管理主题帖" }).click();
     await expect(page.getByText("返回帖子")).toBeVisible();
     await page.getByRole("tab", { name: /子贴内容/ }).click();
     await expect(page.getByText("章节目录")).toBeVisible();
 
     // 添加子贴
-    await page.getByText("添加子贴").click();
+    await page.locator("aside").getByRole("button", { name: "添加子贴", exact: true }).click();
     const subInput = page.getByPlaceholder("主帖 / 设定区 / 剧情区");
     await expect(subInput).toBeVisible();
     await subInput.fill("设定区");
@@ -64,7 +67,7 @@ test.describe("主题帖管理面板", () => {
     const editor = page.locator(".milkdown-editor .ProseMirror");
     await editor.click();
     await editor.pressSequentially("设定区世界观设定。", { delay: 20 });
-    await expect(page.locator(".tabular-nums")).not.toHaveText(/^0\/10000$/);
+    await expect(page.locator(".tabular-nums").filter({ hasText: /\/10000$/ })).toHaveText("9/10000");
     await page.getByRole("button", { name: "保存子贴" }).click();
     await expect(page.getByText("子贴修改已保存").first()).toBeVisible({ timeout: 10000 });
 
@@ -76,6 +79,7 @@ test.describe("主题帖管理面板", () => {
 
     // 返回浏览
     await page.getByText("返回帖子").click();
+    await page.getByRole("button", { name: "更多帖子信息与操作" }).click();
     await expect(page.getByRole("button", { name: "管理主题帖" })).toBeVisible();
   });
 
@@ -83,6 +87,7 @@ test.describe("主题帖管理面板", () => {
     await loginAndCreatePublishedThread(page);
 
     // 进入管理面板
+    await page.getByRole("button", { name: "更多帖子信息与操作" }).click();
     await page.getByRole("button", { name: "管理主题帖" }).click();
     await expect(page.getByText("返回帖子")).toBeVisible();
     await page.getByRole("tab", { name: /子贴内容/ }).click();
@@ -91,7 +96,7 @@ test.describe("主题帖管理面板", () => {
 
     // 添加两个非默认子贴（等待每个子贴真实出现在树中，不依赖 toast）
     for (const title of ["设定区", "剧情区"]) {
-      await page.getByText("添加子贴").click();
+      await page.locator("aside").getByRole("button", { name: "添加子贴", exact: true }).click();
       await page.getByPlaceholder("主帖 / 设定区 / 剧情区").fill(title);
       await page.getByRole("button", { name: "添加", exact: true }).click();
       await expect(aside.getByText(title)).toBeVisible({ timeout: 10000 });
@@ -131,6 +136,7 @@ test.describe("主题帖管理面板", () => {
   test("子贴目录不提供主帖落点并支持键盘排序", async ({ page }) => {
     await loginAndCreatePublishedThread(page);
 
+    await page.getByRole("button", { name: "更多帖子信息与操作" }).click();
     await page.getByRole("button", { name: "管理主题帖" }).click();
     await expect(page.getByText("返回帖子")).toBeVisible();
     await page.getByRole("tab", { name: /子贴内容/ }).click();
@@ -138,10 +144,14 @@ test.describe("主题帖管理面板", () => {
     const aside = page.locator("aside");
 
     // 添加两个非默认子贴
+    let targetSubthreadId = "";
     for (const title of ["设定区", "剧情区"]) {
-      await page.getByText("添加子贴").click();
+      await page.locator("aside").getByRole("button", { name: "添加子贴", exact: true }).click();
       await page.getByPlaceholder("主帖 / 设定区 / 剧情区").fill(title);
+      const created = page.waitForResponse((response) =>
+        response.url().endsWith("/subthreads") && response.request().method() === "POST");
       await page.getByRole("button", { name: "添加", exact: true }).click();
+      targetSubthreadId = (await (await created).json()).data.id;
       await expect(aside.getByText(title)).toBeVisible({ timeout: 10000 });
     }
 
@@ -153,9 +163,13 @@ test.describe("主题帖管理面板", () => {
     const handle = aside.getByRole("button", { name: "拖动子贴「设定区」排序" });
     await handle.focus();
     await page.keyboard.press("Space");
+    await expect(handle).toHaveAttribute("aria-pressed", "true");
     await page.keyboard.press("ArrowDown");
+    await expect(aside.getByRole("status")).toContainText(`was moved over droppable area ${targetSubthreadId}`);
     await page.keyboard.press("Space");
+    await expect(handle).not.toHaveAttribute("aria-pressed", "true");
     expect((await reorderResponse).status()).toBe(200);
+    await expect(aside.getByRole("button", { name: "选择子贴「剧情区」" })).toContainText("01");
   });
 });
 
@@ -166,6 +180,7 @@ test.describe("已发布帖统一管理", () => {
 
     // 详情页只保留统一管理入口，默认打开帖子设置页签
     await expect(page.getByRole("button", { name: "编辑" })).not.toBeVisible();
+    await page.getByRole("button", { name: "更多帖子信息与操作" }).click();
     await page.getByRole("button", { name: "管理主题帖" }).click();
     await expect(page).toHaveURL(`${threadUrl}/edit`);
     await expect(page.getByRole("tab", { name: "帖子设置" })).toBeVisible();
@@ -260,26 +275,24 @@ test.describe("楼层编辑与删除", () => {
   });
 });
 
+async function openFloorDiscussion(page: Page, content: string) {
+  const floor = page.locator('[id^="post-"]').filter({ hasText: content }).first();
+  await expect(floor).toBeVisible();
+  const postId = (await floor.getAttribute("id"))!.slice("post-".length);
+  const threadId = new URL(page.url()).pathname.split("/")[2];
+  await page.goto(getPostDiscussionHref(threadId, postId));
+  await expect(page.getByRole("region", { name: "楼层回复，共 0 条" })).toBeVisible();
+  await page.getByRole("button", { name: "发表回复…", exact: true }).click();
+}
+
 test.describe("楼中楼回复", () => {
   test("独立楼中楼编辑器上传图片后工具栏仍可见", async ({ page }) => {
     await loginAndCreatePublishedThread(page);
     await postFloor(page, "图片上传测试楼层");
 
-    const floorCard = page
-      .locator(".rounded-xl.border")
-      .filter({ hasText: "图片上传测试楼层" })
-      .first();
-    await floorCard.getByRole("button", { name: "更多楼层操作" }).click();
-    await page.getByRole("menuitem", { name: "回复" }).click();
-    await expect(page.getByText("楼中楼讨论").first()).toBeVisible();
-    await page.getByRole("button", { name: "参与讨论" }).click();
+    await openFloorDiscussion(page, "图片上传测试楼层");
 
-    const imageButton = page.locator('.milkdown-top-bar .top-bar-item[title="图片"]').first();
-    await expect(imageButton).toBeVisible();
-    const chooserPromise = page.waitForEvent("filechooser");
-    await imageButton.click();
-    const chooser = await chooserPromise;
-    await chooser.setFiles("public/globe.svg");
+    const imageButton = await insertTestEditorImage(page);
 
     await expect(page.locator(".milkdown-image-block img").first()).toBeVisible({ timeout: 45000 });
     await expect(page.locator(".milkdown-top-bar").first()).toBeVisible();
@@ -292,16 +305,7 @@ test.describe("楼中楼回复", () => {
     // 发布一楼楼层
     await postFloor(page, "主楼正文");
 
-    // 找到楼层卡片并进入独立楼中楼阅读页
-    const floorCard = page
-      .locator(".rounded-xl.border")
-      .filter({ hasText: "主楼正文" })
-      .first();
-    await expect(floorCard).toBeVisible();
-
-    await floorCard.getByRole("button", { name: "更多楼层操作" }).click();
-    await page.getByRole("menuitem", { name: "回复" }).click();
-    await page.getByRole("button", { name: "参与讨论" }).click();
+    await openFloorDiscussion(page, "主楼正文");
     const replyEditor = page.locator(".milkdown-editor .ProseMirror").first();
     await expect(replyEditor).toBeVisible({ timeout: 10000 });
 
@@ -310,13 +314,13 @@ test.describe("楼中楼回复", () => {
     // 等待 markdownUpdated 写入 + React state flush（页面首个 tabular-nums 变为非 0）
     await expect(page.locator(".tabular-nums").first()).not.toHaveText(/^0\/10000$/);
     await page.waitForTimeout(500);
-    await page.getByRole("button", { name: "回复" }).click();
+    await page.getByRole("button", { name: "回复", exact: true }).click();
 
     // 等待回复成功 + 回复内容渲染
     await expect(page.getByText("回复成功").first()).toBeVisible({ timeout: 10000 });
     await expect(page.getByText("楼中楼回复内容").first()).toBeVisible({ timeout: 10000 });
 
     // 独立讨论页回复数更新为 1
-    await expect(page.getByText("共 1 条回复").first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole("region", { name: "楼层回复，共 1 条" })).toBeVisible({ timeout: 10000 });
   });
 });

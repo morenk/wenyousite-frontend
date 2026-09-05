@@ -36,7 +36,7 @@ export const THREAD_STATUS_META: Record<
     badgeTone: "neutral",
   },
   FINISHED: {
-    label: "已结束",
+    label: "已完结",
     badgeTone: "neutral",
   },
 };

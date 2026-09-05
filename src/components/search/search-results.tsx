@@ -33,11 +33,12 @@ export function SearchResults({ keyword }: SearchResultsProps) {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<SearchTab>("moments");
   const postKeywordValid = isPostSearchKeywordValid(keyword);
-  const threadsQuery = useSearchThreads(keyword, activeTab === "threads");
-  const usersQuery = useSearchUsers(keyword, activeTab === "users");
+  const threadsQuery = useSearchThreads(keyword, activeTab === "threads", user?.id);
+  const usersQuery = useSearchUsers(keyword, activeTab === "users", user?.id);
   const postsQuery = useSearchPosts(
     keyword,
     activeTab === "posts" && postKeywordValid,
+    user?.id,
   );
   const momentsQuery = useSearchMoments(keyword, activeTab === "moments" && postKeywordValid, user?.id);
   const posts = postsQuery.data?.pages.flatMap((page) => page.data) ?? [];

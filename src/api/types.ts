@@ -2608,7 +2608,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 按正文搜索公开楼层与楼中楼 */
+        /** 搜索公开楼层与楼中楼；includeBody=true 同时搜索主贴和子贴正文 */
         get: operations["searchSearchPosts"];
         put?: never;
         post?: never;
@@ -2642,7 +2642,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 按正文搜索单个主题帖内的楼层与楼中楼 */
+        /** 搜索帖内楼层与楼中楼；includeBody=true 同时搜索主贴和子贴正文 */
         get: operations["threadSearchSearchPosts"];
         put?: never;
         post?: never;
@@ -5700,9 +5700,14 @@ export interface components {
             title: string;
         };
         SearchPostResponseDto: {
+            /**
+             * @description BODY 为正文，FLOOR 为主楼层或楼中楼
+             * @enum {string}
+             */
+            kind: "BODY" | "FLOOR";
             /** @description 帖子 ID */
             id: string;
-            /** @description 楼层号；楼中楼为 null */
+            /** @description 楼层号；正文与楼中楼为 null */
             floorNumber: number | null;
             /** @description 父楼层 ID；主楼层为 null */
             parentPostId: string | null;
@@ -9235,7 +9240,7 @@ export interface operations {
                 category?: string;
                 /** @description recommended=智能排序, newest=最新创建, active=最新回复 */
                 sort?: "recommended" | "newest" | "active";
-                /** @description 主题帖状态筛选：招募中、已停招、已结束 */
+                /** @description 主题帖状态筛选：招募中、已停招、已完结 */
                 status?: "RECRUITING" | "CLOSED" | "FINISHED";
                 /** @description 按标签名模糊筛选主题帖 */
                 tag?: string;
@@ -9581,6 +9586,29 @@ export interface operations {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 超过 10000 条内容、16 MiB 正文或 64 MiB 图片上限 */
+            413: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 已有导出进行中或请求过于频繁 */
+            429: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    "Retry-After": components["headers"]["RetryAfter"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -15209,6 +15237,17 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
+            /** @description 搜索超时，请缩小关键词范围后重试 */
+            503: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
@@ -15267,6 +15306,8 @@ export interface operations {
                 cursor?: string;
                 /** @description 每页条数，默认及最大均为 20 */
                 limit?: number;
+                /** @description 同时搜索主贴与子贴正文；省略时兼容旧客户端，仅返回楼层 */
+                includeBody?: boolean;
             };
             header?: never;
             path?: never;
@@ -15287,6 +15328,17 @@ export interface operations {
             };
             /** @description 关键词不足 2 个字符或游标无效 */
             400: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 搜索超时，请缩小关键词范围后重试 */
+            503: {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15332,6 +15384,17 @@ export interface operations {
                     "application/json": components["schemas"]["SearchSearch200Response"];
                 };
             };
+            /** @description 搜索超时，请缩小关键词范围后重试 */
+            503: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
@@ -15354,6 +15417,8 @@ export interface operations {
                 cursor?: string;
                 /** @description 每页条数，默认及最大均为 20 */
                 limit?: number;
+                /** @description 同时搜索主贴与子贴正文；省略时兼容旧客户端，仅返回楼层 */
+                includeBody?: boolean;
             };
             header?: never;
             path: {
@@ -15387,6 +15452,17 @@ export interface operations {
             };
             /** @description 主题帖不存在，或当前用户无权访问私密帖 */
             404: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 搜索超时，请缩小关键词范围后重试 */
+            503: {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];

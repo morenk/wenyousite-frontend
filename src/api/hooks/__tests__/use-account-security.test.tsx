@@ -129,12 +129,27 @@ describe("账号安全 hooks", () => {
     expect(blocked.result.current.data?.[0].blocked.username).toBe("用户二");
 
     mockDELETE.mockResolvedValueOnce({ data: { data: { message: "已取消拉黑" } }, error: undefined });
-    const unblock = renderHook(() => useUnblockUser("u1"), { wrapper });
+    const unblock = renderHook(() => useUnblockUser(), { wrapper });
     unblock.result.current.mutate("u2");
     await waitFor(() => expect(unblock.result.current.isSuccess).toBe(true));
     expect(mockDELETE).toHaveBeenCalledWith("/api/v1/users/me/block/{id}", {
       params: { path: { id: "u2" } },
     });
+  });
+
+  test("黑名单解除后重置搜索和主题缓存", async () => {
+    const client = new QueryClient();
+    client.setQueryData(["search", "thread-posts", "t1", "词语", "u1"], { data: [] });
+    client.setQueryData(["thread", "t1"], { title: "旧结果" });
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    );
+    mockDELETE.mockResolvedValueOnce({ data: { data: { message: "已取消拉黑" } } });
+    const { result } = renderHook(() => useUnblockUser(), { wrapper: Wrapper });
+    result.current.mutate("u2");
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(client.getQueryData(["thread", "t1"])).toBeUndefined();
+    expect(client.getQueryData(["search", "thread-posts", "t1", "词语", "u1"])).toBeUndefined();
   });
 
   test("注销账号", async () => {

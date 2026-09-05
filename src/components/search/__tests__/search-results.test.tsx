@@ -183,9 +183,9 @@ describe("SearchResults", () => {
     );
     expect(screen.getByRole("tabpanel")).toHaveClass("w-full", "min-w-0");
     expect(mockUseSearchMoments).toHaveBeenLastCalledWith("测试", true, undefined);
-    expect(mockUseSearchThreads).toHaveBeenLastCalledWith("测试", false);
-    expect(mockUseSearchUsers).toHaveBeenLastCalledWith("测试", false);
-    expect(mockUseSearchPosts).toHaveBeenLastCalledWith("测试", false);
+    expect(mockUseSearchThreads).toHaveBeenLastCalledWith("测试", false, undefined);
+    expect(mockUseSearchUsers).toHaveBeenLastCalledWith("测试", false, undefined);
+    expect(mockUseSearchPosts).toHaveBeenLastCalledWith("测试", false, undefined);
     expect(mockMomentMasonry).toHaveBeenLastCalledWith(
       expect.objectContaining({ maxLanes: 3 }),
     );
@@ -201,7 +201,7 @@ describe("SearchResults", () => {
     );
 
     fireEvent.click(screen.getByRole("tab", { name: "主题帖" }));
-    expect(mockUseSearchThreads).toHaveBeenLastCalledWith("测试", true);
+    expect(mockUseSearchThreads).toHaveBeenLastCalledWith("测试", true, undefined);
     expect(screen.getByRole("link", { name: "查看主题帖：测试帖子" })).toHaveAttribute(
       "href",
       "/threads/t1",
@@ -215,7 +215,7 @@ describe("SearchResults", () => {
     expect(document.querySelectorAll("[data-thread-cover='true'] img")).toHaveLength(1);
 
     fireEvent.click(screen.getByRole("tab", { name: "用户" }));
-    expect(mockUseSearchUsers).toHaveBeenLastCalledWith("测试", true);
+    expect(mockUseSearchUsers).toHaveBeenLastCalledWith("测试", true, undefined);
     expect(screen.getByRole("link", { name: /测试用户/ })).toHaveAttribute(
       "href",
       "/users/u1",
@@ -261,7 +261,7 @@ describe("SearchResults", () => {
     render(<SearchResults keyword="测试" />);
     fireEvent.click(screen.getByRole("tab", { name: "楼层内容" }));
 
-    expect(mockUseSearchPosts).toHaveBeenLastCalledWith("测试", true);
+    expect(mockUseSearchPosts).toHaveBeenLastCalledWith("测试", true, undefined);
     expect(screen.getByRole("tab", { name: "楼层内容" })).toBeInTheDocument();
     expect(screen.queryByText("1+")).toBeNull();
     expect(screen.getByText("这是匹配的楼层内容")).toBeInTheDocument();
@@ -279,7 +279,7 @@ describe("SearchResults", () => {
     render(<SearchResults keyword="字" />);
     fireEvent.click(screen.getByRole("tab", { name: "楼层内容" }));
 
-    expect(mockUseSearchPosts).toHaveBeenLastCalledWith("字", false);
+    expect(mockUseSearchPosts).toHaveBeenLastCalledWith("字", false, undefined);
     expect(screen.getByText("楼层内容搜索至少需要 2 个字符")).toBeInTheDocument();
     expect(screen.queryByText("这是匹配的楼层内容")).not.toBeInTheDocument();
   });

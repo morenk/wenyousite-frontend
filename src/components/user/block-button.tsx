@@ -26,7 +26,7 @@ export function BlockButton({ userId, isBlocked }: BlockButtonProps) {
   const handleBlock = async () => {
     if (!(await confirmAction({
       title: "拉黑用户",
-      description: "确定要拉黑该用户吗？拉黑后将屏蔽其回复与通知。",
+      description: "确定要拉黑该用户吗？双方内容和私聊将互相隐藏，历史记录保留。",
       confirmLabel: "拉黑",
       destructive: true,
     }))) return;

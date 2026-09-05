@@ -414,6 +414,7 @@ function ThreadDetailPageContent() {
         <div className="mt-5">
           <ThreadPostSearch
             threadId={thread.id}
+            viewerId={user?.id}
             onClose={() => setIsSearching(false)}
             onSelect={() => {
               setIsSearching(false);

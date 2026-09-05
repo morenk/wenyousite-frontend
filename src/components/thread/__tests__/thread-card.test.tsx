@@ -200,10 +200,10 @@ describe("ThreadCard", () => {
     expect(screen.getByText("已停招")).toBeInTheDocument();
   });
 
-  test("已结束状态显示'已结束'", () => {
+  test("已完结状态显示'已完结'", () => {
     const finished = { ...baseThread, status: "FINISHED" as const };
     renderThreadCard(finished);
-    expect(screen.getByText("已结束")).toBeInTheDocument();
+    expect(screen.getByText("已完结")).toBeInTheDocument();
   });
 
   test("国策分类显示'国策'", () => {

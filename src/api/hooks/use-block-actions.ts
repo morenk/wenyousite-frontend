@@ -2,17 +2,12 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
-import { queryKeys } from "@/api/query-keys";
+import { resetBlockRelatedQueries } from "@/api/content-access-cache";
 
 export function useBlockActions(userId: string) {
   const queryClient = useQueryClient();
 
-  const invalidate = () => {
-    return Promise.all([
-      queryClient.invalidateQueries({ queryKey: queryKeys.users.detail(userId) }),
-      queryClient.invalidateQueries({ queryKey: queryKeys.directMessages.all }),
-    ]);
-  };
+  const invalidate = () => resetBlockRelatedQueries(queryClient);
 
   const block = useMutation({
     mutationFn: async () => {

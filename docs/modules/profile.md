@@ -320,7 +320,7 @@ showRecentReplies / showPlayerBadges / showBookmarks: boolean
 | 查看自己主页 | 显示"编辑资料"入口（跳 /me），不显示关注/拉黑按钮 |
 | 查看自己的参与列表 | 只返回已获授玩家身份的非自建帖子（可含私密帖），可按全部/公开帖/私密帖分类 |
 | 查看他人的参与列表 | 不显示分类控件；后端仅返回 PUBLIC 且 playerMarked=true 的帖子，绝不返回私密帖 |
-| 关注/拉黑他人 | 仅登录；isFollowing/isBlocked 为 true 时按钮切换为取消态；成功仅更新按钮或黑名单状态，失败显示错误 Toast |
+| 关注/拉黑他人 | 仅登录；isFollowing/isBlocked 为 true 时按钮切换为取消态；成功后重置用户、内容、搜索、通知与私聊缓存；双方不可见且禁止互动，历史记录保留，解除后按当前权限恢复；失败显示错误 Toast |
 | 隐私开关关闭（showRecentReplies/showPlayerBadges/showBookmarks） | 概览不挂载最近回复；帖子页隐藏参与入口；收藏 Tab 隐藏，直达时显示未公开且不发请求 |
 | 草稿箱 | 仅本人（登录守卫，isInitialized 后再判断） |
 | /me | 仅本人（未登录跳 /login） |

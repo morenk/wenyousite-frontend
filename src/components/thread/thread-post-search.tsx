@@ -23,12 +23,14 @@ import { Input } from "@/components/ui/input";
 
 interface ThreadPostSearchProps {
   threadId: string;
+  viewerId?: string;
   onClose: () => void;
   onSelect?: () => void;
 }
 
 export function ThreadPostSearch({
   threadId,
+  viewerId,
   onClose,
   onSelect,
 }: ThreadPostSearchProps) {
@@ -36,7 +38,7 @@ export function ThreadPostSearch({
   const [keyword, setKeyword] = useState<string>();
   const keywordValid = keyword !== undefined
     && isPostSearchKeywordValid(keyword);
-  const postsQuery = useThreadSearchPosts(threadId, keyword ?? "", keywordValid);
+  const postsQuery = useThreadSearchPosts(threadId, keyword ?? "", keywordValid, viewerId);
   const posts = postsQuery.data?.pages.flatMap((page) => page.data) ?? [];
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -48,7 +50,7 @@ export function ThreadPostSearch({
     <Card aria-label="帖内楼层搜索">
       <CardHeader className="border-b">
         <CardTitle>搜索本帖楼层</CardTitle>
-        <CardDescription>搜索范围包含本帖全部子贴和楼中楼</CardDescription>
+        <CardDescription>搜索范围包含主贴与子贴正文、楼层和楼中楼</CardDescription>
         <CardAction>
           <Button
             type="button"

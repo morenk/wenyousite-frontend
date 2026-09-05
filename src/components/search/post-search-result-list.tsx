@@ -5,7 +5,7 @@
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import type { SearchPost } from "@/api/hooks/use-search";
-import { getPostHref } from "@/lib/post-navigation";
+import { getPostHref, getSubthreadHref } from "@/lib/post-navigation";
 import { formatMarkdownPreview } from "@/lib/markdown-preview";
 import { Button } from "@/components/ui/button";
 
@@ -31,7 +31,7 @@ export function PostSearchResultList({
       {posts.map((post) => (
         <Link
           key={post.id}
-          href={getPostHref({
+          href={post.kind === "BODY" ? getSubthreadHref(post.thread.id, post.subthread.id) : getPostHref({
             threadId: post.thread.id,
             postId: post.id,
             parentPostId: post.parentPostId,
@@ -43,7 +43,7 @@ export function PostSearchResultList({
             {formatMarkdownPreview(post.content)}
           </p>
           <p className="text-xs text-muted-foreground">
-            {post.author.username} · {post.floorNumber != null
+            {post.author.username} · {post.kind === "BODY" ? "正文" : post.floorNumber != null
               ? `#${post.floorNumber}`
               : "楼中楼"} · {post.subthread.title}
             {context === "global" ? ` · ${post.thread.title}` : ""}
