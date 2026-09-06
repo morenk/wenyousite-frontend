@@ -9,7 +9,7 @@ import {
   NAVIGATION_LABELS,
   NAVIGATION_WEB_PROFILE,
 } from "@wenyousite/foundation/navigation";
-import { WEB_TYPE_SCALE } from "@wenyousite/foundation/typography";
+import { TYPOGRAPHY_USAGE, WEB_TYPE_SCALE } from "@wenyousite/foundation/typography";
 import { describe, expect, test } from "vitest";
 
 describe("Foundation public contracts", () => {
@@ -19,6 +19,9 @@ describe("Foundation public contracts", () => {
       size: 28,
       weight: 500,
     });
+    expect(TYPOGRAPHY_USAGE.bodySemiboldContexts).toEqual(expect.arrayContaining([
+      "functional-page-title", "functional-section-title", "functional-subsection-title",
+    ]));
     expect(FEEDBACK_RESOURCE_STATES).toContain("loading-more");
     expect(ACCESSIBILITY_CONTRACT.invariants.asyncAnnouncement).toBe(
       "polite-unless-critical",
