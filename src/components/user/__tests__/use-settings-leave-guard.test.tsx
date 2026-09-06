@@ -11,7 +11,7 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals(); document.body.replaceChildre
 
 function clickLink() {
   const link = document.createElement("a");
-  link.href = "/me/privacy";
+  link.href = "/me/security";
   document.body.append(link);
   const event = new MouseEvent("click", { bubbles: true, cancelable: true });
   link.dispatchEvent(event);
@@ -24,7 +24,7 @@ test("脏表单取消离开保留页面，确认后才跳转", async () => {
   await act(async () => { expect(clickLink().defaultPrevented).toBe(true); });
   expect(router.push).not.toHaveBeenCalled();
   await act(async () => { clickLink(); });
-  expect(router.push).toHaveBeenCalledWith(new URL("/me/privacy", location.href).href);
+  expect(router.push).toHaveBeenCalledWith(new URL("/me/security", location.href).href);
 });
 
 test("保存中阻止离开与重复确认；完成后不再阻止刷新", () => {

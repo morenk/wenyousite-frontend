@@ -82,7 +82,7 @@ export function AccountSecurityPanel() {
   return (
     <div className="space-y-8">
       <section aria-labelledby="security-credentials" className="border-b border-border pb-6">
-        <h3 id="security-credentials" className="mb-4 text-sm font-semibold">登录凭据</h3>
+        <h2 id="security-credentials" className="mb-4 font-sans text-base font-semibold">登录凭据</h2>
         <div className="flex items-center justify-between gap-4 py-3">
           <div className="text-sm"><p className="font-medium">邮箱</p>
             {maskedEmail ? <p className="mt-1 text-muted-foreground">{maskedEmail}</p> : me.error ? <p role="alert" className="text-destructive">邮箱加载失败 <Button variant="link" size="compact" onClick={() => void me.refetch()}>重试</Button></p> : <p role="status" className="text-muted-foreground">正在加载邮箱…</p>}
@@ -95,7 +95,7 @@ export function AccountSecurityPanel() {
         </div>
       </section>
       <section aria-labelledby="security-sessions" className="border-b border-border pb-6">
-        <h3 id="security-sessions" className="mb-4 text-sm font-semibold">登录终端</h3>
+        <h2 id="security-sessions" className="mb-4 font-sans text-base font-semibold">登录终端</h2>
         <div>
           {sessions.isLoading ? (
             <Loader2 className="mx-auto h-5 w-5 animate-spin text-muted-foreground" />
@@ -154,7 +154,7 @@ export function AccountSecurityPanel() {
       </section>
 
       <section aria-labelledby="security-blocks" className="border-b border-border pb-6">
-        <h3 id="security-blocks" className="mb-4 text-sm font-semibold">黑名单</h3>
+        <h2 id="security-blocks" className="mb-4 font-sans text-base font-semibold">黑名单</h2>
         <div>
           {blockedUsers.isLoading ? (
             <Loader2 className="mx-auto h-5 w-5 animate-spin text-muted-foreground" />
@@ -186,7 +186,7 @@ export function AccountSecurityPanel() {
       </section>
 
       <section aria-labelledby="security-delete" className="rounded-xl border border-destructive/40 p-5">
-        <h3 id="security-delete" className="mb-3 text-sm font-semibold text-destructive">注销账号</h3>
+        <h2 id="security-delete" className="mb-3 font-sans text-base font-semibold text-destructive">注销账号</h2>
         <div className="space-y-3">
           <p className="text-sm text-muted-foreground">
             注销后账号、登录终端和身份信息将无法恢复。请输入“注销账号”确认。

@@ -8,6 +8,8 @@ import { useMe } from "@/api/hooks/use-me";
 import { useUpdateProfile } from "@/api/hooks/use-update-profile";
 import { getApiError } from "@/api/errors";
 import { profileSchema, type ProfileFormData } from "@/lib/validations/profile";
+import { AvatarUploader } from "@/components/user/avatar-uploader";
+import { ProfileCoverUploader } from "@/components/user/profile-cover-uploader";
 import { UsernameEdit } from "@/components/user/username-edit";
 import { useSettingsLeaveGuard } from "@/components/user/use-settings-leave-guard";
 import { Button } from "@/components/ui/button";
@@ -23,84 +25,192 @@ const privacyFields = [
   { name: "showBookmarks", label: "公开收藏", description: "允许他人查看收藏内容；收藏夹名称与归类仅自己可见。" },
 ] as const;
 
-export function ProfileEditForm({ section = "profile" }: { section?: "profile" | "privacy" }) {
+type Section = "bio" | "privacy";
+
+export function ProfileEditForm() {
   const { data: me, isLoading, error, refetch } = useMe();
   const updateProfile = useUpdateProfile();
-  const [saved, setSaved] = useState(false);
+  const [savedSection, setSavedSection] = useState<Section | null>(null);
+  const [savingSection, setSavingSection] = useState<Section | null>(null);
+  const [sectionError, setSectionError] = useState<{ section: Section; message: string } | null>(null);
   const [usernameStatus, setUsernameStatus] = useState({ dirty: false, busy: false });
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: { bio: "", showRecentReplies: true, showPlayerBadges: true, showBookmarks: true },
   });
-  const { register, handleSubmit, reset, control, setError, clearErrors } = form;
+  const { register, handleSubmit, reset, resetField, control, setError, clearErrors } = form;
   const { errors, dirtyFields } = form.formState;
   const bio = useWatch({ control, name: "bio" }) ?? "";
-  const dirty = section === "profile" ? !!dirtyFields.bio : privacyFields.some(({ name }) => dirtyFields[name]);
+  const bioDirty = !!dirtyFields.bio;
+  const privacyDirty = privacyFields.some(({ name }) => dirtyFields[name]);
   const busy = updateProfile.isPending;
-  useSettingsLeaveGuard(dirty || usernameStatus.dirty, busy || usernameStatus.busy);
+  useSettingsLeaveGuard(bioDirty || privacyDirty || usernameStatus.dirty, busy || usernameStatus.busy);
 
   useEffect(() => {
-    if (me) reset({ bio: me.bio ?? "", showRecentReplies: me.showRecentReplies, showPlayerBadges: me.showPlayerBadges, showBookmarks: me.showBookmarks }, { keepDirtyValues: true, keepErrors: true });
+    if (me) reset({
+      bio: me.bio ?? "",
+      showRecentReplies: me.showRecentReplies,
+      showPlayerBadges: me.showPlayerBadges,
+      showBookmarks: me.showBookmarks,
+    }, { keepDirtyValues: true, keepErrors: true });
   }, [me, reset]);
 
-  const save = handleSubmit(async (values) => {
-    if (!dirty || busy) return;
-    clearErrors("root");
-    setSaved(false);
-    if (section === "profile" && !values.bio?.trim()) {
+  useEffect(() => {
+    if (!me) return;
+    const scrollToSetting = () => {
+      let anchor = window.location.hash.slice(1);
+      if (anchor === "profile-appearance") {
+        anchor = "appearance";
+        window.history.replaceState(window.history.state, "", "/me#appearance");
+      }
+      if (anchor === "appearance" || anchor === "privacy") {
+        requestAnimationFrame(() => document.getElementById(anchor)?.scrollIntoView());
+      }
+    };
+    scrollToSetting();
+    window.addEventListener("hashchange", scrollToSetting);
+    return () => window.removeEventListener("hashchange", scrollToSetting);
+  }, [me]);
+
+  const saveBio = handleSubmit(async (values) => {
+    if (!bioDirty || busy) return;
+    const nextBio = values.bio?.trim();
+    setSavedSection(null);
+    setSectionError(null);
+    clearErrors("bio");
+    if (!nextBio) {
       setError("bio", { message: "简介不能为空；暂不支持清空已填写的简介。" }, { shouldFocus: true });
       return;
     }
-    const changes = section === "profile" ? { bio: values.bio!.trim() } : {
-      showRecentReplies: values.showRecentReplies,
-      showPlayerBadges: values.showPlayerBadges,
-      showBookmarks: values.showBookmarks,
-    };
+    setSavingSection("bio");
     try {
-      await updateProfile.mutateAsync(changes);
-      reset({ ...values, ...changes });
-      setSaved(true);
-    } catch (error) {
-      const apiError = getApiError(error);
+      await updateProfile.mutateAsync({ bio: nextBio });
+      resetField("bio", { defaultValue: nextBio });
+      setSavedSection("bio");
+    } catch (caught) {
+      const apiError = getApiError(caught);
       const message = apiError.code === 42900 ? "操作太频繁，请稍后再试" : apiError.message || "保存失败，请稍后重试";
-      setError(section === "profile" && (apiError.status === 400 || apiError.code === 40000 || apiError.code === 40001) ? "bio" : "root", { message });
+      if (apiError.status === 400 || apiError.code === 40000 || apiError.code === 40001) {
+        setError("bio", { message });
+      } else {
+        setSectionError({ section: "bio", message });
+      }
+    } finally {
+      setSavingSection(null);
+    }
+  });
+
+  const savePrivacy = handleSubmit(async (values) => {
+    if (!privacyDirty || busy) return;
+    setSavedSection(null);
+    setSectionError(null);
+    setSavingSection("privacy");
+    try {
+      await updateProfile.mutateAsync({
+        showRecentReplies: values.showRecentReplies,
+        showPlayerBadges: values.showPlayerBadges,
+        showBookmarks: values.showBookmarks,
+      });
+      resetField("showRecentReplies", { defaultValue: values.showRecentReplies });
+      resetField("showPlayerBadges", { defaultValue: values.showPlayerBadges });
+      resetField("showBookmarks", { defaultValue: values.showBookmarks });
+      setSavedSection("privacy");
+    } catch (caught) {
+      const apiError = getApiError(caught);
+      setSectionError({
+        section: "privacy",
+        message: apiError.code === 42900 ? "操作太频繁，请稍后再试" : apiError.message || "保存失败，请稍后重试",
+      });
+    } finally {
+      setSavingSection(null);
     }
   });
 
   if (isLoading && !me) return <Skeleton role="status" aria-label="正在加载资料" className="h-64 w-full rounded-xl" />;
   if (!me) return <LoadError title="资料加载失败" onRetry={() => void refetch()} />;
+
   const tier = levelTier(me.level);
-  const experiencePercent = me.nextLevelExperience === null ? 100 : Math.max(0, Math.min(100, (me.experience - me.currentLevelExperience) / (me.nextLevelExperience - me.currentLevelExperience) * 100));
+  const experiencePercent = me.nextLevelExperience === null
+    ? 100
+    : Math.max(0, Math.min(100, (me.experience - me.currentLevelExperience) / (me.nextLevelExperience - me.currentLevelExperience) * 100));
+  const bioRegistration = register("bio");
 
   return (
-    <div className="space-y-6">
-      {error ? <p role="alert" className="text-sm text-destructive">资料刷新失败，当前输入已保留。<Button variant="link" size="compact" onClick={() => void refetch()}>重试</Button></p> : null}
-      {section === "profile" ? <UsernameEdit currentUsername={me.username} onStatusChange={setUsernameStatus} /> : null}
-      <form onSubmit={save} onChange={() => { clearErrors("root"); setSaved(false); }} className="space-y-6">
-        {section === "profile" ? (
+    <div>
+      {error ? <p role="alert" className="mb-5 text-sm text-destructive">资料刷新失败，当前输入已保留。<Button variant="link" size="compact" onClick={() => void refetch()}>重试</Button></p> : null}
+
+      <section aria-labelledby="public-profile-title">
+        <h2 id="public-profile-title" className="mb-5 font-sans text-base font-semibold">公开资料</h2>
+        <div className="flex flex-wrap items-center gap-x-8 gap-y-5">
+          <AvatarUploader username={me.username} avatar={me.avatar} />
+          <UsernameEdit currentUsername={me.username} disabled={busy} onStatusChange={setUsernameStatus} />
+        </div>
+        <form onSubmit={saveBio} className="mt-5 border-t border-border pt-5">
           <FormField id="bio" label="个人简介" error={errors.bio?.message} labelAction={<span className="font-utility text-xs tabular-nums text-muted-foreground">{bio.length}/255</span>}>
-            {(props) => <textarea {...props} rows={5} maxLength={255} placeholder="介绍一下自己" disabled={busy}
-              className="w-full min-w-0 resize-y rounded-xl border border-input bg-card px-3 py-3 text-sm leading-6 outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20 disabled:opacity-50 aria-invalid:border-destructive" {...register("bio")} />}
+            {(props) => <textarea
+              {...props}
+              {...bioRegistration}
+              rows={3}
+              maxLength={255}
+              placeholder="介绍一下自己"
+              disabled={busy}
+              onChange={(event) => {
+                void bioRegistration.onChange(event);
+                clearErrors("bio");
+                if (savedSection === "bio") setSavedSection(null);
+                if (sectionError?.section === "bio") setSectionError(null);
+              }}
+              className="w-full min-w-0 resize-y rounded-xl border border-input bg-card px-3 py-3 text-sm leading-6 outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20 disabled:opacity-50 aria-invalid:border-destructive"
+            />}
           </FormField>
-        ) : (
+          {sectionError?.section === "bio" ? <p role="alert" className="mt-2 text-sm text-destructive">{sectionError.message}</p> : null}
+          <div className="mt-3 flex min-h-8 items-center justify-end gap-2">
+            <p role="status" className="mr-auto text-sm text-muted-foreground">{savingSection === "bio" ? "保存中…" : bioDirty ? "未保存修改" : savedSection === "bio" ? "已保存" : ""}</p>
+            <Button type="button" variant="ghost" size="compact" disabled={!bioDirty || busy} onClick={() => {
+              resetField("bio", { defaultValue: me.bio ?? "" });
+              clearErrors("bio");
+              setSectionError(null);
+              setSavedSection(null);
+            }}>撤销</Button>
+            <Button type="submit" size="compact" pending={savingSection === "bio"} disabled={!bioDirty || busy || usernameStatus.busy} pendingLabel="保存中">保存简介</Button>
+          </div>
+        </form>
+      </section>
+
+      <section id="appearance" aria-labelledby="appearance-title" className="scroll-mt-5 border-t border-border pt-7">
+        <h2 id="appearance-title" className="mb-5 font-sans text-base font-semibold">主页背景</h2>
+        <ProfileCoverUploader username={me.username} avatar={me.avatar} profileCover={me.profileCover} />
+      </section>
+
+      <section id="privacy" aria-labelledby="privacy-title" className="scroll-mt-5 border-t border-border pt-7">
+        <h2 id="privacy-title" className="mb-3 font-sans text-base font-semibold">主页公开范围</h2>
+        <form onSubmit={savePrivacy}>
           <fieldset disabled={busy} className="divide-y divide-border">
             <legend className="sr-only">主页公开范围</legend>
-            {privacyFields.map(({ name, label, description }) => <label key={name} className="flex min-h-20 cursor-pointer items-center justify-between gap-6 py-5 first:pt-0">
-              <span><span className="block text-sm font-semibold">{label}</span><span id={`${name}-description`} className="mt-1 block text-sm text-muted-foreground">{description}</span></span>
-              <input type="checkbox" aria-label={label} aria-describedby={`${name}-description`} className="size-5 shrink-0 accent-primary" {...register(name)} />
+            {privacyFields.map(({ name, label, description }) => <label key={name} className="flex min-h-14 cursor-pointer items-center justify-between gap-6 py-3.5">
+              <span><span className="block text-sm font-semibold">{label}</span><span id={`${name}-description`} className="mt-0.5 block text-sm text-muted-foreground">{description}</span></span>
+              <input type="checkbox" aria-label={label} aria-describedby={`${name}-description`} className="size-5 shrink-0 accent-primary" {...register(name, { onChange: () => {
+                if (savedSection === "privacy") setSavedSection(null);
+                if (sectionError?.section === "privacy") setSectionError(null);
+              } })} />
             </label>)}
           </fieldset>
-        )}
-        {errors.root ? <p role="alert" className="text-sm text-destructive">{errors.root.message}</p> : null}
-        <div className="sticky bottom-0 z-[var(--layer-sticky)] flex flex-wrap items-center justify-between gap-3 border-t border-border bg-background py-4">
-          <p role="status" className="text-sm text-muted-foreground">{busy ? "保存中…" : errors.root || errors.bio ? "保存失败" : dirty ? "未保存修改" : saved ? "已保存" : ""}</p>
-          <div className="flex items-center gap-2">
-            <Button type="button" variant="ghost" disabled={!dirty || busy} onClick={() => { reset({ bio: me.bio ?? "", showRecentReplies: me.showRecentReplies, showPlayerBadges: me.showPlayerBadges, showBookmarks: me.showBookmarks }); setSaved(false); }}>撤销修改</Button>
-            <Button type="submit" pending={busy} disabled={!dirty || usernameStatus.busy} pendingLabel="保存中">{section === "profile" ? "保存简介" : "保存隐私设置"}</Button>
+          {sectionError?.section === "privacy" ? <p role="alert" className="mt-2 text-sm text-destructive">{sectionError.message}</p> : null}
+          <div className="mt-3 flex min-h-8 items-center justify-end gap-2">
+            <p role="status" className="mr-auto text-sm text-muted-foreground">{savingSection === "privacy" ? "保存中…" : privacyDirty ? "未保存修改" : savedSection === "privacy" ? "已保存" : ""}</p>
+            <Button type="button" variant="ghost" size="compact" disabled={!privacyDirty || busy} onClick={() => {
+              resetField("showRecentReplies", { defaultValue: me.showRecentReplies });
+              resetField("showPlayerBadges", { defaultValue: me.showPlayerBadges });
+              resetField("showBookmarks", { defaultValue: me.showBookmarks });
+              setSectionError(null);
+              setSavedSection(null);
+            }}>撤销</Button>
+            <Button type="submit" size="compact" pending={savingSection === "privacy"} disabled={!privacyDirty || busy || usernameStatus.busy} pendingLabel="保存中">保存隐私设置</Button>
           </div>
-        </div>
-      </form>
-      {section === "profile" ? <details className="border-t border-border pt-5">
+        </form>
+      </section>
+
+      <details className="mt-7 border-t border-border pt-5">
         <summary className="cursor-pointer rounded-md text-sm font-semibold text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring">等级与创作激励</summary>
         <div className="space-y-3 pt-4">
           <LevelBadge level={me.level} />
@@ -110,7 +220,7 @@ export function ProfileEditForm({ section = "profile" }: { section?: "profile" |
           </div>
           <p className="text-xs text-muted-foreground">累计收到 {formatWenyou(me.receivedTipTotal)} 升温油，共 {me.receivedTipCount} 次投入</p>
         </div>
-      </details> : null}
+      </details>
     </div>
   );
 }

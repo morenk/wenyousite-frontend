@@ -1,7 +1,7 @@
 /** ProfileEditForm 组件测试：分区保存、草稿保留、内联错误与撤销 */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, cleanup, fireEvent, waitFor, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import type { UserMe } from "@/api/hooks/use-me";
@@ -48,7 +48,6 @@ vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
-import AppearancePage from "@/app/me/appearance/page";
 import { ProfileEditForm } from "@/components/user/profile-edit-form";
 
 const baseMe = {
@@ -89,7 +88,10 @@ beforeEach(() => {
   mockMe.mockReturnValue({ data: baseMe, isLoading: false, error: null });
 });
 
-afterEach(() => cleanup());
+afterEach(() => {
+  cleanup();
+  window.history.replaceState(null, "", "/");
+});
 
 describe("ProfileEditForm", () => {
   test("加载中显示骨架", () => {
@@ -98,20 +100,31 @@ describe("ProfileEditForm", () => {
     expect(screen.getByRole("status", { name: "正在加载资料" })).toBeInTheDocument();
   });
 
-  test("外观页先展示头像再展示主页背景", () => {
-    render(<AppearancePage />, { wrapper: createWrapper() });
+  test("公开资料合并头像、用户名和简介，并在其后展示主页背景", () => {
+    render(<ProfileEditForm />, { wrapper: createWrapper() });
     const avatar = screen.getByTestId("avatar-uploader");
+    const username = screen.getByTestId("username-edit");
+    const bio = screen.getByLabelText("个人简介");
     const cover = screen.getByTestId("profile-cover-uploader");
+    expect(avatar.compareDocumentPosition(username) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByRole("region", { name: "公开资料" })).toContainElement(bio);
     expect(avatar.compareDocumentPosition(cover) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  test("外观资料后台刷新失败时保留已挂载的上传器", () => {
-    const { rerender } = render(<AppearancePage />, { wrapper: createWrapper() });
+  test("资料后台刷新失败时保留已挂载的上传器", () => {
+    const { rerender } = render(<ProfileEditForm />, { wrapper: createWrapper() });
     const uploader = screen.getByTestId("profile-cover-uploader");
     mockMe.mockReturnValue({ data: baseMe, isLoading: false, error: new Error("offline") });
-    rerender(<AppearancePage />);
+    rerender(<ProfileEditForm />);
     expect(screen.getByTestId("profile-cover-uploader")).toBe(uploader);
-    expect(screen.getByRole("alert")).toHaveTextContent("资料刷新失败，当前编辑已保留。");
+    expect(screen.getByRole("alert")).toHaveTextContent("资料刷新失败，当前输入已保留。");
+  });
+
+  test("同页进入旧外观锚点时规范化地址", async () => {
+    render(<ProfileEditForm />, { wrapper: createWrapper() });
+    window.history.replaceState(null, "", "/me#profile-appearance");
+    fireEvent(window, new HashChangeEvent("hashchange"));
+    await waitFor(() => expect(window.location.hash).toBe("#appearance"));
   });
 
   test("只有业务码的简介校验错误也映射到字段", async () => {
@@ -151,18 +164,38 @@ describe("ProfileEditForm", () => {
     const textarea = document.getElementById("bio");
     expect(textarea?.tagName).toBe("TEXTAREA");
     expect(screen.getByText("0/255")).toBeInTheDocument();
+    expect(textarea).toHaveAttribute("rows", "3");
   });
 
   test("隐私标签准确说明回复与收藏目录范围，修改后才可保存", async () => {
-    render(<ProfileEditForm section="privacy" />, { wrapper: createWrapper() });
+    render(<ProfileEditForm />, { wrapper: createWrapper() });
     expect(screen.getByRole("button", { name: "保存隐私设置" })).toBeDisabled();
-    expect(screen.queryByLabelText("个人简介")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("个人简介")).toBeInTheDocument();
     expect(screen.getByText(/收藏夹名称与归类仅自己可见/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("checkbox", { name: "公开最近回复" }));
     fireEvent.click(screen.getByRole("button", { name: "保存隐私设置" }));
     await waitFor(() => expect(mutateAsync).toHaveBeenCalledWith({ showRecentReplies: false, showPlayerBadges: true, showBookmarks: true }));
     expect(await screen.findByText("已保存")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "保存隐私设置" })).toBeDisabled();
+  });
+
+  test("简介与隐私草稿同时存在时可分别保存", async () => {
+    render(<ProfileEditForm />, { wrapper: createWrapper() });
+    fireEvent.change(screen.getByLabelText("个人简介"), { target: { value: "新的简介" } });
+    fireEvent.click(screen.getByRole("checkbox", { name: "公开收藏" }));
+
+    fireEvent.click(screen.getByRole("button", { name: "保存简介" }));
+    await waitFor(() => expect(mutateAsync).toHaveBeenCalledWith({ bio: "新的简介" }));
+    expect(screen.getByRole("button", { name: "保存简介" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "保存隐私设置" })).toBeEnabled();
+    expect(screen.getByRole("checkbox", { name: "公开收藏" })).not.toBeChecked();
+
+    fireEvent.click(screen.getByRole("button", { name: "保存隐私设置" }));
+    await waitFor(() => expect(mutateAsync).toHaveBeenLastCalledWith({
+      showRecentReplies: true,
+      showPlayerBadges: true,
+      showBookmarks: false,
+    }));
   });
 
   test("用户名变更触发资料刷新时保留简介草稿，撤销回到服务器资料", () => {
@@ -173,7 +206,7 @@ describe("ProfileEditForm", () => {
     rerender(<ProfileEditForm />);
     expect(screen.getByLabelText("个人简介")).toHaveValue("尚未保存的草稿");
     expect(screen.getByText("未保存修改")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "撤销修改" }));
+    fireEvent.click(within(screen.getByRole("region", { name: "公开资料" })).getByRole("button", { name: "撤销" }));
     expect(screen.getByLabelText("个人简介")).toHaveValue("原简介");
     expect(screen.getByRole("button", { name: "保存简介" })).toBeDisabled();
   });

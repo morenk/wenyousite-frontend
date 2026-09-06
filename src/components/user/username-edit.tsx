@@ -13,8 +13,9 @@ import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/ui/form-field";
 import { Dialog, DialogBackdrop, DialogCloseButton, DialogDescription, DialogPopup, DialogPortal, DialogTitle, DialogViewport } from "@/components/ui/dialog";
 
-export function UsernameEdit({ currentUsername, onStatusChange }: {
+export function UsernameEdit({ currentUsername, disabled = false, onStatusChange }: {
   currentUsername: string;
+  disabled?: boolean;
   onStatusChange?: (status: { dirty: boolean; busy: boolean }) => void;
 }) {
   const { user, accessToken, setAuth } = useAuth();
@@ -48,9 +49,9 @@ export function UsernameEdit({ currentUsername, onStatusChange }: {
   });
 
   return (
-    <div className="flex items-center justify-between gap-4 border-b border-border pb-6">
+    <div className="flex min-w-64 flex-1 items-center justify-between gap-4">
       <div className="min-w-0"><p className="mb-2 text-sm font-semibold">用户名</p><p className="break-words text-sm">{currentUsername}</p></div>
-      <Button type="button" variant="outline" size="compact" onClick={() => { form.reset({ username: currentUsername }); setEditing(true); }}>修改用户名</Button>
+      <Button type="button" variant="outline" size="compact" disabled={disabled} onClick={() => { form.reset({ username: currentUsername }); setEditing(true); }}>修改用户名</Button>
       <Dialog open={editing} onOpenChange={(open) => { if (!open) close(); }} disablePointerDismissal={updateProfile.isPending}>
         <DialogPortal><DialogBackdrop /><DialogViewport><DialogPopup className="max-w-md p-6">
           <div className="flex items-center justify-between gap-4"><DialogTitle>修改用户名</DialogTitle><DialogCloseButton label="关闭用户名修改" disabled={updateProfile.isPending} /></div>

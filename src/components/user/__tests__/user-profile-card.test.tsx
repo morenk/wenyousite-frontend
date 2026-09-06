@@ -107,7 +107,7 @@ describe("UserProfileCard", () => {
     renderWithQC(<UserProfileCard user={sampleUser} />);
     expect(screen.getByRole("link", { name: "编辑主页" })).toHaveAttribute(
       "href",
-      "/me/appearance",
+      "/me#appearance",
     );
     expect(screen.queryByRole("button", { name: "加油" })).not.toBeInTheDocument();
     expect(screen.queryByTestId("follow-btn")).not.toBeInTheDocument();

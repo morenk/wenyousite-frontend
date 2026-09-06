@@ -36,20 +36,21 @@ async function mockSettings(page: Page) {
 }
 
 for (const colorScheme of ["light", "dark"] as const) {
-  test(`${colorScheme} 下四个设置分区排版、预览与无障碍检查`, async ({ page }, testInfo) => {
+  test(`${colorScheme} 下双页设置排版、预览与无障碍检查`, async ({ page }, testInfo) => {
     await page.emulateMedia({ colorScheme, reducedMotion: "reduce" });
     await mockSettings(page);
-    for (const [path, title] of [["/me", "基本资料"], ["/me/appearance", "主页外观"], ["/me/privacy", "隐私设置"], ["/me/security", "账号安全"]]) {
+    for (const [path, title] of [["/me", "个人资料"], ["/me/security", "账号与安全"]]) {
       await page.goto(path);
-      await expect(page.getByRole("heading", { name: title, level: 2 })).toBeVisible();
+      await expect(page.getByRole("heading", { name: title, level: 1 })).toBeVisible();
       const navigation = page.getByRole("navigation", { name: "设置分区" });
       await expect(navigation.getByRole("link", { name: title })).toHaveAttribute("aria-current", "page");
       for (const width of [1024, 1280, 1440, 1920]) {
         await page.setViewportSize({ width, height: 1000 });
         expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
-        const nav = (await navigation.boundingBox())!;
-        const content = (await page.locator('[data-slot="settings-title"]').boundingBox())!;
-        expect(nav.x + nav.width).toBeLessThan(content.x);
+        const firstLink = (await navigation.getByRole("link", { name: "个人资料" }).boundingBox())!;
+        const secondLink = (await navigation.getByRole("link", { name: "账号与安全" }).boundingBox())!;
+        expect(firstLink.y).toBe(secondLink.y);
+        expect(firstLink.x + firstLink.width).toBeLessThan(secondLink.x);
       }
       await page.setViewportSize({ width: 1920, height: 1200 });
       await page.evaluate(() => { document.documentElement.style.zoom = "2"; });
@@ -57,7 +58,9 @@ for (const colorScheme of ["light", "dark"] as const) {
       await expect(navigation.getByRole("link", { name: title })).toBeInViewport();
       await page.evaluate(() => { document.documentElement.style.zoom = ""; });
       await page.setViewportSize({ width: 1440, height: 1000 });
-      if (path === "/me/appearance") {
+      if (path === "/me") {
+        await expect(page.getByRole("heading", { name: "公开资料", level: 2 })).toBeVisible();
+        await expect(page.getByLabel("个人简介")).toHaveAttribute("rows", "3");
         await expect(page.getByRole("tab", { name: "电脑端 · 3:1" })).toHaveAttribute("aria-selected", "true");
         await page.getByRole("tab", { name: "移动端 · 2:1" }).click();
         await expect(page.getByRole("tab", { name: "移动端 · 2:1" })).toHaveAttribute("aria-selected", "true");
@@ -67,16 +70,16 @@ for (const colorScheme of ["light", "dark"] as const) {
       expect((await new AxeBuilder({ page }).include("main").analyze()).violations).toEqual([]);
     }
     await page.getByRole("link", { name: "修改密码", exact: true }).click();
-    await expect(page.getByRole("navigation", { name: "设置分区" }).getByRole("link", { name: "账号安全" })).toHaveAttribute("aria-current", "page");
-    await page.getByRole("link", { name: "返回账号安全" }).click();
+    await expect(page.getByRole("navigation", { name: "设置分区" }).getByRole("link", { name: "账号与安全" })).toHaveAttribute("aria-current", "page");
+    await page.getByRole("link", { name: "返回账号与安全" }).click();
     await expect(page.getByText("s***@example.test")).toBeVisible();
   });
 }
 
 test("简介草稿跨用户名保存保留，失败可重试，导航与历史返回先确认", async ({ page }) => {
   const mock = await mockSettings(page);
-  await page.goto("/me/privacy");
-  await page.getByRole("navigation", { name: "设置分区" }).getByRole("link", { name: "基本资料" }).click();
+  await page.goto("/me/security");
+  await page.getByRole("navigation", { name: "设置分区" }).getByRole("link", { name: "个人资料" }).click();
   await page.getByLabel("个人简介").fill("未保存的简介草稿");
   await page.getByRole("button", { name: "修改用户名", exact: true }).click();
   await page.getByLabel("新用户名", { exact: true }).fill("新的用户名");
@@ -90,7 +93,7 @@ test("简介草稿跨用户名保存保留，失败可重试，导航与历史�
   await expect(page).toHaveURL(/\/me$/);
   await confirmation.getByRole("button", { name: "继续编辑" }).click();
   await expect(page.getByLabel("个人简介")).toHaveValue("未保存的简介草稿");
-  await page.getByRole("navigation", { name: "设置分区" }).getByRole("link", { name: "主页外观" }).click();
+  await page.getByRole("navigation", { name: "设置分区" }).getByRole("link", { name: "账号与安全" }).click();
   await expect(confirmation).toBeVisible();
   await confirmation.getByRole("button", { name: "继续编辑" }).click();
   mock.failNext();
@@ -106,7 +109,8 @@ test("简介草稿跨用户名保存保留，失败可重试，导航与历史�
   expect(mock.writes).toHaveLength(3);
   await page.evaluate(() => history.back());
   await confirmation.getByRole("button", { name: "放弃修改", exact: true }).click();
-  await expect(page).toHaveURL(/\/me\/privacy$/);
+  await expect(page).toHaveURL(/\/me\/security$/);
+  await page.getByRole("navigation", { name: "设置分区" }).getByRole("link", { name: "个人资料" }).click();
   await page.getByRole("checkbox", { name: "公开收藏" }).uncheck();
   await page.getByRole("button", { name: "保存隐私设置" }).click();
   await expect(page.getByText("已保存", { exact: true })).toBeVisible();
@@ -114,5 +118,11 @@ test("简介草稿跨用户名保存保留，失败可重试，导航与历史�
   await page.reload();
   await expect(page.getByRole("checkbox", { name: "公开收藏" })).not.toBeChecked();
   await page.goto("/me#profile-appearance");
-  await expect(page).toHaveURL(/\/me\/appearance$/);
+  await expect(page).toHaveURL(/\/me#appearance$/);
+  await expect(page.getByRole("heading", { name: "主页背景", level: 2 })).toBeInViewport();
+  await page.goto("/me/appearance");
+  await expect(page).toHaveURL(/\/me#appearance$/);
+  await page.goto("/me/privacy");
+  await expect(page).toHaveURL(/\/me#privacy$/);
+  await expect(page.getByRole("heading", { name: "主页公开范围", level: 2 })).toBeInViewport();
 });

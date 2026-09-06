@@ -8,13 +8,11 @@
 - `/users/[id]` 用户资料使用路由分组共享 Layout 承载资料头部与吸顶 Tab；Tab 路由主动预取，切换时只替换内容区且资料头不卸载，慢速切换只显示局部骨架；概览展示创作活动汇总和允许公开的最近回复，动态列表只留在动态 Tab，未激活内容不挂载查询
 - 关注/取消关注、拉黑/取消拉黑（仅登录，用户主页操作）
 - 草稿箱：未发布帖列表（进入 `/threads/create` 草稿列表查看，可跳转继续编辑或删除）
-- `/me` 基本资料：用户名独立弹窗修改、个人简介单独保存；等级、精确经验与累计收款默认折叠于底部
-- `/me/appearance` 主页外观：先头像（1:1 裁剪上传/移除），后主页背景；默认电脑端 3:1 预览，可切换移动端 2:1 预览，仍从同一原图独立裁剪两端画幅并原子保存
-- `/me/privacy` 隐私设置：公开最近回复、玩家标记和收藏；明确收藏夹名称与归类仅自己可见，需显式保存
-- 设置页共用宽工作区和左侧四个分区导航；密码、邮箱归属账号安全。旧 `/me#profile-appearance` 链接跳转 `/me/appearance`
+- `/me` 个人资料：在一个连续页面内编辑头像、用户名、个人简介、双画幅主页背景和主页公开范围；简介与隐私分别保存，等级、精确经验与累计收款默认折叠于底部
+- 设置页使用“个人资料 / 账号与安全”横向文字导航；`/me/appearance`、`/me/privacy` 和旧 `/me#profile-appearance` 分别兼容跳转到 `/me` 内对应锚点
 - `/me/password` 修改密码页：当前密码/新密码/确认新密码（显示/隐藏切换 + 需求提示），成功后登出跳登录
 - `/me/email` 更换邮箱页：当前密码二次认证 → 新邮箱 → 6 位验证码，成功后失效 me 缓存并返回 `/me/security`
-- `/me/security` 账号安全页：脱敏邮箱、更换邮箱与修改密码入口、双端登录终端、黑名单、独立危险操作区
+- `/me/security` 账号与安全页：脱敏邮箱、更换邮箱与修改密码入口、双端登录终端、黑名单、独立危险操作区
 - 登录终端的跨端安全约束见 `docs/modules/auth.md`
 - 参与列表排除自建帖：只有被授予玩家身份（`playerMarked=true`）的帖子才计入，仅回复过而生成的候选成员关系不计入；本人可按“全部 / 公开帖 / 私密帖”分类，他人仅可见公开帖
 
@@ -30,12 +28,12 @@
 | `/users/[id]/bookmarks` | 收藏 Tab：只读收藏列表 | 公开（受 showBookmarks 控制；无权限时不挂载查询） |
 | `/users/[id]/following` | 该用户关注的人列表 | 公开（OptionalAuth） |
 | `/users/[id]/followers` | 该用户的粉丝列表 | 公开（OptionalAuth） |
-| `/me` | 基本资料（用户名与简介独立修改） | Auth（仅本人） |
-| `/me/appearance` | 头像与双画幅主页背景 | Auth（仅本人） |
-| `/me/privacy` | 主页公开范围设置 | Auth（仅本人） |
+| `/me` | 个人资料（头像、用户名、简介、背景、公开范围与等级） | Auth（仅本人） |
+| `/me/appearance` | 兼容入口，重定向到 `/me#appearance` | Auth（仅本人） |
+| `/me/privacy` | 兼容入口，重定向到 `/me#privacy` | Auth（仅本人） |
 | `/me/password` | 修改密码（成功后登出跳登录） | Auth（仅本人） |
 | `/me/email` | 更换邮箱（当前密码二次认证 + 验证码） | Auth（仅本人） |
-| `/me/security` | Web / 移动端登录终端管理、黑名单管理、注销账号 | Auth（仅本人） |
+| `/me/security` | 登录凭据、Web / 移动端登录终端、黑名单和注销账号 | Auth（仅本人） |
 
 > 草稿箱不占独立路由：未发布帖列表位于 `/threads/create` 的草稿选择器，入口规则见 `docs/modules/thread-create.md`。
 
@@ -262,8 +260,8 @@
 | UserThreadsPage | `src/components/user/user-threads-page.tsx` | 帖子 Tab：创建/参与使用二级切换，只挂载当前无限列表 |
 | UserBookmarksPage | `src/components/user/user-bookmarks-page.tsx` | 收藏 Tab：尊重公开权限，无权限时不发起收藏请求 |
 | DraftList | `src/components/user/draft-list.tsx` | 草稿箱列表（标题/分类/更新时间/继续编辑/删除） |
-| SettingsShell | `src/components/user/settings-shell.tsx` | 资料与设置工作区、四分区导航与统一标题，邮箱/密码子页保持安全分区选中 |
-| ProfileEditForm | `src/components/user/profile-edit-form.tsx` | 简介/隐私按分区保存与撤销，保留脏字段并保护离页 |
+| SettingsShell | `src/components/user/settings-shell.tsx` | 内容宽度设置页、双项横向导航与动态主标题，邮箱/密码子页保持账号与安全分区选中 |
+| ProfileEditForm | `src/components/user/profile-edit-form.tsx` | 合并头像、用户名、简介、背景、隐私和等级；简介/隐私按分区保存与撤销，保留脏字段并保护离页 |
 | UsernameEdit | `src/components/user/username-edit.tsx` | 独立用户名修改（默认只读，点「修改用户名」才打开独立弹窗，未改动不提交） |
 | AvatarUploader | `src/components/user/avatar-uploader.tsx` | 头像上传器：预览（512×512 WebP 母版/首字母占位）→ 文件选择校验（仅 jpg/png/webp，排除 svg）→ 共享 Dialog 内用 react-easy-crop 1:1 裁剪 → canvas 优先导出 512×512 WebP，Safari 编码回退时按真实 PNG/JPEG 上传 → 预签名直传（真实字节进度、可取消、同 ID 恢复）→ `PATCH /me/avatar` 立即生效；绑定失败重试复用已上传 mediaId；「移除头像」调 `DELETE /me/avatar` |
 | ProfileCoverUploader | `src/components/user/profile-cover-uploader.tsx` | 双画幅背景上传器：同一原图分别调整 Web 3:1 与移动端 2:1 取景框 → 并行生成 1920×640 / 1600×800 高质量图片（优先 WebP，按浏览器真实 PNG/JPEG 回退）→ 并行上传并聚合进度 → 原子绑定；支持失败续传、取消、更换和同时移除 |
@@ -291,13 +289,13 @@
 
 ## 7. 表单与校验
 
-### 资料与隐私编辑（/me、/me/privacy）— PATCH /users/me
+### 资料与隐私编辑（/me）— PATCH /users/me
 
-基本资料和隐私分别保存，复用 `profileSchema`，不包含 username：
+简介和隐私在同一页面内分别保存，复用 `profileSchema`，不包含 username：
 
 - 简介仅提交 `{ bio }`，去除首尾空白，最多 255 字。当前后端不接受空字符串；清空已有简介或仅输入空白会在字段下提示，不发送无效请求，不显示成功。
 - 隐私仅提交 `showRecentReplies`、`showPlayerBadges`、`showBookmarks` 三个布尔字段，切换复选框不会立即提交。
-- 未改动时禁用保存，底部显示未保存/保存中/已保存/失败状态；可撤销回到服务器当前资料。保存期间禁用重复提交。
+- 未改动时禁用保存；简介和隐私各自在内容下方显示未保存/保存中/已保存/失败状态并提供撤销，不使用常驻底栏。保存期间禁用重复提交。
 - 资料重新获取和用户名保存后，只更新未编辑字段，保留正在编辑的简介/隐私草稿；请求失败保留输入并支持重试。
 - 简介、隐私或用户名有草稿时，站内导航先确认放弃；刷新/关页使用浏览器原生提示。当前支持 Navigation API 的浏览器在历史返回/前进前确认，保存期间阻止站内离开。
 
@@ -353,8 +351,8 @@
 - 已注销用户在全站用户摘要中统一显示“已注销用户”与灰色用户图标
 - 全站 `/users/{id}` 链接可正常跳转
 - 草稿箱（`/threads/create` 草稿列表）列出我的未发布帖，可跳转编辑、可删除
-- `/me` 用户名与简介独立保存；用户名成功后简介草稿仍保留，撤销、失败重试及离页确认有效
-- `/me/privacy` 只保存隐私字段；`/me/appearance` 默认电脑端预览，切换移动端后正确显示独立背景或旧背景兜底
+- `/me` 在一个页面内提供头像、用户名、简介、双画幅背景和隐私；简介与隐私可同时保留草稿并分别保存，用户名成功后其他草稿仍保留
+- `/me/appearance`、`/me/privacy` 与旧外观锚点正确跳转到合并页对应位置；背景默认电脑端预览，切换移动端后正确显示独立背景或旧背景兜底
 - `/me/security` 以“Web 端登录/移动端登录”展示双端登录终端，不显示原始 UA
 - `/me/security` 正确标记当前终端，并可退出另一登录终端
 - 登录终端登录时间在 token 轮转后保持不变，账号切换不复用旧账号缓存

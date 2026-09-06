@@ -1,11 +1,14 @@
 /** /me 布局统一登录守卫 + 账号安全子页面渲染 */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup, waitFor } from "@testing-library/react";
+import { render, screen, cleanup, waitFor, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 
 const { mockUseAuth } = vi.hoisted(() => ({ mockUseAuth: vi.fn() }));
-const { mockReplace } = vi.hoisted(() => ({ mockReplace: vi.fn() }));
+const { mockReplace, routeState } = vi.hoisted(() => ({
+  mockReplace: vi.fn(),
+  routeState: { pathname: "/me" },
+}));
 
 vi.mock("@/lib/auth", () => ({
   useAuth: () => mockUseAuth(),
@@ -13,7 +16,7 @@ vi.mock("@/lib/auth", () => ({
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: mockReplace, push: vi.fn(), refresh: vi.fn() }),
-  usePathname: () => "/me",
+  usePathname: () => routeState.pathname,
 }));
 
 vi.mock("next/link", () => ({
@@ -53,19 +56,23 @@ beforeEach(() => {
 afterEach(() => cleanup());
 
 test.each([
-  ["基本资料", MePage],
-  ["修改密码", ChangePasswordPage],
-  ["更换邮箱", ChangeEmailPage],
-  ["账号安全", AccountSecurityPage],
-] as const)("%s 页面标题使用功能字体", (title, Page) => {
-  render(<Page />);
-  const heading = screen.getByRole("heading", { name: title, level: 2 });
+  ["/me", "个人资料", MePage],
+  ["/me/password", "修改密码", ChangePasswordPage],
+  ["/me/email", "更换邮箱", ChangeEmailPage],
+  ["/me/security", "账号与安全", AccountSecurityPage],
+] as const)("%s 页面只显示一个功能型主标题", (pathname, title, Page) => {
+  routeState.pathname = pathname;
+  mockUseAuth.mockReturnValue({ user: authedUser, isInitialized: true });
+  render(<MeLayout><Page /></MeLayout>);
+  const heading = screen.getByRole("heading", { name: title, level: 1 });
   expect(heading).toHaveClass("font-sans", "font-semibold");
-  expect(heading).not.toHaveClass("font-display");
+  expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+  expect(within(screen.getByRole("navigation", { name: "设置分区" })).getAllByRole("link")).toHaveLength(2);
 });
 
 describe("/me 布局", () => {
   test("未登录时统一保留目标路径并跳转登录页", async () => {
+    routeState.pathname = "/me";
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
     render(<MeLayout><ChangePasswordPage /></MeLayout>);
     await waitFor(() =>
@@ -77,15 +84,17 @@ describe("/me 布局", () => {
 
 describe("/me/password", () => {
   test("已登录渲染修改密码表单", () => {
+    routeState.pathname = "/me/password";
     mockUseAuth.mockReturnValue({ user: authedUser, isInitialized: true });
-    render(<ChangePasswordPage />);
+    render(<MeLayout><ChangePasswordPage /></MeLayout>);
     expect(screen.getByTestId("change-password-form")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /返回账号安全/ })).toHaveAttribute("href", "/me/security");
+    expect(screen.getByRole("link", { name: /返回账号与安全/ })).toHaveAttribute("href", "/me/security");
   });
 });
 
 describe("/me/email", () => {
   test("已登录渲染更换邮箱表单", () => {
+    routeState.pathname = "/me/email";
     mockUseAuth.mockReturnValue({ user: authedUser, isInitialized: true });
     render(<ChangeEmailPage />);
     expect(screen.getByTestId("change-email-form")).toBeInTheDocument();
@@ -94,6 +103,7 @@ describe("/me/email", () => {
 
 describe("/me/security", () => {
   test("已登录渲染登录终端管理", () => {
+    routeState.pathname = "/me/security";
     mockUseAuth.mockReturnValue({ user: authedUser, isInitialized: true });
     render(<AccountSecurityPage />);
     expect(screen.getByTestId("account-security-panel")).toBeInTheDocument();

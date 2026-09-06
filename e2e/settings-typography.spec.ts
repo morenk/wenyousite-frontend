@@ -25,14 +25,14 @@ for (const colorScheme of ["light", "dark"] as const) {
     });
 
     for (const [path, title] of [
-      ["/me", "基本资料"], ["/me/appearance", "主页外观"], ["/me/privacy", "隐私设置"], ["/me/password", "修改密码"],
-      ["/me/email", "更换邮箱"], ["/me/security", "账号安全"],
+      ["/me", "个人资料"], ["/me/password", "修改密码"],
+      ["/me/email", "更换邮箱"], ["/me/security", "账号与安全"],
     ]) {
       await page.goto(path);
-      await expect(page.getByRole("heading", { name: title, level: 2 })).toBeVisible();
-      await expectFunctionalTitles(page.locator('main h1, main [data-slot="settings-title"]'));
-      await expect(page.getByRole("heading", { name: "资料与设置", level: 1 })).toHaveCSS("font-size", "28px");
-      await expect(page.getByRole("heading", { name: "资料与设置", level: 1 })).toHaveCSS("line-height", "36px");
+      await expect(page.getByRole("heading", { name: title, level: 1 })).toBeVisible();
+      await expectFunctionalTitles(page.locator("main h1, main h2"));
+      await expect(page.getByRole("heading", { name: title, level: 1 })).toHaveCSS("font-size", "28px");
+      await expect(page.getByRole("heading", { name: title, level: 1 })).toHaveCSS("line-height", "36px");
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1440);
     }
     await expect(page.getByRole("link", { name: "温油站首页", exact: true }).locator(".font-display"))
