@@ -9,7 +9,7 @@ import { PageHeader } from "@/components/layout/page-header";
 export default function MePage() {
   return (
     <PageShell width="feed">
-      <PageHeader title="我的资料" />
+      <PageHeader purpose="functional" title="我的资料" />
       <ProfileEditForm />
     </PageShell>
   );

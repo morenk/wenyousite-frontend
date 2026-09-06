@@ -44,6 +44,9 @@ describe("ThreadExportDialog", () => {
       />,
     );
 
+    const title = screen.getByRole("heading", { name: "导出主题档案" });
+    expect(title).toHaveClass("font-semibold");
+    expect(title).not.toHaveClass("font-display", "font-medium");
     expect(screen.getAllByRole("radio")).toHaveLength(3);
     expect(screen.getByRole("radio", { name: /两者都要/ })).toBeChecked();
     expect(screen.getByText("Markdown 和 TXT · 含图片")).toBeInTheDocument();

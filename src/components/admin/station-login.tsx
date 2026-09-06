@@ -56,7 +56,7 @@ export function StationLogin() {
             <ShieldCheck className="size-5" />
           </span>
           <div>
-            <p className="font-display text-xl font-medium">温油站务台</p>
+            <p className="font-sans text-xl font-semibold">温油站务台</p>
             <p className="font-utility text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase">
               独立管理工作区
             </p>
@@ -67,7 +67,7 @@ export function StationLogin() {
           <p className="mb-5 font-utility text-xs font-bold tracking-[0.14em] text-brand-strong uppercase">
             把每次判断留下来
           </p>
-          <h1 className="font-display text-[3.3rem] leading-[1.15] font-medium tracking-tight">
+          <h1 className="font-sans text-[3.3rem] leading-[1.15] font-semibold tracking-tight">
             处理问题，
             <br />也保留事情的来路。
           </h1>
@@ -97,7 +97,7 @@ export function StationLogin() {
           <p className="font-utility text-xs font-bold tracking-[0.12em] text-muted-foreground uppercase">
             {challengeId ? "第二步 · 邮箱确认" : "安全登录"}
           </p>
-          <h2 className="mt-2 font-display text-3xl font-medium">
+          <h2 className="mt-2 font-sans text-3xl font-semibold">
             {challengeId ? "查收邮箱验证码" : "进入站务工作区"}
           </h2>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">

@@ -91,7 +91,7 @@ export function AppealsPanel() {
     <div data-slot="admin-appeals-workspace" data-layout="full-table" className="w-full">
       <section className="flex min-h-[42rem] min-w-0 flex-col overflow-hidden rounded-lg border border-border bg-card">
         <div className="border-b border-border px-5 py-4">
-          <h2 className="font-display text-lg font-medium">申诉台账</h2>
+          <h2 className="font-sans text-lg font-semibold">申诉台账</h2>
           <p className="mt-1 text-xs text-muted-foreground">推翻决定将自动恢复原处置。</p>
         </div>
         <AdminFilterBar
@@ -200,7 +200,7 @@ export function AppealsPanel() {
                     <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-warning-soft text-warning"><Gavel className="size-5" /></span>
                     <div className="min-w-0">
                       <p className="font-utility text-xs text-muted-foreground">申诉编号 {selected.id.slice(-8).toUpperCase()}</p>
-                      <DialogTitle className="font-display text-2xl font-medium">复核 {selected.appellant.username} 的申诉</DialogTitle>
+                      <DialogTitle className="text-2xl">复核 {selected.appellant.username} 的申诉</DialogTitle>
                       <DialogDescription className="mt-1">对照原决定与用户陈述后形成复核结论。</DialogDescription>
                     </div>
                   </div>

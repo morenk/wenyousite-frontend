@@ -144,7 +144,7 @@ export function ThreadExportDialog({
             <div className="shrink-0 border-b border-border bg-muted/20 px-6 py-5">
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <DialogTitle className="flex items-center gap-2 font-display text-xl font-medium">
+                  <DialogTitle className="flex items-center gap-2 text-xl">
                     <Archive className="size-5 text-brand-strong" aria-hidden="true" />
                     导出主题档案
                   </DialogTitle>

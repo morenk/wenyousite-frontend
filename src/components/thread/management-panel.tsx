@@ -137,7 +137,7 @@ export function ManagementPanel({
                 <p className="font-utility text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-brand-strong">
                   章节目录
                 </p>
-                <h2 className="mt-0.5 font-display text-lg font-medium text-foreground">子贴内容</h2>
+                <h2 className="mt-0.5 font-sans text-lg font-semibold text-foreground">子贴内容</h2>
               </div>
               <span className="font-utility text-xs tabular-nums text-muted-foreground">
                 {controller.subthreads.length} 篇
@@ -212,7 +212,7 @@ export function ManagementPanel({
                       <p className="font-utility text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-brand-strong">
                         正文画布
                       </p>
-                      <h2 className="mt-0.5 font-display text-lg font-medium text-foreground">
+                      <h2 className="mt-0.5 font-sans text-lg font-semibold text-foreground">
                         {controller.title || "未命名子贴"}
                       </h2>
                     </div>
@@ -329,7 +329,7 @@ function ManagementToolbar({
         <div className="h-7 w-px bg-border" aria-hidden="true" />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="truncate font-display text-lg font-medium text-foreground" title={title}>
+            <h1 className="truncate font-sans text-lg font-semibold text-foreground" title={title}>
               {title}
             </h1>
             <Badge tone={role === "楼主" ? "brand" : "info"}>{role}</Badge>

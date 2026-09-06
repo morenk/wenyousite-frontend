@@ -33,7 +33,9 @@ describe("页面布局组件", () => {
       />,
     );
 
-    expect(screen.getByRole("heading", { name: "标签页" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "标签页" })).toHaveClass(
+      "font-display", "[font-weight:var(--type-page-title-weight)]",
+    );
     expect(screen.getByText("主题帖标签")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "返回发现" })).toHaveAttribute("href", "/");
     expect(screen.getByRole("button", { name: "创建" })).toBeInTheDocument();
@@ -52,6 +54,7 @@ describe("页面布局组件", () => {
     expect(header).toHaveAttribute("data-variant", "compact");
     expect(header).toHaveClass("rounded-2xl", "overflow-hidden");
     expect(screen.getByRole("heading", { name: "发现主题帖" })).toHaveClass(
+      "font-display", "[font-weight:var(--type-section-title-weight)]",
       "[font-size:var(--type-section-title-size)]",
       "[line-height:var(--type-section-title-line-height)]",
     );
@@ -59,5 +62,18 @@ describe("页面布局组件", () => {
       "data-slot",
       "page-header-toolbar",
     );
+  });
+
+  test.each(["default", "compact"] as const)("功能标题在 %s 模式使用黑体半粗并保留标题尺寸", (variant) => {
+    render(<PageHeader title="账号安全" purpose="functional" variant={variant} />);
+    const heading = screen.getByRole("heading", { name: "账号安全" });
+    const role = variant === "compact" ? "section" : "page";
+    expect(heading).toHaveClass(
+      "font-sans", "font-semibold",
+      `[font-size:var(--type-${role}-title-size)]`,
+      `[line-height:var(--type-${role}-title-line-height)]`,
+    );
+    expect(heading).not.toHaveClass("font-display");
+    expect(heading).not.toHaveClass(`[font-weight:var(--type-${role}-title-weight)]`);
   });
 });

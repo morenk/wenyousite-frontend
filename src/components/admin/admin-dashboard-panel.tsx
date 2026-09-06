@@ -70,7 +70,7 @@ export function AdminDashboardPanel() {
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="font-utility text-xs font-bold tracking-[0.12em] text-muted-foreground">近期活动</p>
-              <h2 className="mt-1 font-display text-xl font-medium">近期待办与社区活动</h2>
+              <h2 className="mt-1 font-sans text-xl font-semibold">近期待办与社区活动</h2>
             </div>
             <p className="text-xs text-muted-foreground">{overview.range.from} — {overview.range.to}</p>
           </div>
@@ -98,7 +98,7 @@ export function AdminDashboardPanel() {
           <div className="flex items-center gap-3">
             <span className="flex size-10 items-center justify-center rounded-xl bg-success-soft text-success"><CircleGauge className="size-5" /></span>
             <div>
-              <h2 className="font-display text-lg font-medium">服务状态</h2>
+              <h2 className="font-sans text-lg font-semibold">服务状态</h2>
               <p className="text-xs text-muted-foreground">每分钟自动刷新</p>
             </div>
           </div>
@@ -127,7 +127,7 @@ export function AdminDashboardPanel() {
               <p className="font-utility text-xs font-bold tracking-[0.12em] text-muted-foreground">
                 分类登记册
               </p>
-              <h2 className="mt-1 font-display text-xl font-medium">已发布主题分布</h2>
+              <h2 className="mt-1 font-sans text-xl font-semibold">已发布主题分布</h2>
             </div>
           </div>
           <div className="text-right">
@@ -177,7 +177,7 @@ export function AdminDashboardPanel() {
         <div className="flex items-end justify-between gap-4">
           <div>
             <p className="font-utility text-xs font-bold tracking-[0.12em] text-muted-foreground">处理节奏</p>
-            <h2 className="mt-1 font-display text-xl font-medium">最近 {timeseries.items.length} 天举报处理节奏</h2>
+            <h2 className="mt-1 font-sans text-xl font-semibold">最近 {timeseries.items.length} 天举报处理节奏</h2>
           </div>
           <p className="text-xs text-muted-foreground">浅色：收到 · 深色：完成</p>
         </div>

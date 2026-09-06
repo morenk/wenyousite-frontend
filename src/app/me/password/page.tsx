@@ -16,7 +16,7 @@ import {
 export default function ChangePasswordPage() {
   return (
     <PageShell width="narrow">
-      <PageHeader title="修改密码" backHref="/me" backLabel="返回资料设置" />
+      <PageHeader purpose="functional" title="修改密码" backHref="/me" backLabel="返回资料设置" />
       <Card>
         <CardHeader>
           <CardTitle>修改密码</CardTitle>

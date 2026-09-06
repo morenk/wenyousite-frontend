@@ -116,7 +116,7 @@ export function AnnouncementsPanel() {
         <div className="flex items-center justify-between gap-5 border-b border-border px-6 py-5">
           <div className="flex items-center gap-3">
             <CalendarClock className="size-5 text-brand-strong" />
-            <div><h2 className="font-display text-lg font-medium">发送计划与历史</h2><p className="text-xs text-muted-foreground">进入发送队列后不允许取消，避免部分用户收到后回滚。</p></div>
+            <div><h2 className="font-sans text-lg font-semibold">发送计划与历史</h2><p className="text-xs text-muted-foreground">进入发送队列后不允许取消，避免部分用户收到后回滚。</p></div>
           </div>
           <Button type="button" onClick={() => setComposerOpen(true)}><BellRing />新建通知</Button>
         </div>

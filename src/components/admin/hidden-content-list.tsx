@@ -119,7 +119,7 @@ export function HiddenContentList({ headerAction }: { headerAction?: ReactNode }
               <RotateCcw className="size-5" />
             </span>
             <div>
-              <h2 className="font-display text-lg font-medium">当前隐藏内容</h2>
+              <h2 className="font-sans text-lg font-semibold">当前隐藏内容</h2>
               <p className="text-xs text-muted-foreground">这里只显示仍处于站务隐藏状态的内容；恢复后会立即移出列表。</p>
             </div>
           </div>

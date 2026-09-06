@@ -98,6 +98,6 @@ cd "$FRONTEND_DIR"
 E2E_ENV=test \
 E2E_BASE_URL="$PREVIEW_BASE_URL" \
 BACKEND_URL="${BACKEND_URL:-http://127.0.0.1:3000}" \
-pnpm test:e2e
+pnpm test:e2e "$@"
 
 echo "候选 standalone E2E 通过: build=$build_id url=$PREVIEW_BASE_URL"

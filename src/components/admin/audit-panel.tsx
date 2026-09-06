@@ -117,7 +117,7 @@ export function AuditPanel() {
         <div className="flex items-center gap-3">
           <span className="flex size-10 items-center justify-center rounded-xl bg-accent text-accent-foreground"><ScrollText className="size-5" /></span>
           <div>
-            <h2 className="font-display text-lg font-medium">不可变决定轨迹</h2>
+            <h2 className="font-sans text-lg font-semibold">不可变决定轨迹</h2>
             <p className="text-xs text-muted-foreground">业务记录永久保留；表格筛选与导出使用同一查询范围。</p>
           </div>
         </div>

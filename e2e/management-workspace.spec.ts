@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
+import { expectFunctionalTitles } from "./fixtures/typography";
 
 const owner = {
   id: "management-owner",
@@ -200,6 +201,7 @@ test.describe("帖子共同创作管理台", () => {
     await expect(page.getByRole("heading", { name: "标题与主帖正文" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "发布设置" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "危险操作" })).toBeVisible();
+    await expectFunctionalTitles(page.getByRole("heading"));
     await expect(page.getByRole("toolbar", { name: "正文格式工具栏" })).toBeVisible();
     await expect(page).toHaveScreenshot("management-settings-1440.png", {
       animations: "disabled",
@@ -219,8 +221,28 @@ test.describe("帖子共同创作管理台", () => {
     );
     await expect(page.getByLabel("子贴标题")).toHaveValue("航线与港区设定");
     await expect(page.getByText("01")).toBeVisible();
+    await expectFunctionalTitles(page.getByRole("heading"));
     expect(await page.evaluate(() => document.documentElement.scrollWidth))
       .toBeLessThanOrEqual(1024);
+  });
+
+  test("黑夜成员权限标题使用黑体", async ({ page }) => {
+    await page.emulateMedia({ colorScheme: "dark" });
+    await openManagementWorkspace(page, "?view=members");
+    await expect(page.getByRole("tab", { name: "成员权限" })).toHaveAttribute("aria-selected", "true");
+    await expectFunctionalTitles(page.getByRole("heading"));
+  });
+
+  test("阅读标题保留文楷，从详情打开的导出设置使用黑体", async ({ page }) => {
+    await mockManagementWorkspace(page);
+    await page.goto("/threads/management-visual-thread");
+    const title = page.getByRole("heading", { name: thread.title, level: 1 });
+    await expect(title).toBeVisible();
+    await title.evaluate(async () => { await document.fonts.ready; });
+    await expect(title).toHaveCSS("font-family", /^"LXGW WenKai",/);
+    await page.getByRole("button", { name: "更多帖子信息与操作" }).click();
+    await page.getByRole("button", { name: "导出主题档案" }).click();
+    await expectFunctionalTitles(page.getByRole("dialog").getByRole("heading"));
   });
 
   test("管理台无 WCAG A/AA 自动检测违规", async ({ page }) => {

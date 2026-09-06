@@ -16,7 +16,7 @@ import {
 export default function ChangeEmailPage() {
   return (
     <PageShell width="narrow">
-      <PageHeader title="更换邮箱" backHref="/me" backLabel="返回资料设置" />
+      <PageHeader purpose="functional" title="更换邮箱" backHref="/me" backLabel="返回资料设置" />
       <Card>
         <CardHeader>
           <CardTitle>更换邮箱</CardTitle>

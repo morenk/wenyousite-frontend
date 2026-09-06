@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { expectFunctionalTitles } from "./fixtures/typography";
 
 const fixedNow = "2026-08-23T12:00:00.000Z";
 
@@ -70,6 +71,7 @@ async function mockStation(page: Page) {
     });
 
     if (pathname.endsWith("/admin/auth/session")) return response(adminSession);
+    if (pathname.endsWith("/admin/operations/settings")) return response({});
     if (pathname.endsWith("/admin/users")) {
       return response([managedUser], { cursor: null, hasMore: false });
     }
@@ -123,6 +125,7 @@ test.describe("站务台流体工作区布局", () => {
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole("button", { name: "暂停账号" })).toBeVisible();
     await expect(dialog.getByRole("button", { name: "永久封禁" })).toBeVisible();
+    await expectFunctionalTitles(page.getByRole("heading"));
     expect(await page.evaluate(() => (
       document.documentElement.scrollWidth <= document.documentElement.clientWidth
     ))).toBe(true);
@@ -149,6 +152,7 @@ test.describe("站务台流体工作区布局", () => {
     await expect(dialog).toBeVisible();
     await expect(dialog.getByLabel("标题")).toBeVisible();
     await expect(dialog.getByRole("button", { name: "创建发送计划" })).toBeVisible();
+    await expectFunctionalTitles(page.getByRole("heading"));
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1920);
     await expect(page).toHaveScreenshot("station-announcements-1920.png", {
       animations: "disabled",
@@ -192,10 +196,38 @@ test.describe("站务台流体工作区布局", () => {
     const dialog = page.getByRole("dialog", { name: "主题帖治理案件" });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole("heading", { name: "形成治理决定" })).toBeVisible();
+    await expectFunctionalTitles(page.getByRole("heading"));
     const dialogBox = await dialog.boundingBox();
     expect(dialogBox).not.toBeNull();
     expect(dialogBox!.width).toBeGreaterThan(1100);
   });
+
+  for (const colorScheme of ["light", "dark"] as const) {
+    test(`${colorScheme} 下运行设置与站务入口均使用黑体`, async ({ page }) => {
+      await page.setViewportSize({ width: 1440, height: 1000 });
+      await page.emulateMedia({ colorScheme });
+      await page.goto("/station/operations");
+      await expect(page.getByRole("heading", { name: "新用户注册" })).toBeVisible();
+      await expectFunctionalTitles(page.getByRole("heading"));
+
+      await page.route("**/api/v1/admin/auth/session", (route) => route.fulfill({
+        status: 401, json: { code: 1001, message: "unauthorized" },
+      }));
+      await page.goto("/station");
+      await expect(page.getByRole("heading", { name: "进入站务工作区" })).toBeVisible();
+      await expectFunctionalTitles(page.getByRole("heading"));
+
+      await page.route("**/api/v1/auth/refresh", (route) => route.fulfill({
+        json: { code: 0, message: "ok", data: {
+          accessToken: "station-font-token",
+          user: { ...adminSession.user, email: "station-font@example.test", avatar: null },
+        } },
+      }));
+      await page.goto("/station/invite");
+      await expect(page.getByRole("heading", { name: "接受温油站务邀请" })).toBeVisible();
+      await expectFunctionalTitles(page.getByRole("heading"));
+    });
+  }
 
   test("窄桌面下只有表格容器横向滚动，操作列固定在表格右缘", async ({ page }) => {
     await page.setViewportSize({ width: 1024, height: 900 });

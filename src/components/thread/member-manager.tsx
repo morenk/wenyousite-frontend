@@ -121,7 +121,7 @@ export function MemberManager({ threadId, isOwner, isCollaborator }: MemberManag
           <p className="font-utility text-xs font-bold uppercase tracking-[0.12em] text-brand-strong">
             成员权限
           </p>
-          <h2 className="mt-1 font-display text-xl font-medium text-foreground">
+          <h2 className="mt-1 font-sans text-xl font-semibold text-foreground">
             谁可以共同创作
           </h2>
           <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">

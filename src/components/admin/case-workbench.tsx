@@ -371,7 +371,7 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
             <Badge tone={statusTone(detail.status)}>{detail.status === "OPEN" ? "待处理" : detail.status === "RESOLVED" ? "已处置" : "已驳回"}</Badge>
             <span className="font-utility text-xs text-muted-foreground">案件编号 {detail.id.slice(-8).toUpperCase()}</span>
           </div>
-          <DialogTitle className="mt-3 font-display text-2xl font-medium">{targetLabels[detail.targetType]}治理案件</DialogTitle>
+          <DialogTitle className="mt-3 text-2xl">{targetLabels[detail.targetType]}治理案件</DialogTitle>
           <p className="mt-2 font-utility text-xs text-muted-foreground">目标编号 · {detail.targetId}</p>
         </div>
         <div className="flex items-start gap-4">
@@ -387,7 +387,7 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
           <section>
             <div className="mb-3 flex items-center gap-2">
               <ShieldAlert className="size-4 text-brand-strong" />
-              <h3 className="font-display text-lg font-medium">举报与留存证据</h3>
+              <h3 className="font-sans text-lg font-semibold">举报与留存证据</h3>
             </div>
             <div className="space-y-3">
               {detail.reports.map((report) => (
@@ -414,7 +414,7 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
           <section>
             <div className="mb-3 flex items-center gap-2">
               <Scale className="size-4 text-brand-strong" />
-              <h3 className="font-display text-lg font-medium">决定轨迹</h3>
+              <h3 className="font-sans text-lg font-semibold">决定轨迹</h3>
             </div>
             {detail.decisions.length === 0 ? (
               <div className="rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground">尚未作出治理决定。</div>
@@ -436,7 +436,7 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
         {detail.status === "OPEN" ? (
           <section data-slot="admin-popup-operation" className="rounded-2xl border border-border bg-muted/35 p-6">
             <p className="font-utility text-xs font-bold tracking-[0.1em] text-muted-foreground">案件处置</p>
-            <h3 className="mt-1 font-display text-xl font-medium">形成治理决定</h3>
+            <h3 className="mt-1 font-sans text-xl font-semibold">形成治理决定</h3>
             <p className="mt-2 text-xs leading-5 text-muted-foreground">公开说明会提供给被处置用户，并成为申诉依据。</p>
             <form
               className="mt-6 space-y-5"

@@ -181,7 +181,7 @@ export function AdminAccountsPanel() {
         <section className="overflow-hidden rounded-lg border border-border bg-card">
           <div className="flex items-center justify-between border-b border-border px-5 py-4">
             <div>
-              <h2 className="font-display text-lg font-medium">现有站务</h2>
+              <h2 className="font-sans text-lg font-semibold">现有站务</h2>
               <p className="mt-1 text-xs text-muted-foreground">一个账号同一时间只允许一个后台会话。</p>
             </div>
             <div className="flex items-center gap-3">
@@ -268,7 +268,7 @@ export function AdminAccountsPanel() {
           <div className="flex items-center gap-3 px-5 py-5">
             <ShieldCheck className="size-5 text-brand-strong" />
             <div>
-              <h2 className="font-display text-lg font-medium">待接受邀请</h2>
+              <h2 className="font-sans text-lg font-semibold">待接受邀请</h2>
               <p className="text-xs text-muted-foreground">邀请 24 小时后自动失效。</p>
             </div>
           </div>

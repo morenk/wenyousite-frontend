@@ -34,6 +34,11 @@ vi.mock("@/components/user/account-security-panel", () => ({
   AccountSecurityPanel: () => <div data-testid="account-security-panel" />,
 }));
 
+vi.mock("@/components/user/profile-edit-form", () => ({
+  ProfileEditForm: () => <div data-testid="profile-edit-form" />,
+}));
+
+import MePage from "@/app/me/page";
 import ChangePasswordPage from "@/app/me/password/page";
 import ChangeEmailPage from "@/app/me/email/page";
 import AccountSecurityPage from "@/app/me/security/page";
@@ -46,6 +51,18 @@ beforeEach(() => {
 });
 
 afterEach(() => cleanup());
+
+test.each([
+  ["我的资料", MePage],
+  ["修改密码", ChangePasswordPage],
+  ["更换邮箱", ChangeEmailPage],
+  ["账号安全", AccountSecurityPage],
+] as const)("%s 页面标题使用功能字体", (title, Page) => {
+  render(<Page />);
+  const heading = screen.getByRole("heading", { name: title, level: 1 });
+  expect(heading).toHaveClass("font-sans", "font-semibold");
+  expect(heading).not.toHaveClass("font-display");
+});
 
 describe("/me 布局", () => {
   test("未登录时统一保留目标路径并跳转登录页", async () => {

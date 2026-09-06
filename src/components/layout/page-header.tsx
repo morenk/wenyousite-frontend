@@ -12,6 +12,7 @@ interface PageHeaderProps extends Omit<ComponentProps<"header">, "title"> {
   actions?: ReactNode;
   toolbar?: ReactNode;
   variant?: "default" | "compact";
+  purpose?: "content" | "functional";
 }
 
 export function PageHeader({
@@ -22,6 +23,7 @@ export function PageHeader({
   actions,
   toolbar,
   variant = "default",
+  purpose = "content",
   className,
   ...props
 }: PageHeaderProps) {
@@ -30,6 +32,7 @@ export function PageHeader({
   return (
     <header
       data-variant={variant}
+      data-purpose={purpose}
       className={cn(
         compact
           ? "mb-4 overflow-hidden rounded-2xl border border-border bg-card"
@@ -59,10 +62,15 @@ export function PageHeader({
         <div className="min-w-0">
           <h1
             className={cn(
-              "font-display tracking-[0.01em] text-foreground",
+              "tracking-[0.01em] text-foreground",
               compact
-                ? "[font-size:var(--type-section-title-size)] [font-weight:var(--type-section-title-weight)] [line-height:var(--type-section-title-line-height)]"
-                : "[font-size:var(--type-page-title-size)] [font-weight:var(--type-page-title-weight)] [line-height:var(--type-page-title-line-height)]",
+                ? "[font-size:var(--type-section-title-size)] [line-height:var(--type-section-title-line-height)]"
+                : "[font-size:var(--type-page-title-size)] [line-height:var(--type-page-title-line-height)]",
+              purpose === "functional"
+                ? "font-sans font-semibold"
+                : cn("font-display", compact
+                  ? "[font-weight:var(--type-section-title-weight)]"
+                  : "[font-weight:var(--type-page-title-weight)]"),
             )}
           >
             {title}

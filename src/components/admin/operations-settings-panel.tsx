@@ -97,7 +97,7 @@ export function OperationsSettingsPanel() {
             <span className="flex size-10 items-center justify-center rounded-xl bg-warning-soft text-warning"><UserRoundX className="size-5" /></span>
             <Badge tone={registrationPaused ? "warning" : "success"}>{registrationPaused ? "暂停中" : "正常"}</Badge>
           </div>
-          <h2 className="mt-5 font-display text-xl font-medium">新用户注册</h2>
+          <h2 className="mt-5 font-sans text-xl font-semibold">新用户注册</h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">暂停后，已有用户登录、举报和申诉不受影响。</p>
           <div className="mt-5 space-y-2">
             <Label htmlFor="registration-pause">暂停截止时间</Label>
@@ -114,7 +114,7 @@ export function OperationsSettingsPanel() {
             <span className="flex size-10 items-center justify-center rounded-xl bg-destructive-soft text-destructive"><AlertTriangle className="size-5" /></span>
             <Badge tone={writesPaused ? "danger" : "success"}>{writesPaused ? "只读中" : "正常"}</Badge>
           </div>
-          <h2 className="mt-5 font-display text-xl font-medium">社区内容写入</h2>
+          <h2 className="mt-5 font-sans text-xl font-semibold">社区内容写入</h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">暂停发帖、动态、私聊与上传；举报、申诉和站务入口保持可用。</p>
           <div className="mt-5 space-y-2">
             <Label htmlFor="writes-pause">只读截止时间</Label>
@@ -131,7 +131,7 @@ export function OperationsSettingsPanel() {
         <div className="flex items-center gap-3">
           <span className="flex size-10 items-center justify-center rounded-xl bg-info-soft text-info"><CalendarClock className="size-5" /></span>
           <div>
-            <h2 className="font-display text-xl font-medium">维护公告窗口</h2>
+            <h2 className="font-sans text-xl font-semibold">维护公告窗口</h2>
             <p className="text-sm text-muted-foreground">提前设置公告内容和展示时段，不会自动暂停服务。</p>
           </div>
         </div>

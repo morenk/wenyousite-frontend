@@ -9,7 +9,7 @@ import { PageShell } from "@/components/layout/page-shell";
 export default function AccountSecurityPage() {
   return (
     <PageShell width="feed">
-      <PageHeader title="账号安全" backHref="/me" backLabel="返回我的资料" />
+      <PageHeader purpose="functional" title="账号安全" backHref="/me" backLabel="返回我的资料" />
       <AccountSecurityPanel />
     </PageShell>
   );

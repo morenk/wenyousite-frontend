@@ -94,7 +94,34 @@ for (const file of sourceRoots.flatMap(sourceFiles)) {
   }
 }
 
+const functionalTypographyFiles = [
+  "src/app/me/page.tsx",
+  "src/app/me/password/page.tsx",
+  "src/app/me/email/page.tsx",
+  "src/app/me/security/page.tsx",
+  ...sourceFiles(resolve(root, "src/app/station")).map((file) => relative(root, file)),
+  ...sourceFiles(resolve(root, "src/components/admin")).map((file) => relative(root, file)),
+  "src/components/user/profile-edit-form.tsx",
+  "src/components/user/account-security-panel.tsx",
+  "src/components/user/change-password-form.tsx",
+  "src/components/user/change-email-form.tsx",
+  "src/components/thread/management-panel.tsx",
+  "src/components/thread/member-manager.tsx",
+  "src/components/forms/thread-edit-form.tsx",
+  "src/components/forms/subthread-form.tsx",
+  "src/components/thread/thread-export-dialog.tsx",
+];
+for (const fileName of functionalTypographyFiles) {
+  const source = readFileSync(resolve(root, fileName), "utf8");
+  for (const [header] of source.matchAll(/<PageHeader\b[^>]*>/g)) {
+    if (!header.includes('purpose="functional"')) {
+      failures.push(`${fileName}: 设置与管理界面的 PageHeader 必须声明 purpose="functional"`);
+    }
+  }
+}
+
 const bodyTypographyFiles = [
+  ...functionalTypographyFiles,
   "src/components/ui/card.tsx",
   "src/components/ui/dialog.tsx",
   "src/components/shared/user-avatar.tsx",
@@ -108,14 +135,13 @@ const bodyTypographyFiles = [
   "src/components/user/user-profile-card.tsx",
   "src/components/layout/publish-menu.tsx",
   "src/components/layout/app-context-rail.tsx",
-  "src/components/admin/high-risk-gate.tsx",
   "src/app/not-found.tsx",
   "src/app/error.tsx",
   "src/app/moments/page.tsx",
 ];
 for (const fileName of bodyTypographyFiles) {
   if (readFileSync(resolve(root, fileName), "utf8").includes("font-display")) {
-    failures.push(`${fileName}: 列表、弹层、状态、控件、用户名或数字不得使用文楷`);
+    failures.push(`${fileName}: 设置、管理、列表、弹层、状态、控件、用户名或数字不得使用文楷`);
   }
 }
 
