@@ -6,7 +6,7 @@
 
 **当前能力：**
 - 主题帖与动态详情首次收藏时先选择收藏夹；已收藏时直接取消
-- `/bookmarks` 我的收藏管理页（主题帖/动态分栏，各自使用默认/自建收藏夹筛选、移动、取消收藏和 cursor 分页；两套目录允许同名）
+- `/bookmarks` 我的收藏管理页（主题帖/动态分栏，各自使用可搜索纵向目录、移动、取消/撤销收藏和 cursor 分页；两套目录允许同名）
 - 用户资料页 `/users/[id]/bookmarks` 收藏 Tab（公开主题帖/动态分栏，不暴露收藏夹；尊重 showBookmarks）
 - 登录后全局导航显示“收藏”；主题帖详情页和个人资料相关区域继续保留上下文入口
 
@@ -111,9 +111,9 @@
 |------|------|------|
 | BookmarkButton | `src/components/user/bookmark-button.tsx` | 详情页收藏/取消切换 |
 | BookmarkFolderPickerDialog | `src/components/user/bookmark-folder-picker-dialog.tsx` | 选择现有分类或就地新建后确认收藏 |
-| BookmarkFolderBar | `src/components/user/bookmark-folder-bar.tsx` | 当前内容类型的分类筛选、数量与新建入口 |
+| BookmarkFolderBar | `src/components/user/bookmark-folder-bar.tsx` | 当前内容类型的纵向目录、名称搜索、数量与新建入口 |
 | CreateBookmarkFolderButton | `src/components/user/create-bookmark-folder-button.tsx` | RHF + Zod 新建弹窗；按当前内容类型调用独立端点 |
-| BookmarkThreadCard | `src/components/user/bookmark-thread-card.tsx` | 收藏帖卡片（分类/标题/作者/时间/移动/取消） |
+| BookmarkThreadCard | `src/components/user/bookmark-thread-card.tsx` | 连续收藏列表行（标题/作者/分类/时间/目录/更多操作） |
 | BookmarkList | `src/components/user/bookmark-list.tsx` | 我的收藏管理列表（分类分页 + 移动 + 取消） |
 | UserBookmarksSection | `src/components/user/user-bookmarks-section.tsx` | 资料页收藏 Tab 复用首页主题帖列表卡片，保持只读（404=未公开） |
 | UserBookmarksPage | `src/components/user/user-bookmarks-page.tsx` | 收藏 Tab 页面与权限门；无权限时不挂载列表查询 |
@@ -126,10 +126,12 @@
 
 - 详情页按钮：已收藏直接取消；未收藏打开“收藏到”弹窗，预选默认夹，可选择或就地新建后确认
 - 可操作收藏未选中时使用中性描边，选中后仅使用 Foundation 金色实心书签，容器保持透明；文字保持正文色，请求中保留原状态视觉，并通过稳定“收藏”名称与 `aria-pressed` 暴露状态
-- 收藏与取消收藏成功后只刷新按钮或列表状态，不显示成功 Toast；失败继续显示错误 Toast
-- `/bookmarks` 两个内容分栏各自保留当前分类；分类条固定“全部”在首位，只汇总当前目录集数量
+- 收藏与取消收藏不显示普通成功 Toast；管理页取消后提供 10 秒可撤销反馈，恢复到原收藏夹；失败保留错误反馈
+- `/bookmarks` 使用宽工作区和纵向收藏目录，只有主题帖/动态使用固定 Tab；目录固定“全部收藏”在首位，支持当前类型内名称搜索、独立滚动与常驻新建入口；搜索不改变主区选择或汇总数量
+- 当前类型和目录分别写入 `type` / `folder` URL 参数；刷新和历史返回恢复定位，两个类型在页内分别记住选择；无效目录回到全部；仅挂载当前类型的列表
+- 新建后清除目录搜索并进入新收藏夹；主区显示目录名称与数量，全部视图在条目中标注所属目录
 - 本人资料收藏页标题区按当前分栏显示“新建主题帖收藏夹”或“新建动态收藏夹”，他人资料收藏页不显示管理操作
-- 每条收藏可从选择器移动分类，当前筛选与所有分类计数同步刷新
+- 每条收藏的“更多收藏操作”菜单提供移动和取消；移动复用带名称搜索的收藏夹选择弹窗，当前夹不可重复提交，失败保留选项与错误；操作后同步当前列表与目录计数
 - 资料页收藏 Tab 以主题帖/动态分栏公开展示，始终不显示收藏夹归类；未公开时隐藏主 Tab，直达路由不发起列表请求
 - 私密帖仅参与人可收藏（后端校验）
 

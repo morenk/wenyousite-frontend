@@ -26,6 +26,7 @@ export function getAppChromeMode(pathname: string): AppChromeMode {
     return "auth";
   }
   if (
+    pathname === "/bookmarks" ||
     pathname === "/threads/create" ||
     /^\/threads\/[^/]+\/edit(?:\/|$)/.test(pathname) ||
     pathname === "/messages" ||

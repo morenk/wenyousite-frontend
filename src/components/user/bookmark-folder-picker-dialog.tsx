@@ -24,6 +24,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { WenyouIcon } from "@/components/ui/wenyou-icon";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { getApiErrorMessage } from "@/api/errors";
 
 export function BookmarkFolderPickerDialog({
   open,
@@ -32,6 +34,8 @@ export function BookmarkFolderPickerDialog({
   isPending,
   onConfirm,
   kind = "threads",
+  intent = "collect",
+  initialFolderId,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -39,22 +43,29 @@ export function BookmarkFolderPickerDialog({
   isPending: boolean;
   onConfirm: (folderId: string) => Promise<void>;
   kind?: BookmarkFolderKind;
+  intent?: "collect" | "move";
+  initialFolderId?: string;
 }) {
   const folders = useBookmarkFolders(kind, open);
   const folderLabel = kind === "moments" ? "动态收藏夹" : "主题帖收藏夹";
   const [selectedId, setSelectedId] = useState<string>();
+  const [search, setSearch] = useState("");
+  const [error, setError] = useState<string>();
   const [creating, setCreating] = useState(false);
   const [createdFolder, setCreatedFolder] = useState<BookmarkFolder>();
   const folderOptions = createdFolder && !folders.data?.some((folder) => folder.id === createdFolder.id)
     ? [...(folders.data ?? []), createdFolder]
     : (folders.data ?? []);
   const effectiveSelectedId = selectedId
+    ?? initialFolderId
     ?? folderOptions.find((folder) => folder.isDefault)?.id
     ?? folderOptions[0]?.id;
 
   const changeOpen = (next: boolean) => {
     if (isPending) return;
     if (!next) {
+      setSearch("");
+      setError(undefined);
       setSelectedId(undefined);
       setCreating(false);
       setCreatedFolder(undefined);
@@ -63,12 +74,13 @@ export function BookmarkFolderPickerDialog({
   };
 
   const submit = async () => {
-    if (!effectiveSelectedId || isPending) return;
+    if (!effectiveSelectedId || isPending || (intent === "move" && effectiveSelectedId === initialFolderId)) return;
+    setError(undefined);
     try {
       await onConfirm(effectiveSelectedId);
       changeOpen(false);
-    } catch {
-      // 调用方保留业务错误文案，失败时弹窗保持打开。
+    } catch (error) {
+      setError(getApiErrorMessage(error, intent === "move" ? "移动收藏失败，请重试" : "收藏失败，请重试"));
     }
   };
 
@@ -80,7 +92,7 @@ export function BookmarkFolderPickerDialog({
           <DialogPopup className="max-w-md overflow-hidden">
             <div className="flex items-start justify-between gap-4 border-b border-border px-6 py-5">
               <div className="min-w-0">
-                <DialogTitle>收藏到</DialogTitle>
+                <DialogTitle>{intent === "move" ? "移动到收藏夹" : "收藏到"}</DialogTitle>
                 <DialogDescription className="mt-1 line-clamp-2">
                   为“{contentLabel}”选择一个{folderLabel}。
                 </DialogDescription>
@@ -102,8 +114,9 @@ export function BookmarkFolderPickerDialog({
                 </div>
               ) : (
                 <div className="space-y-3">
+                  <Input type="search" aria-label="搜索收藏夹" placeholder="搜索收藏夹" value={search} disabled={isPending} onChange={(event) => setSearch(event.target.value)} />
                   <div className="max-h-72 space-y-1 overflow-y-auto" role="radiogroup" aria-label="选择收藏夹">
-                    {folderOptions.map((folder) => {
+                    {folderOptions.filter((folder) => folder.name.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())).map((folder) => {
                       const selected = folder.id === effectiveSelectedId;
                       return (
                         <label
@@ -118,13 +131,14 @@ export function BookmarkFolderPickerDialog({
                             name="bookmark-folder"
                             value={folder.id}
                             checked={selected}
+                            disabled={isPending}
                             onChange={() => setSelectedId(folder.id)}
                             className="sr-only"
                           />
                           <span className="flex size-8 items-center justify-center rounded-lg bg-background/75 text-muted-foreground">
                             <WenyouIcon id={selected ? "content.folder-open" : "content.folder"} />
                           </span>
-                          <span className="min-w-0 flex-1 truncate text-sm font-semibold">{folder.name}</span>
+                          <span className="min-w-0 flex-1 break-words text-sm font-semibold">{folder.name}</span>
                           {folder.isDefault ? (
                             <span className="font-utility text-[0.6875rem] text-muted-foreground">默认</span>
                           ) : null}
@@ -132,6 +146,7 @@ export function BookmarkFolderPickerDialog({
                         </label>
                       );
                     })}
+                    {!folderOptions.some((folder) => folder.name.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())) ? <p role="status" className="py-6 text-center text-sm text-muted-foreground">没有匹配的收藏夹</p> : null}
                   </div>
 
                   {creating ? (
@@ -142,19 +157,21 @@ export function BookmarkFolderPickerDialog({
                         onCancel={() => setCreating(false)}
                         onCreated={(folder) => {
                           setCreatedFolder(folder);
+                          setSearch("");
                           setSelectedId(folder.id);
                           setCreating(false);
                         }}
                       />
                     </div>
                   ) : (
-                    <Button variant="ghost" size="compact" onClick={() => setCreating(true)}>
+                    <Button variant="ghost" size="compact" disabled={isPending} onClick={() => setCreating(true)}>
                       <Plus />新建{folderLabel}
                     </Button>
                   )}
                 </div>
               )}
             </div>
+            {error ? <p role="alert" className="px-6 pb-4 text-sm text-destructive">{error}</p> : null}
 
             <DialogFooter className="border-t border-border bg-muted/35 px-6 py-4">
               <DialogClose
@@ -167,11 +184,11 @@ export function BookmarkFolderPickerDialog({
               <Button
                 type="button"
                 size="compact"
-                disabled={!effectiveSelectedId || folders.isError || folders.isLoading || isPending}
+                disabled={!effectiveSelectedId || folders.isError || folders.isLoading || isPending || (intent === "move" && effectiveSelectedId === initialFolderId)}
                 onClick={() => void submit()}
               >
                 {isPending ? <Loader2 className="animate-spin" /> : <WenyouIcon id="action.bookmark" />}
-                收藏
+                {intent === "move" ? "移动" : "收藏"}
               </Button>
             </DialogFooter>
           </DialogPopup>

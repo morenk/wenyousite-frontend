@@ -6,21 +6,21 @@ import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const { mockUseBookmarks } = vi.hoisted(() => ({ mockUseBookmarks: vi.fn() }));
-const { mockDELETE } = vi.hoisted(() => ({ mockDELETE: vi.fn() }));
+const { mockDELETE, mockPOST } = vi.hoisted(() => ({ mockDELETE: vi.fn(), mockPOST: vi.fn() }));
 
 vi.mock("@/api/hooks/use-bookmarks", () => ({
   useBookmarks: () => mockUseBookmarks(),
 }));
 
 vi.mock("@/api/client", () => ({
-  apiClient: { DELETE: mockDELETE },
+  apiClient: { DELETE: mockDELETE, POST: mockPOST },
 }));
 
 vi.mock("sonner", () => ({
-  toast: { success: vi.fn(), error: vi.fn() },
+  toast: Object.assign(vi.fn(), { success: vi.fn(), error: vi.fn(), dismiss: vi.fn() }),
 }));
 
-import { toast } from "sonner";
+import { toast, type Action } from "sonner";
 import { BookmarkList } from "@/components/user/bookmark-list";
 
 beforeAll(() => {
@@ -57,10 +57,11 @@ const sampleBookmark = {
   owner: { id: "u1", username: "morenk", avatar: null },
   _count: { members: 1, posts: 2 },
   bookmarkId: "bm1",
+  bookmarkFolderId: "folder-1",
 };
 
 describe("BookmarkList", () => {
-  test("加载中显示 spinner", () => {
+  test("加载中保留列表骨架", () => {
     mockUseBookmarks.mockReturnValue({
       data: undefined,
       fetchNextPage: vi.fn(),
@@ -72,7 +73,7 @@ describe("BookmarkList", () => {
       refetch: vi.fn(),
     });
     render(<BookmarkList />, { wrapper: createWrapper() });
-    expect(document.querySelector(".animate-spin")).toBeTruthy();
+    expect(screen.getByRole("status", { name: "正在加载收藏" })).toBeInTheDocument();
   });
 
   test("空列表显示空状态", () => {
@@ -110,13 +111,17 @@ describe("BookmarkList", () => {
     render(<BookmarkList />, { wrapper: createWrapper() });
     expect(screen.getByText("收藏帖")).toBeInTheDocument();
 
-    const unbookmarkBtn = screen.getByTitle("取消收藏");
-    await user.click(unbookmarkBtn);
+    await user.click(screen.getByRole("button", { name: "更多收藏操作：收藏帖" }));
+    await user.click(screen.getByRole("menuitem", { name: "取消收藏" }));
 
     expect(mockDELETE).toHaveBeenCalledWith("/api/v1/bookmarks/{id}", {
       params: { path: { id: "bm1" } },
     });
     expect(toast.success).not.toHaveBeenCalled();
+    const options = vi.mocked(toast).mock.calls[0][1]!;
+    mockPOST.mockResolvedValue({ data: {} });
+    (options.action as Action).onClick({ preventDefault: vi.fn() } as unknown as React.MouseEvent<HTMLButtonElement>);
+    await vi.waitFor(() => expect(mockPOST).toHaveBeenCalledWith("/api/v1/bookmarks", { body: { threadId: "t1", folderId: "folder-1" } }));
   });
 
   test("取消收藏失败时显示错误提示", async () => {
@@ -134,7 +139,8 @@ describe("BookmarkList", () => {
     mockDELETE.mockResolvedValue({ data: undefined, error: { message: "网络错误" } });
 
     render(<BookmarkList />, { wrapper: createWrapper() });
-    await user.click(screen.getByTitle("取消收藏"));
+    await user.click(screen.getByRole("button", { name: "更多收藏操作：收藏帖" }));
+    await user.click(screen.getByRole("menuitem", { name: "取消收藏" }));
 
     expect(toast.error).toHaveBeenCalledWith("网络错误");
   });

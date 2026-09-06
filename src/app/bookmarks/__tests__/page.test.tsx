@@ -1,4 +1,5 @@
 import { cleanup, render, screen } from "@testing-library/react";
+import { NuqsTestingAdapter } from "nuqs/adapters/testing";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -85,11 +86,24 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("BookmarksPage", () => {
+  test("刷新时从 URL 恢复类型和目录", () => {
+    render(<NuqsTestingAdapter searchParams="?type=moments&folder=moment-folder"><BookmarksPage /></NuqsTestingAdapter>);
+    expect(screen.getByText("moments 当前目录：moment-folder")).toBeInTheDocument();
+    expect(mockUseMomentBookmarks).toHaveBeenLastCalledWith("user-1", "moment-folder");
+    expect(screen.queryByText(/主题帖筛选/)).not.toBeInTheDocument();
+  });
+
+  test("失效目录回到全部收藏", () => {
+    render(<NuqsTestingAdapter searchParams="?folder=missing" hasMemory><BookmarksPage /></NuqsTestingAdapter>);
+    expect(screen.getByText("主题帖筛选：全部")).toBeInTheDocument();
+  });
+
   test("主题帖与动态分别保留目录筛选且不串用 folderId", async () => {
     const user = userEvent.setup();
-    render(<BookmarksPage />);
+    render(<NuqsTestingAdapter hasMemory><BookmarksPage /></NuqsTestingAdapter>);
 
     expect(mockUseBookmarkFolders).toHaveBeenLastCalledWith("threads");
+    expect(mockUseMomentBookmarks).not.toHaveBeenCalled();
     await user.click(screen.getByRole("button", { name: "选择主题帖目录" }));
     expect(screen.getByText("主题帖筛选：thread-folder")).toBeInTheDocument();
 

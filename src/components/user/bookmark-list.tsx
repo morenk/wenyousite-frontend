@@ -3,20 +3,14 @@
 "use client";
 
 import { Loader2, ChevronDown } from "lucide-react";
-import { toast } from "sonner";
-import { getApiErrorMessage } from "@/api/errors";
 import { useBookmarks } from "@/api/hooks/use-bookmarks";
-import { useRemoveBookmark } from "@/api/hooks/use-bookmark-actions";
 import { BookmarkThreadCard } from "@/components/user/bookmark-thread-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { LoadError } from "@/components/shared/load-error";
-import { LoadingState } from "@/components/shared/loading-state";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
-import {
-  useMoveBookmark,
-  type BookmarkFolder,
-} from "@/api/hooks/use-bookmark-folders";
+import type { BookmarkFolder } from "@/api/hooks/use-bookmark-folders";
 
 export function BookmarkList({
   folderId,
@@ -35,9 +29,6 @@ export function BookmarkList({
     refetch,
   } = useBookmarks(folderId);
 
-  const removeBookmark = useRemoveBookmark();
-  const moveBookmark = useMoveBookmark();
-
   const sentinelRef = useInfiniteScroll({
     hasNextPage: !!hasNextPage,
     isFetchingNextPage,
@@ -47,7 +38,7 @@ export function BookmarkList({
   const bookmarks = data?.pages.flatMap((page) => page?.data ?? []) ?? [];
 
   if (isLoading) {
-    return <LoadingState label="" className="min-h-0 py-16" />;
+    return <div aria-label="正在加载收藏" role="status" className="space-y-4 py-5">{[0, 1, 2].map((item) => <Skeleton key={item} className="h-20 w-full rounded-xl" />)}</div>;
   }
 
   if (isError) {
@@ -67,24 +58,7 @@ export function BookmarkList({
           key={bookmark.id}
           thread={bookmark}
           folders={folders}
-          onMove={(bookmarkId, nextFolderId) =>
-            moveBookmark.mutate(
-              { bookmarkId, folderId: nextFolderId },
-              { onSuccess: () => toast.success("已移动收藏") },
-            )
-          }
-          onUnbookmark={(bookmarkId, threadId) =>
-            removeBookmark.mutate(
-              { bookmarkId, threadId },
-              {
-                onError: (error) => {
-                  toast.error(getApiErrorMessage(error, "取消收藏失败，请稍后重试"));
-                },
-              },
-            )
-          }
-          isMoving={moveBookmark.isPending}
-          isUnbookmarking={removeBookmark.isPending}
+          showFolder={!folderId}
         />
       ))}
 

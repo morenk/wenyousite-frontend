@@ -69,6 +69,22 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("BookmarkFolderPickerDialog", () => {
+  test("移动预选当前目录、搜索目标；失败保留选择与错误", async () => {
+    const user = userEvent.setup();
+    const onConfirm = vi.fn().mockRejectedValue({ message: "移动失败，请重试" });
+    const onOpenChange = vi.fn();
+    render(<BookmarkFolderPickerDialog open intent="move" initialFolderId="folder-default" onOpenChange={onOpenChange} contentLabel="测试主题" isPending={false} onConfirm={onConfirm} />);
+    expect(screen.getByRole("button", { name: "移动" })).toBeDisabled();
+    await user.type(screen.getByRole("searchbox"), "跑团");
+    expect(screen.queryByRole("radio", { name: /默认/ })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("radio", { name: /跑团资料/ }));
+    await user.click(screen.getByRole("button", { name: "移动" }));
+    expect(onConfirm).toHaveBeenCalledWith("folder-custom");
+    expect(screen.getByRole("alert")).toHaveTextContent("移动失败，请重试");
+    expect(onOpenChange).not.toHaveBeenCalled();
+    expect(screen.getByRole("radio", { name: /跑团资料/ })).toBeChecked();
+  });
+
   test("预选默认收藏夹，选择其他分类后确认", async () => {
     const user = userEvent.setup();
     const onConfirm = vi.fn().mockResolvedValue(undefined);

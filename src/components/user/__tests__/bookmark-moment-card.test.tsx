@@ -1,3 +1,4 @@
+import userEvent from "@testing-library/user-event";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
@@ -33,14 +34,11 @@ const folders = [
 describe("BookmarkMomentCard", () => {
   afterEach(cleanup);
 
-  test("历史动态不能移动收藏夹，但仍可取消收藏", () => {
+  test("历史动态不能移动收藏夹，但仍可取消收藏", async () => {
     render(<BookmarkMomentCard moment={moment as never} folders={folders as never} />);
 
-    expect(
-      screen.getByRole("combobox", { name: `移动“${moment.title}”到收藏夹` }),
-    ).toBeDisabled();
-    expect(
-      screen.getByRole("button", { name: `取消收藏“${moment.title}”` }),
-    ).not.toBeDisabled();
+    await userEvent.click(screen.getByRole("button", { name: `更多收藏操作：${moment.title}` }));
+    expect(screen.getByRole("menuitem", { name: "移动到收藏夹" })).toHaveAttribute("aria-disabled", "true");
+    expect(screen.getByRole("menuitem", { name: "取消收藏" })).not.toHaveAttribute("aria-disabled", "true");
   });
 });

@@ -10,7 +10,7 @@ describe("AppChrome 路由模式", () => {
     },
   );
 
-  test.each(["/messages", "/messages/c1", "/threads/create", "/threads/t1/edit"])(
+  test.each(["/bookmarks", "/messages", "/messages/c1", "/threads/create", "/threads/t1/edit"])(
     "%s 使用宽工作区",
     (pathname) => {
       expect(getAppChromeMode(pathname)).toBe("workspace");
