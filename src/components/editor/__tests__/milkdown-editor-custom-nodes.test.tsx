@@ -56,7 +56,7 @@ const nodeFixtures = JSON.parse(
 ) as { cases: Array<{ id: string; markdown: string; serialized: string }> };
 const editorRoundTripFixtures = JSON.parse(
   readFileSync(
-    resolve(process.cwd(), "contracts/markdown-editor-roundtrip-v6-fixtures.json"),
+    resolve(process.cwd(), "contracts/markdown-editor-roundtrip-v7-fixtures.json"),
     "utf8",
   ),
 ) as { cases: Array<{ id: string; markdown: string; serialized: string }> };

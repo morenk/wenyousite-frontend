@@ -79,7 +79,7 @@ const fixture = JSON.parse(
   readFileSync(
     resolve(
       process.cwd(),
-      "contracts/markdown-editor-roundtrip-v6-fixtures.json",
+      "contracts/markdown-editor-roundtrip-v7-fixtures.json",
     ),
     "utf8",
   ),
@@ -91,10 +91,10 @@ const fixture = JSON.parse(
 };
 
 describe("Markdown 编辑器往返契约", () => {
-  test("固定在 Markdown v4 之上的编辑器 fixture v6", () => {
+  test("固定在 Markdown v4 之上的编辑器 fixture v7", () => {
     expect(fixture).toMatchObject({
       contract: "wenyousite-markdown-editor-roundtrip",
-      version: 6,
+      version: 7,
       markdownContractVersion: 4,
     });
     expect(new Set(fixture.cases.map((item) => item.id)).size).toBe(

@@ -1,6 +1,6 @@
 /** 将后端已审核 OpenAPI 产物同步到前端，不从运行中实例或源码临时导出。 */
 
-import { copyFileSync, mkdirSync, readFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, readFileSync, readdirSync, unlinkSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
 const frontendRoot = process.cwd();
@@ -43,10 +43,28 @@ if (
   throw new Error("后端编辑器剪贴板契约不是 wenyousite-editor-clipboard v2");
 }
 
-mkdirSync(dirname(target), { recursive: true });
+const backendContracts = dirname(source);
+const frontendContracts = dirname(target);
+const isMarkdownFixture = (name) => /^markdown-(?:v\d+(?:-nodes|-image-alignment)?|editor-roundtrip-v\d+)-fixtures\.json$/.test(name);
+const markdownFiles = readdirSync(backendContracts).filter(isMarkdownFixture);
+if (markdownFiles.length === 0) throw new Error("后端缺少 Markdown 契约");
+for (const name of markdownFiles) {
+  const fixture = JSON.parse(readFileSync(resolve(backendContracts, name), "utf8"));
+  if (!fixture.contract?.startsWith("wenyousite-markdown") || !Number.isInteger(fixture.version)) {
+    throw new Error(`后端 Markdown 契约无效：${name}`);
+  }
+}
+
+mkdirSync(frontendContracts, { recursive: true });
 copyFileSync(source, target);
 copyFileSync(internalReferenceSource, internalReferenceTarget);
 copyFileSync(editorClipboardSource, editorClipboardTarget);
+for (const name of markdownFiles) {
+  copyFileSync(resolve(backendContracts, name), resolve(frontendContracts, name));
+}
+for (const name of readdirSync(frontendContracts).filter(isMarkdownFixture)) {
+  if (!markdownFiles.includes(name)) unlinkSync(resolve(frontendContracts, name));
+}
 console.log(
-  `Synced API contract ${contract.info.version}, internal-reference v1 and editor-clipboard v2 fixtures`,
+  `Synced API contract ${contract.info.version}, internal-reference v1, editor-clipboard v2 and ${markdownFiles.length} Markdown fixtures`,
 );

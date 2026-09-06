@@ -245,12 +245,25 @@ describe("Markdown v4 对齐枚举", () => {
 });
 
 describe("remark 顶层对齐标记绑定", () => {
-  test("图片对齐 fixture 保持独立图片、混排拒绝和表情继承规则", () => {
+  test("图片对齐 fixture 的真实源码通过白名单与规范化", () => {
     expect(imageAlignmentFixtures.contract).toBe("wenyousite-markdown-image-alignment");
-    expect(imageAlignmentFixtures.version).toBe(1);
+    expect(imageAlignmentFixtures.version).toBe(2);
     expect(imageAlignmentFixtures.defaultAlignment).toBe("left");
 
     for (const fixture of imageAlignmentFixtures.cases) {
+      const issues = findUnsupportedMarkdownFormats(fixture.markdown, {
+        markdownContractVersion: imageAlignmentFixtures.markdownContractVersion,
+      });
+      expect(issues[0]?.type ?? null, fixture.id)
+        .toBe(fixture.supported ? null : "invalid-alignment");
+      if (fixture.supported) {
+        expect(sanitizeMilkdownMarkdown(fixture.markdown), fixture.id).toBe(fixture.markdown);
+      }
+    }
+  });
+
+  test("既有图片 AST 保持独立图片、混排拒绝和表情继承规则", () => {
+    for (const fixture of imageAlignmentFixtures.cases.filter((item) => !item.id.startsWith("empty-"))) {
       const image = {
         type: "image",
         url: "https://cdn.example.com/image.webp",

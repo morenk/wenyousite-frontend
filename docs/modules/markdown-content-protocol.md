@@ -5,7 +5,7 @@ Web 与 Flutter 共用数据库中的 Markdown 字符串，不修改既有字段
 ## 协议事实源
 
 - 协议标识为 `wenyousite-markdown`，当前版本为 `5`。
-- Web 仓库中的 `contracts/markdown-v4-fixtures.json`、`contracts/markdown-v4-nodes-fixtures.json`、`contracts/markdown-editor-roundtrip-v6-fixtures.json`、`contracts/markdown-v5-image-alignment-fixtures.json` 与 `contracts/editor-clipboard-v2-fixtures.json` 是后端同名黄金语料的同步副本，依次固定规范化/允许与拒绝结果、扩展节点身份、编辑器往返、图片块对齐，以及跨端复制入口、结构恢复、原子身份和可见文本回退。
+- Web 仓库中的 `contracts/markdown-v4-fixtures.json`、`contracts/markdown-v4-nodes-fixtures.json`、`contracts/markdown-editor-roundtrip-v7-fixtures.json`、`contracts/markdown-v5-image-alignment-fixtures.json` 与 `contracts/editor-clipboard-v2-fixtures.json` 是后端同名黄金语料的同步副本，依次固定规范化/允许与拒绝结果、扩展节点身份、编辑器往返、图片块对齐，以及跨端复制入口、结构恢复、原子身份和可见文本回退。
 - 后端是写入校验的最终权威；Web 在编辑、粘贴、恢复草稿和阅读前执行同版本降级。Flutter 必须把五份语言无关 JSON 语料纳入单元测试。
 - 规则变更必须先修改黄金语料并提升协议版本，禁止单独修改某一端正则。
 - Web 的发布、回复、编辑和草稿入口传递完整规范正文，不做全局 `trim()`；`trim()` 只允许用于空内容判断，首尾空段落及空白必须保留。
@@ -73,6 +73,7 @@ Web 与 Flutter 共用数据库中的 Markdown 字符串，不修改既有字段
 ## 空段落
 
 - 编辑器将顶层空段落写成独占一行 `<br />`；`<br>`、`<br/>`、`<br >` 仅作为历史兼容输入，写入时规范化为 `<br />`。
+- 白名单解析临时用独立分隔块占位，保持协议空段与相邻对齐定义的块边界和行号；普通文字占位会吞并定义而误报无效对齐。该占位不写回正文，空段仍不能携带对齐。
 - 客户端渲染时把协议标记转换为安全换行节点，禁止执行任意 HTML。Web 完整阅读在解析前会隔离开头连续协议空段与正文，避免 CommonMark 将未分隔的 `<br />` 误识别为原始 HTML 块后被安全策略整体丢弃。前端摘要、通知和搜索预览会移除空段落标记并折叠连续空白。
 - 完整正文阅读态把普通段落内的单个 LF 作为可见软换行保留；紧凑预览不保留该排版。
 - 不设空行数量上限，仅受现有 Markdown 总长度限制；首部、中间、尾部空段落均按顺序保留。
@@ -92,7 +93,10 @@ Web 与 Flutter 共用数据库中的 Markdown 字符串，不修改既有字段
 
 ## 验收标准
 
-- Web 五份黄金语料与后端事实源逐字一致，round-trip v6、图片块对齐和 clipboard v2 分别符合声明的块/行内/对齐语义、复制入口、节点身份和可见文本结果
+- `pnpm contract:sync` 同步后端全部 Markdown fixture、站内引用、剪贴板和 OpenAPI；先校验源文件，再复制并清理仅属于 Markdown fixture 命名空间的已移除旧版本。历史 v1 副本也按事实源逐字同步，不改变其语义。
+- Web 五份当前黄金语料与后端事实源逐字一致，round-trip v7、图片块对齐 revision 2 和 clipboard v2 分别符合声明的块/行内/对齐语义、复制入口、节点身份和可见文本结果
+- round-trip v7 保留 30 条原语料，新增 48 条真实编辑事务：粗体、斜体、删除线、链接的 15 种组合及独立代码，在唯一可见 `anchor` 的 UTF-16 `offset` 处启用指定 marks 并输入。断言完整文字、逐段样式、规范输出、重开文档相等、幂等及删除恢复；中间位置逐条消费 `inlineInsertTexts` 的五类特殊输入。规范嵌套由外到内为粗体、斜体、链接、删除线，代码独立处理。
+- 新样式必须同时提供解析、真实编辑及组合边界语料，不能只测未编辑往返；Flutter 必须在 Windows 以实际输入控制器消费 v7 后才算对齐，后端接口兼容不代表旧客户端序列化已修复。
 - 规范化、白名单判断、首个不支持类型和字面降级输出逐条符合 fixture 且幂等
 - 外部粘贴、拖放、手输、撤销、草稿恢复和重开均保留可见字符，且不生成未经工具栏创建的结构；本地文件不会绕过图片上传
 - 阅读选区、整篇菜单和编辑器复制都写出 clipboard v2；v1 兼容读取但不恢复对齐，v2 站内片段保存重开后保留合法顶层块对齐和白名单结构，纯文本回退不泄漏 Markdown 定界符、对齐标记或隐藏目标

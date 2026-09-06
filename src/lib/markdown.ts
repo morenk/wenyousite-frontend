@@ -317,8 +317,9 @@ export function findUnsupportedMarkdownFormats(
     markdownContractVersion >= IMAGE_ALIGNMENT_MARKDOWN_CONTRACT_VERSION;
   const normalized = normalizeMilkdownMarkdown(markdown);
   const lines = normalized.split("\n");
+  // 校验占位必须独立成块；普通文字会吞并相邻对齐定义。不会写回正文。
   const parseSource = lines
-    .map((line) => (EMPTY_PARAGRAPH_RE.test(line) ? "wenyousite-empty-paragraph" : line))
+    .map((line) => (EMPTY_PARAGRAPH_RE.test(line) ? "***" : line))
     .join("\n");
   const issues: UnsupportedMarkdownIssue[] = [];
   let listDepth = 0;

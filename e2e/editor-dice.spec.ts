@@ -204,8 +204,12 @@ test("编辑器格式、分隔线、窄栏、骰子与正文草稿工具在真�
       },
     }),
   );
-  await page.route("**/api/v1/threads", async (route) => {
-    if (route.request().method() !== "POST") return route.continue();
+  await page.route((url) => url.pathname === "/api/v1/threads", async (route) => {
+    if (route.request().method() !== "POST") {
+      return route.fulfill({
+        json: { code: 0, message: "ok", data: [], meta: { cursor: null, hasMore: false } },
+      });
+    }
     await route.fulfill({ json: { code: 0, message: "ok", data: thread } });
   });
   await page.route("**/api/v1/threads/t-dice-e2e", (route) =>

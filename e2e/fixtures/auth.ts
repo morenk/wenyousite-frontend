@@ -20,6 +20,7 @@ export async function loginAsE2eUser(page: Page) {
 
 /** 每个用例显式新建草稿，避免复用测试账号遗留草稿造成选择器分叉。 */
 export async function openFreshThreadDraft(page: Page) {
+  await page.goto("/");
   await page.getByRole("button", { name: "打开发布菜单" }).click();
   await page.getByRole("link", { name: "发布主题帖", exact: true }).click();
   const createButton = page.getByRole("button", { name: "新建主题帖" });

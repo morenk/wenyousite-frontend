@@ -244,7 +244,7 @@ function operation(method: string, apiPath: string) {
       [
         "markdown-v4-fixtures.json",
         "markdown-v4-nodes-fixtures.json",
-        "markdown-editor-roundtrip-v6-fixtures.json",
+        "markdown-editor-roundtrip-v7-fixtures.json",
         "editor-clipboard-v2-fixtures.json",
         "Flutter 必须",
       ],
@@ -311,9 +311,11 @@ function operation(method: string, apiPath: string) {
 
   const backendRoot = path.resolve(root, "../wenyousite-backend");
   for (const fixtureName of [
+    "markdown-v1-fixtures.json",
     "markdown-v4-fixtures.json",
     "markdown-v4-nodes-fixtures.json",
-    "markdown-editor-roundtrip-v6-fixtures.json",
+    "markdown-editor-roundtrip-v7-fixtures.json",
+    "markdown-v5-image-alignment-fixtures.json",
     "editor-clipboard-v2-fixtures.json",
     "thread-category-v3-fixtures.json",
   ]) {
