@@ -1,13 +1,13 @@
-/** ProfileEditForm 组件测试：账户信息（脱敏邮箱）、Bio textarea、隐私开关、账号安全入口 */
+/** ProfileEditForm 组件测试：分区保存、草稿保留、内联错误与撤销 */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, fireEvent, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import type { UserMe } from "@/api/hooks/use-me";
 
-const { mockMe } = vi.hoisted(() => ({
-  mockMe: vi.fn(),
+const { mockMe, mutateAsync } = vi.hoisted(() => ({
+  mockMe: vi.fn(), mutateAsync: vi.fn(),
 }));
 
 vi.mock("@/api/hooks/use-me", () => ({
@@ -15,7 +15,7 @@ vi.mock("@/api/hooks/use-me", () => ({
 }));
 
 vi.mock("@/api/hooks/use-update-profile", () => ({
-  useUpdateProfile: () => ({ isPending: false, mutateAsync: vi.fn() }),
+  useUpdateProfile: () => ({ isPending: false, mutateAsync }),
 }));
 
 vi.mock("@/lib/auth", () => ({
@@ -48,6 +48,7 @@ vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
+import AppearancePage from "@/app/me/appearance/page";
 import { ProfileEditForm } from "@/components/user/profile-edit-form";
 
 const baseMe = {
@@ -84,30 +85,46 @@ function createWrapper() {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mutateAsync.mockReset().mockResolvedValue(undefined);
   mockMe.mockReturnValue({ data: baseMe, isLoading: false, error: null });
 });
 
 afterEach(() => cleanup());
 
 describe("ProfileEditForm", () => {
-  test("加载中显示 spinner", () => {
+  test("加载中显示骨架", () => {
     mockMe.mockReturnValue({ data: undefined, isLoading: true, error: null });
     render(<ProfileEditForm />, { wrapper: createWrapper() });
-    expect(document.querySelector(".animate-spin")).toBeTruthy();
+    expect(screen.getByRole("status", { name: "正在加载资料" })).toBeInTheDocument();
   });
 
-  test("展示脱敏邮箱且不再显示冗余邮箱状态", () => {
-    render(<ProfileEditForm />, { wrapper: createWrapper() });
-    expect(screen.getByText("a***@example.com")).toBeInTheDocument();
-    expect(screen.queryByText("未认证")).not.toBeInTheDocument();
-    expect(screen.queryByText("已认证")).not.toBeInTheDocument();
+  test("外观页先展示头像再展示主页背景", () => {
+    render(<AppearancePage />, { wrapper: createWrapper() });
+    const avatar = screen.getByTestId("avatar-uploader");
+    const cover = screen.getByTestId("profile-cover-uploader");
+    expect(avatar.compareDocumentPosition(cover) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  test("主页外观区同时提供背景墙与头像编辑", () => {
-    render(<ProfileEditForm />, { wrapper: createWrapper() });
-    expect(screen.getByText("主页外观")).toBeInTheDocument();
-    expect(screen.getByTestId("profile-cover-uploader")).toBeInTheDocument();
-    expect(screen.getByTestId("avatar-uploader")).toBeInTheDocument();
+  test("外观资料后台刷新失败时保留已挂载的上传器", () => {
+    const { rerender } = render(<AppearancePage />, { wrapper: createWrapper() });
+    const uploader = screen.getByTestId("profile-cover-uploader");
+    mockMe.mockReturnValue({ data: baseMe, isLoading: false, error: new Error("offline") });
+    rerender(<AppearancePage />);
+    expect(screen.getByTestId("profile-cover-uploader")).toBe(uploader);
+    expect(screen.getByRole("alert")).toHaveTextContent("资料刷新失败，当前编辑已保留。");
+  });
+
+  test("只有业务码的简介校验错误也映射到字段", async () => {
+    mutateAsync.mockRejectedValueOnce({ code: 40000, message: "简介校验失败" });
+    const { rerender } = render(<ProfileEditForm />, { wrapper: createWrapper() });
+    fireEvent.change(screen.getByLabelText("个人简介"), { target: { value: "草稿" } });
+    fireEvent.click(screen.getByRole("button", { name: "保存简介" }));
+    expect(await screen.findByText("简介校验失败")).toBeInTheDocument();
+    expect(screen.getByLabelText("个人简介")).toHaveAttribute("aria-invalid", "true");
+    mockMe.mockReturnValue({ data: { ...baseMe, username: "newname" }, isLoading: false });
+    rerender(<ProfileEditForm />);
+    expect(screen.getByText("简介校验失败")).toBeInTheDocument();
+    expect(screen.getByLabelText("个人简介")).toHaveValue("草稿");
   });
 
   test("展示当前等级、经验进度和精确累计收款", () => {
@@ -136,22 +153,63 @@ describe("ProfileEditForm", () => {
     expect(screen.getByText("0/255")).toBeInTheDocument();
   });
 
-  test("渲染隐私设置开关", () => {
-    render(<ProfileEditForm />, { wrapper: createWrapper() });
-    expect(screen.getByText("公开最近动态")).toBeInTheDocument();
-    expect(screen.getByText("公开玩家标记")).toBeInTheDocument();
-    expect(screen.getByText("公开收藏")).toBeInTheDocument();
+  test("隐私标签准确说明回复与收藏目录范围，修改后才可保存", async () => {
+    render(<ProfileEditForm section="privacy" />, { wrapper: createWrapper() });
+    expect(screen.getByRole("button", { name: "保存隐私设置" })).toBeDisabled();
+    expect(screen.queryByLabelText("个人简介")).not.toBeInTheDocument();
+    expect(screen.getByText(/收藏夹名称与归类仅自己可见/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("checkbox", { name: "公开最近回复" }));
+    fireEvent.click(screen.getByRole("button", { name: "保存隐私设置" }));
+    await waitFor(() => expect(mutateAsync).toHaveBeenCalledWith({ showRecentReplies: false, showPlayerBadges: true, showBookmarks: true }));
+    expect(await screen.findByText("已保存")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "保存隐私设置" })).toBeDisabled();
   });
 
-  test("账号安全区提供修改密码与更换邮箱入口链接", () => {
+  test("用户名变更触发资料刷新时保留简介草稿，撤销回到服务器资料", () => {
+    mockMe.mockReturnValue({ data: { ...baseMe, bio: "原简介" }, isLoading: false });
+    const { rerender } = render(<ProfileEditForm />, { wrapper: createWrapper() });
+    fireEvent.change(screen.getByLabelText("个人简介"), { target: { value: "尚未保存的草稿" } });
+    mockMe.mockReturnValue({ data: { ...baseMe, username: "newname", bio: "原简介" }, isLoading: false });
+    rerender(<ProfileEditForm />);
+    expect(screen.getByLabelText("个人简介")).toHaveValue("尚未保存的草稿");
+    expect(screen.getByText("未保存修改")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "撤销修改" }));
+    expect(screen.getByLabelText("个人简介")).toHaveValue("原简介");
+    expect(screen.getByRole("button", { name: "保存简介" })).toBeDisabled();
+  });
+
+  test("简介仅提交自身字段，去除首尾空白并显示保存结果", async () => {
     render(<ProfileEditForm />, { wrapper: createWrapper() });
-    expect(screen.getByRole("link", { name: /修改密码/ })).toHaveAttribute(
-      "href",
-      "/me/password",
-    );
-    expect(screen.getByRole("link", { name: /更换邮箱/ })).toHaveAttribute(
-      "href",
-      "/me/email",
-    );
+    fireEvent.change(screen.getByLabelText("个人简介"), { target: { value: " 新简介 " } });
+    fireEvent.click(screen.getByRole("button", { name: "保存简介" }));
+    await waitFor(() => expect(mutateAsync).toHaveBeenCalledWith({ bio: "新简介" }));
+    expect(await screen.findByText("已保存")).toBeInTheDocument();
+    expect(screen.getByLabelText("个人简介")).toHaveValue("新简介");
+    expect(screen.getByRole("button", { name: "保存简介" })).toBeDisabled();
+  });
+
+  test("清空已有简介显示字段错误，不提交无效请求", async () => {
+    mockMe.mockReturnValue({ data: { ...baseMe, bio: "原简介" }, isLoading: false });
+    render(<ProfileEditForm />, { wrapper: createWrapper() });
+    fireEvent.change(screen.getByLabelText("个人简介"), { target: { value: "   " } });
+    fireEvent.click(screen.getByRole("button", { name: "保存简介" }));
+    expect(await screen.findByText("简介不能为空；暂不支持清空已填写的简介。")).toBeInTheDocument();
+    expect(screen.getByLabelText("个人简介")).toHaveAttribute("aria-invalid", "true");
+    expect(mutateAsync).not.toHaveBeenCalled();
+  });
+
+  test("保存失败保留输入并可重试，后台刷新失败也不丢失草稿", async () => {
+    mutateAsync.mockRejectedValueOnce({ code: 42900, message: "Too many requests" });
+    const { rerender } = render(<ProfileEditForm />, { wrapper: createWrapper() });
+    fireEvent.change(screen.getByLabelText("个人简介"), { target: { value: "草稿" } });
+    fireEvent.click(screen.getByRole("button", { name: "保存简介" }));
+    expect(await screen.findByText("操作太频繁，请稍后再试")).toBeInTheDocument();
+    expect(screen.getByLabelText("个人简介")).toHaveValue("草稿");
+    mockMe.mockReturnValue({ data: baseMe, isLoading: false, error: new Error("offline") });
+    rerender(<ProfileEditForm />);
+    expect(screen.getByText(/资料刷新失败/)).toBeInTheDocument();
+    expect(screen.getByLabelText("个人简介")).toHaveValue("草稿");
+    fireEvent.click(screen.getByRole("button", { name: "保存简介" }));
+    expect(await screen.findByText("已保存")).toBeInTheDocument();
   });
 });

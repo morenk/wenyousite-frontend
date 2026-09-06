@@ -33,6 +33,8 @@ vi.mock("@/api/hooks/use-account-security", () => ({
   useDeleteAccount: () => ({ mutateAsync: deleteMutate, isPending: false }),
 }));
 
+vi.mock("@/api/hooks/use-me", () => ({ useMe: () => ({ data: { email: "alice@example.com" } }) }));
+
 vi.mock("@/lib/auth", () => ({ useAuth: () => ({ logout, user: { id: "u1" } }) }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ replace, refresh }) }));
 vi.mock("next/link", () => ({
@@ -65,6 +67,13 @@ afterEach(() => {
 });
 
 describe("AccountSecurityPanel", () => {
+  test("脱敏邮箱与密码操作归入账号安全", () => {
+    render(<AccountSecurityPanel />);
+    expect(screen.getByText("a***@example.com")).toBeInTheDocument();
+    expect(screen.queryByText("alice@example.com")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "更换邮箱" })).toHaveAttribute("href", "/me/email");
+    expect(screen.getByRole("link", { name: "修改密码" })).toHaveAttribute("href", "/me/password");
+  });
   test("以友好终端文案展示双端登录且不泄露原始 UA", async () => {
     const user = userEvent.setup();
     render(<AccountSecurityPanel />);

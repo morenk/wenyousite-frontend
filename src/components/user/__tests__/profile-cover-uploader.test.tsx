@@ -107,12 +107,14 @@ afterEach(() => {
 });
 
 describe("ProfileCoverUploader", () => {
-  test("同时展示 Web 3:1 与移动端 2:1 预览，旧数据明确使用 Web 兜底", () => {
+  test("默认预览 Web 3:1，切换后展示移动端 2:1 与旧背景兜底", async () => {
     renderUploader(legacyCover);
 
     expect(screen.getByText("电脑端 · 3:1")).toBeInTheDocument();
     expect(screen.getByText("移动端 · 2:1")).toBeInTheDocument();
-    expect(screen.getByText("沿用电脑端背景")).toBeInTheDocument();
+    expect(screen.queryByRole("img", { name: "tester 的移动端主页背景" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "移动端 · 2:1" }));
+    expect(await screen.findByText("沿用电脑端背景")).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "tester 的移动端主页背景" })).toHaveAttribute(
       "src",
       legacyCover.url,

@@ -77,7 +77,7 @@ describe("UsernameEdit", () => {
 
     renderWithQC(<UsernameEdit currentUsername="morenk" />);
     await user.click(screen.getByRole("button", { name: "修改用户名" }));
-    await user.click(screen.getByRole("button", { name: "保存" }));
+    await user.click(screen.getByRole("button", { name: "保存用户名" }));
 
     expect(mutateAsync).not.toHaveBeenCalled();
     expect(screen.queryByPlaceholderText("输入新用户名")).not.toBeInTheDocument();
@@ -92,7 +92,7 @@ describe("UsernameEdit", () => {
     await user.click(screen.getByRole("button", { name: "修改用户名" }));
     await user.clear(screen.getByPlaceholderText("输入新用户名"));
     await user.type(screen.getByPlaceholderText("输入新用户名"), "bad name!");
-    await user.click(screen.getByRole("button", { name: "保存" }));
+    await user.click(screen.getByRole("button", { name: "保存用户名" }));
 
     expect(screen.getByText("用户名只能包含字母、数字和中文")).toBeInTheDocument();
     expect(mutateAsync).not.toHaveBeenCalled();
@@ -107,7 +107,7 @@ describe("UsernameEdit", () => {
     await user.click(screen.getByRole("button", { name: "修改用户名" }));
     await user.clear(screen.getByPlaceholderText("输入新用户名"));
     await user.type(screen.getByPlaceholderText("输入新用户名"), "newuser");
-    await user.click(screen.getByRole("button", { name: "保存" }));
+    await user.click(screen.getByRole("button", { name: "保存用户名" }));
 
     expect(mutateAsync).toHaveBeenCalledWith({ username: "newuser" });
     expect(setAuth).toHaveBeenCalledWith(
@@ -128,7 +128,7 @@ describe("UsernameEdit", () => {
     await user.click(screen.getByRole("button", { name: "修改用户名" }));
     await user.clear(screen.getByPlaceholderText("输入新用户名"));
     await user.type(screen.getByPlaceholderText("输入新用户名"), "taken");
-    await user.click(screen.getByRole("button", { name: "保存" }));
+    await user.click(screen.getByRole("button", { name: "保存用户名" }));
 
     expect(screen.getByText("用户名已被占用")).toBeInTheDocument();
   });
@@ -147,7 +147,7 @@ describe("UsernameEdit", () => {
     await user.click(screen.getByRole("button", { name: "修改用户名" }));
     await user.clear(screen.getByPlaceholderText("输入新用户名"));
     await user.type(screen.getByPlaceholderText("输入新用户名"), "taken");
-    await user.click(screen.getByRole("button", { name: "保存" }));
+    await user.click(screen.getByRole("button", { name: "保存用户名" }));
 
     expect(screen.getByText("用户名修改后需间隔 7 天，剩余 6 天")).toBeInTheDocument();
   });

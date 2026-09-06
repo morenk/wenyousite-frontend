@@ -20,7 +20,7 @@ import { getApiError, getApiErrorMessage } from "@/api/errors";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { WenyouTime } from "@/components/shared/wenyou-time";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useMe } from "@/api/hooks/use-me";
 import { Input } from "@/components/ui/input";
 import { useConfirm } from "@/components/ui/confirm-provider";
 
@@ -32,6 +32,9 @@ function getSessionErrorMessage(error: unknown) {
 export function AccountSecurityPanel() {
   const router = useRouter();
   const { logout, user } = useAuth();
+  const me = useMe();
+  const email = me.data?.email;
+  const maskedEmail = email ? `${email.charAt(0)}***@${email.split("@")[1]}` : null;
   const sessions = useAccountSessions(user?.id);
   const blockedUsers = useBlockedUsers(user?.id);
   const revokeSession = useRevokeSession(user?.id);
@@ -77,10 +80,23 @@ export function AccountSecurityPanel() {
   }
 
   return (
-    <div className="space-y-5">
-      <Card>
-        <CardHeader><CardTitle>登录终端</CardTitle></CardHeader>
-        <CardContent>
+    <div className="space-y-8">
+      <section aria-labelledby="security-credentials" className="border-b border-border pb-6">
+        <h3 id="security-credentials" className="mb-4 text-sm font-semibold">登录凭据</h3>
+        <div className="flex items-center justify-between gap-4 py-3">
+          <div className="text-sm"><p className="font-medium">邮箱</p>
+            {maskedEmail ? <p className="mt-1 text-muted-foreground">{maskedEmail}</p> : me.error ? <p role="alert" className="text-destructive">邮箱加载失败 <Button variant="link" size="compact" onClick={() => void me.refetch()}>重试</Button></p> : <p role="status" className="text-muted-foreground">正在加载邮箱…</p>}
+          </div>
+          <Link href="/me/email" className="inline-flex min-h-10 items-center rounded-md text-sm text-brand-strong outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring">更换邮箱</Link>
+        </div>
+        <div className="flex items-center justify-between gap-4 border-t border-border py-3">
+          <p className="text-sm font-medium">密码</p>
+          <Link href="/me/password" className="inline-flex min-h-10 items-center rounded-md text-sm text-brand-strong outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring">修改密码</Link>
+        </div>
+      </section>
+      <section aria-labelledby="security-sessions" className="border-b border-border pb-6">
+        <h3 id="security-sessions" className="mb-4 text-sm font-semibold">登录终端</h3>
+        <div>
           {sessions.isLoading ? (
             <Loader2 className="mx-auto h-5 w-5 animate-spin text-muted-foreground" />
           ) : sessions.error ? (
@@ -134,16 +150,16 @@ export function AccountSecurityPanel() {
           ) : (
             <p className="text-sm text-muted-foreground">暂无活跃登录终端</p>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      <Card>
-        <CardHeader><CardTitle>黑名单</CardTitle></CardHeader>
-        <CardContent>
+      <section aria-labelledby="security-blocks" className="border-b border-border pb-6">
+        <h3 id="security-blocks" className="mb-4 text-sm font-semibold">黑名单</h3>
+        <div>
           {blockedUsers.isLoading ? (
             <Loader2 className="mx-auto h-5 w-5 animate-spin text-muted-foreground" />
           ) : blockedUsers.error ? (
-            <p className="text-sm text-destructive">黑名单加载失败</p>
+            <p role="alert" className="text-sm text-destructive">黑名单加载失败 <Button variant="link" size="compact" onClick={() => void blockedUsers.refetch()}>重试</Button></p>
           ) : blockedUsers.data?.length ? (
             <ul className="divide-y divide-border">
               {blockedUsers.data.map(({ id, blocked }) => (
@@ -166,12 +182,12 @@ export function AccountSecurityPanel() {
           ) : (
             <p className="text-sm text-muted-foreground">黑名单为空</p>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      <Card className="border-destructive/40">
-        <CardHeader><CardTitle className="text-destructive">注销账号</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
+      <section aria-labelledby="security-delete" className="rounded-xl border border-destructive/40 p-5">
+        <h3 id="security-delete" className="mb-3 text-sm font-semibold text-destructive">注销账号</h3>
+        <div className="space-y-3">
           <p className="text-sm text-muted-foreground">
             注销后账号、登录终端和身份信息将无法恢复。请输入“注销账号”确认。
           </p>
@@ -191,8 +207,8 @@ export function AccountSecurityPanel() {
               永久注销
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
     </div>
   );
 }

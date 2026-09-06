@@ -82,7 +82,7 @@ describe("ChangeEmailForm", () => {
       });
     });
     expect(toast.success).toHaveBeenCalledWith("邮箱已更换");
-    expect(mockReplace).toHaveBeenCalledWith("/me");
+    expect(mockReplace).toHaveBeenCalledWith("/me/security");
     expect(screen.queryByText("邮箱已更换")).not.toBeInTheDocument();
   });
 

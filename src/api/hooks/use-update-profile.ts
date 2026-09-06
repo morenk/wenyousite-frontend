@@ -23,9 +23,9 @@ export function useUpdateProfile() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.me });
-      queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
-    },
+    onSuccess: () => Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.me }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.all }),
+    ]),
   });
 }

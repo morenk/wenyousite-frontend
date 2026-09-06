@@ -1,137 +1,68 @@
-/** 独立用户名修改：默认只读展示，点「修改用户名」才进入编辑态，未改动不提交 */
-
 "use client";
 
-import { useState } from "react";
-import { Loader2, Pencil, X, Check } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { useUpdateProfile } from "@/api/hooks/use-update-profile";
 import { getApiError } from "@/api/errors";
-import { usernameSchema } from "@/lib/validations/profile";
+import { usernameSchema, type UsernameFormData } from "@/lib/validations/profile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormField } from "@/components/ui/form-field";
+import { Dialog, DialogBackdrop, DialogCloseButton, DialogDescription, DialogPopup, DialogPortal, DialogTitle, DialogViewport } from "@/components/ui/dialog";
 
-interface UsernameEditProps {
+export function UsernameEdit({ currentUsername, onStatusChange }: {
   currentUsername: string;
-}
-
-export function UsernameEdit({ currentUsername }: UsernameEditProps) {
+  onStatusChange?: (status: { dirty: boolean; busy: boolean }) => void;
+}) {
   const { user, accessToken, setAuth } = useAuth();
   const updateProfile = useUpdateProfile();
   const [editing, setEditing] = useState(false);
-  const [value, setValue] = useState(currentUsername);
-  const [fieldError, setFieldError] = useState<string | null>(null);
+  const form = useForm<UsernameFormData>({ resolver: zodResolver(usernameSchema), defaultValues: { username: currentUsername } });
+  const value = useWatch({ control: form.control, name: "username" });
+  const dirty = editing && value.trim() !== currentUsername;
+  useEffect(() => {
+    onStatusChange?.({ dirty, busy: updateProfile.isPending });
+  }, [dirty, updateProfile.isPending, onStatusChange]);
+  useEffect(() => () => onStatusChange?.({ dirty: false, busy: false }), [onStatusChange]);
 
-  const startEdit = () => {
-    setValue(currentUsername);
-    setFieldError(null);
-    setEditing(true);
-  };
-
-  const cancelEdit = () => {
+  const close = () => {
+    if (updateProfile.isPending) return;
     setEditing(false);
-    setFieldError(null);
+    form.reset({ username: currentUsername });
   };
-
-  const handleSave = async () => {
-    const next = value.trim();
-    // 空值防御：按钮已禁用，这里兜底
-    if (next === "") {
-      setFieldError("请输入用户名");
-      return;
-    }
-    // 未修改用户名：不发请求，直接收起
-    if (next === currentUsername) {
-      setEditing(false);
-      setFieldError(null);
-      return;
-    }
-
-    const parsed = usernameSchema.safeParse({ username: next });
-    if (!parsed.success) {
-      setFieldError(parsed.error.issues[0]?.message ?? "用户名格式不正确");
-      return;
-    }
-
+  const save = form.handleSubmit(async ({ username }) => {
+    const next = username.trim();
+    if (next === currentUsername) { close(); return; }
     try {
       await updateProfile.mutateAsync({ username: next });
-      // 同步更新导航栏等内存认证状态中的用户信息
-      if (user && accessToken) {
-        setAuth({ ...user, username: next }, accessToken);
-      }
+      if (user && accessToken) setAuth({ ...user, username: next }, accessToken);
       toast.success("用户名已更新");
       setEditing(false);
-      setFieldError(null);
-    } catch (err: unknown) {
-      const e = getApiError(err);
-      if (e.code === 40900) {
-        setFieldError("用户名已被占用");
-      } else if (e.code === 42900) {
-        toast.error("操作太频繁，请稍后再试");
-      } else {
-        setFieldError(e.message || "修改失败，请稍后重试");
-      }
+    } catch (error) {
+      const apiError = getApiError(error);
+      form.setError("username", { message: apiError.code === 40900 ? "用户名已被占用" : apiError.code === 42900 ? "操作太频繁，请稍后再试" : apiError.message || "修改失败，请稍后重试" });
     }
-  };
+  });
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">用户名</CardTitle>
-      </CardHeader>
-      <CardContent className="pt-6">
-        {editing ? (
-          <div className="space-y-2">
-            <Input
-              autoFocus
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              placeholder="输入新用户名"
-            />
-            {fieldError && (
-              <p className="text-xs text-destructive">{fieldError}</p>
-            )}
-            <p className="text-xs text-muted-foreground">
-              2-24 位，字母/数字/中文。修改后 7 天内不可再次修改。
-            </p>
-            <div className="flex items-center justify-end gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={cancelEdit}
-                disabled={updateProfile.isPending}
-              >
-                <X className="mr-1 h-3.5 w-3.5" />
-                取消
-              </Button>
-              <Button
-                size="sm"
-                onClick={handleSave}
-                disabled={!value.trim() || updateProfile.isPending}
-              >
-                {updateProfile.isPending ? (
-                  <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <Check className="mr-1 h-3.5 w-3.5" />
-                )}
-                保存
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center justify-between gap-4">
-            <p className="text-sm font-medium text-foreground">
-              {currentUsername}
-            </p>
-            <Button variant="outline" size="sm" onClick={startEdit}>
-              <Pencil className="mr-1.5 h-3.5 w-3.5" />
-              修改用户名
-            </Button>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+    <div className="flex items-center justify-between gap-4 border-b border-border pb-6">
+      <div className="min-w-0"><p className="mb-2 text-sm font-semibold">用户名</p><p className="break-words text-sm">{currentUsername}</p></div>
+      <Button type="button" variant="outline" size="compact" onClick={() => { form.reset({ username: currentUsername }); setEditing(true); }}>修改用户名</Button>
+      <Dialog open={editing} onOpenChange={(open) => { if (!open) close(); }} disablePointerDismissal={updateProfile.isPending}>
+        <DialogPortal><DialogBackdrop /><DialogViewport><DialogPopup className="max-w-md p-6">
+          <div className="flex items-center justify-between gap-4"><DialogTitle>修改用户名</DialogTitle><DialogCloseButton label="关闭用户名修改" disabled={updateProfile.isPending} /></div>
+          <DialogDescription className="mt-2 text-sm text-muted-foreground">修改后 7 天内不可再次修改。</DialogDescription>
+          <form onSubmit={save} className="mt-6 space-y-6">
+            <FormField id="username" label="新用户名" description="2–24 位，支持字母、数字和中文。" error={form.formState.errors.username?.message}>
+              {(props) => <Input {...props} autoFocus placeholder="输入新用户名" autoComplete="username" disabled={updateProfile.isPending} {...form.register("username", { setValueAs: (value: string) => value.trim() })} />}
+            </FormField>
+            <div className="flex justify-end gap-2"><Button type="button" variant="ghost" disabled={updateProfile.isPending} onClick={close}>取消</Button><Button type="submit" pending={updateProfile.isPending} pendingLabel="保存中">保存用户名</Button></div>
+          </form>
+        </DialogPopup></DialogViewport></DialogPortal>
+      </Dialog>
+    </div>
   );
 }

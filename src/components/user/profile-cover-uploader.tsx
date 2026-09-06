@@ -10,6 +10,7 @@ import { useSetProfileCover } from "@/api/hooks/use-set-profile-cover";
 import { getApiErrorMessage } from "@/api/errors";
 import { ImageUploadProgress } from "@/components/shared/image-upload-progress";
 import { UserAvatar } from "@/components/shared/user-avatar";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
@@ -218,55 +219,26 @@ export function ProfileCoverUploader({
 
   return (
     <div>
-      <div className="grid gap-3 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <section aria-labelledby="profile-cover-web-preview">
-          <div className="mb-2 flex items-center gap-3">
-            <p
-              id="profile-cover-web-preview"
-              className="flex items-center gap-1.5 text-xs font-medium text-foreground"
-            >
-              <Monitor className="size-3.5 text-brand-strong" aria-hidden="true" />
-              电脑端 · 3:1
-            </p>
-          </div>
+      <Tabs defaultValue="web">
+        <TabsList variant="line" aria-label="背景预览画幅" className="mb-3">
+          <TabsTrigger value="web"><Monitor aria-hidden="true" />电脑端 · 3:1</TabsTrigger>
+          <TabsTrigger value="mobile"><Smartphone aria-hidden="true" />移动端 · 2:1</TabsTrigger>
+        </TabsList>
+        <TabsContent value="web">
           <div className="relative mb-9">
-            <ProfileCover
-              cover={profileCover}
-              username={username}
-              className="rounded-xl border border-border"
-            />
-            <UserAvatar
-              name={username}
-              src={avatar}
+            <ProfileCover cover={profileCover} username={username} className="rounded-xl border border-border" />
+            <UserAvatar name={username} src={avatar}
               className="absolute -bottom-7 left-4 size-14 ring-4 ring-card outline outline-1 outline-border"
-              textClassName="text-lg"
-            />
+              textClassName="text-lg" />
           </div>
-        </section>
+        </TabsContent>
+        <TabsContent value="mobile" className="max-w-narrow">
+          <ProfileCover cover={mobilePreviewCover} username={username} surface="mobile" className="rounded-xl border border-border" />
+          {profileCover && !profileCover.mobile ? <p className="mt-2 text-xs text-muted-foreground">沿用电脑端背景</p> : null}
+        </TabsContent>
+      </Tabs>
 
-        <section aria-labelledby="profile-cover-mobile-preview">
-          <div className="mb-2 flex items-center gap-3">
-            <p
-              id="profile-cover-mobile-preview"
-              className="flex items-center gap-1.5 text-xs font-medium text-foreground"
-            >
-              <Smartphone className="size-3.5 text-brand-strong" aria-hidden="true" />
-              移动端 · 2:1
-            </p>
-          </div>
-          <ProfileCover
-            cover={mobilePreviewCover}
-            username={username}
-            surface="mobile"
-            className="rounded-xl border border-border"
-          />
-          {profileCover && !profileCover.mobile ? (
-            <p className="mt-1.5 text-[11px] text-muted-foreground">沿用电脑端背景</p>
-          ) : null}
-        </section>
-      </div>
-
-      <div className="mt-4 flex flex-wrap items-center justify-end gap-3 border-t border-border pt-4">
+      <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
         <div className="flex shrink-0 gap-2">
           {profileCover ? (
             <Button

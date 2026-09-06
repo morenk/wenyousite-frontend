@@ -1,16 +1,6 @@
-/** 账号安全页面：双端登录终端、黑名单与账号注销 */
-
-"use client";
-
 import { AccountSecurityPanel } from "@/components/user/account-security-panel";
-import { PageHeader } from "@/components/layout/page-header";
-import { PageShell } from "@/components/layout/page-shell";
+import { SettingsTitle } from "@/components/user/settings-shell";
 
 export default function AccountSecurityPage() {
-  return (
-    <PageShell width="feed">
-      <PageHeader purpose="functional" title="账号安全" backHref="/me" backLabel="返回我的资料" />
-      <AccountSecurityPanel />
-    </PageShell>
-  );
+  return <><SettingsTitle>账号安全</SettingsTitle><AccountSecurityPanel /></>;
 }

@@ -1,4 +1,4 @@
-/** 更换邮箱表单：当前密码二次认证 → 新邮箱 → 验证码确认 → 成功后跳回资料页 */
+/** 更换邮箱表单：当前密码二次认证 → 新邮箱 → 验证码确认 → 成功后返回账号安全 */
 
 "use client";
 
@@ -83,7 +83,7 @@ export function ChangeEmailForm() {
         code: values.code,
       });
       toast.success("邮箱已更换");
-      router.replace("/me");
+      router.replace("/me/security");
     } catch (err) {
       const e = getApiError(err);
       if (e.code === 40001) {

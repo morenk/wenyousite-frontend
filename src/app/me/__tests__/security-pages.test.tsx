@@ -53,13 +53,13 @@ beforeEach(() => {
 afterEach(() => cleanup());
 
 test.each([
-  ["我的资料", MePage],
+  ["基本资料", MePage],
   ["修改密码", ChangePasswordPage],
   ["更换邮箱", ChangeEmailPage],
   ["账号安全", AccountSecurityPage],
 ] as const)("%s 页面标题使用功能字体", (title, Page) => {
   render(<Page />);
-  const heading = screen.getByRole("heading", { name: title, level: 1 });
+  const heading = screen.getByRole("heading", { name: title, level: 2 });
   expect(heading).toHaveClass("font-sans", "font-semibold");
   expect(heading).not.toHaveClass("font-display");
 });
@@ -80,7 +80,7 @@ describe("/me/password", () => {
     mockUseAuth.mockReturnValue({ user: authedUser, isInitialized: true });
     render(<ChangePasswordPage />);
     expect(screen.getByTestId("change-password-form")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /返回资料设置/ })).toHaveAttribute("href", "/me");
+    expect(screen.getByRole("link", { name: /返回账号安全/ })).toHaveAttribute("href", "/me/security");
   });
 });
 
