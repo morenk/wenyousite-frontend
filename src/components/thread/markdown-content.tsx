@@ -219,11 +219,16 @@ function remarkMilkdownEmptyParagraphs() {
   return (tree: MarkdownNode) => {
     if (!tree.children) return;
     tree.children = tree.children.flatMap((node) => {
+      if (node.type === "blockquote") {
+        remarkMilkdownEmptyParagraphs()(node);
+        return [node];
+      }
       if (node.type !== "html") return [node];
       const lines = (node.value ?? "").split("\n");
       if (!lines.every((line) => EMPTY_PARAGRAPH_RE.test(line))) return [node];
       return lines.map(() => ({
         type: "paragraph",
+        data: { hProperties: { "data-wenyou-empty-row": "true" } },
         children: [{ type: "break" }],
       }));
     });

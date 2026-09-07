@@ -15,6 +15,7 @@ function workspace() {
   mkdirSync(backend, { recursive: true });
   mkdirSync(join(frontend, "contracts"), { recursive: true });
   const fixtures = {
+    "markdown-editor-newline-v1-fixtures.json": { contract: "wenyousite-editor-newline", version: 1 },
     "openapi.json": { openapi: "3.0.3", info: { version: "test" } },
     "internal-reference-v1-fixtures.json": { contract: "wenyousite-internal-reference", version: 1 },
     "editor-clipboard-v2-fixtures.json": { contract: "wenyousite-editor-clipboard", version: 2 },

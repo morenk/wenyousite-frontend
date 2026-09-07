@@ -342,3 +342,17 @@
   max-height: calc(100vh - 16px);
   overflow-y: auto;
 }
+
+/* 显式空白行已经占一行，不再叠加相邻段落的内边距。 */
+.milkdown .ProseMirror > p[data-wenyou-empty-row],
+.milkdown .ProseMirror > blockquote > p[data-wenyou-empty-row] {
+  padding-block: 0;
+}
+.milkdown .ProseMirror > p:has(+ p[data-wenyou-empty-row]),
+.milkdown .ProseMirror > blockquote > p:has(+ p[data-wenyou-empty-row]) {
+  padding-block-end: 0;
+}
+.milkdown .ProseMirror > p[data-wenyou-empty-row] + p,
+.milkdown .ProseMirror > blockquote > p[data-wenyou-empty-row] + p {
+  padding-block-start: 0;
+}

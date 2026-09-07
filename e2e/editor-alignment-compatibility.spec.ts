@@ -29,7 +29,7 @@ const LIST_TEXT = "列表转换必须清除对齐";
 const QUOTE_TEXT = "引用转换必须清除对齐";
 const LEFT_TEXT = "默认左对齐段落";
 const SOFT_LINE_TEXT = "软换行仍处于同一居中块";
-const NEW_PARAGRAPH_TEXT = "换行新段不泄漏对齐";
+const NEW_PARAGRAPH_TEXT = "普通回车继续当前对齐";
 
 const INITIAL_MARKDOWN = [
   CENTER_TEXT,
@@ -446,7 +446,7 @@ test.describe("编辑器对齐真实浏览器兼容性", () => {
       "center",
     );
 
-    // Shift+Enter 留在同一块并继承对齐；Enter 创建的新块恢复默认值，不能泄漏。
+    // 普通正文的 Enter 与 Shift+Enter 都继续当前对齐。
     center = editorParagraph(editor, CENTER_TEXT);
     await placeCaretAtEnd(center);
     await page.keyboard.press("Shift+Enter");
@@ -456,7 +456,7 @@ test.describe("编辑器对齐真实浏览器兼容性", () => {
     await page.keyboard.press("Enter");
     await page.keyboard.type(NEW_PARAGRAPH_TEXT);
     const nextParagraph = editorParagraph(editor, NEW_PARAGRAPH_TEXT);
-    await expectBlockAlignment(nextParagraph, "left");
+    await expectBlockAlignment(nextParagraph, "center");
     await expectBlockAlignment(center, "center");
 
     // 顺序二：先创建行内 mark，再设置右对齐。
@@ -508,7 +508,7 @@ test.describe("编辑器对齐真实浏览器兼容性", () => {
     expect(saved).toContain("[wenyousite-align-v1-center]: #\n## 标题转换仍保留对齐");
     expect(saved).not.toMatch(/wenyousite-align[^\n]*\n[-*] 列表转换/u);
     expect(saved).not.toMatch(/wenyousite-align[^\n]*\n> 引用转换/u);
-    expect(saved).not.toMatch(/wenyousite-align[^\n]*\n换行新段不泄漏对齐/u);
+    expect(saved).not.toMatch(/wenyousite-align[^\n]*\n普通回车继续当前对齐/u);
 
     // 同一份持久化内容进入阅读组件后，DOM 属性、computed style 与行内语义一致。
     harness.setPublished(true);
@@ -671,3 +671,63 @@ test.describe("编辑器对齐真实浏览器兼容性", () => {
     await expect(menu.getByRole("menuitem", { name: "骰子" })).toBeVisible();
   });
 });
+
+
+for (const quoted of [false, true]) {
+  test(`${quoted ? "引用" : "正文"} 连续回车的行高、保存、编辑重开和阅读保持一致`, async ({ page }) => {
+    const harness = await mockAlignmentWorkspace(page, quoted ? "> 甲乙\n\n尾段" : "甲乙");
+    await openFreshThreadDraft(page);
+    const editor = page.locator(".milkdown-editor .ProseMirror").first();
+    const paragraph = editor.locator(quoted ? "blockquote > p" : ":scope > p").filter({ hasText: "甲乙" });
+    await expect(paragraph).toBeVisible();
+    const lineHeight = await paragraph.evaluate((el) => Number.parseFloat(getComputedStyle(el).lineHeight));
+    const initialHeight = (await paragraph.boundingBox())!.height;
+    await paragraph.evaluate((el) => {
+      const text = el.firstChild!;
+      const range = document.createRange();
+      range.setStart(text, 1);
+      range.collapse(true);
+      const selection = window.getSelection()!;
+      selection.removeAllRanges();
+      selection.addRange(range);
+      (el.closest('[contenteditable="true"]') as HTMLElement).focus();
+    });
+    await page.keyboard.press("Enter");
+    await page.keyboard.press("Enter");
+    await page.keyboard.press("Enter");
+    const editableBlock = editor.locator(quoted ? ":scope > blockquote" : ":scope > p").filter({ hasText: /甲[\s\S]*乙/u });
+    if (!quoted) expect(Math.abs((await editableBlock.boundingBox())!.height - initialHeight - lineHeight * 3)).toBeLessThan(2);
+    const prefix = quoted ? "> " : "";
+    const expected = `${prefix}甲\n${prefix}<br />\n${prefix}<br />\n${prefix}乙${quoted ? "\n\n尾段" : ""}`;
+    await page.getByRole("button", { name: "保存草稿", exact: true }).click();
+    await expect.poll(harness.getStoredMarkdown).toBe(expected);
+    await page.reload();
+    await page.getByRole("link", { name: "继续编辑", exact: true }).click();
+    await expect(editor).toBeVisible();
+    const reopenedBlock = quoted ? editor.locator(":scope > blockquote") : editor;
+    await expect(reopenedBlock.locator(":scope > p[data-wenyou-empty-row]")).toHaveCount(2);
+    const gap = await reopenedBlock.evaluate((el) => {
+      const first = [...el.querySelectorAll(":scope > p")].find((p) => p.textContent === "甲")!;
+      const last = [...el.querySelectorAll(":scope > p")].find((p) => p.textContent === "乙")!;
+      const firstText = document.createRange();
+      firstText.selectNodeContents(first);
+      const lastText = document.createRange();
+      lastText.selectNodeContents(last);
+      return lastText.getBoundingClientRect().top - firstText.getBoundingClientRect().top;
+    });
+    expect(Math.abs(gap - lineHeight * 3)).toBeLessThan(2);
+    harness.setPublished(true);
+    await page.goto(`/threads/${THREAD_ID}`);
+    const reader = page.locator('[data-slot="markdown-content"]').filter({ hasText: "甲" }).first();
+    await expect(reader).toBeVisible();
+    const readerBlock = quoted ? reader.locator(":scope > blockquote") : reader;
+    const readerGap = await readerBlock.evaluate((el) => {
+      const ps = [...el.querySelectorAll(":scope > p")];
+      const first = ps.find((p) => p.textContent === "甲")!;
+      const last = ps.find((p) => p.textContent === "乙")!;
+      return { distance: last.getBoundingClientRect().top - first.getBoundingClientRect().top,
+        line: Number.parseFloat(getComputedStyle(first).lineHeight) };
+    });
+    expect(Math.abs(readerGap.distance - readerGap.line * 3)).toBeLessThan(2);
+  });
+}

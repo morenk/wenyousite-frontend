@@ -22,6 +22,12 @@ const editorClipboardTarget = resolve(
   frontendRoot,
   "contracts/editor-clipboard-v2-fixtures.json",
 );
+const newlineSource = resolve(frontendRoot, "../wenyousite-backend/contracts/markdown-editor-newline-v1-fixtures.json");
+const newlineTarget = resolve(frontendRoot, "contracts/markdown-editor-newline-v1-fixtures.json");
+const newlineContract = JSON.parse(readFileSync(newlineSource, "utf8"));
+if (newlineContract.contract !== "wenyousite-editor-newline" || newlineContract.version !== 1) {
+  throw new Error("后端回车契约不是 wenyousite-editor-newline v1");
+}
 const contract = JSON.parse(readFileSync(source, "utf8"));
 const internalReferenceContract = JSON.parse(readFileSync(internalReferenceSource, "utf8"));
 const editorClipboardContract = JSON.parse(readFileSync(editorClipboardSource, "utf8"));
@@ -57,6 +63,7 @@ for (const name of markdownFiles) {
 
 mkdirSync(frontendContracts, { recursive: true });
 copyFileSync(source, target);
+copyFileSync(newlineSource, newlineTarget);
 copyFileSync(internalReferenceSource, internalReferenceTarget);
 copyFileSync(editorClipboardSource, editorClipboardTarget);
 for (const name of markdownFiles) {

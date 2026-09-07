@@ -47,6 +47,11 @@ function sanitizeOutsideFencedCode(markdown: string): string {
       continue;
     }
 
+    if (/^ {0,3}>[\t ]?<br\s*\/?>[\t ]*$/iu.test(line)) {
+      parts[index] = "> <br />";
+      continue;
+    }
+
     parts[index] = line.replace(EMPTY_IMAGE_REGEX, "");
   }
 
@@ -58,6 +63,7 @@ function normalizeMilkdownMarkdown(markdown: string): string {
 }
 
 const EMPTY_PARAGRAPH_RE = /^ {0,3}<br\s*\/?>[\t ]*$/iu;
+const QUOTED_EMPTY_PARAGRAPH_RE = /^ {0,3}>[\t ]?<br\s*\/?>[\t ]*$/iu;
 const BLANK_LINE_RE = /^[\t ]*$/u;
 const TASK_LIST_RE = /^(?: {0,3}>[\t ]*)*[\t ]*(?:[-+*]|\d+[.)])[\t ]+\[[ xX]\](?:[\t ]|$)/u;
 const UNKNOWN_PROTOCOL_RE = /\[\[([a-z][a-z0-9_-]*):v(\d+):/giu;
@@ -159,6 +165,20 @@ export function recoverLegacyMarkdownEmptyParagraphs(markdown: string): string {
   return output.join("\n");
 }
 
+function isolateEmptyRowMarkers(lines: string[]): string[] {
+  const output: string[] = [];
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index]!;
+    const quoted = QUOTED_EMPTY_PARAGRAPH_RE.test(line);
+    if (!quoted && !EMPTY_PARAGRAPH_RE.test(line)) { output.push(line); continue; }
+    const separator = quoted ? ">" : "";
+    if (output.length > 0 && output.at(-1) !== separator) output.push(separator);
+    output.push(quoted ? "> <br />" : "<br />");
+    if (index + 1 < lines.length && lines[index + 1] !== separator) output.push(separator);
+  }
+  return output;
+}
+
 /**
  * 为完整阅读态隔离开头的协议空段与正文，避免 CommonMark 把后续正文吞入原始 HTML 块。
  *
@@ -192,7 +212,7 @@ export function prepareMarkdownForReader(
     lines.splice(markerEnd, 0, "");
   }
 
-  return lines.join("\n");
+  return isolateEmptyRowMarkers(lines).join("\n");
 }
 
 /** 为 Milkdown 解析器隔开相邻协议标记；这些分隔空行不会成为编辑器段落。 */
@@ -223,7 +243,7 @@ export function prepareMilkdownEditorMarkdown(
     }
   }
 
-  return output.join("\n");
+  return isolateEmptyRowMarkers(output).join("\n");
 }
 
 export const UNSUPPORTED_MARKDOWN_TYPE_LABELS = {
@@ -319,7 +339,11 @@ export function findUnsupportedMarkdownFormats(
   const lines = normalized.split("\n");
   // 校验占位必须独立成块；普通文字会吞并相邻对齐定义。不会写回正文。
   const parseSource = lines
-    .map((line) => (EMPTY_PARAGRAPH_RE.test(line) ? "***" : line))
+    .map((line) => {
+      if (EMPTY_PARAGRAPH_RE.test(line)) return "***";
+      if (QUOTED_EMPTY_PARAGRAPH_RE.test(line)) return "> ***";
+      return line;
+    })
     .join("\n");
   const issues: UnsupportedMarkdownIssue[] = [];
   let listDepth = 0;

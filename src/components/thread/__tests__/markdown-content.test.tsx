@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 /** MarkdownContent 组件测试：图片约束尺寸、中图替换、lightbox 交互 */
 
 import { describe, test, expect, afterEach } from "vitest";
@@ -572,4 +574,25 @@ describe("MarkdownContent", () => {
     expect(screen.queryByRole("button", { name: "收起" })).toBeNull();
     expect(prose.querySelectorAll("br")).toHaveLength(3);
   });
+});
+
+
+const newlineFixture = JSON.parse(readFileSync(resolve(process.cwd(), "contracts/markdown-editor-newline-v1-fixtures.json"), "utf8")) as {
+  cases: Array<{ id: string; markdown: string; lines: string[] }>;
+};
+
+test.each(newlineFixture.cases)("共享换行 $id 阅读态保留可见行", (item) => {
+  const { container } = render(<MarkdownContent content={item.markdown} />);
+  const root = container.querySelector(item.id.startsWith("quote-") ? "blockquote" : '[data-slot="markdown-content"]')!;
+  const lines = Array.from(root.querySelectorAll(":scope > p")).flatMap((p) => {
+    if (p.textContent?.trim() === "") return [""];
+    return p.innerHTML.replace(/<br\s*\/?>\n?/g, "\n").split("\n").map((line) => {
+      const span = document.createElement("span");
+      span.innerHTML = line;
+      return span.textContent ?? "";
+    });
+  });
+  expect(lines).toEqual(item.lines);
+  expect(root.textContent).not.toContain("<br");
+  if (item.id.startsWith("quote-")) expect(container.querySelectorAll("blockquote")).toHaveLength(1);
 });

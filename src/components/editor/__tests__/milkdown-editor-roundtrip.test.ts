@@ -155,7 +155,67 @@ describe("共享 v7 编辑操作契约", () => {
       expect(markdown.match(/<br \/>/g)).toHaveLength(2);
       expect(markdown).toContain("[wenyousite-align-v1-center]: #\n## 居中标题");
       expect(markdown).toMatch(/\[wenyousite-align-v1-right\]: #\n!\[[^\]]*\]\(https:\/\/cdn\.example\.com\/a\.png\)/);
-      expect(serializeEditorMarkdown(ctx, ctx.get(parserCtx)(markdown))).toBe(markdown);
+      expect(serializeEditorMarkdown(ctx, ctx.get(parserCtx)(prepareEditorMarkdown(markdown)))).toBe(markdown);
     }));
   });
+});
+
+
+for (const source of ["## 甲", "### 甲", "- 甲", "1. 甲"]) {
+  test(`${source} 行末 Enter 保持标题和列表常规行为`, async () => {
+    await withEditor(source, (crepe) => crepe.editor.action((ctx) => {
+      const view = ctx.get(editorViewCtx);
+      const position = anchorIn(view.state.doc, "甲").position + 1;
+      view.dispatch(view.state.tr.setSelection(TextSelection.create(view.state.doc, position)));
+      expect(view.someProp("handleKeyDown", (handle) => handle(view, new KeyboardEvent("keydown", { key: "Enter" })))).toBe(true);
+      expect(view.state.selection.$from.parent.type.name).toBe("paragraph");
+      expect(view.state.selection.$from.depth).toBe(source.startsWith("#") ? 1 : 3);
+      if (!source.startsWith("#")) {
+        expect(view.someProp("handleKeyDown", (handle) => handle(view, new KeyboardEvent("keydown", { key: "Enter" })))).toBe(true);
+        expect(view.state.selection.$from.depth).toBe(1);
+      }
+    }));
+  });
+}
+for (const prefix of ["", "> "]) {
+  test(`${prefix || "正文"} Enter 后继续输入保留粗体`, async () => {
+    await withEditor(`${prefix}**甲**${prefix ? "\n\n尾段" : ""}`, (crepe) => crepe.editor.action((ctx) => {
+      const view = ctx.get(editorViewCtx);
+      const position = anchorIn(view.state.doc, "甲").position + 1;
+      view.dispatch(view.state.tr.setSelection(TextSelection.create(view.state.doc, position)));
+      view.someProp("handleKeyDown", (handle) => handle(view, new KeyboardEvent("keydown", { key: "Enter" })));
+      view.dispatch(view.state.tr.insertText("乙"));
+      expect(serializeEditorMarkdown(ctx, view.state.doc)).toBe(`${prefix}**甲**\n${prefix}**乙**${prefix ? "\n\n尾段" : ""}`);
+    }));
+  });
+}
+for (const alignment of ["center", "right"]) {
+  test(`${alignment} 连续 Enter 保留空白行并继续对齐`, async () => {
+    await withEditor(`[wenyousite-align-v1-${alignment}]: #\n甲`, (crepe) => crepe.editor.action((ctx) => {
+      const view = ctx.get(editorViewCtx);
+      const position = anchorIn(view.state.doc, "甲").position + 1;
+      view.dispatch(view.state.tr.setSelection(TextSelection.create(view.state.doc, position)));
+      for (let i = 0; i < 3; i++) view.someProp("handleKeyDown", (handle) => handle(view, new KeyboardEvent("keydown", { key: "Enter" })));
+      view.dispatch(view.state.tr.insertText("乙"));
+      const expected = `[wenyousite-align-v1-${alignment}]: #\n甲\n<br />\n<br />\n[wenyousite-align-v1-${alignment}]: #\n乙`;
+      expect(serializeEditorMarkdown(ctx, view.state.doc)).toBe(expected);
+      const reopened = ctx.get(parserCtx)(prepareEditorMarkdown(expected));
+      expect(serializeEditorMarkdown(ctx, reopened)).toBe(expected);
+    }));
+  });
+}
+
+
+test("空白草稿连续 Enter 仍能保存与重开", async () => {
+  await withEditor("", (crepe) => crepe.editor.action((ctx) => {
+    const view = ctx.get(editorViewCtx);
+    view.dispatch(view.state.tr.setSelection(TextSelection.create(view.state.doc, 1)));
+    for (let count = 1; count <= 3; count++) {
+      expect(view.someProp("handleKeyDown", (handle) => handle(view, new KeyboardEvent("keydown", { key: "Enter" })))).toBe(true);
+      const expected = Array.from({ length: count + 1 }, () => "<br />").join("\n");
+      expect(serializeEditorMarkdown(ctx, view.state.doc)).toBe(expected);
+      const reopened = ctx.get(parserCtx)(prepareEditorMarkdown(expected));
+      expect(serializeEditorMarkdown(ctx, reopened)).toBe(expected);
+    }
+  }));
 });

@@ -2,6 +2,7 @@ import {
   remarkStringifyOptionsCtx,
   serializerCtx,
 } from "@milkdown/core";
+import { paragraphAttr } from "@milkdown/kit/preset/commonmark";
 import type { Ctx } from "@milkdown/kit/ctx";
 import type { Node as ProseNode } from "@milkdown/kit/prose/model";
 import { Plugin, PluginKey } from "@milkdown/kit/prose/state";
@@ -15,6 +16,8 @@ import {
 import { serializeInlineDiceNode } from "@/lib/dice-inline";
 import { remarkRecoverAttentionBoundaries } from "@/lib/markdown-attention";
 import { normalizeSerializedAlignmentMarkers } from "@/lib/markdown-alignment";
+
+import { canonicalizeEditorEmptyRows, documentWithExplicitEmptyRows, handlePlainNewline } from "./editor-plain-newline";
 
 type DiceMarkdownNode = {
   nodeId?: unknown;
@@ -255,6 +258,10 @@ function serializeDiceMarkdownNode(node: DiceMarkdownNode): string {
  * 避免 remark-stringify 生成反斜杠硬换行后再被发布净化器破坏。
  */
 export function configureEditorMarkdownSerializer(ctx: Ctx) {
+  ctx.update(paragraphAttr.key, (previous) => (node) => ({
+    ...previous(node),
+    ...(node.content.size === 0 ? { "data-wenyou-empty-row": "true" } : {}),
+  }));
   ctx.update(remarkStringifyOptionsCtx, (options) => ({
     ...options,
     rule: "-" as const,
@@ -275,24 +282,15 @@ function isEmptyParagraph(node: ProseNode | null | undefined): boolean {
   return node?.type.name === "paragraph" && node.content.size === 0;
 }
 
-const EMPTY_BLOCKQUOTE_PARAGRAPH_RE = /^((?: {0,3}>[\t ]*)+)<br \/>[\t ]*$/gmu;
-
-/** Milkdown 会用 HTML break 保留引用内的空段；空引用本身用 CommonMark 标记即可无损表示。 */
-function normalizeEmptyBlockquoteParagraphs(markdown: string): string {
-  return markdown.replace(
-    EMPTY_BLOCKQUOTE_PARAGRAPH_RE,
-    (_line, prefix: string) => prefix.trimEnd(),
-  );
-}
-
 /** 只规范化编辑器自身的合法输出；这里禁止调用任何字面降级净化器。 */
 export function serializeEditorMarkdown(
   ctx: Ctx,
   doc: ProseNode,
   options: MarkdownValidationOptions = {},
 ): string {
+  doc = documentWithExplicitEmptyRows(doc);
   let markdown = normalizeSerializedAlignmentMarkers(
-    normalizeEmptyBlockquoteParagraphs(
+    canonicalizeEditorEmptyRows(
       sanitizeEmptyImages(
         ctx.get(serializerCtx)(doc).replace(/\r\n?/gu, "\n"),
       ),
@@ -302,7 +300,15 @@ export function serializeEditorMarkdown(
   if (doc.childCount === 1 && isEmptyParagraph(doc.lastChild)) {
     markdown = "";
   } else if (isEmptyParagraph(doc.lastChild)) {
-    markdown = `${markdown.replace(/\s+$/u, "")}\n\n<br />`;
+    let trailingRows = 0;
+    for (let index = doc.childCount - 1; index >= 0 && isEmptyParagraph(doc.child(index)); index--) trailingRows++;
+    const lines = markdown.split("\n");
+    while (lines.length > 0 && (lines.at(-1) === "" || lines.at(-1) === "<br />")) lines.pop();
+    // A root empty row after a structural block still needs its Markdown
+    // boundary. Plain text rows do not need that source-only separator.
+    const precedingIndex = doc.childCount - trailingRows - 1;
+    if (precedingIndex >= 0 && doc.child(precedingIndex).type.name !== "paragraph") lines.push("");
+    markdown = [...lines, ...Array.from({ length: trailingRows }, () => "<br />")].join("\n");
   } else {
     // remark-stringify 固定附加一个格式化换行，它不属于用户正文。
     markdown = markdown.replace(/\n$/u, "");
@@ -333,6 +339,7 @@ export function createEditorMarkdownBridge({
       key: new PluginKey("wenyousite-editor-markdown-bridge"),
       props: {
         handleKeyDown: (nextView, event) => {
+          if (handlePlainNewline(nextView, event)) return true;
           if (
             event.key !== " "
             || event.isComposing

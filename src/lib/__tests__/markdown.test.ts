@@ -208,16 +208,16 @@ describe("prepareMarkdownForReader", () => {
       "<br />\n\n正文",
     );
     expect(prepareMarkdownForReader("<br>\n<br/>\n正文")).toBe(
-      "<br />\n<br />\n\n正文",
+      "<br />\n\n<br />\n\n正文",
     );
   });
 
-  test("已有分隔或正文中的协议空段不改写", () => {
+  test("已有分隔保持，中间空段补足只用于解析的分隔", () => {
     const separated = "<br />\n\n正文";
     const inline = "第一行\n<br />\n第二行";
 
     expect(prepareMarkdownForReader(separated)).toBe(separated);
-    expect(prepareMarkdownForReader(inline)).toBe(inline);
+    expect(prepareMarkdownForReader(inline)).toBe("第一行\n\n<br />\n\n第二行");
   });
 });
 
