@@ -220,15 +220,15 @@ export function ProfileCoverUploader({
   return (
     <div>
       <Tabs defaultValue="web">
-        <TabsList variant="line" aria-label="背景预览画幅" className="mb-3">
+        <TabsList aria-label="背景预览画幅" className="mb-4">
           <TabsTrigger value="web"><Monitor aria-hidden="true" />电脑端 · 3:1</TabsTrigger>
           <TabsTrigger value="mobile"><Smartphone aria-hidden="true" />移动端 · 2:1</TabsTrigger>
         </TabsList>
         <TabsContent value="web">
-          <div className="relative mb-9">
+          <div className="relative pb-7">
             <ProfileCover cover={profileCover} username={username} className="rounded-xl border border-border" />
             <UserAvatar name={username} src={avatar}
-              className="absolute -bottom-7 left-4 size-14 ring-4 ring-card outline outline-1 outline-border"
+              className="absolute bottom-0 left-4 size-14 ring-4 ring-card outline outline-1 outline-border"
               textClassName="text-lg" />
           </div>
         </TabsContent>
@@ -238,31 +238,31 @@ export function ProfileCoverUploader({
         </TabsContent>
       </Tabs>
 
-      <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
-        <div className="flex shrink-0 gap-2">
+      <div className="mt-6 flex items-center justify-between gap-3 border-t border-border pt-5">
+        <div>
           {profileCover ? (
             <Button
               type="button"
-              variant="ghost"
-              size="sm"
+              variant="outline"
+              size="default"
               onClick={handleRemove}
               disabled={pending}
             >
-              <Trash2 className="size-4" />
+              <Trash2 className="size-4" aria-hidden="true" />
               移除背景
             </Button>
           ) : null}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={pending}
-          >
-            <ImagePlus className="size-4" />
-            {profileCover ? "更换背景" : "上传背景"}
-          </Button>
         </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="default"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={pending}
+        >
+          <ImagePlus className="size-4" aria-hidden="true" />
+          {profileCover ? "更换背景" : "上传背景"}
+        </Button>
       </div>
       <input
         ref={fileInputRef}
@@ -387,7 +387,7 @@ export function ProfileCoverUploader({
                 <DialogFooter className="mt-5">
                   <DialogClose
                     disabled={isUploading}
-                    className={buttonVariants({ variant: "ghost" })}
+                    className={buttonVariants({ variant: "outline" })}
                   >
                     取消
                   </DialogClose>

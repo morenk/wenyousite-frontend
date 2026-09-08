@@ -49,9 +49,9 @@ export function UsernameEdit({ currentUsername, disabled = false, onStatusChange
   });
 
   return (
-    <div className="flex min-w-64 flex-1 items-center justify-between gap-4">
+    <div className="flex min-w-0 items-center justify-between gap-6 border-t border-border pt-6">
       <div className="min-w-0"><p className="mb-2 text-sm font-semibold">用户名</p><p className="break-words text-sm">{currentUsername}</p></div>
-      <Button type="button" variant="outline" size="compact" disabled={disabled} onClick={() => { form.reset({ username: currentUsername }); setEditing(true); }}>修改用户名</Button>
+      <Button type="button" variant="outline" size="default" disabled={disabled} onClick={() => { form.reset({ username: currentUsername }); setEditing(true); }}>修改用户名</Button>
       <Dialog open={editing} onOpenChange={(open) => { if (!open) close(); }} disablePointerDismissal={updateProfile.isPending}>
         <DialogPortal><DialogBackdrop /><DialogViewport><DialogPopup className="max-w-md p-6">
           <div className="flex items-center justify-between gap-4"><DialogTitle>修改用户名</DialogTitle><DialogCloseButton label="关闭用户名修改" disabled={updateProfile.isPending} /></div>
@@ -60,7 +60,7 @@ export function UsernameEdit({ currentUsername, disabled = false, onStatusChange
             <FormField id="username" label="新用户名" description="2–24 位，支持字母、数字和中文。" error={form.formState.errors.username?.message}>
               {(props) => <Input {...props} autoFocus placeholder="输入新用户名" autoComplete="username" disabled={updateProfile.isPending} {...form.register("username", { setValueAs: (value: string) => value.trim() })} />}
             </FormField>
-            <div className="flex justify-end gap-2"><Button type="button" variant="ghost" disabled={updateProfile.isPending} onClick={close}>取消</Button><Button type="submit" pending={updateProfile.isPending} pendingLabel="保存中">保存用户名</Button></div>
+            <div className="flex justify-end gap-2"><Button type="button" variant="outline" disabled={updateProfile.isPending} onClick={close}>取消</Button><Button type="submit" pending={updateProfile.isPending} pendingLabel="保存中">保存用户名</Button></div>
           </form>
         </DialogPopup></DialogViewport></DialogPortal>
       </Dialog>

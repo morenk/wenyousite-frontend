@@ -111,6 +111,25 @@ describe("ProfileEditForm", () => {
     expect(avatar.compareDocumentPosition(cover) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
+  test("撤销仅在对应分区有草稿时出现，撤销后恢复干净状态", () => {
+    render(<ProfileEditForm />, { wrapper: createWrapper() });
+    const profile = within(screen.getByRole("region", { name: "公开资料" }));
+    const privacy = within(screen.getByRole("region", { name: "主页公开范围" }));
+    expect(screen.queryByRole("button", { name: "撤销" })).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("个人简介"), { target: { value: "简介草稿" } });
+    expect(profile.getByRole("button", { name: "撤销" })).toBeEnabled();
+    expect(privacy.queryByRole("button", { name: "撤销" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("checkbox", { name: "公开收藏" }));
+    fireEvent.click(privacy.getByRole("button", { name: "撤销" }));
+    expect(screen.getByRole("checkbox", { name: "公开收藏" })).toBeChecked();
+    expect(privacy.queryByRole("button", { name: "撤销" })).not.toBeInTheDocument();
+    expect(profile.getByRole("button", { name: "撤销" })).toBeEnabled();
+    fireEvent.click(profile.getByRole("button", { name: "撤销" }));
+    expect(screen.getByLabelText("个人简介")).toHaveValue("");
+    expect(screen.queryByRole("button", { name: "撤销" })).not.toBeInTheDocument();
+    expect(mutateAsync).not.toHaveBeenCalled();
+  });
+
   test("资料后台刷新失败时保留已挂载的上传器", () => {
     const { rerender } = render(<ProfileEditForm />, { wrapper: createWrapper() });
     const uploader = screen.getByTestId("profile-cover-uploader");
