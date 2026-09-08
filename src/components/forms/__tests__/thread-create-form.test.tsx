@@ -1,7 +1,7 @@
 /** ThreadCreateForm 组件测试 — 简洁模式 */
 
 import { describe, test, expect, vi, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThreadCreateForm } from "@/components/forms/thread-create-form";
@@ -131,9 +131,21 @@ describe("ThreadCreateForm", () => {
     expect(screen.getByPlaceholderText("给你的主题帖起个名字")).toBeInTheDocument();
   });
 
-  test("渲染分区选择", () => {
+  test("加载分区后可选择并随草稿保存稳定 slug", async () => {
+    const user = userEvent.setup();
     renderForm();
-    expect(screen.getByLabelText("分区")).toBeInTheDocument();
+    const categorySelect = screen.getByLabelText("分区");
+    await waitFor(() => expect(categorySelect).toBeEnabled());
+    await user.click(categorySelect);
+    await user.click(await screen.findByRole("option", { name: "悬疑" }));
+    await user.click(screen.getByRole("button", { name: "保存草稿" }));
+
+    await waitFor(() => {
+      expect(mockSaveThreadMutate).toHaveBeenCalledWith({
+        threadId: "t1",
+        body: expect.objectContaining({ category: "MYSTERY" }),
+      });
+    });
   });
 
   test("渲染可见性选择", () => {
