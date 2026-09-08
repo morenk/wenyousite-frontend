@@ -12,9 +12,22 @@ export function handlePlainNewline(view: EditorView, event: KeyboardEvent): bool
     if ($from.node(depth).type.name !== "blockquote") return false;
   }
   if ($from.depth > 2) return false;
+  const marks = state.storedMarks ?? $from.marks();
+  if ($from.depth === 1) {
+    // 手动换行独立对齐；自动折行不生成事务。
+    const tr = state.tr.deleteSelection();
+    const { $from: insertion } = tr.selection;
+    // 在同一事务清除新空段的对齐，避免后续清理事务丢失 stored marks。
+    if (insertion.parentOffset === 0) {
+      tr.setNodeMarkup(insertion.before(1), undefined, { ...insertion.parent.attrs, textAlign: "left" });
+    }
+    tr.split(insertion.pos, 1, [{ type: insertion.parent.type,
+      attrs: { ...insertion.parent.attrs, textAlign: "left" } }]);
+    view.dispatch(tr.setStoredMarks(marks).scrollIntoView());
+    return true;
+  }
   const type = state.schema.nodes.hardbreak;
   if (!type) return false;
-  const marks = state.storedMarks ?? $from.marks();
   view.dispatch(state.tr.replaceSelectionWith(type.create(), false)
     .setStoredMarks(marks).scrollIntoView());
   return true;

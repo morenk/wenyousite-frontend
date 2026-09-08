@@ -787,3 +787,11 @@ img.sticker-display {
 .wenyou-prose > blockquote > p[data-wenyou-empty-row] + p {
   margin-block-start: 0;
 }
+
+/* 正文段落边界只换一行；真正空白由协议空段占位。 */
+.wenyou-prose > p:has(+ p) {
+  margin-block-end: 0;
+}
+.wenyou-prose > p + p {
+  margin-block-start: 0;
+}
