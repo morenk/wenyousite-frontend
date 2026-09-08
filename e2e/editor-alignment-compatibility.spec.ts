@@ -29,7 +29,7 @@ const LIST_TEXT = "列表转换必须清除对齐";
 const QUOTE_TEXT = "引用转换必须清除对齐";
 const LEFT_TEXT = "默认左对齐段落";
 const SOFT_LINE_TEXT = "软换行仍处于同一居中块";
-const NEW_PARAGRAPH_TEXT = "普通回车继续当前对齐";
+const NEW_PARAGRAPH_TEXT = "普通回车恢复左对齐";
 
 const INITIAL_MARKDOWN = [
   CENTER_TEXT,
@@ -446,7 +446,7 @@ test.describe("编辑器对齐真实浏览器兼容性", () => {
       "center",
     );
 
-    // 普通正文的 Enter 与 Shift+Enter 都继续当前对齐。
+    // Shift+Enter 保留段内对齐，普通 Enter 新建左对齐段。
     center = editorParagraph(editor, CENTER_TEXT);
     await placeCaretAtEnd(center);
     await page.keyboard.press("Shift+Enter");
@@ -456,7 +456,7 @@ test.describe("编辑器对齐真实浏览器兼容性", () => {
     await page.keyboard.press("Enter");
     await page.keyboard.type(NEW_PARAGRAPH_TEXT);
     const nextParagraph = editorParagraph(editor, NEW_PARAGRAPH_TEXT);
-    await expectBlockAlignment(nextParagraph, "center");
+    await expectBlockAlignment(nextParagraph, "left");
     await expectBlockAlignment(center, "center");
 
     // 顺序二：先创建行内 mark，再设置右对齐。
@@ -508,7 +508,7 @@ test.describe("编辑器对齐真实浏览器兼容性", () => {
     expect(saved).toContain("[wenyousite-align-v1-center]: #\n## 标题转换仍保留对齐");
     expect(saved).not.toMatch(/wenyousite-align[^\n]*\n[-*] 列表转换/u);
     expect(saved).not.toMatch(/wenyousite-align[^\n]*\n> 引用转换/u);
-    expect(saved).not.toMatch(/wenyousite-align[^\n]*\n普通回车继续当前对齐/u);
+    expect(saved).not.toMatch(/wenyousite-align[^\n]*\n普通回车恢复左对齐/u);
 
     // 同一份持久化内容进入阅读组件后，DOM 属性、computed style 与行内语义一致。
     harness.setPublished(true);
@@ -681,7 +681,7 @@ for (const quoted of [false, true]) {
     const paragraph = editor.locator(quoted ? "blockquote > p" : ":scope > p").filter({ hasText: "甲乙" });
     await expect(paragraph).toBeVisible();
     const lineHeight = await paragraph.evaluate((el) => Number.parseFloat(getComputedStyle(el).lineHeight));
-    const initialHeight = (await paragraph.boundingBox())!.height;
+
     await paragraph.evaluate((el) => {
       const text = el.firstChild!;
       const range = document.createRange();
@@ -695,8 +695,17 @@ for (const quoted of [false, true]) {
     await page.keyboard.press("Enter");
     await page.keyboard.press("Enter");
     await page.keyboard.press("Enter");
-    const editableBlock = editor.locator(quoted ? ":scope > blockquote" : ":scope > p").filter({ hasText: /甲[\s\S]*乙/u });
-    if (!quoted) expect(Math.abs((await editableBlock.boundingBox())!.height - initialHeight - lineHeight * 3)).toBeLessThan(2);
+    if (!quoted) {
+      const rows = editor.locator(":scope > p");
+      await expect(rows).toHaveCount(4);
+      // 用文字位置比较可见行距，排除首段外侧 padding。
+      const textTop = (row: Locator) => row.evaluate((el) => {
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        return range.getBoundingClientRect().top;
+      });
+      expect(Math.abs(await textTop(rows.last()) - await textTop(rows.first()) - lineHeight * 3)).toBeLessThan(2);
+    }
     const prefix = quoted ? "> " : "";
     const expected = `${prefix}甲\n${prefix}<br />\n${prefix}<br />\n${prefix}乙${quoted ? "\n\n尾段" : ""}`;
     await page.getByRole("button", { name: "保存草稿", exact: true }).click();
@@ -729,5 +738,71 @@ for (const quoted of [false, true]) {
         line: Number.parseFloat(getComputedStyle(first).lineHeight) };
     });
     expect(Math.abs(readerGap.distance - readerGap.line * 3)).toBeLessThan(2);
+  });
+}
+
+
+for (const alignment of ["center", "right"] as const) {
+  test(`${alignment} 手动 Enter 左对齐、自动折行、单行设置和保存重开`, async ({ page }) => {
+    const text = "自动折行仍然保持整段对齐".repeat(8);
+    const marker = `[wenyousite-align-v1-${alignment}]: #\n`;
+    const harness = await mockAlignmentWorkspace(page, marker + text);
+    await openFreshThreadDraft(page);
+    const editor = page.locator(".milkdown-editor .ProseMirror").first();
+    const toolbar = page.locator(".milkdown-top-bar").first();
+    const first = editorParagraph(editor, text);
+    await expect(first).toBeVisible();
+    await first.evaluate((el) => { (el as HTMLElement).style.maxWidth = "180px"; });
+    const height = await first.evaluate((el) => ({ height: el.getBoundingClientRect().height, line: Number.parseFloat(getComputedStyle(el).lineHeight) }));
+    expect(height.height).toBeGreaterThan(height.line * 2);
+    await expect(editor.locator(":scope > p")).toHaveCount(1);
+    await expectBlockAlignment(first, alignment);
+    await page.getByRole("button", { name: "保存草稿", exact: true }).click();
+    await expect.poll(harness.getStoredMarkdown).toBe(marker + text);
+
+    await placeCaretAtEnd(first);
+    await page.keyboard.press("Enter");
+    await expect(editor.locator(":scope > p")).toHaveCount(2);
+    await expectBlockAlignment(editor.locator(":scope > p").last(), "left");
+    await page.keyboard.type("Next");
+    const next = editorParagraph(editor, "Next");
+    await expectBlockAlignment(next, "left");
+    await expectBlockAlignment(first, alignment);
+    const gap = await editor.evaluate((el) => {
+      const ps = el.querySelectorAll(":scope > p");
+      const text = ps[0]!.firstChild!;
+      const last = document.createRange();
+      last.setStart(text, text.textContent!.length - 1);
+      last.setEnd(text, text.textContent!.length);
+      const next = document.createRange();
+      next.selectNodeContents(ps[1]!);
+      return { distance: next.getBoundingClientRect().top - last.getBoundingClientRect().top,
+        line: Number.parseFloat(getComputedStyle(ps[0]!).lineHeight) };
+    });
+    expect(Math.abs(gap.distance - gap.line)).toBeLessThan(2);
+    await page.getByRole("button", { name: "保存草稿", exact: true }).click();
+    await expect.poll(harness.getStoredMarkdown).toBe(marker + text + "\n\nNext");
+    await page.reload();
+    await page.getByRole("link", { name: "继续编辑", exact: true }).click();
+    await expectBlockAlignment(editorParagraph(editor, "Next"), "left");
+    await expectBlockAlignment(editorParagraph(editor, text), alignment);
+    // 单独对齐新行，首段保持原对齐。
+    await clickAlignmentCycle(editorParagraph(editor, "Next"), toolbar, 1);
+    await expectBlockAlignment(editorParagraph(editor, "Next"), "center");
+    await expectBlockAlignment(editorParagraph(editor, text), alignment);
+    await page.getByRole("button", { name: "保存草稿", exact: true }).click();
+    await expect.poll(harness.getStoredMarkdown).toBe(marker + text + "\n\n[wenyousite-align-v1-center]: #\nNext");
+    harness.setPublished(true);
+    await page.goto(`/threads/${THREAD_ID}`);
+    const reader = page.locator('[data-slot="markdown-content"]').filter({ hasText: text }).first();
+    await expectBlockAlignment(reader.locator(":scope > p").first(), alignment);
+    await expectBlockAlignment(reader.locator(":scope > p").last(), "center");
+    const readerGap = await reader.evaluate((el) => {
+      const ps = el.querySelectorAll(":scope > p");
+      return ps[1]!.getBoundingClientRect().top - ps[0]!.getBoundingClientRect().bottom;
+    });
+    expect(Math.abs(readerGap)).toBeLessThan(2);
+    await page.reload();
+    await expectBlockAlignment(reader.locator(":scope > p").last(), "center");
   });
 }

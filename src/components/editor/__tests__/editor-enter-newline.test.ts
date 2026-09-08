@@ -30,7 +30,8 @@ async function runEditor(source: string, quote: boolean, breaks: number, offset:
       }
       const prefix = quote ? "> " : "";
       const text = "甲乙".slice(0, offset) + "\n".repeat(breaks) + "甲乙".slice(offset);
-      const expected = text.split("\n").map((line) => prefix + (line || "<br />")).join("\n") + (quote ? "\n\n尾段" : "");
+      let expected = text.split("\n").map((line) => prefix + (line || "<br />")).join("\n") + (quote ? "\n\n尾段" : "");
+      if (!quote && breaks === 1 && offset === 1) expected = "甲\n\n乙";
       expect(serializeEditorMarkdown(ctx, view.state.doc)).toBe(expected);
       const reopened = ctx.get(parserCtx)(prepareEditorMarkdown(expected));
       expect(serializeEditorMarkdown(ctx, reopened)).toBe(expected);

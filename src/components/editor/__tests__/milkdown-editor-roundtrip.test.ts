@@ -185,19 +185,19 @@ for (const prefix of ["", "> "]) {
       view.dispatch(view.state.tr.setSelection(TextSelection.create(view.state.doc, position)));
       view.someProp("handleKeyDown", (handle) => handle(view, new KeyboardEvent("keydown", { key: "Enter" })));
       view.dispatch(view.state.tr.insertText("乙"));
-      expect(serializeEditorMarkdown(ctx, view.state.doc)).toBe(`${prefix}**甲**\n${prefix}**乙**${prefix ? "\n\n尾段" : ""}`);
+      expect(serializeEditorMarkdown(ctx, view.state.doc)).toBe(`${prefix}**甲**${prefix ? "\n" : "\n\n"}${prefix}**乙**${prefix ? "\n\n尾段" : ""}`);
     }));
   });
 }
 for (const alignment of ["center", "right"]) {
-  test(`${alignment} 连续 Enter 保留空白行并继续对齐`, async () => {
+  test(`${alignment} 连续 Enter 保留空白行且新段左对齐`, async () => {
     await withEditor(`[wenyousite-align-v1-${alignment}]: #\n甲`, (crepe) => crepe.editor.action((ctx) => {
       const view = ctx.get(editorViewCtx);
       const position = anchorIn(view.state.doc, "甲").position + 1;
       view.dispatch(view.state.tr.setSelection(TextSelection.create(view.state.doc, position)));
       for (let i = 0; i < 3; i++) view.someProp("handleKeyDown", (handle) => handle(view, new KeyboardEvent("keydown", { key: "Enter" })));
       view.dispatch(view.state.tr.insertText("乙"));
-      const expected = `[wenyousite-align-v1-${alignment}]: #\n甲\n<br />\n<br />\n[wenyousite-align-v1-${alignment}]: #\n乙`;
+      const expected = `[wenyousite-align-v1-${alignment}]: #\n甲\n<br />\n<br />\n乙`;
       expect(serializeEditorMarkdown(ctx, view.state.doc)).toBe(expected);
       const reopened = ctx.get(parserCtx)(prepareEditorMarkdown(expected));
       expect(serializeEditorMarkdown(ctx, reopened)).toBe(expected);
