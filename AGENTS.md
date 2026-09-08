@@ -4,7 +4,7 @@
 
 - 本仓库是温油站 **PC Web 前端**；移动端由 Flutter 项目承担，不在这里实现响应式移动版。
 - 技术主线：Next.js App Router、React、TypeScript、Tailwind CSS、TanStack Query、React Hook Form + Zod、Vitest、Playwright。
-- 本文件继承工作区根 `AGENTS.md` 的变更隔离、自动提交推送和部署不变量；这里只补充 Web 专属约束。
+- 本文件继承工作区根 `AGENTS.md` 的环境边界、任务分支、评审和部署门禁；这里只补充 Web 专属约束。
 - 公网运行拓扑以工作区 [README](../README.md) 为唯一事实源；脚本和依赖命令以 `package.json` 为准。
 - 修改前先读受影响模块及其测试、`docs/modules/` 文档；不要为小改动复制新的流程说明。
 
@@ -74,32 +74,33 @@ pnpm check:full
 
 ## 4. 公网开发环境交付
 
-`wenyou.site` 当前是**单一公网开发环境**，没有真实用户。它使用 production build 运行以节省资源和保持稳定，但不等同于正式生产发布，不需要维护窗口或发布审批。
+`wenyou.site` 当前是**单一公网开发环境**。它使用 production build 运行以节省资源和保持稳定。环境性质不降低部署门禁：每次切换都必须由用户明确批准，并从已合并提交执行。
 
 代码任务的默认完成链路：
 
 1. 实现并运行相关测试。
 2. 运行 `pnpm check`；认证/权限、核心旅程或高风险变更补充带专用账号的 `pnpm check:full`。
 3. 显式暂存本任务差异，复核 staged diff 与敏感信息，创建 `feat|fix|refactor|test|docs|chore(scope): 中文说明` 原子提交。
-4. fetch 并确认可安全更新 `origin/dev` 后默认推送；用户明确要求不提交或不推送时除外。
-5. 只从工作区干净且与 `origin/dev` 完全一致的提交组装不可变 release 并切换服务。
-6. 检查公网健康、受影响页面/旅程和最近日志，并汇报提交 SHA、release 元数据与验证结果。
+4. fetch 并确认任务分支基于最新 `origin/dev`，推送 `codex/YYYYMMDD-<目标>`；不得直接更新 `dev`。
+5. 跨端、契约、权限或基础设施变化必须创建 PR；其他变化也由用户明确决定是否合并。
+6. 用户合并并批准部署后，管理身份只从工作区干净且与 `origin/dev` 完全一致的提交组装不可变 release 并切换服务。
+7. 检查公网健康、受影响页面/旅程和最近日志，并汇报提交 SHA、release 元数据与验证结果。
 
-纯文档任务不构建、不切换服务，但完成文档检查后仍按同样的原子提交和推送规则交付。实际相关门禁失败时不得提交半成品；外部环境或无关既有失败只能在提供定向等价验证并明确记录后例外处理。
+纯文档任务不构建、不切换服务，但完成文档检查后仍提交并推送任务分支。实际相关门禁失败时不得把分支交付为可合并；外部环境或无关既有失败只能在提供定向等价验证并明确记录后例外处理。
 
 ### 前端切换规则
 
 - Next.js 使用 `output: "standalone"`，由宿主机 `wenyousite-frontend.service` 托管并只监听 `127.0.0.1:3001`；PostgreSQL/Redis 才由 Docker Compose 管理。
 - `pnpm check` 已包含 `next build`。源码未再变化时不要重复 build。
 - 线上进程必须从 `/var/lib/wenyousite/frontend/releases/` 下的不可变 release 运行，不能直接运行会被 `next build` 重写的 `.next/standalone`。
-- 代码任务提交并推送后，使用切换脚本组装 static/public、写入 Git SHA 与 Build ID 元数据、预检并通过 systemd 切换 3001；脚本失败时保留或恢复上一成功版本。
+- 用户合并并批准部署后，由管理身份使用切换脚本组装 static/public、写入 Git SHA 与 Build ID 元数据、预检并通过 systemd 切换 3001；脚本失败时保留或恢复上一成功版本。`wenyou-dev` 不得执行部署或重启服务。
 - 切换脚本会拒绝错误分支、脏工作区、未跟踪文件、缺失 upstream、未推送提交和组装期间发生的源码变化；不得使用环境变量或手工重启绕过。
 - 纯前端变化只切换前端；后端或契约同时变化时，先让兼容的后端与 Web 提交都存在于远端，再切换并验证后端，然后切换前端。
 
 新宿主机首次安装或更新 unit：
 
 ```bash
-cd /root/wenyousite/wenyousite-frontend
+cd /srv/wenyousite/wenyousite-frontend
 install -m 0755 ops/wenyousite-frontend-start /usr/local/sbin/wenyousite-frontend-start
 install -m 0644 ops/wenyousite-frontend.service /etc/systemd/system/wenyousite-frontend.service
 systemctl daemon-reload
@@ -109,7 +110,7 @@ systemctl enable --now wenyousite-frontend.service
 检查完成后的前端切换：
 
 ```bash
-cd /root/wenyousite/wenyousite-frontend
+cd /srv/wenyousite/wenyousite-frontend
 bash scripts/deploy-standalone.sh
 ```
 
