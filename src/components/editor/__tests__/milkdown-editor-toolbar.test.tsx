@@ -187,6 +187,10 @@ describe("MilkdownEditor 能力分层", () => {
     renderEditor("正文");
     const toolbar = await screen.findByRole("toolbar", { name: "正文格式工具栏" });
 
+    await waitFor(() => {
+      expect(toolbar).toHaveAttribute("data-editor-density", "expanded");
+    });
+
     for (const label of [
       "切换正文样式",
       "粗体",
