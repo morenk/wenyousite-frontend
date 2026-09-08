@@ -1,14 +1,22 @@
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
-async function mockSettings(page: Page) {
+async function mockSettings(page: Page, withImages = false) {
   let user = {
     id: "settings-workspace-user", username: "温油读者", email: "settings-workspace@example.test",
-    role: "USER", avatar: null, profileCover: null, bio: "原来的个人简介", level: 3,
+    role: "USER", avatar: withImages ? "/pwa-icon-192.png" : null,
+    profileCover: withImages ? {
+      url: "/__fixtures__/cover.svg", width: 1920, height: 640,
+      mobile: { url: "/__fixtures__/cover.svg", width: 1600, height: 800 },
+    } : null, bio: "原来的个人简介", level: 3,
     experience: 120, currentLevelExperience: 100, nextLevelExperience: 200,
     receivedTipTotal: "9007199254740993", receivedTipCount: 7,
     showRecentReplies: true, showPlayerBadges: true, showBookmarks: true,
   };
+  if (withImages) await page.route("**/__fixtures__/cover.svg", (route) => route.fulfill({
+    contentType: "image/svg+xml",
+    body: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 640"><rect width="1920" height="640" fill="#e7dcd8"/><circle cx="1360" cy="200" r="95" fill="#f4eee8"/><path d="M0 430Q380 180 840 430T1920 350V640H0Z" fill="#a3aaa0"/><path d="M0 530Q620 350 1200 490T1920 430V640H0Z" fill="#737f79"/></svg>',
+  }));
   const writes: Record<string, unknown>[] = [];
   let failNext = false;
   await page.route("**/api/v1/**", async (route) => {
@@ -126,3 +134,55 @@ test("简介草稿跨用户名保存保留，失败可重试，导航与历史�
   await expect(page).toHaveURL(/\/me#privacy$/);
   await expect(page.getByRole("heading", { name: "主页公开范围", level: 2 })).toBeInViewport();
 });
+
+for (const colorScheme of ["light", "dark"] as const) {
+  test(`${colorScheme} 下有图片和草稿时操作不贴边，资料行与分区互不重叠`, async ({ page }, testInfo) => {
+    await page.emulateMedia({ colorScheme, reducedMotion: "reduce" });
+    await mockSettings(page, true);
+    await page.goto("/me");
+    const profile = page.getByRole("region", { name: "公开资料" });
+    const appearance = page.getByRole("region", { name: "主页背景" });
+    const privacy = page.getByRole("region", { name: "主页公开范围" });
+    await expect(profile.getByRole("button", { name: "移除头像" })).toBeVisible();
+    await expect(page.getByRole("img", { name: "温油读者 的主页背景", exact: true })).toBeVisible();
+    await page.getByLabel("个人简介").fill("正在编辑的个人简介");
+    await page.getByRole("checkbox", { name: "公开收藏" }).uncheck();
+    for (const width of [1024, 1280, 1440, 1920]) {
+      await page.setViewportSize({ width, height: 1000 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+      const regions = [profile, appearance, privacy];
+      for (let index = 0; index < regions.length; index++) {
+        const section = regions[index];
+        const bounds = (await section.boundingBox())!;
+        for (const button of await section.getByRole("button").all()) {
+          const box = (await button.boundingBox())!;
+          expect(box.x - bounds.x).toBeGreaterThanOrEqual(24);
+          expect(bounds.x + bounds.width - box.x - box.width).toBeGreaterThanOrEqual(24);
+          expect(bounds.y + bounds.height - box.y - box.height).toBeGreaterThanOrEqual(24);
+          expect(box.height).toBe(40);
+        }
+        if (index > 0) {
+          const previous = (await regions[index - 1].boundingBox())!;
+          expect(bounds.y - previous.y - previous.height).toBeGreaterThanOrEqual(24);
+        }
+      }
+      const avatarAction = (await profile.getByRole("button", { name: "更换头像" }).boundingBox())!;
+      const usernameAction = (await profile.getByRole("button", { name: "修改用户名" }).boundingBox())!;
+      expect(usernameAction.y - avatarAction.y - avatarAction.height).toBeGreaterThanOrEqual(24);
+      for (const name of ["更换头像", "移除头像", "修改用户名", "移除背景", "更换背景"]) {
+        const button = page.getByRole("button", { name, exact: true });
+        await expect(button).toHaveAttribute("data-control-role", "secondary");
+        await expect(button).toHaveCSS("border-top-style", "solid");
+      }
+      for (const name of ["移动端 · 2:1", "电脑端 · 3:1"]) {
+        await page.getByRole("tab", { name }).click();
+        const preview = (await appearance.getByRole("tabpanel").boundingBox())!;
+        const action = (await appearance.getByRole("button", { name: "更换背景" }).boundingBox())!;
+        expect(action.y - preview.y - preview.height).toBeGreaterThanOrEqual(40);
+      }
+    }
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.screenshot({ path: testInfo.outputPath(`profile-layout-${colorScheme}.png`), fullPage: true });
+    expect((await new AxeBuilder({ page }).include("main").analyze()).violations).toEqual([]);
+  });
+}

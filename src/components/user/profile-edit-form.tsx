@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { levelTier } from "@wenyousite/foundation/elements";
@@ -26,6 +26,15 @@ const privacyFields = [
 ] as const;
 
 type Section = "bio" | "privacy";
+
+function ProfileSection({ id, title, children }: { id: string; title: string; children: ReactNode }) {
+  return (
+    <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-6 rounded-2xl border border-border bg-card p-6">
+      <h2 id={`${id}-title`} className="mb-6 font-sans text-base font-semibold">{title}</h2>
+      {children}
+    </section>
+  );
+}
 
 export function ProfileEditForm() {
   const { data: me, isLoading, error, refetch } = useMe();
@@ -136,16 +145,15 @@ export function ProfileEditForm() {
   const bioRegistration = register("bio");
 
   return (
-    <div>
+    <div className="space-y-6">
       {error ? <p role="alert" className="mb-5 text-sm text-destructive">资料刷新失败，当前输入已保留。<Button variant="link" size="compact" onClick={() => void refetch()}>重试</Button></p> : null}
 
-      <section aria-labelledby="public-profile-title">
-        <h2 id="public-profile-title" className="mb-5 font-sans text-base font-semibold">公开资料</h2>
-        <div className="flex flex-wrap items-center gap-x-8 gap-y-5">
+      <ProfileSection id="public-profile" title="公开资料">
+        <div className="space-y-6">
           <AvatarUploader username={me.username} avatar={me.avatar} />
           <UsernameEdit currentUsername={me.username} disabled={busy} onStatusChange={setUsernameStatus} />
         </div>
-        <form onSubmit={saveBio} className="mt-5 border-t border-border pt-5">
+        <form onSubmit={saveBio} className="mt-6 border-t border-border pt-6">
           <FormField id="bio" label="个人简介" error={errors.bio?.message} labelAction={<span className="font-utility text-xs tabular-nums text-muted-foreground">{bio.length}/255</span>}>
             {(props) => <textarea
               {...props}
@@ -164,26 +172,24 @@ export function ProfileEditForm() {
             />}
           </FormField>
           {sectionError?.section === "bio" ? <p role="alert" className="mt-2 text-sm text-destructive">{sectionError.message}</p> : null}
-          <div className="mt-3 flex min-h-8 items-center justify-end gap-2">
+          <div className="mt-5 flex min-h-10 items-center justify-end gap-3 border-t border-border pt-5">
             <p role="status" className="mr-auto text-sm text-muted-foreground">{savingSection === "bio" ? "保存中…" : bioDirty ? "未保存修改" : savedSection === "bio" ? "已保存" : ""}</p>
-            <Button type="button" variant="ghost" size="compact" disabled={!bioDirty || busy} onClick={() => {
+            {bioDirty ? <Button type="button" variant="outline" disabled={busy} onClick={() => {
               resetField("bio", { defaultValue: me.bio ?? "" });
               clearErrors("bio");
               setSectionError(null);
               setSavedSection(null);
-            }}>撤销</Button>
-            <Button type="submit" size="compact" pending={savingSection === "bio"} disabled={!bioDirty || busy || usernameStatus.busy} pendingLabel="保存中">保存简介</Button>
+            }}>撤销</Button> : null}
+            <Button type="submit" pending={savingSection === "bio"} disabled={!bioDirty || busy || usernameStatus.busy} pendingLabel="保存中">保存简介</Button>
           </div>
         </form>
-      </section>
+      </ProfileSection>
 
-      <section id="appearance" aria-labelledby="appearance-title" className="scroll-mt-5 border-t border-border pt-7">
-        <h2 id="appearance-title" className="mb-5 font-sans text-base font-semibold">主页背景</h2>
+      <ProfileSection id="appearance" title="主页背景">
         <ProfileCoverUploader username={me.username} avatar={me.avatar} profileCover={me.profileCover} />
-      </section>
+      </ProfileSection>
 
-      <section id="privacy" aria-labelledby="privacy-title" className="scroll-mt-5 border-t border-border pt-7">
-        <h2 id="privacy-title" className="mb-3 font-sans text-base font-semibold">主页公开范围</h2>
+      <ProfileSection id="privacy" title="主页公开范围">
         <form onSubmit={savePrivacy}>
           <fieldset disabled={busy} className="divide-y divide-border">
             <legend className="sr-only">主页公开范围</legend>
@@ -196,21 +202,21 @@ export function ProfileEditForm() {
             </label>)}
           </fieldset>
           {sectionError?.section === "privacy" ? <p role="alert" className="mt-2 text-sm text-destructive">{sectionError.message}</p> : null}
-          <div className="mt-3 flex min-h-8 items-center justify-end gap-2">
+          <div className="mt-5 flex min-h-10 items-center justify-end gap-3 border-t border-border pt-5">
             <p role="status" className="mr-auto text-sm text-muted-foreground">{savingSection === "privacy" ? "保存中…" : privacyDirty ? "未保存修改" : savedSection === "privacy" ? "已保存" : ""}</p>
-            <Button type="button" variant="ghost" size="compact" disabled={!privacyDirty || busy} onClick={() => {
+            {privacyDirty ? <Button type="button" variant="outline" disabled={busy} onClick={() => {
               resetField("showRecentReplies", { defaultValue: me.showRecentReplies });
               resetField("showPlayerBadges", { defaultValue: me.showPlayerBadges });
               resetField("showBookmarks", { defaultValue: me.showBookmarks });
               setSectionError(null);
               setSavedSection(null);
-            }}>撤销</Button>
-            <Button type="submit" size="compact" pending={savingSection === "privacy"} disabled={!privacyDirty || busy || usernameStatus.busy} pendingLabel="保存中">保存隐私设置</Button>
+            }}>撤销</Button> : null}
+            <Button type="submit" pending={savingSection === "privacy"} disabled={!privacyDirty || busy || usernameStatus.busy} pendingLabel="保存中">保存隐私设置</Button>
           </div>
         </form>
-      </section>
+      </ProfileSection>
 
-      <details className="mt-7 border-t border-border pt-5">
+      <details className="rounded-2xl border border-border bg-card p-6">
         <summary className="cursor-pointer rounded-md text-sm font-semibold text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring">等级与创作激励</summary>
         <div className="space-y-3 pt-4">
           <LevelBadge level={me.level} />

@@ -134,31 +134,34 @@ export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
   };
 
   return (
-    <div className="flex items-center gap-4">
-      <UserAvatar
-        name={username}
-        src={avatar}
-        className="size-20 border border-border bg-muted"
-        textClassName="text-3xl"
-      />
+    <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex items-center gap-4">
+        <UserAvatar
+          name={username}
+          src={avatar}
+          className="size-16 border border-border bg-muted"
+          textClassName="text-2xl"
+        />
+        <p className="text-sm font-semibold">头像</p>
+      </div>
 
       <div>
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <Button
             type="button"
             variant="outline"
-            size="sm"
+            size="default"
             onClick={() => fileInputRef.current?.click()}
             disabled={pending}
           >
-            <Camera className="mr-1.5 h-4 w-4" />
+            <Camera className="size-4" aria-hidden="true" />
             更换头像
           </Button>
           {avatar ? (
             <Button
               type="button"
-              variant="ghost"
-              size="sm"
+              variant="outline"
+              size="default"
               onClick={handleRemove}
               disabled={pending}
             >
@@ -235,7 +238,7 @@ export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
                 <DialogFooter className="mt-4">
                   <DialogClose
                     disabled={isUploading}
-                    className={buttonVariants({ variant: "ghost" })}
+                    className={buttonVariants({ variant: "outline" })}
                   >
                     取消
                   </DialogClose>
