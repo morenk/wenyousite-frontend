@@ -34,7 +34,6 @@ import {
   Dialog,
   DialogBackdrop,
   DialogCloseButton,
-  DialogDescription,
   DialogPopup,
   DialogPortal,
   DialogTitle,
@@ -116,14 +115,13 @@ export function AnnouncementsPanel() {
         <div className="flex items-center justify-between gap-5 border-b border-border px-6 py-5">
           <div className="flex items-center gap-3">
             <CalendarClock className="size-5 text-brand-strong" />
-            <div><h2 className="font-sans text-lg font-semibold">发送计划与历史</h2><p className="text-xs text-muted-foreground">进入发送队列后不允许取消，避免部分用户收到后回滚。</p></div>
+            <div><h2 className="font-sans text-lg font-semibold">发送计划与历史</h2><p className="text-xs text-muted-foreground">开始发送后不可取消。</p></div>
           </div>
           <Button type="button" onClick={() => setComposerOpen(true)}><BellRing />新建通知</Button>
         </div>
         <AdminFilterBar
           activeCount={activeCount}
           onReset={() => void setFilters(null, { history: "push" })}
-          summary={campaigns.data ? `当前页 ${campaigns.data.items.length} 条` : undefined}
         >
           <AdminFilterField label="关键词" className="w-52">
             <span className="relative block">
@@ -222,7 +220,6 @@ export function AnnouncementsPanel() {
                   <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground"><BellRing className="size-5" /></span>
                   <div>
                     <DialogTitle>新建站内通知</DialogTitle>
-                    <DialogDescription className="mt-1">系统会分批投递，可立即或定时发送。</DialogDescription>
                   </div>
                 </div>
                 <DialogCloseButton type="button" label="关闭新建通知" disabled={actions.create.isPending} />

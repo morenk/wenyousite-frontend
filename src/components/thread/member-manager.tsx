@@ -102,7 +102,7 @@ export function MemberManager({ threadId, isOwner, isCollaborator }: MemberManag
   if (!members || members.length === 0) {
     return (
       <div className="py-20">
-        <EmptyState title="暂无参与人" description="有人参与讨论后，会显示在这里。" />
+        <EmptyState title="暂无参与人" />
       </div>
     );
   }
@@ -116,22 +116,6 @@ export function MemberManager({ threadId, isOwner, isCollaborator }: MemberManag
 
   return (
     <div className="mx-auto max-w-5xl space-y-5 p-5">
-      <div className="flex items-start justify-between gap-8">
-        <div>
-          <p className="font-utility text-xs font-bold uppercase tracking-[0.12em] text-brand-strong">
-            成员权限
-          </p>
-          <h2 className="mt-1 font-sans text-xl font-semibold text-foreground">
-            谁可以共同创作
-          </h2>
-          <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
-            协作权限决定谁能管理内容，玩家标记决定谁属于当前游戏阵容；两者彼此独立。
-          </p>
-        </div>
-        <Badge tone={isOwner ? "brand" : "info"}>
-          {isOwner ? "楼主可管理全部权限" : "协作者可管理玩家标记"}
-        </Badge>
-      </div>
 
       <div className="flex items-center justify-between gap-5 rounded-2xl border border-border bg-muted/25 p-3">
         <div className="flex items-center gap-1" aria-label="筛选成员">
@@ -195,7 +179,6 @@ export function MemberManager({ threadId, isOwner, isCollaborator }: MemberManag
         <div className="rounded-2xl border border-dashed border-border py-16">
           <EmptyState
             title="没有符合条件的成员"
-            description="调整筛选条件或尝试其他用户名。"
           />
         </div>
       )}

@@ -124,32 +124,23 @@ export function ThreadSubscriptionControls({ thread }: {
           <Popover.Popup className="w-[min(20rem,calc(100vw-2rem))] rounded-2xl border border-border bg-popover p-2 text-popover-foreground shadow-popover outline-none">
             <div className="px-2 pb-2 pt-1">
               <Popover.Title className="text-sm font-semibold">管理更新订阅</Popover.Title>
-              <Popover.Description className="mt-1 text-xs leading-5 text-muted-foreground">
-                选择你想在本帖收到的更新。
-              </Popover.Description>
             </div>
 
             <div className="flex items-center justify-between gap-3 rounded-xl px-2 py-2.5 hover:bg-muted/60">
               <div className="min-w-0">
-                <p className="text-sm font-medium text-foreground">官方更新</p>
-                <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
-                  接收楼主与协作者的新发言
-                </p>
+                <p className="text-sm font-medium text-foreground">楼主与协作者更新</p>
               </div>
               <SubscriptionSwitch
                 checked={Boolean(threadSubscription)}
                 pending={isPending && pendingTarget === THREAD_SUBSCRIPTION_TARGET}
                 disabled={subscriptionsLoading || isPending}
-                label={threadSubscription ? "取消订阅官方更新" : "订阅官方更新"}
+                label={threadSubscription ? "取消订阅楼主与协作者更新" : "订阅楼主与协作者更新"}
                 onClick={() => void handleToggleThread()}
               />
             </div>
 
             <div className="mt-1 border-t border-border px-2 pb-1 pt-3">
               <p className="text-xs font-semibold text-foreground">玩家更新</p>
-              <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
-                可同时订阅多名已标记玩家
-              </p>
             </div>
 
             {membersLoading ? (

@@ -638,7 +638,7 @@ describe("ManagementPanel", () => {
     const thread = { ...mockThread, subthreads: [defaultSubthread] };
     renderPanel({ thread, searchParams: "?view=subthreads" });
 
-    expect(screen.getByText("从第一篇子贴开始")).toBeInTheDocument();
+    expect(screen.getByText("还没有子贴")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "添加子贴" }));
     expect(screen.getByText("添加子贴", { selector: "h2" })).toBeInTheDocument();
   });

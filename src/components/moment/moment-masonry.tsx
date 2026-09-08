@@ -54,7 +54,7 @@ export function MomentMasonry({
   maxLanes = 3,
   showPaginationStatus = true,
   emptyTitle = "还没有动态",
-  emptyDescription = "发布后会显示在这里。",
+  emptyDescription,
   renderMoment,
 }: MomentMasonryProps) {
   const containerRef = useRef<HTMLDivElement>(null);

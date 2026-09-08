@@ -45,7 +45,7 @@ describe("管理员列表分页", () => {
 
   it("筛选摘要和完整字段分层呈现且字段不会被压窄", () => {
     const { container } = render(
-      <AdminFilterBar activeCount={1} summary="当前页 20 条" onReset={vi.fn()}>
+      <AdminFilterBar activeCount={1} onReset={vi.fn()}>
         <AdminFilterField label="关键词" className="w-64">
           <input aria-label="关键词输入" />
         </AdminFilterField>
@@ -57,6 +57,6 @@ describe("管理员列表分页", () => {
     expect(bar).toContainElement(fields as HTMLElement);
     expect(fields).toHaveClass("mt-3", "flex-wrap");
     expect(screen.getByRole("group", { name: "关键词" })).toHaveClass("shrink-0", "w-64");
-    expect(screen.getByText("当前页 20 条")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "重置" })).toBeEnabled();
   });
 });

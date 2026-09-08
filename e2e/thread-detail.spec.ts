@@ -47,7 +47,7 @@ test.describe("主题帖管理面板", () => {
     await page.getByRole("button", { name: "管理主题帖" }).click();
     await expect(page.getByText("返回帖子")).toBeVisible();
     await page.getByRole("tab", { name: /子贴内容/ }).click();
-    await expect(page.getByText("章节目录")).toBeVisible();
+    await expect(page.locator("aside").getByRole("button", { name: "添加子贴", exact: true })).toBeVisible();
 
     // 添加子贴
     await page.locator("aside").getByRole("button", { name: "添加子贴", exact: true }).click();
@@ -207,8 +207,8 @@ test.describe("已发布帖统一管理", () => {
 
     // 已发布帖旧链接进入相同管理面板
     await page.goto(`/threads/${threadId}/edit`);
-    await expect(page.getByText("共同创作管理台")).toBeVisible();
-    await expect(page.getByRole("tab", { name: "帖子设置" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "帖子设置" })).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByLabel("主题帖标题")).not.toHaveValue("");
 
     // 登出后访问应跳转登录
     await page.context().clearCookies();

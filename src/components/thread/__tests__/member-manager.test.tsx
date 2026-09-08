@@ -182,7 +182,7 @@ describe("MemberManager", () => {
       .toBeInTheDocument();
     expect(within(participantRow).queryByRole("button", { name: "授予协作权限" }))
       .not.toBeInTheDocument();
-    expect(screen.getByText("协作者可管理玩家标记")).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "协作权限" })).toBeInTheDocument();
   });
 
   test("普通成员只能查看权限状态", () => {

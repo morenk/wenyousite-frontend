@@ -45,7 +45,6 @@ import {
   Dialog,
   DialogBackdrop,
   DialogCloseButton,
-  DialogDescription,
   DialogPopup,
   DialogPortal,
   DialogTitle,
@@ -283,7 +282,7 @@ export function CaseWorkbench() {
                   ))}
                 </AdminTableRow>
               ))}
-              {!cases.isLoading && !cases.isError && table.getRowModel().rows.length === 0 ? <AdminTableEmpty colSpan={5}><span><strong className="block text-foreground">这个队列已经清空</strong><span className="mt-1 block text-xs">新的举报会自动出现在这里。</span></span></AdminTableEmpty> : null}
+              {!cases.isLoading && !cases.isError && table.getRowModel().rows.length === 0 ? <AdminTableEmpty colSpan={5}>当前筛选下没有案件</AdminTableEmpty> : null}
             </AdminTableBody>
           </AdminTable>
         </div>
@@ -315,7 +314,6 @@ export function CaseWorkbench() {
                     <div className="flex items-start justify-between gap-5 border-b border-border px-7 py-6">
                       <div>
                         <DialogTitle>案件操作</DialogTitle>
-                        <DialogDescription className="mt-1">正在整理证据与决定轨迹…</DialogDescription>
                       </div>
                       <DialogCloseButton type="button" label="关闭案件操作" />
                     </div>
@@ -326,7 +324,6 @@ export function CaseWorkbench() {
                     <div className="flex items-start justify-between gap-5 border-b border-border px-7 py-6">
                       <div>
                         <DialogTitle>案件操作</DialogTitle>
-                        <DialogDescription className="mt-1">案件详情暂时无法读取。</DialogDescription>
                       </div>
                       <DialogCloseButton type="button" label="关闭案件操作" />
                     </div>
@@ -435,8 +432,7 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
           </section>
         {detail.status === "OPEN" ? (
           <section data-slot="admin-popup-operation" className="rounded-2xl border border-border bg-muted/35 p-6">
-            <p className="font-utility text-xs font-bold tracking-[0.1em] text-muted-foreground">案件处置</p>
-            <h3 className="mt-1 font-sans text-xl font-semibold">形成治理决定</h3>
+            <h3 className="font-sans text-xl font-semibold">形成治理决定</h3>
             <p className="mt-2 text-xs leading-5 text-muted-foreground">公开说明会提供给被处置用户，并成为申诉依据。</p>
             <form
               className="mt-6 space-y-5"

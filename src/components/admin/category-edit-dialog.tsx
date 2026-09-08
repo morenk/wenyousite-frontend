@@ -14,7 +14,6 @@ import {
   DialogBackdrop,
   DialogClose,
   DialogCloseButton,
-  DialogDescription,
   DialogFooter,
   DialogPopup,
   DialogPortal,
@@ -80,10 +79,7 @@ export function CategoryEditDialog({
             >
               <div className="flex items-start justify-between gap-5 border-b border-border px-7 py-6">
                 <div>
-                  <DialogTitle>编辑分类门面</DialogTitle>
-                  <DialogDescription className="mt-1">
-                    名称会立即用于历史主题帖和所有新选择入口。
-                  </DialogDescription>
+                  <DialogTitle>编辑分类</DialogTitle>
                 </div>
                 <DialogCloseButton type="button" label="关闭分类编辑" />
               </div>
@@ -93,19 +89,17 @@ export function CategoryEditDialog({
                   <div className="flex min-w-0 items-center gap-3">
                     <LockKeyhole className="size-4 shrink-0 text-muted-foreground" />
                     <div className="min-w-0">
-                      <p className="text-xs text-muted-foreground">不可变登记标识</p>
+                      <p className="text-xs text-muted-foreground">分类标识（不可修改）</p>
                       <code className="font-utility text-sm font-bold">{category.slug}</code>
                     </div>
                   </div>
-                  <p className="max-w-64 text-right text-xs leading-5 text-muted-foreground">
-                    历史主题帖和链接依赖此标识；重命名不会改变它。
-                  </p>
                 </div>
 
                 <div className="grid grid-cols-[1fr_9rem] gap-5">
                   <div className="space-y-2">
                     <Label htmlFor={`category-edit-name-${category.id}`}>展示名称</Label>
-                    <Input id={`category-edit-name-${category.id}`} {...form.register("name")} />
+                    <Input id={`category-edit-name-${category.id}`} aria-describedby={`category-name-help-${category.id}`} {...form.register("name")} />
+                    <p id={`category-name-help-${category.id}`} className="text-xs text-muted-foreground">修改名称会同步显示在已有主题帖中。</p>
                     {form.formState.errors.name ? <p className="text-xs text-destructive">{form.formState.errors.name.message}</p> : null}
                   </div>
                   <div className="space-y-2">
@@ -119,8 +113,8 @@ export function CategoryEditDialog({
                   <Label htmlFor={`category-edit-description-${category.id}`}>分类说明</Label>
                   <Textarea id={`category-edit-description-${category.id}`} rows={3} placeholder="帮助创作者判断什么内容适合放在这里" {...form.register("description")} />
                   <div className="flex justify-between gap-4 text-xs text-muted-foreground">
-                    {form.formState.errors.description ? <span className="text-destructive">{form.formState.errors.description.message}</span> : <span>会显示在站务配置中，后续可供选择器使用。</span>}
-                    <span>{description.length}/200</span>
+                    {form.formState.errors.description ? <span className="text-destructive">{form.formState.errors.description.message}</span> : null}
+                    <span className="ml-auto">{description.length}/200</span>
                   </div>
                 </div>
 

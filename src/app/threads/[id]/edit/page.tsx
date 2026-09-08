@@ -9,7 +9,7 @@ import { useAuth } from "@/lib/auth";
 import { useThreadDetail } from "@/api/hooks/use-thread-detail";
 import { ThreadCreateForm } from "@/components/forms/thread-create-form";
 import { ManagementPanel } from "@/components/thread/management-panel";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
@@ -110,9 +110,6 @@ function EditThreadPageContent() {
       <PageShell width="workspace">
         <PageHeader title="继续编辑草稿" />
         <Card>
-          <CardHeader>
-            <CardTitle>草稿内容</CardTitle>
-          </CardHeader>
           <CardContent className="pt-6">
             <ThreadCreateForm
               thread={thread}

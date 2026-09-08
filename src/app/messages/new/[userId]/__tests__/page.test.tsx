@@ -45,16 +45,18 @@ vi.mock("@/components/message/direct-conversation-entry-copy", () => ({
   getDirectConversationEntryCopy: (...args: unknown[]) => mockEntryCopy(...args),
 }));
 vi.mock("@/components/message/direct-message-composer", () => ({
-  DirectMessageComposer: ({ onSend, submitLabel }: {
+  DirectMessageComposer: ({ onSend, submitLabel, requestHint }: {
+    requestHint: string;
     onSend: (value: { content: string; clientRequestId: string }) => Promise<unknown>;
     submitLabel: string;
   }) => (
+    <div><p>{requestHint}</p>
     <button type="button" onClick={() => void onSend({
       content: "你好",
       clientRequestId: "request-1",
     })}>
       {submitLabel}
-    </button>
+    </button></div>
   ),
 }));
 vi.mock("@/components/shared/user-avatar", () => ({
@@ -83,9 +85,6 @@ beforeEach(() => {
   mockUseStart.mockReturnValue({ mutateAsync: mockMutateAsync });
   mockEntryCopy.mockReturnValue({
     canInitiate: true,
-    title: "可以发起私聊",
-    description: "先发送一条礼貌消息",
-    headerSubtitle: "互相关注",
     composerHint: "请求提示",
     submitLabel: "发送消息",
   });
@@ -148,6 +147,7 @@ describe("新建私聊页", () => {
     render(<NewDirectConversationPage />);
 
     expect(screen.getByText("给 对方用户 发私聊")).toBeInTheDocument();
+    expect(screen.getAllByText("请求提示")).toHaveLength(1);
     await user.click(screen.getByRole("button", { name: "发送消息" }));
 
     await waitFor(() => {

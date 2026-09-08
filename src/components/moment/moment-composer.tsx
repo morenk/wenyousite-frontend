@@ -16,6 +16,7 @@ import {
 } from "@/components/shared/internal-reference-editor";
 import { InternalReferenceInsert } from "@/components/shared/internal-reference-insert";
 import { usePublicInviteConfirmation } from "@/components/shared/use-public-invite-confirmation";
+import { Tooltip } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -338,7 +339,7 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
               className="moment-text-cover flex aspect-[3/4] w-full max-w-sm items-center rounded-2xl px-9 py-10"
               data-cover-theme="ROSE"
             >
-              <p className="line-clamp-5 font-display text-3xl font-medium leading-[1.55] tracking-wide">{title.trim() || "标题会用于文字封面"}</p>
+              <p className="line-clamp-5 font-display text-3xl font-medium leading-[1.55] tracking-wide">{title.trim() || "封面预览"}</p>
             </div>
           )}
         </div>
@@ -402,7 +403,7 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
                     {/* eslint-disable-next-line @next/next/no-img-element -- 本地 Blob 草稿预览 */}
                     <img src={image.previewUrl} alt={`第 ${index + 1} 张图片`} className="h-full w-full object-cover" />
                     <div className="absolute inset-x-1 bottom-1 flex items-center justify-between rounded-lg bg-foreground/60 p-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
-                      <Button type="button" variant="ghost" size="icon-compact" className="text-background hover:bg-background/15 hover:text-background" onClick={() => setCoverFileId(image.id)} aria-label="设为封面"><Star className={cn("size-3.5", coverFileId === image.id && "fill-current")} /></Button>
+                      <Tooltip content="设为封面"><Button type="button" variant="ghost" size="icon-compact" className="text-background hover:bg-background/15 hover:text-background" onClick={() => setCoverFileId(image.id)} aria-label="设为封面"><Star className={cn("size-3.5", coverFileId === image.id && "fill-current")} /></Button></Tooltip>
                       <div className="flex"><Button type="button" variant="ghost" size="icon-compact" className="text-background hover:bg-background/15 hover:text-background disabled:bg-transparent" disabled={index === 0} onClick={() => moveImage(index, -1)} aria-label="向前移动"><ArrowLeft className="size-3.5" /></Button><Button type="button" variant="ghost" size="icon-compact" className="text-background hover:bg-background/15 hover:text-background disabled:bg-transparent" disabled={index === images.length - 1} onClick={() => moveImage(index, 1)} aria-label="向后移动"><ArrowRight className="size-3.5" /></Button></div>
                       <Button type="button" variant="ghost" size="icon-compact" className="text-background hover:bg-background/15 hover:text-background" onClick={() => removeImage(image.id)} aria-label="删除图片"><Trash2 className="size-3.5" /></Button>
                     </div>
@@ -414,7 +415,6 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
                 ) : null}
               </div>
               <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple className="sr-only" onChange={(event) => addFiles(event.target.files)} />
-              <p className="text-xs leading-5 text-muted-foreground">点击星标选择封面；无图时使用文字封面。</p>
             </div>
           </div>
 

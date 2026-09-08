@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserCreatedThreads } from "@/components/user/user-created-threads";
 import { UserPlayedThreads } from "@/components/user/user-played-threads";
@@ -16,9 +16,6 @@ export function UserThreadsPage({ userId }: { userId: string }) {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-base">帖子</CardTitle>
-      </CardHeader>
       <CardContent className="space-y-5">
         {canViewPlayedThreads ? (
           <Tabs

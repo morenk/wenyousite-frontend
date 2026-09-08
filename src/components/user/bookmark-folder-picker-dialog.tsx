@@ -94,7 +94,7 @@ export function BookmarkFolderPickerDialog({
               <div className="min-w-0">
                 <DialogTitle>{intent === "move" ? "移动到收藏夹" : "收藏到"}</DialogTitle>
                 <DialogDescription className="mt-1 line-clamp-2">
-                  为“{contentLabel}”选择一个{folderLabel}。
+                  {contentLabel}
                 </DialogDescription>
               </div>
               <DialogCloseButton label="关闭收藏夹选择" disabled={isPending} />

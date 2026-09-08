@@ -68,6 +68,19 @@ describe("StationLogin", () => {
     expect(mockReplace).toHaveBeenCalledWith("/station/dashboard");
   });
 
+  test("返回修改账号不会再次提交登录挑战，且保留已填账号", async () => {
+    const user = userEvent.setup();
+    render(<StationLogin />);
+    await user.type(screen.getByLabelText("账号"), "admin@example.com");
+    await user.type(screen.getByLabelText("密码"), "password123");
+    await user.click(screen.getByRole("button", { name: "继续邮箱确认" }));
+    await screen.findByLabelText("6 位验证码");
+    await user.click(screen.getByRole("button", { name: "返回修改账号" }));
+    expect(await screen.findByLabelText("账号")).toHaveValue("admin@example.com");
+    expect(mockChallenge).toHaveBeenCalledTimes(1);
+    expect(mockVerify).not.toHaveBeenCalled();
+  });
+
   test("字段错误通过共享 FormField 关联到对应控件", async () => {
     const user = userEvent.setup();
     render(<StationLogin />);

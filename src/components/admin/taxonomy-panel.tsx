@@ -139,7 +139,7 @@ export function TaxonomyPanel() {
             <span className="flex size-10 items-center justify-center rounded-xl bg-accent text-accent-foreground"><FolderTree className="size-5" /></span>
             <div>
               <h2 className="font-sans text-xl font-semibold">主题帖分类</h2>
-              <p className="text-xs text-muted-foreground">名称来自数据库；标识创建后保持稳定。</p>
+              <p className="text-xs text-muted-foreground">分类标识创建后不可修改。</p>
             </div>
           </div>
 
@@ -231,7 +231,7 @@ export function TaxonomyPanel() {
                   reason: "站务台新增分类",
                 });
                 categoryForm.reset();
-                toast.success("分类已创建，可继续补充门面设置");
+                toast.success("分类已创建");
               } catch (error) {
                 toast.error(getApiErrorMessage(error, "分类创建失败"));
               }

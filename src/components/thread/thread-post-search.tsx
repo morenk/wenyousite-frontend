@@ -15,7 +15,6 @@ import {
   Card,
   CardAction,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -49,8 +48,7 @@ export function ThreadPostSearch({
   return (
     <Card aria-label="帖内楼层搜索">
       <CardHeader className="border-b">
-        <CardTitle>搜索本帖楼层</CardTitle>
-        <CardDescription>搜索范围包含主贴与子贴正文、楼层和楼中楼</CardDescription>
+        <CardTitle>搜索本帖内容</CardTitle>
         <CardAction>
           <Button
             type="button"

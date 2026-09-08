@@ -10,13 +10,11 @@ export function AdminFilterBar({
   children,
   activeCount,
   onReset,
-  summary,
   className,
 }: {
   children: React.ReactNode;
   activeCount: number;
   onReset: () => void;
-  summary?: string;
   className?: string;
 }) {
   return (
@@ -34,7 +32,6 @@ export function AdminFilterBar({
           {activeCount > 0 ? <Badge tone="brand">{activeCount}</Badge> : null}
         </div>
         <div className="flex shrink-0 items-center gap-3">
-          {summary ? <span className="font-utility text-xs font-semibold text-foreground">{summary}</span> : null}
           <Button
             type="button"
             size="compact"

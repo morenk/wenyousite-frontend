@@ -17,7 +17,6 @@ import {
   Dialog,
   DialogBackdrop,
   DialogCloseButton,
-  DialogDescription,
   DialogPopup,
   DialogPortal,
   DialogTitle,
@@ -150,9 +149,6 @@ export function ContentModerationPanel() {
                   </span>
                   <div>
                     <DialogTitle>直接处置公开内容</DialogTitle>
-                    <DialogDescription className="mt-1">
-                      粘贴前台链接会自动识别目标，也可以选择类型后直接填写内容编号。
-                    </DialogDescription>
                   </div>
                 </div>
                 <DialogCloseButton type="button" label="关闭内容处置" disabled={pending} />
@@ -205,7 +201,7 @@ export function ContentModerationPanel() {
                       将处置{targetLabels[parsedPreview.type]} · <code className="font-utility">{parsedPreview.id}</code>
                     </p>
                   ) : (
-                    <p className="text-xs text-muted-foreground">主题帖、楼层、楼中楼、动态与动态评论链接均可识别。</p>
+                    <p className="text-xs text-muted-foreground">粘贴链接自动识别；直接填编号时需选择类型。</p>
                   )}
                 </div>
 
@@ -225,7 +221,7 @@ export function ContentModerationPanel() {
                 <div className="flex items-center justify-between gap-4 border-t border-border pt-5">
                   <p className="max-w-xl text-xs leading-5 text-muted-foreground">
                     {action === "hide"
-                      ? "隐藏会立即退出公开读路径，并写入不可变决定轨迹；隐藏不是物理删除。"
+                      ? "内容将立即隐藏，保留原内容及操作记录。"
                       : "只能恢复由管理员隐藏的内容；作者主动删除或父级不可见状态不会被改写。"}
                   </p>
                   <Button type="submit" variant={action === "hide" ? "destructive" : "default"} disabled={pending}>
