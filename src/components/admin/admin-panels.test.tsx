@@ -153,6 +153,15 @@ describe("station panels", () => {
     expect(screen.getByText("已停用")).toBeInTheDocument();
   });
 
+  it.each(["OPEN", "RESOLVED", "DISMISSED"])("%s 案件筛选为空时不声称所有举报已处理", (status) => {
+    const view = renderWithUrl(<CaseWorkbench />, `?status=${status}`);
+    expect(hooks.useAdminCases).toHaveBeenCalledWith(expect.objectContaining({ status }));
+    expect(screen.getByText("当前筛选下没有案件")).toBeInTheDocument();
+    expect(screen.queryByText("这个队列已经清空")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "下一页" })).toBeDisabled();
+    view.unmount();
+  });
+
   it("所有远程列表使用契约筛选和 20 条游标分页", () => {
     renderWithUrl(<AppealsPanel />);
     renderWithUrl(<AuditPanel />);

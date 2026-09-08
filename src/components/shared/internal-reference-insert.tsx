@@ -10,7 +10,6 @@ import {
   Dialog,
   DialogBackdrop,
   DialogCloseButton,
-  DialogDescription,
   DialogFooter,
   DialogPopup,
   DialogPortal,
@@ -95,9 +94,6 @@ export function InternalReferenceInsert({
             <div className="flex items-start justify-between gap-4">
               <div>
                 <DialogTitle>插入站内传送门</DialogTitle>
-                <DialogDescription className="mt-1">
-                  为主题帖、子贴、楼层、回复或私密邀请设置一个简短名称。
-                </DialogDescription>
               </div>
               <DialogCloseButton />
             </div>
@@ -135,7 +131,7 @@ export function InternalReferenceInsert({
                 {errors.href?.message ? (
                   <p className="text-xs text-destructive">{errors.href.message}</p>
                 ) : (
-                  <p className="text-xs text-muted-foreground">粘贴帖子或私密邀请链接。</p>
+                  <p className="text-xs text-muted-foreground">支持主题帖、子贴、楼层、回复和私密邀请链接。</p>
                 )}
               </div>
               <DialogFooter>

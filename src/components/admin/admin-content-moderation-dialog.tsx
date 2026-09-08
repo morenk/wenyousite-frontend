@@ -83,7 +83,7 @@ export function AdminContentModerationDialog({
                 <div className="min-w-0">
                   <DialogTitle>站务隐藏{target.label}</DialogTitle>
                   <DialogDescription className="mt-1">
-                    内容会立即退出公开读路径，并留下管理员、理由与时间的审计记录。
+                    内容将立即隐藏，保留原内容及操作记录。
                   </DialogDescription>
                 </div>
               </div>
@@ -140,11 +140,7 @@ export function AdminContentModerationDialog({
                     <p className="text-xs text-destructive">
                       {form.formState.errors.reason.message}
                     </p>
-                  ) : (
-                    <p className="text-xs leading-5 text-muted-foreground">
-                      管理员普通登录态即可执行；操作仍会记录理由、管理员与时间。
-                    </p>
-                  )}
+                  ) : null}
                 </div>
               </div>
               <DialogFooter className="border-t border-border px-6 py-4">

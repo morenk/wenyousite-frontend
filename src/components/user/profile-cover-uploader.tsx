@@ -287,7 +287,7 @@ export function ProfileCoverUploader({
               <DialogPopup className="max-w-5xl p-5 sm:p-6">
                 <DialogTitle>调整主页背景</DialogTitle>
                 <DialogDescription className="sr-only">
-                  两个取景框使用同一张原图，可以独立拖动和缩放。保存时会一起更新。
+                  电脑端与移动端使用同一原图，分别裁剪并一起保存。
                 </DialogDescription>
 
                 <div className="mt-5 grid gap-4 lg:grid-cols-2">

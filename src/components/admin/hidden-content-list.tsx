@@ -22,7 +22,6 @@ import {
   Dialog,
   DialogBackdrop,
   DialogCloseButton,
-  DialogDescription,
   DialogFooter,
   DialogPopup,
   DialogPortal,
@@ -120,7 +119,6 @@ export function HiddenContentList({ headerAction }: { headerAction?: ReactNode }
             </span>
             <div>
               <h2 className="font-sans text-lg font-semibold">当前隐藏内容</h2>
-              <p className="text-xs text-muted-foreground">这里只显示仍处于站务隐藏状态的内容；恢复后会立即移出列表。</p>
             </div>
           </div>
           {headerAction}
@@ -128,7 +126,6 @@ export function HiddenContentList({ headerAction }: { headerAction?: ReactNode }
         <AdminFilterBar
           activeCount={targetType ? 1 : 0}
           onReset={() => void setFilters(null, { history: "push" })}
-          summary={hiddenContent.data ? `当前页 ${hiddenContent.data.items.length} 条` : undefined}
         >
           <AdminFilterField label="内容类型" className="w-48">
             <Select
@@ -225,7 +222,6 @@ export function HiddenContentList({ headerAction }: { headerAction?: ReactNode }
               <div className="flex items-start justify-between gap-5 border-b border-border px-6 py-5">
                 <div>
                   <DialogTitle>{selected ? targetLabels[selected.targetType] : "内容"}操作</DialogTitle>
-                  <DialogDescription className="mt-1">查看审计记录，或在允许时填写理由恢复内容。</DialogDescription>
                 </div>
                 <DialogCloseButton type="button" label="关闭内容操作" disabled={actions.restore.isPending} />
               </div>

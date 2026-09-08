@@ -92,15 +92,8 @@ export default function NewDirectConversationPage() {
         <UserAvatar name={profile.username} src={profile.avatar} className="h-9 w-9" />
         <div>
           <p className="text-sm font-semibold">给 {profile.username} 发私聊</p>
-          <p className="text-xs text-muted-foreground">{entryCopy.headerSubtitle}</p>
         </div>
       </header>
-      <div className="flex flex-1 items-center justify-center px-8">
-        <div className="max-w-md text-center text-sm leading-6 text-muted-foreground">
-          <p className="font-medium text-foreground">{entryCopy.title}</p>
-          <p>{entryCopy.description}</p>
-        </div>
-      </div>
       <DirectMessageComposer
         requestHint={entryCopy.composerHint}
         submitLabel={entryCopy.submitLabel}

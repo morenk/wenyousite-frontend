@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Tooltip } from "@/components/ui/tooltip";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -41,9 +42,9 @@ import type { ManagementEditorStatus } from "@/components/thread/management-type
 const THREAD_SETTINGS_FORM_ID = "thread-management-settings-form";
 
 const POSTING_POLICY_HELP: Record<string, string> = {
-  PARTICIPANTS: "回复过该帖的参与人可以发帖，楼主和协作者始终可以发帖。",
-  COLLABORATORS: "仅楼主和协作者可以发帖。",
-  PLAYERS: "已标记为玩家的成员可以发帖，楼主和协作者始终可以发帖。",
+  PARTICIPANTS: "参与人指回复过本帖的用户；楼主和协作者始终可发帖。",
+  COLLABORATORS: "",
+  PLAYERS: "楼主和协作者始终可发帖。",
 };
 
 interface ManagementPanelProps {
@@ -131,18 +132,7 @@ export function ManagementPanel({
 
       {controller.view === "subthreads" ? (
         <div className="flex min-h-0 flex-1">
-          <aside className="flex min-h-0 w-72 shrink-0 flex-col border-r border-border bg-muted/30">
-            <div className="flex items-end justify-between gap-3 px-4 pb-2 pt-4">
-              <div>
-                <p className="font-utility text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-brand-strong">
-                  章节目录
-                </p>
-                <h2 className="mt-0.5 font-sans text-lg font-semibold text-foreground">子贴内容</h2>
-              </div>
-              <span className="font-utility text-xs tabular-nums text-muted-foreground">
-                {controller.subthreads.length} 篇
-              </span>
-            </div>
+          <aside className="flex min-h-0 w-72 shrink-0 flex-col border-r border-border bg-muted/30 pt-3">
             <SubthreadTree
               subthreads={controller.subthreads}
               selectedId={controller.selectedId}
@@ -201,21 +191,16 @@ export function ManagementPanel({
                       </Select>
                     </div>
                   </div>
-                  <p className="mt-3 text-xs leading-5 text-muted-foreground">
-                    {POSTING_POLICY_HELP[controller.postingPolicy]}
-                  </p>
+                  {POSTING_POLICY_HELP[controller.postingPolicy] ? (
+                    <p className="mt-3 text-xs leading-5 text-muted-foreground">
+                      {POSTING_POLICY_HELP[controller.postingPolicy]}
+                    </p>
+                  ) : null}
                 </div>
 
                 <div className="space-y-2">
                   <div className="flex items-end justify-between gap-4">
-                    <div>
-                      <p className="font-utility text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-brand-strong">
-                        正文画布
-                      </p>
-                      <h2 className="mt-0.5 font-sans text-lg font-semibold text-foreground">
-                        {controller.title || "未命名子贴"}
-                      </h2>
-                    </div>
+                    <span className="text-sm font-medium">正文</span>
                     {controller.subthreadStatus.dirty ? (
                       <Button
                         type="button"
@@ -242,17 +227,11 @@ export function ManagementPanel({
                     diceRolls={controller.selectedSub.bodyPost?.diceRolls}
                     ariaLabel="子贴正文"
                   />
-                  <p className="text-right font-utility text-[0.6875rem] text-muted-foreground">
-                    按 Ctrl / ⌘ + S 保存当前子贴
-                  </p>
                 </div>
               </div>
             ) : (
               <div className="flex min-h-[32rem] flex-col items-center justify-center text-center">
-                <p className="text-xl font-semibold text-foreground">从第一篇子贴开始</p>
-                <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
-                  子贴像章节一样组织设定、剧情和讨论。创建后会自动打开正文画布。
-                </p>
+                <p className="text-xl font-semibold text-foreground">还没有子贴</p>
                 <Button
                   type="button"
                   className="mt-5"
@@ -334,16 +313,15 @@ function ManagementToolbar({
             </h1>
             <Badge tone={role === "楼主" ? "brand" : "info"}>{role}</Badge>
           </div>
-          <p className="mt-0.5 font-utility text-[0.6875rem] text-muted-foreground">
-            共同创作管理台
-          </p>
         </div>
         <SaveStatus status={status} membersImmediate={view === "members"} />
         {view !== "members" ? (
-          <Button type="button" onClick={onSave} disabled={!canSave}>
-            {status.busy ? <Loader2 className="animate-spin" /> : <Save />}
-            {saveLabel}
-          </Button>
+          <Tooltip content="Ctrl / ⌘ + S">
+            <Button type="button" onClick={onSave} disabled={!canSave}>
+              {status.busy ? <Loader2 className="animate-spin" /> : <Save />}
+              {saveLabel}
+            </Button>
+          </Tooltip>
         ) : null}
       </div>
 

@@ -18,7 +18,6 @@ export function UserMomentBookmarksSection({ userId }: { userId: string }) {
       onLoadMore={() => void query.fetchNextPage()}
       onRetry={() => void query.refetch()}
       emptyTitle="还没有收藏动态"
-      emptyDescription="收藏的动态会显示在这里。"
     />
   );
 }

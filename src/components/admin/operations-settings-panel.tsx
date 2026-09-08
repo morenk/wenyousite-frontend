@@ -132,7 +132,7 @@ export function OperationsSettingsPanel() {
           <span className="flex size-10 items-center justify-center rounded-xl bg-info-soft text-info"><CalendarClock className="size-5" /></span>
           <div>
             <h2 className="font-sans text-xl font-semibold">维护公告窗口</h2>
-            <p className="text-sm text-muted-foreground">提前设置公告内容和展示时段，不会自动暂停服务。</p>
+            <p className="text-sm text-muted-foreground">设置公告不会暂停服务。</p>
           </div>
         </div>
         <div className="mt-6 grid grid-cols-2 gap-5">
@@ -158,7 +158,7 @@ export function OperationsSettingsPanel() {
       </section>
 
       <div className="flex items-center justify-between rounded-xl border border-border bg-card px-5 py-4">
-        <p className="flex items-center gap-2 text-xs text-muted-foreground"><Radio className="size-4 text-success" />保存后 5 秒内对所有实例生效，并写入决定轨迹。</p>
+        <p className="flex items-center gap-2 text-xs text-muted-foreground"><Radio className="size-4 text-success" />保存后 5 秒内生效，并记录操作。</p>
         <Button type="submit" disabled={!form.formState.isDirty || update.isPending}>{update.isPending ? "正在应用…" : "保存运行设置"}</Button>
       </div>
     </form>

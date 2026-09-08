@@ -214,7 +214,7 @@ test.describe("站务台流体工作区布局", () => {
         status: 401, json: { code: 1001, message: "unauthorized" },
       }));
       await page.goto("/station");
-      await expect(page.getByRole("heading", { name: "进入站务工作区" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "站务登录" })).toBeVisible();
       await expectFunctionalTitles(page.getByRole("heading"));
 
       await page.route("**/api/v1/auth/refresh", (route) => route.fulfill({
@@ -259,3 +259,41 @@ test.describe("站务台流体工作区布局", () => {
     expect(actionCellBox!.x + actionCellBox!.width).toBeCloseTo(scrollBox!.x + scrollBox!.width, 0);
   });
 });
+
+for (const width of [1024, 1440, 1920]) {
+  test(`${width}px 站务登录以单列表单完成邮箱确认阶段`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: 1000 });
+    let challengeCount = 0;
+    await page.route("**/api/v1/**", route => {
+      const path = new URL(route.request().url()).pathname;
+      if (path.endsWith("/admin/auth/challenge")) {
+        challengeCount += 1;
+        return route.fulfill({ json: {
+          code: 0, message: "ok", data: { challengeId: "layout-challenge", expiresIn: 600 },
+        } });
+      }
+      return route.fulfill({ status: 401, json: { code: 1001, message: "unauthorized" } });
+    });
+    await page.goto("/station");
+    await expect(page.getByRole("heading", { name: "站务登录", level: 1 })).toBeVisible();
+    const form = page.getByRole("region", { name: "站务登录" });
+    const box = await form.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.width).toBeLessThanOrEqual(432);
+    const mainBox = await form.locator("..").boundingBox();
+    expect(mainBox).not.toBeNull();
+    expect(box!.x + box!.width / 2).toBeCloseTo(mainBox!.x + mainBox!.width / 2, 0);
+    await page.screenshot({ path: testInfo.outputPath("station-login.png") });
+    await page.getByLabel("账号", { exact: true }).fill("layout-admin");
+    await page.getByLabel("密码", { exact: true }).fill("layout-only-password");
+    await page.getByRole("button", { name: "继续邮箱确认" }).click();
+    await expect(page.getByRole("heading", { name: "查收邮箱验证码" })).toBeVisible();
+    await expect(page.getByText("验证码 10 分钟内有效。")).toBeVisible();
+    await expect(page.getByLabel("6 位验证码")).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath("station-login-code.png") });
+    await page.getByRole("button", { name: "返回修改账号" }).click();
+    await expect(page.getByLabel("账号", { exact: true })).toHaveValue("layout-admin");
+    expect(challengeCount).toBe(1);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  });
+}

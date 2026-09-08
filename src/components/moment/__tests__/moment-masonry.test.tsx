@@ -73,6 +73,14 @@ describe("MomentMasonry", () => {
     expect(screen.getByRole("status")).toHaveTextContent("正在加载更多");
   });
 
+  test("搜索空结果不附带发布引导，调用方仍可提供有效说明", () => {
+    const { rerender } = render(<MomentMasonry moments={[]} emptyTitle="没有匹配的动态" />);
+    expect(screen.getByText("没有匹配的动态")).toBeInTheDocument();
+    expect(screen.queryByText("发布后会显示在这里。")).not.toBeInTheDocument();
+    rerender(<MomentMasonry moments={[]} emptyTitle="暂无动态" emptyDescription="仅显示公开内容" />);
+    expect(screen.getByText("仅显示公开内容")).toBeInTheDocument();
+  });
+
   test("首屏加载骨架与内容都使用三列", async () => {
     vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({
       width: 648,

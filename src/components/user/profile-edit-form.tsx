@@ -20,9 +20,9 @@ import { LevelBadge } from "@/components/shared/level-badge";
 import { formatWenyou } from "@/lib/wenyou";
 
 const privacyFields = [
-  { name: "showRecentReplies", label: "公开最近回复", description: "允许他人在你的主页查看最近回复。" },
-  { name: "showPlayerBadges", label: "公开玩家标记", description: "允许他人在你的主页查看参与的主题帖。" },
-  { name: "showBookmarks", label: "公开收藏", description: "允许他人查看收藏内容；收藏夹名称与归类仅自己可见。" },
+  { name: "showRecentReplies", label: "公开最近回复", description: undefined },
+  { name: "showPlayerBadges", label: "公开参与的主题帖", description: undefined },
+  { name: "showBookmarks", label: "公开收藏", description: "收藏夹名称与归类仅自己可见。" },
 ] as const;
 
 type Section = "bio" | "privacy";
@@ -188,8 +188,8 @@ export function ProfileEditForm() {
           <fieldset disabled={busy} className="divide-y divide-border">
             <legend className="sr-only">主页公开范围</legend>
             {privacyFields.map(({ name, label, description }) => <label key={name} className="flex min-h-14 cursor-pointer items-center justify-between gap-6 py-3.5">
-              <span><span className="block text-sm font-semibold">{label}</span><span id={`${name}-description`} className="mt-0.5 block text-sm text-muted-foreground">{description}</span></span>
-              <input type="checkbox" aria-label={label} aria-describedby={`${name}-description`} className="size-5 shrink-0 accent-primary" {...register(name, { onChange: () => {
+              <span><span className="block text-sm font-semibold">{label}</span>{description ? <span id={`${name}-description`} className="mt-0.5 block text-sm text-muted-foreground">{description}</span> : null}</span>
+              <input type="checkbox" aria-label={label} aria-describedby={description ? `${name}-description` : undefined} className="size-5 shrink-0 accent-primary" {...register(name, { onChange: () => {
                 if (savedSection === "privacy") setSavedSection(null);
                 if (sectionError?.section === "privacy") setSectionError(null);
               } })} />

@@ -718,7 +718,7 @@ describe("ThreadDetailHeader", () => {
     expect(mockPOST).not.toHaveBeenCalled();
   });
 
-  test("统一订阅面板延迟加载成员并可订阅官方更新", async () => {
+  test("统一订阅面板延迟加载成员并可订阅楼主与协作者更新", async () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({
       user: { id: "other-user", username: "别人" },
@@ -733,13 +733,13 @@ describe("ThreadDetailHeader", () => {
 
     await user.click(trigger);
     expect(mockUseMembers).toHaveBeenLastCalledWith("thread-1");
-    await user.click(screen.getByRole("switch", { name: "订阅官方更新" }));
+    await user.click(screen.getByRole("switch", { name: "订阅楼主与协作者更新" }));
 
     expect(mockCreateMutate).toHaveBeenCalledWith({
       threadId: "thread-1",
       type: "THREAD",
     });
-    expect(screen.getByText("选择你想在本帖收到的更新。")).toBeInTheDocument();
+    expect(screen.getByRole("switch", { name: "订阅楼主与协作者更新" })).toBeInTheDocument();
   });
 
   test("官方更新已订阅时统一入口选中并可在面板取消", async () => {
@@ -776,7 +776,7 @@ describe("ThreadDetailHeader", () => {
       .toHaveAttribute("data-icon-variant", "filled");
 
     await user.click(trigger);
-    const officialSwitch = screen.getByRole("switch", { name: "取消订阅官方更新" });
+    const officialSwitch = screen.getByRole("switch", { name: "取消订阅楼主与协作者更新" });
     expect(officialSwitch).toHaveAttribute("aria-checked", "true");
     await user.click(officialSwitch);
 
@@ -809,7 +809,7 @@ describe("ThreadDetailHeader", () => {
     const trigger = screen.getByRole("button", { name: "管理更新订阅" });
     expect(trigger).toHaveAttribute("aria-pressed", "true");
     await user.click(trigger);
-    expect(screen.getByRole("switch", { name: "订阅官方更新" }))
+    expect(screen.getByRole("switch", { name: "订阅楼主与协作者更新" }))
       .toHaveAttribute("aria-checked", "false");
   });
 
@@ -913,7 +913,7 @@ describe("ThreadDetailHeader", () => {
       targetUserId: "player-a",
     });
     expect(mockDeleteMutate).toHaveBeenCalledWith("sub-player-b");
-    expect(screen.getByText("可同时订阅多名已标记玩家")).toBeInTheDocument();
+    expect(screen.getByRole("switch", { name: "订阅玩家甲的发言" })).toBeInTheDocument();
   });
 
   test("订阅失败时保留错误提示", async () => {
@@ -926,7 +926,7 @@ describe("ThreadDetailHeader", () => {
     renderWithQC(<ThreadDetailHeader thread={baseThread} />);
 
     await user.click(screen.getByRole("button", { name: "管理更新订阅" }));
-    await user.click(screen.getByRole("switch", { name: "订阅官方更新" }));
+    await user.click(screen.getByRole("switch", { name: "订阅楼主与协作者更新" }));
 
     expect(toast.error).toHaveBeenCalledWith("订阅失败");
   });

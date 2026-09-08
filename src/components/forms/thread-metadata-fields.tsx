@@ -198,7 +198,7 @@ export function ThreadMetadataFields({
           </Select>
           {visibilityReadOnly ? (
             <p className="text-xs leading-5 text-muted-foreground">
-              当前可见性由楼主管理，协作者只能查看。
+              仅楼主可修改可见性。
             </p>
           ) : null}
         </div>

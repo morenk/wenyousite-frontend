@@ -26,7 +26,6 @@ import {
   Dialog,
   DialogBackdrop,
   DialogCloseButton,
-  DialogDescription,
   DialogPopup,
   DialogPortal,
   DialogTitle,
@@ -91,8 +90,7 @@ export function AppealsPanel() {
     <div data-slot="admin-appeals-workspace" data-layout="full-table" className="w-full">
       <section className="flex min-h-[42rem] min-w-0 flex-col overflow-hidden rounded-lg border border-border bg-card">
         <div className="border-b border-border px-5 py-4">
-          <h2 className="font-sans text-lg font-semibold">申诉台账</h2>
-          <p className="mt-1 text-xs text-muted-foreground">推翻决定将自动恢复原处置。</p>
+          <p className="text-xs text-muted-foreground">推翻决定将自动恢复原处置。</p>
         </div>
         <AdminFilterBar
           activeCount={activeCount}
@@ -201,7 +199,6 @@ export function AppealsPanel() {
                     <div className="min-w-0">
                       <p className="font-utility text-xs text-muted-foreground">申诉编号 {selected.id.slice(-8).toUpperCase()}</p>
                       <DialogTitle className="text-2xl">复核 {selected.appellant.username} 的申诉</DialogTitle>
-                      <DialogDescription className="mt-1">对照原决定与用户陈述后形成复核结论。</DialogDescription>
                     </div>
                   </div>
                   <DialogCloseButton type="button" label="关闭申诉复核" disabled={resolve.isPending} />

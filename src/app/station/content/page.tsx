@@ -3,7 +3,7 @@ import { StationFrame } from "@/components/admin/station-frame";
 
 export default function StationContentPage() {
   return (
-    <StationFrame title="内容处置" eyebrow="内容治理">
+    <StationFrame title="内容处置">
       <ContentModerationPanel />
     </StationFrame>
   );

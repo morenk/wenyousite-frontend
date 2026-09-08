@@ -200,11 +200,21 @@ describe("ThreadEditForm", () => {
   test("使用内容主栏和发布侧栏回填现有数据", () => {
     renderForm();
 
-    expect(screen.getByRole("heading", { name: "标题与主帖正文" })).toBeInTheDocument();
+    expect(screen.getByLabelText("主题帖标题")).toHaveValue("测试帖");
     expect(screen.getByRole("heading", { name: "发布设置" })).toBeInTheDocument();
     expect(screen.getByDisplayValue("测试帖")).toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "可见性" })).toHaveTextContent("公开");
     expect(screen.getByDisplayValue("默认正文")).toBeInTheDocument();
+  });
+
+  test("公开帖不占用邀请区，选择私密但未保存时解释禁用原因", async () => {
+    const user = userEvent.setup();
+    renderForm();
+    expect(screen.queryByRole("button", { name: "生成并复制邀请链接" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("combobox", { name: "可见性" }));
+    await user.click(screen.getByRole("option", { name: "私密" }));
+    expect(screen.getByRole("button", { name: "生成并复制邀请链接" })).toBeDisabled();
+    expect(screen.getByText("请先保存可见性设置。")).toBeInTheDocument();
   });
 
   test("保存标题、标签和正文并上报已保存状态", async () => {
@@ -250,7 +260,7 @@ describe("ThreadEditForm", () => {
     renderForm({ isOwner: false });
 
     expect(screen.getByRole("combobox", { name: "可见性" })).toBeDisabled();
-    expect(screen.getByText("你正以协作者身份管理")).toBeInTheDocument();
+    expect(screen.getByText("仅楼主可修改可见性。")).toBeInTheDocument();
     await user.clear(screen.getByLabelText("主题帖标题"));
     await user.type(screen.getByLabelText("主题帖标题"), "协作者修改");
     await user.click(screen.getByRole("button", { name: "保存帖子" }));

@@ -67,7 +67,7 @@ describe("TaxonomyPanel", () => {
 
     await user.click(screen.getByRole("button", { name: "编辑 角色扮演" }));
     expect(screen.getAllByText("RPG")).toHaveLength(2);
-    expect(screen.getByText("历史主题帖和链接依赖此标识；重命名不会改变它。")).toBeInTheDocument();
+    expect(screen.getByText("分类标识（不可修改）")).toBeInTheDocument();
     expect(screen.queryByLabelText("识别色")).not.toBeInTheDocument();
     expect(screen.queryByText("颜色状态")).not.toBeInTheDocument();
 

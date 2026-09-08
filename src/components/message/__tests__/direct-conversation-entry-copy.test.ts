@@ -12,7 +12,7 @@ describe("getDirectConversationEntryCopy", () => {
 
     expect(copy).toMatchObject({
       canInitiate: true,
-      title: "你们已互相关注",
+      composerHint: "你们已互相关注，发送后直接建立私聊。",
       submitLabel: "建立私聊",
     });
   });
@@ -27,7 +27,7 @@ describe("getDirectConversationEntryCopy", () => {
 
     expect(copy).toMatchObject({
       canInitiate: true,
-      title: "这会先作为消息请求",
+      composerHint: "对方接受前，只能发送一条消息请求。",
       submitLabel: "发送消息请求",
     });
   });
@@ -59,7 +59,7 @@ describe("getDirectConversationEntryCopy", () => {
       contactState: "DECLINED",
       canInitiate: true,
     })).toMatchObject({
-      title: "你曾拒绝过对方的消息请求",
+      composerHint: "你曾拒绝对方的请求；此次主动发送将直接建立私聊。",
       submitLabel: "建立私聊",
     });
   });

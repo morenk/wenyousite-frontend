@@ -35,7 +35,7 @@ describe("StationFrame navigation", () => {
 
   it("按功能域折叠一级导航并自动展开当前页面所在分组", async () => {
     const user = userEvent.setup();
-    render(<StationFrame title="分类与标签" eyebrow="Taxonomy"><div>内容</div></StationFrame>);
+    render(<StationFrame title="分类与标签"><div>内容</div></StationFrame>);
 
     expect(screen.getByRole("button", { name: "运营配置" })).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByRole("link", { name: "分类与标签" })).toHaveAttribute("aria-current", "page");
@@ -49,7 +49,7 @@ describe("StationFrame navigation", () => {
   it("普通管理员看不到超级管理员专属的账号入口", async () => {
     const user = userEvent.setup();
     mocks.role = "ADMIN";
-    render(<StationFrame title="分类与标签" eyebrow="Taxonomy"><div>内容</div></StationFrame>);
+    render(<StationFrame title="分类与标签"><div>内容</div></StationFrame>);
     await user.click(screen.getByRole("button", { name: "安全与权限" }));
     expect(screen.queryByRole("link", { name: "站务账号" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "决定轨迹" })).toBeInTheDocument();
@@ -57,7 +57,7 @@ describe("StationFrame navigation", () => {
 
   it("固定全局导航并让右侧工作区适配剩余视口", () => {
     const { container } = render(
-      <StationFrame title="分类与标签" eyebrow="Taxonomy"><div>内容</div></StationFrame>,
+      <StationFrame title="分类与标签"><div>内容</div></StationFrame>,
     );
 
     expect(container.querySelector('[data-slot="station-shell"]'))

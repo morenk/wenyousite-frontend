@@ -19,7 +19,6 @@ export function UserMomentsSection({ userId }: { userId: string }) {
       onLoadMore={() => void query.fetchNextPage()}
       onRetry={() => void query.refetch()}
       emptyTitle="还没有发布动态"
-      emptyDescription="发布的动态会显示在这里。"
     />
   );
 }

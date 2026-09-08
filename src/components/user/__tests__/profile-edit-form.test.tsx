@@ -171,7 +171,9 @@ describe("ProfileEditForm", () => {
     render(<ProfileEditForm />, { wrapper: createWrapper() });
     expect(screen.getByRole("button", { name: "保存隐私设置" })).toBeDisabled();
     expect(screen.getByLabelText("个人简介")).toBeInTheDocument();
-    expect(screen.getByText(/收藏夹名称与归类仅自己可见/)).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "公开最近回复" })).not.toHaveAttribute("aria-describedby");
+    expect(screen.getByRole("checkbox", { name: "公开参与的主题帖" })).not.toHaveAttribute("aria-describedby");
+    expect(screen.getByRole("checkbox", { name: "公开收藏" })).toHaveAccessibleDescription("收藏夹名称与归类仅自己可见。");
     fireEvent.click(screen.getByRole("checkbox", { name: "公开最近回复" }));
     fireEvent.click(screen.getByRole("button", { name: "保存隐私设置" }));
     await waitFor(() => expect(mutateAsync).toHaveBeenCalledWith({ showRecentReplies: false, showPlayerBadges: true, showBookmarks: true }));

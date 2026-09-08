@@ -4,7 +4,7 @@ import { StationFrame } from "@/components/admin/station-frame";
 
 export default function StationAccountsPage() {
   return (
-    <StationFrame title="站务账号" eyebrow="安全与权限">
+    <StationFrame title="站务账号">
       <HighRiskGate><AdminAccountsPanel /></HighRiskGate>
     </StationFrame>
   );

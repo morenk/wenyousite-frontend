@@ -57,12 +57,10 @@ const navigationGroups = [
 
 export function StationFrame({
   title,
-  eyebrow,
   children,
   fullBleed = false,
 }: {
   title: string;
-  eyebrow: string;
   children: React.ReactNode;
   fullBleed?: boolean;
 }) {
@@ -104,9 +102,6 @@ export function StationFrame({
             </span>
             <span>
               <span className="block font-sans text-lg font-semibold">温油站务台</span>
-              <span className="block font-utility text-[0.6875rem] font-bold tracking-[0.14em] text-background/60 uppercase">
-                站务工作区
-              </span>
             </span>
           </Link>
         </div>
@@ -195,22 +190,16 @@ export function StationFrame({
       </aside>
 
       <div data-slot="station-content" className="min-w-0 pl-60">
-        <header className="flex h-[4.75rem] min-w-0 items-center justify-between border-b border-border bg-background px-7">
+        <header className="flex h-16 min-w-0 items-center justify-between border-b border-border bg-background px-7">
           <div>
-            <p className="font-utility text-xs font-bold tracking-[0.12em] text-muted-foreground uppercase">
-              {eyebrow}
-            </p>
             <h1 className="font-sans text-2xl font-semibold tracking-tight">{title}</h1>
           </div>
-          <p className="border-l-2 border-success pl-3 font-utility text-xs font-bold text-success">
-            安全会话已连接
-          </p>
         </header>
         <main
           data-slot="station-workspace"
           className={cn(
             "min-w-0 max-w-full",
-            fullBleed ? "h-[calc(100vh-4.75rem)]" : "p-6",
+            fullBleed ? "h-[calc(100vh-4rem)]" : "p-6",
           )}
         >
           {children}

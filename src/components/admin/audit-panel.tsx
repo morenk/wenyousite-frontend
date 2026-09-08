@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, ScrollText } from "lucide-react";
+import { Download } from "lucide-react";
 import { useQueryStates } from "nuqs";
 import {
   type AdminAuditFilters,
@@ -114,19 +114,12 @@ export function AuditPanel() {
   return (
     <section className="overflow-hidden rounded-lg border border-border bg-card">
       <div className="flex items-center justify-between gap-4 border-b border-border px-6 py-5">
-        <div className="flex items-center gap-3">
-          <span className="flex size-10 items-center justify-center rounded-xl bg-accent text-accent-foreground"><ScrollText className="size-5" /></span>
-          <div>
-            <h2 className="font-sans text-lg font-semibold">不可变决定轨迹</h2>
-            <p className="text-xs text-muted-foreground">业务记录永久保留；表格筛选与导出使用同一查询范围。</p>
-          </div>
-        </div>
+        <p className="text-xs text-muted-foreground">业务记录永久保留；表格筛选与导出使用同一查询范围。</p>
         <a className={buttonVariants({ variant: "outline", size: "compact" })} href={exportHref}><Download />导出当前结果</a>
       </div>
       <AdminFilterBar
         activeCount={activeCount}
         onReset={() => void setFilters(null, { history: "push" })}
-        summary={logs.data ? `当前页 ${logs.data.items.length} 条` : undefined}
       >
         <AdminFilterField label="动作" className="w-48">
           <Select value={action ?? "ALL"} onValueChange={(value) => void setFilters({ action: value === "ALL" ? null : value as NonNullable<AdminAuditFilters["action"]> }, { history: "push" })}>

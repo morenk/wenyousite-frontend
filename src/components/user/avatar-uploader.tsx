@@ -23,7 +23,6 @@ import {
   Dialog,
   DialogBackdrop,
   DialogClose,
-  DialogDescription,
   DialogFooter,
   DialogPopup,
   DialogPortal,
@@ -190,9 +189,6 @@ export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
             <DialogViewport>
               <DialogPopup className="max-w-md p-4">
                 <DialogTitle>裁剪头像</DialogTitle>
-                <DialogDescription className="sr-only">
-                  移动画面并调整缩放，使头像主体位于正方形裁剪区域内。
-                </DialogDescription>
                 <div className="relative mt-3 h-64 overflow-hidden rounded-lg bg-foreground">
                   <Cropper
                     image={imageSrc}

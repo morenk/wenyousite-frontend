@@ -12,14 +12,12 @@ import {
   ClipboardCopy,
   KeyRound,
   Loader2,
-  LockKeyhole,
   RotateCcw,
   Trash2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { MilkdownEditor } from "@/components/editor/milkdown-editor";
 import { ThreadMetadataFields } from "@/components/forms/thread-metadata-fields";
 import {
@@ -282,16 +280,7 @@ export function ThreadEditForm({
       ) : null}
 
       <div className="grid grid-cols-[minmax(0,1fr)_18rem] items-start gap-6">
-        <section className="min-w-0 space-y-5">
-          <div>
-            <p className="font-utility text-xs font-bold uppercase tracking-[0.12em] text-brand-strong">
-              帖子内容
-            </p>
-            <h2 className="mt-1 font-sans text-xl font-semibold text-foreground">
-              标题与主帖正文
-            </h2>
-          </div>
-
+        <section className="min-w-0">
           <div className="space-y-5 rounded-2xl border border-border bg-card p-5">
             <ThreadMetadataFields
               form={form}
@@ -334,7 +323,6 @@ export function ThreadEditForm({
           <section className="rounded-2xl border border-border bg-muted/25 p-4">
             <div className="mb-4 flex items-center justify-between gap-3">
               <h2 className="font-sans text-lg font-semibold text-foreground">发布设置</h2>
-              {!isOwner ? <Badge tone="info">协作者只读部分</Badge> : null}
             </div>
             <div className="space-y-4">
               <ThreadMetadataFields
@@ -352,77 +340,43 @@ export function ThreadEditForm({
             </div>
           </section>
 
-          {!isOwner ? (
-            <section className="rounded-2xl border border-info/25 bg-info-soft/45 p-4">
-              <div className="flex items-center gap-2 text-sm font-semibold text-info">
-                <LockKeyhole className="size-4" />
-                你正以协作者身份管理
-              </div>
-              <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                可以编辑帖子内容、子贴和玩家标记；不能修改可见性、任免协作者或删除主题帖。
-              </p>
-            </section>
-          ) : null}
-
-          {isOwner ? (
+          {isOwner && visibility === "PRIVATE" ? (
             <section className="rounded-2xl border border-border bg-card p-4">
               <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
                 <KeyRound className="size-4 text-brand-strong" />
                 私密访问
               </div>
-              {visibility === "PRIVATE" ? (
-                <>
-                  <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                    每次生成都会让旧邀请链接失效。
-                  </p>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="compact"
-                    className="mt-3 w-full"
-                    disabled={inviteNeedsVisibilitySave || createInviteLink.isPending || isBusy}
-                    onClick={() => void handleCreateInvite()}
-                  >
-                    {createInviteLink.isPending ? <Loader2 className="animate-spin" /> : <KeyRound />}
-                    生成并复制邀请链接
-                  </Button>
-                  {inviteNeedsVisibilitySave ? (
-                    <p className="mt-2 text-xs text-warning">请先保存可见性设置。</p>
-                  ) : null}
-                </>
-              ) : (
-                <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                  公开帖无需邀请链接。改为私密并保存后，可在这里生成邀请。
-                </p>
-              )}
+              <Button
+                type="button"
+                variant="outline"
+                size="compact"
+                className="mt-3 w-full"
+                disabled={inviteNeedsVisibilitySave || createInviteLink.isPending || isBusy}
+                onClick={() => void handleCreateInvite()}
+              >
+                {createInviteLink.isPending ? <Loader2 className="animate-spin" /> : <KeyRound />}
+                生成并复制邀请链接
+              </Button>
+              {inviteNeedsVisibilitySave ? (
+                <p className="mt-2 text-xs text-warning">请先保存可见性设置。</p>
+              ) : null}
             </section>
           ) : null}
         </aside>
       </div>
 
       {isOwner ? (
-        <section className="rounded-2xl border border-destructive/25 bg-destructive-soft/25 p-5">
-          <div className="flex items-center justify-between gap-8">
-            <div>
-              <h2 className="flex items-center gap-2 text-sm font-semibold text-destructive">
-                <Trash2 className="size-4" />
-                危险操作
-              </h2>
-              <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                删除后帖子、所有子贴和楼层都无法恢复。
-              </p>
-            </div>
-            <Button
-              type="button"
-              variant="destructive"
-              disabled={isBusy || deleteThread.isPending}
-              onClick={() => void handleDeleteThread()}
-            >
-              {deleteThread.isPending ? <Loader2 className="animate-spin" /> : <Trash2 />}
-              删除主题帖
-            </Button>
-          </div>
-        </section>
+        <div className="flex items-center justify-end">
+          <Button
+            type="button"
+            variant="destructive"
+            disabled={isBusy || deleteThread.isPending}
+            onClick={() => void handleDeleteThread()}
+          >
+            {deleteThread.isPending ? <Loader2 className="animate-spin" /> : <Trash2 />}
+            删除主题帖
+          </Button>
+        </div>
       ) : null}
     </form>
   );

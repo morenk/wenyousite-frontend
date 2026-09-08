@@ -134,7 +134,6 @@ export function UsersPanel() {
         <AdminFilterBar
           activeCount={activeCount}
           onReset={() => void setFilters(null, { history: "push" })}
-          summary={users.data ? `当前页 ${users.data.items.length} 人` : undefined}
         >
           <AdminFilterField label="关键词" className="w-64">
             <span className="relative block">

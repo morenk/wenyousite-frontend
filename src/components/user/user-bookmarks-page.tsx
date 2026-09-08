@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { EmptyState } from "@/components/shared/empty-state";
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { CreateBookmarkFolderButton } from "@/components/user/create-bookmark-folder-button";
 import { UserBookmarksSection } from "@/components/user/user-bookmarks-section";
 import { UserMomentBookmarksSection } from "@/components/user/user-moment-bookmarks-section";
@@ -16,27 +16,22 @@ export function UserBookmarksPage({ userId }: { userId: string }) {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-base">收藏</CardTitle>
-        {canViewBookmarks && isSelf ? (
-          <CardAction>
-            <CreateBookmarkFolderButton kind={tab} />
-          </CardAction>
-        ) : null}
-      </CardHeader>
       <CardContent>
         {canViewBookmarks ? (
           <>
-            <Tabs
-              value={tab}
-              onValueChange={(value) => setTab(value as "threads" | "moments")}
-              className="mb-5 gap-0"
-            >
-              <TabsList variant="line" aria-label="公开收藏类型" className="h-10 p-0">
-                <TabsTrigger value="threads" className="px-3">主题帖</TabsTrigger>
-                <TabsTrigger value="moments" className="px-3">动态</TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <div className="mb-5 flex items-center justify-between gap-4">
+              <Tabs
+                value={tab}
+                onValueChange={(value) => setTab(value as "threads" | "moments")}
+                className="gap-0"
+              >
+                <TabsList variant="line" aria-label="公开收藏类型" className="h-10 p-0">
+                  <TabsTrigger value="threads" className="px-3">主题帖</TabsTrigger>
+                  <TabsTrigger value="moments" className="px-3">动态</TabsTrigger>
+                </TabsList>
+              </Tabs>
+              {isSelf ? <CreateBookmarkFolderButton kind={tab} /> : null}
+            </div>
             {tab === "threads" ? (
               <UserBookmarksSection userId={userId} />
             ) : (

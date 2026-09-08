@@ -20,9 +20,6 @@ export type DirectConversationEntryCopy =
     }
   | {
       canInitiate: true;
-      title: string;
-      description: string;
-      headerSubtitle: string;
       composerHint: string;
       submitLabel: string;
     };
@@ -67,10 +64,7 @@ export function getDirectConversationEntryCopy({
   if (contactState === "DECLINED") {
     return {
       canInitiate: true,
-      title: "你曾拒绝过对方的消息请求",
-      description: "现在由你主动发送消息，会直接建立私聊。",
-      headerSubtitle: "由你主动重新建立私聊",
-      composerHint: "发送后会直接建立私聊，无需再次处理请求。",
+      composerHint: "你曾拒绝对方的请求；此次主动发送将直接建立私聊。",
       submitLabel: "建立私聊",
     };
   }
@@ -78,20 +72,14 @@ export function getDirectConversationEntryCopy({
   if (isFollowing && isFollowedBy) {
     return {
       canInitiate: true,
-      title: "你们已互相关注",
-      description: "发送首条消息后会直接建立私聊，无需等待对方接受。",
-      headerSubtitle: "互相关注，可直接建立会话",
-      composerHint: "你们已互相关注，发送后会直接建立私聊。",
+      composerHint: "你们已互相关注，发送后直接建立私聊。",
       submitLabel: "建立私聊",
     };
   }
 
   return {
     canInitiate: true,
-    title: "这会先作为消息请求",
-    description: "对方接受前只能发送这一条消息。",
-    headerSubtitle: "发送首条消息请求",
-    composerHint: "这是首条消息请求。对方接受前，你不能继续发送。",
+    composerHint: "对方接受前，只能发送一条消息请求。",
     submitLabel: "发送消息请求",
   };
 }
