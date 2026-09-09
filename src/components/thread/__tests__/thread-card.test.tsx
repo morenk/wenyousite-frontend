@@ -73,6 +73,7 @@ const baseThread: ThreadCardData = {
   _count: { members: 5, players: 2, posts: 12 },
   preview: "这是帖子摘要预览...",
   coverImages: [],
+  coverMedia: null,
 };
 
 describe("ThreadCard", () => {
@@ -159,6 +160,7 @@ describe("ThreadCard", () => {
   test("只取主贴第一张图作为标题下封面，并清理摘要中的图片占位", () => {
     const { container } = renderThreadCard({
       ...baseThread,
+      coverMedia: { url: "https://cdn.example.com/uploads/one.jpg", animated: false, posterUrl: "https://cdn.example.com/uploads/one_poster.webp" },
       coverImages: [
         "https://cdn.example.com/uploads/one.jpg",
         "https://cdn.example.com/uploads/two.jpg",
@@ -173,7 +175,7 @@ describe("ThreadCard", () => {
     expect(cover?.querySelectorAll("img")).toHaveLength(1);
     expect(cover?.querySelector("img")).toHaveAttribute(
       "src",
-      "https://cdn.example.com/uploads/one_feed.webp",
+      "https://cdn.example.com/uploads/one_poster.webp",
     );
     expect(cover?.querySelector("img")).not.toHaveAttribute(
       "src",

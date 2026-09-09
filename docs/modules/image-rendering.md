@@ -7,6 +7,7 @@
 头像、封面、正文、缩略图与收藏表情的裁切/完整显示、状态、替代文本和查看器语义以 `foundation.lock.json` 锁定的[跨端图片呈现契约](https://github.com/morenk/wenyousite-foundation/blob/v1.1.0/docs/images.md)为准；本文只记录 Web 当前实现、后端媒体字段和验收入口，不建立第二套审美规范。
 
 **当前能力：**
+- 帖子列表单独消费 coverMedia 的可信静态首帧，停稳后只请求中心一张动画；详情正文沿用原行为。参见[列表动图封面](home.md#11-列表动图封面)。
 - 上传安全契约与后端对齐：仅接受 JPEG / PNG / GIF / WebP / AVIF，拒绝空文件与未经净化的 SVG
 - 除 GIF 外，通用上传工具在浏览器按方向解码、最长边限制为 2560px、通过 Canvas 清除元数据并优先编码为 WebP 85；Safari 等浏览器回退 PNG/JPEG 时必须沿用 Blob 的真实 MIME 与匹配扩展名，已有裁切器输出通过 `clientNormalized` 避免重复编码，服务端最终仍统一为 WebP
 - 每个入口显式传 `purpose`；正文、动态、私聊和评论只生成自身需要的派生尺寸，头像、主页背景和表情来源不生成通用派生图
