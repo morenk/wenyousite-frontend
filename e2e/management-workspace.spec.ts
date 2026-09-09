@@ -158,7 +158,8 @@ async function mockManagementWorkspace(page: Page) {
     });
 
     if (pathname.endsWith("/meta")) {
-      return response({ markdownContractVersion: 5 });
+      // 既有视觉基线使用基础工具栏；明确声明 v3，不依赖缺失 meta 的隐式回退。
+      return response({ markdownContractVersion: 3 });
     }
     if (pathname.endsWith("/auth/refresh")) {
       return response({ accessToken: "management-visual-token", user: owner });
