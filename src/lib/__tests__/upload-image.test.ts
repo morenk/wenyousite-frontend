@@ -1,3 +1,4 @@
+import { imageFixture } from "./image-fixtures";
 /** uploadImage 工具函数测试 */
 
 import { describe, test, expect, vi, afterEach, beforeEach } from "vitest";
@@ -250,7 +251,7 @@ describe("normalizeImageForUpload", () => {
       callback(new Blob(["webp"], { type: "image/webp" }));
     });
 
-    const source = new File(["jpeg-with-exif"], "camera.JPG", {
+    const source = new File([imageFixture("static.jpeg")], "camera.JPG", {
       type: "image/jpeg",
       lastModified: 123,
     });
@@ -278,7 +279,7 @@ describe("normalizeImageForUpload", () => {
       callback(new Blob(["png-fallback"], { type: "image/png" }));
     });
 
-    const source = new File(["jpeg"], "camera.jpg", {
+    const source = new File([imageFixture("static.jpeg")], "camera.jpg", {
       type: "image/jpeg",
       lastModified: 456,
     });
@@ -293,7 +294,7 @@ describe("normalizeImageForUpload", () => {
   test("GIF 绕过 Canvas 转码以保留动画", async () => {
     const createBitmap = vi.fn();
     vi.stubGlobal("createImageBitmap", createBitmap);
-    const source = new File(["gif"], "animated.gif", { type: "image/gif" });
+    const source = new File([imageFixture("animated.gif")], "animated.gif", { type: "image/gif" });
 
     await expect(normalizeImageForUpload(source)).resolves.toBe(source);
     expect(createBitmap).not.toHaveBeenCalled();
@@ -327,7 +328,7 @@ describe("uploadImageFile", () => {
 
   beforeEach(() => {
     vi.stubGlobal("createImageBitmap", undefined);
-    file = new File(["dummy"], "photo.jpg", {
+    file = new File([imageFixture("static.jpeg")], "photo.jpg", {
       type: "image/jpeg",
       lastModified: 1_700_000_000_000 + fileSequence++,
     });
@@ -451,7 +452,7 @@ describe("uploadImageFile", () => {
       stage: "uploading",
       loadedBytes: Math.floor(file.size / 2),
       totalBytes: file.size,
-      percent: 40,
+      percent: 50,
     }));
     expect(onProgress).toHaveBeenCalledWith(expect.objectContaining({
       stage: "processing",
@@ -816,7 +817,7 @@ describe("uploadImageFile", () => {
       reservation: { mediaId: "media-poll-error" },
     });
 
-    const timeoutFile = new File(["dummy"], "timeout-poll.jpg", {
+    const timeoutFile = new File([imageFixture("static.jpeg")], "timeout-poll.jpg", {
       type: "image/jpeg",
       lastModified: file.lastModified + 1,
     });

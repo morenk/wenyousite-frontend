@@ -1,5 +1,6 @@
 /** 编辑器图片上传工具：预签名 URL → S3 直传 → 确认 → 轮询 */
 
+import { assertImageCanBeProcessed } from "@/lib/image-container";
 import { apiClient } from "@/api/client";
 import { createImageFileFromBlob } from "@/lib/image-file";
 
@@ -165,11 +166,12 @@ async function canvasToPreferredImageBlob(canvas: HTMLCanvasElement): Promise<Bl
 
 /** GIF 保留原件；其他静态图在离开浏览器前统一去元数据并限制像素。 */
 export async function normalizeImageForUpload(file: File): Promise<File> {
-  if (file.type === "image/gif" || typeof createImageBitmap !== "function") return file;
   const existing = preparedFiles.get(file);
   if (existing) return existing;
 
   const prepared = (async () => {
+    const container = await assertImageCanBeProcessed(file);
+    if (container.kind === "gif" || typeof createImageBitmap !== "function") return file;
     let bitmap: ImageBitmap;
     try {
       bitmap = await createImageBitmap(file);

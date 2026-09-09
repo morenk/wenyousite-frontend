@@ -1,5 +1,6 @@
 /** 动态图片预处理：浏览器端缩放并优先转为 WebP，原始文件不会上传。 */
 
+import { assertImageCanBeProcessed } from "@/lib/image-container";
 import { validateImageFile } from "@/lib/upload-image";
 import { createImageFileFromBlob } from "@/lib/image-file";
 
@@ -80,6 +81,8 @@ export async function compressMomentImage(
 ): Promise<File> {
   const validationError = validateMomentImageFile(file);
   if (validationError) throw new Error(validationError);
+  throwIfAborted(signal);
+  await assertImageCanBeProcessed(file, true);
   throwIfAborted(signal);
 
   let bitmap: ImageBitmap;

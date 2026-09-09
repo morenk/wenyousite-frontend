@@ -3,6 +3,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { assertImageCanBeProcessed } from "@/lib/image-container";
 import Cropper, { type Area } from "react-easy-crop";
 import { ImagePlus, Loader2, Monitor, Smartphone, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -86,6 +87,9 @@ export function ProfileCoverUploader({
     [imageSrc],
   );
 
+  const selectionGeneration = useRef(0);
+  useEffect(() => () => { selectionGeneration.current++; }, []);
+
   const pending = isUploading || setProfileCover.isPending || removeProfileCover.isPending;
   const mobilePreviewCover = profileCover?.mobile ?? profileCover;
 
@@ -97,7 +101,8 @@ export function ProfileCoverUploader({
     });
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const generation = ++selectionGeneration.current;
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
@@ -106,6 +111,14 @@ export function ProfileCoverUploader({
       toast.error(validationError);
       return;
     }
+    try {
+      await assertImageCanBeProcessed(file, true);
+    } catch (error) {
+      if (generation !== selectionGeneration.current) return;
+      toast.error(error instanceof Error ? error.message : "无法读取图片，请重新选择");
+      return;
+    }
+    if (generation !== selectionGeneration.current) return;
     setImageSrc(URL.createObjectURL(file));
     setCrops(INITIAL_CROPS);
     setZooms(INITIAL_ZOOMS);
@@ -116,6 +129,7 @@ export function ProfileCoverUploader({
   };
 
   const closeCrop = () => {
+    selectionGeneration.current++;
     uploadAbortRef.current?.abort();
     uploadAbortRef.current = null;
     setUploadProgress(null);
