@@ -78,9 +78,7 @@ export function canonicalizeEditorEmptyRows(markdown: string): string {
   const lines = markdown.split("\n");
   const output: string[] = [];
   for (let index = 0; index < lines.length; index++) {
-    // Milkdown emits an HTML placeholder for a new empty list item; keep
-    // the standard empty item syntax so the existing list keymap can continue.
-    const line = lines[index]!.replace(/^( {0,6}(?:[-+*]|\d+[.)]))[\t ]+<br \/>$/, "$1 ");
+    const line = lines[index]!;
     const marker = line === "" ? "<br />" : line === ">" ? "> <br />" : null;
     if (marker !== null && (lines[index - 1] === marker || lines[index + 1] === marker)) continue;
     // An empty quote scaffold remains compatible with the existing empty quote.

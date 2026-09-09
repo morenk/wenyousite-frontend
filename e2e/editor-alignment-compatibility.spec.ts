@@ -806,3 +806,60 @@ for (const alignment of ["center", "right"] as const) {
     await expectBlockAlignment(reader.locator(":scope > p").last(), "center");
   });
 }
+
+for (const ordered of [false, true]) {
+  test(`列表树候选 ${ordered ? "有序" : "无序"} 删空末项、输入、Enter、缩进与保存重开`, async ({ page }) => {
+    const source = ordered ? "1. 甲\n   1. 乙\n      1. 丙\n\n尾段" : "- 甲\n  - 乙\n    - 丙\n\n尾段";
+    const harness = await mockAlignmentWorkspace(page, source);
+    await openFreshThreadDraft(page);
+    const editor = page.locator(".milkdown-editor .ProseMirror").first();
+    const leaf = editor.locator("li p").filter({hasText:"丙"});
+    await leaf.evaluate(el => {
+      const range=document.createRange();range.selectNodeContents(el);
+      const selection=window.getSelection()!;selection.removeAllRanges();selection.addRange(range);
+      (el.closest('[contenteditable="true"]') as HTMLElement).focus();
+    });
+    await page.keyboard.press("Backspace");
+    await expect(editor.locator("li")).toHaveCount(3);
+    await expect(editor.locator("li li li p")).toHaveText("");
+    await page.keyboard.insertText("新");
+    await page.keyboard.press("Enter");
+    await expect(editor.locator("li")).toHaveCount(4);
+    await page.keyboard.insertText("末");
+    await page.keyboard.press("Shift+Tab");
+    await expect(editor.locator("li li li")).toHaveCount(1);
+    await page.keyboard.press("Tab");
+    await expect(editor.locator("li li li")).toHaveCount(2);
+    await page.getByRole("button", {name:"保存草稿",exact:true}).click();
+    await expect.poll(harness.getStoredMarkdown).toContain("末");
+    await page.reload();
+    await page.getByRole("link",{name:"继续编辑",exact:true}).click();
+    await expect(editor.locator("li")).toHaveCount(4);
+    await expect(editor.locator("li li li")).toHaveCount(2);
+    await expect(editor.locator("li li li p").first()).toHaveText("新");
+    await expect(editor.locator("li li li p").last()).toHaveText("末");
+    expect(harness.getStoredMarkdown()).not.toContain("<br />");
+    harness.setPublished(true);
+    await page.goto(`/threads/${THREAD_ID}`);
+    const reader=page.locator('[data-slot="markdown-content"]').filter({hasText:"尾段"}).first();
+    await expect(reader.locator("li")).toHaveCount(4);
+    await expect(reader.locator("li li li")).toHaveCount(2);
+    await expect(reader.locator("li li li").last()).toHaveText("末");
+  });
+}
+
+test("列表树候选 空祖先与空孙项保存后保留三个可编辑项", async ({page}) => {
+  const harness=await mockAlignmentWorkspace(page,"- - 乙\n\n    -\n\n尾段");
+  await openFreshThreadDraft(page);
+  const editor=page.locator(".milkdown-editor .ProseMirror").first();
+  await expect(editor.locator("li")).toHaveCount(3);
+  const middle=editor.locator("li p").filter({hasText:"乙"});
+  await middle.click();await page.keyboard.press("End");await page.keyboard.insertText("新");
+  await page.getByRole("button",{name:"保存草稿",exact:true}).click();
+  await expect.poll(harness.getStoredMarkdown).toContain("乙新");
+  await page.reload();await page.getByRole("link",{name:"继续编辑",exact:true}).click();
+  await expect(editor.locator("li")).toHaveCount(3);
+  await expect(editor.locator("li p").first()).toHaveText("");
+  await expect(editor.locator("li li p").first()).toHaveText("乙新");
+  await expect(editor.locator("li li li p")).toHaveText("");
+});

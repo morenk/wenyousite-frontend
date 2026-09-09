@@ -17,6 +17,8 @@ import { serializeInlineDiceNode } from "@/lib/dice-inline";
 import { remarkRecoverAttentionBoundaries } from "@/lib/markdown-attention";
 import { normalizeSerializedAlignmentMarkers } from "@/lib/markdown-alignment";
 
+import { configureEditorListSerializer, preservesEditorListSemantics } from "./editor-list-semantics";
+
 import { canonicalizeEditorEmptyRows, documentWithExplicitEmptyRows, handlePlainNewline } from "./editor-plain-newline";
 
 type DiceMarkdownNode = {
@@ -258,6 +260,7 @@ function serializeDiceMarkdownNode(node: DiceMarkdownNode): string {
  * 避免 remark-stringify 生成反斜杠硬换行后再被发布净化器破坏。
  */
 export function configureEditorMarkdownSerializer(ctx: Ctx) {
+  configureEditorListSerializer(ctx);
   ctx.update(paragraphAttr.key, (previous) => (node) => ({
     ...previous(node),
     ...(node.content.size === 0 ? { "data-wenyou-empty-row": "true" } : {}),
@@ -320,6 +323,9 @@ export function serializeEditorMarkdown(
     throw new EditorMarkdownCodecError(
       `编辑器生成了协议外 Markdown：${first.type}（第 ${first.startLine + 1} 行）`,
     );
+  }
+  if (!preservesEditorListSemantics(ctx, doc, markdown, options)) {
+    throw new EditorMarkdownCodecError("列表保存未能保留完整结构，已停止同步正文");
   }
   return markdown;
 }
