@@ -67,6 +67,6 @@ HTTP/业务错误由 `src/api/errors.ts` 统一归一化；成功响应不得使
 
 本轮契约同步自后端实现 `c87966dd4644be7d3c2769245d2e0581fffd4154`，策略、基准和移动端 Windows 待办见 [后端交付记录](../../../wenyousite-backend/docs/backend-hardening-20260905.md)。
 
-列表封面通过 ThreadCoverMediaResponseDto 返回 url、可空 animated 和可空 posterUrl，不按后缀推断；旧后端缺字段保守占位。黄金用例为 contracts/thread-cover-media-v1-fixtures.json，与 OpenAPI 一起从后端已提交产物同步并生成类型。
+列表封面通过 ThreadCoverMediaResponseDto 返回 url、可空 animated 和可空 posterUrl，不按后缀推断；旧后端缺字段保守占位。可选 nullable previewVariants 最多两项，每项包含 url、width、height、bytes；列表按实际显示框和 DPR 选档，缺档沿可信原动画路径兼容。黄金用例为 contracts/thread-cover-media-v1-fixtures.json，与 OpenAPI 一起从后端已提交产物同步并生成类型。
 
-跨仓候选验证可设置 BACKEND_CONTRACT_REF=<完整40位Backend提交SHA>，用于 contract:sync、contract:check 和 check；同步与校验都通过 git show 读取同一已提交产物，日志记录精确来源。未设置时保留相邻后端工作区比较。此次来源 c6a01225fbe26aa2eaeecf9cc74dc3c9c1bf5aa4；不切换或修改后端主 checkout。
+跨仓候选验证可设置 BACKEND_CONTRACT_REF=<完整40位Backend提交SHA>，用于 contract:sync、contract:check 和 check；同步与校验都通过 git show 读取同一已提交产物，日志记录精确来源。未设置时保留相邻后端工作区比较。此次来源 5f438976c94f63706629108b27e1f7840a3c85a0；不切换或修改后端主 checkout。

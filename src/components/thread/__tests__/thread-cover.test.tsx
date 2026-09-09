@@ -7,7 +7,7 @@ const playback = vi.hoisted(() => ({ active: false, use: vi.fn() }));
 vi.mock("@/hooks/use-cover-playback", () => ({
   useCoverPlayback: (enabled: boolean, identity: string) => {
     playback.use(enabled, identity);
-    return { ref: { current: null }, active: enabled && playback.active };
+    return { ref: { current: null }, active: enabled && playback.active, size: { width: 320, height: 180, dpr: 2 } };
   },
 }));
 beforeEach(() => { playback.active = false; playback.use.mockClear(); });
@@ -97,6 +97,39 @@ describe("ThreadCover动画生命周期", () => {
     expect(poster(view.container)).toHaveAttribute("src", media.posterUrl);
     expect(playback.use).toHaveBeenLastCalledWith(false, expect.any(String));
     view.rerender(<ThreadCover image={media.url} media={media} />);
+    expect(animation(view.container)).toBeNull();
+  });
+});
+
+describe("列表动画预览播放源", () => {
+  test("按选中像素需求播放preview，原URL关联保持，普通重渲染不换实例，失败只恢复poster", () => {
+    const descriptor = { ...media, previewVariants: [
+      { url: "/preview480.webp", width: 480, height: 270, bytes: 100 },
+      { url: "/preview800.webp", width: 800, height: 450, bytes: 200 },
+    ] };
+    const view = render(<ThreadCover image={media.url} media={descriptor} />);
+    expect(animation(view.container)).toBeNull();
+    fireEvent.load(poster(view.container)!);
+    playback.active = true;
+    view.rerender(<ThreadCover image={media.url} media={descriptor} />);
+    const selected = animation(view.container);
+    expect(selected).toHaveAttribute("src", "/preview800.webp");
+    expect(view.container.firstChild).toHaveAttribute("data-cover-url", media.url);
+    view.rerender(<ThreadCover image={media.url} media={{ ...descriptor }} className="test" />);
+    expect(animation(view.container)).toBe(selected);
+    fireEvent.error(selected!);
+    expect(animation(view.container)).toBeNull();
+    expect(poster(view.container)).toHaveAttribute("src", media.posterUrl);
+    expect(view.container.querySelector('img[src="/animation.gif"]')).toBeNull();
+  });
+  test.each([null, [], [{ url: "/invalid.webp", width: 0, height: 270, bytes: 100 }]])("没有有效preview时仅可信原图路径可播放：%j", (previewVariants) => {
+    const descriptor = { ...media, previewVariants };
+    const view = render(<ThreadCover image={media.url} media={descriptor} />);
+    fireEvent.load(poster(view.container)!);
+    playback.active = true;
+    view.rerender(<ThreadCover image={media.url} media={descriptor} />);
+    expect(animation(view.container)).toHaveAttribute("src", media.url);
+    view.rerender(<ThreadCover image={media.url} media={{ ...descriptor, animated: null }} />);
     expect(animation(view.container)).toBeNull();
   });
 });

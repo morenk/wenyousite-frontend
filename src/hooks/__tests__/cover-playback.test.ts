@@ -97,6 +97,24 @@ describe("全局播放生命周期", () => {
     disposers.pop()?.();
     vi.advanceTimersByTime(300); expect(current).toHaveBeenCalledExactlyOnceWith(true);
   });
+  test("观察器无关布局不重启，选中封面实际尺寸变化立即停止并停稳重选", () => {
+    let resized = () => {};
+    vi.stubGlobal("ResizeObserver", class {
+      constructor(callback: () => void) { resized = callback; }
+      observe() {} unobserve() {} disconnect() {}
+    });
+    const controller = new CoverPlaybackController();
+    const element = node(450), change = vi.fn();
+    disposers.push(controller.register(element, change));
+    vi.advanceTimersByTime(300);
+    resized(); vi.advanceTimersByTime(300);
+    expect(change).toHaveBeenCalledExactlyOnceWith(true);
+    vi.mocked(element.getBoundingClientRect).mockReturnValue({ ...box(450), right: 650 } as DOMRect);
+    resized();
+    expect(change).toHaveBeenLastCalledWith(false);
+    vi.advanceTimersByTime(299); expect(change).toHaveBeenCalledTimes(2);
+    vi.advanceTimersByTime(1); expect(change).toHaveBeenLastCalledWith(true);
+  });
   test("初次读取存储失败保守静态，但用户仍可在当前会话关闭", async () => {
     vi.resetModules();
     const fresh = await import("../cover-playback");

@@ -88,6 +88,7 @@ type Entry = { node: HTMLElement; change: (active: boolean) => void };
 export class CoverPlaybackController {
   private entries = new Map<symbol, Entry>();
   private active: symbol | null = null;
+  private activeSize: { width: number; height: number } | null = null;
   private previous: symbol | null = null;
   private timer: ReturnType<typeof setTimeout> | null = null;
   private dispose: (() => void) | null = null;
@@ -124,7 +125,14 @@ export class CoverPlaybackController {
     if (id === this.active) return;
     if (this.active) this.entries.get(this.active)?.change(false);
     this.active = id;
-    if (id) { this.previous = id; this.entries.get(id)?.change(true); }
+    this.activeSize = null;
+    if (id) {
+      this.previous = id;
+      const entry = this.entries.get(id);
+      const rect = entry?.node.getBoundingClientRect();
+      if (rect) this.activeSize = { width: rect.right - rect.left, height: rect.bottom - rect.top };
+      entry?.change(true);
+    }
   }
   private cancel() { if (this.timer !== null) clearTimeout(this.timer); this.timer = null; }
   settle = (): void => { this.schedule(true); };
@@ -139,7 +147,10 @@ export class CoverPlaybackController {
     if (this.active) {
       const entry = this.entries.get(this.active);
       const measurement = entry && measureCover(entry.node);
-      if (!measurement || !pickCover([{ id: this.active, ...measurement }], this.active)) this.activate(null);
+      const resized = measurement && this.activeSize
+        && (measurement.rect.right - measurement.rect.left !== this.activeSize.width
+          || measurement.rect.bottom - measurement.rect.top !== this.activeSize.height);
+      if (!measurement || resized || !pickCover([{ id: this.active, ...measurement }], this.active)) this.activate(null);
     }
     this.timer = setTimeout(() => {
       this.timer = null;

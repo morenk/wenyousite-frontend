@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { test, expect, type Page } from "@playwright/test";
+import type { components } from "../src/api/types";
 
 const fixture = (name: string) => readFileSync(path.join(process.cwd(), "src/lib/__tests__/fixtures/images", name));
 const originals = new Set<string>();
@@ -13,7 +14,7 @@ function thread(id: number) {
     owner: { id: "cover-owner", username: "封面测试", avatar: null, level: 1 }, defaultSubthread: null,
     topicTags: [], _count: { members: 1, players: 1, posts: 1 }, preview: "用于验证列表播放和静态资源请求",
     coverImages: [image(id, "animation")],
-    coverMedia: { url: image(id, "animation"), animated: true as boolean | null, posterUrl: image(id, "poster") as string | null },
+    coverMedia: { url: image(id, "animation"), animated: true as boolean | null, posterUrl: image(id, "poster") as string | null } as components["schemas"]["ThreadCoverMediaResponseDto"],
     bookmarkId: `bookmark-${id}`, bookmarkFolderId: "folder-test",
   };
 }
@@ -189,4 +190,38 @@ test("个人主页帖子与公开收藏使用相同静态首帧和中心播放",
   await page.locator("[data-thread-cover]").first().scrollIntoViewIfNeeded();
   await expectOne(page);
   expect(originals.size).toBeLessThanOrEqual(2);
+});
+
+
+test.describe("按列表实际尺寸选择动画预览", () => {
+  test.use({ deviceScaleFactor: 2 });
+  test("DPR与两维尺寸选档，resize停稳后换档，不下载原图，点击仍进详情", async ({ page }) => {
+    const item = thread(0);
+    const small = "/__cover-fixture__/0/preview480.webp";
+    const large = "/__cover-fixture__/0/preview800.webp";
+    item.coverMedia.previewVariants = [
+      { url: small, width: 480, height: 270, bytes: 100 },
+      { url: large, width: 800, height: 450, bytes: 200 },
+    ];
+    await mockApi(page, [item]);
+    const previewRequests = new Set<string>();
+    await page.route("**/__cover-fixture__/*/preview*.webp", async (route) => {
+      previewRequests.add(new URL(route.request().url()).pathname);
+      await route.fulfill({ contentType: "image/webp", body: fixture("animated.webp") });
+    });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await expect(animations(page)).toHaveAttribute("src", large);
+    await expect(animations(page)).toBeVisible();
+    await expect(posters(page)).toHaveClass(/invisible/);
+    expect([...previewRequests]).toEqual([large]);
+    expect(originals.size).toBe(0);
+    await page.setViewportSize({ width: 375, height: 800 });
+    await expect(animations(page)).toHaveAttribute("src", small);
+    await expect(animations(page)).toBeVisible();
+    expect(originals.size).toBe(0);
+    const target = await animations(page).evaluate((img) => img.closest("article")?.querySelector("a[href^='/threads/']")?.getAttribute("href"));
+    await animations(page).click({ force: true });
+    await expect(page).toHaveURL(new RegExp(target!));
+    await expect(animations(page)).toHaveCount(0);
+  });
 });

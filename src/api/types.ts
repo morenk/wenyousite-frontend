@@ -3331,6 +3331,16 @@ export interface components {
             players: number;
             posts: number;
         };
+        ThreadCoverPreviewVariantResponseDto: {
+            /** @description 已发布的不可变列表动画 WebP 地址；不用于替换正文原图 URL */
+            url: string;
+            /** @description 单帧实际像素宽度 */
+            width: number;
+            /** @description 单帧实际像素高度 */
+            height: number;
+            /** @description 完整动画预览文件字节数 */
+            bytes: number;
+        };
         ThreadCoverMediaResponseDto: {
             /** @description 第一张普通正文图片的原始播放地址，与 coverImages[0] 一致；未知媒体不得自动请求 */
             url: string;
@@ -3338,6 +3348,8 @@ export interface components {
             animated: boolean | null;
             /** @description 可用于列表静止状态的第一帧静态地址；未知时返回 null，客户端显示占位，禁止回退加载原图 */
             posterUrl: string | null;
+            /** @description 可选列表动画变体，按单帧像素面积升序；缺失或 null 时，只有已确认 animated=true 且有独立静态 poster 的媒体可受控回退原 url */
+            previewVariants?: components["schemas"]["ThreadCoverPreviewVariantResponseDto"][] | null;
         };
         ThreadListItemResponseDto: {
             id: string;

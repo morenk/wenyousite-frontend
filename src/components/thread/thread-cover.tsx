@@ -5,6 +5,7 @@ import { useState, type ImgHTMLAttributes } from "react";
 import { ImageIcon } from "lucide-react";
 import type { components } from "@/api/types";
 import { useCoverPlayback } from "@/hooks/use-cover-playback";
+import { selectThreadCoverPreview } from "@/lib/thread-cover-preview";
 import { cn } from "@/lib/utils";
 
 type CoverMedia = components["schemas"]["ThreadCoverMediaResponseDto"];
@@ -34,21 +35,23 @@ export function ThreadCover({ image, media, className }: ThreadCoverProps) {
   // 防御不一致的响应：动画原图不能冒充静态poster。
   const poster = descriptor?.posterUrl && !(descriptor.animated === true && descriptor.posterUrl === original)
     ? descriptor.posterUrl : null;
-  const identity = JSON.stringify([original, poster, descriptor?.animated]);
+  const identity = JSON.stringify([original, poster, descriptor?.animated, descriptor?.previewVariants]);
   const [loadedPoster, setLoadedPoster] = useState<string | null>(null);
   const [failedPoster, setFailedPoster] = useState<string | null>(null);
   const [failedAnimation, setFailedAnimation] = useState<string | null>(null);
   const showPoster = !!poster && failedPoster !== identity;
-  const { ref, active } = useCoverPlayback(
+  const { ref, active, size } = useCoverPlayback(
     showPoster && loadedPoster === identity && descriptor?.animated === true && failedAnimation !== identity, identity,
   );
+
+  const playbackUrl = size ? selectThreadCoverPreview(descriptor?.previewVariants, size) ?? original : original;
 
   if (!original) return null;
   return <div ref={ref}
     className={cn("pointer-events-none relative mt-3 aspect-video w-1/2 overflow-hidden rounded-xl bg-muted", className)}
     data-thread-cover="true" data-cover-url={original}>
     {showPoster ? active
-      ? <PlayingCover key={identity} url={original} poster={poster} onError={() => setFailedAnimation(identity)} />
+      ? <PlayingCover key={identity} url={playbackUrl} poster={poster} onError={() => setFailedAnimation(identity)} />
       : <CoverImage key={identity} data-cover-poster src={poster} className="h-full w-full object-cover"
           onLoad={() => setLoadedPoster(identity)} onError={() => setFailedPoster(identity)} />
       : <span className="flex h-full items-center justify-center text-muted-foreground" aria-hidden="true"><ImageIcon className="size-6" /></span>}

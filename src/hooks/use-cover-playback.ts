@@ -1,16 +1,23 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import type { CoverPlaybackSize } from "@/lib/thread-cover-preview";
 import { coverPlayback, subscribeCoverPreference, readCoverDataSaver, setCoverDataSaver } from "./cover-playback";
 
 export function useCoverPlayback(enabled: boolean, identity: string) {
   const ref = useRef<HTMLDivElement>(null);
-  const [activeIdentity, setActiveIdentity] = useState<string | null>(null);
+  const [selection, setSelection] = useState<{ identity: string; size: CoverPlaybackSize } | null>(null);
   useEffect(() => {
-    if (!enabled || !ref.current) return;
-    return coverPlayback.register(ref.current, (active) => setActiveIdentity(active ? identity : null));
+    const node = ref.current;
+    if (!enabled || !node) return;
+    return coverPlayback.register(node, (active) => {
+      if (!active) { setSelection(null); return; }
+      const { width, height } = node.getBoundingClientRect();
+      // 每次真正选中才取尺寸；无关重渲染、分页追加不更换本次播放源。
+      setSelection({ identity, size: { width, height, dpr: window.devicePixelRatio || 1 } });
+    });
   }, [enabled, identity]);
-  return { ref, active: enabled && activeIdentity === identity };
+  return { ref, active: enabled && selection?.identity === identity, size: selection?.size };
 }
 
 function subscribePreference(change: () => void) {
