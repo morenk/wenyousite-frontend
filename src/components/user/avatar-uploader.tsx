@@ -3,6 +3,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { assertImageCanBeProcessed } from "@/lib/image-container";
 import Cropper, { type Area } from "react-easy-crop";
 import { Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -52,6 +53,9 @@ export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
 
   useEffect(() => () => uploadAbortRef.current?.abort(), []);
 
+  const selectionGeneration = useRef(0);
+  useEffect(() => () => { selectionGeneration.current++; }, []);
+
   const pending = isUploading || setAvatar.isPending || removeAvatar.isPending;
 
   const invalidatePreparedAvatar = () => {
@@ -59,7 +63,8 @@ export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
     uploadedMediaIdRef.current = null;
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const generation = ++selectionGeneration.current;
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
@@ -68,6 +73,14 @@ export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
       toast.error(error);
       return;
     }
+    try {
+      await assertImageCanBeProcessed(file, true);
+    } catch (error) {
+      if (generation !== selectionGeneration.current) return;
+      toast.error(error instanceof Error ? error.message : "无法读取图片，请重新选择");
+      return;
+    }
+    if (generation !== selectionGeneration.current) return;
     setImageSrc(URL.createObjectURL(file));
     invalidatePreparedAvatar();
     setCrop({ x: 0, y: 0 });
@@ -78,6 +91,7 @@ export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
   };
 
   const closeCrop = () => {
+    selectionGeneration.current++;
     uploadAbortRef.current?.abort();
     uploadAbortRef.current = null;
     setUploadProgress(null);

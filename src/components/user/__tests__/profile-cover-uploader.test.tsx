@@ -1,3 +1,4 @@
+import { imageFixture } from "@/lib/__tests__/image-fixtures";
 /** ProfileCoverUploader 组件测试：双画幅预览、裁切上传、重试与原子绑定。 */
 
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -68,7 +69,7 @@ function renderUploader(profileCover = null as typeof legacyCover | null) {
 }
 
 async function openCropDialog() {
-  const file = new File(["x"], "scene.png", { type: "image/png" });
+  const file = new File([imageFixture("static.png")], "scene.png", { type: "image/png" });
   fireEvent.change(screen.getByTestId("profile-cover-file-input"), {
     target: { files: [file] },
   });
@@ -204,4 +205,55 @@ describe("ProfileCoverUploader", () => {
     await waitFor(() => expect(mockRemoveProfileCover.mutateAsync).toHaveBeenCalledOnce());
     expect(toast.success).toHaveBeenCalledWith("主页背景已移除");
   });
+});
+
+
+test.each(["animated.png", "animated.webp"])("裁剪前拒绝 %s，不创建预览或上传", async (name) => {
+  renderUploader();
+  const file = new File([imageFixture(name)], name, { type: name.endsWith("png") ? "image/png" : "image/webp" });
+  fireEvent.change(screen.getByTestId("profile-cover-file-input"), { target: { files: [file] } });
+  await waitFor(() => expect(toast.error).toHaveBeenCalledWith(expect.stringContaining("暂不支持")));
+  expect(URL.createObjectURL).not.toHaveBeenCalled();
+  expect(mockUploadImageFile).not.toHaveBeenCalled();
+});
+
+test("迟到的文件读取不会覆盖新选择或在卸载后打开裁剪", async () => {
+  const { unmount } = renderUploader();
+  const oldFile = new File([imageFixture("static.png")], "old.png", { type: "image/png" });
+  let finish!: (bytes: ArrayBuffer) => void;
+  vi.spyOn(oldFile, "arrayBuffer").mockReturnValue(new Promise((resolve) => { finish = resolve; }));
+  fireEvent.change(screen.getByTestId("profile-cover-file-input"), { target: { files: [oldFile] } });
+  const nextFile = new File([imageFixture("static.png")], "next.png", { type: "image/png" });
+  fireEvent.change(screen.getByTestId("profile-cover-file-input"), { target: { files: [nextFile] } });
+  await waitFor(() => expect(URL.createObjectURL).toHaveBeenCalledWith(nextFile));
+  finish(imageFixture("static.png").buffer);
+  await Promise.resolve();
+  await Promise.resolve();
+  expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
+  const late = new File([imageFixture("static.png")], "late.png", { type: "image/png" });
+  vi.spyOn(late, "arrayBuffer").mockReturnValue(new Promise((resolve) => { finish = resolve; }));
+  fireEvent.change(screen.getByTestId("profile-cover-file-input"), { target: { files: [late] } });
+  unmount();
+  finish(imageFixture("static.png").buffer);
+  await Promise.resolve();
+  await Promise.resolve();
+  expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
+});
+
+
+test("关闭裁剪后忽略仍在读取的下一张图片", async () => {
+  renderUploader();
+  const initial = new File([imageFixture("static.png")], "first.png", { type: "image/png" });
+  fireEvent.change(screen.getByTestId("profile-cover-file-input"), { target: { files: [initial] } });
+  await waitFor(() => expect(screen.getByRole("dialog", { name: "调整主页背景" })).toBeInTheDocument());
+  const late = new File([imageFixture("static.png")], "late.png", { type: "image/png" });
+  let finish!: (bytes: ArrayBuffer) => void;
+  vi.spyOn(late, "arrayBuffer").mockReturnValue(new Promise((resolve) => { finish = resolve; }));
+  fireEvent.change(screen.getByTestId("profile-cover-file-input"), { target: { files: [late] } });
+  fireEvent.click(screen.getByRole("button", { name: "取消" }));
+  finish(imageFixture("static.png").buffer);
+  await Promise.resolve();
+  await Promise.resolve();
+  expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
+  expect(screen.queryByRole("dialog", { name: "调整主页背景" })).not.toBeInTheDocument();
 });

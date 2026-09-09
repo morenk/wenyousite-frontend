@@ -1,3 +1,4 @@
+import { imageFixture } from "./image-fixtures";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import {
   compressMomentImage,
@@ -64,7 +65,7 @@ describe("动态图片压缩", () => {
         : createElement(tagName, options)
     ));
 
-    const original = new File(["original image bytes"], "holiday.JPG", { type: "image/jpeg" });
+    const original = new File([imageFixture("static.jpeg")], "holiday.JPG", { type: "image/jpeg" });
     const compressed = await compressMomentImage(original);
 
     expect(canvas.width).toBe(1920);
@@ -98,7 +99,7 @@ describe("动态图片压缩", () => {
     ));
 
     const compressed = await compressMomentImage(
-      new File(["jpeg"], "moment.jpg", { type: "image/jpeg" }),
+      new File([imageFixture("static.jpeg")], "moment.jpg", { type: "image/jpeg" }),
     );
 
     expect(compressed.name).toBe("moment.png");
@@ -109,7 +110,7 @@ describe("动态图片压缩", () => {
   test("取消后不会继续编码或上传", async () => {
     const controller = new AbortController();
     controller.abort();
-    const file = new File(["image"], "photo.jpg", { type: "image/jpeg" });
+    const file = new File([imageFixture("static.jpeg")], "photo.jpg", { type: "image/jpeg" });
 
     await expect(compressMomentImage(file, { signal: controller.signal })).rejects.toMatchObject({
       name: "AbortError",
@@ -117,7 +118,7 @@ describe("动态图片压缩", () => {
   });
 
   test("图片解码或 Canvas 不可用时返回可理解错误并释放 bitmap", async () => {
-    const file = new File(["image"], "photo.jpg", { type: "image/jpeg" });
+    const file = new File([imageFixture("static.jpeg")], "photo.jpg", { type: "image/jpeg" });
     vi.stubGlobal("createImageBitmap", vi.fn().mockRejectedValueOnce(new Error("decode")));
     await expect(compressMomentImage(file)).rejects.toThrow("无法读取图片，请更换图片后重试");
 
@@ -135,7 +136,7 @@ describe("动态图片压缩", () => {
   });
 
   test("编码返回空 Blob 时失败；编码后取消仍释放 bitmap", async () => {
-    const file = new File(["image"], "photo.jpg", { type: "image/jpeg" });
+    const file = new File([imageFixture("static.jpeg")], "photo.jpg", { type: "image/jpeg" });
     const close = vi.fn();
     vi.stubGlobal("createImageBitmap", vi.fn().mockResolvedValue({ width: 100, height: 100, close }));
     const createElement = document.createElement.bind(document);

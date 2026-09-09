@@ -1,3 +1,4 @@
+import { imageFixture } from "@/lib/__tests__/image-fixtures";
 /** AvatarUploader 组件测试：展示/裁剪上传/移除 */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
@@ -103,10 +104,11 @@ describe("AvatarUploader", () => {
 
   test("选择文件后裁剪确认触发上传并设置头像", async () => {
     renderUploader();
-    const file = new File(["x"], "photo.png", { type: "image/png" });
+    const file = new File([imageFixture("static.png")], "photo.png", { type: "image/png" });
     fireEvent.change(screen.getByTestId("avatar-file-input"), { target: { files: [file] } });
 
     await waitFor(() => expect(screen.getByRole("dialog", { name: "裁剪头像" })).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("button", { name: "保存头像" })).toBeEnabled());
     fireEvent.click(screen.getByRole("button", { name: "保存头像" }));
 
     await waitFor(() => {
@@ -128,12 +130,13 @@ describe("AvatarUploader", () => {
     );
     renderUploader();
     fireEvent.change(screen.getByTestId("avatar-file-input"), {
-      target: { files: [new File(["x"], "photo.jpg", { type: "image/jpeg" })] },
+      target: { files: [new File([imageFixture("static.jpeg")], "photo.jpg", { type: "image/jpeg" })] },
     });
     await waitFor(() =>
       expect(screen.getByRole("dialog", { name: "裁剪头像" })).toBeInTheDocument(),
     );
 
+    await waitFor(() => expect(screen.getByRole("button", { name: "保存头像" })).toBeEnabled());
     fireEvent.click(screen.getByRole("button", { name: "保存头像" }));
 
     await waitFor(() => expect(mockUploadImageFile).toHaveBeenCalledOnce());
@@ -157,9 +160,10 @@ describe("AvatarUploader", () => {
     });
     renderUploader();
     fireEvent.change(screen.getByTestId("avatar-file-input"), {
-      target: { files: [new File(["x"], "photo.png", { type: "image/png" })] },
+      target: { files: [new File([imageFixture("static.png")], "photo.png", { type: "image/png" })] },
     });
     await waitFor(() => expect(screen.getByRole("dialog", { name: "裁剪头像" })).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("button", { name: "保存头像" })).toBeEnabled());
     fireEvent.click(screen.getByRole("button", { name: "保存头像" }));
 
     expect(await screen.findByText("25%")).toBeInTheDocument();
@@ -173,12 +177,14 @@ describe("AvatarUploader", () => {
       .mockResolvedValueOnce(undefined);
     renderUploader();
     fireEvent.change(screen.getByTestId("avatar-file-input"), {
-      target: { files: [new File(["x"], "photo.png", { type: "image/png" })] },
+      target: { files: [new File([imageFixture("static.png")], "photo.png", { type: "image/png" })] },
     });
     await waitFor(() => expect(screen.getByRole("dialog", { name: "裁剪头像" })).toBeInTheDocument());
 
+    await waitFor(() => expect(screen.getByRole("button", { name: "保存头像" })).toBeEnabled());
     fireEvent.click(screen.getByRole("button", { name: "保存头像" }));
     await waitFor(() => expect(toast.error).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByRole("button", { name: "保存头像" })).toBeEnabled());
     fireEvent.click(screen.getByRole("button", { name: "保存头像" }));
 
     await waitFor(() => expect(mockSetAvatar.mutateAsync).toHaveBeenCalledTimes(2));
@@ -203,4 +209,55 @@ describe("AvatarUploader", () => {
     });
     expect(toast.success).toHaveBeenCalledWith("头像已移除");
   });
+});
+
+
+test.each(["animated.png", "animated.webp"])("裁剪前拒绝 %s，不创建预览或上传", async (name) => {
+  renderUploader();
+  const file = new File([imageFixture(name)], name, { type: name.endsWith("png") ? "image/png" : "image/webp" });
+  fireEvent.change(screen.getByTestId("avatar-file-input"), { target: { files: [file] } });
+  await waitFor(() => expect(toast.error).toHaveBeenCalledWith(expect.stringContaining("暂不支持")));
+  expect(URL.createObjectURL).not.toHaveBeenCalled();
+  expect(mockUploadImageFile).not.toHaveBeenCalled();
+});
+
+test("迟到的文件读取不会覆盖新选择或在卸载后打开裁剪", async () => {
+  const { unmount } = renderUploader();
+  const oldFile = new File([imageFixture("static.png")], "old.png", { type: "image/png" });
+  let finish!: (bytes: ArrayBuffer) => void;
+  vi.spyOn(oldFile, "arrayBuffer").mockReturnValue(new Promise((resolve) => { finish = resolve; }));
+  fireEvent.change(screen.getByTestId("avatar-file-input"), { target: { files: [oldFile] } });
+  const nextFile = new File([imageFixture("static.png")], "next.png", { type: "image/png" });
+  fireEvent.change(screen.getByTestId("avatar-file-input"), { target: { files: [nextFile] } });
+  await waitFor(() => expect(URL.createObjectURL).toHaveBeenCalledWith(nextFile));
+  finish(imageFixture("static.png").buffer);
+  await Promise.resolve();
+  await Promise.resolve();
+  expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
+  const late = new File([imageFixture("static.png")], "late.png", { type: "image/png" });
+  vi.spyOn(late, "arrayBuffer").mockReturnValue(new Promise((resolve) => { finish = resolve; }));
+  fireEvent.change(screen.getByTestId("avatar-file-input"), { target: { files: [late] } });
+  unmount();
+  finish(imageFixture("static.png").buffer);
+  await Promise.resolve();
+  await Promise.resolve();
+  expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
+});
+
+
+test("关闭裁剪后忽略仍在读取的下一张图片", async () => {
+  renderUploader();
+  const initial = new File([imageFixture("static.png")], "first.png", { type: "image/png" });
+  fireEvent.change(screen.getByTestId("avatar-file-input"), { target: { files: [initial] } });
+  await waitFor(() => expect(screen.getByRole("dialog", { name: "裁剪头像" })).toBeInTheDocument());
+  const late = new File([imageFixture("static.png")], "late.png", { type: "image/png" });
+  let finish!: (bytes: ArrayBuffer) => void;
+  vi.spyOn(late, "arrayBuffer").mockReturnValue(new Promise((resolve) => { finish = resolve; }));
+  fireEvent.change(screen.getByTestId("avatar-file-input"), { target: { files: [late] } });
+  fireEvent.click(screen.getByRole("button", { name: "取消" }));
+  finish(imageFixture("static.png").buffer);
+  await Promise.resolve();
+  await Promise.resolve();
+  expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
+  expect(screen.queryByRole("dialog", { name: "裁剪头像" })).not.toBeInTheDocument();
 });

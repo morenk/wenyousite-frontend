@@ -41,6 +41,12 @@
 
 上传链路由 `src/lib/upload-image.ts` 统一实现。允许 MIME 为 `image/jpeg`、`image/png`、`image/gif`、`image/webp`、`image/avif`，源文件和预处理结果都必须在 1B–10MB。对象存储 PUT 使用 XHR，以获得真实上传进度；签名请求使用预处理后的文件名、MIME 和大小。`objectKey` 是临时 PUT key，业务不得持久化或读取；正式 URL 以完成态响应为准。
 
+任何 Canvas 转码之前，`src/lib/image-container.ts` 按真实文件字节检查 GIF block、PNG chunk（含 CRC）、WebP RIFF chunk 和 AVIF box/品牌，并要求声明 MIME 与实际格式一致。正文、私信、表情源等共享上传保留 GIF 原 File；APNG（包括单帧 acTL）、动态 WebP 和 AVIF 序列（avis 或时序轨道）在签名/转码前明确拒绝，不能静默变成静图。静态 JPEG/PNG/WebP/AVIF 沿用去元数据、限边与 WebP/PNG 回退。JPEG 的 EOI 后附加数据交浏览器实际解码，不以文件末尾标记误拒 QQ 图片。
+
+动态发布、头像与主页背景在各自首次压缩/裁切之前复用相同检查，并拒绝 GIF。头像/背景异步检查按选择代次隔离，过期或卸载后的读取结果不会重新打开旧裁剪。`clientNormalized` 仍仅用于已经过这些入口 Canvas 的输出，不是外部文件的免检选项。
+
+该检查只识别格式与动画容器，不替代完整像素解码和服务端安全/尺寸校验；AVIF 按规范序列标识阻止动画，不承诺识别任意畸形或未标识的多图容器。元数据中的普通 `acTL`/`ANIM` 字符串不触发动画判断。
+
 ## 3. 组件清单
 
 | 组件 | 路径 | 说明 |

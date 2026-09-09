@@ -1,7 +1,10 @@
 import { expect, type Page } from "@playwright/test";
 
 /** 编辑器工具栏测试复用同一图片上传与处理响应。 */
-export async function insertTestEditorImage(page: Page) {
+export async function insertTestEditorImage(
+  page: Page,
+  file?: { name: string; mimeType: string; buffer: Buffer },
+) {
   const mediaId = "e2e-editor-toolbar";
   const pngBase64 =
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
@@ -57,7 +60,7 @@ export async function insertTestEditorImage(page: Page) {
   const chooserPromise = page.waitForEvent("filechooser");
   await imageButton.click();
   const chooser = await chooserPromise;
-  await chooser.setFiles({
+  await chooser.setFiles(file ?? {
     name: "editor-toolbar.png",
     mimeType: "image/png",
     buffer: Buffer.from(pngBase64, "base64"),
