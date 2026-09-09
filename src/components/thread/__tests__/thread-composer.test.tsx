@@ -37,8 +37,10 @@ vi.mock("sonner", () => ({
   toast: { success: mocks.success, error: mocks.error },
 }));
 
-vi.mock("@/components/editor/milkdown-editor", () => ({
-  MilkdownEditor: ({
+vi.mock("@/components/editor/milkdown-editor", async () => {
+  const { withEditorSubmission } = await import("@/test/editor-submission-double");
+  return ({
+  MilkdownEditor: withEditorSubmission(({
     defaultValue,
     onChange,
     placeholder,
@@ -53,8 +55,9 @@ vi.mock("@/components/editor/milkdown-editor", () => ({
       defaultValue={defaultValue}
       onChange={(event) => onChange?.(event.target.value)}
     />
-  ),
-}));
+  )),
+});
+});
 
 const sessions: Record<string, ThreadComposerSession> = {
   create: {

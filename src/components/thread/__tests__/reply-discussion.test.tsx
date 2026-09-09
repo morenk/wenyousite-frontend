@@ -58,8 +58,10 @@ vi.mock("@/components/shared/use-public-invite-confirmation", () => ({
   }),
 }));
 
-vi.mock("@/components/editor/milkdown-editor", () => ({
-  MilkdownEditor: ({
+vi.mock("@/components/editor/milkdown-editor", async () => {
+  const { withEditorSubmission } = await import("@/test/editor-submission-double");
+  return ({
+  MilkdownEditor: withEditorSubmission(({
     defaultValue,
     onChange,
     ariaLabel,
@@ -74,8 +76,9 @@ vi.mock("@/components/editor/milkdown-editor", () => ({
       defaultValue={defaultValue}
       onChange={(event) => onChange?.(event.target.value)}
     />
-  ),
-}));
+  )),
+});
+});
 
 vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },

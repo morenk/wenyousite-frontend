@@ -7,15 +7,18 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThreadCreateForm } from "@/components/forms/thread-create-form";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
 
-vi.mock("@/components/editor/milkdown-editor", () => ({
-  MilkdownEditor: ({ defaultValue, onChange }: { defaultValue?: string; onChange?: (v: string) => void }) => (
+vi.mock("@/components/editor/milkdown-editor", async () => {
+  const { withEditorSubmission } = await import("@/test/editor-submission-double");
+  return ({
+  MilkdownEditor: withEditorSubmission(({ defaultValue, onChange }: { defaultValue?: string; onChange?: (v: string) => void }) => (
     <textarea
       data-testid="milkdown-editor"
       defaultValue={defaultValue}
       onChange={(e) => onChange?.(e.target.value)}
     />
-  ),
-}));
+  )),
+});
+});
 
 vi.mock("@/components/forms/tag-input", () => ({
   TagInput: ({ value, onChange }: { value: string[]; onChange: (tags: string[]) => void }) => (

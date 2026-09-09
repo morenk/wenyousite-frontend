@@ -10,6 +10,7 @@ import { ArrowLeft, Loader2, Send, Save, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { useEditorSubmission } from "@/components/editor/use-editor-submission";
 import { MilkdownEditor } from "@/components/editor/milkdown-editor";
 import { ThreadMetadataFields } from "@/components/forms/thread-metadata-fields";
 import {
@@ -38,6 +39,7 @@ export function ThreadCreateForm({
   onCancel,
   onPublished,
 }: ThreadCreateFormProps) {
+  const editor = useEditorSubmission();
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const saveThread = useSaveThreadAggregate();
@@ -57,6 +59,8 @@ export function ThreadCreateForm({
   });
 
   async function handleSaveDraft(values: ThreadCreateFormData) {
+    const content = editor.flush();
+    if (content === null) return;
     const title = values.title?.trim();
 
     try {
@@ -72,7 +76,7 @@ export function ThreadCreateForm({
           version: thread.version,
           defaultSubthreadVersion: thread.defaultSubthread.version,
           bodyVersion: thread.defaultSubthread.bodyPost?.version,
-          content: values.content ?? "",
+          content,
           tagNames: values.tagNames ?? [],
         },
       });
@@ -85,15 +89,18 @@ export function ThreadCreateForm({
   }
 
   async function handlePublish(values: ThreadCreateFormData) {
-    const validationError = validatePublishable(values);
+    const content = editor.flush();
+    if (content === null) return;
+    const validationError = validatePublishable({ ...values, content });
     if (validationError) {
       toast.error(validationError);
       return;
     }
-    if (!(await confirmPublicInvite(values.content ?? "", values.visibility === "PUBLIC"))) {
+    if (!(await confirmPublicInvite(content, values.visibility === "PUBLIC"))) {
       return;
     }
 
+    if (!editor.isCurrent(content)) return;
     try {
       setIsPublishing(true);
 
@@ -109,7 +116,7 @@ export function ThreadCreateForm({
           version: thread.version,
           defaultSubthreadVersion: thread.defaultSubthread.version,
           bodyVersion: thread.defaultSubthread.bodyPost?.version,
-          content: values.content ?? "",
+          content,
           tagNames: values.tagNames ?? [],
         },
       });
@@ -157,6 +164,8 @@ export function ThreadCreateForm({
             name="content"
             render={({ field }) => (
               <MilkdownEditor
+                editorRef={editor.editorRef}
+                onValidityChange={editor.onValidityChange}
                 threadId={thread.id}
                 defaultValue={field.value ?? ""}
                 onChange={field.onChange}
@@ -180,7 +189,7 @@ export function ThreadCreateForm({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={onCancel}
+          onClick={() => { if (editor.canClose()) onCancel(); }}
           disabled={isSaving || isPublishing}
         >
           <CancelIcon className="mr-1.5 h-4 w-4" />

@@ -8,6 +8,7 @@ import {
   useContext,
   useMemo,
   useState,
+  useRef,
   type ReactNode,
 } from "react";
 import type { InlineDiceRoll } from "@/lib/dice-inline";
@@ -58,6 +59,8 @@ interface ThreadComposerContextValue {
   close: (options?: CloseOptions) => Promise<boolean>;
   setContent: (content: string) => void;
   setPending: (pending: boolean) => void;
+  setEditorValid: (valid: boolean) => void;
+  registerCloseGuard: (guard: () => boolean) => () => void;
 }
 
 const ThreadComposerContext = createContext<ThreadComposerContextValue | null>(null);
@@ -66,8 +69,14 @@ export function ThreadComposerProvider({ children, threadId }: { children: React
   const [session, setSession] = useState<ThreadComposerSession | null>(null);
   const [content, setContent] = useState("");
   const [pending, setPending] = useState(false);
+  const closeGuardRef = useRef<(() => boolean) | null>(null);
+  const registerCloseGuard = useCallback((guard: () => boolean) => {
+    closeGuardRef.current = guard;
+    return () => { if (closeGuardRef.current === guard) closeGuardRef.current = null; };
+  }, []);
+  const [editorValid, setEditorValid] = useState(true);
   const confirmAction = useConfirm();
-  const dirty = session !== null && content !== session.initialContent;
+  const dirty = session !== null && (!editorValid || content !== session.initialContent);
 
   const confirmDiscard = useCallback(async () => {
     if (!dirty) return true;
@@ -83,8 +92,10 @@ export function ThreadComposerProvider({ children, threadId }: { children: React
     async (nextSession: ThreadComposerSession) => {
       if (pending) return false;
       if (session?.key === nextSession.key) return true;
+      if (closeGuardRef.current?.() === false) return false;
       if (!(await confirmDiscard())) return false;
 
+      setEditorValid(true);
       setSession(nextSession);
       setContent(nextSession.initialContent);
       return true;
@@ -95,8 +106,10 @@ export function ThreadComposerProvider({ children, threadId }: { children: React
   const close = useCallback(
     async ({ force = false }: CloseOptions = {}) => {
       if (!force && pending) return false;
+      if (!force && closeGuardRef.current?.() === false) return false;
       if (!force && !(await confirmDiscard())) return false;
 
+      setEditorValid(true);
       setSession(null);
       setContent("");
       setPending(false);
@@ -116,8 +129,10 @@ export function ThreadComposerProvider({ children, threadId }: { children: React
       close,
       setContent,
       setPending,
+      setEditorValid,
+      registerCloseGuard,
     }),
-    [threadId, session, content, dirty, pending, open, close],
+    [threadId, session, content, dirty, pending, open, close, registerCloseGuard],
   );
 
   return (

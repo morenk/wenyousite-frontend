@@ -82,8 +82,10 @@ vi.mock("@/components/forms/thread-edit-form", () => ({
   },
 }));
 
-vi.mock("@/components/editor/milkdown-editor", () => ({
-  MilkdownEditor: ({
+vi.mock("@/components/editor/milkdown-editor", async () => {
+  const { withEditorSubmission } = await import("@/test/editor-submission-double");
+  return ({
+  MilkdownEditor: withEditorSubmission(({
     defaultValue,
     onChange,
     onUploadImage,
@@ -108,8 +110,9 @@ vi.mock("@/components/editor/milkdown-editor", () => ({
         mock-upload
       </button>
     </div>
-  ),
-}));
+  )),
+});
+});
 
 vi.mock("@/components/thread/subthread-tree", () => ({
   SubthreadTree: ({

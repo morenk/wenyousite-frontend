@@ -14,6 +14,7 @@ import {
   isContentUnavailableError,
 } from "@/api/errors";
 import { useContentAccessCache } from "@/api/hooks/use-content-access-cache";
+import { useEditorSubmission } from "@/components/editor/use-editor-submission";
 import { MilkdownEditor } from "@/components/editor/milkdown-editor";
 import { Button } from "@/components/ui/button";
 import { useThreadComposer } from "@/components/thread/thread-composer-context";
@@ -33,6 +34,7 @@ function getErrorMessage(error: unknown, fallback: string) {
 }
 
 function ThreadComposer() {
+  const editor = useEditorSubmission();
   const { clearThread } = useContentAccessCache();
   const {
     session,
@@ -42,6 +44,8 @@ function ThreadComposer() {
     setContent,
     setPending,
     close,
+    setEditorValid,
+    registerCloseGuard,
   } = useThreadComposer();
   const createPost = useCreatePost();
   const updatePost = useUpdatePost();
@@ -56,6 +60,9 @@ function ThreadComposer() {
     containerRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [session?.key]);
 
+  useEffect(() => registerCloseGuard(editor.canClose), [editor.canClose, registerCloseGuard]);
+  useEffect(() => { setEditorValid(!editor.invalid); }, [editor.invalid, setEditorValid]);
+
   if (!session) return null;
 
   const isEdit = session.type === "edit";
@@ -64,14 +71,16 @@ function ThreadComposer() {
   const busy = pending || uploadImage.isPending;
 
   const handleSubmit = async () => {
-    const nextContent = content;
     if (busy) return;
+    const nextContent = editor.flush();
+    if (nextContent === null) return;
     if (!hasVisibleMarkdownContent(nextContent)) {
       toast.error("正文和骰子不能同时为空");
       return;
     }
     if (!(await confirmPublicInvite(nextContent, visibility !== "PRIVATE"))) return;
 
+    if (!editor.isCurrent(nextContent)) return;
     setPending(true);
     try {
       if (session.type === "edit") {
@@ -134,7 +143,7 @@ function ThreadComposer() {
           variant="ghost"
           size="sm"
           className="h-7 px-2"
-          onClick={() => void close()}
+          onClick={() => { if (editor.canClose()) void close(); }}
           disabled={busy}
         >
           <X className="mr-1 h-3.5 w-3.5" />
@@ -142,6 +151,8 @@ function ThreadComposer() {
         </Button>
       </div>
       <MilkdownEditor
+        editorRef={editor.editorRef}
+        onValidityChange={editor.onValidityChange}
         key={session.key}
         defaultValue={session.initialContent}
         onChange={setContent}

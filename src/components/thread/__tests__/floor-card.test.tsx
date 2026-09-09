@@ -51,8 +51,10 @@ vi.mock("@/api/hooks/use-upload-image", () => ({
   useUploadImage: () => ({ mutateAsync: vi.fn() }),
 }));
 
-vi.mock("@/components/editor/milkdown-editor", () => ({
-  MilkdownEditor: ({
+vi.mock("@/components/editor/milkdown-editor", async () => {
+  const { withEditorSubmission } = await import("@/test/editor-submission-double");
+  return ({
+  MilkdownEditor: withEditorSubmission(({
     defaultValue,
     onChange,
   }: {
@@ -64,8 +66,9 @@ vi.mock("@/components/editor/milkdown-editor", () => ({
       defaultValue={defaultValue}
       onChange={(e) => onChange?.(e.target.value)}
     />
-  ),
-}));
+  )),
+});
+});
 
 vi.mock("@/components/thread/reply-list", () => ({
   ReplyList: () => <div data-testid="reply-list">回复列表</div>,

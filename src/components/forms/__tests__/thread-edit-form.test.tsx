@@ -16,15 +16,18 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: mockRouterReplace }),
 }));
 
-vi.mock("@/components/editor/milkdown-editor", () => ({
-  MilkdownEditor: ({ defaultValue, onChange }: { defaultValue?: string; onChange?: (value: string) => void }) => (
+vi.mock("@/components/editor/milkdown-editor", async () => {
+  const { withEditorSubmission } = await import("@/test/editor-submission-double");
+  return ({
+  MilkdownEditor: withEditorSubmission(({ defaultValue, onChange }: { defaultValue?: string; onChange?: (value: string) => void }) => (
     <textarea
       data-testid="milkdown-editor"
       defaultValue={defaultValue}
       onChange={(event) => onChange?.(event.target.value)}
     />
-  ),
-}));
+  )),
+});
+});
 
 vi.mock("@/components/forms/tag-input", () => ({
   TagInput: ({ value, onChange }: { value: string[]; onChange: (tags: string[]) => void }) => (
