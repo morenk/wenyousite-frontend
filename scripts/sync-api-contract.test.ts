@@ -15,6 +15,9 @@ function workspace() {
   mkdirSync(backend, { recursive: true });
   mkdirSync(join(frontend, "contracts"), { recursive: true });
   const fixtures = {
+    "rich-text-behavior-v1-fixtures.json": { contract: "wenyousite-rich-text-behavior", version: 1, revision: 2 },
+    "rich-text-behavior-v1.schema.json": { $schema: "http://json-schema.org/draft-07/schema#" },
+    "rich-text-behavior-results-v1.schema.json": { $schema: "http://json-schema.org/draft-07/schema#" },
     "markdown-editor-newline-v1-fixtures.json": { contract: "wenyousite-editor-newline", version: 1 },
     "openapi.json": { openapi: "3.0.3", info: { version: "test" } },
     "internal-reference-v1-fixtures.json": { contract: "wenyousite-internal-reference", version: 1 },

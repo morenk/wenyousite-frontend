@@ -315,9 +315,13 @@ function operation(method: string, apiPath: string) {
     "markdown-v4-fixtures.json",
     "markdown-v4-nodes-fixtures.json",
     "markdown-editor-roundtrip-v7-fixtures.json",
+    "markdown-editor-newline-v1-fixtures.json",
     "markdown-v5-image-alignment-fixtures.json",
     "editor-clipboard-v2-fixtures.json",
     "thread-category-v3-fixtures.json",
+    "rich-text-behavior-v1-fixtures.json",
+    "rich-text-behavior-v1.schema.json",
+    "rich-text-behavior-results-v1.schema.json",
   ]) {
     const frontendFixture = path.resolve(root, "contracts", fixtureName);
     const backendFixture = path.resolve(backendRoot, "contracts", fixtureName);

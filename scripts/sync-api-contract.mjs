@@ -50,6 +50,15 @@ if (
 }
 
 const backendContracts = dirname(source);
+const behaviorFiles = ["rich-text-behavior-v1-fixtures.json", "rich-text-behavior-v1.schema.json", "rich-text-behavior-results-v1.schema.json"];
+for (const name of behaviorFiles) {
+  const value = JSON.parse(readFileSync(resolve(backendContracts, name), "utf8"));
+  if (name.endsWith("-fixtures.json")
+    ? value.contract !== "wenyousite-rich-text-behavior" || value.version !== 1
+    : value.$schema !== "http://json-schema.org/draft-07/schema#") {
+    throw new Error(`后端富文本行为契约无效：${name}`);
+  }
+}
 const frontendContracts = dirname(target);
 const isMarkdownFixture = (name) => /^markdown-(?:v\d+(?:-nodes|-image-alignment)?|editor-roundtrip-v\d+)-fixtures\.json$/.test(name);
 const markdownFiles = readdirSync(backendContracts).filter(isMarkdownFixture);
@@ -64,6 +73,7 @@ for (const name of markdownFiles) {
 mkdirSync(frontendContracts, { recursive: true });
 copyFileSync(source, target);
 copyFileSync(newlineSource, newlineTarget);
+for (const name of behaviorFiles) copyFileSync(resolve(backendContracts, name), resolve(frontendRoot, "contracts", name));
 copyFileSync(internalReferenceSource, internalReferenceTarget);
 copyFileSync(editorClipboardSource, editorClipboardTarget);
 for (const name of markdownFiles) {
