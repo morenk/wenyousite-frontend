@@ -157,6 +157,9 @@ async function mockManagementWorkspace(page: Page) {
       body: JSON.stringify({ code: 0, message: "ok", data, ...(meta ? { meta } : {}) }),
     });
 
+    if (pathname.endsWith("/meta")) {
+      return response({ markdownContractVersion: 5 });
+    }
     if (pathname.endsWith("/auth/refresh")) {
       return response({ accessToken: "management-visual-token", user: owner });
     }
