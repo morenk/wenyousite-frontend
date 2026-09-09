@@ -1,3 +1,4 @@
+import { observedReaderImages } from "./reader-media-observer";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MarkdownContent } from "@/components/thread/markdown-content";
@@ -19,6 +20,13 @@ function readInline(parent: Element, marks: Record<string, unknown> = {}): Inlin
     if (tag === "br") { result.push({ type: "softBreak" }); continue; }
     if (child.hasAttribute("data-dice-node-id")) {
       result.push({ type: "dice", nodeId: child.getAttribute("data-dice-node-id"), notation: child.getAttribute("data-dice-notation") });
+      continue;
+    }
+    if (child.getAttribute(SITE_CLIPBOARD_MEDIA_ATTRIBUTE) === "sticker") {
+      const image = child.tagName === "IMG" ? child : child.querySelector("img");
+      const parsed = observedReaderImages().find((item) => item.src === image?.getAttribute("src") && item.alt === image?.getAttribute("alt"));
+      if (!parsed?.title.startsWith("wenyousite-sticker:v1:")) throw new Error("Missing parsed reader sticker identity");
+      result.push({ type: "sticker", assetId: parsed.title.slice("wenyousite-sticker:v1:".length), url: parsed.src, alt: parsed.alt });
       continue;
     }
     const href = child.getAttribute("href");
@@ -46,11 +54,11 @@ function readBlock(node: Element): unknown {
     alignment: node.getAttribute("data-wenyou-align") || "left",
     children: node.getAttribute("data-wenyou-empty-row") === "true" ? [] : readInline(node) };
 }
-/** 实际生产阅读器的 DOM 语义；不读取编辑模型，也不从预期补回 DOM 未暴露的贴纸身份。 */
-export function summarizeReader(canonical: string): { blocks: unknown[] } | null {
+/** 实际阅读 DOM 与生产图片组件输入的语义；不读取编辑模型或共享预期。 */
+export function summarizeReader(canonical: string): { blocks: unknown[] } {
+  observedReaderImages().length = 0;
   const template = document.createElement("template");
   template.innerHTML = renderToStaticMarkup(createElement(MarkdownContent, { content: canonical }));
   const root = template.content.querySelector('[data-slot="markdown-content"]')!;
-  if (root.querySelector(`img[${SITE_CLIPBOARD_MEDIA_ATTRIBUTE}="sticker"]`)) return null;
   return { blocks: [...root.children].map(readBlock) };
 }

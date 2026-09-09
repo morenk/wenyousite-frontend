@@ -71,12 +71,11 @@ test.each(fixtures.cases)("$id 真实编辑事务逐步对照共享独立预期"
         observe(item.id, stepId, stage, { summary: expected.summary }, { summary: actual.summary }, actual);
         observe(item.id, stepId, "serialized", { canonical: expected.canonical }, { canonical: actual.canonical }, actual);
         if (expected.selection) observe(item.id, stepId, "selection", { selection: expected.selection }, { selection: actual.selection }, actual);
-        observations.push({ caseId: item.id, stepId, stage: "backend", status: "not-run", reason: "not-executed" });
         const readerSummary = actual.canonical === null ? null : summarizeReader(actual.canonical);
         if (readerSummary) observe(item.id, stepId, "reader", { summary: expected.summary }, { summary: readerSummary },
           { canonical: actual.canonical, summary: readerSummary });
         else observations.push({ caseId: item.id, stepId, stage: "reader", status: "not-run",
-          reason: actual.canonical === null ? "not-applicable" : "unsupported-operation" });
+          reason: "not-applicable" });
         return actual;
       };
       verify("initial", item.initial, "decoded");
@@ -142,13 +141,15 @@ test.each(fixtures.cases)("$id 真实编辑事务逐步对照共享独立预期"
           }
           case "close":
             // Web 无本机持久化快照，关闭走明确放弃确认；不能伪造移动端快照写入。
-            observations.push({ caseId: item.id, stepId: step.id, stage: "save", status: "not-run", reason: "not-applicable" });
+            for (const stage of ["edited", "serialized", "reader", ...(step.expected.selection ? ["selection"] : []), "save"] as Stage[]) {
+              observations.push({ caseId: item.id, stepId: step.id, stage, status: "not-run", reason: "not-applicable" });
+            }
             unsupported = true; break;
           default: throw new Error(`Unsupported operation ${operation.type}`);
         }
         if (operation.historyBoundary) view.dispatch(closeHistory(view.state.tr));
         if (unsupported) continue;
-        const actual = verify(step.id, step.expected, operation.type === "reopen" ? "decoded" : "edited");
+        const actual = verify(step.id, step.expected, "edited");
         if (step.expected.save) observe(item.id, step.id, "save", { save: step.expected.save }, { save }, { ...actual, save });
       }
     });

@@ -130,6 +130,6 @@ revision 2 精确示例：`[wenyousite-align-v1-center]: #\n甲\n\n乙` 显示�
 
 文字序列化保留字面标记与格式边缘空白；非空引用定位或重开不自动追加正文空段。单行外部粘贴替换当前选区，不额外创建段落。空引用、列表及空格式块继续使用各自已有规则。
 
-共享执行器位于 `rich-text-behavior.test.ts`，逐步比较块树、UTF-16 选区、规范 Markdown、原子身份和受控保存状态；结果默认输出 `/tmp/rich-text-web-results.json`，可用 `RICH_TEXT_RESULTS_PATH` 指定位置。记录 fixture SHA-256、源码 SHA、平台、环境及首次差异字段路径；不采集真实正文。Web 没有本机关闭快照，契约 `close/local-snapshot` 标为不适用；Web 真实关闭保护由表单回归验证。阅读阶段通过实际 `MarkdownContent` 渲染 DOM 独立提取块、文字、样式与原子语义；`<br>` 后渲染器附加的格式化 LF 不重复计作软换行。编码失败没有当前 Markdown，阅读标为不适用；贴纸的资产 ID 没有暴露在阅读 DOM，相应完整身份摘要标为未执行，不能从编辑模型或预期补造。真实 API 与负责人设备未在该执行器运行，不能据此声称已完成跨端验收。
+共享执行器位于 `rich-text-behavior.test.ts`，逐步比较块树、UTF-16 选区、规范 Markdown、原子身份和受控保存状态；结果默认输出 `/tmp/rich-text-web-results.json`，可用 `RICH_TEXT_RESULTS_PATH` 指定位置。记录 fixture SHA-256、源码 SHA、平台、环境及首次差异字段路径；不采集真实正文。Web 没有本机关闭快照，契约 `close/local-snapshot` 标为不适用；Web 真实关闭保护由表单回归验证。阅读阶段通过实际 `MarkdownContent` 渲染 DOM 独立提取块、文字、样式与原子语义；`<br>` 后渲染器附加的格式化 LF 不重复计作软换行。编码失败没有当前 Markdown，阅读标为不适用；贴纸资产 ID 按产品规则不暴露到阅读 DOM，因此测试观察真实 ReactMarkdown 传给生产图片组件的属性，再继续调用原组件渲染并核对 DOM 图片；不从编辑模型或预期补造身份。真实 API 与负责人设备未在该执行器运行，不能据此声称已完成跨端验收。
 
 回退只撤销相应客户端候选，不迁移或降级存量正文。未知内容可被覆盖、语义漂移或编码失败后仍提交/退出时应停止继续开放相关写能力；旧版本必须先证明可读和可保护新内容，才能作为回退版本。合并、部署与线上写入口调整另行授权。
