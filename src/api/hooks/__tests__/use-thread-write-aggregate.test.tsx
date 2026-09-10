@@ -5,26 +5,29 @@ import { useUpsertBody } from "@/api/hooks/use-upsert-body";
 import { queryKeys } from "@/api/query-keys";
 import { createQueryWrapper } from "@/test/query-client";
 
-const { mockPATCH, mockPUT } = vi.hoisted(() => ({
+const { mockPATCH, mockPUT, mockViewer } = vi.hoisted(() => ({
   mockPATCH: vi.fn(),
   mockPUT: vi.fn(),
+  mockViewer: { scope: "u1" },
 }));
 
 vi.mock("@/api/client", () => ({
   apiClient: { PATCH: mockPATCH, PUT: mockPUT },
 }));
 
+vi.mock("@/api/use-viewer-scope", () => ({ useViewerScope: () => mockViewer.scope }));
+
 const rawThread = {
   id: "t1",
   title: "更新后的主题",
   defaultSubthreadId: "s1",
-  subthreads: [{ id: "s1", title: "主帖" }],
+  subthreads: [{ id: "s1", title: "主帖", postingPolicy: "PLAYERS", postingCapability: { canPost: true, denialReason: null } }],
 };
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => { vi.clearAllMocks(); mockViewer.scope = "u1"; });
 
 describe("主题帖聚合写入 hooks", () => {
-  test("聚合保存更新所有已存在的访问者详情缓存", async () => {
+  test("聚合保存仅更新当前访问者权限投影并失效其他详情", async () => {
     mockPATCH.mockResolvedValue({
       data: { code: 0, message: "ok", data: rawThread },
       error: undefined,
@@ -33,7 +36,7 @@ describe("主题帖聚合写入 hooks", () => {
     const viewerKey = queryKeys.threads.detailForViewer("t1", "u1");
     const anonymousKey = queryKeys.threads.detailForViewer("t1", "anonymous");
     client.setQueryData(viewerKey, { ...rawThread, title: "旧标题" });
-    client.setQueryData(anonymousKey, { ...rawThread, title: "旧标题" });
+    client.setQueryData(anonymousKey, { ...rawThread, title: "旧标题", subthreads: [{ id: "s1", postingCapability: { canPost: false, denialReason: "LOGIN_REQUIRED" } }] });
     const invalidate = vi.spyOn(client, "invalidateQueries");
     const { result } = renderHook(() => useSaveThreadAggregate(), { wrapper: Wrapper });
     const body = {
@@ -55,12 +58,32 @@ describe("主题帖聚合写入 hooks", () => {
       body,
     });
     expect(client.getQueryData<{ title: string }>(viewerKey)?.title).toBe("更新后的主题");
-    expect(client.getQueryData<{ title: string }>(anonymousKey)?.title).toBe("更新后的主题");
+    expect(client.getQueryData<{ title: string }>(anonymousKey)?.title).toBe("旧标题");
+    expect(client.getQueryData(anonymousKey)).toEqual(expect.objectContaining({ subthreads: [{ id: "s1", postingCapability: { canPost: false, denialReason: "LOGIN_REQUIRED" } }] }));
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.threads.detail("t1") });
+    expect(client.getQueryData(viewerKey)).toEqual(expect.objectContaining({ defaultSubthread: expect.objectContaining({ postingPolicy: "PLAYERS", postingCapability: { canPost: true, denialReason: null } }) }));
     expect(client.getQueryData(queryKeys.threads.detail("t1"))).toBeUndefined();
     await waitFor(() => {
       expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.threads.all });
       expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.threadDrafts });
     });
+  });
+
+  test("保存请求期间切换账号不会将管理者能力写入新账号", async () => {
+    let finish!: (value: unknown) => void;
+    mockPATCH.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve; }));
+    const { client, Wrapper } = createQueryWrapper();
+    const nextViewerKey = queryKeys.threads.detailForViewer("t1", "u2");
+    const nextViewerData = { title: "另一个账号", postingCapability: { canPost: false } };
+    client.setQueryData(nextViewerKey, nextViewerData);
+    const { result, rerender } = renderHook(() => useSaveThreadAggregate(), { wrapper: Wrapper });
+    act(() => result.current.mutate({ threadId: "t1", body: { version: 1, defaultSubthreadVersion: 1, content: "正文", tagNames: [], defaultSubthreadPostingPolicy: "PLAYERS" } }));
+    await waitFor(() => expect(mockPATCH).toHaveBeenCalledOnce());
+    mockViewer.scope = "u2";
+    rerender();
+    await act(async () => { finish({ data: { code: 0, message: "ok", data: rawThread } }); });
+    expect(client.getQueryData(nextViewerKey)).toEqual(nextViewerData);
+    expect(client.getQueryData(queryKeys.threads.detailForViewer("t1", "u1"))).toEqual(expect.objectContaining({ defaultSubthread: expect.objectContaining({ postingPolicy: "PLAYERS" }) }));
   });
 
   test("聚合保存拒绝 API 错误和空成功响应", async () => {

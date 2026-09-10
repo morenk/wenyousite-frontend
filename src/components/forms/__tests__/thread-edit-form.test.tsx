@@ -1,7 +1,7 @@
 /** ThreadEditForm 组件测试：桌面设置、权限边界与冲突恢复。 */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, fireEvent, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThreadEditForm } from "@/components/forms/thread-edit-form";
@@ -139,6 +139,7 @@ function savedThreadFromBody(thread: ThreadDetail, body: Record<string, unknown>
   const defaultSubthread = {
     ...thread.defaultSubthread,
     title: String(body.title ?? thread.defaultSubthread.title),
+    postingPolicy: (body.defaultSubthreadPostingPolicy as ThreadDetail["defaultSubthread"]["postingPolicy"]) ?? thread.defaultSubthread.postingPolicy,
     version: 2,
     bodyPost,
   };
@@ -170,31 +171,124 @@ function renderForm({
   onReloadLatest?: () => Promise<ThreadDetail | undefined>;
 } = {}) {
   const onStatusChange = vi.fn();
-  render(
+  const element = (currentThread: ThreadDetail) => (
     <>
       <ThreadEditForm
-        thread={thread}
+        thread={currentThread}
         isOwner={isOwner}
         formId="test-thread-form"
         onStatusChange={onStatusChange}
         onReloadLatest={onReloadLatest}
       />
       <button type="submit" form="test-thread-form">保存帖子</button>
-    </>,
-    { wrapper: createWrapper() },
+    </>
   );
-  return { onStatusChange, onReloadLatest };
+  const { rerender } = render(element(thread), { wrapper: createWrapper() });
+  return { onStatusChange, onReloadLatest, rerenderThread: (next: ThreadDetail) => rerender(element(next)) };
 }
 
 describe("ThreadEditForm", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSaveThreadMutate.mockReset();
     vi.stubGlobal("confirm", vi.fn(() => true));
     mockCreateInviteMutate.mockResolvedValue({ token: "invite-token" });
     mockDeleteThreadMutate.mockResolvedValue({});
     mockSaveThreadMutate.mockImplementation(
       async ({ body }: { body: Record<string, unknown> }) => savedThreadFromBody(makeThread(), body),
     );
+  });
+
+
+  test.each([
+    ["PARTICIPANTS", "所有参与人"],
+    ["COLLABORATORS", "仅协作者"],
+    ["PLAYERS", "仅玩家"],
+  ] as const)("从主贴真实权限回填 %s，协作者可编辑", (policy, label) => {
+    const thread = makeThread();
+    thread.defaultSubthread.postingPolicy = policy;
+    const { onStatusChange } = renderForm({ thread, isOwner: false });
+    expect(screen.getByRole("combobox", { name: "主贴发言权限" })).toHaveTextContent(label);
+    expect(screen.getByRole("combobox", { name: "主贴发言权限" })).toBeEnabled();
+    expect(onStatusChange).toHaveBeenLastCalledWith(expect.objectContaining({ dirty: false }));
+  });
+
+  test("只改权限使用页面保存；成功后连续修改使用新版本", async () => {
+    const user = userEvent.setup();
+    const { onStatusChange } = renderForm({ isOwner: false });
+    await user.click(screen.getByRole("combobox", { name: "主贴发言权限" }));
+    await user.click(screen.getByRole("option", { name: "仅玩家" }));
+    expect(mockSaveThreadMutate).not.toHaveBeenCalled();
+    expect(onStatusChange).toHaveBeenLastCalledWith(expect.objectContaining({ dirty: true }));
+    await user.click(screen.getByRole("button", { name: "保存帖子" }));
+    expect(mockSaveThreadMutate).toHaveBeenLastCalledWith({ threadId: "t1", body: expect.objectContaining({ defaultSubthreadPostingPolicy: "PLAYERS", version: 3, defaultSubthreadVersion: 1 }) });
+    expect(onStatusChange).toHaveBeenLastCalledWith(expect.objectContaining({ dirty: false }));
+    await user.click(screen.getByRole("combobox", { name: "主贴发言权限" }));
+    await user.click(screen.getByRole("option", { name: "仅协作者" }));
+    await user.click(screen.getByRole("button", { name: "保存帖子" }));
+    expect(mockSaveThreadMutate).toHaveBeenLastCalledWith({ threadId: "t1", body: expect.objectContaining({ defaultSubthreadPostingPolicy: "COLLABORATORS", version: 4, defaultSubthreadVersion: 2 }) });
+  });
+
+  test("取消选择与恢复原值不产生保存请求", async () => {
+    const user = userEvent.setup();
+    const { onStatusChange } = renderForm();
+    const control = screen.getByRole("combobox", { name: "主贴发言权限" });
+    await user.click(control);
+    await user.keyboard("{Escape}");
+    expect(control).toHaveFocus();
+    expect(onStatusChange).toHaveBeenLastCalledWith(expect.objectContaining({ dirty: false }));
+    await user.click(control);
+    await user.click(screen.getByRole("option", { name: "仅玩家" }));
+    await user.click(control);
+    await user.click(screen.getByRole("option", { name: "所有参与人" }));
+    expect(onStatusChange).toHaveBeenLastCalledWith(expect.objectContaining({ dirty: false }));
+    expect(mockSaveThreadMutate).not.toHaveBeenCalled();
+  });
+
+  test.each([40002, 50000])("权限保存失败 %s 保留选择；确认载入时才采用最新权限", async (code) => {
+    const user = userEvent.setup();
+    const latest = makeThread();
+    latest.defaultSubthread.postingPolicy = "COLLABORATORS";
+    mockSaveThreadMutate.mockRejectedValueOnce({ code, message: "保存失败" });
+    renderForm({ onReloadLatest: vi.fn().mockResolvedValue(latest) });
+    await user.click(screen.getByRole("combobox", { name: "主贴发言权限" }));
+    await user.click(screen.getByRole("option", { name: "仅玩家" }));
+    await user.click(screen.getByRole("button", { name: "保存帖子" }));
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "主贴发言权限" })).toHaveTextContent("仅玩家");
+    expect(toast.success).not.toHaveBeenCalled();
+    if (code === 40002) {
+      await user.click(screen.getByRole("button", { name: "载入最新版本" }));
+      expect(screen.getByRole("combobox", { name: "主贴发言权限" })).toHaveTextContent("仅协作者");
+    }
+  });
+
+  test("后台刷新不替换正在编辑的版本基线", async () => {
+    const user = userEvent.setup();
+    const { rerenderThread } = renderForm();
+    await user.click(screen.getByRole("combobox", { name: "主贴发言权限" }));
+    await user.click(screen.getByRole("option", { name: "仅玩家" }));
+    const latest = makeThread();
+    latest.version = 10;
+    latest.defaultSubthread.version = 8;
+    latest.defaultSubthread.postingPolicy = "COLLABORATORS";
+    rerenderThread(latest);
+    await user.click(screen.getByRole("button", { name: "保存帖子" }));
+    expect(mockSaveThreadMutate).toHaveBeenCalledWith({ threadId: "t1", body: expect.objectContaining({ version: 3, defaultSubthreadVersion: 1, defaultSubthreadPostingPolicy: "PLAYERS" }) });
+  });
+
+  test("保存期间禁用权限并拦截重复表单提交", async () => {
+    const user = userEvent.setup();
+    let finish!: (value: ThreadDetail) => void;
+    mockSaveThreadMutate.mockImplementation(() => new Promise<ThreadDetail>((resolve) => { finish = resolve; }));
+    renderForm();
+    await user.click(screen.getByRole("combobox", { name: "主贴发言权限" }));
+    await user.click(screen.getByRole("option", { name: "仅玩家" }));
+    await user.click(screen.getByRole("button", { name: "保存帖子" }));
+    expect(screen.getByRole("combobox", { name: "主贴发言权限" })).toBeDisabled();
+    fireEvent.submit(document.getElementById("test-thread-form")!);
+    await act(async () => { finish(makeThread()); });
+    expect(mockSaveThreadMutate).toHaveBeenCalledTimes(1);
   });
 
   test("使用内容主栏和发布侧栏回填现有数据", () => {

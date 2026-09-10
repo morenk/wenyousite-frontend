@@ -147,6 +147,8 @@ const categories = [
 ];
 
 async function mockManagementWorkspace(page: Page) {
+  let latest = structuredClone(thread);
+  const saves: Record<string, unknown>[] = [];
   await page.clock.setFixedTime(new Date("2026-08-12T12:00:00.000Z"));
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.route("**/api/v1/**", (route) => {
@@ -175,11 +177,24 @@ async function mockManagementWorkspace(page: Page) {
     if (pathname.endsWith("/threads/management-visual-thread/members")) {
       return response([]);
     }
+    if (pathname.endsWith("/threads/management-visual-thread/aggregate")) {
+      const body = request.postDataJSON();
+      saves.push(body);
+      latest = {
+        ...latest,
+        version: latest.version + 1,
+        subthreads: latest.subthreads.map((sub) => sub.id === latest.defaultSubthreadId
+          ? { ...sub, postingPolicy: body.defaultSubthreadPostingPolicy ?? sub.postingPolicy, version: sub.version + 1 }
+          : sub),
+      };
+      return response(latest);
+    }
     if (pathname.endsWith("/threads/management-visual-thread")) {
-      return response(thread);
+      return response(latest);
     }
     return response(null);
   });
+  return { saves };
 }
 
 async function openManagementWorkspace(page: Page, query = "") {
@@ -190,6 +205,35 @@ async function openManagementWorkspace(page: Page, query = "") {
 }
 
 test.describe("帖子共同创作管理台", () => {
+  test("主贴权限沿用发布设置控件、键盘和统一保存", async ({ page }) => {
+    const { saves } = await mockManagementWorkspace(page);
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto("/threads/management-visual-thread/edit");
+    const policy = page.getByRole("combobox", { name: "主贴发言权限" });
+    await expect(policy.locator('[data-slot="select-value"]')).toHaveText("所有参与人");
+    const visibility = page.getByRole("combobox", { name: "可见性" });
+    const policyBox = await policy.boundingBox();
+    const visibilityBox = await visibility.boundingBox();
+    expect(policyBox?.width).toBe(visibilityBox?.width);
+    expect(policyBox?.height).toBe(visibilityBox?.height);
+    await policy.focus();
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("option", { name: "仅玩家" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(policy).toBeFocused();
+    await policy.click();
+    await page.getByRole("option", { name: "仅玩家" }).click();
+    expect(saves).toHaveLength(0);
+    await page.keyboard.press("Control+s");
+    await expect.poll(() => saves.length).toBe(1);
+    expect(saves[0]).toMatchObject({ defaultSubthreadPostingPolicy: "PLAYERS", defaultSubthreadVersion: 3 });
+    await expect(page.getByRole("button", { name: "保存帖子" })).toBeDisabled();
+    await page.reload();
+    await expect(page.getByRole("combobox", { name: "主贴发言权限" }).locator('[data-slot="select-value"]')).toHaveText("仅玩家");
+    const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+    expect(results.violations).toEqual([]);
+  });
+
   test("1440px 设置页视觉基线", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 1000 });
     await openManagementWorkspace(page);

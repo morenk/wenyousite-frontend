@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { TagInput } from "@/components/forms/tag-input";
 import type { ThreadCreateFormData } from "@/lib/validations/thread-create";
+import { POSTING_POLICY_OPTIONS } from "@/lib/post-policy";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
 import { useThreadCategories } from "@/api/hooks/use-thread-categories";
 import type { ThreadCategoryInfo } from "@/lib/thread-presentation";
@@ -31,6 +32,8 @@ export function ThreadMetadataFields({
   status,
   onStatusChange,
   currentCategoryInfo,
+  postingPolicy,
+  onPostingPolicyChange,
 }: {
   form: UseFormReturn<ThreadCreateFormData>;
   disabled: boolean;
@@ -40,6 +43,8 @@ export function ThreadMetadataFields({
   status?: ThreadDetail["status"];
   onStatusChange?: (status: ThreadDetail["status"]) => void;
   currentCategoryInfo?: ThreadCategoryInfo | null;
+  postingPolicy?: ThreadDetail["defaultSubthread"]["postingPolicy"];
+  onPostingPolicyChange?: (policy: ThreadDetail["defaultSubthread"]["postingPolicy"]) => void;
 }) {
   const categoriesQuery = useThreadCategories();
   const categories = categoriesQuery.data ?? [];
@@ -201,6 +206,32 @@ export function ThreadMetadataFields({
               仅楼主可修改可见性。
             </p>
           ) : null}
+        </div>
+      )}
+
+      {showPublication && postingPolicy !== undefined && onPostingPolicyChange && (
+        <div className="space-y-2">
+          <Label htmlFor="main-post-policy">主贴发言权限</Label>
+          <Select
+            items={POSTING_POLICY_OPTIONS}
+            value={postingPolicy}
+            onValueChange={(value) => {
+              if (value) onPostingPolicyChange(value);
+            }}
+            disabled={disabled}
+          >
+            <SelectTrigger id="main-post-policy" className="w-full" aria-describedby="main-post-policy-help">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="start">
+              {POSTING_POLICY_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p id="main-post-policy-help" className="text-xs leading-5 text-muted-foreground">
+            仅影响主贴下的发言，子贴权限单独设置。
+          </p>
         </div>
       )}
 

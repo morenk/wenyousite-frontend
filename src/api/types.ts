@@ -799,7 +799,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** 原子保存主题帖元数据、默认子贴标题/正文和标签，可同时发布草稿 */
+        /** 原子保存主题帖元数据、默认子贴标题/发言权限/正文和标签，可同时发布草稿 */
         patch: operations["threadsSaveAggregate"];
         trace?: never;
     };
@@ -3331,6 +3331,26 @@ export interface components {
             players: number;
             posts: number;
         };
+        ThreadCoverPreviewVariantResponseDto: {
+            /** @description 已发布的不可变列表动画 WebP 地址；不用于替换正文原图 URL */
+            url: string;
+            /** @description 单帧实际像素宽度 */
+            width: number;
+            /** @description 单帧实际像素高度 */
+            height: number;
+            /** @description 完整动画预览文件字节数 */
+            bytes: number;
+        };
+        ThreadCoverMediaResponseDto: {
+            /** @description 第一张普通正文图片的原始播放地址，与 coverImages[0] 一致；未知媒体不得自动请求 */
+            url: string;
+            /** @description 可信的动画属性；无法确认、未完成或历史 GIF 返回 null */
+            animated: boolean | null;
+            /** @description 可用于列表静止状态的第一帧静态地址；未知时返回 null，客户端显示占位，禁止回退加载原图 */
+            posterUrl: string | null;
+            /** @description 可选列表动画变体，按单帧像素面积升序；缺失或 null 时，只有已确认 animated=true 且有独立静态 poster 的媒体可受控回退原 url */
+            previewVariants?: components["schemas"]["ThreadCoverPreviewVariantResponseDto"][] | null;
+        };
         ThreadListItemResponseDto: {
             id: string;
             title: string;
@@ -3363,6 +3383,8 @@ export interface components {
             preview: string;
             /** @description 默认主贴正文中的第一张普通图片 URL；无图时返回空数组 */
             coverImages: string[];
+            /** @description 第一张普通正文图片的封面读模型；无图时返回 null。旧服务可能省略，消费者须兼容缺字段 */
+            coverMedia: components["schemas"]["ThreadCoverMediaResponseDto"] | null;
         };
         UpdateUserDto: {
             /**
@@ -3468,6 +3490,8 @@ export interface components {
             preview: string;
             /** @description 默认主贴正文中的第一张普通图片 URL；无图时返回空数组 */
             coverImages: string[];
+            /** @description 第一张普通正文图片的封面读模型；无图时返回 null。旧服务可能省略，消费者须兼容缺字段 */
+            coverMedia: components["schemas"]["ThreadCoverMediaResponseDto"] | null;
         };
         MomentMediaResponseDto: {
             id: string;
@@ -3748,6 +3772,8 @@ export interface components {
             preview: string;
             /** @description 默认主贴正文中的第一张普通图片 URL；无图时返回空数组 */
             coverImages: string[];
+            /** @description 第一张普通正文图片的封面读模型；无图时返回 null。旧服务可能省略，消费者须兼容缺字段 */
+            coverMedia: components["schemas"]["ThreadCoverMediaResponseDto"] | null;
             /** @description 收藏记录 ID */
             bookmarkId: string;
             /** @description 所属收藏夹 ID */
@@ -3857,6 +3883,8 @@ export interface components {
             preview: string;
             /** @description 默认主贴正文中的第一张普通图片 URL；无图时返回空数组 */
             coverImages: string[];
+            /** @description 第一张普通正文图片的封面读模型；无图时返回 null。旧服务可能省略，消费者须兼容缺字段 */
+            coverMedia: components["schemas"]["ThreadCoverMediaResponseDto"] | null;
         };
         CreateThreadDto: {
             /**
@@ -4110,6 +4138,11 @@ export interface components {
             version: number;
             /** @description 默认子贴乐观锁版本 */
             defaultSubthreadVersion: number;
+            /**
+             * @description 主贴发言权限；省略保留原值。仅影响默认子贴楼层与回复，不修改其他子贴
+             * @enum {string}
+             */
+            defaultSubthreadPostingPolicy?: "PARTICIPANTS" | "COLLABORATORS" | "PLAYERS";
             /** @description 已有默认正文的乐观锁版本 */
             bodyVersion?: number;
             /** @description 默认子贴 Markdown 正文 */
@@ -5668,6 +5701,8 @@ export interface components {
             preview: string;
             /** @description 默认主贴正文中的第一张普通图片 URL；无图时返回空数组 */
             coverImages: string[];
+            /** @description 第一张普通正文图片的封面读模型；无图时返回 null。旧服务可能省略，消费者须兼容缺字段 */
+            coverMedia: components["schemas"]["ThreadCoverMediaResponseDto"] | null;
             /** @description 仅说明本次查询的标题相关度；客户端不得作为稳定业务字段依赖 */
             relevance?: number;
         };

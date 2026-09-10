@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -49,6 +49,10 @@ interface ThreadEditBaseline {
   status: ThreadDetail["status"];
   tagNames: string[];
   content: string;
+  postingPolicy: ThreadDetail["defaultSubthread"]["postingPolicy"];
+  version: number;
+  defaultSubthreadVersion: number;
+  bodyVersion?: number;
 }
 
 function getThreadEditBaseline(thread: ThreadDetail): ThreadEditBaseline {
@@ -59,6 +63,10 @@ function getThreadEditBaseline(thread: ThreadDetail): ThreadEditBaseline {
     status: thread.status,
     tagNames: thread.topicTags.map((item) => item.tag.name),
     content: thread.defaultSubthread.bodyPost?.content ?? "",
+    postingPolicy: thread.defaultSubthread.postingPolicy,
+    version: thread.version,
+    defaultSubthreadVersion: thread.defaultSubthread.version,
+    bodyVersion: thread.defaultSubthread.bodyPost?.version,
   };
 }
 
@@ -73,6 +81,8 @@ export function ThreadEditForm({
   const confirmAction = useConfirm();
   const { confirmPublicInvite, resetPublicInviteConfirmation } = usePublicInviteConfirmation();
   const [isSaving, setIsSaving] = useState(false);
+  const savingRef = useRef(false);
+  const [postingPolicy, setPostingPolicy] = useState(thread.defaultSubthread.postingPolicy);
   const [status, setStatus] = useState<ThreadDetail["status"]>(thread.status);
   const [saveState, setSaveState] = useState<ManagementEditorStatus["state"]>("saved");
   const [saveMessage, setSaveMessage] = useState<string>();
@@ -107,6 +117,7 @@ export function ThreadEditForm({
     title !== baseline.title ||
     category !== baseline.category ||
     status !== baseline.status ||
+    postingPolicy !== baseline.postingPolicy ||
     (isOwner && visibility !== baseline.visibility) ||
     JSON.stringify(tagNames ?? []) !== JSON.stringify(baseline.tagNames) ||
     editorContent !== baseline.content;
@@ -128,6 +139,7 @@ export function ThreadEditForm({
     const nextBaseline = getThreadEditBaseline(nextThread);
     form.reset(nextBaseline);
     setStatus(nextBaseline.status);
+    setPostingPolicy(nextBaseline.postingPolicy);
     setEditorContent(nextBaseline.content);
     setBaseline(nextBaseline);
     setSaveState("saved");
@@ -137,8 +149,10 @@ export function ThreadEditForm({
   async function handleSave(values: ThreadCreateFormData) {
     const content = values.content ?? "";
     const nextVisibility = isOwner ? values.visibility : thread.visibility;
-    if (!(await confirmPublicInvite(content, nextVisibility === "PUBLIC"))) return;
+    if (savingRef.current) return;
+    savingRef.current = true;
     try {
+      if (!(await confirmPublicInvite(content, nextVisibility === "PUBLIC"))) return;
       setIsSaving(true);
       setSaveState("saving");
       setSaveMessage(undefined);
@@ -151,9 +165,12 @@ export function ThreadEditForm({
             : {}),
           status,
           ...(isOwner ? { visibility: values.visibility } : {}),
-          version: thread.version,
-          defaultSubthreadVersion: thread.defaultSubthread.version,
-          bodyVersion: thread.defaultSubthread.bodyPost?.version,
+          version: baseline.version,
+          defaultSubthreadVersion: baseline.defaultSubthreadVersion,
+          bodyVersion: baseline.bodyVersion,
+          ...(postingPolicy !== baseline.postingPolicy
+            ? { defaultSubthreadPostingPolicy: postingPolicy }
+            : {}),
           content,
           tagNames: values.tagNames ?? [],
         },
@@ -176,6 +193,7 @@ export function ThreadEditForm({
         toast.error(message);
       }
     } finally {
+      savingRef.current = false;
       setIsSaving(false);
     }
   }
@@ -245,7 +263,13 @@ export function ThreadEditForm({
   return (
     <form
       id={formId}
-      onSubmit={form.handleSubmit(handleSave)}
+      onSubmit={(event) => {
+        if (savingRef.current) {
+          event.preventDefault();
+          return;
+        }
+        void form.handleSubmit(handleSave)(event);
+      }}
       className="space-y-6"
     >
       {reportedStatus.state === "conflict" || reportedStatus.state === "error" ? (
@@ -332,6 +356,8 @@ export function ThreadEditForm({
                 showVisibility
                 visibilityReadOnly={!isOwner}
                 currentCategoryInfo={thread.categoryInfo}
+                postingPolicy={postingPolicy}
+                onPostingPolicyChange={setPostingPolicy}
                 status={status}
                 onStatusChange={(nextStatus) => {
                   setStatus(nextStatus);
