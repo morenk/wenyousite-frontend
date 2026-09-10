@@ -1,4 +1,4 @@
-/** 列表封面使用服务端确认的静态首帧，全局只按需挂载一张动画。 */
+/** 列表封面使用服务端确认的静态首帧，可见项按需挂载动画。 */
 "use client";
 
 import { useState, type ImgHTMLAttributes } from "react";
@@ -40,7 +40,7 @@ export function ThreadCover({ image, media, className }: ThreadCoverProps) {
   const [failedPoster, setFailedPoster] = useState<string | null>(null);
   const [failedAnimation, setFailedAnimation] = useState<string | null>(null);
   const showPoster = !!poster && failedPoster !== identity;
-  const { ref, active, size } = useCoverPlayback(
+  const { ref, active, size, generation } = useCoverPlayback(
     showPoster && loadedPoster === identity && descriptor?.animated === true && failedAnimation !== identity, identity,
   );
 
@@ -51,7 +51,7 @@ export function ThreadCover({ image, media, className }: ThreadCoverProps) {
     className={cn("pointer-events-none relative mt-3 aspect-video w-1/2 overflow-hidden rounded-xl bg-muted", className)}
     data-thread-cover="true" data-cover-url={original}>
     {showPoster ? active
-      ? <PlayingCover key={identity} url={playbackUrl} poster={poster} onError={() => setFailedAnimation(identity)} />
+      ? <PlayingCover key={`${identity}:${generation}`} url={playbackUrl} poster={poster} onError={() => setFailedAnimation(identity)} />
       : <CoverImage key={identity} data-cover-poster src={poster} className="h-full w-full object-cover"
           onLoad={() => setLoadedPoster(identity)} onError={() => setFailedPoster(identity)} />
       : <span className="flex h-full items-center justify-center text-muted-foreground" aria-hidden="true"><ImageIcon className="size-6" /></span>}

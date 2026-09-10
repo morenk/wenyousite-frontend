@@ -1,29 +1,16 @@
-/** 列表封面共享调度：任何时刻至多一个动画实例，滚动时撤销加载。 */
-export const COVER_SETTLE_MS = 120;
-export const COVER_SCROLL_END_MS = 60;
+/** 列表封面共享可见性调度：露出一半即播放，完全离屏才停止，不限制并播数量。 */
 export const COVER_DATA_SAVER_KEY = "wenyou:cover-data-saver";
 export const COVER_PREFERENCE_EVENT = "wenyou:cover-preference";
 
 export interface CoverRect { left: number; top: number; right: number; bottom: number }
 export interface CoverCandidate { id: symbol; rect: CoverRect; viewport: CoverRect; visible: CoverRect }
 
-export function pickCover(candidates: CoverCandidate[], previous: symbol | null): symbol | null {
-  let selected: symbol | null = null;
-  let best = Infinity;
-  for (const { id, rect, viewport, visible } of candidates) {
-    const area = Math.max(0, rect.right - rect.left) * Math.max(0, rect.bottom - rect.top);
-    const visibleArea = Math.max(0, visible.right - visible.left) * Math.max(0, visible.bottom - visible.top);
-    if (!area || visibleArea / area < 0.5) continue;
-    const distance = Math.hypot(
-      (rect.left + rect.right - viewport.left - viewport.right) / 2,
-      (rect.top + rect.bottom - viewport.top - viewport.bottom) / 2,
-    );
-    if (distance < best || (distance === best && id === previous)) {
-      best = distance;
-      selected = id;
-    }
-  }
-  return selected;
+/** 进入需半数可见；已激活项仅在完全离屏/被遮挡时退出，避免阈值附近反复重启。 */
+export function shouldPlayCover(candidate: Omit<CoverCandidate, "id">, active: boolean): boolean {
+  const { rect, visible } = candidate;
+  const area = Math.max(0, rect.right - rect.left) * Math.max(0, rect.bottom - rect.top);
+  const visibleArea = Math.max(0, visible.right - visible.left) * Math.max(0, visible.bottom - visible.top);
+  return area > 0 && (active ? visibleArea > 0 : visibleArea / area >= 0.5);
 }
 
 function intersect(a: CoverRect, b: CoverRect): CoverRect {
@@ -42,7 +29,7 @@ export function measureCover(node: HTMLElement): Omit<CoverCandidate, "id"> | nu
   const area = Math.max(0, rect.right - rect.left) * Math.max(0, rect.bottom - rect.top);
   const initialArea = Math.max(0, initialVisible.right - initialVisible.left) * Math.max(0, initialVisible.bottom - initialVisible.top);
   // 无限列表先做廉价视口剔除，仅可见候选读取祖先样式。
-  if (!area || initialArea / area < 0.5) return null;
+  if (!area || initialArea <= 0) return null;
   let clip: CoverRect = viewport;
   for (let parent = node.parentElement; parent; parent = parent.parentElement) {
     const style = getComputedStyle(parent);
@@ -88,170 +75,103 @@ export function setCoverDataSaver(enabled: boolean): void {
 type Entry = { node: HTMLElement; change: (active: boolean) => void };
 export class CoverPlaybackController {
   private entries = new Map<symbol, Entry>();
-  private active: symbol | null = null;
-  private activeSize: { width: number; height: number } | null = null;
-  private previous: symbol | null = null;
-  private timer: ReturnType<typeof setTimeout> | null = null;
+  private active = new Map<symbol, { width: number; height: number; dpr: number }>();
+  private frame: number | null = null;
+  private nodeIds = new WeakMap<Element, symbol>();
+  private intersecting = new Set<symbol>();
+  private pending = new Set<symbol>();
   private dispose: (() => void) | null = null;
   private dataSaver = false;
   private reduced: MediaQueryList | null = null;
   private routeSuspended = false;
   private resize: ResizeObserver | null = null;
+  private intersection: IntersectionObserver | null = null;
   private routeKey = "";
-  private scrolling = new Set<EventTarget>();
-  private deadline = 0;
-  private inputUntil = 0;
 
   register(node: HTMLElement, change: Entry["change"]): () => void {
-    const id = Symbol();
-    this.entries.set(id, { node, change });
+    const id = Symbol(); this.entries.set(id, { node, change });
+    this.nodeIds.set(node, id); this.pending.add(id);
     if (!this.dispose) this.start();
-    this.resize?.observe(node);
-    this.reconsider();
+    this.resize?.observe(node); this.intersection?.observe(node); this.refresh();
     return () => {
-      if (this.active === id) this.activate(null);
-      this.entries.delete(id);
-      this.resize?.unobserve(node);
-      if (!this.entries.size) { this.cancel(); this.dispose?.(); this.dispose = null; this.previous = null; }
-      else this.reconsider();
+      this.stop(id); this.entries.delete(id); this.nodeIds.delete(node); this.intersecting.delete(id); this.pending.delete(id);
+      this.resize?.unobserve(node); this.intersection?.unobserve(node);
+      if (!this.entries.size) { this.cancel(); this.dispose?.(); this.dispose = null; }
+      else this.refresh();
     };
   }
-
-  /** 导航提交前暂停旧页面；提交后重新等待停稳。 */
-  suspendRoute = (): void => { this.routeSuspended = true; this.cancel(); this.activate(null); };
-  resumeRoute = (): void => { this.routeKey = location.pathname + location.search; this.routeSuspended = false; this.settle(); };
+  suspendRoute = (): void => { this.routeSuspended = true; this.cancel(); this.stopAll(); };
+  resumeRoute = (): void => { this.routeKey = location.pathname + location.search; this.routeSuspended = false; this.refresh(); };
   private historyChanged = (): void => {
-    if (location.pathname + location.search === this.routeKey) this.settle();
+    if (location.pathname + location.search === this.routeKey) this.refresh();
     else this.suspendRoute();
   };
-
-  private activate(id: symbol | null) {
-    if (id === this.active) return;
-    if (this.active) this.entries.get(this.active)?.change(false);
-    this.active = id;
-    this.activeSize = null;
-    if (id) {
-      this.previous = id;
-      const entry = this.entries.get(id);
-      const rect = entry?.node.getBoundingClientRect();
-      if (rect) this.activeSize = { width: rect.right - rect.left, height: rect.bottom - rect.top };
-      entry?.change(true);
-    }
+  private stop(id: symbol) {
+    if (this.active.delete(id)) this.entries.get(id)?.change(false);
   }
-  private cancel() { if (this.timer !== null) clearTimeout(this.timer); this.timer = null; this.deadline = 0; }
-  settle = (): void => { this.scrolling.clear(); this.schedule(true); };
-  private motion = (event: Event): void => {
-    // 多个嵌套/独立容器的结束事件分别配对，不能由一个容器释放另一个。
-    if (event.type === "scroll" && event.target) this.scrolling.add(event.target);
-    else {
-      this.scrolling.clear(); // 新手势尚未产生 scroll，旧 scrollend 不能提前放行。
-      this.inputUntil = Date.now() + COVER_SETTLE_MS;
-    }
-    this.schedule(true);
-  };
-  private scrollEnd = (event: Event): void => {
-    if (!event.target || !this.scrolling.delete(event.target) || this.scrolling.size) return;
-    // 部分浏览器对连续的离散 scrollBy 每次都发 scrollend；短安静期避免逐项请求。
-    // 离散 wheel/touch 输入可能逐次产生结束事件，仍须满足最近输入的静止窗口。
-    this.scheduleSelection(Math.max(COVER_SCROLL_END_MS, this.inputUntil - Date.now()));
-  };
-  private scheduleSelection(delay: number) {
-    const deadline = Date.now() + delay;
-    if (this.timer !== null && this.deadline <= deadline) return;
-    this.cancel(); this.deadline = deadline;
-    this.timer = setTimeout(this.select, delay);
-  }
+  private stopAll() { for (const id of this.active.keys()) this.stop(id); }
+  private cancel() { if (this.frame !== null) cancelAnimationFrame(this.frame); this.frame = null; }
   private blocked(): boolean {
     return !this.entries.size || this.routeSuspended || this.dataSaver || !!this.reduced?.matches
       || document.visibilityState === "hidden"
       || !!document.querySelector('[role="dialog"], [role="alertdialog"]');
   }
-  private select = (): void => {
-    this.timer = null; this.deadline = 0;
-    this.scrolling.clear();
-    if (this.blocked()) { this.activate(null); return; }
-    const candidates: CoverCandidate[] = [];
-    for (const [id, entry] of this.entries) {
-      const measurement = measureCover(entry.node);
-      if (measurement) candidates.push({ id, ...measurement });
-    }
-    this.activate(pickCover(candidates, this.previous));
+  /** 观察器与滚动事件每帧合并；没有停稳等待，持续可见的实例不会被中断。 */
+  refresh = (): void => {
+    if (this.blocked()) { this.cancel(); this.stopAll(); return; }
+    if (this.frame === null) this.frame = requestAnimationFrame(this.measure);
   };
-  private reconsider = (): void => { this.schedule(false); };
-  private schedule(interrupt: boolean): void {
-    if (interrupt) { this.cancel(); this.activate(null); }
-    if (this.blocked()) {
-      this.cancel(); this.scrolling.clear(); this.activate(null);
-      return;
+  private measure = (): void => {
+    this.frame = null;
+    if (this.blocked()) { this.stopAll(); return; }
+    // 历史列表可累积很多卡片。IO维护候选，活动项仍需实测到完全离屏，新项不等首次IO回调。
+    const ids = this.intersection ? new Set([...this.intersecting, ...this.active.keys(), ...this.pending]) : this.entries.keys();
+    this.pending.clear();
+    for (const id of ids) {
+      const entry = this.entries.get(id); if (!entry) continue;
+      const before = this.active.get(id), measurement = measureCover(entry.node);
+      if (!measurement || !shouldPlayCover(measurement, !!before)) { this.stop(id); continue; }
+      const { rect } = measurement;
+      const next = { width: rect.right - rect.left, height: rect.bottom - rect.top, dpr: window.devicePixelRatio || 1 };
+      if (before && before.width === next.width && before.height === next.height && before.dpr === next.dpr) continue;
+      // 只重置实际尺寸/DPR变化的当前项；其他可见项及其动画时间线保持。
+      if (before) this.stop(id);
+      this.active.set(id, next); entry.change(true);
     }
-    if (this.active) {
-      const entry = this.entries.get(this.active);
-      const measurement = entry && measureCover(entry.node);
-      const resized = measurement && this.activeSize
-        && (measurement.rect.right - measurement.rect.left !== this.activeSize.width
-          || measurement.rect.bottom - measurement.rect.top !== this.activeSize.height);
-      if (!measurement || resized || !pickCover([{ id: this.active, ...measurement }], this.active)) {
-        this.cancel(); this.activate(null);
-      }
-    }
-    // 候选就绪、分页注册和无关布局通知只重评估，不挪动已有交互截止时间。
-    if (this.timer === null) this.scheduleSelection(COVER_SETTLE_MS);
-  }
-
+  };
   private start() {
     this.routeKey = location.pathname + location.search;
     this.dataSaver = readCoverDataSaver();
     this.reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)") ?? null;
     const preference = (event: Event) => {
-      this.dataSaver = event instanceof CustomEvent ? event.detail === true : readCoverDataSaver();
-      this.settle();
+      this.dataSaver = event instanceof CustomEvent ? event.detail === true : readCoverDataSaver(); this.refresh();
     };
-    const navigation = (event: Event) => {
-      if (!(event.target instanceof Element)) return;
-      const link = event.target.closest("a[href]");
-      if (!(event instanceof MouseEvent) || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
-      if (link && link.getAttribute("target") !== "_blank") {
-        const url = new URL(link.getAttribute("href")!, window.location.href);
-        if (url.origin !== location.origin || url.pathname !== location.pathname || url.search !== location.search) this.settle();
-      }
-    };
-    const events = ["resize", "visibilitychange", "focusin"];
-    const motionEvents = ["scroll", "wheel", "touchmove"];
-    for (const name of motionEvents) window.addEventListener(name, this.motion, { capture: true, passive: true });
-    window.addEventListener("scrollend", this.scrollEnd, { capture: true, passive: true });
-    for (const name of events) window.addEventListener(name, this.settle, { capture: true, passive: true });
+    const events = ["scroll", "resize", "visibilitychange", "focusin"];
+    for (const name of events) window.addEventListener(name, this.refresh, { capture: true, passive: true });
     const stopPreference = subscribeCoverPreference(preference);
-    window.addEventListener("pagehide", this.suspendRoute);
-    window.addEventListener("pageshow", this.resumeRoute);
+    window.addEventListener("pagehide", this.suspendRoute); window.addEventListener("pageshow", this.resumeRoute);
     window.addEventListener("popstate", this.historyChanged);
-    document.addEventListener("click", navigation, true);
-    this.reduced?.addEventListener("change", this.settle);
-    window.visualViewport?.addEventListener("resize", this.settle);
-    window.visualViewport?.addEventListener("scroll", this.motion);
-    window.visualViewport?.addEventListener("scrollend", this.scrollEnd);
-    const resize = this.resize = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(this.reconsider);
-    resize?.observe(document.documentElement);
-    let dialogPresent = !!document.querySelector('[role="dialog"], [role="alertdialog"]');
-    const mutations = new MutationObserver(() => {
-      const next = !!document.querySelector('[role="dialog"], [role="alertdialog"]');
-      if (next !== dialogPresent) { dialogPresent = next; this.settle(); }
-    });
-    mutations.observe(document.body, { childList: true, subtree: true });
+    this.reduced?.addEventListener("change", this.refresh);
+    window.visualViewport?.addEventListener("resize", this.refresh); window.visualViewport?.addEventListener("scroll", this.refresh);
+    this.resize = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(this.refresh);
+    this.resize?.observe(document.documentElement);
+    this.intersection = typeof IntersectionObserver === "undefined" ? null : new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        const id = this.nodeIds.get(entry.target); if (!id) continue;
+        if (entry.isIntersecting) this.intersecting.add(id); else this.intersecting.delete(id);
+      }
+      this.refresh();
+    }, { threshold: [0, 0.5, 1] });
+    const mutations = new MutationObserver(this.refresh);
+    mutations.observe(document.body, { childList: true, subtree: true, attributes: true,
+      attributeFilter: ["class", "style", "role", "aria-hidden", "inert"] });
     this.dispose = () => {
-      for (const name of events) window.removeEventListener(name, this.settle, true);
-      for (const name of motionEvents) window.removeEventListener(name, this.motion, true);
-      window.removeEventListener("scrollend", this.scrollEnd, true);
-      this.scrolling.clear();
-      stopPreference();
-      window.removeEventListener("pagehide", this.suspendRoute);
-      window.removeEventListener("pageshow", this.resumeRoute);
+      for (const name of events) window.removeEventListener(name, this.refresh, true);
+      stopPreference(); window.removeEventListener("pagehide", this.suspendRoute); window.removeEventListener("pageshow", this.resumeRoute);
       window.removeEventListener("popstate", this.historyChanged);
-      document.removeEventListener("click", navigation, true);
-      this.reduced?.removeEventListener("change", this.settle);
-      window.visualViewport?.removeEventListener("resize", this.settle);
-      window.visualViewport?.removeEventListener("scroll", this.motion);
-      window.visualViewport?.removeEventListener("scrollend", this.scrollEnd);
-      resize?.disconnect(); this.resize = null; mutations.disconnect();
+      this.reduced?.removeEventListener("change", this.refresh);
+      window.visualViewport?.removeEventListener("resize", this.refresh); window.visualViewport?.removeEventListener("scroll", this.refresh);
+      this.resize?.disconnect(); this.resize = null; this.intersection?.disconnect(); this.intersection = null; mutations.disconnect();
     };
   }
 }

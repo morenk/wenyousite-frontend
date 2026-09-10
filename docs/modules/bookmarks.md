@@ -113,7 +113,7 @@
 | BookmarkFolderPickerDialog | `src/components/user/bookmark-folder-picker-dialog.tsx` | 选择现有分类或就地新建后确认收藏 |
 | BookmarkFolderBar | `src/components/user/bookmark-folder-bar.tsx` | 当前内容类型的纵向目录、名称搜索、数量与新建入口 |
 | CreateBookmarkFolderButton | `src/components/user/create-bookmark-folder-button.tsx` | RHF + Zod 新建弹窗；按当前内容类型调用独立端点 |
-| BookmarkThreadCard | `src/components/user/bookmark-thread-card.tsx` | 连续收藏列表行（标题/封面/作者/分类/时间/目录/更多操作）；封面复用全局中心单张播放 |
+| BookmarkThreadCard | `src/components/user/bookmark-thread-card.tsx` | 连续收藏列表行（标题/封面/作者/分类/时间/目录/更多操作）；封面复用可见封面同时播放 |
 | BookmarkList | `src/components/user/bookmark-list.tsx` | 我的收藏管理列表（分类分页 + 移动 + 取消） |
 | UserBookmarksSection | `src/components/user/user-bookmarks-section.tsx` | 资料页收藏 Tab 复用首页主题帖列表卡片，保持只读（404=未公开） |
 | UserBookmarksPage | `src/components/user/user-bookmarks-page.tsx` | 收藏 Tab 页面与权限门；无权限时不挂载列表查询 |
