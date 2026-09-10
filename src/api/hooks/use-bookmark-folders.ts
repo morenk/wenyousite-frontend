@@ -76,8 +76,14 @@ export function useCreateBookmarkFolder(kind: BookmarkFolderKind = "threads") {
       if (!data?.data) throw new Error("新建主题帖收藏夹响应为空");
       return mapThreadFolder(data.data);
     },
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: queryKeys.bookmarks.folders(kind) }),
+    onSuccess: (folder) => {
+      const queryKey = queryKeys.bookmarks.folders(kind);
+      // 资料页新建时目录查询可能未挂载；先补齐旧缓存，避免跳转后误判新夹 URL 无效。
+      queryClient.setQueryData<BookmarkFolder[]>(queryKey, (folders) =>
+        folders ? [...folders.filter((item) => item.id !== folder.id), folder] : undefined,
+      );
+      return queryClient.invalidateQueries({ queryKey });
+    },
   });
 }
 
