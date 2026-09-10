@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useDeleteMoment, useMoment, useMomentBookmark, useMomentLike, useUpdateMoment } from "@/api/hooks/use-moments";
 import { getApiErrorMessage, isContentUnavailableError } from "@/api/errors";
 import { useContentAccessCache } from "@/api/hooks/use-content-access-cache";
+import { MomentPlaybackProvider } from "@/components/moment/moment-playback";
 import { MomentComments } from "@/components/moment/moment-comments";
 import { MomentImageGallery } from "@/components/moment/moment-image-gallery";
 import { WenyouTipButton } from "@/components/economy/wenyou-tip-button";
@@ -142,7 +143,7 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
     editContentRef.current?.insertReference(markdown);
   };
   return (
-    <>
+    <MomentPlaybackProvider>
       <article
         className="w-full bg-background"
         data-content-purpose={CONTENT_PRESENTATION.detail.purpose}
@@ -316,6 +317,6 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
           }
         }}
       />
-    </>
+    </MomentPlaybackProvider>
   );
 }
