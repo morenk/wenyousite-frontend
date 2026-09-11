@@ -59,6 +59,18 @@ describe("ContentDraftsPanel", () => {
     vi.unstubAllGlobals();
   });
 
+  it("草稿预览隐藏合法对齐协议，恢复仍交付完整原文", async () => {
+    const content = "经历：\n[wenyousite-align-v1-center]: #\n## 草稿标题";
+    mocks.drafts.mockReturnValue({ data: [{ ...draft, content }], isLoading: false,
+      refetch: vi.fn().mockResolvedValue({ data: [{ ...draft, content }] }) });
+    const onRestore = vi.fn();
+    renderPanel({ onRestore });
+    expect(screen.getByRole("region", { name: "正文草稿" })).toHaveTextContent("经历： 草稿标题");
+    expect(screen.getByRole("region", { name: "正文草稿" }).textContent).not.toContain("wenyousite-align");
+    await userEvent.setup().click(screen.getByText("恢复"));
+    expect(onRestore).toHaveBeenCalledWith({ content });
+  });
+
   it("渲染五个槽位并恢复完整正文", async () => {
     const user = userEvent.setup();
     const onRestore = vi.fn();
@@ -113,6 +125,23 @@ describe("ContentDraftsPanel", () => {
     renderPanel({ initialContent: "本地正文", onRestore });
     await user.click(screen.getByText("恢复"));
     expect(onRestore).not.toHaveBeenCalled();
+  });
+
+  it.each(["本地正文", ""])("同步失败保留恢复覆盖确认且禁写草稿：%s", async (initialContent) => {
+    const user = userEvent.setup();
+    const onRestore = vi.fn();
+    const confirm = vi.fn(() => false);
+    vi.stubGlobal("confirm", confirm);
+    const save = vi.fn();
+    mocks.save.mockReturnValue(mutation(save));
+    renderPanel({ initialContent, saveDisabled: true, onRestore, onAutoSaveChange: vi.fn() });
+    expect(screen.getByRole("button", { name: "覆盖草稿 1" })).toBeDisabled();
+    for (const button of screen.getAllByText("保存当前正文")) expect(button).toBeDisabled();
+    expect(screen.getByRole("switch", { name: "自动保存到草稿 1" })).toBeDisabled();
+    await user.click(screen.getByText("恢复"));
+    expect(confirm).toHaveBeenCalled();
+    expect(onRestore).not.toHaveBeenCalled();
+    expect(save).not.toHaveBeenCalled();
   });
 
   it("展示加载和错误恢复状态", async () => {

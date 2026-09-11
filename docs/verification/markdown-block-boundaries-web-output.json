@@ -1,0 +1,897 @@
+{
+  "client": "web",
+  "backendContractSha": "a91cbb8b605223c596af299be22c5547f69e25b9",
+  "fixtureSha256": "822509411fbf3379847a04ec64a4a32ddb1bb8fb96aecbf38b395b049134fda9",
+  "outputs": [
+    {
+      "id": "center-paragraph-after-paragraph",
+      "kind": "case",
+      "serialized": "前后正文\n\n[wenyousite-align-v1-center]: #\n目标正文"
+    },
+    {
+      "id": "center-paragraph-before-paragraph",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n目标正文\n\n前后正文"
+    },
+    {
+      "id": "center-paragraph-after-heading-2",
+      "kind": "case",
+      "serialized": "## 前后标题\n\n[wenyousite-align-v1-center]: #\n目标正文"
+    },
+    {
+      "id": "center-paragraph-before-heading-2",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n目标正文\n\n## 前后标题"
+    },
+    {
+      "id": "center-paragraph-after-heading-3",
+      "kind": "case",
+      "serialized": "### 前后小标题\n\n[wenyousite-align-v1-center]: #\n目标正文"
+    },
+    {
+      "id": "center-paragraph-before-heading-3",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n目标正文\n\n### 前后小标题"
+    },
+    {
+      "id": "center-paragraph-after-image",
+      "kind": "case",
+      "serialized": "![1.00](https://cdn.example.com/boundary.png)\n\n[wenyousite-align-v1-center]: #\n目标正文"
+    },
+    {
+      "id": "center-paragraph-before-image",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n目标正文\n\n![1.00](https://cdn.example.com/boundary.png)"
+    },
+    {
+      "id": "center-paragraph-after-bullet-list",
+      "kind": "case",
+      "serialized": "* 列表\n\n[wenyousite-align-v1-center]: #\n目标正文"
+    },
+    {
+      "id": "center-paragraph-before-bullet-list",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n目标正文\n\n* 列表"
+    },
+    {
+      "id": "center-paragraph-after-blockquote",
+      "kind": "case",
+      "serialized": "> 引用\n\n[wenyousite-align-v1-center]: #\n目标正文"
+    },
+    {
+      "id": "center-paragraph-before-blockquote",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n目标正文\n\n> 引用"
+    },
+    {
+      "id": "center-paragraph-after-horizontal-rule",
+      "kind": "case",
+      "serialized": "---\n\n[wenyousite-align-v1-center]: #\n目标正文"
+    },
+    {
+      "id": "center-paragraph-before-horizontal-rule",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n目标正文\n\n---"
+    },
+    {
+      "id": "center-paragraph-after-empty-paragraph",
+      "kind": "case",
+      "serialized": "<br />\n[wenyousite-align-v1-center]: #\n目标正文"
+    },
+    {
+      "id": "center-paragraph-before-empty-paragraph",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n目标正文\n<br />"
+    },
+    {
+      "id": "center-paragraph-crlf",
+      "kind": "case",
+      "serialized": "前文\n\n[wenyousite-align-v1-center]: #\n目标正文"
+    },
+    {
+      "id": "center-paragraph-blank-before",
+      "kind": "case",
+      "serialized": "前文\n<br />\n[wenyousite-align-v1-center]: #\n目标正文"
+    },
+    {
+      "id": "center-paragraph-consecutive-aligned-blocks",
+      "kind": "case",
+      "serialized": "前文\n\n[wenyousite-align-v1-center]: #\n目标正文\n\n[wenyousite-align-v1-right]: #\n下一对齐块"
+    },
+    {
+      "id": "center-heading-2-after-paragraph",
+      "kind": "case",
+      "serialized": "前后正文\n\n[wenyousite-align-v1-center]: #\n## 目标标题"
+    },
+    {
+      "id": "center-heading-2-before-paragraph",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n## 目标标题\n\n前后正文"
+    },
+    {
+      "id": "center-heading-2-after-heading-2",
+      "kind": "case",
+      "serialized": "## 前后标题\n\n[wenyousite-align-v1-center]: #\n## 目标标题"
+    },
+    {
+      "id": "center-heading-2-before-heading-2",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n## 目标标题\n\n## 前后标题"
+    },
+    {
+      "id": "center-heading-2-after-heading-3",
+      "kind": "case",
+      "serialized": "### 前后小标题\n\n[wenyousite-align-v1-center]: #\n## 目标标题"
+    },
+    {
+      "id": "center-heading-2-before-heading-3",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n## 目标标题\n\n### 前后小标题"
+    },
+    {
+      "id": "center-heading-2-after-image",
+      "kind": "case",
+      "serialized": "![1.00](https://cdn.example.com/boundary.png)\n\n[wenyousite-align-v1-center]: #\n## 目标标题"
+    },
+    {
+      "id": "center-heading-2-before-image",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n## 目标标题\n\n![1.00](https://cdn.example.com/boundary.png)"
+    },
+    {
+      "id": "center-heading-2-after-bullet-list",
+      "kind": "case",
+      "serialized": "* 列表\n\n[wenyousite-align-v1-center]: #\n## 目标标题"
+    },
+    {
+      "id": "center-heading-2-before-bullet-list",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n## 目标标题\n\n* 列表"
+    },
+    {
+      "id": "center-heading-2-after-blockquote",
+      "kind": "case",
+      "serialized": "> 引用\n\n[wenyousite-align-v1-center]: #\n## 目标标题"
+    },
+    {
+      "id": "center-heading-2-before-blockquote",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n## 目标标题\n\n> 引用"
+    },
+    {
+      "id": "center-heading-2-after-horizontal-rule",
+      "kind": "case",
+      "serialized": "---\n\n[wenyousite-align-v1-center]: #\n## 目标标题"
+    },
+    {
+      "id": "center-heading-2-before-horizontal-rule",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n## 目标标题\n\n---"
+    },
+    {
+      "id": "center-heading-2-after-empty-paragraph",
+      "kind": "case",
+      "serialized": "<br />\n[wenyousite-align-v1-center]: #\n## 目标标题"
+    },
+    {
+      "id": "center-heading-2-before-empty-paragraph",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n## 目标标题\n\n<br />"
+    },
+    {
+      "id": "center-heading-2-crlf",
+      "kind": "case",
+      "serialized": "前文\n\n[wenyousite-align-v1-center]: #\n## 目标标题"
+    },
+    {
+      "id": "center-heading-2-blank-before",
+      "kind": "case",
+      "serialized": "前文\n<br />\n[wenyousite-align-v1-center]: #\n## 目标标题"
+    },
+    {
+      "id": "center-heading-2-consecutive-aligned-blocks",
+      "kind": "case",
+      "serialized": "前文\n\n[wenyousite-align-v1-center]: #\n## 目标标题\n\n[wenyousite-align-v1-right]: #\n下一对齐块"
+    },
+    {
+      "id": "center-heading-3-after-paragraph",
+      "kind": "case",
+      "serialized": "前后正文\n\n[wenyousite-align-v1-center]: #\n### 目标小标题"
+    },
+    {
+      "id": "center-heading-3-before-paragraph",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n### 目标小标题\n\n前后正文"
+    },
+    {
+      "id": "center-heading-3-after-heading-2",
+      "kind": "case",
+      "serialized": "## 前后标题\n\n[wenyousite-align-v1-center]: #\n### 目标小标题"
+    },
+    {
+      "id": "center-heading-3-before-heading-2",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n### 目标小标题\n\n## 前后标题"
+    },
+    {
+      "id": "center-heading-3-after-heading-3",
+      "kind": "case",
+      "serialized": "### 前后小标题\n\n[wenyousite-align-v1-center]: #\n### 目标小标题"
+    },
+    {
+      "id": "center-heading-3-before-heading-3",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n### 目标小标题\n\n### 前后小标题"
+    },
+    {
+      "id": "center-heading-3-after-image",
+      "kind": "case",
+      "serialized": "![1.00](https://cdn.example.com/boundary.png)\n\n[wenyousite-align-v1-center]: #\n### 目标小标题"
+    },
+    {
+      "id": "center-heading-3-before-image",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n### 目标小标题\n\n![1.00](https://cdn.example.com/boundary.png)"
+    },
+    {
+      "id": "center-heading-3-after-bullet-list",
+      "kind": "case",
+      "serialized": "* 列表\n\n[wenyousite-align-v1-center]: #\n### 目标小标题"
+    },
+    {
+      "id": "center-heading-3-before-bullet-list",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n### 目标小标题\n\n* 列表"
+    },
+    {
+      "id": "center-heading-3-after-blockquote",
+      "kind": "case",
+      "serialized": "> 引用\n\n[wenyousite-align-v1-center]: #\n### 目标小标题"
+    },
+    {
+      "id": "center-heading-3-before-blockquote",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n### 目标小标题\n\n> 引用"
+    },
+    {
+      "id": "center-heading-3-after-horizontal-rule",
+      "kind": "case",
+      "serialized": "---\n\n[wenyousite-align-v1-center]: #\n### 目标小标题"
+    },
+    {
+      "id": "center-heading-3-before-horizontal-rule",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n### 目标小标题\n\n---"
+    },
+    {
+      "id": "center-heading-3-after-empty-paragraph",
+      "kind": "case",
+      "serialized": "<br />\n[wenyousite-align-v1-center]: #\n### 目标小标题"
+    },
+    {
+      "id": "center-heading-3-before-empty-paragraph",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n### 目标小标题\n\n<br />"
+    },
+    {
+      "id": "center-heading-3-crlf",
+      "kind": "case",
+      "serialized": "前文\n\n[wenyousite-align-v1-center]: #\n### 目标小标题"
+    },
+    {
+      "id": "center-heading-3-blank-before",
+      "kind": "case",
+      "serialized": "前文\n<br />\n[wenyousite-align-v1-center]: #\n### 目标小标题"
+    },
+    {
+      "id": "center-heading-3-consecutive-aligned-blocks",
+      "kind": "case",
+      "serialized": "前文\n\n[wenyousite-align-v1-center]: #\n### 目标小标题\n\n[wenyousite-align-v1-right]: #\n下一对齐块"
+    },
+    {
+      "id": "center-image-after-paragraph",
+      "kind": "case",
+      "serialized": "前后正文\n\n[wenyousite-align-v1-center]: #\n![1.00](https://cdn.example.com/boundary.png)"
+    },
+    {
+      "id": "center-image-before-paragraph",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n![1.00](https://cdn.example.com/boundary.png)\n\n前后正文"
+    },
+    {
+      "id": "center-image-after-heading-2",
+      "kind": "case",
+      "serialized": "## 前后标题\n\n[wenyousite-align-v1-center]: #\n![1.00](https://cdn.example.com/boundary.png)"
+    },
+    {
+      "id": "center-image-before-heading-2",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n![1.00](https://cdn.example.com/boundary.png)\n\n## 前后标题"
+    },
+    {
+      "id": "center-image-after-heading-3",
+      "kind": "case",
+      "serialized": "### 前后小标题\n\n[wenyousite-align-v1-center]: #\n![1.00](https://cdn.example.com/boundary.png)"
+    },
+    {
+      "id": "center-image-before-heading-3",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n![1.00](https://cdn.example.com/boundary.png)\n\n### 前后小标题"
+    },
+    {
+      "id": "center-image-after-image",
+      "kind": "case",
+      "serialized": "![1.00](https://cdn.example.com/boundary.png)\n\n[wenyousite-align-v1-center]: #\n![1.00](https://cdn.example.com/boundary.png)"
+    },
+    {
+      "id": "center-image-before-image",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n![1.00](https://cdn.example.com/boundary.png)\n\n![1.00](https://cdn.example.com/boundary.png)"
+    },
+    {
+      "id": "center-image-after-bullet-list",
+      "kind": "case",
+      "serialized": "* 列表\n\n[wenyousite-align-v1-center]: #\n![1.00](https://cdn.example.com/boundary.png)"
+    },
+    {
+      "id": "center-image-before-bullet-list",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n![1.00](https://cdn.example.com/boundary.png)\n\n* 列表"
+    },
+    {
+      "id": "center-image-after-blockquote",
+      "kind": "case",
+      "serialized": "> 引用\n\n[wenyousite-align-v1-center]: #\n![1.00](https://cdn.example.com/boundary.png)"
+    },
+    {
+      "id": "center-image-before-blockquote",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n![1.00](https://cdn.example.com/boundary.png)\n\n> 引用"
+    },
+    {
+      "id": "center-image-after-horizontal-rule",
+      "kind": "case",
+      "serialized": "---\n\n[wenyousite-align-v1-center]: #\n![1.00](https://cdn.example.com/boundary.png)"
+    },
+    {
+      "id": "center-image-before-horizontal-rule",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n![1.00](https://cdn.example.com/boundary.png)\n\n---"
+    },
+    {
+      "id": "center-image-after-empty-paragraph",
+      "kind": "case",
+      "serialized": "<br />\n[wenyousite-align-v1-center]: #\n![1.00](https://cdn.example.com/boundary.png)"
+    },
+    {
+      "id": "center-image-before-empty-paragraph",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n![1.00](https://cdn.example.com/boundary.png)\n\n<br />"
+    },
+    {
+      "id": "center-image-crlf",
+      "kind": "case",
+      "serialized": "前文\n\n[wenyousite-align-v1-center]: #\n![1.00](https://cdn.example.com/boundary.png)"
+    },
+    {
+      "id": "center-image-blank-before",
+      "kind": "case",
+      "serialized": "前文\n<br />\n[wenyousite-align-v1-center]: #\n![1.00](https://cdn.example.com/boundary.png)"
+    },
+    {
+      "id": "center-image-consecutive-aligned-blocks",
+      "kind": "case",
+      "serialized": "前文\n\n[wenyousite-align-v1-center]: #\n![1.00](https://cdn.example.com/boundary.png)\n\n[wenyousite-align-v1-right]: #\n下一对齐块"
+    },
+    {
+      "id": "right-paragraph-after-paragraph",
+      "kind": "case",
+      "serialized": "前后正文\n\n[wenyousite-align-v1-right]: #\n目标正文"
+    },
+    {
+      "id": "right-paragraph-before-paragraph",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n目标正文\n\n前后正文"
+    },
+    {
+      "id": "right-paragraph-after-heading-2",
+      "kind": "case",
+      "serialized": "## 前后标题\n\n[wenyousite-align-v1-right]: #\n目标正文"
+    },
+    {
+      "id": "right-paragraph-before-heading-2",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n目标正文\n\n## 前后标题"
+    },
+    {
+      "id": "right-paragraph-after-heading-3",
+      "kind": "case",
+      "serialized": "### 前后小标题\n\n[wenyousite-align-v1-right]: #\n目标正文"
+    },
+    {
+      "id": "right-paragraph-before-heading-3",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n目标正文\n\n### 前后小标题"
+    },
+    {
+      "id": "right-paragraph-after-image",
+      "kind": "case",
+      "serialized": "![1.00](https://cdn.example.com/boundary.png)\n\n[wenyousite-align-v1-right]: #\n目标正文"
+    },
+    {
+      "id": "right-paragraph-before-image",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n目标正文\n\n![1.00](https://cdn.example.com/boundary.png)"
+    },
+    {
+      "id": "right-paragraph-after-bullet-list",
+      "kind": "case",
+      "serialized": "* 列表\n\n[wenyousite-align-v1-right]: #\n目标正文"
+    },
+    {
+      "id": "right-paragraph-before-bullet-list",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n目标正文\n\n* 列表"
+    },
+    {
+      "id": "right-paragraph-after-blockquote",
+      "kind": "case",
+      "serialized": "> 引用\n\n[wenyousite-align-v1-right]: #\n目标正文"
+    },
+    {
+      "id": "right-paragraph-before-blockquote",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n目标正文\n\n> 引用"
+    },
+    {
+      "id": "right-paragraph-after-horizontal-rule",
+      "kind": "case",
+      "serialized": "---\n\n[wenyousite-align-v1-right]: #\n目标正文"
+    },
+    {
+      "id": "right-paragraph-before-horizontal-rule",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n目标正文\n\n---"
+    },
+    {
+      "id": "right-paragraph-after-empty-paragraph",
+      "kind": "case",
+      "serialized": "<br />\n[wenyousite-align-v1-right]: #\n目标正文"
+    },
+    {
+      "id": "right-paragraph-before-empty-paragraph",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n目标正文\n<br />"
+    },
+    {
+      "id": "right-paragraph-crlf",
+      "kind": "case",
+      "serialized": "前文\n\n[wenyousite-align-v1-right]: #\n目标正文"
+    },
+    {
+      "id": "right-paragraph-blank-before",
+      "kind": "case",
+      "serialized": "前文\n<br />\n[wenyousite-align-v1-right]: #\n目标正文"
+    },
+    {
+      "id": "right-paragraph-consecutive-aligned-blocks",
+      "kind": "case",
+      "serialized": "前文\n\n[wenyousite-align-v1-right]: #\n目标正文\n\n[wenyousite-align-v1-center]: #\n下一对齐块"
+    },
+    {
+      "id": "right-heading-2-after-paragraph",
+      "kind": "case",
+      "serialized": "前后正文\n\n[wenyousite-align-v1-right]: #\n## 目标标题"
+    },
+    {
+      "id": "right-heading-2-before-paragraph",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n## 目标标题\n\n前后正文"
+    },
+    {
+      "id": "right-heading-2-after-heading-2",
+      "kind": "case",
+      "serialized": "## 前后标题\n\n[wenyousite-align-v1-right]: #\n## 目标标题"
+    },
+    {
+      "id": "right-heading-2-before-heading-2",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n## 目标标题\n\n## 前后标题"
+    },
+    {
+      "id": "right-heading-2-after-heading-3",
+      "kind": "case",
+      "serialized": "### 前后小标题\n\n[wenyousite-align-v1-right]: #\n## 目标标题"
+    },
+    {
+      "id": "right-heading-2-before-heading-3",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n## 目标标题\n\n### 前后小标题"
+    },
+    {
+      "id": "right-heading-2-after-image",
+      "kind": "case",
+      "serialized": "![1.00](https://cdn.example.com/boundary.png)\n\n[wenyousite-align-v1-right]: #\n## 目标标题"
+    },
+    {
+      "id": "right-heading-2-before-image",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n## 目标标题\n\n![1.00](https://cdn.example.com/boundary.png)"
+    },
+    {
+      "id": "right-heading-2-after-bullet-list",
+      "kind": "case",
+      "serialized": "* 列表\n\n[wenyousite-align-v1-right]: #\n## 目标标题"
+    },
+    {
+      "id": "right-heading-2-before-bullet-list",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n## 目标标题\n\n* 列表"
+    },
+    {
+      "id": "right-heading-2-after-blockquote",
+      "kind": "case",
+      "serialized": "> 引用\n\n[wenyousite-align-v1-right]: #\n## 目标标题"
+    },
+    {
+      "id": "right-heading-2-before-blockquote",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n## 目标标题\n\n> 引用"
+    },
+    {
+      "id": "right-heading-2-after-horizontal-rule",
+      "kind": "case",
+      "serialized": "---\n\n[wenyousite-align-v1-right]: #\n## 目标标题"
+    },
+    {
+      "id": "right-heading-2-before-horizontal-rule",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n## 目标标题\n\n---"
+    },
+    {
+      "id": "right-heading-2-after-empty-paragraph",
+      "kind": "case",
+      "serialized": "<br />\n[wenyousite-align-v1-right]: #\n## 目标标题"
+    },
+    {
+      "id": "right-heading-2-before-empty-paragraph",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n## 目标标题\n\n<br />"
+    },
+    {
+      "id": "right-heading-2-crlf",
+      "kind": "case",
+      "serialized": "前文\n\n[wenyousite-align-v1-right]: #\n## 目标标题"
+    },
+    {
+      "id": "right-heading-2-blank-before",
+      "kind": "case",
+      "serialized": "前文\n<br />\n[wenyousite-align-v1-right]: #\n## 目标标题"
+    },
+    {
+      "id": "right-heading-2-consecutive-aligned-blocks",
+      "kind": "case",
+      "serialized": "前文\n\n[wenyousite-align-v1-right]: #\n## 目标标题\n\n[wenyousite-align-v1-center]: #\n下一对齐块"
+    },
+    {
+      "id": "right-heading-3-after-paragraph",
+      "kind": "case",
+      "serialized": "前后正文\n\n[wenyousite-align-v1-right]: #\n### 目标小标题"
+    },
+    {
+      "id": "right-heading-3-before-paragraph",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n### 目标小标题\n\n前后正文"
+    },
+    {
+      "id": "right-heading-3-after-heading-2",
+      "kind": "case",
+      "serialized": "## 前后标题\n\n[wenyousite-align-v1-right]: #\n### 目标小标题"
+    },
+    {
+      "id": "right-heading-3-before-heading-2",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n### 目标小标题\n\n## 前后标题"
+    },
+    {
+      "id": "right-heading-3-after-heading-3",
+      "kind": "case",
+      "serialized": "### 前后小标题\n\n[wenyousite-align-v1-right]: #\n### 目标小标题"
+    },
+    {
+      "id": "right-heading-3-before-heading-3",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n### 目标小标题\n\n### 前后小标题"
+    },
+    {
+      "id": "right-heading-3-after-image",
+      "kind": "case",
+      "serialized": "![1.00](https://cdn.example.com/boundary.png)\n\n[wenyousite-align-v1-right]: #\n### 目标小标题"
+    },
+    {
+      "id": "right-heading-3-before-image",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n### 目标小标题\n\n![1.00](https://cdn.example.com/boundary.png)"
+    },
+    {
+      "id": "right-heading-3-after-bullet-list",
+      "kind": "case",
+      "serialized": "* 列表\n\n[wenyousite-align-v1-right]: #\n### 目标小标题"
+    },
+    {
+      "id": "right-heading-3-before-bullet-list",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n### 目标小标题\n\n* 列表"
+    },
+    {
+      "id": "right-heading-3-after-blockquote",
+      "kind": "case",
+      "serialized": "> 引用\n\n[wenyousite-align-v1-right]: #\n### 目标小标题"
+    },
+    {
+      "id": "right-heading-3-before-blockquote",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n### 目标小标题\n\n> 引用"
+    },
+    {
+      "id": "right-heading-3-after-horizontal-rule",
+      "kind": "case",
+      "serialized": "---\n\n[wenyousite-align-v1-right]: #\n### 目标小标题"
+    },
+    {
+      "id": "right-heading-3-before-horizontal-rule",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n### 目标小标题\n\n---"
+    },
+    {
+      "id": "right-heading-3-after-empty-paragraph",
+      "kind": "case",
+      "serialized": "<br />\n[wenyousite-align-v1-right]: #\n### 目标小标题"
+    },
+    {
+      "id": "right-heading-3-before-empty-paragraph",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n### 目标小标题\n\n<br />"
+    },
+    {
+      "id": "right-heading-3-crlf",
+      "kind": "case",
+      "serialized": "前文\n\n[wenyousite-align-v1-right]: #\n### 目标小标题"
+    },
+    {
+      "id": "right-heading-3-blank-before",
+      "kind": "case",
+      "serialized": "前文\n<br />\n[wenyousite-align-v1-right]: #\n### 目标小标题"
+    },
+    {
+      "id": "right-heading-3-consecutive-aligned-blocks",
+      "kind": "case",
+      "serialized": "前文\n\n[wenyousite-align-v1-right]: #\n### 目标小标题\n\n[wenyousite-align-v1-center]: #\n下一对齐块"
+    },
+    {
+      "id": "right-image-after-paragraph",
+      "kind": "case",
+      "serialized": "前后正文\n\n[wenyousite-align-v1-right]: #\n![1.00](https://cdn.example.com/boundary.png)"
+    },
+    {
+      "id": "right-image-before-paragraph",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n![1.00](https://cdn.example.com/boundary.png)\n\n前后正文"
+    },
+    {
+      "id": "right-image-after-heading-2",
+      "kind": "case",
+      "serialized": "## 前后标题\n\n[wenyousite-align-v1-right]: #\n![1.00](https://cdn.example.com/boundary.png)"
+    },
+    {
+      "id": "right-image-before-heading-2",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n![1.00](https://cdn.example.com/boundary.png)\n\n## 前后标题"
+    },
+    {
+      "id": "right-image-after-heading-3",
+      "kind": "case",
+      "serialized": "### 前后小标题\n\n[wenyousite-align-v1-right]: #\n![1.00](https://cdn.example.com/boundary.png)"
+    },
+    {
+      "id": "right-image-before-heading-3",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n![1.00](https://cdn.example.com/boundary.png)\n\n### 前后小标题"
+    },
+    {
+      "id": "right-image-after-image",
+      "kind": "case",
+      "serialized": "![1.00](https://cdn.example.com/boundary.png)\n\n[wenyousite-align-v1-right]: #\n![1.00](https://cdn.example.com/boundary.png)"
+    },
+    {
+      "id": "right-image-before-image",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n![1.00](https://cdn.example.com/boundary.png)\n\n![1.00](https://cdn.example.com/boundary.png)"
+    },
+    {
+      "id": "right-image-after-bullet-list",
+      "kind": "case",
+      "serialized": "* 列表\n\n[wenyousite-align-v1-right]: #\n![1.00](https://cdn.example.com/boundary.png)"
+    },
+    {
+      "id": "right-image-before-bullet-list",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n![1.00](https://cdn.example.com/boundary.png)\n\n* 列表"
+    },
+    {
+      "id": "right-image-after-blockquote",
+      "kind": "case",
+      "serialized": "> 引用\n\n[wenyousite-align-v1-right]: #\n![1.00](https://cdn.example.com/boundary.png)"
+    },
+    {
+      "id": "right-image-before-blockquote",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n![1.00](https://cdn.example.com/boundary.png)\n\n> 引用"
+    },
+    {
+      "id": "right-image-after-horizontal-rule",
+      "kind": "case",
+      "serialized": "---\n\n[wenyousite-align-v1-right]: #\n![1.00](https://cdn.example.com/boundary.png)"
+    },
+    {
+      "id": "right-image-before-horizontal-rule",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n![1.00](https://cdn.example.com/boundary.png)\n\n---"
+    },
+    {
+      "id": "right-image-after-empty-paragraph",
+      "kind": "case",
+      "serialized": "<br />\n[wenyousite-align-v1-right]: #\n![1.00](https://cdn.example.com/boundary.png)"
+    },
+    {
+      "id": "right-image-before-empty-paragraph",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-right]: #\n![1.00](https://cdn.example.com/boundary.png)\n\n<br />"
+    },
+    {
+      "id": "right-image-crlf",
+      "kind": "case",
+      "serialized": "前文\n\n[wenyousite-align-v1-right]: #\n![1.00](https://cdn.example.com/boundary.png)"
+    },
+    {
+      "id": "right-image-blank-before",
+      "kind": "case",
+      "serialized": "前文\n<br />\n[wenyousite-align-v1-right]: #\n![1.00](https://cdn.example.com/boundary.png)"
+    },
+    {
+      "id": "right-image-consecutive-aligned-blocks",
+      "kind": "case",
+      "serialized": "前文\n\n[wenyousite-align-v1-right]: #\n![1.00](https://cdn.example.com/boundary.png)\n\n[wenyousite-align-v1-center]: #\n下一对齐块"
+    },
+    {
+      "id": "legacy-soft-lines",
+      "kind": "case",
+      "serialized": "前文\n\n[wenyousite-align-v1-center]: #\n甲\n乙\n\n后文"
+    },
+    {
+      "id": "setext-target",
+      "kind": "case",
+      "serialized": "前文\n\n[wenyousite-align-v1-right]: #\n## 标题"
+    },
+    {
+      "id": "escaped-marker",
+      "kind": "case",
+      "serialized": "\\[wenyousite-align-v1-center]: #\n正文"
+    },
+    {
+      "id": "inline-code-marker",
+      "kind": "case",
+      "serialized": "`[wenyousite-align-v1-center]: #`"
+    },
+    {
+      "id": "multiline-inline-code-marker",
+      "kind": "case",
+      "serialized": "😀 `代码 [wenyousite-align-v1-center]: # 正文`"
+    },
+    {
+      "id": "multiline-inline-code-mobile-regression",
+      "kind": "case",
+      "serialized": "`before [wenyousite-align-v1-center]: # title`"
+    },
+    {
+      "id": "backtick-link-url-later-code",
+      "kind": "case",
+      "serialized": "前 [链接](https://example.com/`)\n\n[wenyousite-align-v1-center]: #\n正文 `code`"
+    },
+    {
+      "id": "backtick-link-url-multiline-code",
+      "kind": "case",
+      "serialized": "前 [链接](https://example.com/`)\n\n[wenyousite-align-v1-center]: #\n正文 `code 更多`"
+    },
+    {
+      "id": "backtick-image-url-later-code",
+      "kind": "case",
+      "serialized": "![1.00](https://example.com/`)\n\n[wenyousite-align-v1-center]: #\n正文 `code`"
+    },
+    {
+      "id": "backtick-image-url-multiline-code",
+      "kind": "case",
+      "serialized": "![1.00](https://example.com/`)\n\n[wenyousite-align-v1-center]: #\n正文 `code 更多`"
+    },
+    {
+      "id": "backtick-link-title-later-code",
+      "kind": "case",
+      "serialized": "前 [链接](https://example.com \"`标题\")\n\n[wenyousite-align-v1-center]: #\n正文 `code`"
+    },
+    {
+      "id": "backtick-link-title-multiline-code",
+      "kind": "case",
+      "serialized": "前 [链接](https://example.com \"`标题\")\n\n[wenyousite-align-v1-center]: #\n正文 `code 更多`"
+    },
+    {
+      "id": "backtick-image-title-later-code",
+      "kind": "case",
+      "serialized": "![1.00](https://example.com/a.png \"`标题\")\n\n[wenyousite-align-v1-center]: #\n正文 `code`"
+    },
+    {
+      "id": "backtick-image-title-multiline-code",
+      "kind": "case",
+      "serialized": "![1.00](https://example.com/a.png \"`标题\")\n\n[wenyousite-align-v1-center]: #\n正文 `code 更多`"
+    },
+    {
+      "id": "multiline-code-protects-empty-row-and-marker",
+      "kind": "case",
+      "serialized": "`before <br /> [wenyousite-align-v1-center]: # title`"
+    },
+    {
+      "id": "aligned-multiline-code-after-text",
+      "kind": "case",
+      "serialized": "前文\n\n[wenyousite-align-v1-center]: #\n`甲 乙`"
+    },
+    {
+      "id": "marker-after-multiline-code",
+      "kind": "case",
+      "serialized": "`甲 乙`\n\n[wenyousite-align-v1-center]: #\n正文"
+    },
+    {
+      "id": "aligned-multiline-code-at-start",
+      "kind": "case",
+      "serialized": "[wenyousite-align-v1-center]: #\n`甲 乙`"
+    },
+    {
+      "id": "marker-after-two-multiline-codes",
+      "kind": "case",
+      "serialized": "`甲 乙` 和 `丙 丁`\n\n[wenyousite-align-v1-center]: #\n正文"
+    },
+    {
+      "id": "list-lazy-multiline-code-marker",
+      "kind": "case",
+      "serialized": "* `甲 [wenyousite-align-v1-center]: # 乙`"
+    },
+    {
+      "id": "quote-lazy-multiline-code-marker",
+      "kind": "case",
+      "serialized": "> `甲 [wenyousite-align-v1-center]: # 乙`"
+    },
+    {
+      "id": "center-insert",
+      "kind": "edit",
+      "serialized": "前文\n\n[wenyousite-align-v1-center]: #\n正新增文"
+    },
+    {
+      "id": "center-enter",
+      "kind": "edit",
+      "serialized": "前文\n\n[wenyousite-align-v1-center]: #\n正\n\n文"
+    },
+    {
+      "id": "right-insert",
+      "kind": "edit",
+      "serialized": "前文\n\n[wenyousite-align-v1-right]: #\n正新增文"
+    },
+    {
+      "id": "right-enter",
+      "kind": "edit",
+      "serialized": "前文\n\n[wenyousite-align-v1-right]: #\n正\n\n文"
+    },
+    {
+      "id": "space-layout",
+      "kind": "whitespace",
+      "serialized": "甲                       乙\n⁠                                                             丙  ⁠\n⁠  丁 戊　己"
+    }
+  ]
+}

@@ -226,6 +226,7 @@ function getImageBlockConfig(onUploadImage: (file: File) => Promise<string>) {
 export interface MilkdownEditorHostProps {
   initialValue: string;
   onChange?: (value: string) => void;
+  onSyncErrorChange?: (hasError: boolean) => void;
   onUploadImage?: (file: File, options?: UploadImageOptions) => Promise<string>;
   placeholder?: string;
   disabled?: boolean;
@@ -243,6 +244,7 @@ export interface MilkdownEditorHostProps {
 export function MilkdownEditorHost({
   initialValue,
   onChange,
+  onSyncErrorChange,
   onUploadImage,
   placeholder,
   disabled,
@@ -263,6 +265,8 @@ export function MilkdownEditorHost({
   const crepeRef = useRef<CrepeBuilder | null>(null);
   const hostRef = useRef<HTMLDivElement>(null);
   const onChangeRef = useRef(onChange);
+  const onSyncErrorChangeRef = useRef(onSyncErrorChange);
+  useEffect(() => { onSyncErrorChangeRef.current = onSyncErrorChange; }, [onSyncErrorChange]);
   const toolbarItemsRef = useRef<MilkdownToolbarItemMetadata[]>([]);
   const uploadAbortRef = useRef<AbortController | null>(null);
   const imageAlignmentEnabledRef = useRef(imageAlignmentEnabled);
@@ -739,6 +743,10 @@ export function MilkdownEditorHost({
       );
       let codecErrorShown = false;
       const markdownBridge = createEditorMarkdownBridge({
+        onSyncErrorChange: (hasError) => {
+          if (!hasError) codecErrorShown = false;
+          onSyncErrorChangeRef.current?.(hasError);
+        },
         markdownContractVersion,
         onChange: (markdown) => {
           codecErrorShown = false;

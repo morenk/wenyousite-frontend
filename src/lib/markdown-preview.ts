@@ -1,5 +1,6 @@
 import { DICE_INLINE_MARKER_SOURCE } from "@/lib/dice-inline";
 import { formatInternalReferencePreview } from "@/lib/internal-reference";
+import { stripMarkdownAlignmentMetadata } from "@/lib/markdown-block-boundaries";
 
 const IMAGE_RE = /!\[[^\]]*\]\((?:\\.|[^)])*\)/gu;
 const INLINE_LINK_RE = /\[([^\]\r\n]+)\]\((?:\\.|[^)])*\)/gu;
@@ -39,7 +40,7 @@ function decodeHtmlEntityOnce(entity: string, name: string): string {
 export function formatMarkdownPreview(markdown: string): string {
   const diceMarker = new RegExp(DICE_INLINE_MARKER_SOURCE, "giu");
 
-  return formatInternalReferencePreview(markdown)
+  return formatInternalReferencePreview(stripMarkdownAlignmentMetadata(markdown))
     .replace(diceMarker, (_marker, _nodeId: string, notation: string) =>
       `[${notation}]`)
     .replace(IMAGE_RE, "[图片]")
