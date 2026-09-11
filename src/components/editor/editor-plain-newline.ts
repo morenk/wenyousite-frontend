@@ -1,5 +1,7 @@
 import { Fragment, type Node as ProseNode } from "@milkdown/kit/prose/model";
 import type { EditorView } from "@milkdown/kit/prose/view";
+import { analyzeMarkdownBlockBoundaries } from "@/lib/markdown-block-boundaries";
+import { AUTO_TRAILING_PARAGRAPH } from "./editor-trailing-paragraph";
 
 /** Only ordinary text and one quote follow the product's literal Enter rule. */
 export function handlePlainNewline(view: EditorView, event: KeyboardEvent): boolean {
@@ -18,11 +20,11 @@ export function handlePlainNewline(view: EditorView, event: KeyboardEvent): bool
     const tr = state.tr.deleteSelection();
     const { $from: insertion } = tr.selection;
     // 在同一事务清除新空段的对齐，避免后续清理事务丢失 stored marks。
-    if (insertion.parentOffset === 0) {
-      tr.setNodeMarkup(insertion.before(1), undefined, { ...insertion.parent.attrs, textAlign: "left" });
+    if (insertion.parentOffset === 0 || insertion.parent.attrs[AUTO_TRAILING_PARAGRAPH]) {
+      tr.setNodeMarkup(insertion.before(1), undefined, { ...insertion.parent.attrs, textAlign: "left", [AUTO_TRAILING_PARAGRAPH]: false });
     }
     tr.split(insertion.pos, 1, [{ type: insertion.parent.type,
-      attrs: { ...insertion.parent.attrs, textAlign: "left" } }]);
+      attrs: { ...insertion.parent.attrs, textAlign: "left", [AUTO_TRAILING_PARAGRAPH]: false } }]);
     view.dispatch(tr.setStoredMarks(marks).scrollIntoView());
     return true;
   }
@@ -77,12 +79,23 @@ export function documentWithExplicitEmptyRows(doc: ProseNode): ProseNode {
 export function canonicalizeEditorEmptyRows(markdown: string): string {
   const lines = markdown.split("\n");
   const output: string[] = [];
+  // 保留结构块与其后作者空段之间的解析分隔；否则列表会将 <br /> 和正文吞作同一项。
+  const separators = new Set<number>();
+  const roots = analyzeMarkdownBlockBoundaries(markdown).tokens.filter((token) => token.level === 0 && token.map);
+  for (let index = 1; index < roots.length; index++) {
+    const row = roots[index]!;
+    const previous = roots[index - 1]!;
+    if (!row.meta?.emptyRow || previous.meta?.emptyRow || previous.type === "paragraph_open" || previous.type === "inline") continue;
+    for (let line = previous.map![1] - 1; line < row.map![0]; line++) {
+      if (lines[line] === "") separators.add(line);
+    }
+  }
   for (let index = 0; index < lines.length; index++) {
     // Milkdown emits an HTML placeholder for a new empty list item; keep
     // the standard empty item syntax so the existing list keymap can continue.
     const line = lines[index]!.replace(/^( {0,6}(?:[-+*]|\d+[.)]))[\t ]+<br \/>$/, "$1 ");
     const marker = line === "" ? "<br />" : line === ">" ? "> <br />" : null;
-    if (marker !== null && (lines[index - 1] === marker || lines[index + 1] === marker)) continue;
+    if (!separators.has(index) && marker !== null && (lines[index - 1] === marker || lines[index + 1] === marker)) continue;
     // An empty quote scaffold remains compatible with the existing empty quote.
     if (line === "> <br />" && !lines[index - 1]?.startsWith(">")
       && !lines[index + 1]?.startsWith(">")) output.push(">");

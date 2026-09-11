@@ -40,6 +40,28 @@ const INITIAL_MARKDOWN = [
   LEFT_TEXT,
 ].join("\n\n");
 
+async function expectPreservedSpaceColumns(block: Locator) {
+  const geometry = await block.evaluate((element) => {
+    const text = element.firstChild!;
+    const boxes = ["何", "鬼", "畔"].map((character) => {
+      const index = text.textContent!.indexOf(character);
+      const range = document.createRange();
+      range.setStart(text, index);
+      range.setEnd(text, index + 1);
+      const rect = range.getBoundingClientRect();
+      return { left: rect.left, top: rect.top, width: rect.width };
+    });
+    return { boxes, fontSize: Number.parseFloat(getComputedStyle(element).fontSize) };
+  });
+  expect(Math.abs(geometry.boxes[0]!.top - geometry.boxes[2]!.top)).toBeLessThan(2);
+  for (let index = 1; index < 3; index++) {
+    const previous = geometry.boxes[index - 1]!;
+    const gap = geometry.boxes[index]!.left - previous.left - previous.width;
+    // 14 个空格应保留为明显列距；空白折叠时仅剩一个空格，远小于两字宽。
+    expect(gap).toBeGreaterThan(geometry.fontSize * 2);
+  }
+}
+
 type AggregateRequest = {
   content?: string;
   published?: boolean;
@@ -143,6 +165,7 @@ function makeThread(content: string, published: boolean, bodyVersion: number) {
 async function mockAlignmentWorkspace(
   page: Page,
   initialMarkdown = INITIAL_MARKDOWN,
+  markdownContractVersion = 4,
 ): Promise<AlignmentHarness> {
   let storedMarkdown = initialMarkdown;
   let published = false;
@@ -168,7 +191,7 @@ async function mockAlignmentWorkspace(
       });
     }
     if (pathname.endsWith("/meta")) {
-      return fulfill(route, { markdownContractVersion: 4 });
+      return fulfill(route, { markdownContractVersion });
     }
     if (pathname.endsWith("/thread-categories")) {
       return fulfill(route, [{
@@ -804,5 +827,172 @@ for (const alignment of ["center", "right"] as const) {
     expect(Math.abs(readerGap)).toBeLessThan(2);
     await page.reload();
     await expectBlockAlignment(reader.locator(":scope > p").last(), "center");
+  });
+}
+
+// 来自原楼层的普通空格排版；不推断表格或竖排结构。
+test("手打空格的三列在编辑、保存和阅读中保留实际列距", async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const columns = `\u2060${" ".repeat(25)}何${" ".repeat(14)}鬼${" ".repeat(14)}畔`;
+  const harness = await mockAlignmentWorkspace(page, columns);
+  await openFreshThreadDraft(page);
+  const editor = page.locator(".milkdown-editor .ProseMirror").first();
+  const editorBlock = editor.locator(":scope > p").first();
+  await expect(editorBlock).toHaveText(columns, { useInnerText: false });
+  await expectPreservedSpaceColumns(editorBlock);
+  await page.getByRole("button", { name: "保存草稿", exact: true }).click();
+  await expect.poll(harness.getStoredMarkdown).toBe(columns);
+  harness.setPublished(true);
+  await page.goto(`/threads/${THREAD_ID}`);
+  const reader = page.locator('[data-slot="markdown-content"]').filter({ hasText: "何" }).first();
+  const readerBlock = reader.locator(":scope > p").first();
+  await expect(readerBlock).toHaveText(columns, { useInnerText: false });
+  await expectPreservedSpaceColumns(readerBlock);
+  await testInfo.attach("连续空格三列阅读截图", { body: await reader.screenshot(), contentType: "image/png" });
+  await reader.evaluate((element) => { element.style.maxWidth = "180px"; });
+  const width = await reader.evaluate((element) => ({ content: element.scrollWidth, available: element.clientWidth }));
+  expect(width.content).toBeLessThanOrEqual(width.available + 1);
+});
+
+// 同时覆盖紧凑列表和块引用，防止保留空白后把 HTML 排版 LF 变成空白行。
+test("正文标题引用列表保留空格且软 LF 只换一行", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1200 });
+  const columns = `\u2060${" ".repeat(25)}何${" ".repeat(14)}鬼${" ".repeat(14)}畔`;
+  const longSpaces = `\u2060${" ".repeat(512)}长列🙂\u00a0　尾${" ".repeat(512)}\u2060`;
+  const markdown = [columns, `## ${columns}`, `### ${columns}`, `> ${columns}`,
+    `- ${columns}`, `1. ${columns}`, "软甲   🙂\n软乙　\u00a0尾", "**粗体**     `代码`", longSpaces].join("\n\n");
+  const harness = await mockAlignmentWorkspace(page, markdown);
+  await openFreshThreadDraft(page);
+  const editor = page.locator(".milkdown-editor .ProseMirror").first();
+  for (const selector of [":scope > p", "h2", "h3", "blockquote p", "ul li p", "ol li p"]) {
+    await expectPreservedSpaceColumns(editor.locator(selector).first());
+  }
+  await page.getByRole("button", { name: "保存草稿", exact: true }).click();
+  harness.setPublished(true);
+  await page.goto(`/threads/${THREAD_ID}`);
+  const reader = page.locator('[data-slot="markdown-content"]').filter({ hasText: "何" }).first();
+  for (const selector of [":scope > p", "h2", "h3", "blockquote p", "ul li", "ol li"]) {
+    await expectPreservedSpaceColumns(reader.locator(selector).first());
+  }
+  const soft = reader.locator("p").filter({ hasText: "软甲" });
+  await expect(soft.locator("br")).toHaveCount(1);
+  const gap = await soft.evaluate((element) => {
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+    const tops: number[] = [];
+    let node: Node | null;
+    while ((node = walker.nextNode())) {
+      for (const character of ["甲", "乙"]) {
+        const index = node.textContent!.indexOf(character);
+        if (index < 0) continue;
+        const range = document.createRange();
+        range.setStart(node, index);
+        range.setEnd(node, index + 1);
+        tops.push(range.getBoundingClientRect().top);
+      }
+    }
+    return { distance: tops[1]! - tops[0]!, lineHeight: Number.parseFloat(getComputedStyle(element).lineHeight) };
+  });
+  expect(Math.abs(gap.distance - gap.lineHeight)).toBeLessThan(2);
+  expect(await soft.textContent()).toBe("软甲   🙂软乙　\u00a0尾");
+  await expect(reader.locator(".markdown-inline-boundary-space")).toHaveText("     ", { useInnerText: false });
+  const longBlock = reader.locator("p").filter({ hasText: "长列" });
+  expect(await longBlock.textContent()).toBe(longSpaces);
+  await reader.evaluate((element) => { element.style.maxWidth = "180px"; });
+  expect(await reader.evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
+});
+
+for (const alignment of ["center", "right"] as const) {
+  test(`${alignment} 紧邻前文的 P/H2/H3/图片在保存重开与阅读保持四个边界`, async ({ page }) => {
+    const marker = `[wenyousite-align-v1-${alignment}]: #`;
+    const content = ["经历：", marker, "目标正文", marker, "## 目标标题", marker,
+      "### 目标小标题", marker, "![图片](https://cdn.example.com/boundary.png)"].join("\n");
+    const harness = await mockAlignmentWorkspace(page, content, 5);
+    await openFreshThreadDraft(page);
+    const editor = page.locator(".milkdown-editor .ProseMirror").first();
+    const attributes = () => editor.locator(":scope > [data-wenyou-align]");
+    await expect(attributes()).toHaveCount(4);
+    expect(await editor.textContent()).not.toContain("wenyousite-align");
+    const before = editor.locator(":scope > p").first();
+    await expect(before).toHaveText("经历：");
+    await placeCaretAtEnd(before);
+    await page.keyboard.type("新增");
+    await page.getByRole("button", { name: "保存草稿", exact: true }).click();
+    await expect.poll(harness.getStoredMarkdown).toContain("经历：新增");
+    const stored = harness.getStoredMarkdown();
+    for (let pass = 0; pass < 2; pass++) {
+      await page.reload();
+      if (new URL(page.url()).pathname === "/threads/create") {
+        await page.getByRole("link", { name: "继续编辑", exact: true }).click();
+      }
+      await expect(attributes()).toHaveCount(4);
+      await page.getByRole("button", { name: "保存草稿", exact: true }).click();
+      await expect.poll(harness.getStoredMarkdown).toBe(stored);
+    }
+    harness.setPublished(true);
+    await page.goto(`/threads/${THREAD_ID}`);
+    const reader = page.locator('[data-slot="markdown-content"]').filter({ hasText: "经历：新增" }).first();
+    await expect(reader.locator(":scope > [data-wenyou-align]")).toHaveCount(4);
+    await expect(reader.locator("br")).toHaveCount(0);
+    expect(await reader.textContent()).toBe("经历：新增目标正文目标标题目标小标题");
+    await expect(reader.locator("img")).toHaveAttribute("src", "https://cdn.example.com/boundary.png");
+  });
+}
+
+test("正文草稿恢复紧邻 marker，真实编辑后保存与阅读保持对齐", async ({ page }) => {
+  const content = "经历：\n[wenyousite-align-v1-center]: #\n草稿正文\n[wenyousite-align-v1-right]: #\n## 草稿标题";
+  const harness = await mockAlignmentWorkspace(page, "即将替换", 5);
+  await page.route("**/api/v1/drafts/state", (route) => fulfill(route, {
+    drafts: [{ id: "boundary-draft", userId: USER_ID, slot: 1, version: 1, content,
+      createdAt: "2026-08-29T00:00:00.000Z", updatedAt: "2026-08-29T00:00:00.000Z" }],
+    usedSlots: 1, maxSlots: 5, slots: [1],
+  }));
+  await openFreshThreadDraft(page);
+  await page.getByRole("button", { name: "正文草稿", exact: true }).click();
+  const panel = page.getByRole("region", { name: "正文草稿", exact: true });
+  await panel.getByRole("button", { name: "恢复", exact: true }).click();
+  await page.getByRole("button", { name: "覆盖并恢复", exact: true }).click();
+  const editor = page.locator(".milkdown-editor .ProseMirror").first();
+  await expect(editor.locator(":scope > [data-wenyou-align]")).toHaveCount(2);
+  await placeCaretAtEnd(editor.locator(":scope > p").filter({ hasText: "草稿正文" }));
+  await page.keyboard.type("新增");
+  await page.getByRole("button", { name: "保存草稿", exact: true }).click();
+  await expect.poll(harness.getStoredMarkdown).toContain("草稿正文新增");
+  harness.setPublished(true);
+  await page.goto(`/threads/${THREAD_ID}`);
+  const reader = page.locator('[data-slot="markdown-content"]').filter({ hasText: "经历：" }).first();
+  await expect(reader.locator(":scope > [data-wenyou-align]")).toHaveCount(2);
+  expect(await reader.textContent()).toBe("经历：草稿正文新增草稿标题");
+  await expect(reader.locator("br")).toHaveCount(0);
+});
+
+for (const block of [
+  { name: "图片", source: "![图片](https://cdn.example.com/boundary.png)", selector: ".milkdown-image-block" },
+  { name: "分隔线", source: "---", selector: "hr" },
+  { name: "列表", source: "- 末尾列表", selector: "li p" },
+]) {
+  test(`末尾${block.name}可经真实键盘继续输入，保存重开不丢结构`, async ({ page }) => {
+    const harness = await mockAlignmentWorkspace(page, `前文\n\n${block.source}`, 5);
+    await openFreshThreadDraft(page);
+    const editor = page.locator(".milkdown-editor .ProseMirror").first();
+    const target = editor.locator(block.selector).last();
+    await target.click();
+    await page.keyboard.press("Control+End");
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("Enter");
+    if (block.name === "列表") await page.keyboard.press("Enter");
+    await page.keyboard.type("继续输入正文");
+    await expect(editor.locator(":scope > p").filter({ hasText: "继续输入正文" })).toBeVisible();
+    await expect(editor.locator(block.selector)).toHaveCount(1);
+    await page.getByRole("button", { name: "保存草稿", exact: true }).click();
+    const stored = harness.getStoredMarkdown();
+    expect(stored).toContain("继续输入正文");
+    await page.reload();
+    if (new URL(page.url()).pathname === "/threads/create") {
+      await page.getByRole("link", { name: "继续编辑", exact: true }).click();
+    }
+    await expect(editor.locator(":scope > p").filter({ hasText: "继续输入正文" })).toBeVisible();
+    await expect(editor.locator(block.selector)).toHaveCount(1);
+    await page.getByRole("button", { name: "保存草稿", exact: true }).click();
+    await expect.poll(harness.getStoredMarkdown).toBe(stored);
   });
 }

@@ -364,6 +364,27 @@ function remarkPreserveSoftLineBreaks() {
   };
 }
 
+type RenderWhitespaceNode = {
+  type: string;
+  value?: string;
+  position?: unknown;
+  children?: RenderWhitespaceNode[];
+};
+
+/** 保留作者空格时，移除 mdast→hast 生成的排版 LF，避免 br 和列表重复换行。 */
+function rehypeRemoveFormattingLineBreaks() {
+  return (tree: RenderWhitespaceNode) => {
+    const visit = (node: RenderWhitespaceNode) => {
+      if (!node.children) return;
+      node.children = node.children.filter((child) => !(
+        child.type === "text" && child.value === "\n" && !child.position
+      ));
+      node.children.forEach(visit);
+    };
+    visit(tree);
+  };
+}
+
 interface MarkdownContentProps {
   content: string;
   diceRolls?: InlineDiceRoll[];
@@ -415,6 +436,7 @@ export function MarkdownContent({
       )}
     >
       <ReactMarkdown
+        rehypePlugins={[rehypeRemoveFormattingLineBreaks]}
         remarkPlugins={[
           remarkGfm,
           [remarkWenyouAlignment, markdownOptions],
