@@ -42,6 +42,8 @@
 
 响应结构以固定 OpenAPI 和 `src/api/types.ts` 的生成类型为事实源。
 
+契约 `5.20.1-dev.20260911.1` 起，主题帖夹 `bookmarkCount`、动态夹 `momentBookmarkCount` 均表示当前用户可见的收藏总数，与对应列表共用可见性规则且不受分页影响。Web 直接展示服务端总数，不用已加载页的条数推算；数量为零的自定义夹仍保留目录入口。主题帖夹上弃用的兼容 `momentBookmarkCount` 同样按可见性计数，Web 继续使用独立动态夹端点。
+
 ### GET /bookmarks?limit=3 → { ...thread, bookmarkId }
 
 ```json
