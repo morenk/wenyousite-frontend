@@ -12,8 +12,10 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { backendContractSource, assertBackendContract } from "./backend-contract-source.mjs";
 
+import { backendContractRoot } from "./backend-contract-root.mjs";
+
 const frontendRoot = process.cwd();
-const backend = backendContractSource(resolve(frontendRoot, "../wenyousite-backend"));
+const backend = backendContractSource(backendContractRoot(frontendRoot));
 const trackedContract = resolve(frontendRoot, "contracts/openapi.json");
 const trackedTypes = resolve(frontendRoot, "src/api/types.ts");
 const hooksRoot = resolve(frontendRoot, "src/api/hooks");
@@ -31,7 +33,8 @@ function sourceFiles(directory) {
 }
 
 try {
-  for (const name of ["openapi.json", "internal-reference-v1-fixtures.json", "editor-clipboard-v2-fixtures.json", "thread-cover-media-v1-fixtures.json"]) {
+  for (const name of ["openapi.json", "internal-reference-v1-fixtures.json", "editor-clipboard-v2-fixtures.json", "thread-cover-media-v1-fixtures.json", "markdown-block-boundary-v1-fixtures.json"]) {
+    if (process.env.WENYOUSITE_BACKEND_ROOT && !backend.exists(name)) throw new Error("指定后端来源缺少契约：" + name);
     assertBackendContract(backend, name, readFileSync(resolve(frontendRoot, "contracts", name), "utf8"));
   }
   console.log("Validated backend contract source " + backend.description);
