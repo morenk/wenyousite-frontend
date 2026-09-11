@@ -2,7 +2,7 @@
 
 "use client";
 
-import Lightbox from "yet-another-react-lightbox";
+import Lightbox, { type Render } from "yet-another-react-lightbox";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
 
 export interface GalleryLightboxImage {
@@ -14,11 +14,13 @@ export interface GalleryLightboxImage {
 
 interface GalleryLightboxProps {
   images: GalleryLightboxImage[];
+  renderSlide?: Render["slide"];
+  preload?: number;
   index: number;
   onClose: () => void;
 }
 
-export function GalleryLightbox({ images, index, onClose }: GalleryLightboxProps) {
+export function GalleryLightbox({ images, index, onClose, renderSlide, preload = 2 }: GalleryLightboxProps) {
   return (
     <Lightbox
       open
@@ -30,8 +32,9 @@ export function GalleryLightbox({ images, index, onClose }: GalleryLightboxProps
         width: image.width ?? undefined,
         height: image.height ?? undefined,
       }))}
+      render={renderSlide ? { slide: renderSlide } : undefined}
       plugins={[Zoom]}
-      carousel={{ finite: images.length <= 1, preload: 2, imageFit: "contain" }}
+      carousel={{ finite: images.length <= 1, preload, imageFit: "contain" }}
       zoom={{ maxZoomPixelRatio: 2, zoomInMultiplier: 2 }}
       labels={{
         Previous: "上一张",

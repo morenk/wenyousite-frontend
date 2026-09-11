@@ -389,8 +389,8 @@ describe("MarkdownContent", () => {
     const paragraphs = document.querySelectorAll('[data-slot="markdown-content"] p');
     expect(paragraphs).toHaveLength(2);
     expect(paragraphs[0]?.querySelectorAll("br")).toHaveLength(1);
-    expect(paragraphs[0]).toHaveTextContent("另一种形式的开 始？");
-    expect(paragraphs[1]).toHaveTextContent("没有死亡的人，无法给出答案。");
+    expect(paragraphs[0]?.innerHTML).toBe("另一种形式的开<br>始？");
+    expect(paragraphs[1]?.textContent).toBe("   没有死亡的人，无法给出答案。");
     expect(document.body).not.toHaveTextContent("&#x20;");
   });
 

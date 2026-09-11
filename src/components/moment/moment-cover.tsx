@@ -1,3 +1,6 @@
+"use client";
+
+import { MomentMediaImage } from "@/components/moment/moment-media-image";
 import { cn } from "@/lib/utils";
 import type { MomentCard } from "@/api/hooks/use-moments";
 import { getMomentFeedAspectRatio } from "@/lib/moment-image";
@@ -20,9 +23,10 @@ export function MomentCover({ moment, priority = false, className }: MomentCover
           ),
         }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element -- COS 已生成专用信息流图，保留后端尺寸协议 */}
-        <img
-          src={moment.coverMedia.feedUrl ?? moment.coverMedia.mediumUrl ?? moment.coverMedia.url}
+        <MomentMediaImage
+          media={moment.coverMedia}
+          allowPlayback={false}
+          mode="cover"
           alt={moment.title}
           loading={priority ? "eager" : "lazy"}
           fetchPriority={priority ? "high" : "auto"}

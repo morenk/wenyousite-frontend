@@ -2,7 +2,6 @@
 
 "use client";
 
-import { configureEditorStableTrailing } from "@/components/editor/editor-stability";
 
 import {
   useCallback,
@@ -234,6 +233,7 @@ export interface MilkdownEditorHostProps {
   editorRef?: Ref<EditorSubmissionHandle>;
   onValidityChange?: (valid: boolean) => void;
   onChange?: (value: string) => void;
+  onSyncErrorChange?: (hasError: boolean) => void;
   onUploadImage?: (file: File, options?: UploadImageOptions) => Promise<string>;
   placeholder?: string;
   disabled?: boolean;
@@ -254,6 +254,7 @@ export function MilkdownEditorHost({
   editorRef,
   onValidityChange,
   onChange,
+  onSyncErrorChange,
   onUploadImage,
   placeholder,
   disabled,
@@ -275,6 +276,8 @@ export function MilkdownEditorHost({
   const flushRef = useRef<(() => string | null) | null>(null);
   useImperativeHandle(editorRef, () => ({ flush: () => flushRef.current?.() ?? null }), []);
   useEffect(() => { onValidityRef.current = onValidityChange; }, [onValidityChange]);
+  const onSyncErrorChangeRef = useRef(onSyncErrorChange);
+  useEffect(() => { onSyncErrorChangeRef.current = onSyncErrorChange; }, [onSyncErrorChange]);
   const toolbarItemsRef = useRef<MilkdownToolbarItemMetadata[]>([]);
   const uploadAbortRef = useRef<AbortController | null>(null);
   const imageAlignmentEnabledRef = useRef(imageAlignmentEnabled);
@@ -751,6 +754,10 @@ export function MilkdownEditorHost({
       );
       let codecErrorShown = false;
       const markdownBridge = createEditorMarkdownBridge({
+        onSyncErrorChange: (hasError) => {
+          if (!hasError) codecErrorShown = false;
+          onSyncErrorChangeRef.current?.(hasError);
+        },
         markdownContractVersion,
         onReady: (flush) => { flushRef.current = flush; },
         onValid: () => onValidityRef.current?.(true),
@@ -771,7 +778,7 @@ export function MilkdownEditorHost({
         .config((ctx) => configureEditorAlignmentParser(ctx, { markdownContractVersion }))
         .config((ctx) => configureEditorAlignmentSchemas(ctx, { markdownContractVersion }))
         .config(configureEditorMarkdownSerializer)
-        .config(configureEditorStableTrailing)
+
         .use(internalReferenceLinkView)
         .use(editorMarkdownPastePlugin)
         .use(alignmentPlugin)

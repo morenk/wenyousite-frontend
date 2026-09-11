@@ -18,6 +18,7 @@ import { remarkRecoverAttentionBoundaries } from "@/lib/markdown-attention";
 import { normalizeSerializedAlignmentMarkers } from "@/lib/markdown-alignment";
 
 import { canonicalizeEditorEmptyRows, documentWithExplicitEmptyRows, handlePlainNewline } from "./editor-plain-newline";
+import { adoptEditedTrailingParagraphs, configureEditorTrailingParagraph, withoutAutomaticTrailingParagraph } from "./editor-trailing-paragraph";
 
 type DiceMarkdownNode = {
   nodeId?: unknown;
@@ -26,6 +27,7 @@ type DiceMarkdownNode = {
 
 type EditorMarkdownNode = {
   type?: string;
+  value?: string;
   data?: Record<string, unknown>;
   children?: EditorMarkdownNode[];
 };
@@ -64,6 +66,7 @@ type EncodeSides = {
 export interface EditorMarkdownBridgeOptions {
   onChange: (markdown: string) => void;
   onError?: (error: unknown) => void;
+  onSyncErrorChange?: (hasError: boolean) => void;
   onValid?: () => void;
   onReady?: (flush: (() => string | null) | null) => void;
   markdownContractVersion?: number;
@@ -91,6 +94,10 @@ export const editorSoftBreakParser = $remark(
     const visit = (node: EditorMarkdownNode) => {
       if (node.type === "break" && node.data?.isInline === true) {
         node.data = { ...node.data, isInline: false };
+      }
+      // CommonMark 行内代码中的源码 LF 在阅读态为空格，编辑回填遵循相同语义。
+      if (node.type === "inlineCode" && node.value?.includes("\n")) {
+        node.value = node.value.replace(/\r\n?|\n/gu, " ");
       }
       node.children?.forEach(visit);
     };
@@ -260,6 +267,7 @@ function serializeDiceMarkdownNode(node: DiceMarkdownNode): string {
  * 避免 remark-stringify 生成反斜杠硬换行后再被发布净化器破坏。
  */
 export function configureEditorMarkdownSerializer(ctx: Ctx) {
+  configureEditorTrailingParagraph(ctx);
   ctx.update(paragraphAttr.key, (previous) => (node) => ({
     ...previous(node),
     ...(node.content.size === 0 ? { "data-wenyou-empty-row": "true" } : {}),
@@ -298,7 +306,7 @@ export function serializeEditorMarkdown(
   doc: ProseNode,
   options: MarkdownValidationOptions = {},
 ): string {
-  doc = documentWithExplicitEmptyRows(doc);
+  doc = documentWithExplicitEmptyRows(withoutAutomaticTrailingParagraph(doc));
   let markdown = normalizeSerializedAlignmentMarkers(
     canonicalizeEditorEmptyRows(
       sanitizeEmptyImages(
@@ -343,12 +351,15 @@ export function createEditorMarkdownBridge({
   onError,
   onReady,
   onValid,
+  onSyncErrorChange,
   markdownContractVersion,
 }: EditorMarkdownBridgeOptions) {
   return $prose((ctx) => {
     let previousMarkdown: string | undefined;
     return new Plugin({
       key: new PluginKey("wenyousite-editor-markdown-bridge"),
+      appendTransaction: (transactions, _previous, state) => transactions.some((tr) => tr.docChanged)
+        ? adoptEditedTrailingParagraphs(state) : null,
       props: {
         handleKeyDown: (nextView, event) => {
           if (handlePlainNewline(nextView, event)) return true;
@@ -390,11 +401,13 @@ export function createEditorMarkdownBridge({
             const changed = failed || markdown !== previousMarkdown;
             previousMarkdown = markdown;
             failed = false;
+            onSyncErrorChange?.(false);
             onValid?.();
             if (changed && notify) onChange(markdown);
             return markdown;
           } catch (error) {
             failed = true;
+            onSyncErrorChange?.(true);
             onError?.(error);
             return null;
           }

@@ -42,6 +42,8 @@
 
 响应结构以固定 OpenAPI 和 `src/api/types.ts` 的生成类型为事实源。
 
+契约 `5.20.1-dev.20260911.1` 起，主题帖夹 `bookmarkCount`、动态夹 `momentBookmarkCount` 均表示当前用户可见的收藏总数，与对应列表共用可见性规则且不受分页影响。Web 直接展示服务端总数，不用已加载页的条数推算；数量为零的自定义夹仍保留目录入口。主题帖夹上弃用的兼容 `momentBookmarkCount` 同样按可见性计数，Web 继续使用独立动态夹端点。
+
 ### GET /bookmarks?limit=3 → { ...thread, bookmarkId }
 
 ```json
@@ -98,8 +100,8 @@
 | 状态 | 来源 | 管理方式 |
 |------|------|----------|
 | 我的收藏 | `GET /bookmarks` | 按 folderId 分 key 的 `useInfiniteQuery` |
-| 主题帖收藏夹 | `GET /bookmarks/folders` | 独立 Query Key；新建/移动后只失效主题帖目录计数与列表 |
-| 动态收藏夹 | `GET /moments/bookmark-folders` | 独立 Query Key；新建/移动后只失效动态目录计数与列表 |
+| 主题帖收藏夹 | `GET /bookmarks/folders` | 独立 Query Key；新建先将响应加入已有目录缓存，再失效目录；移动后失效主题帖目录计数与列表 |
+| 动态收藏夹 | `GET /moments/bookmark-folders` | 独立 Query Key；新建先将响应加入已有目录缓存，再失效目录；移动后失效动态目录计数与列表 |
 | 他人收藏 | `GET /users/:id/bookmarks` | `useInfiniteQuery`（`queryKeys.users.bookmarks(id)`，404→error 显示未公开） |
 | 他人动态收藏 | `GET /users/:id/moment-bookmarks` | 独立 `useInfiniteQuery`；不读取本人分类信息 |
 | 详情页收藏态 | `GET /threads/:id` 的 isBookmarked/bookmarkId | `useQuery`（`queryKeys.threads.detail(id)`） |
@@ -113,7 +115,7 @@
 | BookmarkFolderPickerDialog | `src/components/user/bookmark-folder-picker-dialog.tsx` | 选择现有分类或就地新建后确认收藏 |
 | BookmarkFolderBar | `src/components/user/bookmark-folder-bar.tsx` | 当前内容类型的纵向目录、名称搜索、数量与新建入口 |
 | CreateBookmarkFolderButton | `src/components/user/create-bookmark-folder-button.tsx` | RHF + Zod 新建弹窗；按当前内容类型调用独立端点 |
-| BookmarkThreadCard | `src/components/user/bookmark-thread-card.tsx` | 连续收藏列表行（标题/作者/分类/时间/目录/更多操作） |
+| BookmarkThreadCard | `src/components/user/bookmark-thread-card.tsx` | 连续收藏列表行（标题/封面/作者/分类/时间/目录/更多操作）；封面复用可见封面同时播放 |
 | BookmarkList | `src/components/user/bookmark-list.tsx` | 我的收藏管理列表（分类分页 + 移动 + 取消） |
 | UserBookmarksSection | `src/components/user/user-bookmarks-section.tsx` | 资料页收藏 Tab 复用首页主题帖列表卡片，保持只读（404=未公开） |
 | UserBookmarksPage | `src/components/user/user-bookmarks-page.tsx` | 收藏 Tab 页面与权限门；无权限时不挂载列表查询 |
@@ -124,15 +126,16 @@
 
 ## 7. 交互规则
 
-选择收藏夹弹窗在操作标题下仅显示目标内容名称，不重复解释选择动作。个人主页收藏类型切换与本人新建收藏夹入口同行，不重复“收藏”标题。
+选择收藏夹弹窗在操作标题下仅显示目标内容名称，不重复解释选择动作。个人主页收藏类型切换与本人的“我的收藏夹”、新建收藏夹入口同行，不重复“收藏”标题。
 
 - 详情页按钮：已收藏直接取消；未收藏打开“收藏到”弹窗，预选默认夹，可选择或就地新建后确认
 - 可操作收藏未选中时使用中性描边，选中后仅使用 Foundation 金色实心书签，容器保持透明；文字保持正文色，请求中保留原状态视觉，并通过稳定“收藏”名称与 `aria-pressed` 暴露状态
 - 收藏与取消收藏不显示普通成功 Toast；管理页取消后提供 10 秒可撤销反馈，恢复到原收藏夹；失败保留错误反馈
 - `/bookmarks` 使用宽工作区和纵向收藏目录，只有主题帖/动态使用固定 Tab；目录固定“全部收藏”在首位，支持当前类型内名称搜索、独立滚动与常驻新建入口；搜索不改变主区选择或汇总数量
 - 当前类型和目录分别写入 `type` / `folder` URL 参数；刷新和历史返回恢复定位，两个类型在页内分别记住选择；无效目录回到全部；仅挂载当前类型的列表
+- 空的自定义收藏夹仍显示在目录中，不按收藏数量过滤；新建失败保留名称和弹窗供重试，目录加载失败显示重试并保留 URL 定位
 - 新建后清除目录搜索并进入新收藏夹；主区显示目录名称与数量，全部视图在条目中标注所属目录
-- 本人资料收藏页标题区按当前分栏显示“新建主题帖收藏夹”或“新建动态收藏夹”，他人资料收藏页不显示管理操作
+- 本人资料收藏页标题区显示“我的收藏夹”，进入 `/bookmarks?type=当前类型` 查看全部私有目录；按当前分栏显示“新建主题帖收藏夹”或“新建动态收藏夹”，新建成功直接打开对应类型与新夹 URL。他人资料收藏页不显示管理操作
 - 每条收藏的“更多收藏操作”菜单提供移动和取消；移动复用带名称搜索的收藏夹选择弹窗，当前夹不可重复提交，失败保留选项与错误；操作后同步当前列表与目录计数
 - 资料页收藏 Tab 以主题帖/动态分栏公开展示，始终不显示收藏夹归类；未公开时隐藏主 Tab，直达路由不发起列表请求
 - 私密帖仅参与人可收藏（后端校验）
@@ -162,5 +165,7 @@
 - `/bookmarks` 两类内容均支持收藏夹筛选、新建、移动、取消收藏与 cursor 分页
 - 主题帖夹与动态夹从不同端点读取和创建，可分别新建同名目录，切换分栏不会把一侧选中的 folderId 带到另一侧
 - 登录后全局导航栏显示收藏入口
-- 用户资料页公开主题帖和动态收藏但不公开分类；本人可新建收藏夹，未公开时隐藏入口且直达显示占位
+- 用户资料页公开主题帖和动态收藏但不公开分类；本人可进入我的收藏夹或新建后直接进入空夹；他人未公开时隐藏入口且直达显示占位
 - 私密帖收藏权限由后端保证
+
+自有收藏与个人主页公开收藏遵循[列表动图封面策略](home.md#11-列表动图封面)，点击封面进入详情，省流量偏好全站共用。

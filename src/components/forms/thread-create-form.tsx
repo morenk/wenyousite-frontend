@@ -40,6 +40,7 @@ export function ThreadCreateForm({
   onPublished,
 }: ThreadCreateFormProps) {
   const editor = useEditorSubmission();
+  const [syncError, setSyncError] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const saveThread = useSaveThreadAggregate();
@@ -60,7 +61,7 @@ export function ThreadCreateForm({
 
   async function handleSaveDraft(values: ThreadCreateFormData) {
     const content = editor.flush();
-    if (content === null) return;
+    if (syncError || content === null) return;
     const title = values.title?.trim();
 
     try {
@@ -90,7 +91,7 @@ export function ThreadCreateForm({
 
   async function handlePublish(values: ThreadCreateFormData) {
     const content = editor.flush();
-    if (content === null) return;
+    if (syncError || content === null) return;
     const validationError = validatePublishable({ ...values, content });
     if (validationError) {
       toast.error(validationError);
@@ -169,6 +170,7 @@ export function ThreadCreateForm({
                 threadId={thread.id}
                 defaultValue={field.value ?? ""}
                 onChange={field.onChange}
+                onSyncErrorChange={setSyncError}
                 onUploadImage={handleUploadImage}
                 disabled={isSaving || isPublishing}
                 diceRolls={thread.defaultSubthread.bodyPost?.diceRolls}
@@ -200,7 +202,7 @@ export function ThreadCreateForm({
             type="button"
             variant="outline"
             onClick={form.handleSubmit(handleSaveDraft)}
-            disabled={isSaving || isPublishing}
+            disabled={syncError || isSaving || isPublishing}
           >
             {isSaving ? (
               <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
@@ -212,7 +214,7 @@ export function ThreadCreateForm({
           <Button
             type="button"
             onClick={form.handleSubmit(handlePublish)}
-            disabled={isSaving || isPublishing}
+            disabled={syncError || isSaving || isPublishing}
           >
             {isPublishing ? (
               <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />

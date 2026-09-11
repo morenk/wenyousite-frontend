@@ -1,67 +1,60 @@
-/** 主题帖卡片封面：只展示默认主贴的第一张图片，统一裁切为 16:9。 */
-
+/** 列表封面使用服务端确认的静态首帧，可见项按需挂载动画。 */
 "use client";
 
-import { useState } from "react";
-import { getMarkdownImageVariantUrl } from "@/lib/upload-image";
+import { useState, type ImgHTMLAttributes } from "react";
+import { ImageIcon } from "lucide-react";
+import type { components } from "@/api/types";
+import { useCoverPlayback } from "@/hooks/use-cover-playback";
+import { selectThreadCoverPreview } from "@/lib/thread-cover-preview";
 import { cn } from "@/lib/utils";
 
+type CoverMedia = components["schemas"]["ThreadCoverMediaResponseDto"];
 interface ThreadCoverProps {
   image?: string | null;
+  media?: CoverMedia | null;
   className?: string;
 }
 
-function isUploadedMediaUrl(url: string): boolean {
-  return (
-    (url.includes("/media/") || url.includes("/uploads/")) &&
-    !url.endsWith("_feed.webp") &&
-    !url.endsWith("_md.webp") &&
-    !url.endsWith("_thumb.webp")
-  );
+function CoverImage(props: ImgHTMLAttributes<HTMLImageElement>) {
+  // eslint-disable-next-line @next/next/no-img-element -- 原生图片保留GIF/WebP自身动画循环，CDN跨域无需额外fetch。
+  return <img alt="" aria-hidden="true" loading="lazy" decoding="async" draggable={false} referrerPolicy="no-referrer" {...props} />;
 }
 
-function isGifUrl(url: string): boolean {
-  return /\.gif(?:[?#]|$)/iu.test(url);
+function PlayingCover({ url, poster, onError }: { url: string; poster: string; onError: () => void }) {
+  const [ready, setReady] = useState(false);
+  return <>
+    <CoverImage data-cover-poster src={poster} className={cn("h-full w-full object-cover", ready && "invisible")} />
+    <CoverImage data-cover-animation src={url} loading="eager" onLoad={() => setReady(true)} onError={onError}
+      className={cn("absolute inset-0 h-full w-full object-cover", !ready && "invisible")} />
+  </>;
 }
 
-export function ThreadCover({ image, className }: ThreadCoverProps) {
-  const originalUrl = image?.trim() ?? "";
-  const feedUrl = isUploadedMediaUrl(originalUrl) && !isGifUrl(originalUrl)
-    ? getMarkdownImageVariantUrl(originalUrl, "feed")
-    : originalUrl;
-  const [originalFallbackUrl, setOriginalFallbackUrl] = useState<string | null>(null);
-  const [failedUrl, setFailedUrl] = useState<string | null>(null);
-
-  if (!originalUrl || failedUrl === originalUrl) return null;
-
-  const useOriginal = originalFallbackUrl === originalUrl;
-
-  return (
-    <div
-      className={cn(
-        "pointer-events-none mt-3 aspect-video w-1/2 overflow-hidden rounded-xl bg-muted",
-        className,
-      )}
-      data-thread-cover="true"
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element -- 远程封面需支持衍生图失败回退 */}
-      <img
-        src={useOriginal ? originalUrl : feedUrl}
-        alt=""
-        aria-hidden="true"
-        loading="lazy"
-        decoding="async"
-        draggable={false}
-        referrerPolicy="no-referrer"
-        className="h-full w-full object-cover"
-        onError={() => {
-          if (feedUrl !== originalUrl && !useOriginal) {
-            setOriginalFallbackUrl(originalUrl);
-            return;
-          }
-          setFailedUrl(originalUrl);
-        }}
-      />
-    </div>
+export function ThreadCover({ image, media, className }: ThreadCoverProps) {
+  const original = image?.trim() ?? "";
+  const descriptor = media?.url === original ? media : null;
+  // 防御不一致的响应：动画原图不能冒充静态poster。
+  const poster = descriptor?.posterUrl && !(descriptor.animated === true && descriptor.posterUrl === original)
+    ? descriptor.posterUrl : null;
+  const identity = JSON.stringify([original, poster, descriptor?.animated, descriptor?.previewVariants]);
+  const [loadedPoster, setLoadedPoster] = useState<string | null>(null);
+  const [failedPoster, setFailedPoster] = useState<string | null>(null);
+  const [failedAnimation, setFailedAnimation] = useState<string | null>(null);
+  const showPoster = !!poster && failedPoster !== identity;
+  const { ref, active, size, generation } = useCoverPlayback(
+    showPoster && loadedPoster === identity && descriptor?.animated === true && failedAnimation !== identity, identity,
   );
+
+  const playbackUrl = size ? selectThreadCoverPreview(descriptor?.previewVariants, size) ?? original : original;
+
+  if (!original) return null;
+  return <div ref={ref}
+    className={cn("pointer-events-none relative mt-3 aspect-video w-1/2 overflow-hidden rounded-xl bg-muted", className)}
+    data-thread-cover="true" data-cover-url={original}>
+    {showPoster ? active
+      ? <PlayingCover key={`${identity}:${generation}`} url={playbackUrl} poster={poster} onError={() => setFailedAnimation(identity)} />
+      : <CoverImage key={identity} data-cover-poster src={poster} className="h-full w-full object-cover"
+          onLoad={() => setLoadedPoster(identity)} onError={() => setFailedPoster(identity)} />
+      : <span className="flex h-full items-center justify-center text-muted-foreground" aria-hidden="true"><ImageIcon className="size-6" /></span>}
+    {descriptor?.animated === true && <span className="absolute bottom-2 right-2 rounded bg-background/90 px-1.5 py-0.5 text-xs text-foreground" aria-hidden="true">动图</span>}
+  </div>;
 }

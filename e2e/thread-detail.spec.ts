@@ -144,6 +144,7 @@ test.describe("主题帖管理面板", () => {
     const aside = page.locator("aside");
 
     // 添加两个非默认子贴
+    let sourceSubthreadId = "";
     let targetSubthreadId = "";
     for (const title of ["设定区", "剧情区"]) {
       await page.locator("aside").getByRole("button", { name: "添加子贴", exact: true }).click();
@@ -152,6 +153,7 @@ test.describe("主题帖管理面板", () => {
         response.url().endsWith("/subthreads") && response.request().method() === "POST");
       await page.getByRole("button", { name: "添加", exact: true }).click();
       targetSubthreadId = (await (await created).json()).data.id;
+      sourceSubthreadId ||= targetSubthreadId;
       await expect(aside.getByText(title)).toBeVisible({ timeout: 10000 });
     }
 
@@ -164,6 +166,8 @@ test.describe("主题帖管理面板", () => {
     await handle.focus();
     await page.keyboard.press("Space");
     await expect(handle).toHaveAttribute("aria-pressed", "true");
+    // aria-pressed 先于 dnd-kit 的落点测量完成；等待首次碰撞公告后再发送移动键。
+    await expect(aside.getByRole("status")).toContainText(`was moved over droppable area ${sourceSubthreadId}`);
     await page.keyboard.press("ArrowDown");
     await expect(aside.getByRole("status")).toContainText(`was moved over droppable area ${targetSubthreadId}`);
     await page.keyboard.press("Space");
