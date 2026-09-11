@@ -8,7 +8,28 @@ const spec = JSON.parse(readFileSync(contractPath, "utf8"));
 const categoryFixture = JSON.parse(
   readFileSync(resolve(process.cwd(), "contracts/thread-category-v3-fixtures.json"), "utf8"),
 );
+const coverFixture = JSON.parse(readFileSync(resolve(process.cwd(), "contracts/thread-cover-media-v1-fixtures.json"), "utf8"));
 const failures = [];
+if (coverFixture.schemaVersion !== 1 || !Array.isArray(coverFixture.cases)) failures.push("列表封面 v1 黄金用例无效");
+const coverDefinition = spec.components?.schemas?.ThreadCoverMediaResponseDto;
+if (coverDefinition?.properties?.animated?.type !== "boolean" || !coverDefinition?.properties?.animated?.nullable
+  || coverDefinition?.properties?.posterUrl?.type !== "string" || !coverDefinition?.properties?.posterUrl?.nullable) {
+  failures.push("列表封面必须显式区分未知动画与缺失静态poster");
+}
+if (coverDefinition?.properties?.previewVariants?.type !== "array"
+  || !coverDefinition?.properties?.previewVariants?.nullable
+  || coverDefinition?.properties?.previewVariants?.maxItems !== 2
+  || coverDefinition?.required?.includes("previewVariants")) {
+  failures.push("动画预览档位必须可选、nullable 且最多两档，兼容旧服务");
+}
+const previewDefinition = spec.components?.schemas?.ThreadCoverPreviewVariantResponseDto;
+for (const field of ["url", "width", "height", "bytes"]) {
+  if (!previewDefinition?.required?.includes(field)) failures.push("动画预览缺少必填 " + field);
+}
+for (const name of ["ThreadListItemResponseDto", "OwnBookmarkThreadResponseDto", "BookmarkThreadResponseDto", "HomeThreadListItemResponseDto", "SearchThreadResponseDto"]) {
+  if (!spec.components?.schemas?.[name]?.properties?.coverMedia) failures.push(name + " 缺少共享封面描述");
+}
+
 const operationIds = new Set();
 const methods = ["get", "post", "put", "patch", "delete"];
 const requestIdHeaderRef = "#/components/headers/XRequestId";

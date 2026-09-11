@@ -1,10 +1,9 @@
 /** Markdown v5 工具：规范化、工具栏能力白名单与字面文本降级。 */
 
-import MarkdownIt from "markdown-it";
+import { ALIGNMENT_MARKER_RE, analyzeMarkdownBlockBoundaries, projectMarkdownBlockBoundaries } from "@/lib/markdown-block-boundaries";
 
 /** 匹配图片语法中括号为空的写法：![alt]() 或 ![alt]( ) */
 const EMPTY_IMAGE_REGEX = /!\[[^\]]*\]\(\s*\)/g;
-const markdownParser = new MarkdownIt({ html: true, linkify: true, typographer: false });
 
 /** 移除空 URL 的图片语法，避免序列化出破图（本站不支持外链图片，src 必填） */
 export function sanitizeEmptyImages(markdown: string): string {
@@ -67,9 +66,7 @@ const QUOTED_EMPTY_PARAGRAPH_RE = /^ {0,3}>[\t ]?<br\s*\/?>[\t ]*$/iu;
 const BLANK_LINE_RE = /^[\t ]*$/u;
 const TASK_LIST_RE = /^(?: {0,3}>[\t ]*)*[\t ]*(?:[-+*]|\d+[.)])[\t ]+\[[ xX]\](?:[\t ]|$)/u;
 const UNKNOWN_PROTOCOL_RE = /\[\[([a-z][a-z0-9_-]*):v(\d+):/giu;
-const ALIGNMENT_MARKER_RE = /^\[wenyousite-align-v1-(center|right)\]: #$/u;
 const ALIGNMENT_PROTOCOL_RE = /\[wenyousite-align-v(\d+)-([a-z][a-z-]*)\]:/giu;
-const STICKER_TITLE_PREFIX = "wenyousite-sticker:v1:";
 const WORD_JOINER = "\u2060";
 const MAX_LIST_DEPTH = 3;
 
@@ -83,7 +80,7 @@ export interface MarkdownValidationOptions {
 
 function legacyBlankLineProtectedLines(markdown: string): Set<number> {
   const protectedLines = new Set<number>();
-  for (const token of markdownParser.parse(markdown, {})) {
+  for (const token of analyzeMarkdownBlockBoundaries(markdown).tokens) {
     if (!["fence", "code_block", "html_block"].includes(token.type) || !token.map) {
       continue;
     }
@@ -167,8 +164,10 @@ export function recoverLegacyMarkdownEmptyParagraphs(markdown: string): string {
 
 function isolateEmptyRowMarkers(lines: string[]): string[] {
   const output: string[] = [];
+  const { protectedLines } = analyzeMarkdownBlockBoundaries(lines.join("\n"));
   for (let index = 0; index < lines.length; index++) {
     const line = lines[index]!;
+    if (protectedLines.has(index)) { output.push(line); continue; }
     const quoted = QUOTED_EMPTY_PARAGRAPH_RE.test(line);
     if (!quoted && !EMPTY_PARAGRAPH_RE.test(line)) { output.push(line); continue; }
     const separator = quoted ? ">" : "";
@@ -212,7 +211,9 @@ export function prepareMarkdownForReader(
     lines.splice(markerEnd, 0, "");
   }
 
-  return isolateEmptyRowMarkers(lines).join("\n");
+  return projectMarkdownBlockBoundaries(
+    isolateEmptyRowMarkers(lines).join("\n"), options.markdownContractVersion,
+  ).markdown;
 }
 
 /** 为 Milkdown 解析器隔开相邻协议标记；这些分隔空行不会成为编辑器段落。 */
@@ -220,30 +221,7 @@ export function prepareMilkdownEditorMarkdown(
   markdown: string,
   options: MarkdownValidationOptions = {},
 ): string {
-  const lines = sanitizeMilkdownMarkdown(
-    recoverLegacyMarkdownEmptyParagraphs(markdown),
-    options,
-  ).split("\n");
-  const output: string[] = [];
-
-  for (let index = 0; index < lines.length; index++) {
-    const line = lines[index]!;
-    if (!EMPTY_PARAGRAPH_RE.test(line)) {
-      output.push(line);
-      continue;
-    }
-
-    if (output.length > 0 && !BLANK_LINE_RE.test(output.at(-1)!)) {
-      output.push("");
-    }
-    output.push("<br />");
-    const nextLine = lines[index + 1];
-    if (nextLine !== undefined && !BLANK_LINE_RE.test(nextLine)) {
-      output.push("");
-    }
-  }
-
-  return isolateEmptyRowMarkers(output).join("\n");
+  return prepareMarkdownForReader(markdown, options);
 }
 
 export const UNSUPPORTED_MARKDOWN_TYPE_LABELS = {
@@ -304,50 +282,18 @@ function isEscaped(value: string, index: number): boolean {
   return slashes % 2 === 1;
 }
 
-function maskInlineCode(line: string): string {
-  const chars = [...line];
-  let index = 0;
-  while (index < line.length) {
-    if (line[index] !== "`" || isEscaped(line, index)) {
-      index++;
-      continue;
-    }
-    let length = 1;
-    while (line[index + length] === "`") length++;
-    const delimiter = "`".repeat(length);
-    const closing = line.indexOf(delimiter, index + length);
-    if (closing < 0) {
-      index += length;
-      continue;
-    }
-    for (let cursor = index; cursor < closing + length; cursor++) chars[cursor] = " ";
-    index = closing + length;
-  }
-  return chars.join("");
-}
-
-/** 返回按源码位置排序的全部工具栏白名单外结构。 */
 export function findUnsupportedMarkdownFormats(
   markdown: string,
   options: MarkdownValidationOptions = {},
 ): UnsupportedMarkdownIssue[] {
   const markdownContractVersion =
     options.markdownContractVersion ?? ACTIVE_MARKDOWN_CONTRACT_VERSION;
-  const imageAlignmentEnabled =
-    markdownContractVersion >= IMAGE_ALIGNMENT_MARKDOWN_CONTRACT_VERSION;
   const normalized = normalizeMilkdownMarkdown(markdown);
   const lines = normalized.split("\n");
-  // 校验占位必须独立成块；普通文字会吞并相邻对齐定义。不会写回正文。
-  const parseSource = lines
-    .map((line) => {
-      if (EMPTY_PARAGRAPH_RE.test(line)) return "***";
-      if (QUOTED_EMPTY_PARAGRAPH_RE.test(line)) return "> ***";
-      return line;
-    })
-    .join("\n");
+  const analysis = analyzeMarkdownBlockBoundaries(normalized, markdownContractVersion);
   const issues: UnsupportedMarkdownIssue[] = [];
   let listDepth = 0;
-  const tokens = markdownParser.parse(parseSource, {});
+  const tokens = analysis.tokens;
 
   for (const token of tokens) {
     switch (token.type) {
@@ -420,6 +366,7 @@ export function findUnsupportedMarkdownFormats(
       case "list_item_open":
       case "list_item_close":
       case "hr":
+      case "alignment_marker":
       case "table_close":
       case "thead_open":
       case "thead_close":
@@ -437,55 +384,14 @@ export function findUnsupportedMarkdownFormats(
     }
   }
 
-  const topLevelBlocks = new Map(
-    tokens
-      .filter(
-        (token) =>
-          token.level === 0 &&
-          token.map &&
-          (token.type === "paragraph_open" || token.type === "heading_open"),
-      )
-      .map((token) => [token.map![0], token]),
-  );
-
   for (let line = 0; line < lines.length; line++) {
     if (TASK_LIST_RE.test(lines[line]!)) {
       issues.push({ type: "task-list", startLine: line, endLine: line });
     }
-    const masked = maskInlineCode(lines[line]!);
-    const alignmentMarker = lines[line]!.match(ALIGNMENT_MARKER_RE);
-    if (alignmentMarker) {
-      const target = topLevelBlocks.get(line + 1);
-      const inline = target
-        ? tokens.find(
-            (token) =>
-              token.type === "inline" &&
-              token.map?.[0] === target.map?.[0] &&
-              token.map?.[1] === target.map?.[1],
-          )
-        : undefined;
-      const inlineChildren = inline?.children ?? [];
-      const hasRegularImage = inlineChildren.some(
-        (child) =>
-          child.type === "image" &&
-          !child.attrGet("title")?.startsWith(STICKER_TITLE_PREFIX),
-      );
-      const hasStandaloneRegularImage =
-        imageAlignmentEnabled &&
-        inlineChildren.length === 1 &&
-        inlineChildren[0]?.type === "image" &&
-        !inlineChildren[0].attrGet("title")?.startsWith(STICKER_TITLE_PREFIX);
-      const hasInlineContent = Boolean(inline?.content.trim());
-      const eligibleHeading =
-        target?.type === "heading_open" &&
-        (target.tag === "h2" || target.tag === "h3") &&
-        hasInlineContent &&
-        !hasRegularImage;
-      const eligibleParagraph =
-        target?.type === "paragraph_open" &&
-        !EMPTY_PARAGRAPH_RE.test(lines[line + 1] ?? "") &&
-        ((hasInlineContent && !hasRegularImage) || hasStandaloneRegularImage);
-      if (!eligibleHeading && !eligibleParagraph) {
+    if (analysis.protectedLines.has(line)) continue;
+    const masked = analysis.maskedLines[line]!;
+    if (analysis.markerLines.has(line)) {
+      if (analysis.invalidMarkerLines.includes(line)) {
         issues.push({ type: "invalid-alignment", startLine: line, endLine: line });
       }
       continue;

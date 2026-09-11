@@ -23,11 +23,13 @@ export function useEditorDraftController({
   onChange,
   flush,
   hasEditor,
+  onSyncErrorChange,
 }: {
   defaultValue: string;
   onChange?: (value: string) => void;
   flush?: () => string | null;
   hasEditor?: () => boolean;
+  onSyncErrorChange?: (hasError: boolean) => void;
 }) {
   const { user } = useAuth();
   const { data: apiMeta, isError: apiMetaError } = useApiMeta();
@@ -93,13 +95,15 @@ export function useEditorDraftController({
   }, [capabilityReady, defaultValue, initialValue, markdownContractVersion, valid]);
 
   const handleValidityChange = useCallback((nextValid: boolean) => {
+    onSyncErrorChange?.(!nextValid);
     validRef.current = nextValid;
     setValid(nextValid);
     if (!nextValid) {
       autoSaveSequenceRef.current++;
       setAutoSaveStatus("error");
     }
-  }, []);
+  }, [onSyncErrorChange]);
+  const handleSyncError = useCallback((hasError: boolean) => handleValidityChange(!hasError), [handleValidityChange]);
 
   const handleChange = useCallback(
     (value: string) => {
@@ -189,6 +193,8 @@ export function useEditorDraftController({
   );
 
   return {
+    syncError: !valid,
+    handleSyncError,
     user,
     markdownContractVersion: activeMarkdownContractVersion,
     advertisedMarkdownContractVersion: markdownContractVersion,

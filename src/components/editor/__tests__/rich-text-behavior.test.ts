@@ -1,5 +1,4 @@
 import { summarizeReader } from "@/test/rich-text/reader";
-import { configureEditorStableTrailing } from "@/components/editor/editor-stability";
 import { readFileSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
@@ -53,7 +52,7 @@ test.each(fixtures.cases)("$id 真实编辑事务逐步对照共享独立预期"
   crepe.editor.config((ctx) => configureEditorAlignmentParser(ctx, { markdownContractVersion: 5 }))
     .config((ctx) => configureEditorAlignmentSchemas(ctx, { markdownContractVersion: 5 }))
     .config(configureEditorMarkdownSerializer)
-        .config(configureEditorStableTrailing).use(editorAttentionBoundaryParser).use(editorSoftBreakParser)
+        .use(editorAttentionBoundaryParser).use(editorSoftBreakParser)
     .use(dice.remarkDiceInline).use(dice.diceInlineSchema).use(dice.clonePastedDice)
     .use(sticker.remarkStickerInline).use(sticker.stickerInlineSchema).use(editorMarkdownPastePlugin)
     .use(createEditorMarkdownBridge({ markdownContractVersion: 5, onChange: () => {}, onReady: (next) => { flush = next; } }));

@@ -12,7 +12,7 @@ node scripts/rich-text-real-api-preflight.mjs --require-credentials
 # Next rewrites 固化于构建时；必须在独立 worktree 中使用本次真实目标重新构建。
 pnpm build
 export RICH_TEXT_REAL_API=true
-export RICH_TEXT_CANDIDATE_SHA=c3cd6b905e2b0158adf643dba25b144e7bb9d647
+export RICH_TEXT_CANDIDATE_SHA=6859f00c305b7c63a62fc2d3f709d811c55f2dc0
 export RICH_TEXT_HARNESS_SHA=$(git rev-parse HEAD)
 export RICH_TEXT_RUN_DIR=${RICH_TEXT_RUN_DIR:-$(mktemp -d /tmp/rich-text-web-s5.XXXXXX)}
 mkdir -p "$RICH_TEXT_RUN_DIR"

@@ -2,6 +2,7 @@
 
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { backendContractRoot, requireConfiguredContract } from "./backend-contract-root.mjs";
 import {
   EDITOR_CAPABILITY_LABELS,
   EDITOR_CONTENT_POLICY,
@@ -309,7 +310,7 @@ function operation(method: string, apiPath: string) {
     failures.push("Foundation 正文策略必须保持 Markdown v4 工具栏白名单契约");
   }
 
-  const backendRoot = path.resolve(root, "../wenyousite-backend");
+  const backendRoot = backendContractRoot(root);
   for (const fixtureName of [
     "markdown-v1-fixtures.json",
     "markdown-v4-fixtures.json",
@@ -322,9 +323,11 @@ function operation(method: string, apiPath: string) {
     "rich-text-behavior-v1-fixtures.json",
     "rich-text-behavior-v1.schema.json",
     "rich-text-behavior-results-v1.schema.json",
+    "markdown-block-boundary-v1-fixtures.json",
   ]) {
     const frontendFixture = path.resolve(root, "contracts", fixtureName);
     const backendFixture = path.resolve(backendRoot, "contracts", fixtureName);
+    requireConfiguredContract(backendFixture);
     if (
       fs.existsSync(backendFixture) &&
       fs.readFileSync(frontendFixture, "utf8") !==

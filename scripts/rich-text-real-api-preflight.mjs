@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 
-export const candidateSha = "c3cd6b905e2b0158adf643dba25b144e7bb9d647";
+export const candidateSha = "6859f00c305b7c63a62fc2d3f709d811c55f2dc0";
 const git = (...args) => execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
 const configured = (name) => {
   const value = process.env[name]?.trim() ?? "";

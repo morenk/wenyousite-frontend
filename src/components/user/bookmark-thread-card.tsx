@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { BookmarkedThread } from "@/api/hooks/use-bookmarks";
 import { useBookmarkActions } from "@/api/hooks/use-bookmark-actions";
 import { useMoveBookmark, type BookmarkFolder } from "@/api/hooks/use-bookmark-folders";
+import { ThreadCover } from "@/components/thread/thread-cover";
 import { ThreadCategoryBadge } from "@/components/thread/thread-category";
 import { LevelBadge } from "@/components/shared/level-badge";
 import { WenyouTime } from "@/components/shared/wenyou-time";
@@ -18,10 +19,11 @@ export function BookmarkThreadCard({ thread, folders = [], showFolder = false }:
   const move = useMoveBookmark();
   const folder = folders.find((item) => item.id === thread.bookmarkFolderId);
   return (
-    <div className="flex w-full items-start justify-between gap-4 border-b border-border py-5">
+    <article className="flex w-full items-start justify-between gap-4 border-b border-border py-5">
       <div className="min-w-0 flex-1">
         <Link href={`/threads/${thread.id}`} className="block rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <h3 className="break-words text-base font-semibold text-foreground hover:text-brand-strong">{thread.title}</h3>
+          <ThreadCover image={thread.coverImages?.[0]} media={thread.coverMedia} />
         </Link>
         <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
           <span>{thread.owner.username}</span><LevelBadge level={thread.owner.level} />
@@ -35,6 +37,6 @@ export function BookmarkThreadCard({ thread, folders = [], showFolder = false }:
         onMove={(folderId) => move.mutateAsync({ bookmarkId: thread.bookmarkId, folderId })}
         onRemove={() => remove.mutateAsync(thread.bookmarkId)}
         onRestore={() => add.mutateAsync(thread.bookmarkFolderId)} />
-    </div>
+    </article>
   );
 }

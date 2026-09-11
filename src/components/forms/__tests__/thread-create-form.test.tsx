@@ -10,12 +10,16 @@ import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
 vi.mock("@/components/editor/milkdown-editor", async () => {
   const { withEditorSubmission } = await import("@/test/editor-submission-double");
   return ({
-  MilkdownEditor: withEditorSubmission(({ defaultValue, onChange }: { defaultValue?: string; onChange?: (v: string) => void }) => (
+  MilkdownEditor: withEditorSubmission(({ defaultValue, onChange, onSyncErrorChange }: { defaultValue?: string; onChange?: (v: string) => void; onSyncErrorChange?: (hasError: boolean) => void }) => (
+    <>
     <textarea
       data-testid="milkdown-editor"
       defaultValue={defaultValue}
       onChange={(e) => onChange?.(e.target.value)}
     />
+    <button onClick={() => onSyncErrorChange?.(true)}>模拟同步失败</button>
+    <button onClick={() => onSyncErrorChange?.(false)}>模拟同步恢复</button>
+    </>
   )),
 });
 });
@@ -343,4 +347,22 @@ describe("ThreadCreateForm", () => {
       body: expect.not.objectContaining({ title: expect.anything() }),
     });
   });
+});
+
+test("正文同步失败时禁止保存旧内容，撤销恢复后才允许保存", async () => {
+  const user = userEvent.setup();
+  render(<ThreadCreateForm thread={mockThread} onCancel={vi.fn()} onPublished={vi.fn()} />, { wrapper: createWrapper() });
+  await user.type(screen.getByTestId("milkdown-editor"), "已同步正文");
+  await user.click(screen.getByRole("button", { name: "模拟同步失败" }));
+  const save = screen.getByRole("button", { name: "保存草稿" });
+  const publish = screen.getByRole("button", { name: /^发布$/ });
+  expect(save).toBeDisabled();
+  expect(publish).toBeDisabled();
+  await user.click(save);
+  await user.click(publish);
+  expect(mockSaveThreadMutate).not.toHaveBeenCalled();
+  await user.click(screen.getByRole("button", { name: "模拟同步恢复" }));
+  expect(save).toBeEnabled();
+  await user.click(save);
+  await waitFor(() => expect(mockSaveThreadMutate).toHaveBeenCalledWith(expect.objectContaining({ body: expect.objectContaining({ content: "已同步正文" }) })));
 });

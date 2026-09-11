@@ -16,7 +16,7 @@ test("候选 Web 经真实 API 保存并重开新建私密富文本草稿", asyn
   };
   const runDir = process.env.RICH_TEXT_RUN_DIR!;
   expect(runDir).toBeTruthy();
-  expect(process.env.RICH_TEXT_CANDIDATE_SHA).toBe("c3cd6b905e2b0158adf643dba25b144e7bb9d647");
+  expect(process.env.RICH_TEXT_CANDIDATE_SHA).toBe("6859f00c305b7c63a62fc2d3f709d811c55f2dc0");
   expect(process.env.RICH_TEXT_HARNESS_SHA).toMatch(/^[a-f0-9]{40}$/u);
   try {
     const meta = await page.request.get("/api/v1/meta");

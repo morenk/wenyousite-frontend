@@ -24,6 +24,7 @@ function workspace() {
 function check(frontend: string) {
   return spawnSync(process.execPath, ["--import", resolve("node_modules/tsx/dist/loader.mjs"), resolve("scripts/check-doc-truth.ts")], {
     cwd: frontend, encoding: "utf8",
+    env: { ...process.env, WENYOUSITE_BACKEND_ROOT: resolve(frontend, "../wenyousite-backend") },
   });
 }
 afterEach(() => { for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true }); });

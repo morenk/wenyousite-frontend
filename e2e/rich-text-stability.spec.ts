@@ -288,8 +288,8 @@ for (const [version, source] of [[5, "甲 [[widget:v9:future]]"], [3, "[wenyousi
     await expect(page.getByRole("alert").filter({ hasText: "原文已保留" })).toBeVisible();
     await expect(page.locator(".ProseMirror")).toHaveCount(0);
     await page.getByPlaceholder("给你的主题帖起个名字").fill("新标题");
-    await page.getByRole("button", { name: "保存草稿", exact: true }).click();
-    await page.getByRole("button", { name: "发布", exact: true }).click();
+    await expect(page.getByRole("button", { name: "保存草稿", exact: true })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "发布", exact: true })).toBeDisabled();
     expect(harness.aggregateRequests).toEqual([]);
     expect(harness.getStoredMarkdown()).toBe(source);
   });

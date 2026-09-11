@@ -1,3 +1,4 @@
+import { withoutAutomaticTrailingParagraph } from "@/components/editor/editor-trailing-paragraph";
 import type { Node as ProseNode, ResolvedPos } from "@milkdown/kit/prose/model";
 import { documentWithExplicitEmptyRows } from "@/components/editor/editor-plain-newline";
 
@@ -46,7 +47,7 @@ function block(node: ProseNode): unknown {
 }
 export function summarizeDocument(doc: ProseNode) {
   const blocks: unknown[] = [];
-  documentWithExplicitEmptyRows(doc).forEach((node) => blocks.push(block(node)));
+  documentWithExplicitEmptyRows(withoutAutomaticTrailingParagraph(doc)).forEach((node) => blocks.push(block(node)));
   return { blocks };
 }
 function logicalWidth(node: ProseNode) {

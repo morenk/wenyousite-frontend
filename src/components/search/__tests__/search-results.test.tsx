@@ -69,7 +69,8 @@ const thread = {
   topicTags: [],
   _count: { members: 1, posts: 2, players: 1 },
   preview: "统一后的主题帖正文预览",
-  coverImages: [
+  coverMedia: { url: "https://cdn.example.com/uploads/search-cover.jpg", animated: false, posterUrl: "https://cdn.example.com/uploads/search-cover_poster.webp" },
+      coverImages: [
     "https://cdn.example.com/uploads/search-cover.jpg",
     "https://cdn.example.com/uploads/search-second.jpg",
   ],
@@ -210,7 +211,7 @@ describe("SearchResults", () => {
     expect(screen.getByText("招募中")).toBeInTheDocument();
     expect(document.querySelector("[data-thread-cover='true'] img")).toHaveAttribute(
       "src",
-      "https://cdn.example.com/uploads/search-cover_feed.webp",
+      "https://cdn.example.com/uploads/search-cover_poster.webp",
     );
     expect(document.querySelectorAll("[data-thread-cover='true'] img")).toHaveLength(1);
 

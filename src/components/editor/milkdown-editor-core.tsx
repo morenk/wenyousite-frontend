@@ -21,6 +21,7 @@ export interface MilkdownEditorProps {
   editorRef?: Ref<EditorSubmissionHandle>;
   onValidityChange?: (valid: boolean) => void;
   onChange?: (value: string) => void;
+  onSyncErrorChange?: (hasError: boolean) => void;
   onUploadImage?: (file: File, options?: UploadImageOptions) => Promise<string>;
   placeholder?: string;
   disabled?: boolean;
@@ -43,6 +44,7 @@ function EditorCore({
   editorRef,
   onValidityChange,
   onChange,
+  onSyncErrorChange,
   onUploadImage,
   placeholder,
   disabled,
@@ -58,6 +60,8 @@ function EditorCore({
   const hasEditor = useCallback(() => hostRef.current !== null, []);
   const flush = useCallback(() => hostRef.current?.flush() ?? null, []);
   const {
+    syncError,
+    handleSyncError,
     handleValidityChange,
     markdownContractVersion,
     advertisedMarkdownContractVersion,
@@ -79,6 +83,7 @@ function EditorCore({
     onChange,
     flush,
     hasEditor,
+    onSyncErrorChange,
   });
 
   const flushForWrite = useCallback(() => {
@@ -134,6 +139,7 @@ function EditorCore({
           editorRef={hostRef}
           onValidityChange={handleValidity}
           onChange={handleChange}
+          onSyncErrorChange={handleSyncError}
           onUploadImage={onUploadImage}
           placeholder={placeholder}
           disabled={disabled}
@@ -182,6 +188,7 @@ function EditorCore({
           onRestore={handleRestore}
           initialContent={currentContent}
           flush={flushForWrite}
+          saveDisabled={syncError}
           autoSaveEnabled={autoSaveEnabled}
           autoSaveStatus={autoSaveStatus}
           onAutoSaveChange={handleAutoSaveChange}

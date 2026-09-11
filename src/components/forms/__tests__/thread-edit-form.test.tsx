@@ -19,12 +19,16 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/components/editor/milkdown-editor", async () => {
   const { withEditorSubmission } = await import("@/test/editor-submission-double");
   return ({
-  MilkdownEditor: withEditorSubmission(({ defaultValue, onChange }: { defaultValue?: string; onChange?: (value: string) => void }) => (
+  MilkdownEditor: withEditorSubmission(({ defaultValue, onChange, onSyncErrorChange }: { defaultValue?: string; onChange?: (value: string) => void; onSyncErrorChange?: (hasError: boolean) => void }) => (
+    <>
     <textarea
       data-testid="milkdown-editor"
       defaultValue={defaultValue}
       onChange={(event) => onChange?.(event.target.value)}
     />
+    <button type="button" onClick={() => onSyncErrorChange?.(true)}>模拟同步失败</button>
+    <button type="button" onClick={() => onSyncErrorChange?.(false)}>模拟同步恢复</button>
+    </>
   )),
 });
 });
@@ -314,6 +318,18 @@ describe("ThreadEditForm", () => {
 
     expect(mockDeleteThreadMutate).toHaveBeenCalledWith("t1");
     expect(mockRouterReplace).toHaveBeenCalledWith("/");
+  });
+
+  test("同步失败禁止表单提交旧正文，恢复后允许提交", async () => {
+    const user = userEvent.setup();
+    renderForm();
+    await user.type(screen.getByTestId("milkdown-editor"), "新增");
+    await user.click(screen.getByRole("button", { name: "模拟同步失败" }));
+    await user.click(screen.getByRole("button", { name: "保存帖子" }));
+    expect(mockSaveThreadMutate).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "模拟同步恢复" }));
+    await user.click(screen.getByRole("button", { name: "保存帖子" }));
+    await vi.waitFor(() => expect(mockSaveThreadMutate).toHaveBeenCalled());
   });
 
   test("标题超过上限时显示字段错误且不提交", async () => {
