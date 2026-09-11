@@ -6,7 +6,10 @@ const { mockShellContext, mockUserBookmarksSection } = vi.hoisted(() => ({
   mockUserBookmarksSection: vi.fn(),
 }));
 
-vi.mock("next/navigation", () => ({ useParams: () => ({ id: "author-1" }) }));
+vi.mock("next/navigation", () => ({
+  useParams: () => ({ id: "author-1" }),
+  useRouter: () => ({ push: vi.fn() }),
+}));
 vi.mock("@/components/user/user-profile-shell", () => ({
   useUserProfilePageContext: () => mockShellContext(),
 }));
