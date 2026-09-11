@@ -305,7 +305,7 @@ const stickerDisplayClaims = new Map([
   ["src/app/globals.css", ["img.sticker-display"]],
   ["src/components/editor/milkdown-editor.css", ["var(--sticker-display-max)"]],
   ["src/components/thread/markdown-content.tsx", ["sticker-display", "STICKER_DISPLAY_STYLE"]],
-  ["src/components/moment/moment-comment-row.tsx", ["sticker-display", "getStickerDisplayUrl"]],
+  ["src/components/moment/moment-comment-row.tsx", ["sticker-display", "STICKER_DISPLAY_STYLE", "MomentMediaImage", 'mode={comment.sticker ? "sticker" : "detail"}']],
   ["src/components/message/direct-message-bubble.tsx", ["sticker-display", "getStickerDisplayUrl"]],
 ]);
 for (const [fileName, claims] of stickerDisplayClaims) {

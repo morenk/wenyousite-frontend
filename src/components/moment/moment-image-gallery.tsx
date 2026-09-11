@@ -8,12 +8,14 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { MomentDetail } from "@/api/hooks/use-moments";
+import { MomentMediaImage } from "@/components/moment/moment-media-image";
+import { useMomentOverlay } from "@/components/moment/moment-playback";
 import { Button } from "@/components/ui/button";
 import { Tooltip } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 const GalleryLightbox = dynamic(
-  () => import("@/components/shared/gallery-lightbox").then((module) => module.GalleryLightbox),
+  () => import("@/components/moment/moment-gallery-lightbox").then((module) => module.MomentGalleryLightbox),
   { ssr: false },
 );
 
@@ -39,6 +41,7 @@ export function MomentImageGallery({ title, images, coverMedia }: MomentImageGal
   });
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  useMomentOverlay(lightboxIndex !== null);
   const aspectRatio = getCarouselAspectRatio(coverMedia ?? images[0]);
 
   const syncSelection = useCallback(() => {
@@ -57,6 +60,7 @@ export function MomentImageGallery({ title, images, coverMedia }: MomentImageGal
 
   const lightboxImages = useMemo(() => images.map((image, index) => ({
     src: image.url,
+    momentMedia: image,
     alt: `${title}，第 ${index + 1} 张图片`,
     width: image.width,
     height: image.height,
@@ -75,26 +79,22 @@ export function MomentImageGallery({ title, images, coverMedia }: MomentImageGal
         <div className="flex touch-pan-y">
           {images.map((image, index) => (
             <div key={image.id} className="min-w-0 flex-[0_0_100%]">
-              <button
-                type="button"
-                data-slot="moment-detail-image"
+              <MomentMediaImage
+                media={image}
+                allowPlayback={activeIndex === index && lightboxIndex === null}
                 onClick={() => setLightboxIndex(index)}
-                className="relative block w-full max-h-[min(72vh,42rem)] overflow-hidden rounded-xl bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/40"
-                style={{ aspectRatio }}
-                aria-label={`查看大图：${title}，第 ${index + 1} 张图片`}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element -- COS 处理中图已按契约选择 */}
-                <img
-                  src={image.mediumUrl ?? image.url}
-                  alt={`${title}，第 ${index + 1} 张图片`}
-                  width={image.width ?? undefined}
-                  height={image.height ?? undefined}
-                  loading={index === 0 ? "eager" : "lazy"}
-                  decoding="async"
-                  draggable={false}
-                  className="h-full w-full select-none object-contain"
-                />
-              </button>
+                buttonLabel={`查看大图：${title}，第 ${index + 1} 张图片`}
+                buttonClassName="relative block w-full max-h-[min(72vh,42rem)] overflow-hidden rounded-xl bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/40"
+                buttonStyle={{ aspectRatio }}
+                alt={`${title}，第 ${index + 1} 张图片`}
+                width={image.width ?? undefined}
+                height={image.height ?? undefined}
+                loading={index === 0 ? "eager" : "lazy"}
+                decoding="async"
+                draggable={false}
+                className="h-full w-full select-none object-contain"
+                buttonSlot="moment-detail-image"
+              />
             </div>
           ))}
         </div>
@@ -151,9 +151,10 @@ export function MomentImageGallery({ title, images, coverMedia }: MomentImageGal
                   : "border-border hover:opacity-100",
               )}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element -- 缩略图优先使用服务端派生图 */}
-              <img
-                src={image.thumbnailUrl ?? image.feedUrl ?? image.mediumUrl ?? image.url}
+              <MomentMediaImage
+                media={image}
+                allowPlayback={false}
+                mode="thumbnail"
                 alt=""
                 aria-hidden="true"
                 draggable={false}
