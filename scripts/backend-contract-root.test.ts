@@ -13,11 +13,11 @@ test("指定后端来源必须存在且逐字校验，不回退相邻 checkout",
   roots.push(root);
   const contracts = join(root, "contracts");
   mkdirSync(contracts);
-  for (const name of ["openapi.json", "internal-reference-v1-fixtures.json", "editor-clipboard-v2-fixtures.json"]) {
+  for (const name of ["openapi.json", "internal-reference-v1-fixtures.json", "editor-clipboard-v2-fixtures.json", "thread-cover-media-v1-fixtures.json", "markdown-block-boundary-v1-fixtures.json"]) {
     copyFileSync(resolve("contracts", name), join(contracts, name));
   }
   const run = (source: string) => execFileSync(process.execPath, [resolve("scripts/check-generated-api.mjs")], {
-    cwd: process.cwd(), env: { ...process.env, WENYOUSITE_BACKEND_ROOT: source }, encoding: "utf8", stdio: "pipe",
+    cwd: process.cwd(), env: { ...process.env, BACKEND_CONTRACT_REF: "", WENYOUSITE_BACKEND_ROOT: source }, encoding: "utf8", stdio: "pipe",
   });
   expect(run(root)).toContain("OpenAPI generated types are current");
   writeFileSync(join(contracts, "openapi.json"), "{}");

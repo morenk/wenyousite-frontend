@@ -10,28 +10,13 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { backendContractRoot, requireConfiguredContract } from "./backend-contract-root.mjs";
+import { backendContractSource, assertBackendContract } from "./backend-contract-source.mjs";
+
+import { backendContractRoot } from "./backend-contract-root.mjs";
 
 const frontendRoot = process.cwd();
-const backendRoot = backendContractRoot(frontendRoot);
-const backendContract = resolve(backendRoot, "contracts/openapi.json");
+const backend = backendContractSource(backendContractRoot(frontendRoot));
 const trackedContract = resolve(frontendRoot, "contracts/openapi.json");
-const backendInternalReferenceContract = resolve(
-  backendRoot,
-  "contracts/internal-reference-v1-fixtures.json",
-);
-const trackedInternalReferenceContract = resolve(
-  frontendRoot,
-  "contracts/internal-reference-v1-fixtures.json",
-);
-const backendEditorClipboardContract = resolve(
-  backendRoot,
-  "contracts/editor-clipboard-v2-fixtures.json",
-);
-const trackedEditorClipboardContract = resolve(
-  frontendRoot,
-  "contracts/editor-clipboard-v2-fixtures.json",
-);
 const trackedTypes = resolve(frontendRoot, "src/api/types.ts");
 const hooksRoot = resolve(frontendRoot, "src/api/hooks");
 const tempRoot = mkdtempSync(join(tmpdir(), "wenyousite-api-contract-"));
@@ -48,27 +33,11 @@ function sourceFiles(directory) {
 }
 
 try {
-  [backendContract, backendInternalReferenceContract, backendEditorClipboardContract].forEach(requireConfiguredContract);
-  if (statSync(backendContract, { throwIfNoEntry: false })?.isFile() &&
-      readFileSync(backendContract, "utf8") !== readFileSync(trackedContract, "utf8")) {
-    throw new Error(
-      "contracts/openapi.json 与相邻后端已审核产物不一致；请运行 pnpm contract:sync。",
-    );
+  for (const name of ["openapi.json", "internal-reference-v1-fixtures.json", "editor-clipboard-v2-fixtures.json", "thread-cover-media-v1-fixtures.json", "markdown-block-boundary-v1-fixtures.json"]) {
+    if (process.env.WENYOUSITE_BACKEND_ROOT && !backend.exists(name)) throw new Error("指定后端来源缺少契约：" + name);
+    assertBackendContract(backend, name, readFileSync(resolve(frontendRoot, "contracts", name), "utf8"));
   }
-  if (statSync(backendInternalReferenceContract, { throwIfNoEntry: false })?.isFile() &&
-      readFileSync(backendInternalReferenceContract, "utf8")
-        !== readFileSync(trackedInternalReferenceContract, "utf8")) {
-    throw new Error(
-      "contracts/internal-reference-v1-fixtures.json 与相邻后端已审核产物不一致；请运行 pnpm contract:sync。",
-    );
-  }
-  if (statSync(backendEditorClipboardContract, { throwIfNoEntry: false })?.isFile() &&
-      readFileSync(backendEditorClipboardContract, "utf8")
-        !== readFileSync(trackedEditorClipboardContract, "utf8")) {
-    throw new Error(
-      "contracts/editor-clipboard-v2-fixtures.json 与相邻后端已审核产物不一致；请运行 pnpm contract:sync。",
-    );
-  }
+  console.log("Validated backend contract source " + backend.description);
   execFileSync(
     resolve(frontendRoot, "node_modules/.bin/openapi-typescript"),
     [trackedContract, "-o", generatedTypes],

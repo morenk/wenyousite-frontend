@@ -58,7 +58,8 @@ const sampleThread = {
   topicTags: [],
   _count: { members: 1, players: 1, posts: 2 },
   preview: "预览",
-  coverImages: ["https://cdn.example.com/uploads/profile-cover.jpg"],
+  coverMedia: { url: "https://cdn.example.com/uploads/profile-cover.jpg", animated: false, posterUrl: "https://cdn.example.com/uploads/profile-cover_poster.webp" },
+      coverImages: ["https://cdn.example.com/uploads/profile-cover.jpg"],
 };
 
 describe("UserCreatedThreads", () => {
@@ -108,7 +109,7 @@ describe("UserCreatedThreads", () => {
     expect(screen.getByText("6 升")).toBeInTheDocument();
     expect(document.querySelector("[data-thread-cover='true'] img")).toHaveAttribute(
       "src",
-      "https://cdn.example.com/uploads/profile-cover_feed.webp",
+      "https://cdn.example.com/uploads/profile-cover_poster.webp",
     );
   });
 });

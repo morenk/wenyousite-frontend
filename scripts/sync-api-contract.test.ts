@@ -7,7 +7,7 @@ import { afterEach, expect, test } from "vitest";
 
 const script = resolve("scripts/sync-api-contract.mjs");
 const roots: string[] = [];
-const defaultEnvironment = { ...process.env, WENYOUSITE_BACKEND_ROOT: "" };
+const defaultEnvironment = { ...process.env, WENYOUSITE_BACKEND_ROOT: "", BACKEND_CONTRACT_REF: "" };
 function workspace() {
   const root = mkdtempSync(join(tmpdir(), "wenyou-contract-sync-"));
   roots.push(root);
@@ -16,6 +16,7 @@ function workspace() {
   mkdirSync(backend, { recursive: true });
   mkdirSync(join(frontend, "contracts"), { recursive: true });
   const fixtures = {
+    "thread-cover-media-v1-fixtures.json": { schemaVersion: 1, cases: [] },
     "markdown-block-boundary-v1-fixtures.json": { contract: "wenyousite-markdown-block-boundary", version: 1, markdownContractVersion: 5, cases: [] },
     "markdown-editor-newline-v1-fixtures.json": { contract: "wenyousite-editor-newline", version: 1 },
     "openapi.json": { openapi: "3.0.3", info: { version: "test" } },
@@ -72,11 +73,28 @@ test("同步使用指定后端目录，缺失来源不会写入", () => {
   const other = workspace();
   const selected = resolve(other.backend, "..");
   const run = (source: string) => execFileSync(process.execPath, [script], {
-    cwd: frontend, env: { ...process.env, WENYOUSITE_BACKEND_ROOT: source }, stdio: "pipe",
+    cwd: frontend, env: { ...defaultEnvironment, WENYOUSITE_BACKEND_ROOT: source }, stdio: "pipe",
   });
   writeFileSync(join(backend, "openapi.json"), "{}");
   expect(() => run(selected)).not.toThrow();
   expect(readFileSync(join(frontend, "contracts/openapi.json"), "utf8"))
     .toBe(readFileSync(join(other.backend, "openapi.json"), "utf8"));
   expect(() => run(join(selected, "missing"))).toThrow();
+});
+
+test("精确提交同步忽略后端未提交修改，并包含封面黄金fixture", () => {
+  const { frontend, backend } = workspace();
+  const root = resolve(backend, "..");
+  const git = (...args: string[]) => execFileSync("git", ["-C", root, ...args], { encoding: "utf8", stdio: "pipe" });
+  git("init", "-q"); git("config", "user.name", "Contract Test"); git("config", "user.email", "contract@example.invalid");
+  git("add", "contracts"); git("commit", "-qm", "fixture");
+  const revision = git("rev-parse", "HEAD").trim();
+  const committed = readFileSync(join(backend, "openapi.json"), "utf8");
+  writeFileSync(join(backend, "openapi.json"), "uncommitted");
+  const output = execFileSync(process.execPath, [script], { cwd: frontend, encoding: "utf8",
+    env: { ...defaultEnvironment, BACKEND_CONTRACT_REF: revision, WENYOUSITE_BACKEND_ROOT: root } });
+  expect(output).toContain(revision);
+  expect(readFileSync(join(frontend, "contracts/openapi.json"), "utf8")).toBe(committed);
+  expect(existsSync(join(frontend, "contracts/thread-cover-media-v1-fixtures.json"))).toBe(true);
+  expect(existsSync(join(frontend, "contracts/markdown-block-boundary-v1-fixtures.json"))).toBe(true);
 });

@@ -16,6 +16,8 @@ import {
 import { useTheme } from "@/components/ui/theme-provider";
 import { cn } from "@/lib/utils";
 
+import { useCoverDataSaver } from "@/hooks/use-cover-playback";
+
 const themeIcons = THEME_ICONS as Record<ThemePreference, WenyouIconId>;
 
 interface ThemeMenuProps {
@@ -29,6 +31,7 @@ export function ThemeMenu({
   side = "right",
   align = "end",
 }: ThemeMenuProps) {
+  const { enabled: dataSaver, setEnabled: setDataSaver } = useCoverDataSaver();
   const [open, setOpen] = useState(false);
   const radioName = useId();
   const { preference, setPreference } = useTheme();
@@ -96,6 +99,10 @@ export function ThemeMenu({
                 );
               })}
             </fieldset>
+            <label className="mt-2 flex cursor-pointer items-start gap-2 border-t border-border px-2.5 py-3 text-sm">
+              <input type="checkbox" checked={dataSaver} onChange={(event) => setDataSaver(event.target.checked)} className="mt-1 accent-primary" />
+              <span>省流量<span className="mt-1 block text-xs text-muted-foreground">列表封面仅显示静态图</span></span>
+            </label>
           </Popover.Popup>
         </Popover.Positioner>
       </Popover.Portal>
