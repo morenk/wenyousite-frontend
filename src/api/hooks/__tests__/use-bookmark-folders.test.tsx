@@ -1,3 +1,4 @@
+import { queryKeys } from "@/api/query-keys";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
@@ -132,6 +133,22 @@ describe("bookmark folder hooks", () => {
         expect.objectContaining({ name: "跑团资料", itemCount: 0 }),
       ),
     );
+  });
+
+  test.each(["threads", "moments"] as const)("从资料页新建 %s 空夹时立即更新已缓存的目录且不串分类", async (kind) => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+    const otherKind = kind === "threads" ? "moments" : "threads";
+    client.setQueryData(queryKeys.bookmarks.folders(kind), [mappedFolder]);
+    client.setQueryData(queryKeys.bookmarks.folders(otherKind), [mappedFolder]);
+    mockPOST.mockResolvedValue({ data: { data: { ...folder, id: "empty-folder", name: "新建空夹", isDefault: false, bookmarkCount: 0, momentBookmarkCount: 0 } } });
+    const { result } = renderHook(() => useCreateBookmarkFolder(kind), {
+      wrapper: ({ children }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>,
+    });
+    await act(async () => { await result.current.mutateAsync("新建空夹"); });
+    expect(client.getQueryData(queryKeys.bookmarks.folders(kind))).toEqual([
+      mappedFolder, expect.objectContaining({ id: "empty-folder", name: "新建空夹", itemCount: 0 }),
+    ]);
+    expect(client.getQueryData(queryKeys.bookmarks.folders(otherKind))).toEqual([mappedFolder]);
   });
 
   test("移动收藏提交收藏记录与目标收藏夹", async () => {
