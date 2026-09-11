@@ -217,6 +217,8 @@ export function ManagementPanel({
                     ) : null}
                   </div>
                   <MilkdownEditor
+                    editorRef={controller.editor.editorRef}
+                    onValidityChange={controller.editor.onValidityChange}
                     onSyncErrorChange={setSyncError}
                     key={`${controller.selectedSub.id}-${controller.resetKey}`}
                     threadId={thread.id}

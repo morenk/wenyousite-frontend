@@ -79,13 +79,14 @@ export function documentWithExplicitEmptyRows(doc: ProseNode): ProseNode {
 export function canonicalizeEditorEmptyRows(markdown: string): string {
   const lines = markdown.split("\n");
   const output: string[] = [];
-  // 保留结构块与其后作者空段之间的解析分隔；否则列表会将 <br /> 和正文吞作同一项。
+  // 保留列表等块与其后作者空段之间的解析分隔，避免吞入同一项。
+  // 列 0 的显式空段已能终止引用；引用沿用共享行为契约的无额外分隔写法。
   const separators = new Set<number>();
   const roots = analyzeMarkdownBlockBoundaries(markdown).tokens.filter((token) => token.level === 0 && token.map);
   for (let index = 1; index < roots.length; index++) {
     const row = roots[index]!;
     const previous = roots[index - 1]!;
-    if (!row.meta?.emptyRow || previous.meta?.emptyRow || previous.type === "paragraph_open" || previous.type === "inline") continue;
+    if (!row.meta?.emptyRow || previous.meta?.emptyRow || previous.type === "paragraph_open" || previous.type === "blockquote_open" || previous.type === "inline") continue;
     for (let line = previous.map![1] - 1; line < row.map![0]; line++) {
       if (lines[line] === "") separators.add(line);
     }

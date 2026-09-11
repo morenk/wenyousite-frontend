@@ -35,6 +35,13 @@ for (const [name, identity, version] of [
   const value = JSON.parse(source.read(name));
   if (value.contract !== identity || value.version !== version) throw new Error(name + " 契约不匹配");
 }
+const behaviorFiles = ["rich-text-behavior-v1-fixtures.json", "rich-text-behavior-v1.schema.json", "rich-text-behavior-results-v1.schema.json"];
+for (const name of behaviorFiles) {
+  const value = JSON.parse(source.read(name));
+  if (name.endsWith("-fixtures.json")
+    ? value.contract !== "wenyousite-rich-text-behavior" || value.version !== 1
+    : value.$schema !== "http://json-schema.org/draft-07/schema#") throw new Error(`后端富文本行为契约无效：${name}`);
+}
 readBoundaryContract(source.read(boundaryName));
 const cover = JSON.parse(source.read("thread-cover-media-v1-fixtures.json"));
 if (cover.schemaVersion !== 1 || !Array.isArray(cover.cases)) throw new Error("后端列表封面契约不是 v1");
@@ -46,7 +53,7 @@ for (const name of markdownFiles) {
   if (!value.contract?.startsWith("wenyousite-markdown") || !Number.isInteger(value.version)) throw new Error(name + " 契约无效");
 }
 const names = ["openapi.json", "internal-reference-v1-fixtures.json", "editor-clipboard-v2-fixtures.json",
-  "markdown-editor-newline-v1-fixtures.json", "thread-cover-media-v1-fixtures.json", boundaryName, ...markdownFiles];
+  "markdown-editor-newline-v1-fixtures.json", "thread-cover-media-v1-fixtures.json", boundaryName, ...behaviorFiles, ...markdownFiles];
 // 在写入前读取全部内容，来源缺失时不留下半套契约。
 const contents = names.map((name) => [name, source.read(name)]);
 mkdirSync(target, { recursive: true });

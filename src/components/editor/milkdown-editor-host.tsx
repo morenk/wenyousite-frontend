@@ -2,8 +2,11 @@
 
 "use client";
 
+
 import {
   useCallback,
+  useImperativeHandle,
+  type Ref,
   useEffect,
   useMemo,
   useRef,
@@ -85,7 +88,6 @@ import {
   type MilkdownToolbarItemMetadata,
 } from "@/lib/milkdown-toolbar";
 import { getApiErrorMessage } from "@/api/errors";
-import { useApiMeta } from "@/api/hooks/use-api-meta";
 import { useMentionCandidates } from "@/api/hooks/use-mention-candidates";
 import { createDiceInlineEditorPlugins } from "@/components/editor/dice-inline-plugin";
 import { DiceInsertPopover } from "@/components/editor/dice-insert-popover";
@@ -138,6 +140,8 @@ import {
   type WenyouTextAlignment,
 } from "@/lib/markdown-alignment";
 import "@/components/editor/milkdown-editor.css";
+
+import type { EditorSubmissionHandle } from "@/components/editor/use-editor-submission";
 
 const toolbarHeadingKeymap = $useKeymap("wenyousiteHeadingKeymap", {
   TurnIntoH2: {
@@ -225,6 +229,9 @@ function getImageBlockConfig(onUploadImage: (file: File) => Promise<string>) {
 
 export interface MilkdownEditorHostProps {
   initialValue: string;
+  markdownContractVersion: number;
+  editorRef?: Ref<EditorSubmissionHandle>;
+  onValidityChange?: (valid: boolean) => void;
   onChange?: (value: string) => void;
   onSyncErrorChange?: (hasError: boolean) => void;
   onUploadImage?: (file: File, options?: UploadImageOptions) => Promise<string>;
@@ -243,6 +250,9 @@ export interface MilkdownEditorHostProps {
 /** Crepe 编辑器宿主：以 initialValue 初始化；被外层按 key 重挂载以回填恢复的正文草稿 */
 export function MilkdownEditorHost({
   initialValue,
+  markdownContractVersion,
+  editorRef,
+  onValidityChange,
   onChange,
   onSyncErrorChange,
   onUploadImage,
@@ -256,15 +266,16 @@ export function MilkdownEditorHost({
   footerStatus,
 }: MilkdownEditorHostProps) {
   const [loading] = useInstance();
-  const { data: apiMeta, isError: apiMetaError } = useApiMeta();
-  const advertisedMarkdownContractVersion = apiMeta?.markdownContractVersion ?? 0;
-  const capabilityReady = apiMeta !== undefined || apiMetaError;
-  const markdownContractVersion = apiMeta?.markdownContractVersion ?? 0;
-  const alignmentEnabled = advertisedMarkdownContractVersion >= 4;
-  const imageAlignmentEnabled = advertisedMarkdownContractVersion >= 5;
+  const capabilityReady = true;
+  const alignmentEnabled = markdownContractVersion >= 4;
+  const imageAlignmentEnabled = markdownContractVersion >= 5;
   const crepeRef = useRef<CrepeBuilder | null>(null);
   const hostRef = useRef<HTMLDivElement>(null);
   const onChangeRef = useRef(onChange);
+  const onValidityRef = useRef(onValidityChange);
+  const flushRef = useRef<(() => string | null) | null>(null);
+  useImperativeHandle(editorRef, () => ({ flush: () => flushRef.current?.() ?? null }), []);
+  useEffect(() => { onValidityRef.current = onValidityChange; }, [onValidityChange]);
   const onSyncErrorChangeRef = useRef(onSyncErrorChange);
   useEffect(() => { onSyncErrorChangeRef.current = onSyncErrorChange; }, [onSyncErrorChange]);
   const toolbarItemsRef = useRef<MilkdownToolbarItemMetadata[]>([]);
@@ -748,12 +759,16 @@ export function MilkdownEditorHost({
           onSyncErrorChangeRef.current?.(hasError);
         },
         markdownContractVersion,
+        onReady: (flush) => { flushRef.current = flush; },
+        onValid: () => onValidityRef.current?.(true),
         onChange: (markdown) => {
           codecErrorShown = false;
           onChangeRef.current?.(markdown);
         },
         onError: (error) => {
-          console.error(error);
+          onValidityRef.current?.(false);
+          // 诊断只记录类型，不输出正文、URL 或节点身份。
+          console.error("Editor markdown synchronization failed", error instanceof Error ? error.name : "UnknownError");
           if (codecErrorShown) return;
           codecErrorShown = true;
           toast.error("正文格式同步失败，请撤销刚才的操作后重试");
@@ -763,6 +778,7 @@ export function MilkdownEditorHost({
         .config((ctx) => configureEditorAlignmentParser(ctx, { markdownContractVersion }))
         .config((ctx) => configureEditorAlignmentSchemas(ctx, { markdownContractVersion }))
         .config(configureEditorMarkdownSerializer)
+
         .use(internalReferenceLinkView)
         .use(editorMarkdownPastePlugin)
         .use(alignmentPlugin)

@@ -27,8 +27,10 @@ vi.mock("@/api/hooks/use-upload-image", () => ({
   useUploadImage: () => ({ mutateAsync: vi.fn() }),
 }));
 
-vi.mock("@/components/editor/milkdown-editor", () => ({
-  MilkdownEditor: ({
+vi.mock("@/components/editor/milkdown-editor", async () => {
+  const { withEditorSubmission } = await import("@/test/editor-submission-double");
+  return ({
+  MilkdownEditor: withEditorSubmission(({
     defaultValue,
     onChange,
     placeholder,
@@ -43,8 +45,9 @@ vi.mock("@/components/editor/milkdown-editor", () => ({
       placeholder={placeholder}
       onChange={(e) => onChange?.(e.target.value)}
     />
-  ),
-}));
+  )),
+});
+});
 
 vi.mock("@tanstack/react-query", async () => {
   const actual = await vi.importActual("@tanstack/react-query");

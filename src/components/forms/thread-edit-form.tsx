@@ -18,6 +18,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { useEditorSubmission, EDITOR_SYNC_ERROR } from "@/components/editor/use-editor-submission";
 import { MilkdownEditor } from "@/components/editor/milkdown-editor";
 import { ThreadMetadataFields } from "@/components/forms/thread-metadata-fields";
 import {
@@ -71,6 +72,7 @@ export function ThreadEditForm({
   onSyncErrorChange,
   onReloadLatest,
 }: ThreadEditFormProps) {
+  const editor = useEditorSubmission();
   const router = useRouter();
   const confirmAction = useConfirm();
   const { confirmPublicInvite, resetPublicInviteConfirmation } = usePublicInviteConfirmation();
@@ -106,7 +108,7 @@ export function ThreadEditForm({
   const tagNames = useWatch({ control: form.control, name: "tagNames" });
   const title = useWatch({ control: form.control, name: "title" });
   const isBusy = isSaving || uploadImage.isPending;
-  const isDirty =
+  const isDirty = editor.invalid ||
     title !== baseline.title ||
     category !== baseline.category ||
     status !== baseline.status ||
@@ -115,17 +117,18 @@ export function ThreadEditForm({
     editorContent !== baseline.content;
 
   const reportedStatus = useMemo<ManagementEditorStatus>(() => {
+    if (editor.invalid) return { state: "error", dirty: true, busy: false, message: EDITOR_SYNC_ERROR };
     if (isBusy) return { state: "saving", dirty: isDirty, busy: true };
     if (!isDirty) return { state: "saved", dirty: false, busy: false };
     if (saveState === "conflict" || saveState === "error") {
       return { state: saveState, dirty: true, busy: false, message: saveMessage };
     }
     return { state: "dirty", dirty: true, busy: false };
-  }, [isBusy, isDirty, saveMessage, saveState]);
+  }, [editor.invalid, isBusy, isDirty, saveMessage, saveState]);
 
   useEffect(() => {
-    onStatusChange(reportedStatus);
-  }, [onStatusChange, reportedStatus]);
+    onStatusChange({ ...reportedStatus, canClose: editor.canClose });
+  }, [editor.canClose, onStatusChange, reportedStatus]);
 
   function resetFromThread(nextThread: ThreadDetail) {
     const nextBaseline = getThreadEditBaseline(nextThread);
@@ -138,10 +141,12 @@ export function ThreadEditForm({
   }
 
   async function handleSave(values: ThreadCreateFormData) {
+    const content = editor.flush();
+    if (content === null) return;
     if (syncError) return;
-    const content = values.content ?? "";
     const nextVisibility = isOwner ? values.visibility : thread.visibility;
     if (!(await confirmPublicInvite(content, nextVisibility === "PUBLIC"))) return;
+    if (!editor.isCurrent(content)) return;
     try {
       setIsSaving(true);
       setSaveState("saving");
@@ -186,7 +191,9 @@ export function ThreadEditForm({
 
   const handleCopyLocalContent = async () => {
     try {
-      await navigator.clipboard.writeText(editorContent);
+      const content = editor.flush();
+      if (content === null) return;
+      await navigator.clipboard.writeText(content);
       toast.success("本地主帖正文已复制");
     } catch {
       toast.error("复制失败，请手动全选正文保存");
@@ -299,6 +306,8 @@ export function ThreadEditForm({
                 name="content"
                 render={({ field }) => (
                   <MilkdownEditor
+                    editorRef={editor.editorRef}
+                    onValidityChange={editor.onValidityChange}
                     onSyncErrorChange={(hasError) => { setSyncError(hasError); onSyncErrorChange?.(hasError); }}
                     threadId={thread.id}
                     defaultValue={field.value ?? ""}

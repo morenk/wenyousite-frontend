@@ -31,6 +31,7 @@ interface ContentDraftsPanelProps {
   onRestore?: (snapshot: EditorDraftSnapshot) => void;
   /** 当前编辑器全文；托盘打开期间继续编辑时，保存操作始终使用最新内容 */
   initialContent?: string;
+  flush?: () => string | null;
   saveDisabled?: boolean;
   autoSaveEnabled?: boolean;
   autoSaveStatus?: "idle" | "saving" | "saved" | "error";
@@ -49,6 +50,7 @@ export function ContentDraftsPanel({
   onClose,
   onRestore,
   initialContent,
+  flush,
   saveDisabled = false,
   autoSaveEnabled = false,
   autoSaveStatus = "idle",
@@ -90,6 +92,7 @@ export function ContentDraftsPanel({
   const hasCurrentSnapshot = currentContent.trim().length > 0;
 
   const handleRestore = async (draft: DraftItem) => {
+    if (onRestore && flush && flush() === null) return;
     const currentText = initialContent ?? "";
     if (
       onRestore &&
@@ -135,8 +138,8 @@ export function ContentDraftsPanel({
   };
 
   const handleSave = async (slot?: number) => {
-    const text = currentContent;
-    if (saveDisabled || !text.trim()) return;
+    const text = flush ? flush() : currentContent;
+    if (saveDisabled || text === null || !text.trim()) return;
     const occupied = slot === undefined ? undefined : draftBySlot.get(slot);
     if (occupied && !(await confirmAction({
       title: `覆盖草稿 ${slot}`,
@@ -144,6 +147,7 @@ export function ContentDraftsPanel({
       confirmLabel: "覆盖",
       destructive: true,
     }))) return;
+    if (flush && flush() !== text) return;
     try {
       const savedDraft = await saveDraft.mutateAsync(
         occupied

@@ -102,7 +102,8 @@ test.each(blocks)("%s 后连续 Enter 再输入，空段与正文均可保存重
     }
     view.dispatch(view.state.tr.insertText("继续输入正文"));
     const stored = serializeEditorMarkdown(ctx, view.state.doc);
-    expect(stored).toBe(`${original}${block.startsWith("![") ? "\n" : "\n\n"}<br />\n<br />\n继续输入正文`);
+    // 引用后的显式空段沿用共享行为契约的列 0 边界；不增加来源分隔空行。
+    expect(stored).toBe(`${original}${block.startsWith("![") || block.startsWith(">") ? "\n" : "\n\n"}<br />\n<br />\n继续输入正文`);
     const reopened = ctx.get(parserCtx)(prepareEditorMarkdown(stored));
     view.dispatch(view.state.tr.replaceWith(0, view.state.doc.content.size, reopened.content));
     expect(serializeEditorMarkdown(ctx, view.state.doc)).toBe(stored);

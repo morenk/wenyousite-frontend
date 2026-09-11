@@ -67,6 +67,8 @@ export interface EditorMarkdownBridgeOptions {
   onChange: (markdown: string) => void;
   onError?: (error: unknown) => void;
   onSyncErrorChange?: (hasError: boolean) => void;
+  onValid?: () => void;
+  onReady?: (flush: (() => string | null) | null) => void;
   markdownContractVersion?: number;
 }
 
@@ -275,8 +277,16 @@ export function configureEditorMarkdownSerializer(ctx: Ctx) {
     rule: "-" as const,
     ruleRepetition: 3,
     ruleSpaces: false,
+    unsafe: [...(options.unsafe ?? []), { character: ">" }],
     handlers: {
       ...options.handlers,
+      // Milkdown 的尾随空白捷径会漏转义行首 >；所有文字均经标准安全输出。
+      text: (node, _parent, state, info) => {
+        const safe = state.safe(node.value, { ...info, encode: [] });
+        // 只还原原文确有的末尾 ASCII 空格；字面实体和 Markdown 符号仍保持转义。
+        return node.value.endsWith(" ")
+          ? safe.replace(/(?:&#x20;)+$/u, (tail) => " ".repeat(tail.length / 6)) : safe;
+      },
       break: () => "\n",
       delete: safeDeleteMarkdownHandler,
       diceInline: (node: DiceMarkdownNode) => serializeDiceMarkdownNode(node),
@@ -339,6 +349,8 @@ export function serializeEditorMarkdown(
 export function createEditorMarkdownBridge({
   onChange,
   onError,
+  onReady,
+  onValid,
   onSyncErrorChange,
   markdownContractVersion,
 }: EditorMarkdownBridgeOptions) {
@@ -382,26 +394,31 @@ export function createEditorMarkdownBridge({
         },
       },
       view: (view) => {
-        previousMarkdown = serializeEditorMarkdown(ctx, view.state.doc, {
-          markdownContractVersion,
-        });
-        onSyncErrorChange?.(false);
+        let failed = false;
+        const flush = (notify = true) => {
+          try {
+            const markdown = serializeEditorMarkdown(ctx, view.state.doc, { markdownContractVersion });
+            const changed = failed || markdown !== previousMarkdown;
+            previousMarkdown = markdown;
+            failed = false;
+            onSyncErrorChange?.(false);
+            onValid?.();
+            if (changed && notify) onChange(markdown);
+            return markdown;
+          } catch (error) {
+            failed = true;
+            onSyncErrorChange?.(true);
+            onError?.(error);
+            return null;
+          }
+        };
+        flush(false);
+        onReady?.(() => flush());
         return {
           update: (nextView, previousState) => {
-            if (nextView.state.doc.eq(previousState.doc)) return;
-            try {
-              const markdown = serializeEditorMarkdown(ctx, nextView.state.doc, {
-                markdownContractVersion,
-              });
-              onSyncErrorChange?.(false);
-              if (markdown === previousMarkdown) return;
-              previousMarkdown = markdown;
-              onChange(markdown);
-            } catch (error) {
-              onSyncErrorChange?.(true);
-              onError?.(error);
-            }
+            if (!nextView.state.doc.eq(previousState.doc)) flush();
           },
+          destroy: () => onReady?.(null),
         };
       },
     });

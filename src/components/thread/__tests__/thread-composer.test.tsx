@@ -37,8 +37,10 @@ vi.mock("sonner", () => ({
   toast: { success: mocks.success, error: mocks.error },
 }));
 
-vi.mock("@/components/editor/milkdown-editor", () => ({
-  MilkdownEditor: ({
+vi.mock("@/components/editor/milkdown-editor", async () => {
+  const { withEditorSubmission } = await import("@/test/editor-submission-double");
+  return ({
+  MilkdownEditor: withEditorSubmission(({
     defaultValue,
     onChange,
     onSyncErrorChange,
@@ -59,8 +61,9 @@ vi.mock("@/components/editor/milkdown-editor", () => ({
     <button onClick={() => onSyncErrorChange?.(true)}>模拟同步失败</button>
     <button onClick={() => onSyncErrorChange?.(false)}>模拟同步恢复</button>
     </>
-  ),
-}));
+  )),
+});
+});
 
 const sessions: Record<string, ThreadComposerSession> = {
   create: {

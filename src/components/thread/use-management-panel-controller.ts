@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { useQueryStates } from "nuqs";
 import { toast } from "sonner";
+import { useEditorSubmission, EDITOR_SYNC_ERROR } from "@/components/editor/use-editor-submission";
+import { useManagementNavigationGuard } from "@/components/thread/use-management-navigation-guard";
 import { useAuth } from "@/lib/auth";
 import { useCreateSubthread } from "@/api/hooks/use-create-subthread";
 import { useUpdateSubthread } from "@/api/hooks/use-update-subthread";
@@ -53,6 +55,7 @@ export function useManagementPanelController({
   onExit,
   onRefetch,
 }: ControllerOptions) {
+  const editor = useEditorSubmission();
   const { user } = useAuth();
   const permissions = useThreadPermissions();
   const confirmAction = useConfirm();
@@ -88,7 +91,6 @@ export function useManagementPanelController({
 
   const createSubthread = useCreateSubthread();
   const createSubthreadRequestRef = useRef<{ fingerprint: string; id: string } | null>(null);
-  const allowWindowNavigationRef = useRef(false);
   const updateSubthread = useUpdateSubthread();
   const deleteSubthread = useDeleteSubthread();
   const reorderSubthreads = useReorderSubthreads();
@@ -115,7 +117,9 @@ export function useManagementPanelController({
     return [...ordered, ...availableSubthreads.filter((item) => !known.has(item.id))];
   }, [availableSubthreads, state.orderedIds, subthreadMap]);
   const selectedSub = subthreadMap.get(state.selectedId);
-  const effectiveSubthreadStatus = getSubthreadStatus(state);
+  const effectiveSubthreadStatus: ManagementEditorStatus = editor.invalid
+    ? { state: "error", dirty: true, busy: false, message: EDITOR_SYNC_ERROR }
+    : getSubthreadStatus(state);
   const currentStatus = view === "settings"
     ? state.threadStatus
     : view === "subthreads"
@@ -165,6 +169,8 @@ export function useManagementPanelController({
   }, []);
 
   const confirmDiscardChanges = useCallback(async () => {
+    if (view === "subthreads" && selectedSub && !editor.canClose()) return false;
+    if (view === "settings" && state.threadStatus.canClose?.() === false) return false;
     if (!hasUnsavedChanges) return true;
     return confirmAction({
       title: "放弃未保存修改",
@@ -172,68 +178,9 @@ export function useManagementPanelController({
       confirmLabel: "放弃修改",
       destructive: true,
     });
-  }, [confirmAction, hasUnsavedChanges]);
+  }, [confirmAction, editor, hasUnsavedChanges, selectedSub, state.threadStatus, view]);
 
-  useEffect(() => {
-    if (!hasUnsavedChanges && !isNavigationLocked) return;
-    allowWindowNavigationRef.current = false;
-
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (allowWindowNavigationRef.current) return;
-      event.preventDefault();
-      event.returnValue = "";
-    };
-    const handleDocumentClick = (event: MouseEvent) => {
-      if (
-        event.defaultPrevented ||
-        event.button !== 0 ||
-        event.metaKey ||
-        event.ctrlKey ||
-        event.shiftKey ||
-        event.altKey
-      ) return;
-      const target = event.target;
-      const anchor = target instanceof Element
-        ? target.closest<HTMLAnchorElement>("a[href]")
-        : null;
-      if (!anchor || anchor.target === "_blank" || anchor.hasAttribute("download")) return;
-      const destination = new URL(anchor.href, window.location.href);
-      if (
-        destination.origin !== window.location.origin ||
-        destination.href === window.location.href ||
-        (destination.pathname === window.location.pathname &&
-          destination.search === window.location.search &&
-          destination.hash)
-      ) return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      if (isNavigationLocked) return;
-      void confirmDiscardChanges().then((confirmed) => {
-        if (!confirmed) return;
-        allowWindowNavigationRef.current = true;
-        window.location.assign(destination.href);
-      });
-    };
-    const handlePopState = () => {
-      if (allowWindowNavigationRef.current) return;
-      window.history.forward();
-      if (isNavigationLocked) return;
-      void confirmDiscardChanges().then((confirmed) => {
-        if (!confirmed) return;
-        allowWindowNavigationRef.current = true;
-        window.history.back();
-      });
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    window.addEventListener("popstate", handlePopState);
-    document.addEventListener("click", handleDocumentClick, true);
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      window.removeEventListener("popstate", handlePopState);
-      document.removeEventListener("click", handleDocumentClick, true);
-    };
-  }, [confirmDiscardChanges, hasUnsavedChanges, isNavigationLocked]);
+  useManagementNavigationGuard({ hasUnsavedChanges, isNavigationLocked, confirmDiscardChanges });
 
   const handleViewChange = async (nextView: ManagementView) => {
     if (nextView === view || isNavigationLocked) return;
@@ -258,6 +205,7 @@ export function useManagementPanelController({
       confirmLabel: "放弃并切换",
       destructive: true,
     }))) return;
+    if (selectedSub && !editor.canClose()) return;
     const next = subthreadMap.get(id);
     dispatch({ type: "hydrate", subthread: next });
     await setUrlState({ view: "subthreads", subthread: id });
@@ -265,10 +213,12 @@ export function useManagementPanelController({
 
   const handleSaveSubthread = async () => {
     if (!selectedSub || !effectiveSubthreadStatus.dirty || isNavigationLocked) return;
+    const content = editor.flush();
+    if (content === null) return;
     const title = state.title.trim();
     const metaDirty =
       title !== state.savedTitle || state.postingPolicy !== state.savedPostingPolicy;
-    const contentDirty = state.content !== state.savedContent;
+    const contentDirty = content !== state.savedContent;
     if (!title) {
       dispatch({
         type: "subthread-status",
@@ -283,7 +233,7 @@ export function useManagementPanelController({
       });
       return;
     }
-    if (contentDirty && !hasVisibleMarkdownContent(state.content)) {
+    if (contentDirty && !hasVisibleMarkdownContent(content)) {
       dispatch({
         type: "subthread-status",
         status: { state: "error", dirty: true, busy: false, message: "正文不能为空" },
@@ -292,9 +242,10 @@ export function useManagementPanelController({
     }
     if (
       contentDirty
-      && !(await confirmPublicInvite(state.content, thread.visibility === "PUBLIC"))
+      && !(await confirmPublicInvite(content, thread.visibility === "PUBLIC"))
     ) return;
 
+    if (!editor.isCurrent(content)) return;
     dispatch({
       type: "subthread-status",
       status: { state: "saving", dirty: true, busy: true },
@@ -322,12 +273,12 @@ export function useManagementPanelController({
         const updatedBody = await upsertBody.mutateAsync({
           subthreadId: selectedSub.id,
           threadId: thread.id,
-          content: state.content,
+          content,
           version: state.bodyVersion,
         });
         dispatch({
           type: "commit-content",
-          content: state.content,
+          content,
           version: updatedBody.version,
         });
         savedPart = true;
@@ -456,7 +407,9 @@ export function useManagementPanelController({
 
   const handleCopyLocalContent = async () => {
     try {
-      await navigator.clipboard.writeText(state.content);
+      const content = editor.flush();
+      if (content === null) return;
+      await navigator.clipboard.writeText(content);
       toast.success("本地正文已复制");
     } catch {
       toast.error("复制失败，请手动全选正文保存");
@@ -477,6 +430,7 @@ export function useManagementPanelController({
   };
 
   return {
+    editor,
     view,
     subthreads,
     selectedSub,

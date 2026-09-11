@@ -85,6 +85,10 @@ export function insertLiteralClipboardText(
   position?: number,
 ): boolean {
   if (position !== undefined) setSelectionNear(view, position);
+  if (text && !/[\r\n]/u.test(text)) {
+    view.dispatch(view.state.tr.replaceSelectionWith(view.state.schema.text(text), false).scrollIntoView());
+    return true;
+  }
   const slice = createLiteralSlice(view, text);
   if (!slice) return false;
   view.dispatch(view.state.tr.replaceSelection(slice).scrollIntoView());

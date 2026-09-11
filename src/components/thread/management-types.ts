@@ -10,6 +10,7 @@ export interface ManagementEditorStatus {
   dirty: boolean;
   busy: boolean;
   message?: string;
+  canClose?: () => boolean;
 }
 
 export const SAVED_MANAGEMENT_STATUS: ManagementEditorStatus = {
