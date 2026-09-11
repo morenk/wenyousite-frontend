@@ -10,6 +10,7 @@ import {
   type PointerEvent as ReactPointerEvent,
   type SyntheticEvent,
 } from "react";
+import type { MediaDisplay } from "@/lib/media-display";
 import { Maximize, X, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +24,7 @@ import {
 
 interface ImageLightboxProps {
   src: string;
+  display?: MediaDisplay | null;
   alt?: string;
   onClose: () => void;
 }
@@ -32,7 +34,13 @@ const DRAG_THRESHOLD = 5;
 /** 每次滚轮/按钮缩放的倍率 */
 const ZOOM_STEP = 1.25;
 
-export function ImageLightbox({ src, alt, onClose }: ImageLightboxProps) {
+export function ImageLightbox({ src: sourceUrl, display, alt, onClose }: ImageLightboxProps) {
+  const src = display?.url ?? sourceUrl;
+  return <LightboxContent key={src} src={src} alt={alt} onClose={onClose} />;
+}
+
+function LightboxContent({ src, alt, onClose }: ImageLightboxProps) {
+  const [failed, setFailed] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const [natural, setNatural] = useState<{ w: number; h: number } | null>(null);
   const [viewport, setViewport] = useState(() => ({
@@ -167,7 +175,7 @@ export function ImageLightbox({ src, alt, onClose }: ImageLightboxProps) {
           >
       <DialogTitle className="sr-only">查看原图</DialogTitle>
       {/* eslint-disable-next-line @next/next/no-img-element -- lightbox 直接展示 COS 原图，transform 缩放 */}
-      <img
+      {failed ? <Button onClick={(event) => { event.stopPropagation(); setFailed(false); }} variant="secondary">重试图片</Button> : <img
         src={src}
         alt={alt ?? ""}
         draggable={false}
@@ -189,12 +197,13 @@ export function ImageLightbox({ src, alt, onClose }: ImageLightboxProps) {
               }
             : { maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }
         }
+        onError={() => setFailed(true)}
         onLoad={handleImageLoad}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onClick={handleImageClick}
-      />
+      />}
 
       {/* 工具条 */}
       <div

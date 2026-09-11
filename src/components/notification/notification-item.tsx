@@ -85,7 +85,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
       {notification.fromUser ? (
         <UserAvatar
           name={notification.fromUser.username}
-          src={notification.fromUser.avatar}
+          src={notification.fromUser.avatar} display={notification.fromUser.avatarDisplay}
           className="h-9 w-9"
           textClassName="text-sm"
         />

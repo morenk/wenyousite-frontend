@@ -252,7 +252,7 @@ function MemberTableRow({
         >
           <UserAvatar
             name={member.user.username}
-            src={member.user.avatar ?? null}
+            src={member.user.avatar ?? null} display={member.user.avatarDisplay}
             className="size-9"
             textClassName="text-xs"
           />

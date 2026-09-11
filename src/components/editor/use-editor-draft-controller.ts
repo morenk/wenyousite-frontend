@@ -1,5 +1,6 @@
 "use client";
 
+import type { MarkdownMediaDisplay } from "@/lib/media-display";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -38,6 +39,7 @@ export function useEditorDraftController({
   const queryClient = useQueryClient();
   const { mutateAsync: saveDraftAutomatically } = useSaveDraft();
   const initialValue = defaultValue;
+  const [restoredMediaDisplays, setRestoredMediaDisplays] = useState<readonly MarkdownMediaDisplay[] | undefined>();
   const [restoredValue, setRestoredValue] = useState(initialValue);
   const [version, setVersion] = useState(0);
   const [currentContent, setCurrentContent] = useState(initialValue);
@@ -122,6 +124,7 @@ export function useEditorDraftController({
     }
     const safeContent = sanitizeMilkdownMarkdown(snapshot.content, { markdownContractVersion });
     latestContentRef.current = safeContent;
+    setRestoredMediaDisplays(snapshot.mediaDisplays ?? []);
     setRestoredValue(safeContent);
     setCurrentContent(safeContent);
     setVersion((current) => current + 1);
@@ -199,6 +202,7 @@ export function useEditorDraftController({
     markdownContractVersion: activeMarkdownContractVersion,
     advertisedMarkdownContractVersion: markdownContractVersion,
     restoredValue,
+    restoredMediaDisplays,
     version,
     contractVersionReady,
     currentContent,

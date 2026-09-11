@@ -193,6 +193,7 @@ export function DirectMessageComposer({
           optimisticMedia: {
             id: uploaded.mediaId,
             url: uploaded.url,
+            display: uploaded.display,
             thumbnailUrl: uploaded.thumbnailUrl ?? null,
             mediumUrl: uploaded.mediumUrl ?? null,
             contentType: uploaded.contentType ?? image?.type ?? null,

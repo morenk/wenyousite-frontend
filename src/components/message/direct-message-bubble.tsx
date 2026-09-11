@@ -1,5 +1,6 @@
 "use client";
 
+import { getMediaDisplayUrl } from "@/lib/media-display";
 import { memo, useState } from "react";
 import { ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -83,7 +84,9 @@ export const DirectMessageBubble = memo(function DirectMessageBubble({
     ? normalizeDirectMessageContent(message.content)
     : "";
   const pureSticker = !!message.sticker && !normalizedContent && !recalled;
-  const imageUrl = message.sticker?.url ?? message.media?.url;
+  const media = message.sticker ?? message.media;
+  const imageUrl = media ? getMediaDisplayUrl(media) : undefined;
+  const [failedImage, setFailedImage] = useState<string | null>(null);
   const isAnimatedGif = !!message.media?.animated
     || message.media?.contentType?.toLowerCase() === "image/gif"
     || !!imageUrl && /\.gif(?:[?#]|$)/iu.test(imageUrl);
@@ -127,7 +130,7 @@ export const DirectMessageBubble = memo(function DirectMessageBubble({
                       点击查看陌生人图片
                     </Button>
                   ) : (
-                    <button
+                    failedImage === imageUrl ? <Button variant="secondary" onClick={() => setFailedImage(null)}>重试图片</Button> : <button
                       type="button"
                       onClick={() => setLightboxOpen(true)}
                       className="block overflow-hidden rounded-lg"
@@ -135,6 +138,7 @@ export const DirectMessageBubble = memo(function DirectMessageBubble({
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={displayImageUrl}
+                        onError={() => setFailedImage(imageUrl)}
                         alt={message.sticker ? "私聊表情" : "私聊图片"}
                         loading="lazy"
                         decoding="async"

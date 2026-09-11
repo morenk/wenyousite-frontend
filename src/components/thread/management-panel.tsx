@@ -216,7 +216,7 @@ export function ManagementPanel({
                       </Button>
                     ) : null}
                   </div>
-                  <MilkdownEditor
+                  <MilkdownEditor mediaDisplays={controller.selectedSub.bodyPost?.mediaDisplays}
                     editorRef={controller.editor.editorRef}
                     onValidityChange={controller.editor.onValidityChange}
                     onSyncErrorChange={setSyncError}

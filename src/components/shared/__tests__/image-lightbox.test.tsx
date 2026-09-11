@@ -58,3 +58,14 @@ describe("ImageLightbox", () => {
     expect(close).toHaveBeenCalledTimes(3);
   });
 });
+
+it("完整display加载失败后重试保持灯箱打开，不降级来源GIF", async () => {
+  const source = "https://example.com/source.gif";
+  const display = { url: "https://example.com/full.webp", contentType: "image/webp" as const, width: 24, height: 16, bytes: 316, animated: true, frameCount: 3, durationMs: 1500, loopCount: 2 };
+  render(<ImageLightbox src={source} display={display} alt="失败动画" onClose={close} />);
+  fireEvent.error(screen.getByAltText("失败动画"));
+  await userEvent.click(screen.getByRole("button", { name: "重试图片" }));
+  expect(close).not.toHaveBeenCalled();
+  expect(screen.getByRole("dialog")).toBeInTheDocument();
+  expect(screen.getByAltText("失败动画")).toHaveAttribute("src", display.url);
+});

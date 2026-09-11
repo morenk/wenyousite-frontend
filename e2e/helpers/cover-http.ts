@@ -4,7 +4,7 @@ import path from "node:path";
 import type { AddressInfo } from "node:net";
 
 /** 全部业务 API 和图片由本地 fixture 提供，不用 route 拦截，以保留真实 HTTP 缓存。 */
-export async function coverHttpFixture(candidate: string, options: { count?: number; gif?: boolean; clock?: boolean; sameUrl?: boolean; sharedPoster?: boolean; delayMs?: number } = {}) {
+export async function coverHttpFixture(candidate: string, options: { count?: number; fullDisplay?: boolean; gif?: boolean; clock?: boolean; sameUrl?: boolean; sharedPoster?: boolean; delayMs?: number } = {}) {
   const counts = new Map<string, number>(), bytes = new Map<string, number>();
   const image = (id: number, kind: string) => `/__cover-all__/${options.sameUrl ? 0 : id}/${kind}`;
   const items = Array.from({ length: options.count ?? 12 }, (_, id) => ({
@@ -14,7 +14,8 @@ export async function coverHttpFixture(candidate: string, options: { count?: num
     owner: { id: "cover-owner", username: "封面验收", avatar: null, level: 1 }, defaultSubthread: null, topicTags: [],
     _count: { members: 1, players: 1, posts: 1 }, preview: "只使用本地构造媒体", bookmarkId: `bookmark-${id}`, bookmarkFolderId: "folder-test",
     coverImages: [image(id, "animation.gif")], coverMedia: { url: image(id, "animation.gif"), animated: true as boolean | null,
-      posterUrl: image(options.sharedPoster ? 0 : id, "poster.webp") as string | null, previewVariants: options.gif ? null : [
+      display: options.fullDisplay ? { url: image(id, "full.webp"), contentType: "image/webp", width: 24, height: 16, bytes: 316, animated: true, frameCount: 3, durationMs: 1500, loopCount: 2 } : null,
+      posterUrl: image(options.sharedPoster ? 0 : id, "poster.webp") as string | null, previewVariants: options.gif || options.fullDisplay ? null : [
         { url: image(id, "preview.webp"), width: 480, height: 270, bytes: 85890 },
       ] },
   }));
@@ -22,7 +23,7 @@ export async function coverHttpFixture(candidate: string, options: { count?: num
     const pathname = new URL(req.url!, "http://127.0.0.1").pathname;
     if (pathname.startsWith("/__cover-all__/")) {
       const name = pathname.endsWith("poster.webp") ? "poster.webp" : `${options.clock ? "clock" : "motion"}.${pathname.endsWith(".gif") ? "gif" : "webp"}`;
-      const body = readFileSync(path.join(process.cwd(), "e2e/fixtures/cover-playback", name));
+      const body = readFileSync(pathname.endsWith("full.webp") ? path.join(process.cwd(), "e2e/fixtures/media-display/duplicate-frames.webp") : path.join(process.cwd(), "e2e/fixtures/cover-playback", name));
       counts.set(pathname, (counts.get(pathname) ?? 0) + 1); bytes.set(pathname, (bytes.get(pathname) ?? 0) + body.length);
       res.writeHead(200, { "Content-Type": name.endsWith(".gif") ? "image/gif" : "image/webp", "Content-Length": body.length, "Cache-Control": "public,max-age=3600,immutable" });
       if (options.delayMs && !pathname.endsWith("poster.webp")) setTimeout(() => res.end(body), options.delayMs); else res.end(body); return;

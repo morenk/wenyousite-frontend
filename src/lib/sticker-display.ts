@@ -1,3 +1,4 @@
+import { getMediaDisplayUrl, type MediaDisplay } from "@/lib/media-display";
 import type { CSSProperties } from "react";
 
 export const STICKER_DISPLAY_STYLE: CSSProperties = {
@@ -8,6 +9,7 @@ export const STICKER_DISPLAY_STYLE: CSSProperties = {
 };
 
 type StickerDisplayAsset = {
+  display?: MediaDisplay | null;
   url: string;
   thumbnailUrl?: string | null;
   animated?: boolean | null;
@@ -16,5 +18,5 @@ type StickerDisplayAsset = {
 /** 静态表情只加载 128px 缩略图；动图使用已规范化的动画资产。 */
 export function getStickerDisplayUrl(sticker: StickerDisplayAsset): string {
   if (!sticker.animated && sticker.thumbnailUrl) return sticker.thumbnailUrl;
-  return sticker.url;
+  return getMediaDisplayUrl(sticker);
 }

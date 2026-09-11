@@ -71,7 +71,7 @@ export function MomentCommentRow({
     >
       <UserAvatar
         name={comment.author.username}
-        src={comment.author.avatar}
+        src={comment.author.avatar} display={comment.author.avatarDisplay}
         className={compact ? "size-7" : "size-9"}
         textClassName="text-[0.625rem]"
       />

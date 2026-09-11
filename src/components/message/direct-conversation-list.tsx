@@ -55,7 +55,7 @@ function ConversationLink({
     >
       <UserAvatar
         name={conversation.otherUser.username}
-        src={conversation.otherUser.avatar}
+        src={conversation.otherUser.avatar} display={conversation.otherUser.avatarDisplay}
         className="h-10 w-10 shrink-0"
       />
       <div className="min-w-0 flex-1">

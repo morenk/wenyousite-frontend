@@ -1,6 +1,9 @@
 /** 浏览器认证内存仓库：access token 永不写入持久化 Web Storage。 */
 
+import type { MediaDisplay } from "@/lib/media-display";
+
 export interface AuthUser {
+  avatarDisplay?: MediaDisplay | null;
   id: string;
   email: string;
   username: string;

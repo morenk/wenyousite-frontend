@@ -2,6 +2,7 @@
 
 "use client";
 
+import type { MarkdownMediaDisplay } from "@/lib/media-display";
 import {
   createContext,
   useCallback,
@@ -20,6 +21,7 @@ interface BaseComposerSession {
   subthreadId: string;
   label: string;
   initialContent: string;
+  mediaDisplays?: readonly MarkdownMediaDisplay[];
   diceRolls?: InlineDiceRoll[];
 }
 

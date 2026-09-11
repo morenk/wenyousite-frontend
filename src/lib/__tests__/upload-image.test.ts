@@ -7,8 +7,11 @@ vi.mock("@/api/client", () => ({
   apiClient: { POST: vi.fn(), GET: vi.fn() },
 }));
 
+import { clearAuthSession, setAuthSession } from "@/lib/auth-store";
 import { apiClient } from "@/api/client";
 import {
+  type UploadReservation,
+  type MediaUploadPurpose,
   RecoverableImageUploadError,
   getImageUploadKey,
   isUploadAbortError,
@@ -96,6 +99,16 @@ function stubXhr(mode: XhrMode) {
   FakeXMLHttpRequest.instances = [];
   FakeXMLHttpRequest.mode = mode;
   vi.stubGlobal("XMLHttpRequest", FakeXMLHttpRequest);
+}
+
+
+async function reserveForRetry(file: File, mediaId: string, purpose: MediaUploadPurpose = "LEGACY") {
+  vi.mocked(apiClient.POST).mockResolvedValueOnce({ data: { code: 0, message: "ok", data: { uploadUrl: "https://s3.example.com/reserve", mediaId, objectKey: "reserved", publicUrl: "https://cdn.example.com/reserved" } }, error: undefined });
+  stubXhr("error");
+  let reservation!: UploadReservation;
+  await expect(uploadImageFile(file, { purpose, onReservation: (value) => { reservation = value; } })).rejects.toBeInstanceOf(RecoverableImageUploadError);
+  vi.mocked(apiClient.POST).mockClear();
+  return reservation;
 }
 
 describe("validateImageFile", () => {
@@ -327,6 +340,7 @@ describe("uploadImageFile", () => {
   });
 
   beforeEach(() => {
+    setAuthSession({ id: "test-owner", email: "test@example.invalid", username: "测试", avatar: null, role: "USER" }, "test-token", { announce: false });
     vi.stubGlobal("createImageBitmap", undefined);
     file = new File([imageFixture("static.jpeg")], "photo.jpg", {
       type: "image/jpeg",
@@ -335,9 +349,107 @@ describe("uploadImageFile", () => {
   });
 
   afterEach(() => {
+    clearAuthSession({ announce: false });
     vi.mocked(apiClient.POST).mockReset();
     vi.mocked(apiClient.GET).mockReset();
     vi.unstubAllGlobals();
+  });
+
+
+  const login = (id: string, token = "token") => setAuthSession({ id, email: `${id}@example.invalid`, username: id, avatar: null, role: "USER" }, token, { announce: false });
+
+
+  test("同名同size同mtime不同字节不会复用，显式resume也绑定内容", async () => {
+    login("owner-a");
+    file = new File([await file.arrayBuffer(), new Uint8Array([1, 2])], file.name, { type: file.type, lastModified: file.lastModified });
+    const reservation = await reserveForRetry(file, "first", "RICH_CONTENT");
+    const original = new Uint8Array(await file.arrayBuffer());
+    // JPEG已允许尾随客户端元数据；末尾变动不改变大小或可解析容器。
+    const changed = original.slice(); changed[changed.length - 1] ^= 1;
+    const other = new File([changed], file.name, { type: file.type, lastModified: file.lastModified });
+    expect(await getImageUploadKey(other, "RICH_CONTENT")).not.toBe(await getImageUploadKey(file, "RICH_CONTENT"));
+    vi.mocked(apiClient.POST).mockResolvedValueOnce({ data: { code: 0, message: "ok", data: { uploadUrl: "https://s3.example.com/other", mediaId: "other", objectKey: "other", publicUrl: "/other" } }, error: undefined });
+    stubXhr("error");
+    await expect(uploadImageFile(other, { purpose: "RICH_CONTENT", resume: reservation })).rejects.toMatchObject({ reservation: { mediaId: "other" } });
+    expect(apiClient.GET).not.toHaveBeenCalled();
+  });
+
+  test("重选内容相同的新File对象可续查，不受文件名和mtime变化影响", async () => {
+    login("owner-a");
+    await reserveForRetry(file, "same-bytes", "RICH_CONTENT");
+    const selectedAgain = new File([await file.arrayBuffer()], "renamed.jpg", { type: file.type, lastModified: file.lastModified + 1 });
+    vi.mocked(apiClient.GET).mockResolvedValueOnce({ data: { code: 0, message: "ok", data: mediaPayload("same-bytes", "/same.webp", "COMPLETED") }, error: undefined } as never);
+    await expect(uploadImageFile(selectedAgain, { purpose: "RICH_CONTENT" })).resolves.toMatchObject({ mediaId: "same-bytes" });
+    expect(apiClient.POST).not.toHaveBeenCalled();
+  });
+
+
+  test.each(["get", "confirm"])("换账号后忽略AbortSignal的迟到%s完成不能提交或复活恢复点", async (stage) => {
+    login("owner-a");
+    let resolveResponse!: (value: unknown) => void;
+    const response = new Promise((resolve) => { resolveResponse = resolve; });
+    let resume: UploadReservation | undefined;
+    if (stage === "get") {
+      resume = await reserveForRetry(file, "late", "RICH_CONTENT");
+      vi.mocked(apiClient.GET).mockReturnValueOnce(response as never);
+    } else {
+      vi.mocked(apiClient.POST)
+        .mockResolvedValueOnce({ data: { code: 0, message: "ok", data: { uploadUrl: "https://s3.example.com/late", mediaId: "late", objectKey: "late", publicUrl: "/late" } }, error: undefined })
+        .mockReturnValueOnce(response as never);
+      stubXhr("success");
+    }
+    const onCompleted = vi.fn();
+    const upload = uploadImageFile(file, { purpose: "RICH_CONTENT", resume, onCompleted });
+    const rejected = expect(upload).rejects.toMatchObject({ name: "AbortError" });
+    await vi.waitFor(() => expect(stage === "get" ? apiClient.GET : apiClient.POST).toHaveBeenCalledTimes(stage === "get" ? 1 : 2));
+    login("owner-b");
+    const media = mediaPayload("late", "/late.webp", "COMPLETED");
+    resolveResponse({ data: { code: 0, message: "ok", data: stage === "get" ? media : { media, processing: false } }, error: undefined });
+    await rejected;
+    expect(onCompleted).not.toHaveBeenCalled();
+    vi.mocked(apiClient.POST).mockClear(); vi.mocked(apiClient.GET).mockClear();
+    await reserveForRetry(file, "new-owner", "RICH_CONTENT");
+    expect(apiClient.GET).not.toHaveBeenCalled();
+  });
+
+  test("同文件按用途隔离，同时保留原用途的续查", async () => {
+    login("owner-a");
+    const rich = await reserveForRetry(file, "rich", "RICH_CONTENT");
+    await reserveForRetry(file, "moment", "MOMENT");
+    expect(apiClient.GET).not.toHaveBeenCalled();
+    vi.mocked(apiClient.GET).mockResolvedValueOnce({ data: { code: 0, message: "ok", data: mediaPayload("rich", "/rich.webp", "COMPLETED") }, error: undefined } as never);
+    await expect(uploadImageFile(file, { purpose: "RICH_CONTENT", resume: rich })).resolves.toMatchObject({ mediaId: "rich" });
+    expect(apiClient.POST).not.toHaveBeenCalled();
+  });
+
+  test.each(["switch", "logout-login"])("账号边界%s清除隐式续查，也拒绝旧显式reservation", async (mode) => {
+    login("owner-a");
+    const previous = await reserveForRetry(file, "old", "RICH_CONTENT");
+    if (mode === "logout-login") clearAuthSession({ announce: false });
+    login(mode === "switch" ? "owner-b" : "owner-a");
+    vi.mocked(apiClient.POST).mockResolvedValueOnce({ data: { code: 0, message: "ok", data: { uploadUrl: "https://s3.example.com/new", mediaId: "new", objectKey: "new", publicUrl: "/new" } }, error: undefined });
+    stubXhr("error");
+    await expect(uploadImageFile(file, { purpose: "RICH_CONTENT", resume: previous })).rejects.toMatchObject({ reservation: { mediaId: "new" } });
+    expect(apiClient.GET).not.toHaveBeenCalled();
+    expect(apiClient.POST).toHaveBeenCalledWith("/api/v1/media/upload-url", expect.anything());
+  });
+
+  test("同账号token刷新保留续查，换账号立即中断进行中的上传", async () => {
+    login("owner-a");
+    const reservation = await reserveForRetry(file, "refresh", "RICH_CONTENT");
+    login("owner-a", "new-token");
+    vi.mocked(apiClient.GET).mockResolvedValueOnce({ data: { code: 0, message: "ok", data: mediaPayload("refresh", "/refresh.webp", "COMPLETED") }, error: undefined } as never);
+    await expect(uploadImageFile(file, { purpose: "RICH_CONTENT", resume: reservation })).resolves.toMatchObject({ mediaId: "refresh" });
+    vi.mocked(apiClient.POST).mockResolvedValueOnce({ data: { code: 0, message: "ok", data: { uploadUrl: "https://s3.example.com/pending", mediaId: "pending", objectKey: "pending", publicUrl: "/pending" } }, error: undefined });
+    stubXhr("pending");
+    const onCompleted = vi.fn();
+    const upload = uploadImageFile(file, { purpose: "MOMENT", onCompleted });
+    const rejected = expect(upload).rejects.toMatchObject({ name: "AbortError" });
+    await vi.waitFor(() => expect(FakeXMLHttpRequest.instances).toHaveLength(1));
+    login("owner-b");
+    await rejected;
+    expect(onCompleted).not.toHaveBeenCalled();
+    expect(apiClient.POST).toHaveBeenCalledTimes(1);
   });
 
   test("upload-url 配额超限（code=42900）时抛出友好提示", async () => {
@@ -361,9 +473,7 @@ describe("uploadImageFile", () => {
   test("无上传地址响应时使用稳定兜底错误，且文件键包含完整指纹", async () => {
     vi.mocked(apiClient.POST).mockResolvedValueOnce({ data: undefined, error: undefined });
 
-    expect(getImageUploadKey(file)).toBe(
-      [file.name, file.size, file.type, file.lastModified].join(":"),
-    );
+    expect(await getImageUploadKey(file)).toMatch(/:LEGACY:image\/jpeg:[a-f0-9]{64}$/);
     await expect(uploadImageFile(file)).rejects.toThrow("获取上传地址失败");
   });
 
@@ -600,6 +710,7 @@ describe("uploadImageFile", () => {
   });
 
   test("手动重试会从原 UPLOADING mediaId 继续，不新建媒体记录", async () => {
+    const reservation = await reserveForRetry(file, "media-resume");
     const publicUrl = "https://cdn.example.com/uploads/resume.jpg";
     vi.mocked(apiClient.GET)
       .mockResolvedValueOnce({
@@ -639,7 +750,7 @@ describe("uploadImageFile", () => {
     stubXhr("success");
 
     await expect(
-      uploadImageFile(file, { resume: { mediaId: "media-resume" } }),
+      uploadImageFile(file, { resume: reservation }),
     ).resolves.toMatchObject({ mediaId: "media-resume", url: publicUrl });
 
     const postPaths = vi.mocked(apiClient.POST).mock.calls as unknown as Array<[string]>;
@@ -647,6 +758,7 @@ describe("uploadImageFile", () => {
   });
 
   test("已完成的 reservation 直接复用，uploadImage 只返回 URL", async () => {
+    const reservation = await reserveForRetry(file, "media-complete");
     const publicUrl = "https://cdn.example.com/uploads/already-complete.jpg";
     vi.mocked(apiClient.GET).mockResolvedValueOnce({
       data: {
@@ -658,12 +770,13 @@ describe("uploadImageFile", () => {
     } as never);
 
     await expect(
-      uploadImage(file, { resume: { mediaId: "media-complete" } }),
+      uploadImage(file, { resume: reservation }),
     ).resolves.toBe(publicUrl);
     expect(apiClient.POST).not.toHaveBeenCalled();
   });
 
   test("PROCESSING reservation 从状态轮询继续，不重复直传", async () => {
+    const reservation = await reserveForRetry(file, "media-processing");
     const publicUrl = "https://cdn.example.com/uploads/processing.jpg";
     vi.mocked(apiClient.GET)
       .mockResolvedValueOnce({
@@ -685,7 +798,7 @@ describe("uploadImageFile", () => {
 
     await expect(
       uploadImageFile(file, {
-        resume: { mediaId: "media-processing" },
+        resume: reservation,
         processingTimeoutMs: 1_000,
       }),
     ).resolves.toMatchObject({ mediaId: "media-processing", url: publicUrl });
@@ -693,6 +806,7 @@ describe("uploadImageFile", () => {
   });
 
   test("不可继续的 reservation 会丢弃并创建新媒体记录", async () => {
+    const reservation = await reserveForRetry(file, "media-failed");
     const publicUrl = "https://cdn.example.com/uploads/replaced.jpg";
     vi.mocked(apiClient.GET).mockResolvedValueOnce({
       data: {
@@ -730,7 +844,7 @@ describe("uploadImageFile", () => {
     stubXhr("success");
 
     await expect(
-      uploadImageFile(file, { resume: { mediaId: "media-failed" } }),
+      uploadImageFile(file, { resume: reservation }),
     ).resolves.toMatchObject({ mediaId: "media-replaced" });
     expect(vi.mocked(apiClient.POST).mock.calls[0]?.[0]).toBe("/api/v1/media/upload-url");
   });
@@ -817,7 +931,7 @@ describe("uploadImageFile", () => {
       reservation: { mediaId: "media-poll-error" },
     });
 
-    const timeoutFile = new File([imageFixture("static.jpeg")], "timeout-poll.jpg", {
+    const timeoutFile = new File([imageFixture("static.jpeg"), "timeout-case"], "timeout-poll.jpg", {
       type: "image/jpeg",
       lastModified: file.lastModified + 1,
     });
@@ -850,8 +964,18 @@ describe("uploadImageFile", () => {
     await expect(
       uploadImageFile(timeoutFile, { processingTimeoutMs: 0 }),
     ).rejects.toMatchObject({
-      message: "图片处理超时，请稍后重试",
+      message: "图片仍在处理中，请稍后重试查询；无需重新上传",
       reservation: { mediaId: "media-poll-timeout" },
     });
+
+    const putsBeforeResume = FakeXMLHttpRequest.instances.length;
+    const postsBeforeResume = vi.mocked(apiClient.POST).mock.calls.length;
+    const display = { url: "https://cdn.example.com/full.webp", contentType: "image/webp", width: 800, height: 600, bytes: 1000, animated: true, frameCount: 2, durationMs: 2000, loopCount: 0 };
+    vi.mocked(apiClient.GET).mockResolvedValueOnce({ data: { code: 0, message: "ok", data: { ...mediaPayload("media-poll-timeout", publicUrl, "COMPLETED"), display } }, error: undefined } as never);
+    const onCompleted = vi.fn();
+    await expect(uploadImageFile(timeoutFile, { onCompleted })).resolves.toMatchObject({ mediaId: "media-poll-timeout", url: publicUrl, display });
+    expect(onCompleted).toHaveBeenCalledWith(expect.objectContaining({ mediaId: "media-poll-timeout", url: publicUrl, display }));
+    expect(FakeXMLHttpRequest.instances).toHaveLength(putsBeforeResume);
+    expect(vi.mocked(apiClient.POST).mock.calls).toHaveLength(postsBeforeResume);
   });
 });

@@ -63,7 +63,7 @@ export function MomentCard({ moment, priority = false }: { moment: MomentCardDat
           href={`/users/${moment.author.id}`}
           className="flex min-w-0 flex-1 items-center gap-1.5 rounded-lg py-1 text-muted-foreground hover:text-foreground"
         >
-          <UserAvatar name={moment.author.username} src={moment.author.avatar} className="size-5" textClassName="text-[0.5625rem]" />
+          <UserAvatar name={moment.author.username} src={moment.author.avatar} display={moment.author.avatarDisplay} className="size-5" textClassName="text-[0.5625rem]" />
           <span className="truncate text-[0.75rem]">{moment.author.username}</span>
         </Link>
         <span className="inline-flex h-8 shrink-0 items-center gap-1 px-1 text-xs text-muted-foreground">

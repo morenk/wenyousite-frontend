@@ -93,3 +93,52 @@ test("pagehide/pageshow 生命周期停止全部，迟到图片响应不恢复�
     await expect(page.locator("img[data-cover-animation]")).toHaveCount(4);
   } finally { await fixture.close(); }
 });
+
+test("完整display在无poster、poster等待/失败时仍按50%门禁起播", async ({ page, baseURL }) => {
+  const fixture = await coverHttpFixture(baseURL!, { count: 4, fullDisplay: true });
+  fixture.items[0].coverMedia.posterUrl = null;
+  let release!: () => void;
+  const pending = new Promise<void>((resolve) => { release = resolve; });
+  try {
+    await page.route("**/__cover-all__/1/poster.webp", async (route) => { await pending; await route.fulfill({ status: 503, body: "" }); });
+    await page.route("**/__cover-all__/2/poster.webp", (route) => route.fulfill({ status: 503, body: "" }));
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto(fixture.origin, { waitUntil: "domcontentloaded" });
+    await expect(page.locator("[data-thread-cover]")).toHaveCount(4);
+    expect(fixture.animationRequests()).toHaveLength(0);
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await expect(page.locator("img[data-cover-animation]")).toHaveCount(4);
+    await expect.poll(() => fixture.animationRequests().length).toBe(4);
+    expect(fixture.animationRequests().every(([url]) => url.endsWith("full.webp"))).toBe(true);
+    await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent("pagehide", { persisted: true })));
+    await expect(page.locator("img[data-cover-animation]")).toHaveCount(0);
+    release();
+    await page.waitForTimeout(150);
+    await expect(page.locator("img[data-cover-animation]")).toHaveCount(0);
+    await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true })));
+    await expect(page.locator("img[data-cover-animation]")).toHaveCount(4);
+  } finally { release(); await fixture.close(); }
+});
+
+test("无poster完整display的49%进入不下载，51%进入起播，省流拦截", async ({ page, baseURL }) => {
+  const fixture = await coverHttpFixture(baseURL!, { count: 8, fullDisplay: true });
+  fixture.items.forEach((item) => { item.coverMedia.posterUrl = null; });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  try {
+    await page.emulateMedia({ reducedMotion: "reduce" }); await page.goto(fixture.origin);
+    const target = page.locator("[data-thread-cover]").nth(4);
+    const bounds = await target.evaluate((node) => { const r = node.getBoundingClientRect(); return { top: r.top + scrollY, height: r.height }; });
+    const enter = (fraction: number) => page.evaluate(({ top, height, fraction }) => scrollTo(0, top - innerHeight + height * fraction), { ...bounds, fraction });
+    await enter(0.49); await page.emulateMedia({ reducedMotion: "no-preference" }); await page.waitForTimeout(150);
+    await expect(target.locator("img[data-cover-animation]")).toHaveCount(0);
+    expect(fixture.counts.get("/__cover-all__/4/full.webp") ?? 0).toBe(0);
+    await enter(0.51); await expect(target.locator("img[data-cover-animation]")).toHaveCount(1);
+    await expect.poll(() => fixture.counts.get("/__cover-all__/4/full.webp")).toBe(1);
+    await page.evaluate(() => {
+      // 对应站内“封面省流”设置；现策略不读取NetworkInformation.saveData。
+      localStorage.setItem("wenyou:cover-data-saver", "true");
+      window.dispatchEvent(new CustomEvent("wenyou:cover-preference", { detail: true }));
+    });
+    await expect(page.locator("img[data-cover-animation]")).toHaveCount(0);
+  } finally { await fixture.close(); }
+});

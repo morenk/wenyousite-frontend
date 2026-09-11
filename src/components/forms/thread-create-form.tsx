@@ -164,7 +164,7 @@ export function ThreadCreateForm({
             control={form.control}
             name="content"
             render={({ field }) => (
-              <MilkdownEditor
+              <MilkdownEditor mediaDisplays={thread.defaultSubthread.bodyPost?.mediaDisplays}
                 editorRef={editor.editorRef}
                 onValidityChange={editor.onValidityChange}
                 threadId={thread.id}

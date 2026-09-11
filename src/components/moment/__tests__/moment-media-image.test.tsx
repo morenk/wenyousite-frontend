@@ -91,3 +91,16 @@ describe("动态播放跨端验收", () => {
     expect(screen.queryByText("重试动图")).not.toBeInTheDocument();
   });
 });
+
+const fullDisplay = { url: "https://cdn.example.com/complete.webp", contentType: "image/webp" as const, width: 1200, height: 900, bytes: 5000, animated: true, frameCount: 3, durationMs: 4500, loopCount: 2 };
+
+test("动态详情使用display、列表保持静态，失败不下载原GIF", () => {
+  render(<MomentPlaybackProvider><MomentMediaImage media={{ ...media, display: fullDisplay }} alt="完整动画" allowPlayback /><MomentMediaImage media={{ ...media, display: fullDisplay }} alt="静态列表" allowPlayback={false} /></MomentPlaybackProvider>);
+  visibility(true);
+  expect(screen.getByAltText("完整动画")).toHaveAttribute("src", fullDisplay.url);
+  expect(screen.getByAltText("静态列表")).toHaveAttribute("src", "/still");
+  fireEvent.error(screen.getByAltText("完整动画"));
+  expect(screen.getByAltText("完整动画")).toHaveAttribute("src", "/still");
+  fireEvent.click(screen.getByRole("button", { name: "重试动图" }));
+  expect(screen.getByAltText("完整动画")).toHaveAttribute("src", fullDisplay.url);
+});

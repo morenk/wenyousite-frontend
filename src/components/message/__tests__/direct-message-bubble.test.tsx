@@ -219,3 +219,17 @@ describe("DirectMessageBubble", () => {
     expect(sticker.getAttribute("style")).toContain("--sticker-display-max");
   });
 });
+
+const fullDisplay = { url: "https://cdn.example.com/complete.webp", contentType: "image/webp" as const, width: 1200, height: 900, bytes: 5000, animated: true, frameCount: 3, durationMs: 4500, loopCount: 2 };
+
+test("陌生私信揭示后使用完整WebP，失败不降级原GIF", () => {
+  const media = { id: "gif", url: "/source.gif", thumbnailUrl: "/still.webp", mediumUrl: "/medium.webp", contentType: "image/gif", width: 1200, height: 900, animated: true, display: fullDisplay };
+  render(<DirectMessageBubble message={message({ content: "", media })} mine={false} hideRequestImage />);
+  expect(screen.queryByAltText("私聊图片")).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "点击查看陌生人图片" }));
+  expect(screen.getByAltText("私聊图片")).toHaveAttribute("src", fullDisplay.url);
+  fireEvent.error(screen.getByAltText("私聊图片"));
+  expect(document.querySelector('img[src="/source.gif"]')).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "重试图片" }));
+  expect(screen.getByAltText("私聊图片")).toHaveAttribute("src", fullDisplay.url);
+});

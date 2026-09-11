@@ -156,7 +156,7 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
       >
         <header data-slot="moment-detail-header" className="flex items-center gap-3">
           <Link href={`/users/${moment.author.id}`} className="flex min-w-0 items-center gap-3 rounded-xl">
-            <UserAvatar name={moment.author.username} src={moment.author.avatar} className="size-10" />
+            <UserAvatar name={moment.author.username} src={moment.author.avatar} display={moment.author.avatarDisplay} className="size-10" />
             <div className="min-w-0"><p className="truncate text-sm font-bold">{moment.author.username}</p><WenyouTime value={moment.createdAt} className="text-xs text-muted-foreground" /></div>
           </Link>
           <div className="ml-auto flex items-center gap-1">

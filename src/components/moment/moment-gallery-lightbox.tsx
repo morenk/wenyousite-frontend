@@ -1,5 +1,6 @@
 "use client";
 
+import { getMediaDisplayUrl } from "@/lib/media-display";
 import { useState } from "react";
 import { GalleryLightbox, type GalleryLightboxImage } from "@/components/shared/gallery-lightbox";
 import { MomentMediaImage } from "@/components/moment/moment-media-image";
@@ -29,7 +30,7 @@ export function MomentGalleryLightbox({ images, index, onClose }: { images: Mome
             alt={image.alt}
             onLoad={(event) => {
               const { naturalWidth: width, naturalHeight: height } = event.currentTarget;
-              if (event.currentTarget.getAttribute("src") === image.src && width > 0 && height > 0 && !naturalSizes[image.src] && (!image.width || !image.height)) {
+              if (event.currentTarget.getAttribute("src") === getMediaDisplayUrl(image.momentMedia) && width > 0 && height > 0 && !naturalSizes[image.src] && (!image.width || !image.height)) {
                 setNaturalSizes((sizes) => ({ ...sizes, [image.src]: { width, height } }));
               }
             }}

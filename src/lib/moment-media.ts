@@ -1,5 +1,7 @@
 /** 动态展示只消费服务端媒体元数据，不推测文件名或派生路径。 */
+import type { MediaDisplay } from "@/lib/media-display";
 export interface MomentMediaAsset {
+  display?: MediaDisplay | null;
   url: string;
   thumbnailUrl?: string | null;
   feedUrl?: string | null;
@@ -24,7 +26,7 @@ export function getMomentStaticUrl(media: MomentMediaAsset, mode: "cover" | "det
   const feed = derived(media.feedUrl);
   if (isMomentAnimation(media)) return thumbnail;
   const contentType = media.contentType?.trim().toLowerCase();
-  const original = media.animated === false || contentType?.startsWith("image/") ? media.url.trim() || null : null;
+  const original = media.animated === false || contentType?.startsWith("image/") ? (media.display?.url ?? media.url).trim() || null : null;
   if (mode === "full") return original || medium || thumbnail;
   if (mode === "sticker") return thumbnail || original;
   if (mode === "cover") return feed || medium || thumbnail;

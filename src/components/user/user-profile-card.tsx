@@ -36,7 +36,7 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
           <div className="grid grid-cols-[3.5rem_minmax(0,1fr)] items-center gap-x-3 sm:grid-cols-[4rem_minmax(0,1fr)_auto] sm:items-start sm:gap-x-4">
             <UserAvatar
               name={user.username}
-              src={user.avatar}
+              src={user.avatar} display={user.avatarDisplay}
               className="col-start-1 row-start-1 size-14 ring-4 ring-card outline outline-1 outline-border sm:row-span-2 sm:size-16"
               textClassName="text-xl sm:text-2xl"
             />
@@ -63,7 +63,7 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
       <div className="relative z-10 grid grid-cols-[4rem_minmax(0,1fr)] gap-x-3 px-3 pb-4 sm:grid-cols-[6rem_minmax(0,1fr)] sm:gap-x-4 sm:px-5 sm:pb-5">
         <UserAvatar
           name={user.username}
-          src={user.avatar}
+          src={user.avatar} display={user.avatarDisplay}
           className="relative z-20 -mt-8 size-16 ring-4 ring-card outline outline-1 outline-border sm:-mt-12 sm:size-24"
           textClassName="text-xl sm:text-3xl"
         />

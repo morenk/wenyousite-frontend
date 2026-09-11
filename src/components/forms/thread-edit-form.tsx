@@ -305,7 +305,7 @@ export function ThreadEditForm({
                 control={form.control}
                 name="content"
                 render={({ field }) => (
-                  <MilkdownEditor
+                  <MilkdownEditor mediaDisplays={thread.defaultSubthread.bodyPost?.mediaDisplays}
                     editorRef={editor.editorRef}
                     onValidityChange={editor.onValidityChange}
                     onSyncErrorChange={(hasError) => { setSyncError(hasError); onSyncErrorChange?.(hasError); }}
