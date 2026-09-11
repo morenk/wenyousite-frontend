@@ -21,6 +21,9 @@ import { topBar } from "@milkdown/crepe/feature/top-bar";
 import { commandsCtx, editorViewCtx } from "@milkdown/core";
 import { toggleLinkCommand } from "@milkdown/kit/component/link-tooltip";
 import {
+  blockquoteKeymap,
+  bulletListKeymap,
+  orderedListKeymap,
   codeBlockKeymap,
   createCodeBlockInputRule,
   emphasisStarInputRule,
@@ -34,12 +37,8 @@ import {
   linkSchema,
   strongInputRule,
   toggleInlineCodeCommand,
-  wrapInBlockquoteCommand,
   wrapInBlockquoteInputRule,
-  wrapInBulletListCommand,
   wrapInBulletListInputRule,
-  wrapInHeadingCommand,
-  wrapInOrderedListCommand,
   wrapInOrderedListInputRule,
   wrapInHeadingInputRule,
 } from "@milkdown/kit/preset/commonmark";
@@ -131,30 +130,34 @@ import {
   cycleEditorAlignment,
   getSelectedTextAlignment,
   setEditorAlignment,
-  setSelectedEditorHeading,
 } from "@/components/editor/editor-alignment";
 import {
   alignmentLabel,
   type WenyouTextAlignment,
 } from "@/lib/markdown-alignment";
+import { applyEditorBlockFormat } from "@/components/editor/editor-block-format";
 import "@/components/editor/milkdown-editor.css";
 
-const toolbarHeadingKeymap = $useKeymap("wenyousiteHeadingKeymap", {
+const toolbarBlockFormatKeymap = $useKeymap("wenyousiteBlockFormatKeymap", {
+  WrapInBlockquote: {
+    shortcuts: "Mod-Shift-b",
+    command: (ctx) => () => applyEditorBlockFormat(ctx, "quote"),
+  },
+  WrapInBulletList: {
+    shortcuts: "Mod-Alt-8",
+    command: (ctx) => () => applyEditorBlockFormat(ctx, "bullet-list"),
+  },
+  WrapInOrderedList: {
+    shortcuts: "Mod-Alt-7",
+    command: (ctx) => () => applyEditorBlockFormat(ctx, "ordered-list"),
+  },
   TurnIntoH2: {
     shortcuts: "Mod-Alt-2",
-    command: (ctx) => {
-      const commands = ctx.get(commandsCtx);
-      return () => setSelectedEditorHeading(ctx, 2)
-        || commands.call(wrapInHeadingCommand.key, 2);
-    },
+    command: (ctx) => () => applyEditorBlockFormat(ctx, "h2"),
   },
   TurnIntoH3: {
     shortcuts: "Mod-Alt-3",
-    command: (ctx) => {
-      const commands = ctx.get(commandsCtx);
-      return () => setSelectedEditorHeading(ctx, 3)
-        || commands.call(wrapInHeadingCommand.key, 3);
-    },
+    command: (ctx) => () => applyEditorBlockFormat(ctx, "h3"),
   },
 });
 
@@ -448,13 +451,13 @@ export function MilkdownEditorHost({
           }
           break;
         case "quote":
-          commands.call(wrapInBlockquoteCommand.key);
+          applyEditorBlockFormat(ctx, "quote");
           break;
         case "bullet-list":
-          commands.call(wrapInBulletListCommand.key);
+          applyEditorBlockFormat(ctx, "bullet-list");
           break;
         case "ordered-list":
-          commands.call(wrapInOrderedListCommand.key);
+          applyEditorBlockFormat(ctx, "ordered-list");
           break;
         case "hr":
           commands.call(insertHrCommand.key);
@@ -591,10 +594,13 @@ export function MilkdownEditorHost({
         wrapInTaskListInputRule,
         insertTableInputRule,
         ...headingKeymap,
+        ...blockquoteKeymap,
+        ...bulletListKeymap,
+        ...orderedListKeymap,
         ...codeBlockKeymap,
         ...tableKeymap,
       ]);
-      crepe.editor.use(toolbarHeadingKeymap);
+      crepe.editor.use(toolbarBlockFormatKeymap);
 
       // 只装载当前顶部工具栏实际依赖的交互特性；表格、代码编辑器、公式、AI、
       // 块菜单和选择气泡工具栏均不进入客户端包。
@@ -629,12 +635,20 @@ export function MilkdownEditorHost({
           );
           const list = builder.getGroup("list").group;
           list.items = list.items.filter((item) => item.key !== "task-list");
+          list.items.forEach((item) => {
+            if (item.key === "bullet-list" || item.key === "ordered-list") {
+              const format = item.key;
+              item.onRun = (ctx) => applyEditorBlockFormat(ctx, format);
+            }
+          });
           const insert = builder.getGroup("insert").group;
           const imageItem = insert.items.find((item) => item.key === "image");
           const block = builder.getGroup("block").group;
           block.items = [];
           const more = builder.getGroup("more").group;
           more.items = more.items.filter((item) => ["quote", "hr"].includes(item.key));
+          const quoteItem = more.items.find((item) => item.key === "quote");
+          if (quoteItem) quoteItem.onRun = (ctx) => applyEditorBlockFormat(ctx, "quote");
 
           const headingSelector = builder.getGroup("heading").group.items
             .find((item) => item.key === "heading-selector");
@@ -642,8 +656,7 @@ export function MilkdownEditorHost({
             const configured = CN_HEADING_OPTIONS.find((item) => item.label === option.label);
             if (!configured) return;
             option.onSelect = (ctx) => {
-              if (setSelectedEditorHeading(ctx, configured.level)) return;
-              ctx.get(commandsCtx).call(wrapInHeadingCommand.key, configured.level ?? 0);
+              applyEditorBlockFormat(ctx, configured.level === 2 ? "h2" : configured.level === 3 ? "h3" : "paragraph");
             };
           });
 

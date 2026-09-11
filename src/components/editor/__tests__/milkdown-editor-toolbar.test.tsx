@@ -477,7 +477,7 @@ describe("MilkdownEditor 能力分层", () => {
     expect(screen.queryByRole("button", { name: "标题 4" })).toBeNull();
   });
 
-  test("空正文可先切换为引用且不会报告格式同步失败", async () => {
+  test("空正文切换为引用不写入自动尾段且不会报告格式同步失败", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     const { container } = renderEditor("", "回复正文", onChange);
@@ -488,11 +488,11 @@ describe("MilkdownEditor 能力分层", () => {
 
     await waitFor(() => expect(editor.querySelector("blockquote")).toBeInTheDocument());
     expect(toast.error).not.toHaveBeenCalled();
-    expect(onChange).toHaveBeenLastCalledWith(">\n\n<br />");
+    expect(onChange).toHaveBeenLastCalledWith(">");
 
     await user.type(editor.querySelector("blockquote p")!, "引用正文");
     await waitFor(() => {
-      expect(onChange).toHaveBeenLastCalledWith("> 引用正文\n\n<br />");
+      expect(onChange).toHaveBeenLastCalledWith("> 引用正文");
     });
     expect(toast.error).not.toHaveBeenCalled();
   });
@@ -915,6 +915,40 @@ describe("MilkdownEditor 能力分层", () => {
 
     await waitFor(() => expect(editor.querySelector("ul")).toBeInTheDocument());
     expect(document.activeElement).toBe(editor);
+  });
+
+  test("更多菜单在空列表上再次选择同类格式恢复正文", async () => {
+    const { container } = renderEditor("-");
+    const editor = await getEditor(container);
+    await userEvent.setup().click(editor.querySelector("li p")!);
+    const toolbar = await screen.findByRole("toolbar", { name: "正文格式工具栏" });
+    await makeToolbarCompact(toolbar);
+    fireEvent.pointerDown(within(toolbar).getByRole("button", { name: "更多" }));
+    await userEvent.setup().click(await screen.findByRole("menuitem", { name: "无序列表" }));
+    await waitFor(() => expect(editor.querySelector("ul")).toBeNull());
+    expect(editor.querySelector(":scope > p")).toBeInTheDocument();
+  });
+
+  test.each([
+    { source: ">", selector: "blockquote", key: "b", shiftKey: true, altKey: false },
+    { source: "-", selector: "ul", key: "8", shiftKey: false, altKey: true },
+    { source: "1.", selector: "ol", key: "7", shiftKey: false, altKey: true },
+  ])("$selector 快捷键与按钮共用空块取消行为", async item => {
+    const { container } = renderEditor(item.source);
+    const editor = await getEditor(container);
+    await userEvent.setup().click(editor.querySelector(`${item.selector} p`)!);
+    fireEvent.keyDown(editor, { key: item.key, ctrlKey: true, shiftKey: item.shiftKey, altKey: item.altKey });
+    await waitFor(() => expect(editor.querySelector(item.selector)).toBeNull());
+    expect(editor.querySelector(":scope > p")).toBeInTheDocument();
+  });
+
+  test("标题快捷键将独立空引用转换为顶层标题", async () => {
+    const { container } = renderEditor(">");
+    const editor = await getEditor(container);
+    await userEvent.setup().click(editor.querySelector("blockquote p")!);
+    fireEvent.keyDown(editor, { key: "3", ctrlKey: true, altKey: true });
+    await waitFor(() => expect(editor.querySelector(":scope > h3")).toBeInTheDocument());
+    expect(editor.querySelector("blockquote")).toBeNull();
   });
 
   test("更多菜单可在空选区开启行内代码并继续输入", async () => {

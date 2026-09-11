@@ -1,6 +1,6 @@
 /** Markdown v5 工具：规范化、工具栏能力白名单与字面文本降级。 */
 
-import { ALIGNMENT_MARKER_RE, analyzeMarkdownBlockBoundaries, projectMarkdownBlockBoundaries } from "@/lib/markdown-block-boundaries";
+import { analyzeMarkdownBlockBoundaries, projectMarkdownBlockBoundaries } from "@/lib/markdown-block-boundaries";
 
 /** 匹配图片语法中括号为空的写法：![alt]() 或 ![alt]( ) */
 const EMPTY_IMAGE_REGEX = /!\[[^\]]*\]\(\s*\)/g;
@@ -479,12 +479,6 @@ export function sanitizeMilkdownMarkdown(
     .join("\n\n");
 }
 
-const IMAGE_RE = /!\[[^\]]*\]\(\s*[^)\s]+[^)]*\)/;
-const EMPTY_LINK_RE = /\[[^\]]*\]\(\s*\)/g;
-const LINK_RE = /\[([^\]]+)\]\(\s*[^)\s]+[^)]*\)/g;
-const HTTP_AUTOLINK_RE = /<https?:\/\/[^\s<>]+>/iu;
-const HTML_RE = /<[^>]*>/g;
-const THEMATIC_BREAK_RE = /^ {0,3}(?:(?:\*\s*){3,}|(?:-\s*){3,}|(?:_\s*){3,})$/;
 /** 仅用于可见性判断；保留原文，避免破坏 ZWJ Emoji 和变体选择符。 */
 const DEFAULT_IGNORABLE_RE = /[\u00AD\u034F\u061C\u115F\u1160\u17B4\u17B5\u180B-\u180F\u200B-\u200F\u202A-\u202E\u2060-\u206F\u3164\uFE00-\uFE0F\uFEFF\uFFA0]/gu;
 
@@ -494,52 +488,24 @@ function hasNonIgnorableText(value: string): boolean {
 
 /** 判断 Markdown 是否包含可发布的可见内容（图片可单独发布，分隔线不可单独发布）。 */
 export function hasVisibleMarkdownContent(markdown: string): boolean {
-  const lines = normalizeMilkdownMarkdown(markdown).split("\n");
-  let fence: { marker: "`" | "~"; length: number } | null = null;
-
-  for (const rawLine of lines) {
-    const line = rawLine.trim();
-    const fenceToken = rawLine.match(/^ {0,3}(`{3,}|~{3,})/)?.[1];
-    if (fence) {
-      const closingToken = rawLine.match(/^ {0,3}(`{3,}|~{3,})[\t ]*$/)?.[1];
-      if (
-        closingToken?.[0] === fence.marker &&
-        closingToken.length >= fence.length
-      ) {
-        fence = null;
-      } else if (hasNonIgnorableText(line)) {
-        return true;
-      }
+  // 复用读取/校验的真实块树；连续的嵌套标记不能被当成作者文字。
+  const { tokens } = analyzeMarkdownBlockBoundaries(normalizeMilkdownMarkdown(markdown));
+  for (const token of tokens) {
+    if (token.type === "fence" || token.type === "code_block") {
+      if (hasNonIgnorableText(token.content)) return true;
       continue;
     }
-    if (fenceToken) {
-      fence = {
-        marker: fenceToken[0] as "`" | "~",
-        length: fenceToken.length,
-      };
-      continue;
+    if (token.type === "html_block" && hasNonIgnorableText(token.content.replace(/<[^>]*>/gu, ""))) return true;
+    if (token.type !== "inline") continue;
+    let emptyLink = false;
+    for (const child of token.children ?? []) {
+      if (child.type === "link_open") emptyLink = !child.attrGet("href");
+      if (child.type === "link_close") emptyLink = false;
+      if (emptyLink) continue;
+      if (child.type === "image" && child.attrGet("src")) return true;
+      if (["text", "code_inline"].includes(child.type)
+        && hasNonIgnorableText(child.content.replace(/[*_~`]/gu, ""))) return true;
     }
-    if (
-      !line ||
-      THEMATIC_BREAK_RE.test(rawLine) ||
-      ALIGNMENT_MARKER_RE.test(rawLine)
-    ) continue;
-    if (IMAGE_RE.test(line)) return true;
-    // Milkdown 会把独占 URL 序列化为 CommonMark 自动链接；它不是 HTML 标签。
-    if (HTTP_AUTOLINK_RE.test(line)) return true;
-    const visible = line
-      .replace(/^ {0,3}<br\s*\/?>[\t ]*$/iu, "")
-      .replace(/!\[[^\]]*\]\(\s*\)/g, "")
-      .replace(EMPTY_LINK_RE, "")
-      .replace(LINK_RE, "$1")
-      .replace(HTML_RE, "")
-      // 只移除 Markdown 前缀；不能把正文开头的纯数字（如 123、1.00）当成列表标记。
-      .replace(/^[#>+\-\s]+/u, "")
-      .replace(/^\d+[.)]\s*/u, "")
-      .replace(/[*_~`]/g, "")
-      .replace(DEFAULT_IGNORABLE_RE, "")
-      .trim();
-    if (visible) return true;
   }
   return false;
 }

@@ -186,6 +186,6 @@ test("项数相同但父子改变时拒绝损坏保存", async () => {
  await withEditor("- 甲\n  - 乙", crepe => crepe.editor.action(ctx => {
   const doc=ctx.get(editorViewCtx).state.doc;
   ctx.set(serializerCtx,()=>"- 甲\n- 乙\n\n尾段\n");
-  expect(()=>serializeEditorMarkdown(ctx,doc)).toThrow("列表保存未能保留完整结构");
+  expect(()=>serializeEditorMarkdown(ctx,doc)).toThrow("正文保存未能保留完整结构");
  }));
 });

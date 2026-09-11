@@ -43,6 +43,8 @@ export function configureEditorListSerializer(ctx: Ctx) {
 
 function semanticNode(node: ProseNode): unknown {
   const attrs = { ...node.attrs };
+  // 未设置对齐与显式 left 具有相同语义，空段转换时可能采用不同默认值。
+  if ("textAlign" in attrs) attrs.textAlign ||= "left";
   // 松紧和源码标号不是列表身份；order（起始编号）及所有正文/原子属性仍参与比较。
   if (["list_item", "bullet_list", "ordered_list"].includes(node.type.name)) {
     delete attrs.spread;
@@ -53,23 +55,22 @@ function semanticNode(node: ProseNode): unknown {
   if (node.type.name === "heading") delete attrs.id;
   const children: unknown[] = [];
   node.forEach((child) => children.push(semanticNode(child)));
-  return { type: node.type.name, attrs, text: node.text, marks: node.marks.map((mark) => mark.toJSON()), children };
+  return { type: node.type.name, attrs, text: node.text, marks: [...node.marks].sort((a, b) => a.type.name.localeCompare(b.type.name)).map((mark) => mark.toJSON()), children };
 }
 
-function listSemantics(doc: ProseNode): unknown[] {
-  const lists: unknown[] = [];
-  doc.descendants((node) => {
-    if (!["bullet_list", "ordered_list"].includes(node.type.name)) return;
-    lists.push(semanticNode(node));
-    return false;
-  });
-  return lists;
+function documentStructure(node: ProseNode): unknown {
+  // 列表沿用完整文字、marks、原子身份检查。其他块复用既有行内规范化，核对排版结构。
+  if (["bullet_list", "ordered_list"].includes(node.type.name)) return semanticNode(node);
+  const children: unknown[] = [];
+  if (!node.isTextblock) node.forEach(child => children.push(documentStructure(child)));
+  let breaks = 0;
+  if (node.isTextblock) node.forEach(child => { if (child.type.name === "hardbreak") breaks++; });
+  return { type: node.type.name, level: node.attrs.level, alignment: node.attrs.textAlign || "left",
+    ...(node.isTextblock ? { empty: node.content.size === 0, breaks } : { children }) };
 }
 
-/** 不仅检查项数，还核对层级、起点、空段、文字、marks 和原子身份。 */
-export function preservesEditorListSemantics(ctx: Ctx, doc: ProseNode, markdown: string, options: MarkdownValidationOptions): boolean {
-  const expected = listSemantics(doc);
-  if (!expected.length) return true;
+/** 整篇块顺序、作者空段和换行都参与比较，不把行内规范写法的差异当作空块丢失。 */
+export function preservesEditorDocumentSemantics(ctx: Ctx, doc: ProseNode, markdown: string, options: MarkdownValidationOptions): boolean {
   const reopened = ctx.get(parserCtx)(prepareMilkdownEditorMarkdown(markdown, options));
-  return JSON.stringify(listSemantics(reopened)) === JSON.stringify(expected);
+  return JSON.stringify(documentStructure(reopened)) === JSON.stringify(documentStructure(doc));
 }

@@ -1053,3 +1053,95 @@ for (const block of [
     await expect.poll(harness.getStoredMarkdown).toBe(stored);
   });
 }
+
+for (const ordered of [false, true]) {
+  for (const gap of [1, 2, 3]) {
+    test(`文档空块 ${ordered ? "有序" : "无序"} 两组列表间 ${gap} 空行填字删空后保存重开`, async ({ page }) => {
+      const first = ordered ? "1. 甲\n2." : "- 甲\n-";
+      const second = ordered ? "1. 乙\n2. 末" : "- 乙\n- 末";
+      const source = `${first}\n\n${Array.from({ length: gap }, () => "<br />").join("\n")}\n\n${second}\n\n尾段`;
+      const harness = await mockAlignmentWorkspace(page, source);
+      await openFreshThreadDraft(page);
+      const editor = page.locator(".milkdown-editor .ProseMirror").first();
+      const blankRows = editor.locator(':scope > p[data-wenyou-empty-row="true"]');
+      await expect(editor.locator("li")).toHaveCount(4);
+      await expect(blankRows).toHaveCount(gap);
+      const firstLeaf = editor.locator("li p").nth(1);
+      await placeCaretAtEnd(firstLeaf);
+      await page.keyboard.insertText("填字");
+      await selectText(firstLeaf, "填字");
+      await page.keyboard.press("Backspace");
+      await expect(firstLeaf).toHaveText("");
+      const blank = blankRows.first();
+      await placeCaretAtEnd(blank);
+      await page.keyboard.insertText("间隔字");
+      const filled = editor.locator(":scope > p").filter({ hasText: "间隔字" });
+      await selectText(filled, "间隔字");
+      await page.keyboard.press("Backspace");
+      await expect(blankRows).toHaveCount(gap);
+      await page.getByRole("button", { name: "保存草稿", exact: true }).click();
+      await expect.poll(() => harness.getStoredMarkdown().match(/<br \/>/g)?.length ?? 0).toBe(gap);
+      await page.reload();
+      await page.getByRole("link", { name: "继续编辑", exact: true }).click();
+      await expect(editor.locator("li")).toHaveCount(4);
+      await expect(editor.locator("li p").nth(1)).toHaveText("");
+      await expect(blankRows).toHaveCount(gap);
+      harness.setPublished(true);
+      await page.goto(`/threads/${THREAD_ID}`);
+      const reader = page.locator('[data-slot="markdown-content"]').filter({ hasText: "尾段" }).first();
+      await expect(reader.locator("li")).toHaveCount(4);
+      await expect(reader.locator(':scope > p[data-wenyou-empty-row="true"]')).toHaveCount(gap);
+      await expect(reader.locator(ordered ? ":scope > ol" : ":scope > ul")).toHaveCount(2);
+    });
+  }
+}
+
+for (const scenario of [
+  { initial: "> 甲", target: "引用", selector: ":scope > p", gapAfter: 4 },
+  { initial: "> 甲", target: "无序列表", selector: ":scope > ul li p", gapAfter: 3 },
+  { initial: "1. 甲", target: "标题 2", selector: ":scope > h2", gapAfter: 4 },
+]) {
+  test(`空活动行 ${scenario.initial} 切换${scenario.target}后续写、回车与保存`, async ({ page }) => {
+    const source = ["> 前", "<br />\n<br />", scenario.initial, "<br />", "1. 后"].join("\n\n");
+    const harness = await mockAlignmentWorkspace(page, source, 5);
+    await openFreshThreadDraft(page);
+    const editor = page.locator(".milkdown-editor .ProseMirror").first();
+    // 源文档以列表结束，最后一个 p 是未使用的输入占位。按实际空文字计数，
+    // 不把 ProseMirror 增量更新后仍留在已填字 p 上的展示属性当作内容事实。
+    const authoredBlankRows = editor.locator(":scope > p:not(:last-child)").filter({ hasText: /^$/ });
+    const active = editor.locator("p").filter({ hasText: /^甲$/ });
+    await selectText(active, "甲");
+    await page.keyboard.press("Backspace");
+    const toolbar = page.getByRole("toolbar", { name: "正文格式工具栏" }).first();
+    if (scenario.target === "标题 2") {
+      await toolbar.getByRole("button", { name: "切换正文样式" }).click();
+      await page.getByRole("button", { name: "标题 2", exact: true }).click();
+    } else {
+      await toolbar.getByRole("button", { name: scenario.target, exact: true }).click();
+    }
+    await page.keyboard.insertText("乙");
+    await expect(editor.locator(scenario.selector).filter({ hasText: /^乙$/ })).toHaveCount(1);
+    await page.keyboard.press("Enter");
+    await page.keyboard.insertText("丙");
+    await page.keyboard.press("Backspace");
+    await expect(authoredBlankRows).toHaveCount(scenario.gapAfter);
+    await page.getByRole("button", { name: "保存草稿", exact: true }).click();
+    await expect.poll(harness.getStoredMarkdown).toContain("乙");
+    const stored = harness.getStoredMarkdown();
+    expect(stored.match(/<br \/>/g)?.length ?? 0).toBe(scenario.gapAfter);
+    await page.reload();
+    if (new URL(page.url()).pathname === "/threads/create") {
+      await page.getByRole("link", { name: "继续编辑", exact: true }).click();
+    }
+    await expect(editor.locator(scenario.selector).filter({ hasText: /^乙$/ })).toHaveCount(1);
+    await expect(authoredBlankRows).toHaveCount(scenario.gapAfter);
+    await page.getByRole("button", { name: "保存草稿", exact: true }).click();
+    await expect.poll(harness.getStoredMarkdown).toBe(stored);
+    harness.setPublished(true);
+    await page.goto(`/threads/${THREAD_ID}`);
+    const reader = page.locator('[data-slot="markdown-content"]').filter({ hasText: "乙" }).first();
+    await expect(reader.locator(':scope > p[data-wenyou-empty-row="true"]')).toHaveCount(scenario.gapAfter);
+    await expect(reader.locator(":scope > blockquote").first()).toHaveText("前");
+    await expect(reader.locator(":scope > ol").last()).toHaveText("后");
+  });
+}
