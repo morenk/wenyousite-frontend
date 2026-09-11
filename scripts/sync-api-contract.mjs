@@ -31,6 +31,7 @@ for (const [name, identity, version] of [
   ["internal-reference-v1-fixtures.json", "wenyousite-internal-reference", 1],
   ["editor-clipboard-v2-fixtures.json", "wenyousite-editor-clipboard", 2],
   ["markdown-editor-newline-v1-fixtures.json", "wenyousite-editor-newline", 1],
+  ["markdown-editor-list-v1-fixtures.json", "wenyousite-editor-list", 1],
 ]) {
   const value = JSON.parse(source.read(name));
   if (value.contract !== identity || value.version !== version) throw new Error(name + " 契约不匹配");
@@ -46,7 +47,7 @@ for (const name of markdownFiles) {
   if (!value.contract?.startsWith("wenyousite-markdown") || !Number.isInteger(value.version)) throw new Error(name + " 契约无效");
 }
 const names = ["openapi.json", "internal-reference-v1-fixtures.json", "editor-clipboard-v2-fixtures.json",
-  "markdown-editor-newline-v1-fixtures.json", "thread-cover-media-v1-fixtures.json", boundaryName, ...markdownFiles];
+  "markdown-editor-newline-v1-fixtures.json", "markdown-editor-list-v1-fixtures.json", "thread-cover-media-v1-fixtures.json", boundaryName, ...markdownFiles];
 // 在写入前读取全部内容，来源缺失时不留下半套契约。
 const contents = names.map((name) => [name, source.read(name)]);
 mkdirSync(target, { recursive: true });

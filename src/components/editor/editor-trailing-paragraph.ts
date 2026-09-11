@@ -16,11 +16,7 @@ export function configureEditorTrailingParagraph(ctx: Ctx) {
     ...previous,
     getNode: (state) => {
       const node = previous.getNode(state);
-      const last = state.doc.lastChild;
-      // 空引用仍保留原有输入占位语义，其他结构块后的自动尾段只供编辑定位。
-      const emptyQuote = last?.type.name === "blockquote" && last.childCount === 1
-        && last.firstChild?.type.name === "paragraph" && last.firstChild.content.size === 0;
-      if (node.type.name !== "paragraph" || node.content.size > 0 || emptyQuote) return node;
+      if (node.type.name !== "paragraph" || node.content.size > 0) return node;
       return node.type.create({ ...node.attrs, [AUTO_TRAILING_PARAGRAPH]: true }, node.content, node.marks);
     },
   }));

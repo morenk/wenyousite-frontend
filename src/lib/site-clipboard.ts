@@ -255,7 +255,13 @@ function appendNormalizedNode(
       normalized.setAttribute("start", String(start));
     }
   }
-  if (normalizedTag !== "br" && normalizedTag !== "hr") {
+  // 阅读器的协议空段用一个 br 占位；结构剪贴板应保留一个空 p，不能把占位当作者 LF。
+  const emptyRowPlaceholder = normalizedTag === "p"
+    && element.getAttribute("data-wenyou-empty-row") === "true"
+    && !element.textContent
+    && element.children.length <= 1
+    && Array.from(element.children).every((child) => child.tagName === "BR");
+  if (normalizedTag !== "br" && normalizedTag !== "hr" && !emptyRowPlaceholder) {
     appendChildren(element, normalized, clipboardSource, preserveAlignment);
   }
   const alignment = element.getAttribute(WENYOU_ALIGNMENT_ATTRIBUTE);

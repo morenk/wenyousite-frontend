@@ -116,7 +116,11 @@ function pasteStructuredSiteFragment(view: EditorView, html: string): boolean {
     ["P", "H2", "H3"].includes(child.tagName)
       && child.hasAttribute(WENYOU_ALIGNMENT_ATTRIBUTE),
   );
-  let slice = hasTopLevelAlignment
+  const hasStructuralBlock = Array.from(envelope.children).some((child) =>
+    ["H2", "H3", "UL", "OL", "BLOCKQUOTE", "HR"].includes(child.tagName),
+  );
+  // 空结构的开放 slice 大小可能为零；完整块必须保留边界，不能退化为空粘贴。
+  let slice = hasTopLevelAlignment || hasStructuralBlock
     ? new Slice(parser.parse(envelope, {
         preserveWhitespace: true,
         context: view.state.selection.$from,
@@ -143,10 +147,7 @@ function handleSiteFragmentPaste(view: EditorView, event: ClipboardEvent): boole
   const html = event.clipboardData?.getData("text/html") ?? "";
   const payload = parseSiteClipboardHtml(html);
   if (!payload) return false;
-  const pasted = payload.source === "editor"
-    || payload.html.includes(WENYOU_ALIGNMENT_ATTRIBUTE)
-    ? pasteStructuredSiteFragment(view, payload.html)
-    : view.pasteHTML(payload.html, event);
+  const pasted = pasteStructuredSiteFragment(view, payload.html);
   if (!pasted) return false;
   finishHandledClipboardEvent(event);
   view.focus();

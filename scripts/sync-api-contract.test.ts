@@ -18,6 +18,7 @@ function workspace() {
   const fixtures = {
     "thread-cover-media-v1-fixtures.json": { schemaVersion: 1, cases: [] },
     "markdown-block-boundary-v1-fixtures.json": { contract: "wenyousite-markdown-block-boundary", version: 1, markdownContractVersion: 5, cases: [] },
+    "markdown-editor-list-v1-fixtures.json": { contract: "wenyousite-editor-list", version: 1, revision: 3, documentCases: [] },
     "markdown-editor-newline-v1-fixtures.json": { contract: "wenyousite-editor-newline", version: 1 },
     "openapi.json": { openapi: "3.0.3", info: { version: "test" } },
     "internal-reference-v1-fixtures.json": { contract: "wenyousite-internal-reference", version: 1 },
@@ -97,4 +98,14 @@ test("精确提交同步忽略后端未提交修改，并包含封面黄金fixtu
   expect(readFileSync(join(frontend, "contracts/openapi.json"), "utf8")).toBe(committed);
   expect(existsSync(join(frontend, "contracts/thread-cover-media-v1-fixtures.json"))).toBe(true);
   expect(existsSync(join(frontend, "contracts/markdown-block-boundary-v1-fixtures.json"))).toBe(true);
+});
+
+test("列表契约损坏时不能留下已更新 API 与陈旧列表副本", () => {
+  const { frontend, backend } = workspace();
+  const name = "markdown-editor-list-v1-fixtures.json";
+  writeFileSync(join(frontend, "contracts", name), "previous-list");
+  writeFileSync(join(backend, name), "{}");
+  expect(() => execFileSync(process.execPath, [script], { env: defaultEnvironment, cwd: frontend, stdio: "pipe" })).toThrow();
+  expect(readFileSync(join(frontend, "contracts", name), "utf8")).toBe("previous-list");
+  expect(existsSync(join(frontend, "contracts/openapi.json"))).toBe(false);
 });
