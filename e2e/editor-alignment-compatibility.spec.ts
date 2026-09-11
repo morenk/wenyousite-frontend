@@ -1,3 +1,4 @@
+import { writeFile } from "node:fs/promises";
 import {
   expect,
   test,
@@ -995,4 +996,123 @@ for (const block of [
     await page.getByRole("button", { name: "保存草稿", exact: true }).click();
     await expect.poll(harness.getStoredMarkdown).toBe(stored);
   });
+}
+
+for (const theme of ["light", "dark"] as const) {
+  for (const textFontSize of [17, 21.25, 25.5, 34]) {
+    test(`列表标记基线 ${theme} 字体缩放 ${textFontSize / 17}`, async ({ page, browserName }, testInfo) => {
+      const source = [
+        "9. 中文首行：编号应与正文共享基线。",
+        "10. Mixed 中文 English 2026，两位编号与自动折行。",
+        "    - 嵌套圆点 Nested 中文。",
+        "      1. 第三层中文 Third level。",
+        "",
+        "分隔正文",
+        "",
+        "- 中文圆点与首行对齐。",
+        "- Mixed 自动折行 wrapping：" + "中文 English 混排长行，".repeat(14),
+        "  - 嵌套长行：" + "Nested 中文 wrapping，".repeat(10),
+        "",
+        "尾段",
+      ].join("\n");
+      await page.addInitScript(preference => {
+        localStorage.setItem("wenyousite-theme", preference);
+      }, theme);
+      const harness = await mockAlignmentWorkspace(page, source, 5);
+      await openFreshThreadDraft(page);
+      const editor = page.locator(".milkdown-editor .ProseMirror").first();
+      await expect(editor.locator(".list-item")).toHaveCount(7);
+      await expect(editor.locator(".list-item .list-item")).toHaveCount(3);
+      await expect(editor.locator(".list-item .list-item .list-item")).toHaveCount(1);
+      await editor.evaluate((element, size) => { element.style.fontSize = `${size}px`; }, textFontSize);
+      await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+      await expect(editor).toHaveCSS("font-size", `${textFontSize}px`);
+      await page.evaluate(async () => { await document.fonts.ready; });
+      const metrics = await editor.evaluate(element => {
+        const firstGlyph = (target: Element) => {
+          const walker = document.createTreeWalker(target, NodeFilter.SHOW_TEXT);
+          const text = walker.nextNode()!;
+          const range = document.createRange();
+          range.setStart(text, 0);
+          range.setEnd(text, 1);
+          return range.getBoundingClientRect();
+        };
+        return Array.from(element.querySelectorAll(".list-item")).map(item => {
+          const paragraph = item.querySelector(":scope > .children p")!;
+          const wrapper = item.querySelector(":scope > .label-wrapper")!;
+          const label = wrapper.querySelector(".label.ordered");
+          const svg = wrapper.querySelector("svg");
+          const style = getComputedStyle(paragraph);
+          const markerStyle = getComputedStyle(label ?? wrapper);
+          const paragraphBox = paragraph.getBoundingClientRect();
+          const firstLineCenter = paragraphBox.top + parseFloat(style.paddingTop) + parseFloat(style.lineHeight) / 2;
+          const svgBox = svg?.getBoundingClientRect();
+          const textGlyph = firstGlyph(paragraph);
+          const markerGlyph = label ? firstGlyph(label) : null;
+          const markerRange = document.createRange();
+          if (label) markerRange.selectNodeContents(label);
+          return {
+            text: paragraph.textContent, marker: label?.textContent ?? "bullet",
+            markerLines: label ? markerRange.getClientRects().length : null,
+            textGlyphTop: textGlyph.top, markerGlyphTop: markerGlyph?.top,
+            textGlyphHeight: textGlyph.height, markerGlyphHeight: markerGlyph?.height,
+            // 相同实际字体和字号的首字字体框差等于基线差，不插入探针改变布局。
+            delta: markerGlyph == null ? svgBox!.top + svgBox!.height / 2 - firstLineCenter : markerGlyph.top - textGlyph.top,
+            font: style.fontFamily, fontSize: style.fontSize, lineHeight: style.lineHeight,
+            fontWeight: style.fontWeight,
+            markerFont: markerStyle.fontFamily, markerFontSize: markerStyle.fontSize,
+            markerFontWeight: markerStyle.fontWeight, markerLineHeight: markerStyle.lineHeight,
+            markerHeight: markerStyle.height, markerPadding: markerStyle.paddingTop,
+            itemAlignment: getComputedStyle(item).alignItems,
+            paragraphPadding: style.paddingTop, paragraphMargin: style.marginTop,
+            wrapped: paragraphBox.height > parseFloat(style.lineHeight) * 2,
+          };
+        });
+      });
+      await writeFile(testInfo.outputPath("metrics.json"), JSON.stringify(metrics, null, 2));
+      await testInfo.attach("editor-metrics", { body: JSON.stringify(metrics, null, 2), contentType: "application/json" });
+      await editor.screenshot({ path: testInfo.outputPath("editor.png") });
+      await editor.evaluate(element => { element.scrollTop = element.scrollHeight; });
+      await editor.screenshot({ path: testInfo.outputPath("editor-scrolled.png") });
+      await editor.evaluate(element => { element.scrollTop = 0; });
+      for (const metric of metrics) {
+        expect.soft(Math.abs(metric.delta), `${metric.marker} ${metric.text}`).toBeLessThanOrEqual(0.75);
+        expect(metric.font).toContain("Noto Sans SC");
+        expect(metric.markerFont).toBe(metric.font);
+        expect(metric.markerFontSize).toBe(metric.fontSize);
+        expect(metric.markerFontWeight).toBe(metric.fontWeight);
+        if (metric.markerGlyphHeight != null) expect(metric.markerGlyphHeight).toBe(metric.textGlyphHeight);
+        if (metric.markerLines != null) expect(metric.markerLines).toBe(1);
+      }
+      expect(metrics.some(item => item.marker === "10.")).toBe(true);
+      expect(metrics.some(item => item.wrapped)).toBe(true);
+      expect(await editor.evaluate(element => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
+      if (browserName === "chromium") {
+        const cdp = await page.context().newCDPSession(page);
+        await cdp.send("DOM.enable");
+        await cdp.send("CSS.enable");
+        const { root } = await cdp.send("DOM.getDocument");
+        const fonts = [];
+        for (const selector of [".ProseMirror .children p", ".ProseMirror .label.ordered"]) {
+          const { nodeId } = await cdp.send("DOM.querySelector", { nodeId: root.nodeId, selector });
+          const result = await cdp.send("CSS.getPlatformFontsForNode", { nodeId });
+          fonts.push({ selector, ...result });
+          expect(result.fonts.some(font => font.familyName.includes("Noto Sans SC") && font.isCustomFont)).toBe(true);
+        }
+        await writeFile(testInfo.outputPath("fonts.json"), JSON.stringify(fonts, null, 2));
+        await testInfo.attach("rendered-fonts", { body: JSON.stringify(fonts, null, 2), contentType: "application/json" });
+        await cdp.detach();
+      }
+      harness.setPublished(true);
+      await page.goto(`/threads/${THREAD_ID}`);
+      const reader = page.locator('[data-slot="markdown-content"]').filter({ hasText: "分隔正文" }).first();
+      await page.evaluate(async () => { await document.fonts.ready; });
+      await expect(reader.locator("li")).toHaveCount(7);
+      await reader.evaluate((element, size) => { element.style.fontSize = `${size}px`; }, textFontSize);
+      await expect(reader).toHaveCSS("font-size", `${textFontSize}px`);
+      await reader.screenshot({ path: testInfo.outputPath("reader.png") });
+      expect(await reader.locator("ol").first().evaluate(node => getComputedStyle(node).listStyleType)).toBe("decimal");
+      expect(await reader.locator("ul").first().evaluate(node => getComputedStyle(node).listStyleType)).toBe("disc");
+    });
+  }
 }

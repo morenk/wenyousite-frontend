@@ -1,0 +1,1126 @@
+{
+  "before": [
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-dark-字体缩放-1-25-chromium",
+      "fontSize": "21.25px",
+      "maxAbsDelta": 31.171875,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": -10.984375
+        },
+        {
+          "marker": "10.",
+          "delta": -31.171875
+        },
+        {
+          "marker": "bullet",
+          "delta": -10.987499999999955
+        },
+        {
+          "marker": "1.",
+          "delta": -10.984375
+        },
+        {
+          "marker": "bullet",
+          "delta": -10.987499999999955
+        },
+        {
+          "marker": "bullet",
+          "delta": -10.987499999999955
+        },
+        {
+          "marker": "bullet",
+          "delta": -10.987499999999955
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-dark-字体缩放-1-5-chromium",
+      "fontSize": "25.5px",
+      "maxAbsDelta": 40.59375,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": -16.375
+        },
+        {
+          "marker": "10.",
+          "delta": -40.59375
+        },
+        {
+          "marker": "bullet",
+          "delta": -16.38499999999999
+        },
+        {
+          "marker": "1.",
+          "delta": -16.375
+        },
+        {
+          "marker": "bullet",
+          "delta": -16.38499999999999
+        },
+        {
+          "marker": "bullet",
+          "delta": -16.38499999999999
+        },
+        {
+          "marker": "bullet",
+          "delta": -16.38499999999999
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-dark-字体缩放-1-chromium",
+      "fontSize": "17px",
+      "maxAbsDelta": 5.590000000000032,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": -5.578125
+        },
+        {
+          "marker": "10.",
+          "delta": -5.578125
+        },
+        {
+          "marker": "bullet",
+          "delta": -5.590000000000032
+        },
+        {
+          "marker": "1.",
+          "delta": -5.578125
+        },
+        {
+          "marker": "bullet",
+          "delta": -5.590000000000032
+        },
+        {
+          "marker": "bullet",
+          "delta": -5.590000000000032
+        },
+        {
+          "marker": "bullet",
+          "delta": -5.590000000000032
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-dark-字体缩放-2-chromium",
+      "fontSize": "34px",
+      "maxAbsDelta": 91.765625,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": -59.46875
+        },
+        {
+          "marker": "10.",
+          "delta": -91.765625
+        },
+        {
+          "marker": "bullet",
+          "delta": -27.17999999999995
+        },
+        {
+          "marker": "1.",
+          "delta": -59.46875
+        },
+        {
+          "marker": "bullet",
+          "delta": -27.17999999999995
+        },
+        {
+          "marker": "bullet",
+          "delta": -27.180000000000064
+        },
+        {
+          "marker": "bullet",
+          "delta": -27.180000000000064
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-light-字体缩放-1-25-chromium",
+      "fontSize": "21.25px",
+      "maxAbsDelta": 31.171875,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": -10.984375
+        },
+        {
+          "marker": "10.",
+          "delta": -31.171875
+        },
+        {
+          "marker": "bullet",
+          "delta": -10.987499999999955
+        },
+        {
+          "marker": "1.",
+          "delta": -10.984375
+        },
+        {
+          "marker": "bullet",
+          "delta": -10.987499999999955
+        },
+        {
+          "marker": "bullet",
+          "delta": -10.987499999999955
+        },
+        {
+          "marker": "bullet",
+          "delta": -10.987499999999955
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-light-字体缩放-1-5-chromium",
+      "fontSize": "25.5px",
+      "maxAbsDelta": 40.59375,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": -16.375
+        },
+        {
+          "marker": "10.",
+          "delta": -40.59375
+        },
+        {
+          "marker": "bullet",
+          "delta": -16.38499999999999
+        },
+        {
+          "marker": "1.",
+          "delta": -16.375
+        },
+        {
+          "marker": "bullet",
+          "delta": -16.38499999999999
+        },
+        {
+          "marker": "bullet",
+          "delta": -16.38499999999999
+        },
+        {
+          "marker": "bullet",
+          "delta": -16.38499999999999
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-light-字体缩放-1-chromium",
+      "fontSize": "17px",
+      "maxAbsDelta": 5.590000000000032,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": -5.578125
+        },
+        {
+          "marker": "10.",
+          "delta": -5.578125
+        },
+        {
+          "marker": "bullet",
+          "delta": -5.590000000000032
+        },
+        {
+          "marker": "1.",
+          "delta": -5.578125
+        },
+        {
+          "marker": "bullet",
+          "delta": -5.590000000000032
+        },
+        {
+          "marker": "bullet",
+          "delta": -5.590000000000032
+        },
+        {
+          "marker": "bullet",
+          "delta": -5.590000000000032
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-light-字体缩放-2-chromium",
+      "fontSize": "34px",
+      "maxAbsDelta": 91.765625,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": -59.46875
+        },
+        {
+          "marker": "10.",
+          "delta": -91.765625
+        },
+        {
+          "marker": "bullet",
+          "delta": -27.17999999999995
+        },
+        {
+          "marker": "1.",
+          "delta": -59.46875
+        },
+        {
+          "marker": "bullet",
+          "delta": -27.17999999999995
+        },
+        {
+          "marker": "bullet",
+          "delta": -27.180000000000064
+        },
+        {
+          "marker": "bullet",
+          "delta": -27.180000000000064
+        }
+      ]
+    }
+  ],
+  "after": [
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-dark-字体缩放-1-25-chromium",
+      "fontSize": "21.25px",
+      "maxAbsDelta": 0.0031249999999545253,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": 0
+        },
+        {
+          "marker": "10.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.0031249999999545253
+        },
+        {
+          "marker": "1.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.0031249999999545253
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.0031249999999545253
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.0031249999999545253
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-dark-字体缩放-1-25-firefox",
+      "fontSize": "21.25px",
+      "maxAbsDelta": 5.759277337347157e-05,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": 0
+        },
+        {
+          "marker": "10.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": 3.442382876528427e-06
+        },
+        {
+          "marker": "1.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": 1.1071777407778427e-05
+        },
+        {
+          "marker": "bullet",
+          "delta": 3.442382876528427e-06
+        },
+        {
+          "marker": "bullet",
+          "delta": -5.759277337347157e-05
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-dark-字体缩放-1-25-webkit",
+      "fontSize": "21.25px",
+      "maxAbsDelta": 0.0031249999999545253,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": 0
+        },
+        {
+          "marker": "10.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.0031249999999545253
+        },
+        {
+          "marker": "1.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.0031249999999545253
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.0031249999999545253
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.0031249999999545253
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-dark-字体缩放-1-5-chromium",
+      "fontSize": "25.5px",
+      "maxAbsDelta": 0.009999999999990905,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": 0
+        },
+        {
+          "marker": "10.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.009999999999990905
+        },
+        {
+          "marker": "1.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.009999999999990905
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.009999999999990905
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.009999999999990905
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-dark-字体缩放-1-5-firefox",
+      "fontSize": "25.5px",
+      "maxAbsDelta": 0.006723632812509095,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": 0
+        },
+        {
+          "marker": "10.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": 0.006662597656259095
+        },
+        {
+          "marker": "1.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": 0.006662597656259095
+        },
+        {
+          "marker": "bullet",
+          "delta": 0.006662597656259095
+        },
+        {
+          "marker": "bullet",
+          "delta": 0.006723632812509095
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-dark-字体缩放-1-5-webkit",
+      "fontSize": "25.5px",
+      "maxAbsDelta": 0.010000500000160173,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": 0
+        },
+        {
+          "marker": "10.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.0100004999999328
+        },
+        {
+          "marker": "1.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.0100004999999328
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.0100004999999328
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.010000500000160173
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-dark-字体缩放-1-chromium",
+      "fontSize": "17px",
+      "maxAbsDelta": 0.011875000000031832,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": 0
+        },
+        {
+          "marker": "10.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.011875000000031832
+        },
+        {
+          "marker": "1.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.011875000000031832
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.011875000000031832
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.011875000000031832
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-dark-字体缩放-1-firefox",
+      "fontSize": "17px",
+      "maxAbsDelta": 0.006687011718781832,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": 0
+        },
+        {
+          "marker": "10.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.006625976562531832
+        },
+        {
+          "marker": "1.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.006625976562531832
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.006687011718781832
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.006687011718781832
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-dark-字体缩放-1-webkit",
+      "fontSize": "17px",
+      "maxAbsDelta": 0.011874500000089938,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": 0
+        },
+        {
+          "marker": "10.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.011874500000089938
+        },
+        {
+          "marker": "1.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.011874500000089938
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.011874500000089938
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.011874500000089938
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-dark-字体缩放-2-chromium",
+      "fontSize": "34px",
+      "maxAbsDelta": 0.008125000000063665,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": 0
+        },
+        {
+          "marker": "10.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.008124999999949978
+        },
+        {
+          "marker": "1.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.008124999999949978
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.008125000000063665
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.008125000000063665
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-dark-字体缩放-2-firefox",
+      "fontSize": "34px",
+      "maxAbsDelta": 0.003349609375050022,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": 0
+        },
+        {
+          "marker": "10.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": 0.003349609375050022
+        },
+        {
+          "marker": "1.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": 0.003349609375050022
+        },
+        {
+          "marker": "bullet",
+          "delta": 0.0033496093749363354
+        },
+        {
+          "marker": "bullet",
+          "delta": 0.0033496093749363354
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-dark-字体缩放-2-webkit",
+      "fontSize": "34px",
+      "maxAbsDelta": 0.008124000000179876,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": 0
+        },
+        {
+          "marker": "10.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.008123999999952503
+        },
+        {
+          "marker": "1.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.008123999999952503
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.008124000000179876
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.008124000000179876
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-light-字体缩放-1-25-chromium",
+      "fontSize": "21.25px",
+      "maxAbsDelta": 0.0031249999999545253,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": 0
+        },
+        {
+          "marker": "10.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.0031249999999545253
+        },
+        {
+          "marker": "1.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.0031249999999545253
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.0031249999999545253
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.0031249999999545253
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-light-字体缩放-1-25-firefox",
+      "fontSize": "21.25px",
+      "maxAbsDelta": 5.759277337347157e-05,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": 0
+        },
+        {
+          "marker": "10.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": 3.442382876528427e-06
+        },
+        {
+          "marker": "1.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": 1.1071777407778427e-05
+        },
+        {
+          "marker": "bullet",
+          "delta": 3.442382876528427e-06
+        },
+        {
+          "marker": "bullet",
+          "delta": -5.759277337347157e-05
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-light-字体缩放-1-25-webkit",
+      "fontSize": "21.25px",
+      "maxAbsDelta": 0.0031249999999545253,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": 0
+        },
+        {
+          "marker": "10.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.0031249999999545253
+        },
+        {
+          "marker": "1.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.0031249999999545253
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.0031249999999545253
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.0031249999999545253
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-light-字体缩放-1-5-chromium",
+      "fontSize": "25.5px",
+      "maxAbsDelta": 0.009999999999990905,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": 0
+        },
+        {
+          "marker": "10.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.009999999999990905
+        },
+        {
+          "marker": "1.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.009999999999990905
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.009999999999990905
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.009999999999990905
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-light-字体缩放-1-5-firefox",
+      "fontSize": "25.5px",
+      "maxAbsDelta": 0.006723632812509095,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": 0
+        },
+        {
+          "marker": "10.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": 0.006662597656259095
+        },
+        {
+          "marker": "1.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": 0.006662597656259095
+        },
+        {
+          "marker": "bullet",
+          "delta": 0.006662597656259095
+        },
+        {
+          "marker": "bullet",
+          "delta": 0.006723632812509095
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-light-字体缩放-1-5-webkit",
+      "fontSize": "25.5px",
+      "maxAbsDelta": 0.010000500000160173,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": 0
+        },
+        {
+          "marker": "10.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.0100004999999328
+        },
+        {
+          "marker": "1.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.0100004999999328
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.0100004999999328
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.010000500000160173
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-light-字体缩放-1-chromium",
+      "fontSize": "17px",
+      "maxAbsDelta": 0.011875000000031832,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": 0
+        },
+        {
+          "marker": "10.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.011875000000031832
+        },
+        {
+          "marker": "1.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.011875000000031832
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.011875000000031832
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.011875000000031832
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-light-字体缩放-1-firefox",
+      "fontSize": "17px",
+      "maxAbsDelta": 0.006687011718781832,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": 0
+        },
+        {
+          "marker": "10.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.006625976562531832
+        },
+        {
+          "marker": "1.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.006625976562531832
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.006687011718781832
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.006687011718781832
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-light-字体缩放-1-webkit",
+      "fontSize": "17px",
+      "maxAbsDelta": 0.011874500000089938,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": 0
+        },
+        {
+          "marker": "10.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.011874500000089938
+        },
+        {
+          "marker": "1.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.011874500000089938
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.011874500000089938
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.011874500000089938
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-light-字体缩放-2-chromium",
+      "fontSize": "34px",
+      "maxAbsDelta": 0.008125000000063665,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": 0
+        },
+        {
+          "marker": "10.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.008124999999949978
+        },
+        {
+          "marker": "1.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.008124999999949978
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.008125000000063665
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.008125000000063665
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-light-字体缩放-2-firefox",
+      "fontSize": "34px",
+      "maxAbsDelta": 0.003349609375050022,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": 0
+        },
+        {
+          "marker": "10.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": 0.003349609375050022
+        },
+        {
+          "marker": "1.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": 0.003349609375050022
+        },
+        {
+          "marker": "bullet",
+          "delta": 0.0033496093749363354
+        },
+        {
+          "marker": "bullet",
+          "delta": 0.0033496093749363354
+        }
+      ]
+    },
+    {
+      "case": "editor-alignment-compatibility-列表标记基线-light-字体缩放-2-webkit",
+      "fontSize": "34px",
+      "maxAbsDelta": 0.008124000000179876,
+      "markerDeltas": [
+        {
+          "marker": "9.",
+          "delta": 0
+        },
+        {
+          "marker": "10.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.008123999999952503
+        },
+        {
+          "marker": "1.",
+          "delta": 0
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.008123999999952503
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.008124000000179876
+        },
+        {
+          "marker": "bullet",
+          "delta": -0.008124000000179876
+        }
+      ]
+    }
+  ]
+}
