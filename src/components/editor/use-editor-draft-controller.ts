@@ -21,10 +21,12 @@ export type EditorAutoSaveStatus = "idle" | "saving" | "saved" | "error";
 export function useEditorDraftController({
   defaultValue,
   onChange,
+  onSyncErrorChange,
   waitForMarkdownCapability = false,
 }: {
   defaultValue: string;
   onChange?: (value: string) => void;
+  onSyncErrorChange?: (hasError: boolean) => void;
   waitForMarkdownCapability?: boolean;
 }) {
   const { user } = useAuth();
@@ -48,6 +50,13 @@ export function useEditorDraftController({
   const [draftOpen, setDraftOpen] = useState(false);
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<EditorAutoSaveStatus>("idle");
+  const [syncError, setSyncError] = useState(false);
+  const syncErrorRef = useRef(false);
+  const handleSyncError = useCallback((hasError: boolean) => {
+    syncErrorRef.current = hasError;
+    setSyncError(hasError);
+    onSyncErrorChange?.(hasError);
+  }, [onSyncErrorChange]);
   const externalOnChangeRef = useRef(onChange);
   const latestContentRef = useRef(initialValue);
   const autoSaveQueueRef = useRef<Promise<unknown>>(Promise.resolve());
@@ -116,7 +125,7 @@ export function useEditorDraftController({
   }, [queryClient, user]);
 
   useEffect(() => {
-    if (!autoSaveEnabled) return;
+    if (!autoSaveEnabled || syncError) return;
     const content = currentContent;
     if (!content.trim()) return;
 
@@ -126,7 +135,7 @@ export function useEditorDraftController({
       autoSaveQueueRef.current = autoSaveQueueRef.current
         .catch(() => undefined)
         .then(() => {
-          if (!autoSaveEnabledRef.current) return null;
+          if (!autoSaveEnabledRef.current || syncErrorRef.current) return null;
           const currentDraft = autoSaveDraftRef.current;
           return currentDraft
             ? saveDraftAutomatically({
@@ -151,7 +160,7 @@ export function useEditorDraftController({
     }, 800);
 
     return () => window.clearTimeout(timer);
-  }, [autoSaveEnabled, currentContent, saveDraftAutomatically]);
+  }, [autoSaveEnabled, currentContent, saveDraftAutomatically, syncError]);
 
   const handleAutoSaveChange = useCallback(
     (enabled: boolean, draft?: Pick<DraftItem, "id" | "version">) => {
@@ -164,6 +173,8 @@ export function useEditorDraftController({
   );
 
   return {
+    syncError,
+    handleSyncError,
     user,
     restoredValue,
     version,

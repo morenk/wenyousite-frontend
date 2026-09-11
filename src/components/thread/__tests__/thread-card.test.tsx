@@ -73,6 +73,7 @@ const baseThread: ThreadCardData = {
   _count: { members: 5, players: 2, posts: 12 },
   preview: "这是帖子摘要预览...",
   coverImages: [],
+  coverMedia: null,
 };
 
 describe("ThreadCard", () => {

@@ -10,21 +10,23 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { backendContractRoot, requireConfiguredContract } from "./backend-contract-root.mjs";
 
 const frontendRoot = process.cwd();
-const backendContract = resolve(frontendRoot, "../wenyousite-backend/contracts/openapi.json");
+const backendRoot = backendContractRoot(frontendRoot);
+const backendContract = resolve(backendRoot, "contracts/openapi.json");
 const trackedContract = resolve(frontendRoot, "contracts/openapi.json");
 const backendInternalReferenceContract = resolve(
-  frontendRoot,
-  "../wenyousite-backend/contracts/internal-reference-v1-fixtures.json",
+  backendRoot,
+  "contracts/internal-reference-v1-fixtures.json",
 );
 const trackedInternalReferenceContract = resolve(
   frontendRoot,
   "contracts/internal-reference-v1-fixtures.json",
 );
 const backendEditorClipboardContract = resolve(
-  frontendRoot,
-  "../wenyousite-backend/contracts/editor-clipboard-v2-fixtures.json",
+  backendRoot,
+  "contracts/editor-clipboard-v2-fixtures.json",
 );
 const trackedEditorClipboardContract = resolve(
   frontendRoot,
@@ -46,6 +48,7 @@ function sourceFiles(directory) {
 }
 
 try {
+  [backendContract, backendInternalReferenceContract, backendEditorClipboardContract].forEach(requireConfiguredContract);
   if (statSync(backendContract, { throwIfNoEntry: false })?.isFile() &&
       readFileSync(backendContract, "utf8") !== readFileSync(trackedContract, "utf8")) {
     throw new Error(
