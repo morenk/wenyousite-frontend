@@ -62,6 +62,47 @@
   line-height: 1.9;
 }
 
+/* 标记跟随正文首行基线，不能用 Crepe 的固定高度居中整个列表项。 */
+.milkdown .ProseMirror .milkdown-list-item-block > .list-item {
+  align-items: first baseline;
+}
+
+.milkdown .ProseMirror .list-item > .label-wrapper {
+  display: grid;
+  flex: 0 0 1.5em;
+  inline-size: 1.5em;
+  block-size: auto;
+  line-height: inherit;
+}
+
+/* 无文字的圆点也需要与正文相同的行框基线；占位只存在于展示层。 */
+.milkdown .ProseMirror .list-item > .label-wrapper::before {
+  content: "\200b";
+  grid-area: 1 / 1;
+  line-height: inherit;
+}
+
+.milkdown .ProseMirror .list-item > .label-wrapper > .label {
+  grid-area: 1 / 1;
+  display: block;
+  inline-size: auto;
+  block-size: auto;
+  padding: 0;
+  font: inherit;
+  white-space: nowrap;
+}
+
+.milkdown .ProseMirror .list-item > .label-wrapper > .label.bullet {
+  display: grid;
+  place-items: center;
+  block-size: 1lh;
+}
+
+.milkdown .ProseMirror .label.bullet > svg {
+  inline-size: 1.5em;
+  block-size: 1.5em;
+}
+
 .milkdown .ProseMirror > [data-wenyou-align="center"] {
   text-align: center;
 }
