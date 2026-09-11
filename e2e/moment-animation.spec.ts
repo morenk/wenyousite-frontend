@@ -153,7 +153,11 @@ test("真实网络失败后切图和前后台不重试，点击重试才恢复",
   await expect(page.getByRole("button", { name: "重试动图" }).first()).toBeVisible();
   const count = mocked.requests.filter((url) => url === images[0].url).length;
   await page.getByRole("button", { name: "下一张图片", exact: true }).click();
+  await expect(page.getByRole("button", { name: "显示第 2 张图片", exact: true })).toHaveAttribute("aria-current", "true");
+  await expect(page.getByAltText("动态播放验收，第 2 张图片")).toBeInViewport({ ratio: 1 });
   await page.getByRole("button", { name: "上一张图片", exact: true }).click();
+  await expect(page.getByRole("button", { name: "显示第 1 张图片", exact: true })).toHaveAttribute("aria-current", "true");
+  await expect(page.getByAltText("动态播放验收，第 1 张图片")).toBeInViewport({ ratio: 1 });
   await expect(page.getByAltText("动态播放验收，第 1 张图片")).toHaveAttribute("src", images[0].thumbnailUrl);
   await page.evaluate(() => { Object.defineProperty(document, "hidden", { configurable: true, value: true }); document.dispatchEvent(new Event("visibilitychange")); });
   await expect(page.locator('img[src$=".gif"]')).toHaveCount(0);
@@ -161,7 +165,9 @@ test("真实网络失败后切图和前后台不重试，点击重试才恢复",
   await expect(page.getByAltText("动态播放验收，第 1 张图片")).toHaveAttribute("src", images[0].thumbnailUrl);
   expect(mocked.requests.filter((url) => url === images[0].url)).toHaveLength(count);
   mocked.recover();
-  await page.locator('[data-slot="moment-detail-carousel"]').getByRole("button", { name: "重试动图" }).first().click();
+  const firstSlide = page.locator('[data-slot="moment-detail-carousel"] span').filter({ has: page.getByRole("button", { name: "查看大图：动态播放验收，第 1 张图片", exact: true }) });
+  await firstSlide.getByRole("button", { name: "重试动图", exact: true }).click();
+  await expect.poll(() => mocked.requests.filter((url) => url === images[0].url).length).toBe(count + 1);
   await expect(page.getByAltText("动态播放验收，第 1 张图片")).toHaveAttribute("src", images[0].url);
   await changes(page, "动态播放验收，第 1 张图片");
 });

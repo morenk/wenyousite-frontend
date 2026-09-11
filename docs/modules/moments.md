@@ -36,6 +36,10 @@
 
 ### 播放回归验收
 
+用户已于 2026-09-11 明确验收通过并授权合并、部署；合并前先将最新 `origin/dev` 的 Markdown 区块边界变更普通合入任务分支，复验两者兼容性。
+
+合并态复验：基线 `9cf94987a3c3f38e3f76579be8dbaf90062222b9`，完整 `pnpm check` 通过（289 个测试文件、2947 项测试），候选 build ID `j6iTQYRFD4OjtcAcBPgK5`。真实 Chromium 6 个场景在最终同一轮全部通过；首轮 5/6 中的重试用例未等待轮播到位，以通用首个按钮误点第二张，trace 网络确认第二张恢复 200。现改为确认选中及完全入屏、限定第一张重试按钮，并断言原件恰好新增一次请求；未改生产实现，追加 ESLint 通过。日志分别为 `/tmp/moment-web-merge-check.log`、`/tmp/moment-web-merge-e2e.log` 与 `/tmp/moment-web-merge-e2e-recheck.log`，最终报告 `/tmp/moment-web-merge-recheck-report/index.html`。报告内 `moment-frame-pixels.json` 保存 8 张截图的 RGB 与 SHA-256，四组均验证预期红/蓝两帧；前后台仍是模拟 `visibilitychange`，不等于真实标签切换验收。
+
 [动态播放浏览器用例](../../e2e/moment-animation.spec.ts) 在本机隔离 standalone 候选中拦截测试 API，使用[自行构造的红蓝两帧 GIF](../../e2e/fixtures/moment-animation/README.md)，不登录真实账号、不创建后端数据：
 
 - 真实 Chromium 截图以中心像素先后出现纯红 `(255,0,0)` 与纯蓝 `(0,0,255)` 验证主轮播、评论表情与楼中楼图片的动画解码；目标先滚到视口中心，避免底部悬浮评论框遮住取景。仅加载成功或 PNG buffer 不同均不能代替双帧验证；图片请求记录验证发现、关注、搜索、个人动态、收藏均不请求动画原件，缺失及失败的静态预览只占位。

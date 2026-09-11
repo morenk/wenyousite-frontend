@@ -18,6 +18,7 @@ import {
 } from "@/lib/site-clipboard";
 import { STICKER_INLINE_NODE_NAME } from "@/lib/sticker-inline";
 import { WENYOU_ALIGNMENT_ATTRIBUTE } from "@/lib/markdown-alignment";
+import { withoutAutomaticTrailingContent } from "./editor-trailing-paragraph";
 
 const BLOCK_TAGS = new Set([
   "ADDRESS", "ARTICLE", "ASIDE", "BLOCKQUOTE", "DIV", "FIGCAPTION", "FIGURE",
@@ -215,7 +216,7 @@ function createEditorClipboardSerializer(schema: Schema): DOMSerializer {
       target?: HTMLElement | DocumentFragment,
     ) {
       const clipboardDocument = options.document ?? document;
-      const serialized = base.serializeFragment(fragment, { document: clipboardDocument });
+      const serialized = base.serializeFragment(withoutAutomaticTrailingContent(fragment), { document: clipboardDocument });
       const envelope = createSiteClipboardEnvelope(
         serialized.childNodes,
         "editor",
@@ -272,7 +273,7 @@ export const editorMarkdownPastePlugin = $prose((ctx) => {
     ...options,
     clipboardSerializer: createEditorClipboardSerializer(schema),
     clipboardTextSerializer: (slice) => {
-      const serialized = baseSerializer.serializeFragment(slice.content, { document });
+      const serialized = baseSerializer.serializeFragment(withoutAutomaticTrailingContent(slice.content), { document });
       return createSiteClipboardPayloadFromNodes(
         serialized.childNodes,
         "editor",

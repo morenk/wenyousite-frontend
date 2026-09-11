@@ -276,7 +276,7 @@ function editorAlignmentRemarkPlugin(options: MarkdownAlignmentOptions = {}) {
   const markdownContractVersion = options.markdownContractVersion ?? 0;
   const imageAlignmentEnabled = markdownContractVersion >= 5;
   const transformAlignment = remarkWenyouAlignment(options);
-  return (treeValue: unknown) => {
+  return (treeValue: unknown, file?: { value?: unknown }) => {
     if (imageAlignmentEnabled) {
       const tree = treeValue as AlignmentMarkdownNode;
       for (let index = 0; index < (tree.children?.length ?? 0) - 1; index++) {
@@ -302,7 +302,7 @@ function editorAlignmentRemarkPlugin(options: MarkdownAlignmentOptions = {}) {
         delete target.children;
       }
     }
-    transformAlignment(treeValue);
+    transformAlignment(treeValue, file);
   };
 }
 

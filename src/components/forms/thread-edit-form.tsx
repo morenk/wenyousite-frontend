@@ -39,6 +39,7 @@ interface ThreadEditFormProps {
   isOwner: boolean;
   formId: string;
   onStatusChange: (status: ManagementEditorStatus) => void;
+  onSyncErrorChange?: (hasError: boolean) => void;
   onReloadLatest: () => Promise<ThreadDetail | undefined>;
 }
 
@@ -67,11 +68,13 @@ export function ThreadEditForm({
   isOwner,
   formId,
   onStatusChange,
+  onSyncErrorChange,
   onReloadLatest,
 }: ThreadEditFormProps) {
   const router = useRouter();
   const confirmAction = useConfirm();
   const { confirmPublicInvite, resetPublicInviteConfirmation } = usePublicInviteConfirmation();
+  const [syncError, setSyncError] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [status, setStatus] = useState<ThreadDetail["status"]>(thread.status);
   const [saveState, setSaveState] = useState<ManagementEditorStatus["state"]>("saved");
@@ -135,6 +138,7 @@ export function ThreadEditForm({
   }
 
   async function handleSave(values: ThreadCreateFormData) {
+    if (syncError) return;
     const content = values.content ?? "";
     const nextVisibility = isOwner ? values.visibility : thread.visibility;
     if (!(await confirmPublicInvite(content, nextVisibility === "PUBLIC"))) return;
@@ -295,6 +299,7 @@ export function ThreadEditForm({
                 name="content"
                 render={({ field }) => (
                   <MilkdownEditor
+                    onSyncErrorChange={(hasError) => { setSyncError(hasError); onSyncErrorChange?.(hasError); }}
                     threadId={thread.id}
                     defaultValue={field.value ?? ""}
                     onChange={(value) => {

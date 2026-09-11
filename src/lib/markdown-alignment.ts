@@ -4,6 +4,7 @@ import {
   ACTIVE_MARKDOWN_CONTRACT_VERSION,
   IMAGE_ALIGNMENT_MARKDOWN_CONTRACT_VERSION,
 } from "@/lib/markdown";
+import { analyzeMarkdownBlockBoundaries } from "@/lib/markdown-block-boundaries";
 
 export const WENYOU_ALIGNMENT_ATTRIBUTE = "data-wenyou-align";
 
@@ -96,10 +97,13 @@ export function remarkWenyouAlignment(options: MarkdownAlignmentOptions = {}) {
     options.markdownContractVersion ?? ACTIVE_MARKDOWN_CONTRACT_VERSION;
   const imageAlignmentEnabled =
     markdownContractVersion >= IMAGE_ALIGNMENT_MARKDOWN_CONTRACT_VERSION;
-  return (treeValue: unknown) => {
+  return (treeValue: unknown, file?: { value?: unknown }) => {
     const tree = treeValue as AlignmentMarkdownNode;
     if (tree.type !== "root" || !tree.children) return;
     const output: AlignmentMarkdownNode[] = [];
+    const boundaries = typeof file?.value === "string"
+      ? analyzeMarkdownBlockBoundaries(file.value, markdownContractVersion).boundaries
+      : undefined;
 
     for (let index = 0; index < tree.children.length; index++) {
       const marker = tree.children[index]!;
@@ -109,7 +113,11 @@ export function remarkWenyouAlignment(options: MarkdownAlignmentOptions = {}) {
         !alignment ||
         !target ||
         !isEligibleTarget(target, imageAlignmentEnabled) ||
-        !isAdjacent(marker, target)
+        !(boundaries
+          ? boundaries.some((boundary) =>
+            boundary.markerLine === (marker.position?.end?.line ?? 0) - 1
+            && boundary.endLine === (target.position?.end?.line ?? 0) - 1)
+          : isAdjacent(marker, target))
       ) {
         output.push(marker);
         continue;

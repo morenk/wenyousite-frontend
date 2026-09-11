@@ -16,6 +16,7 @@ const MAX_CHARS = 10000;
 export interface MilkdownEditorProps {
   defaultValue?: string;
   onChange?: (value: string) => void;
+  onSyncErrorChange?: (hasError: boolean) => void;
   onUploadImage?: (file: File, options?: UploadImageOptions) => Promise<string>;
   placeholder?: string;
   disabled?: boolean;
@@ -36,6 +37,7 @@ export interface MilkdownEditorProps {
 function EditorCore({
   defaultValue,
   onChange,
+  onSyncErrorChange,
   onUploadImage,
   placeholder,
   disabled,
@@ -47,6 +49,8 @@ function EditorCore({
   ariaLabel,
 }: MilkdownEditorProps) {
   const {
+    syncError,
+    handleSyncError,
     user,
     restoredValue,
     version,
@@ -63,6 +67,7 @@ function EditorCore({
   } = useEditorDraftController({
     defaultValue: defaultValue ?? "",
     onChange,
+    onSyncErrorChange,
     waitForMarkdownCapability: true,
   });
 
@@ -90,6 +95,7 @@ function EditorCore({
           key={`${version}-${user?.id ?? "guest"}`}
           initialValue={restoredValue ?? ""}
           onChange={handleChange}
+          onSyncErrorChange={handleSyncError}
           onUploadImage={onUploadImage}
           placeholder={placeholder}
           disabled={disabled}
@@ -124,12 +130,14 @@ function EditorCore({
           )}
         />
       )}
+      {syncError && <p role="alert" className="p-3 text-sm text-destructive">正文格式同步失败，保存已暂停；请撤销刚才的操作后重试。</p>}
       {draftOpen && (
         <ContentDraftsPanel
           open
           onClose={() => setDraftOpen(false)}
           onRestore={handleRestore}
           initialContent={currentContent}
+          saveDisabled={syncError}
           autoSaveEnabled={autoSaveEnabled}
           autoSaveStatus={autoSaveStatus}
           onAutoSaveChange={handleAutoSaveChange}

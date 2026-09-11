@@ -162,6 +162,33 @@ describe("MilkdownEditor 能力分层", () => {
     ]);
   });
 
+  test("主动插入末尾分隔线后可直接输入，真实后续空段保存重开保留", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const first = renderEditor("分隔线前", undefined, onChange);
+    const editor = await getEditor(first.container);
+    editor.focus();
+    const range = document.createRange();
+    range.selectNodeContents(editor.querySelector("p")!);
+    range.collapse(false);
+    window.getSelection()?.removeAllRanges();
+    window.getSelection()?.addRange(range);
+    document.dispatchEvent(new Event("selectionchange"));
+    await user.click(await screen.findByRole("button", { name: "分隔线" }));
+    const following = await waitFor(() => {
+      const paragraph = editor.querySelector<HTMLElement>("hr + p");
+      expect(paragraph).toBeInTheDocument();
+      return paragraph!;
+    });
+    expect(onChange.mock.calls.at(-1)?.[0]).toBe("分隔线前\n\n---");
+    await user.type(following, "分隔线后");
+    const stored = "分隔线前\n\n---\n\n分隔线后";
+    await waitFor(() => expect(onChange.mock.calls.at(-1)?.[0]).toBe(stored));
+    first.unmount();
+    const reopened = renderEditor(stored);
+    expect((await getEditor(reopened.container)).querySelector("hr + p")).toHaveTextContent("分隔线后");
+  });
+
   test("正文输入区提供可配置的可访问名称", async () => {
     const { container } = renderEditor("正文", "主帖正文");
 

@@ -40,6 +40,21 @@ async function flushAutoSave() {
 }
 
 describe("useEditorDraftController", () => {
+  test.each(["center", "right"])("恢复 %s 对齐草稿时保留紧邻前文的合法 marker", (alignment) => {
+    const content = `经历：\n[wenyousite-align-v1-${alignment}]: #\n草稿正文`;
+    const onChange = vi.fn();
+    const { client, Wrapper } = createQueryWrapper();
+    client.setQueryData(queryKeys.meta, { markdownContractVersion: 5 });
+    const { result } = renderHook(
+      () => useEditorDraftController({ defaultValue: "", onChange }),
+      { wrapper: Wrapper },
+    );
+    act(() => result.current.handleRestore({ content }));
+    expect(result.current.restoredValue).toBe(content);
+    expect(result.current.currentContent).toBe(content);
+    expect(onChange).toHaveBeenLastCalledWith(content);
+  });
+
   test("编辑、打开草稿与恢复快照保持外部值同步", () => {
     const onChange = vi.fn();
     const { Wrapper } = createQueryWrapper();
@@ -151,4 +166,18 @@ describe("useEditorDraftController", () => {
     expect(result.current.autoSaveEnabled).toBe(false);
     expect(mockToastError).toHaveBeenCalledWith(expect.stringContaining("network"));
   });
+});
+
+test("同步失败取消待发送自动草稿，恢复后保存最新正文", async () => {
+  const onSyncErrorChange = vi.fn();
+  const { result } = renderHook(() => useEditorDraftController({ defaultValue: "初始正文", onSyncErrorChange }), { wrapper: createQueryWrapper().Wrapper });
+  act(() => { result.current.handleAutoSaveChange(true); result.current.handleChange("已同步修改"); });
+  act(() => result.current.handleSyncError(true));
+  await act(async () => { await vi.advanceTimersByTimeAsync(1_000); });
+  expect(mockSaveDraft).not.toHaveBeenCalled();
+  expect(result.current.syncError).toBe(true);
+  expect(onSyncErrorChange).toHaveBeenLastCalledWith(true);
+  act(() => { result.current.handleChange("恢复后的最新正文"); result.current.handleSyncError(false); });
+  await act(async () => { await vi.advanceTimersByTimeAsync(1_000); });
+  expect(mockSaveDraft).toHaveBeenCalledWith(expect.objectContaining({ content: "恢复后的最新正文" }));
 });
