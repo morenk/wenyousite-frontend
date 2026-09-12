@@ -204,7 +204,12 @@ async function mockManagementWorkspace(page: Page) {
 async function openManagementWorkspace(page: Page, query = "") {
   await mockManagementWorkspace(page);
   await page.goto(`/threads/management-visual-thread/edit${query}`);
-  await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
+  // 只隐藏已有开发指示器，避免 addStyleTag 将 Zod 的 CSP 能力探测误判为样式失败。
+  await page.locator("nextjs-portal").evaluateAll((portals) => {
+    for (const portal of portals) {
+      (portal as HTMLElement).style.setProperty("display", "none", "important");
+    }
+  });
   await expect(page.getByRole("heading", { name: thread.title })).toBeVisible();
 }
 
