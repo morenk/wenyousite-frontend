@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { BRAND_NAME, BRAND_TAGLINE } from "@wenyousite/foundation/brand";
-import "@wenyousite/foundation/web/fonts.css";
 import "@wenyousite/foundation/web/tokens.css";
 import "yet-another-react-lightbox/styles.css";
 import "./globals.css";
 import { Providers } from "./providers";
 import { AppChrome } from "@/components/layout/app-chrome";
 import { THEME_BOOTSTRAP_SCRIPT } from "@/lib/theme-bootstrap";
+import { FOUNDATION_FONT_VARIABLES } from "@/lib/typography";
 
 export const metadata: Metadata = {
   applicationName: BRAND_NAME,
@@ -37,7 +37,7 @@ export default async function RootLayout({
   const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   return (
-    <html lang="zh-CN" className="h-full antialiased" suppressHydrationWarning>
+    <html lang="zh-CN" className="h-full antialiased" style={FOUNDATION_FONT_VARIABLES} suppressHydrationWarning>
       <head>
         <script
           id="theme-bootstrap"

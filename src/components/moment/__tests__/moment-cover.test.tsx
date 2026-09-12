@@ -18,7 +18,7 @@ describe("MomentCover", () => {
       />,
     );
 
-    expect(screen.getByText("今天也想写一点")).toBeInTheDocument();
+    expect(screen.getByText("今天也想写一点")).toHaveClass("font-display", "font-medium", "line-clamp-5");
     expect(screen.queryByRole("img")).toBeNull();
     expect(container.firstElementChild).toHaveClass("moment-text-cover", "aspect-[3/4]", "rounded-xl");
     expect(container.firstElementChild).toHaveAttribute("data-cover-theme", "MINT");

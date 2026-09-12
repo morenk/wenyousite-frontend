@@ -1,4 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
+import { test } from "./fixtures/typography";
+import { expect, type Page } from "@playwright/test";
 
 const layoutUser = {
   id: "moment-layout-user",
@@ -328,3 +329,28 @@ test("动态通知目标直达具体楼中楼，长讨论可从悬浮按钮收�
   await expect(target).toHaveCount(0);
   await expect(page.getByRole("button", { name: "展开全部 108 条回复" })).toBeVisible();
 });
+
+for (const zoom of [1, 2]) {
+  test(`系统字体：动态文字封面长中文混排 ${zoom * 100}% 等效缩放`, async ({ page }) => {
+    const title = "今晚也想记录温暖的城市与旅途一起写故事 Web 2026 🎲🌙";
+    await page.setViewportSize({ width: 2560, height: 1800 });
+    await mockMoments(page);
+    await page.route("**/api/v1/moments?**", (route) => route.fulfill({ json: {
+      code: 0, message: "ok", data: [{ ...feedMoments[0], title }], meta: { cursor: null, hasMore: false },
+    } }));
+    await page.goto("/moments");
+    await page.locator("html").evaluate((element, scale) => { element.style.zoom = String(scale); }, zoom);
+    const cover = page.locator(".moment-text-cover p").first();
+    await expect(cover).toHaveText(title);
+    await expect(cover).toHaveCSS("font-family", "system-ui, sans-serif");
+    await expect(cover).toHaveCSS("font-weight", "500");
+    const geometry = await cover.evaluate((element) => ({
+      width: element.clientWidth, scroll: element.scrollWidth, height: element.clientHeight,
+      parentHeight: element.parentElement!.clientHeight,
+      lineHeight: Number.parseFloat(getComputedStyle(element).lineHeight),
+    }));
+    expect(geometry.scroll).toBeLessThanOrEqual(geometry.width + 1);
+    expect(geometry.height).toBeGreaterThan(geometry.lineHeight);
+    expect(geometry.height).toBeLessThanOrEqual(Math.min(geometry.lineHeight * 5 + 1, geometry.parentHeight));
+  });
+}

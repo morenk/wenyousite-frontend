@@ -39,7 +39,7 @@ describe("编辑器正文字体", () => {
     }
   });
 
-  test("编辑器内的 Markdown 标题也属于正文，不使用霞鹜文楷", () => {
+  test("编辑器内的 Markdown 标题也属于正文，保留 body 角色", () => {
     const editorHeadings = getRule(
       editorCss,
       ".milkdown .ProseMirror :is(h1, h2, h3, h4, h5, h6)",

@@ -5,7 +5,7 @@
   "packageManager": "pnpm@11.17.0",
   "scripts": {
     "dev": "NODE_OPTIONS=--max-old-space-size=3072 next dev --port 3001",
-    "build": "next build",
+    "build": "next build && pnpm fonts:check:build",
     "lint": "eslint --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -21,11 +21,13 @@
     "contract:check": "node scripts/check-generated-api.mjs && node scripts/check-flutter-contract.mjs",
     "brand:sync": "node scripts/sync-foundation-brand-assets.mjs",
     "arch:check": "node scripts/check-query-keys.mjs && node scripts/check-architecture.mjs",
-    "design:check": "node scripts/check-foundation.mjs && node scripts/check-design-system.mjs",
+    "design:check": "node scripts/check-foundation.mjs && node scripts/check-design-system.mjs && pnpm fonts:check",
     "docs:check": "tsx scripts/check-doc-links.ts && tsx scripts/check-doc-truth.ts",
     "security:audit": "pnpm audit --prod",
     "check": "pnpm security:audit && pnpm lint && pnpm typecheck && pnpm contract:check && pnpm arch:check && pnpm design:check && pnpm test:coverage && pnpm test:deploy-preflight && pnpm docs:check && pnpm build",
-    "check:full": "pnpm check && pnpm test:e2e:candidate"
+    "check:full": "pnpm check && pnpm test:e2e:candidate",
+    "fonts:check": "node scripts/check-system-fonts.mjs",
+    "fonts:check:build": "node scripts/check-system-fonts.mjs --build"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -40,7 +42,7 @@
     "@tanstack/react-query": "^5.101.4",
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.14.9",
-    "@wenyousite/foundation": "github:morenk/wenyousite-foundation#v6.9.0",
+    "@wenyousite/foundation": "github:morenk/wenyousite-foundation#v7.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",

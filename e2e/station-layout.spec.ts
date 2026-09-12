@@ -1,5 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
-import { expectFunctionalTitles } from "./fixtures/typography";
+import { expect, type Page } from "@playwright/test";
+import { test, expectFunctionalTitles } from "./fixtures/typography";
 
 const fixedNow = "2026-08-23T12:00:00.000Z";
 
@@ -203,7 +203,7 @@ test.describe("站务台流体工作区布局", () => {
   });
 
   for (const colorScheme of ["light", "dark"] as const) {
-    test(`${colorScheme} 下运行设置与站务入口均使用黑体`, async ({ page }) => {
+    test(`${colorScheme} 下运行设置与站务入口均使用系统字体 body 角色`, async ({ page }) => {
       await page.setViewportSize({ width: 1440, height: 1000 });
       await page.emulateMedia({ colorScheme });
       await page.goto("/station/operations");

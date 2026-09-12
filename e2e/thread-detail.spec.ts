@@ -1,7 +1,15 @@
+import { test } from "./fixtures/typography";
 import { insertTestEditorImage } from "./fixtures/media";
-import { test, expect, type Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 import { getPostDiscussionHref } from "../src/lib/post-navigation";
 import { loginAsE2eUser, openFreshThreadDraft } from "./fixtures/auth";
+
+// 固定可见的导航未读徽标，回归字数断言不得误选其他 tabular-nums 元素。
+test.beforeEach(async ({ page }) => {
+  await page.route("**/api/v1/notifications/unread", (route) => route.fulfill({
+    json: { code: 0, message: "ok", data: { unreadCount: 1 } },
+  }));
+});
 
 /** 登录并发布一个测试帖，返回详情页 */
 async function loginAndCreatePublishedThread(page: import("@playwright/test").Page) {
@@ -14,7 +22,7 @@ async function loginAndCreatePublishedThread(page: import("@playwright/test").Pa
   await editor.click();
   await editor.pressSequentially("这是管理面板测试正文。", { delay: 20 });
   // 等待字数统计更新为非 0（markdownUpdated 已触发、form.content 已写入）
-  await expect(page.locator(".tabular-nums")).not.toHaveText(/^0\/10000$/);
+  await expect(page.locator(".tabular-nums").filter({ hasText: /^\d+\/10000$/ })).toHaveText(/^[1-9]\d*\/10000$/);
 
   await page.getByRole("button", { name: "发布", exact: true }).click();
   // 等待跳转到详情页（threadId 由后端生成，非 create）
@@ -33,7 +41,7 @@ async function postFloor(page: import("@playwright/test").Page, content: string)
   await editor.first().click();
   await editor.first().pressSequentially(content, { delay: 20 });
   // 等待字数统计更新为非 0（markdownUpdated 已触发）
-  await expect(page.locator(".tabular-nums").first()).not.toHaveText(/^0\/10000$/);
+  await expect(page.locator(".tabular-nums").filter({ hasText: /^\d+\/10000$/ })).toHaveText(/^[1-9]\d*\/10000$/);
   await page.getByRole("button", { name: "发布", exact: true }).click();
   await expect(page.getByText("发布成功").first()).toBeVisible({ timeout: 10000 });
 }
@@ -315,8 +323,8 @@ test.describe("楼中楼回复", () => {
 
     await replyEditor.click();
     await replyEditor.pressSequentially("楼中楼回复内容", { delay: 20 });
-    // 等待 markdownUpdated 写入 + React state flush（页面首个 tabular-nums 变为非 0）
-    await expect(page.locator(".tabular-nums").first()).not.toHaveText(/^0\/10000$/);
+    // 等待 markdownUpdated 写入 + React state flush（编辑器字数计数变为非 0，忽略导航未读徽标）
+    await expect(page.locator(".tabular-nums").filter({ hasText: /^\d+\/10000$/ })).toHaveText(/^[1-9]\d*\/10000$/);
     await page.waitForTimeout(500);
     await page.getByRole("button", { name: "回复", exact: true }).click();
 
