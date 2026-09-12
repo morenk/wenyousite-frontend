@@ -2,6 +2,7 @@
 
 "use client";
 
+import type { MarkdownMediaDisplay } from "@/lib/media-display";
 import { useCallback, useEffect, useImperativeHandle, useRef, useState, type Ref } from "react";
 import { EDITOR_SYNC_ERROR, type EditorSubmissionHandle } from "@/components/editor/use-editor-submission";
 import { assessEditorInput } from "@/lib/editor-content-compatibility";
@@ -18,6 +19,7 @@ const MAX_CHARS = 10000;
 
 export interface MilkdownEditorProps {
   defaultValue?: string;
+  mediaDisplays?: readonly MarkdownMediaDisplay[];
   editorRef?: Ref<EditorSubmissionHandle>;
   onValidityChange?: (valid: boolean) => void;
   onChange?: (value: string) => void;
@@ -41,6 +43,7 @@ export interface MilkdownEditorProps {
 
 function EditorCore({
   defaultValue,
+  mediaDisplays,
   editorRef,
   onValidityChange,
   onChange,
@@ -67,6 +70,7 @@ function EditorCore({
     advertisedMarkdownContractVersion,
     user,
     restoredValue,
+    restoredMediaDisplays,
     version,
     contractVersionReady,
     currentContent,
@@ -135,6 +139,7 @@ function EditorCore({
         <MilkdownEditorHost
           key={`${version}-${user?.id ?? "guest"}`}
           initialValue={restoredValue ?? ""}
+          mediaDisplays={restoredMediaDisplays ?? mediaDisplays}
           markdownContractVersion={markdownContractVersion}
           editorRef={hostRef}
           onValidityChange={handleValidity}

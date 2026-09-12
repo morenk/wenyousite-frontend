@@ -799,7 +799,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** 原子保存主题帖元数据、默认子贴标题/正文和标签，可同时发布草稿 */
+        /** 原子保存主题帖元数据、默认子贴标题/发言权限/正文和标签，可同时发布草稿 */
         patch: operations["threadsSaveAggregate"];
         trace?: never;
     };
@@ -3035,7 +3035,25 @@ export interface components {
              */
             password: string;
         };
+        MediaDisplayResponseDto: {
+            /** @description 可信完整展示资源；不得据来源 URL 猜测或改写扩展名 */
+            url: string;
+            /** @enum {string} */
+            contentType: "image/webp";
+            width: number;
+            height: number;
+            bytes: number;
+            animated: boolean;
+            /** @description 静态图为 1；动画必须保留全部帧 */
+            frameCount: number;
+            /** @description 完整单轮时长；静态图为 0 */
+            durationMs: number;
+            /** @description 0 无限循环，1 播放一次；静态图固定 1 */
+            loopCount: number;
+        };
         UserProfile: {
+            /** @description 头像完整 WebP 展示资源；avatar 保留来源身份 */
+            avatarDisplay?: components["schemas"]["MediaDisplayResponseDto"] | null;
             /**
              * @description 用户 ID
              * @example clxabc123def456
@@ -3229,12 +3247,16 @@ export interface components {
             message: string;
         };
         PostAuthorResponseDto: {
+            /** @description 头像完整 WebP 展示资源；avatar 保留来源身份 */
+            avatarDisplay?: components["schemas"]["MediaDisplayResponseDto"] | null;
             id: string;
             username: string;
             avatar: string | null;
             level: number;
         };
         MentionCandidateDto: {
+            /** @description 头像完整 WebP 展示资源；avatar 保留来源身份 */
+            avatarDisplay?: components["schemas"]["MediaDisplayResponseDto"] | null;
             id: string;
             username: string;
             avatar: string | null;
@@ -3247,6 +3269,8 @@ export interface components {
             canMentionAllPlayers: boolean;
         };
         ProfileCoverVariantResponseDto: {
+            /** @description 完整 WebP 展示资源；缺少或为空时为兼容历史媒体 */
+            display?: components["schemas"]["MediaDisplayResponseDto"] | null;
             /** @description 背景图原图地址 */
             url: string;
             /** @description 800px WebP 中图地址 */
@@ -3255,6 +3279,8 @@ export interface components {
             height: number | null;
         };
         ProfileCoverResponseDto: {
+            /** @description 完整 WebP 展示资源；缺少或为空时为兼容历史媒体 */
+            display?: components["schemas"]["MediaDisplayResponseDto"] | null;
             /** @description 背景图原图地址 */
             url: string;
             /** @description 800px WebP 中图地址 */
@@ -3269,6 +3295,8 @@ export interface components {
             followers: number;
         };
         CurrentUserResponseDto: {
+            /** @description 头像完整 WebP 展示资源；avatar 保留来源身份 */
+            avatarDisplay?: components["schemas"]["MediaDisplayResponseDto"] | null;
             id: string;
             /** Format: email */
             email: string;
@@ -3342,6 +3370,8 @@ export interface components {
             bytes: number;
         };
         ThreadCoverMediaResponseDto: {
+            /** @description 完整 WebP 展示资源；缺少或为空时为兼容历史媒体 */
+            display?: components["schemas"]["MediaDisplayResponseDto"] | null;
             /** @description 第一张普通正文图片的原始播放地址，与 coverImages[0] 一致；未知媒体不得自动请求 */
             url: string;
             /** @description 可信的动画属性；无法确认、未完成或历史 GIF 返回 null */
@@ -3414,6 +3444,8 @@ export interface components {
             showBookmarks?: boolean;
         };
         PrivateUserResponseDto: {
+            /** @description 头像完整 WebP 展示资源；avatar 保留来源身份 */
+            avatarDisplay?: components["schemas"]["MediaDisplayResponseDto"] | null;
             id: string;
             /** Format: email */
             email: string;
@@ -3494,6 +3526,8 @@ export interface components {
             coverMedia: components["schemas"]["ThreadCoverMediaResponseDto"] | null;
         };
         MomentMediaResponseDto: {
+            /** @description 完整 WebP 展示资源；缺少或为空时为兼容历史媒体 */
+            display?: components["schemas"]["MediaDisplayResponseDto"] | null;
             id: string;
             url: string;
             thumbnailUrl: string | null;
@@ -3543,6 +3577,12 @@ export interface components {
             /** @description 当前查看者可见的存活楼层/楼中楼回复数；未公开时为 null */
             replyCount: number | null;
         };
+        MarkdownMediaDisplayResponseDto: {
+            /** @description 正文精确来源 URL；编辑、引用和收藏继续持久化此身份 */
+            sourceUrl: string;
+            /** @description 历史未补处理或无法确认时为空 */
+            display: components["schemas"]["MediaDisplayResponseDto"] | null;
+        };
         RecentReplyThreadResponseDto: {
             title: string;
         };
@@ -3556,6 +3596,8 @@ export interface components {
             total: number;
         };
         RecentReplyResponseDto: {
+            /** @description 仅此次已授权正文中的精确来源映射；编辑保存继续使用 sourceUrl */
+            mediaDisplays?: components["schemas"]["MarkdownMediaDisplayResponseDto"][];
             id: string;
             /** Format: date-time */
             createdAt: string;
@@ -3570,6 +3612,8 @@ export interface components {
             preview: string;
         };
         PublicUserResponseDto: {
+            /** @description 头像完整 WebP 展示资源；avatar 保留来源身份 */
+            avatarDisplay?: components["schemas"]["MediaDisplayResponseDto"] | null;
             id: string;
             username: string;
             avatar?: string | null;
@@ -3684,6 +3728,8 @@ export interface components {
             deletedAt: string | null;
         };
         NotificationFromUserResponseDto: {
+            /** @description 头像完整 WebP 展示资源；avatar 保留来源身份 */
+            avatarDisplay?: components["schemas"]["MediaDisplayResponseDto"] | null;
             id: string;
             username: string;
             avatar: string | null;
@@ -3962,6 +4008,8 @@ export interface components {
             createdAt: string;
         };
         ThreadBodyPostResponseDto: {
+            /** @description 仅此次已授权正文中的精确来源映射；编辑保存继续使用 sourceUrl */
+            mediaDisplays?: components["schemas"]["MarkdownMediaDisplayResponseDto"][];
             id: string;
             content: string;
             version: number;
@@ -4139,6 +4187,11 @@ export interface components {
             version: number;
             /** @description 默认子贴乐观锁版本 */
             defaultSubthreadVersion: number;
+            /**
+             * @description 主贴发言权限；省略保留原值。仅影响默认子贴楼层与回复，不修改其他子贴
+             * @enum {string}
+             */
+            defaultSubthreadPostingPolicy?: "PARTICIPANTS" | "COLLABORATORS" | "PLAYERS";
             /** @description 已有默认正文的乐观锁版本 */
             bodyVersion?: number;
             /** @description 默认子贴 Markdown 正文 */
@@ -4163,6 +4216,8 @@ export interface components {
             createdAt: string;
         };
         InviteOwnerResponseDto: {
+            /** @description 头像完整 WebP 展示资源；avatar 保留来源身份 */
+            avatarDisplay?: components["schemas"]["MediaDisplayResponseDto"] | null;
             /** @description 楼主用户 ID */
             id: string;
             /** @description 楼主用户名 */
@@ -4263,6 +4318,8 @@ export interface components {
             color?: string;
         };
         StickerAssetResponseDto: {
+            /** @description 完整 WebP 展示资源；缺少或为空时为兼容历史媒体 */
+            display?: components["schemas"]["MediaDisplayResponseDto"] | null;
             id: string;
             url: string;
             thumbnailUrl: string;
@@ -4508,6 +4565,8 @@ export interface components {
             folderId: string;
         };
         MomentStickerResponseDto: {
+            /** @description 完整 WebP 展示资源；缺少或为空时为兼容历史媒体 */
+            display?: components["schemas"]["MediaDisplayResponseDto"] | null;
             id: string;
             url: string;
             thumbnailUrl: string;
@@ -4695,6 +4754,8 @@ export interface components {
             author: components["schemas"]["PostAuthorResponseDto"];
         };
         ReplyResponseDto: {
+            /** @description 仅此次已授权正文中的精确来源映射；编辑保存继续使用 sourceUrl */
+            mediaDisplays?: components["schemas"]["MarkdownMediaDisplayResponseDto"][];
             id: string;
             threadId: string;
             subthreadId: string;
@@ -4730,6 +4791,8 @@ export interface components {
             replyToPost: components["schemas"]["ReplyTargetResponseDto"] | null;
         };
         FloorResponseDto: {
+            /** @description 仅此次已授权正文中的精确来源映射；编辑保存继续使用 sourceUrl */
+            mediaDisplays?: components["schemas"]["MarkdownMediaDisplayResponseDto"][];
             id: string;
             threadId: string;
             subthreadId: string;
@@ -4766,6 +4829,8 @@ export interface components {
             replies: components["schemas"]["ReplyResponseDto"][];
         };
         DiscussionAuthorResponseDto: {
+            /** @description 头像完整 WebP 展示资源；avatar 保留来源身份 */
+            avatarDisplay?: components["schemas"]["MediaDisplayResponseDto"] | null;
             id: string;
             username: string;
             avatar: string | null;
@@ -4788,6 +4853,8 @@ export interface components {
             version?: number;
         };
         PostResponseDto: {
+            /** @description 仅此次已授权正文中的精确来源映射；编辑保存继续使用 sourceUrl */
+            mediaDisplays?: components["schemas"]["MarkdownMediaDisplayResponseDto"][];
             id: string;
             threadId: string;
             subthreadId: string;
@@ -4856,6 +4923,8 @@ export interface components {
             floorNumber: number | null;
         };
         PostDetailResponseDto: {
+            /** @description 仅此次已授权正文中的精确来源映射；编辑保存继续使用 sourceUrl */
+            mediaDisplays?: components["schemas"]["MarkdownMediaDisplayResponseDto"][];
             id: string;
             threadId: string;
             subthreadId: string;
@@ -4906,6 +4975,8 @@ export interface components {
             version: number;
         };
         DraftResponseDto: {
+            /** @description 仅此次已授权正文中的精确来源映射；编辑保存继续使用 sourceUrl */
+            mediaDisplays?: components["schemas"]["MarkdownMediaDisplayResponseDto"][];
             id: string;
             userId: string;
             slot: number;
@@ -5704,6 +5775,8 @@ export interface components {
             relevance?: number;
         };
         SearchUserResponseDto: {
+            /** @description 头像完整 WebP 展示资源；avatar 保留来源身份 */
+            avatarDisplay?: components["schemas"]["MediaDisplayResponseDto"] | null;
             /** @description 用户 ID */
             id: string;
             /** @description 用户名 */
@@ -5732,6 +5805,8 @@ export interface components {
             title: string;
         };
         SearchPostResponseDto: {
+            /** @description 已授权正文的精确来源映射 */
+            mediaDisplays?: components["schemas"]["MarkdownMediaDisplayResponseDto"][];
             /**
              * @description BODY 为正文，FLOOR 为主楼层或楼中楼
              * @enum {string}
@@ -5807,6 +5882,8 @@ export interface components {
             mediaId: string;
         };
         MediaResponseDto: {
+            /** @description 完整 WebP 展示资源；缺少或为空时为兼容历史媒体 */
+            display?: components["schemas"]["MediaDisplayResponseDto"] | null;
             id: string;
             userId: string;
             /** @description 正式媒体地址；静态图为归一化母版，GIF 为保留的动画原件 */
@@ -5840,6 +5917,8 @@ export interface components {
             processing: boolean;
         };
         DirectMessageUserResponseDto: {
+            /** @description 头像完整 WebP 展示资源；avatar 保留来源身份 */
+            avatarDisplay?: components["schemas"]["MediaDisplayResponseDto"] | null;
             id: string;
             username: string;
             avatar: string | null;
@@ -5903,6 +5982,8 @@ export interface components {
             recipientId: string;
         };
         DirectMessageMediaResponseDto: {
+            /** @description 完整 WebP 展示资源；缺少或为空时为兼容历史媒体 */
+            display?: components["schemas"]["MediaDisplayResponseDto"] | null;
             id: string;
             url: string;
             thumbnailUrl: string | null;
@@ -5913,6 +5994,8 @@ export interface components {
             animated: boolean;
         };
         DirectMessageStickerResponseDto: {
+            /** @description 完整 WebP 展示资源；缺少或为空时为兼容历史媒体 */
+            display?: components["schemas"]["MediaDisplayResponseDto"] | null;
             id: string;
             url: string;
             thumbnailUrl: string | null;

@@ -64,6 +64,7 @@ export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps
       label: `编辑 #${rootPost.floorNumber ?? ""}`.trim(),
       initialContent: rootPost.content,
       diceRolls: rootPost.diceRolls,
+      mediaDisplays: rootPost.mediaDisplays,
     });
   };
 
@@ -101,7 +102,7 @@ export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps
               <UserAvatarLink
                 userId={rootPost.authorId}
                 name={rootPost.author.username}
-                src={rootPost.author.avatar}
+                src={rootPost.author.avatar} display={rootPost.author.avatarDisplay}
                 className="h-9 w-9"
                 textClassName="text-sm"
               />
@@ -151,7 +152,7 @@ export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps
             <ThreadComposerOutlet anchorId={editAnchorId} />
           ) : (
             <div id={rootContentId}>
-              <MarkdownContent
+              <MarkdownContent mediaDisplays={rootPost.mediaDisplays}
                 content={rootPost.content}
                 diceRolls={rootPost.diceRolls}
                 sourcePostId={rootPost.id}

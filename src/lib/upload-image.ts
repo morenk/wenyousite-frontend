@@ -1,5 +1,7 @@
 /** 编辑器图片上传工具：预签名 URL → S3 直传 → 确认 → 轮询 */
 
+import type { MediaDisplay } from "@/lib/media-display";
+import { getAuthSnapshot, subscribeAuthStore } from "@/lib/auth-store";
 import { assertImageCanBeProcessed } from "@/lib/image-container";
 import { apiClient } from "@/api/client";
 import { createImageFileFromBlob } from "@/lib/image-file";
@@ -68,6 +70,7 @@ export function validateProfileCoverFile(file: File): string | null {
 }
 
 export interface UploadedImage {
+  display?: MediaDisplay | null;
   url: string;
   mediaId: string;
   thumbnailUrl: string | null;
@@ -115,6 +118,8 @@ export interface UploadImageProgress {
 
 export interface UploadImageOptions {
   signal?: AbortSignal;
+  /** 完成后传递展示描述，编辑器仍持久化来源URL。 */
+  onCompleted?: (image: UploadedImage) => void;
   /** 单次对象存储直传的最长等待时间。 */
   timeoutMs?: number;
   onStage?: (stage: UploadImageStage) => void;
@@ -136,7 +141,23 @@ const DIRECT_UPLOAD_TIMEOUT_MS = 120_000;
 const PROCESSING_TIMEOUT_MS = 120_000;
 const MEDIA_OBJECT_MISSING_CODE = 40419;
 const CONFIRM_RETRY_DELAYS_MS = [0, 400, 1_000] as const;
-const activeReservations = new WeakMap<File, UploadReservation>();
+let activeReservations = new WeakMap<File, Map<string, UploadReservation>>();
+const reservationScopes = new WeakMap<UploadReservation, string>();
+let uploadSessionUserId = getAuthSnapshot().user?.id ?? null;
+let uploadSessionEpoch = 0;
+subscribeAuthStore(() => {
+  const userId = getAuthSnapshot().user?.id ?? null;
+  if (userId === uploadSessionUserId) return;
+  uploadSessionUserId = userId;
+  uploadSessionEpoch++;
+  activeReservations = new WeakMap();
+  interruptedReservations.clear();
+});
+function setActiveReservation(file: File, scope: string, reservation: UploadReservation) {
+  const reservations = activeReservations.get(file) ?? new Map<string, UploadReservation>();
+  reservations.set(scope, reservation);
+  activeReservations.set(file, reservations);
+}
 const interruptedReservations = new Map<string, UploadReservation>();
 const MAX_INTERRUPTED_RESERVATIONS = 100;
 const MAX_NORMALIZED_EDGE = 2560;
@@ -203,8 +224,19 @@ export async function normalizeImageForUpload(file: File): Promise<File> {
   }
 }
 
-export function getImageUploadKey(file: File): string {
-  return [file.name, file.size, file.type, file.lastModified].join(":");
+const fileDigests = new WeakMap<File, Promise<string>>();
+/** 有界文件内容摘要允许重选同一文件续查，不能仅凭同名/大小/时间误认资产。 */
+export async function getImageUploadKey(file: File, purpose: MediaUploadPurpose = "LEGACY"): Promise<string> {
+  const epoch = uploadSessionEpoch;
+  let digest = fileDigests.get(file);
+  if (!digest) {
+    digest = file.arrayBuffer().then((bytes) => crypto.subtle.digest("SHA-256", bytes))
+      .then((bytes) => Array.from(new Uint8Array(bytes), (byte) => byte.toString(16).padStart(2, "0")).join(""));
+    fileDigests.set(file, digest);
+  }
+  const hash = await digest;
+  if (epoch !== uploadSessionEpoch) throw createUploadAbortError();
+  return `${epoch}:${purpose}:${file.type}:${hash}`;
 }
 
 function rememberInterrupted(uploadKey: string, reservation: UploadReservation) {
@@ -308,6 +340,7 @@ function apiErrorMessage(error: unknown, fallback: string): string {
 }
 
 function toUploadedImage(media: {
+  display?: MediaDisplay | null;
   id: string;
   url: string;
   thumbnailUrl: string | null;
@@ -320,6 +353,7 @@ function toUploadedImage(media: {
 }): UploadedImage {
   return {
     mediaId: media.id,
+    display: media.display,
     url: media.url,
     thumbnailUrl: media.thumbnailUrl,
     feedUrl: media.feedUrl,
@@ -401,12 +435,24 @@ async function pollCompletedMedia(
     if (media.status === "COMPLETED") return toUploadedImage(media);
     if (media.status === "FAILED") throw new Error("图片处理失败，请重新上传");
   }
-  throw new Error("图片处理超时，请稍后重试");
+  throw new Error("图片仍在处理中，请稍后重试查询；无需重新上传");
 }
 
-export async function uploadImageFile(
+export async function uploadImageFile(file: File, options: UploadImageOptions = {}): Promise<UploadedImage> {
+  const epoch = uploadSessionEpoch;
+  const controller = new AbortController();
+  const unsubscribe = subscribeAuthStore(() => {
+    if (uploadSessionEpoch !== epoch) controller.abort();
+  });
+  const signal = options.signal ? AbortSignal.any([options.signal, controller.signal]) : controller.signal;
+  try { return await uploadImageWithinSession(file, { ...options, signal }, epoch); }
+  finally { unsubscribe(); }
+}
+
+async function uploadImageWithinSession(
   file: File,
-  options: UploadImageOptions = {},
+  options: UploadImageOptions,
+  epoch: number,
 ): Promise<UploadedImage> {
   const validationError = validateImageFile(file);
   if (validationError) {
@@ -455,12 +501,19 @@ export async function uploadImageFile(
     });
   };
 
-  const uploadKey = getImageUploadKey(file);
-  let reservation = resume ?? activeReservations.get(file) ?? interruptedReservations.get(uploadKey);
-  if (reservation) activeReservations.set(file, reservation);
+  throwIfUploadAborted(signal);
+  const scope = `${epoch}:${purpose}:${clientNormalized}`;
+  const uploadKey = `${await getImageUploadKey(file, purpose)}:${clientNormalized}`;
+  throwIfUploadAborted(signal);
+  // resume只接受本模块在同账号会话/用途发出的对象，跨会话或外部拼装的mediaId不能复用。
+  let reservation = (resume && reservationScopes.get(resume) === uploadKey ? resume : undefined)
+    ?? activeReservations.get(file)?.get(scope) ?? interruptedReservations.get(uploadKey);
+  if (reservation) setActiveReservation(file, scope, reservation);
   const finish = (uploaded: UploadedImage) => {
-    activeReservations.delete(file);
+    throwIfUploadAborted(signal);
+    activeReservations.get(file)?.delete(scope);
     interruptedReservations.delete(uploadKey);
+    options.onCompleted?.(uploaded);
     return uploaded;
   };
   try {
@@ -481,7 +534,7 @@ export async function uploadImageFile(
         needsDirectUpload = false;
       } else {
         reservation = undefined;
-        activeReservations.delete(file);
+        activeReservations.get(file)?.delete(scope);
         interruptedReservations.delete(uploadKey);
       }
     }
@@ -508,8 +561,10 @@ export async function uploadImageFile(
 
       mediaId = urlData.data.mediaId;
       uploadUrl = urlData.data.uploadUrl;
+      throwIfUploadAborted(signal);
       reservation = { mediaId };
-      activeReservations.set(file, reservation);
+      reservationScopes.set(reservation, uploadKey);
+      setActiveReservation(file, scope, reservation);
       onReservation?.(reservation);
     } else {
       mediaId = reservation.mediaId;
@@ -550,8 +605,8 @@ export async function uploadImageFile(
     if (media.status === "FAILED") throw new Error("图片处理失败，请重新上传");
     return finish(await pollCompletedMedia(mediaId, signal, processingTimeoutMs));
   } catch (error) {
-    if (reservation) {
-      activeReservations.set(file, reservation);
+    if (reservation && epoch === uploadSessionEpoch) {
+      setActiveReservation(file, scope, reservation);
       rememberInterrupted(uploadKey, reservation);
     }
     if (signal?.aborted || isUploadAbortError(error)) throw createUploadAbortError();

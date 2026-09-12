@@ -157,6 +157,7 @@ function ThreadComposer() {
         onValidityChange={editor.onValidityChange}
         key={session.key}
         defaultValue={session.initialContent}
+        mediaDisplays={session.mediaDisplays}
         onChange={setContent}
         onUploadImage={handleUploadImage}
         placeholder={isReply ? "输入回复内容…" : isEdit ? "编辑正文内容…" : "输入正文内容…"}

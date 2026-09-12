@@ -596,3 +596,17 @@ test.each(newlineFixture.cases)("共享换行 $id 阅读态保留可见行", (it
   expect(root.textContent).not.toContain("<br");
   if (item.id.startsWith("quote-")) expect(container.querySelectorAll("blockquote")).toHaveLength(1);
 });
+
+const fullDisplay = { url: "https://cdn.example.com/complete.webp", contentType: "image/webp" as const, width: 1200, height: 900, bytes: 5000, animated: true, frameCount: 3, durationMs: 4500, loopCount: 2 };
+
+test("正文和大图使用完整WebP；失败只显式重试，不回退GIF", async () => {
+  const sourceUrl = "https://cdn.example.com/media/original.gif";
+  render(<MarkdownContent content={`![动画](${sourceUrl})`} mediaDisplays={[{ sourceUrl, display: fullDisplay }]} />);
+  expect(screen.getByAltText("动画")).toHaveAttribute("src", fullDisplay.url);
+  fireEvent.error(screen.getByAltText("动画"));
+  expect(document.querySelector(`img[src="${sourceUrl}"]`)).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "重试图片" }));
+  fireEvent.click(screen.getByAltText("动画"));
+  await waitFor(() => expect(screen.getByRole("dialog")).toBeInTheDocument());
+  expect(within(screen.getByRole("dialog")).getByAltText("动画")).toHaveAttribute("src", fullDisplay.url);
+});

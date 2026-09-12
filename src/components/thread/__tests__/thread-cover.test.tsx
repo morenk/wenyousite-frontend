@@ -133,3 +133,31 @@ describe("列表动画预览播放源", () => {
     expect(animation(view.container)).toBeNull();
   });
 });
+
+const fullDisplay = { url: "https://cdn.example.com/complete.webp", contentType: "image/webp" as const, width: 1200, height: 900, bytes: 5000, animated: true, frameCount: 3, durationMs: 4500, loopCount: 2 };
+
+test("没有小预览时用完整display，失败不退回原GIF", () => {
+  playback.active = true;
+  const descriptor = { ...media, display: fullDisplay };
+  const view = render(<ThreadCover image={media.url} media={descriptor} />);
+  fireEvent.load(poster(view.container)!);
+  expect(animation(view.container)).toHaveAttribute("src", fullDisplay.url);
+  fireEvent.error(animation(view.container)!);
+  expect(animation(view.container)).toBeNull();
+  expect(view.container.querySelector(`img[src="${media.url}"]`)).toBeNull();
+  fireEvent.click(view.getByRole("button", { name: "重试封面动图" }));
+  expect(animation(view.container)).toHaveAttribute("src", fullDisplay.url);
+});
+
+test.each([null, "/pending-poster.webp"])("完整display不等待静态poster：%s", (posterUrl) => {
+  playback.active = true;
+  const descriptor = { ...media, posterUrl, display: fullDisplay };
+  const view = render(<ThreadCover image={media.url} media={descriptor} />);
+  expect(animation(view.container)).toHaveAttribute("src", fullDisplay.url);
+  if (poster(view.container)) fireEvent.error(poster(view.container)!);
+  expect(animation(view.container)).toHaveAttribute("src", fullDisplay.url);
+  playback.active = false;
+  view.rerender(<ThreadCover image={media.url} media={descriptor} />);
+  expect(animation(view.container)).toBeNull();
+  expect(view.container.querySelector(`img[src="${media.url}"]`)).toBeNull();
+});

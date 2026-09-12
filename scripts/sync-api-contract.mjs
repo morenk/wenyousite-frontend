@@ -45,6 +45,8 @@ for (const name of behaviorFiles) {
 readBoundaryContract(source.read(boundaryName));
 const cover = JSON.parse(source.read("thread-cover-media-v1-fixtures.json"));
 if (cover.schemaVersion !== 1 || !Array.isArray(cover.cases)) throw new Error("后端列表封面契约不是 v1");
+const display = JSON.parse(source.read("media-display-v1-fixtures.json"));
+if (display.schemaVersion !== 1 || !Array.isArray(display.cases) || display.contractVersion !== contract.info.version) throw new Error("后端完整展示契约不是同版本 v1");
 const isMarkdown = (name) => /^markdown-(?:v\d+(?:-nodes|-image-alignment)?|editor-roundtrip-v\d+)-fixtures\.json$/.test(name);
 const markdownFiles = source.list().filter(isMarkdown);
 if (!markdownFiles.length) throw new Error("后端缺少 Markdown 契约");
@@ -53,7 +55,7 @@ for (const name of markdownFiles) {
   if (!value.contract?.startsWith("wenyousite-markdown") || !Number.isInteger(value.version)) throw new Error(name + " 契约无效");
 }
 const names = ["openapi.json", "internal-reference-v1-fixtures.json", "editor-clipboard-v2-fixtures.json",
-  "markdown-editor-newline-v1-fixtures.json", "thread-cover-media-v1-fixtures.json", boundaryName, ...behaviorFiles, ...markdownFiles];
+  "markdown-editor-newline-v1-fixtures.json", "thread-cover-media-v1-fixtures.json", "media-display-v1-fixtures.json", boundaryName, ...behaviorFiles, ...markdownFiles];
 // 在写入前读取全部内容，来源缺失时不留下半套契约。
 const contents = names.map((name) => [name, source.read(name)]);
 mkdirSync(target, { recursive: true });

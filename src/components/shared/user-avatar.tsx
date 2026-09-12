@@ -7,6 +7,7 @@ import { UserRound } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
+import type { MediaDisplay } from "@/lib/media-display";
 import { cn } from "@/lib/utils";
 
 const DEACTIVATED_USER_NAME = "已注销用户";
@@ -15,6 +16,7 @@ const ANONYMOUS_USER_NAME = "匿名用户";
 interface UserAvatarProps {
   name: string;
   src: string | null;
+  display?: MediaDisplay | null;
   /** 圆形容器尺寸，如 "h-9 w-9" */
   className?: string;
   /** 首字符占位的字号，如 "text-sm"（默认 text-sm） */
@@ -80,7 +82,8 @@ function AvatarImage({ name, src, className, textClassName }: UserAvatarProps & 
   );
 }
 
-export function UserAvatar({ name, src, className, textClassName = "text-sm" }: UserAvatarProps) {
+export function UserAvatar({ name, src: sourceUrl, display, className, textClassName = "text-sm" }: UserAvatarProps) {
+  const src = display?.url ?? sourceUrl;
   if (!name.trim() || name === DEACTIVATED_USER_NAME || name === ANONYMOUS_USER_NAME) {
     return (
       <UnavailableAvatar name={name} className={className} />
@@ -97,6 +100,7 @@ export function UserAvatarLink({
   userId,
   name,
   src,
+  display,
   className,
   textClassName,
   linkClassName,
@@ -113,6 +117,7 @@ export function UserAvatarLink({
       <UserAvatar
         name={name}
         src={src}
+        display={display}
         className={className}
         textClassName={textClassName}
       />

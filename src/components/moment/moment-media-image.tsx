@@ -1,5 +1,6 @@
 "use client";
 
+import { getMediaDisplayUrl } from "@/lib/media-display";
 import { useState, type CSSProperties, type ImgHTMLAttributes } from "react";
 import { getMomentStaticUrl, isMomentAnimation, type MomentMediaAsset } from "@/lib/moment-media";
 import { useMomentAnimationFailure, useMomentPlayback } from "@/components/moment/moment-playback";
@@ -19,15 +20,15 @@ interface Props extends Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "onCli
 }
 
 export function MomentMediaImage({ media, ...props }: Props) {
-  return <MediaImage key={[media.url, media.thumbnailUrl, media.mediumUrl, media.feedUrl].join("|")} media={media} {...props} />;
+  return <MediaImage key={[media.url, media.display?.url, media.thumbnailUrl, media.mediumUrl, media.feedUrl].join("|")} media={media} {...props} />;
 }
 
 function MediaImage({ media, allowPlayback, foreground, mode, onClick, buttonLabel, buttonClassName, buttonStyle, wrapperStyle, buttonSlot, alt = "", ...imageProps }: Props) {
   const { ref, playing } = useMomentPlayback(allowPlayback && isMomentAnimation(media), foreground);
-  const [animationFailed, setAnimationFailed] = useMomentAnimationFailure(media.url);
+  const [animationFailed, setAnimationFailed] = useMomentAnimationFailure(getMediaDisplayUrl(media));
   const [previewFailed, setPreviewFailed] = useState(false);
   const animate = playing && !animationFailed;
-  const src = animate ? media.url : previewFailed ? null : getMomentStaticUrl(media, mode);
+  const src = animate ? getMediaDisplayUrl(media) : previewFailed ? null : getMomentStaticUrl(media, mode);
   const content = src ? (
     // eslint-disable-next-line @next/next/no-img-element -- 动态原图仅在符合播放条件时挂载；静止只用明确静态派生资源
     <img {...imageProps} key={src} src={src} alt={alt} onError={() => animate ? setAnimationFailed(true) : setPreviewFailed(true)} />

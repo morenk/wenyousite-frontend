@@ -1,3 +1,5 @@
+import { createRef } from "react";
+import type { EditorSubmissionHandle } from "@/components/editor/use-editor-submission";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -944,4 +946,32 @@ describe("MilkdownEditor 能力分层", () => {
     expect(editor.querySelectorAll("li")).toHaveLength(2);
     expect(editor).toHaveTextContent("补充");
   });
+});
+
+test("编辑器展示完整WebP，映射更新不改模型和保存引用", async () => {
+  enableMarkdownV4();
+  const sourceUrl = "https://cdn.example.com/media/editor.gif";
+  const display = { url: "https://cdn.example.com/media/editor-full.webp", contentType: "image/webp" as const, width: 1200, height: 900, bytes: 5000, animated: true, frameCount: 3, durationMs: 4500, loopCount: 2 };
+  const editorRef = createRef<EditorSubmissionHandle>();
+  const queryClient = new QueryClient();
+  const renderContent = (url: string) => <QueryClientProvider client={queryClient}><MilkdownEditor defaultValue={`![动画](${sourceUrl})`} mediaDisplays={[{ sourceUrl, display: { ...display, url } }]} onUploadImage={vi.fn()} editorRef={editorRef} /></QueryClientProvider>;
+  const view = render(renderContent(display.url));
+  await waitFor(() => expect(view.container.querySelector(".ProseMirror img")).toHaveAttribute("src", display.url));
+  expect(editorRef.current?.flush()).toContain(sourceUrl);
+  expect(editorRef.current?.flush()).not.toContain(display.url);
+  view.rerender(renderContent(display.url + "?version=2"));
+  await waitFor(() => expect(view.container.querySelector(".ProseMirror img")).toHaveAttribute("src", display.url + "?version=2"));
+  expect(editorRef.current?.flush()).toContain(sourceUrl);
+});
+
+test("行内表情只改变NodeView展示，复制模型与刷新仍保留资产来源", async () => {
+  enableMarkdownV4();
+  const sourceUrl = "https://cdn.example.com/sticker/source.webp";
+  const display = { url: "https://cdn.example.com/sticker/display.webp", contentType: "image/webp" as const, width: 24, height: 16, bytes: 316, animated: true, frameCount: 3, durationMs: 1500, loopCount: 2 };
+  const editorRef = createRef<EditorSubmissionHandle>();
+  const queryClient = new QueryClient();
+  const view = render(<QueryClientProvider client={queryClient}><MilkdownEditor defaultValue={`![表情](${sourceUrl} "wenyousite-sticker:v1:asset1")`} mediaDisplays={[{ sourceUrl, display }]} editorRef={editorRef} /></QueryClientProvider>);
+  await waitFor(() => expect(view.container.querySelector(".ProseMirror img.sticker-inline")).toHaveAttribute("src", display.url));
+  expect(editorRef.current?.flush()).toContain(sourceUrl);
+  expect(editorRef.current?.flush()).not.toContain(display.url);
 });

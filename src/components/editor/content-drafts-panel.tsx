@@ -2,6 +2,7 @@
 
 "use client";
 
+import type { MarkdownMediaDisplay } from "@/lib/media-display";
 import { useEffect } from "react";
 import {
   X,
@@ -43,6 +44,7 @@ interface ContentDraftsPanelProps {
 
 export interface EditorDraftSnapshot {
   content: string;
+  mediaDisplays?: readonly MarkdownMediaDisplay[];
 }
 
 export function ContentDraftsPanel({
@@ -107,7 +109,7 @@ export function ContentDraftsPanel({
       return;
     }
     if (onRestore) {
-      onRestore({ content: draft.content });
+      onRestore({ content: draft.content, mediaDisplays: draft.mediaDisplays });
       onClose();
       return;
     }

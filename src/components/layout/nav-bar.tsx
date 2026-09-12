@@ -116,7 +116,7 @@ export function NavBar({
                   pathname.startsWith(`/users/${user.id}`) && "bg-accent/55 text-foreground",
                 )}
               >
-                <UserAvatar name={user.username} src={user.avatar ?? null} className="size-8" textClassName="text-xs" />
+                <UserAvatar name={user.username} src={user.avatar ?? null} display={user.avatarDisplay} className="size-8" textClassName="text-xs" />
                 <span className={cn(
                   "hidden min-w-0 flex-1 truncate text-sm font-bold",
                   !compact && "xl:block",

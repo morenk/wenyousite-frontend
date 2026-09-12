@@ -88,6 +88,7 @@ export function FloorCard({
       label: `编辑 #${floor.floorNumber ?? ""}`,
       initialContent: floor.content,
       diceRolls: floor.diceRolls,
+      mediaDisplays: floor.mediaDisplays,
     });
   };
 
@@ -143,7 +144,7 @@ export function FloorCard({
           <UserAvatarLink
             userId={floor.authorId}
             name={floor.author.username}
-            src={floor.author.avatar}
+            src={floor.author.avatar} display={floor.author.avatarDisplay}
             className="h-8 w-8"
             textClassName="text-sm"
           />
@@ -188,7 +189,7 @@ export function FloorCard({
         <ThreadComposerOutlet anchorId={editAnchorId} />
       ) : (
         <div id={`floor-content-${floor.id}`}>
-          <MarkdownContent content={floor.content} diceRolls={floor.diceRolls} sourcePostId={floor.id} />
+          <MarkdownContent mediaDisplays={floor.mediaDisplays} content={floor.content} diceRolls={floor.diceRolls} sourcePostId={floor.id} />
         </div>
       )}
 

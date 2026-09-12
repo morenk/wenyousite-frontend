@@ -33,7 +33,7 @@ function sourceFiles(directory) {
 }
 
 try {
-  for (const name of ["openapi.json", "internal-reference-v1-fixtures.json", "editor-clipboard-v2-fixtures.json", "thread-cover-media-v1-fixtures.json", "markdown-block-boundary-v1-fixtures.json"]) {
+  for (const name of ["openapi.json", "internal-reference-v1-fixtures.json", "editor-clipboard-v2-fixtures.json", "thread-cover-media-v1-fixtures.json", "media-display-v1-fixtures.json", "markdown-block-boundary-v1-fixtures.json"]) {
     if (process.env.WENYOUSITE_BACKEND_ROOT && !backend.exists(name)) throw new Error("指定后端来源缺少契约：" + name);
     assertBackendContract(backend, name, readFileSync(resolve(frontendRoot, "contracts", name), "utf8"));
   }

@@ -20,6 +20,7 @@ function workspace() {
     "rich-text-behavior-v1.schema.json": { $schema: "http://json-schema.org/draft-07/schema#" },
     "rich-text-behavior-results-v1.schema.json": { $schema: "http://json-schema.org/draft-07/schema#" },
     "thread-cover-media-v1-fixtures.json": { schemaVersion: 1, cases: [] },
+    "media-display-v1-fixtures.json": { schemaVersion: 1, contractVersion: "test", cases: [] },
     "markdown-block-boundary-v1-fixtures.json": { contract: "wenyousite-markdown-block-boundary", version: 1, markdownContractVersion: 5, cases: [] },
     "markdown-editor-newline-v1-fixtures.json": { contract: "wenyousite-editor-newline", version: 1 },
     "openapi.json": { openapi: "3.0.3", info: { version: "test" } },

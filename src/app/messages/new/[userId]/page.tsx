@@ -89,7 +89,7 @@ export default function NewDirectConversationPage() {
   return (
     <section className="flex min-h-0 flex-col bg-background">
       <header className="flex h-16 shrink-0 items-center gap-3 border-b border-border px-4">
-        <UserAvatar name={profile.username} src={profile.avatar} className="h-9 w-9" />
+        <UserAvatar name={profile.username} src={profile.avatar} display={profile.avatarDisplay} className="h-9 w-9" />
         <div>
           <p className="text-sm font-semibold">给 {profile.username} 发私聊</p>
         </div>

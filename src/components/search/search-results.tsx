@@ -167,7 +167,7 @@ export function SearchResults({ keyword }: SearchResultsProps) {
                 >
                   <UserAvatar
                     name={user.username}
-                    src={user.avatar}
+                    src={user.avatar} display={user.avatarDisplay}
                     className="h-10 w-10"
                   />
                   <div className="min-w-0">

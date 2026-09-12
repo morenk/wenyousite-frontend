@@ -87,6 +87,7 @@ export function ReplyCard({
       label: `编辑 @${reply.author.username} 的回复`,
       initialContent: reply.content,
       diceRolls: reply.diceRolls,
+      mediaDisplays: reply.mediaDisplays,
     });
   };
 
@@ -121,7 +122,7 @@ export function ReplyCard({
           <UserAvatarLink
             userId={reply.authorId}
             name={reply.author.username}
-            src={reply.author.avatar}
+            src={reply.author.avatar} display={reply.author.avatarDisplay}
             className={isDiscussion ? "h-8 w-8" : isPreview ? "h-5 w-5" : "h-6 w-6"}
             textClassName={isDiscussion ? "text-xs" : isPreview ? "text-[9px]" : "text-[10px]"}
           />
@@ -168,7 +169,7 @@ export function ReplyCard({
 
       {!isEditing ? (
         <div id={`reply-content-${reply.id}`}>
-          <MarkdownContent
+          <MarkdownContent mediaDisplays={reply.mediaDisplays}
             content={reply.content}
             diceRolls={reply.diceRolls}
             sourcePostId={reply.id}

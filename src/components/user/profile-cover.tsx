@@ -28,11 +28,11 @@ export function ProfileCover({
   surface = "web",
   className,
 }: ProfileCoverProps) {
-  const source = cover?.url ?? null;
-  const originalWidth = cover?.width ?? null;
+  const source = cover?.display?.url ?? cover?.url ?? null;
+  const originalWidth = cover?.display?.width ?? cover?.width ?? null;
   const responsiveSource =
     cover?.mediumUrl && originalWidth !== null && originalWidth > 800
-      ? `${cover.mediumUrl} 800w, ${cover.url} ${originalWidth}w`
+      ? `${cover.mediumUrl} 800w, ${source} ${originalWidth}w`
       : undefined;
   const [originalFallbackSource, setOriginalFallbackSource] = useState<string | null>(null);
   const [failedSource, setFailedSource] = useState<string | null>(null);

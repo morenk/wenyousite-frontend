@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { getMediaDisplayUrl } from "@/lib/media-display";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Popover } from "@base-ui/react/popover";
 import {
   DndContext,
@@ -24,7 +25,7 @@ import { toast } from "sonner";
 import { getApiErrorMessage } from "@/api/errors";
 import { ImageUploadProgress } from "@/components/shared/image-upload-progress";
 import { useStickerActions, useStickers, type UserSticker } from "@/api/hooks/use-stickers";
-import { getKnownUserId } from "@/lib/auth-store";
+import { getAuthSnapshot, getKnownUserId, subscribeAuthStore } from "@/lib/auth-store";
 import {
   getImageUploadKey,
   uploadImageFile,
@@ -55,7 +56,7 @@ function StickerImage({ sticker }: { sticker: UserSticker }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={active && sticker.asset.animated ? sticker.asset.url : sticker.asset.thumbnailUrl}
+      src={active && sticker.asset.animated ? getMediaDisplayUrl(sticker.asset) : sticker.asset.thumbnailUrl}
       alt="收藏表情"
       draggable={false}
       loading="lazy"
@@ -152,6 +153,18 @@ function StickerPickerPanel({
   const pendingUploadsRef = useRef(
     new Map<string, { mediaId?: string; reservation?: UploadReservation }>(),
   );
+  const uploadAbortRef = useRef<AbortController | null>(null);
+  useEffect(() => {
+    let owner = getAuthSnapshot().user?.id;
+    const unsubscribe = subscribeAuthStore(() => {
+      const next = getAuthSnapshot().user?.id;
+      if (next === owner) return;
+      owner = next;
+      pendingUploadsRef.current.clear();
+      uploadAbortRef.current?.abort();
+    });
+    return () => { unsubscribe(); uploadAbortRef.current?.abort(); };
+  }, []);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -229,6 +242,9 @@ function StickerPickerPanel({
       toast.error(validateImageFile(invalid)!);
       return;
     }
+    uploadAbortRef.current?.abort();
+    const controller = new AbortController();
+    uploadAbortRef.current = controller;
     setUploading(true);
     setUploadFileCount(candidates.length);
     const totalBytes = candidates.reduce((total, file) => total + file.size, 0);
@@ -255,12 +271,14 @@ function StickerPickerPanel({
     };
     const results = await runWithConcurrency(
       candidates.map((file, index) => async () => {
-        const uploadKey = getImageUploadKey(file);
+        if (controller.signal.aborted) throw new DOMException("上传已取消", "AbortError");
+        const uploadKey = await getImageUploadKey(file, "STICKER_SOURCE");
         const pendingUpload = pendingUploadsRef.current.get(uploadKey) ?? {};
         let mediaId = pendingUpload.mediaId;
         if (!mediaId) {
           const uploaded = await uploadImageFile(file, {
             purpose: "STICKER_SOURCE",
+            signal: controller.signal,
             resume: pendingUpload.reservation,
             onReservation: (reservation) => {
               pendingUploadsRef.current.set(uploadKey, { reservation });
@@ -270,6 +288,7 @@ function StickerPickerPanel({
           mediaId = uploaded.mediaId;
           pendingUploadsRef.current.set(uploadKey, { mediaId });
         }
+        if (controller.signal.aborted) throw new DOMException("上传已取消", "AbortError");
         const imported = await actions.importMedia.mutateAsync(mediaId);
         pendingUploadsRef.current.delete(uploadKey);
         return imported;
@@ -278,8 +297,8 @@ function StickerPickerPanel({
     );
     const succeeded = results.filter((result) => result.status === "fulfilled").length;
     const failed = results.length - succeeded;
-    if (succeeded) toast.success(`已添加 ${succeeded} 个表情`);
-    if (failed) toast.error(`${failed} 个表情添加失败，成功项已保留`);
+    if (!controller.signal.aborted && succeeded) toast.success(`已添加 ${succeeded} 个表情`);
+    if (!controller.signal.aborted && failed) toast.error(`${failed} 个表情添加失败，成功项已保留`);
     setUploading(false);
     setUploadProgress(null);
     if (fileRef.current) fileRef.current.value = "";

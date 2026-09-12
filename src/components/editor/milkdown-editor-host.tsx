@@ -3,6 +3,8 @@
 "use client";
 
 
+import { useEditorMediaDisplay } from "@/components/editor/use-editor-media-display";
+import type { MarkdownMediaDisplay, MediaDisplay } from "@/lib/media-display";
 import {
   useCallback,
   useImperativeHandle,
@@ -215,9 +217,10 @@ function positionEditorPopover(
   };
 }
 
-function getImageBlockConfig(onUploadImage: (file: File) => Promise<string>) {
+function getImageBlockConfig(onUploadImage: (file: File) => Promise<string>, proxyDomURL: (url: string) => string) {
   return {
     onUpload: onUploadImage,
+    proxyDomURL,
     inlineUploadButton: "上传",
     inlineUploadPlaceholderText: "仅支持上传文件",
     blockUploadButton: "上传文件",
@@ -229,6 +232,7 @@ function getImageBlockConfig(onUploadImage: (file: File) => Promise<string>) {
 
 export interface MilkdownEditorHostProps {
   initialValue: string;
+  mediaDisplays?: readonly MarkdownMediaDisplay[];
   markdownContractVersion: number;
   editorRef?: Ref<EditorSubmissionHandle>;
   onValidityChange?: (valid: boolean) => void;
@@ -250,6 +254,7 @@ export interface MilkdownEditorHostProps {
 /** Crepe 编辑器宿主：以 initialValue 初始化；被外层按 key 重挂载以回填恢复的正文草稿 */
 export function MilkdownEditorHost({
   initialValue,
+  mediaDisplays,
   markdownContractVersion,
   editorRef,
   onValidityChange,
@@ -270,6 +275,7 @@ export function MilkdownEditorHost({
   const alignmentEnabled = markdownContractVersion >= 4;
   const imageAlignmentEnabled = markdownContractVersion >= 5;
   const crepeRef = useRef<CrepeBuilder | null>(null);
+  const mediaDisplay = useEditorMediaDisplay(mediaDisplays, crepeRef, loading);
   const hostRef = useRef<HTMLDivElement>(null);
   const onChangeRef = useRef(onChange);
   const onValidityRef = useRef(onValidityChange);
@@ -383,6 +389,7 @@ export function MilkdownEditorHost({
         return await onUploadImage!(file, {
           signal: controller.signal,
           onProgress: setUploadProgress,
+          onCompleted: mediaDisplay.completed,
         });
       } catch (error) {
         if (!(error instanceof DOMException && error.name === "AbortError")) {
@@ -398,7 +405,7 @@ export function MilkdownEditorHost({
         }
       }
     },
-    [onUploadImage],
+    [onUploadImage, mediaDisplay],
   );
 
   const handleOpenDice = useCallback((view: EditorView, menuAnchor?: DOMRect) => {
@@ -553,7 +560,7 @@ export function MilkdownEditorHost({
     setDicePopover(null);
   }, []);
 
-  const handleInsertSticker = useCallback((sticker: { asset: { id: string; url: string } }) => {
+  const handleInsertSticker = useCallback((sticker: { asset: { id: string; url: string; display?: MediaDisplay | null } }) => {
     if (disabled) return;
     const view = crepeRef.current?.editor.action((ctx) => ctx.get(editorViewCtx));
     if (!view) return;
@@ -566,6 +573,7 @@ export function MilkdownEditorHost({
     }
     const nodeType = view.state.schema.nodes[STICKER_INLINE_NODE_NAME];
     if (!nodeType) throw new Error("编辑器表情节点尚未就绪");
+    mediaDisplay.completed(sticker.asset);
     const node = nodeType.create({
       assetId: sticker.asset.id,
       src: sticker.asset.url,
@@ -575,7 +583,7 @@ export function MilkdownEditorHost({
     transaction.setSelection(TextSelection.near(transaction.doc.resolve(transaction.selection.to)));
     view.dispatch(transaction);
     view.focus();
-  }, [disabled]);
+  }, [disabled, mediaDisplay]);
 
   useEditor(
     (root) => {
@@ -617,7 +625,7 @@ export function MilkdownEditorHost({
         .addFeature(placeholderFeature, { text: placeholder ?? "开始输入…" });
 
       if (onUploadImage) {
-        crepe.addFeature(imageBlock, getImageBlockConfig(handleUpload));
+        crepe.addFeature(imageBlock, getImageBlockConfig(handleUpload, mediaDisplay.resolve));
       }
 
       crepe.addFeature(topBar, {
@@ -746,6 +754,7 @@ export function MilkdownEditorHost({
         },
       });
 
+      crepe.editor.use(mediaDisplay.plugin);
       const dicePlugins = createDiceInlineEditorPlugins(diceRolls);
       const stickerPlugins = createStickerInlineEditorPlugins();
       const alignmentPlugin = createEditorAlignmentPlugin(
