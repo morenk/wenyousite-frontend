@@ -224,7 +224,7 @@ describe("FloorCard", () => {
     await act(async () => {
       vi.advanceTimersByTime(100);
     });
-    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "auto", block: "center" });
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "auto", block: "start" });
 
     await act(async () => {
       vi.advanceTimersByTime(1_100);
@@ -244,7 +244,7 @@ describe("FloorCard", () => {
     expect(scrollIntoView).toHaveBeenCalledTimes(2);
     expect(scrollIntoView).toHaveBeenLastCalledWith({
       behavior: "auto",
-      block: "center",
+      block: "start",
     });
   });
 

@@ -112,8 +112,8 @@ export function ReplyCard({
       data-testid={isPreview ? "inline-reply" : undefined}
       className={cn(
         isDiscussion
-          ? "rounded-xl border border-border bg-card p-4 transition-[border-color] duration-[var(--motion-slow)] ease-out"
-          : "rounded-lg border border-border bg-background p-3 transition-[border-color] duration-[var(--motion-slow)] ease-out",
+          ? "scroll-mt-6 rounded-xl border border-border bg-card p-4 transition-[border-color] duration-[var(--motion-slow)] ease-out"
+          : "scroll-mt-6 rounded-lg border border-border bg-background p-3 transition-[border-color] duration-[var(--motion-slow)] ease-out",
         highlightVisible && "border-primary",
       )}
     >

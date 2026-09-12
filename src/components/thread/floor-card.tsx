@@ -2,7 +2,6 @@
 
 "use client";
 
-import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { toast } from "sonner";
@@ -30,6 +29,7 @@ import {
   PostActionsMenu,
 } from "@/components/thread/post-actions-menu";
 import { ReplyCard } from "@/components/thread/reply-card";
+import { useDiscussionTargetReveal } from "@/hooks/use-discussion-target-reveal";
 import { useTransientTargetHighlight } from "@/hooks/use-transient-target-highlight";
 
 interface FloorCardProps {
@@ -47,7 +47,6 @@ export function FloorCard({
   focusActivationKey,
 }: FloorCardProps) {
   const { user } = useAuth();
-  const cardRef = useRef<HTMLDivElement>(null);
   const deletePost = useDeletePost();
   const pinPost = usePinPost();
   const confirmAction = useConfirm();
@@ -69,13 +68,7 @@ export function FloorCard({
     focusActivationKey,
   );
 
-  useEffect(() => {
-    if (!focused) return;
-    const timer = window.setTimeout(() => {
-      cardRef.current?.scrollIntoView({ behavior: "auto", block: "center" });
-    }, 100);
-    return () => window.clearTimeout(timer);
-  }, [focusActivationKey, focused]);
+  useDiscussionTargetReveal(focused ? `post-${floor.id}` : undefined, focusActivationKey);
 
   const handleStartEdit = () => {
     open({
@@ -131,10 +124,9 @@ export function FloorCard({
 
   return (
     <div
-      ref={cardRef}
       id={`post-${floor.id}`}
       className={cn(
-        "rounded-xl border border-border bg-card p-4 transition-[border-color] duration-[var(--motion-slow)] ease-out",
+        "scroll-mt-6 rounded-xl border border-border bg-card p-4 transition-[border-color] duration-[var(--motion-slow)] ease-out",
         highlightVisible && "border-primary",
       )}
     >
