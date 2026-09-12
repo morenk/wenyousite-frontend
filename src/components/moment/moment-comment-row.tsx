@@ -90,6 +90,8 @@ export function MomentCommentRow({
             media={comment.sticker ?? comment.media!}
             allowPlayback={lightboxUrl === null}
             mode={comment.sticker ? "sticker" : "detail"}
+            // 评论按内容撑高；填满父级高度会将后续操作栏挤出本楼层。
+            wrapperStyle={{ height: "auto" }}
             onClick={() => setLightboxUrl(comment.sticker?.url ?? comment.media?.url ?? null)}
             buttonClassName="mt-2 block max-w-full overflow-hidden rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
             buttonLabel={comment.sticker ? "查看评论表情包" : "查看评论图片"}
