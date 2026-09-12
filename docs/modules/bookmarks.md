@@ -26,6 +26,7 @@
 | GET | `/bookmarks?cursor=&limit=&folderId=` | AuthRead | 我的收藏列表（完整主题帖卡片 + `bookmarkId` / `bookmarkFolderId`） |
 | GET | `/bookmarks/folders` | AuthRead | 获取主题帖收藏夹 |
 | POST | `/bookmarks/folders` | Auth | 新建主题帖收藏夹 |
+| PATCH / DELETE | `/bookmarks/folders/:id` | Auth | 重命名 / 删除自定义主题帖收藏夹 |
 | POST | `/bookmarks` | AuthRead | 收藏主题帖；不传可选 `folderId` 时进入默认收藏夹 |
 | PATCH | `/bookmarks/:id` | AuthRead | 移动到自己的其他收藏夹 |
 | DELETE | `/bookmarks/:id` | AuthRead | 取消收藏（按记录 id） |
@@ -33,6 +34,7 @@
 | GET | `/moments/bookmarks?folderId=` | AuthRead | 我的动态收藏（完整动态卡片 + `bookmarkFolderId`） |
 | GET | `/moments/bookmark-folders` | AuthRead | 获取动态收藏夹 |
 | POST | `/moments/bookmark-folders` | Auth | 新建动态收藏夹 |
+| PATCH / DELETE | `/moments/bookmark-folders/:id` | Auth | 重命名 / 删除自定义动态收藏夹 |
 | POST / DELETE | `/moments/:id/bookmark` | Auth | 收藏/取消动态；POST 可选 `folderId` |
 | PATCH | `/moments/:id/bookmark` | Auth | 移动动态收藏 |
 | GET | `/users/:id/moment-bookmarks` | OptionalAuth | 该用户公开的动态收藏；不返回私有收藏元数据 |
@@ -113,6 +115,7 @@
 |------|------|------|
 | BookmarkButton | `src/components/user/bookmark-button.tsx` | 详情页收藏/取消切换 |
 | BookmarkFolderPickerDialog | `src/components/user/bookmark-folder-picker-dialog.tsx` | 选择现有分类或就地新建后确认收藏 |
+| BookmarkFolderManagement | `src/components/user/bookmark-folder-management.tsx` | 当前自定义夹标题旁的管理菜单，重命名与删除确认弹窗 |
 | BookmarkFolderBar | `src/components/user/bookmark-folder-bar.tsx` | 当前内容类型的纵向目录、名称搜索、数量与新建入口 |
 | CreateBookmarkFolderButton | `src/components/user/create-bookmark-folder-button.tsx` | RHF + Zod 新建弹窗；按当前内容类型调用独立端点 |
 | BookmarkThreadCard | `src/components/user/bookmark-thread-card.tsx` | 连续收藏列表行（标题/封面/作者/分类/时间/目录/更多操作）；封面复用可见封面同时播放 |
@@ -134,6 +137,11 @@
 - `/bookmarks` 使用宽工作区和纵向收藏目录，只有主题帖/动态使用固定 Tab；目录固定“全部收藏”在首位，支持当前类型内名称搜索、独立滚动与常驻新建入口；搜索不改变主区选择或汇总数量
 - 当前类型和目录分别写入 `type` / `folder` URL 参数；刷新和历史返回恢复定位，两个类型在页内分别记住选择；无效目录回到全部；仅挂载当前类型的列表
 - 空的自定义收藏夹仍显示在目录中，不按收藏数量过滤；新建失败保留名称和弹窗供重试，目录加载失败显示重试并保留 URL 定位
+- 仅当前选中的自定义夹标题旁显示紧凑“更多收藏夹操作”；全部和默认夹无入口，侧栏不重复管理按钮。菜单支持方向键、Escape 和关闭后焦点归还；长名称换行，按钮不受挤压
+- 重命名弹窗预填并聚焦全选名称，使用 RHF + Zod 校验 trim 后 1–24 字符，Enter 保存。失败保留输入和弹窗，名称错误关联输入，其他错误显示在表单内；成功不弹提示，保持 ID/URL，原地更新目录和标题并清空目录搜索
+- 删除须二次确认：“收藏夹内的收藏会移到默认收藏夹，收藏内容不会删除。”确认按钮为危险色，初始焦点在取消。失败不离开当前夹；成功按响应 `destinationFolderId` 进入同类型默认夹，以 replace 更新 URL，并显示一次简短提示，焦点落回内容标题
+- 写入期间保留当前收藏内容，仅禁用管理按钮与弹窗内操作并显示局部进度，防止 Escape 或重复提交中断反馈
+- 重命名先更新对应目录缓存；列表通过稳定 folderId 解析新名称。删除先移除目录并将可见计数加到目标夹、迁移已加载私有收藏的归属及目标夹列表快照，清除被删夹查询，然后后台失效当前类型的目录和私有列表。动态列表同时限制在当前用户作用域，不触及另一类型、其他用户和公开收藏缓存；目标夹先展示合并去重的已知记录并清空旧分页 cursor，防止自动翻页跳过迁入记录，最终顺序、计数及分页由后台从首屏请求校准
 - 新建后清除目录搜索并进入新收藏夹；主区显示目录名称与数量，全部视图在条目中标注所属目录
 - 本人资料收藏页标题区显示“我的收藏夹”，进入 `/bookmarks?type=当前类型` 查看全部私有目录；按当前分栏显示“新建主题帖收藏夹”或“新建动态收藏夹”，新建成功直接打开对应类型与新夹 URL。他人资料收藏页不显示管理操作
 - 每条收藏的“更多收藏操作”菜单提供移动和取消；移动复用带名称搜索的收藏夹选择弹窗，当前夹不可重复提交，失败保留选项与错误；操作后同步当前列表与目录计数
@@ -162,7 +170,7 @@
 
 - 主题帖与动态详情首次收藏均弹出收藏夹选择，已收藏再次点击直接取消
 - 可操作收藏按钮正确呈现金色选中态；导航入口、收藏列表指标等只读书签继续使用通用导航/信息色
-- `/bookmarks` 两类内容均支持收藏夹筛选、新建、移动、取消收藏与 cursor 分页
+- `/bookmarks` 两类内容均支持收藏夹筛选、新建、重命名、删除、移动、取消收藏与 cursor 分页；删除只迁移收藏，不删除收藏内容
 - 主题帖夹与动态夹从不同端点读取和创建，可分别新建同名目录，切换分栏不会把一侧选中的 folderId 带到另一侧
 - 登录后全局导航栏显示收藏入口
 - 用户资料页公开主题帖和动态收藏但不公开分类；本人可进入我的收藏夹或新建后直接进入空夹；他人未公开时隐藏入口且直达显示占位

@@ -694,6 +694,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/bookmarks/folders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** 删除自定义主题帖收藏夹并将全部收藏移入默认夹 */
+        delete: operations["bookmarksDeleteFolder"];
+        options?: never;
+        head?: never;
+        /** 重命名自定义主题帖收藏夹 */
+        patch: operations["bookmarksRenameFolder"];
+        trace?: never;
+    };
     "/api/v1/bookmarks/{id}": {
         parameters: {
             query?: never;
@@ -1218,6 +1236,24 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/moments/bookmark-folders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** 删除自定义动态收藏夹并将全部收藏移入默认夹 */
+        delete: operations["momentsDeleteBookmarkFolder"];
+        options?: never;
+        head?: never;
+        /** 重命名自定义动态收藏夹 */
+        patch: operations["momentsRenameBookmarkFolder"];
         trace?: never;
     };
     "/api/v1/moments/{id}": {
@@ -3843,6 +3879,19 @@ export interface components {
             /** @example 跑团资料 */
             name: string;
         };
+        RenameBookmarkFolderDto: {
+            /**
+             * @description trim 后为 1–24 个字符；仅可重命名自定义收藏夹
+             * @example 稍后阅读
+             */
+            name: string;
+        };
+        DeleteBookmarkFolderResponseDto: {
+            /** @description 已删除的自定义收藏夹 ID */
+            deletedFolderId: string;
+            /** @description 接收全部收藏的同类型默认收藏夹 ID */
+            destinationFolderId: string;
+        };
         CreateBookmarkDto: {
             /**
              * @description 要收藏的主题帖 ID
@@ -4477,6 +4526,13 @@ export interface components {
         };
         CreateMomentBookmarkFolderDto: {
             /** @example 稍后阅读 */
+            name: string;
+        };
+        RenameMomentBookmarkFolderDto: {
+            /**
+             * @description trim 后为 1–24 个字符；仅可重命名自定义收藏夹
+             * @example 稍后阅读
+             */
             name: string;
         };
         CreateMomentDto: {
@@ -6361,6 +6417,12 @@ export interface components {
         BookmarksCreateFolder201Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["BookmarkFolderResponseDto"];
         };
+        BookmarksDeleteFolder200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["DeleteBookmarkFolderResponseDto"];
+        };
+        BookmarksRenameFolder200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["BookmarkFolderResponseDto"];
+        };
         BookmarksRemove200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["MessageResponseDto"];
         };
@@ -6476,6 +6538,12 @@ export interface components {
             data: components["schemas"]["MomentBookmarkFolderResponseDto"][];
         };
         MomentsCreateBookmarkFolder201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MomentBookmarkFolderResponseDto"];
+        };
+        MomentsDeleteBookmarkFolder200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["DeleteBookmarkFolderResponseDto"];
+        };
+        MomentsRenameBookmarkFolder200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["MomentBookmarkFolderResponseDto"];
         };
         MomentsDetail200Response: components["schemas"]["ApiSuccessEnvelope"] & {
@@ -9192,6 +9260,177 @@ export interface operations {
             };
         };
     };
+    bookmarksDeleteFolder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookmarksDeleteFolder200Response"];
+                };
+            };
+            /** @description 未登录或 Token 无效 */
+            401: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 账号无写入权限 */
+            403: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 收藏夹不存在或不属于当前用户 */
+            404: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 默认夹不可删除或并发冲突；事务回滚，刷新后重试 */
+            409: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    bookmarksRenameFolder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RenameBookmarkFolderDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookmarksRenameFolder200Response"];
+                };
+            };
+            /** @description 名称 trim 后须为 1–24 个字符 */
+            400: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未登录或 Token 无效 */
+            401: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 账号无写入权限 */
+            403: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 收藏夹不存在或不属于当前用户 */
+            404: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 默认夹不可修改、名称重复或并发冲突；刷新后重试 */
+            409: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
     bookmarksRemove: {
         parameters: {
             query?: never;
@@ -11011,6 +11250,177 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MomentsCreateBookmarkFolder201Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    momentsDeleteBookmarkFolder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MomentsDeleteBookmarkFolder200Response"];
+                };
+            };
+            /** @description 未登录或 Token 无效 */
+            401: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 账号无写入权限 */
+            403: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 收藏夹不存在或不属于当前用户 */
+            404: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 默认夹不可删除或并发冲突；事务回滚，刷新后重试 */
+            409: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    momentsRenameBookmarkFolder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RenameMomentBookmarkFolderDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MomentsRenameBookmarkFolder200Response"];
+                };
+            };
+            /** @description 名称 trim 后须为 1–24 个字符 */
+            400: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未登录或 Token 无效 */
+            401: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 账号无写入权限 */
+            403: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 收藏夹不存在或不属于当前用户 */
+            404: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 默认夹不可修改、名称重复或并发冲突；刷新后重试 */
+            409: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */

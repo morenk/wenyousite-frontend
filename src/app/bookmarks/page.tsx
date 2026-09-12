@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { parseAsString, parseAsStringLiteral, useQueryStates } from "nuqs";
 import { BookmarkList } from "@/components/user/bookmark-list";
 import { PageHeader } from "@/components/layout/page-header";
@@ -15,8 +15,12 @@ import { LoadError } from "@/components/shared/load-error";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BookmarkMomentCard } from "@/components/user/bookmark-moment-card";
 import { WenyouCount } from "@/components/shared/wenyou-count";
+import { BookmarkFolderManagement } from "@/components/user/bookmark-folder-management";
 
 export default function BookmarksPage() {
+  const { user } = useAuth();
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const [directoryRevision, setDirectoryRevision] = useState(0);
   const [{ type, folder }, setLocation] = useQueryStates({
     type: parseAsStringLiteral(["threads", "moments"]).withDefault("threads"),
     folder: parseAsString,
@@ -49,12 +53,22 @@ export default function BookmarksPage() {
           {foldersQuery.isLoading ? <Skeleton className="h-64 w-full rounded-xl" /> : foldersQuery.isError ? (
             <LoadError title="收藏夹加载失败" onRetry={() => void foldersQuery.refetch()} className="px-0 py-6" />
           ) : (
-            <BookmarkFolderBar key={type} folders={folders} selectedFolderId={folderId} onSelect={(id) => void setLocation({ folder: id ?? null })} kind={type} />
+            <BookmarkFolderBar key={`${type}-${directoryRevision}`} folders={folders} selectedFolderId={folderId} onSelect={(id) => void setLocation({ folder: id ?? null })} kind={type} />
           )}
         </aside>
         <section className="min-w-0" aria-label="收藏内容">
           <div className="mb-2 flex min-h-10 items-start justify-between gap-4 border-b border-border pb-4">
-            <h2 className="min-w-0 break-words font-display text-xl">{selected?.name ?? "全部收藏"}</h2>
+            <div className="flex min-w-0 items-start gap-2">
+              <h2 ref={headingRef} tabIndex={-1} className="min-w-0 break-words font-display text-xl">{selected?.name ?? "全部收藏"}</h2>
+              {selected && !selected.isDefault && !foldersQuery.isError ? <BookmarkFolderManagement key={`${type}-${selected.id}`} folder={selected} kind={type} viewerScope={user?.id ?? "anonymous"} headingRef={headingRef}
+                onRenamed={() => setDirectoryRevision((value) => value + 1)}
+                onDeleted={(destinationFolderId) => {
+                  remembered.current[type] = destinationFolderId;
+                  setDirectoryRevision((value) => value + 1);
+                  void setLocation({ folder: destinationFolderId }, { history: "replace" });
+                  requestAnimationFrame(() => headingRef.current?.focus());
+                }} /> : null}
+            </div>
             {foldersQuery.data && !foldersQuery.isError ? <span className="shrink-0 pt-1 text-sm text-muted-foreground"><WenyouCount value={selected?.itemCount ?? folders.reduce((sum, item) => sum + item.itemCount, 0)} label="收藏数量" /> 条</span> : null}
           </div>
           {type === "threads" ? <BookmarkList folderId={folderId} folders={folders} /> : <MomentBookmarks folderId={folderId} folders={folders} />}
