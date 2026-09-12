@@ -1,15 +1,17 @@
+import type { MediaDisplay } from "../../src/lib/media-display";
 import { expect, type Page } from "@playwright/test";
 
 /** 编辑器工具栏测试复用同一图片上传与处理响应。 */
 export async function insertTestEditorImage(
   page: Page,
   file?: { name: string; mimeType: string; buffer: Buffer },
+  mediaOverride?: { url: string; display: MediaDisplay; animated: boolean; contentType: string },
 ) {
   const mediaId = "e2e-editor-toolbar";
   const pngBase64 =
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
   const uploadUrl = new URL("/e2e-object-upload", page.url()).toString();
-  const imageUrl = `data:image/png;base64,${pngBase64}`;
+  const imageUrl = mediaOverride?.url ?? `data:image/png;base64,${pngBase64}`;
   const media = {
     id: mediaId,
     userId: "e2e-user",
@@ -24,6 +26,7 @@ export async function insertTestEditorImage(
     height: 1,
     status: "COMPLETED",
     createdAt: "1970-01-01T00:00:00.000Z",
+    ...mediaOverride,
   };
   await page.route("**/api/v1/media/upload-url", async (route) => {
     await route.fulfill({

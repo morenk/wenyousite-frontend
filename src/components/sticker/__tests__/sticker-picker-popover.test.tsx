@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -9,6 +9,7 @@ const {
   mockToastError,
   mockUpload,
   mockValidate,
+  authListeners,
 } = vi.hoisted(() => ({
   mockUseStickers: vi.fn(),
   mockUseStickerActions: vi.fn(),
@@ -16,13 +17,18 @@ const {
   mockToastError: vi.fn(),
   mockUpload: vi.fn(),
   mockValidate: vi.fn(),
+  authListeners: new Set<() => void>(),
 }));
 
 vi.mock("@/api/hooks/use-stickers", () => ({
   useStickers: (...args: unknown[]) => mockUseStickers(...args),
   useStickerActions: (...args: unknown[]) => mockUseStickerActions(...args),
 }));
-vi.mock("@/lib/auth-store", () => ({ getKnownUserId: () => mockGetKnownUserId() }));
+vi.mock("@/lib/auth-store", () => ({
+  getKnownUserId: () => mockGetKnownUserId(),
+  getAuthSnapshot: () => ({ user: { id: mockGetKnownUserId() } }),
+  subscribeAuthStore: (listener: () => void) => { authListeners.add(listener); return () => { authListeners.delete(listener); }; },
+}));
 vi.mock("@/lib/upload-image", () => ({
   getImageUploadKey: (file: File) => `${file.name}:${file.size}:${file.lastModified}`,
   uploadImageFile: (...args: unknown[]) => mockUpload(...args),
@@ -260,4 +266,38 @@ describe("StickerPickerPopover", () => {
     await waitFor(() => expect(importMedia.mutateAsync).toHaveBeenCalledTimes(2));
     expect(mockUpload).toHaveBeenCalledTimes(1);
   });
+  test("切换账号清除已上传待导入的mediaId缓存", async () => {
+    mockUpload.mockResolvedValueOnce({ mediaId: "owner-a-media" }).mockResolvedValueOnce({ mediaId: "owner-b-media" });
+    importMedia.mutateAsync.mockRejectedValueOnce(new Error("offline")).mockResolvedValueOnce(undefined);
+    const user = userEvent.setup();
+    render(<StickerPickerPopover onSelect={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: "表情" }));
+    const input = document.querySelector<HTMLInputElement>('input[type="file"]')!;
+    const file = new File(["same"], "same.png", { type: "image/png" });
+    fireEvent.change(input, { target: { files: [file] } });
+    await waitFor(() => expect(mockToastError).toHaveBeenCalled());
+    act(() => { mockGetKnownUserId.mockReturnValue("owner-b"); authListeners.forEach((listener) => listener()); });
+    fireEvent.change(input, { target: { files: [file] } });
+    await waitFor(() => expect(importMedia.mutateAsync).toHaveBeenLastCalledWith("owner-b-media"));
+    expect(mockUpload).toHaveBeenCalledTimes(2);
+  });
+
+  test("切换账号中止批量上传，迟到完成不能导入旧账号媒体", async () => {
+    let finish!: (value: { mediaId: string }) => void;
+    let signal!: AbortSignal;
+    mockUpload.mockImplementationOnce((_file: File, options: { signal: AbortSignal }) => {
+      signal = options.signal;
+      return new Promise((resolve) => { finish = resolve; });
+    });
+    const user = userEvent.setup();
+    render(<StickerPickerPopover onSelect={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: "表情" }));
+    fireEvent.change(document.querySelector('input[type="file"]')!, { target: { files: [new File(["same"], "same.png", { type: "image/png" })] } });
+    await waitFor(() => expect(mockUpload).toHaveBeenCalled());
+    act(() => { mockGetKnownUserId.mockReturnValue("owner-b"); authListeners.forEach((listener) => listener()); });
+    expect(signal.aborted).toBe(true);
+    await act(async () => { finish({ mediaId: "old" }); });
+    expect(importMedia.mutateAsync).not.toHaveBeenCalled();
+  });
+
 });

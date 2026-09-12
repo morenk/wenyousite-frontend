@@ -165,7 +165,7 @@ export function AccountSecurityPanel() {
               {blockedUsers.data.map(({ id, blocked }) => (
                 <li key={id} className="flex items-center justify-between gap-4 py-3">
                   <Link href={`/users/${blocked.id}`} className="flex items-center gap-3 hover:text-brand-strong">
-                    <UserAvatar name={blocked.username} src={blocked.avatar} className="h-8 w-8" />
+                    <UserAvatar name={blocked.username} src={blocked.avatar} display={blocked.avatarDisplay} className="h-8 w-8" />
                     <span className="text-sm font-medium">{blocked.username}</span>
                   </Link>
                   <Button

@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useDeleteMoment, useMoment, useMomentBookmark, useMomentLike, useUpdateMoment } from "@/api/hooks/use-moments";
 import { getApiErrorMessage, isContentUnavailableError } from "@/api/errors";
 import { useContentAccessCache } from "@/api/hooks/use-content-access-cache";
+import { MomentPlaybackProvider } from "@/components/moment/moment-playback";
 import { MomentComments } from "@/components/moment/moment-comments";
 import { MomentImageGallery } from "@/components/moment/moment-image-gallery";
 import { WenyouTipButton } from "@/components/economy/wenyou-tip-button";
@@ -142,7 +143,7 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
     editContentRef.current?.insertReference(markdown);
   };
   return (
-    <>
+    <MomentPlaybackProvider>
       <article
         className="w-full bg-background"
         data-content-purpose={CONTENT_PRESENTATION.detail.purpose}
@@ -155,7 +156,7 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
       >
         <header data-slot="moment-detail-header" className="flex items-center gap-3">
           <Link href={`/users/${moment.author.id}`} className="flex min-w-0 items-center gap-3 rounded-xl">
-            <UserAvatar name={moment.author.username} src={moment.author.avatar} className="size-10" />
+            <UserAvatar name={moment.author.username} src={moment.author.avatar} display={moment.author.avatarDisplay} className="size-10" />
             <div className="min-w-0"><p className="truncate text-sm font-bold">{moment.author.username}</p><WenyouTime value={moment.createdAt} className="text-xs text-muted-foreground" /></div>
           </Link>
           <div className="ml-auto flex items-center gap-1">
@@ -316,6 +317,6 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
           }
         }}
       />
-    </>
+    </MomentPlaybackProvider>
   );
 }

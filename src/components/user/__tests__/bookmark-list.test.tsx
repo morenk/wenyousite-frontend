@@ -61,6 +61,19 @@ const sampleBookmark = {
 };
 
 describe("BookmarkList", () => {
+  test("自有收藏展示可信静态首帧，封面位于进入详情的链接内", () => {
+    mockUseBookmarks.mockReturnValue({
+      data: { pages: [{ data: [{ ...sampleBookmark, coverImages: ["/test.gif"],
+        coverMedia: { url: "/test.gif", animated: true, posterUrl: "/test-poster.webp" } }], meta: { cursor: null, hasMore: false } }] },
+      fetchNextPage: vi.fn(), hasNextPage: false, isFetchingNextPage: false, isLoading: false, isError: false, refetch: vi.fn(),
+    });
+    render(<BookmarkList />, { wrapper: createWrapper() });
+    const poster = document.querySelector("img[data-cover-poster]");
+    expect(poster).toHaveAttribute("src", "/test-poster.webp");
+    expect(poster?.closest("a")).toHaveAttribute("href", "/threads/t1");
+    expect(document.querySelector("img[data-cover-animation]")).toBeNull();
+  });
+
   test("加载中保留列表骨架", () => {
     mockUseBookmarks.mockReturnValue({
       data: undefined,

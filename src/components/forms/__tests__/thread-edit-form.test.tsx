@@ -16,15 +16,22 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: mockRouterReplace }),
 }));
 
-vi.mock("@/components/editor/milkdown-editor", () => ({
-  MilkdownEditor: ({ defaultValue, onChange }: { defaultValue?: string; onChange?: (value: string) => void }) => (
+vi.mock("@/components/editor/milkdown-editor", async () => {
+  const { withEditorSubmission } = await import("@/test/editor-submission-double");
+  return ({
+  MilkdownEditor: withEditorSubmission(({ defaultValue, onChange, onSyncErrorChange }: { defaultValue?: string; onChange?: (value: string) => void; onSyncErrorChange?: (hasError: boolean) => void }) => (
+    <>
     <textarea
       data-testid="milkdown-editor"
       defaultValue={defaultValue}
       onChange={(event) => onChange?.(event.target.value)}
     />
-  ),
-}));
+    <button type="button" onClick={() => onSyncErrorChange?.(true)}>模拟同步失败</button>
+    <button type="button" onClick={() => onSyncErrorChange?.(false)}>模拟同步恢复</button>
+    </>
+  )),
+});
+});
 
 vi.mock("@/components/forms/tag-input", () => ({
   TagInput: ({ value, onChange }: { value: string[]; onChange: (tags: string[]) => void }) => (
@@ -229,6 +236,40 @@ describe("ThreadEditForm", () => {
     expect(mockSaveThreadMutate).toHaveBeenLastCalledWith({ threadId: "t1", body: expect.objectContaining({ defaultSubthreadPostingPolicy: "COLLABORATORS", version: 4, defaultSubthreadVersion: 2 }) });
   });
 
+  test("取消公开邀请确认后仍可再次保存权限", async () => {
+    const user = userEvent.setup();
+    const thread = makeThread();
+    thread.defaultSubthread.bodyPost!.content = "请用 [入口](/join/AbCdEfGh_123-XYZ)";
+    renderForm({ thread });
+    await user.click(screen.getByRole("combobox", { name: "主贴发言权限" }));
+    await user.click(screen.getByRole("option", { name: "仅玩家" }));
+    vi.mocked(window.confirm).mockReturnValueOnce(false);
+    await user.click(screen.getByRole("button", { name: "保存帖子" }));
+    expect(mockSaveThreadMutate).not.toHaveBeenCalled();
+    expect(screen.getByRole("combobox", { name: "主贴发言权限" })).toHaveTextContent("仅玩家");
+    await user.click(screen.getByRole("button", { name: "保存帖子" }));
+    expect(mockSaveThreadMutate).toHaveBeenCalledTimes(1);
+    expect(mockSaveThreadMutate).toHaveBeenCalledWith({ threadId: "t1", body: expect.objectContaining({ defaultSubthreadPostingPolicy: "PLAYERS" }) });
+  });
+
+  test("确认期间正文变化取消旧提交，并允许保存最新正文及权限", async () => {
+    const user = userEvent.setup();
+    const thread = makeThread();
+    thread.defaultSubthread.bodyPost!.content = "请用 [入口](/join/AbCdEfGh_123-XYZ)";
+    renderForm({ thread });
+    await user.click(screen.getByRole("combobox", { name: "主贴发言权限" }));
+    await user.click(screen.getByRole("option", { name: "仅玩家" }));
+    vi.mocked(window.confirm).mockImplementationOnce(() => {
+      fireEvent.change(screen.getByTestId("milkdown-editor"), { target: { value: "确认期间的新正文" } });
+      return true;
+    });
+    await user.click(screen.getByRole("button", { name: "保存帖子" }));
+    expect(mockSaveThreadMutate).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "保存帖子" }));
+    expect(mockSaveThreadMutate).toHaveBeenCalledTimes(1);
+    expect(mockSaveThreadMutate).toHaveBeenCalledWith({ threadId: "t1", body: expect.objectContaining({ content: "确认期间的新正文", defaultSubthreadPostingPolicy: "PLAYERS" }) });
+  });
+
   test("取消选择与恢复原值不产生保存请求", async () => {
     const user = userEvent.setup();
     const { onStatusChange } = renderForm();
@@ -405,6 +446,18 @@ describe("ThreadEditForm", () => {
 
     expect(mockDeleteThreadMutate).toHaveBeenCalledWith("t1");
     expect(mockRouterReplace).toHaveBeenCalledWith("/");
+  });
+
+  test("同步失败禁止表单提交旧正文，恢复后允许提交", async () => {
+    const user = userEvent.setup();
+    renderForm();
+    await user.type(screen.getByTestId("milkdown-editor"), "新增");
+    await user.click(screen.getByRole("button", { name: "模拟同步失败" }));
+    await user.click(screen.getByRole("button", { name: "保存帖子" }));
+    expect(mockSaveThreadMutate).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "模拟同步恢复" }));
+    await user.click(screen.getByRole("button", { name: "保存帖子" }));
+    await vi.waitFor(() => expect(mockSaveThreadMutate).toHaveBeenCalled());
   });
 
   test("标题超过上限时显示字段错误且不提交", async () => {

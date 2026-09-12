@@ -37,24 +37,33 @@ vi.mock("sonner", () => ({
   toast: { success: mocks.success, error: mocks.error },
 }));
 
-vi.mock("@/components/editor/milkdown-editor", () => ({
-  MilkdownEditor: ({
+vi.mock("@/components/editor/milkdown-editor", async () => {
+  const { withEditorSubmission } = await import("@/test/editor-submission-double");
+  return ({
+  MilkdownEditor: withEditorSubmission(({
     defaultValue,
     onChange,
+    onSyncErrorChange,
     placeholder,
   }: {
     defaultValue?: string;
     onChange?: (value: string) => void;
+    onSyncErrorChange?: (hasError: boolean) => void;
     placeholder?: string;
   }) => (
+    <>
     <textarea
       data-testid="milkdown-editor"
       aria-label={placeholder}
       defaultValue={defaultValue}
       onChange={(event) => onChange?.(event.target.value)}
     />
-  ),
-}));
+    <button onClick={() => onSyncErrorChange?.(true)}>模拟同步失败</button>
+    <button onClick={() => onSyncErrorChange?.(false)}>模拟同步恢复</button>
+    </>
+  )),
+});
+});
 
 const sessions: Record<string, ThreadComposerSession> = {
   create: {
@@ -121,6 +130,22 @@ describe("ThreadComposer", () => {
     vi.clearAllMocks();
     vi.stubGlobal("confirm", vi.fn(() => true));
     vi.stubGlobal("crypto", { randomUUID: vi.fn(() => REQUEST_ID) });
+  });
+
+  test.each(["发表入口", "回复入口", "编辑入口"])("%s 同步失败禁止提交，恢复后才能写入", async (entry) => {
+    const user = userEvent.setup();
+    renderHarness();
+    await user.click(screen.getByRole("button", { name: entry }));
+    await user.type(screen.getByTestId("milkdown-editor"), "新增正文");
+    await user.click(screen.getByRole("button", { name: "模拟同步失败" }));
+    const submit = screen.getByRole("button", { name: /^(发布|回复|保存修改)$/ });
+    expect(submit).toBeDisabled();
+    await user.click(submit);
+    expect(mocks.create).not.toHaveBeenCalled();
+    expect(mocks.update).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "模拟同步恢复" }));
+    await user.click(submit);
+    await waitFor(() => expect(entry === "编辑入口" ? mocks.update : mocks.create).toHaveBeenCalled());
   });
 
   test("浏览态不挂载编辑器，点击入口后始终只挂载一个", async () => {

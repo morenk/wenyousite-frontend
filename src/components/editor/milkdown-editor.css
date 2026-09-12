@@ -53,6 +53,7 @@
   letter-spacing: 0.008em;
   overflow-wrap: anywhere;
   word-break: normal;
+  white-space: break-spaces;
 }
 
 .milkdown .ProseMirror p {

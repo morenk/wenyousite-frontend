@@ -159,6 +159,10 @@ async function mockManagementWorkspace(page: Page) {
       body: JSON.stringify({ code: 0, message: "ok", data, ...(meta ? { meta } : {}) }),
     });
 
+    if (pathname.endsWith("/meta")) {
+      // 既有视觉基线使用基础工具栏；明确声明 v3，不依赖缺失 meta 的隐式回退。
+      return response({ markdownContractVersion: 3 });
+    }
     if (pathname.endsWith("/auth/refresh")) {
       return response({ accessToken: "management-visual-token", user: owner });
     }

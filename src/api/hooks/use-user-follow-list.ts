@@ -6,6 +6,7 @@ import { queryKeys } from "@/api/query-keys";
 import type { components } from "@/api/types";
 
 export interface FollowUser {
+  avatarDisplay?: components["schemas"]["MediaDisplayResponseDto"] | null;
   id: string;
   username: string;
   avatar: string | null;

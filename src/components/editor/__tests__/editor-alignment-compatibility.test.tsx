@@ -13,6 +13,10 @@ import { afterAll, afterEach, describe, expect, test, vi } from "vitest";
 import { http, HttpResponse } from "msw";
 import { MilkdownEditor } from "@/components/editor/milkdown-editor-core";
 import { server } from "@/test/msw/server";
+import boundaryFixture from "../../../../contracts/markdown-block-boundary-v1-fixtures.json";
+import { MarkdownContent } from "@/components/thread/markdown-content";
+import { createReaderClipboardPayload } from "@/lib/site-clipboard";
+import { findUnsupportedMarkdownFormats } from "@/lib/markdown";
 
 vi.mock("@/lib/auth", () => ({
   useAuth: () => ({ user: null }),
@@ -168,6 +172,48 @@ afterAll(async () => {
 });
 
 describe("Milkdown 段落对齐兼容性", () => {
+  test.each(boundaryFixture.clipboardCases)("$id 阅读选区/整篇复制到真实编辑器再复制重开", async (item) => {
+    enableMarkdownVersion(5);
+    const reader = render(<MarkdownContent content={item.markdown} />);
+    const root = reader.container.querySelector<HTMLElement>('[data-slot="markdown-content"]')!;
+    const payload = createReaderClipboardPayload(root);
+    const expectedText = item.plainTextByPlatform.web;
+    expect(payload.text).toBe(expectedText);
+    const range = document.createRange();
+    range.selectNodeContents(root);
+    const selection = window.getSelection()!;
+    selection.removeAllRanges(); selection.addRange(range);
+    const copied = new Map<string, string>();
+    fireEvent.copy(root, { clipboardData: { setData: (type: string, value: string) => copied.set(type, value) } });
+    expect(copied.get("text/plain")).toBe(expectedText);
+    expect(copied.get("text/html")).toBe(payload.html);
+    selection.removeAllRanges();
+    reader.unmount();
+    const onChange = vi.fn();
+    const first = renderEditor({ defaultValue: "", onChange });
+    const editor = await getEditor(first.container);
+    fireEvent.paste(editor, { clipboardData: clipboardData({ html: payload.html, text: payload.text }) });
+    await waitFor(() => {
+      expect(Array.from(editor.querySelectorAll(":scope > p")).map((p) => ({
+        alignment: p.getAttribute("data-wenyou-align") ?? "left", lines: [p.textContent],
+      }))).toEqual(item.blocks.map(({ alignment, lines }) => ({ alignment, lines })));
+    });
+    selectAll(editor);
+    copied.clear();
+    fireEvent.copy(editor, { clipboardData: {
+      clearData: () => copied.clear(), setData: (type: string, value: string) => copied.set(type, value),
+    } });
+    expect(copied.get("text/plain")).toBe(expectedText);
+    const stored = onChange.mock.calls.at(-1)![0] as string;
+    expect(findUnsupportedMarkdownFormats(stored)).toEqual([]);
+    expect(stored).toBe(item.serialized);
+    first.unmount();
+    const reopened = renderEditor({ defaultValue: stored });
+    const reopenedEditor = await getEditor(reopened.container);
+    expect(reopenedEditor.querySelectorAll("[data-wenyou-align]")).toHaveLength(1);
+    expect(reopenedEditor.textContent).toBe(item.blocks.flatMap((block) => block.lines).join(""));
+  });
+
   test("v3 在宽栏和窄栏都不暴露写入入口", async () => {
     enableMarkdownVersion(3);
     const { container } = renderEditor({ defaultValue: "兼容正文" });

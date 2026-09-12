@@ -33,7 +33,7 @@ export function AppContextRail() {
               href={`/users/${user.id}`}
               className="group flex items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
             >
-              <UserAvatar name={user.username} src={user.avatar} className="size-11" />
+              <UserAvatar name={user.username} src={user.avatar} display={user.avatarDisplay} className="size-11" />
               <div className="min-w-0 flex-1">
                 <p className="truncate font-bold text-foreground">{user.username}</p>
               </div>

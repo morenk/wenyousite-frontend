@@ -1,20 +1,25 @@
 "use client";
 
 import { ShieldAlert, Trash2 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { type MomentComment, useDeleteMomentComment } from "@/api/hooks/use-moments";
 import { getApiErrorMessage } from "@/api/errors";
 import { AdminContentModerationDialog } from "@/components/admin/admin-content-moderation-dialog";
-import { ImageLightbox } from "@/components/shared/image-lightbox";
+import dynamic from "next/dynamic";
+import { MomentMediaImage } from "@/components/moment/moment-media-image";
+import { useMomentOverlay } from "@/components/moment/moment-playback";
 import { InternalReferenceText } from "@/components/shared/internal-reference-text";
 import { ReplyActionButton } from "@/components/shared/reply-action-button";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { WenyouTime } from "@/components/shared/wenyou-time";
 import type { MomentReplyTarget } from "@/components/moment/moment-comment-types";
 import { useAuth } from "@/lib/auth";
-import { getStickerDisplayUrl, STICKER_DISPLAY_STYLE } from "@/lib/sticker-display";
+import { STICKER_DISPLAY_STYLE } from "@/lib/sticker-display";
+import { useDiscussionTargetReveal } from "@/hooks/use-discussion-target-reveal";
 import { cn } from "@/lib/utils";
+
+const GalleryLightbox = dynamic(() => import("@/components/moment/moment-gallery-lightbox").then((module) => module.MomentGalleryLightbox), { ssr: false });
 
 export function MomentCommentRow({
   momentId,
@@ -35,15 +40,9 @@ export function MomentCommentRow({
   const remove = useDeleteMomentComment(momentId, user?.id);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [moderationOpen, setModerationOpen] = useState(false);
-  const rowRef = useRef<HTMLDivElement | null>(null);
+  useMomentOverlay(lightboxUrl !== null);
 
-  useEffect(() => {
-    if (!focused) return;
-    const frame = window.requestAnimationFrame(() => {
-      rowRef.current?.scrollIntoView({ behavior: "auto", block: "center" });
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [focused]);
+  useDiscussionTargetReveal(focused ? `moment-comment-${comment.id}` : undefined);
 
   const deleteComment = async () => {
     try {
@@ -56,17 +55,16 @@ export function MomentCommentRow({
 
   return (
     <div
-      ref={rowRef}
       id={`moment-comment-${comment.id}`}
       aria-current={focused ? "location" : undefined}
       className={cn(
-        "flex scroll-mt-24 gap-3 rounded-xl transition-[background-color,box-shadow]",
+        "flex scroll-mt-6 gap-3 rounded-xl transition-[background-color,box-shadow]",
         focused && "bg-primary/[0.12] ring-2 ring-brand-strong/55 ring-offset-4 ring-offset-background",
       )}
     >
       <UserAvatar
         name={comment.author.username}
-        src={comment.author.avatar}
+        src={comment.author.avatar} display={comment.author.avatarDisplay}
         className={compact ? "size-7" : "size-9"}
         textClassName="text-[0.625rem]"
       />
@@ -88,26 +86,19 @@ export function MomentCommentRow({
           </p>
         ) : null}
         {!comment.deleted && (comment.media || comment.sticker) ? (
-          <button
-            type="button"
+          <MomentMediaImage
+            media={comment.sticker ?? comment.media!}
+            allowPlayback={lightboxUrl === null}
+            mode={comment.sticker ? "sticker" : "detail"}
             onClick={() => setLightboxUrl(comment.sticker?.url ?? comment.media?.url ?? null)}
-            className="mt-2 block max-w-full overflow-hidden rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-            aria-label={comment.sticker ? "查看评论表情包" : "查看评论图片"}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={comment.sticker
-                ? getStickerDisplayUrl(comment.sticker)
-                : comment.media?.mediumUrl ?? comment.media?.url ?? ""}
-              alt={comment.sticker ? "评论表情包" : "评论图片"}
-              loading="lazy"
-              decoding="async"
-              className={comment.sticker
-                ? "sticker-display object-contain"
-                : "max-h-72 max-w-60 rounded-xl object-contain"}
-              style={comment.sticker ? STICKER_DISPLAY_STYLE : undefined}
-            />
-          </button>
+            buttonClassName="mt-2 block max-w-full overflow-hidden rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+            buttonLabel={comment.sticker ? "查看评论表情包" : "查看评论图片"}
+            alt={comment.sticker ? "评论表情包" : "评论图片"}
+            loading="lazy"
+            decoding="async"
+            className={comment.sticker ? "sticker-display object-contain" : "max-h-72 max-w-60 rounded-xl object-contain"}
+            style={comment.sticker ? STICKER_DISPLAY_STYLE : undefined}
+          />
         ) : null}
         {!comment.deleted ? (
           <div className="mt-1 flex items-center gap-1">
@@ -141,9 +132,9 @@ export function MomentCommentRow({
         ) : null}
       </div>
       {lightboxUrl ? (
-        <ImageLightbox
-          src={lightboxUrl}
-          alt={comment.sticker ? "评论表情包" : "评论图片"}
+        <GalleryLightbox
+          index={0}
+          images={[{ src: lightboxUrl, alt: comment.sticker ? "评论表情包" : "评论图片", width: (comment.sticker ?? comment.media)?.width, height: (comment.sticker ?? comment.media)?.height, momentMedia: comment.sticker ?? comment.media! }]}
           onClose={() => setLightboxUrl(null)}
         />
       ) : null}

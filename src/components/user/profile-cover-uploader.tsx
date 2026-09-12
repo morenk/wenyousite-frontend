@@ -2,6 +2,7 @@
 
 "use client";
 
+import type { MediaDisplay } from "@/lib/media-display";
 import { useEffect, useRef, useState } from "react";
 import { assertImageCanBeProcessed } from "@/lib/image-container";
 import Cropper, { type Area } from "react-easy-crop";
@@ -41,6 +42,7 @@ import { createImageFileFromBlob } from "@/lib/image-file";
 interface ProfileCoverUploaderProps {
   username: string;
   avatar: string | null;
+  avatarDisplay?: MediaDisplay | null;
   profileCover: ProfileCoverMedia | null;
 }
 
@@ -59,6 +61,7 @@ const INITIAL_ZOOMS: Record<ProfileCoverSurface, number> = { web: 1, mobile: 1 }
 export function ProfileCoverUploader({
   username,
   avatar,
+  avatarDisplay,
   profileCover,
 }: ProfileCoverUploaderProps) {
   const { setProfileCover, removeProfileCover } = useSetProfileCover();
@@ -241,7 +244,7 @@ export function ProfileCoverUploader({
         <TabsContent value="web">
           <div className="relative pb-7">
             <ProfileCover cover={profileCover} username={username} className="rounded-xl border border-border" />
-            <UserAvatar name={username} src={avatar}
+            <UserAvatar name={username} src={avatar} display={avatarDisplay}
               className="absolute bottom-0 left-4 size-14 ring-4 ring-card outline outline-1 outline-border"
               textClassName="text-lg" />
           </div>

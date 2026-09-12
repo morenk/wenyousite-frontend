@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -60,8 +60,9 @@ export function ManagementPanel({
   onExit,
   onRefetch,
 }: ManagementPanelProps) {
+  const [syncError, setSyncError] = useState(false);
   const controller = useManagementPanelController({ thread, onExit, onRefetch });
-  const canSave =
+  const canSave = !syncError &&
     controller.view !== "members" &&
     controller.currentStatus.dirty &&
     !controller.currentStatus.busy &&
@@ -111,6 +112,7 @@ export function ManagementPanel({
       {controller.view === "settings" ? (
         <div className="min-h-0 flex-1 overflow-y-auto p-5">
           <ThreadEditForm
+            onSyncErrorChange={setSyncError}
             thread={thread}
             isOwner={controller.isOwner}
             formId={THREAD_SETTINGS_FORM_ID}
@@ -214,7 +216,10 @@ export function ManagementPanel({
                       </Button>
                     ) : null}
                   </div>
-                  <MilkdownEditor
+                  <MilkdownEditor mediaDisplays={controller.selectedSub.bodyPost?.mediaDisplays}
+                    editorRef={controller.editor.editorRef}
+                    onValidityChange={controller.editor.onValidityChange}
+                    onSyncErrorChange={setSyncError}
                     key={`${controller.selectedSub.id}-${controller.resetKey}`}
                     threadId={thread.id}
                     defaultValue={controller.content}

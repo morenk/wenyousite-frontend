@@ -2,6 +2,7 @@
 
 "use client";
 
+import type { MediaDisplay } from "@/lib/media-display";
 import { useEffect, useRef, useState } from "react";
 import { assertImageCanBeProcessed } from "@/lib/image-container";
 import Cropper, { type Area } from "react-easy-crop";
@@ -34,9 +35,10 @@ import {
 interface AvatarUploaderProps {
   username: string;
   avatar: string | null;
+  avatarDisplay?: MediaDisplay | null;
 }
 
-export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
+export function AvatarUploader({ username, avatar, avatarDisplay }: AvatarUploaderProps) {
   const { setAvatar, removeAvatar } = useSetAvatar();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadAbortRef = useRef<AbortController | null>(null);
@@ -152,7 +154,7 @@ export function AvatarUploader({ username, avatar }: AvatarUploaderProps) {
       <div className="flex items-center gap-4">
         <UserAvatar
           name={username}
-          src={avatar}
+          src={avatar} display={avatarDisplay}
           className="size-16 border border-border bg-muted"
           textClassName="text-2xl"
         />

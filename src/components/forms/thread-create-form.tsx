@@ -10,6 +10,7 @@ import { ArrowLeft, Loader2, Send, Save, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { useEditorSubmission } from "@/components/editor/use-editor-submission";
 import { MilkdownEditor } from "@/components/editor/milkdown-editor";
 import { ThreadMetadataFields } from "@/components/forms/thread-metadata-fields";
 import {
@@ -38,6 +39,8 @@ export function ThreadCreateForm({
   onCancel,
   onPublished,
 }: ThreadCreateFormProps) {
+  const editor = useEditorSubmission();
+  const [syncError, setSyncError] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const saveThread = useSaveThreadAggregate();
@@ -57,6 +60,8 @@ export function ThreadCreateForm({
   });
 
   async function handleSaveDraft(values: ThreadCreateFormData) {
+    const content = editor.flush();
+    if (syncError || content === null) return;
     const title = values.title?.trim();
 
     try {
@@ -72,7 +77,7 @@ export function ThreadCreateForm({
           version: thread.version,
           defaultSubthreadVersion: thread.defaultSubthread.version,
           bodyVersion: thread.defaultSubthread.bodyPost?.version,
-          content: values.content ?? "",
+          content,
           tagNames: values.tagNames ?? [],
         },
       });
@@ -85,15 +90,18 @@ export function ThreadCreateForm({
   }
 
   async function handlePublish(values: ThreadCreateFormData) {
-    const validationError = validatePublishable(values);
+    const content = editor.flush();
+    if (syncError || content === null) return;
+    const validationError = validatePublishable({ ...values, content });
     if (validationError) {
       toast.error(validationError);
       return;
     }
-    if (!(await confirmPublicInvite(values.content ?? "", values.visibility === "PUBLIC"))) {
+    if (!(await confirmPublicInvite(content, values.visibility === "PUBLIC"))) {
       return;
     }
 
+    if (!editor.isCurrent(content)) return;
     try {
       setIsPublishing(true);
 
@@ -109,7 +117,7 @@ export function ThreadCreateForm({
           version: thread.version,
           defaultSubthreadVersion: thread.defaultSubthread.version,
           bodyVersion: thread.defaultSubthread.bodyPost?.version,
-          content: values.content ?? "",
+          content,
           tagNames: values.tagNames ?? [],
         },
       });
@@ -156,10 +164,13 @@ export function ThreadCreateForm({
             control={form.control}
             name="content"
             render={({ field }) => (
-              <MilkdownEditor
+              <MilkdownEditor mediaDisplays={thread.defaultSubthread.bodyPost?.mediaDisplays}
+                editorRef={editor.editorRef}
+                onValidityChange={editor.onValidityChange}
                 threadId={thread.id}
                 defaultValue={field.value ?? ""}
                 onChange={field.onChange}
+                onSyncErrorChange={setSyncError}
                 onUploadImage={handleUploadImage}
                 disabled={isSaving || isPublishing}
                 diceRolls={thread.defaultSubthread.bodyPost?.diceRolls}
@@ -180,7 +191,7 @@ export function ThreadCreateForm({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={onCancel}
+          onClick={() => { if (editor.canClose()) onCancel(); }}
           disabled={isSaving || isPublishing}
         >
           <CancelIcon className="mr-1.5 h-4 w-4" />
@@ -191,7 +202,7 @@ export function ThreadCreateForm({
             type="button"
             variant="outline"
             onClick={form.handleSubmit(handleSaveDraft)}
-            disabled={isSaving || isPublishing}
+            disabled={syncError || isSaving || isPublishing}
           >
             {isSaving ? (
               <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
@@ -203,7 +214,7 @@ export function ThreadCreateForm({
           <Button
             type="button"
             onClick={form.handleSubmit(handlePublish)}
-            disabled={isSaving || isPublishing}
+            disabled={syncError || isSaving || isPublishing}
           >
             {isPublishing ? (
               <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />

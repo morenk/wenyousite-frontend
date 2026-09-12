@@ -35,7 +35,7 @@
 
 主题删除、点赞和取消点赞现显式声明不可见主题的 404 响应：不存在、他人草稿和 PRIVATE 非成员对 Web 都表现为资源不存在。同步仅更新固定 OpenAPI 与生成类型；现有详情错误态、缓存失效和界面文案保持不变。
 
-主贴权限管理消费后端提交 `223bc19137e3c6cee3911f9ca3b5f0bc63715d77` 的固定 OpenAPI。`PATCH /threads/{id}/aggregate` 可选 `defaultSubthreadPostingPolicy` 使用现有三种子贴发言策略；省略保留原值，和默认子贴标题一起原子更新且只递增一次子贴版本。该客户端必须在兼容后端上线后启用；不改变创建流程。
+主贴权限管理消费后端提交 `6fdfa00eaf1f3056ba30f2ffbc529d12eed1c823` 的固定 OpenAPI。`PATCH /threads/{id}/aggregate` 可选 `defaultSubthreadPostingPolicy` 使用现有三种子贴发言策略；省略保留原值，和默认子贴标题一起原子更新且只递增一次子贴版本。该客户端必须在兼容后端上线后启用；不改变创建流程。
 
 ## 4. 状态管理
 
@@ -68,3 +68,11 @@ HTTP/业务错误由 `src/api/errors.ts` 统一归一化；成功响应不得使
 - lint、typecheck、覆盖率测试和生产构建纳入 `pnpm check`
 
 本轮契约同步自后端实现 `c87966dd4644be7d3c2769245d2e0581fffd4154`，策略、基准和移动端 Windows 待办见 [后端交付记录](../../../wenyousite-backend/docs/backend-hardening-20260905.md)。
+
+列表封面通过 ThreadCoverMediaResponseDto 返回 url、可空 animated 和可空 posterUrl，不按后缀推断；旧后端缺字段保守占位。可选 nullable previewVariants 最多两项，每项包含 url、width、height、bytes；列表按实际显示框和 DPR 选档，缺档沿可信原动画路径兼容。黄金用例为 contracts/thread-cover-media-v1-fixtures.json，与 OpenAPI 一起从后端已提交产物同步并生成类型。
+
+跨仓候选验证可设置 BACKEND_CONTRACT_REF=<完整40位Backend提交SHA>，用于 contract:sync、contract:check 和 check；同步与校验都通过 git show 读取同一已提交产物，日志记录精确来源。未设置时保留相邻后端工作区比较。本次来源为后端已合并提交 0ee2c0de1d9c570e495e778be6661b074b7a4bef；同步产物与此前候选契约逐字节一致。使用 pnpm contract:sync、pnpm generate:api、pnpm contract:check 验证固定产物，不切换或修改后端主 checkout。后端先行发布时，尚未更新的公网 Web 继续消费 coverImages，本候选的可见封面同时播放与预览选择须在 Web 发布后生效。
+
+## 完整媒体展示
+
+`display` / `avatarDisplay` 为可选可空的完整WebP描述，`mediaDisplays` 为已授权正文的来源映射；使用同一生成DTO，不维护运行时第二套响应快照。正常同步及严格来源检查包含 `media-display-v1-fixtures.json`。展示资源不改写来源URL、媒体ID、草稿内容或收藏引用；旧响应缺字段仍可兼容，加载新display失败不能隐式退回昂贵GIF。

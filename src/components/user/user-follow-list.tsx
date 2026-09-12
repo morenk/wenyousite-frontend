@@ -38,7 +38,7 @@ export function UserFollowList({ userId, kind }: UserFollowListProps) {
           href={`/users/${user.id}`}
           className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-3 transition-colors hover:bg-accent/20"
         >
-          <UserAvatar name={user.username} src={user.avatar} className="h-10 w-10" />
+          <UserAvatar name={user.username} src={user.avatar} display={user.avatarDisplay} className="h-10 w-10" />
           <span className="text-sm font-medium text-foreground">
             {user.username}
           </span>

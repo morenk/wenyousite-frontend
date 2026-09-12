@@ -222,7 +222,7 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
         <Link href={`/users/${conversation.otherUser.id}`} className="flex min-w-0 items-center gap-3">
           <UserAvatar
             name={conversation.otherUser.username}
-            src={conversation.otherUser.avatar}
+            src={conversation.otherUser.avatar} display={conversation.otherUser.avatarDisplay}
             className="h-9 w-9"
           />
           <div className="min-w-0">

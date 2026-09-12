@@ -179,7 +179,7 @@ export function ThreadSubscriptionControls({ thread }: {
                       <div className="flex min-w-0 items-center gap-2.5">
                         <UserAvatar
                           name={member.user.username}
-                          src={member.user.avatar}
+                          src={member.user.avatar} display={member.user.avatarDisplay}
                           className="h-8 w-8"
                           textClassName="text-xs"
                         />

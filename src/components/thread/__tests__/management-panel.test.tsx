@@ -82,16 +82,20 @@ vi.mock("@/components/forms/thread-edit-form", () => ({
   },
 }));
 
-vi.mock("@/components/editor/milkdown-editor", () => ({
-  MilkdownEditor: ({
+vi.mock("@/components/editor/milkdown-editor", async () => {
+  const { withEditorSubmission } = await import("@/test/editor-submission-double");
+  return ({
+  MilkdownEditor: withEditorSubmission(({
     defaultValue,
     onChange,
     onUploadImage,
+    onSyncErrorChange,
     autoFocus,
   }: {
     defaultValue?: string;
     onChange?: (value: string) => void;
     onUploadImage?: (file: File) => Promise<string>;
+    onSyncErrorChange?: (hasError: boolean) => void;
     autoFocus?: boolean;
   }) => (
     <div>
@@ -107,9 +111,12 @@ vi.mock("@/components/editor/milkdown-editor", () => ({
       >
         mock-upload
       </button>
+      <button onClick={() => onSyncErrorChange?.(true)}>模拟同步失败</button>
+      <button onClick={() => onSyncErrorChange?.(false)}>模拟同步恢复</button>
     </div>
-  ),
-}));
+  )),
+});
+});
 
 vi.mock("@/components/thread/subthread-tree", () => ({
   SubthreadTree: ({
@@ -313,6 +320,22 @@ describe("ManagementPanel", () => {
     expect(screen.getByRole("tab", { name: /成员权限 8/ })).toBeInTheDocument();
     expect(screen.getByTestId("thread-edit-form")).toBeInTheDocument();
     expect(screen.getByText("已保存")).toBeInTheDocument();
+  });
+
+  test("子贴同步失败禁止按钮和键盘保存，恢复后允许提交", async () => {
+    const user = userEvent.setup();
+    renderPanel({ searchParams: "?view=subthreads&subthread=s3" });
+    await user.type(screen.getByTestId("milkdown-editor"), "新增");
+    await user.click(screen.getByRole("button", { name: "模拟同步失败" }));
+    const save = screen.getByRole("button", { name: "保存子贴" });
+    expect(save).toBeDisabled();
+    await user.click(save);
+    await user.keyboard("{Control>}s{/Control}");
+    expect(mocks.updateSubthread).not.toHaveBeenCalled();
+    expect(mocks.upsertBody).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "模拟同步恢复" }));
+    await user.click(save);
+    await vi.waitFor(() => expect(mocks.upsertBody).toHaveBeenCalledWith(expect.objectContaining({ content: "剧情正文新增" })));
   });
 
   test("从稳定 URL 恢复成员与指定子贴视图", () => {

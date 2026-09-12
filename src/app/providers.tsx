@@ -4,12 +4,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MotionConfig } from "framer-motion";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "sonner";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { ConfirmProvider } from "@/components/ui/confirm-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DailyCheckInBootstrap } from "@/components/economy/daily-check-in-bootstrap";
 import { ThemeProvider, useTheme } from "@/components/ui/theme-provider";
+
+import { CoverPlaybackNavigation } from "@/components/layout/cover-playback-navigation";
 
 function createQueryClient() {
   return new QueryClient({
@@ -73,6 +75,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
               <TooltipProvider>
                 <MotionConfig reducedMotion="user">
                   <DailyCheckInBootstrap />
+                  <Suspense fallback={null}><CoverPlaybackNavigation /></Suspense>
                   {children}
                 </MotionConfig>
               </TooltipProvider>

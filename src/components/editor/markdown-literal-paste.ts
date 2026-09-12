@@ -18,6 +18,7 @@ import {
 } from "@/lib/site-clipboard";
 import { STICKER_INLINE_NODE_NAME } from "@/lib/sticker-inline";
 import { WENYOU_ALIGNMENT_ATTRIBUTE } from "@/lib/markdown-alignment";
+import { withoutAutomaticTrailingContent } from "./editor-trailing-paragraph";
 
 const BLOCK_TAGS = new Set([
   "ADDRESS", "ARTICLE", "ASIDE", "BLOCKQUOTE", "DIV", "FIGCAPTION", "FIGURE",
@@ -84,6 +85,10 @@ export function insertLiteralClipboardText(
   position?: number,
 ): boolean {
   if (position !== undefined) setSelectionNear(view, position);
+  if (text && !/[\r\n]/u.test(text)) {
+    view.dispatch(view.state.tr.replaceSelectionWith(view.state.schema.text(text), false).scrollIntoView());
+    return true;
+  }
   const slice = createLiteralSlice(view, text);
   if (!slice) return false;
   view.dispatch(view.state.tr.replaceSelection(slice).scrollIntoView());
@@ -214,8 +219,8 @@ function createEditorClipboardSerializer(schema: Schema): DOMSerializer {
       options: { document?: Document } = {},
       target?: HTMLElement | DocumentFragment,
     ) {
-      const clipboardDocument = options.document ?? document;
-      const serialized = base.serializeFragment(fragment, { document: clipboardDocument });
+      const clipboardDocument = options.document ?? document.implementation.createHTMLDocument("");
+      const serialized = base.serializeFragment(withoutAutomaticTrailingContent(fragment), { document: clipboardDocument });
       const envelope = createSiteClipboardEnvelope(
         serialized.childNodes,
         "editor",
@@ -272,11 +277,13 @@ export const editorMarkdownPastePlugin = $prose((ctx) => {
     ...options,
     clipboardSerializer: createEditorClipboardSerializer(schema),
     clipboardTextSerializer: (slice) => {
-      const serialized = baseSerializer.serializeFragment(slice.content, { document });
+      // 复制需要来源URL，但临时img不得在活动document发起原件请求。
+      const clipboardDocument = document.implementation.createHTMLDocument("");
+      const serialized = baseSerializer.serializeFragment(withoutAutomaticTrailingContent(slice.content), { document: clipboardDocument });
       return createSiteClipboardPayloadFromNodes(
         serialized.childNodes,
         "editor",
-        document,
+        clipboardDocument,
       ).text;
     },
   }));

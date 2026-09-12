@@ -55,7 +55,7 @@ export function ThreadCard({ thread }: ThreadCardProps) {
       <div className="flex gap-3.5">
         <UserAvatar
           name={thread.owner.username}
-          src={thread.owner.avatar}
+          src={thread.owner.avatar} display={thread.owner.avatarDisplay}
           className="mt-0.5 h-11 w-11 ring-2 ring-card outline outline-1 outline-border"
           textClassName="text-sm"
         />
@@ -110,7 +110,7 @@ export function ThreadCard({ thread }: ThreadCardProps) {
             </Link>
           </h3>
 
-          <ThreadCover image={coverImage} />
+          <ThreadCover image={coverImage} media={thread.coverMedia} />
 
           {preview && (
             <p className="mt-1.5 text-sm leading-6 text-muted-foreground line-clamp-2">

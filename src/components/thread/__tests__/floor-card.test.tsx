@@ -51,8 +51,10 @@ vi.mock("@/api/hooks/use-upload-image", () => ({
   useUploadImage: () => ({ mutateAsync: vi.fn() }),
 }));
 
-vi.mock("@/components/editor/milkdown-editor", () => ({
-  MilkdownEditor: ({
+vi.mock("@/components/editor/milkdown-editor", async () => {
+  const { withEditorSubmission } = await import("@/test/editor-submission-double");
+  return ({
+  MilkdownEditor: withEditorSubmission(({
     defaultValue,
     onChange,
   }: {
@@ -64,8 +66,9 @@ vi.mock("@/components/editor/milkdown-editor", () => ({
       defaultValue={defaultValue}
       onChange={(e) => onChange?.(e.target.value)}
     />
-  ),
-}));
+  )),
+});
+});
 
 vi.mock("@/components/thread/reply-list", () => ({
   ReplyList: () => <div data-testid="reply-list">回复列表</div>,
@@ -221,7 +224,7 @@ describe("FloorCard", () => {
     await act(async () => {
       vi.advanceTimersByTime(100);
     });
-    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "auto", block: "center" });
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "auto", block: "start" });
 
     await act(async () => {
       vi.advanceTimersByTime(1_100);
@@ -241,7 +244,7 @@ describe("FloorCard", () => {
     expect(scrollIntoView).toHaveBeenCalledTimes(2);
     expect(scrollIntoView).toHaveBeenLastCalledWith({
       behavior: "auto",
-      block: "center",
+      block: "start",
     });
   });
 

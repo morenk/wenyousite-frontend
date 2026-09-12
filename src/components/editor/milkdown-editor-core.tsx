@@ -2,6 +2,10 @@
 
 "use client";
 
+import type { MarkdownMediaDisplay } from "@/lib/media-display";
+import { useCallback, useEffect, useImperativeHandle, useRef, useState, type Ref } from "react";
+import { EDITOR_SYNC_ERROR, type EditorSubmissionHandle } from "@/components/editor/use-editor-submission";
+import { assessEditorInput } from "@/lib/editor-content-compatibility";
 import { MilkdownProvider } from "@milkdown/react";
 import { ContentDraftsPanel } from "@/components/editor/content-drafts-panel";
 import { MilkdownEditorHost } from "@/components/editor/milkdown-editor-host";
@@ -15,7 +19,11 @@ const MAX_CHARS = 10000;
 
 export interface MilkdownEditorProps {
   defaultValue?: string;
+  mediaDisplays?: readonly MarkdownMediaDisplay[];
+  editorRef?: Ref<EditorSubmissionHandle>;
+  onValidityChange?: (valid: boolean) => void;
   onChange?: (value: string) => void;
+  onSyncErrorChange?: (hasError: boolean) => void;
   onUploadImage?: (file: File, options?: UploadImageOptions) => Promise<string>;
   placeholder?: string;
   disabled?: boolean;
@@ -35,7 +43,11 @@ export interface MilkdownEditorProps {
 
 function EditorCore({
   defaultValue,
+  mediaDisplays,
+  editorRef,
+  onValidityChange,
   onChange,
+  onSyncErrorChange,
   onUploadImage,
   placeholder,
   disabled,
@@ -46,9 +58,19 @@ function EditorCore({
   autoFocus = false,
   ariaLabel,
 }: MilkdownEditorProps) {
+  const hostRef = useRef<EditorSubmissionHandle | null>(null);
+  const [invalid, setInvalid] = useState(false);
+  const hasEditor = useCallback(() => hostRef.current !== null, []);
+  const flush = useCallback(() => hostRef.current?.flush() ?? null, []);
   const {
+    syncError,
+    handleSyncError,
+    handleValidityChange,
+    markdownContractVersion,
+    advertisedMarkdownContractVersion,
     user,
     restoredValue,
+    restoredMediaDisplays,
     version,
     contractVersionReady,
     currentContent,
@@ -63,8 +85,36 @@ function EditorCore({
   } = useEditorDraftController({
     defaultValue: defaultValue ?? "",
     onChange,
-    waitForMarkdownCapability: true,
+    flush,
+    hasEditor,
+    onSyncErrorChange,
   });
+
+  const flushForWrite = useCallback(() => {
+    const content = flush();
+    return content !== null && assessEditorInput(content, advertisedMarkdownContractVersion).edit ? content : null;
+  }, [advertisedMarkdownContractVersion, flush]);
+
+  const handleValidity = useCallback((valid: boolean) => {
+    setInvalid(!valid);
+    handleValidityChange(valid);
+    onValidityChange?.(valid);
+  }, [handleValidityChange, onValidityChange]);
+  useEffect(() => {
+    if (!invalid) return;
+    const preventLoss = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; };
+    window.addEventListener("beforeunload", preventLoss);
+    return () => window.removeEventListener("beforeunload", preventLoss);
+  }, [invalid]);
+
+  const protectedContent = contractVersionReady && !assessEditorInput(currentContent, markdownContractVersion).edit;
+  useImperativeHandle(editorRef, () => ({ flush: flushForWrite, canClose: () => protectedContent || flush() !== null }), [flush, flushForWrite, protectedContent]);
+  useEffect(() => {
+    if (protectedContent) {
+      handleValidityChange(false);
+      onValidityChange?.(false);
+    }
+  }, [handleValidityChange, onValidityChange, protectedContent]);
 
   const charCount = currentContent.length;
   const editorAriaLabel = ariaLabel ?? placeholder ?? "正文编辑器";
@@ -85,11 +135,16 @@ function EditorCore({
         "--editor-max-height": `${maxHeight}px`,
       } as React.CSSProperties}
     >
-      {contractVersionReady && (
+      {contractVersionReady && !protectedContent && (
         <MilkdownEditorHost
           key={`${version}-${user?.id ?? "guest"}`}
           initialValue={restoredValue ?? ""}
+          mediaDisplays={restoredMediaDisplays ?? mediaDisplays}
+          markdownContractVersion={markdownContractVersion}
+          editorRef={hostRef}
+          onValidityChange={handleValidity}
           onChange={handleChange}
+          onSyncErrorChange={handleSyncError}
           onUploadImage={onUploadImage}
           placeholder={placeholder}
           disabled={disabled}
@@ -124,12 +179,21 @@ function EditorCore({
           )}
         />
       )}
+      {protectedContent && (
+        <div className="space-y-2 p-3">
+          <p role="alert" className="text-sm text-destructive">此正文包含当前版本无法安全编辑的内容，原文已保留。请使用兼容版本继续编辑。</p>
+          <pre className="whitespace-pre-wrap break-words text-sm">{currentContent}</pre>
+        </div>
+      )}
+      {invalid && !protectedContent && <p role="alert" className="px-3 py-2 text-sm text-destructive">{EDITOR_SYNC_ERROR}</p>}
       {draftOpen && (
         <ContentDraftsPanel
           open
           onClose={() => setDraftOpen(false)}
           onRestore={handleRestore}
           initialContent={currentContent}
+          flush={flushForWrite}
+          saveDisabled={syncError}
           autoSaveEnabled={autoSaveEnabled}
           autoSaveStatus={autoSaveStatus}
           onAutoSaveChange={handleAutoSaveChange}

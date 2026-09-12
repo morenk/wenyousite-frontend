@@ -2,6 +2,7 @@
 
 "use client";
 
+import type { MarkdownMediaDisplay } from "@/lib/media-display";
 import { useEffect } from "react";
 import {
   X,
@@ -21,7 +22,8 @@ import { getApiErrorMessage } from "@/api/errors";
 import { Button } from "@/components/ui/button";
 import { WenyouTime } from "@/components/shared/wenyou-time";
 import { useConfirm } from "@/components/ui/confirm-provider";
-import { parseInlineDiceNodes, replaceInlineDiceNodes } from "@/lib/dice-inline";
+import { parseInlineDiceNodes } from "@/lib/dice-inline";
+import { formatMarkdownPreview } from "@/lib/markdown-preview";
 
 interface ContentDraftsPanelProps {
   open: boolean;
@@ -30,6 +32,8 @@ interface ContentDraftsPanelProps {
   onRestore?: (snapshot: EditorDraftSnapshot) => void;
   /** 当前编辑器全文；托盘打开期间继续编辑时，保存操作始终使用最新内容 */
   initialContent?: string;
+  flush?: () => string | null;
+  saveDisabled?: boolean;
   autoSaveEnabled?: boolean;
   autoSaveStatus?: "idle" | "saving" | "saved" | "error";
   onAutoSaveChange?: (
@@ -40,6 +44,7 @@ interface ContentDraftsPanelProps {
 
 export interface EditorDraftSnapshot {
   content: string;
+  mediaDisplays?: readonly MarkdownMediaDisplay[];
 }
 
 export function ContentDraftsPanel({
@@ -47,6 +52,8 @@ export function ContentDraftsPanel({
   onClose,
   onRestore,
   initialContent,
+  flush,
+  saveDisabled = false,
   autoSaveEnabled = false,
   autoSaveStatus = "idle",
   onAutoSaveChange,
@@ -87,11 +94,11 @@ export function ContentDraftsPanel({
   const hasCurrentSnapshot = currentContent.trim().length > 0;
 
   const handleRestore = async (draft: DraftItem) => {
+    if (onRestore && flush && flush() === null) return;
     const currentText = initialContent ?? "";
     if (
       onRestore &&
-      hasCurrentSnapshot &&
-      currentText !== draft.content &&
+      (saveDisabled || (hasCurrentSnapshot && currentText !== draft.content)) &&
       !(await confirmAction({
         title: "恢复正文草稿",
         description: "恢复草稿将覆盖当前编辑器内容，是否继续？",
@@ -102,7 +109,7 @@ export function ContentDraftsPanel({
       return;
     }
     if (onRestore) {
-      onRestore({ content: draft.content });
+      onRestore({ content: draft.content, mediaDisplays: draft.mediaDisplays });
       onClose();
       return;
     }
@@ -133,8 +140,8 @@ export function ContentDraftsPanel({
   };
 
   const handleSave = async (slot?: number) => {
-    const text = currentContent;
-    if (!text.trim()) return;
+    const text = flush ? flush() : currentContent;
+    if (saveDisabled || text === null || !text.trim()) return;
     const occupied = slot === undefined ? undefined : draftBySlot.get(slot);
     if (occupied && !(await confirmAction({
       title: `覆盖草稿 ${slot}`,
@@ -142,6 +149,7 @@ export function ContentDraftsPanel({
       confirmLabel: "覆盖",
       destructive: true,
     }))) return;
+    if (flush && flush() !== text) return;
     try {
       const savedDraft = await saveDraft.mutateAsync(
         occupied
@@ -246,7 +254,7 @@ export function ContentDraftsPanel({
             aria-checked={autoSaveEnabled}
             aria-label="自动保存到草稿 1"
             onClick={() => void handleAutoSaveToggle()}
-            disabled={!onAutoSaveChange || isLoading}
+            disabled={saveDisabled || !onAutoSaveChange || isLoading}
             className={`relative h-6 w-11 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 ${
               autoSaveEnabled ? "bg-brand-strong" : "bg-muted-foreground/30"
             }`}
@@ -293,7 +301,7 @@ export function ContentDraftsPanel({
                         size="sm"
                         className="mt-1 h-7 px-0 text-xs hover:bg-transparent hover:text-brand-strong"
                         onClick={() => handleSave(slot)}
-                        disabled={!hasCurrentSnapshot || saveDraft.isPending}
+                        disabled={saveDisabled || !hasCurrentSnapshot || saveDraft.isPending}
                       >
                         保存当前正文
                       </Button>
@@ -318,7 +326,7 @@ export function ContentDraftsPanel({
                     <WenyouTime value={draft.updatedAt} className="text-[11px] text-muted-foreground" />
                   </div>
                   <p className="mt-1 line-clamp-2 min-h-8 whitespace-pre-wrap break-words text-xs leading-4 text-foreground">
-                    {replaceInlineDiceNodes(draft.content, (node) => `${node.notation} = ?`) || "（无正文）"}
+                    {formatMarkdownPreview(draft.content) || "（无正文）"}
                   </p>
                   <div className="mt-2 flex items-center gap-1">
                     <Button
@@ -335,7 +343,7 @@ export function ContentDraftsPanel({
                       size="sm"
                       className="h-7 px-2 text-xs"
                       onClick={() => handleSave(slot)}
-                      disabled={!hasCurrentSnapshot || saveDraft.isPending}
+                      disabled={saveDisabled || !hasCurrentSnapshot || saveDraft.isPending}
                       aria-label={`覆盖草稿 ${slot}`}
                     >
                       <Save className="mr-1 h-3 w-3" />

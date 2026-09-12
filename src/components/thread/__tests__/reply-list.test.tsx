@@ -63,15 +63,18 @@ vi.mock("@/components/thread/thread-permissions-context", () => ({
   useThreadPermissions: () => mockUseThreadPermissions(),
 }));
 
-vi.mock("@/components/editor/milkdown-editor", () => ({
-  MilkdownEditor: ({ defaultValue, onChange }: { defaultValue?: string; onChange?: (value: string) => void }) => (
+vi.mock("@/components/editor/milkdown-editor", async () => {
+  const { withEditorSubmission } = await import("@/test/editor-submission-double");
+  return ({
+  MilkdownEditor: withEditorSubmission(({ defaultValue, onChange }: { defaultValue?: string; onChange?: (value: string) => void }) => (
     <textarea
       data-testid="milkdown-editor"
       defaultValue={defaultValue}
       onChange={(event) => onChange?.(event.target.value)}
     />
-  ),
-}));
+  )),
+});
+});
 
 vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: { children: React.ReactNode; href: string }) => {
@@ -269,7 +272,7 @@ describe("ReplyList", () => {
     await act(async () => {
       vi.advanceTimersByTime(20);
     });
-    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "auto", block: "center" });
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "auto", block: "start" });
 
     await act(async () => {
       vi.advanceTimersByTime(1_180);
@@ -278,7 +281,7 @@ describe("ReplyList", () => {
     expect(card?.parentElement).not.toHaveClass("border-primary");
   });
 
-  test("分页在目标前补入时重新居中，用户操作后停止吸附", async () => {
+  test("分页在目标前补入时重新对齐开头，用户操作后停止吸附", async () => {
     vi.useFakeTimers();
     const scrollIntoView = vi
       .spyOn(HTMLElement.prototype, "scrollIntoView")

@@ -150,7 +150,7 @@ export function ProfileEditForm() {
 
       <ProfileSection id="public-profile" title="公开资料">
         <div className="space-y-6">
-          <AvatarUploader username={me.username} avatar={me.avatar} />
+          <AvatarUploader username={me.username} avatar={me.avatar} avatarDisplay={me.avatarDisplay} />
           <UsernameEdit currentUsername={me.username} disabled={busy} onStatusChange={setUsernameStatus} />
         </div>
         <form onSubmit={saveBio} className="mt-6 border-t border-border pt-6">
@@ -186,7 +186,7 @@ export function ProfileEditForm() {
       </ProfileSection>
 
       <ProfileSection id="appearance" title="主页背景">
-        <ProfileCoverUploader username={me.username} avatar={me.avatar} profileCover={me.profileCover} />
+        <ProfileCoverUploader username={me.username} avatar={me.avatar} avatarDisplay={me.avatarDisplay} profileCover={me.profileCover} />
       </ProfileSection>
 
       <ProfileSection id="privacy" title="主页公开范围">

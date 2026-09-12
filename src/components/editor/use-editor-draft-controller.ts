@@ -1,5 +1,6 @@
 "use client";
 
+import type { MarkdownMediaDisplay } from "@/lib/media-display";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -9,9 +10,9 @@ import type { DraftItem } from "@/api/hooks/use-content-drafts";
 import { queryKeys } from "@/api/query-keys";
 import { useAuth } from "@/lib/auth";
 import {
-  ACTIVE_MARKDOWN_CONTRACT_VERSION,
   sanitizeMilkdownMarkdown,
 } from "@/lib/markdown";
+import { assessEditorInput } from "@/lib/editor-content-compatibility";
 import { useApiMeta } from "@/api/hooks/use-api-meta";
 import type { EditorDraftSnapshot } from "@/components/editor/content-drafts-panel";
 
@@ -21,11 +22,15 @@ export type EditorAutoSaveStatus = "idle" | "saving" | "saved" | "error";
 export function useEditorDraftController({
   defaultValue,
   onChange,
-  waitForMarkdownCapability = false,
+  flush,
+  hasEditor,
+  onSyncErrorChange,
 }: {
   defaultValue: string;
   onChange?: (value: string) => void;
-  waitForMarkdownCapability?: boolean;
+  flush?: () => string | null;
+  hasEditor?: () => boolean;
+  onSyncErrorChange?: (hasError: boolean) => void;
 }) {
   const { user } = useAuth();
   const { data: apiMeta, isError: apiMetaError } = useApiMeta();
@@ -33,23 +38,24 @@ export function useEditorDraftController({
   const markdownContractVersion = apiMeta?.markdownContractVersion ?? 0;
   const queryClient = useQueryClient();
   const { mutateAsync: saveDraftAutomatically } = useSaveDraft();
-  // Keep the hook's historical synchronous sanitization contract while the
-  // capability request is pending. EditorCore does not mount Milkdown until
-  // the version-aware value has been applied below.
-  const initialValue = waitForMarkdownCapability
-    ? defaultValue
-    : sanitizeMilkdownMarkdown(defaultValue, {
-      markdownContractVersion: ACTIVE_MARKDOWN_CONTRACT_VERSION,
-    });
+  const initialValue = defaultValue;
+  const [restoredMediaDisplays, setRestoredMediaDisplays] = useState<readonly MarkdownMediaDisplay[] | undefined>();
   const [restoredValue, setRestoredValue] = useState(initialValue);
   const [version, setVersion] = useState(0);
   const [currentContent, setCurrentContent] = useState(initialValue);
+  const [activeMarkdownContractVersion, setActiveMarkdownContractVersion] = useState(0);
   const [contractVersionReady, setContractVersionReady] = useState(false);
   const [draftOpen, setDraftOpen] = useState(false);
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<EditorAutoSaveStatus>("idle");
   const externalOnChangeRef = useRef(onChange);
   const latestContentRef = useRef(initialValue);
+  const validRef = useRef(true);
+  const [valid, setValid] = useState(true);
+  const flushRef = useRef(flush);
+  const hasEditorRef = useRef(hasEditor);
+  useEffect(() => { hasEditorRef.current = hasEditor; }, [hasEditor]);
+  useEffect(() => { flushRef.current = flush; }, [flush]);
   const autoSaveQueueRef = useRef<Promise<unknown>>(Promise.resolve());
   const autoSaveSequenceRef = useRef(0);
   const autoSaveDraftRef = useRef<Pick<DraftItem, "id" | "version"> | undefined>(
@@ -58,29 +64,48 @@ export function useEditorDraftController({
   const autoSaveEnabledRef = useRef(false);
   const appliedContractVersionRef = useRef<number | null>(null);
 
+  useEffect(() => () => {
+    autoSaveEnabledRef.current = false;
+    autoSaveSequenceRef.current++;
+  }, []);
+
   useEffect(() => {
     externalOnChangeRef.current = onChange;
   }, [onChange]);
 
-  useEffect(() => {
-    if (!waitForMarkdownCapability && initialValue !== defaultValue) {
-      externalOnChangeRef.current?.(initialValue);
-    }
-  }, [defaultValue, initialValue, waitForMarkdownCapability]);
 
   useEffect(() => {
     if (!capabilityReady || appliedContractVersionRef.current === markdownContractVersion) {
       return;
     }
+    let source = latestContentRef.current;
+    if (appliedContractVersionRef.current !== null && hasEditorRef.current?.()) {
+      const current = flushRef.current?.();
+      if (current === null || current === undefined) return;
+      source = current;
+    }
+    const safeContent = assessEditorInput(source, markdownContractVersion).edit
+      ? sanitizeMilkdownMarkdown(source, { markdownContractVersion }) : source;
     appliedContractVersionRef.current = markdownContractVersion;
-    const safeContent = sanitizeMilkdownMarkdown(defaultValue, { markdownContractVersion });
     latestContentRef.current = safeContent;
     setRestoredValue(safeContent);
     setCurrentContent(safeContent);
     setVersion((current) => current + 1);
+    setActiveMarkdownContractVersion(markdownContractVersion);
     setContractVersionReady(true);
     if (safeContent !== initialValue) externalOnChangeRef.current?.(safeContent);
-  }, [capabilityReady, defaultValue, initialValue, markdownContractVersion]);
+  }, [capabilityReady, defaultValue, initialValue, markdownContractVersion, valid]);
+
+  const handleValidityChange = useCallback((nextValid: boolean) => {
+    onSyncErrorChange?.(!nextValid);
+    validRef.current = nextValid;
+    setValid(nextValid);
+    if (!nextValid) {
+      autoSaveSequenceRef.current++;
+      setAutoSaveStatus("error");
+    }
+  }, [onSyncErrorChange]);
+  const handleSyncError = useCallback((hasError: boolean) => handleValidityChange(!hasError), [handleValidityChange]);
 
   const handleChange = useCallback(
     (value: string) => {
@@ -93,8 +118,13 @@ export function useEditorDraftController({
   );
 
   const handleRestore = useCallback((snapshot: EditorDraftSnapshot) => {
+    if (!assessEditorInput(snapshot.content, markdownContractVersion).edit) {
+      toast.error("此草稿包含当前版本无法安全编辑的内容，原草稿和当前输入已保留");
+      return;
+    }
     const safeContent = sanitizeMilkdownMarkdown(snapshot.content, { markdownContractVersion });
     latestContentRef.current = safeContent;
+    setRestoredMediaDisplays(snapshot.mediaDisplays ?? []);
     setRestoredValue(safeContent);
     setCurrentContent(safeContent);
     setVersion((current) => current + 1);
@@ -116,7 +146,7 @@ export function useEditorDraftController({
   }, [queryClient, user]);
 
   useEffect(() => {
-    if (!autoSaveEnabled) return;
+    if (!autoSaveEnabled || !valid) return;
     const content = currentContent;
     if (!content.trim()) return;
 
@@ -126,7 +156,9 @@ export function useEditorDraftController({
       autoSaveQueueRef.current = autoSaveQueueRef.current
         .catch(() => undefined)
         .then(() => {
-          if (!autoSaveEnabledRef.current) return null;
+          if (!autoSaveEnabledRef.current || !validRef.current || autoSaveSequenceRef.current !== sequence) return null;
+          const snapshot = flushRef.current ? flushRef.current() : latestContentRef.current;
+          if (snapshot === null || snapshot !== content || !validRef.current || !assessEditorInput(snapshot, markdownContractVersion).edit) return null;
           const currentDraft = autoSaveDraftRef.current;
           return currentDraft
             ? saveDraftAutomatically({
@@ -151,7 +183,7 @@ export function useEditorDraftController({
     }, 800);
 
     return () => window.clearTimeout(timer);
-  }, [autoSaveEnabled, currentContent, saveDraftAutomatically]);
+  }, [autoSaveEnabled, currentContent, markdownContractVersion, saveDraftAutomatically, valid]);
 
   const handleAutoSaveChange = useCallback(
     (enabled: boolean, draft?: Pick<DraftItem, "id" | "version">) => {
@@ -164,8 +196,13 @@ export function useEditorDraftController({
   );
 
   return {
+    syncError: !valid,
+    handleSyncError,
     user,
+    markdownContractVersion: activeMarkdownContractVersion,
+    advertisedMarkdownContractVersion: markdownContractVersion,
     restoredValue,
+    restoredMediaDisplays,
     version,
     contractVersionReady,
     currentContent,
@@ -174,6 +211,7 @@ export function useEditorDraftController({
     autoSaveEnabled,
     autoSaveStatus,
     handleChange,
+    handleValidityChange,
     handleRestore,
     handleOpenDrafts,
     handleAutoSaveChange,

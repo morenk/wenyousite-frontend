@@ -1,73 +1,163 @@
-/** ThreadCover：单图封面、衍生图回退与破图隐藏。 */
-
 import { cleanup, fireEvent, render } from "@testing-library/react";
-import { afterEach, describe, expect, test } from "vitest";
-import { ThreadCover } from "@/components/thread/thread-cover";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import fixture from "../../../../contracts/thread-cover-media-v1-fixtures.json";
+import { ThreadCover } from "../thread-cover";
 
-afterEach(() => cleanup());
+const playback = vi.hoisted(() => ({ active: false, use: vi.fn() }));
+vi.mock("@/hooks/use-cover-playback", () => ({
+  useCoverPlayback: (enabled: boolean, identity: string) => {
+    playback.use(enabled, identity);
+    return { ref: { current: null }, active: enabled && playback.active, size: { width: 320, height: 180, dpr: 2 } };
+  },
+}));
+beforeEach(() => { playback.active = false; playback.use.mockClear(); });
+afterEach(cleanup);
 
-describe("ThreadCover", () => {
-  test("只渲染一张 16:9 半宽封面", () => {
-    const { container } = render(<ThreadCover image="/one.jpg" />);
+const media = { url: "/animation.gif", animated: true, posterUrl: "/poster.webp" };
+const animation = (container: HTMLElement) => container.querySelector("img[data-cover-animation]");
+const poster = (container: HTMLElement) => container.querySelector("img[data-cover-poster]");
 
-    expect(container.querySelector("[data-thread-cover='true']")).toHaveClass(
-      "aspect-video",
-      "w-1/2",
-    );
-    expect(container.querySelectorAll("img")).toHaveLength(1);
+describe("ThreadCover共享契约", () => {
+  for (const sample of fixture.cases) {
+    test(sample.name, () => {
+      const descriptor = "coverMedia" in sample ? sample.coverMedia : undefined;
+      const { container } = render(<ThreadCover image={sample.coverImages[0]} media={descriptor} />);
+      expect(container.querySelectorAll("img")).toHaveLength(descriptor?.posterUrl ? 1 : 0);
+      if (descriptor?.posterUrl) expect(poster(container)).toHaveAttribute("src", descriptor.posterUrl);
+      expect(animation(container)).toBeNull();
+    });
+  }
+  test("只展示第一张封面的半宽16:9区域，原图无法冒充动画poster", () => {
+    const { container, rerender } = render(<ThreadCover image={media.url} media={media} />);
+    expect(container.firstChild).toHaveClass("aspect-video", "w-1/2");
+    expect(poster(container)).toHaveAttribute("referrerpolicy", "no-referrer");
+    expect(playback.use).toHaveBeenLastCalledWith(false, expect.any(String));
+    rerender(<ThreadCover image={media.url} media={{ ...media, posterUrl: media.url }} />);
+    expect(container.querySelectorAll("img")).toHaveLength(0);
+    rerender(<ThreadCover image="/different.gif" media={media} />);
+    expect(container.querySelectorAll("img")).toHaveLength(0);
   });
-
-  test("本站静态图片优先使用 feed 衍生图，GIF 和外链保留原图", () => {
-    const { container, rerender } = render(
-      <ThreadCover image="https://cdn.wenyou.site/uploads/cover.png" />,
-    );
-
-    expect(container.querySelector("img")).toHaveAttribute(
-      "src",
-      "https://cdn.wenyou.site/uploads/cover_feed.webp",
-    );
-
-    rerender(<ThreadCover image="https://cdn.wenyou.site/media/cover.webp" />);
-    expect(container.querySelector("img")).toHaveAttribute(
-      "src",
-      "https://cdn.wenyou.site/media/cover_feed.webp",
-    );
-
-    rerender(<ThreadCover image="https://cdn.wenyou.site/uploads/animated.gif" />);
-    expect(container.querySelector("img")).toHaveAttribute(
-      "src",
-      "https://cdn.wenyou.site/uploads/animated.gif",
-    );
-
-    rerender(<ThreadCover image="https://legacy.example.com/external.jpg" />);
-    expect(container.querySelector("img")).toHaveAttribute(
-      "src",
-      "https://legacy.example.com/external.jpg",
-    );
-    expect(container.querySelector("img")).toHaveAttribute(
-      "referrerpolicy",
-      "no-referrer",
-    );
-  });
-
-  test("衍生图失败回退原图，原图仍失败时隐藏封面", () => {
-    const { container } = render(
-      <ThreadCover image="https://cdn.wenyou.site/uploads/broken.png" />,
-    );
-    const image = container.querySelector("img");
-
-    fireEvent.error(image!);
-    expect(container.querySelector("img")).toHaveAttribute(
-      "src",
-      "https://cdn.wenyou.site/uploads/broken.png",
-    );
-
-    fireEvent.error(container.querySelector("img")!);
+  test("poster失败保留占位，不回退原图；空封面不占空间", () => {
+    const { container, rerender } = render(<ThreadCover image={media.url} media={media} />);
+    fireEvent.error(poster(container)!);
+    expect(container.querySelectorAll("img")).toHaveLength(0);
+    expect(container.firstChild).toBeInTheDocument();
+    expect(playback.use).toHaveBeenLastCalledWith(false, expect.any(String));
+    rerender(<ThreadCover image={null} />);
     expect(container.firstChild).toBeNull();
   });
+});
 
-  test("空地址不渲染封面区域", () => {
-    const { container } = render(<ThreadCover image={null} />);
-    expect(container.firstChild).toBeNull();
+describe("ThreadCover动画生命周期", () => {
+  test("静态首帧成功后才参与选中，未选中不挂载原图；加载成功隐藏poster避免透明残影", () => {
+    const view = render(<ThreadCover image={media.url} media={media} />);
+    fireEvent.load(poster(view.container)!);
+    expect(playback.use).toHaveBeenLastCalledWith(true, expect.any(String));
+    expect(animation(view.container)).toBeNull();
+    playback.active = true;
+    view.rerender(<ThreadCover image={media.url} media={media} />);
+    expect(animation(view.container)).toHaveAttribute("src", media.url);
+    expect(poster(view.container)).not.toHaveClass("invisible");
+    fireEvent.load(animation(view.container)!);
+    expect(poster(view.container)).toHaveClass("invisible");
+    expect(animation(view.container)).not.toHaveClass("invisible");
+    playback.active = false;
+    view.rerender(<ThreadCover image={media.url} media={media} />);
+    expect(animation(view.container)).toBeNull();
+    expect(poster(view.container)).not.toHaveClass("invisible");
   });
+  test("离选中后迟到动画load不复活；新一轮选中必须重新等待当前动画load", () => {
+    const view = render(<ThreadCover image={media.url} media={media} />);
+    fireEvent.load(poster(view.container)!);
+    playback.active = true; view.rerender(<ThreadCover image={media.url} media={media} />);
+    const stale = animation(view.container)!;
+    playback.active = false; view.rerender(<ThreadCover image={media.url} media={media} />);
+    fireEvent.load(stale);
+    expect(animation(view.container)).toBeNull();
+    playback.active = true; view.rerender(<ThreadCover image={media.url} media={media} />);
+    expect(poster(view.container)).not.toHaveClass("invisible");
+    expect(animation(view.container)).toHaveClass("invisible");
+  });
+  test("切换媒体后旧poster load不使新媒体提前参与播放", () => {
+    const view = render(<ThreadCover image={media.url} media={media} />);
+    const stale = poster(view.container)!;
+    const next = { ...media, url: "/next.gif", posterUrl: "/next-poster.webp" };
+    view.rerender(<ThreadCover image={next.url} media={next} />);
+    fireEvent.load(stale);
+    expect(playback.use).toHaveBeenLastCalledWith(false, expect.any(String));
+    fireEvent.load(poster(view.container)!);
+    expect(playback.use).toHaveBeenLastCalledWith(true, expect.any(String));
+  });
+  test("动画加载失败恢复首帧并停止同媒体反复重试", () => {
+    const view = render(<ThreadCover image={media.url} media={media} />);
+    fireEvent.load(poster(view.container)!);
+    playback.active = true; view.rerender(<ThreadCover image={media.url} media={media} />);
+    fireEvent.error(animation(view.container)!);
+    expect(animation(view.container)).toBeNull();
+    expect(poster(view.container)).toHaveAttribute("src", media.posterUrl);
+    expect(playback.use).toHaveBeenLastCalledWith(false, expect.any(String));
+    view.rerender(<ThreadCover image={media.url} media={media} />);
+    expect(animation(view.container)).toBeNull();
+  });
+});
+
+describe("列表动画预览播放源", () => {
+  test("按选中像素需求播放preview，原URL关联保持，普通重渲染不换实例，失败只恢复poster", () => {
+    const descriptor = { ...media, previewVariants: [
+      { url: "/preview480.webp", width: 480, height: 270, bytes: 100 },
+      { url: "/preview800.webp", width: 800, height: 450, bytes: 200 },
+    ] };
+    const view = render(<ThreadCover image={media.url} media={descriptor} />);
+    expect(animation(view.container)).toBeNull();
+    fireEvent.load(poster(view.container)!);
+    playback.active = true;
+    view.rerender(<ThreadCover image={media.url} media={descriptor} />);
+    const selected = animation(view.container);
+    expect(selected).toHaveAttribute("src", "/preview800.webp");
+    expect(view.container.firstChild).toHaveAttribute("data-cover-url", media.url);
+    view.rerender(<ThreadCover image={media.url} media={{ ...descriptor }} className="test" />);
+    expect(animation(view.container)).toBe(selected);
+    fireEvent.error(selected!);
+    expect(animation(view.container)).toBeNull();
+    expect(poster(view.container)).toHaveAttribute("src", media.posterUrl);
+    expect(view.container.querySelector('img[src="/animation.gif"]')).toBeNull();
+  });
+  test.each([null, [], [{ url: "/invalid.webp", width: 0, height: 270, bytes: 100 }]])("没有有效preview时仅可信原图路径可播放：%j", (previewVariants) => {
+    const descriptor = { ...media, previewVariants };
+    const view = render(<ThreadCover image={media.url} media={descriptor} />);
+    fireEvent.load(poster(view.container)!);
+    playback.active = true;
+    view.rerender(<ThreadCover image={media.url} media={descriptor} />);
+    expect(animation(view.container)).toHaveAttribute("src", media.url);
+    view.rerender(<ThreadCover image={media.url} media={{ ...descriptor, animated: null }} />);
+    expect(animation(view.container)).toBeNull();
+  });
+});
+
+const fullDisplay = { url: "https://cdn.example.com/complete.webp", contentType: "image/webp" as const, width: 1200, height: 900, bytes: 5000, animated: true, frameCount: 3, durationMs: 4500, loopCount: 2 };
+
+test("没有小预览时用完整display，失败不退回原GIF", () => {
+  playback.active = true;
+  const descriptor = { ...media, display: fullDisplay };
+  const view = render(<ThreadCover image={media.url} media={descriptor} />);
+  fireEvent.load(poster(view.container)!);
+  expect(animation(view.container)).toHaveAttribute("src", fullDisplay.url);
+  fireEvent.error(animation(view.container)!);
+  expect(animation(view.container)).toBeNull();
+  expect(view.container.querySelector(`img[src="${media.url}"]`)).toBeNull();
+  fireEvent.click(view.getByRole("button", { name: "重试封面动图" }));
+  expect(animation(view.container)).toHaveAttribute("src", fullDisplay.url);
+});
+
+test.each([null, "/pending-poster.webp"])("完整display不等待静态poster：%s", (posterUrl) => {
+  playback.active = true;
+  const descriptor = { ...media, posterUrl, display: fullDisplay };
+  const view = render(<ThreadCover image={media.url} media={descriptor} />);
+  expect(animation(view.container)).toHaveAttribute("src", fullDisplay.url);
+  if (poster(view.container)) fireEvent.error(poster(view.container)!);
+  expect(animation(view.container)).toHaveAttribute("src", fullDisplay.url);
+  playback.active = false;
+  view.rerender(<ThreadCover image={media.url} media={descriptor} />);
+  expect(animation(view.container)).toBeNull();
+  expect(view.container.querySelector(`img[src="${media.url}"]`)).toBeNull();
 });

@@ -9,6 +9,8 @@ import {
   type ClipboardEvent as ReactClipboardEvent,
   type ReactNode,
 } from "react";
+import { findMediaDisplay, type MarkdownMediaDisplay } from "@/lib/media-display";
+import { Button } from "@/components/ui/button";
 import ReactMarkdown, { type ExtraProps } from "react-markdown";
 import { createPortal } from "react-dom";
 import remarkGfm from "remark-gfm";
@@ -52,7 +54,7 @@ function isUploadedMediaUrl(url: string): boolean {
   );
 }
 
-/** GIF 派生图仅有静态首帧，正文直接使用原图让浏览器按文件设置播放。 */
+/** 仅用于缺少结构化映射的历史协议判断，不推导动画展示地址。 */
 function isGifUrl(url: string): boolean {
   return /\.gif(?:[?#]|$)/iu.test(url);
 }
@@ -127,17 +129,20 @@ function MarkdownLink({ href, children, node: _node, ...props }: AnchorProps) {
   );
 }
 
-/** 图片组件：本站静态图显示中图，GIF 默认播放原图；点击打开原图 lightbox */
-function MarkdownImage({ src, alt, title, sourcePostId }: ImageProps & { sourcePostId?: string }) {
+/** 图片组件：动画使用完整display，静态保留中图；身份与灯箱展示源分离。 */
+function MarkdownImage({ src, alt, title, sourcePostId, mediaDisplays }: ImageProps & { sourcePostId?: string; mediaDisplays?: readonly MarkdownMediaDisplay[] }) {
   const originalUrl = typeof src === "string" ? src : "";
+  const display = findMediaDisplay(originalUrl, mediaDisplays);
+  const fullUrl = display?.url ?? originalUrl;
   const sticker = typeof title === "string" && title.startsWith("wenyousite-sticker:v1:");
-  const mediumUrl = isUploadedMediaUrl(originalUrl) && !isGifUrl(originalUrl)
+  const mediumUrl = display && (display.animated || isGifUrl(originalUrl) || sticker) ? display.url : isUploadedMediaUrl(originalUrl) && !isGifUrl(originalUrl)
     ? getMarkdownImageVariantUrl(originalUrl, "md")
-    : originalUrl;
+    : fullUrl;
   const [failed, setFailed] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
-  const displaySrc = failed ? originalUrl : mediumUrl;
+  const displaySrc = failed ? fullUrl : mediumUrl;
+  const [displayFailed, setDisplayFailed] = useState(false);
 
   // 空 URL 图片（历史脏数据如 ![1.00]()）直接不渲染，避免破图图标 + alt 泄漏
   if (!originalUrl) return null;
@@ -152,7 +157,7 @@ function MarkdownImage({ src, alt, title, sourcePostId }: ImageProps & { sourceP
         className={cn("group/sticker-image relative", sticker ? "mx-0.5 inline-flex align-middle" : "mx-0 my-2 block w-fit max-w-full")}
       >
         {/* eslint-disable-next-line @next/next/no-img-element -- COS 远程图 + onError 回退 + lightbox，用原生 img */}
-        <img
+        {displayFailed ? <Button type="button" variant="secondary" onClick={() => setDisplayFailed(false)}>重试图片</Button> : <img
           src={displaySrc}
           alt={alt ?? ""}
           {...{ [SITE_CLIPBOARD_MEDIA_ATTRIBUTE]: sticker ? "sticker" : "image" }}
@@ -165,10 +170,11 @@ function MarkdownImage({ src, alt, title, sourcePostId }: ImageProps & { sourceP
             ? STICKER_DISPLAY_STYLE
             : { maxWidth: "100%", maxHeight: "50vh", height: "auto" }}
           onError={() => {
-            if (mediumUrl !== originalUrl) setFailed(true);
+            if (display?.animated || failed || mediumUrl === fullUrl) setDisplayFailed(true);
+            else setFailed(true);
           }}
           onClick={() => setLightboxOpen(true)}
-        />
+        />}
         {canSave && (
           <SaveStickerButton
             source={{ postId: sourcePostId!, imageUrl: originalUrl }}
@@ -179,6 +185,7 @@ function MarkdownImage({ src, alt, title, sourcePostId }: ImageProps & { sourceP
       {lightboxOpen && typeof document !== "undefined" && createPortal(
         <ImageLightbox
           src={originalUrl}
+          display={display}
           alt={alt}
           onClose={() => setLightboxOpen(false)}
         />,
@@ -364,8 +371,30 @@ function remarkPreserveSoftLineBreaks() {
   };
 }
 
+type RenderWhitespaceNode = {
+  type: string;
+  value?: string;
+  position?: unknown;
+  children?: RenderWhitespaceNode[];
+};
+
+/** 保留作者空格时，移除 mdast→hast 生成的排版 LF，避免 br 和列表重复换行。 */
+function rehypeRemoveFormattingLineBreaks() {
+  return (tree: RenderWhitespaceNode) => {
+    const visit = (node: RenderWhitespaceNode) => {
+      if (!node.children) return;
+      node.children = node.children.filter((child) => !(
+        child.type === "text" && child.value === "\n" && !child.position
+      ));
+      node.children.forEach(visit);
+    };
+    visit(tree);
+  };
+}
+
 interface MarkdownContentProps {
   content: string;
+  mediaDisplays?: readonly MarkdownMediaDisplay[];
   diceRolls?: InlineDiceRoll[];
   sourcePostId?: string;
   size?: "reading" | "compact";
@@ -374,6 +403,7 @@ interface MarkdownContentProps {
 
 export function MarkdownContent({
   content,
+  mediaDisplays,
   diceRolls = [],
   sourcePostId,
   size = "reading",
@@ -415,6 +445,7 @@ export function MarkdownContent({
       )}
     >
       <ReactMarkdown
+        rehypePlugins={[rehypeRemoveFormattingLineBreaks]}
         remarkPlugins={[
           remarkGfm,
           [remarkWenyouAlignment, markdownOptions],
@@ -426,7 +457,7 @@ export function MarkdownContent({
         ]}
         components={{
           a: MarkdownLink,
-          img: (props) => <MarkdownImage {...props} sourcePostId={sourcePostId} />,
+          img: (props) => <MarkdownImage {...props} sourcePostId={sourcePostId} mediaDisplays={mediaDisplays} />,
           span: ({ node: _node, ...props }: SpanProps) => {
             void _node;
             const nodeId = props["data-dice-node-id"];
