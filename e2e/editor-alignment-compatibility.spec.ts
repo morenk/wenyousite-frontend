@@ -902,10 +902,16 @@ test("正文标题引用列表保留空格且软 LF 只换一行", async ({ page
 });
 
 for (const alignment of ["center", "right"] as const) {
-  test(`${alignment} 紧邻前文的 P/H2/H3/图片在保存重开与阅读保持四个边界`, async ({ page }) => {
+  test(`${alignment} 紧邻前文的 P/H2/H3/图片在保存重开与阅读保持四个边界`, async ({ page, baseURL }) => {
+    // 使用同源固定图片，遵守候选 CSP 并避免外网依赖。
+    const imageUrl = new URL("/__alignment-fixtures__/boundary.png", baseURL).href;
+    await page.route(imageUrl, (route) => route.fulfill({
+      contentType: "image/png",
+      body: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64"),
+    }));
     const marker = `[wenyousite-align-v1-${alignment}]: #`;
     const content = ["经历：", marker, "目标正文", marker, "## 目标标题", marker,
-      "### 目标小标题", marker, "![图片](https://cdn.example.com/boundary.png)"].join("\n");
+      "### 目标小标题", marker, `![图片](${imageUrl})`].join("\n");
     const harness = await mockAlignmentWorkspace(page, content, 5);
     await openFreshThreadDraft(page);
     const editor = page.locator(".milkdown-editor .ProseMirror").first();
@@ -934,7 +940,7 @@ for (const alignment of ["center", "right"] as const) {
     await expect(reader.locator(":scope > [data-wenyou-align]")).toHaveCount(4);
     await expect(reader.locator("br")).toHaveCount(0);
     expect(await reader.textContent()).toBe("经历：新增目标正文目标标题目标小标题");
-    await expect(reader.locator("img")).toHaveAttribute("src", "https://cdn.example.com/boundary.png");
+    await expect(reader.locator("img")).toHaveAttribute("src", imageUrl);
   });
 }
 

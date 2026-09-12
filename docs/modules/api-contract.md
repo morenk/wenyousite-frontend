@@ -35,6 +35,8 @@
 
 主题删除、点赞和取消点赞现显式声明不可见主题的 404 响应：不存在、他人草稿和 PRIVATE 非成员对 Web 都表现为资源不存在。同步仅更新固定 OpenAPI 与生成类型；现有详情错误态、缓存失效和界面文案保持不变。
 
+主贴权限管理消费后端提交 `6fdfa00eaf1f3056ba30f2ffbc529d12eed1c823` 的固定 OpenAPI。`PATCH /threads/{id}/aggregate` 可选 `defaultSubthreadPostingPolicy` 使用现有三种子贴发言策略；省略保留原值，和默认子贴标题一起原子更新且只递增一次子贴版本。该客户端必须在兼容后端上线后启用；不改变创建流程。
+
 ## 4. 状态管理
 
 TanStack Query 缓存键统一由 `src/api/query-keys.ts` 构造。领域 mutation 在对应 API hook 内完成缓存更新/失效，页面与组件不编排服务端缓存。
