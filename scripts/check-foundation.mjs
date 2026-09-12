@@ -26,12 +26,12 @@ if (packageJson.dependencies?.["@wenyousite/foundation"] !== `github:morenk/weny
 if (manifest.version !== lock.version) failures.push("已安装 foundation 版本与锁文件不一致");
 if (manifest.contractSha256 !== lock.contractSha256) failures.push("已安装 foundation 契约哈希与锁文件不一致");
 if (!read("pnpm-lock.yaml").includes(lock.revision)) failures.push("pnpm-lock.yaml 未锁定指定 foundation revision");
-if (foundationContract.version !== "6.9.0" || foundationContract.schemaVersion !== 2) {
-  failures.push("Web 必须消费 Foundation v6.9.0 schema 2 契约");
+if (foundationContract.version !== "7.0.0" || foundationContract.schemaVersion !== 3) {
+  failures.push("Web 必须消费 Foundation v7.0.0 schema 3 契约");
 }
 for (const context of ["functional-page-title", "functional-section-title", "functional-subsection-title"]) {
   if (!foundationContract.typography.usage.bodySemiboldContexts.includes(context)) {
-    failures.push(`Foundation 缺少 ${context} 黑体标题语境`);
+    failures.push(`Foundation 缺少 ${context} body 600 标题语境`);
   }
 }
 if (!manifest.features?.themes || !manifest.features?.typography || !manifest.features?.interaction || !manifest.features?.controls || !manifest.features?.formatting || !manifest.features?.contentPresentation || !manifest.features?.iconControls || !manifest.features?.navigation || !manifest.features?.language || !manifest.features?.elements || !manifest.features?.brand) {
@@ -41,7 +41,7 @@ if (
   foundationContract.experiences.editor.contentPolicy?.markdownContractVersion !== 4 ||
   foundationContract.experiences.editor.contentPolicy?.structuredCapabilitySource !== "toolbar"
 ) failures.push("已安装 Foundation 未绑定 Markdown v4 工具栏白名单");
-if (Object.keys(manifest.artifactSha256 ?? {}).length !== 60) {
+if (Object.keys(manifest.artifactSha256 ?? {}).length !== 59) {
   failures.push("已安装 Foundation 生成产物清单不完整");
 }
 for (const [relativePath, expectedHash] of Object.entries(manifest.artifactSha256 ?? {})) {
@@ -63,7 +63,7 @@ if (packageJson.dependencies?.["lucide-react"] !== "1.28.0") {
 
 const layout = read("src/app/layout.tsx");
 const themeBootstrap = read("src/lib/theme-bootstrap.ts");
-if (!layout.includes('@wenyousite/foundation/web/fonts.css')) failures.push("根布局未消费中央字体");
+if (!layout.includes("style={FOUNDATION_FONT_VARIABLES}")) failures.push("根布局未消费中央系统字体变量");
 if (!layout.includes('@wenyousite/foundation/web/tokens.css')) failures.push("根布局未消费中央 Token");
 if (!layout.includes('@wenyousite/foundation/brand') || !layout.includes("BRAND_NAME") || !layout.includes("BRAND_TAGLINE")) {
   failures.push("根布局未消费 Foundation 正式品牌文案");

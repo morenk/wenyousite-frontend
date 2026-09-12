@@ -1,4 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
+import { test } from "./fixtures/typography";
+import { expect, type Page } from "@playwright/test";
 
 const layoutUser = {
   id: "workspace-layout-user",
@@ -104,3 +105,36 @@ test.describe("工作区导航", () => {
     });
   });
 });
+
+for (const zoom of [1, 2]) {
+  test(`系统字体：私聊正文中文混排 ${zoom * 100}% 等效缩放`, async ({ page }) => {
+    await page.setViewportSize({ width: 2560, height: 1800 });
+    await mockWorkspaceSession(page);
+    const content = "今晚记录城市与旅途中的温暖故事 ".repeat(8) + "Web 2026 🎲🌙";
+    const conversation = {
+      id: "font-conversation", status: "ACCEPTED", requestDirection: "NONE",
+      otherUser: { id: "font-peer", username: "混排用户 Web 123 🌙", avatar: null, isDeactivated: false },
+      lastMessage: null, unreadCount: 0, archivedAt: null,
+      lastMessageAt: "2026-08-06T20:00:00Z", createdAt: "2026-08-06T19:00:00Z",
+      canSend: true, canAccept: false, canDecline: false, isBlocked: false,
+    };
+    await page.route("**/api/v1/direct-conversations/**", (route) => {
+      const path = new URL(route.request().url()).pathname;
+      const data = path.endsWith("/messages") ? [{
+        id: "font-message", conversationId: conversation.id, senderId: "font-peer",
+        content, media: null, sticker: null, recalledAt: null, createdAt: "2026-08-06T20:00:00Z",
+      }] : path.endsWith("/unread") ? { total: 0 } : path.endsWith("/font-conversation") ? conversation : [];
+      return route.fulfill({ json: { code: 0, message: "ok", data, meta: { cursor: null, hasMore: false } } });
+    });
+    await page.goto("/messages/font-conversation");
+    await page.locator("html").evaluate((element, scale) => { element.style.zoom = String(scale); }, zoom);
+    const bubble = page.locator("p").filter({ hasText: content });
+    await expect(bubble).toBeVisible();
+    await expect(bubble).toHaveCSS("font-family", "system-ui, sans-serif");
+    await expect(bubble).toHaveCSS("font-size", "16px");
+    await expect(bubble).toHaveCSS("line-height", "28px");
+    const geometry = await bubble.evaluate((element) => ({ width: element.clientWidth, scroll: element.scrollWidth, height: element.clientHeight }));
+    expect(geometry.scroll).toBeLessThanOrEqual(geometry.width + 1);
+    expect(geometry.height).toBeGreaterThan(28);
+  });
+}

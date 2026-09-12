@@ -1,0 +1,73 @@
+{
+  "baselineRevision": "f3ed0f83288fdaaaaa9f13c0e7306576a3968f15",
+  "foundationTag": "v7.0.0",
+  "foundationRevision": "a3f722bb9514712ff857065cd210c91414e907e4",
+  "baseline": {
+    "scope": [
+      ".next/static",
+      "public"
+    ],
+    "buildId": "pcCdg7tXXvpcOuHp2TE4X",
+    "files": 243,
+    "bytes": 16128156,
+    "groups": {
+      ".js": {
+        "files": 122,
+        "bytes": 5373698
+      },
+      ".css": {
+        "files": 3,
+        "bytes": 297893
+      },
+      ".ico": {
+        "files": 1,
+        "bytes": 5492
+      },
+      "fonts": {
+        "files": 107,
+        "bytes": 10290364
+      },
+      ".png": {
+        "files": 9,
+        "bytes": 159976
+      },
+      ".webmanifest": {
+        "files": 1,
+        "bytes": 733
+      }
+    },
+    "inventorySha256": "92c31a777b5d5c4f549283b6b8d40e076001d9fdcdcfb8dabede7310859d2e2e"
+  },
+  "candidate": {
+    "scope": [
+      ".next/static",
+      "public"
+    ],
+    "buildId": "xqi5U_u2aFYAlRQTXu-UY",
+    "files": 136,
+    "bytes": 5740702,
+    "groups": {
+      ".js": {
+        "files": 122,
+        "bytes": 5375132
+      },
+      ".css": {
+        "files": 3,
+        "bytes": 199369
+      },
+      ".ico": {
+        "files": 1,
+        "bytes": 5492
+      },
+      ".png": {
+        "files": 9,
+        "bytes": 159976
+      },
+      ".webmanifest": {
+        "files": 1,
+        "bytes": 733
+      }
+    },
+    "inventorySha256": "483a105b478fa78cd86895710b73735006e78643b34c7dd22cf36c12f75e5c09"
+  }
+}

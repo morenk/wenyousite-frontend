@@ -8,6 +8,10 @@ overrides:
   nanoid@3.3.16: 3.3.18
   dompurify@3.4.12: 3.4.14
 
+patchedDependencies:
+  next@16.3.3: 6276f0a05e2c1143797fbbf8584566b24637dfc37a4f97ce0f37c7b0b0b4551b
+  sonner@2.0.7: eccfa13e94694683b06d01a111cd1054775f8839000e7d44272faacd8486ee32
+
 importers:
 
   .:
@@ -49,8 +53,8 @@ importers:
         specifier: ^3.14.9
         version: 3.14.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@wenyousite/foundation':
-        specifier: github:morenk/wenyousite-foundation#v6.9.0
-        version: https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/5888132fb604482a53964c192bb0e1a2874a9a64
+        specifier: github:morenk/wenyousite-foundation#v7.0.0
+        version: https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/a3f722bb9514712ff857065cd210c91414e907e4
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -74,10 +78,10 @@ importers:
         version: 14.3.1
       next:
         specifier: 16.3.3
-        version: 16.3.3(@babel/core@7.29.7(supports-color@10.2.2))(@playwright/test@1.62.0)(@types/node@20.19.43)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        version: 16.3.3(patch_hash=6276f0a05e2c1143797fbbf8584566b24637dfc37a4f97ce0f37c7b0b0b4551b)(@babel/core@7.29.7(supports-color@10.2.2))(@playwright/test@1.62.0)(@types/node@20.19.43)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       nuqs:
         specifier: ^2.9.5
-        version: 2.9.5(next@16.3.3(@babel/core@7.29.7(supports-color@10.2.2))(@playwright/test@1.62.0)(@types/node@20.19.43)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
+        version: 2.9.5(next@16.3.3(patch_hash=6276f0a05e2c1143797fbbf8584566b24637dfc37a4f97ce0f37c7b0b0b4551b)(@babel/core@7.29.7(supports-color@10.2.2))(@playwright/test@1.62.0)(@types/node@20.19.43)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
       openapi-fetch:
         specifier: ^0.17.0
         version: 0.17.0
@@ -104,7 +108,7 @@ importers:
         version: 4.0.1(supports-color@10.2.2)
       sonner:
         specifier: ^2.0.7
-        version: 2.0.7(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        version: 2.0.7(patch_hash=eccfa13e94694683b06d01a111cd1054775f8839000e7d44272faacd8486ee32)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       tailwind-merge:
         specifier: ^3.6.0
         version: 3.6.0
@@ -657,12 +661,6 @@ packages:
 
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
-
-  '@fontsource-variable/noto-sans-sc@5.3.0':
-    resolution: {integrity: sha512-lNar1dF7Ik/lHNPo/7JWG0TolXY29LtsqYgMvEysooZ5bsO9uH4shJmRrwyJ3PjyTPljhpMJEK0jDuLSU4vJ1w==}
-
-  '@fontsource-variable/nunito@5.3.0':
-    resolution: {integrity: sha512-tw0ch7evIDSwoeUy+0XzocYHfbRWLeCRPJy22KgbrLjDLAbNw/fErBiil10Ssrs3Sjr55zaZrr36a975j8cBkQ==}
 
   '@hookform/resolvers@5.5.7':
     resolution: {integrity: sha512-CyPCYV8/KlXfEXLWj8HHHhVsR/IZ6Ckm3b/a4fWtO/lRnRK1huqncb8LlAWrmpPRsse5glF5aVuDRMHEr3UGag==}
@@ -1879,9 +1877,9 @@ packages:
   '@vue/shared@3.5.40':
     resolution: {integrity: sha512-WxnBtruIqOoV3rA4jeKDWzrYI5h7Cp4+pjwDi8kWGHz+IslhiN+wguLVVhtv2l8VoU02rzDCVfDjgCl1lNpZVg==}
 
-  '@wenyousite/foundation@https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/5888132fb604482a53964c192bb0e1a2874a9a64':
-    resolution: {gitHosted: true, integrity: sha512-L1sCqnv0hPsV+YrJYpWVL1y0hdK0DT4+eB1oL8xSSgFehoTxM0+U1qS0qMHbpFUgUtGyodUdjylH9A0X5q4U5Q==, tarball: https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/5888132fb604482a53964c192bb0e1a2874a9a64}
-    version: 6.9.0
+  '@wenyousite/foundation@https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/a3f722bb9514712ff857065cd210c91414e907e4':
+    resolution: {gitHosted: true, integrity: sha512-l1aeqlE4cnt/+CZPqDiCjDuCnGLJEsbs0c/Cg3Z2+8+13ITFUQEvD8uc+Qf55IAuVYvvOW5Oi3D8QLrjyPcwyw==, tarball: https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/a3f722bb9514712ff857065cd210c91414e907e4}
+    version: 7.0.0
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -4887,10 +4885,6 @@ snapshots:
 
   '@floating-ui/utils@0.2.12': {}
 
-  '@fontsource-variable/noto-sans-sc@5.3.0': {}
-
-  '@fontsource-variable/nunito@5.3.0': {}
-
   '@hookform/resolvers@5.5.7(@standard-schema/spec@1.1.0)(react-hook-form@7.83.0(react@19.2.4))(zod@4.4.3)':
     dependencies:
       '@standard-schema/utils': 0.3.0
@@ -6169,10 +6163,8 @@ snapshots:
 
   '@vue/shared@3.5.40': {}
 
-  '@wenyousite/foundation@https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/5888132fb604482a53964c192bb0e1a2874a9a64':
+  '@wenyousite/foundation@https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/a3f722bb9514712ff857065cd210c91414e907e4':
     dependencies:
-      '@fontsource-variable/noto-sans-sc': 5.3.0
-      '@fontsource-variable/nunito': 5.3.0
       lucide-static: 1.28.0
 
   acorn-jsx@5.3.2(acorn@8.18.0):
@@ -7971,7 +7963,7 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
-  next@16.3.3(@babel/core@7.29.7(supports-color@10.2.2))(@playwright/test@1.62.0)(@types/node@20.19.43)(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
+  next@16.3.3(patch_hash=6276f0a05e2c1143797fbbf8584566b24637dfc37a4f97ce0f37c7b0b0b4551b)(@babel/core@7.29.7(supports-color@10.2.2))(@playwright/test@1.62.0)(@types/node@20.19.43)(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
     dependencies:
       '@next/env': 16.3.3
       '@swc/helpers': 0.5.23
@@ -8008,12 +8000,12 @@ snapshots:
 
   normalize-wheel@1.0.1: {}
 
-  nuqs@2.9.5(next@16.3.3(@babel/core@7.29.7(supports-color@10.2.2))(@playwright/test@1.62.0)(@types/node@20.19.43)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4):
+  nuqs@2.9.5(next@16.3.3(patch_hash=6276f0a05e2c1143797fbbf8584566b24637dfc37a4f97ce0f37c7b0b0b4551b)(@babel/core@7.29.7(supports-color@10.2.2))(@playwright/test@1.62.0)(@types/node@20.19.43)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4):
     dependencies:
       '@standard-schema/spec': 1.1.0
       react: 19.2.4
     optionalDependencies:
-      next: 16.3.3(@babel/core@7.29.7(supports-color@10.2.2))(@playwright/test@1.62.0)(@types/node@20.19.43)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      next: 16.3.3(patch_hash=6276f0a05e2c1143797fbbf8584566b24637dfc37a4f97ce0f37c7b0b0b4551b)(@babel/core@7.29.7(supports-color@10.2.2))(@playwright/test@1.62.0)(@types/node@20.19.43)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
 
   object-assign@4.1.1: {}
 
@@ -8610,7 +8602,7 @@ snapshots:
 
   signal-exit@4.1.0: {}
 
-  sonner@2.0.7(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
+  sonner@2.0.7(patch_hash=eccfa13e94694683b06d01a111cd1054775f8839000e7d44272faacd8486ee32)(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
     dependencies:
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)

@@ -1,6 +1,6 @@
+import { test } from "./fixtures/typography";
 import {
   expect,
-  test,
   type Locator,
   type Page,
   type Route,

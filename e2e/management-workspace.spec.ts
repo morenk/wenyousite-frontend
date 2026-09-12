@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
-import { expectFunctionalTitles } from "./fixtures/typography";
+import { expect, type Page } from "@playwright/test";
+import { test, expectFunctionalTitles } from "./fixtures/typography";
 
 const owner = {
   id: "management-owner",
@@ -274,7 +274,7 @@ test.describe("帖子共同创作管理台", () => {
       .toBeLessThanOrEqual(1024);
   });
 
-  test("1920px 黑夜成员权限标题使用黑体", async ({ page }) => {
+  test("1920px 黑夜成员权限标题使用系统字体 body 600", async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     await page.emulateMedia({ colorScheme: "dark" });
     await openManagementWorkspace(page, "?view=members");
@@ -282,13 +282,13 @@ test.describe("帖子共同创作管理台", () => {
     await expectFunctionalTitles(page.getByRole("heading"));
   });
 
-  test("阅读标题保留文楷，从详情打开的导出设置使用黑体", async ({ page }) => {
+  test("阅读标题保留 display 角色，从详情打开的导出设置使用 body 600", async ({ page }) => {
     await mockManagementWorkspace(page);
     await page.goto("/threads/management-visual-thread");
     const title = page.getByRole("heading", { name: thread.title, level: 1 });
     await expect(title).toBeVisible();
     await title.evaluate(async () => { await document.fonts.ready; });
-    await expect(title).toHaveCSS("font-family", /^"LXGW WenKai",/);
+    await expect(title).toHaveCSS("font-family", "system-ui, sans-serif");
     await page.getByRole("button", { name: "更多帖子信息与操作" }).click();
     await page.getByRole("button", { name: "导出主题档案" }).click();
     await expectFunctionalTitles(page.getByRole("dialog").getByRole("heading"));

@@ -52,10 +52,12 @@
   --shadow-dialog: var(--wenyou-shadow-dialog);
   --shadow-floating: var(--wenyou-shadow-floating);
 
-  --font-sans: "Noto Sans SC Variable", "Noto Sans SC", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "LXGW WenKai", "Noto Sans SC Variable", "Noto Sans SC", ui-sans-serif, system-ui, sans-serif;
-  --font-rounded: "Nunito Variable", ui-rounded, "PingFang SC", "Microsoft YaHei", ui-sans-serif, system-ui, sans-serif;
-  --font-utility: "Nunito Variable", "Noto Sans SC Variable", "Noto Sans SC", ui-sans-serif, system-ui, sans-serif;
+  /* Preflight 的编译时回退与 Foundation 契约校验同源，避免保留第三方旧字体栈。 */
+  --default-font-family: system-ui, sans-serif;
+  --font-sans: var(--wenyou-font-body-family);
+  --font-display: var(--wenyou-font-display-family);
+  --font-rounded: var(--wenyou-font-utility-family);
+  --font-utility: var(--wenyou-font-utility-family);
   --font-mono: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
 
@@ -175,6 +177,7 @@ select {
 
 .font-utility {
   font-family: var(--font-utility);
+  font-variant-numeric: tabular-nums;
 }
 
 ::placeholder {

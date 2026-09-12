@@ -1,5 +1,6 @@
+import { test } from "./fixtures/typography";
 import { insertTestEditorImage } from "./fixtures/media";
-import { test, expect } from "@playwright/test";
+import { expect } from "@playwright/test";
 import { loginAsE2eUser, openFreshThreadDraft } from "./fixtures/auth";
 
 test.describe("主题帖创建流程", () => {
@@ -21,7 +22,7 @@ test.describe("主题帖创建流程", () => {
     await editor.pressSequentially("这是 E2E 测试正文内容。", { delay: 20 });
 
     // 验证字数统计出现
-    const charCountEl = page.locator(".tabular-nums");
+    const charCountEl = page.locator(".tabular-nums").filter({ hasText: /^\d+\/10000$/ });
     await expect(charCountEl).toBeVisible();
 
     // 点击保存草稿

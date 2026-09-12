@@ -1,5 +1,6 @@
+import { test } from "./fixtures/typography";
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 import { THEME_PALETTES } from "@wenyousite/foundation/theme";
 
 import { THEME_STORAGE_KEY } from "../src/lib/theme";
@@ -89,7 +90,7 @@ const threads = [
   },
 ] as const;
 
-async function mockHome(page: Page) {
+async function mockHome(page: Page, title?: string) {
   await page.clock.setFixedTime(fixedNow);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.route("**/api/v1/auth/refresh", (route) =>
@@ -152,7 +153,7 @@ async function mockHome(page: Page) {
       body: JSON.stringify({
         code: 0,
         message: "ok",
-        data: threads,
+        data: title ? threads.map((thread) => ({ ...thread, title })) : threads,
         meta: { cursor: null, hasMore: false },
       }),
     }),
@@ -297,3 +298,25 @@ test("首页温暖墨紫黑夜视觉基线", async ({ page }) => {
     animations: "disabled",
   });
 });
+
+for (const zoom of [1, 2]) {
+  test(`系统字体：首页长中文混排标题 ${zoom * 100}% 等效缩放`, async ({ page }) => {
+    const title = "暮色列车寻找失落终点站与回家的路".repeat(4) + " Web 2026 🎲🌙";
+    await page.setViewportSize({ width: 2560, height: 1800 });
+    await mockHome(page, title);
+    await page.goto("/");
+    await page.locator("html").evaluate((element, scale) => { element.style.zoom = String(scale); }, zoom);
+    const heading = page.locator('[data-slot="home-feed"] h3').first();
+    await expect(heading).toHaveText(title);
+    await expect(heading).toHaveCSS("font-family", "system-ui, sans-serif");
+    await expect(heading).toHaveCSS("font-weight", "600");
+    const geometry = await heading.evaluate((element) => ({
+      width: element.clientWidth, scroll: element.scrollWidth, height: element.clientHeight,
+      lineHeight: Number.parseFloat(getComputedStyle(element).lineHeight),
+    }));
+    expect(geometry.scroll).toBeLessThanOrEqual(geometry.width + 1);
+    expect(geometry.height).toBeGreaterThan(geometry.lineHeight);
+    expect(geometry.height).toBeLessThanOrEqual(geometry.lineHeight * 2 + 1);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(2560);
+  });
+}

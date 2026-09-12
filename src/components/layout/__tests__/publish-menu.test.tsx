@@ -18,7 +18,7 @@ import { PublishMenu } from "@/components/layout/publish-menu";
 describe("PublishMenu", () => {
   afterEach(cleanup);
 
-  test("文楷发布按钮展开主题帖与动态两个入口", async () => {
+  test("display 角色发布按钮展开主题帖与动态两个入口", async () => {
     render(<PublishMenu userId="user-1" />);
 
     const trigger = screen.getByRole("button", { name: "打开发布菜单" });

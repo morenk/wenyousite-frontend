@@ -4,23 +4,24 @@
 
 跨端审美、共享 Token、字体角色和编辑器能力的唯一事实源是公开仓库
 [`morenk/wenyousite-foundation`](https://github.com/morenk/wenyousite-foundation)。本仓库由
-[`foundation.lock.json`](../foundation.lock.json) 固定到 `v6.9.0`，实现前必须读取同版本的：
+[`foundation.lock.json`](../foundation.lock.json) 固定到 `v7.0.0`，实现前必须读取同版本的：
 
-- [`docs/foundation.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.9.0/docs/foundation.md)
-- [`docs/platforms/web.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.9.0/docs/platforms/web.md)
-- [`docs/brand.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.9.0/docs/brand.md)
-- [`docs/elements.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.9.0/docs/elements.md)
-- [`docs/images.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.9.0/docs/images.md)
-- [`docs/icons.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.9.0/docs/icons.md)
-- [`docs/notifications.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.9.0/docs/notifications.md)
-- [`docs/interaction.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.9.0/docs/interaction.md)
-- [`docs/presentation.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.9.0/docs/presentation.md)
-- [`docs/navigation-language.md`](https://github.com/morenk/wenyousite-foundation/blob/v6.9.0/docs/navigation-language.md)
-- [`contracts/foundation.v1.json`](https://github.com/morenk/wenyousite-foundation/blob/v6.9.0/contracts/foundation.v1.json)
+- [`docs/foundation.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.0.0/docs/foundation.md)
+- [`docs/platforms/web.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.0.0/docs/platforms/web.md)
+- [`docs/brand.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.0.0/docs/brand.md)
+- [`docs/elements.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.0.0/docs/elements.md)
+- [`docs/images.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.0.0/docs/images.md)
+- [`docs/icons.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.0.0/docs/icons.md)
+- [`docs/notifications.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.0.0/docs/notifications.md)
+- [`docs/interaction.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.0.0/docs/interaction.md)
+- [`docs/presentation.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.0.0/docs/presentation.md)
+- [`docs/navigation-language.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.0.0/docs/navigation-language.md)
+- [`contracts/foundation.v1.json`](https://github.com/morenk/wenyousite-foundation/blob/v7.0.0/contracts/foundation.v1.json)
 
 本地只保留实现映射，不复制规范：
 
-- `src/app/layout.tsx` 引入中央字体与 Token CSS，`globals.css` 只做 Tailwind 映射和 Web 组件样式。
+- `src/app/layout.tsx` 引入中央 Token CSS，通过 `src/lib/typography.ts` 将 `TYPOGRAPHY_FAMILIES` 注入根节点，`--font-sans/display/rounded/utility` 映射各角色且均解析为未加引号的 `system-ui, sans-serif`，`globals.css` 只做 Tailwind 映射和 Web 组件样式。
+- Tailwind Preflight 的编译时默认家族固定为契约校验过的通用系统字体；Sonner 2.0.7 通过受锁文件约束的 pnpm 补丁将 ESM、CJS 和独立 CSS 的内置家族映射到同一 body 变量。Sonner 补丁仅调整字体栈；Next.js 16.3.3 的补丁只移除框架度量表中的 212 个禁用字体家族，避免旧字体标识进入 standalone 依赖。升级对应依赖时须复核补丁并重新运行产物门禁。字体扫描按字体标识识别，Zod 乌兹别克语的 `Noto‘g‘ri` 普通文案不属于字体。
 - 根布局在 hydration 前运行由中央偏好与调色板生成的静态脚本；默认跟随系统，`ThemeProvider` 负责运行时解析、跨标签页同步、`color-scheme`、浏览器主题色与 Sonner 主题。显式偏好只以 `wenyousite-theme` 保存在当前浏览器，不进入账号资料。
 - `ThemeMenu` 在社区/工作区全局导航和认证/站务壳右上角提供“跟随系统、亮色、黑夜”原生单选组；键盘选择即时生效，不发送请求或成功 Toast。
 - 根布局直接消费 Foundation 的正式品牌名称与文案；侧栏首页入口使用相邻可见名称与装饰性标题标识。favicon、Apple touch icon、PWA 图标、标题标识和 Web Manifest 由 `pnpm brand:sync` 从锁定包同步，并由 `pnpm design:check` 逐项校验哈希。
@@ -31,7 +32,7 @@
 - `src/components/ui/` 与 `src/components/layout/` 承担 Web 原语和页面骨架。
 - 发现、动态与搜索使用 `PageHeader compact`：标题和紧随其后的筛选、切换或搜索工具收在同一紧凑面板，不用副标题重复解释页面名称。
 - 列表容器与列表项按 Foundation `experiences.collections` 占满分配列；消息气泡、标签、徽标与紧凑操作是内容宽度例外。
-- 列表负责扫描和进入，标题统一使用 Noto Sans SC 600；详情负责连续阅读，内容标题使用 LXGW WenKai 500。文楷只用于品牌、内容页面/区块结构标题、详情内容标题和文字封面，不用于弹层、状态、导航、控件、用户名、计数或富文本标题。
+- 列表负责扫描和进入，标题使用 body 600；详情负责连续阅读，内容标题使用 display 500。display 角色只用于品牌、内容页面/区块结构标题、详情内容标题和文字封面，不用于弹层、状态、导航、控件、用户名、计数或富文本标题。
 - `WenyouTime` 统一列表与详情时间：72 小时内显示“刚刚 / N 分钟前 / N 小时前 / N 天前”，之后同年显示 `MM-dd HH:mm`、跨年显示 `yyyy-MM-dd HH:mm`，完整本地时间写入 `title`。`WenyouCount` 从一万起使用“万/亿”紧凑值，并向辅助技术保留精确数字。
 - 核心导航、操作、编辑器能力和常见状态使用 Foundation 语义图标；图标型操作统一通过共享 `Tooltip` 补足悬停/聚焦说明；全局 Provider 使用短延迟并保留可访问名称，不能以 `title` 属性或仅悬停内容替代按钮的 `aria-label`。
 - 二态互动统一通过 `InteractionToggle` 消费 Foundation `iconControls`：未选中使用 `mutedForeground` 描边；选中态始终保持容器透明，只让点赞的实心心形变为鲜粉 `like`、收藏的实心书签变为金色 `bookmark`、官方更新订阅的实心铃铛变为品牌深紫 `brandStrong`。计数和文字保持中性 `foreground`。hover、focus 与 pressed 只在图标命中区显示同色圆形瞬时状态层，不能重新给整个按钮添加柔和底色；危险操作继续使用 destructive 语义。请求中保留提交前视觉和焦点能力，以 loading 图标、`aria-busy` 与 `aria-disabled` 阻止重复提交；按钮名称稳定为动作词，状态和数量置于可访问说明并用 `aria-pressed` 表示。
@@ -39,7 +40,7 @@
 - 正文与元数据元素统一消费 Foundation `experiences.elements`：传送门使用同源门图标和可换行轻量胶囊；普通链接保留下划线，提及保留 `@`，行内代码、骰子、引用和分隔线使用 `--element-*`。引用在编辑态和发布态都映射为占满可用正文宽度的“书签纸条”：`muted` 底色、2px `brandStrong` 起始边标记、只圆结束侧、正文排版继承，裁掉首尾子节点外间距且不生成引号、图标或阴影。正文分隔线在两态都映射为正文可用宽度 50% 的居中 `border` 短线与 5px `brandStrong` 圆点，上下保持 1.75em 节奏，不复用楼层或卡片的满宽边界；编辑态必须覆盖 Crepe 原子选中样式，保证圆点不随下一段是否存在而漂移。骰子以无图标原子节点显示 `{notation} = {total}`，多骰明细保留在完整可访问说明中；待掷显示 `{notation} = ?`。Badge 只有默认/紧凑两档，等级固定 `Lv.N` 并按雾灰、杏桃、玫瑰、珊瑚、深莓五档渐进，未读数隐藏零并封顶 `99+`；可点击主题标签只保留 `#`、Foundation 粉色品牌文字和 32px 透明命中区，不使用底色、描边或胶囊包裹，hover 下划线与键盘焦点环负责交互反馈。
 - 头像缺失或图片失败时显示首个可读字符，匿名或不可用身份显示中性用户图标；邮箱验证状态不进入列表、详情或公开资料，只保留账号安全入口与受限操作引导。
 - 分类只使用文字与 neutral Badge 表达，不渲染分类色块或线路；分类 API 不定义颜色字段。
-- 设置与管理界面的各级标题使用 Noto Sans SC 600；`PageHeader purpose="functional"` 保留普通/紧凑模式的字号和行高，默认 `content` 保留文楷。覆盖资料与账号设置、已发布帖管理、发布/导出设置及完整站务入口和工作区；管理中的帖子名称也使用黑体。普通认证、创建/草稿续写、消息通知、钱包收藏、用户举报申诉及正式内容展示沿用原字体。
+- 设置与管理界面的各级标题使用系统字体 body 600；`PageHeader purpose="functional"` 保留普通/紧凑模式的字号和行高，默认 `content` 保留 display 500。覆盖资料与账号设置、已发布帖管理、发布/导出设置及完整站务入口和工作区；管理中的帖子名称也使用 body 600。普通认证、创建/草稿续写、消息通知、钱包收藏、用户举报申诉及正式内容展示保留原角色、字号、行高和字重，字体家族统一为系统字体。
 - 页面标题、区块标题、正文、标签和说明消费 Foundation 语义排版 Token；加载、空结果、失败和 Mutation pending 遵循 `interaction` 契约。
 - 主要行动按钮消费 `actionPrimary`，柔和容器和选中面消费 `primary`，导航线路、未读点、进度和焦点定位消费 `brandStrong`。Milkdown Crepe、图片查看器、原生表单与 Toast 都映射当前主题语义，避免黑夜模式出现亮白孤岛。
 - 可见辅助文案只保留操作后果、输入限制、权限边界、错误恢复和空态引导；不向用户解释格式白名单、服务端结算、编码压缩、存储协议或内部编号，也不重复字段、计数器和按钮已经表达的信息。必要的无障碍名称与隐藏说明继续保留。
@@ -48,6 +49,7 @@
 - 社区页在 `1024–1279px` 居中排列 72px 导航轨与 42rem 内容栏，`1280px` 起再展开左右 17rem 侧轨，避免隐藏右轨后内容栏仍向右偏移；该断点只服务 PC Web，不引入移动端布局契约。
 - 功能性过渡由全局 Motion Provider 遵循 `prefers-reduced-motion`；原生滚动行为也必须单独读取同一偏好，不能只依赖动画组件降级。
 - 分类名称和排序等业务数据仍由 `GET /thread-categories` 提供，不进入设计基础仓库。
-- `pnpm design:check` 同时校验版本锁、中央产物消费和业务 UI 静态约束。
+- `pnpm design:check` 同时校验版本锁、中央产物消费和业务 UI 静态约束；`fonts:check` 扫描生产源码与公共资产，构建末尾的 `fonts:check:build` 扫描 `.next/static`、`.next/server` 与 standalone 应用产物，拒绝旧字体名称、失效字体 CSS 入口和自有字体扩展文件。数学与图标字体功能资源、系统等宽栈继续保留。
+- 浏览器字体守卫覆盖首页、阅读、编辑、私聊、设置、站务和动态文字封面，检查请求与加载的字体；长中文标题、中英数字 Emoji 混排按 100% 与 200% 等效 CSS 缩放检查换行和溢出。utility 使用 `tabular-nums`。系统字体字形与字面宽度由设备决定，跨平台和真实浏览器缩放仍需负责人验收，不能由 Linux 截图代替。
 
 需要新增共享语义时，先在基础仓库修改契约、生成产物并发布新标签，再升级本仓库锁文件；只影响 Web 的实现细节记录在对应 `docs/modules/` 文档。

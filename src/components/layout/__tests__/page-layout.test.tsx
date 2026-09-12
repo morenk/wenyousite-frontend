@@ -64,7 +64,7 @@ describe("页面布局组件", () => {
     );
   });
 
-  test.each(["default", "compact"] as const)("功能标题在 %s 模式使用黑体半粗并保留标题尺寸", (variant) => {
+  test.each(["default", "compact"] as const)("功能标题在 %s 模式使用body 半粗并保留标题尺寸", (variant) => {
     render(<PageHeader title="账号安全" purpose="functional" variant={variant} />);
     const heading = screen.getByRole("heading", { name: "账号安全" });
     const role = variant === "compact" ? "section" : "page";

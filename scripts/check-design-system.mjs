@@ -141,7 +141,7 @@ const bodyTypographyFiles = [
 ];
 for (const fileName of bodyTypographyFiles) {
   if (readFileSync(resolve(root, fileName), "utf8").includes("font-display")) {
-    failures.push(`${fileName}: 设置、管理、列表、弹层、状态、控件、用户名或数字不得使用文楷`);
+    failures.push(`${fileName}: 设置、管理、列表、弹层、状态、控件、用户名或数字不得使用 display 标题角色`);
   }
 }
 
