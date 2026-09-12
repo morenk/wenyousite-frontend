@@ -302,7 +302,7 @@ describe("MomentComments", () => {
     );
     await waitFor(() => expect(scrollIntoView).toHaveBeenCalledWith({
       behavior: "auto",
-      block: "center",
+      block: "start",
     }));
   });
 

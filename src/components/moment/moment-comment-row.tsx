@@ -1,7 +1,7 @@
 "use client";
 
 import { ShieldAlert, Trash2 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { type MomentComment, useDeleteMomentComment } from "@/api/hooks/use-moments";
 import { getApiErrorMessage } from "@/api/errors";
@@ -16,6 +16,7 @@ import { WenyouTime } from "@/components/shared/wenyou-time";
 import type { MomentReplyTarget } from "@/components/moment/moment-comment-types";
 import { useAuth } from "@/lib/auth";
 import { STICKER_DISPLAY_STYLE } from "@/lib/sticker-display";
+import { useDiscussionTargetReveal } from "@/hooks/use-discussion-target-reveal";
 import { cn } from "@/lib/utils";
 
 const GalleryLightbox = dynamic(() => import("@/components/moment/moment-gallery-lightbox").then((module) => module.MomentGalleryLightbox), { ssr: false });
@@ -40,15 +41,8 @@ export function MomentCommentRow({
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [moderationOpen, setModerationOpen] = useState(false);
   useMomentOverlay(lightboxUrl !== null);
-  const rowRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    if (!focused) return;
-    const frame = window.requestAnimationFrame(() => {
-      rowRef.current?.scrollIntoView({ behavior: "auto", block: "center" });
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [focused]);
+  useDiscussionTargetReveal(focused ? `moment-comment-${comment.id}` : undefined);
 
   const deleteComment = async () => {
     try {
@@ -61,11 +55,10 @@ export function MomentCommentRow({
 
   return (
     <div
-      ref={rowRef}
       id={`moment-comment-${comment.id}`}
       aria-current={focused ? "location" : undefined}
       className={cn(
-        "flex scroll-mt-24 gap-3 rounded-xl transition-[background-color,box-shadow]",
+        "flex scroll-mt-6 gap-3 rounded-xl transition-[background-color,box-shadow]",
         focused && "bg-primary/[0.12] ring-2 ring-brand-strong/55 ring-offset-4 ring-offset-background",
       )}
     >
