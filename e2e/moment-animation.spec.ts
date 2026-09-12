@@ -10,6 +10,40 @@ const reply = { id: "reply", momentId: "animation", author: user, content: "楼�
 const comments = [{ ...reply, id: "comment", content: "可见评论同时播放", parentCommentId: null, media: null, sticker: asset("sticker", true), replyCount: 1, replies: [reply] }];
 const detail = { id: "animation", authorId: user.id, author: user, title: "动态播放验收", content: "动态图仅详情播放", contentExcerpt: "动态图仅详情播放", coverType: "IMAGE", textCoverTheme: "ROSE", coverMedia: images[0], images, imageCount: 2, version: 1, canEdit: false, canDelete: false, canInteract: true, likeCount: 0, commentCount: 2, bookmarkCount: 0, tipTotal: "0", viewerLiked: false, viewerBookmarked: true, createdAt: "2026-09-10T12:00:00Z", updatedAt: "2026-09-10T12:00:00Z" };
 
+for (const width of [1024, 1440]) {
+  test(`评论媒体不挤出回复和删除按钮：${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 1000 });
+    await mock(page);
+    const layoutComments = [
+      { ...comments[0], canDelete: true, replies: [{ ...reply, canDelete: true }] },
+      { ...comments[0], id: "static", content: "静态图片", sticker: null, media: { ...asset("static"), url: "/moment-animation/static.webp", animated: false, contentType: "image/webp" }, canDelete: true, replyCount: 0, replies: [] },
+      { ...comments[0], id: "text", content: "纯文字评论", sticker: null, media: null, canDelete: true, replyCount: 0, replies: [] },
+    ];
+    await page.route("**/api/v1/moments/animation/comments?*", (route) => route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ code: 0, message: "ok", data: layoutComments, meta: { cursor: null, hasMore: false } }),
+    }));
+    await page.goto("/moments/animation");
+    for (const id of ["comment", "reply", "static", "text"]) {
+      const row = page.locator(`#moment-comment-${id}`);
+      await row.scrollIntoViewIfNeeded();
+      const media = row.locator('button[aria-label^="查看评论"] img');
+      if (id !== "text") {
+        await expect.poll(() => media.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+      }
+      await expect.poll(() => row.evaluate((element) => {
+        const bounds = element.getBoundingClientRect();
+        const replyButton = element.querySelector('button[aria-label="回复"]')!.getBoundingClientRect();
+        const deleteButton = element.querySelector('button[aria-label="删除"]')!.getBoundingClientRect();
+        const content = element.querySelector('button[aria-label^="查看评论"]') ?? element.querySelector("p")!;
+        const gap = replyButton.top - content.getBoundingClientRect().bottom;
+        return gap >= 0 && gap <= 8 && replyButton.bottom <= bounds.bottom + 1
+          && deleteButton.bottom <= bounds.bottom + 1 && Math.abs(replyButton.top - deleteButton.top) <= 1;
+      })).toBe(true);
+    }
+  });
+}
+
 async function mock(page: Page, options: { preview?: "missing" | "failed"; failAnimation?: boolean } = {}) {
   const requests: string[] = [];
   let failAnimation = !!options.failAnimation;
