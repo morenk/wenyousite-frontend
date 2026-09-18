@@ -343,8 +343,8 @@ export function serializeEditorMarkdown(
 }
 
 /**
- * 唯一的文档变更出口：每个 docChanged 事务完成后立即序列化并同步父表单。
- * 不依赖 Milkdown 的防抖 markdownUpdated 事件，因此发布按钮不会读到旧正文。
+ * 唯一的文档变更出口：普通事务立即同步；长按删除期间合并完整编码。
+ * 松键、失焦和显式 flush 均同步当前文档，保存入口不会读到父表单旧值。
  */
 export function createEditorMarkdownBridge({
   onChange,
@@ -356,11 +356,40 @@ export function createEditorMarkdownBridge({
 }: EditorMarkdownBridgeOptions) {
   return $prose((ctx) => {
     let previousMarkdown: string | undefined;
+    let repeatingDelete = false;
+    let pendingSync: ReturnType<typeof setTimeout> | undefined;
+    let flushPending: (() => void) | undefined;
+    const cancelPending = () => {
+      clearTimeout(pendingSync);
+      pendingSync = undefined;
+    };
+    const finishDeletion = () => {
+      repeatingDelete = false;
+      if (pendingSync !== undefined) flushPending?.();
+    };
     return new Plugin({
       key: new PluginKey("wenyousite-editor-markdown-bridge"),
       appendTransaction: (transactions, _previous, state) => transactions.some((tr) => tr.docChanged)
         ? adoptEditedTrailingParagraphs(state) : null,
       props: {
+        handleDOMEvents: {
+          keydown: (view, event) => {
+            if (event.isComposing || view.composing) return false;
+            if (event.key === "Backspace" || event.key === "Delete") {
+              repeatingDelete = event.repeat;
+            } else {
+              finishDeletion();
+            }
+            // 保留浏览器/ProseMirror 原生删除、字素和撤销语义。
+            return false;
+          },
+          keyup: (_view, event) => {
+            if (event.key === "Backspace" || event.key === "Delete") finishDeletion();
+            return false;
+          },
+          blur: () => { finishDeletion(); return false; },
+          compositionstart: () => { finishDeletion(); return false; },
+        },
         handleKeyDown: (nextView, event) => {
           if (handlePlainNewline(nextView, event)) return true;
           if (
@@ -396,6 +425,7 @@ export function createEditorMarkdownBridge({
       view: (view) => {
         let failed = false;
         const flush = (notify = true) => {
+          cancelPending();
           try {
             const markdown = serializeEditorMarkdown(ctx, view.state.doc, { markdownContractVersion });
             const changed = failed || markdown !== previousMarkdown;
@@ -412,13 +442,26 @@ export function createEditorMarkdownBridge({
             return null;
           }
         };
+        flushPending = () => { flush(); };
         flush(false);
         onReady?.(() => flush());
         return {
           update: (nextView, previousState) => {
-            if (!nextView.state.doc.eq(previousState.doc)) flush();
+            if (nextView.state.doc.eq(previousState.doc)) return;
+            if (!repeatingDelete) {
+              flush();
+              return;
+            }
+            cancelPending();
+            // 停止输入但未收到 keyup 时也能同步；连续删除期间不做整篇编码。
+            pendingSync = setTimeout(() => { flush(); }, 120);
           },
-          destroy: () => onReady?.(null),
+          destroy: () => {
+            cancelPending();
+            repeatingDelete = false;
+            flushPending = undefined;
+            onReady?.(null);
+          },
         };
       },
     });
