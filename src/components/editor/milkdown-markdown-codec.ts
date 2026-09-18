@@ -2,11 +2,11 @@ import {
   remarkStringifyOptionsCtx,
   serializerCtx,
 } from "@milkdown/core";
-import { paragraphAttr } from "@milkdown/kit/preset/commonmark";
+import { paragraphAttr, textSchema } from "@milkdown/kit/preset/commonmark";
 import type { Ctx } from "@milkdown/kit/ctx";
-import type { Node as ProseNode } from "@milkdown/kit/prose/model";
+import { Fragment, type Node as ProseNode } from "@milkdown/kit/prose/model";
 import { Plugin, PluginKey } from "@milkdown/kit/prose/state";
-import { $prose, $remark } from "@milkdown/kit/utils";
+import { $node, $prose, $remark } from "@milkdown/kit/utils";
 import {
   findUnsupportedMarkdownFormats,
   prepareMilkdownEditorMarkdown,
@@ -47,6 +47,7 @@ type SerializerState = {
   containerPhrasing: (node: EditorMarkdownNode, info: SerializerInfo) => string;
   createTracker: (info: SerializerInfo) => SerializerTracker;
   enter: (name: string) => () => void;
+  safe: (value: string, info: Record<string, unknown>) => string;
 };
 
 type MarkdownHandler = ((
@@ -111,6 +112,18 @@ export const editorAttentionBoundaryParser = $remark(
   () => remarkRecoverAttentionBoundaries,
 );
 
+/** 私有中间 AST 节点：阻止 Milkdown 在关闭 marks 时丢失已确认应保留的边界空白。 */
+export const editorBoundaryTextSchema = $node("text", () => ({
+  ...textSchema.schema,
+  toMarkdown: {
+    ...textSchema.schema.toMarkdown,
+    runner: (state, node) => {
+      const protectedBoundary = node.marks.length > 0 && /^\p{White_Space}|\p{White_Space}$/u.test(node.text ?? "");
+      state.addNode(protectedBoundary ? "wenyouBoundaryText" : "text", undefined, node.text);
+    },
+  },
+}));
+
 function classifyAttentionCharacter(value: string): "word" | "whitespace" | "punctuation" {
   if (!value || /[\s\p{Z}]/u.test(value)) return "whitespace";
   return /[\p{P}\p{S}]/u.test(value) ? "punctuation" : "word";
@@ -165,37 +178,29 @@ function encodeLastCodePoint(value: string): string {
   return last ? `${value.slice(0, -last.length)}${encodeCharacterReference(last)}` : value;
 }
 
-type InlineBoundaryWhitespace = {
-  leading: string;
-  core: string;
-  trailing: string;
-};
-
-function splitInlineBoundaryWhitespace(value: string): InlineBoundaryWhitespace {
-  const leading = value.match(/^[^\S\r\n]+/u)?.[0] ?? "";
-  const trailing = value.match(/[^\S\r\n]+$/u)?.[0] ?? "";
-  const coreStart = leading.length;
-  const coreEnd = Math.max(coreStart, value.length - trailing.length);
-  return {
-    leading,
-    core: value.slice(coreStart, coreEnd),
-    trailing,
-  };
-}
-
 /** Milkdown 自带 mark handlers 未转发 attention 邻接保护；补齐标准 mdast 行为。 */
 function createSafeAttentionMarkdownHandler(
   construct: "strong" | "emphasis" | "strikethrough",
   repetitions: 1 | 2,
 ): MarkdownHandler {
   const fallbackMarker = construct === "strikethrough" ? "~" : "*";
+  // 代码的反引号和邻接粗体会使星号游程产生歧义；peek 必须使用相同选择。
+  const shouldUseUnderscore = (node: EditorMarkdownNode & { marker?: unknown }, parent: EditorMarkdownNode) => {
+    const siblings = parent?.children ?? [];
+    const index = siblings.indexOf(node);
+    return node.marker === "_" || (construct === "emphasis" && (
+      node.children?.some((child) => child.type === "inlineCode")
+      || siblings[index - 1]?.type === "strong"
+      || siblings[index + 1]?.type === "strong"
+    ));
+  };
   const handler: MarkdownHandler = (nodeValue, _parent, stateValue, infoValue) => {
     const node = nodeValue as EditorMarkdownNode & { marker?: unknown };
     const state = stateValue as SerializerState;
     const info = infoValue as SerializerInfo;
     const marker = construct === "strikethrough"
       ? "~"
-      : node.marker === "_"
+      : shouldUseUnderscore(node, _parent as EditorMarkdownNode)
         ? "_"
         : "*";
     const delimiter = marker.repeat(repetitions);
@@ -208,26 +213,21 @@ function createSafeAttentionMarkdownHandler(
       ...tracker.current(),
     } as SerializerInfo));
 
-    const boundary = splitInlineBoundaryWhitespace(between);
-    if (!boundary.core) {
-      exit();
-      state.attentionEncodeSurroundingInfo = undefined;
-      return between;
-    }
+    let content = between;
 
     const open = getAttentionEncodeSides(
-      lastCodePoint(boundary.leading) || lastCodePoint(info.before),
-      firstCodePoint(boundary.core),
+      lastCodePoint(info.before),
+      firstCodePoint(content),
       marker,
     );
-    if (open.inside) boundary.core = encodeFirstCodePoint(boundary.core);
+    if (open.inside) content = encodeFirstCodePoint(content);
 
     const close = getAttentionEncodeSides(
-      firstCodePoint(boundary.trailing) || firstCodePoint(info.after),
-      lastCodePoint(boundary.core),
+      firstCodePoint(info.after),
+      lastCodePoint(content),
       marker,
     );
-    if (close.inside) boundary.core = encodeLastCodePoint(boundary.core);
+    if (close.inside) content = encodeLastCodePoint(content);
     const after = tracker.move(delimiter);
     exit();
 
@@ -235,11 +235,11 @@ function createSafeAttentionMarkdownHandler(
       before: open.outside,
       after: close.outside,
     };
-    return `${boundary.leading}${before}${boundary.core}${after}${boundary.trailing}`;
+    return `${before}${content}${after}`;
   };
-  handler.peek = (nodeValue) => {
-    const marker = (nodeValue as { marker?: unknown } | undefined)?.marker;
-    return construct !== "strikethrough" && marker === "_" ? "_" : fallbackMarker;
+  handler.peek = (nodeValue, parent) => {
+    const node = nodeValue as EditorMarkdownNode & { marker?: unknown };
+    return construct !== "strikethrough" && shouldUseUnderscore(node, parent as EditorMarkdownNode) ? "_" : fallbackMarker;
   };
   return handler;
 }
@@ -272,6 +272,13 @@ export function configureEditorMarkdownSerializer(ctx: Ctx) {
     ...previous(node),
     ...(node.content.size === 0 ? { "data-wenyou-empty-row": "true" } : {}),
   }));
+  const textHandler: MarkdownHandler = (nodeValue, _parent, stateValue, infoValue) => {
+    const node = nodeValue as { value: string };
+    const state = stateValue as SerializerState;
+    const safe = state.safe(node.value, { ...infoValue as SerializerInfo, encode: [] });
+    return node.value.endsWith(" ")
+      ? safe.replace(/(?:&#x20;)+$/u, (tail) => " ".repeat(tail.length / 6)) : safe;
+  };
   ctx.update(remarkStringifyOptionsCtx, (options) => ({
     ...options,
     rule: "-" as const,
@@ -281,13 +288,20 @@ export function configureEditorMarkdownSerializer(ctx: Ctx) {
     handlers: {
       ...options.handlers,
       // Milkdown 的尾随空白捷径会漏转义行首 >；所有文字均经标准安全输出。
-      text: (node, _parent, state, info) => {
-        const safe = state.safe(node.value, { ...info, encode: [] });
-        // 只还原原文确有的末尾 ASCII 空格；字面实体和 Markdown 符号仍保持转义。
-        return node.value.endsWith(" ")
-          ? safe.replace(/(?:&#x20;)+$/u, (tail) => " ".repeat(tail.length / 6)) : safe;
-      },
+      text: textHandler,
+      wenyouBoundaryText: textHandler,
       break: () => "\n",
+      paragraph: (node, _parent, state, info) => {
+        const exit = state.enter("paragraph");
+        const subexit = state.enter("phrasing");
+        let value = state.containerPhrasing(node, info);
+        subexit();
+        exit();
+        // CommonMark 会裁剪段落两端空格；只编码已有边界字符，不增加可见内容。
+        if (/^[\t ]/u.test(value)) value = encodeFirstCodePoint(value);
+        if (/[\t ]$/u.test(value)) value = encodeLastCodePoint(value);
+        return value;
+      },
       delete: safeDeleteMarkdownHandler,
       diceInline: (node: DiceMarkdownNode) => serializeDiceMarkdownNode(node),
       emphasis: safeEmphasisMarkdownHandler,
@@ -300,13 +314,40 @@ function isEmptyParagraph(node: ProseNode | null | undefined): boolean {
   return node?.type.name === "paragraph" && node.content.size === 0;
 }
 
+/** 共享组合契约：非代码片段的边界空白外置，代码里的空白及全部 marks 原样保留。 */
+function normalizeInlineBoundaryWhitespace(node: ProseNode): ProseNode {
+  if (node.isLeaf) return node;
+  const children: ProseNode[] = [];
+  node.forEach((child, _offset, index) => {
+    if (!child.isText || !child.marks.length || child.marks.some((mark) => mark.type.name === "inlineCode")) {
+      children.push(normalizeInlineBoundaryWhitespace(child));
+      return;
+    }
+    const text = child.text!;
+    const leading = /^\p{White_Space}*/u.exec(text)![0];
+    const trailing = /\p{White_Space}*$/u.exec(text)![0];
+    const core = text.slice(leading.length, Math.max(leading.length, text.length - trailing.length));
+    const sharedBefore = child.marks.filter((mark) => node.maybeChild(index - 1)?.marks.some((other) => mark.eq(other)));
+    const sharedAfter = child.marks.filter((mark) => node.maybeChild(index + 1)?.marks.some((other) => mark.eq(other)));
+    if (!core) {
+      children.push(child.mark(sharedBefore.filter((mark) => sharedAfter.some((other) => mark.eq(other)))));
+      return;
+    }
+    // 子节点分片不等于格式范围边界：保留跨越相邻节点的共同 marks。
+    if (leading) children.push(node.type.schema.text(leading, sharedBefore));
+    children.push(node.type.schema.text(core, child.marks));
+    if (trailing) children.push(node.type.schema.text(trailing, sharedAfter));
+  });
+  return node.copy(Fragment.fromArray(children));
+}
+
 /** 只规范化编辑器自身的合法输出；这里禁止调用任何字面降级净化器。 */
 export function serializeEditorMarkdown(
   ctx: Ctx,
   doc: ProseNode,
   options: MarkdownValidationOptions = {},
 ): string {
-  doc = documentWithExplicitEmptyRows(withoutAutomaticTrailingParagraph(doc));
+  doc = normalizeInlineBoundaryWhitespace(documentWithExplicitEmptyRows(withoutAutomaticTrailingParagraph(doc)));
   let markdown = normalizeSerializedAlignmentMarkers(
     canonicalizeEditorEmptyRows(
       sanitizeEmptyImages(

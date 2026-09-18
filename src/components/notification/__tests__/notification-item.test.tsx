@@ -290,6 +290,15 @@ describe("NotificationItem", () => {
     expect(screen.getByText(/玛～利～亚～/)).toBeInTheDocument();
   });
 
+  test("组合代码通知保留字面反斜杠和图片语法", () => {
+    const preview = "*`a\\*b ![图](https://example.com/a.png)`*";
+    renderWithQC(<NotificationItem notification={baseNotification({
+      content: `morenk 回复了：${preview}`,
+      payload: { schemaVersion: 1, action: "reply", preview },
+    })} />);
+    expect(screen.getByText("morenk 回复了：a\\*b ![图](https://example.com/a.png)")).toBeInTheDocument();
+  });
+
   test("Milkdown 转义残留的反斜杠在通知文案中被还原为标点", () => {
     renderWithQC(
       <NotificationItem

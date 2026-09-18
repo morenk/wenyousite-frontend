@@ -246,19 +246,13 @@ function getStructuredNotificationContent(notification: NotificationItemData): R
 }
 
 function sanitizeNotificationText(rawContent: string, payloadPreview?: string): string {
-  let content = rawContent
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
-    // Milkdown 序列化把 < > 等标点转义为 \< \>，通知预览是纯文本，只去掉反斜杠还原为标点本身。
-    .replace(/\\([!-/:-@[-`{-~])/g, "$1")
-    // Milkdown 硬换行（行尾反斜杠 + 换行）还原为普通换行，避免预览残留字面 \。
-    .replace(/\\\n/g, "\n")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
+  // 交给统一解析器处理转义和硬换行，不能先改写代码里的字面内容。
+  let content = rawContent.trim();
   const preview = payloadPreview?.trim() ?? "";
   if (preview === "1.00") {
     content = content.replace(/1\.00\s*$/, "").trimEnd();
   }
-  return formatMarkdownPreview(content);
+  return formatMarkdownPreview(content, { omitImages: true, legacyHardBreaks: true });
 }
 
 const typeIconMap: Record<string, React.ComponentType<{ className?: string }>> = {

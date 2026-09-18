@@ -640,6 +640,11 @@ select {
   font-weight: 500;
 }
 
+/* 行内代码的默认字重不能覆盖粗体；跨过链接等中间节点仍保留粗体语义。 */
+.wenyou-prose strong code:not(pre code) {
+  font-weight: 700;
+}
+
 .wenyou-prose :not(pre) > code::before,
 .wenyou-prose :not(pre) > code::after {
   content: none;

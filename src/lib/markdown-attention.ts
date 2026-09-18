@@ -383,9 +383,11 @@ function recoverTextNode(node: MarkdownNode, source: string): MarkdownNode[] | n
 function transformNode(node: MarkdownNode, source: string) {
   if (!node.children || PROTECTED_NODE_TYPES.has(node.type ?? "")) return;
 
+  recoverCodeAttention(node.children, source);
   const children: MarkdownNode[] = [];
   for (const child of node.children) {
     if (child.type === "text") {
+      if (!child.value) continue;
       children.push(...(recoverTextNode(child, source) ?? [child]));
     } else {
       transformNode(child, source);
@@ -393,6 +395,43 @@ function transformNode(node: MarkdownNode, source: string) {
     }
   }
   node.children = children;
+}
+
+/** 只包裹完整代码节点，不把代码内部的星号、反引号或实体重新解释为语法。 */
+export function recoverCodeAttention(children: MarkdownNode[], source: string) {
+  for (let index = 1; index + 1 < children.length; index++) {
+    const before = children[index - 1]!;
+    const code = children[index]!;
+    const after = children[index + 1]!;
+    if (code.type !== "inlineCode" || before.type !== "text" || after.type !== "text") continue;
+    const opening = /([*_~]+)$/u.exec(before.value ?? "")?.[0];
+    const closing = /^([*_~]+)/u.exec(after.value ?? "")?.[0];
+    const definition = MARKER_BY_VALUE.get(opening as MarkerDefinition["marker"]);
+    if (!opening || !definition || opening !== closing) continue;
+    const start = code.position?.start?.offset;
+    const end = code.position?.end?.offset;
+    if (start === undefined || end === undefined
+      || before.position?.end?.offset !== start || after.position?.start?.offset !== end
+      || source.slice(start - opening.length, start) !== opening
+      || source.slice(end, end + opening.length) !== opening
+      || isEscapedAt(source, start - opening.length) || isEscapedAt(source, end)) continue;
+    // 下划线的词内限制属于字面语义，不能因中间是代码节点而绕过。
+    const outside = [lastCodePoint(source.slice(Math.max(0, start - opening.length - 2), start - opening.length)),
+      firstCodePoint(source.slice(end + opening.length, end + opening.length + 2))];
+    if (opening.startsWith("_") && outside.some((character) => character
+      && !UNICODE_WHITESPACE_RE.test(character)
+      && !UNICODE_PUNCTUATION_OR_SYMBOL_RE.test(character))) continue;
+
+    const wrapper = definition.createNode("");
+    let inner = wrapper;
+    while (inner.children?.[0]?.type !== "text") inner = inner.children![0]!;
+    inner.children = [code];
+    children[index] = wrapper;
+    before.value = before.value!.slice(0, -opening.length);
+    before.position = { ...before.position, end: { offset: start - opening.length } };
+    after.value = after.value!.slice(opening.length);
+    after.position = { ...after.position, start: { offset: end + opening.length } };
+  }
 }
 
 /**

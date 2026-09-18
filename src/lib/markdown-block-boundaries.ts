@@ -12,7 +12,7 @@ const ordinaryParser = new MarkdownIt(parserOptions);
 const boundaryParser = new MarkdownIt(parserOptions);
 
 // 记录真实 inline rule 消费的区间；URL/title 中的反引号不参与代码匹配。
-ordinaryParser.inline.ruler.at("backticks", (state, silent) => {
+for (const parser of [ordinaryParser, boundaryParser]) parser.inline.ruler.at("backticks", (state, silent) => {
   const start = state.pos;
   const count = state.tokens.length;
   const matched = backtickRule(state, silent);
