@@ -466,6 +466,24 @@ describe("MilkdownEditor 能力分层", () => {
     }
   });
 
+  test("正文连续变化不重测工具栏宽度，窗口调整仍重新布局", async () => {
+    const onChange = vi.fn();
+    const { container } = renderEditor("正文", undefined, onChange);
+    const editor = await getEditor(container);
+    const toolbar = await screen.findByRole("toolbar", { name: "正文格式工具栏" });
+    await makeToolbarCompact(toolbar);
+    // 等待第三方工具栏初次挂载与密度调整完成。
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    const widthRead = vi.fn(() => 300);
+    Object.defineProperty(toolbar, "scrollWidth", { configurable: true, get: widthRead });
+    fireEvent.paste(editor, { clipboardData: clipboardData({ text: "新增正文" }) });
+    await waitFor(() => expect(onChange).toHaveBeenCalled());
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    expect(widthRead).not.toHaveBeenCalled();
+    fireEvent.resize(window);
+    await waitFor(() => expect(widthRead).toHaveBeenCalled());
+  });
+
   test("正文样式只开放正文、二级和三级标题", async () => {
     renderEditor("正文");
     const heading = await screen.findByRole("button", { name: "切换正文样式" });

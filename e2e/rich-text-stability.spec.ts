@@ -294,3 +294,32 @@ for (const [version, source] of [[5, "甲 [[widget:v9:future]]"], [3, "[wenyousi
     expect(harness.getStoredMarkdown()).toBe(source);
   });
 }
+
+test("长按退格即时删除，松键前保存也使用最新正文并可撤销重开", async ({ page }) => {
+  const source = Array.from({ length: 50 }, (_, index) => `段落${index} **粗体文字**与普通正文。`).join("\n\n")
+    + "\n\n" + "连续删除文字".repeat(30);
+  const harness = await mockStabilityWorkspace(page, source);
+  await openFreshThreadDraft(page);
+  const editor = page.locator(".ProseMirror").first();
+  await expect(editor.locator("strong")).toHaveCount(50);
+  await editor.click();
+  await page.keyboard.press("Control+End");
+  await page.keyboard.down("Backspace");
+  const counter = page.locator('[data-slot="milkdown-editor-footer"] .tabular-nums');
+  await expect(counter).toHaveText(`${source.length - 1}/10000`);
+  // 同一键不 keyup 时，浏览器发送 repeat=true，仍走原生字素删除。
+  for (let i = 0; i < 20; i++) await page.keyboard.down("Backspace");
+  await expect(editor.locator("p").last()).toHaveText("连续删除文字".repeat(30).slice(0, -21));
+  await page.getByRole("button", { name: "保存草稿", exact: true }).click();
+  await expect.poll(harness.getStoredMarkdown).toBe(source.slice(0, -21));
+  await page.keyboard.up("Backspace");
+  await editor.click();
+  await page.keyboard.press("Control+z");
+  await expect(editor.locator("p").last()).toHaveText("连续删除文字".repeat(30));
+  await page.keyboard.press("Control+Shift+z");
+  await expect(editor.locator("p").last()).toHaveText("连续删除文字".repeat(30).slice(0, -21));
+  await page.reload();
+  await page.getByRole("link", { name: "继续编辑", exact: true }).click();
+  await expect(editor.locator("strong")).toHaveCount(50);
+  await expect(editor.locator("p").last()).toHaveText("连续删除文字".repeat(30).slice(0, -21));
+});
