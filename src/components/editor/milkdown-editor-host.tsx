@@ -888,7 +888,14 @@ export function MilkdownEditorHost({
       scheduleToolbarLayout();
     };
 
-    const observer = new MutationObserver(syncTopBar);
+    const observer = new MutationObserver((records) => {
+      // 正文增删节点不改变工具栏宽度，避免每次按键都切换密度并强制布局。
+      const onlyContentChanged = records.every((record) => {
+        const target = record.target instanceof Element ? record.target : record.target.parentElement;
+        return target?.closest(".ProseMirror");
+      });
+      if (!onlyContentChanged) syncTopBar();
+    });
     observer.observe(host, { childList: true, subtree: true });
     syncEditorSemantics();
     window.addEventListener("resize", scheduleToolbarLayout);
