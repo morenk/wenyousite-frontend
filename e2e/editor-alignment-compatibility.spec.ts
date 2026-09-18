@@ -1040,3 +1040,34 @@ test("行内代码与其他样式叠加，发布无裸星号且保存重开稳�
   await page.reload();
   await expect(reader.locator("em code")).toHaveText("culti");
 });
+
+test("粗体代码叠加斜体链接删除线时保留实际字重，普通代码与代码块不变", async ({ page }) => {
+  const combinations = Array.from({ length: 8 }, (_, mask) => {
+    const text = `bold_code_${mask}`;
+    let markdown = `\`${text}\``;
+    if (mask & 4) markdown = `~~${markdown}~~`;
+    if (mask & 2) markdown = `[${markdown}](https://example.com/code)`;
+    if (mask & 1) markdown = `_${markdown}_`;
+    return { text, italic: Boolean(mask & 1), markdown: `**${markdown}**` };
+  });
+  const content = ["`plain_code`", ...combinations.map(({ markdown }) => markdown)].join("\n\n");
+  const harness = await mockAlignmentWorkspace(page, content, 5);
+  harness.setPublished(true);
+  await page.goto(`/threads/${THREAD_ID}`);
+  const reader = page.locator('[data-slot="markdown-content"]').filter({ hasText: "plain_code" }).first();
+  for (const { text, italic } of combinations) {
+    const code = reader.locator("strong code").filter({ hasText: text });
+    await expect(code).toHaveCSS("font-weight", "700");
+    await expect(code).toHaveCSS("font-style", italic ? "italic" : "normal");
+  }
+  await expect(reader.locator("code").filter({ hasText: "plain_code" })).toHaveCSS("font-weight", "500");
+  // 产品不支持代码块结构；只用 DOM 排版样本验证共享 CSS 没有改变 pre/code。
+  await reader.evaluate((element) => {
+    const pre = document.createElement("pre");
+    const code = document.createElement("code");
+    code.textContent = "block_code";
+    pre.append(code);
+    element.append(pre);
+  });
+  await expect(reader.locator("pre > code")).toHaveCSS("font-weight", "400");
+});
