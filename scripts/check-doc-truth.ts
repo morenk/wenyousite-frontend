@@ -2,7 +2,8 @@
 
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { backendContractRoot, requireConfiguredContract } from "./backend-contract-root.mjs";
+import { backendContractRoot } from "./backend-contract-root.mjs";
+import { backendContractSource, assertBackendContract } from "./backend-contract-source.mjs";
 import {
   EDITOR_CAPABILITY_LABELS,
   EDITOR_CONTENT_POLICY,
@@ -246,6 +247,7 @@ function operation(method: string, apiPath: string) {
         "markdown-v4-fixtures.json",
         "markdown-v4-nodes-fixtures.json",
         "markdown-editor-roundtrip-v7-fixtures.json",
+        "markdown-inline-combinations-v1-fixtures.json",
         "editor-clipboard-v2-fixtures.json",
         "Flutter 必须",
       ],
@@ -311,6 +313,7 @@ function operation(method: string, apiPath: string) {
   }
 
   const backendRoot = backendContractRoot(root);
+  const backendSource = backendContractSource(backendRoot);
   for (const fixtureName of [
     "markdown-v1-fixtures.json",
     "markdown-v4-fixtures.json",
@@ -324,16 +327,17 @@ function operation(method: string, apiPath: string) {
     "rich-text-behavior-v1.schema.json",
     "rich-text-behavior-results-v1.schema.json",
     "markdown-block-boundary-v1-fixtures.json",
+    "markdown-inline-combinations-v1-fixtures.json",
+    "markdown-inline-combinations-v1.schema.json",
   ]) {
     const frontendFixture = path.resolve(root, "contracts", fixtureName);
-    const backendFixture = path.resolve(backendRoot, "contracts", fixtureName);
-    requireConfiguredContract(backendFixture);
-    if (
-      fs.existsSync(backendFixture) &&
-      fs.readFileSync(frontendFixture, "utf8") !==
-        fs.readFileSync(backendFixture, "utf8")
-    ) {
-      failures.push(`前后端 ${fixtureName} 不一致`);
+    try {
+      if (process.env.WENYOUSITE_BACKEND_ROOT && !backendSource.exists(fixtureName)) {
+        throw new Error(`指定后端来源缺少契约：${fixtureName}`);
+      }
+      assertBackendContract(backendSource, fixtureName, fs.readFileSync(frontendFixture, "utf8"));
+    } catch (error) {
+      failures.push(`前后端 ${fixtureName} 不一致：${error instanceof Error ? error.message : String(error)}`);
     }
   }
 

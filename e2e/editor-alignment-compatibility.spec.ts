@@ -1002,3 +1002,41 @@ for (const block of [
     await expect.poll(harness.getStoredMarkdown).toBe(stored);
   });
 }
+
+test("行内代码与其他样式叠加，发布无裸星号且保存重开稳定", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const harness = await mockAlignmentWorkspace(page, "土地culti", 5);
+  await openFreshThreadDraft(page);
+  const editor = page.locator(".milkdown-editor .ProseMirror").first();
+  const toolbar = page.getByRole("toolbar", { name: "正文格式工具栏" });
+  const paragraph = editor.locator(":scope > p").first();
+  await applyMark(paragraph, "土地", toolbar, "粗体");
+  await applyMark(paragraph, "culti", toolbar, "斜体");
+  await applyMark(paragraph, "culti", toolbar, "行内代码");
+  await expect(paragraph.locator("em code")).toHaveText("culti");
+  // 快捷键取消和恢复代码均须保留既有斜体。
+  await selectText(paragraph, "culti");
+  await page.keyboard.press("Control+e");
+  await expect(paragraph.locator("code")).toHaveCount(0);
+  await expect(paragraph.locator("em")).toHaveText("culti");
+  await page.keyboard.press("Control+e");
+  await expect(paragraph.locator("em code")).toHaveText("culti");
+  await page.getByRole("button", { name: "保存草稿", exact: true }).click();
+  await expect.poll(harness.getStoredMarkdown).toBe("**土地**_`culti`_");
+  await page.reload();
+  await page.getByRole("link", { name: "继续编辑", exact: true }).click();
+  await expect(paragraph.locator("strong")).toHaveText("土地");
+  await expect(paragraph.locator("em code")).toHaveText("culti");
+  await expect(paragraph).toHaveText("土地culti");
+  await page.getByRole("button", { name: "保存草稿", exact: true }).click();
+  await expect.poll(harness.getStoredMarkdown).toBe("**土地**_`culti`_");
+  harness.setPublished(true);
+  await page.goto(`/threads/${THREAD_ID}`);
+  const reader = page.locator('[data-slot="markdown-content"]').filter({ hasText: "土地culti" }).first();
+  await expect(reader.locator("strong")).toHaveText("土地");
+  await expect(reader.locator("em code")).toHaveText("culti");
+  await expect(reader).toHaveText("土地culti");
+  await expect(reader.locator("em code")).toHaveCSS("font-style", "italic");
+  await page.reload();
+  await expect(reader.locator("em code")).toHaveText("culti");
+});
