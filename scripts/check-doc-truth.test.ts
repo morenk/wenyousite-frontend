@@ -24,7 +24,7 @@ function workspace() {
 function check(frontend: string) {
   return spawnSync(process.execPath, ["--import", resolve("node_modules/tsx/dist/loader.mjs"), resolve("scripts/check-doc-truth.ts")], {
     cwd: frontend, encoding: "utf8",
-    env: { ...process.env, WENYOUSITE_BACKEND_ROOT: resolve(frontend, "../wenyousite-backend") },
+    env: { ...process.env, BACKEND_CONTRACT_REF: "", WENYOUSITE_BACKEND_ROOT: resolve(frontend, "../wenyousite-backend") },
   });
 }
 afterEach(() => { for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true }); });
@@ -36,7 +36,7 @@ test("真实文档门禁：共享文件逐字相同通过", () => {
   expect(result.status).toBe(0);
 });
 
-test.each([newline, "markdown-editor-roundtrip-v7-fixtures.json", "editor-clipboard-v2-fixtures.json", "rich-text-behavior-v1-fixtures.json"])(
+test.each([newline, "markdown-editor-roundtrip-v7-fixtures.json", "editor-clipboard-v2-fixtures.json", "rich-text-behavior-v1-fixtures.json", "markdown-inline-combinations-v1-fixtures.json", "markdown-inline-combinations-v1.schema.json"])(
   "真实文档门禁：仅 %s 空白漂移也失败并指出前后端文件", (name) => {
     const { frontend, backend } = workspace();
     const file = join(backend, "contracts", name);

@@ -35,6 +35,13 @@ for (const [name, identity, version] of [
   const value = JSON.parse(source.read(name));
   if (value.contract !== identity || value.version !== version) throw new Error(name + " 契约不匹配");
 }
+const inlineCombinationFiles = ["markdown-inline-combinations-v1-fixtures.json", "markdown-inline-combinations-v1.schema.json"];
+const combinations = JSON.parse(source.read(inlineCombinationFiles[0]));
+if (combinations.contract !== "wenyousite-markdown-inline-combinations" || combinations.version !== 1
+  || combinations.markSets?.length !== 32) throw new Error("后端行内格式组合契约不是 v1");
+if (JSON.parse(source.read(inlineCombinationFiles[1])).$schema !== "http://json-schema.org/draft-07/schema#") {
+  throw new Error("后端行内格式组合 schema 无效");
+}
 const behaviorFiles = ["rich-text-behavior-v1-fixtures.json", "rich-text-behavior-v1.schema.json", "rich-text-behavior-results-v1.schema.json"];
 for (const name of behaviorFiles) {
   const value = JSON.parse(source.read(name));
@@ -55,7 +62,7 @@ for (const name of markdownFiles) {
   if (!value.contract?.startsWith("wenyousite-markdown") || !Number.isInteger(value.version)) throw new Error(name + " 契约无效");
 }
 const names = ["openapi.json", "internal-reference-v1-fixtures.json", "editor-clipboard-v2-fixtures.json",
-  "markdown-editor-newline-v1-fixtures.json", "thread-cover-media-v1-fixtures.json", "media-display-v1-fixtures.json", boundaryName, ...behaviorFiles, ...markdownFiles];
+  "markdown-editor-newline-v1-fixtures.json", "thread-cover-media-v1-fixtures.json", "media-display-v1-fixtures.json", boundaryName, ...behaviorFiles, ...inlineCombinationFiles, ...markdownFiles];
 // 在写入前读取全部内容，来源缺失时不留下半套契约。
 const contents = names.map((name) => [name, source.read(name)]);
 mkdirSync(target, { recursive: true });

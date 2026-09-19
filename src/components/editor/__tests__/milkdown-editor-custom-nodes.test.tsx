@@ -289,7 +289,7 @@ describe("MilkdownEditor 自定义内联节点", () => {
     await waitFor(() => {
       expect(editor?.textContent).toBe(`${_label} `);
       expect(editor?.querySelector(selector)?.textContent).toBe(_label);
-      expect(onChange.mock.calls.at(-1)?.[0]).toBe(`${source} `);
+      expect(onChange.mock.calls.at(-1)?.[0]).toBe(`${source}&#x20;`);
     });
     expect(editor?.querySelector(`${selector} + *`)).toBeNull();
   });

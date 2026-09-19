@@ -33,6 +33,7 @@ describe("formatMarkdownPreview", () => {
     expect(formatMarkdownPreview(
       `[设定 A](/threads/${threadId}) 和 https://wenyou.site/threads/${threadId}`,
     )).toBe("设定 A 和 传送门");
+    expect(formatMarkdownPreview(`https://wenyou.site/threads/${threadId}。`)).toBe("传送门。");
   });
 
   test("空格实体和软换行在紧凑预览中统一折叠", () => {
@@ -46,4 +47,23 @@ describe("formatMarkdownPreview", () => {
   test("实体只解码一遍，不展开用户原本输入的二次实体", () => {
     expect(formatMarkdownPreview("&amp;lt;")).toBe("&lt;");
   });
+});
+
+test.each([
+  ["**土地**_`culti`_", "土地culti"],
+  ["**土地***`culti`*", "土地culti"],
+  ["a_`x`_b", "a_x_b"],
+  ["a~`x`~b", "a~x~b"],
+  ["[a*`x`*b](https://example.com)", "[a*x*b]"],
+  ["&#87;ENYOUCODEPLACEHOLDER0END `*x*`", "WENYOUCODEPLACEHOLDER0END *x*"],
+  ["WENYOU**CODE**PLACEHOLDER0END `&amp;`", "WENYOUCODEPLACEHOLDER0END &amp;"],
+  ["&#xE000; `&#xE000;`", "\ue000 &#xE000;"],
+  ["*`a*b`*", "a*b"],
+  ["***``a`*b``***", "a`*b"],
+  ["*`&amp; &#x2A;`*", "&amp; &#x2A;"],
+  ["[~~`a*b`~~](https://example.com/test)", "[a*b]"],
+  [String.raw`\*字面\*`, "*字面*"],
+  ["`https://example.com`", "https://example.com"],
+])("组合格式预览只去除语法且保留字面内容：%s", (source, expected) => {
+  expect(formatMarkdownPreview(source)).toBe(expected);
 });
