@@ -116,6 +116,7 @@ export const queryKeys = {
   },
   bookmarks: {
     all: ["bookmarks"] as const,
+    lists: ["bookmarks", "list"] as const,
     list: (folderId?: string) => ["bookmarks", "list", folderId ?? "all"] as const,
     foldersRoot: ["bookmarks", "folders"] as const,
     folders: (kind: "threads" | "moments") => ["bookmarks", "folders", kind] as const,

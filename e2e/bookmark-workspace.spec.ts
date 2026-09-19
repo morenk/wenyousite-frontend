@@ -73,7 +73,7 @@ for (const colorScheme of ["light", "dark"] as const) {
     await page.emulateMedia({ colorScheme, reducedMotion: "reduce" });
     await mockBookmarks(page);
     await page.goto("/bookmarks");
-    await expect(page.getByRole("button", { name: /跑团资料与人物设定 99/ })).toBeAttached();
+    await expect(page.getByRole("complementary", { name: "收藏目录" }).getByRole("button", { name: /跑团资料与人物设定 99/ })).toBeAttached();
     for (const width of [1024, 1280, 1440, 1920]) {
       await page.setViewportSize({ width, height: 1000 });
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
@@ -85,7 +85,7 @@ for (const colorScheme of ["light", "dark"] as const) {
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.screenshot({ path: testInfo.outputPath(`bookmarks-${colorScheme}.png`), fullPage: true });
     await page.getByRole("searchbox").fill("设定 99");
-    await page.getByRole("button", { name: /跑团资料与人物设定 99/ }).click();
+    await page.getByRole("complementary", { name: "收藏目录" }).getByRole("button", { name: /跑团资料与人物设定 99/ }).click();
     await expect(page).toHaveURL(/folder=folder-99/);
     await expect(page.getByRole("heading", { name: "跑团资料与人物设定 99" })).toBeVisible();
     await expect(page.getByText("这个收藏夹还是空的")).toBeVisible();
@@ -110,7 +110,7 @@ test("目录 URL、分页、移动、撤销和新建构成完整旅程", async (
   await expect(dialog).not.toBeVisible();
   await expect(page.getByRole("link", { name: "雾海来信：人物设定与世界观 0", exact: true })).not.toBeVisible();
   await page.getByRole("searchbox").fill("设定 29");
-  await page.getByRole("button", { name: /设定 29/ }).click();
+  await page.getByRole("complementary", { name: "收藏目录" }).getByRole("button", { name: /设定 29/ }).click();
   await page.reload();
   await expect(page.getByRole("heading", { name: "跑团资料与人物设定 29" })).toBeVisible();
   await page.getByRole("button", { name: /更多收藏操作/ }).click();
@@ -165,7 +165,7 @@ for (const kind of ["threads", "moments"] as const) {
     const folderId = kind === "threads" ? "folder-new" : "moment-folder-new";
     await expect(page).toHaveURL(new RegExp(`type=${kind}&folder=${folderId}$`));
     await expect(page.getByRole("heading", { name: "资料页新建的空夹" })).toBeVisible();
-    await expect(page.getByRole("button", { name: /资料页新建的空夹/ })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("complementary", { name: "收藏目录" }).getByRole("button", { name: /资料页新建的空夹/ })).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByText(kind === "threads" ? "这个收藏夹还是空的" : "这个收藏夹还没有动态")).toBeVisible();
     await page.reload();
     await expect(page.getByRole("heading", { name: "资料页新建的空夹" })).toBeVisible();

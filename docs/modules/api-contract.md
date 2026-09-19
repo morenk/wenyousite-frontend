@@ -37,6 +37,10 @@
 
 主贴权限管理消费后端提交 `6fdfa00eaf1f3056ba30f2ffbc529d12eed1c823` 的固定 OpenAPI。`PATCH /threads/{id}/aggregate` 可选 `defaultSubthreadPostingPolicy` 使用现有三种子贴发言策略；省略保留原值，和默认子贴标题一起原子更新且只递增一次子贴版本。该客户端必须在兼容后端上线后启用；不改变创建流程。
 
+收藏夹管理消费后端提交 `df4682548e3fc0291fc2cd19c7111b5f0fa53746` 的完整已提交 OpenAPI；相对 Web 基线仅新增两个目录资源路径上的四个 PATCH/DELETE 操作及七个 Schema，既有路径和 Schema 语义不变。PATCH 提交 `{ name }`，DELETE 返回 `{ deletedFolderId, destinationFolderId }`；接口须先随兼容 Backend 部署，Web 再上线。主题帖和动态仍使用各自独立端点，不消费旧共享目录协议。
+
+该后端提交中的媒体展示夹具保留旧 `contractVersion`，因此全量 `contract:sync` 的同版本校验拒绝执行。本次用 `git show <SHA>:contracts/openapi.json` 直接导出已提交原件，再运行 `pnpm generate:api`；不手改生成类型或其他契约。用 `WENYOUSITE_BACKEND_ROOT=/srv/wenyousite/wenyousite-backend BACKEND_CONTRACT_REF=<SHA> pnpm contract:check` 校验与指定提交逐字节一致。OpenAPI 原件的导出顺序造成较大文本差异，不包含额外接口行为变更。
+
 ## 4. 状态管理
 
 TanStack Query 缓存键统一由 `src/api/query-keys.ts` 构造。领域 mutation 在对应 API hook 内完成缓存更新/失效，页面与组件不编排服务端缓存。
@@ -49,7 +53,7 @@ TanStack Query 缓存键统一由 `src/api/query-keys.ts` 构造。领域 mutati
 
 ## 6. 表单与校验
 
-请求 DTO 继续由 `src/api/types.ts` 生成；不新增 Zod 规则。
+请求 DTO 继续由 `src/api/types.ts` 生成；收藏夹重命名表单使用 Zod，按服务端规则 trim 后校验 1–24 个 Unicode 字符。
 
 ## 7. 错误处理
 
