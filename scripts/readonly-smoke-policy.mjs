@@ -8,7 +8,8 @@ const readingPaths = [
 const readQuery = new Set(["sort", "limit", "cursor", "category", "status", "order", "_rsc"]);
 
 export function smokeOrigin(value = "https://wenyou.site") {
-  const url = new URL(value);
+  let url;
+  try { url = new URL(value); } catch { throw new Error("只读烟雾目标 URL 无效"); }
   if (url.username || url.password || url.pathname !== "/" || url.search || url.hash
     || !["https:", "http:"].includes(url.protocol)
     || !(url.origin === "https://wenyou.site"

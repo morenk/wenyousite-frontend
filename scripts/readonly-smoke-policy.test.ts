@@ -22,6 +22,7 @@ describe("线上匿名只读烟雾请求边界", () => {
     expect(anonymousHeaders({ Authorization: "secret", Cookie: "session", "X-Api-Key": "secret", accept: "text/html" }))
       .toEqual({ accept: "text/html", cookie: "", authorization: "" });
     expect(() => smokeOrigin("https://user:password@wenyou.site")).toThrow();
+    expect(() => smokeOrigin("http://secret-user:secret-password@")).toThrow("只读烟雾目标 URL 无效");
     expect(smokeOrigin("http://127.0.0.1:3001")).toBe("http://127.0.0.1:3001");
   });
 });
