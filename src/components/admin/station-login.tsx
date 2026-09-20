@@ -1,5 +1,6 @@
 "use client";
 
+import { safeAdminLoginReturn } from "@/lib/admin-session-url";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -17,6 +18,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 const credentialsSchema = z.object({
   account: z.string().trim().min(1, "请输入管理员账号"),
   password: z.string().min(8, "密码至少 8 位"),
+  rememberDevice: z.boolean(),
 });
 
 const codeSchema = z.object({
@@ -33,7 +35,7 @@ export function StationLogin() {
   const [challengeId, setChallengeId] = useState<string>();
   const credentials = useForm<Credentials>({
     resolver: zodResolver(credentialsSchema),
-    defaultValues: { account: "", password: "" },
+    defaultValues: { account: "", password: "", rememberDevice: false },
   });
   const code = useForm<Code>({
     resolver: zodResolver(codeSchema),
@@ -41,10 +43,15 @@ export function StationLogin() {
   });
 
   useEffect(() => {
-    if (session.data) router.replace("/station/dashboard");
-  }, [router, session.data]);
+    if (session.sessionStatus === "authenticated")
+      router.replace(
+        safeAdminLoginReturn(
+          new URLSearchParams(window.location.search).get("returnTo"),
+        ),
+      );
+  }, [router, session.sessionStatus]);
 
-  if (session.data) {
+  if (session.sessionStatus === "authenticated") {
     return null;
   }
 
@@ -54,7 +61,28 @@ export function StationLogin() {
         <h1 className="font-sans text-3xl font-semibold">
           {challengeId ? "查收邮箱验证码" : "温油站管理后台"}
         </h1>
-        {challengeId ? <p className="mt-3 text-sm text-muted-foreground">验证码 10 分钟内有效。</p> : null}
+        {session.reason === "expired" && !challengeId ? (
+          <p role="status" className="mt-3 text-sm text-muted-foreground">
+            登录已失效，请重新登录
+          </p>
+        ) : null}
+        {session.sessionStatus === "unavailable" ? (
+          <div className="mt-3 flex items-center gap-2 text-sm">
+            <span>暂时无法验证登录状态</span>
+            <Button
+              size="compact"
+              variant="ghost"
+              onClick={() => void session.refetch()}
+            >
+              重试
+            </Button>
+          </div>
+        ) : null}
+        {challengeId ? (
+          <p className="mt-3 text-sm text-muted-foreground">
+            验证码 10 分钟内有效。
+          </p>
+        ) : null}
 
         {!challengeId ? (
           <form
@@ -62,7 +90,11 @@ export function StationLogin() {
             className="mt-8 space-y-5"
             onSubmit={credentials.handleSubmit(async (values) => {
               try {
-                const result = await challenge.mutateAsync(values);
+                const result = await challenge.mutateAsync({
+                  account: values.account,
+                  password: values.password,
+                });
+                credentials.resetField("password");
                 setChallengeId(result.challengeId);
               } catch (error) {
                 toast.error(getApiErrorMessage(error, "无法开始管理员登录"));
@@ -76,7 +108,11 @@ export function StationLogin() {
               className="gap-2"
             >
               {(controlProps) => (
-                <Input {...controlProps} autoComplete="username" {...credentials.register("account")} />
+                <Input
+                  {...controlProps}
+                  autoComplete="username"
+                  {...credentials.register("account")}
+                />
               )}
             </FormField>
             <FormField
@@ -93,6 +129,14 @@ export function StationLogin() {
                 />
               )}
             </FormField>
+            <label className="flex min-h-8 cursor-pointer items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="size-4 accent-primary"
+                {...credentials.register("rememberDevice")}
+              />
+              记住此设备（7天）
+            </label>
             <Button
               type="submit"
               size="large"
@@ -100,7 +144,8 @@ export function StationLogin() {
               pending={challenge.isPending}
               pendingLabel="正在核验…"
             >
-              继续<ArrowRight />
+              继续
+              <ArrowRight />
             </Button>
           </form>
         ) : (
@@ -109,8 +154,12 @@ export function StationLogin() {
             className="mt-8 space-y-5"
             onSubmit={code.handleSubmit(async (values) => {
               try {
-                await verify.mutateAsync({ challengeId, code: values.code });
-                router.replace("/station/dashboard");
+                await verify.mutateAsync({
+                  challengeId,
+                  code: values.code,
+                  rememberDevice: credentials.getValues("rememberDevice"),
+                });
+                code.reset();
               } catch (error) {
                 toast.error(getApiErrorMessage(error, "验证码无效或已过期"));
               }
@@ -140,9 +189,18 @@ export function StationLogin() {
               pending={verify.isPending}
               pendingLabel="正在登录…"
             >
-              登录<ArrowRight />
+              登录
+              <ArrowRight />
             </Button>
-            <Button type="button" variant="ghost" className="w-full" onClick={() => setChallengeId(undefined)}>
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full"
+              onClick={() => {
+                code.reset();
+                setChallengeId(undefined);
+              }}
+            >
               返回修改账号
             </Button>
           </form>

@@ -5285,20 +5285,45 @@ export interface components {
             /** @example 600 */
             expiresIn: number;
         };
+        AdminLoginVerifyDto: {
+            /** Format: uuid */
+            challengeId: string;
+            /** @example 123456 */
+            code: string;
+            /**
+             * @description 记住此设备七天，省略时沿用短会话
+             * @default false
+             */
+            rememberDevice: boolean;
+        };
+        AdminSessionInfoDto: {
+            id: string;
+            /** Format: date-time */
+            expiresAt: string;
+            /**
+             * @description 有效闲置上限（分钟）；短会话默认30，记住设备为10080且只受固定七天绝对期限约束
+             * @example 30
+             */
+            idleMinutes: number;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            lastActiveAt?: string;
+            /** Format: date-time */
+            elevatedUntil?: string | null;
+        };
+        AdminSessionResponseDto: {
+            session: components["schemas"]["AdminSessionInfoDto"];
+            user: {
+                [key: string]: unknown;
+            };
+            csrfToken: string;
+        };
         AdminChallengeVerifyDto: {
             /** Format: uuid */
             challengeId: string;
             /** @example 123456 */
             code: string;
-        };
-        AdminSessionResponseDto: {
-            session: {
-                [key: string]: unknown;
-            };
-            user: {
-                [key: string]: unknown;
-            };
-            csrfToken: string;
         };
         AdminStepUpResponseDto: {
             /** Format: date-time */
@@ -13877,7 +13902,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AdminChallengeVerifyDto"];
+                "application/json": components["schemas"]["AdminLoginVerifyDto"];
             };
         };
         responses: {

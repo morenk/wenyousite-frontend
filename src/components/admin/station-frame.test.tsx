@@ -20,6 +20,7 @@ vi.mock("@/api/hooks/use-admin", () => ({
       csrfToken: "test",
     },
     isError: false,
+    sessionStatus: "authenticated", generation: 0,
   }),
   useAdminLogout: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
