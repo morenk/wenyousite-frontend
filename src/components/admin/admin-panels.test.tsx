@@ -261,6 +261,23 @@ describe("station panels", () => {
     });
   });
 
+  it("审计记录正文直接保留完整本地日期与时分", () => {
+    const createdAt = new Date(2026, 7, 17, 11, 59, 31).toISOString();
+    hooks.useAdminAuditLogs.mockReturnValue({
+      data: {
+        items: [{ id: "audit-time", action: "CONTENT_HIDDEN", targetType: "THREAD", targetId: "thread-1", reason: "违反站规", actor: { username: "站务" }, createdAt }],
+        meta: { cursor: null, hasMore: false },
+      },
+      isLoading: false,
+      isFetching: false,
+    });
+    const view = renderWithUrl(<AuditPanel />);
+    const time = within(view.container).getByText("2026-08-17 11:59");
+    expect(time).toHaveAttribute("datetime", createdAt);
+    expect(time).toHaveAttribute("title", "2026-08-17 11:59");
+    view.unmount();
+  });
+
   it("用户表格用中文列展示记录并提供明确管理入口", () => {
     hooks.useAdminUsers.mockReturnValue({
       data: {

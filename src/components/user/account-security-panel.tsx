@@ -127,10 +127,10 @@ export function AccountSecurityPanel() {
                         {session.isCurrent && <span className="ml-2 text-xs text-brand-strong">当前终端</span>}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        登录于 <WenyouTime value={session.signedInAt ?? session.createdAt} /> · 最近活动 <WenyouTime value={session.lastActiveAt ?? session.createdAt} />
+                        登录于 <WenyouTime mode="exact" value={session.signedInAt ?? session.createdAt} /> · 最近活动 <WenyouTime mode="exact" value={session.lastActiveAt ?? session.createdAt} />
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        有效期至 <WenyouTime value={session.expiresAt} />
+                        有效期至 <WenyouTime mode="exact" value={session.expiresAt} />
                       </p>
                     </div>
                   </div>

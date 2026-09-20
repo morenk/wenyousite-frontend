@@ -217,6 +217,8 @@
 
 界面只依据 `platform` 映射“Web 端登录”或“移动端登录”，不展示已废弃的 `deviceInfo` 原始 UA。`id` 在 refresh token 轮转期间稳定；`signedInAt` 是本次终端登录时间，`lastActiveAt` 是最近登录/刷新时间，`createdAt` 仅为旧客户端兼容别名。
 
+登录终端的登录、最近活动与到期时间使用精确模式，正文及悬停直接显示用户本地完整年月日和时分，便于核对安全记录。
+
 ### GET /threads/draft → Thread[]
 
 ```json

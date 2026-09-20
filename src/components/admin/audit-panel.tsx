@@ -164,7 +164,7 @@ export function AuditPanel() {
         {logs.isError ? <AdminTableEmpty colSpan={5}><span className="text-destructive">决定轨迹加载失败</span></AdminTableEmpty> : null}
         {logs.data?.items.map((log) => (
           <AdminTableRow key={log.id}>
-            <AdminTableCell className="text-xs whitespace-nowrap text-muted-foreground"><WenyouTime value={log.createdAt} /></AdminTableCell>
+            <AdminTableCell className="text-xs whitespace-nowrap text-muted-foreground"><WenyouTime mode="exact" value={log.createdAt} /></AdminTableCell>
             <AdminTableCell><Badge tone="neutral">{actionLabels[log.action]}</Badge></AdminTableCell>
             <AdminTableCell>
               <p className="font-semibold">{targetLabels[log.targetType]}</p>

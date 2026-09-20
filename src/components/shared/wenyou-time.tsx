@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  formatWenyouDate,
   formatWenyouExactTime,
   formatWenyouTime,
   type WenyouDateInput,
@@ -9,8 +10,10 @@ import { useEffect, useState, type ComponentProps } from "react";
 
 import { cn } from "@/lib/utils";
 
-type WenyouTimeProps = Omit<ComponentProps<"time">, "children" | "dateTime" | "title"> & {
+type WenyouTimeProps = Omit<ComponentProps<"time">, "children" | "dateTime" | "title" | "aria-label"> & {
   value: WenyouDateInput;
+  /** 内容时间使用相对窗口；账务、安全、审计与预约到期使用精确时刻。 */
+  mode?: "content" | "exact";
   /** 仅供确定性预览与测试；真实界面默认跟随当前时间更新。 */
   reference?: WenyouDateInput;
 };
@@ -65,19 +68,21 @@ function toDateTime(value: WenyouDateInput): string | undefined {
   return typeof value === "string" ? value : date.toISOString();
 }
 
-/** 列表与详情共用的 72 小时相对时间；完整本地时间始终保留在 title。 */
-export function WenyouTime({ value, reference, className, ...props }: WenyouTimeProps) {
-  const tick = useSharedClock(reference === undefined);
+/** 普通内容共用相对时间窗口，精确记录直接显示完整本地时刻。 */
+export function WenyouTime({ value, mode = "content", reference, className, ...props }: WenyouTimeProps) {
+  const tick = useSharedClock(mode === "content" && reference === undefined);
+  const accessibleLabel = mode === "exact" ? formatWenyouExactTime(value) : formatWenyouDate(value);
 
   return (
     <time
       dateTime={toDateTime(value)}
-      title={formatWenyouExactTime(value)}
+      title={accessibleLabel}
+      aria-label={accessibleLabel}
       className={cn("font-utility tabular-nums", className)}
       suppressHydrationWarning
       {...props}
     >
-      {formatWenyouTime(value, reference ?? tick)}
+      {mode === "exact" ? accessibleLabel : formatWenyouTime(value, reference ?? tick)}
     </time>
   );
 }

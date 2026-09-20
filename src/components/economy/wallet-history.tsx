@@ -93,7 +93,7 @@ export function WalletHistory() {
                       {transactionTitle(transaction)}
                     </p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                      <WenyouTime value={transaction.createdAt} />
+                      <WenyouTime mode="exact" value={transaction.createdAt} />
                       {transaction.type === "TIP" && transaction.direction === "INCOME" && (
                         <> · 对方投入 {formatWenyou(transaction.grossAmount)} 升，实际到账 {formatWenyou(transaction.recipientAmount)} 升</>
                       )}

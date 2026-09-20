@@ -94,7 +94,10 @@ describe("WalletHistory", () => {
     mockUseWallet.mockReturnValue(walletResult());
     mockUseWalletTransactions.mockReturnValue(transactionsResult());
   });
-  afterEach(cleanup);
+  afterEach(() => {
+    cleanup();
+    vi.restoreAllMocks();
+  });
 
   test("展示精确余额以及签到、支出和收入流水的业务含义", () => {
     render(<WalletHistory />);
@@ -107,6 +110,19 @@ describe("WalletHistory", () => {
     expect(screen.getByText("−10 升")).toBeInTheDocument();
     expect(screen.getByText("+8 升")).toBeInTheDocument();
     expect(screen.getByText("余额 3 升")).toBeInTheDocument();
+  });
+
+  test("近期入账也直接展示完整年月日和时分，并保留原始时间戳", () => {
+    const createdAt = new Date(2026, 7, 17, 11, 59, 31).toISOString();
+    mockUseWalletTransactions.mockReturnValue(transactionsResult({
+      data: { code: 0, message: "ok", data: [{ ...dailyCheckIn, createdAt }], meta: { cursor: null, hasMore: false } },
+    }));
+    vi.spyOn(Date, "now").mockReturnValue(new Date(2026, 7, 17, 12, 0, 0).getTime());
+    render(<WalletHistory />);
+
+    const time = screen.getByText("2026-08-17 11:59");
+    expect(time).toHaveAttribute("datetime", createdAt);
+    expect(time).toHaveAttribute("title", "2026-08-17 11:59");
   });
 
   test("余额失败时提供独立重试，不影响已加载流水", async () => {

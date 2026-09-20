@@ -168,7 +168,7 @@ function caseColumns(onSelect: (id: string) => void): ColumnDef<CaseSummary>[] {
       },
     },
     { id: "reports", header: "举报", cell: ({ row }) => <span className="font-utility text-xs whitespace-nowrap">{row.original._count.reports} 份</span> },
-    { id: "createdAt", header: "建案", cell: ({ row }) => <WenyouTime value={row.original.createdAt} className="text-xs whitespace-nowrap text-muted-foreground" /> },
+    { id: "createdAt", header: "建案", cell: ({ row }) => <WenyouTime mode="exact" value={row.original.createdAt} className="text-xs whitespace-nowrap text-muted-foreground" /> },
     { id: "actions", header: "操作", cell: ({ row }) => <Button type="button" size="compact" variant="ghost" onClick={() => onSelect(row.original.id)}>{row.original.status === "OPEN" ? "处理" : "查看"}</Button> },
   ];
 }
@@ -373,7 +373,7 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
         </div>
         <div className="flex items-start gap-4">
           <div className="text-right text-xs text-muted-foreground">
-            <p>建案 <WenyouTime value={detail.createdAt} /></p>
+            <p>建案 <WenyouTime mode="exact" value={detail.createdAt} /></p>
             <p className="mt-1">累计 {detail.reports.length} 份举报</p>
           </div>
           <DialogCloseButton type="button" label="关闭案件操作" disabled={resolve.isPending} />
@@ -394,7 +394,7 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
                       <Badge tone="danger">{reasonLabels[report.reasonCode]}</Badge>
                       <span className="text-xs text-muted-foreground">举报人 {report.reporter?.username ?? "账号已注销"}</span>
                     </div>
-                    <WenyouTime value={report.createdAt} className="text-xs text-muted-foreground" />
+                    <WenyouTime mode="exact" value={report.createdAt} className="text-xs text-muted-foreground" />
                   </div>
                   {report.details ? <p className="mt-4 text-sm leading-6">{report.details}</p> : null}
                   <details className="mt-4 rounded-lg bg-muted px-4 py-3">
@@ -424,7 +424,7 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
                       <span className="text-sm font-bold">{actionOptions.find((item) => item.value === decision.action)?.label}</span>
                     </div>
                     <p className="mt-3 text-sm leading-6">{decision.publicExplanation}</p>
-                    <p className="mt-3 text-xs text-muted-foreground">由 {decision.actor.username} 于 <WenyouTime value={decision.createdAt} /> 作出</p>
+                    <p className="mt-3 text-xs text-muted-foreground">由 {decision.actor.username} 于 <WenyouTime mode="exact" value={decision.createdAt} /> 作出</p>
                   </li>
                 ))}
               </ol>

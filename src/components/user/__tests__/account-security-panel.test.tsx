@@ -132,6 +132,10 @@ describe("AccountSecurityPanel", () => {
     const session = screen.getByText("Web 端登录").closest("li");
     const times = session?.querySelectorAll("time") ?? [];
     expect(times).toHaveLength(3);
+    for (const time of times) {
+      expect(time).toHaveTextContent(/^2026-\d{2}-\d{2} \d{2}:\d{2}$/u);
+      expect(time).toHaveAttribute("title", time.textContent);
+    }
     expect(times[0]).toHaveAttribute("datetime", "2026-08-03T02:04:00Z");
     expect(times[1]).toHaveAttribute("datetime", "2026-08-03T02:04:00Z");
     expect(screen.queryByText(/legacy raw UA/)).not.toBeInTheDocument();

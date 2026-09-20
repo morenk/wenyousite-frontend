@@ -94,6 +94,27 @@ for (const file of sourceRoots.flatMap(sourceFiles)) {
   }
 }
 
+// 精确记录不能依赖内容模式的相对窗口或未来的日期回退规则。
+const exactTimeFiles = [
+  "src/components/economy/wallet-history.tsx",
+  "src/components/user/account-security-panel.tsx",
+  "src/components/user/moderation-decisions-panel.tsx",
+  "src/components/admin/appeals-panel.tsx",
+  "src/components/admin/case-workbench.tsx",
+  "src/components/admin/hidden-content-list.tsx",
+  "src/components/admin/admin-accounts-panel.tsx",
+  "src/components/admin/announcements-panel.tsx",
+  "src/components/admin/audit-panel.tsx",
+];
+for (const fileName of exactTimeFiles) {
+  const source = readFileSync(resolve(root, fileName), "utf8");
+  for (const match of source.matchAll(/<WenyouTime\b[^>]*>/gs)) {
+    if (!/\bmode="exact"/.test(match[0])) {
+      failures.push(`${fileName}: 账务、安全、审计、处置与预约到期必须显式使用 WenyouTime 精确模式`);
+    }
+  }
+}
+
 const functionalTypographyFiles = [
   "src/app/me/page.tsx",
   "src/app/me/password/page.tsx",
@@ -196,7 +217,7 @@ const semanticContractClaims = new Map([
   ["src/components/shared/internal-reference-editor-dom.ts", ["@wenyousite/foundation/elements", "iconNode", "editorBehavior"]],
   ["src/components/shared/level-badge.tsx", ["@wenyousite/foundation/elements", "--element-level-height", "data-slot=\"level-badge\"", "levelTier", "data-level-tier", "--element-level-${tier.id}-surface"]],
   ["src/components/shared/user-avatar.tsx", ["IDENTITY_PRESENTATION", "onError", "avatarFallback.missingOrFailed"]],
-  ["src/components/shared/wenyou-time.tsx", ["@wenyousite/foundation/formatting", "formatWenyouTime", "formatWenyouExactTime", "title="]],
+  ["src/components/shared/wenyou-time.tsx", ["@wenyousite/foundation/formatting", "formatWenyouTime", "formatWenyouDate", "formatWenyouExactTime", "title={accessibleLabel}", "aria-label={accessibleLabel}"]],
   ["src/components/shared/wenyou-count.tsx", ["@wenyousite/foundation/formatting", "formatWenyouCompactCount", "aria-label"]],
   ["src/components/ui/button.tsx", ["@wenyousite/foundation/controls", "data-control-role", "pendingLabel", 'id="status.loading"', "aria-busy", "bg-action-primary", "text-action-primary-foreground"]],
   ["src/components/ui/input.tsx", ["@wenyousite/foundation/controls", "data-control-state"]],
