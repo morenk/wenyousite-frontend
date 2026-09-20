@@ -69,7 +69,7 @@ function DecisionCard({ decision, userId }: { decision: UserModerationDecision; 
     <article className="w-full rounded-2xl border border-border bg-card p-6">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-2"><Badge tone={decision.active ? "warning" : "neutral"}>{decision.active ? "生效中" : "已撤销"}</Badge><span className="text-sm font-bold">{actionLabels[decision.action] ?? "治理决定"}</span></div>
-        <WenyouTime value={decision.createdAt} className="text-xs text-muted-foreground" />
+        <WenyouTime mode="exact" value={decision.createdAt} className="text-xs text-muted-foreground" />
       </div>
       <p className="mt-4 text-sm leading-7">{decision.publicExplanation}</p>
       <p className="mt-3 text-xs text-muted-foreground">{policyLabels[decision.policyCode] ?? "其他"} · {targetLabels[decision.targetType] ?? "相关内容"}</p>

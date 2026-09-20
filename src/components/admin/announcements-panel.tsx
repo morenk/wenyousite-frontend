@@ -174,7 +174,7 @@ export function AnnouncementsPanel() {
                 <p className="font-bold">{campaign.title}</p>
                 <p className="mt-0.5 line-clamp-2 text-xs leading-5 text-muted-foreground">{campaign.content}</p>
               </AdminTableCell>
-              <AdminTableCell className="text-xs whitespace-nowrap text-muted-foreground"><WenyouTime value={campaign.scheduledAt} /></AdminTableCell>
+              <AdminTableCell className="text-xs whitespace-nowrap text-muted-foreground"><WenyouTime mode="exact" value={campaign.scheduledAt} /></AdminTableCell>
               <AdminTableCell className="text-right font-utility text-xs whitespace-nowrap"><span className="font-bold text-foreground">{campaign.recipientCount}</span><span className="text-muted-foreground"> / 预计 {campaign.estimatedCount}</span></AdminTableCell>
               <AdminTableCell className="whitespace-nowrap">{campaign.createdBy.username}</AdminTableCell>
               <AdminTableActionCell>

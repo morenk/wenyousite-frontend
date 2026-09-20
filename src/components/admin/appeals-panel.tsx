@@ -150,7 +150,7 @@ export function AppealsPanel() {
                 <p className="font-semibold">{actionLabels[appeal.decision.action]}</p>
                 <p className="text-xs text-muted-foreground">{targetLabels[appeal.decision.targetType]}</p>
               </AdminTableCell>
-              <AdminTableCell className="text-xs whitespace-nowrap text-muted-foreground"><WenyouTime value={appeal.createdAt} /></AdminTableCell>
+              <AdminTableCell className="text-xs whitespace-nowrap text-muted-foreground"><WenyouTime mode="exact" value={appeal.createdAt} /></AdminTableCell>
               <AdminTableActionCell>
                 <Button type="button" size="compact" variant="ghost" onClick={() => { setSelectedId(appeal.id); setNote(""); }}>
                   {appeal.status === "PENDING" ? "复核" : "查看"}
@@ -263,7 +263,7 @@ export function AppealsPanel() {
               <div className="mt-6 rounded-xl border border-border bg-muted/60 p-5">
                 <div className="flex items-center gap-2">
                   <Badge tone={statusTone(selected.status)}>{statusLabels[selected.status]}</Badge>
-                  {selected.handledAt ? <WenyouTime value={selected.handledAt} className="text-xs text-muted-foreground" /> : null}
+                  {selected.handledAt ? <WenyouTime mode="exact" value={selected.handledAt} className="text-xs text-muted-foreground" /> : null}
                 </div>
                 <p className="mt-3 text-sm leading-6">{selected.handledNote || "未记录复核说明"}</p>
               </div>

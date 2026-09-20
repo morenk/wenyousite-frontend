@@ -125,7 +125,7 @@ export function AdminAccountsPanel() {
         cell: ({ row }) => (
           <span className="font-utility text-xs text-muted-foreground">
             {row.original.adminSessions.length > 0 ? (
-              <>活跃至 <WenyouTime value={row.original.adminSessions[0].expiresAt} /></>
+              <>活跃至 <WenyouTime mode="exact" value={row.original.adminSessions[0].expiresAt} /></>
             ) : "未登录"}
           </span>
         ),
@@ -305,7 +305,7 @@ export function AdminAccountsPanel() {
                 <AdminTableRow key={invite.id}>
                   <AdminTableCell className="font-bold">{invite.user.username}</AdminTableCell>
                   <AdminTableCell className="text-xs text-muted-foreground">{invite.user.email}</AdminTableCell>
-                  <AdminTableCell className="text-xs whitespace-nowrap text-muted-foreground"><WenyouTime value={invite.expiresAt} /></AdminTableCell>
+                  <AdminTableCell className="text-xs whitespace-nowrap text-muted-foreground"><WenyouTime mode="exact" value={invite.expiresAt} /></AdminTableCell>
                   <AdminTableCell><Badge tone={new Date(invite.expiresAt).getTime() > referenceTime ? "info" : "neutral"}>{new Date(invite.expiresAt).getTime() > referenceTime ? "有效" : "已过期"}</Badge></AdminTableCell>
                   <AdminTableActionCell>
                     <Button

@@ -174,7 +174,7 @@ export function HiddenContentList({ headerAction }: { headerAction?: ReactNode }
                 </AdminTableCell>
                 <AdminTableCell className="font-bold whitespace-nowrap">{item.author.username}</AdminTableCell>
                 <AdminTableCell className="max-w-sm text-xs leading-5">
-                  <WenyouTime value={item.hiddenAt} className="text-muted-foreground" />
+                  <WenyouTime mode="exact" value={item.hiddenAt} className="text-muted-foreground" />
                   <p className="mt-1 line-clamp-2" title={item.reason ?? undefined}>{item.reason || "未填写理由"}</p>
                   <p className="text-muted-foreground">站务：{item.moderator?.username ?? "未知"}</p>
                 </AdminTableCell>
