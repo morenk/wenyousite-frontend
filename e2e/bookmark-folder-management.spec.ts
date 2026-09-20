@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { test } from "./fixtures/isolation";
 import AxeBuilder from "@axe-core/playwright";
 
 for (const kind of ["threads", "moments"] as const) {

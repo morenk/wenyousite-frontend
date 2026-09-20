@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { candidateOptions } from "./scripts/e2e-candidate-policy.mjs";
 
 const backendUrl = process.env.BACKEND_URL || "http://127.0.0.1:3000";
 const isDevelopment = process.env.NODE_ENV === "development";
@@ -15,6 +16,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  ...candidateOptions(process.env),
   output: "standalone",
   devIndicators: process.env.DISABLE_NEXT_DEV_INDICATORS === "true" ? false : undefined,
   allowedDevOrigins: ["wenyou.site", "127.0.0.1", "localhost"],

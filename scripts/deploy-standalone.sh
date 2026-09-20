@@ -238,6 +238,7 @@ if [ ! -f "$BUILD_ID_FILE" ] || [ ! -f "$STANDALONE_BUILD_ID_FILE" ]; then
 fi
 
 build_id=$(<"$BUILD_ID_FILE")
+node "$SCRIPT_DIR/assert-deployable-build.mjs" "$FRONTEND_DIR/.next"
 standalone_build_id=$(<"$STANDALONE_BUILD_ID_FILE")
 if [[ ! "$build_id" =~ ^[A-Za-z0-9_-]+$ ]] || [ "$build_id" != "$standalone_build_id" ]; then
   echo "Next.js 根构建与 standalone 构建 ID 不一致" >&2

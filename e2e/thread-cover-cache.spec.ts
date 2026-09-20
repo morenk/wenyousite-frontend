@@ -1,4 +1,5 @@
-import { test, expect } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { test } from "./fixtures/isolation";
 import { coverHttpFixture } from "./helpers/cover-http";
 test.use({ viewport: { width: 1440, height: 2200 } });
 test("所有可见预览复用HTTP缓存，冷热重挂与重入不重复传输", async ({ page, context, baseURL }) => {

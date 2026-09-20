@@ -1,4 +1,5 @@
-import { expect, test, type Page, type Route } from "@playwright/test";
+import { expect, type Page, type Route } from "@playwright/test";
+import { test } from "./fixtures/isolation";
 import { openFreshThreadDraft } from "./fixtures/auth";
 const THREAD_ID = "stability-thread";
 const SUBTHREAD_ID = "stability-main";

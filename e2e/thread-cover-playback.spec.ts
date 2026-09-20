@@ -1,4 +1,5 @@
-import { test, expect } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { test } from "./fixtures/isolation";
 import { coverHttpFixture } from "./helpers/cover-http";
 test.use({ viewport: { width: 1440, height: 2200 } });
 for (const route of ["/", "/users/cover-owner/threads", "/users/cover-owner/bookmarks", "/bookmarks"]) {

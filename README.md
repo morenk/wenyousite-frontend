@@ -24,10 +24,17 @@ pnpm build
 pnpm generate:api
 ```
 
-`pnpm check` 会校验 OpenAPI 生成类型、查询键与 UI/API 分层、覆盖率阈值、文档事实和生产构建。`pnpm check:full` 在此基础上把刚生成的 standalone 构建复制到临时目录并监听 `127.0.0.1:3101`，Playwright 只测试这份候选构建，不复用 `3001` 上的已部署版本。E2E 会写入测试数据，只允许连接本机后端，运行前按 `.env.e2e.example` 提供专用测试账号：
+`pnpm check` 校验 OpenAPI 生成类型、查询键与 UI/API 分层、覆盖率阈值、文档事实和生产构建。
+
+完整 E2E 与富文本真实 API 入口目前失败关闭，等待后端已提交隔离 runner 接口接入；`pnpm test:e2e`、`pnpm test:e2e:candidate`、`pnpm check:full` 和 `bash scripts/test-rich-text-real-api.sh` 不得用线上后端、`E2E_ENV=test` 或外部账号绕过。恢复时必须先核验本轮资源身份和实际候选 API 代理，并在所有退出路径清理登记资源。所有浏览器用例统一继承隔离 fixture，`.next-e2e` 候选产物不能部署。
+
+线上只允许匿名只读烟雾（健康、登录页、公开阅读），不携带真实登录态。该命令阻断非 GET/HEAD、白名单外 GET、自动签到、上传、发帖、回复和重定向；外部媒体也默认阻断。普通阅读可能产生服务端访问日志和阅读统计。
 
 ```bash
-E2E_EMAIL=... E2E_PASSWORD=... pnpm check:full
+pnpm test:e2e:guards
+pnpm test:smoke:readonly
+# 仅验证已部署 Web 的匿名读取；不表示 3000 后端已隔离。
+SMOKE_BASE_URL=http://127.0.0.1:3001 pnpm test:smoke:readonly
 ```
 
 Web access token 只驻留内存，页面刷新通过 httpOnly refresh cookie 恢复；浏览器存储中不持久化凭证。

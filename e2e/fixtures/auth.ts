@@ -1,4 +1,5 @@
 import { expect, type Page } from "@playwright/test";
+import { requireIsolationRunner } from "../../scripts/e2e-isolation-gate.mjs";
 
 function requiredCredential(name: "E2E_EMAIL" | "E2E_PASSWORD") {
   const value = process.env[name]?.trim();
@@ -9,6 +10,7 @@ function requiredCredential(name: "E2E_EMAIL" | "E2E_PASSWORD") {
 }
 
 export async function loginAsE2eUser(page: Page) {
+  requireIsolationRunner();
   await page.goto("/login");
   const loginInput = page.getByLabel("邮箱或用户名");
   await loginInput.waitFor({ state: "visible" });

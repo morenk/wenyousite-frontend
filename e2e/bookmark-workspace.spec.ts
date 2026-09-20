@@ -1,4 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
+import { test } from "./fixtures/isolation";
 import AxeBuilder from "@axe-core/playwright";
 
 async function mockBookmarks(page: Page, folderCount = 100) {

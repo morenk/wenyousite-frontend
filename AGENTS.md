@@ -5,7 +5,7 @@
 - 本仓库是温油站 **PC Web 前端**；移动端由 Flutter 项目承担，不在这里实现响应式移动版。
 - 技术主线：Next.js App Router、React、TypeScript、Tailwind CSS、TanStack Query、React Hook Form + Zod、Vitest、Playwright。
 - 本文件继承工作区根 `AGENTS.md` 的环境边界、任务分支、评审和部署门禁；这里只补充 Web 专属约束。
-- 公网运行拓扑以工作区 [README](../README.md) 为唯一事实源；脚本和依赖命令以 `package.json` 为准。
+- 公网运行拓扑以工作区 [README](https://github.com/morenk/wenyousite-workspace/blob/main/README.md) 为唯一事实源；脚本和依赖命令以 `package.json` 为准。
 - 修改前先读受影响模块及其测试、`docs/modules/` 文档；不要为小改动复制新的流程说明。
 
 ## 2. 不可破坏的实现约束
@@ -66,9 +66,10 @@ pnpm check
 pnpm check:full
 ```
 
-- `pnpm check:full` 把本次生成的 standalone 候选构建隔离运行在 `127.0.0.1:3101`；Playwright 不复用已部署的 `3001` 进程。
-- 完整 Playwright E2E 只连本机 loopback 后端，并使用可清理的专用测试账号。
-- 公网开发环境可做**定向写入烟雾测试**，但必须使用专用测试账号、只创建可识别测试数据、验证后清理；禁止批量或不可逆操作。
+- `pnpm check:full`、完整 E2E 和富文本真实 API 入口统一由隔离 runner 管理。候选使用独立 `.next-e2e` 目录；不得复用已部署的 `3001`、生产 `.next` 或线上后端 `3000`。
+- 登录和写入前必须核验本轮 runId、资源登记、隔离后端身份及候选构建实际 `/api/v1` 代理；`E2E_ENV=test`、loopback 和专用账号都不能单独证明隔离。所有用例继承统一 fixture。
+- 线上（含公网、Tailnet、loopback）默认只读，无定向写入测试例外；仅用 `pnpm test:smoke:readonly` 检查匿名健康、登录页和公开阅读。不得携带真实可写会话、自动签到、上传、发帖或回复。普通匿名阅读可能产生服务端访问日志和阅读统计，区别于测试业务写入。
+- 测试成功、失败、超时均清理本轮登记资源；强杀后下一轮只回收已登记且确认失活的残留，清理失败不得报告通过。E2E 构建不能用于部署。
 - 纯文档变更只做链接、格式和差异检查，不运行 `pnpm check`、不构建、不重启服务。
 - 不通过降低断言、跳过用例、扩大 lint 警告基线来掩盖失败；修复根因或明确汇报阻塞。
 
@@ -128,10 +129,10 @@ journalctl -u wenyousite-frontend.service --no-pager -n 100
 
 ## 5. 参考文档
 
-- [工作区运行拓扑](../README.md)
+- [工作区运行拓扑](https://github.com/morenk/wenyousite-workspace/blob/main/README.md)
 - [前端 API 与模块文档](docs/modules/api-contract.md)
-- [后端前端接入指南](../wenyousite-backend/docs/frontend-guide.md)
-- [API 契约说明](../wenyousite-backend/docs/api-contract.md)
+- [后端前端接入指南](https://github.com/morenk/wenyousite-backend/blob/dev/docs/frontend-guide.md)
+- [API 契约说明](https://github.com/morenk/wenyousite-backend/blob/dev/docs/api-contract.md)
 - [前端 OpenAPI 快照](contracts/openapi.json)
 
 详细设计放在对应代码和模块文档中；本文件只维护跨任务都必须遵守的约束。

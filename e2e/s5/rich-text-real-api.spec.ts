@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { test } from "../fixtures/isolation";
 import { loginAsE2eUser } from "../fixtures/auth";
 
 // 真实登录不录制密码/令牌；仅记录新建测试草稿 ID、内容摘要和阶段。

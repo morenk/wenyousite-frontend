@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { THEME_PALETTES } from "@wenyousite/foundation/theme";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
+import { test } from "./fixtures/isolation";
 
 import { THEME_STORAGE_KEY } from "../src/lib/theme";
 

@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
+import { test } from "./fixtures/isolation";
 
 const fixture = (name: string) => readFileSync(path.join(process.cwd(), "e2e/fixtures/moment-animation", name));
 const user = { id: "moment-animation-user", email: "animation@example.test", username: "播放验收", avatar: null, role: "USER", level: 1 };

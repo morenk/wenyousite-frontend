@@ -27,7 +27,10 @@
     "check": "pnpm security:audit && pnpm lint && pnpm typecheck && pnpm contract:check && pnpm arch:check && pnpm design:check && pnpm test:coverage && pnpm test:deploy-preflight && pnpm docs:check && pnpm build",
     "check:full": "pnpm check && pnpm test:e2e:candidate",
     "fonts:check": "node scripts/check-system-fonts.mjs",
-    "fonts:check:build": "node scripts/check-system-fonts.mjs --build"
+    "fonts:check:build": "node scripts/check-system-fonts.mjs --build",
+    "test:smoke:readonly": "node scripts/readonly-smoke.mjs",
+    "test:smoke:guard": "node --test scripts/readonly-smoke-browser.test.mjs",
+    "test:e2e:guards": "node --test scripts/rich-text-real-api-preflight.test.mjs scripts/readonly-smoke-browser.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
