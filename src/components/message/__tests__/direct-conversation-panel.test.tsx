@@ -288,14 +288,14 @@ describe("DirectConversationPanel", () => {
   });
 
   test("连续消息按五分钟间隔合并为居中时间线节点", async () => {
-    vi.spyOn(Date, "now").mockReturnValue(new Date("2026-08-07T15:00:00Z").getTime());
+    vi.spyOn(Date, "now").mockReturnValue(new Date(new Date(2026, 7, 7, 15, 0, 0).toISOString()).getTime());
     const history = mocks.history();
     mocks.history.mockReturnValue({
       ...history,
       messages: [
-        { ...history.messages[0], id: "timeline-1", createdAt: "2026-08-07T14:00:00Z" },
-        { ...history.messages[1], id: "timeline-2", createdAt: "2026-08-07T14:02:00Z" },
-        { ...history.messages[0], id: "timeline-3", createdAt: "2026-08-07T14:07:00Z" },
+        { ...history.messages[0], id: "timeline-1", createdAt: new Date(2026, 7, 7, 14, 0, 0).toISOString() },
+        { ...history.messages[1], id: "timeline-2", createdAt: new Date(2026, 7, 7, 14, 2, 0).toISOString() },
+        { ...history.messages[0], id: "timeline-3", createdAt: new Date(2026, 7, 7, 14, 7, 0).toISOString() },
       ],
     });
     const { container } = render(<DirectConversationPanel conversationId="c1" />);
@@ -303,6 +303,10 @@ describe("DirectConversationPanel", () => {
     await waitFor(() => expect(container.querySelectorAll("time")).toHaveLength(2));
     expect(container.querySelectorAll("time")[0]).toHaveTextContent("1 小时前");
     expect(container.querySelectorAll("time")[1]).toHaveTextContent("53 分钟前");
+    for (const time of container.querySelectorAll("time")) {
+      expect(time).toHaveAttribute("title", "2026-08-07");
+      expect(time).toHaveAccessibleName("2026-08-07");
+    }
   });
 
   test("收到的待处理请求可接受、拒绝且隐藏陌生图片", async () => {

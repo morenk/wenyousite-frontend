@@ -217,7 +217,7 @@ const semanticContractClaims = new Map([
   ["src/components/shared/internal-reference-editor-dom.ts", ["@wenyousite/foundation/elements", "iconNode", "editorBehavior"]],
   ["src/components/shared/level-badge.tsx", ["@wenyousite/foundation/elements", "--element-level-height", "data-slot=\"level-badge\"", "levelTier", "data-level-tier", "--element-level-${tier.id}-surface"]],
   ["src/components/shared/user-avatar.tsx", ["IDENTITY_PRESENTATION", "onError", "avatarFallback.missingOrFailed"]],
-  ["src/components/shared/wenyou-time.tsx", ["@wenyousite/foundation/formatting", "formatWenyouTime", "formatWenyouExactTime", "title="]],
+  ["src/components/shared/wenyou-time.tsx", ["@wenyousite/foundation/formatting", "formatWenyouTime", "formatWenyouDate", "formatWenyouExactTime", "title={accessibleLabel}", "aria-label={accessibleLabel}"]],
   ["src/components/shared/wenyou-count.tsx", ["@wenyousite/foundation/formatting", "formatWenyouCompactCount", "aria-label"]],
   ["src/components/ui/button.tsx", ["@wenyousite/foundation/controls", "data-control-role", "pendingLabel", 'id="status.loading"', "aria-busy", "bg-action-primary", "text-action-primary-foreground"]],
   ["src/components/ui/input.tsx", ["@wenyousite/foundation/controls", "data-control-state"]],

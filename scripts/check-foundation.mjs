@@ -26,9 +26,24 @@ if (packageJson.dependencies?.["@wenyousite/foundation"] !== `github:morenk/weny
 if (manifest.version !== lock.version) failures.push("已安装 foundation 版本与锁文件不一致");
 if (manifest.contractSha256 !== lock.contractSha256) failures.push("已安装 foundation 契约哈希与锁文件不一致");
 if (!read("pnpm-lock.yaml").includes(lock.revision)) failures.push("pnpm-lock.yaml 未锁定指定 foundation revision");
-if (foundationContract.version !== "7.0.0" || foundationContract.schemaVersion !== 3) {
-  failures.push("Web 必须消费 Foundation v7.0.0 schema 3 契约");
+if (foundationContract.version !== "7.1.0" || foundationContract.schemaVersion !== 3) {
+  failures.push("Web 必须消费 Foundation v7.1.0 schema 3 契约");
 }
+const formatting = foundationContract.experiences.formatting;
+if (
+  formatting.sourceTimestamp !== "preserve"
+  || formatting.relativeTime.relativeWindowSeconds !== 259200
+  || formatting.relativeTime.sameYearFallback !== "MM-dd"
+  || formatting.relativeTime.crossYearFallback !== "yyyy-MM-dd"
+  || formatting.relativeTime.futureBehavior !== "absolute"
+  || formatting.relativeTime.timezone !== "user-local"
+  || formatting.relativeTime.exposureFormat !== "yyyy-MM-dd"
+  || formatting.relativeTime.exposurePrecision !== "date-only"
+  || !formatting.relativeTime.exactValueExposure.includes("web-accessible-name")
+  || formatting.exactTime.format !== "yyyy-MM-dd HH:mm"
+  || formatting.exactTime.timezone !== "user-local"
+  || !formatting.exactTime.preserveExistingSeconds
+) failures.push("Foundation 必须保留原始时间戳，普通内容只显示日期，精确记录保留时分与既有秒精度");
 for (const context of ["functional-page-title", "functional-section-title", "functional-subsection-title"]) {
   if (!foundationContract.typography.usage.bodySemiboldContexts.includes(context)) {
     failures.push(`Foundation 缺少 ${context} body 600 标题语境`);

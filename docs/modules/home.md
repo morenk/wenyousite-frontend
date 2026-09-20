@@ -82,7 +82,7 @@
 | 楼层数 | thread._count.posts | 数字 |
 | 作者 | thread.owner | 头像母版（无则首字符占位）+ 用户名 + Lv.等级 |
 | 创作激励 | thread.tipTotal | 公开累计获得温油总额（整数升） |
-| 最后活跃 | thread.updatedAt | date-fns 相对时间 |
+| 最后活跃 | thread.updatedAt | Foundation 72 小时相对时间窗口，之后只显示日期 |
 
 ## 7. 分页策略
 

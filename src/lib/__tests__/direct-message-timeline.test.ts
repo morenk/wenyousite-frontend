@@ -22,13 +22,13 @@ describe("direct message timeline", () => {
     expect(formatDirectMessageTime("invalid", new Date("2026-08-07T15:00:00Z"))).toBe("—");
   });
 
-  test("当天、昨天、同年和跨年时间使用渐进式日期文案", () => {
+  test("私信保持相对时间，同年和跨年绝对日期不显示时分", () => {
     const now = new Date("2026-08-07T15:00:00Z");
     expect(formatDirectMessageTime("2026-08-07T14:05:00Z", now)).toBe("55 分钟前");
     expect(formatDirectMessageTime("2026-08-06T23:59:00Z", now)).toBe("15 小时前");
-    expect(formatDirectMessageTime("2026-07-01T08:30:00Z", now)).toBe("07-01 08:30");
-    expect(formatDirectMessageTime("2025-12-31T23:59:00Z", now)).toBe(
-      "2025-12-31 23:59",
+    expect(formatDirectMessageTime("2026-07-01T08:30:00Z", now)).toBe("07-01");
+    expect(formatDirectMessageTime(new Date(2025, 11, 31, 23, 59).toISOString(), now)).toBe(
+      "2025-12-31",
     );
   });
 });
