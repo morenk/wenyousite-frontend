@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "温油站务台",
+  title: "温油站管理后台",
   robots: { index: false, follow: false },
 };
 
