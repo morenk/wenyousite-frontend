@@ -112,7 +112,7 @@ export function HiddenContentList({ headerAction }: { headerAction?: ReactNode }
   return (
     <>
       <section className="overflow-hidden rounded-lg border border-border bg-card">
-        <div className="flex items-center justify-between gap-5 border-b border-border px-6 py-5">
+        <div className="flex items-center justify-between gap-5 border-b border-border px-4 py-3">
           <div className="flex items-center gap-3">
             <span className="flex size-10 items-center justify-center rounded-xl bg-success-soft text-success">
               <RotateCcw className="size-5" />
@@ -219,13 +219,13 @@ export function HiddenContentList({ headerAction }: { headerAction?: ReactNode }
           <DialogBackdrop />
           <DialogViewport>
             <DialogPopup data-admin-action-dialog className="max-w-2xl">
-              <div className="flex items-start justify-between gap-5 border-b border-border px-6 py-5">
+              <div className="flex items-start justify-between gap-5 border-b border-border px-4 py-3">
                 <div>
                   <DialogTitle>{selected ? targetLabels[selected.targetType] : "内容"}操作</DialogTitle>
                 </div>
                 <DialogCloseButton type="button" label="关闭内容操作" disabled={actions.restore.isPending} />
               </div>
-              <div className="space-y-4 px-6 py-6">
+              <div className="space-y-4 px-4 py-4">
                   <div className="rounded-xl bg-muted px-4 py-3">
                     <p className="line-clamp-2 text-sm font-bold">{selected?.summary}</p>
                     <code className="mt-1 block truncate font-utility text-xs text-muted-foreground">{selected?.targetId}</code>

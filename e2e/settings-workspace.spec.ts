@@ -176,7 +176,9 @@ for (const colorScheme of ["light", "dark"] as const) {
       }
       for (const name of ["移动端 · 2:1", "电脑端 · 3:1"]) {
         await page.getByRole("tab", { name }).click();
-        const preview = (await appearance.getByRole("tabpanel").boundingBox())!;
+        const panel = appearance.getByRole("tabpanel", { name });
+        await expect(panel).toBeVisible();
+        const preview = (await panel.boundingBox())!;
         const action = (await appearance.getByRole("button", { name: "更换背景" }).boundingBox())!;
         expect(action.y - preview.y - preview.height).toBeGreaterThanOrEqual(40);
       }

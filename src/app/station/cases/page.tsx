@@ -3,7 +3,7 @@ import { StationFrame } from "@/components/admin/station-frame";
 
 export default function StationCasesPage() {
   return (
-    <StationFrame title="案件工作台" fullBleed>
+    <StationFrame title="举报处理" fullBleed>
       <CaseWorkbench />
     </StationFrame>
   );

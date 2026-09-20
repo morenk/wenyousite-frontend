@@ -3,7 +3,7 @@ import { StationFrame } from "@/components/admin/station-frame";
 
 export default function StationDashboardPage() {
   return (
-    <StationFrame title="站务总览">
+    <StationFrame title="总览">
       <AdminDashboardPanel />
     </StationFrame>
   );

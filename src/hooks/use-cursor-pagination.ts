@@ -1,14 +1,23 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface CursorState {
   scope: string;
   cursors: Array<string | undefined>;
 }
 
-export function useCursorPagination(scope: string) {
-  const [state, setState] = useState<CursorState>({ scope, cursors: [undefined] });
+const retained = new Map<string, CursorState>();
+
+export function clearAdminListPagination() { retained.clear(); }
+
+export function useCursorPagination(scope: string, retentionKey?: string) {
+  const [state, setState] = useState<CursorState>(() =>
+    (retentionKey ? retained.get(retentionKey) : undefined) ?? { scope, cursors: [undefined] });
+  useEffect(() => {
+    if (retentionKey) retained.set(retentionKey, state.scope === scope ? state : { scope, cursors: [undefined] });
+  }, [retentionKey, scope, state]);
+  if (state.scope !== scope) setState({ scope, cursors: [undefined] });
   const active = state.scope === scope ? state : { scope, cursors: [undefined] };
   const cursor = active.cursors.at(-1);
 

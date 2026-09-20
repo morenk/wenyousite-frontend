@@ -1,19 +1,36 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { clearAdminListPagination } from "@/hooks/use-cursor-pagination";
+import { clearAdminListPositions } from "@/hooks/use-admin-list-return";
 import { apiClient, setAdminCsrfToken } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
 import type { components } from "@/api/types";
 import type { AdminSessionData } from "@/api/admin-types";
 import { envelope } from "@/api/hooks/admin/envelope";
 
+let adminIdentity: string | undefined;
+function clearAdminNavigation() {
+  clearAdminListPagination();
+  clearAdminListPositions();
+  adminIdentity = undefined;
+}
+function acceptAdminIdentity(id: string) {
+  if (adminIdentity !== id) clearAdminNavigation();
+  adminIdentity = id;
+}
+
 export function useAdminSession(enabled = true) {
   return useQuery({
     queryKey: queryKeys.admin.session,
     queryFn: async () => {
-      const { data, error } = await apiClient.GET("/api/v1/admin/auth/session");
-      if (error) throw error;
+      const { data, error, response } = await apiClient.GET("/api/v1/admin/auth/session");
+      if (error) {
+        if (response.status === 401 || response.status === 403) clearAdminNavigation();
+        throw error;
+      }
       const session = envelope<AdminSessionData>(data).data;
+      acceptAdminIdentity(session.user.id);
       setAdminCsrfToken(session.csrfToken);
       return session;
     },
@@ -39,6 +56,8 @@ export function useAdminLogin() {
       return envelope<AdminSessionData>(data).data;
     },
     onSuccess: (session) => {
+      clearAdminNavigation();
+      acceptAdminIdentity(session.user.id);
       setAdminCsrfToken(session.csrfToken);
       queryClient.setQueryData(queryKeys.admin.session, session);
     },
@@ -55,31 +74,43 @@ export function useAdminLogout() {
     },
     onSuccess: () => {
       setAdminCsrfToken(null);
+      clearAdminNavigation();
       queryClient.removeQueries({ queryKey: queryKeys.admin.root });
     },
   });
 }
 
-export function useAdminDashboard() {
+export function useAdminDashboard(range: { from?: string; to?: string } = {}) {
   return useQuery({
-    queryKey: queryKeys.admin.dashboard,
+    queryKey: queryKeys.admin.dashboardRange(range),
     queryFn: async () => {
-      const [overviewResult, timeseriesResult, distributionsResult, healthResult] = await Promise.all([
-        apiClient.GET("/api/v1/admin/dashboard/overview"),
-        apiClient.GET("/api/v1/admin/dashboard/timeseries"),
+      const [overviewResult, timeseriesResult, distributionsResult] = await Promise.all([
+        apiClient.GET("/api/v1/admin/dashboard/overview", { params: { query: range } }),
+        apiClient.GET("/api/v1/admin/dashboard/timeseries", { params: { query: range } }),
         apiClient.GET("/api/v1/admin/dashboard/distributions"),
-        apiClient.GET("/api/v1/health"),
       ]);
-      const failed = [overviewResult, timeseriesResult, distributionsResult, healthResult]
+      const failed = [overviewResult, timeseriesResult, distributionsResult]
         .find((result) => result.error);
       if (failed?.error) throw failed.error;
       return {
         overview: envelope<components["schemas"]["AdminDashboardOverviewResponseDto"]>(overviewResult.data).data,
         timeseries: envelope<components["schemas"]["AdminDashboardTimeseriesResponseDto"]>(timeseriesResult.data).data,
         distributions: envelope<components["schemas"]["AdminDashboardDistributionsResponseDto"]>(distributionsResult.data).data,
-        health: envelope<{ status?: string; info?: Record<string, { status: string }> }>(healthResult.data).data,
       };
     },
+    refetchInterval: 60_000,
+  });
+}
+
+export function useAdminHealth() {
+  return useQuery({
+    queryKey: queryKeys.admin.health,
+    queryFn: async () => {
+      const { data, error } = await apiClient.GET("/api/v1/health");
+      if (error) throw error;
+      return envelope<{ status?: string; info?: Record<string, { status: string }> }>(data).data;
+    },
+    retry: false,
     refetchInterval: 60_000,
   });
 }

@@ -2278,6 +2278,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 管理员内容列表 */
+        get: operations["adminContentList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/content/{type}/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 管理员内容详情 */
+        get: operations["adminContentDetail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/content/thread/{id}/taxonomy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** 整理主题帖分类和标签 */
+        patch: operations["adminContentUpdateTaxonomy"];
+        trace?: never;
+    };
     "/api/v1/admin/users": {
         parameters: {
             query?: never;
@@ -5504,6 +5555,99 @@ export interface components {
         AdminUserSearchResponseDto: {
             data: components["schemas"]["AdminUserSearchItemDto"][];
         };
+        AdminHiddenContentUserResponseDto: {
+            id: string;
+            username: string;
+        };
+        AdminContentTagDto: {
+            id: string;
+            name: string;
+            isActive: boolean;
+        };
+        AdminContentResponseDto: {
+            id: string;
+            /** @enum {string} */
+            type: "thread" | "post" | "moment" | "moment_comment";
+            title: string | null;
+            summary: string;
+            author: components["schemas"]["AdminHiddenContentUserResponseDto"];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            hidden: boolean;
+            parentHidden: boolean;
+            canRestore: boolean;
+            restoreBlockedReason: string | null;
+            threadId: string | null;
+            parentPostId: string | null;
+            momentId: string | null;
+            parentCommentId: string | null;
+            category: string | null;
+            tags: components["schemas"]["AdminContentTagDto"][];
+            version: number | null;
+        };
+        AdminContentMediaDto: {
+            id: string;
+            url: string;
+            display: components["schemas"]["MediaDisplayResponseDto"] | null;
+        };
+        AdminAuditActorResponseDto: {
+            id: string;
+            username: string;
+            /** @enum {string} */
+            role: "USER" | "ADMIN" | "SUPER_ADMIN";
+        };
+        AdminAuditLogResponseDto: {
+            id: string;
+            /** @enum {string} */
+            action: "SUPER_ADMIN_BOOTSTRAPPED" | "ADMIN_ROLE_GRANTED" | "ADMIN_ROLE_REVOKED" | "USER_SUSPENDED" | "USER_BANNED" | "USER_SANCTION_REVOKED" | "CONTENT_HIDDEN" | "CONTENT_RESTORED" | "THREAD_TAXONOMY_UPDATED" | "REPORT_RESOLVED" | "REPORT_DISMISSED" | "SYSTEM_NOTIFICATION_SENT" | "THREAD_CATEGORY_CREATED" | "THREAD_CATEGORY_UPDATED" | "TAG_CREATED" | "TAG_UPDATED" | "ADMIN_INVITED" | "ADMIN_INVITE_ACCEPTED" | "ADMIN_INVITE_CANCELED" | "SUPER_ADMIN_TRANSFERRED" | "ADMIN_SESSION_REVOKED" | "CASE_RESOLVED" | "CASE_DISMISSED" | "APPEAL_SUBMITTED" | "APPEAL_UPHELD" | "APPEAL_OVERTURNED" | "USER_SESSIONS_REVOKED" | "PASSWORD_RESET_REQUESTED_BY_ADMIN" | "NOTIFICATION_CAMPAIGN_SCHEDULED" | "NOTIFICATION_CAMPAIGN_CANCELED" | "THREAD_CATEGORY_MERGED" | "TAG_MERGED" | "SITE_SETTINGS_UPDATED";
+            /** @enum {string} */
+            targetType: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "REPORT" | "SYSTEM_NOTIFICATION" | "THREAD_CATEGORY" | "TAG" | "MODERATION_CASE" | "MODERATION_DECISION" | "MODERATION_APPEAL" | "ADMIN_INVITE" | "ADMIN_SESSION" | "NOTIFICATION_CAMPAIGN" | "SITE_SETTINGS";
+            targetId: string | null;
+            reportId: string | null;
+            reason: string | null;
+            metadata: {
+                [key: string]: unknown;
+            } | null;
+            actor: components["schemas"]["AdminAuditActorResponseDto"] | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        AdminContentDetailResponseDto: {
+            id: string;
+            /** @enum {string} */
+            type: "thread" | "post" | "moment" | "moment_comment";
+            title: string | null;
+            summary: string;
+            author: components["schemas"]["AdminHiddenContentUserResponseDto"];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            hidden: boolean;
+            parentHidden: boolean;
+            canRestore: boolean;
+            restoreBlockedReason: string | null;
+            threadId: string | null;
+            parentPostId: string | null;
+            momentId: string | null;
+            parentCommentId: string | null;
+            category: string | null;
+            tags: components["schemas"]["AdminContentTagDto"][];
+            version: number | null;
+            content: string;
+            mediaIds: string[];
+            media: components["schemas"]["AdminContentMediaDto"][];
+            auditLogs: components["schemas"]["AdminAuditLogResponseDto"][];
+        };
+        UpdateContentTaxonomyDto: {
+            version: number;
+            reason: string;
+            /** @description 省略保持原值，不可清空 */
+            category?: string;
+            tagIds?: string[];
+        };
         AdminUserSanctionResponseDto: {
             id: string;
             /** @enum {string} */
@@ -5527,6 +5671,30 @@ export interface components {
             currentSanction?: components["schemas"]["AdminUserSanctionResponseDto"] | null;
             /** Format: date-time */
             createdAt: string;
+        };
+        AdminUserContentCountsDto: {
+            thread: number;
+            post: number;
+            moment: number;
+            moment_comment: number;
+        };
+        AdminUserDetailResponseDto: {
+            id: string;
+            /** Format: email */
+            email: string;
+            username: string;
+            /** @enum {string} */
+            role: "USER" | "ADMIN" | "SUPER_ADMIN";
+            /** @enum {string} */
+            moderationStatus: "ACTIVE" | "SUSPENDED" | "BANNED";
+            currentSanction?: components["schemas"]["AdminUserSanctionResponseDto"] | null;
+            /** Format: date-time */
+            createdAt: string;
+            bio: string | null;
+            level: number;
+            /** Format: date */
+            lastActiveDate: string | null;
+            contentCounts: components["schemas"]["AdminUserContentCountsDto"];
         };
         SanctionUserDto: {
             /** @enum {string} */
@@ -5557,10 +5725,6 @@ export interface components {
             /** Format: date-time */
             deletedAt: string | null;
         };
-        AdminHiddenContentUserResponseDto: {
-            id: string;
-            username: string;
-        };
         AdminHiddenContentResponseDto: {
             /** @enum {string} */
             targetType: "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT";
@@ -5577,28 +5741,6 @@ export interface components {
             parentPostId: string | null;
             momentId: string | null;
             parentCommentId: string | null;
-        };
-        AdminAuditActorResponseDto: {
-            id: string;
-            username: string;
-            /** @enum {string} */
-            role: "USER" | "ADMIN" | "SUPER_ADMIN";
-        };
-        AdminAuditLogResponseDto: {
-            id: string;
-            /** @enum {string} */
-            action: "SUPER_ADMIN_BOOTSTRAPPED" | "ADMIN_ROLE_GRANTED" | "ADMIN_ROLE_REVOKED" | "USER_SUSPENDED" | "USER_BANNED" | "USER_SANCTION_REVOKED" | "CONTENT_HIDDEN" | "CONTENT_RESTORED" | "REPORT_RESOLVED" | "REPORT_DISMISSED" | "SYSTEM_NOTIFICATION_SENT" | "THREAD_CATEGORY_CREATED" | "THREAD_CATEGORY_UPDATED" | "TAG_CREATED" | "TAG_UPDATED" | "ADMIN_INVITED" | "ADMIN_INVITE_ACCEPTED" | "ADMIN_INVITE_CANCELED" | "SUPER_ADMIN_TRANSFERRED" | "ADMIN_SESSION_REVOKED" | "CASE_RESOLVED" | "CASE_DISMISSED" | "APPEAL_SUBMITTED" | "APPEAL_UPHELD" | "APPEAL_OVERTURNED" | "USER_SESSIONS_REVOKED" | "PASSWORD_RESET_REQUESTED_BY_ADMIN" | "NOTIFICATION_CAMPAIGN_SCHEDULED" | "NOTIFICATION_CAMPAIGN_CANCELED" | "THREAD_CATEGORY_MERGED" | "TAG_MERGED" | "SITE_SETTINGS_UPDATED";
-            /** @enum {string} */
-            targetType: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "REPORT" | "SYSTEM_NOTIFICATION" | "THREAD_CATEGORY" | "TAG" | "MODERATION_CASE" | "MODERATION_DECISION" | "MODERATION_APPEAL" | "ADMIN_INVITE" | "ADMIN_SESSION" | "NOTIFICATION_CAMPAIGN" | "SITE_SETTINGS";
-            targetId: string | null;
-            reportId: string | null;
-            reason: string | null;
-            metadata: {
-                [key: string]: unknown;
-            } | null;
-            actor: components["schemas"]["AdminAuditActorResponseDto"] | null;
-            /** Format: date-time */
-            createdAt: string;
         };
         AdminDashboardRangeResponseDto: {
             /** @example 2026-08-01 */
@@ -5635,6 +5777,10 @@ export interface components {
              * @example 86
              */
             newPosts: number;
+            /** @example 8 */
+            newMoments: number;
+            /** @example 24 */
+            newMomentComments: number;
             /** @example 9 */
             reportsReceived: number;
             /** @example 7 */
@@ -5668,6 +5814,10 @@ export interface components {
             publishedThreads: number;
             /** @example 18 */
             newPosts: number;
+            /** @example 8 */
+            newMoments: number;
+            /** @example 24 */
+            newMomentComments: number;
             /** @example 2 */
             reportsReceived: number;
             /** @example 1 */
@@ -6780,11 +6930,20 @@ export interface components {
         AdminSearchUsers200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["AdminUserSearchResponseDto"];
         };
+        AdminContentList200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["AdminContentResponseDto"][];
+        };
+        AdminContentDetail200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminContentDetailResponseDto"];
+        };
+        AdminContentUpdateTaxonomy200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminContentDetailResponseDto"];
+        };
         AdminModerationListUsers200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
             data: components["schemas"]["AdminUserModerationResponseDto"][];
         };
         AdminModerationGetUser200Response: components["schemas"]["ApiSuccessEnvelope"] & {
-            data: components["schemas"]["AdminUserModerationResponseDto"];
+            data: components["schemas"]["AdminUserDetailResponseDto"];
         };
         AdminModerationSanctionUser201Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["AdminUserSanctionResponseDto"];
@@ -14864,6 +15023,135 @@ export interface operations {
             };
         };
     };
+    adminContentList: {
+        parameters: {
+            query?: {
+                /** @description 服务端返回的不透明分页游标；首次请求不传，后续必须原样回传 */
+                cursor?: string;
+                /** @description 每页条数（默认 20，最大 50） */
+                limit?: 20 | 50;
+                type?: "thread" | "post" | "moment" | "moment_comment";
+                q?: string;
+                id?: string;
+                authorId?: string;
+                status?: "ACTIVE" | "HIDDEN";
+                createdAfter?: string;
+                createdBefore?: string;
+                category?: string;
+                tagId?: string;
+            };
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 公开内容和管理员隐藏项 */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminContentList200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminContentDetail: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                type: "thread" | "post" | "moment" | "moment_comment";
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminContentDetail200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminContentUpdateTaxonomy: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateContentTaxonomyDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminContentUpdateTaxonomy200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
     adminModerationListUsers: {
         parameters: {
             query?: {
@@ -14871,6 +15159,8 @@ export interface operations {
                 cursor?: string;
                 /** @description 每页条数（默认 20，最大 50） */
                 limit?: number;
+                /** @description 精确用户编号 */
+                id?: string;
                 /** @description 用户名或邮箱关键词 */
                 q?: string;
                 role?: "USER" | "ADMIN" | "SUPER_ADMIN";
@@ -15202,7 +15492,7 @@ export interface operations {
                 cursor?: string;
                 /** @description 每页条数（默认 20，最大 50） */
                 limit?: number;
-                action?: "SUPER_ADMIN_BOOTSTRAPPED" | "ADMIN_ROLE_GRANTED" | "ADMIN_ROLE_REVOKED" | "USER_SUSPENDED" | "USER_BANNED" | "USER_SANCTION_REVOKED" | "CONTENT_HIDDEN" | "CONTENT_RESTORED" | "REPORT_RESOLVED" | "REPORT_DISMISSED" | "SYSTEM_NOTIFICATION_SENT" | "THREAD_CATEGORY_CREATED" | "THREAD_CATEGORY_UPDATED" | "TAG_CREATED" | "TAG_UPDATED" | "ADMIN_INVITED" | "ADMIN_INVITE_ACCEPTED" | "ADMIN_INVITE_CANCELED" | "SUPER_ADMIN_TRANSFERRED" | "ADMIN_SESSION_REVOKED" | "CASE_RESOLVED" | "CASE_DISMISSED" | "APPEAL_SUBMITTED" | "APPEAL_UPHELD" | "APPEAL_OVERTURNED" | "USER_SESSIONS_REVOKED" | "PASSWORD_RESET_REQUESTED_BY_ADMIN" | "NOTIFICATION_CAMPAIGN_SCHEDULED" | "NOTIFICATION_CAMPAIGN_CANCELED" | "THREAD_CATEGORY_MERGED" | "TAG_MERGED" | "SITE_SETTINGS_UPDATED";
+                action?: "SUPER_ADMIN_BOOTSTRAPPED" | "ADMIN_ROLE_GRANTED" | "ADMIN_ROLE_REVOKED" | "USER_SUSPENDED" | "USER_BANNED" | "USER_SANCTION_REVOKED" | "CONTENT_HIDDEN" | "CONTENT_RESTORED" | "THREAD_TAXONOMY_UPDATED" | "REPORT_RESOLVED" | "REPORT_DISMISSED" | "SYSTEM_NOTIFICATION_SENT" | "THREAD_CATEGORY_CREATED" | "THREAD_CATEGORY_UPDATED" | "TAG_CREATED" | "TAG_UPDATED" | "ADMIN_INVITED" | "ADMIN_INVITE_ACCEPTED" | "ADMIN_INVITE_CANCELED" | "SUPER_ADMIN_TRANSFERRED" | "ADMIN_SESSION_REVOKED" | "CASE_RESOLVED" | "CASE_DISMISSED" | "APPEAL_SUBMITTED" | "APPEAL_UPHELD" | "APPEAL_OVERTURNED" | "USER_SESSIONS_REVOKED" | "PASSWORD_RESET_REQUESTED_BY_ADMIN" | "NOTIFICATION_CAMPAIGN_SCHEDULED" | "NOTIFICATION_CAMPAIGN_CANCELED" | "THREAD_CATEGORY_MERGED" | "TAG_MERGED" | "SITE_SETTINGS_UPDATED";
                 targetType?: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "REPORT" | "SYSTEM_NOTIFICATION" | "THREAD_CATEGORY" | "TAG" | "MODERATION_CASE" | "MODERATION_DECISION" | "MODERATION_APPEAL" | "ADMIN_INVITE" | "ADMIN_SESSION" | "NOTIFICATION_CAMPAIGN" | "SITE_SETTINGS";
                 targetId?: string;
                 actorId?: string;
@@ -15249,7 +15539,7 @@ export interface operations {
                 cursor?: string;
                 /** @description 每页条数（默认 20，最大 50） */
                 limit?: number;
-                action?: "SUPER_ADMIN_BOOTSTRAPPED" | "ADMIN_ROLE_GRANTED" | "ADMIN_ROLE_REVOKED" | "USER_SUSPENDED" | "USER_BANNED" | "USER_SANCTION_REVOKED" | "CONTENT_HIDDEN" | "CONTENT_RESTORED" | "REPORT_RESOLVED" | "REPORT_DISMISSED" | "SYSTEM_NOTIFICATION_SENT" | "THREAD_CATEGORY_CREATED" | "THREAD_CATEGORY_UPDATED" | "TAG_CREATED" | "TAG_UPDATED" | "ADMIN_INVITED" | "ADMIN_INVITE_ACCEPTED" | "ADMIN_INVITE_CANCELED" | "SUPER_ADMIN_TRANSFERRED" | "ADMIN_SESSION_REVOKED" | "CASE_RESOLVED" | "CASE_DISMISSED" | "APPEAL_SUBMITTED" | "APPEAL_UPHELD" | "APPEAL_OVERTURNED" | "USER_SESSIONS_REVOKED" | "PASSWORD_RESET_REQUESTED_BY_ADMIN" | "NOTIFICATION_CAMPAIGN_SCHEDULED" | "NOTIFICATION_CAMPAIGN_CANCELED" | "THREAD_CATEGORY_MERGED" | "TAG_MERGED" | "SITE_SETTINGS_UPDATED";
+                action?: "SUPER_ADMIN_BOOTSTRAPPED" | "ADMIN_ROLE_GRANTED" | "ADMIN_ROLE_REVOKED" | "USER_SUSPENDED" | "USER_BANNED" | "USER_SANCTION_REVOKED" | "CONTENT_HIDDEN" | "CONTENT_RESTORED" | "THREAD_TAXONOMY_UPDATED" | "REPORT_RESOLVED" | "REPORT_DISMISSED" | "SYSTEM_NOTIFICATION_SENT" | "THREAD_CATEGORY_CREATED" | "THREAD_CATEGORY_UPDATED" | "TAG_CREATED" | "TAG_UPDATED" | "ADMIN_INVITED" | "ADMIN_INVITE_ACCEPTED" | "ADMIN_INVITE_CANCELED" | "SUPER_ADMIN_TRANSFERRED" | "ADMIN_SESSION_REVOKED" | "CASE_RESOLVED" | "CASE_DISMISSED" | "APPEAL_SUBMITTED" | "APPEAL_UPHELD" | "APPEAL_OVERTURNED" | "USER_SESSIONS_REVOKED" | "PASSWORD_RESET_REQUESTED_BY_ADMIN" | "NOTIFICATION_CAMPAIGN_SCHEDULED" | "NOTIFICATION_CAMPAIGN_CANCELED" | "THREAD_CATEGORY_MERGED" | "TAG_MERGED" | "SITE_SETTINGS_UPDATED";
                 targetType?: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "REPORT" | "SYSTEM_NOTIFICATION" | "THREAD_CATEGORY" | "TAG" | "MODERATION_CASE" | "MODERATION_DECISION" | "MODERATION_APPEAL" | "ADMIN_INVITE" | "ADMIN_SESSION" | "NOTIFICATION_CAMPAIGN" | "SITE_SETTINGS";
                 targetId?: string;
                 actorId?: string;

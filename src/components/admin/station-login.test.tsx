@@ -50,7 +50,7 @@ describe("StationLogin", () => {
 
     await user.type(screen.getByLabelText("账号"), "admin@example.com");
     await user.type(screen.getByLabelText("密码"), "password123");
-    await user.click(screen.getByRole("button", { name: "继续邮箱确认" }));
+    await user.click(screen.getByRole("button", { name: "继续" }));
 
     await waitFor(() => expect(mockChallenge).toHaveBeenCalledWith({
       account: "admin@example.com",
@@ -59,7 +59,7 @@ describe("StationLogin", () => {
     expect(screen.getByRole("heading", { name: "查收邮箱验证码" })).toBeInTheDocument();
 
     await user.type(screen.getByLabelText("6 位验证码"), "123456");
-    await user.click(screen.getByRole("button", { name: "进入站务台" }));
+    await user.click(screen.getByRole("button", { name: "登录" }));
 
     await waitFor(() => expect(mockVerify).toHaveBeenCalledWith({
       challengeId: "challenge-1",
@@ -73,7 +73,7 @@ describe("StationLogin", () => {
     render(<StationLogin />);
     await user.type(screen.getByLabelText("账号"), "admin@example.com");
     await user.type(screen.getByLabelText("密码"), "password123");
-    await user.click(screen.getByRole("button", { name: "继续邮箱确认" }));
+    await user.click(screen.getByRole("button", { name: "继续" }));
     await screen.findByLabelText("6 位验证码");
     await user.click(screen.getByRole("button", { name: "返回修改账号" }));
     expect(await screen.findByLabelText("账号")).toHaveValue("admin@example.com");
@@ -85,7 +85,7 @@ describe("StationLogin", () => {
     const user = userEvent.setup();
     render(<StationLogin />);
 
-    await user.click(screen.getByRole("button", { name: "继续邮箱确认" }));
+    await user.click(screen.getByRole("button", { name: "继续" }));
 
     expect(await screen.findByText("请输入管理员账号")).toHaveAttribute(
       "id",

@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { addHours, format } from "date-fns";
-import { AlertTriangle, CalendarClock, Radio, UserRoundX } from "lucide-react";
+import { AlertTriangle, CalendarClock, UserRoundX } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -74,7 +74,7 @@ export function OperationsSettingsPanel() {
   return (
     <form
       data-slot="admin-operations-workspace"
-      className="w-full space-y-6"
+      className="w-full space-y-4"
       onSubmit={form.handleSubmit(async (values) => {
         try {
           await update.mutateAsync({
@@ -92,7 +92,7 @@ export function OperationsSettingsPanel() {
       })}
     >
       <div className="grid grid-cols-2 gap-5">
-        <section className="rounded-2xl border border-border bg-card p-6">
+        <section className="rounded-lg border border-border bg-card p-4">
           <div className="flex items-start justify-between gap-4">
             <span className="flex size-10 items-center justify-center rounded-xl bg-warning-soft text-warning"><UserRoundX className="size-5" /></span>
             <Badge tone={registrationPaused ? "warning" : "success"}>{registrationPaused ? "暂停中" : "正常"}</Badge>
@@ -109,7 +109,7 @@ export function OperationsSettingsPanel() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-border bg-card p-6">
+        <section className="rounded-lg border border-border bg-card p-4">
           <div className="flex items-start justify-between gap-4">
             <span className="flex size-10 items-center justify-center rounded-xl bg-destructive-soft text-destructive"><AlertTriangle className="size-5" /></span>
             <Badge tone={writesPaused ? "danger" : "success"}>{writesPaused ? "只读中" : "正常"}</Badge>
@@ -127,12 +127,12 @@ export function OperationsSettingsPanel() {
         </section>
       </div>
 
-      <section className="rounded-2xl border border-border bg-card p-6">
+      <section className="rounded-lg border border-border bg-card p-4">
         <div className="flex items-center gap-3">
           <span className="flex size-10 items-center justify-center rounded-xl bg-info-soft text-info"><CalendarClock className="size-5" /></span>
           <div>
             <h2 className="font-sans text-xl font-semibold">维护公告窗口</h2>
-            <p className="text-sm text-muted-foreground">设置公告不会暂停服务。</p>
+
           </div>
         </div>
         <div className="mt-6 grid grid-cols-2 gap-5">
@@ -158,7 +158,7 @@ export function OperationsSettingsPanel() {
       </section>
 
       <div className="flex items-center justify-between rounded-xl border border-border bg-card px-5 py-4">
-        <p className="flex items-center gap-2 text-xs text-muted-foreground"><Radio className="size-4 text-success" />保存后 5 秒内生效，并记录操作。</p>
+
         <Button type="submit" disabled={!form.formState.isDirty || update.isPending}>{update.isPending ? "正在应用…" : "保存运行设置"}</Button>
       </div>
     </form>

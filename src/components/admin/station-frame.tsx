@@ -26,33 +26,19 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const navigationGroups = [
-  {
-    label: "内容治理",
-    icon: LayoutList,
-    items: [
-      { href: "/station/cases", label: "案件队列", icon: ClipboardList },
-      { href: "/station/content", label: "内容处置", icon: ShieldAlert },
-      { href: "/station/appeals", label: "申诉复核", icon: BookOpenCheck },
-      { href: "/station/users", label: "用户与处罚", icon: Users },
-    ],
-  },
-  {
-    label: "运营配置",
-    icon: SlidersHorizontal,
-    items: [
-      { href: "/station/announcements", label: "站内通知", icon: BellRing },
-      { href: "/station/taxonomy", label: "分类与标签", icon: FolderTree },
-      { href: "/station/operations", label: "运行与开关", icon: Settings2 },
-    ],
-  },
-  {
-    label: "安全与权限",
-    icon: LockKeyhole,
-    items: [
-      { href: "/station/accounts", label: "站务账号", icon: ShieldCheck, superOnly: true },
-      { href: "/station/audit", label: "决定轨迹", icon: ScrollText },
-    ],
-  },
+  { label: "运营管理", icon: SlidersHorizontal, items: [
+    { href: "/station/announcements", label: "站内通知", icon: BellRing },
+    { href: "/station/taxonomy", label: "分类与标签", icon: FolderTree },
+  ] },
+  { label: "举报与申诉", icon: ShieldAlert, items: [
+    { href: "/station/cases", label: "举报处理", icon: ClipboardList },
+    { href: "/station/appeals", label: "申诉复核", icon: BookOpenCheck },
+  ] },
+  { label: "系统管理", icon: LockKeyhole, items: [
+    { href: "/station/operations", label: "运行设置", icon: Settings2 },
+    { href: "/station/accounts", label: "管理员账号", icon: ShieldCheck, superOnly: true },
+    { href: "/station/audit", label: "操作日志", icon: ScrollText },
+  ] },
 ] as const;
 
 export function StationFrame({
@@ -76,7 +62,7 @@ export function StationFrame({
   if (!session.data) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-muted text-sm text-muted-foreground">
-        正在核验站务会话…
+        正在加载…
       </div>
     );
   }
@@ -94,43 +80,49 @@ export function StationFrame({
       data-slot="station-shell"
       className="min-h-screen w-full min-w-0 overflow-x-hidden bg-muted/55 text-foreground"
     >
-      <aside className="fixed inset-y-0 left-0 z-20 flex w-60 flex-col bg-foreground text-background">
-        <div className="border-b border-background/15 px-6 py-5">
+      <aside className="fixed inset-y-0 left-0 z-20 flex w-52 flex-col bg-foreground text-background">
+        <div className="border-b border-background/15 px-4 py-3">
           <Link href="/station/dashboard" className="flex items-center gap-3">
-            <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Gauge className="size-5" />
-            </span>
             <span>
-              <span className="block font-sans text-lg font-semibold">温油站务台</span>
+              <span className="block font-sans text-base font-semibold">温油站管理后台</span>
             </span>
           </Link>
         </div>
 
-        <nav aria-label="站务功能" className="flex-1 space-y-1 overflow-y-auto px-3 py-5">
+        <nav aria-label="管理功能" className="flex-1 space-y-1 overflow-y-auto px-2 py-2">
           <Link
             href="/station/dashboard"
             aria-current={dashboardActive ? "page" : undefined}
             className={cn(
-              "flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-semibold transition-colors",
+              "flex h-10 items-center gap-3 rounded-md px-3 text-sm font-semibold transition-colors",
               dashboardActive
                 ? "bg-background text-foreground"
                 : "text-background/70 hover:bg-background/10 hover:text-background",
             )}
           >
             <Gauge className="size-4" />
-            站务总览
+            总览
           </Link>
 
+          {[
+            { href: "/station/users", label: "用户管理", icon: Users },
+            { href: "/station/content", label: "内容管理", icon: LayoutList },
+          ].map(({ href, label, icon: Icon }) => (
+            <Link key={href} href={href} aria-current={pathname.startsWith(href) ? "page" : undefined}
+              className={cn("flex h-9 items-center gap-3 rounded-md px-3 text-sm font-semibold", pathname.startsWith(href) ? "bg-background text-foreground" : "text-background/70 hover:bg-background/10 hover:text-background")}>
+              <Icon className="size-4" />{label}
+            </Link>
+          ))}
           {visibleGroups.map((group) => {
             const groupActive = group.items.some(
               (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
             );
             const GroupIcon = group.icon;
             return (
-              <Collapsible.Root key={group.label} defaultOpen={groupActive} className="pt-1">
+              <Collapsible.Root key={group.label} defaultOpen className="pt-1">
                 <Collapsible.Trigger
                   className={cn(
-                    "group flex h-10 w-full items-center gap-3 rounded-lg px-3 text-sm font-semibold text-background/70 transition-colors hover:bg-background/10 hover:text-background",
+                    "group flex h-10 w-full items-center gap-3 rounded-md px-3 text-sm font-semibold text-background/70 transition-colors hover:bg-background/10 hover:text-background",
                     groupActive && "text-background",
                   )}
                 >
@@ -149,7 +141,7 @@ export function StationFrame({
                           href={item.href}
                           aria-current={active ? "page" : undefined}
                           className={cn(
-                            "flex h-9 items-center gap-3 rounded-lg px-3 text-sm font-semibold transition-colors",
+                            "flex h-9 items-center gap-3 rounded-md px-3 text-sm font-semibold transition-colors",
                             active
                               ? "bg-background text-foreground"
                               : "text-background/65 hover:bg-background/10 hover:text-background",
@@ -184,22 +176,23 @@ export function StationFrame({
               router.replace("/station");
             }}
           >
-            <LogOut />退出站务台
+            <LogOut />退出登录
           </Button>
         </div>
       </aside>
 
-      <div data-slot="station-content" className="min-w-0 pl-60">
-        <header className="flex h-16 min-w-0 items-center justify-between border-b border-border bg-background px-7">
+      <div data-slot="station-content" className="min-w-0 pl-52">
+        <header className="flex h-12 min-w-0 items-center justify-between border-b border-border bg-background px-4">
           <div>
-            <h1 className="font-sans text-2xl font-semibold tracking-tight">{title}</h1>
+            <h1 className="font-sans text-xl font-semibold tracking-tight">{title}</h1>
           </div>
         </header>
         <main
+          key={session.data.user.id}
           data-slot="station-workspace"
           className={cn(
             "min-w-0 max-w-full",
-            fullBleed ? "h-[calc(100vh-4rem)]" : "p-6",
+            fullBleed ? "h-[calc(100vh-3rem)]" : "p-4",
           )}
         >
           {children}

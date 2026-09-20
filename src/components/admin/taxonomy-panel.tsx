@@ -133,13 +133,12 @@ export function TaxonomyPanel() {
 
   return (
     <>
-      <div className="space-y-6">
+      <div className="space-y-4">
         <section className="overflow-hidden rounded-lg border border-border bg-card">
-          <div className="flex items-center gap-3 px-6 py-5">
+          <div className="flex items-center gap-3 px-4 py-3">
             <span className="flex size-10 items-center justify-center rounded-xl bg-accent text-accent-foreground"><FolderTree className="size-5" /></span>
             <div>
               <h2 className="font-sans text-xl font-semibold">主题帖分类</h2>
-              <p className="text-xs text-muted-foreground">分类标识创建后不可修改。</p>
             </div>
           </div>
 
@@ -221,7 +220,7 @@ export function TaxonomyPanel() {
           />
 
           <form
-            className="grid grid-cols-[1fr_1fr_auto] gap-3 border-t border-border px-6 py-5"
+            className="grid grid-cols-[1fr_1fr_auto] gap-3 border-t border-border px-4 py-3"
             onSubmit={categoryForm.handleSubmit(async (values) => {
               try {
                 await actions.createCategory.mutateAsync({
@@ -263,9 +262,9 @@ export function TaxonomyPanel() {
         </section>
 
         <section className="overflow-hidden rounded-lg border border-border bg-card">
-          <div className="flex items-center gap-3 px-6 py-5">
+          <div className="flex items-center gap-3 px-4 py-3">
             <span className="flex size-10 items-center justify-center rounded-xl bg-info-soft text-info"><Tags className="size-5" /></span>
-            <div><h2 className="font-sans text-xl font-semibold">平台标签</h2><p className="text-xs text-muted-foreground">标签停用不会移除已有主题帖关系。</p></div>
+            <div><h2 className="font-sans text-xl font-semibold">平台标签</h2></div>
           </div>
           <AdminFilterBar
             activeCount={(tagQuery.trim() ? 1 : 0) + (tagStatus ? 1 : 0)}
@@ -334,7 +333,7 @@ export function TaxonomyPanel() {
             onNext={() => tagTable.nextPage()}
           />
           <form
-            className="flex gap-3 border-t border-border px-6 py-5"
+            className="flex gap-3 border-t border-border px-4 py-3"
             onSubmit={tagForm.handleSubmit(async (values) => {
               try {
                 await actions.createTag.mutateAsync({ ...values, sortOrder: nextSortOrder(taxonomy.data.tags), isActive: true, reason: "站务台新增标签" });

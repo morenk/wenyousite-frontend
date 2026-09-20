@@ -64,8 +64,9 @@ function SelectContent({
   align = "center",
   alignOffset = 0,
   alignItemWithTrigger = true,
+  layer = "popup",
   ...props
-}: SelectPrimitive.Popup.Props &
+}: SelectPrimitive.Popup.Props & { layer?: "popup" | "nested" } &
   Pick<
     SelectPrimitive.Positioner.Props,
     "align" | "alignOffset" | "side" | "sideOffset" | "alignItemWithTrigger"
@@ -78,7 +79,7 @@ function SelectContent({
         align={align}
         alignOffset={alignOffset}
         alignItemWithTrigger={alignItemWithTrigger}
-        className="isolate z-[var(--layer-popup)]"
+        className={cn("isolate", layer === "nested" ? "z-[var(--layer-nested-popup)]" : "z-[var(--layer-popup)]")}
       >
         <SelectPrimitive.Popup
           data-slot="select-content"

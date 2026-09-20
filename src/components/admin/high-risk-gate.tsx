@@ -1,6 +1,5 @@
 "use client";
 
-import { MailCheck, ShieldEllipsis } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "@/api/errors";
@@ -21,16 +20,9 @@ export function HighRiskGate({ children }: { children: React.ReactNode }) {
   if (elevated) return children;
 
   return (
-    <div className="mx-auto mt-16 max-w-lg rounded-2xl border border-border bg-card p-8 text-center">
-      <span className="mx-auto flex size-12 items-center justify-center rounded-xl bg-warning-soft text-warning">
-        {challengeId ? <MailCheck className="size-5" /> : <ShieldEllipsis className="size-5" />}
-      </span>
-      <h2 className="mt-5 text-2xl font-semibold">确认这次高风险操作</h2>
-      <p className="mt-3 text-sm leading-6 text-muted-foreground">
-        {challengeId
-          ? "验证码已发送到管理员绑定邮箱。验证后 10 分钟内无需重复确认。"
-          : "站务账号管理、紧急开关和推翻申诉需要近期邮箱确认。"}
-      </p>
+    <div className="mx-auto mt-16 max-w-lg rounded-lg border border-border bg-card p-8 text-center">
+      <h2 className="text-xl font-semibold">邮箱验证</h2>
+      {challengeId ? <p className="mt-3 text-sm text-muted-foreground">验证码已发送，验证后 10 分钟内有效。</p> : null}
       {challengeId ? (
         <form
           className="mx-auto mt-6 max-w-xs space-y-3"

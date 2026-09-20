@@ -223,7 +223,6 @@ export function CaseWorkbench() {
               </button>
             ))}
           </div>
-          <p className="mt-3 text-xs text-muted-foreground">同一目标的多份举报会合并为一个案件。</p>
         </div>
         <AdminFilterBar
           activeCount={(status === "OPEN" ? 0 : 1) + (targetType ? 1 : 0) + (reasonCode ? 1 : 0)}
@@ -311,7 +310,7 @@ export function CaseWorkbench() {
               <DialogPopup data-admin-action-dialog className="max-w-6xl">
                 {detail.isLoading ? (
                   <>
-                    <div className="flex items-start justify-between gap-5 border-b border-border px-7 py-6">
+                    <div className="flex items-start justify-between gap-5 border-b border-border px-4 py-3">
                       <div>
                         <DialogTitle>案件操作</DialogTitle>
                       </div>
@@ -321,7 +320,7 @@ export function CaseWorkbench() {
                   </>
                 ) : detail.isError || !detail.data ? (
                   <>
-                    <div className="flex items-start justify-between gap-5 border-b border-border px-7 py-6">
+                    <div className="flex items-start justify-between gap-5 border-b border-border px-4 py-3">
                       <div>
                         <DialogTitle>案件操作</DialogTitle>
                       </div>
@@ -361,8 +360,8 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
     : actionOptions;
 
   return (
-    <div className="w-full px-7 py-7">
-      <div className="flex items-start justify-between gap-6 border-b border-border pb-6">
+    <div className="w-full px-4 py-4">
+      <div className="flex items-start justify-between gap-4 border-b border-border pb-6">
         <div>
           <div className="flex items-center gap-2">
             <Badge tone={statusTone(detail.status)}>{detail.status === "OPEN" ? "待处理" : detail.status === "RESOLVED" ? "已处置" : "已驳回"}</Badge>
@@ -431,7 +430,7 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
             )}
           </section>
         {detail.status === "OPEN" ? (
-          <section data-slot="admin-popup-operation" className="rounded-2xl border border-border bg-muted/35 p-6">
+          <section data-slot="admin-popup-operation" className="rounded-lg border border-border bg-muted/35 p-4">
             <h3 className="font-sans text-xl font-semibold">形成治理决定</h3>
             <p className="mt-2 text-xs leading-5 text-muted-foreground">公开说明会提供给被处置用户，并成为申诉依据。</p>
             <form
@@ -463,7 +462,7 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
                   }}
                 >
                   <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                  <SelectContent align="start">
+                  <SelectContent layer="nested" align="start">
                     <SelectItem value="RESOLVED">确认违规</SelectItem>
                     <SelectItem value="DISMISSED">驳回举报</SelectItem>
                   </SelectContent>
@@ -478,7 +477,7 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
                     onValueChange={(value) => form.setValue("action", value as DecisionAction, { shouldValidate: true })}
                   >
                     <SelectTrigger className="w-full"><SelectValue placeholder="选择处置" /></SelectTrigger>
-                    <SelectContent align="start">
+                    <SelectContent layer="nested" align="start">
                       {allowedActions.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}
                     </SelectContent>
                   </Select>
@@ -493,7 +492,7 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
                   onValueChange={(value) => form.setValue("policyCode", value as ReasonCode)}
                 >
                   <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                  <SelectContent align="start">
+                  <SelectContent layer="nested" align="start">
                     {reasonOptions.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}
                   </SelectContent>
                 </Select>

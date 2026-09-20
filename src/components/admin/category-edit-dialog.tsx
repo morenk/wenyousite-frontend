@@ -77,14 +77,14 @@ export function CategoryEditDialog({
                 }
               })}
             >
-              <div className="flex items-start justify-between gap-5 border-b border-border px-7 py-6">
+              <div className="flex items-start justify-between gap-5 border-b border-border px-4 py-3">
                 <div>
                   <DialogTitle>编辑分类</DialogTitle>
                 </div>
                 <DialogCloseButton type="button" label="关闭分类编辑" />
               </div>
 
-              <div className="space-y-6 px-7 py-6">
+              <div className="space-y-4 px-4 py-3">
                 <div className="grid grid-cols-[1fr_auto] items-center gap-5 rounded-xl border border-border bg-muted px-4 py-3">
                   <div className="flex min-w-0 items-center gap-3">
                     <LockKeyhole className="size-4 shrink-0 text-muted-foreground" />

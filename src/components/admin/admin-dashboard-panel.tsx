@@ -1,245 +1,104 @@
 "use client";
 
-import { Activity, CircleGauge, Flag, FolderTree, ShieldAlert, UsersRound } from "lucide-react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import { useAdminDashboard } from "@/api/hooks/use-admin";
+import Link from "next/link";
+import { useState } from "react";
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { useAdminDashboard, useAdminHealth } from "@/api/hooks/use-admin";
 import { Badge } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const metricLabels = {
-  activeUsers: "区间活跃用户",
-  newUsers: "新增用户",
-  publishedThreads: "新增主题",
-  newPosts: "新增楼层",
-  reportsReceived: "收到举报",
-  reportsHandled: "完成处理",
+  publishedThreads: "主题帖", newPosts: "楼层与回复", newMoments: "动态", newMomentComments: "动态评论",
 } as const;
-
-const serviceLabels: Record<string, string> = {
-  database: "数据库",
-  redis: "缓存服务",
-  storage: "文件存储",
-  queue: "任务队列",
-};
-
-export function AdminDashboardPanel() {
-  const dashboard = useAdminDashboard();
-
-  if (dashboard.isLoading) {
-    return <p className="text-sm text-muted-foreground">正在汇总站务数据…</p>;
-  }
-  if (dashboard.isError || !dashboard.data) {
-    return <p className="text-sm text-destructive">站务总览加载失败，请检查服务状态。</p>;
-  }
-
-  const { overview, timeseries, distributions, health } = dashboard.data;
-  const healthItems = Object.entries(health.info ?? {});
-  const current = overview.current;
-  const reportPace = timeseries.items.map((item) => ({
-    ...item,
-    day: item.date.slice(5),
-  }));
-  const categoryDistribution = distributions.threadsByCategory ?? [];
-  const categoryMaximum = Math.max(
-    1,
-    ...categoryDistribution.map((category) => category.count),
-  );
-  const categorizedThreadCount = categoryDistribution.reduce(
-    (total, category) => total + category.count,
-    0,
-  );
-
-  return (
-    <div className="space-y-6">
-      <section className="grid grid-cols-4 gap-4">
-        <MetricCard icon={UsersRound} label="用户总数" value={overview.snapshot.totalUsers} />
-        <MetricCard icon={Flag} label="待处理举报" value={overview.snapshot.pendingReports} tone="warning" />
-        <MetricCard icon={ShieldAlert} label="生效中处罚" value={overview.snapshot.activeSuspensions + overview.snapshot.activeBans} tone="danger" />
-        <MetricCard icon={Activity} label="今日活跃" value={overview.activity.dau} tone="success" />
-      </section>
-
-      <section className="grid grid-cols-[1.45fr_0.55fr] gap-5">
-        <div className="rounded-2xl border border-border bg-card p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h2 className="font-sans text-xl font-semibold">近期待办与社区活动</h2>
-            </div>
-            <p className="text-xs text-muted-foreground">{overview.range.from} — {overview.range.to}</p>
-          </div>
-          <div className="mt-6 grid grid-cols-3 gap-x-6 gap-y-5">
-            {Object.entries(metricLabels).map(([key, label]) => {
-              const typedKey = key as keyof typeof metricLabels;
-              const previous = overview.previous[typedKey];
-              const delta = current[typedKey] - previous;
-              return (
-                <div key={key} className="border-l-2 border-border pl-4">
-                  <p className="text-xs text-muted-foreground">{label}</p>
-                  <div className="mt-1 flex items-baseline gap-2">
-                    <strong className="font-utility text-2xl">{current[typedKey]}</strong>
-                    <span className={delta > 0 ? "text-xs text-success" : delta < 0 ? "text-xs text-muted-foreground" : "text-xs text-muted-foreground"}>
-                      {delta > 0 ? "+" : ""}{delta} 较上期
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-border bg-card p-6">
-          <div className="flex items-center gap-3">
-            <span className="flex size-10 items-center justify-center rounded-xl bg-success-soft text-success"><CircleGauge className="size-5" /></span>
-            <div>
-              <h2 className="font-sans text-lg font-semibold">服务状态</h2>
-              <p className="text-xs text-muted-foreground">每分钟自动刷新</p>
-            </div>
-          </div>
-          <div className="mt-5 space-y-3">
-            {healthItems.length ? healthItems.map(([name, item]) => (
-              <div key={name} className="flex items-center justify-between rounded-lg bg-muted px-3 py-2.5 text-sm">
-                <span className="font-utility">{serviceLabels[name] ?? "其他服务"}</span>
-                <Badge tone={item.status === "up" ? "success" : "danger"}>{item.status === "up" ? "正常" : "异常"}</Badge>
-              </div>
-            )) : (
-              <div className="flex items-center justify-between rounded-lg bg-muted px-3 py-2.5 text-sm">
-                <span>接口服务</span><Badge tone={health.status === "ok" ? "success" : "danger"}>{health.status === "ok" ? "正常" : health.status ? "异常" : "未知"}</Badge>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      <section className="overflow-hidden rounded-2xl border border-border bg-card">
-        <div className="flex items-start justify-between gap-5 border-b border-border px-6 py-5">
-          <div className="flex items-center gap-3">
-            <span className="flex size-10 items-center justify-center rounded-xl bg-muted text-foreground">
-              <FolderTree className="size-5" />
-            </span>
-            <div>
-              <h2 className="font-sans text-xl font-semibold">已发布主题分布</h2>
-            </div>
-          </div>
-          <div className="text-right">
-            <p className="font-utility text-2xl font-medium text-foreground">
-              {categorizedThreadCount}
-            </p>
-            <p className="text-xs text-muted-foreground">已归类主题</p>
-          </div>
-        </div>
-
-        {categoryDistribution.length > 0 ? (
-          <div className="divide-y divide-border" aria-label="已发布主题分类分布">
-            {categoryDistribution.map((category) => (
-              <div
-                key={category.key}
-                className="grid grid-cols-[minmax(10rem,15rem)_minmax(10rem,1fr)_auto] items-center gap-5 px-6 py-4"
-              >
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="truncate text-sm font-semibold text-foreground">
-                      {category.name}
-                    </p>
-                    {!category.isActive ? <Badge tone="neutral">已停用</Badge> : null}
-                  </div>
-                  <p className="mt-0.5 truncate font-utility text-[11px] text-muted-foreground">
-                    {category.key}
-                  </p>
-                </div>
-                <div className="h-2 overflow-hidden rounded-full bg-muted">
-                  <div
-                    className={category.isActive ? "h-full rounded-full bg-brand-strong" : "h-full rounded-full bg-muted-foreground/45"}
-                    style={{ width: `${Math.max(2, (category.count / categoryMaximum) * 100)}%` }}
-                  />
-                </div>
-                <p className="min-w-12 text-right font-utility text-sm font-bold text-foreground">
-                  {category.count}
-                </p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="px-6 py-8 text-sm text-muted-foreground">当前没有可展示的分类统计。</p>
-        )}
-      </section>
-
-      <section className="rounded-2xl border border-border bg-card p-6">
-        <div className="flex items-end justify-between gap-4">
-          <div>
-            <h2 className="font-sans text-xl font-semibold">最近 {timeseries.items.length} 天举报处理节奏</h2>
-          </div>
-          <p className="text-xs text-muted-foreground">浅色：收到 · 深色：完成</p>
-        </div>
-        <div className="mt-6 h-56" role="img" aria-label="每日收到举报与完成处理数量的双柱趋势图">
-          {reportPace.length > 0 ? <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={reportPace} margin={{ top: 8, right: 8, left: -20, bottom: 0 }} accessibilityLayer>
-              <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 5" />
-              <XAxis
-                dataKey="day"
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: "var(--muted-foreground)", fontSize: 10 }}
-                tickMargin={10}
-              />
-              <YAxis
-                allowDecimals={false}
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: "var(--muted-foreground)", fontSize: 10 }}
-              />
-              <Tooltip
-                cursor={{ fill: "var(--muted)" }}
-                contentStyle={{
-                  background: "var(--card)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "0.75rem",
-                  color: "var(--foreground)",
-                  fontSize: "0.75rem",
-                }}
-                labelStyle={{ color: "var(--muted-foreground)", marginBottom: "0.25rem" }}
-              />
-              <Bar dataKey="reportsReceived" name="收到举报" fill="var(--warning)" fillOpacity={0.35} radius={[4, 4, 0, 0]} />
-              <Bar dataKey="reportsHandled" name="完成处理" fill="var(--primary)" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer> : (
-            <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-border text-sm text-muted-foreground">
-              当前区间没有举报处理数据
-            </div>
-          )}
-        </div>
-      </section>
-    </div>
-  );
+const serviceLabels: Record<string, string> = { database: "数据库", redis: "缓存", storage: "文件存储", queue: "任务队列" };
+function dateRange(days: number) {
+  const end = new Date(Date.now() + 8 * 3600_000);
+  const start = new Date(end);
+  start.setUTCDate(start.getUTCDate() - days + 1);
+  return { from: start.toISOString().slice(0, 10), to: end.toISOString().slice(0, 10) };
 }
 
-function MetricCard({
-  icon: Icon,
-  label,
-  value,
-  tone = "default",
-}: {
-  icon: typeof UsersRound;
-  label: string;
-  value: number;
-  tone?: "default" | "warning" | "danger" | "success";
-}) {
-  const toneClass = {
-    default: "bg-info-soft text-info",
-    warning: "bg-warning-soft text-warning",
-    danger: "bg-destructive-soft text-destructive",
-    success: "bg-success-soft text-success",
-  }[tone];
-  return (
-    <div className="rounded-2xl border border-border bg-card p-5">
-      <span className={`flex size-9 items-center justify-center rounded-lg ${toneClass}`}><Icon className="size-4" /></span>
-      <p className="mt-5 text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 font-utility text-3xl font-medium">{value}</p>
+export function AdminDashboardPanel() {
+  const [range, setRange] = useState(() => dateRange(30));
+  const [draft, setDraft] = useState(range);
+  const [trend, setTrend] = useState("users");
+  const dashboard = useAdminDashboard(range);
+  const health = useAdminHealth();
+  const value = dashboard.data;
+  return <div className="space-y-4">
+    <div className="flex flex-wrap items-center gap-2">
+      {[7, 30].map((days) => <Button key={days} size="compact" variant="outline" onClick={() => { const next = dateRange(days); setRange(next); setDraft(next); }}>近 {days} 天</Button>)}
+      <Input aria-label="开始日期" type="date" value={draft.from} className="h-8 w-40" onChange={(event) => setDraft({ ...draft, from: event.target.value })} />
+      <span>至</span>
+      <Input aria-label="结束日期" type="date" value={draft.to} className="h-8 w-40" onChange={(event) => setDraft({ ...draft, to: event.target.value })} />
+      <Button size="compact" disabled={!draft.from || !draft.to || draft.from > draft.to || dashboard.isFetching} onClick={() => setRange(draft)}>查询</Button>
     </div>
-  );
+    {dashboard.isLoading ? <p role="status" className="text-sm text-muted-foreground">正在读取统计…</p> : null}
+    {dashboard.isError ? <p role="alert" className="text-sm text-destructive">统计加载失败 <Button size="compact" variant="ghost" onClick={() => void dashboard.refetch()}>重试</Button></p> : null}
+    {value ? <>
+      <section className="grid grid-cols-4 gap-3">
+        <Metric label="用户总数" value={value.overview.snapshot.totalUsers} />
+        <Metric label="活跃用户" value={value.overview.current.activeUsers} />
+        <Metric label="新增用户" value={value.overview.current.newUsers} />
+        <Metric label="新增内容" value={value.overview.current.publishedThreads + value.overview.current.newPosts + value.overview.current.newMoments + value.overview.current.newMomentComments} />
+      </section>
+      <section className="rounded-lg border border-border bg-card p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Select value={trend} onValueChange={(next) => setTrend(next ?? "users")}>
+            <SelectTrigger aria-label="趋势" className="h-8 w-40"><SelectValue>{trend === "users" ? "用户活动" : "内容发布"}</SelectValue></SelectTrigger>
+            <SelectContent><SelectItem value="users">用户活动</SelectItem><SelectItem value="content">内容发布</SelectItem></SelectContent>
+          </Select>
+          <span className="text-xs text-muted-foreground">{value.overview.range.from} — {value.overview.range.to} · 北京时间</span>
+        </div>
+        <div className="mt-3 h-64" role="img" aria-label={trend === "users" ? "用户活动趋势" : "内容发布趋势"}>
+          {value.timeseries.items.length ? <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={value.timeseries.items} accessibilityLayer margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+              <CartesianGrid vertical={false} stroke="var(--border)" />
+              <XAxis dataKey="date" tickFormatter={(date: string) => date.slice(5)} tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} />
+              <YAxis allowDecimals={false} tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} />
+              <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--foreground)" }} />
+              <Legend />
+              {trend === "users" ? <>
+                <Bar dataKey="dau" name="活跃用户" fill="var(--brand-strong)" />
+                <Bar dataKey="newUsers" name="新增用户" fill="var(--info)" />
+              </> : <>
+                <Bar dataKey="publishedThreads" name="主题帖" fill="var(--brand-strong)" />
+                <Bar dataKey="newPosts" name="楼层与回复" fill="var(--info)" />
+                <Bar dataKey="newMoments" name="动态" fill="var(--success)" />
+                <Bar dataKey="newMomentComments" name="动态评论" fill="var(--warning)" />
+              </>}
+            </BarChart>
+          </ResponsiveContainer> : <p className="py-16 text-center text-sm text-muted-foreground">暂无数据</p>}
+        </div>
+        <div className="mt-3 flex flex-wrap gap-6 border-t border-border pt-3">
+          {Object.entries(metricLabels).map(([key, label]) => <span key={key} className="text-sm">{label} <strong className="font-utility">{value.overview.current[key as keyof typeof metricLabels]}</strong></span>)}
+        </div>
+      </section>
+      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card px-4 py-2">
+        <span className="text-sm font-semibold">待办</span>
+        <Link href="/station/cases" className={buttonVariants({ size: "compact", variant: "ghost" })}>举报 {value.overview.snapshot.pendingReports}</Link>
+        <Link href="/station/appeals" className={buttonVariants({ size: "compact", variant: "ghost" })}>申诉复核</Link>
+      </div>
+      <section className="rounded-lg border border-border bg-card p-4">
+        <h2 className="mb-3 text-base font-semibold">主题帖分类分布</h2>
+        <div className="flex flex-wrap gap-4" aria-label="已发布主题分类分布">
+          {value.distributions.threadsByCategory.map((item) => <div key={item.key} className="flex items-center gap-2 text-sm"><span>{item.name}</span>{!item.isActive ? <Badge tone="neutral">已停用</Badge> : null}<strong className="font-utility">{item.count}</strong></div>)}
+          {!value.distributions.threadsByCategory.length ? <p className="text-sm text-muted-foreground">暂无数据</p> : null}
+        </div>
+      </section>
+    </> : null}
+    <section className="rounded-lg border border-border bg-card px-4 py-3">
+      <h2 className="mb-2 text-base font-semibold">运行状态</h2>
+      {health.isLoading ? <p className="text-sm text-muted-foreground">正在读取状态…</p> : health.isError ? <p role="alert" className="text-sm text-destructive">状态读取失败 <Button size="compact" variant="ghost" onClick={() => void health.refetch()}>重试</Button></p> : <div className="flex flex-wrap gap-4">
+        {Object.entries(health.data?.info ?? {}).map(([name, item]) => <span key={name} className="flex items-center gap-2 text-sm">{serviceLabels[name] ?? "其他服务"}<Badge tone={item.status === "up" ? "success" : "danger"}>{item.status === "up" ? "正常" : "异常"}</Badge></span>)}
+        {!Object.keys(health.data?.info ?? {}).length ? <Badge tone={health.data?.status === "ok" ? "success" : "danger"}>{health.data?.status === "ok" ? "正常" : "异常"}</Badge> : null}
+      </div>}
+    </section>
+  </div>;
+}
+
+function Metric({ label, value }: { label: string; value: number }) {
+  return <div className="rounded-lg border border-border bg-card px-4 py-3"><p className="text-sm text-muted-foreground">{label}</p><p className="mt-1 font-utility text-2xl font-semibold">{value}</p></div>;
 }

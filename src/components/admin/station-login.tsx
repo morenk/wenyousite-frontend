@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowRight, KeyRound, MailCheck } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -50,18 +50,11 @@ export function StationLogin() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-6 py-14">
-      <section className="w-full max-w-[27rem]" aria-label="站务登录">
-        <div className="mb-8 flex size-12 items-center justify-center rounded-xl bg-accent text-accent-foreground">
-          {challengeId ? <MailCheck className="size-5" /> : <KeyRound className="size-5" />}
-        </div>
+      <section className="w-full max-w-[27rem]" aria-label="温油站管理后台">
         <h1 className="font-sans text-3xl font-semibold">
-          {challengeId ? "查收邮箱验证码" : "站务登录"}
+          {challengeId ? "查收邮箱验证码" : "温油站管理后台"}
         </h1>
-        <p className="mt-3 text-sm leading-6 text-muted-foreground">
-          {challengeId
-            ? "验证码 10 分钟内有效。"
-            : "仅限获邀账号，登录需验证邮箱。"}
-        </p>
+        {challengeId ? <p className="mt-3 text-sm text-muted-foreground">验证码 10 分钟内有效。</p> : null}
 
         {!challengeId ? (
           <form
@@ -107,7 +100,7 @@ export function StationLogin() {
               pending={challenge.isPending}
               pendingLabel="正在核验…"
             >
-              继续邮箱确认<ArrowRight />
+              继续<ArrowRight />
             </Button>
           </form>
         ) : (
@@ -145,9 +138,9 @@ export function StationLogin() {
               size="large"
               className="w-full"
               pending={verify.isPending}
-              pendingLabel="正在建立安全会话…"
+              pendingLabel="正在登录…"
             >
-              进入站务台<ArrowRight />
+              登录<ArrowRight />
             </Button>
             <Button type="button" variant="ghost" className="w-full" onClick={() => setChallengeId(undefined)}>
               返回修改账号

@@ -16,7 +16,7 @@ export function AdminInviteAcceptance() {
 
   return (
     <main className="flex min-h-screen min-w-[960px] items-center justify-center bg-muted px-8 py-16">
-      <section className="w-full max-w-xl rounded-2xl border border-border bg-card p-10 shadow-sm">
+      <section className="w-full max-w-xl rounded-lg border border-border bg-card p-10 shadow-sm">
         <span className="flex size-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
           <ShieldCheck className="size-5" />
         </span>

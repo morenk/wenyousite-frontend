@@ -11,17 +11,20 @@ export function AdminFilterBar({
   activeCount,
   onReset,
   className,
+  inline = false,
 }: {
   children: React.ReactNode;
   activeCount: number;
   onReset: () => void;
   className?: string;
+  inline?: boolean;
 }) {
+  if (inline) return <div data-slot="admin-filter-bar" className={cn("border-b border-border bg-card px-3 py-2 [&_input]:h-8 [&_input]:rounded-md", className)}><div data-slot="admin-filter-fields" aria-label="筛选条件" className="flex min-w-0 flex-wrap items-end gap-2">{children}<Button type="button" size="compact" variant="ghost" disabled={activeCount === 0} onClick={onReset}><RotateCcw />重置{activeCount > 0 ? <Badge tone="brand">{activeCount}</Badge> : null}</Button></div></div>;
   return (
     <div
       data-slot="admin-filter-bar"
       className={cn(
-        "border-b border-border bg-card px-5 py-4 [&_input]:h-9 [&_input]:rounded-md [&_[data-slot=select-trigger]]:h-9 [&_[data-slot=select-trigger]]:rounded-md",
+        "border-b border-border bg-card px-3 py-2 [&_input]:h-8 [&_input]:rounded-md [&_[data-slot=select-trigger]]:h-8 [&_[data-slot=select-trigger]]:rounded-md",
         className,
       )}
     >
@@ -31,7 +34,7 @@ export function AdminFilterBar({
           <span>筛选条件</span>
           {activeCount > 0 ? <Badge tone="brand">{activeCount}</Badge> : null}
         </div>
-        <div className="flex shrink-0 items-center gap-3">
+        <div className="flex shrink-0 items-center gap-2">
           <Button
             type="button"
             size="compact"
@@ -43,7 +46,7 @@ export function AdminFilterBar({
           </Button>
         </div>
       </div>
-      <div data-slot="admin-filter-fields" className="mt-3 flex min-w-0 flex-wrap items-end gap-3">
+      <div data-slot="admin-filter-fields" className="mt-1 flex min-w-0 flex-wrap items-end gap-2">
         {children}
       </div>
     </div>
@@ -92,7 +95,7 @@ export function AdminPagination({
   className?: string;
 }) {
   return (
-    <div className={cn("flex items-center justify-between gap-4 border-t border-border bg-muted/40 px-5 py-3", className)}>
+    <div className={cn("flex items-center justify-between gap-4 border-t border-border bg-muted/40 px-3 py-2", className)}>
       <p className="font-utility text-xs text-muted-foreground">
         第 {page} 页 · 本页 {visibleCount} 条 · 每页 {pageSize} 条
       </p>

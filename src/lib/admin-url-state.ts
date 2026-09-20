@@ -52,6 +52,7 @@ export const adminAppealUrlKeys = {
 } as const;
 
 export const adminUserFilterParsers = {
+  id: parseAsString.withDefault(""),
   query: parseAsString.withDefault(""),
   role: parseAsStringLiteral(["USER", "ADMIN", "SUPER_ADMIN"] as const),
   status: parseAsStringLiteral(["ACTIVE", "SUSPENDED", "BANNED"] as const),
@@ -71,6 +72,7 @@ export const adminAuditFilterParsers = {
     "USER_SANCTION_REVOKED",
     "CONTENT_HIDDEN",
     "CONTENT_RESTORED",
+    "THREAD_TAXONOMY_UPDATED",
     "REPORT_RESOLVED",
     "REPORT_DISMISSED",
     "SYSTEM_NOTIFICATION_SENT",
@@ -180,3 +182,17 @@ export const adminTaxonomyUrlKeys = {
   tagStatus: "tagStatus",
   tagPage: "tagPage",
 } as const;
+
+
+export const adminContentFilterParsers = {
+  type: parseAsStringLiteral(["thread", "post", "moment", "moment_comment"] as const).withDefault("thread"),
+  q: parseAsString.withDefault(""),
+  id: parseAsString.withDefault(""),
+  authorId: parseAsString.withDefault(""),
+  status: parseAsStringLiteral(["ACTIVE", "HIDDEN"] as const),
+  from: parseAsString.withDefault(""),
+  to: parseAsString.withDefault(""),
+  category: parseAsString.withDefault(""),
+  tagId: parseAsString.withDefault(""),
+  limit: parseAsStringLiteral(["20", "50"] as const).withDefault("20"),
+};
