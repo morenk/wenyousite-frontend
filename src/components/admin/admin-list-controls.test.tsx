@@ -55,7 +55,7 @@ describe("管理员列表分页", () => {
     const bar = container.querySelector('[data-slot="admin-filter-bar"]');
     const fields = container.querySelector('[data-slot="admin-filter-fields"]');
     expect(bar).toContainElement(fields as HTMLElement);
-    expect(fields).toHaveClass("mt-3", "flex-wrap");
+    expect(fields).toHaveClass("mt-1", "flex-wrap");
     expect(screen.getByRole("group", { name: "关键词" })).toHaveClass("shrink-0", "w-64");
     expect(screen.getByRole("button", { name: "重置" })).toBeEnabled();
   });

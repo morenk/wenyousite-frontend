@@ -29,7 +29,11 @@ export function useAdminUsers(filters: AdminUserFilters) {
 
 export function useAdminUserActions() {
   const queryClient = useQueryClient();
-  const refresh = () => queryClient.invalidateQueries({ queryKey: queryKeys.admin.usersRoot });
+  const refresh = () => Promise.all([
+    queryClient.invalidateQueries({ queryKey: queryKeys.admin.usersRoot }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.admin.auditsRoot }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.admin.dashboard }),
+  ]);
   const sanction = useMutation({
     mutationFn: async ({ id, ...body }: { id: string } & components["schemas"]["SanctionUserDto"]) => {
       const { data, error } = await apiClient.POST("/api/v1/admin/users/{id}/sanctions", {
@@ -85,6 +89,8 @@ function useContentModerationRefresh() {
   const queryClient = useQueryClient();
   return ({ type, id }: AdminContentActionInput, hidden: boolean) => {
     void queryClient.invalidateQueries({ queryKey: queryKeys.admin.hiddenContentRoot });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.admin.contentRoot });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.admin.usersRoot });
     void queryClient.invalidateQueries({ queryKey: queryKeys.admin.auditsRoot });
     void queryClient.invalidateQueries({ queryKey: queryKeys.admin.dashboard });
     void queryClient.invalidateQueries({ queryKey: queryKeys.users.all });

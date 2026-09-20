@@ -74,7 +74,7 @@ describe("UsersPanel filters", () => {
       </NuqsTestingAdapter>,
     );
 
-    const statusFilter = within(screen.getByRole("group", { name: "处罚状态" })).getByRole("combobox");
+    const statusFilter = within(screen.getByRole("group", { name: "账号状态" })).getByRole("combobox");
     await user.click(statusFilter);
     await user.click(screen.getByRole("option", { name: "暂停" }));
 

@@ -89,9 +89,6 @@ export function AppealsPanel() {
   return (
     <div data-slot="admin-appeals-workspace" data-layout="full-table" className="w-full">
       <section className="flex min-h-[42rem] min-w-0 flex-col overflow-hidden rounded-lg border border-border bg-card">
-        <div className="border-b border-border px-5 py-4">
-          <p className="text-xs text-muted-foreground">推翻决定将自动恢复原处置。</p>
-        </div>
         <AdminFilterBar
           activeCount={activeCount}
           onReset={() => void setFilters(null, { history: "push" })}
@@ -193,7 +190,7 @@ export function AppealsPanel() {
             <DialogBackdrop />
             <DialogViewport>
               <DialogPopup data-admin-action-dialog className="max-w-4xl">
-                <div className="flex items-start justify-between gap-5 border-b border-border px-7 py-6">
+                <div className="flex items-start justify-between gap-5 border-b border-border px-4 py-3">
                   <div className="flex min-w-0 items-center gap-3">
                     <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-warning-soft text-warning"><Gavel className="size-5" /></span>
                     <div className="min-w-0">
@@ -204,13 +201,13 @@ export function AppealsPanel() {
                   <DialogCloseButton type="button" label="关闭申诉复核" disabled={resolve.isPending} />
                 </div>
 
-                <div className="px-7 py-7">
+                <div className="px-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <article className="rounded-xl border border-border p-5">
                 <p className="text-xs font-bold text-muted-foreground">原治理决定</p>
                 <p className="mt-3 text-sm font-bold">{actionLabels[selected.decision.action]}</p>
                 <p className="mt-2 text-sm leading-6">{selected.decision.publicExplanation}</p>
-                <p className="mt-3 font-utility text-xs text-muted-foreground">目标 {selected.decision.targetType} · {selected.decision.targetId}</p>
+                <p className="mt-3 font-utility text-xs text-muted-foreground">目标 {targetLabels[selected.decision.targetType]} · {selected.decision.targetId}</p>
               </article>
               <article className="rounded-xl border border-border bg-muted/60 p-5">
                 <p className="text-xs font-bold text-muted-foreground">用户申诉陈述</p>
@@ -223,6 +220,7 @@ export function AppealsPanel() {
                 <div className="mt-6 rounded-xl border border-border p-5">
                 <p className="text-sm font-bold">复核意见</p>
                 <Textarea value={note} onChange={(event) => setNote(event.target.value)} className="mt-3" rows={4} placeholder="说明维持或推翻决定的依据。" />
+                <p className="mt-3 text-xs text-muted-foreground">推翻决定将自动恢复原处置。</p>
                 <div className="mt-4 flex justify-end gap-2">
                   <Button
                     variant="outline"

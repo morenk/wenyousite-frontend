@@ -156,7 +156,7 @@ for (const field of ["icon", "mergedIntoId"]) {
 if ("slug" in (spec.components?.schemas?.UpdateThreadCategoryDto?.properties ?? {})) {
   failures.push("UpdateThreadCategoryDto 不得允许修改稳定 slug");
 }
-const categoryInputSchemas = new Set(["CreateThreadDto", "UpdateThreadDto", "SaveThreadAggregateDto"]);
+const categoryInputSchemas = new Set(["CreateThreadDto", "UpdateThreadDto", "SaveThreadAggregateDto", "UpdateContentTaxonomyDto"]);
 for (const [schemaName, schema] of Object.entries(spec.components?.schemas ?? {})) {
   const category = schema?.properties?.category;
   if (!category) continue;

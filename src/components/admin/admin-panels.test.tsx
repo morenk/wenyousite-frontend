@@ -1,6 +1,6 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { NuqsTestingAdapter } from "nuqs/adapters/testing";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const hooks = vi.hoisted(() => ({
   useAdminAppeals: vi.fn(),
@@ -15,11 +15,13 @@ const hooks = vi.hoisted(() => ({
   useAdminUsers: vi.fn(),
   useAdminUserActions: vi.fn(),
   useAdminDashboard: vi.fn(),
+  useAdminHealth: vi.fn(),
   useAcceptAdminInvite: vi.fn(),
   useAdminCases: vi.fn(),
   useAdminCase: vi.fn(),
   useAdminContentActions: vi.fn(),
   useAdminHiddenContent: vi.fn(),
+  useAdminContent: vi.fn(),
   useResolveAdminCase: vi.fn(),
   useAdminSession: vi.fn(),
   useAdminAccounts: vi.fn(),
@@ -46,7 +48,10 @@ import { AdminDashboardPanel } from "@/components/admin/admin-dashboard-panel";
 import { AdminInviteAcceptance } from "@/components/admin/admin-invite-acceptance";
 import { CaseWorkbench } from "@/components/admin/case-workbench";
 import { AdminAccountsPanel } from "@/components/admin/admin-accounts-panel";
+import { HiddenContentList } from "@/components/admin/hidden-content-list";
 import { ContentModerationPanel } from "@/components/admin/content-moderation-panel";
+
+afterEach(cleanup);
 
 function mutation() {
   return { mutateAsync: vi.fn(), isPending: false };
@@ -84,6 +89,7 @@ describe("station panels", () => {
     hooks.useAdminUsers.mockReturnValue({ data: { items: [], meta: { cursor: null, hasMore: false } }, isLoading: false, isFetching: false });
     hooks.useAdminUserActions.mockReturnValue({ sanction: mutation(), revoke: mutation() });
     hooks.useAcceptAdminInvite.mockReturnValue(mutation());
+    hooks.useAdminHealth.mockReturnValue({ data: { status: "ok", info: { database: { status: "up" } } }, isLoading: false });
     hooks.useAdminDashboard.mockReturnValue({
       isLoading: false,
       data: {
@@ -91,8 +97,8 @@ describe("station panels", () => {
           range: { from: "2026-08-01", to: "2026-08-09" },
           activity: { dau: 8, wau: 20, mau: 42 },
           snapshot: { totalUsers: 42, pendingReports: 3, activeSuspensions: 1, activeBans: 0 },
-          current: { activeUsers: 20, newUsers: 4, publishedThreads: 3, newPosts: 9, reportsReceived: 3, reportsHandled: 2 },
-          previous: { activeUsers: 18, newUsers: 2, publishedThreads: 4, newPosts: 7, reportsReceived: 1, reportsHandled: 1 },
+          current: { activeUsers: 20, newUsers: 4, publishedThreads: 3, newPosts: 9, newMoments: 2, newMomentComments: 1, reportsReceived: 3, reportsHandled: 2 },
+          previous: { activeUsers: 18, newUsers: 2, publishedThreads: 4, newPosts: 7, newMoments: 1, newMomentComments: 0, reportsReceived: 1, reportsHandled: 1 },
         },
         timeseries: { items: [{ date: "2026-08-09", dau: 8, newUsers: 1, publishedThreads: 1, newPosts: 2, reportsReceived: 3, reportsHandled: 2 }] },
         distributions: {
@@ -110,6 +116,7 @@ describe("station panels", () => {
     hooks.useAdminCases.mockReturnValue({ data: { items: [], meta: { cursor: null, hasMore: false } }, isLoading: false, isFetching: false });
     hooks.useAdminCase.mockReturnValue({ data: undefined, isLoading: false, isError: false });
     hooks.useAdminContentActions.mockReturnValue({ hide: mutation(), restore: mutation() });
+    hooks.useAdminContent.mockReturnValue({ data: { items: [], meta: { cursor: null, hasMore: false } }, isLoading: false, isFetching: false, isError: false });
     hooks.useAdminHiddenContent.mockReturnValue({
       data: { items: [], meta: { cursor: null, hasMore: false } },
       isLoading: false,
@@ -147,9 +154,9 @@ describe("station panels", () => {
   it("站务总览用当前名称展示分类分布并标记停用项", () => {
     renderWithUrl(<AdminDashboardPanel />);
 
-    expect(screen.getByText("已发布主题分布")).toBeInTheDocument();
+    expect(screen.getByText("主题帖分类分布")).toBeInTheDocument();
     expect(screen.getByText("角色扮演")).toBeInTheDocument();
-    expect(screen.getByText("RPG")).toBeInTheDocument();
+    expect(screen.queryByText("RPG")).not.toBeInTheDocument();
     expect(screen.getByText("已停用")).toBeInTheDocument();
   });
 
@@ -160,6 +167,25 @@ describe("station panels", () => {
     expect(screen.queryByText("这个队列已经清空")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "下一页" })).toBeDisabled();
     view.unmount();
+  });
+
+  it("健康状态失败不挡住社区统计", () => {
+    hooks.useAdminHealth.mockReturnValue({ isError: true, isLoading: false, refetch: vi.fn() });
+    renderWithUrl(<AdminDashboardPanel />);
+    expect(screen.getByText("用户总数")).toBeInTheDocument();
+    expect(screen.getByText("42", { exact: true })).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent("状态读取失败");
+  });
+
+  it.each([
+    { isLoading: true, isError: false, text: "正在读取内容…" },
+    { isLoading: false, isError: true, text: "内容加载失败" },
+  ])("内容列表资源状态：$text", ({ isLoading, isError, text }) => {
+    hooks.useAdminContent.mockReturnValue({ isLoading, isError, isFetching: false, refetch: vi.fn() });
+    renderWithUrl(<ContentModerationPanel />);
+    expect(screen.getByText(text)).toBeInTheDocument();
+    expect(screen.getByRole("table", { name: "内容列表" })).toBeInTheDocument();
+    if (isError) expect(screen.getByRole("button", { name: "重试" })).toBeInTheDocument();
   });
 
   it("所有远程列表使用契约筛选和 20 条游标分页", () => {
@@ -180,8 +206,8 @@ describe("station panels", () => {
       { panel: <AppealsPanel />, name: "申诉台账" },
       { panel: <UsersPanel />, name: "用户列表" },
       { panel: <AnnouncementsPanel />, name: "通知发送计划" },
-      { panel: <AuditPanel />, name: "决定轨迹" },
-      { panel: <ContentModerationPanel />, name: "当前隐藏内容" },
+      { panel: <AuditPanel />, name: "操作日志" },
+      { panel: <ContentModerationPanel />, name: "内容列表" },
       { panel: <TaxonomyPanel />, name: "主题帖分类" },
       { panel: <AdminAccountsPanel />, name: "现有站务账号" },
     ];
@@ -243,7 +269,7 @@ describe("station panels", () => {
       isError: false,
     });
 
-    const view = renderWithUrl(<ContentModerationPanel />);
+    const view = renderWithUrl(<HiddenContentList />);
     const panel = within(view.container);
     expect(panel.getByText("被隐藏的楼层内容")).toBeInTheDocument();
     expect(panel.getByText("违反社区规则")).toBeInTheDocument();
@@ -300,11 +326,8 @@ describe("station panels", () => {
     const panel = within(view.container);
     expect(panel.getByRole("columnheader", { name: "用户" })).toBeInTheDocument();
     expect(panel.getByText("普通用户")).toBeInTheDocument();
-    fireEvent.click(panel.getByRole("button", { name: "管理" }));
-    const dialog = screen.getByRole("dialog", { name: "管理 小温" });
-    expect(dialog).toHaveAttribute("data-admin-action-dialog");
-    expect(within(dialog).getByRole("button", { name: "暂停账号" })).toBeInTheDocument();
-    expect(within(dialog).getByRole("button", { name: "永久封禁" })).toBeInTheDocument();
+    expect(panel.getByRole("link", { name: "查看" })).toHaveAttribute("href", expect.stringContaining("/station/users/user-1?returnTo="));
+
   });
 
   it("页头创建动作也通过弹窗完成", () => {

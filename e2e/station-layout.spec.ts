@@ -72,6 +72,7 @@ async function mockStation(page: Page) {
 
     if (pathname.endsWith("/admin/auth/session")) return response(adminSession);
     if (pathname.endsWith("/admin/operations/settings")) return response({});
+    if (pathname.endsWith("/admin/users/" + managedUser.id)) return response({ ...managedUser, bio: "中文资料", level: 3, lastActiveDate: "2026-08-23", contentCounts: { thread: 2, post: 3, moment: 1, moment_comment: 2 } });
     if (pathname.endsWith("/admin/users")) {
       return response([managedUser], { cursor: null, hasMore: false });
     }
@@ -94,7 +95,7 @@ test.describe("站务台流体工作区布局", () => {
   test("1600px 下用户台账占满工作区，管理动作按需弹出", async ({ page }) => {
     await page.setViewportSize({ width: 1600, height: 900 });
     await page.goto("/station/users");
-    await expect(page.getByRole("heading", { name: "用户与处罚" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "用户管理" })).toBeVisible();
     await expect(page.getByText(managedUser.username)).toBeVisible();
 
     const shell = page.locator('[data-slot="station-shell"]');
@@ -111,8 +112,8 @@ test.describe("站务台流体工作区布局", () => {
     expect(shellBox).not.toBeNull();
     expect(workspaceBox).not.toBeNull();
     expect(shellBox!.width).toBeCloseTo(pageWidth.scroll, 0);
-    expect(workspaceBox!.x).toBeCloseTo(264, 0);
-    expect(workspaceBox!.x + workspaceBox!.width).toBeCloseTo(shellBox!.width - 24, 0);
+    expect(workspaceBox!.x).toBeCloseTo(224, 0);
+    expect(workspaceBox!.x + workspaceBox!.width).toBeCloseTo(shellBox!.width - 16, 0);
     await expect(page.locator('[data-slot="admin-action-rail"]')).toHaveCount(0);
 
     const tableBox = await tableScroller.boundingBox();
@@ -120,8 +121,10 @@ test.describe("站务台流体工作区布局", () => {
     expect(tableBox!.width).toBeGreaterThan(1280);
     expect(await tableScroller.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(false);
 
-    await page.getByRole("button", { name: "管理" }).click();
-    const dialog = page.getByRole("dialog", { name: `管理 ${managedUser.username}` });
+    await page.getByRole("link", { name: "查看", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "用户详情" })).toBeVisible();
+    await page.getByRole("button", { name: "修改状态" }).click();
+    const dialog = page.getByRole("dialog", { name: "账号状态" });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole("button", { name: "暂停账号" })).toBeVisible();
     await expect(dialog.getByRole("button", { name: "永久封禁" })).toBeVisible();
@@ -164,7 +167,7 @@ test.describe("站务台流体工作区布局", () => {
   test("1366px 下页面不横向滚动，案件台账占满导航右侧", async ({ page }) => {
     await page.setViewportSize({ width: 1366, height: 900 });
     await page.goto("/station/cases");
-    await expect(page.getByRole("heading", { name: "案件工作台" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "举报处理" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "形成治理决定" })).toHaveCount(0);
 
     const pageWidth = await page.evaluate(() => ({
@@ -177,8 +180,8 @@ test.describe("站务台流体工作区布局", () => {
     const queue = workspace.locator("section").first();
     const queueBox = await queue.boundingBox();
     expect(queueBox).not.toBeNull();
-    expect(queueBox!.x).toBeCloseTo(240, 0);
-    expect(queueBox!.width).toBeCloseTo(pageWidth.scroll - 240, 0);
+    expect(queueBox!.x).toBeCloseTo(208, 0);
+    expect(queueBox!.width).toBeCloseTo(pageWidth.scroll - 208, 0);
     expect(queueBox!.x + queueBox!.width).toBeCloseTo(pageWidth.scroll, 0);
     await expect(page.locator('[data-slot="admin-action-rail"]')).toHaveCount(0);
 
@@ -214,7 +217,7 @@ test.describe("站务台流体工作区布局", () => {
         status: 401, json: { code: 1001, message: "unauthorized" },
       }));
       await page.goto("/station");
-      await expect(page.getByRole("heading", { name: "站务登录" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "温油站管理后台" })).toBeVisible();
       await expectFunctionalTitles(page.getByRole("heading"));
 
       await page.route("**/api/v1/auth/refresh", (route) => route.fulfill({
@@ -261,7 +264,7 @@ test.describe("站务台流体工作区布局", () => {
 });
 
 for (const width of [1024, 1440, 1920]) {
-  test(`${width}px 站务登录以单列表单完成邮箱确认阶段`, async ({ page }, testInfo) => {
+  test(`${width}px 温油站管理后台以单列表单完成邮箱确认阶段`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width, height: 1000 });
     let challengeCount = 0;
     await page.route("**/api/v1/**", route => {
@@ -275,8 +278,8 @@ for (const width of [1024, 1440, 1920]) {
       return route.fulfill({ status: 401, json: { code: 1001, message: "unauthorized" } });
     });
     await page.goto("/station");
-    await expect(page.getByRole("heading", { name: "站务登录", level: 1 })).toBeVisible();
-    const form = page.getByRole("region", { name: "站务登录" });
+    await expect(page.getByRole("heading", { name: "温油站管理后台", level: 1 })).toBeVisible();
+    const form = page.getByRole("region", { name: "温油站管理后台" });
     const box = await form.boundingBox();
     expect(box).not.toBeNull();
     expect(box!.width).toBeLessThanOrEqual(432);
@@ -286,7 +289,7 @@ for (const width of [1024, 1440, 1920]) {
     await page.screenshot({ path: testInfo.outputPath("station-login.png") });
     await page.getByLabel("账号", { exact: true }).fill("layout-admin");
     await page.getByLabel("密码", { exact: true }).fill("layout-only-password");
-    await page.getByRole("button", { name: "继续邮箱确认" }).click();
+    await page.getByRole("button", { name: "继续", exact: true }).click();
     await expect(page.getByRole("heading", { name: "查收邮箱验证码" })).toBeVisible();
     await expect(page.getByText("验证码 10 分钟内有效。")).toBeVisible();
     await expect(page.getByLabel("6 位验证码")).toBeVisible();

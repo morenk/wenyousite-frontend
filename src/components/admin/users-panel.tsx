@@ -1,16 +1,11 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
 import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import { Search, UserRoundCog } from "lucide-react";
+import { Search } from "lucide-react";
 import { useQueryStates } from "nuqs";
-import { useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
+import { useMemo } from "react";
 import { useDebounce } from "use-debounce";
-import { z } from "zod";
-import { getApiErrorMessage } from "@/api/errors";
-import { type AdminUser, useAdminUserActions, useAdminUsers } from "@/api/hooks/use-admin";
+import { type AdminUser, useAdminUsers } from "@/api/hooks/use-admin";
 import { AdminFilterBar, AdminFilterField, AdminPagination } from "./admin-list-controls";
 import {
   AdminTable,
@@ -25,29 +20,14 @@ import {
 } from "./admin-table";
 import { useCursorPagination } from "@/hooks/use-cursor-pagination";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogBackdrop,
-  DialogCloseButton,
-  DialogDescription,
-  DialogPopup,
-  DialogPortal,
-  DialogTitle,
-  DialogViewport,
-} from "@/components/ui/dialog";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
+import { adminDetailHref, rememberAdminListPosition, useAdminListReturn } from "@/hooks/use-admin-list-return";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { WenyouTime } from "@/components/shared/wenyou-time";
 import { adminUserFilterParsers, adminUserUrlKeys } from "@/lib/admin-url-state";
 
-const sanctionSchema = z.object({
-  reason: z.string().trim().min(4, "理由至少 4 个字").max(500),
-  endsAt: z.string(),
-});
-type SanctionValues = z.infer<typeof sanctionSchema>;
 const emptyUsers: AdminUser[] = [];
 
 function tone(status: AdminUser["moderationStatus"]) {
@@ -57,26 +37,21 @@ function tone(status: AdminUser["moderationStatus"]) {
 }
 
 export function UsersPanel() {
-  const [{ query, role, status }, setFilters] = useQueryStates(adminUserFilterParsers, {
+  const [{ id, query, role, status }, setFilters] = useQueryStates(adminUserFilterParsers, {
     shallow: true,
     urlKeys: adminUserUrlKeys,
   });
   const [debounced] = useDebounce(query, 250);
-  const pagination = useCursorPagination(`${debounced}:${role ?? "ALL"}:${status ?? "ALL"}`);
+  const pagination = useCursorPagination(`${id}:${debounced}:${role ?? "ALL"}:${status ?? "ALL"}`, "admin-users");
   const users = useAdminUsers({
+    id: id || undefined,
     q: debounced || undefined,
     role: role ?? undefined,
     status: status ?? undefined,
     cursor: pagination.cursor,
     limit: 20,
   });
-  const actions = useAdminUserActions();
-  const [selectedId, setSelectedId] = useState<string>();
-  const selected = users.data?.items.find((user) => user.id === selectedId);
-  const form = useForm<SanctionValues>({
-    resolver: zodResolver(sanctionSchema),
-    defaultValues: { reason: "", endsAt: "" },
-  });
+  useAdminListReturn(Boolean(users.data));
   const columns = useMemo<ColumnDef<AdminUser>[]>(() => [
     { header: "用户", cell: ({ row }) => <div><p className="font-bold">{row.original.username}</p><p className="text-xs text-muted-foreground">{row.original.email}</p></div> },
     { header: "角色", cell: ({ row }) => row.original.role === "USER" ? "普通用户" : row.original.role === "ADMIN" ? "管理员" : "超级管理员" },
@@ -86,47 +61,16 @@ export function UsersPanel() {
       id: "actions",
       header: "操作",
       cell: ({ row }) => (
-        <Button
-          type="button"
-          size="compact"
-          variant="ghost"
-          onClick={() => {
-            setSelectedId(row.original.id);
-            form.reset();
-          }}
-        >
-          管理
-        </Button>
+        <Link className={buttonVariants({ variant: "ghost", size: "compact" })}
+          href={adminDetailHref("/station/users/" + row.original.id, "/station/users")}
+          onClick={rememberAdminListPosition}>查看</Link>
       ),
     },
-  ], [form]);
+  ], []);
   // TanStack Table intentionally exposes mutable table methods; React Compiler skips this component.
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({ data: users.data?.items ?? emptyUsers, columns, getCoreRowModel: getCoreRowModel() });
-  const activeCount = (query.trim() ? 1 : 0) + (role ? 1 : 0) + (status ? 1 : 0);
-
-  const applySanction = (type: "SUSPENSION" | "BAN") => {
-    void form.handleSubmit(async (values) => {
-      if (!selected) return;
-      if (type === "SUSPENSION" && !values.endsAt) {
-        form.setError("endsAt", { message: "暂停账号需要结束时间" });
-        return;
-      }
-      try {
-        await actions.sanction.mutateAsync({
-          id: selected.id,
-          type,
-          reason: values.reason,
-          endsAt: type === "SUSPENSION" ? new Date(values.endsAt).toISOString() : undefined,
-        });
-        toast.success(type === "BAN" ? "账号已永久封禁" : "账号已暂停");
-        form.reset();
-        setSelectedId(undefined);
-      } catch (error) {
-        toast.error(getApiErrorMessage(error, "处罚失败"));
-      }
-    })();
-  };
+  const activeCount = (id ? 1 : 0) + (query.trim() ? 1 : 0) + (role ? 1 : 0) + (status ? 1 : 0);
 
   return (
     <div data-slot="admin-users-workspace" data-layout="full-table" className="w-full">
@@ -135,6 +79,7 @@ export function UsersPanel() {
           activeCount={activeCount}
           onReset={() => void setFilters(null, { history: "push" })}
         >
+          <AdminFilterField label="用户编号" className="w-44"><Input aria-label="用户编号" value={id} onChange={(event) => void setFilters({ id: event.target.value })} /></AdminFilterField>
           <AdminFilterField label="关键词" className="w-64">
             <span className="relative block">
               <Search className="pointer-events-none absolute top-2.5 left-3.5 size-4 text-muted-foreground" />
@@ -152,7 +97,7 @@ export function UsersPanel() {
               </SelectContent>
             </Select>
           </AdminFilterField>
-          <AdminFilterField label="处罚状态" className="w-36">
+          <AdminFilterField label="账号状态" className="w-36">
             <Select value={status ?? "ALL"} onValueChange={(value) => void setFilters({ status: value === "ALL" ? null : value as NonNullable<typeof status> }, { history: "push" })}>
               <SelectTrigger className="w-full"><SelectValue>{!status ? "全部状态" : status === "ACTIVE" ? "正常" : status === "SUSPENDED" ? "暂停" : "封禁"}</SelectValue></SelectTrigger>
               <SelectContent align="start">
@@ -184,7 +129,7 @@ export function UsersPanel() {
             {users.isLoading ? <AdminTableEmpty colSpan={5}>正在读取用户…</AdminTableEmpty> : null}
             {users.isError ? <AdminTableEmpty colSpan={5}><span className="text-destructive">用户列表加载失败</span></AdminTableEmpty> : null}
             {table.getRowModel().rows.map((row) => (
-              <AdminTableRow key={row.id} data-selected={selectedId === row.original.id}>
+              <AdminTableRow key={row.id}>
                 {row.getVisibleCells().map((cell) => cell.column.id === "actions" ? (
                   <AdminTableActionCell key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -213,83 +158,6 @@ export function UsersPanel() {
         />
       </section>
 
-      {selected ? (
-        <Dialog
-          open
-          onOpenChange={(open) => {
-            if (!open && !actions.sanction.isPending && !actions.revoke.isPending) {
-              setSelectedId(undefined);
-              form.reset();
-            }
-          }}
-        >
-          <DialogPortal>
-            <DialogBackdrop />
-            <DialogViewport>
-              <DialogPopup data-admin-action-dialog className="max-w-2xl">
-                <div className="flex items-start justify-between gap-5 border-b border-border px-6 py-5">
-                  <div className="flex min-w-0 items-start gap-3">
-                    <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-foreground">
-                      <UserRoundCog className="size-5" />
-                    </span>
-                    <div className="min-w-0">
-                      <DialogTitle>管理 {selected.username}</DialogTitle>
-                      <DialogDescription className="mt-1">{selected.email} · 处罚会立即影响账号访问。</DialogDescription>
-                    </div>
-                  </div>
-                  <DialogCloseButton
-                    type="button"
-                    label="关闭用户操作"
-                    disabled={actions.sanction.isPending || actions.revoke.isPending}
-                  />
-                </div>
-                <div className="px-6 py-6">
-                  {selected.currentSanction ? (
-                    <div className="rounded-lg bg-destructive-soft p-4 text-sm text-destructive">
-                      <p className="font-bold">当前处罚 · {selected.currentSanction.type === "SUSPENSION" ? "暂停账号" : "永久封禁"}</p>
-                      <p className="mt-1 text-xs leading-5">{selected.currentSanction.reason}</p>
-                      <Button
-                        size="compact"
-                        variant="outline"
-                        className="mt-3"
-                        disabled={actions.revoke.isPending}
-                        onClick={async () => {
-                          try {
-                            await actions.revoke.mutateAsync({ id: selected.id, reason: "管理员复核后解除处罚" });
-                            toast.success("处罚已解除");
-                            setSelectedId(undefined);
-                          } catch (error) {
-                            toast.error(getApiErrorMessage(error, "解除处罚失败"));
-                          }
-                        }}
-                      >解除处罚</Button>
-                    </div>
-                  ) : selected.role !== "USER" ? (
-                    <p className="rounded-lg bg-muted p-4 text-sm text-muted-foreground">管理员账号需由超级管理员管理。</p>
-                  ) : (
-                    <form className="space-y-5" onSubmit={(event) => event.preventDefault()}>
-                      <div className="space-y-2">
-                        <Label htmlFor="sanction-reason">处罚理由</Label>
-                        <Textarea id="sanction-reason" rows={4} {...form.register("reason")} />
-                        {form.formState.errors.reason ? <p className="text-xs text-destructive">{form.formState.errors.reason.message}</p> : null}
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="sanction-until">暂停至</Label>
-                        <Input id="sanction-until" type="datetime-local" {...form.register("endsAt")} />
-                        {form.formState.errors.endsAt ? <p className="text-xs text-destructive">{form.formState.errors.endsAt.message}</p> : null}
-                      </div>
-                      <div className="flex justify-end gap-2 border-t border-border pt-5">
-                        <Button type="button" variant="outline" disabled={actions.sanction.isPending} onClick={() => applySanction("SUSPENSION")}>暂停账号</Button>
-                        <Button type="button" variant="destructive" disabled={actions.sanction.isPending} onClick={() => applySanction("BAN")}>永久封禁</Button>
-                      </div>
-                    </form>
-                  )}
-                </div>
-              </DialogPopup>
-            </DialogViewport>
-          </DialogPortal>
-        </Dialog>
-      ) : null}
     </div>
   );
 }

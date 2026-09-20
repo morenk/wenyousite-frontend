@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { addMinutes, format } from "date-fns";
-import { BellRing, CalendarClock, Search, Send } from "lucide-react";
+import { BellRing, Search, Send } from "lucide-react";
 import { useQueryStates } from "nuqs";
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -112,12 +112,8 @@ export function AnnouncementsPanel() {
   return (
     <div data-slot="admin-announcements-workspace" data-layout="full-table" className="w-full">
       <section className="overflow-hidden rounded-lg border border-border bg-card">
-        <div className="flex items-center justify-between gap-5 border-b border-border px-6 py-5">
-          <div className="flex items-center gap-3">
-            <CalendarClock className="size-5 text-brand-strong" />
-            <div><h2 className="font-sans text-lg font-semibold">发送计划与历史</h2><p className="text-xs text-muted-foreground">开始发送后不可取消。</p></div>
-          </div>
-          <Button type="button" onClick={() => setComposerOpen(true)}><BellRing />新建通知</Button>
+        <div className="flex items-center justify-end gap-3 border-b border-border px-3 py-2">
+          <Button type="button" size="compact" onClick={() => setComposerOpen(true)}><BellRing />新建通知</Button>
         </div>
         <AdminFilterBar
           activeCount={activeCount}
@@ -215,7 +211,7 @@ export function AnnouncementsPanel() {
           <DialogBackdrop />
           <DialogViewport>
             <DialogPopup data-admin-action-dialog className="max-w-3xl">
-              <div className="flex items-start justify-between gap-5 border-b border-border px-6 py-5">
+              <div className="flex items-start justify-between gap-5 border-b border-border px-4 py-3">
                 <div className="flex items-start gap-3">
                   <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground"><BellRing className="size-5" /></span>
                   <div>
@@ -225,7 +221,7 @@ export function AnnouncementsPanel() {
                 <DialogCloseButton type="button" label="关闭新建通知" disabled={actions.create.isPending} />
               </div>
               <form
-                className="space-y-5 px-6 py-6"
+                className="space-y-5 px-4 py-4"
                 onSubmit={form.handleSubmit(async (values) => {
                   try {
                     await actions.create.mutateAsync({
@@ -248,7 +244,7 @@ export function AnnouncementsPanel() {
                     <Label>接收范围</Label>
                     <Select items={audienceItems} value={audience} onValueChange={(value) => form.setValue("audience", value as Values["audience"])}>
                       <SelectTrigger className="w-full"><SelectValue>{audienceItems.find((item) => item.value === audience)?.label}</SelectValue></SelectTrigger>
-                      <SelectContent align="start">{audienceItems.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectContent>
+                      <SelectContent layer="nested" align="start">{audienceItems.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2"><Label htmlFor="campaign-time">发送时间</Label><Input id="campaign-time" type="datetime-local" {...form.register("scheduledAt")} /></div>

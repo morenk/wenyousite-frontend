@@ -24,7 +24,8 @@ import { WenyouTime } from "@/components/shared/wenyou-time";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { adminAuditFilterParsers, adminAuditUrlKeys } from "@/lib/admin-url-state";
 
-const actionLabels = {
+export const actionLabels = {
+  THREAD_TAXONOMY_UPDATED: "整理分类与标签",
   SUPER_ADMIN_BOOTSTRAPPED: "初始化超级管理员",
   ADMIN_ROLE_GRANTED: "授予站务角色",
   ADMIN_ROLE_REVOKED: "撤销站务角色",
@@ -113,8 +114,7 @@ export function AuditPanel() {
 
   return (
     <section className="overflow-hidden rounded-lg border border-border bg-card">
-      <div className="flex items-center justify-between gap-4 border-b border-border px-6 py-5">
-        <p className="text-xs text-muted-foreground">业务记录永久保留；表格筛选与导出使用同一查询范围。</p>
+      <div className="flex items-center justify-end gap-4 border-b border-border px-4 py-2">
         <a className={buttonVariants({ variant: "outline", size: "compact" })} href={exportHref}><Download />导出当前结果</a>
       </div>
       <AdminFilterBar
@@ -149,7 +149,7 @@ export function AuditPanel() {
           <Input type="date" value={dateTo} onChange={(event) => void setFilters({ dateTo: event.target.value }, { history: "push" })} />
         </AdminFilterField>
       </AdminFilterBar>
-      <AdminTable aria-label="决定轨迹" className="min-w-[56rem]">
+      <AdminTable aria-label="操作日志" className="min-w-[56rem]">
         <AdminTableHead>
           <tr>
             <AdminTableHeader>发生时间</AdminTableHeader>
@@ -160,8 +160,8 @@ export function AuditPanel() {
           </tr>
         </AdminTableHead>
         <AdminTableBody>
-        {logs.isLoading ? <AdminTableEmpty colSpan={5}>正在读取决定轨迹…</AdminTableEmpty> : null}
-        {logs.isError ? <AdminTableEmpty colSpan={5}><span className="text-destructive">决定轨迹加载失败</span></AdminTableEmpty> : null}
+        {logs.isLoading ? <AdminTableEmpty colSpan={5}>正在读取操作日志…</AdminTableEmpty> : null}
+        {logs.isError ? <AdminTableEmpty colSpan={5}><span className="text-destructive">操作日志加载失败</span></AdminTableEmpty> : null}
         {logs.data?.items.map((log) => (
           <AdminTableRow key={log.id}>
             <AdminTableCell className="text-xs whitespace-nowrap text-muted-foreground"><WenyouTime mode="exact" value={log.createdAt} /></AdminTableCell>

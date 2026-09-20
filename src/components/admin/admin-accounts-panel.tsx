@@ -177,12 +177,11 @@ export function AdminAccountsPanel() {
   if (accounts.isError || !accounts.data) return <p className="text-sm text-destructive">站务账号加载失败</p>;
 
   return (
-    <div data-slot="admin-accounts-workspace" data-layout="full-table" className="w-full space-y-6">
+    <div data-slot="admin-accounts-workspace" data-layout="full-table" className="w-full space-y-4">
         <section className="overflow-hidden rounded-lg border border-border bg-card">
           <div className="flex items-center justify-between border-b border-border px-5 py-4">
             <div>
               <h2 className="font-sans text-lg font-semibold">现有站务</h2>
-              <p className="mt-1 text-xs text-muted-foreground">一个账号同一时间只允许一个后台会话。</p>
             </div>
             <div className="flex items-center gap-3">
               <Badge tone="neutral">{filteredAccounts.length} / {accounts.data.accounts.length} 人</Badge>
@@ -349,14 +348,14 @@ export function AdminAccountsPanel() {
           <DialogBackdrop />
           <DialogViewport>
             <DialogPopup data-admin-action-dialog className="max-w-2xl">
-              <div className="flex items-start justify-between gap-5 border-b border-border px-6 py-5">
+              <div className="flex items-start justify-between gap-5 border-b border-border px-4 py-3">
                 <div>
                   <DialogTitle>邀请现有用户</DialogTitle>
-                  <DialogDescription className="mt-1">管理员继承现有温油账号，只有普通用户可以被邀请。</DialogDescription>
+
                 </div>
                 <DialogCloseButton type="button" label="关闭邀请站务" disabled={actions.invite.isPending} />
               </div>
-              <div className="px-6 py-6">
+              <div className="px-4 py-4">
                 <div className="relative">
                   <Search className="pointer-events-none absolute top-3.5 left-3.5 size-4 text-muted-foreground" />
                   <Input value={inviteQuery} onChange={(event) => setInviteQuery(event.target.value)} placeholder="用户名或邮箱" className="pl-10" />
@@ -405,10 +404,10 @@ export function AdminAccountsPanel() {
             <DialogBackdrop />
             <DialogViewport>
               <DialogPopup data-admin-action-dialog className="max-w-2xl">
-                <div className="flex items-start justify-between gap-5 border-b border-border px-6 py-5">
+                <div className="flex items-start justify-between gap-5 border-b border-border px-4 py-3">
                   <div>
                     <DialogTitle>管理 {selectedAccount.username}</DialogTitle>
-                    <DialogDescription className="mt-1">{selectedAccount.email} · 高风险操作仍需二次确认。</DialogDescription>
+                    <DialogDescription className="mt-1">{selectedAccount.email}</DialogDescription>
                   </div>
                   <DialogCloseButton
                     type="button"
@@ -416,7 +415,7 @@ export function AdminAccountsPanel() {
                     disabled={actions.transfer.isPending || actions.revoke.isPending}
                   />
                 </div>
-                <div className="space-y-3 px-6 py-6">
+                <div className="space-y-3 px-4 py-4">
                   <div className="flex items-center justify-between gap-5 rounded-xl border border-border p-4">
                     <div>
                       <p className="text-sm font-bold">移交超级管理员席位</p>

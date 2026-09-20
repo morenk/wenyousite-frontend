@@ -29,7 +29,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { parseAdminContentReference, type AdminContentReference } from "@/lib/admin-content-reference";
 import { cn } from "@/lib/utils";
-import { HiddenContentList } from "./hidden-content-list";
+import { ContentList } from "./content-list";
 
 const formSchema = z.object({
   action: z.enum(["hide", "restore"]),
@@ -123,9 +123,9 @@ export function ContentModerationPanel() {
         </Panel>
       ) : null}
 
-      <HiddenContentList
+      <ContentList
         headerAction={(
-          <Button type="button" variant="destructive" onClick={() => setModerationOpen(true)}>
+          <Button type="button" size="compact" variant="outline" onClick={() => setModerationOpen(true)}>
             <ShieldAlert />直接处置内容
           </Button>
         )}
@@ -138,15 +138,8 @@ export function ContentModerationPanel() {
           <DialogBackdrop />
           <DialogViewport>
             <DialogPopup data-admin-action-dialog className="max-w-3xl">
-              <div className={cn("h-1", action === "hide" ? "bg-destructive" : "bg-success")} aria-hidden="true" />
-              <div className="flex items-start justify-between gap-5 border-b border-border px-7 py-6">
+              <div className="flex items-start justify-between gap-5 border-b border-border px-4 py-3">
                 <div className="flex items-start gap-4">
-                  <span className={cn(
-                    "flex size-11 shrink-0 items-center justify-center rounded-xl",
-                    action === "hide" ? "bg-destructive-soft text-destructive" : "bg-success-soft text-success",
-                  )}>
-                    {action === "hide" ? <ShieldAlert className="size-5" /> : <RotateCcw className="size-5" />}
-                  </span>
                   <div>
                     <DialogTitle>直接处置公开内容</DialogTitle>
                   </div>
@@ -154,7 +147,7 @@ export function ContentModerationPanel() {
                 <DialogCloseButton type="button" label="关闭内容处置" disabled={pending} />
               </div>
 
-              <form onSubmit={submit} className="space-y-6 px-7 py-7">
+              <form onSubmit={submit} className="space-y-4 px-4 py-4">
                 <div className="grid grid-cols-2 gap-5">
                   <div className="space-y-2">
                     <Label>执行动作</Label>
@@ -163,7 +156,7 @@ export function ContentModerationPanel() {
                       onValueChange={(value) => form.setValue("action", value as FormValues["action"], { shouldValidate: true })}
                     >
                       <SelectTrigger className="w-full"><SelectValue>{actionLabels[action]}内容</SelectValue></SelectTrigger>
-                      <SelectContent align="start">
+                      <SelectContent layer="nested" align="start">
                         <SelectItem value="hide">{LANGUAGE_ACTIONS.hide}内容</SelectItem>
                         <SelectItem value="restore">{LANGUAGE_ACTIONS.restore}内容</SelectItem>
                       </SelectContent>
@@ -176,7 +169,7 @@ export function ContentModerationPanel() {
                       onValueChange={(value) => form.setValue("targetType", value as AdminContentType, { shouldValidate: true })}
                     >
                       <SelectTrigger className="w-full"><SelectValue>{targetLabels[targetType]}</SelectValue></SelectTrigger>
-                      <SelectContent align="start">
+                      <SelectContent layer="nested" align="start">
                         {Object.entries(targetLabels).map(([value, label]) => (
                           <SelectItem key={value} value={value}>{label}</SelectItem>
                         ))}
