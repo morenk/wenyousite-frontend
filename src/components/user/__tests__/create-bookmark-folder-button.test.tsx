@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -42,6 +42,19 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("CreateBookmarkFolderButton", () => {
+  test.each([[24, true], [25, false]])("收藏夹名称%s个emoji按后端码点边界验证", async (length, allowed) => {
+    const user = userEvent.setup();
+    render(<CreateBookmarkFolderButton />);
+    await user.click(screen.getByRole("button", { name: "新建主题帖收藏夹" }));
+    fireEvent.change(screen.getByLabelText("收藏夹名称"), { target: { value: "😀".repeat(length) } });
+    await user.click(screen.getByRole("button", { name: "新建" }));
+    if (allowed) expect(mockMutateAsync).toHaveBeenCalledWith("😀".repeat(length));
+    else {
+      expect(await screen.findByText("名称最多 24 个字符")).toBeInTheDocument();
+      expect(mockMutateAsync).not.toHaveBeenCalled();
+    }
+  });
+
   test("从明确入口新建收藏夹并回传结果", async () => {
     const user = userEvent.setup();
     const onCreated = vi.fn();

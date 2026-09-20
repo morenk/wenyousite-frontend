@@ -24,7 +24,7 @@ import { ContentTaxonomyDialog } from "./content-taxonomy-dialog";
 import { actionLabels } from "./audit-panel";
 import { AdminTable, AdminTableBody, AdminTableCell, AdminTableHead, AdminTableHeader, AdminTableRow } from "./admin-table";
 
-const reasonSchema = z.object({ reason: z.string().trim().min(1, "请填写理由").max(500, "理由最多 500 个字") });
+export const reasonSchema = z.object({ reason: z.string().trim().min(1, "请填写理由").refine((value) => Array.from(value).length <= 500, "理由最多 500 个字") });
 
 export function ContentDetailPanel({ type, id }: { type: AdminContentType; id: string }) {
   const params = useSearchParams();

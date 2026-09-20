@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { TagInput } from "@/components/forms/tag-input";
@@ -19,6 +19,15 @@ afterEach(() => {
 });
 
 describe("TagInput", () => {
+  test.each(["😀", "bad/tag", "a".repeat(21)])("非法标签%s不进入待提交列表", (name) => {
+    const onChange = vi.fn();
+    render(<TagInput value={[]} onChange={onChange} />);
+    const input = screen.getByPlaceholderText("输入标签，按回车添加");
+    fireEvent.change(input, { target: { value: name } });
+    fireEvent.keyDown(input, { key: "Enter" });
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
   test("回车添加标签并移除内部空白", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();

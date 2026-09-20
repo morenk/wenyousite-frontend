@@ -22,6 +22,32 @@ function selectEditorContents(editor: HTMLElement) {
 afterEach(cleanup);
 
 describe("InternalReferenceEditor", () => {
+  test("ZWJ与组合字符按码点而非视觉字符计数且粘贴位置正确", () => {
+    const onChange = vi.fn();
+    const onLimitExceeded = vi.fn();
+    render(<InternalReferenceEditor value="" onChange={onChange} onLimitExceeded={onLimitExceeded} maxLength={5} ariaLabel="评论内容" />);
+    const editor = screen.getByRole("textbox", { name: "评论内容" });
+    // 女程序员3个码点，组合重音2个码点；光标位置仍交给ProseMirror按UTF16管理。
+    fireEvent.paste(editor, { clipboardData: clipboardData("👩‍💻é") });
+    expect(onChange).toHaveBeenLastCalledWith("👩‍💻é");
+    fireEvent.paste(editor, { clipboardData: clipboardData("x") });
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onLimitExceeded).toHaveBeenCalled();
+    expect(editor).toHaveTextContent("👩‍💻é");
+  });
+
+  test("Unicode码点边界接受完整emoji并拒绝超限粘贴", () => {
+    const onChange = vi.fn();
+    const onLimitExceeded = vi.fn();
+    render(<InternalReferenceEditor value="" onChange={onChange} onLimitExceeded={onLimitExceeded} maxLength={2} ariaLabel="评论内容" />);
+    const editor = screen.getByRole("textbox", { name: "评论内容" });
+    fireEvent.paste(editor, { clipboardData: clipboardData("😀😀") });
+    expect(onChange).toHaveBeenLastCalledWith("😀😀");
+    fireEvent.paste(editor, { clipboardData: clipboardData("😀") });
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onLimitExceeded).toHaveBeenCalled();
+  });
+
   test("既有显式和裸链接在编辑态显示传送门且不改写原值", () => {
     const onChange = vi.fn();
     render(

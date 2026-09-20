@@ -77,6 +77,18 @@ afterEach(() => {
 });
 
 describe("DirectMessageComposer", () => {
+  test("私聊接受1000个emoji，超限截取不会切断代理对", async () => {
+    const onSend = vi.fn().mockResolvedValue(undefined);
+    render(<DirectMessageComposer onSend={onSend} />);
+    const input = screen.getByPlaceholderText("输入消息…");
+    expect(input).not.toHaveAttribute("maxlength");
+    fireEvent.change(input, { target: { value: "😀".repeat(1001) } });
+    expect(input).toHaveValue("😀".repeat(1000));
+    expect(screen.getByText("1000/1000")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "发送" }));
+    await waitFor(() => expect(onSend).toHaveBeenCalledWith(expect.objectContaining({ content: "😀".repeat(1000) })));
+  });
+
   test("纯文本发送会清理正文与每一行的尾部空白并在成功后清空", async () => {
     const onSend = vi.fn().mockResolvedValue(undefined);
     render(<DirectMessageComposer onSend={onSend} requestHint />);

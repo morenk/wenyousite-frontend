@@ -1,0 +1,45 @@
+{
+  "backendSha": "fc88ea09a808af9c54c1f5b971e116b3be4a471b",
+  "isolatedApi": "http://127.0.0.1:3003/api/v1",
+  "databaseScope": "new capability-audit database only",
+  "cases": [
+    {
+      "name": "password-100-codepoints-accepted",
+      "httpStatus": 200,
+      "businessCode": 0,
+      "passed": true
+    },
+    {
+      "name": "password-101-codepoints-rejected-before-auth",
+      "httpStatus": 400,
+      "businessCode": 40000,
+      "passed": true
+    },
+    {
+      "name": "comment-500-emoji-accepted",
+      "httpStatus": 201,
+      "businessCode": 0,
+      "passed": true
+    },
+    {
+      "name": "comment-501-emoji-rejected",
+      "httpStatus": 400,
+      "businessCode": 40000,
+      "passed": true
+    },
+    {
+      "name": "tip-valid-target-positive-control",
+      "httpStatus": 201,
+      "businessCode": 0,
+      "passed": true
+    },
+    {
+      "name": "tip-max-int64-plus-one-rejected-balances-unchanged",
+      "httpStatus": 400,
+      "businessCode": 40008,
+      "passed": true,
+      "balancesAndTransactionsUnchanged": true
+    }
+  ],
+  "dataRetained": true
+}

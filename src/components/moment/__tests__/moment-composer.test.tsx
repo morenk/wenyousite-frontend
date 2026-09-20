@@ -75,6 +75,15 @@ describe("MomentComposer", () => {
   });
   afterEach(cleanup);
 
+  test("动态标题和正文采用后端Unicode码点上限", async () => {
+    render(<MomentComposer open userId="user-1" onClose={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText("标题"), { target: { value: "😀".repeat(40) } });
+    expect(screen.getByLabelText("标题")).not.toHaveAttribute("maxlength");
+    fireEvent.paste(screen.getByRole("textbox", { name: "正文" }), { clipboardData: clipboardData("😀".repeat(1000)) });
+    fireEvent.click(screen.getByRole("button", { name: "发布动态" }));
+    await waitFor(() => expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ title: "😀".repeat(40), content: "😀".repeat(1000) })));
+  });
+
   test("发布纯文字动态并清理本地草稿", async () => {
     const onClose = vi.fn();
     render(<MomentComposer open userId="user-1" onClose={onClose} />);

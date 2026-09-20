@@ -34,6 +34,7 @@ export function useSaveDraft() {
 
   return useMutation({
     mutationFn: async (args: SaveDraftArgs) => {
+      if (Array.from(args.content).length > 10000) throw new Error("正文草稿最多 10000 个字符");
       if ("draftId" in args && args.draftId) {
         const { data, error } = await apiClient.PATCH("/api/v1/drafts/{id}", {
           params: { path: { id: args.draftId } },

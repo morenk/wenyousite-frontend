@@ -1,7 +1,7 @@
 /** SubthreadForm 组件测试 */
 
 import { describe, test, expect, vi, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SubthreadForm } from "@/components/forms/subthread-form";
 
@@ -11,6 +11,18 @@ afterEach(() => {
 });
 
 describe("SubthreadForm", () => {
+  test.each([[100, true], [101, false]])("子贴标题%s个emoji对齐后端边界", async (count, allowed) => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    render(<SubthreadForm mode="create" onSubmit={onSubmit} onCancel={vi.fn()} />);
+    fireEvent.change(screen.getByPlaceholderText("主帖 / 设定区 / 剧情区"), { target: { value: "😀".repeat(count) } });
+    await userEvent.click(screen.getByText("添加"));
+    if (allowed) expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ title: "😀".repeat(count) }));
+    else {
+      expect(screen.getByText("子贴标题最多 100 个字符")).toBeInTheDocument();
+      expect(onSubmit).not.toHaveBeenCalled();
+    }
+  });
+
   test("创建模式渲染正确标题", () => {
     render(
       <SubthreadForm mode="create" onSubmit={vi.fn()} onCancel={vi.fn()} />,

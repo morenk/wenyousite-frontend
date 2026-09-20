@@ -243,7 +243,7 @@ export function ContentDraftsPanel({
               </p>
             ) : null}
             <p className="mt-1 text-[11px] tabular-nums text-muted-foreground">
-              {hasCurrentSnapshot ? `${currentContent.length} 字` : "正文为空"}
+              {hasCurrentSnapshot ? `${Array.from(currentContent).length} 字` : "正文为空"}
               {currentDiceCount > 0 ? ` · ${currentDiceCount} 个待掷骰子` : ""}
             </p>
           </div>

@@ -6,7 +6,7 @@ import { z } from "zod";
 export const profileSchema = z.object({
   bio: z
     .string()
-    .max(255, "简介最多 255 个字符")
+    .refine((value) => Array.from(value).length <= 255, "简介最多 255 个字符")
     .optional(),
   showRecentReplies: z.boolean(),
   showPlayerBadges: z.boolean(),

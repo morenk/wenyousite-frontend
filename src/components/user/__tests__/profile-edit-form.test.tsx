@@ -232,6 +232,16 @@ describe("ProfileEditForm", () => {
     expect(screen.getByRole("button", { name: "保存简介" })).toBeDisabled();
   });
 
+  test("简介完整保留255个emoji且计数与提交一致", async () => {
+    render(<ProfileEditForm />);
+    const input = screen.getByLabelText("个人简介");
+    expect(input).not.toHaveAttribute("maxlength");
+    fireEvent.change(input, { target: { value: "😀".repeat(255) } });
+    expect(screen.getByText("255/255")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "保存简介" }));
+    await waitFor(() => expect(mutateAsync).toHaveBeenCalledWith({ bio: "😀".repeat(255) }));
+  });
+
   test("简介仅提交自身字段，去除首尾空白并显示保存结果", async () => {
     render(<ProfileEditForm />, { wrapper: createWrapper() });
     fireEvent.change(screen.getByLabelText("个人简介"), { target: { value: " 新简介 " } });

@@ -14,6 +14,11 @@ const validData: ThreadCreateFormData = {
 };
 
 describe("threadCreateSchema", () => {
+  test.each([["title", 100], ["subthreadTitle", 100], ["content", 10000]] as const)("主题字段%s采用后端Unicode边界", (field, limit) => {
+    expect(threadCreateSchema.safeParse({ ...validData, [field]: "😀".repeat(limit) }).success).toBe(true);
+    expect(threadCreateSchema.safeParse({ ...validData, [field]: "😀".repeat(limit + 1) }).success).toBe(false);
+  });
+
   test("完整合法输入通过", () => {
     expect(threadCreateSchema.safeParse(validData).success).toBe(true);
   });

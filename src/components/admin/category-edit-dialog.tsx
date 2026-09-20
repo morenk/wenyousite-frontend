@@ -26,9 +26,9 @@ import { Textarea } from "@/components/ui/textarea";
 
 type Category = components["schemas"]["ThreadCategoryResponseDto"];
 
-const editSchema = z.object({
-  name: z.string().trim().min(1, "请输入分类名称").max(50, "名称最多 50 个字符"),
-  description: z.string().trim().max(200, "说明最多 200 个字符"),
+export const editSchema = z.object({
+  name: z.string().trim().min(1, "请输入分类名称").refine((value) => Array.from(value).length <= 50, "名称最多 50 个字符"),
+  description: z.string().trim().refine((value) => Array.from(value).length <= 200, "说明最多 200 个字符"),
   sortOrder: z.number().int("排序必须是整数").min(0, "排序不能小于 0"),
 });
 
@@ -114,7 +114,7 @@ export function CategoryEditDialog({
                   <Textarea id={`category-edit-description-${category.id}`} rows={3} placeholder="帮助创作者判断什么内容适合放在这里" {...form.register("description")} />
                   <div className="flex justify-between gap-4 text-xs text-muted-foreground">
                     {form.formState.errors.description ? <span className="text-destructive">{form.formState.errors.description.message}</span> : null}
-                    <span className="ml-auto">{description.length}/200</span>
+                    <span className="ml-auto">{Array.from(description).length}/200</span>
                   </div>
                 </div>
 

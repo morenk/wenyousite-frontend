@@ -188,7 +188,7 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
 
         {editing ? (
           <div className="mt-4 space-y-3 rounded-xl bg-background/75 p-4">
-            <Input value={editTitle} onChange={(event) => setEditTitle(event.target.value)} maxLength={40} aria-label="动态标题" />
+            <Input value={editTitle} onChange={(event) => setEditTitle(event.target.value)} aria-label="动态标题" />
             <InternalReferenceEditor
               ref={editContentRef}
               value={editContent}

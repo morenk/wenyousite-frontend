@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth";
 import { WenyouTime } from "@/components/shared/wenyou-time";
 
-const schema = z.object({ statement: z.string().trim().min(10, "请至少写 10 个字").max(2000) });
+const schema = z.object({ statement: z.string().trim().refine((value) => Array.from(value).length >= 10, "请至少写 10 个字").refine((value) => Array.from(value).length <= 2000, "申诉最多 2000 个字") });
 
 const actionLabels: Record<string, string> = {
   HIDE_CONTENT: "隐藏内容",

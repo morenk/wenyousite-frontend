@@ -371,3 +371,23 @@ describe("changeEmailSchema", () => {
     expect(changeEmailSchema.safeParse({ ...valid, code: "abcdef" }).success).toBe(false);
   });
 });
+
+
+describe("认证字段遵循后端边界且不改写密码", () => {
+  test.each([["a1" + "😀".repeat(3), false], ["a1" + "😀".repeat(6), true], ["a1" + "😀".repeat(98), true], ["a1" + "😀".repeat(99), false]])("密码码点边界", (password, allowed) => {
+    expect(loginSchema.safeParse({ account: "test@example.com", password }).success).toBe(allowed);
+    expect(registerStep2Schema.safeParse({ username: "测试用户", code: "123456", password, confirmPassword: password }).success).toBe(allowed);
+    expect(resetPasswordSchema.safeParse({ email: "test@example.com", token: "123456", newPassword: password }).success).toBe(allowed);
+    expect(changePasswordSchema.safeParse({ oldPassword: password, newPassword: password, confirmPassword: password }).success).toBe(allowed);
+  });
+  test("换邮箱保留旧密码1码点下限，所有密码保持首尾空格", () => {
+    expect(changeEmailSchema.safeParse({ oldPassword: "a", newEmail: "test@example.com", code: "123456" }).success).toBe(true);
+    expect(changeEmailSchema.safeParse({ oldPassword: "a".repeat(101), newEmail: "test@example.com", code: "123456" }).success).toBe(false);
+    expect(loginSchema.parse({ account: "test@example.com", password: "  abc123  " }).password).toBe("  abc123  ");
+  });
+  test("邮箱与登录账号拒绝超过254码点", () => {
+    const email = "a".repeat(60) + "@" + ("b".repeat(60) + ".").repeat(4) + "com";
+    expect(emailSchema.safeParse({ email }).success).toBe(false);
+    expect(loginSchema.safeParse({ account: email, password: "abc12345" }).success).toBe(false);
+  });
+});

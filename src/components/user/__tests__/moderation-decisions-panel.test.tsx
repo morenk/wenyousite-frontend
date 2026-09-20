@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -20,6 +20,20 @@ import { ModerationDecisionsPanel } from "@/components/user/moderation-decisions
 afterEach(cleanup);
 
 describe("ModerationDecisionsPanel", () => {
+  test.each([[9, false], [10, true], [2000, true], [2001, false]])("申诉%s个emoji按码点验证上下限", async (count, allowed) => {
+    const submit = vi.fn().mockResolvedValue({});
+    mocks.decisions.mockReturnValue({ data: [{ id: "decision-1", active: true, action: "HIDE_CONTENT", targetType: "THREAD", policyCode: "SPAM", createdAt: "2026-08-23T00:00:00Z", publicExplanation: "测试", appeal: null }], isLoading: false, isError: false });
+    mocks.appeal.mockReturnValue({ isPending: false, mutateAsync: submit });
+    render(<ModerationDecisionsPanel />);
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "😀".repeat(count) } });
+    fireEvent.click(screen.getByRole("button", { name: "提交申诉" }));
+    if (allowed) await waitFor(() => expect(submit).toHaveBeenCalledWith({ decisionId: "decision-1", statement: "😀".repeat(count) }));
+    else {
+      expect(await screen.findByText(count < 10 ? "请至少写 10 个字" : "申诉最多 2000 个字")).toBeInTheDocument();
+      expect(submit).not.toHaveBeenCalled();
+    }
+  });
+
   test("用自然语言展示决定且隐藏内部枚举与目标编号", () => {
     mocks.decisions.mockReturnValue({
       data: [{

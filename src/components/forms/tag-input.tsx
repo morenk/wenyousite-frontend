@@ -6,6 +6,8 @@ import { useState, useRef, useEffect, type KeyboardEvent } from "react";
 import { X, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useTags } from "@/api/hooks/use-tags";
+import { toast } from "sonner";
+import { TAG_NAME_PATTERN, TAG_NAME_MESSAGE } from "@/lib/tag-name";
 import { cn } from "@/lib/utils";
 
 interface TagInputProps {
@@ -33,6 +35,10 @@ export function TagInput({
     const trimmed = name.trim().replace(/\s+/g, "");
     if (!trimmed || value.includes(trimmed)) return;
     if (value.length >= max) return;
+    if (trimmed.length > 20 || !TAG_NAME_PATTERN.test(trimmed)) {
+      toast.error(TAG_NAME_MESSAGE);
+      return;
+    }
     onChange([...value, trimmed]);
     setInput("");
   }

@@ -25,12 +25,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth";
 
-const reasonSchema = z.object({
+export const reasonSchema = z.object({
   reason: z
     .string()
     .trim()
     .min(1, "请填写处置理由")
-    .max(500, "处置理由最多 500 个字符"),
+    .refine((value) => Array.from(value).length <= 500, "处置理由最多 500 个字符"),
 });
 
 type ReasonValues = z.infer<typeof reasonSchema>;
@@ -131,7 +131,6 @@ export function AdminContentModerationDialog({
                   <Textarea
                     id={`admin-hide-reason-${target.id}`}
                     rows={4}
-                    maxLength={500}
                     placeholder="说明违反了哪项规则，以及为何需要从公开页面隐藏。"
                     aria-invalid={Boolean(form.formState.errors.reason)}
                     {...form.register("reason")}

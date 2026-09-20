@@ -226,7 +226,7 @@ export function useManagementPanelController({
       });
       return;
     }
-    if (title.length > 100) {
+    if (Array.from(title).length > 100) {
       dispatch({
         type: "subthread-status",
         status: { state: "error", dirty: true, busy: false, message: "子贴标题最多 100 个字符" },

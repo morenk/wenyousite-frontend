@@ -1,0 +1,3007 @@
+{
+  "backendSha": "fc88ea09a808af9c54c1f5b971e116b3be4a471b",
+  "webBaseline": "7a074ae138597f1836218bd9c440c7c15ca97d9a",
+  "contractVersion": "5.24.0-dev.20260920.1",
+  "operationCount": 223,
+  "mappedOperationCount": 196,
+  "operations": [
+    {
+      "operationId": "healthCheck",
+      "method": "GET",
+      "path": "/api/v1/health",
+      "modules": [
+        "Health"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-auth.ts:109"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "authRequestCode",
+      "method": "POST",
+      "path": "/api/v1/auth/register/request-code",
+      "modules": [
+        "Auth"
+      ],
+      "sources": [
+        "src/api/hooks/use-register.ts:12"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。",
+      "reviewedRules": {
+        "status": "已证实偏差",
+        "fixStatus": "修复候选",
+        "evidence": "capability-consistency.md 的 W01–W06；仅对涉及的边界与状态处理，完整权限/真实API仍待验证",
+        "tests": [
+          "src/lib/validations/__tests__/auth.test.ts",
+          "src/components/admin/station-login.test.tsx"
+        ]
+      }
+    },
+    {
+      "operationId": "authVerifyAndComplete",
+      "method": "POST",
+      "path": "/api/v1/auth/register/verify-and-complete",
+      "modules": [
+        "Auth"
+      ],
+      "sources": [
+        "src/api/client.ts:41",
+        "src/api/hooks/use-register.ts:29"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。",
+      "reviewedRules": {
+        "status": "已证实偏差",
+        "fixStatus": "修复候选",
+        "evidence": "capability-consistency.md 的 W01–W06；仅对涉及的边界与状态处理，完整权限/真实API仍待验证",
+        "tests": [
+          "src/lib/validations/__tests__/auth.test.ts",
+          "src/components/admin/station-login.test.tsx"
+        ]
+      }
+    },
+    {
+      "operationId": "authLogin",
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "modules": [
+        "Auth"
+      ],
+      "sources": [
+        "src/api/client.ts:40",
+        "src/api/hooks/use-login.ts:14"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。",
+      "reviewedRules": {
+        "status": "已证实偏差",
+        "fixStatus": "修复候选",
+        "evidence": "capability-consistency.md 的 W01–W06；仅对涉及的边界与状态处理，完整权限/真实API仍待验证",
+        "tests": [
+          "src/lib/validations/__tests__/auth.test.ts",
+          "src/components/admin/station-login.test.tsx"
+        ]
+      }
+    },
+    {
+      "operationId": "authRefresh",
+      "method": "POST",
+      "path": "/api/v1/auth/refresh",
+      "modules": [
+        "Auth"
+      ],
+      "sources": [
+        "src/api/client.ts:107"
+      ],
+      "status": "待验证",
+      "review": "特殊底层认证fetch调用；未登录刷新失败回退和Cookie刷新由client测试覆盖。"
+    },
+    {
+      "operationId": "authChangePassword",
+      "method": "POST",
+      "path": "/api/v1/auth/change-password",
+      "modules": [
+        "Auth"
+      ],
+      "sources": [
+        "src/api/client.ts:43",
+        "src/api/hooks/use-auth-actions.ts:50"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。",
+      "reviewedRules": {
+        "status": "已证实偏差",
+        "fixStatus": "修复候选",
+        "evidence": "capability-consistency.md 的 W01–W06；仅对涉及的边界与状态处理，完整权限/真实API仍待验证",
+        "tests": [
+          "src/lib/validations/__tests__/auth.test.ts",
+          "src/components/admin/station-login.test.tsx"
+        ]
+      }
+    },
+    {
+      "operationId": "authForgotPassword",
+      "method": "POST",
+      "path": "/api/v1/auth/forgot-password",
+      "modules": [
+        "Auth"
+      ],
+      "sources": [
+        "src/api/hooks/use-auth-actions.ts:14"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。",
+      "reviewedRules": {
+        "status": "已证实偏差",
+        "fixStatus": "修复候选",
+        "evidence": "capability-consistency.md 的 W01–W06；仅对涉及的边界与状态处理，完整权限/真实API仍待验证",
+        "tests": [
+          "src/lib/validations/__tests__/auth.test.ts",
+          "src/components/admin/station-login.test.tsx"
+        ]
+      }
+    },
+    {
+      "operationId": "authResetPassword",
+      "method": "POST",
+      "path": "/api/v1/auth/reset-password",
+      "modules": [
+        "Auth"
+      ],
+      "sources": [
+        "src/api/client.ts:42",
+        "src/api/hooks/use-auth-actions.ts:32"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。",
+      "reviewedRules": {
+        "status": "已证实偏差",
+        "fixStatus": "修复候选",
+        "evidence": "capability-consistency.md 的 W01–W06；仅对涉及的边界与状态处理，完整权限/真实API仍待验证",
+        "tests": [
+          "src/lib/validations/__tests__/auth.test.ts",
+          "src/components/admin/station-login.test.tsx"
+        ]
+      }
+    },
+    {
+      "operationId": "authRequestChangeEmailCode",
+      "method": "POST",
+      "path": "/api/v1/auth/change-email/request-code",
+      "modules": [
+        "Auth"
+      ],
+      "sources": [
+        "src/api/client.ts:44",
+        "src/api/hooks/use-auth-actions.ts:69"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。",
+      "reviewedRules": {
+        "status": "已证实偏差",
+        "fixStatus": "修复候选",
+        "evidence": "capability-consistency.md 的 W01–W06；仅对涉及的边界与状态处理，完整权限/真实API仍待验证",
+        "tests": [
+          "src/lib/validations/__tests__/auth.test.ts",
+          "src/components/admin/station-login.test.tsx"
+        ]
+      }
+    },
+    {
+      "operationId": "authVerifyChangeEmail",
+      "method": "POST",
+      "path": "/api/v1/auth/change-email/verify",
+      "modules": [
+        "Auth"
+      ],
+      "sources": [
+        "src/api/client.ts:45",
+        "src/api/hooks/use-auth-actions.ts:89"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。",
+      "reviewedRules": {
+        "status": "已证实偏差",
+        "fixStatus": "修复候选",
+        "evidence": "capability-consistency.md 的 W01–W06；仅对涉及的边界与状态处理，完整权限/真实API仍待验证",
+        "tests": [
+          "src/lib/validations/__tests__/auth.test.ts",
+          "src/components/admin/station-login.test.tsx"
+        ]
+      }
+    },
+    {
+      "operationId": "authLogout",
+      "method": "POST",
+      "path": "/api/v1/auth/logout",
+      "modules": [
+        "Auth"
+      ],
+      "sources": [
+        "src/api/hooks/use-auth-actions.ts:103"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "authListSessions",
+      "method": "GET",
+      "path": "/api/v1/auth/sessions",
+      "modules": [
+        "Auth"
+      ],
+      "sources": [
+        "src/api/hooks/use-account-security.ts:32"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "authRevokeSession",
+      "method": "DELETE",
+      "path": "/api/v1/auth/sessions/{id}",
+      "modules": [
+        "Auth"
+      ],
+      "sources": [
+        "src/api/hooks/use-account-security.ts:47"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "usersSearch",
+      "method": "GET",
+      "path": "/api/v1/users/search",
+      "modules": [
+        "Users"
+      ],
+      "sources": [],
+      "status": "待验证",
+      "review": "公开用户搜索实际通过 /search/users；use-search.ts。未使用该同类端点。"
+    },
+    {
+      "operationId": "usersMentionCandidates",
+      "method": "GET",
+      "path": "/api/v1/users/mention-candidates",
+      "modules": [
+        "Users"
+      ],
+      "sources": [
+        "src/api/hooks/use-mention-candidates.ts:22"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "usersGetMe",
+      "method": "GET",
+      "path": "/api/v1/users/me",
+      "modules": [
+        "Users"
+      ],
+      "sources": [
+        "src/api/hooks/use-me.ts:14"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "usersUpdateMe",
+      "method": "PATCH",
+      "path": "/api/v1/users/me",
+      "modules": [
+        "Users"
+      ],
+      "sources": [
+        "src/api/hooks/use-update-profile.ts:20"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "usersDeleteMe",
+      "method": "DELETE",
+      "path": "/api/v1/users/me",
+      "modules": [
+        "Users"
+      ],
+      "sources": [
+        "src/api/hooks/use-account-security.ts:93"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "usersGetMyCollaboratedThreads",
+      "method": "GET",
+      "path": "/api/v1/users/me/collaborated-threads",
+      "modules": [
+        "Users"
+      ],
+      "sources": [],
+      "status": "有依据的平台差异",
+      "review": "docs/modules/api-contract.md明确仅同步契约，不新增Web页面。"
+    },
+    {
+      "operationId": "usersSetAvatar",
+      "method": "PATCH",
+      "path": "/api/v1/users/me/avatar",
+      "modules": [
+        "Users"
+      ],
+      "sources": [
+        "src/api/hooks/use-set-avatar.ts:12"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "usersRemoveAvatar",
+      "method": "DELETE",
+      "path": "/api/v1/users/me/avatar",
+      "modules": [
+        "Users"
+      ],
+      "sources": [
+        "src/api/hooks/use-set-avatar.ts:26"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "usersSetProfileCover",
+      "method": "PATCH",
+      "path": "/api/v1/users/me/profile-cover",
+      "modules": [
+        "Users"
+      ],
+      "sources": [
+        "src/api/hooks/use-set-profile-cover.ts:22"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "usersRemoveProfileCover",
+      "method": "DELETE",
+      "path": "/api/v1/users/me/profile-cover",
+      "modules": [
+        "Users"
+      ],
+      "sources": [
+        "src/api/hooks/use-set-profile-cover.ts:33"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "usersGetUserBookmarks",
+      "method": "GET",
+      "path": "/api/v1/users/{id}/bookmarks",
+      "modules": [
+        "Users"
+      ],
+      "sources": [
+        "src/api/hooks/use-user-bookmarks.ts:26"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "usersGetUserMomentBookmarks",
+      "method": "GET",
+      "path": "/api/v1/users/{id}/moment-bookmarks",
+      "modules": [
+        "Users"
+      ],
+      "sources": [
+        "src/api/hooks/use-user-bookmarks.ts:59"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "usersGetUserPlayedThreads",
+      "method": "GET",
+      "path": "/api/v1/users/{id}/played-threads",
+      "modules": [
+        "Users"
+      ],
+      "sources": [
+        "src/api/hooks/use-user-played-threads.ts:36"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "usersGetUserCreatedThreads",
+      "method": "GET",
+      "path": "/api/v1/users/{id}/created-threads",
+      "modules": [
+        "Users"
+      ],
+      "sources": [
+        "src/api/hooks/use-user-created-threads.ts:23"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "usersGetUserActivitySummary",
+      "method": "GET",
+      "path": "/api/v1/users/{id}/activity-summary",
+      "modules": [
+        "Users"
+      ],
+      "sources": [
+        "src/api/hooks/use-user-activity-summary.ts:19"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "usersGetUserRecentReplies",
+      "method": "GET",
+      "path": "/api/v1/users/{id}/recent-replies",
+      "modules": [
+        "Users"
+      ],
+      "sources": [
+        "src/api/hooks/use-user-recent-replies.ts:22"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "usersGetUser",
+      "method": "GET",
+      "path": "/api/v1/users/{id}",
+      "modules": [
+        "Users"
+      ],
+      "sources": [
+        "src/api/hooks/use-user-profile.ts:83"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "usersFollowFollow",
+      "method": "POST",
+      "path": "/api/v1/users/follow/{id}",
+      "modules": [
+        "Users"
+      ],
+      "sources": [
+        "src/api/hooks/use-follow-actions.ts:22"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "usersFollowUnfollow",
+      "method": "DELETE",
+      "path": "/api/v1/users/follow/{id}",
+      "modules": [
+        "Users"
+      ],
+      "sources": [
+        "src/api/hooks/use-follow-actions.ts:32"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "usersFollowFollowing",
+      "method": "GET",
+      "path": "/api/v1/users/following",
+      "modules": [
+        "Users"
+      ],
+      "sources": [],
+      "status": "待验证",
+      "review": "use-user-follow-list.ts统一使用指定用户 /users/{id}/following，包含当前用户。"
+    },
+    {
+      "operationId": "usersFollowFollowers",
+      "method": "GET",
+      "path": "/api/v1/users/followers",
+      "modules": [
+        "Users"
+      ],
+      "sources": [],
+      "status": "待验证",
+      "review": "use-user-follow-list.ts统一使用指定用户 /users/{id}/followers。"
+    },
+    {
+      "operationId": "usersFollowUserFollowing",
+      "method": "GET",
+      "path": "/api/v1/users/{id}/following",
+      "modules": [
+        "Users"
+      ],
+      "sources": [
+        "src/api/hooks/use-user-follow-list.ts:31"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "usersFollowUserFollowers",
+      "method": "GET",
+      "path": "/api/v1/users/{id}/followers",
+      "modules": [
+        "Users"
+      ],
+      "sources": [
+        "src/api/hooks/use-user-follow-list.ts:32"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "usersFollowBlock",
+      "method": "POST",
+      "path": "/api/v1/users/me/block/{id}",
+      "modules": [
+        "Users"
+      ],
+      "sources": [
+        "src/api/hooks/use-block-actions.ts:14"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "usersFollowUnblock",
+      "method": "DELETE",
+      "path": "/api/v1/users/me/block/{id}",
+      "modules": [
+        "Users"
+      ],
+      "sources": [
+        "src/api/hooks/use-block-actions.ts:24",
+        "src/api/hooks/use-account-security.ts:79"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "usersFollowBlocks",
+      "method": "GET",
+      "path": "/api/v1/users/me/blocks",
+      "modules": [
+        "Users"
+      ],
+      "sources": [
+        "src/api/hooks/use-account-security.ts:66"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "notificationsFindAll",
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "modules": [
+        "Notifications"
+      ],
+      "sources": [
+        "src/api/hooks/use-notifications.ts:63"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "notificationsUnreadCount",
+      "method": "GET",
+      "path": "/api/v1/notifications/unread",
+      "modules": [
+        "Notifications"
+      ],
+      "sources": [
+        "src/api/hooks/use-unread-count.ts:12"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "notificationsSetReadStatus",
+      "method": "PATCH",
+      "path": "/api/v1/notifications/{id}",
+      "modules": [
+        "Notifications"
+      ],
+      "sources": [
+        "src/api/hooks/use-notification-actions.ts:52"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "notificationsRemove",
+      "method": "DELETE",
+      "path": "/api/v1/notifications/{id}",
+      "modules": [
+        "Notifications"
+      ],
+      "sources": [
+        "src/api/hooks/use-notification-actions.ts:74"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "notificationsMarkAllAsRead",
+      "method": "POST",
+      "path": "/api/v1/notifications/read-all",
+      "modules": [
+        "Notifications"
+      ],
+      "sources": [
+        "src/api/hooks/use-notification-actions.ts:84"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "mobileDeviceRegister",
+      "method": "PUT",
+      "path": "/api/v1/mobile/devices/current",
+      "modules": [
+        "Mobile Devices"
+      ],
+      "sources": [],
+      "status": "有依据的平台差异",
+      "review": "Mobile推送设备注册/解绑，不属于PC Web职责；本仓无对应设备状态。"
+    },
+    {
+      "operationId": "mobileDeviceUnregister",
+      "method": "DELETE",
+      "path": "/api/v1/mobile/devices/current",
+      "modules": [
+        "Mobile Devices"
+      ],
+      "sources": [],
+      "status": "有依据的平台差异",
+      "review": "Mobile推送设备注册/解绑，不属于PC Web职责；本仓无对应设备状态。"
+    },
+    {
+      "operationId": "bookmarksFindAll",
+      "method": "GET",
+      "path": "/api/v1/bookmarks",
+      "modules": [
+        "Bookmarks"
+      ],
+      "sources": [
+        "src/api/hooks/use-bookmarks.ts:21"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "bookmarksCreate",
+      "method": "POST",
+      "path": "/api/v1/bookmarks",
+      "modules": [
+        "Bookmarks"
+      ],
+      "sources": [
+        "src/api/hooks/use-bookmark-actions.ts:39"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "bookmarksFindFolders",
+      "method": "GET",
+      "path": "/api/v1/bookmarks/folders",
+      "modules": [
+        "Bookmarks"
+      ],
+      "sources": [
+        "src/api/hooks/use-bookmark-folders.ts:52"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "bookmarksCreateFolder",
+      "method": "POST",
+      "path": "/api/v1/bookmarks/folders",
+      "modules": [
+        "Bookmarks"
+      ],
+      "sources": [
+        "src/api/hooks/use-bookmark-folders.ts:73"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "bookmarksRenameFolder",
+      "method": "PATCH",
+      "path": "/api/v1/bookmarks/folders/{id}",
+      "modules": [
+        "Bookmarks"
+      ],
+      "sources": [
+        "src/api/hooks/use-bookmark-folders.ts:148"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "bookmarksDeleteFolder",
+      "method": "DELETE",
+      "path": "/api/v1/bookmarks/folders/{id}",
+      "modules": [
+        "Bookmarks"
+      ],
+      "sources": [
+        "src/api/hooks/use-bookmark-folders.ts:176"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "bookmarksMove",
+      "method": "PATCH",
+      "path": "/api/v1/bookmarks/{id}",
+      "modules": [
+        "Bookmarks"
+      ],
+      "sources": [
+        "src/api/hooks/use-bookmark-folders.ts:95"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "bookmarksRemove",
+      "method": "DELETE",
+      "path": "/api/v1/bookmarks/{id}",
+      "modules": [
+        "Bookmarks"
+      ],
+      "sources": [
+        "src/api/hooks/use-bookmark-actions.ts:20",
+        "src/api/hooks/use-bookmark-actions.ts:49"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "threadsFindDrafts",
+      "method": "GET",
+      "path": "/api/v1/threads/draft",
+      "modules": [
+        "Threads"
+      ],
+      "sources": [
+        "src/api/hooks/use-drafts.ts:14"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "threadsFindAll",
+      "method": "GET",
+      "path": "/api/v1/threads",
+      "modules": [
+        "Threads"
+      ],
+      "sources": [
+        "src/api/hooks/use-threads.ts:37"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "threadsCreate",
+      "method": "POST",
+      "path": "/api/v1/threads",
+      "modules": [
+        "Threads"
+      ],
+      "sources": [
+        "src/api/hooks/use-create-thread.ts:14"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "threadsFindById",
+      "method": "GET",
+      "path": "/api/v1/threads/{id}",
+      "modules": [
+        "Threads"
+      ],
+      "sources": [
+        "src/api/hooks/use-thread-detail.ts:65"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "threadsUpdate",
+      "method": "PATCH",
+      "path": "/api/v1/threads/{id}",
+      "modules": [
+        "Threads"
+      ],
+      "sources": [
+        "src/api/hooks/use-update-thread.ts:28"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "threadsRemove",
+      "method": "DELETE",
+      "path": "/api/v1/threads/{id}",
+      "modules": [
+        "Threads"
+      ],
+      "sources": [
+        "src/api/hooks/use-delete-thread.ts:11"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "threadsExport",
+      "method": "POST",
+      "path": "/api/v1/threads/{id}/export",
+      "modules": [
+        "Threads"
+      ],
+      "sources": [
+        "src/api/hooks/use-thread-export.ts:32"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "threadsSaveAggregate",
+      "method": "PATCH",
+      "path": "/api/v1/threads/{id}/aggregate",
+      "modules": [
+        "Threads"
+      ],
+      "sources": [
+        "src/api/hooks/use-save-thread-aggregate.ts:26"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "threadsLike",
+      "method": "POST",
+      "path": "/api/v1/threads/{id}/like",
+      "modules": [
+        "Threads"
+      ],
+      "sources": [
+        "src/api/hooks/use-like-thread.ts:12"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "threadsUnlike",
+      "method": "DELETE",
+      "path": "/api/v1/threads/{id}/like",
+      "modules": [
+        "Threads"
+      ],
+      "sources": [
+        "src/api/hooks/use-like-thread.ts:24"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "threadsCreateInviteLink",
+      "method": "POST",
+      "path": "/api/v1/threads/{id}/invite-link",
+      "modules": [
+        "Threads"
+      ],
+      "sources": [
+        "src/api/hooks/use-thread-access-actions.ts:13"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "threadsPreviewInviteLink",
+      "method": "GET",
+      "path": "/api/v1/threads/join-by-link/{token}",
+      "modules": [
+        "Threads"
+      ],
+      "sources": [
+        "src/api/hooks/use-thread-access-actions.ts:28"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "threadsJoinByInviteLink",
+      "method": "POST",
+      "path": "/api/v1/threads/join-by-link/{token}",
+      "modules": [
+        "Threads"
+      ],
+      "sources": [
+        "src/api/hooks/use-thread-access-actions.ts:46"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "threadMembersFindAll",
+      "method": "GET",
+      "path": "/api/v1/threads/{threadId}/members",
+      "modules": [
+        "Threads"
+      ],
+      "sources": [
+        "src/api/hooks/use-members.ts:16"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "threadMembersJoin",
+      "method": "POST",
+      "path": "/api/v1/threads/{threadId}/members/join",
+      "modules": [
+        "Threads"
+      ],
+      "sources": [],
+      "status": "待验证",
+      "review": "未找到直接入口；thread access hooks使用角色申请/邀请专用接口，是否需要普通join页面待产品确认。"
+    },
+    {
+      "operationId": "threadMembersUpdateMember",
+      "method": "PATCH",
+      "path": "/api/v1/threads/{threadId}/members/{userId}",
+      "modules": [
+        "Threads"
+      ],
+      "sources": [
+        "src/api/hooks/use-update-member.ts:20"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "threadMembersExitMember",
+      "method": "DELETE",
+      "path": "/api/v1/threads/{threadId}/members/me",
+      "modules": [
+        "Threads"
+      ],
+      "sources": [
+        "src/api/hooks/use-thread-access-actions.ts:62"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "threadTagsFindAll",
+      "method": "GET",
+      "path": "/api/v1/threads/{threadId}/tags",
+      "modules": [
+        "Threads"
+      ],
+      "sources": [],
+      "status": "待验证",
+      "review": "主题详情已有topicTags；前端use-thread-detail消费聚合信息。"
+    },
+    {
+      "operationId": "threadTagsAdd",
+      "method": "POST",
+      "path": "/api/v1/threads/{threadId}/tags",
+      "modules": [
+        "Threads"
+      ],
+      "sources": [
+        "src/api/hooks/use-sync-thread-tags.ts:26"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "threadTagsRemove",
+      "method": "DELETE",
+      "path": "/api/v1/threads/{threadId}/tags/{tagId}",
+      "modules": [
+        "Threads"
+      ],
+      "sources": [
+        "src/api/hooks/use-sync-thread-tags.ts:39"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "tagsSearch",
+      "method": "GET",
+      "path": "/api/v1/tags",
+      "modules": [
+        "Tags"
+      ],
+      "sources": [
+        "src/api/hooks/use-tags.ts:17"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "tagsCreate",
+      "method": "POST",
+      "path": "/api/v1/tags",
+      "modules": [
+        "Tags"
+      ],
+      "sources": [],
+      "status": "待验证",
+      "review": "TagInput添加名称并随主题aggregate提交；独立管理创建走admin/tags，未使用普通POST tags。"
+    },
+    {
+      "operationId": "tagsGetById",
+      "method": "GET",
+      "path": "/api/v1/tags/{id}",
+      "modules": [
+        "Tags"
+      ],
+      "sources": [
+        "src/api/hooks/use-tags.ts:33"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "stickersGetCollection",
+      "method": "GET",
+      "path": "/api/v1/stickers",
+      "modules": [
+        "Stickers"
+      ],
+      "sources": [
+        "src/api/hooks/use-stickers.ts:56"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "stickersImportMedia",
+      "method": "POST",
+      "path": "/api/v1/stickers/imports/media",
+      "modules": [
+        "Stickers"
+      ],
+      "sources": [
+        "src/api/hooks/use-stickers.ts:93"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "stickersImportDirectMessage",
+      "method": "POST",
+      "path": "/api/v1/stickers/imports/direct-message",
+      "modules": [
+        "Stickers"
+      ],
+      "sources": [
+        "src/api/hooks/use-stickers.ts:34",
+        "src/api/hooks/use-stickers.ts:105"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "stickersImportPostImage",
+      "method": "POST",
+      "path": "/api/v1/stickers/imports/post-image",
+      "modules": [
+        "Stickers"
+      ],
+      "sources": [
+        "src/api/hooks/use-stickers.ts:40",
+        "src/api/hooks/use-stickers.ts:116"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "stickersImportMomentImage",
+      "method": "POST",
+      "path": "/api/v1/stickers/imports/moment-image",
+      "modules": [
+        "Stickers"
+      ],
+      "sources": [],
+      "status": "待验证",
+      "review": "moment画廊没有收藏来源入口；use-stickers仅实现media/post-image/direct-message来源，未实现能力登记。"
+    },
+    {
+      "operationId": "stickersImportMomentCommentImage",
+      "method": "POST",
+      "path": "/api/v1/stickers/imports/moment-comment-image",
+      "modules": [
+        "Stickers"
+      ],
+      "sources": [],
+      "status": "待验证",
+      "review": "moment-comment-row仅展示与灯箱，无评论来源收藏入口；未实现能力登记。"
+    },
+    {
+      "operationId": "stickersGetImport",
+      "method": "GET",
+      "path": "/api/v1/stickers/imports/{id}",
+      "modules": [
+        "Stickers"
+      ],
+      "sources": [
+        "src/api/hooks/use-stickers.ts:20"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "stickersReorder",
+      "method": "PUT",
+      "path": "/api/v1/stickers/reorder",
+      "modules": [
+        "Stickers"
+      ],
+      "sources": [
+        "src/api/hooks/use-stickers.ts:127"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "stickersRemove",
+      "method": "DELETE",
+      "path": "/api/v1/stickers/{favoriteId}",
+      "modules": [
+        "Stickers"
+      ],
+      "sources": [
+        "src/api/hooks/use-stickers.ts:139"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "threadCategoriesList",
+      "method": "GET",
+      "path": "/api/v1/thread-categories",
+      "modules": [
+        "Thread Categories"
+      ],
+      "sources": [
+        "src/api/hooks/use-thread-categories.ts:16"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "momentsList",
+      "method": "GET",
+      "path": "/api/v1/moments",
+      "modules": [
+        "Moments"
+      ],
+      "sources": [
+        "src/api/hooks/use-moments.ts:41"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "momentsCreate",
+      "method": "POST",
+      "path": "/api/v1/moments",
+      "modules": [
+        "Moments"
+      ],
+      "sources": [
+        "src/api/hooks/use-moments.ts:77"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。",
+      "reviewedRules": {
+        "status": "已证实偏差",
+        "fixStatus": "修复候选",
+        "evidence": "capability-consistency.md 的 W01–W06；仅对涉及的边界与状态处理，完整权限/真实API仍待验证",
+        "tests": [
+          "src/components/moment/__tests__/moment-comments.test.tsx",
+          "src/components/moment/__tests__/moment-composer.test.tsx"
+        ]
+      }
+    },
+    {
+      "operationId": "momentsBookmarks",
+      "method": "GET",
+      "path": "/api/v1/moments/bookmarks",
+      "modules": [
+        "Moments"
+      ],
+      "sources": [
+        "src/api/hooks/use-moments.ts:388"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "momentsBookmarkFolders",
+      "method": "GET",
+      "path": "/api/v1/moments/bookmark-folders",
+      "modules": [
+        "Moments"
+      ],
+      "sources": [
+        "src/api/hooks/use-bookmark-folders.ts:48"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "momentsCreateBookmarkFolder",
+      "method": "POST",
+      "path": "/api/v1/moments/bookmark-folders",
+      "modules": [
+        "Moments"
+      ],
+      "sources": [
+        "src/api/hooks/use-bookmark-folders.ts:66"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。",
+      "reviewedRules": {
+        "status": "已证实偏差",
+        "fixStatus": "修复候选",
+        "evidence": "capability-consistency.md 的 W01–W06；仅对涉及的边界与状态处理，完整权限/真实API仍待验证",
+        "tests": [
+          "src/components/moment/__tests__/moment-comments.test.tsx",
+          "src/components/moment/__tests__/moment-composer.test.tsx"
+        ]
+      }
+    },
+    {
+      "operationId": "momentsRenameBookmarkFolder",
+      "method": "PATCH",
+      "path": "/api/v1/moments/bookmark-folders/{id}",
+      "modules": [
+        "Moments"
+      ],
+      "sources": [
+        "src/api/hooks/use-bookmark-folders.ts:143"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "momentsDeleteBookmarkFolder",
+      "method": "DELETE",
+      "path": "/api/v1/moments/bookmark-folders/{id}",
+      "modules": [
+        "Moments"
+      ],
+      "sources": [
+        "src/api/hooks/use-bookmark-folders.ts:175"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "momentsDetail",
+      "method": "GET",
+      "path": "/api/v1/moments/{id}",
+      "modules": [
+        "Moments"
+      ],
+      "sources": [
+        "src/api/hooks/use-moments.ts:59"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "momentsUpdate",
+      "method": "PATCH",
+      "path": "/api/v1/moments/{id}",
+      "modules": [
+        "Moments"
+      ],
+      "sources": [
+        "src/api/hooks/use-moments.ts:93"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。",
+      "reviewedRules": {
+        "status": "已证实偏差",
+        "fixStatus": "修复候选",
+        "evidence": "capability-consistency.md 的 W01–W06；仅对涉及的边界与状态处理，完整权限/真实API仍待验证",
+        "tests": [
+          "src/components/moment/__tests__/moment-comments.test.tsx",
+          "src/components/moment/__tests__/moment-composer.test.tsx"
+        ]
+      }
+    },
+    {
+      "operationId": "momentsRemove",
+      "method": "DELETE",
+      "path": "/api/v1/moments/{id}",
+      "modules": [
+        "Moments"
+      ],
+      "sources": [
+        "src/api/hooks/use-moments.ts:123"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "momentsLike",
+      "method": "POST",
+      "path": "/api/v1/moments/{id}/like",
+      "modules": [
+        "Moments"
+      ],
+      "sources": [
+        "src/api/hooks/use-moments.ts:142"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "momentsUnlike",
+      "method": "DELETE",
+      "path": "/api/v1/moments/{id}/like",
+      "modules": [
+        "Moments"
+      ],
+      "sources": [
+        "src/api/hooks/use-moments.ts:141"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "momentsBookmark",
+      "method": "POST",
+      "path": "/api/v1/moments/{id}/bookmark",
+      "modules": [
+        "Moments"
+      ],
+      "sources": [
+        "src/api/hooks/use-moments.ts:181"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "momentsMoveBookmark",
+      "method": "PATCH",
+      "path": "/api/v1/moments/{id}/bookmark",
+      "modules": [
+        "Moments"
+      ],
+      "sources": [
+        "src/api/hooks/use-bookmark-folders.ts:114"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "momentsUnbookmark",
+      "method": "DELETE",
+      "path": "/api/v1/moments/{id}/bookmark",
+      "modules": [
+        "Moments"
+      ],
+      "sources": [
+        "src/api/hooks/use-moments.ts:180"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "momentsCommentsList",
+      "method": "GET",
+      "path": "/api/v1/moments/{id}/comments",
+      "modules": [
+        "Moments"
+      ],
+      "sources": [
+        "src/api/hooks/use-moments.ts:214"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "momentsCreateComment",
+      "method": "POST",
+      "path": "/api/v1/moments/{id}/comments",
+      "modules": [
+        "Moments"
+      ],
+      "sources": [
+        "src/api/hooks/use-moments.ts:310"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。",
+      "reviewedRules": {
+        "status": "已证实偏差",
+        "fixStatus": "修复候选",
+        "evidence": "capability-consistency.md 的 W01–W06；仅对涉及的边界与状态处理，完整权限/真实API仍待验证",
+        "tests": [
+          "src/components/moment/__tests__/moment-comments.test.tsx",
+          "src/components/moment/__tests__/moment-composer.test.tsx"
+        ]
+      }
+    },
+    {
+      "operationId": "momentsCommentAuthors",
+      "method": "GET",
+      "path": "/api/v1/moments/{id}/comment-authors",
+      "modules": [
+        "Moments"
+      ],
+      "sources": [
+        "src/api/hooks/use-moments.ts:295"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "momentsCommentContext",
+      "method": "GET",
+      "path": "/api/v1/moments/{id}/comments/{commentId}/context",
+      "modules": [
+        "Moments"
+      ],
+      "sources": [
+        "src/api/hooks/use-moments.ts:276"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "momentsReplies",
+      "method": "GET",
+      "path": "/api/v1/moments/{id}/comments/{commentId}/replies",
+      "modules": [
+        "Moments"
+      ],
+      "sources": [
+        "src/api/hooks/use-moments.ts:245"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "momentsRemoveComment",
+      "method": "DELETE",
+      "path": "/api/v1/moments/{id}/comments/{commentId}",
+      "modules": [
+        "Moments"
+      ],
+      "sources": [
+        "src/api/hooks/use-moments.ts:332"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "userMomentsList",
+      "method": "GET",
+      "path": "/api/v1/users/{id}/moments",
+      "modules": [
+        "Moments"
+      ],
+      "sources": [
+        "src/api/hooks/use-moments.ts:371"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "subthreadsFindAll",
+      "method": "GET",
+      "path": "/api/v1/threads/{threadId}/subthreads",
+      "modules": [
+        "Subthreads"
+      ],
+      "sources": [],
+      "status": "待验证",
+      "review": "thread detail聚合返回subthreads供管理面板消费，无独立列表请求。"
+    },
+    {
+      "operationId": "subthreadsCreate",
+      "method": "POST",
+      "path": "/api/v1/threads/{threadId}/subthreads",
+      "modules": [
+        "Subthreads"
+      ],
+      "sources": [
+        "src/api/hooks/use-create-subthread.ts:27"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "subthreadsFindById",
+      "method": "GET",
+      "path": "/api/v1/subthreads/{id}",
+      "modules": [
+        "Subthreads"
+      ],
+      "sources": [],
+      "status": "待验证",
+      "review": "管理面板选中主题详情内的subthread，未发独立detail请求。"
+    },
+    {
+      "operationId": "subthreadsUpdate",
+      "method": "PATCH",
+      "path": "/api/v1/subthreads/{id}",
+      "modules": [
+        "Subthreads"
+      ],
+      "sources": [
+        "src/api/hooks/use-update-subthread.ts:22"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "subthreadsRemove",
+      "method": "DELETE",
+      "path": "/api/v1/subthreads/{id}",
+      "modules": [
+        "Subthreads"
+      ],
+      "sources": [
+        "src/api/hooks/use-delete-subthread.ts:9"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "subthreadsReorder",
+      "method": "PUT",
+      "path": "/api/v1/threads/{threadId}/subthreads/reorder",
+      "modules": [
+        "Subthreads"
+      ],
+      "sources": [
+        "src/api/hooks/use-reorder-subthreads.ts:16"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "postsFindLatestInThread",
+      "method": "GET",
+      "path": "/api/v1/threads/{threadId}/posts/latest",
+      "modules": [
+        "Posts"
+      ],
+      "sources": [
+        "src/api/hooks/use-latest-thread-post.ts:15"
+      ],
+      "status": "待验证",
+      "review": "没有直接静态路径引用；需结合动态路径/平台职责确认，不能据此断言功能缺失。"
+    },
+    {
+      "operationId": "postsFindFloors",
+      "method": "GET",
+      "path": "/api/v1/subthreads/{subthreadId}/posts",
+      "modules": [
+        "Posts"
+      ],
+      "sources": [
+        "src/api/hooks/use-floors.ts:49"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "postsCreate",
+      "method": "POST",
+      "path": "/api/v1/subthreads/{subthreadId}/posts",
+      "modules": [
+        "Posts"
+      ],
+      "sources": [
+        "src/api/hooks/use-create-post.ts:23"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "postsFindFloorAuthors",
+      "method": "GET",
+      "path": "/api/v1/subthreads/{subthreadId}/posts/authors",
+      "modules": [
+        "Posts"
+      ],
+      "sources": [
+        "src/api/hooks/use-discussion-authors.ts:18"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "postsFindReplies",
+      "method": "GET",
+      "path": "/api/v1/posts/{id}/replies",
+      "modules": [
+        "Posts"
+      ],
+      "sources": [
+        "src/api/hooks/use-replies.ts:25"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "postsFindReplyAuthors",
+      "method": "GET",
+      "path": "/api/v1/posts/{id}/replies/authors",
+      "modules": [
+        "Posts"
+      ],
+      "sources": [
+        "src/api/hooks/use-discussion-authors.ts:34"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "postsUpsertBody",
+      "method": "PUT",
+      "path": "/api/v1/subthreads/{subthreadId}/body",
+      "modules": [
+        "Posts"
+      ],
+      "sources": [
+        "src/api/hooks/use-upsert-body.ts:24"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "postsFindById",
+      "method": "GET",
+      "path": "/api/v1/posts/{id}",
+      "modules": [
+        "Posts"
+      ],
+      "sources": [
+        "src/api/hooks/use-post.ts:22"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "postsUpdate",
+      "method": "PATCH",
+      "path": "/api/v1/posts/{id}",
+      "modules": [
+        "Posts"
+      ],
+      "sources": [
+        "src/api/hooks/use-update-post.ts:19"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "postsRemove",
+      "method": "DELETE",
+      "path": "/api/v1/posts/{id}",
+      "modules": [
+        "Posts"
+      ],
+      "sources": [
+        "src/api/hooks/use-delete-post.ts:11"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "postsPin",
+      "method": "POST",
+      "path": "/api/v1/posts/{id}/pin",
+      "modules": [
+        "Posts"
+      ],
+      "sources": [
+        "src/api/hooks/use-pin-post.ts:12"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "postsUnpin",
+      "method": "DELETE",
+      "path": "/api/v1/posts/{id}/pin",
+      "modules": [
+        "Posts"
+      ],
+      "sources": [
+        "src/api/hooks/use-pin-post.ts:15"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "draftsFindAll",
+      "method": "GET",
+      "path": "/api/v1/drafts",
+      "modules": [
+        "Drafts"
+      ],
+      "sources": [],
+      "status": "待验证",
+      "review": "正文草稿查询统一GET /drafts/state；use-content-drafts.ts。"
+    },
+    {
+      "operationId": "draftsCreate",
+      "method": "POST",
+      "path": "/api/v1/drafts",
+      "modules": [
+        "Drafts"
+      ],
+      "sources": [
+        "src/api/hooks/use-save-draft.ts:47"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "draftsSlotUsage",
+      "method": "GET",
+      "path": "/api/v1/drafts/slots",
+      "modules": [
+        "Drafts"
+      ],
+      "sources": [],
+      "status": "待验证",
+      "review": "正文草稿容量统一GET /drafts/state的slots；use-content-drafts.ts。"
+    },
+    {
+      "operationId": "draftsState",
+      "method": "GET",
+      "path": "/api/v1/drafts/state",
+      "modules": [
+        "Drafts"
+      ],
+      "sources": [
+        "src/api/hooks/use-content-drafts.ts:36"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "draftsFindById",
+      "method": "GET",
+      "path": "/api/v1/drafts/{id}",
+      "modules": [
+        "Drafts"
+      ],
+      "sources": [],
+      "status": "待验证",
+      "review": "正文草稿详情使用/drafts/state中缓存项；修改/删除仍调用本路径相应method。"
+    },
+    {
+      "operationId": "draftsUpdate",
+      "method": "PATCH",
+      "path": "/api/v1/drafts/{id}",
+      "modules": [
+        "Drafts"
+      ],
+      "sources": [
+        "src/api/hooks/use-save-draft.ts:38"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "draftsRemove",
+      "method": "DELETE",
+      "path": "/api/v1/drafts/{id}",
+      "modules": [
+        "Drafts"
+      ],
+      "sources": [
+        "src/api/hooks/use-delete-content-draft.ts:24"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "subscriptionsFindAll",
+      "method": "GET",
+      "path": "/api/v1/subscriptions",
+      "modules": [
+        "Subscriptions"
+      ],
+      "sources": [
+        "src/api/hooks/use-subscriptions.ts:14"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "subscriptionsCreate",
+      "method": "POST",
+      "path": "/api/v1/subscriptions",
+      "modules": [
+        "Subscriptions"
+      ],
+      "sources": [
+        "src/api/hooks/use-subscription-mutations.ts:16"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "subscriptionsRemove",
+      "method": "DELETE",
+      "path": "/api/v1/subscriptions/{id}",
+      "modules": [
+        "Subscriptions"
+      ],
+      "sources": [
+        "src/api/hooks/use-subscription-mutations.ts:36"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "reportsCreate",
+      "method": "POST",
+      "path": "/api/v1/reports",
+      "modules": [
+        "Reports"
+      ],
+      "sources": [
+        "src/api/hooks/use-moderation-actions.ts:31"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminReportsFindAll",
+      "method": "GET",
+      "path": "/api/v1/admin/reports",
+      "modules": [
+        "Admin Reports"
+      ],
+      "sources": [],
+      "status": "待验证",
+      "review": "后台使用moderation/cases案件工作台；未找到旧admin/reports列表入口。"
+    },
+    {
+      "operationId": "adminReportsFindOne",
+      "method": "GET",
+      "path": "/api/v1/admin/reports/{id}",
+      "modules": [
+        "Admin Reports"
+      ],
+      "sources": [],
+      "status": "待验证",
+      "review": "后台使用cases详情/报告关联；未找到旧reports详情入口。"
+    },
+    {
+      "operationId": "adminReportsResolve",
+      "method": "POST",
+      "path": "/api/v1/admin/reports/{id}/resolve",
+      "modules": [
+        "Admin Reports"
+      ],
+      "sources": [],
+      "status": "待验证",
+      "review": "后台通过moderation case resolution处置；未找到旧reports resolve入口。"
+    },
+    {
+      "operationId": "adminAuthChallenge",
+      "method": "POST",
+      "path": "/api/v1/admin/auth/challenge",
+      "modules": [
+        "Admin Auth"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-auth.ts:47"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。",
+      "reviewedRules": {
+        "status": "已证实偏差",
+        "fixStatus": "修复候选",
+        "evidence": "capability-consistency.md 的 W01–W06；仅对涉及的边界与状态处理，完整权限/真实API仍待验证",
+        "tests": [
+          "src/lib/validations/__tests__/auth.test.ts",
+          "src/components/admin/station-login.test.tsx"
+        ]
+      }
+    },
+    {
+      "operationId": "adminAuthVerify",
+      "method": "POST",
+      "path": "/api/v1/admin/auth/verify",
+      "modules": [
+        "Admin Auth"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-auth.ts:54"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminAuthSession",
+      "method": "GET",
+      "path": "/api/v1/admin/auth/session",
+      "modules": [
+        "Admin Auth"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-auth.ts:27"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminAuthLogout",
+      "method": "POST",
+      "path": "/api/v1/admin/auth/logout",
+      "modules": [
+        "Admin Auth"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-auth.ts:72"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminAuthStepUpChallenge",
+      "method": "POST",
+      "path": "/api/v1/admin/auth/step-up/challenge",
+      "modules": [
+        "Admin Auth"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-auth.ts:134"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminAuthVerifyStepUp",
+      "method": "POST",
+      "path": "/api/v1/admin/auth/step-up/verify",
+      "modules": [
+        "Admin Auth"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-auth.ts:141"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminAccountsList",
+      "method": "GET",
+      "path": "/api/v1/admin/accounts",
+      "modules": [
+        "Admin Accounts"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-cases.ts:89"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminAccountsInvite",
+      "method": "POST",
+      "path": "/api/v1/admin/accounts/invites",
+      "modules": [
+        "Admin Accounts"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-cases.ts:102"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminAccountsCancel",
+      "method": "DELETE",
+      "path": "/api/v1/admin/accounts/invites/{id}",
+      "modules": [
+        "Admin Accounts"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-cases.ts:110"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminAccountsRevoke",
+      "method": "DELETE",
+      "path": "/api/v1/admin/accounts/{id}",
+      "modules": [
+        "Admin Accounts"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-cases.ts:121"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminAccountsTransfer",
+      "method": "POST",
+      "path": "/api/v1/admin/accounts/transfer-super-admin",
+      "modules": [
+        "Admin Accounts"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-cases.ts:132"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminInviteAcceptanceAccept",
+      "method": "POST",
+      "path": "/api/v1/admin-invitations/{token}/accept",
+      "modules": [
+        "Admin Accounts"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-auth.ts:121"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "moderationCasesList",
+      "method": "GET",
+      "path": "/api/v1/admin/cases",
+      "modules": [
+        "Admin Cases"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-cases.ts:32"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "moderationCasesGet",
+      "method": "GET",
+      "path": "/api/v1/admin/cases/{id}",
+      "modules": [
+        "Admin Cases"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-cases.ts:47"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "moderationCasesResolve",
+      "method": "POST",
+      "path": "/api/v1/admin/cases/{id}/resolve",
+      "modules": [
+        "Admin Cases"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-cases.ts:71"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminModerationAppealsList",
+      "method": "GET",
+      "path": "/api/v1/admin/appeals",
+      "modules": [
+        "Admin Appeals"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-cases.ts:189"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminModerationAppealsResolve",
+      "method": "POST",
+      "path": "/api/v1/admin/appeals/{id}/resolve",
+      "modules": [
+        "Admin Appeals"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-cases.ts:204"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "userModerationAppealsIssueToken",
+      "method": "POST",
+      "path": "/api/v1/moderation/appeal-token",
+      "modules": [
+        "Moderation Appeals"
+      ],
+      "sources": [],
+      "status": "待验证",
+      "review": "未找到被封禁账号免登录申诉token入口；普通申诉走/me/moderation-decisions；未实现能力登记。"
+    },
+    {
+      "operationId": "userModerationAppealsMine",
+      "method": "GET",
+      "path": "/api/v1/moderation/decisions/mine",
+      "modules": [
+        "Moderation Appeals"
+      ],
+      "sources": [
+        "src/api/hooks/use-moderation-actions.ts:42"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "userModerationAppealsAppeal",
+      "method": "POST",
+      "path": "/api/v1/moderation/appeals",
+      "modules": [
+        "Moderation Appeals"
+      ],
+      "sources": [
+        "src/api/hooks/use-moderation-actions.ts:54"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "siteOperationalSettingsGet",
+      "method": "GET",
+      "path": "/api/v1/admin/operations/settings",
+      "modules": [
+        "Admin Operations"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-cases.ts:162"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "siteOperationalSettingsUpdate",
+      "method": "PATCH",
+      "path": "/api/v1/admin/operations/settings",
+      "modules": [
+        "Admin Operations"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-cases.ts:173"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "notificationCampaignList",
+      "method": "GET",
+      "path": "/api/v1/admin/notification-campaigns",
+      "modules": [
+        "Admin Campaigns"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-configuration.ts:94"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "notificationCampaignCreate",
+      "method": "POST",
+      "path": "/api/v1/admin/notification-campaigns",
+      "modules": [
+        "Admin Campaigns"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-configuration.ts:117"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "notificationCampaignPreview",
+      "method": "POST",
+      "path": "/api/v1/admin/notification-campaigns/preview",
+      "modules": [
+        "Admin Campaigns"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-configuration.ts:110"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "notificationCampaignCancel",
+      "method": "DELETE",
+      "path": "/api/v1/admin/notification-campaigns/{id}",
+      "modules": [
+        "Admin Campaigns"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-configuration.ts:125"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminIndex",
+      "method": "GET",
+      "path": "/api/v1/admin",
+      "modules": [
+        "Admin"
+      ],
+      "sources": [],
+      "status": "待验证",
+      "review": "站务入口按dashboard/session定向查询，没有根/admin API消费。"
+    },
+    {
+      "operationId": "adminSendSystemNotification",
+      "method": "POST",
+      "path": "/api/v1/admin/notifications/system",
+      "modules": [
+        "Admin"
+      ],
+      "sources": [],
+      "status": "待验证",
+      "review": "通知后台使用campaigns计划发布，未找到旧system发送入口。"
+    },
+    {
+      "operationId": "adminPreviewRecipients",
+      "method": "POST",
+      "path": "/api/v1/admin/notifications/system/preview",
+      "modules": [
+        "Admin"
+      ],
+      "sources": [],
+      "status": "待验证",
+      "review": "通知后台使用campaigns接口，未找到旧system预览入口。"
+    },
+    {
+      "operationId": "adminGetHistory",
+      "method": "GET",
+      "path": "/api/v1/admin/notifications/system/history",
+      "modules": [
+        "Admin"
+      ],
+      "sources": [],
+      "status": "待验证",
+      "review": "通知后台使用campaigns列表，未找到旧system历史入口。"
+    },
+    {
+      "operationId": "adminSearchUsers",
+      "method": "GET",
+      "path": "/api/v1/admin/users/search",
+      "modules": [
+        "Admin"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-cases.ts:147"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminContentList",
+      "method": "GET",
+      "path": "/api/v1/admin/content",
+      "modules": [
+        "Admin Content"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-content.ts:18"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminContentDetail",
+      "method": "GET",
+      "path": "/api/v1/admin/content/{type}/{id}",
+      "modules": [
+        "Admin Content"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-content.ts:31"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminContentUpdateTaxonomy",
+      "method": "PATCH",
+      "path": "/api/v1/admin/content/thread/{id}/taxonomy",
+      "modules": [
+        "Admin Content"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-content.ts:55"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminModerationListUsers",
+      "method": "GET",
+      "path": "/api/v1/admin/users",
+      "modules": [
+        "Admin Moderation"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-moderation.ts:19"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminModerationGetUser",
+      "method": "GET",
+      "path": "/api/v1/admin/users/{id}",
+      "modules": [
+        "Admin Moderation"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-content.ts:43"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminModerationSanctionUser",
+      "method": "POST",
+      "path": "/api/v1/admin/users/{id}/sanctions",
+      "modules": [
+        "Admin Moderation"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-moderation.ts:39"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminModerationRevokeSanction",
+      "method": "POST",
+      "path": "/api/v1/admin/users/{id}/sanctions/current/revoke",
+      "modules": [
+        "Admin Moderation"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-moderation.ts:50"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminModerationUpdateRole",
+      "method": "PATCH",
+      "path": "/api/v1/admin/users/{id}/role",
+      "modules": [
+        "Admin Moderation"
+      ],
+      "sources": [],
+      "status": "待验证",
+      "review": "管理账号使用admin/accounts专用授权流程，未找到该角色变更端点直接调用。"
+    },
+    {
+      "operationId": "adminModerationHideContent",
+      "method": "POST",
+      "path": "/api/v1/admin/content/{type}/{id}/hide",
+      "modules": [
+        "Admin Moderation"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-moderation.ts:123"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminModerationListHiddenContent",
+      "method": "GET",
+      "path": "/api/v1/admin/content/hidden",
+      "modules": [
+        "Admin Moderation"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-moderation.ts:77"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminModerationRestoreContent",
+      "method": "POST",
+      "path": "/api/v1/admin/content/{type}/{id}/restore",
+      "modules": [
+        "Admin Moderation"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-moderation.ts:134"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminModerationListAuditLogs",
+      "method": "GET",
+      "path": "/api/v1/admin/audit-logs",
+      "modules": [
+        "Admin Moderation"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-moderation.ts:172"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminModerationExportAuditLogs",
+      "method": "GET",
+      "path": "/api/v1/admin/audit-logs/export",
+      "modules": [
+        "Admin Moderation"
+      ],
+      "sources": [],
+      "status": "待验证",
+      "review": "可见审计列表存在，未找到导出入口；未实现能力登记。"
+    },
+    {
+      "operationId": "clientContentModerationHide",
+      "method": "POST",
+      "path": "/api/v1/moderation/content/{type}/{id}/hide",
+      "modules": [
+        "Client Moderation"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-moderation.ts:151"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminDashboardOverview",
+      "method": "GET",
+      "path": "/api/v1/admin/dashboard/overview",
+      "modules": [
+        "Admin Dashboard"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-auth.ts:88"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminDashboardTimeseries",
+      "method": "GET",
+      "path": "/api/v1/admin/dashboard/timeseries",
+      "modules": [
+        "Admin Dashboard"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-auth.ts:89"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminDashboardDistributions",
+      "method": "GET",
+      "path": "/api/v1/admin/dashboard/distributions",
+      "modules": [
+        "Admin Dashboard"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-auth.ts:90"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminTaxonomyListCategories",
+      "method": "GET",
+      "path": "/api/v1/admin/thread-categories",
+      "modules": [
+        "Admin Taxonomy"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-configuration.ts:15"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminTaxonomyCreateCategory",
+      "method": "POST",
+      "path": "/api/v1/admin/thread-categories",
+      "modules": [
+        "Admin Taxonomy"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-configuration.ts:47"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminTaxonomyUpdateCategory",
+      "method": "PATCH",
+      "path": "/api/v1/admin/thread-categories/{id}",
+      "modules": [
+        "Admin Taxonomy"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-configuration.ts:55"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminTaxonomyListTags",
+      "method": "GET",
+      "path": "/api/v1/admin/tags",
+      "modules": [
+        "Admin Taxonomy"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-configuration.ts:16"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminTaxonomyCreateTag",
+      "method": "POST",
+      "path": "/api/v1/admin/tags",
+      "modules": [
+        "Admin Taxonomy"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-configuration.ts:66"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "adminTaxonomyUpdateTag",
+      "method": "PATCH",
+      "path": "/api/v1/admin/tags/{id}",
+      "modules": [
+        "Admin Taxonomy"
+      ],
+      "sources": [
+        "src/api/hooks/admin/use-admin-configuration.ts:74"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "searchSearchMoments",
+      "method": "GET",
+      "path": "/api/v1/search/moments",
+      "modules": [
+        "Search"
+      ],
+      "sources": [
+        "src/api/hooks/use-search.ts:127"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "searchSearchThreads",
+      "method": "GET",
+      "path": "/api/v1/search/threads",
+      "modules": [
+        "Search"
+      ],
+      "sources": [
+        "src/api/hooks/use-search.ts:52"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "searchSearchUsers",
+      "method": "GET",
+      "path": "/api/v1/search/users",
+      "modules": [
+        "Search"
+      ],
+      "sources": [
+        "src/api/hooks/use-search.ts:83"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "searchSearchPosts",
+      "method": "GET",
+      "path": "/api/v1/search/posts",
+      "modules": [
+        "Search"
+      ],
+      "sources": [
+        "src/api/hooks/use-search.ts:106"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "searchSearch",
+      "method": "GET",
+      "path": "/api/v1/search",
+      "modules": [
+        "Search"
+      ],
+      "sources": [],
+      "status": "待验证",
+      "review": "使用/search/threads、posts、moments、users等分类查询；未使用通用search。"
+    },
+    {
+      "operationId": "threadSearchSearchPosts",
+      "method": "GET",
+      "path": "/api/v1/threads/{threadId}/search/posts",
+      "modules": [
+        "Search"
+      ],
+      "sources": [
+        "src/api/hooks/use-search.ts:167"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "mediaGetUploadUrl",
+      "method": "POST",
+      "path": "/api/v1/media/upload-url",
+      "modules": [
+        "Media"
+      ],
+      "sources": [
+        "src/lib/upload-image.ts:544"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "mediaConfirmUpload",
+      "method": "POST",
+      "path": "/api/v1/media/upload-done",
+      "modules": [
+        "Media"
+      ],
+      "sources": [
+        "src/lib/upload-image.ts:376"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "mediaReissueUploadUrl",
+      "method": "POST",
+      "path": "/api/v1/media/{id}/upload-url",
+      "modules": [
+        "Media"
+      ],
+      "sources": [
+        "src/lib/upload-image.ts:586"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "mediaGetMedia",
+      "method": "GET",
+      "path": "/api/v1/media/{id}",
+      "modules": [
+        "Media"
+      ],
+      "sources": [
+        "src/lib/upload-image.ts:397"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "directConversationsFindAll",
+      "method": "GET",
+      "path": "/api/v1/direct-conversations",
+      "modules": [
+        "Direct Messages"
+      ],
+      "sources": [
+        "src/api/hooks/use-direct-conversations.ts:22"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "directConversationsCreate",
+      "method": "POST",
+      "path": "/api/v1/direct-conversations",
+      "modules": [
+        "Direct Messages"
+      ],
+      "sources": [
+        "src/api/hooks/use-direct-message-actions.ts:28"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "directConversationsUnread",
+      "method": "GET",
+      "path": "/api/v1/direct-conversations/unread",
+      "modules": [
+        "Direct Messages"
+      ],
+      "sources": [
+        "src/api/hooks/use-direct-conversations.ts:49"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "directConversationsFindByUser",
+      "method": "GET",
+      "path": "/api/v1/direct-conversations/by-user/{userId}",
+      "modules": [
+        "Direct Messages"
+      ],
+      "sources": [
+        "src/api/hooks/use-direct-conversations.ts:85"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "directConversationsFindById",
+      "method": "GET",
+      "path": "/api/v1/direct-conversations/{id}",
+      "modules": [
+        "Direct Messages"
+      ],
+      "sources": [
+        "src/api/hooks/use-direct-conversations.ts:65"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "directConversationsMessages",
+      "method": "GET",
+      "path": "/api/v1/direct-conversations/{id}/messages",
+      "modules": [
+        "Direct Messages"
+      ],
+      "sources": [
+        "src/api/hooks/use-direct-messages.ts:120",
+        "src/api/hooks/use-direct-messages.ts:170",
+        "src/api/hooks/use-direct-messages.ts:195"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "directConversationsSend",
+      "method": "POST",
+      "path": "/api/v1/direct-conversations/{id}/messages",
+      "modules": [
+        "Direct Messages"
+      ],
+      "sources": [
+        "src/api/hooks/use-direct-message-actions.ts:93"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "directConversationsHandleRequest",
+      "method": "PATCH",
+      "path": "/api/v1/direct-conversations/{id}/request",
+      "modules": [
+        "Direct Messages"
+      ],
+      "sources": [
+        "src/api/hooks/use-direct-message-actions.ts:180"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "directConversationsArchive",
+      "method": "PATCH",
+      "path": "/api/v1/direct-conversations/{id}/archive",
+      "modules": [
+        "Direct Messages"
+      ],
+      "sources": [
+        "src/api/hooks/use-direct-message-actions.ts:193"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "directConversationsMarkRead",
+      "method": "POST",
+      "path": "/api/v1/direct-conversations/{id}/read",
+      "modules": [
+        "Direct Messages"
+      ],
+      "sources": [
+        "src/api/hooks/use-direct-message-actions.ts:206"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "directMessagesRecall",
+      "method": "DELETE",
+      "path": "/api/v1/direct-messages/{id}",
+      "modules": [
+        "Direct Messages"
+      ],
+      "sources": [
+        "src/api/hooks/use-direct-message-actions.ts:216"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "metaGetMeta",
+      "method": "GET",
+      "path": "/api/v1/meta",
+      "modules": [
+        "Meta"
+      ],
+      "sources": [
+        "src/api/hooks/use-api-meta.ts:12"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "economyGetWallet",
+      "method": "GET",
+      "path": "/api/v1/wallet",
+      "modules": [
+        "Wallet"
+      ],
+      "sources": [
+        "src/api/hooks/use-economy.ts:19"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "economyCheckIn",
+      "method": "POST",
+      "path": "/api/v1/wallet/check-in",
+      "modules": [
+        "Wallet"
+      ],
+      "sources": [
+        "src/api/hooks/use-economy.ts:33"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "economyTransactions",
+      "method": "GET",
+      "path": "/api/v1/wallet/transactions",
+      "modules": [
+        "Wallet"
+      ],
+      "sources": [
+        "src/api/hooks/use-economy.ts:55"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。"
+    },
+    {
+      "operationId": "economyTipThread",
+      "method": "POST",
+      "path": "/api/v1/threads/{id}/tips",
+      "modules": [
+        "Wallet"
+      ],
+      "sources": [
+        "src/api/hooks/use-economy.ts:96"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。",
+      "reviewedRules": {
+        "status": "已证实偏差",
+        "fixStatus": "修复候选",
+        "evidence": "capability-consistency.md 的 W01–W06；仅对涉及的边界与状态处理，完整权限/真实API仍待验证",
+        "tests": [
+          "src/components/economy/__tests__/wenyou-tip-button.test.tsx"
+        ]
+      }
+    },
+    {
+      "operationId": "economyTipUser",
+      "method": "POST",
+      "path": "/api/v1/users/{id}/tips",
+      "modules": [
+        "Wallet"
+      ],
+      "sources": [
+        "src/api/hooks/use-economy.ts:105"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。",
+      "reviewedRules": {
+        "status": "已证实偏差",
+        "fixStatus": "修复候选",
+        "evidence": "capability-consistency.md 的 W01–W06；仅对涉及的边界与状态处理，完整权限/真实API仍待验证",
+        "tests": [
+          "src/components/economy/__tests__/wenyou-tip-button.test.tsx"
+        ]
+      }
+    },
+    {
+      "operationId": "economyTipMoment",
+      "method": "POST",
+      "path": "/api/v1/moments/{id}/tips",
+      "modules": [
+        "Wallet"
+      ],
+      "sources": [
+        "src/api/hooks/use-economy.ts:101"
+      ],
+      "status": "待验证",
+      "review": "已建立消费者源码映射；模块规则与回归见覆盖报告，未逐入口实测后端。",
+      "reviewedRules": {
+        "status": "已证实偏差",
+        "fixStatus": "修复候选",
+        "evidence": "capability-consistency.md 的 W01–W06；仅对涉及的边界与状态处理，完整权限/真实API仍待验证",
+        "tests": [
+          "src/components/economy/__tests__/wenyou-tip-button.test.tsx"
+        ]
+      }
+    }
+  ]
+}

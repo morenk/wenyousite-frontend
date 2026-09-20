@@ -245,3 +245,5 @@ Step2: 输入验证码 / 用户名 / 密码 / 确认密码 → 提交 → 成功
 - **契约依赖**：后端保留可选 `refreshToken`、`createdAt` 和已废弃 `deviceInfo` 兼容字段，并提供稳定 `id`、`signedInAt`、`lastActiveAt`。前端类型必须由已提交 OpenAPI 生成，不手写平行类型
 - **客户端标识**：原生端必须发送 `X-Client-Platform: mobile` 并消费响应体 refresh token；PC 与手机浏览器都属于 Web 槽位，refresh token 仅使用 HttpOnly Cookie
 - **回归范围**：认证改动至少验证 Web 登录、移动端登录、双端并存、同端替换、多标签页刷新、登录终端列表、远程退出和账号切换
+
+认证输入遵循后端Unicode码点边界：普通及站务登录/注册/新密码/改密旧密码8–100；换邮箱旧密码1–100；邮箱和登录账号最多254。密码保持原始内容，不裁剪首尾空白。详见[能力一致性报告](../verification/capability-consistency.md)。
