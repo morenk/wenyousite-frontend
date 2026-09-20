@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-import { candidateOptions } from "./scripts/e2e-candidate-policy.mjs";
+import { candidateHeaders, candidateOptions } from "./scripts/e2e-candidate-policy.mjs";
 
 const backendUrl = process.env.BACKEND_URL || "http://127.0.0.1:3000";
 const isDevelopment = process.env.NODE_ENV === "development";
@@ -10,6 +10,7 @@ const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  ...candidateHeaders(process.env),
   ...(isDevelopment
     ? []
     : [{ key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" }]),

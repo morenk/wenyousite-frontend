@@ -1,9 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
-import { requireIsolationRunner } from "./scripts/e2e-isolation-gate.mjs";
+import { readIsolation } from "./scripts/e2e-isolation-gate.mjs";
 import { isolatedOrigin } from "./scripts/e2e-candidate-policy.mjs";
 
-requireIsolationRunner();
+readIsolation();
 const appOrigin = isolatedOrigin(process.env.E2E_BASE_URL);
 isolatedOrigin(process.env.BACKEND_URL);
 
@@ -11,6 +11,7 @@ const crossBrowserMatrix = process.env.E2E_BROWSER_MATRIX === "true";
 
 export default defineConfig({
   testDir: "./e2e",
+  globalSetup: "./e2e/fixtures/global-setup.ts",
   fullyParallel: false,
   // 专用账号只有一个 Web 登录终端，避免并行用例互相撤销会话。
   workers: 1,

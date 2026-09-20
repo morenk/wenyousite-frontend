@@ -5,7 +5,7 @@ import { promisify } from "node:util";
 import { execFile } from "node:child_process";
 const run = promisify(execFile);
 
-test("真实 API 预检在隔离协议接入前拒绝所有目标，且不触达目标服务", async () => {
+test("真实 API 预检拒绝缺少本轮身份的所有目标，且不触达目标服务", async () => {
   let requests = 0;
   const server = createServer((_request, response) => { requests++; response.end("{}"); });
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
@@ -18,7 +18,7 @@ test("真实 API 预检在隔离协议接入前拒绝所有目标，且不触达
         ["bash", ["scripts/test-standalone-e2e.sh"]],
       ]) {
         await assert.rejects(run(command, args, { env: { ...process.env, BACKEND_URL: target, E2E_ENV: "test", E2E_EMAIL: "fake", E2E_PASSWORD: "fake" } }),
-          (error) => error.code === 1 && error.stderr.includes("写入型 E2E 已关闭") && !error.stderr.includes("secret-password"));
+          (error) => error.code === 1 && /缺少隔离 runner 身份|隔离 E2E 未通过/.test(error.stderr) && !error.stderr.includes("secret-password"));
       }
     }
     assert.equal(requests, 0);

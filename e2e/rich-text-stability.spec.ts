@@ -303,10 +303,18 @@ test("长按退格即时删除，松键前保存也使用最新正文并可撤�
   await openFreshThreadDraft(page);
   const editor = page.locator(".ProseMirror").first();
   await expect(editor.locator("strong")).toHaveCount(50);
-  await editor.click();
-  await page.keyboard.press("Control+End");
-  await page.keyboard.down("Backspace");
   const counter = page.locator('[data-slot="milkdown-editor-footer"] .tabular-nums');
+  await expect(counter).toHaveText(`${source.length}/10000`);
+  const lastParagraph = editor.locator("p").last();
+  await expect(lastParagraph).toHaveText("连续删除文字".repeat(30));
+  // 固定删除起点，避免大文档点击/滚动与 Control+End 的焦点竞争影响首个按键。
+  await lastParagraph.evaluate((element) => {
+    (element.closest(".ProseMirror") as HTMLElement).focus();
+    const range = document.createRange(); range.selectNodeContents(element); range.collapse(false);
+    const selection = window.getSelection(); selection?.removeAllRanges(); selection?.addRange(range);
+  });
+  await expect(editor).toBeFocused();
+  await page.keyboard.down("Backspace");
   await expect(counter).toHaveText(`${source.length - 1}/10000`);
   // 同一键不 keyup 时，浏览器发送 repeat=true，仍走原生字素删除。
   for (let i = 0; i < 20; i++) await page.keyboard.down("Backspace");

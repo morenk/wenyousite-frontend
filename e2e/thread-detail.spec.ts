@@ -176,6 +176,8 @@ test.describe("主题帖管理面板", () => {
     await expect(handle).toHaveAttribute("aria-pressed", "true");
     // aria-pressed 先于 dnd-kit 的落点测量完成；等待首次碰撞公告后再发送移动键。
     await expect(aside.getByRole("status")).toContainText(`was moved over droppable area ${sourceSubthreadId}`);
+    // 键盘传感器在启动后异步注册监听器；跨过绘制帧再验证单次方向键。
+    await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
     await page.keyboard.press("ArrowDown");
     await expect(aside.getByRole("status")).toContainText(`was moved over droppable area ${targetSubthreadId}`);
     await page.keyboard.press("Space");

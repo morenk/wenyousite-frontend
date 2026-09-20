@@ -28,6 +28,6 @@ test("全部 E2E 入口统一继承隔离 fixture，不能恢复裸 Playwright t
   expect(violations).toEqual([]);
 });
 
-test("缺少已提交隔离协议时不允许环境变量自证或继续写入", () => {
-  expect(() => requireIsolationRunner()).toThrow("写入型 E2E 已关闭");
+test("缺少已提交隔离协议时不允许环境变量自证或继续写入", async () => {
+  await expect(requireIsolationRunner({})).rejects.toThrow("缺少隔离 runner 身份");
 });
