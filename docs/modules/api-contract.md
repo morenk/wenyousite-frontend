@@ -80,3 +80,7 @@ HTTP/业务错误由 `src/api/errors.ts` 统一归一化；成功响应不得使
 ## 完整媒体展示
 
 `display` / `avatarDisplay` 为可选可空的完整WebP描述，`mediaDisplays` 为已授权正文的来源映射；使用同一生成DTO，不维护运行时第二套响应快照。正常同步及严格来源检查包含 `media-display-v1-fixtures.json`。展示资源不改写来源URL、媒体ID、草稿内容或收藏引用；旧响应缺字段仍可兼容，加载新display失败不能隐式退回昂贵GIF。
+
+## 本人关系管理兼容扩展
+
+消费 Backend 已提交 `ea1ff7e2c6baeae6bf0316e87812ba37bc823d7a` 的完整契约：新增 `DELETE /users/me/followers/{id}`（`usersFollowRemoveFollower`），本人关系列表可选 `viewerIsFollowing` / `viewerIsFollowedBy` 表示两个关注方向。已通过精确 SHA 的 `contract:sync` 与 `generate:api` 生成；媒体展示夹具版本同步，不手改生成类型。Web 先等待兼容后端，再启用本人列表管理；旧端点保留，不清理兼容协议。行为见 [用户模块](profile.md#本人关注与粉丝管理)。

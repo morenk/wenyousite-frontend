@@ -4,6 +4,7 @@
 
 import { Loader2, UserPlus, UserCheck } from "lucide-react";
 import { toast } from "sonner";
+import { getApiErrorMessage } from "@/api/errors";
 import { useAuth } from "@/lib/auth";
 import { useFollowActions } from "@/api/hooks/use-follow-actions";
 import { Button } from "@/components/ui/button";
@@ -16,25 +17,19 @@ interface FollowButtonProps {
 
 export function FollowButton({ userId, isFollowing }: FollowButtonProps) {
   const { user } = useAuth();
-  const { follow, unfollow } = useFollowActions(userId);
+  const { follow, unfollow, reconcile, isPending: relationshipPending, needsReconciliation } = useFollowActions(userId);
 
   if (!user) return null;
 
-  const isPending = follow.isPending || unfollow.isPending;
+  const isPending = relationshipPending || follow.isPending || unfollow.isPending;
 
   const handleClick = async () => {
-    if (isFollowing) {
-      try {
-        await unfollow.mutateAsync();
-      } catch {
-        toast.error("操作失败，请稍后重试");
-      }
-    } else {
-      try {
-        await follow.mutateAsync();
-      } catch {
-        toast.error("操作失败，请稍后重试");
-      }
+    try {
+      if (needsReconciliation) await reconcile.mutateAsync();
+      else if (isFollowing) await unfollow.mutateAsync();
+      else await follow.mutateAsync();
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "操作失败，请稍后重试"));
     }
   };
 
@@ -56,7 +51,7 @@ export function FollowButton({ userId, isFollowing }: FollowButtonProps) {
       ) : (
         <UserPlus className="mr-1.5 h-4 w-4" />
       )}
-      {isFollowing ? "已关注" : "关注"}
+      {needsReconciliation ? "刷新核实" : isFollowing ? "已关注" : "关注"}
     </Button>
   );
 }

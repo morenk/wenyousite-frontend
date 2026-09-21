@@ -7,3 +7,7 @@
 ## 普通内容时间展示
 
 Web 通过 Foundation v7.1.0 将普通内容的绝对时间展示收敛为日期，悬停和读屏不再包含时分；账务、安全、审计、预约及到期记录保留精确时刻。该变化只调整展示，不弃用或裁剪 API/数据库的原始时间戳，不新增兼容协议，也不清理旧协议。跨端规则与兼容说明见 [Foundation 弃用登记](https://github.com/morenk/wenyousite-foundation/blob/v7.1.0/docs/deprecation-register.md)，Web 映射见[设计系统](design-system.md)。
+
+## 本人关系管理
+
+Backend 提供兼容的移除粉丝端点与可选关系投影，Web 在本人列表启用回关、取消关注、移除粉丝；保留原关注接口及关系列表深链。字段缺失按未知处理，不新增旧协议消费者或删除兼容。应先发布兼容后端，再发布 Web；客户端回滚仅恢复旧界面，不恢复已经执行的关系写入。契约来源与行为见 [API 契约](modules/api-contract.md#本人关系管理兼容扩展) 和 [用户模块](modules/profile.md#本人关注与粉丝管理)。

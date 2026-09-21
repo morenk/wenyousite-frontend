@@ -50,6 +50,7 @@ describe("useUserFollowList", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(mockGET).toHaveBeenCalledWith("/api/v1/users/{id}/following", {
       params: { path: { id: "u1" } },
+      signal: expect.any(AbortSignal),
     });
     expect(result.current.data).toEqual([
       { id: "u2", username: "morenk", avatar: null },
@@ -75,6 +76,7 @@ describe("useUserFollowList", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(mockGET).toHaveBeenCalledWith("/api/v1/users/{id}/followers", {
       params: { path: { id: "u1" } },
+      signal: expect.any(AbortSignal),
     });
     expect(result.current.data).toEqual([
       { id: "u3", username: "粉丝A", avatar: null },

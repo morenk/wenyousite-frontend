@@ -99,6 +99,9 @@ export const queryKeys = {
       ["user", "bookmarks", userId, "viewer", viewerScope] as const,
     momentBookmarksForViewer: (userId: string | undefined, viewerScope: string) =>
       ["user", "moment-bookmarks", userId, "viewer", viewerScope] as const,
+    relationshipMutation: (viewer: string, target: string) => ["relationship", viewer, target] as const,
+    followListsForViewer: (kind: "following" | "followers", userId: string | undefined, viewerScope: string) =>
+      ["user", kind, userId, "viewer", viewerScope] as const,
     followLists: (kind?: "following" | "followers", userId?: string) =>
       kind === undefined
         ? (["user"] as const)

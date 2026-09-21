@@ -468,6 +468,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/users/me/followers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * 移除我的粉丝
+         * @description 仅解除对方关注我的关系，保留我对对方的关注。不通知对方，对方仍可重新关注；关系不存在时幂等成功。
+         */
+        delete: operations["usersFollowRemoveFollower"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/users/following": {
         parameters: {
             query?: never;
@@ -3736,6 +3756,10 @@ export interface components {
             createdAt: string;
             following?: components["schemas"]["PostAuthorResponseDto"];
             follower?: components["schemas"]["PostAuthorResponseDto"];
+            /** @description 仅本人列表返回：当前查看者是否关注该行用户；他人列表及匿名请求省略。 */
+            viewerIsFollowing?: boolean;
+            /** @description 仅本人列表返回：该行用户是否关注当前查看者；他人列表及匿名请求省略。 */
+            viewerIsFollowedBy?: boolean;
         };
         BlockedUserRecordResponseDto: {
             id: string;
@@ -6513,6 +6537,9 @@ export interface components {
         UsersFollowUnfollow200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["MessageResponseDto"];
         };
+        UsersFollowRemoveFollower200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
         UsersFollowFollowing200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["UserFollowRecordResponseDto"][];
         };
@@ -8675,6 +8702,63 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UsersFollowUnfollow200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    usersFollowRemoveFollower: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 已移除粉丝（含关系已不存在） */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsersFollowRemoveFollower200Response"];
+                };
+            };
+            /** @description 未登录或 Token 无效 */
+            401: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 当前账号无写入权限 */
+            403: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
