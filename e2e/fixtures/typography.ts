@@ -1,4 +1,5 @@
-import { expect, test as base, type Locator } from "@playwright/test";
+import { expect, type Locator } from "@playwright/test";
+import { test as base } from "./isolation";
 
 export async function expectFunctionalTitles(titles: Locator) {
   await expect(titles.first()).toBeVisible();

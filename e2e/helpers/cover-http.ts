@@ -1,10 +1,13 @@
 import { readFileSync } from "node:fs";
-import { createServer, request } from "node:http";
+import { createServer, request, type IncomingHttpHeaders } from "node:http";
 import path from "node:path";
 import type { AddressInfo } from "node:net";
+import { registerMockServer } from "../../scripts/e2e-network-proxy.mjs";
+import { isolatedOrigin } from "../../scripts/e2e-candidate-policy.mjs";
 
 /** 全部业务 API 和图片由本地 fixture 提供，不用 route 拦截，以保留真实 HTTP 缓存。 */
 export async function coverHttpFixture(candidate: string, options: { count?: number; fullDisplay?: boolean; gif?: boolean; clock?: boolean; sameUrl?: boolean; sharedPoster?: boolean; delayMs?: number } = {}) {
+  if (isolatedOrigin(candidate) !== process.env.E2E_BASE_URL) throw new Error("模拟站只能转发本轮候选的匿名页面与静态资源");
   const counts = new Map<string, number>(), bytes = new Map<string, number>();
   const image = (id: number, kind: string) => `/__cover-all__/${options.sameUrl ? 0 : id}/${kind}`;
   const items = Array.from({ length: options.count ?? 12 }, (_, id) => ({
@@ -41,10 +44,16 @@ export async function coverHttpFixture(candidate: string, options: { count?: num
       else if (/\/threads\/cover-test-/.test(pathname)) { res.writeHead(404, { "Content-Type": "application/json" }); res.end(JSON.stringify({ code: 404, message: "本地详情占位", data: null })); return; }
       res.writeHead(200, { "Content-Type": "application/json", "Cache-Control": "no-store" }); res.end(JSON.stringify({ code: 0, message: "ok", data, meta: { cursor: null, hasMore: false } })); return;
     }
-    const upstream = request(new URL(req.url!, candidate), { method: req.method, headers: { ...req.headers, host: new URL(candidate).host } }, (incoming) => { res.writeHead(incoming.statusCode ?? 502, incoming.headers); incoming.pipe(res); });
+    if (!["GET", "HEAD"].includes(req.method ?? "")) { res.writeHead(405); res.end(); return; }
+    const upstreamURL = new URL(req.url!, candidate);
+    if (upstreamURL.origin !== candidate) { res.writeHead(403); res.end(); return; }
+    const headers: IncomingHttpHeaders = { ...req.headers, host: new URL(candidate).host };
+    delete headers.cookie; delete headers.authorization; delete headers["x-csrf-token"];
+    const upstream = request(upstreamURL, { method: req.method, headers }, (incoming) => { res.writeHead(incoming.statusCode ?? 502, incoming.headers); incoming.pipe(res); });
     upstream.on("error", () => { res.writeHead(502); res.end("候选站代理失败"); }); req.pipe(upstream);
   });
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  registerMockServer(server);
   return { origin: `http://127.0.0.1:${(server.address() as AddressInfo).port}`, counts, bytes, items,
     animationRequests: () => [...counts.entries()].filter(([url]) => !url.endsWith("poster.webp")),
     close: () => new Promise<void>((resolve, reject) => { server.close((error) => error ? reject(error) : resolve()); server.closeAllConnections(); }),

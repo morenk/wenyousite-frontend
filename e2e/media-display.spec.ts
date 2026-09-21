@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { insertTestEditorImage } from "./fixtures/media";
-import { test, expect } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { test } from "./fixtures/isolation";
 import { mediaDisplayFixture } from "./helpers/media-display";
 import { centerPixel } from "./helpers/png-pixel";
 

@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
+import { test } from "./fixtures/isolation";
 
 const firstThread = "cmtjrn0xc05rp7qvw9t7zs1iv";
 const longPost = "cmtvt31qc00497qc2xwuu6ama";
