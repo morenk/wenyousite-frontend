@@ -1,6 +1,7 @@
 "use client";
 
 import { ShieldAlert, Trash2 } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import { type MomentComment, useDeleteMomentComment } from "@/api/hooks/use-moments";
@@ -11,7 +12,7 @@ import { MomentMediaImage } from "@/components/moment/moment-media-image";
 import { useMomentOverlay } from "@/components/moment/moment-playback";
 import { InternalReferenceText } from "@/components/shared/internal-reference-text";
 import { ReplyActionButton } from "@/components/shared/reply-action-button";
-import { UserAvatar } from "@/components/shared/user-avatar";
+import { UserAvatarLink } from "@/components/shared/user-avatar";
 import { WenyouTime } from "@/components/shared/wenyou-time";
 import type { MomentReplyTarget } from "@/components/moment/moment-comment-types";
 import { useAuth } from "@/lib/auth";
@@ -62,7 +63,8 @@ export function MomentCommentRow({
         focused && "bg-primary/[0.12] ring-2 ring-brand-strong/55 ring-offset-4 ring-offset-background",
       )}
     >
-      <UserAvatar
+      <UserAvatarLink
+        userId={comment.author.id}
         name={comment.author.username}
         src={comment.author.avatar} display={comment.author.avatarDisplay}
         className={compact ? "size-7" : "size-9"}
@@ -70,7 +72,12 @@ export function MomentCommentRow({
       />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="truncate text-sm font-semibold">{comment.author.username}</span>
+          <Link
+            href={`/users/${comment.author.id}`}
+            className="truncate rounded-sm text-sm font-semibold hover:text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+          >
+            {comment.author.username}
+          </Link>
           <WenyouTime value={comment.createdAt} className="text-[0.6875rem] text-muted-foreground" />
         </div>
         {comment.deleted ? (
@@ -79,7 +86,11 @@ export function MomentCommentRow({
           <p className="mt-1 whitespace-pre-wrap break-words text-base leading-7 text-foreground">
             {comment.replyToComment ? (
               <span className="mr-1 text-muted-foreground">
-                回复 {comment.replyToComment.author.username}{comment.content ? "：" : ""}
+                回复{" "}
+                <Link href={`/users/${comment.replyToComment.author.id}`} className="rounded-sm hover:text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40">
+                  {comment.replyToComment.author.username}
+                </Link>
+                {comment.content ? "：" : ""}
               </span>
             ) : null}
             {comment.content ? <InternalReferenceText content={comment.content} /> : null}
