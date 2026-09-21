@@ -1,4 +1,5 @@
-import { expect, test, type Page, type Route } from "@playwright/test";
+import { expect, type Page, type Route } from "@playwright/test";
+import { test } from "./fixtures/isolation";
 
 import { THEME_STORAGE_KEY } from "../src/lib/theme";
 

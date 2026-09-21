@@ -1,4 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
+import { test } from "./fixtures/isolation";
 import AxeBuilder from "@axe-core/playwright";
 
 async function mockBookmarks(page: Page, folderCount = 100) {
@@ -132,8 +133,12 @@ test("目录 URL、分页、移动、撤销和新建构成完整旅程", async (
   await page.goBack();
   await expect(page.getByRole("heading", { name: "跑团资料与人物设定 29" })).toBeVisible();
   await page.getByRole("button", { name: /全部收藏/ }).click();
+  await expect(page.getByRole("heading", { name: "全部收藏", exact: true })).toBeVisible();
+  // 切换目录后先等待第一页落地，避免按上一目录的高度滚动而错过分页哨兵。
+  await expect(page.getByRole("link", { name: "雾海来信：人物设定与世界观 10", exact: true })).toBeVisible();
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   await expect(page.getByText("没有更多了")).toBeVisible();
+  await expect(page.getByRole("button", { name: /更多收藏操作：/ })).toHaveCount(12);
 });
 
 for (const kind of ["threads", "moments"] as const) {

@@ -71,7 +71,7 @@ HTTP/业务错误由 `src/api/errors.ts` 统一归一化；成功响应不得使
 - 动态分类黄金用例与后端副本一致，Flutter 契约门禁拒绝分类枚举化
 - lint、typecheck、覆盖率测试和生产构建纳入 `pnpm check`
 
-本轮契约同步自后端实现 `c87966dd4644be7d3c2769245d2e0581fffd4154`，策略、基准和移动端 Windows 待办见 [后端交付记录](../../../wenyousite-backend/docs/backend-hardening-20260905.md)。
+本轮契约同步自后端实现 `c87966dd4644be7d3c2769245d2e0581fffd4154`，策略、基准和移动端 Windows 待办见 [后端交付记录](https://github.com/morenk/wenyousite-backend/blob/c87966dd4644be7d3c2769245d2e0581fffd4154/docs/backend-hardening-20260905.md)。
 
 列表封面通过 ThreadCoverMediaResponseDto 返回 url、可空 animated 和可空 posterUrl，不按后缀推断；旧后端缺字段保守占位。可选 nullable previewVariants 最多两项，每项包含 url、width、height、bytes；列表按实际显示框和 DPR 选档，缺档沿可信原动画路径兼容。黄金用例为 contracts/thread-cover-media-v1-fixtures.json，与 OpenAPI 一起从后端已提交产物同步并生成类型。
 

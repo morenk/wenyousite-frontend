@@ -1,4 +1,5 @@
-import { expect, test, type Locator } from "@playwright/test";
+import { expect, type Locator } from "@playwright/test";
+import { test } from "./fixtures/isolation";
 import { openFreshThreadDraft } from "./fixtures/auth";
 
 async function expectMenuTethered(trigger: Locator, menu: Locator) {

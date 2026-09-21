@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { candidateHeaders, candidateOptions } from "./scripts/e2e-candidate-policy.mjs";
 
 const backendUrl = process.env.BACKEND_URL || "http://127.0.0.1:3000";
 const isDevelopment = process.env.NODE_ENV === "development";
@@ -9,12 +10,14 @@ const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  ...candidateHeaders(process.env),
   ...(isDevelopment
     ? []
     : [{ key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" }]),
 ];
 
 const nextConfig: NextConfig = {
+  ...candidateOptions(process.env),
   output: "standalone",
   devIndicators: process.env.DISABLE_NEXT_DEV_INDICATORS === "true" ? false : undefined,
   allowedDevOrigins: ["wenyou.site", "127.0.0.1", "localhost"],

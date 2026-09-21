@@ -1,41 +1,45 @@
-# 富文本真实 API 验收入口
+# 富文本与完整 E2E 隔离验收
 
-本入口的 Web 运行源码固定为已合并 PR #13 的 `6859f00c305b7c63a62fc2d3f709d811c55f2dc0`。S5 分支已整合该提交；相对这个基线仅增加验收工具、测试和说明。预检逐字比较运行源码，报告分别记录运行源码基线 `candidateSha` 与实际验收工具提交 `harnessSha`，不会把整合后的构建标为原候选。
+## 接入与命令
 
-原 S1–S4 回执与 S5 预览仍属于 `c3cd6b905e2b0158adf643dba25b144e7bb9d647`，不能作为新整合源码已验收的证据。合并准备时保留的旧预览在 `127.0.0.1:3105`，build 为 `OmoCE2jGXsemjJNpQW1Lk`；其独立目录与进程记录在 `/tmp/rich-text-web-s5-preview.json`。本轮未重建或替换该预览，也未改变原 APK/双端验收基线；后续验收必须记录实际使用的各端 SHA。
-
-原预览准备时，目标 API 的 `/api/v1/meta` 为 `6bfb818df4ccf5333df7b62018a9f519d91e935b`、Markdown v5。每次执行必须指定并复核期望 SHA；合并记录不能代替 API 实际运行版本。Backend PR #12 已合并为 `2a2847a829b24227b8b6e0930ef63af9b6436546`，本次没有部署它。
-
-## 配置与运行
-
-本轮合并验证时，进程没有可用的 `E2E_EMAIL` / `E2E_PASSWORD`。原预览准备时检查主仓库和 S1–S4 worktree，仅发现 `.env.e2e.example` 占位值，未发现实际 `.env.e2e`；系统 `/etc/wenyousite/backend.env` 不可读，不将其作为测试账号来源。工具不创建账号、不读取应用令牌、不打印凭据，也不自动加载示例文件。
-
-负责人通过现有安全方式将专用账号的两个变量导入执行环境后，在本 S5 worktree 运行。先把下例 SHA 占位符替换为本次批准验收的实际后端提交，不能直接沿用历史观测值：
+后端 checkout 必须干净、HEAD 与指定的完整 SHA 一致，包含已提交的 [v1 runner 协议](https://github.com/morenk/wenyousite-backend/blob/c9975105342196a42c0678ca9887518089c401d0/docs/e2e-isolation.md)，并已完成后端 `pnpm check`。只读 PostgreSQL/Redis 工具由治理安装；不要填写任何已有数据目录、连接串或真实账号。
 
 ```bash
-export RICH_TEXT_EXPECTED_API_SHA='replace-with-approved-40-character-api-sha'
-export BACKEND_URL=http://127.0.0.1:3000
-export FRONTEND_E2E_PORT=3106
+export WENYOUSITE_E2E_BACKEND_ROOT=/absolute/path/to/backend-checkout
+export WENYOUSITE_E2E_BACKEND_REF=填写完整的后端提交SHA
+export E2E_PG_BIN=/opt/wenyousite/e2e-tools/usr/lib/postgresql/16/bin
+export E2E_REDIS_BIN=/opt/wenyousite/e2e-tools/usr/bin/redis-server
+export E2E_LIBRARY_PATH=/opt/wenyousite/e2e-tools/usr/lib/x86_64-linux-gnu
+pnpm test:e2e
+# 真实浏览器失败、终止和强杀后的登记回收
+pnpm test:e2e:lifecycle
+# 定向真实登录、创建草稿、保存与重新读取
 bash scripts/test-rich-text-real-api.sh
+# 常规质量门禁和完整浏览器旅程
+pnpm check:full
 ```
 
-预检缺凭据时退出 2，发生在构建或写入前。实际运行先检查运行源码与固定候选一致，再按目标 API 构建独立 standalone；Next 的 API rewrite 在构建时固化，不能只修改测试进程的 BACKEND_URL。候选脚本只启动和清理自己的临时服务，不重启共享的 3000/3001 服务。自动测试默认端口为 3105；原预览占用期间使用上例 3106。入口不会替换已有预览，候选端口已占用时拒绝启动。
+脚本不加载 `.env`。入口仅将白名单工具配置传给后端 runner，由它每轮新建 PostgreSQL、Redis、随机账号、上传目录和随机 API 端口。Web 消费者只能获得本轮 manifest 与账号，不能获得数据库、Redis 或 JWT 密钥。邮件、推送、Sentry、COS 均按后端隔离协议关闭或使用测试 transport；上传拒绝遵循业务配置，不开启测试后门。
 
-只运行 [S5 独立用例](../e2e/s5/rich-text-real-api.spec.ts)：真实 UI 登录、新建未发布草稿、选择私密、通过工具栏设置粗体并输入字面符号/Emoji/NBSP、经真实 API 保存、从草稿列表重开验证。没有 API 响应替身，不发布、删除或修改已有内容。创建界面的初始草稿沿用产品默认可见性，保存时明确设为私密；若中途失败，新建草稿会保留供负责人处理。
+## 登录与写入门禁
 
-普通 Playwright 运行不会自动执行这个用例；需由上述入口明确启用。原有 15 项受账号限制的测试分布在 `e2e/thread-create.spec.ts` 和 `e2e/thread-detail.spec.ts`，包含发布、删除、排序等流程，不直接作为非破坏性专项整组运行。
+[所有用例](../e2e/fixtures/isolation.ts) 使用同一个隔离 fixture。预检验证本轮 0700 目录、0600 登记文件、runId、端口及资源所有权；读取内核确认 PostgreSQL/Redis 的实际进程身份，且 Web 必须是同一活跃 supervisor 的后代。然后匿名读取本轮随机用户的公开资料，确认直连 API 与候选实际代理都返回相同身份，确认候选响应标识与磁盘 Build ID/rewrites 一致，才允许登录或实际 HTTP 写入。
 
-## 证据与交接
+缺少 manifest、错误端口、过期目录、外部账号、旧构建、错误实际代理均拒绝；裸 `BACKEND_URL`、`API_BASE`、`E2E_ENV=test` 和 loopback 不能证明隔离。测试浏览器统一使用专用 HTTP 代理，在真实写入前核验候选，阻断外部写入与未登记目标。代理保留浏览器 HTTP 缓存，不使用会关闭缓存的全局 route 拦截。页面 mock 响应不触达后端；缓存/动画用例的 HTTP 模拟站只能登记本进程已监听的临时服务器，所有 API 在本地回应，非 API 写入拒绝，只有匿名页面与静态资源可转发到当前候选。
 
-`RICH_TEXT_RUN_DIR` 可指定私有输出目录；默认生成 `/tmp/rich-text-web-s5.*`。输出 `preflight.json` 和 `web-real-api.json`，记录候选 SHA、验收工具 SHA、实际 API SHA、新建 thread/subthread/bodyPost ID、bodyVersion、canonical SHA-256 和最后完成的阶段。真实登录关闭 Playwright trace、截图和视频；报告不含密码、令牌或正文。
+## 构建、报告与清理
 
-`awaiting-cross-client-handoff` 仅表示 Web→API→Web 的私密草稿回路通过。负责人仍需在同一专用账号的 Flutter 候选中打开该 ID，核对显示和编辑后保存，再回到此 Web 候选核对；反向旅程另建测试内容并分别记录版本与 ID。缺账号期间，这些跨端旅程均为未执行。
+- 生产构建保留 `.next`；每轮 `.next-e2e` 使用随机 `e2e-` Build ID，再复制到本轮私有目录启动。部署脚本拒绝测试 Build ID 和 distDir。
+- 浏览器 trace、自动截图、视频及 HTML 报告关闭；视觉用例的显式图像只保留在本轮临时输出目录并随资源清理；账号仅存在本轮私有目录及测试子进程。`.e2e-results/` 的 0600 报告保留 runId、构建身份、后端 SHA、脱敏用例错误及清理状态，不提交 Git。
+- 正常、失败和超时由消费者关闭子进程，后端 runner 核验并回收登记资源。消费者仅在用例通过、后端输出同轮清理成功且目录消失时报告通过。后端失败退出但留下本轮目录时，Web 仅调用该后端的正式 `e2e-reap` 入口核验回收，并在报告记录 `residualCleanup`；回收成功也不把原失败改为通过。SIGKILL 残留由后端下一轮启动时按登记核验回收，不能扫描或接管其他任务资源。
+- 交付必须连续两轮完整 E2E 使用不同 runId，并确认每轮资源归零。清理失败、身份漂移或生命周期验收缺口不得当作成功交付，详情以 PR 验证记录为准。
 
-独立只读预检：
+## 护栏与线上只读验收
 
 ```bash
-RICH_TEXT_EXPECTED_API_SHA='replace-with-approved-40-character-api-sha' \
-  node scripts/rich-text-real-api-preflight.mjs
+pnpm test scripts/e2e-isolation-gate.test.ts scripts/e2e-fixture-boundary.test.ts scripts/e2e-candidate-policy.test.ts scripts/readonly-smoke-policy.test.ts
+pnpm test:e2e:guards
+pnpm test:smoke:readonly
 ```
 
-预检测试：`node --test scripts/rich-text-real-api-preflight.test.mjs`。检查账号缺失提前阻止、API SHA 不符阻止，以及带凭据 URL 的拒绝与诊断脱敏；这不是实际登录验收。
+`test:e2e:guards` 在本机临时服务核对拒绝公网、线上 loopback 和缺少身份等场景，验证写入、重定向和会话均未到达服务端；不连接业务数据库。`test:smoke:readonly` 仅匿名检查线上健康、登录页和公开阅读，不记录密码、Token、Cookie、内容正文或 trace，不允许业务写入。普通阅读产生的服务端日志和阅读统计不属于测试业务写入。
