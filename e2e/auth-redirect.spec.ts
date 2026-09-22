@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { test } from "./fixtures/isolation";
 
 test.describe("匿名登录回跳", () => {
   test("受保护页面保留完整 pathname、query 和 hash", async ({ page }) => {

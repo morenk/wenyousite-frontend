@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { test, expect } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { test } from "./fixtures/isolation";
 import { openFreshThreadDraft } from "./fixtures/auth";
 import { insertTestEditorImage } from "./fixtures/media";
 

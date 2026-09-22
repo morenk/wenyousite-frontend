@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { test } from "../fixtures/isolation";
 import { loginAsE2eUser } from "../fixtures/auth";
 
 // 真实登录不录制密码/令牌；仅记录新建测试草稿 ID、内容摘要和阶段。
@@ -10,20 +11,21 @@ test.skip(process.env.RICH_TEXT_REAL_API !== "true", "需要显式 S5 真实 API
 
 test("候选 Web 经真实 API 保存并重开新建私密富文本草稿", async ({ page }) => {
   const evidence: Record<string, unknown> = {
-    environment: "real-api", status: "failed", stage: "meta", published: false,
-    candidateSha: process.env.RICH_TEXT_CANDIDATE_SHA, harnessSha: process.env.RICH_TEXT_HARNESS_SHA,
-    apiSha: process.env.RICH_TEXT_EXPECTED_API_SHA, createdIds: {},
+    environment: "real-api", status: "failed", stage: "login", published: false,
+    runId: process.env.E2E_RUN_ID, candidateId: process.env.WENYOU_E2E_CANDIDATE_ID, createdIds: {},
   };
   const runDir = process.env.RICH_TEXT_RUN_DIR!;
   expect(runDir).toBeTruthy();
-  expect(process.env.RICH_TEXT_CANDIDATE_SHA).toBe("6859f00c305b7c63a62fc2d3f709d811c55f2dc0");
-  expect(process.env.RICH_TEXT_HARNESS_SHA).toMatch(/^[a-f0-9]{40}$/u);
+  expect(process.env.E2E_RUN_ID).toMatch(/^e2e_[a-f0-9]{24}$/u);
   try {
-    const meta = await page.request.get("/api/v1/meta");
-    expect(meta.ok()).toBe(true);
-    expect((await meta.json()).data.buildSha).toBe(process.env.RICH_TEXT_EXPECTED_API_SHA);
-    evidence.stage = "login";
     try { await loginAsE2eUser(page); } catch { throw new Error("S5 real login failed; credential details suppressed"); }
+    evidence.stage = "meta";
+    const meta = await page.evaluate(async () => {
+      const response = await fetch("/api/v1/meta");
+      return { status: response.status, body: await response.json() };
+    });
+    expect(meta.status).toBe(200);
+    evidence.apiBuildSha = meta.body.data.buildSha;
     evidence.stage = "create-private-draft";
     await page.goto("/threads/create");
     const createdResponse = page.waitForResponse((response) => new URL(response.url()).pathname === "/api/v1/threads" && response.request().method() === "POST");
@@ -51,6 +53,8 @@ test("候选 Web 经真实 API 保存并重开新建私密富文本草稿", asyn
     await page.keyboard.press("Enter");
     await page.keyboard.insertText("\u00a0甲\u00a0");
     evidence.stage = "save";
+    // 仅本用例观察流式 PATCH 请求体，仍经网络门禁访问真实 API；缓存用例不启用此观察。
+    await page.route("**/api/v1/threads/*/aggregate", (route) => route.fallback());
     const savedResponse = page.waitForResponse((response) => new URL(response.url()).pathname === `/api/v1/threads/${thread.id}/aggregate` && response.request().method() === "PATCH");
     await page.getByRole("button", { name: "保存草稿", exact: true }).click();
     const saved = await savedResponse;
@@ -74,7 +78,7 @@ test("候选 Web 经真实 API 保存并重开新建私密富文本草稿", asyn
     await expect(editor).toContainText(" > 引用源码 * 星号 🙂");
     expect(await editor.locator("p").last().textContent()).toBe("\u00a0甲\u00a0");
     evidence.status = "passed";
-    evidence.stage = "awaiting-cross-client-handoff";
+    evidence.stage = "verified-isolated-save";
   } finally {
     mkdirSync(runDir, { recursive: true });
     writeFileSync(join(runDir, "web-real-api.json"), JSON.stringify(evidence, null, 2) + "\n", { mode: 0o600 });

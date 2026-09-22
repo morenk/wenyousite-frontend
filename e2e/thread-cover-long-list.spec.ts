@@ -1,4 +1,5 @@
-import { test, expect } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { test } from "./fixtures/isolation";
 import { coverHttpFixture } from "./helpers/cover-http";
 test.use({ viewport: { width: 1440, height: 1000 } });
 test("累计1000卡片连续快滑的几何读取与帧间隔记录", async ({ page, baseURL }) => {

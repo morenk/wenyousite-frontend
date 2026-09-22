@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
+import { test } from "./fixtures/isolation";
 import ts from "typescript";
 
 // 在真实浏览器中执行同一生产定位函数，独立验证几何而非只检查调用参数。

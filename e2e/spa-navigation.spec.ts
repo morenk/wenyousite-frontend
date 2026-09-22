@@ -1,4 +1,5 @@
-import { expect, test, type Page, type Route } from "@playwright/test";
+import { expect, type Page, type Route } from "@playwright/test";
+import { test } from "./fixtures/isolation";
 
 const fixedNow = new Date("2026-08-08T12:00:00Z");
 
