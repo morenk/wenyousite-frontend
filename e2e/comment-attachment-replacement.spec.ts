@@ -1,12 +1,13 @@
 import { readFileSync } from "node:fs";
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { test } from "./fixtures/isolation";
 
 const image = {
   name: "same.png", mimeType: "image/png",
   buffer: readFileSync("src/lib/__tests__/fixtures/images/static.png"),
 };
 
-test("评论单图替换、选择器取消、同图重选与发送失败重试", async ({ page }) => {
+test("评论单图已满提示、移除后重选、选择器取消与发送失败重试", async ({ page }) => {
   const comments: Array<Record<string, unknown>> = [];
   let uploads = 0;
   const user = { id: "attachment-user", email: "attachment@example.test", username: "附件测试", avatar: null, role: "USER" };
@@ -20,7 +21,7 @@ test("评论单图替换、选择器取消、同图重选与发送失败重试",
     if (path.endsWith("/notifications/unread")) return response({ unreadCount: 0 });
     if (path.endsWith("/direct-conversations/unread")) return response({ unreadMessageCount: 0, pendingRequestCount: 0, total: 0 });
     if (path === "/api/v1/moments/attachment-moment") return response({
-      id: "attachment-moment", authorId: user.id, author: user, title: "评论附件验证", content: "验证单图替换", contentExcerpt: "验证单图替换",
+      id: "attachment-moment", authorId: user.id, author: user, title: "评论附件验证", content: "验证单图限制", contentExcerpt: "验证单图限制",
       coverType: "TEXT", textCoverTheme: "ROSE", coverMedia: null, imageCount: 0, images: [], version: 1,
       canInteract: true, canEdit: false, canDelete: false, likeCount: 0, commentCount: 0, bookmarkCount: 0, tipTotal: "0",
       viewerLiked: false, viewerBookmarked: false, createdAt: "2026-09-20T00:00:00Z", updatedAt: "2026-09-20T00:00:00Z",
@@ -46,24 +47,64 @@ test("评论单图替换、选择器取消、同图重选与发送失败重试",
   await editor.fill("失败仍保留正文");
   const input = page.getByLabel("上传评论图片");
   await input.setInputFiles(image);
-  await expect(page.getByRole("button", { name: "更换图片" })).toBeEnabled();
+  const imageButton = page.getByRole("button", { name: "图片", exact: true });
+  await expect(imageButton).toBeEnabled();
+  await expect(page.getByRole("button", { name: "更换图片" })).toHaveCount(0);
+  await expect(page.getByText(/限 1 张/)).toHaveCount(0);
   const preview = page.getByAltText("待发送评论图片");
   const firstPreview = await preview.getAttribute("src");
+  let chooserCount = 0;
+  page.on("filechooser", () => { chooserCount++; });
   expect(uploads).toBe(0);
 
+  // 固定布局和缩短可视区域分别验证提示仍在顶部、不会被底部评论/附件面板遮住。
+  for (const { height, offsetTop } of [{ height: 800, offsetTop: 0 }, { height: 480, offsetTop: 0 }, { height: 480, offsetTop: 160 }]) {
+    await page.setViewportSize({ width: 1280, height });
+    // Chromium桌面不会弹出真实软键盘，单独模拟可视区域平移事件，不改变DOM布局坐标。
+    await page.evaluate((top) => {
+      Object.defineProperty(window.visualViewport!, "offsetTop", { configurable: true, value: top });
+      window.visualViewport!.dispatchEvent(new Event("scroll"));
+    }, offsetTop);
+    await editor.focus();
+    await imageButton.click();
+    const notice = page.getByText("评论只能添加一张图片，请先移除已选图片");
+    await expect(notice).toBeVisible();
+    await expect(page.locator("[data-sonner-toast][data-type=info]")).toHaveCount(1);
+    const toaster = page.locator("[data-sonner-toaster]");
+    await expect(toaster).toHaveAttribute("data-y-position", "top");
+    await expect.poll(async () => notice.first().evaluate((element) => {
+      const bounds = element.getBoundingClientRect();
+      const viewport = window.visualViewport!;
+      const dock = document.querySelector('[data-slot="floating-moment-comment-dock"]')!;
+      return bounds.top >= viewport.offsetTop
+        && bounds.bottom < viewport.offsetTop + viewport.height
+        && Number(getComputedStyle(element.closest("[data-sonner-toaster]")!).zIndex) > Number(getComputedStyle(dock).zIndex);
+    })).toBe(true);
+    await expect(preview).toHaveAttribute("src", firstPreview!);
+    await expect(editor).toHaveText("失败仍保留正文");
+    expect(chooserCount).toBe(0);
+    expect(uploads).toBe(0);
+    expect(comments).toHaveLength(0);
+  }
+
+  await page.evaluate(() => {
+    delete (window.visualViewport as unknown as { offsetTop?: number }).offsetTop;
+    window.visualViewport!.dispatchEvent(new Event("resize"));
+  });
+  await page.getByRole("button", { name: "移除评论图片" }).click();
+  await expect(page.getByText("评论只能添加一张图片，请先移除已选图片")).toHaveCount(0);
   const chooserPromise = page.waitForEvent("filechooser");
-  await page.getByRole("button", { name: "更换图片" }).click();
+  await imageButton.click();
   await chooserPromise;
-  await expect(page.getByRole("button", { name: "更换图片" })).toBeDisabled();
-  // Playwright不能操作操作系统选择框的取消按钮；验证浏览器原生cancel事件的实际监听路径。
+  await expect(imageButton).toBeDisabled();
+  // Playwright不能点击操作系统取消按钮；这里只核验浏览器cancel事件的监听路径。
   await input.dispatchEvent("cancel");
-  await expect(page.getByRole("button", { name: "更换图片" })).toBeEnabled();
-  await expect(preview).toHaveAttribute("src", firstPreview!);
-  await input.setInputFiles(image);
-  await expect(preview).not.toHaveAttribute("src", firstPreview!);
-  expect(await input.inputValue()).toBe("");
+  await expect(imageButton).toBeEnabled();
   await input.setInputFiles({ name: "bad.txt", mimeType: "text/plain", buffer: Buffer.from("bad") });
+  await expect(preview).toHaveCount(0);
+  await input.setInputFiles(image);
   await expect(preview).toBeVisible();
+  expect(await input.inputValue()).toBe("");
   expect(uploads).toBe(0);
 
   await page.getByRole("button", { name: "发送", exact: true }).click();

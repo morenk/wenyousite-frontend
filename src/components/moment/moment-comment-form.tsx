@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ImagePlus, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -50,6 +50,7 @@ export function MomentCommentForm({
   const redirectToLogin = useLoginRedirect();
   const create = useCreateMomentComment(momentId, user?.id);
   const { confirmPublicInvite, resetPublicInviteConfirmation } = usePublicInviteConfirmation();
+  const singleImageToastId = useId();
   const contentEditorRef = useRef<InternalReferenceEditorHandle | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const selectingRef = useRef(false);
@@ -93,7 +94,10 @@ export function MomentCommentForm({
     return () => input?.removeEventListener("cancel", cancel);
   }, [isExpanded, user]);
 
-  useEffect(() => () => { uploadAbortRef.current?.abort(); }, []);
+  useEffect(() => () => {
+    uploadAbortRef.current?.abort();
+    toast.dismiss(singleImageToastId);
+  }, [singleImageToastId]);
 
   useEffect(() => () => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -127,6 +131,7 @@ export function MomentCommentForm({
 
   const clearMedia = () => {
     if (committingRef.current) return;
+    toast.dismiss(singleImageToastId);
     uploadAbortRef.current?.abort();
     uploadAbortRef.current = null;
     submittingRef.current = false;
@@ -148,6 +153,10 @@ export function MomentCommentForm({
     if (imageInputRef.current) imageInputRef.current.value = "";
     if (submittingRef.current) return;
     if (!file) return;
+    if (image) {
+      toast.info("评论只能添加一张图片，请先移除已选图片", { id: singleImageToastId });
+      return;
+    }
     const validationError = validateMomentImageFile(file);
     if (validationError) {
       toast.error(validationError);
@@ -165,6 +174,7 @@ export function MomentCommentForm({
 
   const selectSticker = (selected: UserSticker) => {
     if (committingRef.current) return;
+    toast.dismiss(singleImageToastId);
     uploadAbortRef.current?.abort();
     uploadAbortRef.current = null;
     submittingRef.current = false;
@@ -306,7 +316,7 @@ export function MomentCommentForm({
         <button
           type="button"
           disabled={pending}
-          onClick={() => { onCancelReply(); setExpanded(false); }}
+          onClick={() => { toast.dismiss(singleImageToastId); onCancelReply(); setExpanded(false); }}
           className="rounded-md p-1 hover:bg-muted disabled:opacity-50"
           aria-label="收起评论框"
         >
@@ -370,11 +380,15 @@ export function MomentCommentForm({
           />
           <Button type="button" variant="ghost" size="sm" disabled={pending} onClick={() => {
             if (selectingRef.current || submittingRef.current) return;
+            if (image) {
+              toast.info("评论只能添加一张图片，请先移除已选图片", { id: singleImageToastId });
+              return;
+            }
             selectingRef.current = true;
             setSelecting(true);
             imageInputRef.current?.click();
           }}>
-            <ImagePlus className="size-4" />{image ? "更换图片" : "图片"}
+            <ImagePlus className="size-4" />图片
           </Button>
           <StickerPickerPopover disabled={pending} label="表情包" onSelect={selectSticker} />
           <InternalReferenceInsert
@@ -384,7 +398,7 @@ export function MomentCommentForm({
             className="text-muted-foreground"
           />
           <span className="hidden text-xs text-muted-foreground sm:inline">
-            限 1 张图片或表情 · {contentLength}/500
+            {contentLength}/500
           </span>
         </div>
         <Button

@@ -18,6 +18,8 @@ const {
   mockValidate,
   mockFetchComments,
   mockToastError,
+  mockToastInfo,
+  mockToastDismiss,
   mockRemoveQueries,
 } = vi.hoisted(() => ({
   mockUseAuth: vi.fn(),
@@ -36,6 +38,8 @@ const {
   mockValidate: vi.fn(),
   mockFetchComments: vi.fn(),
   mockToastError: vi.fn(),
+  mockToastInfo: vi.fn(),
+  mockToastDismiss: vi.fn(),
   mockRemoveQueries: vi.fn(),
 }));
 
@@ -120,8 +124,9 @@ vi.mock("@/api/hooks/use-moments", () => ({
 }));
 vi.mock("sonner", () => ({
   toast: {
+    info: mockToastInfo,
+    dismiss: mockToastDismiss,
     error: mockToastError,
-    info: vi.fn(),
     success: vi.fn(),
     warning: vi.fn(),
   },
@@ -594,23 +599,62 @@ describe("MomentComments", () => {
     expect(mockCreate).not.toHaveBeenCalled();
   });
 
-  test("选图期间阻止重复打开，取消保留已有图片，合法替换后重置选择器", () => {
+  test("已有图片再次点击只提示先移除，不打开选择器或改变附件正文", () => {
+    render(<MomentComments momentId="moment-1" />);
+    fireEvent.click(screen.getByRole("button", { name: "发表评论…" }));
+    fireEvent.paste(screen.getByRole("textbox", { name: "评论内容" }), { clipboardData: clipboardData("保留正文") });
+    const input = screen.getByLabelText("上传评论图片") as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [new File(["first"], "first.jpg", { type: "image/jpeg" })] } });
+    const preview = screen.getByAltText("待发送评论图片").getAttribute("src");
+    const picker = vi.spyOn(input, "click");
+    fireEvent.click(screen.getByRole("button", { name: "图片" }));
+    fireEvent.click(screen.getByRole("button", { name: "图片" }));
+    expect(picker).not.toHaveBeenCalled();
+    expect(mockToastInfo).toHaveBeenCalledWith("评论只能添加一张图片，请先移除已选图片", { id: expect.any(String) });
+    expect(mockToastInfo.mock.calls[0][1].id).toBe(mockToastInfo.mock.calls[1][1].id);
+    expect(screen.queryByRole("button", { name: "更换图片" })).toBeNull();
+    expect(screen.queryByText(/限 1 张/)).toBeNull();
+    expect(screen.getByAltText("待发送评论图片")).toHaveAttribute("src", preview);
+    expect(screen.getByRole("textbox", { name: "评论内容" })).toHaveTextContent("保留正文");
+    expect(screen.getByRole("button", { name: "发送" })).toBeEnabled();
+    fireEvent.change(input, { target: { files: [new File(["late"], "late.jpg", { type: "image/jpeg" })] } });
+    expect(screen.getByAltText("待发送评论图片")).toHaveAttribute("src", preview);
+    expect(mockCompress).not.toHaveBeenCalled();
+    expect(mockUpload).not.toHaveBeenCalled();
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  test.each(["移除评论图片", "收起评论框", "卸载"])("关闭附件提示：%s清理本实例提示", (action) => {
+    const view = render(<MomentComments momentId="moment-1" />);
+    fireEvent.click(screen.getByRole("button", { name: "发表评论…" }));
+    fireEvent.change(screen.getByLabelText("上传评论图片"), { target: { files: [new File(["first"], "first.jpg", { type: "image/jpeg" })] } });
+    fireEvent.click(screen.getByRole("button", { name: "图片" }));
+    const id = mockToastInfo.mock.calls.at(-1)![1].id;
+    if (action === "卸载") view.unmount();
+    else fireEvent.click(screen.getByRole("button", { name: action }));
+    expect(mockToastDismiss).toHaveBeenCalledWith(id);
+  });
+
+  test("无图选择器阻止重复打开，取消解锁，移除后同图可重新选择", () => {
     render(<MomentComments momentId="moment-1" />);
     fireEvent.click(screen.getByRole("button", { name: "发表评论…" }));
     const input = screen.getByLabelText("上传评论图片") as HTMLInputElement;
-    const original = new File(["first"], "first.jpg", { type: "image/jpeg" });
-    fireEvent.change(input, { target: { files: [original] } });
-    const preview = screen.getByAltText("待发送评论图片").getAttribute("src");
-    fireEvent.click(screen.getByRole("button", { name: "更换图片" }));
-    expect(screen.getByRole("button", { name: "更换图片" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "发送" })).toBeDisabled();
+    const picker = vi.spyOn(input, "click");
+    const button = screen.getByRole("button", { name: "图片" });
+    fireEvent.click(button);
+    fireEvent.click(button);
+    expect(picker).toHaveBeenCalledTimes(1);
+    expect(button).toBeDisabled();
     fireEvent(input, new Event("cancel", { bubbles: true }));
-    expect(screen.getByRole("button", { name: "更换图片" })).toBeEnabled();
-    expect(screen.getByAltText("待发送评论图片")).toHaveAttribute("src", preview);
+    expect(button).toBeEnabled();
     mockValidate.mockReturnValueOnce("图片大小不能超过 10MB");
     fireEvent.change(input, { target: { files: [new File(["bad"], "bad.jpg")] } });
-    expect(screen.getByAltText("待发送评论图片")).toHaveAttribute("src", preview);
+    expect(screen.queryByAltText("待发送评论图片")).toBeNull();
+    const original = new File(["first"], "first.jpg", { type: "image/jpeg" });
     fireEvent.change(input, { target: { files: [original] } });
+    fireEvent.click(screen.getByRole("button", { name: "移除评论图片" }));
+    fireEvent.change(input, { target: { files: [original] } });
+    expect(screen.getByAltText("待发送评论图片")).toBeInTheDocument();
     expect(input.value).toBe("");
     expect(mockUpload).not.toHaveBeenCalled();
   });
@@ -697,7 +741,7 @@ describe("MomentComments", () => {
     expect(mockCreate).not.toHaveBeenCalled();
   });
 
-  test("发送失败后更换同名图片也使用新的媒体和幂等标识", async () => {
+  test("发送失败后先移除再选同名图片也使用新的媒体和幂等标识", async () => {
     mockCreate.mockRejectedValueOnce(new Error("offline")).mockResolvedValueOnce({ id: "new" });
     mockUpload.mockResolvedValueOnce({ mediaId: "first-media" }).mockResolvedValueOnce({ mediaId: "second-media" });
     render(<MomentComments momentId="moment-1" />);
@@ -706,6 +750,7 @@ describe("MomentComments", () => {
     fireEvent.change(input, { target: { files: [new File(["a"], "same.jpg", { type: "image/jpeg", lastModified: 1 })] } });
     fireEvent.click(screen.getByRole("button", { name: "发送" }));
     await waitFor(() => expect(mockToastError).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole("button", { name: "移除评论图片" }));
     fireEvent.change(input, { target: { files: [new File(["b"], "same.jpg", { type: "image/jpeg", lastModified: 1 })] } });
     fireEvent.click(screen.getByRole("button", { name: "发送" }));
     await waitFor(() => expect(mockCreate).toHaveBeenCalledTimes(2));
