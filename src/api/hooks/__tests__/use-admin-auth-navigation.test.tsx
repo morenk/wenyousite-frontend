@@ -38,6 +38,9 @@ describe("管理身份与列表状态", () => {
     api.POST.mockResolvedValue({ data: { data: { csrfToken: "test", user: { id: "new-admin" }, session: {} } } });
     const result = renderHook(() => useAdminLogin(), { wrapper });
     await act(async () => { await result.result.current.verify.mutateAsync({ challengeId: "challenge", code: "123456" }); });
+    expect(api.POST).toHaveBeenCalledWith("/api/v1/admin/auth/verify", {
+      body: { challengeId: "challenge", code: "123456", rememberDevice: false },
+    });
     expect(currentPage()).toBe(1);
   });
 });
