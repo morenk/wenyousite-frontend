@@ -6,7 +6,8 @@ export const emailSchema = z.object({
   email: z
     .string()
     .min(1, { message: "请输入邮箱" })
-    .email({ message: "邮箱格式不正确" }),
+    .email({ message: "邮箱格式不正确" })
+    .refine((value) => Array.from(value).length <= 254, "邮箱最多 254 个字符"),
 });
 
 /** 用户名规则：字母、数字、中文，2-24 位（与后端注册 DTO 一致） */
@@ -16,6 +17,7 @@ export const loginSchema = z.object({
   account: z
     .string()
     .min(1, { message: "请输入邮箱或用户名" })
+    .refine((value) => Array.from(value).length <= 254, "账号最多 254 个字符")
     .superRefine((val, ctx) => {
       // 含 @ 按邮箱校验，否则按用户名校验（与后端登录查询规则一致）
       if (val.includes("@")) {
@@ -32,7 +34,8 @@ export const loginSchema = z.object({
   password: z
     .string()
     .min(1, { message: "请输入密码" })
-    .min(8, { message: "密码至少 8 位" }),
+    .refine((value) => Array.from(value).length >= 8, { message: "密码至少 8 位" })
+      .refine((value) => Array.from(value).length <= 100, { message: "密码最多 100 位" }),
 });
 
 export const registerStep2Schema = z
@@ -51,7 +54,8 @@ export const registerStep2Schema = z
       }),
     password: z
       .string()
-      .min(8, { message: "密码至少 8 位" })
+      .refine((value) => Array.from(value).length >= 8, { message: "密码至少 8 位" })
+      .refine((value) => Array.from(value).length <= 100, { message: "密码最多 100 位" })
       .regex(/[a-zA-Z]/, { message: "密码需包含至少一个字母" })
       .regex(/\d/, { message: "密码需包含至少一个数字" }),
     confirmPassword: z.string().min(1, { message: "请再次输入密码" }),
@@ -65,14 +69,16 @@ export const forgotPasswordSchema = z.object({
   email: z
     .string()
     .min(1, { message: "请输入邮箱" })
-    .email({ message: "邮箱格式不正确" }),
+    .email({ message: "邮箱格式不正确" })
+    .refine((value) => Array.from(value).length <= 254, "邮箱最多 254 个字符"),
 });
 
 export const resetPasswordSchema = z.object({
   email: z
     .string()
     .min(1, { message: "请输入邮箱" })
-    .email({ message: "邮箱格式不正确" }),
+    .email({ message: "邮箱格式不正确" })
+    .refine((value) => Array.from(value).length <= 254, "邮箱最多 254 个字符"),
   token: z
     .string()
     .min(6, { message: "验证码为 6 位数字" })
@@ -80,17 +86,19 @@ export const resetPasswordSchema = z.object({
     .regex(/^\d+$/, { message: "验证码为 6 位数字" }),
   newPassword: z
     .string()
-    .min(8, { message: "密码至少 8 位" })
+    .refine((value) => Array.from(value).length >= 8, { message: "密码至少 8 位" })
+      .refine((value) => Array.from(value).length <= 100, { message: "密码最多 100 位" })
     .regex(/[a-zA-Z]/, { message: "密码需包含至少一个字母" })
     .regex(/\d/, { message: "密码需包含至少一个数字" }),
 });
 
 export const changePasswordSchema = z
   .object({
-    oldPassword: z.string().min(1, { message: "请输入当前密码" }),
+    oldPassword: z.string().min(1, { message: "请输入当前密码" }).refine((value) => Array.from(value).length >= 8, "当前密码至少 8 位").refine((value) => Array.from(value).length <= 100, "密码最多 100 位"),
     newPassword: z
       .string()
-      .min(8, { message: "密码至少 8 位" })
+      .refine((value) => Array.from(value).length >= 8, { message: "密码至少 8 位" })
+      .refine((value) => Array.from(value).length <= 100, { message: "密码最多 100 位" })
       .regex(/[a-zA-Z]/, { message: "密码需包含至少一个字母" })
       .regex(/\d/, { message: "密码需包含至少一个数字" }),
     confirmPassword: z.string().min(1, { message: "请再次输入新密码" }),
@@ -101,11 +109,12 @@ export const changePasswordSchema = z
   });
 
 export const changeEmailSchema = z.object({
-  oldPassword: z.string().min(1, { message: "请输入当前密码" }),
+  oldPassword: z.string().min(1, { message: "请输入当前密码" }).refine((value) => Array.from(value).length <= 100, "密码最多 100 位"),
   newEmail: z
     .string()
     .min(1, { message: "请输入新邮箱" })
-    .email({ message: "邮箱格式不正确" }),
+    .email({ message: "邮箱格式不正确" })
+    .refine((value) => Array.from(value).length <= 254, "邮箱最多 254 个字符"),
   code: z
     .string()
     .min(6, { message: "验证码为 6 位数字" })

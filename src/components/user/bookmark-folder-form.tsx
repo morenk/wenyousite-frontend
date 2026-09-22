@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const folderSchema = z.object({
-  name: z.string().trim().min(1, "请输入收藏夹名称").max(24, "名称最多 24 个字符"),
+  name: z.string().trim().min(1, "请输入收藏夹名称").refine((name) => Array.from(name).length <= 24, "名称最多 24 个字符"),
 });
 
 type FolderFormValues = z.infer<typeof folderSchema>;

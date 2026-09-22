@@ -1,0 +1,19 @@
+{
+  "environment": "real-api",
+  "status": "passed",
+  "stage": "awaiting-cross-client-handoff",
+  "published": false,
+  "candidateSha": "7a074ae138597f1836218bd9c440c7c15ca97d9a",
+  "harnessSha": "6b950971099fc52c382ade2c27037d1d6805e164",
+  "apiSha": "fc88ea09a808af9c54c1f5b971e116b3be4a471b",
+  "diffSha256": "2b489ef7f213e0a4473da81b84729624c47cd35af269875fa108220af07f5499",
+  "buildId": "ppHvu_VOHOlzhnh0JuxmT",
+  "adaptation": "historical-S5-identity-and-request-capture",
+  "createdIds": {
+    "threadId": "cmua7hsxb007g7qyes88aznxq",
+    "subthreadId": "cmua7hsxg007k7qyeojf7a758",
+    "bodyPostId": "cmua7htyv007m7qyeedi4oezb"
+  },
+  "canonicalSha256": "2c0cc44ca338c6e42c8a92e509aa01ca9ab9c519e893a5ebf2b32bc41b88a5f9",
+  "bodyVersion": 1
+}

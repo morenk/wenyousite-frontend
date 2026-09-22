@@ -1,29 +1,30 @@
 /** 主题帖创建/编辑表单校验 schema */
 
+import { TAG_NAME_PATTERN, TAG_NAME_MESSAGE } from "@/lib/tag-name";
 import { z } from "zod";
 import { hasVisibleMarkdownContent } from "@/lib/markdown";
 
 export const threadCreateSchema = z.object({
   title: z
     .string()
-    .max(100, "标题最多 100 个字符")
+    .refine((value) => Array.from(value).length <= 100, "标题最多 100 个字符")
     .optional(),
   category: z.string().trim().min(1, "请选择分区").optional(),
   visibility: z.enum(["PUBLIC", "PRIVATE"], {
     message: "请选择可见性",
   }),
   tagNames: z
-    .array(z.string().min(1).max(20))
+    .array(z.string().min(1).max(20).regex(TAG_NAME_PATTERN, TAG_NAME_MESSAGE))
     .max(5, "最多 5 个标签")
     .optional(),
   subthreadTitle: z
     .string()
     .min(1, "请输入子贴标题")
-    .max(100, "子贴标题最多 100 个字符")
+    .refine((value) => Array.from(value).length <= 100, "子贴标题最多 100 个字符")
     .optional(),
   content: z
     .string()
-    .max(10000, "正文最多 10000 个字符")
+    .refine((value) => Array.from(value).length <= 10000, "正文最多 10000 个字符")
     .optional(),
 });
 

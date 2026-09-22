@@ -65,8 +65,8 @@ const actionTargetTypes: Record<AdminHiddenContent["targetType"], AdminContentTy
   MOMENT_COMMENT: "moment_comment",
 };
 
-const restoreSchema = z.object({
-  reason: z.string().trim().min(1, "请填写恢复理由").max(500, "恢复理由最多 500 个字符"),
+export const restoreSchema = z.object({
+  reason: z.string().trim().min(1, "请填写恢复理由").refine((value) => Array.from(value).length <= 500, "恢复理由最多 500 个字符"),
 });
 
 type RestoreValues = z.infer<typeof restoreSchema>;
@@ -245,7 +245,6 @@ export function HiddenContentList({ headerAction }: { headerAction?: ReactNode }
                     <Textarea
                       id="hidden-content-restore-reason"
                       rows={4}
-                      maxLength={500}
                       placeholder="说明复核结论与恢复依据。"
                       aria-invalid={Boolean(form.formState.errors.reason)}
                       {...form.register("reason")}

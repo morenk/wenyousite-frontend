@@ -44,6 +44,21 @@ describe("useSaveDraft", () => {
     mockPATCH.mockReset();
   });
 
+  test.each(["create", "update"])("正文草稿%s在HTTP前拦截10001码点且接受10000emoji", async (mode) => {
+    mockPOST.mockResolvedValue({ data: { data: createdDraft } });
+    mockPATCH.mockResolvedValue({ data: { data: createdDraft } });
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useSaveDraft(), { wrapper: Wrapper });
+    const args = (count: number) => mode === "create"
+      ? { content: "😀".repeat(count), slot: 1 }
+      : { content: "😀".repeat(count), draftId: "d1", version: 1 };
+    await expect(result.current.mutateAsync(args(10001))).rejects.toThrow("正文草稿最多 10000 个字符");
+    expect(mockPOST).not.toHaveBeenCalled();
+    expect(mockPATCH).not.toHaveBeenCalled();
+    await result.current.mutateAsync(args(10000));
+    expect(mode === "create" ? mockPOST : mockPATCH).toHaveBeenCalledTimes(1);
+  });
+
   test("已有草稿按稳定 ID 和 version 使用 PATCH，绝不再由 POST 覆盖槽位", async () => {
     mockPATCH.mockResolvedValueOnce({
       data: { code: 0, message: "ok", data: createdDraft },

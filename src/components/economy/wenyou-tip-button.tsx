@@ -19,7 +19,8 @@ const tipSchema = z.object({
   amount: z
     .string()
     .trim()
-    .regex(/^(?:[2-9]|[1-9]\d+)$/, "最低投入 2 升，且只能填写整数"),
+    .regex(/^(?:[2-9]|[1-9]\d+)$/, "最低投入 2 升，且只能填写整数")
+    .refine((amount) => amount.length < 19 || (amount.length === 19 && amount <= "9223372036854775807"), "投入不能超过 9223372036854775807 升"),
 });
 
 type TipForm = z.infer<typeof tipSchema>;

@@ -175,7 +175,7 @@ export const InternalReferenceEditor = forwardRef<
     if (!mount) return;
 
     const fitsLimit = (doc: ProseNode) =>
-      serializeInternalReferenceEditorDocument(doc).length <= maxLengthRef.current;
+      Array.from(serializeInternalReferenceEditorDocument(doc)).length <= maxLengthRef.current;
     const notifyLimit = () => onLimitExceededRef.current?.();
     const initialAttributes = initialAttributesRef.current;
     const view = new EditorView(mount, {
@@ -239,7 +239,7 @@ export const InternalReferenceEditor = forwardRef<
       dispatchTransaction: (transaction) => {
         const nextState = view.state.apply(transaction);
         const serialized = serializeInternalReferenceEditorDocument(nextState.doc);
-        if (transaction.docChanged && serialized.length > maxLengthRef.current) {
+        if (transaction.docChanged && Array.from(serialized).length > maxLengthRef.current) {
           notifyLimit();
           return;
         }
@@ -304,7 +304,7 @@ export const InternalReferenceEditor = forwardRef<
       const applied = insertInternalReferenceAtSelection(view, portal.reference.href, {
         label: portal.label,
         canApply: (transaction) =>
-          serializeInternalReferenceEditorDocument(transaction.doc).length <= maxLengthRef.current,
+          Array.from(serializeInternalReferenceEditorDocument(transaction.doc)).length <= maxLengthRef.current,
       });
       if (!applied) {
         onLimitExceededRef.current?.();

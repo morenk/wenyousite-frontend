@@ -30,7 +30,7 @@ import {
 import { POSTING_POLICY_OPTIONS } from "@/lib/post-policy";
 
 const subthreadFormSchema = z.object({
-  title: z.string().min(1, "请输入子贴标题").max(100, "子贴标题最多 100 个字符"),
+  title: z.string().min(1, "请输入子贴标题").refine((value) => Array.from(value).length <= 100, "子贴标题最多 100 个字符"),
   postingPolicy: z.enum(["PARTICIPANTS", "COLLABORATORS", "PLAYERS"]),
 });
 

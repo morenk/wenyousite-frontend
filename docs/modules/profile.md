@@ -364,6 +364,8 @@
 - `/me/security` 可查看黑名单并取消拉黑
 - 输入确认文字后可注销账号并清空登录态
 
+简介上限255按Unicode码点计数，与后端一致；不支持清空已填写简介的约束不变。
+
 ## 本人关注与粉丝管理
 
 本人公开主页进入 `/users/[id]/following` 或 `/users/[id]/followers` 时显示“关注／粉丝”共享页签与计数，保留深链和各自的滚动位置；他人列表继续浏览。行内以头像、用户名为主，等级与互关状态为次要文字。依照 [Foundation 已提交交互规范](https://github.com/morenk/wenyousite-foundation/blob/ba1e921212b908835734732f26e263203a8226c6/docs/interaction.md#本人关注与粉丝管理)，回关、取消关注、移除粉丝均复用 `Button variant="outline"`、默认 40px 档，长名称或窄容器允许操作换行；资料链接和按钮独立。

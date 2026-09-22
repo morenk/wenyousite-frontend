@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 const {
@@ -18,6 +18,8 @@ const {
   mockValidate,
   mockFetchComments,
   mockToastError,
+  mockToastInfo,
+  mockToastDismiss,
   mockRemoveQueries,
 } = vi.hoisted(() => ({
   mockUseAuth: vi.fn(),
@@ -36,6 +38,8 @@ const {
   mockValidate: vi.fn(),
   mockFetchComments: vi.fn(),
   mockToastError: vi.fn(),
+  mockToastInfo: vi.fn(),
+  mockToastDismiss: vi.fn(),
   mockRemoveQueries: vi.fn(),
 }));
 
@@ -120,8 +124,9 @@ vi.mock("@/api/hooks/use-moments", () => ({
 }));
 vi.mock("sonner", () => ({
   toast: {
+    info: mockToastInfo,
+    dismiss: mockToastDismiss,
     error: mockToastError,
-    info: vi.fn(),
     success: vi.fn(),
     warning: vi.fn(),
   },
@@ -539,6 +544,15 @@ describe("MomentComments", () => {
     await waitFor(() => expect(focus).toHaveBeenLastCalledWith({ preventScroll: true }));
   });
 
+  test("评论接受500个emoji且按码点显示计数", async () => {
+    render(<MomentComments momentId="moment-1" />);
+    fireEvent.click(screen.getByRole("button", { name: "发表评论…" }));
+    fireEvent.paste(screen.getByRole("textbox", { name: "评论内容" }), { clipboardData: clipboardData("😀".repeat(500)) });
+    expect(screen.getByText(/500\/500/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "发送" }));
+    await waitFor(() => expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ content: "😀".repeat(500) })));
+  });
+
   test("一条评论上传一张前端压缩后的图片，允许不填写文字", async () => {
     render(<MomentComments momentId="moment-1" />);
     const original = new File(["image"], "camera.jpg", { type: "image/jpeg" });
@@ -583,6 +597,193 @@ describe("MomentComments", () => {
     await waitFor(() => expect(screen.getByRole("button", { name: "发送" })).toBeEnabled());
     expect(mockUpload).not.toHaveBeenCalled();
     expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  test("已有图片再次点击只提示先移除，不打开选择器或改变附件正文", () => {
+    render(<MomentComments momentId="moment-1" />);
+    fireEvent.click(screen.getByRole("button", { name: "发表评论…" }));
+    fireEvent.paste(screen.getByRole("textbox", { name: "评论内容" }), { clipboardData: clipboardData("保留正文") });
+    const input = screen.getByLabelText("上传评论图片") as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [new File(["first"], "first.jpg", { type: "image/jpeg" })] } });
+    const preview = screen.getByAltText("待发送评论图片").getAttribute("src");
+    const picker = vi.spyOn(input, "click");
+    fireEvent.click(screen.getByRole("button", { name: "图片" }));
+    fireEvent.click(screen.getByRole("button", { name: "图片" }));
+    expect(picker).not.toHaveBeenCalled();
+    expect(mockToastInfo).toHaveBeenCalledWith("评论只能添加一张图片，请先移除已选图片", { id: expect.any(String) });
+    expect(mockToastInfo.mock.calls[0][1].id).toBe(mockToastInfo.mock.calls[1][1].id);
+    expect(screen.queryByRole("button", { name: "更换图片" })).toBeNull();
+    expect(screen.queryByText(/限 1 张/)).toBeNull();
+    expect(screen.getByAltText("待发送评论图片")).toHaveAttribute("src", preview);
+    expect(screen.getByRole("textbox", { name: "评论内容" })).toHaveTextContent("保留正文");
+    expect(screen.getByRole("button", { name: "发送" })).toBeEnabled();
+    fireEvent.change(input, { target: { files: [new File(["late"], "late.jpg", { type: "image/jpeg" })] } });
+    expect(screen.getByAltText("待发送评论图片")).toHaveAttribute("src", preview);
+    expect(mockCompress).not.toHaveBeenCalled();
+    expect(mockUpload).not.toHaveBeenCalled();
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  test.each(["移除评论图片", "收起评论框", "卸载"])("关闭附件提示：%s清理本实例提示", (action) => {
+    const view = render(<MomentComments momentId="moment-1" />);
+    fireEvent.click(screen.getByRole("button", { name: "发表评论…" }));
+    fireEvent.change(screen.getByLabelText("上传评论图片"), { target: { files: [new File(["first"], "first.jpg", { type: "image/jpeg" })] } });
+    fireEvent.click(screen.getByRole("button", { name: "图片" }));
+    const id = mockToastInfo.mock.calls.at(-1)![1].id;
+    if (action === "卸载") view.unmount();
+    else fireEvent.click(screen.getByRole("button", { name: action }));
+    expect(mockToastDismiss).toHaveBeenCalledWith(id);
+  });
+
+  test("无图选择器阻止重复打开，取消解锁，移除后同图可重新选择", () => {
+    render(<MomentComments momentId="moment-1" />);
+    fireEvent.click(screen.getByRole("button", { name: "发表评论…" }));
+    const input = screen.getByLabelText("上传评论图片") as HTMLInputElement;
+    const picker = vi.spyOn(input, "click");
+    const button = screen.getByRole("button", { name: "图片" });
+    fireEvent.click(button);
+    fireEvent.click(button);
+    expect(picker).toHaveBeenCalledTimes(1);
+    expect(button).toBeDisabled();
+    fireEvent(input, new Event("cancel", { bubbles: true }));
+    expect(button).toBeEnabled();
+    mockValidate.mockReturnValueOnce("图片大小不能超过 10MB");
+    fireEvent.change(input, { target: { files: [new File(["bad"], "bad.jpg")] } });
+    expect(screen.queryByAltText("待发送评论图片")).toBeNull();
+    const original = new File(["first"], "first.jpg", { type: "image/jpeg" });
+    fireEvent.change(input, { target: { files: [original] } });
+    fireEvent.click(screen.getByRole("button", { name: "移除评论图片" }));
+    fireEvent.change(input, { target: { files: [original] } });
+    expect(screen.getByAltText("待发送评论图片")).toBeInTheDocument();
+    expect(input.value).toBe("");
+    expect(mockUpload).not.toHaveBeenCalled();
+  });
+
+  test("取消压缩后旧结果晚到不能上传或提交，也不能覆盖新附件", async () => {
+    let resolveOld!: (file: File) => void;
+    mockCompress.mockImplementationOnce(() => new Promise<File>((resolve) => { resolveOld = resolve; }));
+    render(<MomentComments momentId="moment-1" />);
+    fireEvent.click(screen.getByRole("button", { name: "发表评论…" }));
+    fireEvent.change(screen.getByLabelText("上传评论图片"), {
+      target: { files: [new File(["old"], "old.jpg", { type: "image/jpeg" })] },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "发送" }));
+    await waitFor(() => expect(mockCompress).toHaveBeenCalledTimes(1));
+    fireEvent.click(screen.getByRole("button", { name: "移除评论图片" }));
+    fireEvent.click(screen.getByRole("button", { name: "选择测试表情包" }));
+    await act(async () => resolveOld(new File(["late"], "late.webp", { type: "image/webp" })));
+    expect(mockUpload).not.toHaveBeenCalled();
+    expect(mockCreate).not.toHaveBeenCalled();
+    expect(screen.getByAltText("待发送表情包")).toBeInTheDocument();
+  });
+
+  test("取消上传后旧结果晚到不能提交或解锁新上传", async () => {
+    let resolveOld!: (value: { mediaId: string }) => void;
+    let resolveNew!: (value: { mediaId: string }) => void;
+    mockUpload
+      .mockImplementationOnce(() => new Promise((resolve) => { resolveOld = resolve; }))
+      .mockImplementationOnce(() => new Promise((resolve) => { resolveNew = resolve; }));
+    render(<MomentComments momentId="moment-1" />);
+    fireEvent.click(screen.getByRole("button", { name: "发表评论…" }));
+    const input = screen.getByLabelText("上传评论图片");
+    fireEvent.change(input, { target: { files: [new File(["old"], "old.jpg", { type: "image/jpeg" })] } });
+    fireEvent.click(screen.getByRole("button", { name: "发送" }));
+    await waitFor(() => expect(mockUpload).toHaveBeenCalledTimes(1));
+    fireEvent.click(screen.getByRole("button", { name: "移除评论图片" }));
+    fireEvent.change(input, { target: { files: [new File(["new"], "new.jpg", { type: "image/jpeg" })] } });
+    fireEvent.click(screen.getByRole("button", { name: "发送" }));
+    await waitFor(() => expect(mockUpload).toHaveBeenCalledTimes(2));
+    await act(async () => resolveOld({ mediaId: "old-media" }));
+    expect(mockCreate).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "正在准备" })).toBeDisabled();
+    await act(async () => resolveNew({ mediaId: "new-media" }));
+    await waitFor(() => expect(mockCreate).toHaveBeenCalledTimes(1));
+    expect(mockCreate.mock.calls[0][0].mediaId).toBe("new-media");
+  });
+
+  test("旧上传晚到的finally不能解除新评论提交中的媒体锁", async () => {
+    let resolveOld!: (value: { mediaId: string }) => void;
+    let resolveCreate!: (value: object) => void;
+    mockUpload.mockImplementationOnce(() => new Promise((resolve) => { resolveOld = resolve; }))
+      .mockResolvedValueOnce({ mediaId: "new-media" });
+    mockCreate.mockImplementationOnce(() => new Promise((resolve) => { resolveCreate = resolve; }));
+    render(<MomentComments momentId="moment-1" />);
+    fireEvent.click(screen.getByRole("button", { name: "发表评论…" }));
+    const input = screen.getByLabelText("上传评论图片");
+    fireEvent.change(input, { target: { files: [new File(["old"], "old.jpg", { type: "image/jpeg" })] } });
+    fireEvent.click(screen.getByRole("button", { name: "发送" }));
+    await waitFor(() => expect(mockUpload).toHaveBeenCalledTimes(1));
+    fireEvent.click(screen.getByRole("button", { name: "移除评论图片" }));
+    fireEvent.change(input, { target: { files: [new File(["new"], "new.jpg", { type: "image/jpeg" })] } });
+    fireEvent.click(screen.getByRole("button", { name: "发送" }));
+    await waitFor(() => expect(mockCreate).toHaveBeenCalledTimes(1));
+    await act(async () => resolveOld({ mediaId: "old-media" }));
+    fireEvent.click(screen.getByRole("button", { name: "移除评论图片" }));
+    expect(screen.getByAltText("待发送评论图片")).toBeInTheDocument();
+    await act(async () => resolveCreate({ id: "done" }));
+    expect(screen.queryByAltText("待发送评论图片")).toBeNull();
+  });
+
+  test("连续提交只创建一次，卸载后上传完成不得提交", async () => {
+    let resolveUpload!: (value: { mediaId: string }) => void;
+    mockUpload.mockImplementationOnce(() => new Promise((resolve) => { resolveUpload = resolve; }));
+    const view = render(<MomentComments momentId="moment-1" />);
+    fireEvent.click(screen.getByRole("button", { name: "发表评论…" }));
+    fireEvent.change(screen.getByLabelText("上传评论图片"), {
+      target: { files: [new File(["image"], "image.jpg", { type: "image/jpeg" })] },
+    });
+    const form = screen.getByRole("button", { name: "发送" }).closest("form")!;
+    fireEvent.submit(form);
+    fireEvent.submit(form);
+    await waitFor(() => expect(mockUpload).toHaveBeenCalledTimes(1));
+    view.unmount();
+    await act(async () => resolveUpload({ mediaId: "late-media" }));
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  test("发送失败后先移除再选同名图片也使用新的媒体和幂等标识", async () => {
+    mockCreate.mockRejectedValueOnce(new Error("offline")).mockResolvedValueOnce({ id: "new" });
+    mockUpload.mockResolvedValueOnce({ mediaId: "first-media" }).mockResolvedValueOnce({ mediaId: "second-media" });
+    render(<MomentComments momentId="moment-1" />);
+    fireEvent.click(screen.getByRole("button", { name: "发表评论…" }));
+    const input = screen.getByLabelText("上传评论图片");
+    fireEvent.change(input, { target: { files: [new File(["a"], "same.jpg", { type: "image/jpeg", lastModified: 1 })] } });
+    fireEvent.click(screen.getByRole("button", { name: "发送" }));
+    await waitFor(() => expect(mockToastError).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole("button", { name: "移除评论图片" }));
+    fireEvent.change(input, { target: { files: [new File(["b"], "same.jpg", { type: "image/jpeg", lastModified: 1 })] } });
+    fireEvent.click(screen.getByRole("button", { name: "发送" }));
+    await waitFor(() => expect(mockCreate).toHaveBeenCalledTimes(2));
+    expect(mockCreate.mock.calls[1][0].mediaId).toBe("second-media");
+    expect(mockCreate.mock.calls[1][0].clientRequestId).not.toBe(mockCreate.mock.calls[0][0].clientRequestId);
+  });
+
+  test("媒体403保留草稿，不误清理动态访问缓存", async () => {
+    mockUpload.mockRejectedValueOnce({ status: 403, code: 40300, message: "媒体不可用" });
+    render(<MomentComments momentId="moment-1" />);
+    fireEvent.click(screen.getByRole("button", { name: "发表评论…" }));
+    fireEvent.paste(screen.getByRole("textbox", { name: "评论内容" }), { clipboardData: clipboardData("保留正文") });
+    fireEvent.change(screen.getByLabelText("上传评论图片"), { target: { files: [new File(["image"], "image.jpg", { type: "image/jpeg" })] } });
+    fireEvent.click(screen.getByRole("button", { name: "发送" }));
+    await waitFor(() => expect(mockToastError).toHaveBeenCalled());
+    expect(screen.getByRole("textbox", { name: "评论内容" })).toHaveTextContent("保留正文");
+    expect(screen.getByAltText("待发送评论图片")).toBeInTheDocument();
+    expect(mockRemoveQueries).not.toHaveBeenCalled();
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  test("评论请求发出后不能移除附件造成提交状态丢失", async () => {
+    let resolveCreate!: (value: object) => void;
+    mockCreate.mockImplementationOnce(() => new Promise((resolve) => { resolveCreate = resolve; }));
+    render(<MomentComments momentId="moment-1" />);
+    fireEvent.click(screen.getByRole("button", { name: "发表评论…" }));
+    fireEvent.change(screen.getByLabelText("上传评论图片"), { target: { files: [new File(["image"], "image.jpg", { type: "image/jpeg" })] } });
+    fireEvent.click(screen.getByRole("button", { name: "发送" }));
+    await waitFor(() => expect(mockCreate).toHaveBeenCalledTimes(1));
+    fireEvent.click(screen.getByRole("button", { name: "移除评论图片" }));
+    expect(screen.getByAltText("待发送评论图片")).toBeInTheDocument();
+    await act(async () => resolveCreate({ id: "done" }));
+    expect(screen.queryByAltText("待发送评论图片")).toBeNull();
   });
 
   test("表情包会替换已选图片，并可作为无文字评论发送", async () => {

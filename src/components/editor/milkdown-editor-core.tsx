@@ -116,7 +116,7 @@ function EditorCore({
     }
   }, [handleValidityChange, onValidityChange, protectedContent]);
 
-  const charCount = currentContent.length;
+  const charCount = Array.from(currentContent).length;
   const editorAriaLabel = ariaLabel ?? placeholder ?? "正文编辑器";
   const charWarning = charCount > MAX_CHARS * 0.9
     ? "text-destructive"

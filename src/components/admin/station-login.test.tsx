@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -43,6 +43,18 @@ describe("StationLogin", () => {
   });
 
   afterEach(cleanup);
+
+  test.each([["a1" + "😀".repeat(3), false], ["a1" + "😀".repeat(98), true], ["a".repeat(101), false]])("登录密码边界在发出挑战前验证", async (password, allowed) => {
+    render(<StationLogin />);
+    fireEvent.change(screen.getByLabelText("账号"), { target: { value: "admin@example.com" } });
+    fireEvent.change(screen.getByLabelText("密码"), { target: { value: password } });
+    await userEvent.click(screen.getByRole("button", { name: "继续" }));
+    if (allowed) expect(mockChallenge).toHaveBeenCalledWith({ account: "admin@example.com", password });
+    else {
+      expect(mockChallenge).not.toHaveBeenCalled();
+      expect(screen.getByLabelText("密码")).toHaveAttribute("aria-invalid", "true");
+    }
+  });
 
   test("完成密码与邮箱验证码两阶段登录", async () => {
     const user = userEvent.setup();

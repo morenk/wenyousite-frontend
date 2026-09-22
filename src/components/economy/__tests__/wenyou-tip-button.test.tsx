@@ -1,4 +1,4 @@
-import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -42,6 +42,24 @@ describe("WenyouTipButton", () => {
       return next as `${string}-${string}-${string}-${string}-${string}`;
     });
   }
+
+  test.each([
+    ["9223372036854775807", true],
+    ["9223372036854775808", false],
+    ["999999999999999999999999999999999999", false],
+  ])("金额边界%s保持十进制字符串且越界不发送", async (amount, allowed) => {
+    const user = userEvent.setup();
+    render(<WenyouTipButton target={{ type: "USER", id: "recipient-1" }} recipientName="作者" />);
+    await user.click(screen.getByRole("button", { name: "加油" }));
+    fireEvent.change(screen.getByLabelText("投入升数"), { target: { value: amount } });
+    await user.click(screen.getByRole("button", { name: "确认加油" }));
+    if (allowed) {
+      expect(mockMutateAsync).toHaveBeenCalledWith(expect.objectContaining({ amount }));
+    } else {
+      expect(await screen.findByText("投入不能超过 9223372036854775807 升")).toBeInTheDocument();
+      expect(mockMutateAsync).not.toHaveBeenCalled();
+    }
+  });
 
   test("提交整数升数后只确认本次加油金额", async () => {
     const user = userEvent.setup();

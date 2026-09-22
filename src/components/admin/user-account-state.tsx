@@ -11,8 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-const sanctionSchema = z.object({
-  reason: z.string().trim().min(4, "理由至少 4 个字").max(500),
+export const sanctionSchema = z.object({
+  reason: z.string().trim().min(1, "请填写理由").refine((value) => Array.from(value).length <= 500, "最多 500 个字符"),
   endsAt: z.string(),
 });
 type SanctionValues = z.infer<typeof sanctionSchema>;
