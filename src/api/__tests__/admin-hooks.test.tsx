@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { beginAdminSessionChange, getAdminCsrfToken } from "@/lib/admin-session-store";
+import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -58,6 +59,8 @@ import { queryKeys } from "@/api/query-keys";
 
 describe("admin query hooks", () => {
   beforeEach(() => {
+    cleanup();
+    beginAdminSessionChange();
     vi.clearAllMocks();
     const response = {
       data: { data: [], meta: { cursor: null, hasMore: false } },
@@ -309,15 +312,15 @@ describe("admin query hooks", () => {
 
     await act(async () => {
       await result.current.login.challenge.mutateAsync({ account: "admin@example.com", password: "password" });
-      await result.current.login.verify.mutateAsync({ challengeId: "challenge-1", code: "123456" });
+      await result.current.login.verify.mutateAsync({ challengeId: "challenge-1", code: "123456", rememberDevice: false });
       await result.current.stepUp.challenge.mutateAsync();
       await result.current.stepUp.verify.mutateAsync({ challengeId: "challenge-1", code: "123456" });
       await result.current.invite.mutateAsync("invite-token");
       await result.current.logout.mutateAsync();
     });
 
-    expect(api.setAdminCsrfToken).toHaveBeenCalledWith("csrf-1");
-    expect(api.setAdminCsrfToken).toHaveBeenLastCalledWith(null);
+    expect(getAdminCsrfToken()).toBeNull();
+    expect(api.POST).toHaveBeenCalledWith("/api/v1/admin/auth/logout", { headers: { "X-CSRF-Token": "csrf-1" } });
   });
 
   it("执行全部站务列表查询并解析统一 envelope", async () => {
@@ -361,7 +364,7 @@ describe("admin query hooks", () => {
     await waitFor(() => {
       expect(Object.values(result.current).every((query) => query.isSuccess)).toBe(true);
     });
-    expect(api.setAdminCsrfToken).toHaveBeenCalledWith("csrf");
+    expect(getAdminCsrfToken()).toBe("csrf");
   });
 
   it("执行案件、账号、用户、配置与通知的 mutation", async () => {

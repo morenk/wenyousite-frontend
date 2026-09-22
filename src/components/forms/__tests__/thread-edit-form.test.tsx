@@ -465,7 +465,7 @@ describe("ThreadEditForm", () => {
     renderForm();
 
     await user.clear(screen.getByLabelText("主题帖标题"));
-    await user.type(screen.getByLabelText("主题帖标题"), "超".repeat(101));
+    await user.paste("超".repeat(101));
     await user.click(screen.getByRole("button", { name: "保存帖子" }));
 
     expect(await screen.findByText("标题最多 100 个字符")).toBeInTheDocument();

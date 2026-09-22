@@ -170,8 +170,11 @@ test.describe("主题帖管理面板", () => {
       (response) => response.url().includes("/subthreads/reorder") &&
         response.request().method() === "PUT",
     );
+    // 新建子贴会在正文编辑器就绪后自动获焦，先等待该流程完成再开始键盘排序。
+    await expect(page.getByRole("textbox", { name: "子贴正文", exact: true })).toBeFocused();
     const handle = aside.getByRole("button", { name: "拖动子贴「设定区」排序" });
     await handle.focus();
+    await expect(handle).toBeFocused();
     await page.keyboard.press("Space");
     await expect(handle).toHaveAttribute("aria-pressed", "true");
     // aria-pressed 先于 dnd-kit 的落点测量完成；等待首次碰撞公告后再发送移动键。

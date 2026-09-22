@@ -83,4 +83,14 @@ HTTP/业务错误由 `src/api/errors.ts` 统一归一化；成功响应不得使
 
 ## 本人关系管理兼容扩展
 
-消费 Backend 已提交 `ea1ff7e2c6baeae6bf0316e87812ba37bc823d7a` 的完整契约：新增 `DELETE /users/me/followers/{id}`（`usersFollowRemoveFollower`），本人关系列表可选 `viewerIsFollowing` / `viewerIsFollowedBy` 表示两个关注方向。已通过精确 SHA 的 `contract:sync` 与 `generate:api` 生成；媒体展示夹具版本同步，不手改生成类型。Web 先等待兼容后端，再启用本人列表管理；旧端点保留，不清理兼容协议。行为见 [用户模块](profile.md#本人关注与粉丝管理)。
+关系管理兼容扩展来源于 Backend 已提交 `ea1ff7e2c6baeae6bf0316e87812ba37bc823d7a`，当前完整快照已随下方图集同步整合至 `92b030a81f8957386e324fed477bd1e46faf65ea`：新增 `DELETE /users/me/followers/{id}`（`usersFollowRemoveFollower`），本人关系列表可选 `viewerIsFollowing` / `viewerIsFollowedBy` 表示两个关注方向。已通过精确 SHA 的 `contract:sync` 与 `generate:api` 生成；媒体展示夹具版本同步，不手改生成类型。Web 先等待兼容后端，再启用本人列表管理；旧端点保留，不清理兼容协议。行为见 [用户模块](profile.md#本人关注与粉丝管理)。
+
+## 全屏图片图集契约同步
+
+固定契约同步自 Backend 已合并提交 `92b030a81f8957386e324fed477bd1e46faf65ea`。该合并提交与已完成隔离验收的功能提交 `1f6a65e15dd66f88841bc80502f726804a07fa99` 具有相同 Git tree；重新按合并 SHA 同步后，OpenAPI、媒体夹具与生成类型均无差异。来源 SHA 用于构建期契约核验，不是浏览器运行时对服务端 BUILD_SHA 的约束。新增可选认证的 `GET /image-gallery`，按子贴、楼层回复、动态正文、一级评论和评论回复五类范围，从点击锚点进行双向游标分页；来源身份、版本、内容内图片位置和媒体描述由生成 DTO 提供。排序、权限、索引未就绪及游标绑定语义见 [Backend 图集契约](https://github.com/morenk/wenyousite-backend/blob/92b030a81f8957386e324fed477bd1e46faf65ea/docs/image-gallery.md)。
+
+Web 的图集接入范围是固定 OpenAPI、配套媒体展示夹具及生成类型，不新增图集 Hook、网络调用或跨楼层查看 UI。既有线程详情、回复、动态与查看器继续使用原入口；图片出现位置夹具供新的图集消费者使用，Web 尚无该消费者，因此不复制未使用的解析夹具。完整快照同时包含后端基线已合并的关系管理端点 `DELETE /users/me/followers/{id}` 与相关能力说明，以及管理会话 DTO 的兼容更新；这不表示本次新增 Web 关系管理或管理会话界面。
+
+复现同步与验证时将 `WENYOUSITE_BACKEND_ROOT` 指向包含该提交的 Backend 仓库，并设置 `BACKEND_CONTRACT_REF=92b030a81f8957386e324fed477bd1e46faf65ea`，依次运行 `pnpm contract:sync`、`pnpm generate:api`、`pnpm contract:check` 和 `pnpm check`。所有产物来自已提交事实源，不读取后端在办修改，也不手改生成类型。上线仍遵守兼容后端先行及明确批准的合并、部署门禁。
+
+同步的管理登录验证请求含默认 `rememberDevice=false`，生成工具把有默认值的字段生成为必填。既有管理登录 Hook 因此显式发送 `false`，保持后端原来省略该字段时的短会话行为，不增加记住设备控件、不延长登录期限；原升权验证请求仍只发送挑战与验证码。消费者回归检查实际请求和登录后的旧账号导航状态清理。
