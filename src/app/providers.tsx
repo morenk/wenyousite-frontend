@@ -4,6 +4,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MotionConfig } from "framer-motion";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { ViewportToaster as Toaster } from "@/components/ui/viewport-toaster";
+import { usePathname } from "next/navigation";
+import { bindAdminClient, useAdminSessionLifecycle } from "@/api/hooks/admin/use-admin-auth";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { ConfirmProvider } from "@/components/ui/confirm-provider";
@@ -26,6 +28,9 @@ function createQueryClient() {
 
 function IdentityScopedQueries({ children }: { children: React.ReactNode }) {
   const { user, isInitialized } = useAuth();
+  const isStation = (usePathname() ?? "").startsWith("/station");
+  const [adminClient] = useState(createQueryClient);
+  useEffect(() => bindAdminClient(adminClient), [adminClient]);
   const { resolvedTheme } = useTheme();
   const [queryScope, setQueryScope] = useState(() => ({
     client: createQueryClient(),
@@ -50,7 +55,8 @@ function IdentityScopedQueries({ children }: { children: React.ReactNode }) {
   }, [isInitialized, user?.id]);
 
   return (
-    <QueryClientProvider key={queryScope.version} client={queryScope.client}>
+    <QueryClientProvider key={isStation ? "station" : queryScope.version} client={isStation ? adminClient : queryScope.client}>
+      {isStation ? <AdminSessionLifecycle /> : <DailyCheckInBootstrap />}
       {children}
       <Toaster
         theme={resolvedTheme}
@@ -65,6 +71,11 @@ function IdentityScopedQueries({ children }: { children: React.ReactNode }) {
   );
 }
 
+function AdminSessionLifecycle() {
+  useAdminSessionLifecycle();
+  return null;
+}
+
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider>
@@ -74,7 +85,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
             <ConfirmProvider>
               <TooltipProvider>
                 <MotionConfig reducedMotion="user">
-                  <DailyCheckInBootstrap />
                   <Suspense fallback={null}><CoverPlaybackNavigation /></Suspense>
                   {children}
                 </MotionConfig>

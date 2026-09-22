@@ -123,3 +123,10 @@ Web动态/评论的普通图片入口依现有[动态模块文档](../modules/mo
 - 纯前端模拟API浏览器回归两轮通过：runId `c31d59b0-0c79-44d3-ae1b-448878bb0520` 和补充安全区轮 `c8a3f19f-b1d0-42d3-a16c-6437e672e42e`；同一 `.next-e2e` build `e2e-c31d59b0-0c79-44d3-ae1b-448878bb0520`，构建代理固定不可连接的 `127.0.0.1:9`、无私有env/凭据，所有API与上传均模拟响应，其余非必要请求拒绝。原正式测试保留统一隔离fixture，未改动正式runner身份门禁。
 - 浏览器覆盖1280×800、1280×480、visualViewport.offsetTop=160；第二轮通过CDP设置顶部44px/底部34px安全区。断言提示在可视区内且高于底部面板层级、重复点击只有一条提示、chooser与上传请求不新增、附件正文保留；移除后取消/同图重选与发送失败重试继续通过。偏移+安全区截图确认提示top=204px，未被底部评论/附件面板遮住。此为桌面Chromium模拟，不等于真机软键盘验收。
 - 两轮各自的候选进程/浏览器均已关闭，监听端口释放，登记的候选运行目录删除；结果与截图保留在 `/srv/wenyousite/artifacts/comment-single-image-20260923/<runId>/`，两轮cleanup均passed。未启动数据库/Redis/API、未使用旧9/21 runtime、未发送真实业务写入。完整 `check:full`/真实写入E2E本轮未执行。
+
+
+### 合并前整合验证
+
+整合最新dev `01104bd73c3881b15f8ff8798abc0899f393f1ae` 时解决3处冲突：Provider同时保留站务会话/查询隔离和ViewportToaster；站务登录同时保留账号/密码码点边界与rememberDevice；站务文档保留两项行为说明。最终完整 `pnpm check` 通过325文件/3482测试和全部门禁。
+
+补充纯模拟API浏览器共6项通过：评论单图提示/偏移/安全区/重试，以及站务亮暗rememberDevice、安全回跳、跨标签退出、过期隐藏和业务403不退出。runId `3626d26d-01d0-4daf-bb02-a76c8f797c1a`，build `e2e-940219dd-f42d-4af8-ab3a-24f02b3e3cfb`，cleanup passed。临时harness首轮使用默认5秒断言，业务403重试场景超时；按仓库正式配置对齐15秒后同一构建全部通过，未改生产代码或放宽业务断言。两轮失败/成功及清理证据均保留在 `/srv/wenyousite/artifacts/web-capability-merge-20260923/`。未执行真实写入E2E或部署，真机键盘待验收项仍保留；日志、截图与已合并代码足以继续验收，不依赖此临时Worktree。

@@ -37,7 +37,7 @@ import { StationLogin } from "@/components/admin/station-login";
 describe("StationLogin", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSession.mockReturnValue({ data: null });
+    mockSession.mockReturnValue({ data: null, sessionStatus: "unauthenticated" });
     mockChallenge.mockResolvedValue({ challengeId: "challenge-1" });
     mockVerify.mockResolvedValue({});
   });
@@ -76,8 +76,8 @@ describe("StationLogin", () => {
     await waitFor(() => expect(mockVerify).toHaveBeenCalledWith({
       challengeId: "challenge-1",
       code: "123456",
+      rememberDevice: false,
     }));
-    expect(mockReplace).toHaveBeenCalledWith("/station/dashboard");
   });
 
   test("返回修改账号不会再次提交登录挑战，且保留已填账号", async () => {
@@ -91,6 +91,23 @@ describe("StationLogin", () => {
     expect(await screen.findByLabelText("账号")).toHaveValue("admin@example.com");
     expect(mockChallenge).toHaveBeenCalledTimes(1);
     expect(mockVerify).not.toHaveBeenCalled();
+  });
+
+  test("记住设备默认关闭，选择跨验证码和返回阶段保留，密码不保留", async () => {
+    const user = userEvent.setup(); render(<StationLogin />);
+    const option = screen.getByRole("checkbox", { name: "记住此设备（7天）" });
+    expect(option).not.toBeChecked(); await user.click(option);
+    await user.type(screen.getByLabelText("账号"), "admin@example.com");
+    await user.type(screen.getByLabelText("密码"), "password123");
+    await user.click(screen.getByRole("button", { name: "继续" }));
+    await screen.findByLabelText("6 位验证码");
+    await user.click(screen.getByRole("button", { name: "返回修改账号" }));
+    expect(screen.getByRole("checkbox")).toBeChecked(); expect(screen.getByLabelText("密码")).toHaveValue("");
+    await user.type(screen.getByLabelText("密码"), "password123");
+    await user.click(screen.getByRole("button", { name: "继续" }));
+    await user.type(await screen.findByLabelText("6 位验证码"), "123456");
+    await user.click(screen.getByRole("button", { name: "登录" }));
+    await waitFor(() => expect(mockVerify).toHaveBeenCalledWith({ challengeId: "challenge-1", code: "123456", rememberDevice: true }));
   });
 
   test("字段错误通过共享 FormField 关联到对应控件", async () => {
@@ -112,7 +129,7 @@ describe("StationLogin", () => {
   });
 
   test("已有站务会话时直接进入控制台", async () => {
-    mockSession.mockReturnValue({ data: { id: "admin-session" } });
+    mockSession.mockReturnValue({ sessionStatus: "authenticated", data: { id: "admin-session" } });
 
     const { container } = render(<StationLogin />);
 
