@@ -112,6 +112,8 @@ test("目录 URL、分页、移动、撤销和新建构成完整旅程", async (
   await expect(page.getByRole("link", { name: "雾海来信：人物设定与世界观 0", exact: true })).not.toBeVisible();
   await page.getByRole("searchbox").fill("设定 29");
   await page.getByRole("complementary", { name: "收藏目录" }).getByRole("button", { name: /设定 29/ }).click();
+  // URL 更新会排队；先确认目标目录落地，再验证刷新恢复，避免 reload 取消尚未提交的导航。
+  await expect(page).toHaveURL(/[?&]folder=folder-29(?:&|$)/);
   await page.reload();
   await expect(page.getByRole("heading", { name: "跑团资料与人物设定 29" })).toBeVisible();
   await page.getByRole("button", { name: /更多收藏操作/ }).click();

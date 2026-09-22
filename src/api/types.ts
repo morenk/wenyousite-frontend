@@ -468,6 +468,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/users/me/followers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * 移除我的粉丝
+         * @description 仅解除对方关注我的关系，保留我对对方的关注。不通知对方，对方仍可重新关注；关系不存在时幂等成功。
+         */
+        delete: operations["usersFollowRemoveFollower"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/users/following": {
         parameters: {
             query?: never;
@@ -3080,6 +3100,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/image-gallery": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 从点击图片锚点双向浏览当前阅读范围的普通图片 */
+        get: operations["galleryList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3736,6 +3773,10 @@ export interface components {
             createdAt: string;
             following?: components["schemas"]["PostAuthorResponseDto"];
             follower?: components["schemas"]["PostAuthorResponseDto"];
+            /** @description 仅本人列表返回：当前查看者是否关注该行用户；他人列表及匿名请求省略。 */
+            viewerIsFollowing?: boolean;
+            /** @description 仅本人列表返回：该行用户是否关注当前查看者；他人列表及匿名请求省略。 */
+            viewerIsFollowedBy?: boolean;
         };
         BlockedUserRecordResponseDto: {
             id: string;
@@ -6387,6 +6428,31 @@ export interface components {
             recipientTipTotal: string;
             recipientTipCount: number;
         };
+        GalleryImageDto: {
+            id: string;
+            sourceId: string;
+            sourceVersion: number;
+            imageIndex: number;
+            imageCount: number;
+            mediaId: string | null;
+            url: string;
+            display: components["schemas"]["MediaDisplayResponseDto"] | null;
+            width: number | null;
+            height: number | null;
+            animated: boolean;
+            threadId: string | null;
+            subthreadId: string | null;
+            parentPostId: string | null;
+            momentId: string | null;
+            parentCommentId: string | null;
+            floorNumber: number | null;
+        };
+        GalleryPageDto: {
+            items: components["schemas"]["GalleryImageDto"][];
+            previousCursor: string | null;
+            nextCursor: string | null;
+            anchorItemId: string | null;
+        };
         ApiPaginationMeta: {
             cursor: string | null;
             hasMore: boolean;
@@ -6536,6 +6602,9 @@ export interface components {
             data: components["schemas"]["MessageResponseDto"];
         };
         UsersFollowUnfollow200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["MessageResponseDto"];
+        };
+        UsersFollowRemoveFollower200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["MessageResponseDto"];
         };
         UsersFollowFollowing200Response: components["schemas"]["ApiSuccessEnvelope"] & {
@@ -7105,11 +7174,14 @@ export interface components {
         EconomyTipMoment201Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["TipResponseDto"];
         };
+        GalleryList200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["GalleryPageDto"];
+        };
         /**
          * @description 稳定业务错误码；名称和值来源于 ErrorCode
          * @enum {integer}
          */
-        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40007 | 40008 | 40009 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40108 | 40109 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40117 | 40118 | 40119 | 40120 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40307 | 40308 | 40309 | 40310 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40414 | 40415 | 40416 | 40417 | 40418 | 40419 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 40912 | 40913 | 40914 | 40915 | 40916 | 40917 | 40918 | 40919 | 40920 | 40921 | 40922 | 40923 | 40924 | 40925 | 42900 | 50000;
+        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40007 | 40008 | 40009 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40108 | 40109 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40117 | 40118 | 40119 | 40120 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40307 | 40308 | 40309 | 40310 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40414 | 40415 | 40416 | 40417 | 40418 | 40419 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 40912 | 40913 | 40914 | 40915 | 40916 | 40917 | 40918 | 40919 | 40920 | 40921 | 40922 | 40923 | 40926 | 40924 | 40925 | 42900 | 50000;
         ApiErrorEnvelope: {
             code: components["schemas"]["BusinessErrorCode"];
             message: string;
@@ -8700,6 +8772,63 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UsersFollowUnfollow200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    usersFollowRemoveFollower: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 已移除粉丝（含关系已不存在） */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsersFollowRemoveFollower200Response"];
+                };
+            };
+            /** @description 未登录或 Token 无效 */
+            401: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 当前账号无写入权限 */
+            403: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */
@@ -17470,6 +17599,81 @@ export interface operations {
                 };
             };
             /** @description 余额不足或幂等键复用于不同请求 */
+            409: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    galleryList: {
+        parameters: {
+            query: {
+                scope: "SUBTHREAD" | "POST_REPLIES" | "MOMENT" | "MOMENT_COMMENTS" | "MOMENT_REPLIES";
+                scopeId: string;
+                anchorId?: string;
+                anchorIndex?: number;
+                anchorVersion?: number;
+                order?: "OLDEST" | "NEWEST";
+                authorId?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GalleryList200Response"];
+                };
+            };
+            /** @description 查询参数或游标无效 */
+            400: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 阅读范围或图片不存在/不可见 */
+            404: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 图片锚点已变化，或历史索引尚未就绪，请重新加载 */
             409: {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];

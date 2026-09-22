@@ -35,11 +35,12 @@ describe("管理身份与列表状态", () => {
     await waitFor(() => expect(result.result.current.sessionStatus).toBe("unavailable"));
     expect(currentPage()).toBe(2);
   });
-  it("登录成功后清除上一个账号的访问栈", async () => {
+  it.each([false, true])("登录选择 rememberDevice=%s 原样提交并清除上一个账号访问栈", async (rememberDevice) => {
     retain();
     api.POST.mockResolvedValue({ data: { data: { csrfToken: "test", user: { id: "new-admin" }, session: {} } } });
     const result = renderHook(() => useAdminLogin(), { wrapper: Wrapper });
-    await act(async () => { await result.result.current.verify.mutateAsync({ challengeId: "challenge", code: "123456", rememberDevice: false }); });
+    await act(async () => { await result.result.current.verify.mutateAsync({ challengeId: "challenge", code: "123456", rememberDevice }); });
+    expect(api.POST).toHaveBeenCalledWith("/api/v1/admin/auth/verify", { body: { challengeId: "challenge", code: "123456", rememberDevice } });
     expect(currentPage()).toBe(1);
   });
 });

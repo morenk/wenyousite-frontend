@@ -206,6 +206,35 @@ describe("MomentComments", () => {
     vi.restoreAllMocks();
   });
 
+  test("主评论、楼中楼及回复目标的头像和用户名可进入对应用户主页", () => {
+    mockUseMomentComments.mockReturnValue({
+      data: { pages: [{ data: [{
+        ...root,
+        replies: [{
+          ...reply,
+          replyToComment: {
+            id: "target-comment",
+            author: { id: "user-3", username: "被回复者", avatar: null },
+          },
+        }],
+      }] }] },
+      isLoading: false,
+      isError: false,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      fetchNextPage: mockFetchComments,
+      refetch: mockRefetchComments,
+    });
+
+    render(<MomentComments momentId="moment-1" />);
+
+    expect(screen.getByRole("link", { name: "查看主评论者的用户主页" })).toHaveAttribute("href", "/users/user-1");
+    expect(screen.getByRole("link", { name: "主评论者" })).toHaveAttribute("href", "/users/user-1");
+    expect(screen.getByRole("link", { name: "查看回复者的用户主页" })).toHaveAttribute("href", "/users/user-2");
+    expect(screen.getByRole("link", { name: "回复者" })).toHaveAttribute("href", "/users/user-2");
+    expect(screen.getByRole("link", { name: "被回复者" })).toHaveAttribute("href", "/users/user-3");
+  });
+
   test("展示两层评论、回复任意评论并删除有权限的评论", async () => {
     render(<MomentComments momentId="moment-1" />);
     expect(screen.queryByRole("heading", { name: "评论" })).toBeNull();
