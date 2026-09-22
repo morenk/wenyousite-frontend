@@ -51,7 +51,10 @@ export function useAdminLogin() {
   });
   const verify = useMutation({
     mutationFn: async (body: components["schemas"]["AdminChallengeVerifyDto"]) => {
-      const { data, error } = await apiClient.POST("/api/v1/admin/auth/verify", { body });
+      // 此入口沿用短会话；新契约的默认字段在生成类型中为必填。
+      const { data, error } = await apiClient.POST("/api/v1/admin/auth/verify", {
+        body: { ...body, rememberDevice: false },
+      });
       if (error) throw error;
       return envelope<AdminSessionData>(data).data;
     },
