@@ -8,6 +8,9 @@ import {
   isAuthUser,
   setAuthSession,
 } from "@/lib/auth-store";
+import { getAdminCsrfToken } from "@/lib/admin-session-store";
+import { fetchAdminRequest } from "@/api/admin-fetch";
+export { setAdminCsrfToken } from "@/lib/admin-session-store";
 import { API_ERROR_CODE } from "@/api/errors";
 
 interface RefreshEnvelope {
@@ -96,6 +99,8 @@ function clearStoredAuth() {
 
 function redirectToLogin() {
   if (typeof window === "undefined") return;
+  const path = window.location.pathname;
+  if ((path === "/station" || path.startsWith("/station/")) && path !== "/station/invite") return;
   window.location.href = new URL("/login", window.location.origin).toString();
 }
 
@@ -204,12 +209,15 @@ export function createAuthenticatedFetch(fetchImpl: typeof fetch): typeof fetch 
 
   return async (input: RequestInfo | URL, init?: RequestInit) => {
     const request = new Request(input, init);
+    const schemaPath = new URL(request.url).pathname;
+    if (schemaPath.startsWith("/api/v1/admin/")) {
+      return typeof window === "undefined" ? fetchImpl(request) : fetchAdminRequest(request, fetchImpl);
+    }
     const retryRequest = request.clone();
     const userIdAtRequest = typeof window === "undefined" ? null : getKnownUserId();
     const response = await fetchImpl(request);
     if (typeof window === "undefined") return response;
 
-    const schemaPath = new URL(request.url).pathname;
     const errorCode = await readErrorCode(response);
     const authorization = request.headers.get("Authorization");
     if (
@@ -270,13 +278,6 @@ export function createAuthenticatedFetch(fetchImpl: typeof fetch): typeof fetch 
 const authenticatedFetch = createAuthenticatedFetch((input, init) =>
   globalThis.fetch(input, init));
 
-// 管理端 CSRF token 只驻留当前页面内存；管理员会话本身由 HttpOnly Cookie 保存。
-let adminCsrfToken: string | null = null;
-
-export function setAdminCsrfToken(token: string | null) {
-  adminCsrfToken = token;
-}
-
 export const apiClient = createClient<paths>({
   baseUrl: getBaseUrl(),
   fetch: authenticatedFetch,
@@ -286,12 +287,15 @@ apiClient.use({
   onRequest({ request }) {
     if (typeof window === "undefined") return;
 
-    const token = getAuthAccessToken();
+    const url = new URL(request.url);
+    const admin = url.pathname.startsWith("/api/v1/admin/");
+    const token = admin ? null : getAuthAccessToken();
+    if (admin) request.headers.delete("Authorization");
     if (token) {
       request.headers.set("Authorization", `Bearer ${token}`);
     }
     request.headers.set("X-Client-Platform", "web");
-    const url = new URL(request.url);
+    const adminCsrfToken = getAdminCsrfToken();
     if (
       adminCsrfToken &&
       url.pathname.startsWith("/api/v1/admin/") &&
