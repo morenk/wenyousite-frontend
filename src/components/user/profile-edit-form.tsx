@@ -154,12 +154,11 @@ export function ProfileEditForm() {
           <UsernameEdit currentUsername={me.username} disabled={busy} onStatusChange={setUsernameStatus} />
         </div>
         <form onSubmit={saveBio} className="mt-6 border-t border-border pt-6">
-          <FormField id="bio" label="个人简介" error={errors.bio?.message} labelAction={<span className="font-utility text-xs tabular-nums text-muted-foreground">{bio.length}/255</span>}>
+          <FormField id="bio" label="个人简介" error={errors.bio?.message} labelAction={<span className="font-utility text-xs tabular-nums text-muted-foreground">{Array.from(bio).length}/255</span>}>
             {(props) => <textarea
               {...props}
               {...bioRegistration}
               rows={3}
-              maxLength={255}
               placeholder="介绍一下自己"
               disabled={busy}
               onChange={(event) => {

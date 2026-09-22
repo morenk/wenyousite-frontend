@@ -297,7 +297,7 @@ export function DirectMessageComposer({
         ref={textareaRef}
         value={content}
         onChange={(event) => {
-          setContent(event.target.value.slice(0, 1000));
+          setContent(Array.from(event.target.value).slice(0, 1000).join(""));
           resetPendingRequest();
         }}
         onPaste={(event) => {
@@ -310,7 +310,7 @@ export function DirectMessageComposer({
           });
           if (!paste) return;
           const inserted = insertTextAtSelection(content, paste.serialized, start, end);
-          if (inserted.value.length > 1000) {
+          if (Array.from(inserted.value).length > 1000) {
             event.preventDefault();
             toast.error("消息最多 1000 个字");
             return;
@@ -328,7 +328,6 @@ export function DirectMessageComposer({
             void handleSubmit();
           }
         }}
-        maxLength={1000}
         rows={3}
         disabled={isPending}
         placeholder={placeholder}
@@ -366,7 +365,7 @@ export function DirectMessageComposer({
             onSelect={handleSticker}
           />
           <span className="text-xs text-muted-foreground">
-            {content.length}/1000
+            {Array.from(content).length}/1000
           </span>
         </div>
         <Button type="button" onClick={() => void handleSubmit()} disabled={isPending}>

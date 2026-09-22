@@ -15,9 +15,9 @@ import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 
-const credentialsSchema = z.object({
-  account: z.string().trim().min(1, "请输入管理员账号"),
-  password: z.string().min(8, "密码至少 8 位"),
+export const credentialsSchema = z.object({
+  account: z.string().trim().min(1, "请输入管理员账号").refine((value) => Array.from(value).length <= 254, "账号最多 254 个字符"),
+  password: z.string().refine((value) => Array.from(value).length >= 8, "密码至少 8 位").refine((value) => Array.from(value).length <= 100, "密码最多 100 位"),
   rememberDevice: z.boolean(),
 });
 

@@ -19,6 +19,10 @@ export function useEditorSubmission() {
   const flush = useCallback(() => {
     const content = editorRef.current?.flush() ?? null;
     if (content === null) toast.error(EDITOR_SYNC_ERROR);
+    if (content !== null && Array.from(content).length > 10000) {
+      toast.error("正文最多 10000 个字符");
+      return null;
+    }
     return content;
   }, []);
   const canClose = useCallback(() => editorRef.current?.canClose?.() ?? (flush() !== null), [flush]);

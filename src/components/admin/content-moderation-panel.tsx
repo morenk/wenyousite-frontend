@@ -31,11 +31,11 @@ import { parseAdminContentReference, type AdminContentReference } from "@/lib/ad
 import { cn } from "@/lib/utils";
 import { ContentList } from "./content-list";
 
-const formSchema = z.object({
+export const formSchema = z.object({
   action: z.enum(["hide", "restore"]),
   targetType: z.enum(["thread", "post", "moment", "moment_comment"]),
   reference: z.string().trim().min(1, "请粘贴内容链接或填写内容编号"),
-  reason: z.string().trim().min(1, "请填写处置理由").max(500, "处置理由最多 500 个字符"),
+  reason: z.string().trim().min(1, "请填写处置理由").refine((value) => Array.from(value).length <= 500, "处置理由最多 500 个字符"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -203,7 +203,6 @@ export function ContentModerationPanel() {
                   <Textarea
                     id="content-moderation-reason"
                     rows={5}
-                    maxLength={500}
                     placeholder={action === "hide" ? "说明违反的规则与隐藏依据。" : "说明复核结论与恢复依据。"}
                     aria-invalid={Boolean(form.formState.errors.reason)}
                     {...form.register("reason")}

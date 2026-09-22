@@ -7,6 +7,7 @@ import { useQueryStates } from "nuqs";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { TAG_NAME_PATTERN, TAG_NAME_MESSAGE } from "@/lib/tag-name";
 import { z } from "zod";
 import { getApiErrorMessage } from "@/api/errors";
 import { useAdminTaxonomy, useAdminTaxonomyActions } from "@/api/hooks/use-admin";
@@ -42,14 +43,14 @@ import {
 type Category = components["schemas"]["ThreadCategoryResponseDto"];
 type Tag = components["schemas"]["TagResponseDto"];
 
-const categorySchema = z.object({
+export const categorySchema = z.object({
   slug: z.string().trim().regex(
     THREAD_CATEGORY_SLUG_PATTERN,
     "使用 1–50 位字符，以大写字母开头，仅含大写字母、数字或下划线",
   ),
-  name: z.string().trim().min(1).max(50),
+  name: z.string().trim().min(1).refine((value) => Array.from(value).length <= 50, "最多 50 个字符"),
 });
-const tagSchema = z.object({ name: z.string().trim().min(1).max(20) });
+export const tagSchema = z.object({ name: z.string().trim().min(1).max(20).regex(TAG_NAME_PATTERN, TAG_NAME_MESSAGE) });
 
 function nextSortOrder(items: Array<{ sortOrder: number }>) {
   return items.reduce((highest, item) => Math.max(highest, item.sortOrder), -1) + 1;

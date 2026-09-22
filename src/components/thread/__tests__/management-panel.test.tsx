@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NuqsTestingAdapter, type UrlUpdateEvent } from "nuqs/adapters/testing";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
@@ -467,6 +467,27 @@ describe("ManagementPanel", () => {
 
     await user.click(screen.getByRole("button", { name: "mock-upload" }));
     expect(mocks.uploadImage).toHaveBeenCalledWith(expect.any(File), undefined);
+  });
+
+  test.each([[10000, true], [10001, false]])("管理正文%s码点在真实保存入口校验并保留输入", async (count, allowed) => {
+    renderPanel({ searchParams: "?view=subthreads&subthread=s3" });
+    fireEvent.change(screen.getByTestId("milkdown-editor"), { target: { value: "😀".repeat(count) } });
+    await userEvent.click(screen.getByRole("button", { name: "保存子贴" }));
+    if (allowed) await waitFor(() => expect(mocks.upsertBody).toHaveBeenCalledWith(expect.objectContaining({ content: "😀".repeat(count) })));
+    else {
+      expect(toast.error).toHaveBeenCalledWith("正文最多 10000 个字符");
+      expect(mocks.upsertBody).not.toHaveBeenCalled();
+      expect(screen.getByTestId("milkdown-editor")).toHaveValue("😀".repeat(count));
+    }
+  });
+
+  test("管理子贴标题支持100码点，原生输入不按UTF16提前截断", async () => {
+    renderPanel({ searchParams: "?view=subthreads&subthread=s3" });
+    const input = screen.getByLabelText("子贴标题");
+    expect(input).not.toHaveAttribute("maxlength");
+    fireEvent.change(input, { target: { value: "😀".repeat(100) } });
+    await userEvent.click(screen.getByRole("button", { name: "保存子贴" }));
+    await waitFor(() => expect(mocks.updateSubthread).toHaveBeenCalledWith(expect.objectContaining({ body: expect.objectContaining({ title: "😀".repeat(100) }) })));
   });
 
   test("空标题与空正文在提交前给出就地错误", async () => {

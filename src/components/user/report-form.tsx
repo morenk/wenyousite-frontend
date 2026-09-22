@@ -41,7 +41,7 @@ const targetLabels: Record<TargetType, string> = {
 
 const schema = z.object({
   reasonCode: z.enum(reasons.map(({ value }) => value) as [ReasonCode, ...ReasonCode[]]),
-  details: z.string().trim().max(1000),
+  details: z.string().trim().refine((value) => Array.from(value).length <= 1000, "补充说明最多 1000 个字"),
 }).superRefine((value, context) => {
   if (value.reasonCode === "OTHER" && !value.details) context.addIssue({ code: "custom", path: ["details"], message: "选择其他时请补充说明" });
 });

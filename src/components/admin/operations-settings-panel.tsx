@@ -15,11 +15,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-const schema = z.object({
+export const schema = z.object({
   registrationPausedUntil: z.string(),
   contentWritesPausedUntil: z.string(),
-  maintenanceTitle: z.string().max(60),
-  maintenanceContent: z.string().max(500),
+  maintenanceTitle: z.string().refine((value) => Array.from(value).length <= 60, "最多 60 个字符"),
+  maintenanceContent: z.string().refine((value) => Array.from(value).length <= 500, "最多 500 个字符"),
   maintenanceStartsAt: z.string(),
   maintenanceEndsAt: z.string(),
 });

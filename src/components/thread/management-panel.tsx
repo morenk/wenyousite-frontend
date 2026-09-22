@@ -165,7 +165,6 @@ export function ManagementPanel({
                       <Input
                         id="management-subthread-title"
                         value={controller.title}
-                        maxLength={100}
                         disabled={controller.currentStatus.busy}
                         onChange={(event) => controller.setTitle(event.target.value)}
                       />

@@ -3,7 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MotionConfig } from "framer-motion";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { Toaster } from "sonner";
+import { ViewportToaster as Toaster } from "@/components/ui/viewport-toaster";
 import { usePathname } from "next/navigation";
 import { bindAdminClient, useAdminSessionLifecycle } from "@/api/hooks/admin/use-admin-auth";
 import { Suspense, useEffect, useRef, useState } from "react";

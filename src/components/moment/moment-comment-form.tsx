@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ImagePlus, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -32,7 +32,7 @@ import type { MomentReplyTarget } from "@/components/moment/moment-comment-types
 import { useLoginRedirect } from "@/hooks/use-login-redirect";
 
 const commentSchema = z.object({
-  content: z.string().trim().max(500, "评论最多 500 个字"),
+  content: z.string().trim().refine((value) => Array.from(value).length <= 500, "评论最多 500 个字"),
 });
 type CommentForm = z.infer<typeof commentSchema>;
 
@@ -50,8 +50,14 @@ export function MomentCommentForm({
   const redirectToLogin = useLoginRedirect();
   const create = useCreateMomentComment(momentId, user?.id);
   const { confirmPublicInvite, resetPublicInviteConfirmation } = usePublicInviteConfirmation();
+  const singleImageToastId = useId();
   const contentEditorRef = useRef<InternalReferenceEditorHandle | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
+  const selectingRef = useRef(false);
+  const submittingRef = useRef(false);
+  const committingRef = useRef(false);
+  const [selecting, setSelecting] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const uploadAbortRef = useRef<AbortController | null>(null);
   const uploadedRef = useRef<{ file: File; mediaId: string } | null>(null);
   const preparedImageRef = useRef<{ source: File; file: File } | null>(null);
@@ -73,16 +79,27 @@ export function MomentCommentForm({
     resolver: zodResolver(commentSchema),
     defaultValues: { content: "" },
   });
-  const contentLength = useWatch({ control, name: "content" }).length;
-  const pending = create.isPending || uploadStage !== null;
+  const contentLength = Array.from(useWatch({ control, name: "content" })).length;
+  const pending = create.isPending || submitting || selecting || uploadStage !== null;
   const isExpanded = expanded || replyTarget !== null;
 
   useEffect(() => {
     if (isExpanded) contentEditorRef.current?.focus({ preventScroll: true });
   }, [isExpanded, replyTarget]);
 
+  useEffect(() => {
+    const input = imageInputRef.current;
+    const cancel = () => { selectingRef.current = false; setSelecting(false); };
+    input?.addEventListener("cancel", cancel);
+    return () => input?.removeEventListener("cancel", cancel);
+  }, [isExpanded, user]);
+
   useEffect(() => () => {
     uploadAbortRef.current?.abort();
+    toast.dismiss(singleImageToastId);
+  }, [singleImageToastId]);
+
+  useEffect(() => () => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
   }, [previewUrl]);
 
@@ -113,8 +130,12 @@ export function MomentCommentForm({
   }
 
   const clearMedia = () => {
+    if (committingRef.current) return;
+    toast.dismiss(singleImageToastId);
     uploadAbortRef.current?.abort();
     uploadAbortRef.current = null;
+    submittingRef.current = false;
+    setSubmitting(false);
     uploadedRef.current = null;
     preparedImageRef.current = null;
     requestRef.current = null;
@@ -127,7 +148,15 @@ export function MomentCommentForm({
   };
 
   const selectImage = (file?: File) => {
+    selectingRef.current = false;
+    setSelecting(false);
+    if (imageInputRef.current) imageInputRef.current.value = "";
+    if (submittingRef.current) return;
     if (!file) return;
+    if (image) {
+      toast.info("评论只能添加一张图片，请先移除已选图片", { id: singleImageToastId });
+      return;
+    }
     const validationError = validateMomentImageFile(file);
     if (validationError) {
       toast.error(validationError);
@@ -144,8 +173,12 @@ export function MomentCommentForm({
   };
 
   const selectSticker = (selected: UserSticker) => {
+    if (committingRef.current) return;
+    toast.dismiss(singleImageToastId);
     uploadAbortRef.current?.abort();
     uploadAbortRef.current = null;
+    submittingRef.current = false;
+    setSubmitting(false);
     uploadedRef.current = null;
     preparedImageRef.current = null;
     requestRef.current = null;
@@ -159,12 +192,17 @@ export function MomentCommentForm({
   };
 
   const submit = async ({ content }: CommentForm) => {
+    if (submittingRef.current || selectingRef.current) return;
     const normalized = content.trim();
     if (!normalized && !image && !sticker) {
       setError("content", { message: "请输入评论或选择一张图片/表情包" });
       return;
     }
-    if (!(await confirmPublicInvite(normalized))) return;
+    submittingRef.current = true;
+    setSubmitting(true);
+    const controller = new AbortController();
+    uploadAbortRef.current = controller;
+    const isCurrent = () => uploadAbortRef.current === controller && !controller.signal.aborted;
     const submittedReplyTarget = replyTarget;
     const submittedImage = image;
     const submittedSticker = sticker;
@@ -180,9 +218,9 @@ export function MomentCommentForm({
       ? requestRef.current
       : { signature, requestId: crypto.randomUUID() };
     requestRef.current = request;
-    const controller = new AbortController();
-    uploadAbortRef.current = controller;
+    let commentSubmitted = false;
     try {
+      if (!(await confirmPublicInvite(normalized)) || !isCurrent()) return;
       let mediaId: string | undefined;
       if (submittedImage) {
         if (uploadedRef.current?.file === submittedImage) {
@@ -195,19 +233,24 @@ export function MomentCommentForm({
             : null;
           if (!compressed) {
             compressed = await compressMomentImage(submittedImage, { signal: controller.signal });
+            if (!isCurrent()) return;
             preparedImageRef.current = { source: submittedImage, file: compressed };
           }
           const uploaded = await uploadImageFile(compressed, {
             signal: controller.signal,
             purpose: "MOMENT_COMMENT",
             clientNormalized: true,
-            onStage: setUploadStage,
-            onProgress: setUploadProgress,
+            onStage: (stage) => { if (isCurrent()) setUploadStage(stage); },
+            onProgress: (progress) => { if (isCurrent()) setUploadProgress(progress); },
           });
+          if (!isCurrent()) return;
           mediaId = uploaded.mediaId;
           uploadedRef.current = { file: submittedImage, mediaId };
         }
       }
+      if (!isCurrent()) return;
+      commentSubmitted = true;
+      committingRef.current = true;
       await create.mutateAsync({
         content: normalized,
         ...(mediaId ? { mediaId } : {}),
@@ -215,6 +258,8 @@ export function MomentCommentForm({
         replyToCommentId: submittedReplyTarget?.id,
         clientRequestId: request.requestId,
       });
+      if (!isCurrent()) return;
+      committingRef.current = false;
       resetPublicInviteConfirmation();
       requestRef.current = null;
       uploadedRef.current = null;
@@ -224,8 +269,9 @@ export function MomentCommentForm({
       setExpanded(false);
       toast.success(submittedReplyTarget ? "回复已发送" : "评论已发送");
     } catch (error) {
-      if (isUploadAbortError(error)) return;
-      if (isContentUnavailableError(error)) {
+      if (!isCurrent() || isUploadAbortError(error)) return;
+      committingRef.current = false;
+      if (commentSubmitted && isContentUnavailableError(error)) {
         resetPublicInviteConfirmation();
         requestRef.current = null;
         reset();
@@ -236,11 +282,16 @@ export function MomentCommentForm({
         toast.error("目标已删除或当前无法访问");
         return;
       }
-      toast.error(getApiErrorMessage(error, "发送失败，请稍后重试"));
+      toast.error(getApiErrorMessage(error, commentSubmitted ? "评论发送失败，请稍后重试" : "图片准备或上传失败，请稍后重试"));
     } finally {
-      if (uploadAbortRef.current === controller) uploadAbortRef.current = null;
-      setUploadStage(null);
-      setUploadProgress(null);
+      if (uploadAbortRef.current === controller) {
+        committingRef.current = false;
+        uploadAbortRef.current = null;
+        submittingRef.current = false;
+        setSubmitting(false);
+        setUploadStage(null);
+        setUploadProgress(null);
+      }
     }
   };
 
@@ -265,7 +316,7 @@ export function MomentCommentForm({
         <button
           type="button"
           disabled={pending}
-          onClick={() => { onCancelReply(); setExpanded(false); }}
+          onClick={() => { toast.dismiss(singleImageToastId); onCancelReply(); setExpanded(false); }}
           className="rounded-md p-1 hover:bg-muted disabled:opacity-50"
           aria-label="收起评论框"
         >
@@ -327,7 +378,16 @@ export function MomentCommentForm({
             className="hidden"
             onChange={(event) => selectImage(event.target.files?.[0])}
           />
-          <Button type="button" variant="ghost" size="sm" disabled={pending} onClick={() => imageInputRef.current?.click()}>
+          <Button type="button" variant="ghost" size="sm" disabled={pending} onClick={() => {
+            if (selectingRef.current || submittingRef.current) return;
+            if (image) {
+              toast.info("评论只能添加一张图片，请先移除已选图片", { id: singleImageToastId });
+              return;
+            }
+            selectingRef.current = true;
+            setSelecting(true);
+            imageInputRef.current?.click();
+          }}>
             <ImagePlus className="size-4" />图片
           </Button>
           <StickerPickerPopover disabled={pending} label="表情包" onSelect={selectSticker} />
@@ -338,7 +398,7 @@ export function MomentCommentForm({
             className="text-muted-foreground"
           />
           <span className="hidden text-xs text-muted-foreground sm:inline">
-            限 1 张图片或表情 · {contentLength}/500
+            {contentLength}/500
           </span>
         </div>
         <Button

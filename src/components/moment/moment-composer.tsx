@@ -40,8 +40,8 @@ import {
 import { cn } from "@/lib/utils";
 
 const schema = z.object({
-  title: z.string().trim().min(2, "标题至少 2 个字").max(40, "标题最多 40 个字"),
-  content: z.string().max(1000, "正文最多 1000 个字"),
+  title: z.string().trim().refine((value) => Array.from(value).length >= 2, "标题至少 2 个字").refine((value) => Array.from(value).length <= 40, "标题最多 40 个字"),
+  content: z.string().refine((value) => Array.from(value).length <= 1000, "正文最多 1000 个字"),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -356,7 +356,7 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
           <div data-slot="moment-composer-scroll" className="moment-composer-scroll min-h-0 space-y-5 overflow-y-auto overscroll-contain px-6 pb-5">
             <div className="space-y-1.5">
               <Label htmlFor="moment-title">标题</Label>
-              <Input id="moment-title" placeholder="写下这条动态想说的事" maxLength={40} aria-invalid={!!errors.title} {...register("title")} />
+              <Input id="moment-title" placeholder="写下这条动态想说的事" aria-invalid={!!errors.title} {...register("title")} />
               <div className="flex justify-between text-xs"><span className="text-destructive">{errors.title?.message}</span><span className="font-utility text-muted-foreground">{Array.from(title).length}/40</span></div>
             </div>
             <div className="space-y-1.5">

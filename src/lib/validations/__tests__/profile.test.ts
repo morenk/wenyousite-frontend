@@ -4,6 +4,10 @@ import { describe, test, expect } from "vitest";
 import { profileSchema, usernameSchema } from "@/lib/validations/profile";
 
 describe("profileSchema（主表单，不含 username）", () => {
+  test.each([[255, true], [256, false]])("简介%s个emoji遵守后端码点边界", (count, allowed) => {
+    expect(profileSchema.safeParse({ bio: "😀".repeat(count), showRecentReplies: true, showPlayerBadges: true, showBookmarks: true }).success).toBe(allowed);
+  });
+
   test("合法输入通过（bio 可选）", () => {
     const result = profileSchema.safeParse({
       bio: "你好",

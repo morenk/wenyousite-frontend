@@ -46,9 +46,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { WenyouTime } from "@/components/shared/wenyou-time";
 import { adminAnnouncementFilterParsers, adminAnnouncementUrlKeys } from "@/lib/admin-url-state";
 
-const schema = z.object({
-  title: z.string().trim().min(1).max(60),
-  content: z.string().trim().min(1).max(1000),
+export const schema = z.object({
+  title: z.string().trim().min(1).refine((value) => Array.from(value).length <= 60, "最多 60 个字符"),
+  content: z.string().trim().min(1).refine((value) => Array.from(value).length <= 1000, "最多 1000 个字符"),
   scheduledAt: z.string().min(1, "请选择发送时间"),
   audience: z.enum(["ALL", "USERS"]),
   destinationId: z.string(),

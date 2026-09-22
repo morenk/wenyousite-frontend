@@ -103,7 +103,7 @@ const targetOptions = Object.entries(targetLabels).map(([value, label]) => ({
 }));
 const emptyCases: CaseSummary[] = [];
 
-const resolutionSchema = z
+export const resolutionSchema = z
   .object({
     outcome: z.enum(["RESOLVED", "DISMISSED"]),
     action: z.enum(["HIDE_CONTENT", "SUSPEND_USER", "BAN_USER"]).optional(),
@@ -119,8 +119,8 @@ const resolutionSchema = z
       "ILLEGAL_CONTENT",
       "OTHER",
     ]),
-    publicExplanation: z.string().trim().min(4, "公开说明至少 4 个字").max(500),
-    internalNote: z.string().trim().max(1000).optional(),
+    publicExplanation: z.string().trim().min(1, "请填写公开说明").refine((value) => Array.from(value).length <= 500, "最多 500 个字符"),
+    internalNote: z.string().trim().refine((value) => Array.from(value).length <= 1000, "最多 1000 个字符").optional(),
     suspendUntil: z.string().optional(),
   })
   .superRefine((value, context) => {
