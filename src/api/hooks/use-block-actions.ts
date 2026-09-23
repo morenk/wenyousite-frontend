@@ -1,33 +1,7 @@
-/** 拉黑/取消拉黑 API hook（POST/DELETE /users/me/block/:id，无 body） */
-
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiClient } from "@/api/client";
-import { resetBlockRelatedQueries } from "@/api/content-access-cache";
+/** 拉黑与关注共用同一查看者/目标的写入锁及结果核实。 */
+import { useFollowActions } from "./use-follow-actions";
 
 export function useBlockActions(userId: string) {
-  const queryClient = useQueryClient();
-
-  const invalidate = () => resetBlockRelatedQueries(queryClient);
-
-  const block = useMutation({
-    mutationFn: async () => {
-      const { error } = await apiClient.POST("/api/v1/users/me/block/{id}", {
-        params: { path: { id: userId } },
-      });
-      if (error) throw error;
-    },
-    onSuccess: invalidate,
-  });
-
-  const unblock = useMutation({
-    mutationFn: async () => {
-      const { error } = await apiClient.DELETE("/api/v1/users/me/block/{id}", {
-        params: { path: { id: userId } },
-      });
-      if (error) throw error;
-    },
-    onSuccess: invalidate,
-  });
-
-  return { block, unblock };
+  const { block, unblock, reconcile, isPending, needsReconciliation } = useFollowActions(userId);
+  return { block, unblock, reconcile, isPending, needsReconciliation };
 }

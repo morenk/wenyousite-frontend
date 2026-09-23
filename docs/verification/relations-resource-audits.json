@@ -1,0 +1,48 @@
+[
+  {
+    "runId": "e2e_5fa830497a4e1185494e2716",
+    "verifiedAt": "2026-09-22T22:05:45.875850+00:00",
+    "registeredRoot": "/tmp/wenyousite-e2e-p4oiol",
+    "rootAbsent": true,
+    "supervisorAbsent": true,
+    "registeredPorts": [
+      40987,
+      34397,
+      40385
+    ],
+    "registeredPortsAbsent": true,
+    "registeredRootProcessesAbsent": true,
+    "originalGateStatus": "failed",
+    "originalCleanupVerified": false,
+    "note": "Post-run read-only resource audit; does not overwrite original failed report or claim the original gate passed."
+  },
+  {
+    "runId": "e2e_5887b7b25d527f4602de067c",
+    "originalGateStatus": "failed",
+    "originalCleanupVerified": false,
+    "rootAbsent": true,
+    "supervisorAbsent": true,
+    "registeredPortsAbsent": true,
+    "registeredRootProcessesAbsent": true
+  },
+  {
+    "runId": "e2e_a922e0cacc105369f3b25fd1",
+    "gateStatus": "passed",
+    "cleanupVerified": true,
+    "resourcesRemoved": true,
+    "rootAbsent": true,
+    "supervisorAbsent": true,
+    "registeredPortsAbsent": true,
+    "registeredRootProcessesAbsent": true
+  },
+  {
+    "runId": "e2e_d64bfac1134b74fe15215638",
+    "gateStatus": "passed",
+    "cleanupVerified": true,
+    "resourcesRemoved": true,
+    "rootAbsent": true,
+    "supervisorAbsent": true,
+    "registeredPortsAbsent": true,
+    "registeredRootProcessesAbsent": true
+  }
+]

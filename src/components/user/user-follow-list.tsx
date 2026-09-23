@@ -1,10 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Menu } from "@base-ui/react/menu";
+import { Ellipsis } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useUserFollowList, type FollowListKind, type FollowUser } from "@/api/hooks/use-user-follow-list";
 import { useFollowActions } from "@/api/hooks/use-follow-actions";
+import { useApiMeta } from "@/api/hooks/use-api-meta";
 import { useViewerScope } from "@/api/use-viewer-scope";
+import { getAuthSnapshot } from "@/lib/auth-store";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { EmptyState } from "@/components/shared/empty-state";
 import { LoadError } from "@/components/shared/load-error";
@@ -14,79 +19,139 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogBackdrop, DialogDescription, DialogFooter, DialogPopup, DialogPortal, DialogTitle, DialogViewport } from "@/components/ui/dialog";
 import { getApiErrorMessage } from "@/api/errors";
 
-function FollowRow({ user, kind, isOwner, onRemoveIntent }: {
+const menuItemClassName = "flex min-h-12 w-full cursor-default items-center rounded-lg px-3 py-2 text-sm outline-none select-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:text-muted-foreground";
+const relationStatusClassName = "h-12 min-w-24 bg-muted px-3 text-muted-foreground hover:bg-accent aria-expanded:bg-muted aria-expanded:text-foreground";
+type RowAction = "follow" | "unfollow" | "removeFollower" | "block" | "reconcile";
+
+function FollowRow({ user, kind, isOwner, viewer, canMessage, onRemoveIntent }: {
   user: FollowUser;
   kind: FollowListKind;
   isOwner: boolean;
+  viewer: string;
+  canMessage: boolean;
   onRemoveIntent: () => void;
 }) {
-  const { follow, unfollow, removeFollower, reconcile, isPending, needsReconciliation } = useFollowActions(user.id);
-  const [confirming, setConfirming] = useState(false);
+  const actions = useFollowActions(user.id);
+  const { isPending, needsReconciliation } = actions;
+  const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [confirming, setConfirming] = useState<"removeFollower" | "block" | null>(null);
   const [error, setError] = useState<string>();
   const [submitting, setSubmitting] = useState(false);
+  const [focusRequest, setFocusRequest] = useState(0);
+  const focused = useRef(0);
   const locked = useRef(false);
+  const alive = useRef(true);
+  const afterClose = useRef<(() => void) | null>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
+  const returnFocus = useRef<HTMLElement | null>(null);
+  const controlsRef = useRef<HTMLDivElement>(null);
   const pending = submitting || isPending;
   const known = typeof user.viewerIsFollowing === "boolean" && typeof user.viewerIsFollowedBy === "boolean";
   const mutual = user.viewerIsFollowing && user.viewerIsFollowedBy;
+  // 目标权限失效后彻底丢弃旧交互，稍后再次关注不会复活旧确认。
+  if ((menuOpen || confirming) && (!isOwner || !known || (confirming === "removeFollower" && !user.viewerIsFollowedBy))) {
+    setMenuOpen(false);
+    setConfirming(null);
+  }
+  const current = () => alive.current && isOwner && getAuthSnapshot().user?.id === viewer;
+  useEffect(() => {
+    alive.current = true;
+    return () => { alive.current = false; afterClose.current = null; };
+  }, []);
+  useEffect(() => {
+    if (!focusRequest || focused.current === focusRequest || pending || menuOpen || confirming) return;
+    const frame = requestAnimationFrame(() => {
+      if (!alive.current || !isOwner || getAuthSnapshot().user?.id !== viewer) return;
+      focused.current = focusRequest;
+      controlsRef.current?.querySelector<HTMLButtonElement>("button:not(:disabled)")?.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [focusRequest, pending, menuOpen, confirming, isOwner, viewer]);
+  const canConfirm = isOwner && known && (confirming !== "removeFollower" || user.viewerIsFollowedBy);
 
-  async function act(action: "follow" | "unfollow" | "removeFollower" | "reconcile") {
-    if (locked.current) return;
+  async function act(action: RowAction) {
+    if (locked.current || !current()) return;
     locked.current = true;
     setSubmitting(true);
     setError(undefined);
-    if (action === "removeFollower" || (action === "unfollow" && kind === "following")) onRemoveIntent();
+    if (action === "removeFollower" || action === "block" || (action === "unfollow" && kind === "following")) onRemoveIntent();
     try {
-      await ({ follow, unfollow, removeFollower, reconcile })[action].mutateAsync();
-      setConfirming(false);
+      await actions[action].mutateAsync();
+      if (current()) setConfirming(null);
     } catch (error) {
-      setError(getApiErrorMessage(error, "操作失败，请稍后重试"));
+      if (current()) setError(getApiErrorMessage(error, "操作失败，请稍后重试"));
     } finally {
       locked.current = false;
-      setSubmitting(false);
+      if (alive.current) {
+        setSubmitting(false);
+        if (!confirming && current()) setFocusRequest((value) => value + 1);
+      }
     }
   }
+  function select(action: () => void) {
+    afterClose.current = action;
+    setMenuOpen(false);
+  }
+  const status = mutual ? "互相关注" : "已关注";
+  const primary = user.viewerIsFollowedBy ? "回关" : "关注";
+  const captureFocus = (event: React.FocusEvent<HTMLElement>) => { returnFocus.current = event.currentTarget; };
 
-  return <li className="flex w-full flex-wrap items-center gap-3 py-4">
-    <Link href={`/users/${user.id}`} className="flex min-w-0 flex-1 basis-48 items-center gap-3 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30">
-      <UserAvatar name={user.username} src={user.avatar} display={user.avatarDisplay} className="h-10 w-10 shrink-0" />
+  return <li className="relative flex w-full min-h-18 items-center gap-3 py-3 after:absolute after:right-0 after:bottom-0 after:left-12 after:h-px after:bg-border last:after:hidden">
+    <Link href={`/users/${user.id}`} className="flex min-w-0 flex-1 items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30">
+      <UserAvatar name={user.username} src={user.avatar} display={user.avatarDisplay} className="size-9 shrink-0" textClassName="text-sm" />
       <span className="min-w-0">
-        <span className="block break-words text-sm font-medium text-foreground">{user.username}</span>
-        <span className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          <LevelBadge level={user.level} />
-          {isOwner && known && (mutual || kind === "following") ? <span>{mutual ? "互相关注" : "已关注"}</span> : null}
-        </span>
+        <span className="block truncate text-sm font-medium text-foreground" title={user.username}>{user.username}</span>
+        {isOwner && error ? <span role="alert" className="block truncate text-xs text-destructive" title={error}>{error}</span>
+          : <span className="mt-1 flex items-center text-xs text-muted-foreground"><LevelBadge level={user.level} /></span>}
       </span>
     </Link>
-    {isOwner ? known ? <div className="ml-auto flex flex-wrap justify-end gap-2" aria-label={`${user.username}的关系操作`}>
-      <Button type="button" variant="outline" className="min-w-28" disabled={pending || needsReconciliation}
-        pending={follow.isPending || unfollow.isPending}
-        aria-label={`${user.viewerIsFollowing ? "取消关注" : "回关"}：${user.username}`}
-        onClick={() => void act(user.viewerIsFollowing ? "unfollow" : "follow")}>
-        {user.viewerIsFollowing ? "取消关注" : "回关"}
-      </Button>
-      {kind === "followers" ? <Button ref={triggerRef} type="button" variant="outline" className="min-w-28"
-        disabled={pending || needsReconciliation} aria-label={`移除粉丝：${user.username}`}
-        onClick={() => { setError(undefined); setConfirming(true); }}>移除粉丝</Button> : null}
-    </div> : <span className="text-sm text-muted-foreground">关系状态暂不可用</span> : null}
-    {isOwner && needsReconciliation && !confirming ? <div className="flex w-full items-center justify-end gap-2">
-      <span className="text-sm text-muted-foreground">关系尚未核实</span>
-      <Button type="button" variant="outline" pending={pending} onClick={() => void act("reconcile")}>刷新核实</Button>
-    </div> : null}
-    {isOwner && error && !confirming ? <p role="alert" className="w-full text-sm text-destructive">{error}</p> : null}
-    <Dialog open={isOwner && confirming} disablePointerDismissal={pending} onOpenChange={(open) => { if (!pending) setConfirming(open); }}>
+    {isOwner ? <Menu.Root open={menuOpen && isOwner && known && !pending && !needsReconciliation}
+      onOpenChange={(open) => { if (!open || (!pending && !needsReconciliation && current())) setMenuOpen(open); }}
+      onOpenChangeComplete={(open) => {
+        if (open) return;
+        const action = afterClose.current;
+        afterClose.current = null;
+        if (current() && known) action?.();
+      }}>
+      <div ref={controlsRef} className="flex shrink-0 items-center gap-1">
+        {needsReconciliation ? <Button type="button" variant="secondary" className={relationStatusClassName} pending={pending}
+          aria-label={`刷新核实：${user.username}`} onClick={() => void act("reconcile")}>刷新核实</Button>
+          : !known ? <Button type="button" variant="secondary" className={relationStatusClassName} disabled>状态未知</Button>
+            : user.viewerIsFollowing ? <Menu.Trigger onFocus={captureFocus} disabled={pending}
+              render={<Button type="button" variant="secondary" className={relationStatusClassName} pending={pending} aria-label={`${status}：${user.username}`} />}>
+              {status}
+            </Menu.Trigger>
+              : <Button type="button" variant="default" className="h-12 min-w-24 px-3" pending={pending}
+                aria-label={`${primary}：${user.username}`} onClick={() => void act("follow")}>{primary}</Button>}
+        <Menu.Trigger onFocus={captureFocus} disabled={pending || needsReconciliation || !known}
+          render={<Button type="button" variant="ghost" size="icon" className="size-12" aria-label={`更多操作：${user.username}`} />}>
+          <Ellipsis className="size-4" aria-hidden="true" />
+        </Menu.Trigger>
+      </div>
+      <Menu.Portal><Menu.Positioner anchor={controlsRef} side="bottom" align="end" sideOffset={4} className="z-[var(--layer-popup)]">
+        <Menu.Popup aria-label={`${user.username}的操作`} finalFocus={() => afterClose.current ? false : returnFocus.current}
+          className="w-52 rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-popover outline-none">
+          {canMessage ? <Menu.Item className={menuItemClassName} onClick={() => select(() => router.push(`/messages/new/${user.id}`))}>私聊</Menu.Item> : null}
+          {user.viewerIsFollowing ? <Menu.Item className={menuItemClassName} onClick={() => select(() => void act("unfollow"))}>取消关注</Menu.Item> : null}
+          {user.viewerIsFollowedBy ? <Menu.Item className={menuItemClassName} onClick={() => select(() => { setError(undefined); setConfirming("removeFollower"); })}>移除粉丝</Menu.Item> : null}
+          <Menu.Item className={menuItemClassName} onClick={() => select(() => { setError(undefined); setConfirming("block"); })}>拉黑</Menu.Item>
+          <Menu.Item className={menuItemClassName} onClick={() => select(() => router.push(`/report?targetType=USER&targetId=${encodeURIComponent(user.id)}`))}>举报</Menu.Item>
+        </Menu.Popup>
+      </Menu.Positioner></Menu.Portal>
+    </Menu.Root> : null}
+    <Dialog open={!!confirming && !!canConfirm} disablePointerDismissal={pending} onOpenChange={(open) => { if (!open && !pending) setConfirming(null); }}>
       <DialogPortal><DialogBackdrop /><DialogViewport>
-        <DialogPopup className="max-w-sm space-y-4 p-6" initialFocus={cancelRef} finalFocus={triggerRef}>
-          <DialogTitle className="break-words">移除粉丝「{user.username}」？</DialogTitle>
-          <DialogDescription>移除后，对方将不再关注你。不会通知对方，对方仍可重新关注你。</DialogDescription>
+        <DialogPopup className="max-w-sm space-y-4 p-6" initialFocus={cancelRef} finalFocus={returnFocus}>
+          <DialogTitle className="break-words">{confirming === "block" ? `拉黑「${user.username}」？` : `移除粉丝「${user.username}」？`}</DialogTitle>
+          <DialogDescription>{confirming === "block" ? "拉黑后，双方内容和私聊将互相隐藏，历史记录与关注关系保留。" : "移除后，对方将不再关注你。不会通知对方，对方仍可重新关注你。"}</DialogDescription>
           {error ? <p role="alert" className="text-sm text-destructive">{error}</p> : null}
           <DialogFooter>
-            <Button ref={cancelRef} type="button" variant="outline" className="min-w-28" disabled={pending} onClick={() => setConfirming(false)}>取消</Button>
+            <Button ref={cancelRef} type="button" variant="outline" className="h-12 min-w-24" disabled={pending} onClick={() => setConfirming(null)}>取消</Button>
             {needsReconciliation
-              ? <Button type="button" variant="outline" pending={pending} onClick={() => void act("reconcile")}>刷新核实</Button>
-              : <Button type="button" variant="destructive" className="min-w-28" pending={pending} pendingLabel="移除中"
-                onClick={() => void act("removeFollower")}>移除粉丝</Button>}
+              ? <Button type="button" variant="secondary" className="h-12" pending={pending} onClick={() => void act("reconcile")}>刷新核实</Button>
+              : <Button type="button" variant="destructive" className="h-12 min-w-24" pending={pending} pendingLabel={confirming === "block" ? "拉黑中" : "移除中"}
+                onClick={() => { if (confirming && canConfirm) void act(confirming); }}>{confirming === "block" ? "拉黑" : "移除粉丝"}</Button>}
           </DialogFooter>
         </DialogPopup>
       </DialogViewport></DialogPortal>
@@ -100,6 +165,7 @@ export function UserFollowList({ userId, kind, onReady }: {
   onReady?: () => void;
 }) {
   const viewerScope = useViewerScope();
+  const { data: meta } = useApiMeta();
   const isOwner = viewerScope !== "anonymous" && viewerScope === userId;
   const { data: users, isLoading, isError, refetch } = useUserFollowList(userId, kind);
   const listRef = useRef<HTMLUListElement>(null);
@@ -125,8 +191,8 @@ export function UserFollowList({ userId, kind, onReady }: {
     {isLoading ? <LoadingState label="" className="min-h-0 py-16" />
       : isError && !users ? <LoadError title="加载失败" onRetry={() => void refetch()} className="py-16" />
         : !users?.length ? <EmptyState title={kind === "following" ? "还没有关注任何人" : "还没有粉丝"} />
-          : <ul ref={listRef} className="w-full divide-y divide-border">
-            {users.map((user, index) => <FollowRow key={`${viewerScope}:${user.id}`} user={user} kind={kind} isOwner={isOwner}
+          : <ul ref={listRef} className="w-full">
+            {users.map((user, index) => <FollowRow key={`${viewerScope}:${user.id}`} user={user} kind={kind} isOwner={isOwner} viewer={viewerScope} canMessage={meta?.capabilities?.directMessages === true}
               onRemoveIntent={() => { pendingFocus.current = { id: user.id, index, viewer: viewerScope }; }} />)}
           </ul>}
   </section>;

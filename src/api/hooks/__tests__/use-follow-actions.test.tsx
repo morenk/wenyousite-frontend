@@ -81,7 +81,7 @@ describe("关系写入", () => {
     mockPOST.mockRejectedValue(new TypeError("network"));
     mockGET.mockResolvedValue({ data: { data: [] } });
     const { result } = setup();
-    await act(async () => { await expect(result.current.follow.mutateAsync()).rejects.toThrow("已刷新最新关系"); });
+    await act(async () => { await expect(result.current.follow.mutateAsync()).rejects.toThrow("请刷新核实"); });
     expect(mockPOST).toHaveBeenCalledOnce();
   });
   test("退出再登录同账号时旧响应不修补新会话缓存", async () => {
@@ -133,4 +133,42 @@ describe("关系写入", () => {
     await staleRead;
     expect(client.getQueryData(key("following"))).toEqual([]);
   });
+});
+
+
+test("拉黑与关注跨挂载共享锁", async () => {
+  let release!: (value: unknown) => void;
+  mockPOST.mockImplementation(() => new Promise((resolve) => { release = resolve; }));
+  const { result, client } = setup();
+  let pending!: Promise<void>;
+  act(() => { pending = result.current.block.mutateAsync(); });
+  await waitFor(() => expect(mockPOST).toHaveBeenCalledOnce());
+  function Wrapper({ children }: { children: React.ReactNode }) { return <QueryClientProvider client={client}>{children}</QueryClientProvider>; }
+  const second = renderHook(() => useFollowActions("u2"), { wrapper: Wrapper });
+  expect(second.result.current.isPending).toBe(true);
+  await act(async () => { await expect(second.result.current.unfollow.mutateAsync()).rejects.toThrow("正在更新"); });
+  expect(mockDELETE).not.toHaveBeenCalled();
+  await act(async () => { release(ok); await pending; });
+});
+test("拉黑超时必须读取isBlocked，列表消失不代表成功且reset不释放锁", async () => {
+  mockPOST.mockRejectedValue(new TypeError("timeout"));
+  mockGET.mockResolvedValue({ data: { data: { isBlocked: false } } });
+  const { result, client } = setup();
+  await act(async () => { await expect(result.current.block.mutateAsync()).rejects.toThrow("请刷新核实"); });
+  expect(mockGET).toHaveBeenCalledWith("/api/v1/users/{id}", expect.objectContaining({ params: { path: { id: "u2" } } }));
+  await act(() => client.resetQueries());
+  expect(result.current.needsReconciliation).toBe(true);
+  await act(async () => { await expect(result.current.block.mutateAsync()).rejects.toThrow("请先刷新核实"); });
+  expect(mockPOST).toHaveBeenCalledOnce();
+  await act(() => result.current.reconcile.mutateAsync());
+  expect(result.current.needsReconciliation).toBe(false);
+  expect(mockPOST).toHaveBeenCalledOnce();
+});
+test("拉黑超时且isBlocked=true时读回确认成功", async () => {
+  mockPOST.mockRejectedValue(new TypeError("timeout"));
+  mockGET.mockResolvedValue({ data: { data: { isBlocked: true } } });
+  const { result } = setup();
+  await act(() => result.current.block.mutateAsync());
+  expect(result.current.needsReconciliation).toBe(false);
+  expect(mockPOST).toHaveBeenCalledOnce();
 });
