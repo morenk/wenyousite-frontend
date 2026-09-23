@@ -81,6 +81,10 @@ HTTP/业务错误由 `src/api/errors.ts` 统一归一化；成功响应不得使
 
 `display` / `avatarDisplay` 为可选可空的完整WebP描述，`mediaDisplays` 为已授权正文的来源映射；使用同一生成DTO，不维护运行时第二套响应快照。正常同步及严格来源检查包含 `media-display-v1-fixtures.json`。展示资源不改写来源URL、媒体ID、草稿内容或收藏引用；旧响应缺字段仍可兼容，加载新display失败不能隐式退回昂贵GIF。
 
+## 本人关系管理兼容扩展
+
+关系管理兼容扩展来源于 Backend 已提交 `ea1ff7e2c6baeae6bf0316e87812ba37bc823d7a`，当前完整快照已随下方图集同步整合至 `92b030a81f8957386e324fed477bd1e46faf65ea`：新增 `DELETE /users/me/followers/{id}`（`usersFollowRemoveFollower`），本人关系列表可选 `viewerIsFollowing` / `viewerIsFollowedBy` 表示两个关注方向。已通过精确 SHA 的 `contract:sync` 与 `generate:api` 生成；媒体展示夹具版本同步，不手改生成类型。Web 先等待兼容后端，再启用本人列表管理；旧端点保留，不清理兼容协议。行为见 [用户模块](profile.md#本人关注与粉丝管理)。
+
 ## 全屏图片图集契约同步
 
 固定契约同步自 Backend 已合并提交 `92b030a81f8957386e324fed477bd1e46faf65ea`。该合并提交与已完成隔离验收的功能提交 `1f6a65e15dd66f88841bc80502f726804a07fa99` 具有相同 Git tree；重新按合并 SHA 同步后，OpenAPI、媒体夹具与生成类型均无差异。来源 SHA 用于构建期契约核验，不是浏览器运行时对服务端 BUILD_SHA 的约束。新增可选认证的 `GET /image-gallery`，按子贴、楼层回复、动态正文、一级评论和评论回复五类范围，从点击锚点进行双向游标分页；来源身份、版本、内容内图片位置和媒体描述由生成 DTO 提供。排序、权限、索引未就绪及游标绑定语义见 [Backend 图集契约](https://github.com/morenk/wenyousite-backend/blob/92b030a81f8957386e324fed477bd1e46faf65ea/docs/image-gallery.md)。

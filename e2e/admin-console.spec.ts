@@ -1,4 +1,6 @@
 import { expect, type Page } from "@playwright/test";
+import { writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { test } from "./fixtures/typography";
 
 const now = "2026-09-20T08:00:00.000Z";
@@ -65,14 +67,32 @@ test.describe("综合管理后台", () => {
     await page.goto("/station/content?authorId=author-1");
     await page.getByRole("button", { name: "下一页", exact: true }).click();
     await expect(page.getByText("第 2 页", { exact: false })).toBeVisible();
-    await page.evaluate(() => window.scrollTo(0, 160));
-    const scroll = await page.evaluate(() => window.scrollY);
-    await page.getByRole("link", { name: "中文主题 21", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "内容详情" })).toBeVisible();
-    await page.getByRole("link", { name: "返回内容列表" }).click();
-    await expect(page.getByText("第 2 页", { exact: false })).toBeVisible();
-    await expect(page.getByRole("textbox", { name: "作者编号", exact: true })).toHaveValue("author-1");
-    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(scroll);
+    const positions: { requested: number; beforeClick: number; leaving: number; restored: number }[] = [];
+    for (const requested of [80, 120, 160]) {
+      const target = page.getByRole("link", { name: "中文主题 21", exact: true });
+      await expect(target).toBeVisible();
+      // 与产品在同一次真实点击中取值，避免把点击前的布局/自动滚动快照当作离开位置。
+      await target.evaluate((link) => {
+        delete document.documentElement.dataset.testAdminLeavingScroll;
+        link.addEventListener("click", () => {
+          document.documentElement.dataset.testAdminLeavingScroll = String(window.scrollY);
+        }, { capture: true, once: true });
+      });
+      await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), requested);
+      await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+      const beforeClick = await page.evaluate(() => window.scrollY);
+      await target.click();
+      await expect(page.getByRole("heading", { name: "内容详情" })).toBeVisible();
+      const leaving = Number(await page.locator("html").getAttribute("data-test-admin-leaving-scroll"));
+      expect(leaving).toBeGreaterThan(0);
+      await page.getByRole("link", { name: "返回内容列表" }).click();
+      await expect(page.getByText("第 2 页", { exact: false })).toBeVisible();
+      await expect(target).toBeVisible();
+      await expect(page.getByRole("textbox", { name: "作者编号", exact: true })).toHaveValue("author-1");
+      await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(leaving);
+      positions.push({ requested, beforeClick, leaving, restored: await page.evaluate(() => window.scrollY) });
+      writeFileSync(join(process.cwd(), ".e2e-results", "admin-scroll-positions.json"), JSON.stringify(positions), { mode: 0o600 });
+    }
     await page.getByRole("textbox", { name: "关键词", exact: true }).fill("不同筛选");
     await expect(page.getByText("第 1 页", { exact: false })).toBeVisible();
     await page.getByRole("textbox", { name: "关键词", exact: true }).clear();

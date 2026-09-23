@@ -1,10 +1,13 @@
 /** useBlockActions hook 测试：拉黑/取消拉黑 */
 
-import { describe, test, expect, vi } from "vitest";
+import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useBlockActions } from "@/api/hooks/use-block-actions";
 import React from "react";
+import { setAuthSession, clearAuthSession } from "@/lib/auth-store";
+beforeEach(() => { setAuthSession({ id: "u1", username: "本人", email: "me@example.test", role: "USER", avatar: null }, "test-token"); });
+afterEach(() => clearAuthSession());
 
 const { mockPOST, mockDELETE } = vi.hoisted(() => ({
   mockPOST: vi.fn(),
@@ -37,7 +40,7 @@ describe("useBlockActions", () => {
     result.current.block.mutate();
     await waitFor(() => expect(result.current.block.isSuccess).toBe(true));
     expect(mockPOST).toHaveBeenCalledWith("/api/v1/users/me/block/{id}", {
-      params: { path: { id: "u2" } },
+      params: { path: { id: "u2" } }, signal: expect.any(AbortSignal),
     });
   });
 
@@ -70,7 +73,7 @@ describe("useBlockActions", () => {
     result.current.unblock.mutate();
     await waitFor(() => expect(result.current.unblock.isSuccess).toBe(true));
     expect(mockDELETE).toHaveBeenCalledWith("/api/v1/users/me/block/{id}", {
-      params: { path: { id: "u2" } },
+      params: { path: { id: "u2" } }, signal: expect.any(AbortSignal),
     });
   });
 });

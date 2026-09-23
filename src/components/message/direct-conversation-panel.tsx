@@ -16,6 +16,7 @@ import { DirectMessageComposer } from "@/components/message/direct-message-compo
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { WenyouTime } from "@/components/shared/wenyou-time";
 import { Button } from "@/components/ui/button";
+import { useRelationshipActionScope } from "@/lib/use-relationship-action-scope";
 import { useConfirm } from "@/components/ui/confirm-provider";
 import {
   shouldShowDirectMessageTime,
@@ -26,9 +27,17 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
   const confirmAction = useConfirm();
   const conversationQuery = useDirectConversation(conversationId, user?.id);
   const history = useDirectMessages(conversationId, user?.id);
-  const otherUserId = conversationQuery.data?.otherUser.id ?? "";
+  const targetScope = JSON.stringify([user?.id, conversationId]);
+  const observedTarget = conversationQuery.data?.otherUser.id;
+  const [knownTarget, setKnownTarget] = useState({ scope: targetScope, id: observedTarget ?? "" });
+  if (knownTarget.scope !== targetScope || (observedTarget && knownTarget.id !== observedTarget)) {
+    setKnownTarget({ scope: targetScope, id: observedTarget ?? "" });
+  }
+  // 仅保留本会话的目标 ID；缓存重置失败时仍能只读核实，不保留被屏蔽内容。
+  const otherUserId = observedTarget ?? (knownTarget.scope === targetScope ? knownTarget.id : "");
   const actions = useDirectMessageActions(conversationId, user?.id, otherUserId);
   const blockActions = useBlockActions(otherUserId);
+  const beginBlockScope = useRelationshipActionScope(JSON.stringify([conversationId, otherUserId]));
   const [now, setNow] = useState(0);
   const [showJumpToLatest, setShowJumpToLatest] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -152,19 +161,25 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
   };
 
   const handleBlock = async () => {
-    if (!conversation) return;
-    const confirmed = await confirmAction({
-      title: "拉黑用户",
-      description: "拉黑后，双方内容和私聊将互相隐藏，历史记录保留。可在账号安全页解除拉黑。",
-      confirmLabel: "拉黑",
-      destructive: true,
-    });
-    if (!confirmed) return;
+    if (!otherUserId || blockActions.isPending) return;
+    const scope = beginBlockScope();
     try {
+      if (blockActions.needsReconciliation) {
+        await blockActions.reconcile.mutateAsync();
+        return;
+      }
+      if (!conversation) return;
+      const confirmed = await confirmAction({
+        title: "拉黑用户",
+        description: "拉黑后，双方内容和私聊将互相隐藏，历史记录保留。可在账号安全页解除拉黑。",
+        confirmLabel: "拉黑",
+        destructive: true,
+      });
+      if (!confirmed || !scope.isCurrent()) return;
       await blockActions.block.mutateAsync();
     } catch (error) {
-      toast.error(getApiErrorMessage(error, "操作失败，请稍后重试"));
-    }
+      if (scope.isCurrent()) toast.error(getApiErrorMessage(error, "操作失败，请稍后重试"));
+    } finally { scope.dispose(); }
   };
 
   const recallMessage = actions.recall.mutateAsync;
@@ -197,9 +212,8 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
     return (
       <div className="flex flex-col items-center justify-center gap-3 text-sm text-muted-foreground">
         无法加载该会话
-        <Button variant="outline" size="sm" onClick={() => conversationQuery.refetch()}>
-          重试
-        </Button>
+        {blockActions.needsReconciliation ? <Button variant="outline" size="sm" disabled={blockActions.isPending}
+          onClick={() => void handleBlock()}>刷新核实</Button> : <Button variant="outline" size="sm" onClick={() => conversationQuery.refetch()}>重试</Button>}
       </div>
     );
   }
@@ -253,10 +267,10 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
               size="sm"
               className="text-destructive hover:text-destructive"
               onClick={() => void handleBlock()}
-              disabled={blockActions.block.isPending}
+              disabled={blockActions.isPending || blockActions.block.isPending}
             >
               <Ban />
-              拉黑
+              {blockActions.needsReconciliation ? "刷新核实" : "拉黑"}
             </Button>
           )}
         </div>

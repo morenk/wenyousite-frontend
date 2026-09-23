@@ -10,8 +10,8 @@ export type UserMe = components["schemas"]["CurrentUserResponseDto"];
 export function useMe() {
   return useQuery({
     queryKey: queryKeys.me,
-    queryFn: async () => {
-      const { data, error } = await apiClient.GET("/api/v1/users/me");
+    queryFn: async ({ signal }) => {
+      const { data, error } = await apiClient.GET("/api/v1/users/me", { signal });
       if (error) throw error;
       if (!data) throw new Error("获取资料失败");
       return data.data;

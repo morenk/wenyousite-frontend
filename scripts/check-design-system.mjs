@@ -346,7 +346,7 @@ const fullWidthCollectionClaims = new Map([
   ["src/components/moment/moment-masonry.tsx", ["className=\"w-full\""]],
   ["src/components/user/bookmark-list.tsx", ["w-full space-y-3"]],
   ["src/components/user/draft-list.tsx", ["w-full space-y-3", "flex w-full"]],
-  ["src/components/user/user-follow-list.tsx", ["w-full space-y-3", "flex w-full"]],
+  ["src/components/user/user-follow-list.tsx", ["after:left-12", "flex w-full"]],
   ["src/components/notification/notification-list.tsx", ["w-full space-y-3"]],
   ["src/components/message/direct-conversation-list.tsx", ["flex w-full gap-3", "min-h-0 w-full flex-col"]],
 ]);

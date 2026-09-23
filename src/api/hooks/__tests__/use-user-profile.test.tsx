@@ -59,6 +59,7 @@ describe("useUserProfile", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(mockGET).toHaveBeenCalledWith("/api/v1/users/{id}", {
       params: { path: { id: "u1" } },
+      signal: expect.any(AbortSignal),
     });
     expect(result.current.data?.username).toBe("testuser");
     expect(result.current.data?.isDeactivated).toBe(false);

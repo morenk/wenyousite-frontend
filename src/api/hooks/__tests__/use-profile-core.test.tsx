@@ -37,7 +37,7 @@ describe("当前用户资料 hooks", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(mockGET).toHaveBeenCalledWith("/api/v1/users/me");
+    expect(mockGET).toHaveBeenCalledWith("/api/v1/users/me", { signal: expect.any(AbortSignal) });
     expect(result.current.data).toEqual(currentUser);
     expect(client.getQueryData(queryKeys.me)).toEqual(currentUser);
   });

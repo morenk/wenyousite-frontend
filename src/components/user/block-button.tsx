@@ -5,8 +5,10 @@
 import { Loader2, Ban } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
+import { getApiErrorMessage } from "@/api/errors";
 import { useBlockActions } from "@/api/hooks/use-block-actions";
 import { Button } from "@/components/ui/button";
+import { useRelationshipActionScope } from "@/lib/use-relationship-action-scope";
 import { useConfirm } from "@/components/ui/confirm-provider";
 
 interface BlockButtonProps {
@@ -16,40 +18,48 @@ interface BlockButtonProps {
 
 export function BlockButton({ userId, isBlocked }: BlockButtonProps) {
   const { user } = useAuth();
-  const { block, unblock } = useBlockActions(userId);
+  const { block, unblock, reconcile, isPending: sharedPending, needsReconciliation } = useBlockActions(userId);
   const confirmAction = useConfirm();
+  const beginScope = useRelationshipActionScope(userId);
 
   if (!user) return null;
 
-  const isPending = block.isPending || unblock.isPending;
+  const isPending = sharedPending || block.isPending || unblock.isPending;
 
   const handleBlock = async () => {
-    if (!(await confirmAction({
-      title: "拉黑用户",
-      description: "确定要拉黑该用户吗？双方内容和私聊将互相隐藏，历史记录保留。",
-      confirmLabel: "拉黑",
-      destructive: true,
-    }))) return;
+    if (isPending) return;
+    const scope = beginScope();
     try {
+      if (needsReconciliation) {
+        await reconcile.mutateAsync();
+        return;
+      }
+      const confirmed = await confirmAction({
+        title: "拉黑用户",
+        description: "确定要拉黑该用户吗？双方内容和私聊将互相隐藏，历史记录保留。",
+        confirmLabel: "拉黑",
+        destructive: true,
+      });
+      if (!confirmed || !scope.isCurrent()) return;
       await block.mutateAsync();
-    } catch {
-      toast.error("操作失败，请稍后重试");
-    }
+    } catch (error) {
+      if (scope.isCurrent()) toast.error(getApiErrorMessage(error, "操作失败，请稍后重试"));
+    } finally { scope.dispose(); }
   };
 
   const handleUnblock = async () => {
-    try {
-      await unblock.mutateAsync();
-    } catch {
-      toast.error("操作失败，请稍后重试");
-    }
+    if (isPending) return;
+    const scope = beginScope();
+    try { await unblock.mutateAsync(); }
+    catch (error) { if (scope.isCurrent()) toast.error(getApiErrorMessage(error, "操作失败，请稍后重试")); }
+    finally { scope.dispose(); }
   };
 
   return (
     <Button
       variant="ghost"
       size="sm"
-      onClick={isBlocked ? handleUnblock : handleBlock}
+      onClick={needsReconciliation || !isBlocked ? handleBlock : handleUnblock}
       disabled={isPending}
       className="text-destructive hover:text-destructive"
     >
@@ -58,7 +68,7 @@ export function BlockButton({ userId, isBlocked }: BlockButtonProps) {
       ) : (
         <Ban className="mr-1.5 h-4 w-4" />
       )}
-      {isBlocked ? "已拉黑" : "拉黑"}
+      {needsReconciliation ? "刷新核实" : isBlocked ? "已拉黑" : "拉黑"}
     </Button>
   );
 }

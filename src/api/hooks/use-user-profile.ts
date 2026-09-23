@@ -78,10 +78,11 @@ export function useUserProfile(userId: string | undefined) {
   const viewerScope = useViewerScope();
   return useQuery({
     queryKey: queryKeys.users.detailForViewer(userId, viewerScope),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       if (!userId) throw new Error("缺少用户 ID");
       const { data, error } = await apiClient.GET("/api/v1/users/{id}", {
         params: { path: { id: userId } },
+        signal,
       });
       if (error) throw error;
       if (!data) {

@@ -97,13 +97,33 @@ describe("FollowButton", () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({ user: { id: "u1" } });
     mockUseFollowActions.mockReturnValue({
-      follow: { isPending: false, mutateAsync: vi.fn().mockRejectedValue(new Error("failed")) },
+      follow: { isPending: false, mutateAsync: vi.fn().mockRejectedValue(new Error("操作结果未确认，请刷新核实后再操作")) },
       unfollow: { isPending: false, mutateAsync: vi.fn() },
     });
 
     renderWithQC(<FollowButton userId="u2" isFollowing={false} />);
     await user.click(screen.getByRole("button", { name: "关注" }));
 
-    expect(toast.error).toHaveBeenCalledWith("操作失败，请稍后重试");
+    expect(toast.error).toHaveBeenCalledWith("操作结果未确认，请刷新核实后再操作");
   });
+});
+
+
+test("主页结果不明提供只读核实，不再重放关注", async () => {
+  const person = userEvent.setup();
+  const reconcile = vi.fn().mockResolvedValue(undefined);
+  const follow = vi.fn();
+  mockUseAuth.mockReturnValue({ user: { id: "u1" } });
+  mockUseFollowActions.mockReturnValue({
+    follow: { isPending: false, mutateAsync: follow },
+    unfollow: { isPending: false, mutateAsync: vi.fn() },
+    reconcile: { mutateAsync: reconcile },
+    isPending: false,
+    needsReconciliation: true,
+  });
+  renderWithQC(<FollowButton userId="u2" isFollowing={false} />);
+  await person.click(screen.getByRole("button", { name: "刷新核实" }));
+  expect(reconcile).toHaveBeenCalledOnce();
+  expect(follow).not.toHaveBeenCalled();
+  cleanup();
 });

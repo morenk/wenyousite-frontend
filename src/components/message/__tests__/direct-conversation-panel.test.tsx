@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -48,7 +48,7 @@ vi.mock("@/api/hooks/use-direct-message-actions", () => ({
   useDirectMessageActions: () => mocks.actions(),
 }));
 vi.mock("@/api/hooks/use-block-actions", () => ({
-  useBlockActions: () => mocks.blockActions(),
+  useBlockActions: (id: string) => mocks.blockActions(id),
 }));
 vi.mock("@/components/ui/confirm-provider", () => ({ useConfirm: () => mocks.confirm }));
 vi.mock("sonner", () => ({
@@ -86,6 +86,8 @@ vi.mock("@/components/message/direct-message-bubble", () => ({
   ),
 }));
 
+import { setAuthSession, clearAuthSession } from "@/lib/auth-store";
+const actor = { id: "u1", username: "本人", email: "me@example.test", role: "USER", avatar: null };
 import { DirectConversationPanel } from "@/components/message/direct-conversation-panel";
 
 function mutation() {
@@ -109,7 +111,7 @@ const baseConversation = {
 };
 
 let actionSet: ReturnType<typeof makeActions>;
-let blockSet: { block: ReturnType<typeof mutation>; unblock: ReturnType<typeof mutation> };
+let blockSet: { block: ReturnType<typeof mutation>; unblock: ReturnType<typeof mutation>; reconcile: ReturnType<typeof mutation>; isPending: boolean; needsReconciliation: boolean };
 
 function makeActions() {
   return {
@@ -132,8 +134,9 @@ function setConversation(overrides: Record<string, unknown> = {}) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  setAuthSession(actor, "test-token");
   actionSet = makeActions();
-  blockSet = { block: mutation(), unblock: mutation() };
+  blockSet = { block: mutation(), unblock: mutation(), reconcile: mutation(), isPending: false, needsReconciliation: false };
   mocks.actions.mockReturnValue(actionSet);
   mocks.blockActions.mockReturnValue(blockSet);
   mocks.confirm.mockResolvedValue(true);
@@ -446,4 +449,41 @@ describe("DirectConversationPanel", () => {
     expect(mocks.toastSuccess).not.toHaveBeenCalledWith("消息已撤回");
     accepted.unmount();
   });
+});
+
+
+afterEach(() => clearAuthSession());
+test("私聊页共享忙碌禁用拉黑，结果不明时提供只读核实", async () => {
+  blockSet.isPending = true;
+  const view = render(<DirectConversationPanel conversationId="c1" />);
+  expect(screen.getByRole("button", { name: "拉黑" })).toBeDisabled();
+  blockSet.isPending = false;
+  blockSet.needsReconciliation = true;
+  view.rerender(<DirectConversationPanel conversationId="c1" />);
+  await userEvent.click(screen.getByRole("button", { name: "刷新核实" }));
+  expect(blockSet.reconcile.mutateAsync).toHaveBeenCalledOnce();
+  expect(blockSet.block.mutateAsync).not.toHaveBeenCalled();
+  expect(mocks.confirm).not.toHaveBeenCalled();
+});
+test("私聊缓存重置后只保留目标ID用于核实", async () => {
+  const view = render(<DirectConversationPanel conversationId="c1" />);
+  blockSet.needsReconciliation = true;
+  mocks.conversationQuery.mockReturnValue({ data: undefined, isLoading: false, isError: true, refetch: vi.fn() });
+  view.rerender(<DirectConversationPanel conversationId="c1" />);
+  expect(mocks.blockActions).toHaveBeenLastCalledWith("u2");
+  await userEvent.click(screen.getByRole("button", { name: "刷新核实" }));
+  expect(blockSet.reconcile.mutateAsync).toHaveBeenCalledOnce();
+});
+test.each(["account", "conversation"])("私聊旧拉黑确认在%s变化后不能提交", async (change) => {
+  let resolve!: (value: boolean) => void;
+  mocks.confirm.mockImplementation(() => new Promise<boolean>((done) => { resolve = done; }));
+  const view = render(<DirectConversationPanel conversationId="c1" />);
+  await userEvent.click(screen.getByRole("button", { name: "拉黑" }));
+  if (change === "account") act(() => setAuthSession({ ...actor, id: "new-user" }, "new-token"));
+  else {
+    setConversation({ id: "c2", otherUser: { ...baseConversation.otherUser, id: "u3" } });
+    view.rerender(<DirectConversationPanel conversationId="c2" />);
+  }
+  await act(async () => resolve(true));
+  expect(blockSet.block.mutateAsync).not.toHaveBeenCalled();
 });

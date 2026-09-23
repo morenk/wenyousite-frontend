@@ -12,6 +12,8 @@ vi.mock("@/api/hooks/use-user-follow-list", () => ({
   useUserFollowList: () => mockUseUserFollowList(),
 }));
 
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+
 vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: { children: React.ReactNode; href: string }) => (
     <a href={href} {...props}>{children}</a>
