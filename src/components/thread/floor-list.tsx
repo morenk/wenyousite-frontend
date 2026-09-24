@@ -43,9 +43,9 @@ export function FloorList({
 
   if (isLoading) {
     return (
-      <div className="space-y-3" role="status" aria-label="正在加载楼层">
+      <div className="flex flex-col gap-[var(--collection-card-gap)]" role="status" aria-label="正在加载楼层">
         {Array.from({ length: 2 }, (_, index) => (
-          <div key={index} className="rounded-2xl border border-border bg-card px-5 py-5">
+          <div key={index} className="rounded-[var(--radius-card)] border border-border bg-card px-5 py-5">
             <div className="flex items-center gap-3">
               <Skeleton className="size-10 shrink-0 rounded-full" />
               <div className="flex-1">
@@ -98,7 +98,7 @@ export function FloorList({
   );
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-[var(--collection-card-gap)]">
       {pinnedFloors.length > 0 ? (
         <section data-testid="pinned-floors" aria-label="置顶楼层" className="contents">
           {pinnedFloors.map(renderFloor)}

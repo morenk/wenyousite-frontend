@@ -1,10 +1,11 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 
-const { mockCard, mockLanes } = vi.hoisted(() => ({ mockCard: vi.fn(), mockLanes: vi.fn() }));
+const { mockCard, mockLanes, mockGap } = vi.hoisted(() => ({ mockCard: vi.fn(), mockLanes: vi.fn(), mockGap: vi.fn() }));
 
 vi.mock("@tanstack/react-virtual", () => ({
-  useWindowVirtualizer: ({ count, lanes }: { count: number; lanes: number }) => {
+  useWindowVirtualizer: ({ count, lanes, gap }: { count: number; lanes: number; gap: number }) => {
+    mockGap(gap);
     mockLanes(lanes);
     return {
       getVirtualItems: () => Array.from({ length: count }, (_, index) => ({
@@ -99,11 +100,13 @@ describe("MomentMasonry", () => {
       const skeleton = screen.getByRole("status", { name: "正在加载动态" });
       expect(skeleton).toHaveClass("grid-cols-3");
       expect(skeleton.children).toHaveLength(6);
+      expect(skeleton.getAttribute("style")).toContain("gap: var(--collection-card-gap)");
     });
 
     rerender(<MomentMasonry moments={[item("1"), item("2")] as never} />);
 
     await waitFor(() => expect(mockLanes).toHaveBeenLastCalledWith(3));
+    expect(mockGap).toHaveBeenLastCalledWith(8);
   });
 
   test.each([

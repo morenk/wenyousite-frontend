@@ -19,7 +19,7 @@ export function UserBookmarksPage({ userId }: { userId: string }) {
   const [tab, setTab] = useState<"threads" | "moments">("threads");
 
   return (
-    <Card>
+    <Card appearance="content">
       <CardContent>
         {canViewBookmarks ? (
           <>

@@ -158,12 +158,12 @@ export function SearchResults({ keyword }: SearchResultsProps) {
           ) : !usersQuery.data || usersQuery.data.length === 0 ? (
             <EmptyState title="没有匹配的用户" />
           ) : (
-            <div className="w-full space-y-3">
+            <div className="flex w-full flex-col gap-[var(--collection-card-gap)]">
               {usersQuery.data.map((user) => (
                 <Link
                   key={user.id}
                   href={`/users/${user.id}`}
-                  className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-accent/20"
+                  className="flex w-full items-center gap-3 rounded-[var(--radius-card)] border border-border bg-card p-4 transition-colors hover:bg-accent/20"
                 >
                   <UserAvatar
                     name={user.username}

@@ -65,7 +65,7 @@ export function ReplyList({ postId, focusedReply, variant = "embedded" }: ReplyL
   );
 
   return (
-    <div className={variant === "discussion" ? "space-y-3" : "mt-3 space-y-2 border-l-2 border-border pl-3"}>
+    <div className={variant === "discussion" ? "flex flex-col gap-[var(--collection-card-gap)]" : "mt-3 space-y-2 border-l-2 border-border pl-3"}>
       {variant === "discussion" ? (
         <DiscussionListControls
           subject="回复"

@@ -40,7 +40,7 @@ export function MomentCard({ moment, priority = false }: { moment: MomentCardDat
 
   return (
     <article
-      className="group/moment min-w-0 pb-3"
+      className="group/moment min-w-0"
       data-moment-id={moment.id}
       data-content-purpose={CONTENT_PRESENTATION.list.purpose}
       data-content-surface={CONTENT_PRESENTATION.list.surface}
@@ -48,7 +48,7 @@ export function MomentCard({ moment, priority = false }: { moment: MomentCardDat
       <Link
         href={`/moments/${moment.id}`}
         onNavigate={() => markMomentFeedReturn(moment.id, pathname)}
-        className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+        className="block rounded-[var(--radius-card)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
       >
         <MomentCover moment={moment} priority={priority} />
         <div className="px-0.5 pt-2">

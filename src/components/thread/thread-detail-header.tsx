@@ -168,7 +168,7 @@ export function ThreadDetailHeader({
         data-slot="thread-document"
         data-content-purpose={CONTENT_PRESENTATION.detail.purpose}
         data-content-surface={CONTENT_PRESENTATION.detail.surface}
-        className="relative overflow-hidden rounded-2xl border border-border bg-card"
+        className="relative overflow-hidden rounded-[var(--radius-card)] border border-border bg-card"
       >
         <header data-slot="thread-detail-header">
           <div

@@ -495,7 +495,7 @@ describe("FloorCard", () => {
 
   test("楼层使用弱于主题文档的紧凑圆角且不交替着色", () => {
     const { container } = renderWithQC(<FloorCard floor={baseFloor} />);
-    expect(container.firstChild as HTMLElement).toHaveClass("rounded-xl", "bg-card");
+    expect(container.firstChild as HTMLElement).toHaveClass("rounded-[var(--radius-card)]", "bg-card");
     expect(container.firstChild as HTMLElement).not.toHaveClass("bg-muted/20", "rounded-2xl");
   });
 

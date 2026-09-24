@@ -17,7 +17,7 @@ function RecentRepliesCard({ userId }: { userId: string }) {
   } = useUserRecentReplies(userId);
 
   return (
-    <Card id="recent-replies" className="scroll-mt-20">
+    <Card appearance="content" id="recent-replies" className="scroll-mt-20">
       <CardHeader>
         <CardTitle className="text-base">最近回复</CardTitle>
       </CardHeader>

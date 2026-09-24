@@ -1,5 +1,6 @@
 import { test } from "./fixtures/typography";
 import { expect, type Page } from "@playwright/test";
+import { THEME_STORAGE_KEY } from "../src/lib/theme";
 
 const layoutUser = {
   id: "moment-layout-user",
@@ -177,6 +178,27 @@ async function mockMoments(
       });
     }
     return response(null);
+  });
+}
+
+for (const theme of ["light", "dark"] as const) {
+  test(`390px ${theme} 动态卡片保持 10px 圆角与 8px 单列间距`, async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.addInitScript(([key, value]) => localStorage.setItem(key, value), [THEME_STORAGE_KEY, theme]);
+    await mockMoments(page);
+    await page.goto("/moments");
+
+    const feed = page.getByRole("feed", { name: "动态瀑布流" });
+    await expect(feed).toBeVisible();
+    await expect(page.locator('[data-moment-id] .moment-text-cover').first()).toHaveCSS("border-radius", "10px");
+    expect(await page.evaluate(() => getComputedStyle(document.documentElement)
+      .getPropertyValue("--collection-card-gap").trim())).toBe("8px");
+    await expect.poll(async () => {
+      const cards = feed.locator(':scope > [data-index]');
+      const [first, second] = await Promise.all([cards.nth(0).boundingBox(), cards.nth(1).boundingBox()]);
+      return first && second ? Math.round(second.y - (first.y + first.height)) : null;
+    }).toBe(8);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
   });
 }
 

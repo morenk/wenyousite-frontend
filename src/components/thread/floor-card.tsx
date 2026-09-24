@@ -126,7 +126,7 @@ export function FloorCard({
     <div
       id={`post-${floor.id}`}
       className={cn(
-        "scroll-mt-6 rounded-xl border border-border bg-card p-4 transition-[border-color] duration-[var(--motion-slow)] ease-out",
+        "scroll-mt-6 rounded-[var(--radius-card)] border border-border bg-card p-4 transition-[border-color] duration-[var(--motion-slow)] ease-out",
         highlightVisible && "border-primary",
       )}
     >

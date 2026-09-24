@@ -55,7 +55,7 @@ export function ThreadList({
 
   if (error) {
     return (
-      <Panel padding="none">
+      <Panel padding="none" className="rounded-[var(--radius-card)]">
         <LoadError
           title={errorTitle}
           onRetry={onRetry}
@@ -67,7 +67,7 @@ export function ThreadList({
 
   if (threads.length === 0) {
     return (
-      <Panel padding="none">
+      <Panel padding="none" className="rounded-[var(--radius-card)]">
         <EmptyState title={emptyTitle} />
       </Panel>
     );

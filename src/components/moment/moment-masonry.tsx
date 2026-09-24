@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
+import { COLLECTION_WEB_PROFILE } from "@wenyousite/foundation/collections";
 import { Loader2 } from "lucide-react";
 import type { MomentCard as MomentCardData } from "@/api/hooks/use-moments";
 import { MomentCard } from "@/components/moment/moment-card";
@@ -9,7 +10,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { LoadError } from "@/components/shared/load-error";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const GAP = 12;
+const GAP = COLLECTION_WEB_PROFILE.cardGap;
 const TWO_LANE_MIN_WIDTH = 560;
 const THREE_LANE_MIN_WIDTH = 640;
 const DEFAULT_ESTIMATED_SIZE = 520;
@@ -143,7 +144,7 @@ export function MomentMasonry({
                     width: columnWidth,
                     left: `calc(${item.lane * 100 / layout.lanes}% + ${item.lane * GAP / layout.lanes}px)`,
                     transform: `translate3d(0, ${item.start - layout.scrollMargin}px, 0)`,
-                    contain: "layout paint style",
+                    contain: "layout style",
                   }}
                 >
                   {renderMoment
@@ -171,10 +172,10 @@ export function MomentMasonry({
 function MomentMasonrySkeleton({ lanes }: { lanes: LaneCount }) {
   const count = lanes * 2;
   return (
-    <div className={lanes === 3 ? "grid grid-cols-3 gap-4" : lanes === 2 ? "grid grid-cols-2 gap-4" : "grid grid-cols-1 gap-4"} role="status" aria-label="正在加载动态">
+    <div className={lanes === 3 ? "grid grid-cols-3" : lanes === 2 ? "grid grid-cols-2" : "grid grid-cols-1"} style={{ gap: "var(--collection-card-gap)" }} role="status" aria-label="正在加载动态">
       {Array.from({ length: count }, (_, index) => (
         <div key={index} className="space-y-3">
-          <Skeleton className="aspect-[3/4] rounded-xl" />
+          <Skeleton className="aspect-[3/4] rounded-[var(--radius-card)]" />
           <Skeleton className="h-5 w-4/5" />
           <Skeleton className="h-4 w-2/3" />
         </div>
