@@ -16,4 +16,13 @@ describe("PageRouteFallback", () => {
       expect(container.querySelectorAll('[data-slot="skeleton"]').length).toBeGreaterThan(5);
     },
   );
+
+  test("资料页骨架的贴边封面和内容外框使用卡片圆角", () => {
+    const { container } = render(<PageRouteFallback variant="profile" />);
+    const panels = container.querySelectorAll('[data-slot="panel"]');
+    expect(panels).toHaveLength(4);
+    panels.forEach((panel) => expect(panel).toHaveClass("rounded-[var(--radius-card)]"));
+    expect(panels[0]).toHaveClass("overflow-hidden");
+    expect(panels[0].firstElementChild).toHaveClass("rounded-none");
+  });
 });

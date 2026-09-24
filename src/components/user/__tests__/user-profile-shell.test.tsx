@@ -142,6 +142,7 @@ describe("UserProfileShell", () => {
       refetch: mockRefetch,
     });
     rerender(<UserProfileShell userId="author-1"><TabContent /></UserProfileShell>);
+    expect(document.querySelector('[data-slot="card"]')).toHaveAttribute("data-appearance", "content");
     fireEvent.click(screen.getByRole("button", { name: "重试" }));
     expect(mockRefetch).toHaveBeenCalledOnce();
 
@@ -153,6 +154,7 @@ describe("UserProfileShell", () => {
     });
     rerender(<UserProfileShell userId="author-1"><TabContent /></UserProfileShell>);
     expect(screen.getByText("已注销用户")).toBeInTheDocument();
+    expect(document.querySelector('[data-slot="card"]')).toHaveAttribute("data-appearance", "content");
     expect(TabContent).not.toHaveBeenCalled();
   });
 });

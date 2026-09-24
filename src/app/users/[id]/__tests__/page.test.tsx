@@ -76,6 +76,7 @@ describe("用户资料概览页", () => {
 
     expect(screen.getByText("最近回复")).toBeInTheDocument();
     expect(screen.getByText("最近回复内容")).toBeInTheDocument();
+    expect(screen.getByText("创作概览数据").parentElement).toHaveClass("gap-[var(--collection-card-gap)]");
     expect(mockUseUserRecentReplies).toHaveBeenCalledWith("target-user");
   });
 });

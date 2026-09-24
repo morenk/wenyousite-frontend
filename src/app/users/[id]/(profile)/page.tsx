@@ -34,7 +34,7 @@ export default function UserProfilePage() {
   const { canViewRecentReplies } = useUserProfilePageContext();
 
   return (
-    <div className="space-y-5">
+    <div className="flex flex-col gap-[var(--collection-card-gap)]">
       <UserActivitySummaryCard userId={userId} />
       {canViewRecentReplies ? <RecentRepliesCard userId={userId} /> : null}
     </div>

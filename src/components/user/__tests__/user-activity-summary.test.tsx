@@ -35,10 +35,12 @@ describe("UserActivitySummaryCard", () => {
 
     expect(mockUseUserActivitySummary).toHaveBeenCalledWith("user-1");
     expect(screen.getByText("创作概览")).toBeInTheDocument();
+    expect(document.querySelector('[data-slot="card"]')).toHaveAttribute("data-appearance", "content");
     expect(screen.getByText("7")).toBeInTheDocument();
     expect(screen.getByText("3")).toBeInTheDocument();
     expect(screen.getByText("未公开")).toBeInTheDocument();
     expect(screen.getByText("1,280")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "查看发布动态" }).parentElement).toHaveClass("rounded-[var(--radius-card)]");
     expect(screen.getByRole("link", { name: "查看发布动态" })).toHaveAttribute(
       "href",
       "/users/user-1/moments",

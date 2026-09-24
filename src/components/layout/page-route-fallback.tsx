@@ -36,7 +36,7 @@ function FeedFallback() {
           <Skeleton className="h-9 w-20 rounded-xl" />
         </div>
       </Panel>
-      <div className="mt-4 overflow-hidden rounded-2xl border border-border bg-card">
+      <div className="mt-4 overflow-hidden rounded-[var(--radius-card)] border border-border bg-card">
         {Array.from({ length: 3 }, (_, index) => (
           <div
             key={index}
@@ -97,7 +97,7 @@ function DetailFallback() {
 function ProfileFallback() {
   return (
     <PageShell width="feed" className="py-5">
-      <Panel padding="none" className="overflow-hidden pb-5">
+      <Panel padding="none" className="overflow-hidden rounded-[var(--radius-card)] pb-5">
         <Skeleton className="aspect-3/1 w-full rounded-none" />
         <div className="grid grid-cols-[6rem_minmax(0,1fr)] gap-4 px-5">
           <Skeleton className="-mt-12 size-24 shrink-0 rounded-full ring-4 ring-card" />
@@ -111,7 +111,7 @@ function ProfileFallback() {
         </div>
       </Panel>
       {Array.from({ length: 3 }, (_, index) => (
-        <Panel key={index} className="mt-4">
+        <Panel key={index} className="mt-4 rounded-[var(--radius-card)]">
           <Skeleton className="h-5 w-28" />
           <Skeleton className="mt-5 h-4 w-full" />
           <Skeleton className="mt-3 h-4 w-3/4" />

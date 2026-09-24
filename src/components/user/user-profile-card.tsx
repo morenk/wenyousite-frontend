@@ -30,7 +30,7 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
 
   if (!user.profileCover) {
     return (
-      <Card className="relative gap-0 py-0">
+      <Card appearance="content" className="relative gap-0 py-0">
         <div className="absolute inset-x-0 top-0 h-1 bg-brand-strong" aria-hidden="true" />
         <div className="p-3 pt-5 sm:p-5 sm:pt-6">
           <div className="grid grid-cols-[3.5rem_minmax(0,1fr)] items-center gap-x-3 sm:grid-cols-[4rem_minmax(0,1fr)_auto] sm:items-start sm:gap-x-4">
@@ -58,7 +58,7 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
   }
 
   return (
-    <Card className="isolate gap-0 py-0">
+    <Card appearance="content" className="isolate gap-0 py-0">
       <ProfileCover cover={user.profileCover} username={user.username} className="relative z-0" />
       <div className="relative z-10 grid grid-cols-[4rem_minmax(0,1fr)] gap-x-3 px-3 pb-4 sm:grid-cols-[6rem_minmax(0,1fr)] sm:gap-x-4 sm:px-5 sm:pb-5">
         <UserAvatar

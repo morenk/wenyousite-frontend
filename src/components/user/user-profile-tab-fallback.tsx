@@ -12,13 +12,13 @@ export function UserProfileTabFallback() {
       className="min-h-72"
     >
       <NavigationProgress />
-      <Card>
+      <Card appearance="content">
         <CardHeader>
           <Skeleton className="h-5 w-24" />
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="flex flex-col gap-[var(--collection-card-gap)]">
           {Array.from({ length: 3 }, (_, index) => (
-            <div key={index} className="rounded-xl border border-border p-4">
+            <div key={index} className="rounded-[var(--radius-card)] border border-border p-4">
               <Skeleton className="h-4 w-1/3" />
               <Skeleton className="mt-3 h-4 w-full" />
               <Skeleton className="mt-2 h-4 w-4/5" />

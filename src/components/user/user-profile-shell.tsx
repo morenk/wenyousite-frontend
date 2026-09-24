@@ -65,7 +65,7 @@ export function UserProfileShell({ userId, children }: UserProfileShellProps) {
   if (error || !profile) {
     return (
       <PageShell className="py-12">
-        <Card>
+        <Card appearance="content">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center gap-4 py-8">
               <AlertCircle className="size-10 text-muted-foreground" aria-hidden="true" />
@@ -83,7 +83,7 @@ export function UserProfileShell({ userId, children }: UserProfileShellProps) {
   if (profile.isDeactivated) {
     return (
       <PageShell className="py-12">
-        <Card>
+        <Card appearance="content">
           <CardContent className="pt-6">
             <EmptyState title="已注销用户" />
           </CardContent>
