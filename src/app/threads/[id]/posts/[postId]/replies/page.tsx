@@ -2,9 +2,9 @@
 
 "use client";
 
-import { useEffect } from "react";
-import { useParams, useSearchParams } from "next/navigation";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { useEffect, useLayoutEffect, useRef } from "react";
+import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
+import { AlertCircle } from "lucide-react";
 import { usePost } from "@/api/hooks/use-post";
 import { isContentUnavailableError } from "@/api/errors";
 import { useContentAccessCache } from "@/api/hooks/use-content-access-cache";
@@ -15,8 +15,14 @@ import {
 } from "@/components/thread/thread-composer-context";
 import { ThreadPermissionsProvider } from "@/components/thread/thread-permissions-context";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
 import { PageShell } from "@/components/layout/page-shell";
+import { PageRouteFallback } from "@/components/layout/page-route-fallback";
+import {
+  PostTargetFocusSkeleton,
+  ReplyTargetFocus,
+} from "@/components/thread/post-target-focus";
 
 export default function ReplyDiscussionPage() {
   const params = useParams<{ id: string }>();
@@ -31,10 +37,13 @@ export default function ReplyDiscussionPage() {
 
 function ReplyDiscussionPageContent() {
   const params = useParams<{ id: string; postId: string }>();
+  const pathname = usePathname();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { clearPost, clearThread } = useContentAccessCache();
   const { isInitialized } = useAuth();
   const { close: closeComposer } = useThreadComposer();
+  const revealFullDiscussionRef = useRef(false);
   const focusedReplyId = searchParams.get("post") ?? undefined;
   const rootPostQuery = usePost(params.postId);
   const focusedReplyQuery = usePost(focusedReplyId);
@@ -45,6 +54,7 @@ function ReplyDiscussionPageContent() {
     rootPost &&
       (rootPost.thread.id !== params.id ||
         rootPost.parentPostId !== null ||
+        rootPost.kind !== "FLOOR" ||
         rootPost.floorNumber === null),
   );
   const invalidFocusedReply = Boolean(
@@ -52,7 +62,10 @@ function ReplyDiscussionPageContent() {
       focusedReply &&
       (!rootPost ||
         focusedReply.thread.id !== params.id ||
-        focusedReply.parentPostId !== rootPost.id),
+        focusedReply.subthreadId !== rootPost.subthreadId ||
+        focusedReply.parentPostId !== rootPost.id ||
+        focusedReply.kind !== "FLOOR" ||
+        focusedReply.floorNumber !== null),
   );
   const rootUnavailable = isContentUnavailableError(error) || invalidRoot;
   const focusedReplyUnavailable = Boolean(
@@ -84,13 +97,17 @@ function ReplyDiscussionPageContent() {
       !focusedReplyQuery.isFetchedAfterMount,
   );
 
+  useLayoutEffect(() => {
+    if (focusedReplyId || !revealFullDiscussionRef.current) return;
+    revealFullDiscussionRef.current = false;
+    document.getElementById("reply-discussion-start")?.scrollIntoView({
+      behavior: "auto",
+      block: "start",
+    });
+  }, [focusedReplyId]);
+
   if (isLoading || awaitingRootValidation || awaitingFocusedValidation || (!isInitialized && error)) {
-    return (
-      <div className="flex min-h-screen items-center justify-center text-muted-foreground">
-        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-        正在进入讨论…
-      </div>
-    );
+    return focusedReplyId ? <PostTargetFocusSkeleton /> : <PageRouteFallback variant="detail" />;
   }
 
   if (
@@ -107,13 +124,42 @@ function ReplyDiscussionPageContent() {
             <AlertCircle className="h-9 w-9 text-muted-foreground" />
             <h1 className="text-lg font-semibold">讨论不存在或无法访问</h1>
             <p className="text-sm text-muted-foreground">原楼层可能已删除，或你没有查看该主题帖的权限。</p>
+            {!rootUnavailable && !focusedReplyUnavailable ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  void rootPostQuery.refetch();
+                  if (focusedReplyId) void focusedReplyQuery.refetch();
+                }}
+              >
+                重试
+              </Button>
+            ) : null}
           </CardContent>
         </Card>
       </PageShell>
     );
   }
 
-  const validFocusedReply = focusedReplyId ? focusedReply : undefined;
+  const handleViewFullDiscussion = async () => {
+    if (!(await closeComposer())) return;
+    revealFullDiscussionRef.current = true;
+    const nextSearchParams = new URLSearchParams(searchParams.toString());
+    nextSearchParams.delete("post");
+    const search = nextSearchParams.toString();
+    router.replace(search ? `${pathname}?${search}` : pathname, { scroll: false });
+  };
 
-  return <ReplyDiscussion rootPost={rootPost} focusedReply={validFocusedReply} />;
+  if (focusedReplyId && focusedReply) {
+    return (
+      <ReplyTargetFocus
+        rootPost={rootPost}
+        reply={focusedReply}
+        onViewFullDiscussion={() => void handleViewFullDiscussion()}
+      />
+    );
+  }
+
+  return <ReplyDiscussion rootPost={rootPost} />;
 }

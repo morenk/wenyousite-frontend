@@ -7,21 +7,18 @@ import { ChevronDown, Loader2 } from "lucide-react";
 import { useReplies } from "@/api/hooks/use-replies";
 import { useReplyAuthors } from "@/api/hooks/use-discussion-authors";
 import { Button } from "@/components/ui/button";
-import type { ReplyDisplayData } from "@/api/hooks/use-floors";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { DiscussionListControls } from "@/components/shared/discussion-list-controls";
 import type { ReplyOrder } from "@/api/reply-query";
 import { ReplyCard } from "@/components/thread/reply-card";
-import { useDiscussionTargetReveal } from "@/hooks/use-discussion-target-reveal";
 import { useAuth } from "@/lib/auth";
 
 interface ReplyListProps {
   postId: string;
-  focusedReply?: ReplyDisplayData;
   variant?: "embedded" | "discussion";
 }
 
-export function ReplyList({ postId, focusedReply, variant = "embedded" }: ReplyListProps) {
+export function ReplyList({ postId, variant = "embedded" }: ReplyListProps) {
   const { user } = useAuth();
   const [order, setOrder] = useState<ReplyOrder>("OLDEST");
   const [requestedAuthorId, setAuthorId] = useState<string>();
@@ -53,16 +50,7 @@ export function ReplyList({ postId, focusedReply, variant = "embedded" }: ReplyL
   });
 
   const loadedReplies = data?.pages.flatMap((page) => page?.data ?? []) ?? [];
-  const canShowFocusedReply = !authorId || focusedReply?.authorId === authorId;
-  const replies = focusedReply && canShowFocusedReply && !loadedReplies.some((reply) => reply.id === focusedReply.id)
-    ? [...loadedReplies, focusedReply]
-    : loadedReplies;
-  const focusedReplyId = canShowFocusedReply ? focusedReply?.id : undefined;
-  useDiscussionTargetReveal(
-    focusedReplyId ? `post-${focusedReplyId}` : undefined,
-    `${postId}:${order}:${authorId ?? ""}`,
-    loadedReplies.length,
-  );
+  const replies = loadedReplies;
 
   return (
     <div className={variant === "discussion" ? "space-y-3" : "mt-3 space-y-2 border-l-2 border-border pl-3"}>
@@ -108,7 +96,6 @@ export function ReplyList({ postId, focusedReply, variant = "embedded" }: ReplyL
           parentPostId={postId}
           variant={variant}
           ordinal={variant === "discussion" ? index + 1 : undefined}
-          focused={reply.id === focusedReply?.id}
         />
       ))}
 

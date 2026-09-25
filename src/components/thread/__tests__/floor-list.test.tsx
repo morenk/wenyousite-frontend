@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import type { FloorDisplayData, PostData } from "@/api/hooks/use-floors";
+import type { PostData } from "@/api/hooks/use-floors";
 import { FloorList } from "@/components/thread/floor-list";
 
 const { mockUseInfiniteScroll } = vi.hoisted(() => ({
@@ -13,16 +13,10 @@ vi.mock("@/hooks/use-infinite-scroll", () => ({
 }));
 
 vi.mock("@/components/thread/floor-card", () => ({
-  FloorCard: ({ floor, focused, focusActivationKey }: {
+  FloorCard: ({ floor }: {
     floor: { id: string };
-    focused: boolean;
-    focusActivationKey?: string | number;
   }) => (
-    <div
-      data-testid="floor"
-      data-focused={focused}
-      data-focus-activation-key={focusActivationKey}
-    >
+    <div data-testid="floor">
       {floor.id}
     </div>
   ),
@@ -69,29 +63,6 @@ describe("FloorList", () => {
 
     renderList({ floors: [] });
     expect(screen.getByText("暂无回复")).toBeInTheDocument();
-  });
-
-  test("缺失于分页结果的聚焦楼层会置顶且高亮", () => {
-    const focused = { id: "focused" } as FloorDisplayData;
-    renderList({ focusedFloor: focused });
-
-    const cards = screen.getAllByTestId("floor");
-    expect(cards.map((card) => card.textContent)).toEqual(["focused", "p1", "p2"]);
-    expect(cards[0]).toHaveAttribute("data-focused", "true");
-  });
-
-  test("聚焦楼层已在列表中时不重复插入", () => {
-    renderList({
-      focusedFloor: floors[1] as FloorDisplayData,
-      focusedFloorActivationKey: 3,
-    });
-
-    expect(screen.getAllByTestId("floor").map((card) => card.textContent)).toEqual(["p1", "p2"]);
-    expect(screen.getAllByTestId("floor")[1]).toHaveAttribute("data-focused", "true");
-    expect(screen.getAllByTestId("floor")[1]).toHaveAttribute(
-      "data-focus-activation-key",
-      "3",
-    );
   });
 
   test("置顶楼层显示在普通楼层前，且保留接口返回顺序", () => {

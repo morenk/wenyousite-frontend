@@ -3,7 +3,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import type { FloorDisplayData, PostData } from "@/api/hooks/use-floors";
+import type { PostData } from "@/api/hooks/use-floors";
 import { FloorCard } from "./floor-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
@@ -18,8 +18,6 @@ interface FloorListProps {
   error: unknown;
   onLoadMore: () => void;
   onRetry: () => void;
-  focusedFloor?: FloorDisplayData;
-  focusedFloorActivationKey?: string | number;
   emptyTitle?: string;
 }
 
@@ -31,8 +29,6 @@ export function FloorList({
   error,
   onLoadMore,
   onRetry,
-  focusedFloor,
-  focusedFloorActivationKey,
   emptyTitle = "暂无回复",
 }: FloorListProps) {
   const sentinelRef = useInfiniteScroll({
@@ -79,22 +75,10 @@ export function FloorList({
     );
   }
 
-  const displayedFloors = focusedFloor && !floors.some((floor) => floor.id === focusedFloor.id)
-    ? [focusedFloor, ...floors]
-    : floors;
-  const pinnedFloors = displayedFloors.filter((floor) => Boolean(floor.pinnedAt));
-  const ordinaryFloors = displayedFloors.filter((floor) => !floor.pinnedAt);
-  const renderFloor = (floor: PostData | FloorDisplayData) => (
-    <FloorCard
-      key={floor.id}
-      floor={floor}
-      focused={floor.id === focusedFloor?.id}
-      focusActivationKey={
-        floor.id === focusedFloor?.id
-          ? focusedFloorActivationKey
-          : undefined
-      }
-    />
+  const pinnedFloors = floors.filter((floor) => Boolean(floor.pinnedAt));
+  const ordinaryFloors = floors.filter((floor) => !floor.pinnedAt);
+  const renderFloor = (floor: PostData) => (
+    <FloorCard key={floor.id} floor={floor} />
   );
 
   return (
