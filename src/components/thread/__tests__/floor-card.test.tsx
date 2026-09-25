@@ -196,7 +196,7 @@ describe("FloorCard", () => {
     expect(mockPinMutateAsync).toHaveBeenCalledWith({ postId: "post-1", pinned: false });
   });
 
-  test("重复定位同一楼层时复用滚动并重新触发淡粉边框", async () => {
+  test("聚焦样式不会触发卡片自身滚动校准", async () => {
     vi.useFakeTimers();
     const scrollIntoView = vi
       .spyOn(HTMLElement.prototype, "scrollIntoView")
@@ -224,7 +224,7 @@ describe("FloorCard", () => {
     await act(async () => {
       vi.advanceTimersByTime(100);
     });
-    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "auto", block: "start" });
+    expect(scrollIntoView).not.toHaveBeenCalled();
 
     await act(async () => {
       vi.advanceTimersByTime(1_100);
@@ -241,11 +241,7 @@ describe("FloorCard", () => {
     await act(async () => {
       vi.advanceTimersByTime(100);
     });
-    expect(scrollIntoView).toHaveBeenCalledTimes(2);
-    expect(scrollIntoView).toHaveBeenLastCalledWith({
-      behavior: "auto",
-      block: "start",
-    });
+    expect(scrollIntoView).not.toHaveBeenCalled();
   });
 
   test("作者有头像时渲染接口返回的母版", () => {
