@@ -73,7 +73,7 @@ export function NavBar({
         href="/"
         aria-label={`${BRAND_NAME}首页`}
         className={cn(
-          "group flex h-14 items-center justify-center rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+          "group flex h-14 items-center justify-center rounded-[var(--radius-control)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
           !compact && "xl:justify-start xl:px-3",
         )}
       >
@@ -110,7 +110,7 @@ export function NavBar({
                 aria-label={user.username}
                 title={user.username}
                 className={cn(
-                  "flex min-h-11 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+                  "flex min-h-11 items-center justify-center rounded-[var(--radius-control)] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
                   !compact && "xl:justify-start xl:gap-3 xl:px-2.5",
                   "xl:hidden",
                   pathname.startsWith(`/users/${user.id}`) && "bg-accent/55 text-foreground",
@@ -126,7 +126,7 @@ export function NavBar({
                 type="button"
                 onClick={handleLogout}
                 className={cn(
-                  "flex min-h-10 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+                  "flex min-h-10 items-center justify-center rounded-[var(--radius-control)] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
                   !compact && "xl:justify-start xl:gap-3 xl:px-3",
                 )}
                 title="退出"
@@ -138,7 +138,7 @@ export function NavBar({
           ) : (
             <>
               <Link href="/login" className={cn(
-                "flex min-h-11 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+                "flex min-h-11 items-center justify-center rounded-[var(--radius-control)] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
                 !compact && "xl:gap-3",
               )} title="登录">
                 <WenyouIcon id="action.login" className="size-5" />
@@ -149,7 +149,7 @@ export function NavBar({
                 aria-label="注册"
                 title="注册"
                 className={cn(
-                  "flex min-h-11 items-center justify-center rounded-xl bg-action-primary text-action-primary-foreground transition-colors hover:bg-[color-mix(in_srgb,var(--action-primary)_86%,var(--brand-strong))]",
+                  "flex min-h-11 items-center justify-center rounded-[var(--radius-control)] bg-action-primary text-action-primary-foreground transition-colors hover:bg-[color-mix(in_srgb,var(--action-primary)_86%,var(--brand-strong))]",
                   !compact && "xl:px-3",
                 )}
               >
@@ -184,7 +184,7 @@ function RailLink({
       aria-label={count > 0 ? `${item.label}，${count} 条未读` : item.label}
       title={item.label}
       className={cn(
-        "group relative flex min-h-11 items-center justify-center rounded-xl text-muted-foreground transition-[background-color,color] duration-[var(--motion-fast)] hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+        "group relative flex min-h-11 items-center justify-center rounded-[var(--radius-control)] text-muted-foreground transition-[background-color,color] duration-[var(--motion-fast)] hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
         !compact && "xl:justify-start xl:gap-3 xl:px-3",
         hideOnWide && "xl:hidden",
         active && "bg-accent/60 font-bold text-foreground",

@@ -121,12 +121,12 @@ export function ThreadSubscriptionControls({ thread }: {
           sideOffset={8}
           className="z-[var(--layer-popup)]"
         >
-          <Popover.Popup className="w-[min(20rem,calc(100vw-2rem))] rounded-2xl border border-border bg-popover p-2 text-popover-foreground shadow-popover outline-none">
+          <Popover.Popup className="w-[min(20rem,calc(100vw-2rem))] rounded-[var(--radius-panel)] border border-border bg-popover p-2 text-popover-foreground shadow-popover outline-none">
             <div className="px-2 pb-2 pt-1">
               <Popover.Title className="text-sm font-semibold">管理更新订阅</Popover.Title>
             </div>
 
-            <div className="flex items-center justify-between gap-3 rounded-xl px-2 py-2.5 hover:bg-muted/60">
+            <div className="flex items-center justify-between gap-3 rounded-[var(--radius-control)] px-2 py-2.5 hover:bg-muted/60">
               <div className="min-w-0">
                 <p className="text-sm font-medium text-foreground">楼主与协作者更新</p>
               </div>
@@ -149,7 +149,7 @@ export function ThreadSubscriptionControls({ thread }: {
                 正在加载玩家…
               </div>
             ) : membersError ? (
-              <div className="flex items-center justify-between gap-3 rounded-xl px-2 py-3">
+              <div className="flex items-center justify-between gap-3 rounded-[var(--radius-control)] px-2 py-3">
                 <p className="text-xs text-muted-foreground">玩家列表加载失败</p>
                 <Button
                   variant="outline"
@@ -174,7 +174,7 @@ export function ThreadSubscriptionControls({ thread }: {
                   return (
                     <div
                       key={member.userId}
-                      className="flex items-center justify-between gap-3 rounded-xl px-2 py-2 hover:bg-muted/60"
+                      className="flex items-center justify-between gap-3 rounded-[var(--radius-control)] px-2 py-2 hover:bg-muted/60"
                     >
                       <div className="flex min-w-0 items-center gap-2.5">
                         <UserAvatar

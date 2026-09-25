@@ -19,7 +19,7 @@ export function UserActivitySummaryCard({ userId }: { userId: string }) {
   const { data, isLoading, isError, refetch } = useUserActivitySummary(userId);
 
   return (
-    <Card>
+    <Card appearance="content">
       <CardHeader>
         <CardTitle className="text-base">创作概览</CardTitle>
       </CardHeader>
@@ -27,11 +27,11 @@ export function UserActivitySummaryCard({ userId }: { userId: string }) {
         {isLoading ? (
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="创作概览加载中">
             {Array.from({ length: 4 }, (_, index) => (
-              <Skeleton key={index} className="h-24 rounded-xl" />
+              <Skeleton key={index} className="h-24 rounded-[var(--radius-card)]" />
             ))}
           </div>
         ) : isError || !data ? (
-          <div className="rounded-xl border border-dashed border-border px-4 py-6 text-center">
+          <div className="rounded-[var(--radius-card)] border border-dashed border-border px-4 py-6 text-center">
             <p className="text-sm text-muted-foreground">暂时无法加载创作概览</p>
             <Button
               type="button"
@@ -90,7 +90,7 @@ function SummaryMetric({
   return (
     <div
       className={cn(
-        "relative min-h-20 overflow-hidden rounded-xl bg-muted/55 p-3.5",
+        "relative min-h-20 overflow-hidden rounded-[var(--radius-card)] bg-muted/55 p-3.5",
         href && "transition-colors has-[a:hover]:bg-accent/70",
       )}
     >
@@ -110,7 +110,7 @@ function SummaryMetric({
         <Link
           href={href}
           aria-label={`查看${label}`}
-          className="absolute inset-0 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/30"
+          className="absolute inset-0 rounded-[var(--radius-card)] outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/30"
         />
       ) : null}
     </div>

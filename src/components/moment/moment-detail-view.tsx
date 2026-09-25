@@ -151,11 +151,11 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
       >
       <section
         data-slot="moment-detail-title-card"
-        className="mb-3 w-full rounded-2xl bg-muted/35 px-5 py-4 sm:px-7"
+        className="mb-3 w-full rounded-[var(--radius-card)] bg-muted/35 px-5 py-4 sm:px-7"
         aria-label="动态标题与作者"
       >
         <header data-slot="moment-detail-header" className="flex items-center gap-3">
-          <Link href={`/users/${moment.author.id}`} className="flex min-w-0 items-center gap-3 rounded-xl">
+          <Link href={`/users/${moment.author.id}`} className="flex min-w-0 items-center gap-3 rounded-[var(--radius-control)]">
             <UserAvatar name={moment.author.username} src={moment.author.avatar} display={moment.author.avatarDisplay} className="size-10" />
             <div className="min-w-0"><p className="truncate text-sm font-bold">{moment.author.username}</p><WenyouTime value={moment.createdAt} className="text-xs text-muted-foreground" /></div>
           </Link>
@@ -187,7 +187,7 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
         </header>
 
         {editing ? (
-          <div className="mt-4 space-y-3 rounded-xl bg-background/75 p-4">
+          <div className="mt-4 space-y-3 rounded-[var(--radius-card)] bg-background/75 p-4">
             <Input value={editTitle} onChange={(event) => setEditTitle(event.target.value)} aria-label="动态标题" />
             <InternalReferenceEditor
               ref={editContentRef}

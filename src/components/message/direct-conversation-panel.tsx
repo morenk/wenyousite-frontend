@@ -392,7 +392,7 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
             type="button"
             variant="secondary"
             size="sm"
-            className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full shadow-md"
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-[var(--radius-control)] shadow-md"
             onClick={() => {
               // Dynamic message heights make a long smooth virtual scroll repeatedly
               // correct its target. Land once, then let appended messages follow at end.

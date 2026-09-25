@@ -214,6 +214,11 @@ for (const viewport of [
     await hideDevIndicator(page);
     await expect(page.getByRole("heading", { name: "发现主题帖" })).toBeVisible();
     await expect(page.getByText("暮色列车：寻找失落的终点站")).toBeVisible();
+    const contentList = page.locator('[data-slot="stack-list"]');
+    await expect(contentList).toHaveCSS("border-radius", "10px");
+    const rows = contentList.locator('[role="listitem"]');
+    expect(await rows.nth(1).evaluate((row) => row.getBoundingClientRect().top
+      - row.previousElementSibling!.getBoundingClientRect().bottom)).toBe(0);
     await expect(page.locator('[data-slot="category-marker"]')).toHaveCount(0);
     await expectBrandPinkTopicTag(page);
 
@@ -281,6 +286,7 @@ test("首页温暖墨紫黑夜视觉基线", async ({ page }) => {
   await hideDevIndicator(page);
   await expect(page.getByRole("heading", { name: "发现主题帖" })).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(page.locator('[data-slot="stack-list"]')).toHaveCSS("border-radius", "10px");
   const themeColor = page.locator('meta[name="theme-color"]');
   await expect(themeColor).toHaveCount(1);
   await expect(themeColor).toHaveAttribute(

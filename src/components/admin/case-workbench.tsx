@@ -208,14 +208,14 @@ export function CaseWorkbench() {
     <div data-slot="admin-cases-workspace" data-layout="full-table" className="h-full w-full overflow-hidden bg-card">
       <section className="flex h-full min-h-0 min-w-0 flex-col">
         <div className="border-b border-border p-4">
-          <div className="grid grid-cols-3 rounded-lg bg-muted p-1 text-xs font-bold">
+          <div className="grid grid-cols-3 rounded-[var(--radius-control)] bg-muted p-1 text-xs font-bold">
             {(["OPEN", "RESOLVED", "DISMISSED"] as CaseStatus[]).map((value) => (
               <button
                 key={value}
                 type="button"
                 onClick={() => setStatus(value)}
                 className={cn(
-                  "rounded-md px-2 py-2 transition-colors",
+                  "rounded-[var(--radius-control)] px-2 py-2 transition-colors",
                   status === value ? "bg-card text-foreground shadow-sm" : "text-muted-foreground",
                 )}
               >
@@ -387,7 +387,7 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
             </div>
             <div className="space-y-3">
               {detail.reports.map((report) => (
-                <article key={report.id} className="rounded-xl border border-border bg-card p-5">
+                <article key={report.id} className="rounded-[var(--radius-card)] border border-border bg-card p-5">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <Badge tone="danger">{reasonLabels[report.reasonCode]}</Badge>
@@ -396,7 +396,7 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
                     <WenyouTime mode="exact" value={report.createdAt} className="text-xs text-muted-foreground" />
                   </div>
                   {report.details ? <p className="mt-4 text-sm leading-6">{report.details}</p> : null}
-                  <details className="mt-4 rounded-lg bg-muted px-4 py-3">
+                  <details className="mt-4 rounded-[var(--radius-control)] bg-muted px-4 py-3">
                     <summary className="cursor-pointer text-xs font-bold text-muted-foreground">查看举报时快照</summary>
                     <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap font-mono text-xs leading-5 text-foreground">
                       {JSON.stringify(report.targetSnapshot, null, 2)}
@@ -413,11 +413,11 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
               <h3 className="font-sans text-lg font-semibold">决定轨迹</h3>
             </div>
             {detail.decisions.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground">尚未作出治理决定。</div>
+              <div className="rounded-[var(--radius-card)] border border-dashed border-border p-5 text-sm text-muted-foreground">尚未作出治理决定。</div>
             ) : (
               <ol className="space-y-3">
                 {detail.decisions.map((decision) => (
-                  <li key={decision.id} className="rounded-xl border border-border bg-card p-5">
+                  <li key={decision.id} className="rounded-[var(--radius-card)] border border-border bg-card p-5">
                     <div className="flex items-center gap-2">
                       <Badge tone={decision.active ? "success" : "neutral"}>{decision.active ? "生效中" : "已撤销"}</Badge>
                       <span className="text-sm font-bold">{actionOptions.find((item) => item.value === decision.action)?.label}</span>
@@ -430,7 +430,7 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
             )}
           </section>
         {detail.status === "OPEN" ? (
-          <section data-slot="admin-popup-operation" className="rounded-lg border border-border bg-muted/35 p-4">
+          <section data-slot="admin-popup-operation" className="rounded-[var(--radius-card)] border border-border bg-muted/35 p-4">
             <h3 className="font-sans text-xl font-semibold">形成治理决定</h3>
             <p className="mt-2 text-xs leading-5 text-muted-foreground">公开说明会提供给被处置用户，并成为申诉依据。</p>
             <form

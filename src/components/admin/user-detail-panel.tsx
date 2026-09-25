@@ -21,7 +21,7 @@ export function UserDetailPanel({ id }: { id: string }) {
     {user.isLoading ? <p role="status" className="text-sm text-muted-foreground">正在读取用户…</p> : null}
     {user.isError ? <p role="alert" className="text-sm text-destructive">用户加载失败 <Button size="compact" variant="ghost" onClick={() => void user.refetch()}>重试</Button></p> : null}
     {data ? <>
-      <section className="rounded-lg border border-border bg-card p-4">
+      <section className="rounded-[var(--radius-card)] border border-border bg-card p-4">
         <h2 className="mb-3 text-lg font-semibold">{data.username}</h2>
         <dl className="grid grid-cols-[7rem_minmax(0,1fr)_7rem_minmax(0,1fr)] gap-x-3 gap-y-2 text-sm">
           <dt className="text-muted-foreground">用户编号</dt><dd className="break-all">{data.id}</dd>
@@ -33,7 +33,7 @@ export function UserDetailPanel({ id }: { id: string }) {
           <dt className="text-muted-foreground">个人简介</dt><dd className="col-span-3 whitespace-pre-wrap break-words">{data.bio || "未填写"}</dd>
         </dl>
       </section>
-      <section className="rounded-lg border border-border bg-card p-4">
+      <section className="rounded-[var(--radius-card)] border border-border bg-card p-4">
         <h2 className="mb-3 text-base font-semibold">关联内容</h2>
         <div className="flex flex-wrap gap-3">{Object.entries(adminContentLabels).map(([type, label]) => <Link key={type} href={`/station/content?type=${type}&authorId=${encodeURIComponent(id)}`} className={buttonVariants({ variant: "outline", size: "compact" })}>{label} {data.contentCounts[type as keyof typeof data.contentCounts]}</Link>)}</div>
       </section>

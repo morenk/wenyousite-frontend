@@ -29,7 +29,7 @@ type Section = "bio" | "privacy";
 
 function ProfileSection({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
-    <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-6 rounded-2xl border border-border bg-card p-6">
+    <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-6 rounded-[var(--radius-card)] border border-border bg-card p-6">
       <h2 id={`${id}-title`} className="mb-6 font-sans text-base font-semibold">{title}</h2>
       {children}
     </section>
@@ -135,7 +135,7 @@ export function ProfileEditForm() {
     }
   });
 
-  if (isLoading && !me) return <Skeleton role="status" aria-label="正在加载资料" className="h-64 w-full rounded-xl" />;
+  if (isLoading && !me) return <Skeleton role="status" aria-label="正在加载资料" className="h-64 w-full rounded-[var(--radius-card)]" />;
   if (!me) return <LoadError title="资料加载失败" onRetry={() => void refetch()} />;
 
   const tier = levelTier(me.level);
@@ -167,7 +167,7 @@ export function ProfileEditForm() {
                 if (savedSection === "bio") setSavedSection(null);
                 if (sectionError?.section === "bio") setSectionError(null);
               }}
-              className="w-full min-w-0 resize-y rounded-xl border border-input bg-card px-3 py-3 text-sm leading-6 outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20 disabled:opacity-50 aria-invalid:border-destructive"
+              className="w-full min-w-0 resize-y rounded-[var(--radius-control)] border border-input bg-card px-3 py-3 text-sm leading-6 outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20 disabled:opacity-50 aria-invalid:border-destructive"
             />}
           </FormField>
           {sectionError?.section === "bio" ? <p role="alert" className="mt-2 text-sm text-destructive">{sectionError.message}</p> : null}
@@ -215,8 +215,8 @@ export function ProfileEditForm() {
         </form>
       </ProfileSection>
 
-      <details className="rounded-2xl border border-border bg-card p-6">
-        <summary className="cursor-pointer rounded-md text-sm font-semibold text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring">等级与创作激励</summary>
+      <details className="rounded-[var(--radius-card)] border border-border bg-card p-6">
+        <summary className="cursor-pointer rounded-[var(--radius-control)] text-sm font-semibold text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring">等级与创作激励</summary>
         <div className="space-y-3 pt-4">
           <LevelBadge level={me.level} />
           <div className="flex justify-between text-xs text-muted-foreground"><span>{me.experience} 经验</span><span>{me.nextLevelExperience === null ? "已达最高等级" : `下一级 ${me.nextLevelExperience}`}</span></div>

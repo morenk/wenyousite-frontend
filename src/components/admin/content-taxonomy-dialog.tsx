@@ -58,7 +58,7 @@ export function ContentTaxonomyDialog({ item, onClose, reload }: { item: AdminCo
         </div>
         <div className="space-y-1"><Label htmlFor="taxonomy-reason">理由</Label><Textarea id="taxonomy-reason" rows={3} disabled={busy} {...form.register("reason")} />{form.formState.errors.reason ? <p role="alert" className="text-xs text-destructive">{form.formState.errors.reason.message}</p> : null}</div>
         {form.formState.errors.root ? <p role="alert" className="text-sm text-destructive">{form.formState.errors.root.message}</p> : null}
-        {latest ? <div className="rounded-md border border-border bg-muted p-3 text-sm" aria-label="最新分类与标签"><p>当前分类：{taxonomy.data?.categories.find((entry) => entry.slug === latest.category)?.name ?? latest.category}</p><p>当前标签：{latest.tags.map((tag) => tag.name).join("、") || "无"}</p></div> : null}
+        {latest ? <div className="rounded-[var(--radius-compact)] border border-border bg-muted p-3 text-sm" aria-label="最新分类与标签"><p>当前分类：{taxonomy.data?.categories.find((entry) => entry.slug === latest.category)?.name ?? latest.category}</p><p>当前标签：{latest.tags.map((tag) => tag.name).join("、") || "无"}</p></div> : null}
         <div className="flex justify-end gap-2">
           {conflict ? <Button type="button" variant="outline" size="compact" disabled={busy} onClick={async () => { setReloading(true); try { const fresh = await reload(); if (fresh) { setLatest(fresh); setVersion(fresh.version); setConflict(false); form.clearErrors("root"); } else form.setError("root", { message: "读取失败，请重试" }); } finally { setReloading(false); } }}>读取最新版本</Button> : null}
           <Button type="button" variant="ghost" size="compact" disabled={busy} onClick={onClose}>取消</Button>

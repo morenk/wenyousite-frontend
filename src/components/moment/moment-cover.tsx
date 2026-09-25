@@ -15,7 +15,7 @@ export function MomentCover({ moment, priority = false, className }: MomentCover
   if (moment.coverType === "IMAGE" && moment.coverMedia) {
     return (
       <div
-        className={cn("relative overflow-hidden rounded-xl bg-muted", className)}
+        className={cn("relative overflow-hidden rounded-[var(--radius-card)] bg-muted", className)}
         style={{
           aspectRatio: getMomentFeedAspectRatio(
             moment.coverMedia.width,
@@ -47,7 +47,7 @@ export function MomentCover({ moment, priority = false, className }: MomentCover
     <div
       data-cover-theme={moment.textCoverTheme}
       className={cn(
-        "moment-text-cover flex aspect-[3/4] items-center overflow-hidden rounded-xl px-4 py-5",
+        "moment-text-cover flex aspect-[3/4] items-center overflow-hidden rounded-[var(--radius-card)] px-4 py-5",
         className,
       )}
     >

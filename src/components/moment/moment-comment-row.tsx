@@ -59,7 +59,7 @@ export function MomentCommentRow({
       id={`moment-comment-${comment.id}`}
       aria-current={focused ? "location" : undefined}
       className={cn(
-        "flex scroll-mt-6 gap-3 rounded-xl transition-[background-color,box-shadow]",
+        "flex scroll-mt-6 gap-3 rounded-[var(--radius-control)] transition-[background-color,box-shadow]",
         focused && "bg-primary/[0.12] ring-2 ring-brand-strong/55 ring-offset-4 ring-offset-background",
       )}
     >
@@ -74,7 +74,7 @@ export function MomentCommentRow({
         <div className="flex items-center gap-2">
           <Link
             href={`/users/${comment.author.id}`}
-            className="truncate rounded-sm text-sm font-semibold hover:text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+            className="truncate rounded-[var(--radius-compact)] text-sm font-semibold hover:text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
           >
             {comment.author.username}
           </Link>
@@ -87,7 +87,7 @@ export function MomentCommentRow({
             {comment.replyToComment ? (
               <span className="mr-1 text-muted-foreground">
                 回复{" "}
-                <Link href={`/users/${comment.replyToComment.author.id}`} className="rounded-sm hover:text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40">
+                <Link href={`/users/${comment.replyToComment.author.id}`} className="rounded-[var(--radius-compact)] hover:text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40">
                   {comment.replyToComment.author.username}
                 </Link>
                 {comment.content ? "：" : ""}
@@ -104,12 +104,12 @@ export function MomentCommentRow({
             // 评论按内容撑高；填满父级高度会将后续操作栏挤出本楼层。
             wrapperStyle={{ height: "auto" }}
             onClick={() => setLightboxUrl(comment.sticker?.url ?? comment.media?.url ?? null)}
-            buttonClassName="mt-2 block max-w-full overflow-hidden rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+            buttonClassName="mt-2 block max-w-full overflow-hidden rounded-[var(--radius-compact)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
             buttonLabel={comment.sticker ? "查看评论表情包" : "查看评论图片"}
             alt={comment.sticker ? "评论表情包" : "评论图片"}
             loading="lazy"
             decoding="async"
-            className={comment.sticker ? "sticker-display object-contain" : "max-h-72 max-w-60 rounded-xl object-contain"}
+            className={comment.sticker ? "sticker-display object-contain" : "max-h-72 max-w-60 rounded-[var(--radius-compact)] object-contain"}
             style={comment.sticker ? STICKER_DISPLAY_STYLE : undefined}
           />
         ) : null}
@@ -126,7 +126,7 @@ export function MomentCommentRow({
                 aria-label="删除"
                 disabled={remove.isPending}
                 onClick={() => void deleteComment()}
-                className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-[background-color,color,transform] hover:bg-primary hover:text-brand-strong focus-visible:bg-primary focus-visible:text-brand-strong active:scale-95 disabled:cursor-wait disabled:opacity-40"
+                className="inline-flex size-8 items-center justify-center rounded-[var(--radius-control)] text-muted-foreground transition-[background-color,color,transform] hover:bg-primary hover:text-brand-strong focus-visible:bg-primary focus-visible:text-brand-strong active:scale-95 disabled:cursor-wait disabled:opacity-40"
               >
                 <Trash2 className="size-4" />
               </button>
@@ -136,7 +136,7 @@ export function MomentCommentRow({
                 type="button"
                 aria-label="站务隐藏评论"
                 onClick={() => setModerationOpen(true)}
-                className="inline-flex size-8 items-center justify-center rounded-lg text-destructive transition-[background-color,color,transform] hover:bg-destructive-soft focus-visible:bg-destructive-soft active:scale-95"
+                className="inline-flex size-8 items-center justify-center rounded-[var(--radius-control)] text-destructive transition-[background-color,color,transform] hover:bg-destructive-soft focus-visible:bg-destructive-soft active:scale-95"
               >
                 <ShieldAlert className="size-4" />
               </button>

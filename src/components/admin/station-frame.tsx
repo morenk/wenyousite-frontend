@@ -137,7 +137,7 @@ export function StationFrame({
             href="/station/dashboard"
             aria-current={dashboardActive ? "page" : undefined}
             className={cn(
-              "flex h-10 items-center gap-3 rounded-md px-3 text-sm font-semibold transition-colors",
+              "flex h-10 items-center gap-3 rounded-[var(--radius-control)] px-3 text-sm font-semibold transition-colors",
               dashboardActive
                 ? "bg-background text-foreground"
                 : "text-background/70 hover:bg-background/10 hover:text-background",
@@ -156,7 +156,7 @@ export function StationFrame({
               href={href}
               aria-current={pathname.startsWith(href) ? "page" : undefined}
               className={cn(
-                "flex h-9 items-center gap-3 rounded-md px-3 text-sm font-semibold",
+                "flex h-9 items-center gap-3 rounded-[var(--radius-control)] px-3 text-sm font-semibold",
                 pathname.startsWith(href)
                   ? "bg-background text-foreground"
                   : "text-background/70 hover:bg-background/10 hover:text-background",
@@ -176,7 +176,7 @@ export function StationFrame({
               <Collapsible.Root key={group.label} defaultOpen className="pt-1">
                 <Collapsible.Trigger
                   className={cn(
-                    "group flex h-10 w-full items-center gap-3 rounded-md px-3 text-sm font-semibold text-background/70 transition-colors hover:bg-background/10 hover:text-background",
+                    "group flex h-10 w-full items-center gap-3 rounded-[var(--radius-control)] px-3 text-sm font-semibold text-background/70 transition-colors hover:bg-background/10 hover:text-background",
                     groupActive && "text-background",
                   )}
                 >
@@ -197,7 +197,7 @@ export function StationFrame({
                           href={item.href}
                           aria-current={active ? "page" : undefined}
                           className={cn(
-                            "flex h-9 items-center gap-3 rounded-md px-3 text-sm font-semibold transition-colors",
+                            "flex h-9 items-center gap-3 rounded-[var(--radius-control)] px-3 text-sm font-semibold transition-colors",
                             active
                               ? "bg-background text-foreground"
                               : "text-background/65 hover:bg-background/10 hover:text-background",

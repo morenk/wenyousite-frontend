@@ -16,15 +16,15 @@ export function AdminInviteAcceptance() {
 
   return (
     <main className="flex min-h-screen min-w-[960px] items-center justify-center bg-muted px-8 py-16">
-      <section className="w-full max-w-xl rounded-lg border border-border bg-card p-10 shadow-sm">
-        <span className="flex size-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+      <section className="w-full max-w-xl rounded-[var(--radius-panel)] border border-border bg-card p-10 shadow-sm">
+        <span className="flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
           <ShieldCheck className="size-5" />
         </span>
         <h1 className="mt-7 font-sans text-3xl font-semibold">接受温油站务邀请</h1>
         <p className="mt-4 text-sm leading-7 text-muted-foreground">
           接受后，当前账号将成为管理员并退出普通登录。请重新登录站务台完成邮箱验证。
         </p>
-        <div className="mt-7 rounded-xl border border-border bg-muted px-4 py-3 text-sm">
+        <div className="mt-7 rounded-[var(--radius-panel)] border border-border bg-muted px-4 py-3 text-sm">
           当前账号：<strong>{auth.user?.username}</strong>
         </div>
         {!token ? <p className="mt-5 text-sm text-destructive">邀请链接缺少凭证，请重新打开邮件中的完整链接。</p> : null}

@@ -103,7 +103,7 @@ export function ReplyDiscussion({
         </Link>
       </div>
 
-      <section className="overflow-hidden rounded-xl border border-border bg-card">
+      <section className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-card">
         <div className="border-b border-border bg-muted/30 px-5 py-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">

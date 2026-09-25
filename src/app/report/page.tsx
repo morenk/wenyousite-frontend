@@ -15,7 +15,7 @@ export default function ReportPage() {
   return (
     <RequireAuth>
       {!targetType || !targetTypes.has(targetType) || !targetId ? (
-        <p className="mx-auto mt-16 max-w-xl rounded-xl border border-border bg-card p-6 text-sm text-destructive">举报目标参数无效。</p>
+        <p className="mx-auto mt-16 max-w-xl rounded-[var(--radius-card)] border border-border bg-card p-6 text-sm text-destructive">举报目标参数无效。</p>
       ) : <ReportForm targetType={targetType} targetId={targetId} />}
     </RequireAuth>
   );

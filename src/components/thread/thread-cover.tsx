@@ -51,13 +51,13 @@ export function ThreadCover({ image, media, className }: ThreadCoverProps) {
 
   if (!original) return null;
   return <div ref={ref}
-    className={cn("pointer-events-none relative mt-3 aspect-video w-1/2 overflow-hidden rounded-xl bg-muted", className)}
+    className={cn("pointer-events-none relative mt-3 aspect-video w-1/2 overflow-hidden rounded-[var(--radius-compact)] bg-muted", className)}
     data-thread-cover="true" data-cover-url={original}>
     {active ? <PlayingCover key={`${identity}:${generation}`} url={playbackUrl} poster={showPoster ? poster : null} onError={() => setFailedAnimation(identity)} />
       : showPoster ? <CoverImage key={identity} data-cover-poster src={poster} className="h-full w-full object-cover"
           onLoad={() => setLoadedPoster(identity)} onError={() => setFailedPoster(identity)} />
       : <span className="flex h-full items-center justify-center text-muted-foreground" aria-hidden="true"><ImageIcon className="size-6" /></span>}
     {failedAnimation === identity && <Button type="button" variant="secondary" size="sm" className="pointer-events-auto absolute inset-x-2 bottom-2" onClick={(event) => { event.preventDefault(); event.stopPropagation(); setFailedAnimation(null); }}>重试封面动图</Button>}
-    {descriptor?.animated === true && failedAnimation !== identity && <span className="absolute bottom-2 right-2 rounded bg-background/90 px-1.5 py-0.5 text-xs text-foreground" aria-hidden="true">动图</span>}
+    {descriptor?.animated === true && failedAnimation !== identity && <span className="absolute bottom-2 right-2 rounded-full bg-background/90 px-1.5 py-0.5 text-xs text-foreground" aria-hidden="true">动图</span>}
   </div>;
 }

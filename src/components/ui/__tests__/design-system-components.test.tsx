@@ -4,6 +4,7 @@ import { afterEach, describe, expect, test } from "vitest";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
+import { Card, CardFooter, CardHeader } from "@/components/ui/card";
 import { StackList, StackListRow } from "@/components/ui/stack-list";
 
 afterEach(cleanup);
@@ -40,13 +41,30 @@ describe("视觉系统基础组件", () => {
     );
 
     expect(screen.getByLabelText("测试列表")).toHaveAttribute("data-slot", "stack-list");
+    expect(screen.getByLabelText("测试列表")).toHaveClass("rounded-[var(--radius-card)]", "divide-y");
     expect(screen.getByText("第一行")).toHaveAttribute("data-slot", "stack-list-row");
+  });
+
+  test("内容卡片消费 Foundation 圆角，功能面板保留原规格", () => {
+    const { container } = render(
+      <>
+        <Card appearance="content"><CardHeader>内容</CardHeader><CardFooter>操作</CardFooter></Card>
+        <Card>功能面板</Card>
+      </>,
+    );
+    const [content, functional] = container.querySelectorAll('[data-slot="card"]');
+    expect(content).toHaveAttribute("data-appearance", "content");
+    expect(content).toHaveClass("data-[appearance=content]:[--card-radius:var(--radius-card)]");
+    expect(content.querySelector('[data-slot="card-header"]')).toHaveClass("rounded-t-[var(--card-radius)]");
+    expect(content.querySelector('[data-slot="card-footer"]')).toHaveClass("rounded-b-[var(--card-radius)]");
+    expect(functional).toHaveAttribute("data-appearance", "default");
+    expect(functional).toHaveClass("[--card-radius:var(--radius-panel)]");
   });
 
   test("旧按钮尺寸映射到新的紧凑规格", () => {
     render(<Button size="sm">旧尺寸按钮</Button>);
 
-    expect(screen.getByRole("button", { name: "旧尺寸按钮" })).toHaveClass("h-8");
+    expect(screen.getByRole("button", { name: "旧尺寸按钮" })).toHaveClass("h-8", "rounded-[var(--radius-control)]");
   });
 
   test("按钮 pending 时统一禁用、播报忙碌状态并使用语义加载图标", () => {

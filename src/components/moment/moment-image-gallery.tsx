@@ -84,7 +84,7 @@ export function MomentImageGallery({ title, images, coverMedia }: MomentImageGal
                 allowPlayback={activeIndex === index && lightboxIndex === null}
                 onClick={() => setLightboxIndex(index)}
                 buttonLabel={`查看大图：${title}，第 ${index + 1} 张图片`}
-                buttonClassName="relative block w-full max-h-[min(72vh,42rem)] overflow-hidden rounded-xl bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/40"
+                buttonClassName="relative block w-full max-h-[min(72vh,42rem)] overflow-hidden rounded-[var(--radius-compact)] bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/40"
                 buttonStyle={{ aspectRatio }}
                 alt={`${title}，第 ${index + 1} 张图片`}
                 width={image.width ?? undefined}
@@ -145,7 +145,7 @@ export function MomentImageGallery({ title, images, coverMedia }: MomentImageGal
               aria-label={`显示第 ${index + 1} 张图片`}
               aria-current={activeIndex === index ? "true" : undefined}
               className={cn(
-                "size-10 shrink-0 overflow-hidden rounded-lg border bg-card p-0.5 opacity-65 transition-[border-color,opacity,transform] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+                "size-10 shrink-0 overflow-hidden rounded-[var(--radius-control)] border bg-card p-0.5 opacity-65 transition-[border-color,opacity,transform] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
                 activeIndex === index
                   ? "border-brand-strong opacity-100 ring-1 ring-brand-strong/20"
                   : "border-border hover:opacity-100",
@@ -158,7 +158,7 @@ export function MomentImageGallery({ title, images, coverMedia }: MomentImageGal
                 alt=""
                 aria-hidden="true"
                 draggable={false}
-                className="h-full w-full rounded-md object-cover"
+                className="h-full w-full rounded-[var(--radius-compact)] object-cover"
               />
             </button>
           ))}

@@ -17,7 +17,7 @@ function RecentRepliesCard({ userId }: { userId: string }) {
   } = useUserRecentReplies(userId);
 
   return (
-    <Card id="recent-replies" className="scroll-mt-20">
+    <Card appearance="content" id="recent-replies" className="scroll-mt-20">
       <CardHeader>
         <CardTitle className="text-base">最近回复</CardTitle>
       </CardHeader>
@@ -34,7 +34,7 @@ export default function UserProfilePage() {
   const { canViewRecentReplies } = useUserProfilePageContext();
 
   return (
-    <div className="space-y-5">
+    <div className="flex flex-col gap-[var(--collection-card-gap)]">
       <UserActivitySummaryCard userId={userId} />
       {canViewRecentReplies ? <RecentRepliesCard userId={userId} /> : null}
     </div>

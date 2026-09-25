@@ -63,7 +63,7 @@ export function NotificationList({ type, onTypeChange }: NotificationListProps) 
   };
 
   return (
-    <div className="w-full space-y-3">
+    <div className="flex w-full flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
         <div className="flex flex-wrap gap-1">
           {NOTIFICATION_FILTERS.map((filter) => (
@@ -99,7 +99,7 @@ export function NotificationList({ type, onTypeChange }: NotificationListProps) 
       ) : notifications.length === 0 ? (
         <EmptyState title="暂无通知" />
       ) : (
-        <>
+        <div className="flex flex-col gap-[var(--collection-card-gap)]">
           {notifications.map((notification) => (
             <NotificationItem key={notification.id} notification={notification} />
           ))}
@@ -133,7 +133,7 @@ export function NotificationList({ type, onTypeChange }: NotificationListProps) 
               <span className="text-xs text-muted-foreground">没有更多了</span>
             )}
           </div>
-        </>
+        </div>
       )}
     </div>
   );

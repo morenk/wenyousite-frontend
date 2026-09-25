@@ -24,7 +24,7 @@ export function AuthPageShell({ title, children, footer }: AuthPageShellProps) {
         <Link
           href="/"
           aria-label={`${BRAND_NAME}首页`}
-          className="inline-flex items-center gap-3 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+          className="inline-flex items-center gap-3 rounded-[var(--radius-control)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
         >
           <BrandTitleMark size={48} priority />
           <span className="font-display text-2xl font-medium text-foreground">{BRAND_NAME}</span>

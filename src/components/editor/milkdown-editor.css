@@ -259,7 +259,7 @@
   margin: 0 0.125rem;
   vertical-align: middle;
   object-fit: contain;
-  border-radius: 0.375rem;
+  border-radius: var(--radius-compact);
 }
 
 .milkdown .ProseMirror .sticker-inline.ProseMirror-selectednode {

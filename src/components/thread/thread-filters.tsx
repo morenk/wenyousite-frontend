@@ -53,11 +53,11 @@ export function ThreadFilters({
         <SelectTrigger
           size="compact"
           aria-label="排序"
-          className="group h-10 w-full min-w-0 gap-1.5 rounded-xl border-border/80 bg-card py-0 pr-2.5 pl-2 text-[0.8125rem] hover:border-brand-strong hover:bg-accent/15 data-[size=compact]:h-10 data-popup-open:border-brand-strong data-popup-open:bg-accent/20 data-popup-open:ring-2 data-popup-open:ring-brand-strong/35 sm:w-auto sm:min-w-32"
+          className="group h-10 w-full min-w-0 gap-1.5 rounded-[var(--radius-control)] border-border/80 bg-card py-0 pr-2.5 pl-2 text-[0.8125rem] hover:border-brand-strong hover:bg-accent/15 data-[size=compact]:h-10 data-popup-open:border-brand-strong data-popup-open:bg-accent/20 data-popup-open:ring-2 data-popup-open:ring-brand-strong/35 sm:w-auto sm:min-w-32"
         >
           <span
             aria-hidden="true"
-            className="flex size-6 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground transition-colors group-hover:bg-accent group-hover:text-brand-strong group-data-[popup-open]:bg-primary/70 group-data-[popup-open]:text-brand-strong max-[479px]:hidden"
+            className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors group-hover:bg-accent group-hover:text-brand-strong group-data-[popup-open]:bg-primary/70 group-data-[popup-open]:text-brand-strong max-[479px]:hidden"
           >
             <ArrowDownUp className="size-3.5" />
           </span>
@@ -67,13 +67,13 @@ export function ThreadFilters({
           align="start"
           alignItemWithTrigger={false}
           sideOffset={7}
-          className="min-w-40 rounded-xl border-border/80 p-1.5 shadow-floating"
+          className="min-w-40 rounded-[var(--radius-panel)] border-border/80 p-1.5 shadow-floating"
         >
           {sortOptions.map((option) => (
             <SelectItem
               key={option.value}
               value={option.value}
-              className="rounded-lg font-medium data-highlighted:bg-accent/65 data-selected:bg-muted"
+              className="rounded-[var(--radius-control)] font-medium data-highlighted:bg-accent/65 data-selected:bg-muted"
             >
               {option.label}
             </SelectItem>
@@ -91,11 +91,11 @@ export function ThreadFilters({
         <SelectTrigger
           size="compact"
           aria-label="状态"
-          className="group h-10 w-full min-w-0 gap-1.5 rounded-xl border-border/80 bg-card py-0 pr-2.5 pl-2 text-[0.8125rem] hover:border-brand-strong hover:bg-accent/15 data-[size=compact]:h-10 data-popup-open:border-brand-strong data-popup-open:bg-accent/20 data-popup-open:ring-2 data-popup-open:ring-brand-strong/35 sm:w-auto sm:min-w-32"
+          className="group h-10 w-full min-w-0 gap-1.5 rounded-[var(--radius-control)] border-border/80 bg-card py-0 pr-2.5 pl-2 text-[0.8125rem] hover:border-brand-strong hover:bg-accent/15 data-[size=compact]:h-10 data-popup-open:border-brand-strong data-popup-open:bg-accent/20 data-popup-open:ring-2 data-popup-open:ring-brand-strong/35 sm:w-auto sm:min-w-32"
         >
           <span
             aria-hidden="true"
-            className="flex size-6 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground transition-colors group-hover:bg-accent group-hover:text-brand-strong group-data-[popup-open]:bg-primary/70 group-data-[popup-open]:text-brand-strong max-[479px]:hidden"
+            className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors group-hover:bg-accent group-hover:text-brand-strong group-data-[popup-open]:bg-primary/70 group-data-[popup-open]:text-brand-strong max-[479px]:hidden"
           >
             <CircleDot className="size-3.5" />
           </span>
@@ -105,13 +105,13 @@ export function ThreadFilters({
           align="start"
           alignItemWithTrigger={false}
           sideOffset={7}
-          className="min-w-40 rounded-xl border-border/80 p-1.5 shadow-floating"
+          className="min-w-40 rounded-[var(--radius-panel)] border-border/80 p-1.5 shadow-floating"
         >
           {statusOptions.map((option) => (
             <SelectItem
               key={option.value}
               value={option.value}
-              className="rounded-lg font-medium data-highlighted:bg-accent/65 data-selected:bg-muted"
+              className="rounded-[var(--radius-control)] font-medium data-highlighted:bg-accent/65 data-selected:bg-muted"
             >
               {option.label}
             </SelectItem>

@@ -19,12 +19,12 @@ export function AdminFilterBar({
   className?: string;
   inline?: boolean;
 }) {
-  if (inline) return <div data-slot="admin-filter-bar" className={cn("border-b border-border bg-card px-3 py-2 [&_input]:h-8 [&_input]:rounded-md", className)}><div data-slot="admin-filter-fields" aria-label="筛选条件" className="flex min-w-0 flex-wrap items-end gap-2">{children}<Button type="button" size="compact" variant="ghost" disabled={activeCount === 0} onClick={onReset}><RotateCcw />重置{activeCount > 0 ? <Badge tone="brand">{activeCount}</Badge> : null}</Button></div></div>;
+  if (inline) return <div data-slot="admin-filter-bar" className={cn("border-b border-border bg-card px-3 py-2 [&_input]:h-8 [&_input]:rounded-[var(--radius-control)]", className)}><div data-slot="admin-filter-fields" aria-label="筛选条件" className="flex min-w-0 flex-wrap items-end gap-2">{children}<Button type="button" size="compact" variant="ghost" disabled={activeCount === 0} onClick={onReset}><RotateCcw />重置{activeCount > 0 ? <Badge tone="brand">{activeCount}</Badge> : null}</Button></div></div>;
   return (
     <div
       data-slot="admin-filter-bar"
       className={cn(
-        "border-b border-border bg-card px-3 py-2 [&_input]:h-8 [&_input]:rounded-md [&_[data-slot=select-trigger]]:h-8 [&_[data-slot=select-trigger]]:rounded-md",
+        "border-b border-border bg-card px-3 py-2 [&_input]:h-8 [&_input]:rounded-[var(--radius-control)] [&_[data-slot=select-trigger]]:h-8 [&_[data-slot=select-trigger]]:rounded-[var(--radius-control)]",
         className,
       )}
     >

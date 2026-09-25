@@ -135,9 +135,9 @@ export function TaxonomyPanel() {
   return (
     <>
       <div className="space-y-4">
-        <section className="overflow-hidden rounded-lg border border-border bg-card">
+        <section className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-card">
           <div className="flex items-center gap-3 px-4 py-3">
-            <span className="flex size-10 items-center justify-center rounded-xl bg-accent text-accent-foreground"><FolderTree className="size-5" /></span>
+            <span className="flex size-10 items-center justify-center rounded-full bg-accent text-accent-foreground"><FolderTree className="size-5" /></span>
             <div>
               <h2 className="font-sans text-xl font-semibold">主题帖分类</h2>
             </div>
@@ -262,9 +262,9 @@ export function TaxonomyPanel() {
           {categoryForm.formState.errors.name ? <p className="px-6 pb-2 text-xs text-destructive">{categoryForm.formState.errors.name.message}</p> : null}
         </section>
 
-        <section className="overflow-hidden rounded-lg border border-border bg-card">
+        <section className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-card">
           <div className="flex items-center gap-3 px-4 py-3">
-            <span className="flex size-10 items-center justify-center rounded-xl bg-info-soft text-info"><Tags className="size-5" /></span>
+            <span className="flex size-10 items-center justify-center rounded-full bg-info-soft text-info"><Tags className="size-5" /></span>
             <div><h2 className="font-sans text-xl font-semibold">平台标签</h2></div>
           </div>
           <AdminFilterBar

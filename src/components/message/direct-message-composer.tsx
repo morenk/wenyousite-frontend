@@ -280,14 +280,14 @@ export function DirectMessageComposer({
           <img
             src={previewUrl}
             alt="待发送图片预览"
-            className="max-h-32 max-w-52 rounded-lg border border-border object-cover"
+            className="max-h-32 max-w-52 rounded-[var(--radius-compact)] border border-border object-cover"
           />
           <button
             type="button"
             onClick={clearImage}
             disabled={isPending}
             aria-label="移除图片"
-            className="absolute -right-2 -top-2 rounded-full bg-foreground p-1 text-background shadow"
+            className="absolute -right-2 -top-2 rounded-[var(--radius-control)] bg-foreground p-1 text-background shadow"
           >
             <X className="h-3 w-3" />
           </button>
@@ -331,7 +331,7 @@ export function DirectMessageComposer({
         rows={3}
         disabled={isPending}
         placeholder={placeholder}
-        className="w-full resize-none rounded-xl border border-input bg-card px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20 disabled:opacity-60"
+        className="w-full resize-none rounded-[var(--radius-control)] border border-input bg-card px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20 disabled:opacity-60"
       />
       {uploadProgress ? (
         <ImageUploadProgress

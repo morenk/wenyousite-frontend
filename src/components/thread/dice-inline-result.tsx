@@ -45,7 +45,7 @@ export function DiceInlineResult({ roll }: DiceInlineResultProps) {
         >
           <Popover.Popup
             role="dialog"
-            className="dice-detail-popover w-[min(var(--element-dice-detail-width,22rem),calc(100vw-1rem))] max-h-[min(var(--element-dice-detail-max-height,28rem),var(--available-height))] overflow-y-auto overscroll-contain rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-popover outline-none"
+            className="dice-detail-popover w-[min(var(--element-dice-detail-width,22rem),calc(100vw-1rem))] max-h-[min(var(--element-dice-detail-max-height,28rem),var(--available-height))] overflow-y-auto overscroll-contain rounded-[var(--radius-panel)] border border-border bg-popover p-3 text-popover-foreground shadow-popover outline-none"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">

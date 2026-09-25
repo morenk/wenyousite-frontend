@@ -10,5 +10,10 @@ describe("用户资料 Tab 加载态", () => {
     expect(container.querySelector('[data-slot="profile-tab-fallback"]')).toBeInTheDocument();
     expect(container.querySelector('[data-slot="page-shell"]')).not.toBeInTheDocument();
     expect(container.querySelector('[data-slot="navigation-progress"]')).toBeInTheDocument();
+    expect(container.querySelector('[data-slot="card"]')).toHaveAttribute("data-appearance", "content");
+    expect(container.querySelector('[data-slot="card-content"]')).toHaveClass("gap-[var(--collection-card-gap)]");
+    const loadingRows = container.querySelector('[data-slot="card-content"]')?.children;
+    expect(loadingRows).toHaveLength(3);
+    Array.from(loadingRows ?? []).forEach((row) => expect(row).toHaveClass("rounded-[var(--radius-card)]"));
   });
 });

@@ -325,18 +325,18 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
         <DialogViewport>
           <DialogPopup
             data-slot="moment-composer-shell"
-            className="grid h-[min(92dvh,52rem)] max-h-none max-w-5xl grid-cols-[minmax(18rem,0.8fr)_minmax(0,1.2fr)] overflow-hidden rounded-3xl border-0 p-0"
+            className="grid h-[min(92dvh,52rem)] max-h-none max-w-5xl grid-cols-[minmax(18rem,0.8fr)_minmax(0,1.2fr)] overflow-hidden rounded-[var(--radius-panel)] border-0 p-0"
           >
         <div className="flex min-h-0 items-center justify-center overflow-hidden bg-muted/55 p-8">
           {selectedCover ? (
-            <div className="relative aspect-[3/4] w-full max-w-sm overflow-hidden rounded-2xl bg-card">
+            <div className="relative aspect-[3/4] w-full max-w-sm overflow-hidden rounded-[var(--radius-compact)] bg-card">
               {/* eslint-disable-next-line @next/next/no-img-element -- 本地 Blob 草稿预览 */}
               <img src={selectedCover.previewUrl} alt="封面预览" className="h-full w-full object-cover" />
               <span className="absolute bottom-3 left-3 rounded-full bg-foreground/60 px-3 py-1 text-xs font-medium text-background">封面预览</span>
             </div>
           ) : (
             <div
-              className="moment-text-cover flex aspect-[3/4] w-full max-w-sm items-center rounded-2xl px-9 py-10"
+              className="moment-text-cover flex aspect-[3/4] w-full max-w-sm items-center rounded-[var(--radius-compact)] px-9 py-10"
               data-cover-theme="ROSE"
             >
               <p className="line-clamp-5 font-display text-3xl font-medium leading-[1.55] tracking-wide">{title.trim() || "封面预览"}</p>
@@ -399,10 +399,10 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
               </div>
               <div className="grid grid-cols-3 gap-2">
                 {images.map((image, index) => (
-                  <div key={image.id} className={cn("group relative aspect-[3/4] overflow-hidden rounded-xl bg-muted", coverFileId === image.id && "ring-2 ring-brand-strong ring-offset-2")}>
+                  <div key={image.id} className={cn("group relative aspect-[3/4] overflow-hidden rounded-[var(--radius-compact)] bg-muted", coverFileId === image.id && "ring-2 ring-brand-strong ring-offset-2")}>
                     {/* eslint-disable-next-line @next/next/no-img-element -- 本地 Blob 草稿预览 */}
                     <img src={image.previewUrl} alt={`第 ${index + 1} 张图片`} className="h-full w-full object-cover" />
-                    <div className="absolute inset-x-1 bottom-1 flex items-center justify-between rounded-lg bg-foreground/60 p-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+                    <div className="absolute inset-x-1 bottom-1 flex items-center justify-between rounded-[var(--radius-compact)] bg-foreground/60 p-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
                       <Tooltip content="设为封面"><Button type="button" variant="ghost" size="icon-compact" className="text-background hover:bg-background/15 hover:text-background" onClick={() => setCoverFileId(image.id)} aria-label="设为封面"><Star className={cn("size-3.5", coverFileId === image.id && "fill-current")} /></Button></Tooltip>
                       <div className="flex"><Button type="button" variant="ghost" size="icon-compact" className="text-background hover:bg-background/15 hover:text-background disabled:bg-transparent" disabled={index === 0} onClick={() => moveImage(index, -1)} aria-label="向前移动"><ArrowLeft className="size-3.5" /></Button><Button type="button" variant="ghost" size="icon-compact" className="text-background hover:bg-background/15 hover:text-background disabled:bg-transparent" disabled={index === images.length - 1} onClick={() => moveImage(index, 1)} aria-label="向后移动"><ArrowRight className="size-3.5" /></Button></div>
                       <Button type="button" variant="ghost" size="icon-compact" className="text-background hover:bg-background/15 hover:text-background" onClick={() => removeImage(image.id)} aria-label="删除图片"><Trash2 className="size-3.5" /></Button>
@@ -411,7 +411,7 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
                   </div>
                 ))}
                 {images.length < 9 ? (
-                  <button type="button" className="flex aspect-[3/4] flex-col items-center justify-center gap-2 rounded-xl bg-muted text-muted-foreground transition-colors hover:bg-accent/55 hover:text-foreground" onClick={() => fileInputRef.current?.click()}><ImagePlus className="size-6" /><span className="text-xs font-medium">添加图片</span></button>
+                  <button type="button" className="flex aspect-[3/4] flex-col items-center justify-center gap-2 rounded-[var(--radius-control)] bg-muted text-muted-foreground transition-colors hover:bg-accent/55 hover:text-foreground" onClick={() => fileInputRef.current?.click()}><ImagePlus className="size-6" /><span className="text-xs font-medium">添加图片</span></button>
                 ) : null}
               </div>
               <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple className="sr-only" onChange={(event) => addFiles(event.target.files)} />

@@ -74,7 +74,7 @@ export function UsersPanel() {
 
   return (
     <div data-slot="admin-users-workspace" data-layout="full-table" className="w-full">
-      <section className="overflow-hidden rounded-lg border border-border bg-card">
+      <section className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-card">
         <AdminFilterBar
           activeCount={activeCount}
           onReset={() => void setFilters(null, { history: "push" })}

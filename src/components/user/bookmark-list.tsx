@@ -38,7 +38,7 @@ export function BookmarkList({
   const bookmarks = data?.pages.flatMap((page) => page?.data ?? []) ?? [];
 
   if (isLoading) {
-    return <div aria-label="正在加载收藏" role="status" className="space-y-4 py-5">{[0, 1, 2].map((item) => <Skeleton key={item} className="h-20 w-full rounded-xl" />)}</div>;
+    return <div aria-label="正在加载收藏" role="status" className="divide-y divide-border py-5">{[0, 1, 2].map((item) => <Skeleton key={item} className="h-20 w-full rounded-none" />)}</div>;
   }
 
   if (isError) {
@@ -52,7 +52,7 @@ export function BookmarkList({
   }
 
   return (
-    <div className="w-full space-y-3">
+    <div className="w-full">
       {bookmarks.map((bookmark) => (
         <BookmarkThreadCard
           key={bookmark.id}

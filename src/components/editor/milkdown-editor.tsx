@@ -11,7 +11,7 @@ const DynamicMilkdownEditor = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex min-h-40 items-center justify-center rounded-lg border border-border bg-background text-sm text-muted-foreground">
+      <div className="flex min-h-40 items-center justify-center rounded-[var(--radius-control)] border border-border bg-background text-sm text-muted-foreground">
         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         编辑器加载中…
       </div>

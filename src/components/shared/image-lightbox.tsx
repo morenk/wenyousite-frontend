@@ -179,7 +179,7 @@ function LightboxContent({ src, alt, onClose }: ImageLightboxProps) {
         src={src}
         alt={alt ?? ""}
         draggable={false}
-        className="rounded-lg"
+        className="rounded-[var(--radius-control)]"
         style={
           natural
             ? {
@@ -207,7 +207,7 @@ function LightboxContent({ src, alt, onClose }: ImageLightboxProps) {
 
       {/* 工具条 */}
       <div
-        className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-0.5 rounded-full border border-border bg-card/90 px-2 py-1 text-foreground shadow-popover"
+        className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-0.5 rounded-[var(--radius-panel)] border border-border bg-card/90 px-2 py-1 text-foreground shadow-popover"
         onClick={(e) => e.stopPropagation()}
       >
         <Button
@@ -221,7 +221,7 @@ function LightboxContent({ src, alt, onClose }: ImageLightboxProps) {
         </Button>
         <button
           type="button"
-          className="min-h-8 min-w-12 rounded-md px-1 text-center text-xs tabular-nums hover:text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          className="min-h-8 min-w-12 rounded-[var(--radius-control)] px-1 text-center text-xs tabular-nums hover:text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
           onClick={toggleZoom}
           aria-label="切换 1:1 显示"
         >

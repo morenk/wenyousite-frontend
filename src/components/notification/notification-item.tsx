@@ -148,7 +148,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   return (
     <div
       className={cn(
-        "relative w-full rounded-xl border p-3.5",
+        "relative w-full rounded-[var(--radius-card)] border p-3.5",
         effectivelyRead
           ? "border-border bg-card"
           : "border-brand-strong/35 bg-primary/[0.08]",
@@ -159,7 +159,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         type="button"
         onClick={handleDelete}
         title="删除通知"
-        className="absolute right-1.5 top-1.5 rounded p-1 text-muted-foreground/60 hover:bg-muted hover:text-foreground"
+        className="absolute right-1.5 top-1.5 rounded-[var(--radius-control)] p-1 text-muted-foreground/60 hover:bg-muted hover:text-foreground"
       >
         <X className="h-3.5 w-3.5" />
       </button>

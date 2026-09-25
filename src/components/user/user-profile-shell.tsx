@@ -65,7 +65,7 @@ export function UserProfileShell({ userId, children }: UserProfileShellProps) {
   if (error || !profile) {
     return (
       <PageShell className="py-12">
-        <Card>
+        <Card appearance="content">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center gap-4 py-8">
               <AlertCircle className="size-10 text-muted-foreground" aria-hidden="true" />
@@ -83,7 +83,7 @@ export function UserProfileShell({ userId, children }: UserProfileShellProps) {
   if (profile.isDeactivated) {
     return (
       <PageShell className="py-12">
-        <Card>
+        <Card appearance="content">
           <CardContent className="pt-6">
             <EmptyState title="已注销用户" />
           </CardContent>
@@ -112,7 +112,7 @@ export function UserProfileShell({ userId, children }: UserProfileShellProps) {
           <UserProfileCard user={profile} />
           <nav
             aria-label="个人资料分类"
-            className="sticky top-2 z-[var(--layer-sticky)] rounded-2xl border border-border bg-card/95 px-2 backdrop-blur-md"
+            className="sticky top-2 z-[var(--layer-sticky)] rounded-[var(--radius-panel)] border border-border bg-card/95 px-2 backdrop-blur-md"
           >
             <div className={cn("grid w-full", tabs.length === 4 ? "grid-cols-4" : "grid-cols-3")}>
               {tabs.map((tab) => {
@@ -124,7 +124,7 @@ export function UserProfileShell({ userId, children }: UserProfileShellProps) {
                     prefetch
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "relative flex min-h-12 min-w-0 items-center justify-center px-1 text-xs font-semibold text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-ring/30 after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full after:bg-brand-strong after:opacity-0 after:transition-opacity sm:px-4 sm:text-sm sm:after:inset-x-4",
+                      "relative flex min-h-12 min-w-0 items-center justify-center px-1 text-xs font-semibold text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:rounded-[var(--radius-control)] focus-visible:ring-2 focus-visible:ring-ring/30 after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full after:bg-brand-strong after:opacity-0 after:transition-opacity sm:px-4 sm:text-sm sm:after:inset-x-4",
                       active && "text-foreground after:opacity-100",
                     )}
                   >

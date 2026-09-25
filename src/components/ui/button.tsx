@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils"
 import { WenyouIcon } from "@/components/ui/wenyou-icon"
 
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center rounded-xl border border-transparent bg-clip-padding text-sm font-bold whitespace-nowrap outline-none select-none transition-[background-color,border-color,color,transform] duration-[var(--motion-fast)] ease-[var(--ease-standard)] focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:border-border disabled:bg-muted disabled:text-muted-foreground aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "inline-flex shrink-0 items-center justify-center rounded-[var(--radius-control)] border border-transparent bg-clip-padding text-sm font-bold whitespace-nowrap outline-none select-none transition-[background-color,border-color,color,transform] duration-[var(--motion-fast)] ease-[var(--ease-standard)] focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:border-border disabled:bg-muted disabled:text-muted-foreground aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
@@ -28,17 +28,17 @@ const buttonVariants = cva(
       size: {
         default:
           "h-10 gap-2 px-4 has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3",
-        compact: "h-8 gap-1.5 rounded-md px-3 text-sm",
+        compact: "h-8 gap-1.5 rounded-[var(--radius-control)] px-3 text-sm",
         large: "h-11 gap-2 px-5",
         icon: "size-10 p-0",
-        "icon-compact": "size-8 rounded-md p-0",
+        "icon-compact": "size-8 rounded-[var(--radius-control)] p-0",
         "icon-large": "size-11 p-0",
         // 迁移期兼容旧尺寸名。
-        xs: "h-8 gap-1.5 rounded-md px-3 text-sm",
-        sm: "h-8 gap-1.5 rounded-md px-3 text-sm",
+        xs: "h-8 gap-1.5 rounded-[var(--radius-control)] px-3 text-sm",
+        sm: "h-8 gap-1.5 rounded-[var(--radius-control)] px-3 text-sm",
         lg: "h-11 gap-2 px-5",
-        "icon-xs": "size-8 rounded-md p-0",
-        "icon-sm": "size-8 rounded-md p-0",
+        "icon-xs": "size-8 rounded-[var(--radius-control)] p-0",
+        "icon-sm": "size-8 rounded-[var(--radius-control)] p-0",
         "icon-lg": "size-11 p-0",
       },
     },

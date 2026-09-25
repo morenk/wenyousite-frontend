@@ -4,12 +4,11 @@
 
 import Link from "next/link";
 import { IDENTITY_PRESENTATION } from "@wenyousite/foundation/elements";
-import { CalendarDays, Fuel, MessageCircle, ShieldAlert, Users } from "lucide-react";
+import { Fuel, MessageCircle, ShieldAlert, Users } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { FollowButton } from "@/components/user/follow-button";
 import { BlockButton } from "@/components/user/block-button";
 import { UserAvatar } from "@/components/shared/user-avatar";
-import { WenyouTime } from "@/components/shared/wenyou-time";
 import { WenyouCount } from "@/components/shared/wenyou-count";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -30,7 +29,7 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
 
   if (!user.profileCover) {
     return (
-      <Card className="relative gap-0 py-0">
+      <Card appearance="content" className="relative gap-0 py-0">
         <div className="absolute inset-x-0 top-0 h-1 bg-brand-strong" aria-hidden="true" />
         <div className="p-3 pt-5 sm:p-5 sm:pt-6">
           <div className="grid grid-cols-[3.5rem_minmax(0,1fr)] items-center gap-x-3 sm:grid-cols-[4rem_minmax(0,1fr)_auto] sm:items-start sm:gap-x-4">
@@ -58,7 +57,7 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
   }
 
   return (
-    <Card className="isolate gap-0 py-0">
+    <Card appearance="content" className="isolate gap-0 py-0">
       <ProfileCover cover={user.profileCover} username={user.username} className="relative z-0" />
       <div className="relative z-10 grid grid-cols-[4rem_minmax(0,1fr)] gap-x-3 px-3 pb-4 sm:grid-cols-[6rem_minmax(0,1fr)] sm:gap-x-4 sm:px-5 sm:pb-5">
         <UserAvatar
@@ -121,10 +120,6 @@ function ProfileMetadata({ user }: { user: ActiveUserPublic }) {
       >
         粉丝 <WenyouCount value={user._count.followers} label="粉丝" announceLabel={false} />
       </Link>
-      <span className="flex items-center gap-1">
-        <CalendarDays className="size-3.5" />
-        <WenyouTime value={user.createdAt} />
-      </span>
       <span className="flex items-center gap-1" title="累计收到的用户投入总额与次数">
         <Fuel className="size-3.5" />
         获得 {formatWenyou(user.receivedTipTotal)} 升 · <WenyouCount value={user.receivedTipCount} label="投入次数" announceLabel={false} /> 次
@@ -183,8 +178,8 @@ function AccountStatus({ user }: { user: ActiveUserPublic }) {
       role="status"
       className={
         user.accountStatus === "BANNED"
-          ? "mt-5 flex items-start gap-3 rounded-xl bg-destructive-soft px-4 py-3 text-destructive"
-          : "mt-5 flex items-start gap-3 rounded-xl bg-warning-soft px-4 py-3 text-warning"
+          ? "mt-5 flex items-start gap-3 rounded-[var(--radius-compact)] bg-destructive-soft px-4 py-3 text-destructive"
+          : "mt-5 flex items-start gap-3 rounded-[var(--radius-compact)] bg-warning-soft px-4 py-3 text-warning"
       }
     >
       <ShieldAlert className="mt-0.5 size-4 shrink-0" />

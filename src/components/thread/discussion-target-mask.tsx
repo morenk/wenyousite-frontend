@@ -224,8 +224,8 @@ export function DiscussionTargetMask({
               </Button>
             ) : (
               <div className="w-full max-w-md space-y-3" aria-hidden="true">
-                <Skeleton className="h-20 w-full rounded-xl" />
-                <Skeleton className="h-20 w-full rounded-xl" />
+                <Skeleton className="h-20 w-full rounded-[var(--radius-card)]" />
+                <Skeleton className="h-20 w-full rounded-[var(--radius-card)]" />
               </div>
             )}
             {failed ? (
@@ -260,8 +260,8 @@ export function DiscussionTargetRouteFallback() {
           正在定位目标楼层…
         </div>
         <Skeleton className="h-4 w-64" />
-        <Skeleton className="h-28 w-full rounded-xl" />
-        <Skeleton className="h-28 w-full rounded-xl" />
+        <Skeleton className="h-28 w-full rounded-[var(--radius-card)]" />
+        <Skeleton className="h-28 w-full rounded-[var(--radius-card)]" />
       </div>
     </PageShell>
   );

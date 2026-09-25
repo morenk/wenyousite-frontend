@@ -97,7 +97,7 @@ export default function MomentsPage() {
       />
 
       {feed === "FOLLOWING" && !user ? (
-        <div className="rounded-3xl bg-muted/60 px-6 py-20 text-center">
+        <div className="rounded-[var(--radius-card)] bg-muted/60 px-6 py-20 text-center">
           <h2 className="text-xl font-semibold">登录后查看关注动态</h2>
           <Button variant="ghost" className="mt-5 text-brand-strong" onClick={() => redirectToLogin()}>登录</Button>
         </div>

@@ -27,7 +27,7 @@ export function PostSearchResultList({
   onSelect,
 }: PostSearchResultListProps) {
   return (
-    <div className="w-full space-y-3">
+    <div className="flex w-full flex-col gap-[var(--collection-card-gap)]">
       {posts.map((post) => (
         <Link
           key={post.id}
@@ -37,7 +37,7 @@ export function PostSearchResultList({
             parentPostId: post.parentPostId,
           })}
           onClick={onSelect}
-          className="block w-full rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-accent/20"
+          className="block w-full rounded-[var(--radius-card)] border border-border bg-card p-4 transition-colors hover:bg-accent/20"
         >
           <p className="mb-1.5 line-clamp-2 text-sm text-foreground/90">
             {formatMarkdownPreview(post.content)}

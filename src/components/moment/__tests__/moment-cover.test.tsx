@@ -20,7 +20,7 @@ describe("MomentCover", () => {
 
     expect(screen.getByText("今天也想写一点")).toHaveClass("font-display", "font-medium", "line-clamp-5");
     expect(screen.queryByRole("img")).toBeNull();
-    expect(container.firstElementChild).toHaveClass("moment-text-cover", "aspect-[3/4]", "rounded-xl");
+    expect(container.firstElementChild).toHaveClass("moment-text-cover", "aspect-[3/4]", "rounded-[var(--radius-card)]");
     expect(container.firstElementChild).toHaveAttribute("data-cover-theme", "MINT");
   });
 
@@ -54,7 +54,7 @@ describe("MomentCover", () => {
     );
     expect(screen.getByRole("img", { name: "图集" })).toHaveAttribute("loading", "eager");
     expect(screen.getByText("3 图")).toBeInTheDocument();
-    expect(container.firstElementChild).toHaveClass("rounded-xl");
+    expect(container.firstElementChild).toHaveClass("rounded-[var(--radius-card)]");
     expect(container.firstElementChild).toHaveStyle({ aspectRatio: "4" });
     expect(container.firstElementChild).not.toHaveClass("aspect-[3/4]");
     expect(screen.getByRole("img", { name: "图集" })).toHaveAttribute("width", "4000");

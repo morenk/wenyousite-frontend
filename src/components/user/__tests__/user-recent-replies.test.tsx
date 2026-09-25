@@ -80,6 +80,8 @@ describe("UserRecentReplies", () => {
       "正文",
     ]);
     expect(screen.getAllByRole("link")).toHaveLength(3);
+    expect(screen.getAllByRole("link")[0]).toHaveClass("rounded-[var(--radius-card)]");
+    expect(screen.getAllByRole("link")[0].parentElement).toHaveClass("gap-[var(--collection-card-gap)]");
   });
 
   test("每条动态点击跳转到对应楼层/主贴", () => {

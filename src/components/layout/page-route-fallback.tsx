@@ -28,15 +28,15 @@ function FeedFallback() {
   return (
     <PageShell width="feed" className="py-5">
       <Panel padding="none" className="overflow-hidden px-5 pt-6 pb-5">
-        <Skeleton className="h-8 w-40 rounded-lg" />
+        <Skeleton className="h-8 w-40 rounded-[var(--radius-compact)]" />
         <Skeleton className="mt-3 h-4 w-72 max-w-full" />
         <div className="mt-6 flex gap-3 border-t border-border pt-4">
-          <Skeleton className="h-9 w-20 rounded-xl" />
-          <Skeleton className="h-9 w-24 rounded-xl" />
-          <Skeleton className="h-9 w-20 rounded-xl" />
+          <Skeleton className="h-9 w-20 rounded-[var(--radius-control)]" />
+          <Skeleton className="h-9 w-24 rounded-[var(--radius-control)]" />
+          <Skeleton className="h-9 w-20 rounded-[var(--radius-control)]" />
         </div>
       </Panel>
-      <div className="mt-4 overflow-hidden rounded-2xl border border-border bg-card">
+      <div className="mt-4 overflow-hidden rounded-[var(--radius-card)] border border-border bg-card">
         {Array.from({ length: 3 }, (_, index) => (
           <div
             key={index}
@@ -62,15 +62,15 @@ function FeedFallback() {
 function DetailFallback() {
   return (
     <PageShell width="feed" className="py-5">
-      <Panel className="border-l-4 border-l-primary">
+      <Panel className="rounded-[var(--radius-card)] border-l-4 border-l-primary">
         <div className="flex items-center justify-between gap-4">
           <Skeleton className="h-5 w-28" />
-          <Skeleton className="h-8 w-20 rounded-xl" />
+          <Skeleton className="h-8 w-20 rounded-[var(--radius-control)]" />
         </div>
-        <Skeleton className="mt-5 h-8 w-4/5 rounded-lg" />
+        <Skeleton className="mt-5 h-8 w-4/5 rounded-[var(--radius-compact)]" />
         <Skeleton className="mt-3 h-4 w-48" />
       </Panel>
-      <Panel className="mt-4">
+      <Panel className="mt-4 rounded-[var(--radius-card)]">
         <Skeleton className="h-6 w-36" />
         <Skeleton className="mt-5 h-4 w-full" />
         <Skeleton className="mt-3 h-4 w-full" />
@@ -78,7 +78,7 @@ function DetailFallback() {
       </Panel>
       <div className="mt-4 space-y-4">
         {Array.from({ length: 2 }, (_, index) => (
-          <Panel key={index}>
+          <Panel key={index} className="rounded-[var(--radius-card)]">
             <div className="flex gap-3">
               <Skeleton className="size-10 shrink-0 rounded-full" />
               <div className="flex-1">
@@ -97,21 +97,21 @@ function DetailFallback() {
 function ProfileFallback() {
   return (
     <PageShell width="feed" className="py-5">
-      <Panel padding="none" className="overflow-hidden pb-5">
+      <Panel padding="none" className="overflow-hidden rounded-[var(--radius-card)] pb-5">
         <Skeleton className="aspect-3/1 w-full rounded-none" />
         <div className="grid grid-cols-[6rem_minmax(0,1fr)] gap-4 px-5">
           <Skeleton className="-mt-12 size-24 shrink-0 rounded-full ring-4 ring-card" />
           <div className="min-w-0 pt-4">
             <div className="flex items-center justify-between gap-4">
-              <Skeleton className="h-7 w-40 rounded-lg" />
-              <Skeleton className="h-8 w-24 rounded-lg" />
+              <Skeleton className="h-7 w-40 rounded-[var(--radius-compact)]" />
+              <Skeleton className="h-8 w-24 rounded-[var(--radius-compact)]" />
             </div>
             <Skeleton className="mt-3 h-4 w-64 max-w-full" />
           </div>
         </div>
       </Panel>
       {Array.from({ length: 3 }, (_, index) => (
-        <Panel key={index} className="mt-4">
+        <Panel key={index} className="mt-4 rounded-[var(--radius-card)]">
           <Skeleton className="h-5 w-28" />
           <Skeleton className="mt-5 h-4 w-full" />
           <Skeleton className="mt-3 h-4 w-3/4" />

@@ -44,7 +44,7 @@ export function DiceInsertPopover({
       data-dice-popover
       role="dialog"
       aria-label={presentation.title}
-      className="fixed z-[var(--layer-nested-popup)] max-h-[calc(100vh-1rem)] w-[min(20rem,calc(100vw-1rem))] overflow-y-auto overscroll-contain rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-popover"
+      className="fixed z-[var(--layer-nested-popup)] max-h-[calc(100vh-1rem)] w-[min(20rem,calc(100vw-1rem))] overflow-y-auto overscroll-contain rounded-[var(--radius-panel)] border border-border bg-popover p-3 text-popover-foreground shadow-popover"
       style={{ top: position.top, left: position.left }}
       onSubmit={(event) => {
         event.preventDefault();
@@ -118,7 +118,7 @@ export function DiceInsertPopover({
       </div>
 
       <div
-        className="mt-3 flex items-center justify-between gap-3 rounded-lg bg-muted/60 px-2.5 py-2"
+        className="mt-3 flex items-center justify-between gap-3 rounded-[var(--radius-compact)] bg-muted/60 px-2.5 py-2"
         aria-live="polite"
       >
         <div className="min-w-0">

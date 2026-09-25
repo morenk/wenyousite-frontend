@@ -208,7 +208,7 @@ export function AvatarUploader({ username, avatar, avatarDisplay }: AvatarUpload
             <DialogViewport>
               <DialogPopup className="max-w-md p-4">
                 <DialogTitle>裁剪头像</DialogTitle>
-                <div className="relative mt-3 h-64 overflow-hidden rounded-lg bg-foreground">
+                <div className="relative mt-3 h-64 overflow-hidden rounded-[var(--radius-control)] bg-foreground">
                   <Cropper
                     image={imageSrc}
                     crop={crop}

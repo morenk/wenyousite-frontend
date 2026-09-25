@@ -22,7 +22,7 @@ export default function MomentDetailPage() {
           <button
             type="button"
             onClick={returnToMoments}
-            className="inline-flex min-h-8 items-center gap-2 rounded-lg px-1 text-sm font-semibold text-muted-foreground transition-colors duration-[var(--motion-fast)] hover:text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+            className="inline-flex min-h-8 items-center gap-2 rounded-[var(--radius-control)] px-1 text-sm font-semibold text-muted-foreground transition-colors duration-[var(--motion-fast)] hover:text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
           >
             <ArrowLeft className="size-4" />
             返回动态

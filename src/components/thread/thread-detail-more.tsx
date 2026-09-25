@@ -33,7 +33,7 @@ interface ThreadDetailMoreProps {
 }
 
 const actionClassName =
-  "flex min-h-10 w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm font-medium text-foreground outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/30";
+  "flex min-h-10 w-full items-center gap-2.5 rounded-[var(--radius-control)] px-3 py-2 text-left text-sm font-medium text-foreground outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/30";
 
 function ThreadStat({
   icon,
@@ -45,7 +45,7 @@ function ThreadStat({
   value: React.ReactNode;
 }) {
   return (
-    <div className="rounded-lg bg-muted/45 px-3 py-2.5">
+    <div className="rounded-[var(--radius-compact)] bg-muted/45 px-3 py-2.5">
       <dt className="flex items-center gap-1.5 font-utility text-[11px] text-muted-foreground">
         {icon}
         {label}
@@ -84,7 +84,7 @@ export function ThreadDetailMore({
             size="icon-sm"
             aria-label="更多帖子信息与操作"
             title="更多帖子信息与操作"
-            className="rounded-lg text-muted-foreground hover:text-foreground"
+            className="rounded-[var(--radius-control)] text-muted-foreground hover:text-foreground"
           />
         }
       >
@@ -98,7 +98,7 @@ export function ThreadDetailMore({
           sideOffset={6}
           className="z-[var(--layer-popup)]"
         >
-          <Popover.Popup className="w-[min(20rem,calc(100vw-2rem))] rounded-2xl border border-border bg-popover p-2 text-popover-foreground shadow-popover outline-none">
+          <Popover.Popup className="w-[min(20rem,calc(100vw-2rem))] rounded-[var(--radius-panel)] border border-border bg-popover p-2 text-popover-foreground shadow-popover outline-none">
             <div className="px-2 pb-2 pt-1.5">
               <Popover.Title className="text-sm font-semibold">
                 帖子信息

@@ -105,7 +105,7 @@ export const DirectMessageBubble = memo(function DirectMessageBubble({
       )}>
         <div
           className={cn(
-            !pureSticker && "w-fit max-w-full rounded-2xl px-3 py-2",
+            !pureSticker && "w-fit max-w-full rounded-[var(--radius-panel)] px-3 py-2",
             !pureSticker && (mine
               ? "rounded-br-md bg-primary text-primary-foreground"
               : "rounded-bl-md bg-muted text-foreground"),
@@ -133,7 +133,7 @@ export const DirectMessageBubble = memo(function DirectMessageBubble({
                     failedImage === imageUrl ? <Button variant="secondary" onClick={() => setFailedImage(null)}>重试图片</Button> : <button
                       type="button"
                       onClick={() => setLightboxOpen(true)}
-                      className="block overflow-hidden rounded-lg"
+                      className="block overflow-hidden rounded-[var(--radius-control)]"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img

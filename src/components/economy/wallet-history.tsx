@@ -31,8 +31,8 @@ export function WalletHistory() {
     : null;
 
   return (
-    <div className="w-full space-y-5">
-      <Card>
+    <div className="flex w-full flex-col gap-[var(--collection-card-gap)]">
+      <Card appearance="content">
         <CardContent className="flex items-center justify-between gap-4 py-6">
           <div>
             <p className="text-sm text-muted-foreground">温油余额</p>
@@ -58,7 +58,7 @@ export function WalletHistory() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card appearance="content">
         <CardHeader>
           <CardTitle className="text-base">收支记录</CardTitle>
         </CardHeader>

@@ -40,7 +40,7 @@ export function MomentCard({ moment, priority = false }: { moment: MomentCardDat
 
   return (
     <article
-      className="group/moment min-w-0 pb-3"
+      className="group/moment min-w-0"
       data-moment-id={moment.id}
       data-content-purpose={CONTENT_PRESENTATION.list.purpose}
       data-content-surface={CONTENT_PRESENTATION.list.surface}
@@ -48,7 +48,7 @@ export function MomentCard({ moment, priority = false }: { moment: MomentCardDat
       <Link
         href={`/moments/${moment.id}`}
         onNavigate={() => markMomentFeedReturn(moment.id, pathname)}
-        className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+        className="block rounded-[var(--radius-card)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
       >
         <MomentCover moment={moment} priority={priority} />
         <div className="px-0.5 pt-2">
@@ -61,7 +61,7 @@ export function MomentCard({ moment, priority = false }: { moment: MomentCardDat
       <div className="mt-1 flex min-w-0 items-center gap-0 px-0.5">
         <Link
           href={`/users/${moment.author.id}`}
-          className="flex min-w-0 flex-1 items-center gap-1.5 rounded-lg py-1 text-muted-foreground hover:text-foreground"
+          className="flex min-w-0 flex-1 items-center gap-1.5 rounded-[var(--radius-control)] py-1 text-muted-foreground hover:text-foreground"
         >
           <UserAvatar name={moment.author.username} src={moment.author.avatar} display={moment.author.avatarDisplay} className="size-5" textClassName="text-[0.5625rem]" />
           <span className="truncate text-[0.75rem]">{moment.author.username}</span>
@@ -84,7 +84,7 @@ export function MomentCard({ moment, priority = false }: { moment: MomentCardDat
               : "作者已注销，历史动态仅供阅读"
           }
           size="compact"
-          className="min-h-8 gap-1 rounded-lg px-1 text-xs"
+          className="min-h-8 gap-1 rounded-[var(--radius-control)] px-1 text-xs"
           onClick={() => void toggleLike()}
         >
           {moment.likeCount > 0 ? (

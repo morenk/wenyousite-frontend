@@ -44,7 +44,7 @@ export function AdminDashboardPanel() {
         <Metric label="新增用户" value={value.overview.current.newUsers} />
         <Metric label="新增内容" value={value.overview.current.publishedThreads + value.overview.current.newPosts + value.overview.current.newMoments + value.overview.current.newMomentComments} />
       </section>
-      <section className="rounded-lg border border-border bg-card p-4">
+      <section className="rounded-[var(--radius-card)] border border-border bg-card p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Select value={trend} onValueChange={(next) => setTrend(next ?? "users")}>
             <SelectTrigger aria-label="趋势" className="h-8 w-40"><SelectValue>{trend === "users" ? "用户活动" : "内容发布"}</SelectValue></SelectTrigger>
@@ -76,12 +76,12 @@ export function AdminDashboardPanel() {
           {Object.entries(metricLabels).map(([key, label]) => <span key={key} className="text-sm">{label} <strong className="font-utility">{value.overview.current[key as keyof typeof metricLabels]}</strong></span>)}
         </div>
       </section>
-      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card px-4 py-2">
+      <div className="flex flex-wrap items-center gap-3 rounded-[var(--radius-card)] border border-border bg-card px-4 py-2">
         <span className="text-sm font-semibold">待办</span>
         <Link href="/station/cases" className={buttonVariants({ size: "compact", variant: "ghost" })}>举报 {value.overview.snapshot.pendingReports}</Link>
         <Link href="/station/appeals" className={buttonVariants({ size: "compact", variant: "ghost" })}>申诉复核</Link>
       </div>
-      <section className="rounded-lg border border-border bg-card p-4">
+      <section className="rounded-[var(--radius-card)] border border-border bg-card p-4">
         <h2 className="mb-3 text-base font-semibold">主题帖分类分布</h2>
         <div className="flex flex-wrap gap-4" aria-label="已发布主题分类分布">
           {value.distributions.threadsByCategory.map((item) => <div key={item.key} className="flex items-center gap-2 text-sm"><span>{item.name}</span>{!item.isActive ? <Badge tone="neutral">已停用</Badge> : null}<strong className="font-utility">{item.count}</strong></div>)}
@@ -89,7 +89,7 @@ export function AdminDashboardPanel() {
         </div>
       </section>
     </> : null}
-    <section className="rounded-lg border border-border bg-card px-4 py-3">
+    <section className="rounded-[var(--radius-card)] border border-border bg-card px-4 py-3">
       <h2 className="mb-2 text-base font-semibold">运行状态</h2>
       {health.isLoading ? <p className="text-sm text-muted-foreground">正在读取状态…</p> : health.isError ? <p role="alert" className="text-sm text-destructive">状态读取失败 <Button size="compact" variant="ghost" onClick={() => void health.refetch()}>重试</Button></p> : <div className="flex flex-wrap gap-4">
         {Object.entries(health.data?.info ?? {}).map(([name, item]) => <span key={name} className="flex items-center gap-2 text-sm">{serviceLabels[name] ?? "其他服务"}<Badge tone={item.status === "up" ? "success" : "danger"}>{item.status === "up" ? "正常" : "异常"}</Badge></span>)}
@@ -100,5 +100,5 @@ export function AdminDashboardPanel() {
 }
 
 function Metric({ label, value }: { label: string; value: number }) {
-  return <div className="rounded-lg border border-border bg-card px-4 py-3"><p className="text-sm text-muted-foreground">{label}</p><p className="mt-1 font-utility text-2xl font-semibold">{value}</p></div>;
+  return <div className="rounded-[var(--radius-card)] border border-border bg-card px-4 py-3"><p className="text-sm text-muted-foreground">{label}</p><p className="mt-1 font-utility text-2xl font-semibold">{value}</p></div>;
 }

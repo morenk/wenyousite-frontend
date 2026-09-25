@@ -21,6 +21,10 @@ function sourceFiles(directory) {
 
 const sharedRules = [
   {
+    label: "业务 UI 圆角须按 Foundation radiusUsage 选择语义 Token，不能使用泛化大圆角",
+    pattern: /\brounded-(?:xl|2xl|3xl)\b|(?<![\w-])rounded(?![-\w])/,
+  },
+  {
     label: "业务 UI 不得写十六进制或 rgb 色值，请使用 globals.css 语义 Token",
     pattern: /(?:#[0-9a-f]{3,8}\b|rgba?\s*\()/i,
   },
@@ -342,12 +346,12 @@ const fullWidthCollectionClaims = new Map([
   ["src/components/ui/stack-list.tsx", ["w-full divide-y"]],
   ["src/components/ui/tabs.tsx", ["w-full flex-col", "group-data-[orientation=horizontal]/tabs:w-full"]],
   ["src/components/search/search-results.tsx", ["relative w-full min-w-0", "block w-full", "flex w-full"]],
-  ["src/components/search/post-search-result-list.tsx", ["w-full space-y-3", "block w-full"]],
+  ["src/components/search/post-search-result-list.tsx", ["flex w-full flex-col gap-[var(--collection-card-gap)]", "block w-full"]],
   ["src/components/moment/moment-masonry.tsx", ["className=\"w-full\""]],
-  ["src/components/user/bookmark-list.tsx", ["w-full space-y-3"]],
-  ["src/components/user/draft-list.tsx", ["w-full space-y-3", "flex w-full"]],
+  ["src/components/user/bookmark-list.tsx", ["className=\"w-full\""]],
+  ["src/components/user/draft-list.tsx", ["flex w-full flex-col gap-[var(--collection-card-gap)]", "flex w-full"]],
   ["src/components/user/user-follow-list.tsx", ["after:left-12", "flex w-full"]],
-  ["src/components/notification/notification-list.tsx", ["w-full space-y-3"]],
+  ["src/components/notification/notification-list.tsx", ["flex w-full flex-col gap-3", "flex flex-col gap-[var(--collection-card-gap)]"]],
   ["src/components/message/direct-conversation-list.tsx", ["flex w-full gap-3", "min-h-0 w-full flex-col"]],
 ]);
 for (const [fileName, claims] of fullWidthCollectionClaims) {

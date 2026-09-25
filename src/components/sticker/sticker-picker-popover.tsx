@@ -87,7 +87,7 @@ function SortableStickerTile(props: TileProps) {
         disabled={props.busy}
         aria-label={props.managing ? "选择收藏表情" : "使用收藏表情"}
         className={cn(
-          "h-full w-full rounded-lg border border-transparent bg-muted/40 p-1.5 hover:border-brand-strong/55 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
+          "h-full w-full rounded-[var(--radius-control)] border border-transparent bg-muted/40 p-1.5 hover:border-brand-strong/55 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
           props.selected && "border-brand-strong bg-primary/20",
         )}
       >
@@ -97,7 +97,7 @@ function SortableStickerTile(props: TileProps) {
         <button
           type="button"
           aria-label="拖动排序"
-          className="absolute left-0.5 top-0.5 cursor-grab rounded bg-background/90 p-0.5 text-muted-foreground shadow active:cursor-grabbing"
+          className="absolute left-0.5 top-0.5 cursor-grab rounded-[var(--radius-control)] bg-background/90 p-0.5 text-muted-foreground shadow active:cursor-grabbing"
           {...attributes}
           {...listeners}
         >
@@ -309,21 +309,21 @@ function StickerPickerPanel({
         <Popover.Popup
           role="dialog"
           aria-label="表情收藏"
-          className="w-[min(22rem,calc(100vw-1rem))] max-h-(--available-height) overflow-y-auto overscroll-contain rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-popover outline-none"
+          className="w-[min(22rem,calc(100vw-1rem))] max-h-(--available-height) overflow-y-auto overscroll-contain rounded-[var(--radius-panel)] border border-border bg-popover p-3 text-popover-foreground shadow-popover outline-none"
         >
           <div className="flex items-center justify-between gap-2">
-            <div className="flex rounded-lg bg-muted p-0.5">
+            <div className="flex rounded-[var(--radius-control)] bg-muted p-0.5">
               <button
                 type="button"
                 onClick={() => { setTab("recent"); setManaging(false); }}
-                className={cn("rounded-md px-3 py-1 text-xs", tab === "recent" && !managing && "bg-background shadow")}
+                className={cn("rounded-[var(--radius-control)] px-3 py-1 text-xs", tab === "recent" && !managing && "bg-background shadow")}
               >
                 最近
               </button>
               <button
                 type="button"
                 onClick={() => setTab("favorites")}
-                className={cn("rounded-md px-3 py-1 text-xs", (tab === "favorites" || managing) && "bg-background shadow")}
+                className={cn("rounded-[var(--radius-control)] px-3 py-1 text-xs", (tab === "favorites" || managing) && "bg-background shadow")}
               >
                 收藏 {query.data ? `${query.data.items.length}/${query.data.limit}` : ""}
               </button>

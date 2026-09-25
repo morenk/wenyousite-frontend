@@ -15,7 +15,7 @@ export function UserThreadsPage({ userId }: { userId: string }) {
   const { canViewPlayedThreads, isSelf } = useUserProfilePageContext();
 
   return (
-    <Card>
+    <Card appearance="content">
       <CardContent className="space-y-5">
         {canViewPlayedThreads ? (
           <Tabs

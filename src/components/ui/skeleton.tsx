@@ -7,7 +7,7 @@ function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="skeleton"
       data-reduced-motion={MOTION_USAGE.reducedMotion}
-      className={cn("animate-pulse rounded-md bg-muted motion-reduce:animate-none", className)}
+      className={cn("animate-pulse rounded-[var(--radius-compact)] bg-muted motion-reduce:animate-none", className)}
       {...props}
     />
   )

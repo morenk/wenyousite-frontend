@@ -20,7 +20,7 @@ export function HighRiskGate({ children }: { children: React.ReactNode }) {
   if (elevated) return children;
 
   return (
-    <div className="mx-auto mt-16 max-w-lg rounded-lg border border-border bg-card p-8 text-center">
+    <div className="mx-auto mt-16 max-w-lg rounded-[var(--radius-panel)] border border-border bg-card p-8 text-center">
       <h2 className="text-xl font-semibold">邮箱验证</h2>
       {challengeId ? <p className="mt-3 text-sm text-muted-foreground">验证码已发送，验证后 10 分钟内有效。</p> : null}
       {challengeId ? (

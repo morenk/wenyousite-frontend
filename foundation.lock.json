@@ -1,7 +1,7 @@
 {
   "repository": "https://github.com/morenk/wenyousite-foundation",
-  "version": "7.1.0",
-  "tag": "v7.1.0",
-  "revision": "dcf75d385e39cc0c55d550a6f35921cd9a7aa508",
-  "contractSha256": "d1f9b26e180b5a7871e2190ecad76fa0ffa349bfd321ed5667ff312b3c3bffe8"
+  "version": "7.1.2",
+  "tag": "v7.1.2",
+  "revision": "48a4b1a09b4be4b2076213583027d420757a0235",
+  "contractSha256": "7204453c523cc96f714d405426b2d0200774301fd88afc5d31e37b8c2e39c971"
 }

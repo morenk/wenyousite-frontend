@@ -92,7 +92,7 @@ export function ManagementPanel({
   });
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-card">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-[var(--radius-panel)] border border-border bg-card">
       <ManagementToolbar
         title={thread.title}
         role={controller.isOwner ? "楼主" : "协作者"}
@@ -158,7 +158,7 @@ export function ManagementPanel({
                   />
                 ) : null}
 
-                <div className="rounded-2xl border border-border bg-muted/20 p-4">
+                <div className="rounded-[var(--radius-panel)] border border-border bg-muted/20 p-4">
                   <div className="grid grid-cols-[minmax(0,1fr)_15rem] gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="management-subthread-title">子贴标题</Label>
@@ -401,7 +401,7 @@ function SubthreadSaveAlert({
   return (
     <div
       role="alert"
-      className="flex items-start justify-between gap-5 rounded-xl border border-warning/35 bg-warning-soft/45 px-4 py-3"
+      className="flex items-start justify-between gap-5 rounded-[var(--radius-panel)] border border-warning/35 bg-warning-soft/45 px-4 py-3"
     >
       <div className="flex min-w-0 gap-3">
         <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" />

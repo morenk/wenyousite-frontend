@@ -29,7 +29,7 @@ export function PublishMenu({ userId, compact = false }: { userId: string; compa
               aria-label="打开发布菜单"
               title={NAVIGATION_LABELS.publish}
               className={cn(
-                "group relative isolate mt-5 flex h-12 w-full items-center justify-center overflow-hidden rounded-2xl bg-action-primary text-action-primary-foreground transition-[background-color,transform] duration-[var(--motion-fast)] ease-[var(--ease-standard)] hover:bg-[color-mix(in_srgb,var(--action-primary)_86%,var(--brand-strong))] active:translate-y-px",
+                "group relative isolate mt-5 flex h-12 w-full items-center justify-center overflow-hidden rounded-[var(--radius-control)] bg-action-primary text-action-primary-foreground transition-[background-color,transform] duration-[var(--motion-fast)] ease-[var(--ease-standard)] hover:bg-[color-mix(in_srgb,var(--action-primary)_86%,var(--brand-strong))] active:translate-y-px",
                 !compact && "xl:justify-start xl:gap-2.5 xl:px-4",
               )}
             />
@@ -52,7 +52,7 @@ export function PublishMenu({ userId, compact = false }: { userId: string; compa
 
         <Popover.Portal>
           <Popover.Positioner side="right" align="start" sideOffset={12} className="z-[var(--layer-popup)]">
-            <Popover.Popup className="w-64 rounded-2xl bg-popover p-2 text-popover-foreground shadow-popover outline-none">
+            <Popover.Popup className="w-64 rounded-[var(--radius-panel)] bg-popover p-2 text-popover-foreground shadow-popover outline-none">
               <div className="px-3 pb-2 pt-2">
                 <Popover.Title className="text-base font-semibold tracking-wide">选择发布方式</Popover.Title>
               </div>
@@ -60,7 +60,7 @@ export function PublishMenu({ userId, compact = false }: { userId: string; compa
                 <Link
                   href="/threads/create"
                   onClick={() => setMenuOpen(false)}
-                  className="group/item flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+                  className="group/item flex items-center gap-3 rounded-[var(--radius-control)] px-3 py-2.5 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
                 >
                   <WenyouIcon id="status.file" className="size-5 text-brand-strong" />
                   <span className="min-w-0 flex-1">
@@ -74,7 +74,7 @@ export function PublishMenu({ userId, compact = false }: { userId: string; compa
                     setMenuOpen(false);
                     setComposerOpen(true);
                   }}
-                  className="group/item flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+                  className="group/item flex w-full items-center gap-3 rounded-[var(--radius-control)] px-3 py-2.5 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
                 >
                   <WenyouIcon id="status.gallery" className="size-5 text-brand-strong" />
                   <span className="min-w-0 flex-1">

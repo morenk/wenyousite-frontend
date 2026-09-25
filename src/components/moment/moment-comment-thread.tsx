@@ -73,14 +73,14 @@ export function MomentCommentThread({
         focused={focusedCommentId === comment.id}
       />
       {replies.length > 0 ? (
-        <div className="ml-10 mt-3 space-y-3 rounded-2xl bg-muted/55 px-4 py-3">
+        <div className="ml-10 mt-3 space-y-3 rounded-[var(--radius-card)] bg-muted/55 px-4 py-3">
           {isLargeExpandedThread ? (
             <div data-slot="moment-replies-collapse-dock" className="pointer-events-none sticky top-4 z-20 mb-2 flex h-8 justify-end">
               <button
                 type="button"
                 onClick={collapseReplies}
                 aria-label={`收起 ${comment.replyCount} 条回复`}
-                className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-background/95 px-3 py-1.5 text-xs font-semibold text-muted-foreground shadow-sm backdrop-blur-xl transition-[background-color,color,box-shadow,transform] hover:-translate-y-0.5 hover:bg-background hover:text-brand-strong hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+                className="pointer-events-auto inline-flex items-center gap-1.5 rounded-[var(--radius-control)] border border-border/80 bg-background/95 px-3 py-1.5 text-xs font-semibold text-muted-foreground shadow-sm backdrop-blur-xl transition-[background-color,color,box-shadow,transform] hover:-translate-y-0.5 hover:bg-background hover:text-brand-strong hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
               >
                 <ChevronUp className="size-3.5" />
                 收起 {comment.replyCount} 条回复

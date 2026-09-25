@@ -35,7 +35,7 @@ export function SettingsShell({ children }: { children: ReactNode }) {
         title={titles[pathname] ?? "个人资料"}
         backHref={pathname === "/me/password" || pathname === "/me/email" ? "/me/security" : undefined}
         backLabel="返回账号与安全"
-        actions={user ? <Link href={`/users/${user.id}`} className="inline-flex min-h-10 items-center rounded-md text-sm text-muted-foreground outline-none hover:text-brand-strong focus-visible:ring-2 focus-visible:ring-ring">查看个人主页</Link> : null}
+        actions={user ? <Link href={`/users/${user.id}`} className="inline-flex min-h-10 items-center rounded-[var(--radius-control)] text-sm text-muted-foreground outline-none hover:text-brand-strong focus-visible:ring-2 focus-visible:ring-ring">查看个人主页</Link> : null}
       />
       <nav aria-label="设置分区" className="mb-7 flex gap-8 border-b border-border">
         {sections.map(({ href, label }) => <Link key={href} href={href} aria-current={activePath === href ? "page" : undefined}

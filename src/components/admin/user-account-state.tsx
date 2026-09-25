@@ -49,7 +49,7 @@ export function UserAccountState({ user: selected }: { user: AdminUser }) {
   };
 
 
-  return <section className="rounded-lg border border-border bg-card p-4">
+  return <section className="rounded-[var(--radius-card)] border border-border bg-card p-4">
     <h2 className="mb-3 text-base font-semibold">账号状态</h2>
     <div className="flex items-center gap-3 text-sm"><span>{selected.moderationStatus === "ACTIVE" ? "正常" : selected.moderationStatus === "SUSPENDED" ? "暂停" : "封禁"}</span><Button size="compact" variant="outline" onClick={() => setOpen(true)}>修改状态</Button></div>
     <Dialog open={open} onOpenChange={(next) => { if (!actions.sanction.isPending && !actions.revoke.isPending) setOpen(next); }}>
@@ -57,7 +57,7 @@ export function UserAccountState({ user: selected }: { user: AdminUser }) {
         <div className="mb-4 flex items-center justify-between"><DialogTitle>账号状态</DialogTitle><DialogCloseButton label="关闭账号状态" disabled={actions.sanction.isPending || actions.revoke.isPending} /></div>
     {form.formState.errors.root ? <p role="alert" className="mb-3 text-sm text-destructive">{form.formState.errors.root.message}</p> : null}
                   {selected.currentSanction ? (
-                    <div className="rounded-lg bg-destructive-soft p-4 text-sm text-destructive">
+                    <div className="rounded-[var(--radius-compact)] bg-destructive-soft p-4 text-sm text-destructive">
                       <p className="font-bold">当前处罚 · {selected.currentSanction.type === "SUSPENSION" ? "暂停账号" : "永久封禁"}</p>
                       <p className="mt-1 text-xs leading-5">{selected.currentSanction.reason}</p>
                       <Button
@@ -78,7 +78,7 @@ export function UserAccountState({ user: selected }: { user: AdminUser }) {
                       >解除处罚</Button>
                     </div>
                   ) : selected.role !== "USER" ? (
-                    <p className="rounded-lg bg-muted p-4 text-sm text-muted-foreground">管理员账号需由超级管理员管理。</p>
+                    <p className="rounded-[var(--radius-compact)] bg-muted p-4 text-sm text-muted-foreground">管理员账号需由超级管理员管理。</p>
                   ) : (
                     <form className="space-y-5" onSubmit={(event) => event.preventDefault()}>
                       <div className="space-y-2">

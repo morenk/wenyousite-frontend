@@ -319,7 +319,7 @@ export const InternalReferenceEditor = forwardRef<
     <div
       ref={mountRef}
       className={cn(
-        "internal-reference-editor-shell relative rounded-md border border-input bg-transparent shadow-xs transition-[color,box-shadow]",
+        "internal-reference-editor-shell relative rounded-[var(--radius-control)] border border-input bg-transparent shadow-xs transition-[color,box-shadow]",
         "focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50",
         ariaInvalid && "border-destructive ring-destructive/20",
         disabled && "cursor-not-allowed opacity-50",

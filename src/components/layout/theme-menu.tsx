@@ -46,7 +46,7 @@ export function ThemeMenu({
             aria-label={`外观：${currentLabel}`}
             title={`外观：${currentLabel}`}
             className={cn(
-              "flex min-h-10 w-full items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+              "flex min-h-10 w-full items-center justify-center rounded-[var(--radius-control)] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
               !compact && "xl:justify-start xl:gap-3 xl:px-3",
             )}
           />
@@ -63,7 +63,7 @@ export function ThemeMenu({
           sideOffset={10}
           className="z-[var(--layer-popup)]"
         >
-          <Popover.Popup className="w-52 rounded-2xl border border-border bg-popover p-2 text-popover-foreground shadow-popover outline-none">
+          <Popover.Popup data-slot="theme-menu-popup" className="w-52 rounded-[var(--radius-panel)] border border-border bg-popover p-2 text-popover-foreground shadow-popover outline-none">
             <Popover.Title className="px-2.5 pb-1.5 pt-1 text-sm font-semibold">外观</Popover.Title>
             <fieldset className="grid gap-1">
               <legend className="sr-only">选择页面外观</legend>
@@ -84,7 +84,7 @@ export function ThemeMenu({
                     />
                     <span
                       className={cn(
-                        "flex min-h-10 items-center gap-3 rounded-xl px-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-ring/30",
+                        "flex min-h-10 items-center gap-3 rounded-[var(--radius-control)] px-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-ring/30",
                         checked && "bg-accent text-accent-foreground",
                       )}
                     >

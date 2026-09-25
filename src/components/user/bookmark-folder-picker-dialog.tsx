@@ -103,7 +103,7 @@ export function BookmarkFolderPickerDialog({
             <div className="px-4 py-4 sm:px-6">
               {folders.isLoading ? (
                 <div className="space-y-2" role="status" aria-label="正在加载收藏夹">
-                  {[0, 1, 2].map((item) => <Skeleton key={item} className="h-12 rounded-xl" />)}
+                  {[0, 1, 2].map((item) => <Skeleton key={item} className="h-12 rounded-[var(--radius-control)]" />)}
                 </div>
               ) : folders.isError ? (
                 <div className="flex min-h-36 flex-col items-center justify-center gap-3 text-center">
@@ -122,7 +122,7 @@ export function BookmarkFolderPickerDialog({
                         <label
                           key={folder.id}
                           className={cn(
-                            "flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 outline-none transition-colors hover:bg-muted focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/30",
+                            "flex min-h-12 cursor-pointer items-center gap-3 rounded-[var(--radius-control)] border border-transparent px-3 py-2.5 outline-none transition-colors hover:bg-muted focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/30",
                             selected && "border-secondary-foreground/15 bg-secondary text-secondary-foreground",
                           )}
                         >
@@ -135,7 +135,7 @@ export function BookmarkFolderPickerDialog({
                             onChange={() => setSelectedId(folder.id)}
                             className="sr-only"
                           />
-                          <span className="flex size-8 items-center justify-center rounded-lg bg-background/75 text-muted-foreground">
+                          <span className="flex size-8 items-center justify-center rounded-full bg-background/75 text-muted-foreground">
                             <WenyouIcon id={selected ? "content.folder-open" : "content.folder"} />
                           </span>
                           <span className="min-w-0 flex-1 break-words text-sm font-semibold">{folder.name}</span>
@@ -150,7 +150,7 @@ export function BookmarkFolderPickerDialog({
                   </div>
 
                   {creating ? (
-                    <div className="rounded-xl bg-muted/55 p-4">
+                    <div className="rounded-[var(--radius-compact)] bg-muted/55 p-4">
                       <BookmarkFolderForm
                         autoFocus
                         kind={kind}

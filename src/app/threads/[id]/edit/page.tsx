@@ -60,7 +60,7 @@ function EditThreadPageContent() {
   if (error) {
     return (
       <PageShell width="content" className="py-12">
-        <Card>
+        <Card appearance="content">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center gap-4 py-8">
               <AlertCircle className="h-10 w-10 text-muted-foreground" />
@@ -83,7 +83,7 @@ function EditThreadPageContent() {
   if (!canEdit) {
     return (
       <PageShell width="content" className="py-12">
-        <Card>
+        <Card appearance="content">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center gap-4 py-8">
               <ShieldAlert className="h-10 w-10 text-muted-foreground" />

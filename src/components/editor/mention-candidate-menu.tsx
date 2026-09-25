@@ -38,7 +38,7 @@ export function MentionCandidateMenu({
     <div
       role="listbox"
       aria-label="艾特候选"
-      className="fixed z-[var(--layer-nested-popup)] w-[min(18rem,calc(100vw-1rem))] overflow-hidden rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-popover"
+      className="fixed z-[var(--layer-nested-popup)] w-[min(18rem,calc(100vw-1rem))] overflow-hidden rounded-[var(--radius-panel)] border border-border bg-popover p-1 text-popover-foreground shadow-popover"
       style={{ top: position.top, left: position.left }}
     >
       {pending && (
@@ -50,7 +50,7 @@ export function MentionCandidateMenu({
       {!pending && error && (
         <button
           type="button"
-          className="flex w-full items-center justify-center rounded-md px-2.5 py-2 text-sm text-destructive hover:bg-accent/60"
+          className="flex w-full items-center justify-center rounded-[var(--radius-control)] px-2.5 py-2 text-sm text-destructive hover:bg-accent/60"
           onMouseDown={(event) => {
             event.preventDefault();
             onRetry();
@@ -69,7 +69,7 @@ export function MentionCandidateMenu({
           role="option"
           aria-selected={index === activeIndex}
           className={cn(
-            "flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm",
+            "flex w-full items-center gap-2 rounded-[var(--radius-control)] px-2.5 py-2 text-left text-sm",
             index === activeIndex
               ? "bg-accent text-accent-foreground"
               : "hover:bg-accent/60",

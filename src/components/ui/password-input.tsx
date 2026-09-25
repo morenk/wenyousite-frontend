@@ -26,7 +26,7 @@ export function PasswordInput({ className, disabled, ...props }: React.Component
         disabled={disabled}
         aria-pressed={show}
         aria-label={show ? "隐藏密码" : "显示密码"}
-        className="absolute top-1/2 right-1.5 -translate-y-1/2 rounded-lg text-muted-foreground hover:text-foreground"
+        className="absolute top-1/2 right-1.5 -translate-y-1/2 rounded-[var(--radius-control)] text-muted-foreground hover:text-foreground"
       >
         <WenyouIcon id={show ? "action.hide" : "action.show"} className="size-4" />
       </Button>

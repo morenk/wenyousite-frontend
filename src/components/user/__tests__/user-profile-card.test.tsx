@@ -81,6 +81,8 @@ describe("UserProfileCard", () => {
       "/users/u2/followers",
     );
     expect(document.querySelector('[data-slot="profile-cover"]')).toBeNull();
+    expect(document.querySelector("time")).not.toBeInTheDocument();
+    expect(document.querySelector('[data-slot="card"]')).toHaveAttribute("data-appearance", "content");
     expect(screen.getByTestId("user-avatar-placeholder")).not.toHaveClass("-mt-12");
   });
 
@@ -138,7 +140,13 @@ describe("UserProfileCard", () => {
       "sizes",
       "(min-width: 672px) 648px, (min-width: 640px) calc(100vw - 24px), calc(100vw - 16px)",
     );
-    expect(document.querySelector('[data-slot="profile-cover"]')).toBeInTheDocument();
+    const profileCover = document.querySelector('[data-slot="profile-cover"]');
+    const profileCard = document.querySelector('[data-slot="card"]');
+    expect(profileCover).toBeInTheDocument();
+    expect(profileCard).toHaveAttribute("data-appearance", "content");
+    expect(profileCard).toHaveClass("overflow-hidden");
+    expect(profileCard?.firstElementChild).toBe(profileCover);
+    expect(document.querySelector("time")).not.toBeInTheDocument();
     expect(screen.getByTestId("user-avatar-placeholder")).toHaveClass(
       "z-20",
       "-mt-8",
