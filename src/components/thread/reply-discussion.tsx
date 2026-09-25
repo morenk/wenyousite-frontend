@@ -18,7 +18,6 @@ import { UserAvatarLink } from "@/components/shared/user-avatar";
 import { WenyouTime } from "@/components/shared/wenyou-time";
 import { LevelBadge } from "@/components/shared/level-badge";
 import { getPostHref } from "@/lib/post-navigation";
-import type { ReplyDisplayData } from "@/api/hooks/use-floors";
 import type { PostDetail } from "@/api/hooks/use-post";
 import { PageShell } from "@/components/layout/page-shell";
 import {
@@ -34,10 +33,19 @@ import { WenyouIcon } from "@/components/ui/wenyou-icon";
 
 interface ReplyDiscussionProps {
   rootPost: PostDetail;
-  focusedReply?: ReplyDisplayData;
+  targetReplyId?: string;
+  targetValidationPending?: boolean;
+  onTargetRetry?: () => unknown;
+  onTargetBack?: () => void;
 }
 
-export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps) {
+export function ReplyDiscussion({
+  rootPost,
+  targetReplyId,
+  targetValidationPending,
+  onTargetRetry,
+  onTargetBack,
+}: ReplyDiscussionProps) {
   const { user } = useAuth();
   const { isManager } = useThreadPermissions();
   const pinPost = usePinPost();
@@ -78,7 +86,7 @@ export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps
   };
 
   return (
-    <PageShell width="feed">
+    <PageShell id="reply-discussion-start" width="feed" className="scroll-mt-6">
       <h1 className="sr-only">{rootPost.thread.title}的楼层回复</h1>
       <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
         <Link href={originalFloorHref} className="inline-flex items-center gap-1 hover:text-foreground">
@@ -162,11 +170,17 @@ export function ReplyDiscussion({ rootPost, focusedReply }: ReplyDiscussionProps
         </div>
       </section>
 
-      <section className="mt-4" aria-label={`楼层回复，共 ${rootPost._count.replies} 条`}>
+      <section
+        className="mt-4"
+        aria-label={`楼层回复，共 ${rootPost._count.replies} 条`}
+      >
         <ReplyList
           postId={rootPost.id}
-          focusedReply={focusedReply}
           variant="discussion"
+          targetReplyId={targetReplyId}
+          targetValidationPending={targetValidationPending}
+          onTargetRetry={onTargetRetry}
+          onTargetBack={onTargetBack}
         />
         <FloatingComposerDock sessionAnchorId={composerAnchorId}>
           <ReplyForm

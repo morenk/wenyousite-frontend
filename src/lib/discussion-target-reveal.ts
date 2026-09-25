@@ -1,12 +1,25 @@
+interface DiscussionTargetRevealOptions {
+  onStable?: () => void;
+  stableMs?: number;
+  holdUntilStable?: boolean;
+}
+
 /** 在用户接管前保持讨论目标开头可见；仅用于页面文档滚动。 */
-export function startDiscussionTargetReveal(targetId: string) {
+export function startDiscussionTargetReveal(
+  targetId: string,
+  { onStable, stableMs = 180, holdUntilStable = false }: DiscussionTargetRevealOptions = {},
+) {
   let released = false;
   let frame: number | undefined;
+  let stableTimer: number | undefined;
+  let stableReported = false;
+  let userCanRelease = !holdUntilStable;
   let forced = false;
   const observed = new Set<Element>();
 
   const schedule = (force = false) => {
     if (released) return;
+    if (stableTimer !== undefined) window.clearTimeout(stableTimer);
     forced ||= force;
     if (frame !== undefined) return;
     frame = window.requestAnimationFrame(reveal);
@@ -60,23 +73,36 @@ export function startDiscussionTargetReveal(targetId: string) {
       // 明确限制在自然底部；吸顶栏出现后会通过观察器再校准一次。
       window.scrollTo({ top: destination, behavior: "instant" });
     }
+    if (!stableReported && onStable) {
+      stableTimer = window.setTimeout(() => {
+        stableTimer = undefined;
+        if (released || stableReported || !document.getElementById(targetId)) return;
+        stableReported = true;
+        userCanRelease = true;
+        onStable();
+      }, stableMs);
+    }
   }
 
   const release = () => {
     released = true;
     if (frame !== undefined) window.cancelAnimationFrame(frame);
+    if (stableTimer !== undefined) window.clearTimeout(stableTimer);
     resize?.disconnect();
     observed.clear();
     mutation?.disconnect();
+  };
+  const releaseOnUserInput = () => {
+    if (userCanRelease) release();
   };
   const mutation = typeof MutationObserver === "undefined"
     ? undefined : new MutationObserver(() => schedule());
   mutation?.observe(document.body, { childList: true, subtree: true });
   watch(document.body);
-  window.addEventListener("wheel", release, { passive: true });
-  window.addEventListener("pointerdown", release, { passive: true });
-  window.addEventListener("touchstart", release, { passive: true });
-  window.addEventListener("keydown", release);
+  window.addEventListener("wheel", releaseOnUserInput, { passive: true });
+  window.addEventListener("pointerdown", releaseOnUserInput, { passive: true });
+  window.addEventListener("touchstart", releaseOnUserInput, { passive: true });
+  window.addEventListener("keydown", releaseOnUserInput);
   window.addEventListener("resize", scheduleResize);
   function scheduleResize() { schedule(); }
   schedule(true);
@@ -85,10 +111,10 @@ export function startDiscussionTargetReveal(targetId: string) {
     schedule: () => schedule(true),
     dispose: () => {
       release();
-      window.removeEventListener("wheel", release);
-      window.removeEventListener("pointerdown", release);
-      window.removeEventListener("touchstart", release);
-      window.removeEventListener("keydown", release);
+      window.removeEventListener("wheel", releaseOnUserInput);
+      window.removeEventListener("pointerdown", releaseOnUserInput);
+      window.removeEventListener("touchstart", releaseOnUserInput);
+      window.removeEventListener("keydown", releaseOnUserInput);
       window.removeEventListener("resize", scheduleResize);
     },
   };

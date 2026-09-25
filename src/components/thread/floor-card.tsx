@@ -29,7 +29,6 @@ import {
   PostActionsMenu,
 } from "@/components/thread/post-actions-menu";
 import { ReplyCard } from "@/components/thread/reply-card";
-import { useDiscussionTargetReveal } from "@/hooks/use-discussion-target-reveal";
 import { useTransientTargetHighlight } from "@/hooks/use-transient-target-highlight";
 
 interface FloorCardProps {
@@ -67,8 +66,6 @@ export function FloorCard({
     focused ? floor.id : undefined,
     focusActivationKey,
   );
-
-  useDiscussionTargetReveal(focused ? `post-${floor.id}` : undefined, focusActivationKey);
 
   const handleStartEdit = () => {
     open({
@@ -125,6 +122,7 @@ export function FloorCard({
   return (
     <div
       id={`post-${floor.id}`}
+      tabIndex={focused ? -1 : undefined}
       className={cn(
         "scroll-mt-6 rounded-xl border border-border bg-card p-4 transition-[border-color] duration-[var(--motion-slow)] ease-out",
         highlightVisible && "border-primary",

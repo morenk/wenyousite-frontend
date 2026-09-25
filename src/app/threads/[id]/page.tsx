@@ -29,6 +29,7 @@ import { ThreadPostSearch } from "@/components/thread/thread-post-search";
 import { SubthreadBody } from "@/components/thread/subthread-body";
 import { FloorList } from "@/components/thread/floor-list";
 import { FloorListControls } from "@/components/thread/floor-list-controls";
+import { DiscussionTargetRouteFallback } from "@/components/thread/discussion-target-mask";
 import {
   FloorForm,
   getFloorComposerAnchorId,
@@ -109,12 +110,22 @@ function ThreadDetailPageContent() {
   const targetPostQuery = usePost(targetPostId);
   const { data: targetPost } = targetPostQuery;
   const parentFloorId = targetPost?.parentPostId ?? undefined;
-  const targetFloorId = targetPost?.parentPostId ?? targetPost?.id;
   const targetFloorQuery = usePost(parentFloorId);
   const targetFloor = parentFloorId ? targetFloorQuery.data : targetPost;
 
   const targetContextInvalid = Boolean(
-    targetPost && targetPost.thread.id !== threadId,
+    targetPost &&
+      (targetPost.thread.id !== threadId ||
+        (thread && !thread.subthreads.some((subthread) => subthread.id === targetPost.subthreadId)) ||
+        (targetPost.parentPostId
+          ? targetFloor &&
+            (targetFloor.id !== targetPost.parentPostId ||
+              targetFloor.thread.id !== threadId ||
+              targetFloor.subthreadId !== targetPost.subthreadId ||
+              targetFloor.parentPostId !== null ||
+              targetFloor.kind !== "FLOOR" ||
+              targetFloor.floorNumber === null)
+          : targetPost.kind !== "FLOOR" || targetPost.floorNumber === null)),
   );
   const threadUnavailable = isContentUnavailableError(error);
   const targetUnavailable = Boolean(
@@ -134,13 +145,13 @@ function ThreadDetailPageContent() {
     if (!targetPostId || !targetUnavailable) return;
     void closeComposer({ force: true });
     clearPost(targetPostId, { preserveActive: true });
-    if (targetFloorId && targetFloorId !== targetPostId) {
-      clearPost(targetFloorId, { preserveActive: true });
+    if (parentFloorId) {
+      clearPost(parentFloorId, { preserveActive: true });
     }
   }, [
     closeComposer,
     clearPost,
-    targetFloorId,
+    parentFloorId,
     targetPostId,
     targetUnavailable,
   ]);
@@ -153,8 +164,28 @@ function ThreadDetailPageContent() {
     ? targetPost?.subthreadId ?? thread?.defaultSubthreadId
     : querySubthread?.id ?? thread?.defaultSubthreadId;
 
-  const floorAuthorsQuery = useFloorAuthors(effectiveSubthreadId, user?.id);
-  const requestedFloorAuthorId = floorAuthorSelection &&
+  const targetFloorValidated = Boolean(
+    targetPostId &&
+      targetPost &&
+      !targetPost.parentPostId &&
+      targetPostQuery.isFetchedAfterMount &&
+      !targetPostQuery.isFetching &&
+      isFetchedAfterMount &&
+      !isFetching &&
+      !error &&
+      !targetPostQuery.error &&
+      !targetContextInvalid,
+  );
+  const floorListSubthreadId = targetPostId
+    ? targetFloorValidated
+      ? targetPost?.subthreadId
+      : undefined
+    : effectiveSubthreadId;
+  const floorAuthorsQuery = useFloorAuthors(
+    targetPostId ? undefined : effectiveSubthreadId,
+    user?.id,
+  );
+  const requestedFloorAuthorId = !targetPostId && floorAuthorSelection &&
     floorAuthorSelection.subthreadId === effectiveSubthreadId
     ? floorAuthorSelection.authorId
     : undefined;
@@ -177,19 +208,19 @@ function ThreadDetailPageContent() {
     isLoading: isFloorsLoading,
     error: floorsError,
     refetch: refetchFloors,
-  } = useFloors(effectiveSubthreadId, floorFilters);
+  } = useFloors(floorListSubthreadId, floorFilters);
 
   const floors = floorsData?.pages.flatMap((page) => page?.data ?? []) ?? [];
 
   // 兼容历史通知/动态链接：楼中楼统一进入独立阅读页。
   useEffect(() => {
-    if (!targetPost?.parentPostId) return;
+    if (!targetPost?.parentPostId || !targetFloor || targetContextInvalid) return;
     router.replace(getPostHref({
       threadId,
       postId: targetPost.id,
       parentPostId: targetPost.parentPostId,
     }));
-  }, [router, targetPost, threadId]);
+  }, [router, targetContextInvalid, targetFloor, targetPost, threadId]);
 
   useEffect(() => {
     if (!thread) return;
@@ -225,7 +256,7 @@ function ThreadDetailPageContent() {
   }, [effectiveSubthreadId, prefetchFloors]);
 
   useEffect(() => {
-    if (!thread || !effectiveSubthreadId || thread.subthreads.length <= 1) return;
+    if (targetPostId || !thread || !effectiveSubthreadId || thread.subthreads.length <= 1) return;
     const selectedIndex = thread.subthreads.findIndex(
       (subthread) => subthread.id === effectiveSubthreadId,
     );
@@ -239,7 +270,7 @@ function ThreadDetailPageContent() {
     adjacentIds.forEach((subthreadId) => {
       if (subthreadId) prefetchSubthread(subthreadId);
     });
-  }, [effectiveSubthreadId, prefetchSubthread, thread]);
+  }, [effectiveSubthreadId, prefetchSubthread, targetPostId, thread]);
 
   useEffect(() => {
     if (!isSearching) return;
@@ -259,7 +290,14 @@ function ThreadDetailPageContent() {
           !targetFloorQuery.isFetchedAfterMount)),
   );
 
-  if (isLoading || awaitingThreadValidation || awaitingTargetValidation || (!isInitialized && error)) {
+  if (
+    targetPostId &&
+    (isLoading || awaitingThreadValidation || awaitingTargetValidation || (!isInitialized && error))
+  ) {
+    return <DiscussionTargetRouteFallback />;
+  }
+
+  if (!targetPostId && (isLoading || awaitingThreadValidation || (!isInitialized && error))) {
     return <PageRouteFallback variant="detail" />;
   }
 
@@ -298,6 +336,8 @@ function ThreadDetailPageContent() {
   }
 
   if (!thread) return null;
+
+  if (targetPost?.parentPostId) return <DiscussionTargetRouteFallback />;
 
   const handleSubthreadChange = async (subthreadId: string) => {
     if (subthreadId === effectiveSubthreadId) return;
@@ -425,7 +465,11 @@ function ThreadDetailPageContent() {
 
       <div className="mt-4 space-y-4">
         {effectiveSubthreadId && (
-          <section aria-label="帖子回复">
+          <section
+            id="thread-floor-list-start"
+            className="scroll-mt-20"
+            aria-label="帖子回复"
+          >
             <FloorListControls
               order={floorOrder}
               onOrderChange={(nextOrder) => void handleFloorOrderChange(nextOrder)}
@@ -444,14 +488,16 @@ function ThreadDetailPageContent() {
               error={floorsError}
               onLoadMore={() => fetchNextPage()}
               onRetry={() => refetchFloors()}
-              // 旧楼中楼链接重定向期间不高亮父楼层，最终只在独立页高亮目标回复。
-              focusedFloor={
-                targetPost?.parentPostId ||
-                (floorAuthorId && targetFloor?.authorId !== floorAuthorId)
-                  ? undefined
-                  : targetFloor
-              }
-              focusedFloorActivationKey={latestFloorActivationKey}
+              targetFloorId={targetPostId}
+              targetActivationKey={latestFloorActivationKey}
+              targetValidationPending={Boolean(
+                targetPostId && targetPostQuery.isFetching,
+              )}
+              onTargetRetry={() => Promise.all([
+                targetPostQuery.refetch(),
+                refetchFloors(),
+              ])}
+              onTargetBack={() => router.back()}
               emptyTitle={floorAuthorId ? "这位成员在当前子贴还没有楼层" : undefined}
             />
           </section>

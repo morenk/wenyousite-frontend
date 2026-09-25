@@ -109,6 +109,7 @@ export function ReplyCard({
   return (
     <div
       id={`post-${reply.id}`}
+      tabIndex={focused ? -1 : undefined}
       data-testid={isPreview ? "inline-reply" : undefined}
       className={cn(
         isDiscussion

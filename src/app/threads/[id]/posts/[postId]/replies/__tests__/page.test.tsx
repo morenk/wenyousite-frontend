@@ -6,10 +6,12 @@ const mocks = vi.hoisted(() => ({
   replyQuery: vi.fn(),
   closeComposer: vi.fn().mockResolvedValue(true),
   removeQueries: vi.fn(),
+  routerBack: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
   useParams: () => ({ id: "thread-1", postId: "root-1" }),
+  useRouter: () => ({ back: mocks.routerBack }),
   useSearchParams: () => new URLSearchParams("post=reply-1"),
 }));
 vi.mock("@/api/hooks/use-content-access-cache", () => ({
@@ -30,15 +32,27 @@ vi.mock("@/components/thread/thread-permissions-context", () => ({
   ThreadPermissionsProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 vi.mock("@/components/thread/reply-discussion", () => ({
-  ReplyDiscussion: ({ rootPost }: { rootPost: { content: string } }) => (
-    <div>{rootPost.content}<button type="button">回复原楼层</button></div>
+  ReplyDiscussion: ({ rootPost, targetReplyId }: {
+    rootPost: { content: string };
+    targetReplyId?: string;
+  }) => (
+    <div id="reply-discussion-start" data-target={targetReplyId}>
+      {rootPost.content}
+      <section>回复列表开头</section>
+      <button type="button">回复原楼层</button>
+    </div>
   ),
+}));
+vi.mock("@/components/thread/discussion-target-mask", () => ({
+  DiscussionTargetRouteFallback: () => <div>正在定位目标楼层…</div>,
 }));
 
 import ReplyDiscussionPage from "@/app/threads/[id]/posts/[postId]/replies/page";
 
 const rootPost = {
   id: "root-1",
+  kind: "FLOOR",
+  subthreadId: "sub-1",
   thread: { id: "thread-1" },
   parentPostId: null,
   floorNumber: 1,
@@ -46,8 +60,12 @@ const rootPost = {
 };
 const replyPost = {
   id: "reply-1",
+  kind: "FLOOR",
+  subthreadId: "sub-1",
   thread: { id: "thread-1" },
   parentPostId: "root-1",
+  floorNumber: null,
+  content: "目标回复正文",
 };
 
 function readyQuery(data: unknown, error: unknown = null) {
@@ -77,7 +95,7 @@ describe("楼中楼深链访问复核", () => {
 
     render(<ReplyDiscussionPage />);
 
-    expect(screen.getByText("正在进入讨论…")).toBeInTheDocument();
+    expect(screen.getByText("正在定位目标楼层…")).toBeInTheDocument();
     expect(screen.queryByText("不应穿透的缓存正文")).toBeNull();
     expect(screen.queryByRole("button", { name: "回复原楼层" })).toBeNull();
   });
@@ -106,5 +124,19 @@ describe("楼中楼深链访问复核", () => {
     expect(screen.getByText("讨论不存在或无法访问")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "回复原楼层" })).toBeNull();
     await waitFor(() => expect(mocks.closeComposer).toHaveBeenCalledWith({ force: true }));
+  });
+
+  test("复核通过后进入完整独立讨论并把目标交给回复分页定位层", () => {
+    render(<ReplyDiscussionPage />);
+
+    expect(screen.getByText("不应穿透的缓存正文")).toBeInTheDocument();
+    expect(screen.getByText("回复列表开头")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "回复原楼层" })).toBeInTheDocument();
+    expect(document.getElementById("reply-discussion-start")).toHaveAttribute(
+      "data-target",
+      "reply-1",
+    );
+    expect(screen.queryByText("目标回复正文")).toBeNull();
+    expect(screen.queryByRole("button", { name: "查看完整讨论" })).toBeNull();
   });
 });
