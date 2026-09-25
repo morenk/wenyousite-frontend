@@ -286,7 +286,7 @@ export function ThreadEditForm({
       {reportedStatus.state === "conflict" || reportedStatus.state === "error" ? (
         <div
           role="alert"
-          className="flex items-start justify-between gap-5 rounded-xl border border-warning/35 bg-warning-soft/45 px-4 py-3"
+          className="flex items-start justify-between gap-5 rounded-[var(--radius-panel)] border border-warning/35 bg-warning-soft/45 px-4 py-3"
         >
           <div className="flex min-w-0 gap-3">
             <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" />
@@ -316,7 +316,7 @@ export function ThreadEditForm({
 
       <div className="grid grid-cols-[minmax(0,1fr)_18rem] items-start gap-6">
         <section className="min-w-0">
-          <div className="space-y-5 rounded-2xl border border-border bg-card p-5">
+          <div className="space-y-5 rounded-[var(--radius-panel)] border border-border bg-card p-5">
             <ThreadMetadataFields
               form={form}
               disabled={isBusy}
@@ -358,7 +358,7 @@ export function ThreadEditForm({
         </section>
 
         <aside className="sticky top-4 space-y-4">
-          <section className="rounded-2xl border border-border bg-muted/25 p-4">
+          <section className="rounded-[var(--radius-panel)] border border-border bg-muted/25 p-4">
             <div className="mb-4 flex items-center justify-between gap-3">
               <h2 className="font-sans text-lg font-semibold text-foreground">发布设置</h2>
             </div>
@@ -381,7 +381,7 @@ export function ThreadEditForm({
           </section>
 
           {isOwner && visibility === "PRIVATE" ? (
-            <section className="rounded-2xl border border-border bg-card p-4">
+            <section className="rounded-[var(--radius-panel)] border border-border bg-card p-4">
               <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
                 <KeyRound className="size-4 text-brand-strong" />
                 私密访问

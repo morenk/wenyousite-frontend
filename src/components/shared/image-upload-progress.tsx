@@ -43,8 +43,8 @@ export function ImageUploadProgress({
     <div
       data-slot="image-upload-progress"
       className={cn(
-        "rounded-xl bg-muted/70 px-3 py-2 text-xs text-muted-foreground",
-        compact && "rounded-lg px-2.5 py-1.5",
+        "rounded-[var(--radius-compact)] bg-muted/70 px-3 py-2 text-xs text-muted-foreground",
+        compact && "rounded-[var(--radius-compact)] px-2.5 py-1.5",
         className,
       )}
     >

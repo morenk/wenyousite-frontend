@@ -70,7 +70,7 @@ export function TagInput({
     <div className={cn("relative", className)} ref={rootRef}>
       <div
         className={cn(
-          "flex min-h-9 flex-wrap items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1.5 transition-colors",
+          "flex min-h-9 flex-wrap items-center gap-1.5 rounded-[var(--radius-control)] border border-border bg-background px-2.5 py-1.5 transition-colors",
           focused && "border-ring ring-3 ring-ring/50",
           disabled && "opacity-60 pointer-events-none",
         )}
@@ -79,14 +79,14 @@ export function TagInput({
         {value.map((tag) => (
           <span
             key={tag}
-            className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-0.5 text-xs text-brand-strong"
+            className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-brand-strong"
           >
             {tag}
             <button
               type="button"
               onClick={() => removeTag(tag)}
               disabled={disabled}
-              className="rounded-sm hover:bg-primary/20"
+              className="rounded-[var(--radius-control)] hover:bg-primary/20"
               aria-label={`删除标签 ${tag}`}
             >
               <X className="h-3 w-3" />
@@ -106,7 +106,7 @@ export function TagInput({
       </div>
 
       {focused && input.trim() && value.length < max && (
-        <div className="absolute z-10 mt-1 w-full rounded-lg border border-border bg-popover p-1 shadow-popover">
+        <div className="absolute z-10 mt-1 w-full rounded-[var(--radius-panel)] border border-border bg-popover p-1 shadow-popover">
           {isLoading ? (
             <div className="flex items-center justify-center py-2 text-muted-foreground">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -122,7 +122,7 @@ export function TagInput({
                     <button
                       type="button"
                       onClick={() => addTag(candidate.name)}
-                      className="w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted"
+                      className="w-full rounded-[var(--radius-control)] px-2 py-1.5 text-left text-sm hover:bg-muted"
                     >
                       {candidate.name}
                     </button>
@@ -133,7 +133,7 @@ export function TagInput({
                   <button
                     type="button"
                     onClick={() => addTag(input)}
-                    className="w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted"
+                    className="w-full rounded-[var(--radius-control)] px-2 py-1.5 text-left text-sm hover:bg-muted"
                   >
                     按回车创建 “{input.trim()}”
                   </button>

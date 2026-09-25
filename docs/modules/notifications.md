@@ -162,3 +162,7 @@
 - 帖子通知在目标重新校验后进入完整讨论；遮罩期间停用无限滚动哨兵并串行定位，真实卡片稳定后揭开、播报并聚焦
 - 乐观已读缓存更新（失败时自动回滚）
 - payload 结构化渲染（actorName/action/preview 分段，旧数据回退 content）
+
+## 列表卡片
+
+通知条目外框消费 Foundation `--radius-card`（10px），独立通知卡间距消费 `--collection-card-gap`（8px）；筛选控件保持 `--radius-control`（8px），菜单浮层外框使用 `--radius-panel`（12px）。

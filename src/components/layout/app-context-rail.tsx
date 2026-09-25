@@ -31,7 +31,7 @@ export function AppContextRail() {
           <div className="p-4">
             <Link
               href={`/users/${user.id}`}
-              className="group flex items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+              className="group flex items-center gap-3 rounded-[var(--radius-control)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
             >
               <UserAvatar name={user.username} src={user.avatar} display={user.avatarDisplay} className="size-11" />
               <div className="min-w-0 flex-1">
@@ -42,7 +42,7 @@ export function AppContextRail() {
 
             <Link
               href="/wallet"
-              className="mt-4 flex items-center justify-between rounded-lg bg-primary px-3 py-2.5 text-sm text-primary-foreground transition-colors hover:bg-accent"
+              className="mt-4 flex items-center justify-between rounded-[var(--radius-control)] bg-primary px-3 py-2.5 text-sm text-primary-foreground transition-colors hover:bg-accent"
             >
               <span className="flex items-center gap-2 font-semibold">
                 <Wallet className="size-4" />
@@ -103,7 +103,7 @@ function ContextLink({
     <Link
       href={href}
       aria-label={count > 0 ? `${label}，${count} 条未读` : label}
-      className="flex min-h-9 items-center gap-2.5 rounded-lg px-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+      className="flex min-h-9 items-center gap-2.5 rounded-[var(--radius-control)] px-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
     >
       <WenyouIcon id={icon} className="size-4" />
       <span className="flex-1">{label}</span>

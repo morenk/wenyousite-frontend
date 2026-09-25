@@ -311,7 +311,7 @@ function ThreadDetailPageContent() {
       : () => void refetch();
     return (
       <PageShell width="feed" className="py-12">
-        <Card>
+        <Card appearance="content">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center gap-4 py-8">
               <AlertCircle className="h-10 w-10 text-muted-foreground" />

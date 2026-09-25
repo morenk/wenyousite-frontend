@@ -26,9 +26,35 @@ if (packageJson.dependencies?.["@wenyousite/foundation"] !== `github:morenk/weny
 if (manifest.version !== lock.version) failures.push("已安装 foundation 版本与锁文件不一致");
 if (manifest.contractSha256 !== lock.contractSha256) failures.push("已安装 foundation 契约哈希与锁文件不一致");
 if (!read("pnpm-lock.yaml").includes(lock.revision)) failures.push("pnpm-lock.yaml 未锁定指定 foundation revision");
-if (foundationContract.version !== "7.1.1" || foundationContract.schemaVersion !== 3) {
-  failures.push("Web 必须消费 Foundation v7.1.1 schema 3 契约");
+if (foundationContract.version !== "7.1.2" || foundationContract.schemaVersion !== 3) {
+  failures.push("Web 必须消费 Foundation v7.1.2 schema 3 契约");
 }
+const radiusUsage = foundationContract.profiles?.radiusUsage;
+const webRadii = foundationContract.profiles?.web?.radii;
+if (
+  JSON.stringify(webRadii) !== JSON.stringify({ compact: 6, card: 10, control: 8, panel: 12 })
+  || JSON.stringify(radiusUsage) !== JSON.stringify({
+    compactSurface: "compact",
+    standaloneImage: "compact",
+    button: "control",
+    field: "control",
+    selection: "control",
+    contentCard: "card",
+    listFrame: "card",
+    accountSection: "card",
+    dialog: "panel",
+    popover: "panel",
+    sheet: "panel",
+    menu: "panel",
+    attachedMedia: "inherit-host",
+    cardSkeleton: "inherit-host",
+    avatar: "circle",
+    iconStateLayer: "circle",
+    semanticBadge: "pill",
+    topicTag: "none",
+    inlineElement: "own-em-scale",
+  })
+) failures.push("Foundation 圆角角色与 Web 8/10/12/6 消费契约不一致");
 const formatting = foundationContract.experiences.formatting;
 if (
   formatting.sourceTimestamp !== "preserve"
@@ -144,7 +170,7 @@ for (const claim of ["--type-body-size", "--type-body-line-height"]) {
   if (!globalStyles.includes(`var(${claim})`)) failures.push(`globals.css 未消费语义排版 Token ${claim}`);
 }
 const foundationTokens = read("node_modules/@wenyousite/foundation/web/tokens.css");
-for (const token of ["--action-primary", "--action-primary-foreground", "--image-viewer-backdrop", "--type-page-title-size", "--overlay-scrim", "--layer-modal", "--layer-global-progress", "--like", "--bookmark", "--icon-control-state-layer-color", "--icon-control-state-layer-radius", "--icon-control-hover-state-opacity", "--icon-control-focus-state-opacity", "--icon-control-pressed-state-opacity", "--icon-control-disabled-content-opacity", "--element-internal-reference-surface", "--element-badge-default-height", "--element-level-mist-surface", "--element-level-berry-surface", "--element-quote-foreground", "--element-quote-surface", "--element-quote-marker", "--element-quote-marker-width", "--element-quote-radius", "--element-quote-font-weight", "--element-quote-padding-block", "--element-quote-padding-inline", "--element-divider-color", "--element-divider-width", "--element-divider-inline-size", "--element-divider-fallback-inline-size", "--element-divider-marker", "--element-divider-marker-size", "--element-divider-spacing-block", "--element-topic-tag-foreground", "--element-topic-tag-surface", "--element-topic-tag-border", "--element-topic-tag-hover-surface", "--element-topic-tag-focus-ring", "--element-topic-tag-font-weight"]) {
+for (const token of ["--radius-compact", "--radius-card", "--radius-control", "--radius-panel", "--collection-card-gap", "--action-primary", "--action-primary-foreground", "--image-viewer-backdrop", "--type-page-title-size", "--overlay-scrim", "--layer-modal", "--layer-global-progress", "--like", "--bookmark", "--icon-control-state-layer-color", "--icon-control-state-layer-radius", "--icon-control-hover-state-opacity", "--icon-control-focus-state-opacity", "--icon-control-pressed-state-opacity", "--icon-control-disabled-content-opacity", "--element-internal-reference-surface", "--element-badge-default-height", "--element-level-mist-surface", "--element-level-berry-surface", "--element-quote-foreground", "--element-quote-surface", "--element-quote-marker", "--element-quote-marker-width", "--element-quote-radius", "--element-quote-font-weight", "--element-quote-padding-block", "--element-quote-padding-inline", "--element-divider-color", "--element-divider-width", "--element-divider-inline-size", "--element-divider-fallback-inline-size", "--element-divider-marker", "--element-divider-marker-size", "--element-divider-spacing-block", "--element-topic-tag-foreground", "--element-topic-tag-surface", "--element-topic-tag-border", "--element-topic-tag-hover-surface", "--element-topic-tag-focus-ring", "--element-topic-tag-font-weight"]) {
   if (!foundationTokens.includes(`${token}:`)) failures.push(`Foundation Web Token 缺少 ${token}`);
 }
 if (!foundationTokens.includes('[data-theme="dark"]') || !foundationTokens.includes("prefers-color-scheme: dark")) {

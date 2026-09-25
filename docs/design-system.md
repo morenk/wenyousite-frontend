@@ -4,19 +4,19 @@
 
 跨端审美、共享 Token、字体角色和编辑器能力的唯一事实源是公开仓库
 [`morenk/wenyousite-foundation`](https://github.com/morenk/wenyousite-foundation)。本仓库由
-[`foundation.lock.json`](../foundation.lock.json) 固定到 `v7.1.1`，实现前必须读取同版本的：
+[`foundation.lock.json`](../foundation.lock.json) 固定到 `v7.1.2`，实现前必须读取同版本的：
 
-- [`docs/foundation.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.1.1/docs/foundation.md)
-- [`docs/platforms/web.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.1.1/docs/platforms/web.md)
-- [`docs/brand.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.1.1/docs/brand.md)
-- [`docs/elements.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.1.1/docs/elements.md)
-- [`docs/images.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.1.1/docs/images.md)
-- [`docs/icons.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.1.1/docs/icons.md)
-- [`docs/notifications.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.1.1/docs/notifications.md)
-- [`docs/interaction.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.1.1/docs/interaction.md)
-- [`docs/presentation.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.1.1/docs/presentation.md)
-- [`docs/navigation-language.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.1.1/docs/navigation-language.md)
-- [`contracts/foundation.v1.json`](https://github.com/morenk/wenyousite-foundation/blob/v7.1.1/contracts/foundation.v1.json)
+- [`docs/foundation.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.1.2/docs/foundation.md)
+- [`docs/platforms/web.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.1.2/docs/platforms/web.md)
+- [`docs/brand.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.1.2/docs/brand.md)
+- [`docs/elements.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.1.2/docs/elements.md)
+- [`docs/images.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.1.2/docs/images.md)
+- [`docs/icons.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.1.2/docs/icons.md)
+- [`docs/notifications.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.1.2/docs/notifications.md)
+- [`docs/interaction.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.1.2/docs/interaction.md)
+- [`docs/presentation.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.1.2/docs/presentation.md)
+- [`docs/navigation-language.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.1.2/docs/navigation-language.md)
+- [`contracts/foundation.v1.json`](https://github.com/morenk/wenyousite-foundation/blob/v7.1.2/contracts/foundation.v1.json)
 
 本地只保留实现映射，不复制规范：
 
@@ -32,9 +32,9 @@
 - `src/components/ui/` 与 `src/components/layout/` 承担 Web 原语和页面骨架。
 - 发现、动态与搜索使用 `PageHeader compact`：标题和紧随其后的筛选、切换或搜索工具收在同一紧凑面板，不用副标题重复解释页面名称。
 - 列表容器与列表项按 Foundation `experiences.collections` 占满分配列；消息气泡、标签、徽标与紧凑操作是内容宽度例外。
-- 浏览内容卡片及列表外框消费 Foundation `--radius-card`（10px）；连续 `StackList` 保留分隔线和零行距。独立内容卡片使用 `--collection-card-gap`（8px），动态瀑布流的估算、定位、虚拟列表和骨架另由 `COLLECTION_WEB_PROFILE.cardGap` 对齐；卡片内部留白、页面边距、控件和弹窗继续使用各自 Token。
+- Foundation `radiusUsage` 规定紧凑独立表面为 `--radius-compact`（6px）、按钮与输入/选择控件为 `--radius-control`（8px）、浏览内容卡片/列表外框/账户独立区块为 `--radius-card`（10px）、Dialog/Popover/Sheet/Menu 外框为 `--radius-panel`（12px）。贴边封面与骨架继承宿主圆角；头像与图标状态层保留正圆，语义徽章保留胶囊，行内元素按其字号自身缩放。连续 `StackList` 保留分隔线和零行距；独立内容卡片使用 `--collection-card-gap`（8px），动态瀑布流的估算、定位、虚拟列表和骨架由 `COLLECTION_WEB_PROFILE.cardGap` 对齐。卡片内部留白、页面边距和触控区域不随卡片间距改变。业务组件不再使用泛化的 `rounded`、`rounded-2xl` 或 `rounded-3xl`。
 - 列表负责扫描和进入，标题使用 body 600；详情负责连续阅读，内容标题使用 display 500。display 角色只用于品牌、内容页面/区块结构标题、详情内容标题和文字封面，不用于弹层、状态、导航、控件、用户名、计数或富文本标题。
-- `WenyouTime` 默认为 `mode="content"`，普通帖子、回复、动态、通知、私信、草稿及个人资料时间共用 Foundation 规则：不足 72 小时显示“刚刚 / N 分钟前 / N 小时前 / N 天前”，满 72 小时后同年显示 `MM-dd`、跨年显示 `yyyy-MM-dd`；未来时间也按同年/跨年规则只显示日期。`title` 和读屏通过 `formatWenyouDate` 显示用户本地完整年月日，不含时分。账务、安全、审计、处置、预约及到期信息显式使用 `mode="exact"`，正文、悬停和读屏均显示本地 `yyyy-MM-dd HH:mm`，不订阅相对时间刷新；两种模式均保留 `<time dateTime>` 原始时间戳。既有独立秒级记录不降低精度，预约/有效期输入保留时分。`WenyouCount` 从一万起使用“万/亿”紧凑值，并向辅助技术保留精确数字。
+- `WenyouTime` 默认为 `mode="content"`，普通帖子、回复、动态、通知、私信、草稿共用 Foundation 规则：不足 72 小时显示“刚刚 / N 分钟前 / N 小时前 / N 天前”，满 72 小时后同年显示 `MM-dd`、跨年显示 `yyyy-MM-dd`；未来时间也按同年/跨年规则只显示日期。`title` 和读屏通过 `formatWenyouDate` 显示用户本地完整年月日，不含时分。账务、安全、审计、处置、预约及到期信息显式使用 `mode="exact"`，正文、悬停和读屏均显示本地 `yyyy-MM-dd HH:mm`，不订阅相对时间刷新；两种模式均保留 `<time dateTime>` 原始时间戳。既有独立秒级记录不降低精度，预约/有效期输入保留时分。`WenyouCount` 从一万起使用“万/亿”紧凑值，并向辅助技术保留精确数字。
 - 核心导航、操作、编辑器能力和常见状态使用 Foundation 语义图标；图标型操作统一通过共享 `Tooltip` 补足悬停/聚焦说明；全局 Provider 使用短延迟并保留可访问名称，不能以 `title` 属性或仅悬停内容替代按钮的 `aria-label`。
 - 二态互动统一通过 `InteractionToggle` 消费 Foundation `iconControls`：未选中使用 `mutedForeground` 描边；选中态始终保持容器透明，只让点赞的实心心形变为鲜粉 `like`、收藏的实心书签变为金色 `bookmark`、官方更新订阅的实心铃铛变为品牌深紫 `brandStrong`。计数和文字保持中性 `foreground`。hover、focus 与 pressed 只在图标命中区显示同色圆形瞬时状态层，不能重新给整个按钮添加柔和底色；危险操作继续使用 destructive 语义。请求中保留提交前视觉和焦点能力，以 loading 图标、`aria-busy` 与 `aria-disabled` 阻止重复提交；按钮名称稳定为动作词，状态和数量置于可访问说明并用 `aria-pressed` 表示。
 - 收藏、订阅、关注、拉黑、归档等轻量状态操作由 pending 与更新后的控件/列表状态反馈成功，不再重复弹出成功 Toast；失败仍使用错误 Toast。金额或奖励结果、复制、发布删除、消息决策、安全与站务操作等需要补充结果信息的反馈继续保留。

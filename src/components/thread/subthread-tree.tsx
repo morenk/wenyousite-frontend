@@ -57,7 +57,7 @@ function SubthreadTreeNode({
       style={{ transform: CSS.Transform.toString(transform), transition }}
       data-selected={isSelected ? "true" : "false"}
       className={cn(
-        "group relative flex min-h-14 items-center gap-1 rounded-xl border border-transparent px-1.5 transition-[background-color,border-color,box-shadow] duration-[var(--motion-fast)]",
+        "group relative flex min-h-14 items-center gap-1 rounded-[var(--radius-control)] border border-transparent px-1.5 transition-[background-color,border-color,box-shadow] duration-[var(--motion-fast)]",
         "before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:origin-center before:rounded-full before:bg-brand-strong before:transition-transform",
         isSelected
           ? "border-border bg-card shadow-sm before:scale-y-100"
@@ -67,7 +67,7 @@ function SubthreadTreeNode({
     >
       <button
         type="button"
-        className="flex size-8 shrink-0 touch-none items-center justify-center rounded-lg text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/30 disabled:pointer-events-none"
+        className="flex size-8 shrink-0 touch-none items-center justify-center rounded-[var(--radius-control)] text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/30 disabled:pointer-events-none"
         aria-label={`拖动子贴「${subthread.title}」排序`}
         title="拖拽或使用键盘排序"
         disabled={disabled}
@@ -83,7 +83,7 @@ function SubthreadTreeNode({
         disabled={disabled}
         aria-label={`选择子贴「${subthread.title}」`}
         aria-current={isSelected ? "page" : undefined}
-        className="flex min-w-0 flex-1 items-center gap-2 rounded-lg px-1 py-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/30 disabled:pointer-events-none"
+        className="flex min-w-0 flex-1 items-center gap-2 rounded-[var(--radius-control)] px-1 py-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/30 disabled:pointer-events-none"
       >
         <span className="w-6 shrink-0 font-utility text-[0.6875rem] font-bold tabular-nums text-muted-foreground">
           {String(index + 1).padStart(2, "0")}
@@ -106,7 +106,7 @@ function SubthreadTreeNode({
         disabled={disabled}
         aria-label={`删除子贴「${subthread.title}」`}
         title="删除子贴"
-        className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground opacity-0 outline-none transition-[background-color,color,opacity] group-hover:opacity-100 focus:opacity-100 focus-visible:ring-2 focus-visible:ring-ring/30 hover:bg-destructive-soft hover:text-destructive disabled:pointer-events-none"
+        className="flex size-8 shrink-0 items-center justify-center rounded-[var(--radius-control)] text-muted-foreground opacity-0 outline-none transition-[background-color,color,opacity] group-hover:opacity-100 focus:opacity-100 focus-visible:ring-2 focus-visible:ring-ring/30 hover:bg-destructive-soft hover:text-destructive disabled:pointer-events-none"
       >
         <Trash2 className="size-4" />
       </button>
@@ -191,7 +191,7 @@ export function SubthreadTree({
           type="button"
           onClick={onCreate}
           disabled={disabled}
-          className="flex min-h-10 w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-border text-sm font-semibold text-muted-foreground outline-none transition-colors hover:border-brand-strong/35 hover:bg-card hover:text-brand-strong focus-visible:ring-2 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:bg-muted"
+          className="flex min-h-10 w-full items-center justify-center gap-1.5 rounded-[var(--radius-control)] border border-dashed border-border text-sm font-semibold text-muted-foreground outline-none transition-colors hover:border-brand-strong/35 hover:bg-card hover:text-brand-strong focus-visible:ring-2 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:bg-muted"
         >
           <Plus className="size-4" />
           添加子贴

@@ -243,14 +243,14 @@ export function ProfileCoverUploader({
         </TabsList>
         <TabsContent value="web">
           <div className="relative pb-7">
-            <ProfileCover cover={profileCover} username={username} className="rounded-xl border border-border" />
+            <ProfileCover cover={profileCover} username={username} className="rounded-[var(--radius-compact)] border border-border" />
             <UserAvatar name={username} src={avatar} display={avatarDisplay}
               className="absolute bottom-0 left-4 size-14 ring-4 ring-card outline outline-1 outline-border"
               textClassName="text-lg" />
           </div>
         </TabsContent>
         <TabsContent value="mobile" className="max-w-narrow">
-          <ProfileCover cover={mobilePreviewCover} username={username} surface="mobile" className="rounded-xl border border-border" />
+          <ProfileCover cover={mobilePreviewCover} username={username} surface="mobile" className="rounded-[var(--radius-compact)] border border-border" />
           {profileCover && !profileCover.mobile ? <p className="mt-2 text-xs text-muted-foreground">沿用电脑端背景</p> : null}
         </TabsContent>
       </Tabs>
@@ -315,7 +315,7 @@ export function ProfileCoverUploader({
                       <section
                         key={surface}
                         aria-labelledby={`profile-cover-${surface}-crop-title`}
-                        className="rounded-2xl border border-border bg-muted/35 p-3"
+                        className="rounded-[var(--radius-card)] border border-border bg-muted/35 p-3"
                       >
                         <h3
                           id={`profile-cover-${surface}-crop-title`}
@@ -325,7 +325,7 @@ export function ProfileCoverUploader({
                           {spec.label}画幅
                         </h3>
                         <div
-                          className={`relative overflow-hidden rounded-xl bg-foreground ${
+                          className={`relative overflow-hidden rounded-[var(--radius-compact)] bg-foreground ${
                             surface === "web" ? "aspect-3/1" : "aspect-2/1"
                           } ${isUploading ? "pointer-events-none" : ""}`}
                         >
@@ -389,13 +389,13 @@ export function ProfileCoverUploader({
                       compact
                     />
                   ) : (
-                    <div className="mt-4 flex items-center gap-2 rounded-lg bg-muted/70 px-3 py-2 text-xs text-muted-foreground">
+                    <div className="mt-4 flex items-center gap-2 rounded-[var(--radius-compact)] bg-muted/70 px-3 py-2 text-xs text-muted-foreground">
                       <Loader2 className="size-3.5 animate-spin text-brand-strong" />
                       正在准备主页背景…
                     </div>
                   )
                 ) : setProfileCover.isPending ? (
-                  <div className="mt-4 flex items-center gap-2 rounded-lg bg-muted/70 px-3 py-2 text-xs text-muted-foreground">
+                  <div className="mt-4 flex items-center gap-2 rounded-[var(--radius-compact)] bg-muted/70 px-3 py-2 text-xs text-muted-foreground">
                     <Loader2 className="size-3.5 animate-spin text-brand-strong" />
                     正在保存主页背景…
                   </div>

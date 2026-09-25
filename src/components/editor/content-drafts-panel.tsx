@@ -207,7 +207,7 @@ export function ContentDraftsPanel({
     >
       <div className="flex items-start justify-between gap-3 px-3 py-2.5">
         <div className="flex min-w-0 items-start gap-2.5">
-          <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-brand-strong">
+          <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full border border-border bg-background text-brand-strong">
             <StickyNote className="size-4" />
           </span>
           <div className="min-w-0">
@@ -221,14 +221,14 @@ export function ContentDraftsPanel({
           type="button"
           onClick={onClose}
           aria-label="收起正文草稿"
-          className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+          className="rounded-[var(--radius-control)] p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
         >
           <X className="size-4" />
         </button>
       </div>
 
       <div className="max-h-[min(22rem,52vh)] overflow-y-auto border-t border-border px-3 py-3 overscroll-contain">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-background px-3 py-2.5">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-[var(--radius-compact)] border border-border bg-background px-3 py-2.5">
           <div className="min-w-0">
             <p className="text-xs font-medium text-foreground">自动保存到草稿 1</p>
             {autoSaveEnabled || autoSaveStatus === "error" ? (
@@ -289,7 +289,7 @@ export function ContentDraftsPanel({
                 return (
                   <li
                     key={slot}
-                    className="group flex min-h-20 items-center gap-3 rounded-lg border border-dashed border-border bg-background/60 px-3 py-2.5"
+                    className="group flex min-h-20 items-center gap-3 rounded-[var(--radius-card)] border border-dashed border-border bg-background/60 px-3 py-2.5"
                   >
                     <span className="font-utility text-xl font-medium tabular-nums text-muted-foreground/45">
                       {String(slot).padStart(2, "0")}
@@ -312,7 +312,7 @@ export function ContentDraftsPanel({
               return (
                 <li
                   key={draft.id}
-                  className="relative min-h-28 overflow-hidden rounded-lg border border-border bg-background px-3 py-2.5 pl-12"
+                  className="relative min-h-28 overflow-hidden rounded-[var(--radius-card)] border border-border bg-background px-3 py-2.5 pl-12"
                 >
                   <span className="absolute inset-y-0 left-0 flex w-9 items-start justify-center border-r border-border bg-muted/35 pt-2.5 font-utility text-base font-medium tabular-nums text-brand-strong">
                     {String(slot).padStart(2, "0")}

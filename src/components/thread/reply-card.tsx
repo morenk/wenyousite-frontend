@@ -114,7 +114,7 @@ export function ReplyCard({
       className={cn(
         isDiscussion
           ? "scroll-mt-6 rounded-[var(--radius-card)] border border-border bg-card p-4 transition-[border-color] duration-[var(--motion-slow)] ease-out"
-          : "scroll-mt-6 rounded-lg border border-border bg-background p-3 transition-[border-color] duration-[var(--motion-slow)] ease-out",
+          : "scroll-mt-6 rounded-[var(--radius-card)] border border-border bg-background p-3 transition-[border-color] duration-[var(--motion-slow)] ease-out",
         highlightVisible && "border-primary",
       )}
     >

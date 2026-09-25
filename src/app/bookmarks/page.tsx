@@ -50,7 +50,7 @@ export default function BookmarksPage() {
               <TabsTrigger value="moments" className="flex-1">动态</TabsTrigger>
             </TabsList>
           </Tabs>
-          {foldersQuery.isLoading ? <Skeleton className="h-64 w-full rounded-xl" /> : foldersQuery.isError ? (
+          {foldersQuery.isLoading ? <Skeleton className="h-64 w-full rounded-[var(--radius-card)]" /> : foldersQuery.isError ? (
             <LoadError title="收藏夹加载失败" onRetry={() => void foldersQuery.refetch()} className="px-0 py-6" />
           ) : (
             <BookmarkFolderBar key={`${type}-${directoryRevision}`} folders={folders} selectedFolderId={folderId} onSelect={(id) => void setLocation({ folder: id ?? null })} kind={type} />

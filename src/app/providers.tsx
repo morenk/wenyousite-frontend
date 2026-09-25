@@ -64,7 +64,7 @@ function IdentityScopedQueries({ children }: { children: React.ReactNode }) {
         richColors
         closeButton
         toastOptions={{
-          className: "rounded-lg border-border bg-popover text-popover-foreground shadow-popover",
+          className: "rounded-[var(--radius-panel)] border-border bg-popover text-popover-foreground shadow-popover",
         }}
       />
     </QueryClientProvider>

@@ -178,7 +178,7 @@ export function AdminAccountsPanel() {
 
   return (
     <div data-slot="admin-accounts-workspace" data-layout="full-table" className="w-full space-y-4">
-        <section className="overflow-hidden rounded-lg border border-border bg-card">
+        <section className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-card">
           <div className="flex items-center justify-between border-b border-border px-5 py-4">
             <div>
               <h2 className="font-sans text-lg font-semibold">现有站务</h2>
@@ -263,7 +263,7 @@ export function AdminAccountsPanel() {
           />
         </section>
 
-        <section className="overflow-hidden rounded-lg border border-border bg-card">
+        <section className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-card">
           <div className="flex items-center gap-3 px-5 py-5">
             <ShieldCheck className="size-5 text-brand-strong" />
             <div>
@@ -362,7 +362,7 @@ export function AdminAccountsPanel() {
                 </div>
                 <div className="mt-3 space-y-2">
                   {search.data?.filter((user) => user.role === "USER").map((user) => (
-                    <div key={user.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+                    <div key={user.id} className="flex items-center justify-between rounded-[var(--radius-card)] border border-border p-3">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-bold">{user.username}</p>
                         <p className="truncate text-xs text-muted-foreground">{user.email}</p>
@@ -416,7 +416,7 @@ export function AdminAccountsPanel() {
                   />
                 </div>
                 <div className="space-y-3 px-4 py-4">
-                  <div className="flex items-center justify-between gap-5 rounded-xl border border-border p-4">
+                  <div className="flex items-center justify-between gap-5 rounded-[var(--radius-card)] border border-border p-4">
                     <div>
                       <p className="text-sm font-bold">移交超级管理员席位</p>
                       <p className="mt-1 text-xs leading-5 text-muted-foreground">移交后双方站务会话都会退出。</p>
@@ -443,7 +443,7 @@ export function AdminAccountsPanel() {
                       }}
                     >移交席位</Button>
                   </div>
-                  <div className="flex items-center justify-between gap-5 rounded-xl border border-destructive/25 bg-destructive-soft/40 p-4">
+                  <div className="flex items-center justify-between gap-5 rounded-[var(--radius-card)] border border-destructive/25 bg-destructive-soft/40 p-4">
                     <div>
                       <p className="text-sm font-bold">撤销管理员身份</p>
                       <p className="mt-1 text-xs leading-5 text-muted-foreground">普通登录和站务会话都会立即退出。</p>

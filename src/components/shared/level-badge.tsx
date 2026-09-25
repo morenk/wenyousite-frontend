@@ -24,7 +24,7 @@ export function LevelBadge({
       data-slot="level-badge"
       data-level-tier={tier.id}
       className={cn(
-        "inline-flex h-[var(--element-level-height)] items-center rounded-md border px-1.5 font-utility text-[length:var(--element-level-font-size)] font-bold leading-none tabular-nums",
+        "inline-flex h-[var(--element-level-height)] items-center rounded-full border px-1.5 font-utility text-[length:var(--element-level-font-size)] font-bold leading-none tabular-nums",
         className,
       )}
       style={tierStyle}

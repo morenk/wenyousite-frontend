@@ -108,7 +108,7 @@ export function MomentCommentForm({
       <button
         type="button"
         onClick={() => redirectToLogin()}
-        className="w-full rounded-2xl bg-background/95 px-4 py-3 text-left text-sm text-muted-foreground backdrop-blur-xl transition-colors hover:bg-muted hover:text-foreground"
+        className="w-full rounded-[var(--radius-control)] bg-background/95 px-4 py-3 text-left text-sm text-muted-foreground backdrop-blur-xl transition-colors hover:bg-muted hover:text-foreground"
       >
         登录后发表评论
       </button>
@@ -117,11 +117,11 @@ export function MomentCommentForm({
 
   if (!isExpanded) {
     return (
-      <div className="rounded-2xl bg-background/95 p-2 backdrop-blur-xl">
+      <div className="rounded-[var(--radius-panel)] bg-background/95 p-2 backdrop-blur-xl">
         <button
           type="button"
           onClick={() => setExpanded(true)}
-          className="w-full rounded-xl bg-muted/85 px-4 py-3 text-left text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          className="w-full rounded-[var(--radius-control)] bg-muted/85 px-4 py-3 text-left text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
           {contentLength || image || sticker ? "继续编辑评论…" : "发表评论…"}
         </button>
@@ -310,14 +310,14 @@ export function MomentCommentForm({
   };
 
   return (
-    <form onSubmit={(event) => void handleSubmit(submit)(event)} className="rounded-2xl bg-background/95 p-3 backdrop-blur-xl">
+    <form onSubmit={(event) => void handleSubmit(submit)(event)} className="rounded-[var(--radius-control)] bg-background/95 p-3 backdrop-blur-xl">
       <div className="mb-2 flex items-center justify-between px-1 text-xs text-muted-foreground">
         <span>{replyTarget ? `回复 ${replyTarget.username}` : "发表评论"}</span>
         <button
           type="button"
           disabled={pending}
           onClick={() => { toast.dismiss(singleImageToastId); onCancelReply(); setExpanded(false); }}
-          className="rounded-md p-1 hover:bg-muted disabled:opacity-50"
+          className="rounded-[var(--radius-control)] p-1 hover:bg-muted disabled:opacity-50"
           aria-label="收起评论框"
         >
           <X className="size-3.5" />
@@ -344,12 +344,12 @@ export function MomentCommentForm({
       />
 
       {previewUrl || sticker ? (
-        <div className="relative mt-3 w-fit rounded-xl bg-background/75 p-2">
+        <div className="relative mt-3 w-fit rounded-[var(--radius-compact)] bg-background/75 p-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={sticker ? getStickerDisplayUrl(sticker.asset) : previewUrl ?? ""}
             alt={sticker ? "待发送表情包" : "待发送评论图片"}
-            className={sticker ? "sticker-display object-contain" : "max-h-40 max-w-56 rounded-lg object-contain"}
+            className={sticker ? "sticker-display object-contain" : "max-h-40 max-w-56 rounded-[var(--radius-compact)] object-contain"}
             style={sticker ? STICKER_DISPLAY_STYLE : undefined}
           />
           <button
@@ -357,7 +357,7 @@ export function MomentCommentForm({
             onClick={clearMedia}
             disabled={create.isPending}
             aria-label={sticker ? "移除表情包" : "移除评论图片"}
-            className="absolute -right-2 -top-2 rounded-full bg-foreground p-1 text-background shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+            className="absolute -right-2 -top-2 rounded-[var(--radius-control)] bg-foreground p-1 text-background shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
           >
             <X className="size-3" />
           </button>

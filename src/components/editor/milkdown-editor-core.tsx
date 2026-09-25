@@ -127,7 +127,7 @@ function EditorCore({
   return (
     <div
       className={cn(
-        "rounded-lg border border-border bg-background overflow-hidden",
+        "rounded-[var(--radius-control)] border border-border bg-background overflow-hidden",
         disabled && "opacity-60 pointer-events-none",
       )}
       style={{

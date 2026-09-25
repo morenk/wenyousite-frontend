@@ -58,12 +58,13 @@ describe("视觉系统基础组件", () => {
     expect(content.querySelector('[data-slot="card-header"]')).toHaveClass("rounded-t-[var(--card-radius)]");
     expect(content.querySelector('[data-slot="card-footer"]')).toHaveClass("rounded-b-[var(--card-radius)]");
     expect(functional).toHaveAttribute("data-appearance", "default");
+    expect(functional).toHaveClass("[--card-radius:var(--radius-panel)]");
   });
 
   test("旧按钮尺寸映射到新的紧凑规格", () => {
     render(<Button size="sm">旧尺寸按钮</Button>);
 
-    expect(screen.getByRole("button", { name: "旧尺寸按钮" })).toHaveClass("h-8");
+    expect(screen.getByRole("button", { name: "旧尺寸按钮" })).toHaveClass("h-8", "rounded-[var(--radius-control)]");
   });
 
   test("按钮 pending 时统一禁用、播报忙碌状态并使用语义加载图标", () => {

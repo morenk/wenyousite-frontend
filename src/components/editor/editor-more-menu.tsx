@@ -35,7 +35,7 @@ interface EditorMoreMenuProps {
 const ALIGNMENTS: readonly WenyouTextAlignment[] = ["left", "center", "right"];
 
 const iconButtonClassName = cn(
-  "inline-flex size-10 shrink-0 items-center justify-center rounded-xl text-muted-foreground outline-none",
+  "inline-flex size-10 shrink-0 items-center justify-center rounded-[var(--radius-control)] text-muted-foreground outline-none",
   "transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--ease-standard)]",
   "hover:bg-accent/60 hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring/30 active:scale-[0.96]",
 );
@@ -90,7 +90,7 @@ export function EditorMoreMenu({
             tabIndex={-1}
             initialFocus={menuRef}
             finalFocus={false}
-            className="max-h-[min(28rem,var(--available-height))] w-80 max-w-[var(--available-width)] origin-(--transform-origin) overflow-y-auto rounded-xl border border-border bg-popover p-2 text-popover-foreground shadow-popover outline-none duration-[var(--motion-standard)] data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 motion-reduce:animate-none"
+            className="max-h-[min(28rem,var(--available-height))] w-80 max-w-[var(--available-width)] origin-(--transform-origin) overflow-y-auto rounded-[var(--radius-panel)] border border-border bg-popover p-2 text-popover-foreground shadow-popover outline-none duration-[var(--motion-standard)] data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 motion-reduce:animate-none"
           >
             <div className="flex flex-wrap gap-1">
               {items.map((item) => {
@@ -101,7 +101,7 @@ export function EditorMoreMenu({
                       role="group"
                       aria-label="段落对齐"
                       data-editor-alignment-picker
-                      className="inline-grid h-10 shrink-0 grid-cols-3 gap-0.5 rounded-xl bg-muted p-0.5"
+                      className="inline-grid h-10 shrink-0 grid-cols-3 gap-0.5 rounded-[var(--radius-control)] bg-muted p-0.5"
                     >
                       {ALIGNMENTS.map((option) => {
                         const label = alignmentLabel(option);
@@ -115,7 +115,7 @@ export function EditorMoreMenu({
                               aria-checked={alignment === option}
                               data-editor-alignment-option={option}
                               className={cn(
-                                "inline-flex size-9 items-center justify-center rounded-lg text-muted-foreground outline-none",
+                                "inline-flex size-9 items-center justify-center rounded-[var(--radius-control)] text-muted-foreground outline-none",
                                 "transition-[background-color,color,box-shadow,transform] duration-[var(--motion-fast)] ease-[var(--ease-standard)]",
                                 "hover:bg-popover hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/30 active:scale-[0.96]",
                                 "aria-checked:bg-accent aria-checked:text-accent-foreground aria-checked:ring-1 aria-checked:ring-primary/70 aria-checked:ring-inset",

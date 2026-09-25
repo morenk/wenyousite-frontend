@@ -117,7 +117,7 @@ export function MemberManager({ threadId, isOwner, isCollaborator }: MemberManag
   return (
     <div className="mx-auto max-w-5xl space-y-5 p-5">
 
-      <div className="flex items-center justify-between gap-5 rounded-2xl border border-border bg-muted/25 p-3">
+      <div className="flex items-center justify-between gap-5 rounded-[var(--radius-panel)] border border-border bg-muted/25 p-3">
         <div className="flex items-center gap-1" aria-label="筛选成员">
           {filters.map((item) => (
             <button
@@ -126,7 +126,7 @@ export function MemberManager({ threadId, isOwner, isCollaborator }: MemberManag
               aria-pressed={filter === item.value}
               onClick={() => setFilter(item.value)}
               className={cn(
-                "inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-semibold text-muted-foreground outline-none transition-colors hover:bg-card hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/30",
+                "inline-flex h-9 items-center gap-1.5 rounded-[var(--radius-control)] px-3 text-sm font-semibold text-muted-foreground outline-none transition-colors hover:bg-card hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/30",
                 filter === item.value && "bg-card text-foreground shadow-sm",
               )}
             >
@@ -152,7 +152,7 @@ export function MemberManager({ threadId, isOwner, isCollaborator }: MemberManag
       </div>
 
       {visibleMembers.length > 0 ? (
-        <div className="overflow-hidden rounded-2xl border border-border bg-card">
+        <div className="overflow-hidden rounded-[var(--radius-panel)] border border-border bg-card">
           <table className="w-full table-fixed border-collapse text-left">
             <thead className="bg-muted/35 font-utility text-xs text-muted-foreground">
               <tr>
@@ -176,7 +176,7 @@ export function MemberManager({ threadId, isOwner, isCollaborator }: MemberManag
           </table>
         </div>
       ) : (
-        <div className="rounded-2xl border border-dashed border-border py-16">
+        <div className="rounded-[var(--radius-panel)] border border-dashed border-border py-16">
           <EmptyState
             title="没有符合条件的成员"
           />
@@ -248,7 +248,7 @@ function MemberTableRow({
       <td className="px-5 py-3.5">
         <Link
           href={`/users/${member.userId}`}
-          className="group flex min-w-0 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+          className="group flex min-w-0 items-center gap-3 rounded-[var(--radius-control)] outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
         >
           <UserAvatar
             name={member.user.username}

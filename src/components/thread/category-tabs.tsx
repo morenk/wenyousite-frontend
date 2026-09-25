@@ -30,11 +30,11 @@ export function CategoryTabs({ selected, onChange }: CategoryTabsProps) {
     >
       <TabsList
         aria-label="主题帖分类"
-        className="h-10 w-full justify-start gap-0.5 overflow-x-auto overflow-y-hidden rounded-xl bg-muted/85 p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="h-10 w-full justify-start gap-0.5 overflow-x-auto overflow-y-hidden rounded-[var(--radius-control)] bg-muted/85 p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         <TabsTrigger
           value={ALL_CATEGORIES}
-          className="group/category h-8 shrink-0 flex-none rounded-lg border-0 px-3 py-1 text-[0.8125rem] font-medium after:hidden hover:bg-card/60 data-active:bg-card data-active:font-bold data-active:ring-1 data-active:ring-border"
+          className="group/category h-8 shrink-0 flex-none rounded-[var(--radius-control)] border-0 px-3 py-1 text-[0.8125rem] font-medium after:hidden hover:bg-card/60 data-active:bg-card data-active:font-bold data-active:ring-1 data-active:ring-border"
         >
           全部
         </TabsTrigger>
@@ -42,7 +42,7 @@ export function CategoryTabs({ selected, onChange }: CategoryTabsProps) {
           <TabsTrigger
             key={category.id}
             value={category.slug}
-            className="group/category h-8 shrink-0 flex-none rounded-lg border-0 px-3 py-1 text-[0.8125rem] font-medium after:hidden hover:bg-card/60 data-active:bg-card data-active:font-bold data-active:ring-1 data-active:ring-border"
+            className="group/category h-8 shrink-0 flex-none rounded-[var(--radius-control)] border-0 px-3 py-1 text-[0.8125rem] font-medium after:hidden hover:bg-card/60 data-active:bg-card data-active:font-bold data-active:ring-1 data-active:ring-border"
           >
             {category.name}
           </TabsTrigger>
@@ -51,7 +51,7 @@ export function CategoryTabs({ selected, onChange }: CategoryTabsProps) {
           <TabsTrigger
             value={selected!}
             disabled
-            className="h-8 shrink-0 flex-none rounded-lg border-0 px-3 py-1 text-[0.8125rem] after:hidden"
+            className="h-8 shrink-0 flex-none rounded-[var(--radius-control)] border-0 px-3 py-1 text-[0.8125rem] after:hidden"
           >
             不可用分类
           </TabsTrigger>
@@ -63,7 +63,7 @@ export function CategoryTabs({ selected, onChange }: CategoryTabsProps) {
           <button
             type="button"
             onClick={() => void refetch()}
-            className="shrink-0 rounded-lg px-3 text-xs font-semibold text-brand-strong hover:bg-card/60"
+            className="shrink-0 rounded-[var(--radius-control)] px-3 text-xs font-semibold text-brand-strong hover:bg-card/60"
           >
             重新加载分类
           </button>

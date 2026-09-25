@@ -85,7 +85,7 @@ export function CategoryEditDialog({
               </div>
 
               <div className="space-y-4 px-4 py-3">
-                <div className="grid grid-cols-[1fr_auto] items-center gap-5 rounded-xl border border-border bg-muted px-4 py-3">
+                <div className="grid grid-cols-[1fr_auto] items-center gap-5 rounded-[var(--radius-card)] border border-border bg-muted px-4 py-3">
                   <div className="flex min-w-0 items-center gap-3">
                     <LockKeyhole className="size-4 shrink-0 text-muted-foreground" />
                     <div className="min-w-0">

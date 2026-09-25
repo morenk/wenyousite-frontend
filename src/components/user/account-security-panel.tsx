@@ -87,11 +87,11 @@ export function AccountSecurityPanel() {
           <div className="text-sm"><p className="font-medium">邮箱</p>
             {maskedEmail ? <p className="mt-1 text-muted-foreground">{maskedEmail}</p> : me.error ? <p role="alert" className="text-destructive">邮箱加载失败 <Button variant="link" size="compact" onClick={() => void me.refetch()}>重试</Button></p> : <p role="status" className="text-muted-foreground">正在加载邮箱…</p>}
           </div>
-          <Link href="/me/email" className="inline-flex min-h-10 items-center rounded-md text-sm text-brand-strong outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring">更换邮箱</Link>
+          <Link href="/me/email" className="inline-flex min-h-10 items-center rounded-[var(--radius-control)] text-sm text-brand-strong outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring">更换邮箱</Link>
         </div>
         <div className="flex items-center justify-between gap-4 border-t border-border py-3">
           <p className="text-sm font-medium">密码</p>
-          <Link href="/me/password" className="inline-flex min-h-10 items-center rounded-md text-sm text-brand-strong outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring">修改密码</Link>
+          <Link href="/me/password" className="inline-flex min-h-10 items-center rounded-[var(--radius-control)] text-sm text-brand-strong outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring">修改密码</Link>
         </div>
       </section>
       <section aria-labelledby="security-sessions" className="border-b border-border pb-6">
@@ -185,7 +185,7 @@ export function AccountSecurityPanel() {
         </div>
       </section>
 
-      <section aria-labelledby="security-delete" className="rounded-xl border border-destructive/40 p-5">
+      <section aria-labelledby="security-delete" className="rounded-[var(--radius-card)] border border-destructive/40 p-5">
         <h2 id="security-delete" className="mb-3 font-sans text-base font-semibold text-destructive">注销账号</h2>
         <div className="space-y-3">
           <p className="text-sm text-muted-foreground">

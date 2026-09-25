@@ -113,7 +113,7 @@ export function AuditPanel() {
     + (dateTo ? 1 : 0);
 
   return (
-    <section className="overflow-hidden rounded-lg border border-border bg-card">
+    <section className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-card">
       <div className="flex items-center justify-end gap-4 border-b border-border px-4 py-2">
         <a className={buttonVariants({ variant: "outline", size: "compact" })} href={exportHref}><Download />导出当前结果</a>
       </div>

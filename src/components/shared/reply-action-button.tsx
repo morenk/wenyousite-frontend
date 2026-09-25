@@ -31,7 +31,7 @@ export function ReplyActionButton({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "rounded-lg text-muted-foreground hover:bg-primary hover:text-brand-strong focus-visible:bg-primary focus-visible:text-brand-strong",
+        "rounded-[var(--radius-control)] text-muted-foreground hover:bg-primary hover:text-brand-strong focus-visible:bg-primary focus-visible:text-brand-strong",
         presentation === "labeled" && "text-xs font-medium",
         className,
       )}

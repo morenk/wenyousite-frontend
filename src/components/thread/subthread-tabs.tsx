@@ -60,7 +60,7 @@ export function SubthreadSwitcher({
           type="button"
           variant="ghost"
           size="icon-sm"
-          className="hidden rounded-lg text-muted-foreground hover:text-foreground sm:inline-flex"
+          className="hidden rounded-[var(--radius-control)] text-muted-foreground hover:text-foreground sm:inline-flex"
           aria-label={`上一个子贴：${previous.title}`}
           onPointerEnter={() => onPrefetch?.(previous.id)}
           onPointerDown={() => onPrefetch?.(previous.id)}
@@ -85,7 +85,7 @@ export function SubthreadSwitcher({
               type="button"
               variant="outline"
               size="compact"
-              className="group h-8 w-0 min-w-0 grow justify-start gap-2 rounded-lg bg-card px-2.5 font-normal shadow-none"
+              className="group h-8 w-0 min-w-0 grow justify-start gap-2 rounded-[var(--radius-control)] bg-card px-2.5 font-normal shadow-none"
               aria-label={`切换子贴，当前：${selected.title}`}
             />
           }
@@ -112,7 +112,7 @@ export function SubthreadSwitcher({
             className="z-[var(--layer-popup)]"
           >
             <Select.Popup
-              className="w-[min(22rem,calc(100vw-2rem))] origin-(--transform-origin) overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-popover outline-none duration-[var(--motion-standard)] data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"
+              className="w-[min(22rem,calc(100vw-2rem))] origin-(--transform-origin) overflow-hidden rounded-[var(--radius-panel)] border border-border bg-popover text-popover-foreground shadow-popover outline-none duration-[var(--motion-standard)] data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"
             >
               <div
                 data-slot="subthread-menu-header"
@@ -157,7 +157,7 @@ export function SubthreadSwitcher({
                       onPointerDown={() => onPrefetch?.(subthread.id)}
                       onFocus={() => onPrefetch?.(subthread.id)}
                       className={cn(
-                        "grid min-h-11 w-full cursor-default grid-cols-[1rem_minmax(0,1fr)_auto] items-center gap-2 rounded-lg px-2.5 py-2 outline-none select-none data-highlighted:bg-accent/70 data-highlighted:text-accent-foreground",
+                        "grid min-h-11 w-full cursor-default grid-cols-[1rem_minmax(0,1fr)_auto] items-center gap-2 rounded-[var(--radius-control)] px-2.5 py-2 outline-none select-none data-highlighted:bg-accent/70 data-highlighted:text-accent-foreground",
                         isSelected && "bg-accent text-accent-foreground",
                       )}
                     >
@@ -188,7 +188,7 @@ export function SubthreadSwitcher({
           type="button"
           variant="ghost"
           size="icon-sm"
-          className="hidden rounded-lg text-muted-foreground hover:text-foreground sm:inline-flex"
+          className="hidden rounded-[var(--radius-control)] text-muted-foreground hover:text-foreground sm:inline-flex"
           aria-label={`下一个子贴：${next.title}`}
           onPointerEnter={() => onPrefetch?.(next.id)}
           onPointerDown={() => onPrefetch?.(next.id)}

@@ -55,9 +55,10 @@ async function mockProfile(page: Page) {
   });
 }
 
+for (const width of [390, 1440] as const) {
 for (const colorScheme of ["light", "dark"] as const) {
-  test(`390px ${colorScheme} 个人页卡片圆角、间距与封面裁切`, async ({ page }, testInfo) => {
-    await page.setViewportSize({ width: 390, height: 844 });
+  test(`${width}px ${colorScheme} 个人页卡片、控件与浮层圆角`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: 844 });
     await page.emulateMedia({ colorScheme, reducedMotion: "reduce" });
     await mockProfile(page);
     await page.goto(`/users/${userId}`);
@@ -65,6 +66,7 @@ for (const colorScheme of ["light", "dark"] as const) {
     await expect(page.getByRole("heading", { name: profile.username })).toBeVisible();
     await expect(page.getByText("创作概览")).toBeVisible();
     await expect(page.getByText("最近回复", { exact: true })).toBeVisible();
+    await expect(page.getByText(/加入温油站/)).toHaveCount(0);
 
     const cards = page.locator('[data-slot="card"][data-appearance="content"]');
     await expect(cards).toHaveCount(3);
@@ -85,7 +87,13 @@ for (const colorScheme of ["light", "dark"] as const) {
     const overview = page.locator('[data-slot="profile-tab-content"] > div');
     await expect(overview).toHaveCSS("row-gap", "8px");
     await expect(overview).toHaveCSS("column-gap", "8px");
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
-    await page.screenshot({ path: testInfo.outputPath(`profile-card-${colorScheme}-390.png`), fullPage: true });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+
+    const themeTrigger = page.getByRole("button", { name: /外观：/ }).first();
+    await expect(themeTrigger).toHaveCSS("border-top-left-radius", "8px");
+    await themeTrigger.click();
+    await expect(page.locator('[data-slot="theme-menu-popup"]')).toHaveCSS("border-top-left-radius", "12px");
+    await page.screenshot({ path: testInfo.outputPath(`profile-card-${colorScheme}-${width}.png`), fullPage: true });
   });
+}
 }

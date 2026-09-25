@@ -85,7 +85,7 @@ export function MomentComments({
       </div>
 
       {targetCommentId && contextValidating && !targetUnavailable ? (
-        <div className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-muted/45 px-4 py-3 text-sm text-muted-foreground" role="status">
+        <div className="mt-4 flex items-center justify-center gap-2 rounded-[var(--radius-control)] bg-muted/45 px-4 py-3 text-sm text-muted-foreground" role="status">
           <Loader2 className="size-4 animate-spin" />
           正在定位目标回复…
         </div>
@@ -93,7 +93,7 @@ export function MomentComments({
 
       {targetUnavailable || contextQuery.isError ? (
         <div
-          className="mt-4 rounded-xl border border-border/70 bg-muted/35 px-4 py-3 text-center text-sm text-muted-foreground"
+          className="mt-4 rounded-[var(--radius-card)] border border-border/70 bg-muted/35 px-4 py-3 text-center text-sm text-muted-foreground"
           role={targetUnavailable ? "status" : "alert"}
         >
           <p>{targetUnavailable ? "目标回复不存在或不可见" : "定位目标回复失败"}</p>
@@ -155,7 +155,7 @@ export function MomentComments({
             onCancelReply={() => setReplyTarget(null)}
           />
         ) : (
-          <p className="w-full rounded-2xl bg-background/95 px-4 py-3 text-sm text-muted-foreground backdrop-blur-xl">
+          <p className="w-full rounded-[var(--radius-control)] bg-background/95 px-4 py-3 text-sm text-muted-foreground backdrop-blur-xl">
             历史动态仅供阅读，不再接收新评论
           </p>
         )}

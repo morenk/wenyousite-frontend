@@ -32,7 +32,7 @@ export function ThreadComposerEntry({
 
   if (!user) {
     return (
-      <div className="rounded-xl border border-border bg-card p-4">
+      <div className="rounded-[var(--radius-panel)] border border-border bg-card p-4">
         <Button variant="outline" size="sm" onClick={() => redirectToLogin()}>
           <LogIn className="mr-1.5 h-4 w-4" />
           登录后参与讨论
@@ -42,7 +42,7 @@ export function ThreadComposerEntry({
   }
 
   return (
-    <div className="space-y-3 rounded-xl border border-border bg-card p-4">
+    <div className="space-y-3 rounded-[var(--radius-panel)] border border-border bg-card p-4">
       {!isActive ? (
         <Button
           type="button"

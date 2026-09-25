@@ -35,7 +35,7 @@ interface PostActionsMenuProps {
 }
 
 const menuItemClassName =
-  "flex min-h-9 w-full cursor-default items-center gap-2 rounded-lg px-3 py-2 text-sm outline-none select-none data-highlighted:bg-accent data-highlighted:text-accent-foreground focus:bg-accent focus:text-accent-foreground";
+  "flex min-h-9 w-full cursor-default items-center gap-2 rounded-[var(--radius-control)] px-3 py-2 text-sm outline-none select-none data-highlighted:bg-accent data-highlighted:text-accent-foreground focus:bg-accent focus:text-accent-foreground";
 
 async function copyToClipboard(value: string, successMessage: string) {
   try {
@@ -110,7 +110,7 @@ export function PostActionsMenu({
           <Menu.Positioner side="bottom" align="end" sideOffset={4} className="z-[var(--layer-popup)]">
             <Menu.Popup
               aria-label={menuLabel}
-              className="w-52 origin-(--transform-origin) rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-popover outline-none duration-[var(--motion-standard)] data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"
+              className="w-52 origin-(--transform-origin) rounded-[var(--radius-panel)] border border-border bg-popover p-1 text-popover-foreground shadow-popover outline-none duration-[var(--motion-standard)] data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"
             >
             <Menu.Item
               className={menuItemClassName}

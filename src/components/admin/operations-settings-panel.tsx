@@ -92,9 +92,9 @@ export function OperationsSettingsPanel() {
       })}
     >
       <div className="grid grid-cols-2 gap-5">
-        <section className="rounded-lg border border-border bg-card p-4">
+        <section className="rounded-[var(--radius-card)] border border-border bg-card p-4">
           <div className="flex items-start justify-between gap-4">
-            <span className="flex size-10 items-center justify-center rounded-xl bg-warning-soft text-warning"><UserRoundX className="size-5" /></span>
+            <span className="flex size-10 items-center justify-center rounded-full bg-warning-soft text-warning"><UserRoundX className="size-5" /></span>
             <Badge tone={registrationPaused ? "warning" : "success"}>{registrationPaused ? "暂停中" : "正常"}</Badge>
           </div>
           <h2 className="mt-5 font-sans text-xl font-semibold">新用户注册</h2>
@@ -109,9 +109,9 @@ export function OperationsSettingsPanel() {
           </div>
         </section>
 
-        <section className="rounded-lg border border-border bg-card p-4">
+        <section className="rounded-[var(--radius-card)] border border-border bg-card p-4">
           <div className="flex items-start justify-between gap-4">
-            <span className="flex size-10 items-center justify-center rounded-xl bg-destructive-soft text-destructive"><AlertTriangle className="size-5" /></span>
+            <span className="flex size-10 items-center justify-center rounded-full bg-destructive-soft text-destructive"><AlertTriangle className="size-5" /></span>
             <Badge tone={writesPaused ? "danger" : "success"}>{writesPaused ? "只读中" : "正常"}</Badge>
           </div>
           <h2 className="mt-5 font-sans text-xl font-semibold">社区内容写入</h2>
@@ -127,9 +127,9 @@ export function OperationsSettingsPanel() {
         </section>
       </div>
 
-      <section className="rounded-lg border border-border bg-card p-4">
+      <section className="rounded-[var(--radius-card)] border border-border bg-card p-4">
         <div className="flex items-center gap-3">
-          <span className="flex size-10 items-center justify-center rounded-xl bg-info-soft text-info"><CalendarClock className="size-5" /></span>
+          <span className="flex size-10 items-center justify-center rounded-full bg-info-soft text-info"><CalendarClock className="size-5" /></span>
           <div>
             <h2 className="font-sans text-xl font-semibold">维护公告窗口</h2>
 
@@ -157,7 +157,7 @@ export function OperationsSettingsPanel() {
         </div>
       </section>
 
-      <div className="flex items-center justify-between rounded-xl border border-border bg-card px-5 py-4">
+      <div className="flex items-center justify-between rounded-[var(--radius-card)] border border-border bg-card px-5 py-4">
 
         <Button type="submit" disabled={!form.formState.isDirty || update.isPending}>{update.isPending ? "正在应用…" : "保存运行设置"}</Button>
       </div>

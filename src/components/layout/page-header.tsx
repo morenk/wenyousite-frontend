@@ -35,7 +35,7 @@ export function PageHeader({
       data-purpose={purpose}
       className={cn(
         compact
-          ? "mb-4 overflow-hidden rounded-2xl border border-border bg-card"
+          ? "mb-4 overflow-hidden rounded-[var(--radius-card)] border border-border bg-card"
           : "mb-5",
         className,
       )}
@@ -45,7 +45,7 @@ export function PageHeader({
         <Link
           href={backHref}
           className={cn(
-            "inline-flex min-h-8 items-center gap-2 rounded-lg px-1 text-sm font-semibold text-muted-foreground transition-colors duration-[var(--motion-fast)] hover:text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+            "inline-flex min-h-8 items-center gap-2 rounded-[var(--radius-control)] px-1 text-sm font-semibold text-muted-foreground transition-colors duration-[var(--motion-fast)] hover:text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
             compact ? "mx-4 mt-2.5" : "mb-3",
           )}
         >

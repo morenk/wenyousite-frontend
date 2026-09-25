@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const panelVariants = cva(
-  "rounded-2xl border text-card-foreground",
+  "rounded-[var(--radius-panel)] border text-card-foreground",
   {
     variants: {
       tone: {

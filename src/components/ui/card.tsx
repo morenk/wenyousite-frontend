@@ -14,7 +14,7 @@ function Card({
       data-size={size}
       data-appearance={appearance}
       className={cn(
-        "group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-[var(--card-radius)] [--card-radius:var(--radius-2xl)] data-[appearance=content]:[--card-radius:var(--radius-card)] border border-border bg-card py-(--card-spacing) text-sm text-card-foreground [--card-spacing:--spacing(5)] has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(4)] data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-[var(--card-radius)] *:[img:last-child]:rounded-b-[var(--card-radius)]",
+        "group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-[var(--card-radius)] [--card-radius:var(--radius-panel)] data-[appearance=content]:[--card-radius:var(--radius-card)] border border-border bg-card py-(--card-spacing) text-sm text-card-foreground [--card-spacing:--spacing(5)] has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(4)] data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-[var(--card-radius)] *:[img:last-child]:rounded-b-[var(--card-radius)]",
         className
       )}
       {...props}

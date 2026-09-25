@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogBackdrop, DialogDescription, DialogFooter, DialogPopup, DialogPortal, DialogTitle, DialogViewport } from "@/components/ui/dialog";
 import { getApiErrorMessage } from "@/api/errors";
 
-const menuItemClassName = "flex min-h-12 w-full cursor-default items-center rounded-lg px-3 py-2 text-sm outline-none select-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:text-muted-foreground";
+const menuItemClassName = "flex min-h-12 w-full cursor-default items-center rounded-[var(--radius-control)] px-3 py-2 text-sm outline-none select-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:text-muted-foreground";
 const relationStatusClassName = "h-12 min-w-24 bg-muted px-3 text-muted-foreground hover:bg-accent aria-expanded:bg-muted aria-expanded:text-foreground";
 type RowAction = "follow" | "unfollow" | "removeFollower" | "block" | "reconcile";
 
@@ -98,7 +98,7 @@ function FollowRow({ user, kind, isOwner, viewer, canMessage, onRemoveIntent }: 
   const captureFocus = (event: React.FocusEvent<HTMLElement>) => { returnFocus.current = event.currentTarget; };
 
   return <li className="relative flex w-full min-h-18 items-center gap-3 py-3 after:absolute after:right-0 after:bottom-0 after:left-12 after:h-px after:bg-border last:after:hidden">
-    <Link href={`/users/${user.id}`} className="flex min-w-0 flex-1 items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30">
+    <Link href={`/users/${user.id}`} className="flex min-w-0 flex-1 items-center gap-3 rounded-[var(--radius-control)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30">
       <UserAvatar name={user.username} src={user.avatar} display={user.avatarDisplay} className="size-9 shrink-0" textClassName="text-sm" />
       <span className="min-w-0">
         <span className="block truncate text-sm font-medium text-foreground" title={user.username}>{user.username}</span>
@@ -131,7 +131,7 @@ function FollowRow({ user, kind, isOwner, viewer, canMessage, onRemoveIntent }: 
       </div>
       <Menu.Portal><Menu.Positioner anchor={controlsRef} side="bottom" align="end" sideOffset={4} className="z-[var(--layer-popup)]">
         <Menu.Popup aria-label={`${user.username}的操作`} finalFocus={() => afterClose.current ? false : returnFocus.current}
-          className="w-52 rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-popover outline-none">
+          className="w-52 rounded-[var(--radius-panel)] border border-border bg-popover p-1 text-popover-foreground shadow-popover outline-none">
           {canMessage ? <Menu.Item className={menuItemClassName} onClick={() => select(() => router.push(`/messages/new/${user.id}`))}>私聊</Menu.Item> : null}
           {user.viewerIsFollowing ? <Menu.Item className={menuItemClassName} onClick={() => select(() => void act("unfollow"))}>取消关注</Menu.Item> : null}
           {user.viewerIsFollowedBy ? <Menu.Item className={menuItemClassName} onClick={() => select(() => { setError(undefined); setConfirming("removeFollower"); })}>移除粉丝</Menu.Item> : null}

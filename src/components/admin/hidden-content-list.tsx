@@ -111,10 +111,10 @@ export function HiddenContentList({ headerAction }: { headerAction?: ReactNode }
 
   return (
     <>
-      <section className="overflow-hidden rounded-lg border border-border bg-card">
+      <section className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-card">
         <div className="flex items-center justify-between gap-5 border-b border-border px-4 py-3">
           <div className="flex items-center gap-3">
-            <span className="flex size-10 items-center justify-center rounded-xl bg-success-soft text-success">
+            <span className="flex size-10 items-center justify-center rounded-full bg-success-soft text-success">
               <RotateCcw className="size-5" />
             </span>
             <div>
@@ -226,7 +226,7 @@ export function HiddenContentList({ headerAction }: { headerAction?: ReactNode }
                 <DialogCloseButton type="button" label="关闭内容操作" disabled={actions.restore.isPending} />
               </div>
               <div className="space-y-4 px-4 py-4">
-                  <div className="rounded-xl bg-muted px-4 py-3">
+                  <div className="rounded-[var(--radius-compact)] bg-muted px-4 py-3">
                     <p className="line-clamp-2 text-sm font-bold">{selected?.summary}</p>
                     <code className="mt-1 block truncate font-utility text-xs text-muted-foreground">{selected?.targetId}</code>
                   </div>
@@ -264,7 +264,7 @@ export function HiddenContentList({ headerAction }: { headerAction?: ReactNode }
                       </DialogFooter>
                     </form>
                   ) : selected ? (
-                    <div className="rounded-xl border border-warning/30 bg-warning-soft p-4 text-sm">
+                    <div className="rounded-[var(--radius-panel)] border border-warning/30 bg-warning-soft p-4 text-sm">
                       <p className="font-bold text-warning">当前无法恢复</p>
                       <p className="mt-1 text-xs leading-5 text-muted-foreground">{selected.restoreBlockedReason || "父级内容当前不可见。"}</p>
                     </div>

@@ -77,7 +77,7 @@ export function AdminContentModerationDialog({
             <div className="h-1 bg-destructive" aria-hidden="true" />
             <div className="flex items-start justify-between gap-5 border-b border-border px-6 py-5">
               <div className="flex min-w-0 gap-3">
-                <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-destructive-soft text-destructive">
+                <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-destructive-soft text-destructive">
                   <ShieldAlert className="size-4.5" />
                 </span>
                 <div className="min-w-0">
@@ -113,7 +113,7 @@ export function AdminContentModerationDialog({
               })}
             >
               <div className="space-y-5 px-6 py-6">
-                <div className="grid grid-cols-[5rem_minmax(0,1fr)] gap-x-3 gap-y-1 rounded-xl bg-muted px-4 py-3 text-sm">
+                <div className="grid grid-cols-[5rem_minmax(0,1fr)] gap-x-3 gap-y-1 rounded-[var(--radius-compact)] bg-muted px-4 py-3 text-sm">
                   <span className="text-muted-foreground">处置目标</span>
                   <span className="font-bold">{target.label}</span>
                   <span className="text-muted-foreground">内容编号</span>

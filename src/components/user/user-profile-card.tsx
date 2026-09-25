@@ -178,8 +178,8 @@ function AccountStatus({ user }: { user: ActiveUserPublic }) {
       role="status"
       className={
         user.accountStatus === "BANNED"
-          ? "mt-5 flex items-start gap-3 rounded-xl bg-destructive-soft px-4 py-3 text-destructive"
-          : "mt-5 flex items-start gap-3 rounded-xl bg-warning-soft px-4 py-3 text-warning"
+          ? "mt-5 flex items-start gap-3 rounded-[var(--radius-compact)] bg-destructive-soft px-4 py-3 text-destructive"
+          : "mt-5 flex items-start gap-3 rounded-[var(--radius-compact)] bg-warning-soft px-4 py-3 text-warning"
       }
     >
       <ShieldAlert className="mt-0.5 size-4 shrink-0" />

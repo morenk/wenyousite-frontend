@@ -47,7 +47,7 @@ export function ContentList({ headerAction }: { headerAction?: ReactNode }) {
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({ data: content.data?.items ?? emptyContent, columns, getCoreRowModel: getCoreRowModel() });
   const activeCount = [filters.q, filters.id, filters.authorId, filters.status, filters.from, filters.to, filters.category, filters.tagId].filter(Boolean).length;
-  return <section aria-busy={content.isFetching} className="overflow-hidden rounded-lg border border-border bg-card">
+  return <section aria-busy={content.isFetching} className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-card">
     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-1">
       <Tabs value={filters.type} onValueChange={(value) => void setFilters({ type: value as typeof filters.type, category: "", tagId: "" })} className="w-auto">
         <TabsList variant="line" className="max-w-full flex-wrap justify-start" style={{ height: "auto", minHeight: 40 }}>{Object.entries(adminContentLabels).map(([type, label]) => <TabsTrigger key={type} value={type} className="min-h-8">{label}</TabsTrigger>)}</TabsList>

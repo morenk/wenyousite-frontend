@@ -112,6 +112,15 @@ describe("WalletHistory", () => {
     expect(screen.getByText("余额 3 升")).toBeInTheDocument();
   });
 
+  test("余额与流水是两张 10px 内容卡，使用 8px 卡间距且流水仍为连续列表", () => {
+    const { container } = render(<WalletHistory />);
+    const cards = container.querySelectorAll('[data-slot="card"]');
+    expect(cards).toHaveLength(2);
+    expect(Array.from(cards).every((card) => card.getAttribute("data-appearance") === "content")).toBe(true);
+    expect(cards[0].parentElement).toHaveClass("gap-[var(--collection-card-gap)]");
+    expect(screen.getByText("每日在线签到").parentElement?.parentElement?.parentElement).toHaveClass("divide-y");
+  });
+
   test("近期入账也直接展示完整年月日和时分，并保留原始时间戳", () => {
     const createdAt = new Date(2026, 7, 17, 11, 59, 31).toISOString();
     mockUseWalletTransactions.mockReturnValue(transactionsResult({

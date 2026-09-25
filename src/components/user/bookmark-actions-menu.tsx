@@ -60,9 +60,9 @@ export function BookmarkActionsMenu({ title, folderId, kind = "threads", pending
         </Tooltip>
         <Menu.Portal>
           <Menu.Positioner align="end" sideOffset={4} className="z-[var(--layer-popup)]">
-            <Menu.Popup className="w-48 rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-popover outline-none">
-              <Menu.Item disabled={!canMove || !folderId || pending} onClick={() => setMoving(true)} className="flex min-h-10 cursor-pointer items-center rounded-lg px-3 text-sm outline-none data-highlighted:bg-muted data-disabled:cursor-default data-disabled:text-muted-foreground">移动到收藏夹</Menu.Item>
-              <Menu.Item disabled={pending} onClick={() => void remove()} className="flex min-h-10 cursor-pointer items-center rounded-lg px-3 text-sm outline-none data-highlighted:bg-muted">取消收藏</Menu.Item>
+            <Menu.Popup className="w-48 rounded-[var(--radius-panel)] border border-border bg-popover p-1 text-popover-foreground shadow-popover outline-none">
+              <Menu.Item disabled={!canMove || !folderId || pending} onClick={() => setMoving(true)} className="flex min-h-10 cursor-pointer items-center rounded-[var(--radius-control)] px-3 text-sm outline-none data-highlighted:bg-muted data-disabled:cursor-default data-disabled:text-muted-foreground">移动到收藏夹</Menu.Item>
+              <Menu.Item disabled={pending} onClick={() => void remove()} className="flex min-h-10 cursor-pointer items-center rounded-[var(--radius-control)] px-3 text-sm outline-none data-highlighted:bg-muted">取消收藏</Menu.Item>
             </Menu.Popup>
           </Menu.Positioner>
         </Menu.Portal>

@@ -103,7 +103,7 @@ export function FloatingInputDock({
           className={cn("pointer-events-none fixed bottom-4", layerClassName)}
           style={{ left: metrics.left, width: metrics.width }}
         >
-          <div className="pointer-events-auto rounded-xl shadow-floating">
+          <div className="pointer-events-auto rounded-[var(--radius-panel)] shadow-floating">
             {children}
           </div>
         </div>,

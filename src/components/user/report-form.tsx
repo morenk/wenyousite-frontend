@@ -52,8 +52,8 @@ export function ReportForm({ targetType, targetId }: { targetType: TargetType; t
   const form = useForm<z.infer<typeof schema>>({ resolver: zodResolver(schema), defaultValues: { reasonCode: "SPAM", details: "" } });
   const reasonCode = useWatch({ control: form.control, name: "reasonCode" });
   return (
-    <section className="mx-auto mt-8 max-w-xl rounded-2xl border border-border bg-card p-7">
-      <span className="flex size-11 items-center justify-center rounded-xl bg-destructive-soft text-destructive"><Flag className="size-5" /></span>
+    <section className="mx-auto mt-8 max-w-xl rounded-[var(--radius-card)] border border-border bg-card p-7">
+      <span className="flex size-11 items-center justify-center rounded-full bg-destructive-soft text-destructive"><Flag className="size-5" /></span>
       <h1 className="mt-5 font-display text-2xl font-medium">举报{targetLabels[targetType]}</h1>
       <form className="mt-6 space-y-4" onSubmit={form.handleSubmit(async (values) => {
         try {

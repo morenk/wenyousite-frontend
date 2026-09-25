@@ -21,7 +21,7 @@ export function BookmarkThreadCard({ thread, folders = [], showFolder = false }:
   return (
     <article className="flex w-full items-start justify-between gap-4 border-b border-border py-5">
       <div className="min-w-0 flex-1">
-        <Link href={`/threads/${thread.id}`} className="block rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <Link href={`/threads/${thread.id}`} className="block rounded-[var(--radius-card)] outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <h3 className="break-words text-base font-semibold text-foreground hover:text-brand-strong">{thread.title}</h3>
           <ThreadCover image={thread.coverImages?.[0]} media={thread.coverMedia} />
         </Link>

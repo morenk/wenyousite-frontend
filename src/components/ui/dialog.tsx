@@ -51,7 +51,7 @@ function DialogPopup({
     <DialogPrimitive.Popup
       data-slot="dialog-popup"
       className={cn(
-        "max-h-[calc(100dvh-2rem)] w-full overflow-y-auto rounded-2xl border border-border bg-card text-card-foreground shadow-dialog outline-none",
+        "max-h-[calc(100dvh-2rem)] w-full overflow-y-auto rounded-[var(--radius-panel)] border border-border bg-card text-card-foreground shadow-dialog outline-none",
         className,
       )}
       {...props}

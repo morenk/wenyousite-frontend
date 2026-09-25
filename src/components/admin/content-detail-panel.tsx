@@ -43,7 +43,7 @@ export function ContentDetailPanel({ type, id }: { type: AdminContentType; id: s
     {detail.isLoading ? <p role="status" className="text-sm text-muted-foreground">正在读取内容…</p> : null}
     {detail.isError ? <p role="alert" className="text-sm text-destructive">内容不存在或无法查看 <Button size="compact" variant="ghost" onClick={() => void detail.refetch()}>重试</Button></p> : null}
     {item ? <>
-      <section className="rounded-lg border border-border bg-card p-4">
+      <section className="rounded-[var(--radius-card)] border border-border bg-card p-4">
         {item.title ? <h2 className="mb-3 break-words text-lg font-semibold">{item.title}</h2> : null}
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
           <Link href={`/station/users/${item.author.id}?returnTo=${encodeURIComponent(returnTo)}`} className="font-semibold hover:underline">{item.author.username}</Link>
@@ -60,7 +60,7 @@ export function ContentDetailPanel({ type, id }: { type: AdminContentType; id: s
           {adminAttachedMedia(item.type, item.content, item.media).map((media, index) => <div key={media.id} className="mt-3 max-w-2xl"><MarkdownContent size="compact" content={`![附件 ${index + 1}](${media.url})`} mediaDisplays={media.display ? [{ sourceUrl: media.url, display: media.display }] : []} /></div>)}
         </div>
       </section>
-      <section className="overflow-hidden rounded-lg border border-border bg-card">
+      <section className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-card">
         <div className="flex items-center justify-between px-3 py-2"><h2 className="text-base font-semibold">操作记录</h2><Link href={`/station/audit?target=${type.toUpperCase()}&id=${encodeURIComponent(id)}`} className={buttonVariants({ variant: "ghost", size: "compact" })}>全部记录</Link></div>
         <AdminTable aria-label="内容操作记录"><AdminTableHead><tr><AdminTableHeader>操作</AdminTableHeader><AdminTableHeader>操作人</AdminTableHeader><AdminTableHeader>理由</AdminTableHeader><AdminTableHeader>时间</AdminTableHeader></tr></AdminTableHead><AdminTableBody>{item.auditLogs.map((log) => <AdminTableRow key={log.id}><AdminTableCell>{actionLabels[log.action] ?? "内容操作"}</AdminTableCell><AdminTableCell>{log.actor?.username ?? "系统"}</AdminTableCell><AdminTableCell>{log.reason ?? "—"}</AdminTableCell><AdminTableCell><WenyouTime mode="exact" value={log.createdAt} /></AdminTableCell></AdminTableRow>)}{!item.auditLogs.length ? <AdminTableRow><AdminTableCell colSpan={4} className="text-muted-foreground">暂无记录</AdminTableCell></AdminTableRow> : null}</AdminTableBody></AdminTable>
       </section>

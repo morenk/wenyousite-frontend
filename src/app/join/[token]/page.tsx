@@ -70,7 +70,7 @@ export default function JoinByInvitePage() {
   const thread = preview.data.thread;
   return (
     <PageShell width="narrow" className="py-16">
-      <Card>
+      <Card appearance="content">
         <CardHeader><CardTitle>私密主题帖邀请</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div>

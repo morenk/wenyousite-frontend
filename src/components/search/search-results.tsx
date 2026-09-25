@@ -85,7 +85,7 @@ export function SearchResults({ keyword }: SearchResultsProps) {
       {isRefreshing && activeTab !== "threads" && <ListRefreshIndicator />}
       <TabsList
         aria-label="搜索结果分类"
-        className="grid h-10 w-full grid-cols-4 gap-1 rounded-xl bg-muted p-1"
+        className="grid h-10 w-full grid-cols-4 gap-1 rounded-[var(--radius-control)] bg-muted p-1"
       >
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -94,7 +94,7 @@ export function SearchResults({ keyword }: SearchResultsProps) {
               key={tab.value}
               value={tab.value}
               aria-label={tab.label}
-              className="min-w-0 gap-1.5 rounded-lg px-2 text-xs font-medium sm:text-sm data-active:ring-1 data-active:ring-border"
+              className="min-w-0 gap-1.5 rounded-[var(--radius-control)] px-2 text-xs font-medium sm:text-sm data-active:ring-1 data-active:ring-border"
             >
               <Icon className="h-4 w-4 shrink-0" />
               <span className="truncate">{tab.label}</span>

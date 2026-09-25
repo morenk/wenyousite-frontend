@@ -120,7 +120,7 @@ export default function CreateThreadPage() {
   if (createError || threadError) {
     return (
       <PageShell width="content" className="py-12">
-        <Card>
+        <Card appearance="content">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-destructive">
               <AlertCircle className="h-5 w-5" />

@@ -105,7 +105,7 @@ function ReplyDiscussionPageContent() {
   ) {
     return (
       <PageShell width="content" className="py-12">
-        <Card>
+        <Card appearance="content">
           <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
             <AlertCircle className="h-9 w-9 text-muted-foreground" />
             <h1 className="text-lg font-semibold">讨论不存在或无法访问</h1>

@@ -164,7 +164,7 @@ function MarkdownImage({ src, alt, title, sourcePostId, mediaDisplays }: ImagePr
           loading="lazy"
           className={cn(
             "cursor-zoom-in object-contain",
-            sticker ? "sticker-display inline-block rounded" : "block max-w-full rounded-lg",
+            sticker ? "sticker-display inline-block rounded-[var(--radius-compact)]" : "block max-w-full rounded-[var(--radius-compact)]",
           )}
           style={sticker
             ? STICKER_DISPLAY_STYLE

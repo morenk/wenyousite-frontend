@@ -32,7 +32,7 @@ export function SubthreadCard({
   return (
     <div
       className={cn(
-        "rounded-lg border border-border bg-card",
+        "rounded-[var(--radius-card)] border border-border bg-card",
         isDefault && "ring-1 ring-brand-strong/25",
       )}
     >
@@ -61,7 +61,7 @@ export function SubthreadCard({
               {subthread.title}
             </span>
             {isDefault && (
-              <span className="shrink-0 rounded bg-primary/10 px-1.5 py-0.5 text-xs text-brand-strong">
+              <span className="shrink-0 rounded-full bg-primary/10 px-1.5 py-0.5 text-xs text-brand-strong">
                 主帖
               </span>
             )}
@@ -84,7 +84,7 @@ export function SubthreadCard({
                   e.stopPropagation();
                   onEdit();
                 }}
-                className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                className="rounded-[var(--radius-control)] p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                 title="编辑子贴"
               >
                 <Pencil className="h-3.5 w-3.5" />
@@ -97,7 +97,7 @@ export function SubthreadCard({
                   e.stopPropagation();
                   onDelete();
                 }}
-                className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                className="rounded-[var(--radius-control)] p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
                 title="删除子贴"
               >
                 <Trash2 className="h-3.5 w-3.5" />

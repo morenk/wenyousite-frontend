@@ -84,7 +84,7 @@ function OptionRow({
     <Label
       htmlFor={`thread-export-${option.key}`}
       className={cn(
-        "cursor-pointer items-start rounded-xl border border-border/70 bg-background/40 px-3 py-3 transition-colors hover:bg-muted/45 focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/30",
+        "cursor-pointer items-start rounded-[var(--radius-control)] border border-border/70 bg-background/40 px-3 py-3 transition-colors hover:bg-muted/45 focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/30",
         checked && "border-brand/30 bg-brand/5",
       )}
     >
@@ -172,7 +172,7 @@ export function ThreadExportDialog({
                         key={option.value}
                         htmlFor={`thread-export-format-${option.value}`}
                         className={cn(
-                          "flex min-h-20 cursor-pointer items-start rounded-xl border border-border/70 bg-background/40 px-3 py-3 transition-colors hover:bg-muted/45 focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/30",
+                          "flex min-h-20 cursor-pointer items-start rounded-[var(--radius-control)] border border-border/70 bg-background/40 px-3 py-3 transition-colors hover:bg-muted/45 focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/30",
                           options.format === option.value && "border-brand/30 bg-brand/5",
                         )}
                       >
@@ -198,7 +198,7 @@ export function ThreadExportDialog({
                   </div>
                 </fieldset>
 
-                <section className="rounded-xl border border-brand/20 bg-brand/5 px-4 py-3" aria-live="polite">
+                <section className="rounded-[var(--radius-compact)] border border-brand/20 bg-brand/5 px-4 py-3" aria-live="polite">
                   <div className="flex items-start gap-3">
                     <Archive className="mt-0.5 size-4 shrink-0 text-brand-strong" aria-hidden="true" />
                     <div className="min-w-0">
@@ -209,7 +209,7 @@ export function ThreadExportDialog({
                   </div>
                 </section>
 
-                <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-brand/20 bg-brand/5 px-3 py-3 hover:bg-brand/10 focus-within:ring-2 focus-within:ring-ring/30">
+                <label className="flex cursor-pointer items-start gap-3 rounded-[var(--radius-control)] border border-brand/20 bg-brand/5 px-3 py-3 hover:bg-brand/10 focus-within:ring-2 focus-within:ring-ring/30">
                   <input
                     type="checkbox"
                     checked={options.includeMedia}
@@ -221,8 +221,8 @@ export function ThreadExportDialog({
                   </span>
                 </label>
 
-                <details className="group rounded-xl border border-border/70 bg-background/40">
-                  <summary className="flex cursor-pointer list-none items-center gap-2 rounded-xl px-3 py-3 text-sm font-semibold text-foreground outline-none transition-colors hover:bg-muted/45 focus-visible:ring-2 focus-visible:ring-ring/30 [&::-webkit-details-marker]:hidden">
+                <details className="group rounded-[var(--radius-compact)] border border-border/70 bg-background/40">
+                  <summary className="flex cursor-pointer list-none items-center gap-2 rounded-[var(--radius-control)] px-3 py-3 text-sm font-semibold text-foreground outline-none transition-colors hover:bg-muted/45 focus-visible:ring-2 focus-visible:ring-ring/30 [&::-webkit-details-marker]:hidden">
                     <span className="flex-1">更多选项</span>
                     <span className="font-utility text-xs font-normal text-muted-foreground">5 项</span>
                     <ChevronDown className="size-4 text-muted-foreground transition-transform duration-[var(--motion-fast)] group-open:rotate-180" aria-hidden="true" />
@@ -242,7 +242,7 @@ export function ThreadExportDialog({
                 </details>
 
                 {exportMutation.error ? (
-                  <p role="alert" className="rounded-lg bg-destructive-soft px-3 py-2 text-sm text-destructive">
+                  <p role="alert" className="rounded-[var(--radius-compact)] bg-destructive-soft px-3 py-2 text-sm text-destructive">
                     {getApiErrorMessage(exportMutation.error, "导出失败，请稍后重试。")}
                   </p>
                 ) : null}

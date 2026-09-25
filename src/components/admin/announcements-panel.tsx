@@ -111,7 +111,7 @@ export function AnnouncementsPanel() {
 
   return (
     <div data-slot="admin-announcements-workspace" data-layout="full-table" className="w-full">
-      <section className="overflow-hidden rounded-lg border border-border bg-card">
+      <section className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-card">
         <div className="flex items-center justify-end gap-3 border-b border-border px-3 py-2">
           <Button type="button" size="compact" onClick={() => setComposerOpen(true)}><BellRing />新建通知</Button>
         </div>
@@ -213,7 +213,7 @@ export function AnnouncementsPanel() {
             <DialogPopup data-admin-action-dialog className="max-w-3xl">
               <div className="flex items-start justify-between gap-5 border-b border-border px-4 py-3">
                 <div className="flex items-start gap-3">
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground"><BellRing className="size-5" /></span>
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground"><BellRing className="size-5" /></span>
                   <div>
                     <DialogTitle>新建站内通知</DialogTitle>
                   </div>

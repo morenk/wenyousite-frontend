@@ -70,7 +70,7 @@ function ThreadActionGroup({
   );
 }
 
-const actionButtonClassName = "rounded-lg text-muted-foreground hover:text-foreground";
+const actionButtonClassName = "rounded-[var(--radius-control)] text-muted-foreground hover:text-foreground";
 
 export function ThreadDetailHeader({
   thread,
