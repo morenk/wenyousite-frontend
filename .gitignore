@@ -49,3 +49,7 @@ playwright-report/
 
 # 本轮脱敏 E2E 结果（不含私有账号环境）
 /.e2e-results/
+
+# 交互预览私有会话与独立 Fast Refresh 缓存
+/.next-preview/
+/.dev-preview/
