@@ -33,9 +33,19 @@ import { WenyouIcon } from "@/components/ui/wenyou-icon";
 
 interface ReplyDiscussionProps {
   rootPost: PostDetail;
+  targetReplyId?: string;
+  targetValidationPending?: boolean;
+  onTargetRetry?: () => unknown;
+  onTargetBack?: () => void;
 }
 
-export function ReplyDiscussion({ rootPost }: ReplyDiscussionProps) {
+export function ReplyDiscussion({
+  rootPost,
+  targetReplyId,
+  targetValidationPending,
+  onTargetRetry,
+  onTargetBack,
+}: ReplyDiscussionProps) {
   const { user } = useAuth();
   const { isManager } = useThreadPermissions();
   const pinPost = usePinPost();
@@ -167,6 +177,10 @@ export function ReplyDiscussion({ rootPost }: ReplyDiscussionProps) {
         <ReplyList
           postId={rootPost.id}
           variant="discussion"
+          targetReplyId={targetReplyId}
+          targetValidationPending={targetValidationPending}
+          onTargetRetry={onTargetRetry}
+          onTargetBack={onTargetBack}
         />
         <FloatingComposerDock sessionAnchorId={composerAnchorId}>
           <ReplyForm

@@ -13,6 +13,9 @@ const { mockUseRepliesCall, mockUseReplyAuthors } = vi.hoisted(() => ({
   mockUseRepliesCall: vi.fn(),
   mockUseReplyAuthors: vi.fn(),
 }));
+const { mockUseInfiniteScroll } = vi.hoisted(() => ({
+  mockUseInfiniteScroll: vi.fn(),
+}));
 const { mockUseAuth, mockUseThreadPermissions } = vi.hoisted(() => ({
   mockUseAuth: vi.fn(),
   mockUseThreadPermissions: vi.fn(),
@@ -62,6 +65,9 @@ vi.mock("@/lib/auth", () => ({
 vi.mock("@/components/thread/thread-permissions-context", () => ({
   useThreadPermissions: () => mockUseThreadPermissions(),
 }));
+vi.mock("@/hooks/use-infinite-scroll", () => ({
+  useInfiniteScroll: (...args: unknown[]) => mockUseInfiniteScroll(...args),
+}));
 
 vi.mock("@/components/editor/milkdown-editor", async () => {
   const { withEditorSubmission } = await import("@/test/editor-submission-double");
@@ -99,6 +105,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 beforeEach(() => {
+  mockUseInfiniteScroll.mockReturnValue(vi.fn());
   mockUseAuth.mockReturnValue({ user: null });
   mockUseThreadPermissions.mockReturnValue({ isManager: false });
   mockUpdateMutateAsync.mockClear();
@@ -186,6 +193,25 @@ describe("ReplyList", () => {
       "href",
       "/users/u2",
     );
+  });
+
+  test("精确回复遮罩定位期间停用列表哨兵，避免同一页重复加载", () => {
+    const query = dataWithReplies([baseReply()]);
+    query.hasNextPage = true;
+    mockUseReplies.mockReturnValue(query);
+
+    render(
+      <ReplyList postId="post-1" variant="discussion" targetReplyId="reply-1" />,
+      { wrapper: createWrapper() },
+    );
+
+    expect(mockUseInfiniteScroll).toHaveBeenCalledWith({
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      onLoadMore: query.fetchNextPage,
+    });
+    expect(screen.getByTestId("discussion-target-mask")).toBeInTheDocument();
+    expect(query.fetchNextPage).not.toHaveBeenCalled();
   });
 
   test("独立回复串使用当前楼层预筛选的作者候选", async () => {

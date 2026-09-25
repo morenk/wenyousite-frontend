@@ -95,6 +95,23 @@ describe("FloorList", () => {
     fireEvent.scroll(window);
   });
 
+  test("精确目标遮罩定位期间停用列表哨兵，避免同一页重复加载", () => {
+    const onLoadMore = vi.fn();
+    renderList({
+      hasNextPage: true,
+      onLoadMore,
+      targetFloorId: "p2",
+    });
+
+    expect(mockUseInfiniteScroll).toHaveBeenCalledWith({
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      onLoadMore,
+    });
+    expect(screen.getByTestId("discussion-target-mask")).toBeInTheDocument();
+    expect(onLoadMore).not.toHaveBeenCalled();
+  });
+
   test("最后一页不渲染多余的结束占位", () => {
     const { container } = renderList();
     expect(screen.queryByText("没有更多了")).toBeNull();

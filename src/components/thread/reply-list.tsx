@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { useReplies } from "@/api/hooks/use-replies";
 import { useReplyAuthors } from "@/api/hooks/use-discussion-authors";
@@ -12,13 +12,27 @@ import { DiscussionListControls } from "@/components/shared/discussion-list-cont
 import type { ReplyOrder } from "@/api/reply-query";
 import { ReplyCard } from "@/components/thread/reply-card";
 import { useAuth } from "@/lib/auth";
+import { DiscussionTargetMask } from "@/components/thread/discussion-target-mask";
 
 interface ReplyListProps {
   postId: string;
   variant?: "embedded" | "discussion";
+  targetReplyId?: string;
+  targetActivationKey?: string | number;
+  targetValidationPending?: boolean;
+  onTargetRetry?: () => unknown;
+  onTargetBack?: () => void;
 }
 
-export function ReplyList({ postId, variant = "embedded" }: ReplyListProps) {
+export function ReplyList({
+  postId,
+  variant = "embedded",
+  targetReplyId,
+  targetActivationKey,
+  targetValidationPending = false,
+  onTargetRetry,
+  onTargetBack = () => window.history.back(),
+}: ReplyListProps) {
   const { user } = useAuth();
   const [order, setOrder] = useState<ReplyOrder>("OLDEST");
   const [requestedAuthorId, setAuthorId] = useState<string>();
@@ -26,12 +40,14 @@ export function ReplyList({ postId, variant = "embedded" }: ReplyListProps) {
     variant === "discussion" ? postId : undefined,
     user?.id,
   );
-  const authorId = requestedAuthorId && (
-    !authorsQuery.isSuccess ||
-    authorsQuery.data.some((author) => author.id === requestedAuthorId)
-  )
-    ? requestedAuthorId
-    : undefined;
+  const authorId = targetReplyId
+    ? undefined
+    : requestedAuthorId && (
+      !authorsQuery.isSuccess ||
+      authorsQuery.data.some((author) => author.id === requestedAuthorId)
+    )
+      ? requestedAuthorId
+      : undefined;
   const filters = useMemo(() => ({ order, ...(authorId ? { authorId } : {}) }), [authorId, order]);
   const {
     data,
@@ -43,8 +59,20 @@ export function ReplyList({ postId, variant = "embedded" }: ReplyListProps) {
     refetch,
   } = useReplies(postId, filters);
 
+  const targetMaskKey = `${targetReplyId ?? ""}:${targetActivationKey ?? ""}`;
+  const [targetMaskState, setTargetMaskState] = useState({
+    key: targetMaskKey,
+    masked: Boolean(targetReplyId),
+  });
+  const targetMasked = targetMaskState.key === targetMaskKey
+    ? targetMaskState.masked
+    : Boolean(targetReplyId);
+  const handleTargetMaskChange = useCallback((masked: boolean) => {
+    setTargetMaskState({ key: targetMaskKey, masked });
+  }, [targetMaskKey]);
+
   const sentinelRef = useInfiniteScroll({
-    hasNextPage: !!hasNextPage,
+    hasNextPage: Boolean(hasNextPage) && !targetMasked,
     isFetchingNextPage,
     onLoadMore: fetchNextPage,
   });
@@ -52,7 +80,7 @@ export function ReplyList({ postId, variant = "embedded" }: ReplyListProps) {
   const loadedReplies = data?.pages.flatMap((page) => page?.data ?? []) ?? [];
   const replies = loadedReplies;
 
-  return (
+  const content = (
     <div className={variant === "discussion" ? "space-y-3" : "mt-3 space-y-2 border-l-2 border-border pl-3"}>
       {variant === "discussion" ? (
         <DiscussionListControls
@@ -96,6 +124,7 @@ export function ReplyList({ postId, variant = "embedded" }: ReplyListProps) {
           parentPostId={postId}
           variant={variant}
           ordinal={variant === "discussion" ? index + 1 : undefined}
+          focused={reply.id === targetReplyId}
         />
       ))}
 
@@ -117,5 +146,26 @@ export function ReplyList({ postId, variant = "embedded" }: ReplyListProps) {
         </div>
       ) : null}
     </div>
+  );
+
+  return (
+    <DiscussionTargetMask
+      key={targetMaskKey}
+      targetId={targetReplyId}
+      activationKey={targetActivationKey}
+      subject="回复"
+      loadedIds={replies.map((reply) => reply.id)}
+      hasNextPage={Boolean(hasNextPage)}
+      isLoading={isLoading}
+      isFetchingNextPage={isFetchingNextPage}
+      validationPending={targetValidationPending}
+      error={error}
+      onLoadMore={fetchNextPage}
+      onRetry={onTargetRetry ?? refetch}
+      onBack={onTargetBack}
+      onMaskChange={handleTargetMaskChange}
+    >
+      {content}
+    </DiscussionTargetMask>
   );
 }

@@ -1,6 +1,5 @@
 import React from "react";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -10,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   setCoordinate: vi.fn(),
   routerPush: vi.fn(),
   routerReplace: vi.fn(),
+  routerBack: vi.fn(),
   closeComposer: vi.fn().mockResolvedValue(true),
   clearPost: vi.fn(),
   clearThread: vi.fn(),
@@ -20,7 +20,11 @@ let initialPostId: string | null = "floor-42";
 
 vi.mock("next/navigation", () => ({
   useParams: () => ({ id: "thread-1" }),
-  useRouter: () => ({ push: mocks.routerPush, replace: mocks.routerReplace }),
+  useRouter: () => ({
+    push: mocks.routerPush,
+    replace: mocks.routerReplace,
+    back: mocks.routerBack,
+  }),
 }));
 
 vi.mock("nuqs", () => {
@@ -118,17 +122,8 @@ vi.mock("@/components/thread/thread-permissions-context", () => ({
   useThreadPermissions: () => ({ isThreadManager: false }),
 }));
 
-vi.mock("@/components/thread/post-target-focus", () => ({
-  PostTargetFocusSkeleton: () => <div>正在打开目标楼层…</div>,
-  FloorTargetFocus: ({ floor, onViewFullDiscussion }: {
-    floor: { content: string };
-    onViewFullDiscussion: () => void;
-  }) => (
-    <div>
-      <div>{floor.content}</div>
-      <button type="button" onClick={onViewFullDiscussion}>查看完整讨论</button>
-    </div>
-  ),
+vi.mock("@/components/thread/discussion-target-mask", () => ({
+  DiscussionTargetRouteFallback: () => <div>正在定位目标楼层…</div>,
 }));
 
 vi.mock("@/components/thread/thread-reading-bar", () => ({
@@ -144,8 +139,14 @@ vi.mock("@/components/thread/floor-list-controls", () => ({
   FloorListControls: () => <div>楼层控制行</div>,
 }));
 vi.mock("@/components/thread/floor-list", () => ({
-  FloorList: ({ floors, isLoading }: { floors: Array<{ content: string }>; isLoading: boolean }) => (
-    <div data-testid="floor-list" data-loading={isLoading}>{floors.map((floor) => floor.content).join("|")}</div>
+  FloorList: ({ floors, isLoading, targetFloorId }: {
+    floors: Array<{ content: string }>;
+    isLoading: boolean;
+    targetFloorId?: string;
+  }) => (
+    <div data-testid="floor-list" data-loading={isLoading} data-target={targetFloorId}>
+      {floors.map((floor) => floor.content).join("|")}
+    </div>
   ),
 }));
 vi.mock("@/components/thread/thread-post-search", () => ({ ThreadPostSearch: () => null }));
@@ -225,16 +226,18 @@ describe("主题详情精确楼层阅读态", () => {
 
     render(<ThreadDetailPage />);
 
-    expect(screen.getByText("正在打开目标楼层…")).toBeInTheDocument();
+    expect(screen.getByText("正在定位目标楼层…")).toBeInTheDocument();
     expect(screen.queryByText("不应穿透的缓存目标正文")).toBeNull();
     expect(mocks.useFloors).toHaveBeenCalledWith(undefined);
   });
 
-  test("目标不在首屏时只展示独立卡片，并在后台准备所属子贴首屏缓存", () => {
+  test("目标不在首屏时直接进入完整所属子贴并把目标交给分页定位层", () => {
     render(<ThreadDetailPage />);
 
-    expect(screen.getByText("不应穿透的缓存目标正文")).toBeInTheDocument();
-    expect(screen.queryByTestId("floor-list")).toBeNull();
+    expect(screen.queryByText("不应穿透的缓存目标正文")).toBeNull();
+    expect(screen.getByTestId("floor-list")).toHaveTextContent("缓存中的列表首屏");
+    expect(screen.getByTestId("floor-list")).toHaveAttribute("data-target", "floor-42");
+    expect(screen.queryByRole("button", { name: "查看完整讨论" })).toBeNull();
     expect(mocks.useFloors).toHaveBeenCalledWith("sub-2");
   });
 
@@ -250,27 +253,6 @@ describe("主题详情精确楼层阅读态", () => {
     await waitFor(() => {
       expect(mocks.clearPost).toHaveBeenCalledWith("floor-42", {
         preserveActive: true,
-      });
-    });
-  });
-
-  test("查看完整讨论保留所属子贴并在首帧对齐缓存列表开头", async () => {
-    const user = userEvent.setup();
-    render(<ThreadDetailPage />);
-
-    await user.click(screen.getByRole("button", { name: "查看完整讨论" }));
-
-    expect(mocks.setCoordinate).toHaveBeenCalledWith({
-      post: null,
-      subthread: "sub-2",
-    });
-    expect(await screen.findByTestId("floor-list")).toHaveTextContent("缓存中的列表首屏");
-    expect(screen.getByTestId("floor-list")).toHaveAttribute("data-loading", "false");
-    expect(mocks.useFloors).toHaveBeenLastCalledWith("sub-2");
-    await waitFor(() => {
-      expect(mocks.scrollIntoView).toHaveBeenCalledWith({
-        behavior: "auto",
-        block: "start",
       });
     });
   });
@@ -291,7 +273,7 @@ describe("主题详情精确楼层阅读态", () => {
 
     render(<ThreadDetailPage />);
 
-    expect(screen.getByText("正在打开目标楼层…")).toBeInTheDocument();
+    expect(screen.getByText("正在定位目标楼层…")).toBeInTheDocument();
     expect(screen.queryByText("旧楼中楼链接目标")).toBeNull();
     await waitFor(() => {
       expect(mocks.routerReplace).toHaveBeenCalledWith(

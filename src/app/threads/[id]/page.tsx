@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQueryState, useQueryStates } from "nuqs";
 import { AlertCircle } from "lucide-react";
@@ -29,10 +29,7 @@ import { ThreadPostSearch } from "@/components/thread/thread-post-search";
 import { SubthreadBody } from "@/components/thread/subthread-body";
 import { FloorList } from "@/components/thread/floor-list";
 import { FloorListControls } from "@/components/thread/floor-list-controls";
-import {
-  FloorTargetFocus,
-  PostTargetFocusSkeleton,
-} from "@/components/thread/post-target-focus";
+import { DiscussionTargetRouteFallback } from "@/components/thread/discussion-target-mask";
 import {
   FloorForm,
   getFloorComposerAnchorId,
@@ -93,12 +90,12 @@ function ThreadDetailPageContent() {
   );
   const { user, isInitialized } = useAuth();
   const { close: closeComposer } = useThreadComposer();
-  const revealFullDiscussionRef = useRef(false);
   const latestPost = useLatestThreadPost();
   const [floorAuthorSelection, setFloorAuthorSelection] = useState<{
     subthreadId: string;
     authorId: string;
   }>();
+  const [latestFloorActivationKey, setLatestFloorActivationKey] = useState(0);
 
   const {
     data: thread,
@@ -188,7 +185,7 @@ function ThreadDetailPageContent() {
     targetPostId ? undefined : effectiveSubthreadId,
     user?.id,
   );
-  const requestedFloorAuthorId = floorAuthorSelection &&
+  const requestedFloorAuthorId = !targetPostId && floorAuthorSelection &&
     floorAuthorSelection.subthreadId === effectiveSubthreadId
     ? floorAuthorSelection.authorId
     : undefined;
@@ -293,20 +290,11 @@ function ThreadDetailPageContent() {
           !targetFloorQuery.isFetchedAfterMount)),
   );
 
-  useLayoutEffect(() => {
-    if (targetPostId || !revealFullDiscussionRef.current) return;
-    revealFullDiscussionRef.current = false;
-    document.getElementById("thread-floor-list-start")?.scrollIntoView({
-      behavior: "auto",
-      block: "start",
-    });
-  }, [targetPostId]);
-
   if (
     targetPostId &&
     (isLoading || awaitingThreadValidation || awaitingTargetValidation || (!isInitialized && error))
   ) {
-    return <PostTargetFocusSkeleton />;
+    return <DiscussionTargetRouteFallback />;
   }
 
   if (!targetPostId && (isLoading || awaitingThreadValidation || (!isInitialized && error))) {
@@ -349,30 +337,7 @@ function ThreadDetailPageContent() {
 
   if (!thread) return null;
 
-  const handleViewFullDiscussion = async () => {
-    if (!targetPost || !(await closeComposer())) return;
-    setFloorAuthorSelection(undefined);
-    revealFullDiscussionRef.current = true;
-    await setContentCoordinate({
-      post: null,
-      subthread: targetPost.subthreadId === thread.defaultSubthreadId
-        ? null
-        : targetPost.subthreadId,
-    });
-  };
-
-  if (targetPostId) {
-    if (targetPost?.parentPostId) return <PostTargetFocusSkeleton />;
-    if (targetPost) {
-      return (
-        <FloorTargetFocus
-          floor={targetPost}
-          defaultSubthreadId={thread.defaultSubthreadId}
-          onViewFullDiscussion={() => void handleViewFullDiscussion()}
-        />
-      );
-    }
-  }
+  if (targetPost?.parentPostId) return <DiscussionTargetRouteFallback />;
 
   const handleSubthreadChange = async (subthreadId: string) => {
     if (subthreadId === effectiveSubthreadId) return;
@@ -412,6 +377,11 @@ function ThreadDetailPageContent() {
 
       setFloorAuthorSelection(undefined);
       setIsSearching(false);
+
+      if (!target.parentPostId && targetPostId === target.id) {
+        setLatestFloorActivationKey((key) => key + 1);
+        return;
+      }
 
       router.push(
         getPostHref({
@@ -518,6 +488,16 @@ function ThreadDetailPageContent() {
               error={floorsError}
               onLoadMore={() => fetchNextPage()}
               onRetry={() => refetchFloors()}
+              targetFloorId={targetPostId}
+              targetActivationKey={latestFloorActivationKey}
+              targetValidationPending={Boolean(
+                targetPostId && targetPostQuery.isFetching,
+              )}
+              onTargetRetry={() => Promise.all([
+                targetPostQuery.refetch(),
+                refetchFloors(),
+              ])}
+              onTargetBack={() => router.back()}
               emptyTitle={floorAuthorId ? "这位成员在当前子贴还没有楼层" : undefined}
             />
           </section>

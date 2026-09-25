@@ -2,8 +2,8 @@
 
 "use client";
 
-import { useEffect, useLayoutEffect, useRef } from "react";
-import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 import { usePost } from "@/api/hooks/use-post";
 import { isContentUnavailableError } from "@/api/errors";
@@ -19,10 +19,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
 import { PageShell } from "@/components/layout/page-shell";
 import { PageRouteFallback } from "@/components/layout/page-route-fallback";
-import {
-  PostTargetFocusSkeleton,
-  ReplyTargetFocus,
-} from "@/components/thread/post-target-focus";
+import { DiscussionTargetRouteFallback } from "@/components/thread/discussion-target-mask";
 
 export default function ReplyDiscussionPage() {
   const params = useParams<{ id: string }>();
@@ -37,13 +34,11 @@ export default function ReplyDiscussionPage() {
 
 function ReplyDiscussionPageContent() {
   const params = useParams<{ id: string; postId: string }>();
-  const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { clearPost, clearThread } = useContentAccessCache();
   const { isInitialized } = useAuth();
   const { close: closeComposer } = useThreadComposer();
-  const revealFullDiscussionRef = useRef(false);
   const focusedReplyId = searchParams.get("post") ?? undefined;
   const rootPostQuery = usePost(params.postId);
   const focusedReplyQuery = usePost(focusedReplyId);
@@ -97,17 +92,8 @@ function ReplyDiscussionPageContent() {
       !focusedReplyQuery.isFetchedAfterMount,
   );
 
-  useLayoutEffect(() => {
-    if (focusedReplyId || !revealFullDiscussionRef.current) return;
-    revealFullDiscussionRef.current = false;
-    document.getElementById("reply-discussion-start")?.scrollIntoView({
-      behavior: "auto",
-      block: "start",
-    });
-  }, [focusedReplyId]);
-
   if (isLoading || awaitingRootValidation || awaitingFocusedValidation || (!isInitialized && error)) {
-    return focusedReplyId ? <PostTargetFocusSkeleton /> : <PageRouteFallback variant="detail" />;
+    return focusedReplyId ? <DiscussionTargetRouteFallback /> : <PageRouteFallback variant="detail" />;
   }
 
   if (
@@ -142,24 +128,18 @@ function ReplyDiscussionPageContent() {
     );
   }
 
-  const handleViewFullDiscussion = async () => {
-    if (!(await closeComposer())) return;
-    revealFullDiscussionRef.current = true;
-    const nextSearchParams = new URLSearchParams(searchParams.toString());
-    nextSearchParams.delete("post");
-    const search = nextSearchParams.toString();
-    router.replace(search ? `${pathname}?${search}` : pathname, { scroll: false });
-  };
-
-  if (focusedReplyId && focusedReply) {
-    return (
-      <ReplyTargetFocus
-        rootPost={rootPost}
-        reply={focusedReply}
-        onViewFullDiscussion={() => void handleViewFullDiscussion()}
-      />
-    );
-  }
-
-  return <ReplyDiscussion rootPost={rootPost} />;
+  return (
+    <ReplyDiscussion
+      rootPost={rootPost}
+      targetReplyId={focusedReplyId}
+      targetValidationPending={Boolean(
+        focusedReplyId && focusedReplyQuery.isFetching,
+      )}
+      onTargetRetry={() => Promise.all([
+        focusedReplyQuery.refetch(),
+        rootPostQuery.refetch(),
+      ])}
+      onTargetBack={() => router.back()}
+    />
+  );
 }

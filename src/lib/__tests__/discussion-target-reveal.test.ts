@@ -115,6 +115,33 @@ describe("讨论目标几何", () => {
     expect(y).toBe(initial);
     expect(disconnect).toHaveBeenCalled();
   });
+  test("遮罩稳定前忽略用户输入，稳定揭开后才允许用户接管", () => {
+    target();
+    const onStable = vi.fn();
+    const session = startDiscussionTargetReveal("target", {
+      onStable,
+      stableMs: 100,
+      holdUntilStable: true,
+    });
+    sessions.push(session);
+    tick();
+
+    window.dispatchEvent(new Event("wheel"));
+    absoluteTop += 300;
+    resize();
+    tick();
+    expect(y).toBe(1476);
+    expect(disconnect).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(100);
+    expect(onStable).toHaveBeenCalledOnce();
+    window.dispatchEvent(new Event("wheel"));
+    absoluteTop += 300;
+    resize();
+    tick();
+    expect(y).toBe(1476);
+    expect(disconnect).toHaveBeenCalled();
+  });
   test("首次排队前用户接管、卸载和重新激活", () => {
     target(); const session = startDiscussionTargetReveal("target"); sessions.push(session);
     session.schedule(); window.dispatchEvent(new Event("wheel")); tick();

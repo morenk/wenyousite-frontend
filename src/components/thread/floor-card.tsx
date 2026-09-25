@@ -122,6 +122,7 @@ export function FloorCard({
   return (
     <div
       id={`post-${floor.id}`}
+      tabIndex={focused ? -1 : undefined}
       className={cn(
         "scroll-mt-6 rounded-xl border border-border bg-card p-4 transition-[border-color] duration-[var(--motion-slow)] ease-out",
         highlightVisible && "border-primary",

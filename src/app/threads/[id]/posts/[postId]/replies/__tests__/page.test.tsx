@@ -1,5 +1,4 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -7,15 +6,13 @@ const mocks = vi.hoisted(() => ({
   replyQuery: vi.fn(),
   closeComposer: vi.fn().mockResolvedValue(true),
   removeQueries: vi.fn(),
-  routerReplace: vi.fn(),
+  routerBack: vi.fn(),
 }));
-let currentSearch = "post=reply-1";
 
 vi.mock("next/navigation", () => ({
   useParams: () => ({ id: "thread-1", postId: "root-1" }),
-  usePathname: () => "/threads/thread-1/posts/root-1/replies",
-  useRouter: () => ({ replace: mocks.routerReplace }),
-  useSearchParams: () => new URLSearchParams(currentSearch),
+  useRouter: () => ({ back: mocks.routerBack }),
+  useSearchParams: () => new URLSearchParams("post=reply-1"),
 }));
 vi.mock("@/api/hooks/use-content-access-cache", () => ({
   useContentAccessCache: () => ({
@@ -35,25 +32,19 @@ vi.mock("@/components/thread/thread-permissions-context", () => ({
   ThreadPermissionsProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 vi.mock("@/components/thread/reply-discussion", () => ({
-  ReplyDiscussion: ({ rootPost }: { rootPost: { content: string } }) => (
-    <div id="reply-discussion-start">
+  ReplyDiscussion: ({ rootPost, targetReplyId }: {
+    rootPost: { content: string };
+    targetReplyId?: string;
+  }) => (
+    <div id="reply-discussion-start" data-target={targetReplyId}>
       {rootPost.content}
       <section>回复列表开头</section>
       <button type="button">回复原楼层</button>
     </div>
   ),
 }));
-vi.mock("@/components/thread/post-target-focus", () => ({
-  PostTargetFocusSkeleton: () => <div>正在打开目标楼层…</div>,
-  ReplyTargetFocus: ({ reply, onViewFullDiscussion }: {
-    reply: { content: string };
-    onViewFullDiscussion: () => void;
-  }) => (
-    <div>
-      {reply.content}
-      <button type="button" onClick={onViewFullDiscussion}>查看完整讨论</button>
-    </div>
-  ),
+vi.mock("@/components/thread/discussion-target-mask", () => ({
+  DiscussionTargetRouteFallback: () => <div>正在定位目标楼层…</div>,
 }));
 
 import ReplyDiscussionPage from "@/app/threads/[id]/posts/[postId]/replies/page";
@@ -90,7 +81,6 @@ function readyQuery(data: unknown, error: unknown = null) {
 describe("楼中楼深链访问复核", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    currentSearch = "post=reply-1";
     mocks.rootQuery.mockReturnValue(readyQuery(rootPost));
     mocks.replyQuery.mockReturnValue(readyQuery(replyPost));
   });
@@ -105,7 +95,7 @@ describe("楼中楼深链访问复核", () => {
 
     render(<ReplyDiscussionPage />);
 
-    expect(screen.getByText("正在打开目标楼层…")).toBeInTheDocument();
+    expect(screen.getByText("正在定位目标楼层…")).toBeInTheDocument();
     expect(screen.queryByText("不应穿透的缓存正文")).toBeNull();
     expect(screen.queryByRole("button", { name: "回复原楼层" })).toBeNull();
   });
@@ -136,33 +126,17 @@ describe("楼中楼深链访问复核", () => {
     await waitFor(() => expect(mocks.closeComposer).toHaveBeenCalledWith({ force: true }));
   });
 
-  test("复核通过后只展示目标回复，不挂载分页讨论列表", () => {
+  test("复核通过后进入完整独立讨论并把目标交给回复分页定位层", () => {
     render(<ReplyDiscussionPage />);
 
-    expect(screen.getByText("目标回复正文")).toBeInTheDocument();
-    expect(screen.queryByText("不应穿透的缓存正文")).toBeNull();
-    expect(screen.queryByRole("button", { name: "回复原楼层" })).toBeNull();
-  });
-
-  test("查看完整讨论以 replace 清除 post 并在首帧对齐父楼层开头", async () => {
-    const user = userEvent.setup();
-    const scrollIntoView = vi
-      .spyOn(HTMLElement.prototype, "scrollIntoView")
-      .mockImplementation(() => {});
-    mocks.routerReplace.mockImplementation(() => {
-      currentSearch = "";
-    });
-    const view = render(<ReplyDiscussionPage />);
-
-    await user.click(screen.getByRole("button", { name: "查看完整讨论" }));
-
-    expect(mocks.closeComposer).toHaveBeenCalled();
-    expect(mocks.routerReplace).toHaveBeenCalledWith(
-      "/threads/thread-1/posts/root-1/replies",
-      { scroll: false },
-    );
-    view.rerender(<ReplyDiscussionPage />);
+    expect(screen.getByText("不应穿透的缓存正文")).toBeInTheDocument();
     expect(screen.getByText("回复列表开头")).toBeInTheDocument();
-    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "auto", block: "start" });
+    expect(screen.getByRole("button", { name: "回复原楼层" })).toBeInTheDocument();
+    expect(document.getElementById("reply-discussion-start")).toHaveAttribute(
+      "data-target",
+      "reply-1",
+    );
+    expect(screen.queryByText("目标回复正文")).toBeNull();
+    expect(screen.queryByRole("button", { name: "查看完整讨论" })).toBeNull();
   });
 });
