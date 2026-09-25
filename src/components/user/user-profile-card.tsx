@@ -4,12 +4,11 @@
 
 import Link from "next/link";
 import { IDENTITY_PRESENTATION } from "@wenyousite/foundation/elements";
-import { CalendarDays, Fuel, MessageCircle, ShieldAlert, Users } from "lucide-react";
+import { Fuel, MessageCircle, ShieldAlert, Users } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { FollowButton } from "@/components/user/follow-button";
 import { BlockButton } from "@/components/user/block-button";
 import { UserAvatar } from "@/components/shared/user-avatar";
-import { WenyouTime } from "@/components/shared/wenyou-time";
 import { WenyouCount } from "@/components/shared/wenyou-count";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -121,10 +120,6 @@ function ProfileMetadata({ user }: { user: ActiveUserPublic }) {
       >
         粉丝 <WenyouCount value={user._count.followers} label="粉丝" announceLabel={false} />
       </Link>
-      <span className="flex items-center gap-1">
-        <CalendarDays className="size-3.5" />
-        <WenyouTime value={user.createdAt} />
-      </span>
       <span className="flex items-center gap-1" title="累计收到的用户投入总额与次数">
         <Fuel className="size-3.5" />
         获得 {formatWenyou(user.receivedTipTotal)} 升 · <WenyouCount value={user.receivedTipCount} label="投入次数" announceLabel={false} /> 次
