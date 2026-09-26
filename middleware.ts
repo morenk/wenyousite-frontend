@@ -9,6 +9,7 @@ export function middleware(request: NextRequest) {
   const contentSecurityPolicy = createContentSecurityPolicy({
     nonce,
     isDevelopment,
+    previewMediaOrigin: process.env.WENYOU_PREVIEW_RUN ? process.env.WENYOU_PREVIEW_MEDIA_ORIGIN : undefined,
   });
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);

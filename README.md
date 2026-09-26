@@ -2,14 +2,20 @@
 
 温油站 PC Web 客户端，基于 Next.js 16、React 19、TypeScript、TanStack Query 和 Tailwind CSS。
 
-## 本地开发
+## 实时开发预览
+
+默认使用 VPS 上的任务 Worktree 和 Backend 交互式隔离会话；无需合并、部署或 production build 才能看修改。agent 负责启动并持续复用 Fast Refresh，Windows 浏览器通过治理仓库的 SSH 预览入口访问同端口服务。
 
 ```bash
-pnpm install
-pnpm dev
+pnpm install --frozen-lockfile
+pnpm dev:preview start --task <任务ID> --descriptor /absolute/path/consumer.json
+pnpm dev:preview status --task <任务ID>
+pnpm dev:preview stop --task <任务ID>
 ```
 
-开发服务默认运行在 `http://localhost:3001`，后端 API 默认运行在 `http://localhost:3000/api/v1`。
+`pnpm dev` 是同一安全入口的别名，也必须提供任务和显式描述。`consumer.json` 由已启动的 Backend 预览会话导出，Web 使用其中的 `web.port`；不要手写配置、指向线上 3000/3001 或变更本机转发端口。完整生命周期、媒体和核验说明见 [开发预览模块](./docs/modules/dev-preview.md)。
+
+样式反馈阶段只运行直接相关组件和定向检查，连续反馈复用同一会话。画面确认、反馈收敛后，再对最终源码执行下方交付门禁。
 
 ## 常用命令
 

@@ -1,3 +1,4 @@
+import { verifyPreviewUpload } from "./preview-upload";
 /** 编辑器图片上传工具：预签名 URL → S3 直传 → 确认 → 轮询 */
 
 import type { MediaDisplay } from "@/lib/media-display";
@@ -277,6 +278,17 @@ function abortableDelay(ms: number, signal?: AbortSignal): Promise<void> {
 }
 
 function putImageFile(
+  uploadUrl: string,
+  file: File,
+  signal: AbortSignal | undefined,
+  timeoutMs: number,
+  onProgress?: (loadedBytes: number, totalBytes: number) => void,
+): Promise<void> {
+  if (!process.env.NEXT_PUBLIC_WENYOU_PREVIEW_RUN) return putImageFileUnchecked(uploadUrl, file, signal, timeoutMs, onProgress);
+  return verifyPreviewUpload(uploadUrl, signal).then(() => putImageFileUnchecked(uploadUrl, file, signal, timeoutMs, onProgress));
+}
+
+function putImageFileUnchecked(
   uploadUrl: string,
   file: File,
   signal: AbortSignal | undefined,

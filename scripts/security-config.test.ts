@@ -26,3 +26,11 @@ describe("Next.js 安全响应头", () => {
     expect(headers.get("Permissions-Policy")).toContain("camera=()");
   });
 });
+
+test("预览 CSP 只允许隔离媒体连接，历史图片仍可读取", () => {
+  const csp = createContentSecurityPolicy({ nonce: "preview", isDevelopment: true, previewMediaOrigin: "http://127.0.0.1:34004" });
+  expect(csp).toContain("img-src 'self' data: blob: https://cn-nb1.rains3.com http://127.0.0.1:34004");
+  expect(csp).toContain("connect-src 'self' http://127.0.0.1:34004");
+  expect(csp).not.toContain("connect-src 'self' https://cn-nb1.rains3.com");
+  expect(() => createContentSecurityPolicy({ nonce: "bad", isDevelopment: false, previewMediaOrigin: "http://127.0.0.1:34004" })).toThrow();
+});

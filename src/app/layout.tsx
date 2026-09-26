@@ -4,6 +4,7 @@ import { BRAND_NAME, BRAND_TAGLINE } from "@wenyousite/foundation/brand";
 import "@wenyousite/foundation/web/tokens.css";
 import "yet-another-react-lightbox/styles.css";
 import "./globals.css";
+import { PreviewBadge } from "@/components/layout/preview-badge";
 import { Providers } from "./providers";
 import { AppChrome } from "@/components/layout/app-chrome";
 import { THEME_BOOTSTRAP_SCRIPT } from "@/lib/theme-bootstrap";
@@ -46,6 +47,7 @@ export default async function RootLayout({
         />
       </head>
       <body className="min-h-screen">
+        {process.env.WENYOU_PREVIEW_RUN ? <PreviewBadge snapshot={process.env.WENYOU_PREVIEW_SNAPSHOT} /> : null}
         <Providers>
           <AppChrome>{children}</AppChrome>
         </Providers>
