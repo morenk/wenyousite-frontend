@@ -40,3 +40,12 @@ Next.js `next dev` 只监听 `127.0.0.1`，端口来自已核验描述，使用�
 
 
 真实交互预览可使用 `pnpm test:preview:api /absolute/consumer.json /absolute/fixture-credentials.json task-id` 进行浏览器验收。账号文件须为 VPS 当前用户所有、权限 0600 的 `{ "account": "...", "password": "..." }` JSON，使用快照内预先准备的隔离样例账号；命令不打印凭据。先验证消费者与运行身份，再验证实际登录、HttpOnly 刷新、头像裁剪、双画幅主页背景、删除与正文编辑器上传。只允许当前 Web API 和隔离媒体写入，历史媒体仅 GET/HEAD。报告与图片保存在 `.dev-preview` 私有目录，批次中的样例草稿随 Backend 最终 cleanup 回收，不能把“保留反馈数据”误报为一次性 E2E 已清理。
+
+
+## 单个运行批次管理协议
+
+治理控制器使用 `node scripts/dev-preview.mjs list --json` 读取本仓库 Git 登记的所有 Worktree（包含历史动态端口会话），返回 `{version:1, kind:"wenyou-web-preview-list", sessions:[{task, worktree, sessionId, runId, state, processAlive, blocked, ports:{backend,media,web}}]}`。不启动服务，不删除历史记录。`processAlive` 仅在 PID、启动时钟、进程组、session 与 Worktree 均匹配时为 true；登记损坏或 PID 仍活而归属不符输出 `state:"ownership-conflict", blocked:true`，控制器必须停止切换。
+
+生命周期操作由同 UID 全局 Web 锁串行化。`start` 发现其他 Worktree 的活会话或归属冲突时拒绝，输出归属；不得静默停止其他任务。治理切换先对 list 的精确归属执行 `node scripts/dev-preview.mjs stop --task <owner-task> --confirm <runId> --json`（命令所在目录必须为 owner Worktree），锁内核验 runId 不变后才停止。`pause` 是 stop 的别名，均保留描述、批次数据和源码。原 `status|stop --task ID` 入口保留兼容；自动化一律传 `--confirm`。
+
+标准端口组为 Web `127.0.0.1:4310`、Backend `127.0.0.1:4311`、媒体 `127.0.0.1:4312`；新会话只接受该端口组。历史动态端口仍可被 list/status/stop 识别，先暂停再按 Backend 的显式 rebind 协议迁移。
