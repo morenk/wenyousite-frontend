@@ -19,6 +19,7 @@ import {
   ShieldAlert,
   ShieldCheck,
   SlidersHorizontal,
+  Smartphone,
   Users,
 } from "lucide-react";
 import { useAdminLogout, useAdminSession } from "@/api/hooks/use-admin";
@@ -34,6 +35,7 @@ const navigationGroups = [
     icon: SlidersHorizontal,
     items: [
       { href: "/station/announcements", label: "站内通知", icon: BellRing },
+      { href: "/station/mobile-releases", label: "移动端版本", icon: Smartphone },
       { href: "/station/taxonomy", label: "分类与标签", icon: FolderTree },
     ],
   },

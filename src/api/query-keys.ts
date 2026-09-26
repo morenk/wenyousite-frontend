@@ -215,5 +215,8 @@ export const queryKeys = {
     taxonomy: ["admin", "taxonomy"] as const,
     announcementsRoot: ["admin", "announcements"] as const,
     announcements: (params: object) => ["admin", "announcements", params] as const,
+    mobileReleasesRoot: ["admin", "mobile-releases", "list"] as const,
+    mobileReleases: (params: object) => ["admin", "mobile-releases", "list", params] as const,
+    mobileRelease: (id?: string) => ["admin", "mobile-releases", "detail", id] as const,
   },
 };

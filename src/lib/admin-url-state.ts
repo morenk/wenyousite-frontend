@@ -97,6 +97,7 @@ export const adminAuditFilterParsers = {
     "THREAD_CATEGORY_MERGED",
     "TAG_MERGED",
     "SITE_SETTINGS_UPDATED",
+    "MOBILE_RELEASE_UPDATED",
   ] as const),
   targetType: parseAsStringLiteral([
     "USER",
@@ -115,6 +116,7 @@ export const adminAuditFilterParsers = {
     "ADMIN_SESSION",
     "NOTIFICATION_CAMPAIGN",
     "SITE_SETTINGS",
+    "MOBILE_RELEASE",
   ] as const),
   targetId: parseAsString.withDefault(""),
   dateFrom: parseAsString.withDefault(""),
