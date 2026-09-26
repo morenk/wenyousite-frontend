@@ -58,6 +58,7 @@ export const actionLabels = {
   THREAD_CATEGORY_MERGED: "合并主题分类",
   TAG_MERGED: "合并平台标签",
   SITE_SETTINGS_UPDATED: "更新运行设置",
+  MOBILE_RELEASE_UPDATED: "更新移动版本说明",
 } satisfies Record<NonNullable<AdminAuditFilters["action"]>, string>;
 
 const targetLabels = {
@@ -77,6 +78,7 @@ const targetLabels = {
   ADMIN_SESSION: "站务会话",
   NOTIFICATION_CAMPAIGN: "通知计划",
   SITE_SETTINGS: "运行设置",
+  MOBILE_RELEASE: "移动版本说明",
 } satisfies Record<NonNullable<AdminAuditFilters["targetType"]>, string>;
 
 function beijingDay(value: string, end = false) {

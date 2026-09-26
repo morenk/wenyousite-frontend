@@ -36,7 +36,7 @@ export function readIsolation(env = process.env) {
     && new Set([m.postgres.port, m.redis.port, Number(new URL(backend).port)]).size === 3, "隔离资源端口无效或重复");
   ensure(lstatSync(m.uploadPath).isDirectory() && realpathSync(m.uploadPath) === m.uploadPath, "上传目录身份漂移");
   const credentials = privateJSON(m.privateEnvPath);
-  const allowed = new Set(["E2E_RUN_ID", "E2E_MANIFEST", "E2E_PRIVATE_ENV", "E2E_BACKEND_URL", "API_BASE", "E2E_USER_ID", "E2E_USERNAME", "E2E_EMAIL", "E2E_PASSWORD"]);
+  const allowed = new Set(["E2E_RUN_ID", "E2E_MANIFEST", "E2E_PRIVATE_ENV", "E2E_BACKEND_URL", "API_BASE", "E2E_USER_ID", "E2E_USERNAME", "E2E_EMAIL", "E2E_PASSWORD", "E2E_ADMIN_FIXTURES", "E2E_MOBILE_RELEASE_FIXTURES"]);
   ensure(Object.keys(credentials).every((key) => allowed.has(key)), "Web 私有环境不能包含数据库或后端密钥");
   for (const key of ["E2E_RUN_ID", "E2E_MANIFEST", "E2E_PRIVATE_ENV", "E2E_BACKEND_URL", "API_BASE"]) {
     ensure(credentials[key] === env[key], "私有账号文件与运行身份不一致");
@@ -45,7 +45,37 @@ export function readIsolation(env = process.env) {
     ensure(typeof credentials[key] === "string" && credentials[key].length > 0 && (!env[key] || credentials[key] === env[key]), "缺少本轮随机账号或混入外部账号");
   }
   ensure(credentials.E2E_EMAIL.endsWith("@e2e.invalid"), "禁止使用真实账号进行 E2E");
+  ensure((credentials.E2E_ADMIN_FIXTURES || undefined) === (env.E2E_ADMIN_FIXTURES || undefined), "管理账号描述未绑定本轮私有环境");
+  if (credentials.E2E_ADMIN_FIXTURES) ensure(credentials.E2E_ADMIN_FIXTURES === join(root, "admin-fixtures.json"), "管理账号描述必须属于本轮资源目录");
+  ensure((credentials.E2E_MOBILE_RELEASE_FIXTURES || undefined) === (env.E2E_MOBILE_RELEASE_FIXTURES || undefined), "版本样本描述未绑定本轮私有环境");
+  if (credentials.E2E_MOBILE_RELEASE_FIXTURES) ensure(credentials.E2E_MOBILE_RELEASE_FIXTURES === join(root, "mobile-release-fixtures.json"), "版本样本描述必须属于本轮资源目录");
   return { manifest: m, root, resources, credentials };
+}
+
+/** 管理账号仅存在于同一 runner 的私有文件；不向 Web server 传递凭据。 */
+export function readAdminFixtures(run) {
+  ensure(run.credentials.E2E_ADMIN_FIXTURES === join(run.root, "admin-fixtures.json"), "缺少本轮管理账号 fixture");
+  const fixture = privateJSON(run.credentials.E2E_ADMIN_FIXTURES);
+  ensure(fixture.version === 1 && fixture.runId === run.manifest.runId, "管理账号 fixture 身份不匹配");
+  ensure(fixture.mailboxPath === join(run.root, "admin-mailbox"), "管理收件箱不属于本轮资源");
+  const mailbox = lstatSync(fixture.mailboxPath);
+  ensure(mailbox.isDirectory() && mailbox.uid === process.getuid() && (mailbox.mode & 0o777) === 0o700 && realpathSync(fixture.mailboxPath) === fixture.mailboxPath, "管理收件箱身份或权限错误");
+  ensure(Array.isArray(fixture.accounts) && fixture.accounts.length === 2 && new Set(fixture.accounts.map((account) => account.role)).size === 2, "管理账号角色不完整");
+  for (const account of fixture.accounts) {
+    ensure(["ADMIN", "SUPER_ADMIN"].includes(account.role) && typeof account.userId === "string" && account.userId.length > 0 && typeof account.email === "string" && account.email.endsWith("@e2e.invalid") && typeof account.password === "string" && account.password.length > 0 && Object.keys(account).every((key) => ["role", "userId", "email", "password"].includes(key)), "管理账号无效或包含越界凭据");
+  }
+  return fixture;
+}
+
+export function readMobileReleaseFixtures(run) {
+  ensure(run.credentials.E2E_MOBILE_RELEASE_FIXTURES === join(run.root, "mobile-release-fixtures.json"), "缺少本轮版本样本 fixture");
+  const fixture = privateJSON(run.credentials.E2E_MOBILE_RELEASE_FIXTURES);
+  ensure(fixture.version === 1 && fixture.runId === run.manifest.runId, "版本样本 fixture 身份不匹配");
+  for (const [key, status] of [["published", "PUBLISHED"], ["draft", "DRAFT"]]) {
+    const record = fixture[key];
+    ensure(record?.platform === "android" && typeof record.id === "string" && /^[a-zA-Z0-9_-]+$/.test(record.id) && record.status === status && Number.isSafeInteger(record.buildNumber) && record.buildNumber > 0 && Number.isSafeInteger(record.revision) && record.revision > 0, "版本样本身份或状态无效");
+  }
+  return fixture;
 }
 
 export function processIdentity(pid) {

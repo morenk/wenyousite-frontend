@@ -5,3 +5,4 @@ export * from "@/api/hooks/admin/use-admin-cases";
 export * from "@/api/hooks/admin/use-admin-moderation";
 export * from "@/api/hooks/admin/use-admin-configuration";
 export * from "@/api/hooks/admin/use-admin-content";
+export * from "@/api/hooks/admin/use-admin-mobile-releases";
