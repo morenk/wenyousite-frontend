@@ -1,7 +1,8 @@
 import { createServer, request } from "node:http";
 import { validateDescriptor, verifyRuntime } from "./dev-preview-policy.mjs";
 
-export async function previewProxy(input) {
+export async function previewProxy(input, webSessionId) {
+  if (!/^[a-f0-9-]{36}$/.test(webSessionId ?? "")) throw new Error("Web 启动身份缺失");
   const descriptor = validateDescriptor(input);
   const verify = () => Promise.all([verifyRuntime(descriptor, "backend"), verifyRuntime(descriptor, "media")]);
   await verify();
@@ -11,21 +12,25 @@ export async function previewProxy(input) {
       const url = new URL(req.url, descriptor.backend.origin);
       const identity = url.pathname === "/__preview/identity" && req.method === "GET";
       if (!identity && !url.pathname.startsWith("/api/v1/")) { res.writeHead(404); res.end(); return; }
+      if (!identity && (req.headers["x-wenyou-preview-run"] !== descriptor.runId || req.headers["x-wenyou-preview-web"] !== webSessionId)) {
+        res.writeHead(409, { "Content-Type": "application/json", "Cache-Control": "no-store", "X-Wenyou-Preview-Run": descriptor.runId, "X-Wenyou-Preview-Web": webSessionId });
+        res.end(JSON.stringify({ message: "开发预览已切换，请重新载入当前会话" })); return;
+      }
       await verify();
       if (identity) {
-        res.writeHead(200, { "Content-Type": "application/json", "Cache-Control": "no-store", "X-Wenyou-Preview-Run": descriptor.runId });
+        res.writeHead(200, { "Content-Type": "application/json", "Cache-Control": "no-store", "X-Wenyou-Preview-Run": descriptor.runId, "X-Wenyou-Preview-Web": webSessionId });
         res.end(JSON.stringify({ version: 1, kind: descriptor.kind, role: "web", sessionId: descriptor.sessionId,
           runId: descriptor.runId, resourceId: descriptor.runId, snapshotSha256: descriptor.snapshot.sha256,
           backendOrigin: descriptor.backend.origin, mediaOrigin: descriptor.media.origin, webOrigin: descriptor.web.origin }));
         return;
       }
-      const headers = { ...req.headers, host: url.host, "x-wenyou-preview-run": descriptor.runId };
-      delete headers["proxy-authorization"]; delete headers["proxy-connection"];
+      const headers = { ...req.headers, host: url.host };
+      delete headers["x-wenyou-preview-web"]; delete headers["proxy-authorization"]; delete headers["proxy-connection"];
       const upstream = request(url, { method: req.method, headers }, (incoming) => {
         if (incoming.headers["x-wenyou-preview-run"] !== descriptor.runId || (incoming.statusCode >= 300 && incoming.statusCode < 400)) {
           incoming.destroy(); res.writeHead(502); res.end("预览 API 响应身份不匹配或发生重定向"); return;
         }
-        res.writeHead(incoming.statusCode ?? 502, incoming.headers); incoming.pipe(res);
+        res.writeHead(incoming.statusCode ?? 502, { ...incoming.headers, "cache-control": "no-store", "X-Wenyou-Preview-Web": webSessionId }); incoming.pipe(res);
       });
       upstream.setTimeout(30000, () => upstream.destroy());
       upstream.once("error", () => { if (!res.headersSent) res.writeHead(502); res.end("预览后端连接已关闭"); });

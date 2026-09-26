@@ -1,3 +1,4 @@
+import { previewStorageKey } from "@/lib/preview-session";
 /** 邮箱验证码发送 hook：统一 60s 倒计时、跨认证页冷却和结果不明保护。 */
 
 import { useCallback, useEffect, useState } from "react";
@@ -5,7 +6,7 @@ import { API_ERROR_CODE, getApiError } from "@/api/errors";
 import { useCountdown } from "@/hooks/use-countdown";
 
 const EMAIL_CODE_COOLDOWN_SECONDS = 60;
-const EMAIL_CODE_COOLDOWN_KEY = "wenyousite:email-code-cooldown-until";
+const EMAIL_CODE_COOLDOWN_KEY = previewStorageKey("wenyousite:email-code-cooldown-until");
 
 export const EMAIL_SEND_UNCERTAIN_MESSAGE =
   "请求结果暂不确定，邮件可能已经发出；请先检查邮箱，60 秒后再试。";

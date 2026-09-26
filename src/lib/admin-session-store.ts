@@ -1,3 +1,4 @@
+import { previewStorageKey } from "@/lib/preview-session";
 import type { AdminSessionData } from "@/api/admin-types";
 
 export type AdminSessionStatus =
@@ -5,7 +6,7 @@ export type AdminSessionStatus =
   | "authenticated"
   | "unauthenticated"
   | "unavailable";
-export const ADMIN_SESSION_EVENT_KEY = "wenyousite-admin-session-event";
+export const ADMIN_SESSION_EVENT_KEY = previewStorageKey("wenyousite-admin-session-event");
 export interface AdminSessionSnapshot {
   status: AdminSessionStatus;
   data: AdminSessionData | undefined;

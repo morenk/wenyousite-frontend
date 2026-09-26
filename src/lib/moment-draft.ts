@@ -1,4 +1,5 @@
-const DATABASE_NAME = "wenyousite-local-drafts";
+import { previewStorageKey } from "@/lib/preview-session";
+const DATABASE_NAME = previewStorageKey("wenyousite-local-drafts");
 const STORE_NAME = "moment-drafts";
 const DATABASE_VERSION = 1;
 const MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;

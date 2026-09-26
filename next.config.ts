@@ -14,7 +14,7 @@ const securityHeaders = [
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   ...candidateHeaders(process.env),
-  ...(preview ? [{ key: "X-Wenyou-Preview-Run", value: preview.runId }] : []),
+  ...(preview ? [{ key: "X-Wenyou-Preview-Run", value: preview.runId }, { key: "Cache-Control", value: "no-store" }] : []),
   ...(isDevelopment
     ? []
     : [{ key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" }]),
