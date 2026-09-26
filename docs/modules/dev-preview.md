@@ -2,7 +2,7 @@
 
 ## 启动和反馈
 
-Web 在 VPS 任务 Worktree 启动，Backend 预览提供真实内容的隔离副本；业务 API 和 Foundation 不变。依赖私有开发协议 Backend 提交 `de13a1498706ddf34db11e5f9fa4f8f42ec08efd` 的 `docs/dev-preview-session.md`，不依赖未提交源码。账号密码对应快照时点，浏览器固定访问同域 `/api/v1`。
+Web 在 VPS 任务 Worktree 启动，Backend 预览提供真实内容的隔离副本；业务 API 和 Foundation 不变。依赖私有开发协议 Backend 提交 `f1a3db8675404d5a7d16d76693bea0fbe623e0f8` 的 `docs/dev-preview-session.md`，不依赖未提交源码。账号密码对应快照时点，浏览器固定访问同域 `/api/v1`。
 
 先由 Backend `dev:preview start` 创建或恢复反馈批次并登记标准端口组，再将其 `consumer.json` 绝对路径传入：
 
@@ -59,4 +59,4 @@ Next.js `next dev` 只监听 `127.0.0.1`，端口来自已核验描述，使用�
 
 同一 Backend runId 内切换 Web 任务或暂停恢复，也会生成新的 Web 启动身份。HTML 同时固化 `webSessionId`，API 须带 `X-Wenyou-Preview-Web`；代理精确验证并在响应及 identity 头回传，转发到 Backend 前删除该 Web 私有头。旧文档必须重新载入，不能借相同 runId 继续操作新 Web 会话。
 
-`build/check/check:full` 与直接调用隔离 E2E runner 均使用跨仓重任务锁。独立工具 `scripts/dev-heavy.mjs` 来自已提交 Backend `de13a1498706ddf34db11e5f9fa4f8f42ec08efd`，以固定 UID 状态目录、内核 flock、boot ID 与真实祖先关系验证嵌套调用。其他构建或 E2E 运行时明确返回忙碌，不并发争用服务器。工具内嵌于本仓库，运行时无需其他源码路径。
+`build/check/check:full` 与直接调用隔离 E2E runner 均使用跨仓重任务锁。独立工具 `scripts/dev-heavy.mjs` 来自已提交 Backend `f1a3db8675404d5a7d16d76693bea0fbe623e0f8`，以固定 UID 状态目录、内核 flock、boot ID 与真实祖先关系验证嵌套调用。其他构建或 E2E 运行时明确返回忙碌，不并发争用服务器。工具内嵌于本仓库，运行时无需其他源码路径。

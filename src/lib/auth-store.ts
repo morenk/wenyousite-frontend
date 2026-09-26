@@ -1,3 +1,4 @@
+import { previewStorageKey } from "@/lib/preview-session";
 /** 浏览器认证内存仓库：access token 永不写入持久化 Web Storage。 */
 
 import type { MediaDisplay } from "@/lib/media-display";
@@ -16,7 +17,7 @@ export interface AuthSnapshot {
   accessToken: string | null;
 }
 
-export const AUTH_SESSION_MARKER_KEY = "wenyousite-auth-session";
+export const AUTH_SESSION_MARKER_KEY = previewStorageKey("wenyousite-auth-session");
 
 const serverSnapshot: AuthSnapshot = { user: null, accessToken: null };
 let snapshot: AuthSnapshot = serverSnapshot;

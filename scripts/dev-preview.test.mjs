@@ -3,6 +3,7 @@ import { createServer } from "node:http";
 import { test } from "node:test";
 import { validateDescriptor, previewConfig, verifyRuntime, previewOrigin } from "./dev-preview-policy.mjs";
 import { previewProxy } from "./dev-preview-proxy.mjs";
+import { assertAvailable, assertOperationLocks, inspectSession } from "./dev-preview-registry.mjs";
 
 function descriptor() {
   const service = (port) => ({ port, origin: `http://127.0.0.1:${port}`, identityUrl: `http://127.0.0.1:${port}/__preview/identity` });
@@ -44,20 +45,49 @@ test("逐请求核验真实资源，阻止身份切换、重定向和未登记�
     const port = server.address().port;
     d[role] = { port, origin: `http://127.0.0.1:${port}`, identityUrl: `http://127.0.0.1:${port}/__preview/identity`, ...(role === "backend" ? { apiBase: `http://127.0.0.1:${port}/api/v1` } : {}) }; servers.push(server);
   }
+  const webSessionId = "11111111-1111-4111-8111-111111111111";
   let proxy;
   try {
-    proxy = await previewProxy(d);
+    proxy = await previewProxy(d, webSessionId);
     const identity = await fetch(`${proxy.origin}/__preview/identity`); assert.equal((await identity.json()).runId, d.runId);
-    assert.equal((await fetch(`${proxy.origin}/api/v1/write`, { method: "POST", body: "test" })).status, 200); assert.equal(writes, 1);
+    assert.equal((await fetch(`${proxy.origin}/api/v1/write`, { method: "POST", body: "test" })).status, 409);
+    assert.equal((await fetch(`${proxy.origin}/api/v1/write`, { method: "POST", headers: { "X-Wenyou-Preview-Run": "preview_" + "f".repeat(24) }, body: "old-document" })).status, 409);
+    assert.equal((await fetch(`${proxy.origin}/api/v1/write`, { method: "POST", headers: { "X-Wenyou-Preview-Run": d.runId, "X-Wenyou-Preview-Web": "22222222-2222-4222-8222-222222222222" } })).status, 409);
+    assert.equal(writes, 0);
+    assert.equal((await fetch(`${proxy.origin}/api/v1/write`, { method: "POST", headers: { "X-Wenyou-Preview-Run": d.runId, "X-Wenyou-Preview-Web": webSessionId }, body: "test" })).status, 200); assert.equal(writes, 1);
     broken = true;
-    assert.equal((await fetch(`${proxy.origin}/api/v1/write`, { method: "POST" })).status, 503); assert.equal(writes, 1);
+    assert.equal((await fetch(`${proxy.origin}/api/v1/write`, { method: "POST", headers: { "X-Wenyou-Preview-Run": d.runId, "X-Wenyou-Preview-Web": webSessionId } })).status, 503); assert.equal(writes, 1);
     assert.equal((await fetch(`${proxy.origin}/__preview/identity`)).status, 503);
     broken = false; redirect = true;
-    assert.equal((await fetch(`${proxy.origin}/api/v1/write`)).status, 502);
+    assert.equal((await fetch(`${proxy.origin}/api/v1/write`, { headers: { "X-Wenyou-Preview-Run": d.runId, "X-Wenyou-Preview-Web": webSessionId } })).status, 502);
     redirect = false; responseIdentity = false;
-    assert.equal((await fetch(`${proxy.origin}/api/v1/write`)).status, 502);
+    assert.equal((await fetch(`${proxy.origin}/api/v1/write`, { headers: { "X-Wenyou-Preview-Run": d.runId, "X-Wenyou-Preview-Web": webSessionId } })).status, 502);
     assert.equal((await fetch(`${proxy.origin}/other`)).status, 404);
     await assert.rejects(verifyRuntime(d, "backend", async () => new Response("{}", { status: 302 })));
     await assert.rejects(verifyRuntime(d, "backend", async () => new Response("{}", { headers: { "content-type": "application/json", "x-wenyou-preview-run": d.runId } })));
   } finally { await proxy?.close(); await Promise.all(servers.map((server) => new Promise((ok) => { server.close(ok); server.closeAllConnections(); }))); }
+});
+
+test("跨 Worktree 登记严格检查活进程归属，失活保留数据，损坏登记阻止切换", () => {
+  const process = { pid: 123, ticks: "100", group: 123, session: 123, cwd: "/owner" };
+  const state = { task: "owner", worktree: "/owner", consumer: descriptor(), status: "ready", supervisor: process };
+  assert.deepEqual([inspectSession(state, "/owner", () => process).processAlive, inspectSession(state, "/owner", () => process).blocked], [true, false]);
+  assert.equal(inspectSession(state, "/owner", () => null).state, "stopped");
+  for (const change of [{ ticks: "101" }, { cwd: "/another" }, { group: 456 }, { session: 456 }]) {
+    const result = inspectSession(state, "/owner", () => ({ ...process, ...change }));
+    assert.equal(result.blocked, true); assert.equal(result.state, "ownership-conflict");
+  }
+  assert.equal(inspectSession(null, "/owner").blocked, true);
+});
+
+test("历史动态端口活会话也阻止其他 Worktree 启动，不抢占其他任务", () => {
+  const sessions = [{ task: "legacy", worktree: "/old", runId: descriptor().runId, state: "ready", processAlive: true, blocked: false, ports: { web: 35004 } }];
+  assert.throws(() => assertAvailable(sessions, "/new"), /legacy/);
+  assert.doesNotThrow(() => assertAvailable(sessions, "/old"));
+  assert.doesNotThrow(() => assertAvailable([{ ...sessions[0], processAlive: false }], "/new"));
+  assert.throws(() => assertAvailable([{ ...sessions[0], processAlive: false, blocked: true }], "/new"), /归属冲突/);
+});
+
+test("直接调用内部标记不能代替真正持有生命周期锁", () => {
+  assert.throws(() => assertOperationLocks(process.cwd()), /flock/);
 });

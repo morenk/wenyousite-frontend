@@ -4,6 +4,8 @@ import { BRAND_NAME, BRAND_TAGLINE } from "@wenyousite/foundation/brand";
 import "@wenyousite/foundation/web/tokens.css";
 import "yet-another-react-lightbox/styles.css";
 import "./globals.css";
+import { previewBootstrap } from "@/lib/preview-session";
+import { PreviewBoundary } from "@/components/layout/preview-boundary";
 import { PreviewBadge } from "@/components/layout/preview-badge";
 import { Providers } from "./providers";
 import { AppChrome } from "@/components/layout/app-chrome";
@@ -40,6 +42,14 @@ export default async function RootLayout({
   return (
     <html lang="zh-CN" className="h-full antialiased" style={FOUNDATION_FONT_VARIABLES} suppressHydrationWarning>
       <head>
+        {process.env.WENYOU_PREVIEW_RUN ? <script id="preview-bootstrap" nonce={nonce} dangerouslySetInnerHTML={{ __html: previewBootstrap({
+          runId: process.env.WENYOU_PREVIEW_RUN,
+          webSessionId: process.env.WENYOU_PREVIEW_WEB_SESSION ?? "",
+          sessionId: process.env.WENYOU_PREVIEW_SESSION ?? "",
+          task: process.env.WENYOU_PREVIEW_TASK ?? "",
+          webOrigin: "http://127.0.0.1:4310",
+          mediaOrigin: process.env.WENYOU_PREVIEW_MEDIA_ORIGIN ?? "",
+        }) }} /> : null}
         <script
           id="theme-bootstrap"
           nonce={nonce}
@@ -48,9 +58,9 @@ export default async function RootLayout({
       </head>
       <body className="min-h-screen">
         {process.env.WENYOU_PREVIEW_RUN ? <PreviewBadge snapshot={process.env.WENYOU_PREVIEW_SNAPSHOT} /> : null}
-        <Providers>
+        <PreviewBoundary><Providers>
           <AppChrome>{children}</AppChrome>
-        </Providers>
+        </Providers></PreviewBoundary>
       </body>
     </html>
   );
