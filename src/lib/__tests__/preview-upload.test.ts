@@ -3,7 +3,7 @@ import { verifyPreviewUpload } from "../preview-upload";
 
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); delete window.__wenyouPreview; });
 function preview() {
-  window.__wenyouPreview = { runId: "preview_" + "a".repeat(24), sessionId: "test", webSessionId: "11111111-1111-4111-8111-111111111111", task: "test", webOrigin: "http://127.0.0.1:4310", mediaOrigin: "http://127.0.0.1:34004" };
+  window.__wenyouPreview = { runId: "preview_" + "a".repeat(24), sessionId: "test", webSessionId: "11111111-1111-4111-8111-111111111111", task: "test", webOrigin: "http://127.0.0.1:14310", mediaOrigin: "http://127.0.0.1:34004" };
   vi.stubEnv("NEXT_PUBLIC_WENYOU_PREVIEW_RUN", "preview_" + "a".repeat(24));
   vi.stubEnv("NEXT_PUBLIC_WENYOU_PREVIEW_MEDIA_ORIGIN", "http://127.0.0.1:34004");
 }

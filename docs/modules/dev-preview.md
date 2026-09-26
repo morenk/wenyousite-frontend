@@ -2,7 +2,7 @@
 
 ## 启动和反馈
 
-Web 在 VPS 任务 Worktree 启动，Backend 预览提供真实内容的隔离副本；业务 API 和 Foundation 不变。依赖私有开发协议 Backend 提交 `f1a3db8675404d5a7d16d76693bea0fbe623e0f8` 的 `docs/dev-preview-session.md`，不依赖未提交源码。账号密码对应快照时点，浏览器固定访问同域 `/api/v1`。
+Web 在 VPS 任务 Worktree 启动，Backend 预览提供真实内容的隔离副本；业务 API 和 Foundation 不变。依赖私有开发协议 Backend 提交 `4079ac84eba56a700a6228eab04521aff2d99925` 的 `docs/dev-preview-session.md`，不依赖未提交源码。账号密码对应快照时点，浏览器固定访问同域 `/api/v1`。
 
 先由 Backend `dev:preview start` 创建或恢复反馈批次并登记标准端口组，再将其 `consumer.json` 绝对路径传入：
 
@@ -48,7 +48,7 @@ Next.js `next dev` 只监听 `127.0.0.1`，端口来自已核验描述，使用�
 
 生命周期操作由同 UID 全局 Web 锁串行化。`start` 发现其他 Worktree 的活会话或归属冲突时拒绝，输出归属；不得静默停止其他任务。治理切换先对 list 的精确归属执行 `node scripts/dev-preview.mjs pause --task <owner-task> --worktree <owner-worktree> --confirm <runId> --json`（使用新版控制器，无需执行或修改旧目标脚本），锁内核验 runId 不变后才停止。`pause` 是 stop 的别名，均保留描述、批次数据和源码。原 `status|stop --task ID` 入口保留兼容；自动化一律传 `--confirm`。
 
-标准端口组为 Web `127.0.0.1:4310`、Backend `127.0.0.1:4311`、媒体 `127.0.0.1:4312`；新会话只接受该端口组。历史动态端口仍可被 list/status/stop 识别，先暂停再按 Backend 的显式 rebind 协议迁移。
+标准端口组为 Web `127.0.0.1:14310`、Backend `127.0.0.1:14311`、媒体 `127.0.0.1:14312`；新会话只接受该端口组。历史动态端口仍可被 list/status/stop 识别，先暂停再按 Backend 的显式 rebind 协议迁移。
 
 旧 Web 代码尚未具备文档固定身份与请求核验时，控制器可以只读列出、核验、暂停，但不会直接恢复旧代码。由原任务消费本次已提交的安全实现后，再用其自身 `start` 入口恢复；不得为恢复修改其他任务现场。
 

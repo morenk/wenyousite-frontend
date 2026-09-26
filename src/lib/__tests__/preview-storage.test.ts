@@ -3,7 +3,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import type { PreviewSession } from "../preview-session";
 afterEach(() => { vi.unstubAllGlobals(); delete window.__wenyouPreview; localStorage.clear(); vi.resetModules(); });
 function useRun(char: string) {
-  window.__wenyouPreview = { runId: "preview_" + char.repeat(24), sessionId: "test", task: "test", webSessionId: "public-epoch", webOrigin: "http://127.0.0.1:4310", mediaOrigin: "http://127.0.0.1:4312" } satisfies PreviewSession;
+  window.__wenyouPreview = { runId: "preview_" + char.repeat(24), sessionId: "test", task: "test", webSessionId: "public-epoch", webOrigin: "http://127.0.0.1:14310", mediaOrigin: "http://127.0.0.1:14312" } satisfies PreviewSession;
   vi.resetModules();
 }
 it("固定 origin 下批次 B 不继承 A 草稿或认证标记，返回 A 仍保留数据", async () => {

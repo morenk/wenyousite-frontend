@@ -39,7 +39,7 @@ try {
         res.end(JSON.stringify({ version: 1, kind: d.kind, sessionId: d.sessionId, runId, role, resourceId: runId, snapshotSha256: d.snapshot.sha256 }));
       } else { res.writeHead(401, { "Content-Type": "application/json", "X-Wenyou-Preview-Run": runId }); res.end(JSON.stringify({ code: 401, message: "synthetic unauthorized" })); }
     });
-    await new Promise((ok, fail) => { server.once("error", fail); server.listen({ web: 4310, backend: 4311, media: 4312 }[role], "127.0.0.1", ok); });
+    await new Promise((ok, fail) => { server.once("error", fail); server.listen({ web: 14310, backend: 14311, media: 14312 }[role], "127.0.0.1", ok); });
     const port = server.address().port; const origin = `http://127.0.0.1:${port}`;
     d[role] = { port, origin, ...(role !== "web" ? { identityUrl: `${origin}/__preview/identity` } : {}), ...(role === "backend" ? { apiBase: `${origin}/api/v1` } : {}) };
     servers.push(server);

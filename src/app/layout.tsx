@@ -47,7 +47,7 @@ export default async function RootLayout({
           webSessionId: process.env.WENYOU_PREVIEW_WEB_SESSION ?? "",
           sessionId: process.env.WENYOU_PREVIEW_SESSION ?? "",
           task: process.env.WENYOU_PREVIEW_TASK ?? "",
-          webOrigin: "http://127.0.0.1:4310",
+          webOrigin: "http://127.0.0.1:14310",
           mediaOrigin: process.env.WENYOU_PREVIEW_MEDIA_ORIGIN ?? "",
         }) }} /> : null}
         <script

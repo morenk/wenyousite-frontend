@@ -1,6 +1,6 @@
 import { isolatedOrigin } from "./e2e-candidate-policy.mjs";
 
-export const PREVIEW_PROTOCOL_SHA = "f1a3db8675404d5a7d16d76693bea0fbe623e0f8";
+export const PREVIEW_PROTOCOL_SHA = "4079ac84eba56a700a6228eab04521aff2d99925";
 export function previewOrigin(value) {
   const origin = isolatedOrigin(value);
   const port = Number(new URL(origin).port);

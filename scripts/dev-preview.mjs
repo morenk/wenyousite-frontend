@@ -177,8 +177,8 @@ async function main() {
     if (!options.descriptor?.startsWith("/")) throw new Error("必须显式指定绝对路径 --descriptor；禁止回退线上后端");
     const descriptorPath = realpathSync(options.descriptor);
     const consumer = validateDescriptor(JSON.parse(readFileSync(descriptorPath, "utf8")));
-    for (const [role, port] of [["web", 4310], ["backend", 4311], ["media", 4312]]) {
-      if (consumer[role].port !== port) throw new Error("预览必须使用标准端口组 4310/4311/4312；历史批次先暂停并显式 rebind");
+    for (const [role, port] of [["web", 14310], ["backend", 14311], ["media", 14312]]) {
+      if (consumer[role].port !== port) throw new Error("预览必须使用标准端口组 14310/14311/14312；历史批次先暂停并显式 rebind");
     }
     assertAvailable(listSessions(worktree), worktree);
     await Promise.all([verifyRuntime(consumer, "backend"), verifyRuntime(consumer, "media")]);
