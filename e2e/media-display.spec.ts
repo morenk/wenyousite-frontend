@@ -169,6 +169,9 @@ test("全局正文草稿恢复携带display，复制与再保存不丢来源", a
   await page.getByRole("button", { name: "正文草稿", exact: true }).click();
   await page.getByRole("region", { name: "正文草稿", exact: true }).getByRole("button", { name: "恢复", exact: true }).click();
   await page.getByRole("button", { name: "覆盖并恢复", exact: true }).click();
+  // 恢复通过 key 重建编辑器；先等旧 Crepe 销毁，仍严格要求页面只有一个编辑器。
+  await expect(page.locator(".ProseMirror")).toHaveCount(1);
+  await expect(page.locator('.ProseMirror img[src="' + fixture.images[0].display.url + '"]')).toHaveCount(0);
   await expect(page.locator(".ProseMirror img[src]")).toHaveAttribute("src", fixture.images[2].display.url);
   await page.getByRole("button", { name: "保存草稿", exact: true }).click();
   await expect.poll(() => fixture.writes.length).toBeGreaterThan(0);

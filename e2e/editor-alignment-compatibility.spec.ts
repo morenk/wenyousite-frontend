@@ -349,6 +349,8 @@ async function placeCaretAtEnd(block: Locator) {
     const selection = window.getSelection();
     selection?.removeAllRanges();
     selection?.addRange(range);
+    // 手工设置 DOM 光标后同步通知 ProseMirror，避免下一次按键先于原生异步事件。
+    document.dispatchEvent(new Event("selectionchange"));
   });
 }
 
