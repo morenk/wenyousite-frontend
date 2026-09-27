@@ -1,6 +1,6 @@
 # 移动端版本说明 Web 验证记录
 
-本记录对应实现提交 `05d610b30b37504c0f29a4a7e337319f1af2cdfa` 及后续浏览器门禁修正，入口与行为见[后台模块](../modules/admin-station.md#移动端版本说明)。最终 `pnpm check:full` 已通过，首次全套回归的 12 项失败全部通过复验；下文保留对照证据和修正依据。合并状态见 [PR #41](https://github.com/morenk/wenyousite-frontend/pull/41)，公网切换须由管理入口记录精确 release 元数据。
+本记录对应实现提交 `05d610b30b37504c0f29a4a7e337319f1af2cdfa` 及后续浏览器门禁修正，入口与行为见[后台模块](../modules/admin-station.md#移动端版本说明)。[PR #41](https://github.com/morenk/wenyousite-frontend/pull/41) 的 `pnpm check:full` 已通过，首次全套回归的 12 项失败全部通过复验；下文保留对照证据和修正依据。上线后发现的直接链接登录回跳补修见文末，公网切换由管理入口记录精确 release 元数据。
 
 ## 来源与检查
 
@@ -74,3 +74,22 @@
 - 最终图片及源码、视口记录：`mobile-releases-e2e_00e66cbf160e994924d7bef5/` 下的 PNG 与 `evidence.json`；先前已提供的 `mobile-releases-e2e_d0fc4fabf2b4d2325d65e0c5/` 同样保留。
 
 实时开发预览保留在任务 `mobile-release-notes-web`，复用隔离会话 `mobile-release-notes`，runId `preview_705231a26b764b7cd53eed8e`。状态使用 `pnpm dev:preview status --task mobile-release-notes-web --json` 查询；预览是合成数据会话，不是公网部署或真实快照验收。
+
+## 移动端版本页登录回跳补修
+
+PR #41 合并提交 `790b89abbf49583033cc44d595972e37d1d6d2ad` 上线后，既有匿名只读烟雾通过，`/station` 和 `/station/mobile-releases` 的 26 个 CSS/JS 资源通过检查。额外匿名浏览器检查确认新入口和登录页均返回 200、管理会话返回预期 401/40117，但登录 URL 的 `returnTo` 被改成 `/station/dashboard`。未使用凭据或发送业务写入，证据在私有 `production-readonly-mobile-release-notes.json`。
+
+原因是 `safeAdminLoginReturn` 的已知后台路径白名单遗漏新入口。补修只接受精确 `/station/mobile-releases`，保留查询、丢弃 hash；相似名称、未知子路径、编码分隔符及站外目标仍拒绝，既有其他后台路径规则与会话／角色检查保持原样。
+
+- 新增的两个正向回归在旧实现分别失败，均错误返回后台首页；原拒绝规则与新增六项边界拒绝用例通过。修正后 URL、后台登录及页面壳的 28 项定向测试通过。
+- 真实管理 E2E 从直接访问版本页开始，分别核对 ADMIN/SUPER_ADMIN 登录前的安全 `returnTo` 以及密码／验证码完成后的实际到达路径，继续覆盖创建、权限、冲突和公开快照。与原认证导航用例共 6 项通过，runId `e2e_b5a9146c45223903297db02b`，`resourcesRemoved=true`、`cleanupVerified=true`；报告 `60ac9fed-b241-4874-8870-5d3fa95234b6.json`。
+
+补修从已合并的 `dev` 建立后续分支，沿用原 Worktree 和共享预览。`pnpm check` 已通过：335 个测试文件、3589 项测试通过，语句／分支／函数／行覆盖率分别为 86.13%／78.30%／83.97%／89.87%，包含生产构建。随后完整 E2E 的 `e2e_b9df78d0f7d040860ecb9ebf` 为 184 通过、1 失败、4 项原有跳过；报告 `5937184f-7781-432e-aac6-e7fb21b617d8.json`，`resourcesRemoved=true`、`cleanupVerified=false`，资源目录确认不存在，整轮不计通过。
+
+唯一失败位于书签用例：切换分类并点击“全部收藏”后立即 `goBack()`，未等待 nuqs 把 URL 写入历史。失败现场显示“动态／全部收藏”，而原断言期望新建的主题帖收藏夹。失败当时书签页面和该用例均与部署基线 `790b89a` 一致；本轮按既有配置关闭 trace，保留脱敏 DOM 现场。最小修正仅在分类切换、全部收藏和返回时增加 URL／选中态断言，保留原标题、刷新、错误恢复断言，不改业务实现、超时或截图容差。
+
+一次定向启动携带未获入口允许的 `--repeat-each=3`，在 runner 启动前被参数门禁拒绝；没有运行用例、生成 runId 或创建隔离资源。移除该参数后使用原入口，书签定向复验 5 项通过，runId `e2e_1dae77a0496f7508587feb8d`，报告 `eb8b4b97-d1a6-4b76-ab79-3ee6750900bf.json`，`resourcesRemoved=true`、`cleanupVerified=true`。
+
+最终完整隔离 E2E `e2e_0c0a5b233f29a70896febfca` 为 185 通过、0 失败、4 项原有跳过，共 189 项；报告 `eb0a0321-1feb-49b5-bbb0-de6bea7646e1.json`，候选编号 `9796f68d-2b43-415e-97f8-bdebcdcca35a`，`resourcesRemoved=true`、`cleanupVerified=true`。日志为 `/tmp/mobile-release-return-final-e2e.log`。书签全部用例及真实管理员直接链接流程均通过。
+
+最终门禁由上述已通过的 `pnpm check` 和这轮完整 E2E 组成。业务源码在两轮之间没有变化，仅补充 E2E 同步断言；补充后另行通过受影响文件 lint、类型检查和文档检查。最终代码及测试相对 `790b89a` 的 `git diff --binary -- src e2e` SHA-256 为 `ca3261ae6d1ff082613a860d9810c60f193c718f74ed20bcfd13cd5aba34607a`，检查结束后只补写本记录。

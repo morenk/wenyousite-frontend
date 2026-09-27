@@ -13,7 +13,8 @@ async function login(page: Page, role: "ADMIN" | "SUPER_ADMIN") {
   const before = new Set(readdirSync(fixture.mailboxPath));
   // 登录失败仅输出固定错误，防止 Playwright 调用日志带出 fill 的账号或口令。
   try {
-    await page.goto("/station");
+    await page.goto("/station/mobile-releases");
+    await expect(page).toHaveURL(/\/station\?returnTo=%2Fstation%2Fmobile-releases$/);
     await page.getByLabel("账号", { exact: true }).fill(account.email);
     await page.getByLabel("密码", { exact: true }).fill(account.password);
     await page.getByRole("button", { name: "继续", exact: true }).click();
@@ -29,6 +30,7 @@ async function login(page: Page, role: "ADMIN" | "SUPER_ADMIN") {
     await page.getByLabel("6 位验证码").fill(code!);
     await page.getByRole("button", { name: "登录", exact: true }).click();
     await page.getByRole("navigation", { name: "管理功能" }).waitFor();
+    await expect(page).toHaveURL(/\/station\/mobile-releases$/);
   } catch { throw new Error(`本轮 ${role} 管理员登录失败（敏感诊断已隐藏）`); }
 }
 
@@ -59,7 +61,7 @@ function evidenceSource() {
   return { sourceCommit: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(), sourceDigest: digest.digest("hex") };
 }
 
-test("真实管理员创建、冲突恢复、公开快照保护与明暗窄屏候选", async ({ page }) => {
+test("真实管理员深链接登录回跳、创建、冲突恢复、公开快照保护与明暗窄屏候选", async ({ page }) => {
   test.setTimeout(120000);
   const run = await requireIsolationRunner();
   const published = readMobileReleaseFixtures(run).published;

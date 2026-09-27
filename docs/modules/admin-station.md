@@ -83,6 +83,8 @@
 
 运营管理中的“移动端版本”按平台、版本名和构建号维护更新说明。首期面向 Android；后台仅维护说明，确认动作不发包、不调整客户端推荐或强制升级策略。
 
+未登录时直接访问 `/station/mobile-releases`，完成站务登录后回到移动端版本页；该入口的回跳仅接受精确列表路径，未知子路径和相似名称回落到后台首页。
+
 跨端展示语义遵循 [Foundation 更新说明规范](https://github.com/morenk/wenyousite-foundation/blob/d9001265030a52d5255c7cd52dc841833cc7afbb/docs/mobile-releases.md)，不新增 Token 或升级 Foundation 包版本。预览头部始终显示平台、版本名、构建号及内容状态。
 
 - 列表展示平台、版本与构建号、草稿／待发布／已发布状态，以及已发布记录的待修订状态，使用服务端返回的不透明游标翻页。

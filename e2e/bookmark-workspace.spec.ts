@@ -177,10 +177,17 @@ for (const kind of ["threads", "moments"] as const) {
     await page.reload();
     await expect(page.getByRole("heading", { name: "资料页新建的空夹" })).toBeVisible();
     await page.getByRole("tab", { name: kind === "threads" ? "动态" : "主题帖", exact: true }).click();
+    await expect(page).toHaveURL((url) => (url.searchParams.get("type") ?? "threads") === (kind === "threads" ? "moments" : "threads"));
     await page.getByRole("tab", { name: kind === "threads" ? "主题帖" : "动态", exact: true }).click();
+    await expect(page).toHaveURL((url) => url.searchParams.get("folder") === folderId);
     await expect(page.getByRole("heading", { name: "资料页新建的空夹" })).toBeVisible();
-    await page.getByRole("button", { name: /全部收藏/ }).click();
+    const allFolders = page.getByRole("button", { name: /全部收藏/ });
+    await allFolders.click();
+    // nuqs 会排队写入历史；确认导航已落地后再返回，避免越过尚未提交的目录。
+    await expect(page).toHaveURL((url) => !url.searchParams.has("folder"));
+    await expect(allFolders).toHaveAttribute("aria-pressed", "true");
     await page.goBack();
+    await expect(page).toHaveURL((url) => url.searchParams.get("folder") === folderId);
     await expect(page.getByRole("heading", { name: "资料页新建的空夹" })).toBeVisible();
     mock.setFolderFailure(true);
     await page.reload();
