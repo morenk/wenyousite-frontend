@@ -170,6 +170,8 @@ for (const theme of ["light", "dark"] as const) {
     await expect(page.getByText("我在第二层补充一条目击记录")).toBeVisible();
 
     const firstFloor = page.locator("#post-divider-floor-1");
+    await expect(firstFloor).toHaveCSS("border-radius", "10px");
+    await expect(firstFloor.locator("..")).toHaveCSS("gap", "8px");
     const divider = firstFloor.locator('[data-slot="markdown-content"] hr');
     await expect(divider).toHaveCount(1);
     await expect(divider).toHaveRole("separator");

@@ -17,5 +17,5 @@ export function backendRunner(env = process.env) {
   for (const key of ["E2E_PG_BIN", "E2E_REDIS_BIN", "E2E_LIBRARY_PATH"]) if (env[key]) childEnv[key] = env[key];
   const loader = createRequire(join(backend, "package.json")).resolve("tsx");
   return { backend, revision, env: childEnv, command: process.execPath,
-    args: ["--import", loader, join(backend, "scripts/e2e-runner.ts"), "--"] };
+    args: ["--import", loader, join(backend, "scripts/e2e-runner.ts"), "--admin-fixtures", "--mobile-release-fixtures", "--"] };
 }

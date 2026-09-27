@@ -242,14 +242,17 @@ test.describe("楼层编辑与删除", () => {
     await postFloor(page, "待编辑的楼层正文");
 
     // 找到刚发布的楼层卡片（含该正文）
-    const floorCard = page.locator(".rounded-xl.border").filter({ hasText: "待编辑的楼层正文" });
-    await expect(floorCard.first()).toBeVisible();
+    const originalFloor = page.locator('[id^="post-"]').filter({ hasText: "待编辑的楼层正文" });
+    await expect(originalFloor).toHaveCount(1);
+    const floorId = await originalFloor.getAttribute("id");
+    expect(floorId).toBeTruthy();
+    const floorCard = page.locator(`[id="${floorId}"]`);
+    await expect(floorCard).toBeVisible();
 
     // 从卡片右上角操作菜单进入编辑
-    await floorCard.first().getByRole("button", { name: "更多楼层操作" }).click();
+    await floorCard.getByRole("button", { name: "更多楼层操作" }).click();
     await page.getByRole("menuitem", { name: "编辑" }).click();
-    // 编辑态编辑器在楼层卡片内、DOM 中先于底部发布表单编辑器，取第一个
-    const editEditor = page.locator(".milkdown-editor .ProseMirror").first();
+    const editEditor = floorCard.locator(".milkdown-editor .ProseMirror");
     await expect(editEditor).toBeVisible();
     // 全选删除后键入（fill 不触发 ProseMirror 的 markdownUpdated）
     await editEditor.click();
@@ -275,9 +278,9 @@ test.describe("楼层编辑与删除", () => {
     await postFloor(page, "待删除的楼层正文");
 
     const floorCard = page
-      .locator(".rounded-xl.border")
-      .filter({ hasText: "待删除的楼层正文" })
-      .first();
+      .locator('[id^="post-"]')
+      .filter({ hasText: "待删除的楼层正文" });
+    await expect(floorCard).toHaveCount(1);
     await expect(floorCard).toBeVisible();
 
     // 从卡片右上角操作菜单删除，并在站内确认框确认
@@ -287,8 +290,8 @@ test.describe("楼层编辑与删除", () => {
 
     await expect(page.getByText("楼层已删除").first()).toBeVisible({ timeout: 10000 });
     await expect(
-      page.locator(".rounded-xl.border").filter({ hasText: "待删除的楼层正文" }),
-    ).not.toBeVisible({ timeout: 10000 });
+      page.locator('[id^="post-"]').filter({ hasText: "待删除的楼层正文" }),
+    ).toHaveCount(0, { timeout: 10000 });
   });
 });
 

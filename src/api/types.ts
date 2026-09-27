@@ -2998,6 +2998,90 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/mobile-releases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 已发布版本历史，按构建号倒序；仅返回公开快照 */
+        get: operations["mobileReleasesList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/mobile-releases/{platform}/{buildNumber}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 读取已发布版本说明；不存在或未发布均为 404 */
+        get: operations["mobileReleasesDetail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/mobile-releases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["adminMobileReleasesList"];
+        put?: never;
+        post: operations["adminMobileReleasesCreate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/mobile-releases/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["adminMobileReleasesDetail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** 更新编辑稿；已发布版本仅 SUPER_ADMIN 可修正，旧公开快照保留 */
+        patch: operations["adminMobileReleasesUpdate"];
+        trace?: never;
+    };
+    "/api/v1/admin/mobile-releases/{id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 超级管理员确认当前 revision；已发布文案原子换为确认快照，不触发安装包发布 */
+        post: operations["adminMobileReleasesConfirm"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/wallet": {
         parameters: {
             query?: never;
@@ -5667,9 +5751,9 @@ export interface components {
         AdminAuditLogResponseDto: {
             id: string;
             /** @enum {string} */
-            action: "SUPER_ADMIN_BOOTSTRAPPED" | "ADMIN_ROLE_GRANTED" | "ADMIN_ROLE_REVOKED" | "USER_SUSPENDED" | "USER_BANNED" | "USER_SANCTION_REVOKED" | "CONTENT_HIDDEN" | "CONTENT_RESTORED" | "THREAD_TAXONOMY_UPDATED" | "REPORT_RESOLVED" | "REPORT_DISMISSED" | "SYSTEM_NOTIFICATION_SENT" | "THREAD_CATEGORY_CREATED" | "THREAD_CATEGORY_UPDATED" | "TAG_CREATED" | "TAG_UPDATED" | "ADMIN_INVITED" | "ADMIN_INVITE_ACCEPTED" | "ADMIN_INVITE_CANCELED" | "SUPER_ADMIN_TRANSFERRED" | "ADMIN_SESSION_REVOKED" | "CASE_RESOLVED" | "CASE_DISMISSED" | "APPEAL_SUBMITTED" | "APPEAL_UPHELD" | "APPEAL_OVERTURNED" | "USER_SESSIONS_REVOKED" | "PASSWORD_RESET_REQUESTED_BY_ADMIN" | "NOTIFICATION_CAMPAIGN_SCHEDULED" | "NOTIFICATION_CAMPAIGN_CANCELED" | "THREAD_CATEGORY_MERGED" | "TAG_MERGED" | "SITE_SETTINGS_UPDATED";
+            action: "SUPER_ADMIN_BOOTSTRAPPED" | "ADMIN_ROLE_GRANTED" | "ADMIN_ROLE_REVOKED" | "USER_SUSPENDED" | "USER_BANNED" | "USER_SANCTION_REVOKED" | "CONTENT_HIDDEN" | "CONTENT_RESTORED" | "THREAD_TAXONOMY_UPDATED" | "REPORT_RESOLVED" | "REPORT_DISMISSED" | "SYSTEM_NOTIFICATION_SENT" | "THREAD_CATEGORY_CREATED" | "THREAD_CATEGORY_UPDATED" | "TAG_CREATED" | "TAG_UPDATED" | "ADMIN_INVITED" | "ADMIN_INVITE_ACCEPTED" | "ADMIN_INVITE_CANCELED" | "SUPER_ADMIN_TRANSFERRED" | "ADMIN_SESSION_REVOKED" | "CASE_RESOLVED" | "CASE_DISMISSED" | "APPEAL_SUBMITTED" | "APPEAL_UPHELD" | "APPEAL_OVERTURNED" | "USER_SESSIONS_REVOKED" | "PASSWORD_RESET_REQUESTED_BY_ADMIN" | "NOTIFICATION_CAMPAIGN_SCHEDULED" | "NOTIFICATION_CAMPAIGN_CANCELED" | "THREAD_CATEGORY_MERGED" | "TAG_MERGED" | "SITE_SETTINGS_UPDATED" | "MOBILE_RELEASE_UPDATED";
             /** @enum {string} */
-            targetType: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "REPORT" | "SYSTEM_NOTIFICATION" | "THREAD_CATEGORY" | "TAG" | "MODERATION_CASE" | "MODERATION_DECISION" | "MODERATION_APPEAL" | "ADMIN_INVITE" | "ADMIN_SESSION" | "NOTIFICATION_CAMPAIGN" | "SITE_SETTINGS";
+            targetType: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "REPORT" | "SYSTEM_NOTIFICATION" | "THREAD_CATEGORY" | "TAG" | "MODERATION_CASE" | "MODERATION_DECISION" | "MODERATION_APPEAL" | "ADMIN_INVITE" | "ADMIN_SESSION" | "NOTIFICATION_CAMPAIGN" | "SITE_SETTINGS" | "MOBILE_RELEASE";
             targetId: string | null;
             reportId: string | null;
             reason: string | null;
@@ -6349,6 +6433,70 @@ export interface components {
             markdownContractVersion: number;
             capabilities: components["schemas"]["ApiCapabilitiesResponseDto"];
             mobileCompatibility: components["schemas"]["MobileCompatibilityDto"];
+        };
+        PublicMobileReleaseDto: {
+            /** @enum {string} */
+            platform: "android";
+            versionName: string;
+            buildNumber: number;
+            summary: string;
+            items: string[];
+            revision: number;
+            /** Format: date-time */
+            publishedAt: string;
+        };
+        MobileReleaseSnapshotDto: {
+            /** @description 纯文本摘要；至少含一个非空白字符，不解析 Markdown/HTML */
+            summary: string;
+            /** @description 1–30 条纯文本，每条最多 500 字符且非空白；客户端按文本显示 */
+            items: string[];
+            revision: number;
+            /** Format: date-time */
+            confirmedAt: string;
+        };
+        AdminMobileReleaseDto: {
+            /** @enum {string} */
+            platform: "android";
+            versionName: string;
+            buildNumber: number;
+            id: string;
+            summary: string;
+            items: string[];
+            revision: number;
+            /**
+             * @description 已发布记录即使有待确认修正仍为 PUBLISHED；hasUnconfirmedChanges 表示草稿与确认快照不同
+             * @enum {string}
+             */
+            status: "DRAFT" | "READY" | "PUBLISHED";
+            hasUnconfirmedChanges: boolean;
+            publishing: boolean;
+            confirmed: components["schemas"]["MobileReleaseSnapshotDto"] | null;
+            published: components["schemas"]["PublicMobileReleaseDto"] | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        CreateMobileReleaseDto: {
+            /** @enum {string} */
+            platform: "android";
+            versionName: string;
+            buildNumber: number;
+            summary: string;
+            items: string[];
+        };
+        UpdateMobileReleaseDto: {
+            /** @description 纯文本摘要；至少含一个非空白字符，不解析 Markdown/HTML */
+            summary: string;
+            /** @description 1–30 条纯文本，每条最多 500 字符且非空白；客户端按文本显示 */
+            items: string[];
+            /** @description 仅从未确认的草稿允许修正版本名；平台/build 固定 */
+            versionName?: string;
+            revision: number;
+        };
+        MobileReleaseRevisionDto: {
+            /** @description 最后读取的编辑 revision；竞争返回 HTTP 409，重新读取后再操作 */
+            revision: number;
         };
         WalletResponseDto: {
             /** @example 42 */
@@ -7155,6 +7303,27 @@ export interface components {
         };
         MetaGetMeta200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["ApiMetaResponseDto"];
+        };
+        MobileReleasesList200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["PublicMobileReleaseDto"][];
+        };
+        MobileReleasesDetail200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["PublicMobileReleaseDto"];
+        };
+        AdminMobileReleasesList200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
+            data: components["schemas"]["AdminMobileReleaseDto"][];
+        };
+        AdminMobileReleasesCreate201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminMobileReleaseDto"];
+        };
+        AdminMobileReleasesDetail200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminMobileReleaseDto"];
+        };
+        AdminMobileReleasesUpdate200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminMobileReleaseDto"];
+        };
+        AdminMobileReleasesConfirm201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AdminMobileReleaseDto"];
         };
         EconomyGetWallet200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["WalletResponseDto"];
@@ -15646,8 +15815,8 @@ export interface operations {
                 cursor?: string;
                 /** @description 每页条数（默认 20，最大 50） */
                 limit?: number;
-                action?: "SUPER_ADMIN_BOOTSTRAPPED" | "ADMIN_ROLE_GRANTED" | "ADMIN_ROLE_REVOKED" | "USER_SUSPENDED" | "USER_BANNED" | "USER_SANCTION_REVOKED" | "CONTENT_HIDDEN" | "CONTENT_RESTORED" | "THREAD_TAXONOMY_UPDATED" | "REPORT_RESOLVED" | "REPORT_DISMISSED" | "SYSTEM_NOTIFICATION_SENT" | "THREAD_CATEGORY_CREATED" | "THREAD_CATEGORY_UPDATED" | "TAG_CREATED" | "TAG_UPDATED" | "ADMIN_INVITED" | "ADMIN_INVITE_ACCEPTED" | "ADMIN_INVITE_CANCELED" | "SUPER_ADMIN_TRANSFERRED" | "ADMIN_SESSION_REVOKED" | "CASE_RESOLVED" | "CASE_DISMISSED" | "APPEAL_SUBMITTED" | "APPEAL_UPHELD" | "APPEAL_OVERTURNED" | "USER_SESSIONS_REVOKED" | "PASSWORD_RESET_REQUESTED_BY_ADMIN" | "NOTIFICATION_CAMPAIGN_SCHEDULED" | "NOTIFICATION_CAMPAIGN_CANCELED" | "THREAD_CATEGORY_MERGED" | "TAG_MERGED" | "SITE_SETTINGS_UPDATED";
-                targetType?: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "REPORT" | "SYSTEM_NOTIFICATION" | "THREAD_CATEGORY" | "TAG" | "MODERATION_CASE" | "MODERATION_DECISION" | "MODERATION_APPEAL" | "ADMIN_INVITE" | "ADMIN_SESSION" | "NOTIFICATION_CAMPAIGN" | "SITE_SETTINGS";
+                action?: "SUPER_ADMIN_BOOTSTRAPPED" | "ADMIN_ROLE_GRANTED" | "ADMIN_ROLE_REVOKED" | "USER_SUSPENDED" | "USER_BANNED" | "USER_SANCTION_REVOKED" | "CONTENT_HIDDEN" | "CONTENT_RESTORED" | "THREAD_TAXONOMY_UPDATED" | "REPORT_RESOLVED" | "REPORT_DISMISSED" | "SYSTEM_NOTIFICATION_SENT" | "THREAD_CATEGORY_CREATED" | "THREAD_CATEGORY_UPDATED" | "TAG_CREATED" | "TAG_UPDATED" | "ADMIN_INVITED" | "ADMIN_INVITE_ACCEPTED" | "ADMIN_INVITE_CANCELED" | "SUPER_ADMIN_TRANSFERRED" | "ADMIN_SESSION_REVOKED" | "CASE_RESOLVED" | "CASE_DISMISSED" | "APPEAL_SUBMITTED" | "APPEAL_UPHELD" | "APPEAL_OVERTURNED" | "USER_SESSIONS_REVOKED" | "PASSWORD_RESET_REQUESTED_BY_ADMIN" | "NOTIFICATION_CAMPAIGN_SCHEDULED" | "NOTIFICATION_CAMPAIGN_CANCELED" | "THREAD_CATEGORY_MERGED" | "TAG_MERGED" | "SITE_SETTINGS_UPDATED" | "MOBILE_RELEASE_UPDATED";
+                targetType?: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "REPORT" | "SYSTEM_NOTIFICATION" | "THREAD_CATEGORY" | "TAG" | "MODERATION_CASE" | "MODERATION_DECISION" | "MODERATION_APPEAL" | "ADMIN_INVITE" | "ADMIN_SESSION" | "NOTIFICATION_CAMPAIGN" | "SITE_SETTINGS" | "MOBILE_RELEASE";
                 targetId?: string;
                 actorId?: string;
                 createdAfter?: string;
@@ -15693,8 +15862,8 @@ export interface operations {
                 cursor?: string;
                 /** @description 每页条数（默认 20，最大 50） */
                 limit?: number;
-                action?: "SUPER_ADMIN_BOOTSTRAPPED" | "ADMIN_ROLE_GRANTED" | "ADMIN_ROLE_REVOKED" | "USER_SUSPENDED" | "USER_BANNED" | "USER_SANCTION_REVOKED" | "CONTENT_HIDDEN" | "CONTENT_RESTORED" | "THREAD_TAXONOMY_UPDATED" | "REPORT_RESOLVED" | "REPORT_DISMISSED" | "SYSTEM_NOTIFICATION_SENT" | "THREAD_CATEGORY_CREATED" | "THREAD_CATEGORY_UPDATED" | "TAG_CREATED" | "TAG_UPDATED" | "ADMIN_INVITED" | "ADMIN_INVITE_ACCEPTED" | "ADMIN_INVITE_CANCELED" | "SUPER_ADMIN_TRANSFERRED" | "ADMIN_SESSION_REVOKED" | "CASE_RESOLVED" | "CASE_DISMISSED" | "APPEAL_SUBMITTED" | "APPEAL_UPHELD" | "APPEAL_OVERTURNED" | "USER_SESSIONS_REVOKED" | "PASSWORD_RESET_REQUESTED_BY_ADMIN" | "NOTIFICATION_CAMPAIGN_SCHEDULED" | "NOTIFICATION_CAMPAIGN_CANCELED" | "THREAD_CATEGORY_MERGED" | "TAG_MERGED" | "SITE_SETTINGS_UPDATED";
-                targetType?: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "REPORT" | "SYSTEM_NOTIFICATION" | "THREAD_CATEGORY" | "TAG" | "MODERATION_CASE" | "MODERATION_DECISION" | "MODERATION_APPEAL" | "ADMIN_INVITE" | "ADMIN_SESSION" | "NOTIFICATION_CAMPAIGN" | "SITE_SETTINGS";
+                action?: "SUPER_ADMIN_BOOTSTRAPPED" | "ADMIN_ROLE_GRANTED" | "ADMIN_ROLE_REVOKED" | "USER_SUSPENDED" | "USER_BANNED" | "USER_SANCTION_REVOKED" | "CONTENT_HIDDEN" | "CONTENT_RESTORED" | "THREAD_TAXONOMY_UPDATED" | "REPORT_RESOLVED" | "REPORT_DISMISSED" | "SYSTEM_NOTIFICATION_SENT" | "THREAD_CATEGORY_CREATED" | "THREAD_CATEGORY_UPDATED" | "TAG_CREATED" | "TAG_UPDATED" | "ADMIN_INVITED" | "ADMIN_INVITE_ACCEPTED" | "ADMIN_INVITE_CANCELED" | "SUPER_ADMIN_TRANSFERRED" | "ADMIN_SESSION_REVOKED" | "CASE_RESOLVED" | "CASE_DISMISSED" | "APPEAL_SUBMITTED" | "APPEAL_UPHELD" | "APPEAL_OVERTURNED" | "USER_SESSIONS_REVOKED" | "PASSWORD_RESET_REQUESTED_BY_ADMIN" | "NOTIFICATION_CAMPAIGN_SCHEDULED" | "NOTIFICATION_CAMPAIGN_CANCELED" | "THREAD_CATEGORY_MERGED" | "TAG_MERGED" | "SITE_SETTINGS_UPDATED" | "MOBILE_RELEASE_UPDATED";
+                targetType?: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "REPORT" | "SYSTEM_NOTIFICATION" | "THREAD_CATEGORY" | "TAG" | "MODERATION_CASE" | "MODERATION_DECISION" | "MODERATION_APPEAL" | "ADMIN_INVITE" | "ADMIN_SESSION" | "NOTIFICATION_CAMPAIGN" | "SITE_SETTINGS" | "MOBILE_RELEASE";
                 targetId?: string;
                 actorId?: string;
                 createdAfter?: string;
@@ -17259,6 +17428,324 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MetaGetMeta200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    mobileReleasesList: {
+        parameters: {
+            query: {
+                /** @description 服务端返回的不透明分页游标；首次请求不传，后续必须原样回传 */
+                cursor?: string;
+                /** @description 每页条数（默认 20，最大 50） */
+                limit?: number;
+                platform: "android";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 已发布版本说明 */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MobileReleasesList200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    mobileReleasesDetail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                platform: "android";
+                buildNumber: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MobileReleasesDetail200Response"];
+                };
+            };
+            /** @description 无已发布说明 */
+            404: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminMobileReleasesList: {
+        parameters: {
+            query: {
+                /** @description 服务端返回的不透明分页游标；首次请求不传，后续必须原样回传 */
+                cursor?: string;
+                /** @description 每页条数（默认 20，最大 50） */
+                limit?: number;
+                platform: "android";
+            };
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 版本说明编辑稿及快照，按构建号倒序 */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminMobileReleasesList200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminMobileReleasesCreate: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMobileReleaseDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminMobileReleasesCreate201Response"];
+                };
+            };
+            /** @description 平台与构建号已存在，禁止重新绑定版本名 */
+            409: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminMobileReleasesDetail: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminMobileReleasesDetail200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminMobileReleasesUpdate: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMobileReleaseDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminMobileReleasesUpdate200Response"];
+                };
+            };
+            /** @description revision 已变化或发布锁定 */
+            409: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminMobileReleasesConfirm: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MobileReleaseRevisionDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminMobileReleasesConfirm201Response"];
+                };
+            };
+            /** @description revision 已变化或发布锁定 */
+            409: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */

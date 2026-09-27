@@ -5,6 +5,7 @@ import StationContentPage from "@/app/station/content/page";
 import StationAppealsPage from "@/app/station/appeals/page";
 import StationUsersPage from "@/app/station/users/page";
 import StationAnnouncementsPage from "@/app/station/announcements/page";
+import StationMobileReleasesPage from "@/app/station/mobile-releases/page";
 import StationTaxonomyPage from "@/app/station/taxonomy/page";
 import StationAccountsPage from "@/app/station/accounts/page";
 import StationOperationsPage from "@/app/station/operations/page";
@@ -24,6 +25,7 @@ describe("station route composition", () => {
     expect(StationAppealsPage()).toBeTruthy();
     expect(StationUsersPage()).toBeTruthy();
     expect(StationAnnouncementsPage()).toBeTruthy();
+    expect(StationMobileReleasesPage()).toBeTruthy();
     expect(StationTaxonomyPage()).toBeTruthy();
     expect(StationAccountsPage()).toBeTruthy();
     expect(StationOperationsPage()).toBeTruthy();

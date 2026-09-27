@@ -61,6 +61,7 @@ describe("StationFrame navigation", () => {
 
     expect(screen.queryByRole("link", { name: "管理员账号" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "操作日志" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "移动端版本" })).toHaveAttribute("href", "/station/mobile-releases");
   });
 
   it("已挂载工作区在管理员身份变化后重建，清空页面内部状态", async () => {

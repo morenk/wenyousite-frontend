@@ -94,3 +94,11 @@ Web 的图集接入范围是固定 OpenAPI、配套媒体展示夹具及生成�
 复现同步与验证时将 `WENYOUSITE_BACKEND_ROOT` 指向包含该提交的 Backend 仓库，并设置 `BACKEND_CONTRACT_REF=92b030a81f8957386e324fed477bd1e46faf65ea`，依次运行 `pnpm contract:sync`、`pnpm generate:api`、`pnpm contract:check` 和 `pnpm check`。所有产物来自已提交事实源，不读取后端在办修改，也不手改生成类型。上线仍遵守兼容后端先行及明确批准的合并、部署门禁。
 
 同步的管理登录验证请求含默认 `rememberDevice=false`，生成工具把有默认值的字段生成为必填。既有管理登录 Hook 因此显式发送 `false`，保持后端原来省略该字段时的短会话行为，不增加记住设备控件、不延长登录期限；原升权验证请求仍只发送挑战与验证码。消费者回归检查实际请求和登录后的旧账号导航状态清理。
+
+## 移动端版本说明
+
+固定 OpenAPI、媒体展示夹具版本和生成类型同步自 Backend `99b42dc0f7d25eeb6e49ee87441e206c77cce29a`，契约版本 `5.27.0-dev.20260927.1`。使用 `WENYOUSITE_BACKEND_ROOT` 指向包含该提交的后端仓库，设置 `BACKEND_CONTRACT_REF` 为上述 SHA，经 `pnpm contract:sync`、`pnpm generate:api` 生成；检查使用同一来源。
+
+Web 通过独立管理 Cookie/CSRF 会话消费 `/admin/mobile-releases` 列表、详情、创建、编辑和确认接口，直接使用生成的 `AdminMobileReleaseDto`。列表按构建号倒序、不透明游标分页；平台和构建号不可更改，仅从未确认的版本名允许修正。编辑和确认携带最后核对的 `revision`，409 保留输入并重新核对；40007 返回第一页重新读取。`confirmed`、`published` 和 `hasUnconfirmedChanges` 分别决定确认快照、公开快照和待修订提示，不能仅由 `PUBLISHED` 推断新稿已公开。
+
+摘要上限 200 个 Unicode 字符；内容 1–30 项，每项上限 500 个 Unicode 字符。表单遵循已提交 DTO 校验，不使用 HTML 或 Markdown 渲染。审计新增 `MOBILE_RELEASE_UPDATED` / `MOBILE_RELEASE` 中文标签。公开查询由 Mobile 消费，Web 后台不提供发包或修改 `/meta` 策略入口；行为见[后台模块](admin-station.md#移动端版本说明)。
