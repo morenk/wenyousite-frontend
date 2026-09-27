@@ -4,12 +4,12 @@ export function safeAdminLoginReturn(value: string | null | undefined) {
     return "/station/dashboard";
   try {
     const url = new URL(value, "https://admin.invalid");
-    if (
-      url.origin !== "https://admin.invalid" ||
-      !/^\/station\/(dashboard|users|content|announcements|taxonomy|cases|appeals|operations|accounts|audit)(\/|$)/.test(
+    const knownWorkspacePath =
+      url.pathname === "/station/mobile-releases" ||
+      /^\/station\/(dashboard|users|content|announcements|taxonomy|cases|appeals|operations|accounts|audit)(\/|$)/.test(
         url.pathname,
-      )
-    )
+      );
+    if (url.origin !== "https://admin.invalid" || !knownWorkspacePath)
       return "/station/dashboard";
     return url.pathname + url.search;
   } catch {
