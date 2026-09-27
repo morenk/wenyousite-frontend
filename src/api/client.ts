@@ -1,4 +1,5 @@
 import createClient from "openapi-fetch";
+import { previewFetch, previewStorageKey } from "@/lib/preview-session";
 import type { paths } from "./types";
 import {
   clearAuthSession,
@@ -182,7 +183,7 @@ async function refreshWithLock(
   };
 
   if (!navigator.locks) return refresh();
-  return navigator.locks.request("wenyousite-auth-refresh", refresh);
+  return navigator.locks.request(previewStorageKey("wenyousite-auth-refresh"), refresh);
 }
 
 let bootstrapPromise: Promise<RefreshOutcome> | null = null;
@@ -192,7 +193,7 @@ export async function bootstrapAuthSession(): Promise<void> {
   if (typeof window === "undefined" || getAuthAccessToken()) return;
   const expectedUserId = getKnownUserId();
   bootstrapPromise ??= refreshWithLock(
-    globalThis.fetch,
+    previewFetch(globalThis.fetch),
     window.location.origin,
     null,
     expectedUserId,
@@ -205,6 +206,7 @@ export async function bootstrapAuthSession(): Promise<void> {
 
 /** 创建支持 refresh cookie 单飞轮换与原请求重放的 fetch。 */
 export function createAuthenticatedFetch(fetchImpl: typeof fetch): typeof fetch {
+  fetchImpl = previewFetch(fetchImpl);
   let refreshPromise: Promise<RefreshOutcome> | null = null;
 
   return async (input: RequestInfo | URL, init?: RequestInit) => {

@@ -1,6 +1,7 @@
-const MOMENT_FEED_RETURN_STORAGE_KEY = "wenyousite:moment-feed-return";
-const MOMENT_FEED_RESTORE_STORAGE_KEY = "wenyousite:moment-feed-restore";
-const MOMENT_FEED_BROWSE_STORAGE_KEY = "wenyousite:moment-feed-browse";
+import { previewStorageKey } from "@/lib/preview-session";
+const MOMENT_FEED_RETURN_STORAGE_KEY = previewStorageKey("wenyousite:moment-feed-return");
+const MOMENT_FEED_RESTORE_STORAGE_KEY = previewStorageKey("wenyousite:moment-feed-restore");
+const MOMENT_FEED_BROWSE_STORAGE_KEY = previewStorageKey("wenyousite:moment-feed-browse");
 const MOMENT_FEED_RETURN_MAX_AGE_MS = 2 * 60 * 60 * 1000;
 
 export type MomentFeedBrowseMode = "DISCOVER" | "FOLLOWING";

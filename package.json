@@ -5,7 +5,7 @@
   "packageManager": "pnpm@11.17.0",
   "scripts": {
     "dev": "pnpm dev:preview",
-    "build": "next build && pnpm fonts:check:build",
+    "build": "node scripts/dev-heavy.mjs -- sh -c \"next build && pnpm fonts:check:build\"",
     "lint": "eslint --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -25,8 +25,8 @@
     "design:check": "node scripts/check-foundation.mjs && node scripts/check-design-system.mjs && pnpm fonts:check",
     "docs:check": "tsx scripts/check-doc-links.ts && tsx scripts/check-doc-truth.ts",
     "security:audit": "pnpm audit --prod",
-    "check": "pnpm security:audit && pnpm test:preview && pnpm lint && pnpm typecheck && pnpm contract:check && pnpm arch:check && pnpm design:check && pnpm test:coverage && pnpm test:deploy-preflight && pnpm docs:check && pnpm build",
-    "check:full": "pnpm check && pnpm test:e2e:candidate",
+    "check": "node scripts/dev-heavy.mjs -- sh -c \"pnpm security:audit && pnpm test:preview && pnpm lint && pnpm typecheck && pnpm contract:check && pnpm arch:check && pnpm design:check && pnpm test:coverage && pnpm test:deploy-preflight && pnpm docs:check && pnpm build\"",
+    "check:full": "node scripts/dev-heavy.mjs -- sh -c \"pnpm check && pnpm test:e2e:candidate\"",
     "fonts:check": "node scripts/check-system-fonts.mjs",
     "fonts:check:build": "node scripts/check-system-fonts.mjs --build",
     "test:smoke:readonly": "node scripts/readonly-smoke.mjs",
@@ -34,8 +34,8 @@
     "test:e2e:guards": "node --test scripts/rich-text-real-api-preflight.test.mjs scripts/readonly-smoke-browser.test.mjs scripts/e2e-network-proxy.test.mjs",
     "dev:preview": "node scripts/dev-preview.mjs",
     "test:preview": "node --test scripts/dev-preview.test.mjs",
-    "test:preview:live": "node scripts/test-preview-live.mjs",
-    "test:preview:api": "node scripts/test-preview-live-api.mjs"
+    "test:preview:live": "node scripts/dev-heavy.mjs -- node scripts/test-preview-live.mjs",
+    "test:preview:api": "node scripts/dev-heavy.mjs -- node scripts/test-preview-live-api.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

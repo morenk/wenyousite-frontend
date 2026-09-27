@@ -1,3 +1,4 @@
+import { inheritedHeavy, runHeavy } from "./dev-heavy.mjs";
 import { spawn } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
@@ -7,6 +8,7 @@ import { backendRunner } from "./e2e-backend-runner.mjs";
 import { assertBrowserArguments } from "./e2e-candidate-policy.mjs";
 
 const frontend = resolve(fileURLToPath(new URL("..", import.meta.url)));
+if (!inheritedHeavy()) { process.exitCode = await runHeavy(process.execPath, process.argv.slice(1)); } else {
 let child;
 let interrupted = false;
 const stop = () => { if (interrupted) return; interrupted = true; child?.kill("SIGTERM"); };
@@ -56,3 +58,5 @@ try {
   console.error("隔离 E2E 未通过：请核对已提交 runner、只读工具配置与脱敏报告；禁止回退线上地址");
   process.exitCode = 1;
 } finally { clearTimeout(timeout); }
+
+}
