@@ -83,7 +83,9 @@ HTTP/业务错误由 `src/api/errors.ts` 统一归一化；成功响应不得使
 
 ## 本人关系管理兼容扩展
 
-关系管理兼容扩展来源于 Backend 已提交 `ea1ff7e2c6baeae6bf0316e87812ba37bc823d7a`，当前完整快照已随下方图集同步整合至 `92b030a81f8957386e324fed477bd1e46faf65ea`：新增 `DELETE /users/me/followers/{id}`（`usersFollowRemoveFollower`），本人关系列表可选 `viewerIsFollowing` / `viewerIsFollowedBy` 表示两个关注方向。已通过精确 SHA 的 `contract:sync` 与 `generate:api` 生成；媒体展示夹具版本同步，不手改生成类型。Web 先等待兼容后端，再启用本人列表管理；旧端点保留，不清理兼容协议。行为见 [用户模块](profile.md#本人关注与粉丝管理)。
+关系管理兼容扩展来源于 Backend 已提交 `ea1ff7e2c6baeae6bf0316e87812ba37bc823d7a`，随后随下方图集同步整合至 `92b030a81f8957386e324fed477bd1e46faf65ea`：新增 `DELETE /users/me/followers/{id}`（`usersFollowRemoveFollower`），本人关系列表可选 `viewerIsFollowing` / `viewerIsFollowedBy` 表示两个关注方向。已通过精确 SHA 的 `contract:sync` 与 `generate:api` 生成；媒体展示夹具版本同步，不手改生成类型。Web 先等待兼容后端，再启用本人列表管理；旧端点保留，不清理兼容协议。行为见 [用户模块](profile.md#本人关注与粉丝管理)。
+
+关注／粉丝计数说明同步自 Backend 已提交 `e807a3aa0cb15a626e5601eedc93f23c72d2e6c4`：`UserSocialCountResponseDto.following` / `followers` 统计当前查看者可见且未注销的账号，与各自列表口径一致；游客资料可能命中最长五分钟缓存。该次同步仅更新 OpenAPI 版本及两条 description、媒体展示夹具版本和生成类型注释，字段、类型及 Web 运行时代码不变。使用 `WENYOUSITE_BACKEND_ROOT` 指向包含该提交的后端仓库，固定 `BACKEND_CONTRACT_REF` 为上述 SHA，经 `pnpm contract:sync`、`pnpm generate:api` 同步，并以同一来源运行 `pnpm contract:check`。消费者回归覆盖本人和公开资料刷新后采用服务端计数，以及本人列表页签同步更新；Web 不根据列表长度重算计数或为计数补发列表请求。
 
 ## 全屏图片图集契约同步
 

@@ -1,7 +1,7 @@
 /** useUserProfile hook 测试 */
 
 import { describe, test, expect, vi } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useUserProfile } from "@/api/hooks/use-user-profile";
 import React from "react";
@@ -67,6 +67,21 @@ describe("useUserProfile", () => {
       throw new Error("应返回有效用户资料");
     }
     expect(result.current.data._count.followers).toBe(1);
+  });
+
+  test("公开资料刷新保留服务端计数，不用关系列表重算", async () => {
+    mockGET.mockReset();
+    mockGET
+      .mockResolvedValueOnce({ data: { data: { ...sampleUser, _count: { following: 3, followers: 13 } } } })
+      .mockResolvedValueOnce({ data: { data: { ...sampleUser, _count: { following: 2, followers: 12 } } } });
+    const { result } = renderHook(() => useUserProfile("u1"), { wrapper: createWrapper() });
+
+    await waitFor(() => expect(result.current.data).toMatchObject({ _count: { following: 3, followers: 13 } }));
+    expect(mockGET).toHaveBeenCalledOnce();
+    await act(async () => { await result.current.refetch(); });
+
+    await waitFor(() => expect(result.current.data).toMatchObject({ _count: { following: 2, followers: 12 } }));
+    expect(mockGET.mock.calls.map(([path]) => path)).toEqual(["/api/v1/users/{id}", "/api/v1/users/{id}"]);
   });
 
   test("userId 为 undefined 时不请求", () => {

@@ -42,6 +42,22 @@ describe("当前用户资料 hooks", () => {
     expect(client.getQueryData(queryKeys.me)).toEqual(currentUser);
   });
 
+  test("刷新本人资料采用服务端修正计数，不额外请求关系列表", async () => {
+    mockGET
+      .mockResolvedValueOnce({ data: { data: { ...currentUser, _count: { following: 3, followers: 13 } } } })
+      .mockResolvedValueOnce({ data: { data: { ...currentUser, _count: { following: 2, followers: 12 } } } });
+    const { client, Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useMe(), { wrapper: Wrapper });
+
+    await waitFor(() => expect(result.current.data?._count).toEqual({ following: 3, followers: 13 }));
+    expect(mockGET).toHaveBeenCalledOnce();
+    await act(async () => { await result.current.refetch(); });
+
+    await waitFor(() => expect(result.current.data?._count).toEqual({ following: 2, followers: 12 }));
+    expect(client.getQueryData(queryKeys.me)).toMatchObject({ _count: { following: 2, followers: 12 } });
+    expect(mockGET.mock.calls.map(([path]) => path)).toEqual(["/api/v1/users/me", "/api/v1/users/me"]);
+  });
+
   test("资料 API 错误与空响应都进入错误态", async () => {
     const apiError = { message: "unauthorized" };
     mockGET.mockResolvedValueOnce({ data: undefined, error: apiError });
