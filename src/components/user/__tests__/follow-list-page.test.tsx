@@ -22,6 +22,18 @@ test("本人公开路径显示计数页签，并保留原深链导航", async ()
   await person.click(screen.getByRole("tab", { name: "粉丝 8" }));
   expect(push).toHaveBeenCalledWith("/users/u1/followers", { scroll: false });
 });
+test("服务端资料计数刷新后同时更新两个页签，保留当前分类", () => {
+  profile.mockReturnValue({ data: { username: "本人", _count: { following: 3, followers: 13 } }, isLoading: false });
+  const view = render(<FollowListPage userId="u1" kind="followers" />);
+  expect(screen.getByRole("tab", { name: "关注 3" })).toBeInTheDocument();
+  expect(screen.getByRole("tab", { name: "粉丝 13" })).toHaveAttribute("aria-selected", "true");
+
+  profile.mockReturnValue({ data: { username: "本人", _count: { following: 2, followers: 12 } }, isLoading: false });
+  view.rerender(<FollowListPage userId="u1" kind="followers" />);
+  expect(screen.getByRole("tab", { name: "关注 2" })).toBeInTheDocument();
+  expect(screen.getByRole("tab", { name: "粉丝 12" })).toHaveAttribute("aria-selected", "true");
+  expect(push).not.toHaveBeenCalled();
+});
 test("他人页保持浏览入口", () => {
   render(<FollowListPage userId="u2" kind="followers" />);
   expect(screen.queryByRole("tab")).not.toBeInTheDocument();

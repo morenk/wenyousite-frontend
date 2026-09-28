@@ -3499,7 +3499,9 @@ export interface components {
             mobile: components["schemas"]["ProfileCoverVariantResponseDto"] | null;
         };
         UserSocialCountResponseDto: {
+            /** @description 当前查看者可见且未注销的关注账号数；与关注列表口径一致，游客资料可能命中最长五分钟缓存。 */
             following: number;
+            /** @description 当前查看者可见且未注销的粉丝账号数；与粉丝列表口径一致，游客资料可能命中最长五分钟缓存。 */
             followers: number;
         };
         CurrentUserResponseDto: {
