@@ -131,7 +131,7 @@ export function ReplyDiscussion({
                   ) : null}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  #{rootPost.floorNumber} · <WenyouTime value={rootPost.createdAt} />
+                  #{rootPost.floorNumber} · <WenyouTime value={rootPost.editedAt ?? rootPost.createdAt} labelPrefix={rootPost.editedAt ? "编辑于" : undefined} />
                 </p>
               </div>
             </div>

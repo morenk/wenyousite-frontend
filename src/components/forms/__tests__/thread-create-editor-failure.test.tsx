@@ -1,9 +1,10 @@
 import { afterAll, afterEach, expect, test, vi } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Editor } from "@milkdown/core";
-import { serializerCtx } from "@milkdown/core";
+import { editorViewCtx, serializerCtx } from "@milkdown/core";
+import { TextSelection } from "@milkdown/kit/prose/state";
 import { toast } from "sonner";
 import { ThreadCreateForm } from "@/components/forms/thread-create-form";
 import { EditorMarkdownCodecError } from "@/components/editor/milkdown-markdown-codec";
@@ -122,8 +123,15 @@ test.each(["继续输入", "撤销"])("真实 bridge 编码失败保留新输入
       return serialize(doc);
     });
   });
+  // happy-dom 不提供真实鼠标落点；显式固定输入光标，继续通过键盘触发真实 bridge。
+  const focusEnd = () => act(() => instance.editor!.action((ctx) => {
+    const view = ctx.get(editorViewCtx);
+    view.dispatch(view.state.tr.setSelection(TextSelection.atEnd(view.state.doc)));
+    view.focus();
+  }));
+  focusEnd();
   failSerialization = true;
-  await user.type(editor.querySelector("p")!, "B");
+  await user.keyboard("B");
   expect(editor.textContent).toBe("AB");
   expect(failures).toBeGreaterThan(0);
   expect(toast.error).toHaveBeenCalled();
@@ -135,10 +143,10 @@ test.each(["继续输入", "撤销"])("真实 bridge 编码失败保留新输入
   expect(editor.textContent).toBe("AB");
 
   failSerialization = false;
+  focusEnd();
   if (recovery === "撤销") {
-    await user.click(editor.querySelector("p")!);
     await user.keyboard("{Control>}z{/Control}");
-  } else await user.type(editor.querySelector("p")!, "C");
+  } else await user.keyboard("C");
   const expectedContent = recovery === "撤销" ? "A" : "ABC";
   expect(editor.textContent).toBe(expectedContent);
   await user.click(screen.getByRole("button", { name: "保存草稿" }));

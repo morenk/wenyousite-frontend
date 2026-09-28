@@ -195,6 +195,23 @@ describe("ReplyList", () => {
     );
   });
 
+  test.each(["embedded", "discussion"] as const)("%s 回复列表只展示服务端编辑时间，兼容无编辑记录", (variant) => {
+    const editedAt = "2026-02-02T00:00:00Z";
+    mockUseReplies.mockReturnValue(dataWithReplies([
+      baseReply({ id: "historical", editedAt: null, version: 3, updatedAt: editedAt }),
+      baseReply({ id: "edited", editedAt }),
+    ]));
+    render(<ReplyList postId="post-1" variant={variant} />, { wrapper: createWrapper() });
+    const original = document.querySelector("#post-historical time");
+    expect(original).toHaveAttribute("datetime", baseReply().createdAt);
+    expect(original).not.toHaveTextContent("编辑于");
+    const edited = document.querySelector("#post-edited time");
+    expect(edited).toHaveTextContent(/^编辑于/u);
+    expect(edited).toHaveAttribute("datetime", editedAt);
+    expect(edited).toHaveAccessibleName("编辑于2026-02-02");
+    expect(document.querySelectorAll("#post-edited time")).toHaveLength(1);
+  });
+
   test("精确回复遮罩定位期间停用列表哨兵，避免同一页重复加载", () => {
     const query = dataWithReplies([baseReply()]);
     query.hasNextPage = true;

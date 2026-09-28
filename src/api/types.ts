@@ -5016,6 +5016,11 @@ export interface components {
             updatedAt: string;
             /**
              * Format: date-time
+             * @description 最后一次成功保存且规范化正文实际改变的服务端时间；历史与未编辑帖子为 null
+             */
+            editedAt?: string | null;
+            /**
+             * Format: date-time
              * @description 主楼层置顶到当前子贴的时间；正文和楼中楼回复为 null
              */
             pinnedAt?: string | null;
@@ -5051,6 +5056,11 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
+            /**
+             * Format: date-time
+             * @description 最后一次成功保存且规范化正文实际改变的服务端时间；历史与未编辑帖子为 null
+             */
+            editedAt?: string | null;
             /**
              * Format: date-time
              * @description 主楼层置顶到当前子贴的时间；正文和楼中楼回复为 null
@@ -5113,6 +5123,11 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
+            /**
+             * Format: date-time
+             * @description 最后一次成功保存且规范化正文实际改变的服务端时间；历史与未编辑帖子为 null
+             */
+            editedAt?: string | null;
             /**
              * Format: date-time
              * @description 主楼层置顶到当前子贴的时间；正文和楼中楼回复为 null
@@ -5183,6 +5198,11 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
+            /**
+             * Format: date-time
+             * @description 最后一次成功保存且规范化正文实际改变的服务端时间；历史与未编辑帖子为 null
+             */
+            editedAt?: string | null;
             /**
              * Format: date-time
              * @description 主楼层置顶到当前子贴的时间；正文和楼中楼回复为 null
