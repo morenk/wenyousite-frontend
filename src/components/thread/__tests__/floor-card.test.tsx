@@ -162,6 +162,41 @@ describe("FloorCard", () => {
     );
   });
 
+  test.each([undefined, null])("旧响应或无编辑记录仍显示发布时间，不从更新与版本推断：%s", (editedAt) => {
+    renderWithQC(<FloorCard floor={{ ...baseFloor, editedAt, version: 4, updatedAt: "2026-02-02T00:00:00Z" }} />);
+    const meta = screen.getByTestId("floor-card-meta");
+    expect(meta.querySelectorAll("time")).toHaveLength(1);
+    expect(meta.querySelector("time")).toHaveAttribute("datetime", baseFloor.createdAt);
+    expect(meta).not.toHaveTextContent("编辑于");
+  });
+
+  test("编辑后的楼层只展示编辑时间及其日期语义", () => {
+    const editedAt = "2026-02-02T00:00:00Z";
+    renderWithQC(<FloorCard floor={{ ...baseFloor, editedAt }} />);
+    const meta = screen.getByTestId("floor-card-meta");
+    const time = meta.querySelector("time");
+    expect(meta.querySelectorAll("time")).toHaveLength(1);
+    expect(time).toHaveTextContent(/^编辑于/u);
+    expect(time).toHaveAttribute("datetime", editedAt);
+    expect(time).toHaveAttribute("title", "编辑于2026-02-02");
+    expect(time).toHaveAccessibleName("编辑于2026-02-02");
+    expect(meta.querySelector(`time[datetime="${baseFloor.createdAt}"]`)).toBeNull();
+  });
+
+  test("内嵌楼中楼预览分别使用编辑时间或原发布时间", () => {
+    const editedAt = "2026-02-02T00:00:00Z";
+    const replies = [inlineReply("old"), { ...inlineReply("historical"), editedAt: null }, { ...inlineReply("edited"), editedAt }];
+    renderWithQC(<FloorCard floor={{ ...baseFloor, replies, _count: { replies: 3 } }} />);
+    const cards = screen.getAllByTestId("inline-reply");
+    expect(cards[0].querySelector("time")).toHaveAttribute("datetime", baseFloor.createdAt);
+    expect(cards[1].querySelector("time")).toHaveAttribute("datetime", baseFloor.createdAt);
+    const editedTime = cards[2].querySelector("time");
+    expect(editedTime).toHaveTextContent(/^编辑于/u);
+    expect(editedTime).toHaveAttribute("datetime", editedAt);
+    expect(editedTime).toHaveAccessibleName("编辑于2026-02-02");
+    expect(cards[2].querySelectorAll("time")).toHaveLength(1);
+  });
+
   test("管理员可从楼层菜单进入站务隐藏", async () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({ user: { id: "admin-1", role: "ADMIN" }, isInitialized: true });

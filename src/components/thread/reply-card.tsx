@@ -183,7 +183,7 @@ export function ReplyCard({
         data-testid="reply-card-meta"
         className="mt-3 flex min-h-8 items-center justify-between gap-3"
       >
-        <WenyouTime value={reply.createdAt} className="text-xs text-muted-foreground" />
+        <WenyouTime value={reply.editedAt ?? reply.createdAt} labelPrefix={reply.editedAt ? "编辑于" : undefined} className="text-xs text-muted-foreground" />
         {!isEditing && user ? (
           <ReplyActionButton
             presentation="labeled"

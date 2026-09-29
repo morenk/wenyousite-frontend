@@ -183,12 +183,12 @@ export function FloorCard({
         </div>
       )}
 
-      {/* 发布时间与直接回复入口：承接正文，并保持在楼中楼预览上方。 */}
+      {/* 内容时间与直接回复入口：承接正文，并保持在楼中楼预览上方。 */}
       <div
         data-testid="floor-card-meta"
         className="mt-3 flex min-h-6 items-center justify-between gap-3"
       >
-        <WenyouTime value={floor.createdAt} className="text-xs text-muted-foreground" />
+        <WenyouTime value={floor.editedAt ?? floor.createdAt} labelPrefix={floor.editedAt ? "编辑于" : undefined} className="text-xs text-muted-foreground" />
         {!isEditing && user ? (
           <div data-testid="floor-card-actions" className="ml-auto flex items-center gap-1">
             <ReplyActionButton presentation="labeled" onClick={handleStartReply} />

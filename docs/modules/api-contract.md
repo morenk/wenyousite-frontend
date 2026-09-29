@@ -104,3 +104,9 @@ Web 的图集接入范围是固定 OpenAPI、配套媒体展示夹具及生成�
 Web 通过独立管理 Cookie/CSRF 会话消费 `/admin/mobile-releases` 列表、详情、创建、编辑和确认接口，直接使用生成的 `AdminMobileReleaseDto`。列表按构建号倒序、不透明游标分页；平台和构建号不可更改，仅从未确认的版本名允许修正。编辑和确认携带最后核对的 `revision`，409 保留输入并重新核对；40007 返回第一页重新读取。`confirmed`、`published` 和 `hasUnconfirmedChanges` 分别决定确认快照、公开快照和待修订提示，不能仅由 `PUBLISHED` 推断新稿已公开。
 
 摘要上限 200 个 Unicode 字符；内容 1–30 项，每项上限 500 个 Unicode 字符。表单遵循已提交 DTO 校验，不使用 HTML 或 Markdown 渲染。审计新增 `MOBILE_RELEASE_UPDATED` / `MOBILE_RELEASE` 中文标签。公开查询由 Mobile 消费，Web 后台不提供发包或修改 `/meta` 策略入口；行为见[后台模块](admin-station.md#移动端版本说明)。
+
+## 楼层编辑时间
+
+固定契约同步自 Backend 已提交 `dc62a36dcf016f58fadcf53672215bb5fa66e618`（`5.28.0-dev.20260929.1`）。使用 `WENYOUSITE_BACKEND_ROOT` 指向包含该提交的 Backend 仓库，并设置 `BACKEND_CONTRACT_REF` 为该完整 SHA，执行 `pnpm contract:sync`、`pnpm generate:api`，检查使用相同来源。完整快照同时包含已合并的关注/粉丝计数口径说明，不改变 Web 关系界面行为。
+
+`PostResponseDto`、`FloorResponseDto`、`ReplyResponseDto` 与 `PostDetailResponseDto` 新增可选、可空 `editedAt`，覆盖保存结果、主楼层、内嵌回复、回复分页及深链定位。它表示规范化正文实际改变且事务成功的最后服务端时间；历史与未编辑记录为 `null`，旧响应可省略。客户端直接透传生成类型，不从 `updatedAt`、版本号或置顶状态推断编辑。展示范围及缓存刷新见[主题帖详情](thread-detail.md)。兼容 Backend 先行，消费者随后；本次不移除旧字段、不更改 Foundation 格式化 API 或依赖版本。

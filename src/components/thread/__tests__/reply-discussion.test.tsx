@@ -156,6 +156,20 @@ describe("ReplyDiscussion", () => {
     expect(screen.getByRole("button", { name: "登录后参与讨论" })).toBeInTheDocument();
   });
 
+  test("独立楼中楼页的原楼层显示编辑时间，重新进入仍保持语义", () => {
+    mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
+    const editedAt = "2026-08-02T00:00:00Z";
+    const view = () => <ThreadComposerProvider><ReplyDiscussion rootPost={{ ...rootPost, editedAt }} /></ThreadComposerProvider>;
+    const first = render(view());
+    expect(document.querySelector("time")).toHaveAttribute("datetime", editedAt);
+    expect(document.querySelector("time")).toHaveAccessibleName("编辑于2026-08-02");
+    expect(document.querySelectorAll("time")).toHaveLength(1);
+    first.unmount();
+    render(view());
+    expect(document.querySelector("time")).toHaveAttribute("datetime", editedAt);
+    expect(document.querySelector("time")).toHaveTextContent(/^编辑于/u);
+  });
+
   test("登录用户在浮动输入坞中看到发表回复入口", () => {
     mockUseAuth.mockReturnValue({ user: { id: "u2" }, isInitialized: true });
     render(

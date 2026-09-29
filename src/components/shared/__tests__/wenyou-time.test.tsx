@@ -1,10 +1,11 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
 import { WenyouTime } from "@/components/shared/wenyou-time";
 
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
   vi.restoreAllMocks();
 });
 
@@ -31,6 +32,34 @@ describe("WenyouTime", () => {
     expect(time).toHaveAccessibleName(time.getAttribute("title") ?? "");
     expect(time).toHaveClass("font-utility", "tabular-nums");
     expect(time).not.toHaveTextContent(/\d{2}:\d{2}/u);
+  });
+
+  test.each([
+    [new Date(reference.getTime() - 59_999), "刚刚"],
+    [new Date(reference.getTime() - 60_000), "1 分钟前"],
+    [new Date(reference.getTime() - 3_600_000), "1 小时前"],
+    [new Date(reference.getTime() - 86_400_000), "1 天前"],
+    [new Date(reference.getTime() - 259_200_000), "08-14"],
+    [new Date(2025, 11, 31, 23, 0, 0), "2025-12-31"],
+  ])("编辑前缀沿用时间边界并统一悬停与读屏日期 %s", (value, label) => {
+    render(<WenyouTime value={value} reference={reference} labelPrefix="编辑于" />);
+
+    const time = screen.getByText(`编辑于${label}`);
+    expect(time).toHaveAttribute("title", expect.stringMatching(/^编辑于\d{4}-\d{2}-\d{2}$/u));
+    expect(time).toHaveAccessibleName(time.getAttribute("title") ?? "");
+    expect(time).toHaveAttribute("datetime", value.toISOString());
+    expect(time).not.toHaveAttribute("labelPrefix");
+  });
+
+  test("编辑时间使用共享时钟自动从刚刚刷新为分钟前", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(reference);
+    const value = new Date(reference.getTime() - 45_000);
+    render(<WenyouTime value={value} labelPrefix="编辑于" />);
+    expect(screen.getByText("编辑于刚刚")).toBeInTheDocument();
+
+    act(() => { vi.advanceTimersByTime(30_000); });
+    expect(screen.getByText("编辑于1 分钟前")).toHaveAttribute("datetime", value.toISOString());
   });
 
   test("日期按用户本地午夜边界显示，同时保留原始 UTC 时间戳", () => {
