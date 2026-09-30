@@ -96,7 +96,8 @@ export function applyMilkdownToolbarDensity(
   const primary = new Set<string>(EDITOR_PRIMARY_BY_DENSITY[density]);
   topBar.querySelectorAll<HTMLElement>("[data-editor-tool]").forEach((item) => {
     const tool = item.dataset.editorTool ?? "";
-    item.hidden = !primary.has(tool) || (tool === "alignment" && !alignmentEnabled);
+    const capability = tool === "align-center" || tool === "align-right" ? "alignment" : tool;
+    item.hidden = !primary.has(capability) || (capability === "alignment" && !alignmentEnabled);
   });
 
   const inner = topBar.querySelector<HTMLElement>(".top-bar-inner");

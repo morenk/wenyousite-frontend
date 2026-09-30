@@ -134,9 +134,8 @@ import {
   createEditorAlignmentPlugin,
   configureEditorAlignmentParser,
   configureEditorAlignmentSchemas,
-  cycleEditorAlignment,
+  toggleEditorAlignment,
   getSelectedTextAlignment,
-  setEditorAlignment,
   setSelectedEditorHeading,
 } from "@/components/editor/editor-alignment";
 import {
@@ -190,16 +189,12 @@ function syncAlignmentToolbarState(
   root: ParentNode,
   alignment: WenyouTextAlignment,
 ) {
-  const icon = editorAlignmentIconSvg(alignment);
-  const label = `${alignmentLabel(alignment)}，点击切换`;
-  root.querySelectorAll<HTMLButtonElement>('[data-editor-tool="alignment"]')
-    .forEach((button) => {
-      button.title = label;
-      button.setAttribute("aria-label", label);
-      const previousAlignment = button.dataset.editorAlignment;
-      button.dataset.editorAlignment = alignment;
-      if (previousAlignment !== alignment) button.innerHTML = icon;
-    });
+  for (const option of ["center", "right"] as const) {
+    root.querySelectorAll<HTMLButtonElement>(`[data-editor-tool="align-${option}"]`)
+      .forEach((button) => {
+        button.setAttribute("aria-pressed", String(alignment === option));
+      });
+  }
 }
 
 function positionEditorPopover(
@@ -445,9 +440,6 @@ export function MilkdownEditorHost({
     crepeRef.current?.editor.action((ctx) => {
       const commands = ctx.get(commandsCtx);
       switch (capability) {
-        case "alignment":
-          cycleEditorAlignment(ctx, imageAlignmentEnabledRef.current);
-          break;
         case "link":
           commands.call(toggleLinkCommand.key);
           break;
@@ -517,9 +509,9 @@ export function MilkdownEditorHost({
     runMoreCommand(capability);
   }, [handleOpenDice, onOpenDrafts, runMoreCommand]);
 
-  const handleMoreAlignmentSelect = useCallback((alignment: WenyouTextAlignment) => {
+  const handleMoreAlignmentSelect = useCallback((alignment: Exclude<WenyouTextAlignment, "left">) => {
     crepeRef.current?.editor.action((ctx) =>
-      setEditorAlignment(ctx, alignment, imageAlignmentEnabledRef.current),
+      toggleEditorAlignment(ctx, alignment, imageAlignmentEnabledRef.current),
     );
     setMoreMenuAnchor(null);
   }, []);
@@ -670,14 +662,17 @@ export function MilkdownEditorHost({
             };
           });
 
-          builder.addGroup("alignment", "对齐").addItem("alignment", {
-            icon: editorAlignmentIconSvg("left"),
-            active: (ctx) => getSelectedTextAlignment(
-              ctx.get(editorViewCtx).state,
-              imageAlignmentEnabledRef.current,
-            ) !== "left",
-            onRun: (ctx) => cycleEditorAlignment(ctx, imageAlignmentEnabledRef.current),
-          });
+          const alignmentControls = builder.addGroup("alignment", "对齐");
+          for (const alignment of ["center", "right"] as const) {
+            alignmentControls.addItem(`align-${alignment}`, {
+              icon: editorAlignmentIconSvg(alignment),
+              active: (ctx) => getSelectedTextAlignment(
+                ctx.get(editorViewCtx).state,
+                imageAlignmentEnabledRef.current,
+              ) === alignment,
+              onRun: (ctx) => toggleEditorAlignment(ctx, alignment, imageAlignmentEnabledRef.current),
+            });
+          }
 
           const groups = builder.build();
           const alignmentIndex = groups.findIndex((group) => group.key === "alignment");
@@ -748,8 +743,9 @@ export function MilkdownEditorHost({
                 const key = item.key === "code" ? "inline-code" : item.key;
                 return {
                   key,
-                  label:
-                    EDITOR_CAPABILITY_LABELS[
+                  label: key === "align-center" || key === "align-right"
+                    ? alignmentLabel(key === "align-center" ? "center" : "right")
+                    : EDITOR_CAPABILITY_LABELS[
                       key as keyof typeof EDITOR_CAPABILITY_LABELS
                     ] ?? item.key,
                 };

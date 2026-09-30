@@ -232,7 +232,7 @@ test("编辑器格式、分隔线、窄栏、骰子与正文草稿工具在真�
   const toolbar = page.getByRole("toolbar", { name: "正文格式工具栏" });
   await expect(toolbar.getByRole("button", { name: "删除线" })).toBeVisible();
   await expect(toolbar.getByRole("button", { name: "无序列表" })).toBeVisible();
-  await expect(toolbar.getByRole("button", { name: "左对齐，点击切换" })).toBeVisible();
+  await expect(toolbar.getByRole("button", { name: "居中对齐" })).toBeVisible();
   await expect(toolbar.getByRole("button", { name: "骰子" })).toBeVisible();
   await expect(toolbar.getByRole("button", { name: "更多" })).toHaveCount(0);
 
@@ -270,7 +270,7 @@ test("编辑器格式、分隔线、窄栏、骰子与正文草稿工具在真�
   for (const label of ["行内代码", "引用", "分隔线", "骰子"]) {
     await expect(toolbar.getByRole("button", { name: label })).toBeVisible();
   }
-  for (const label of ["链接", "无序列表", "有序列表", "左对齐，点击切换"]) {
+  for (const label of ["链接", "无序列表", "有序列表", "居中对齐"]) {
     await expect(toolbar.getByRole("button", { name: label })).not.toBeVisible();
   }
   const moreButton = toolbar.getByRole("button", { name: "更多" });
@@ -284,25 +284,32 @@ test("编辑器格式、分隔线、窄栏、骰子与正文草稿工具在真�
   await expect(moreMenu.getByRole("menuitem", { name: "链接" }))
     .toHaveAttribute("tabindex", "-1");
   const alignmentPicker = moreMenu.getByRole("group", { name: "段落对齐" });
-  await expect(alignmentPicker.getByRole("menuitemradio", { name: "左对齐" }))
-    .toHaveAttribute("aria-checked", "true");
-  await expect(alignmentPicker.getByRole("menuitemradio", { name: "居中对齐" }))
+  await expect(alignmentPicker.getByRole("menuitemcheckbox", { name: "左对齐" })).toHaveCount(0);
+  await expect(alignmentPicker.getByRole("menuitemcheckbox", { name: "居中对齐" }))
     .toHaveAttribute("aria-checked", "false");
   await expect(moreMenu).toHaveScreenshot("editor-more-menu.png", {
     animations: "disabled",
   });
-  await alignmentPicker.getByRole("menuitemradio", { name: "居中对齐" }).hover();
+  await alignmentPicker.getByRole("menuitemcheckbox", { name: "居中对齐" }).hover();
   await expect(page.getByRole("tooltip")).toHaveText("居中对齐");
-  await alignmentPicker.getByRole("menuitemradio", { name: "居中对齐" }).click();
+  await alignmentPicker.getByRole("menuitemcheckbox", { name: "居中对齐" }).click();
   await expect(editor.locator(":scope > p").first()).toHaveAttribute(
     "data-wenyou-align",
     "center",
   );
   await moreButton.click();
-  await moreMenu.getByRole("menuitemradio", { name: "左对齐" }).click();
+  await moreMenu.getByRole("menuitemcheckbox", { name: "居中对齐" }).click();
   await expect(editor.locator(":scope > p").first()).not.toHaveAttribute(
     "data-wenyou-align",
   );
+  await moreButton.click();
+  await moreMenu.getByRole("menuitemcheckbox", { name: "右对齐" }).click();
+  await expect(editor.locator(":scope > p").first()).toHaveAttribute("data-wenyou-align", "right");
+  await moreButton.click();
+  await expect(moreMenu.getByRole("menuitemcheckbox", { name: "右对齐" }))
+    .toHaveAttribute("aria-checked", "true");
+  await moreMenu.getByRole("menuitemcheckbox", { name: "右对齐" }).click();
+  await expect(editor.locator(":scope > p").first()).not.toHaveAttribute("data-wenyou-align");
   await moreButton.click();
   for (const label of ["行内代码", "引用", "分隔线", "骰子"]) {
     await expect(moreMenu.getByRole("menuitem", { name: label })).toHaveCount(0);

@@ -373,15 +373,13 @@ async function expectBlockAlignment(
   }).toBe(true);
 }
 
-async function clickAlignmentCycle(
+async function selectAlignment(
   block: Locator,
   toolbar: Locator,
-  clicks: 1 | 2,
+  alignment: "center" | "right",
 ) {
   await block.click();
-  for (let index = 0; index < clicks; index += 1) {
-    await toolbar.locator('[data-editor-tool="alignment"]').click();
-  }
+  await toolbar.getByRole("button", { name: alignment === "center" ? "居中对齐" : "右对齐", exact: true }).click();
 }
 
 async function applyMark(
@@ -441,7 +439,7 @@ test.describe("编辑器对齐真实浏览器兼容性", () => {
     await expectBlockAlignment(left, "left");
 
     // 顺序一：先对齐，再逐项应用行内格式和行内原子节点。
-    await clickAlignmentCycle(center, toolbar, 1);
+    await selectAlignment(center, toolbar, "center");
     await expectBlockAlignment(center, "center");
     await applyMark(center, "粗体中文", toolbar, "粗体");
     await applyMark(center, "italicLatin", toolbar, "斜体");
@@ -487,23 +485,23 @@ test.describe("编辑器对齐真实浏览器兼容性", () => {
     // 顺序二：先创建行内 mark，再设置右对齐。
     await applyMark(right, "先格式后对齐", toolbar, "粗体");
     await applyMark(right, "mixed-CJK-Latin", toolbar, "斜体");
-    await clickAlignmentCycle(right, toolbar, 2);
+    await selectAlignment(right, toolbar, "right");
     await expectBlockAlignment(right, "right");
 
     // H2/H3 可保留对齐；列表与引用边界必须清除嵌套属性。
-    await clickAlignmentCycle(headingParagraph, toolbar, 1);
+    await selectAlignment(headingParagraph, toolbar, "center");
     await toolbar.getByRole("button", { name: "切换正文样式" }).click();
     await toolbar.getByRole("button", { name: "标题 2" }).click();
     const heading = editor.locator(":scope > h2").filter({ hasText: HEADING_TEXT });
     await expectBlockAlignment(heading, "center");
 
-    await clickAlignmentCycle(listParagraph, toolbar, 1);
+    await selectAlignment(listParagraph, toolbar, "center");
     await toolbar.getByRole("button", { name: "无序列表" }).click();
     const listItem = editor.locator("li p").filter({ hasText: LIST_TEXT });
     await expect(listItem).not.toHaveAttribute("data-wenyou-align");
     await expect(listItem).not.toHaveCSS("text-align", "center");
 
-    await clickAlignmentCycle(quoteParagraph, toolbar, 2);
+    await selectAlignment(quoteParagraph, toolbar, "right");
     await toolbar.getByRole("button", { name: "引用" }).click();
     const quote = editor.locator("blockquote p").filter({ hasText: QUOTE_TEXT });
     await expect(quote).not.toHaveAttribute("data-wenyou-align");
@@ -599,7 +597,7 @@ test.describe("编辑器对齐真实浏览器兼容性", () => {
       element.style.width = "880px";
     });
     await expect(toolbar).toHaveAttribute("data-editor-density", "expanded");
-    await expect(toolbar.locator('[data-editor-tool="alignment"]')).toBeVisible();
+    await expect(toolbar.locator('[data-editor-tool="align-center"]')).toBeVisible();
     await expect(toolbar.getByRole("button", { name: "更多" })).toHaveCount(0);
     for (const control of await toolbar.locator(
       ".top-bar-heading-button, .top-bar-item",
@@ -616,25 +614,27 @@ test.describe("编辑器对齐真实浏览器兼容性", () => {
       element.style.width = "640px";
     });
     await expect(toolbar).toHaveAttribute("data-editor-density", "with-more");
-    await expect(toolbar.locator('[data-editor-tool="alignment"]')).not.toBeVisible();
+    await expect(toolbar.locator('[data-editor-tool="align-center"]')).not.toBeVisible();
     const more = toolbar.getByRole("button", { name: "更多" });
     await more.click();
     const menu = page.getByRole("menu", { name: "更多正文格式" });
     await expect(menu).toBeVisible();
     await expect(more).toHaveAttribute("aria-expanded", "true");
     const alignmentGroup = menu.getByRole("group", { name: "段落对齐" });
-    for (const label of ["左对齐", "居中对齐", "右对齐"]) {
+    await expect(alignmentGroup.getByRole("menuitemcheckbox")).toHaveCount(2);
+    await expect(alignmentGroup.getByRole("menuitemcheckbox", { name: "左对齐" })).toHaveCount(0);
+    for (const label of ["居中对齐", "右对齐"]) {
       await expect(
-        alignmentGroup.getByRole("menuitemradio", { name: label }),
+        alignmentGroup.getByRole("menuitemcheckbox", { name: label }),
       ).toBeVisible();
     }
     await expect(
-      alignmentGroup.getByRole("menuitemradio", { name: "左对齐" }),
-    ).toHaveAttribute("aria-checked", "true");
+      alignmentGroup.getByRole("menuitemcheckbox", { name: "居中对齐" }),
+    ).toHaveAttribute("aria-checked", "false");
     const menuMetrics = await menu.evaluate((element) => ({
       width: element.getBoundingClientRect().width,
       buttons: [...element.querySelectorAll<HTMLElement>(
-        '[role="menuitem"], [role="menuitemradio"]',
+        '[role="menuitem"], [role="menuitemcheckbox"]',
       )].map((button) => ({
         width: button.offsetWidth,
         height: button.offsetHeight,
@@ -643,7 +643,7 @@ test.describe("编辑器对齐真实浏览器兼容性", () => {
       })),
     }));
     expect(menuMetrics.width).toBeLessThanOrEqual(320);
-    expect(menuMetrics.buttons.length).toBeGreaterThanOrEqual(6);
+    expect(menuMetrics.buttons.length).toBe(5);
     expect(menuMetrics.buttons.every(({ label }) => Boolean(label))).toBe(true);
     expect(menuMetrics.buttons.every(({ tabIndex }) => tabIndex === -1)).toBe(true);
     expect(Math.min(...menuMetrics.buttons.map(({ width }) => width)))
@@ -651,7 +651,7 @@ test.describe("编辑器对齐真实浏览器兼容性", () => {
     expect(Math.min(...menuMetrics.buttons.map(({ height }) => height)))
       .toBeGreaterThanOrEqual(36);
 
-    const centerOption = alignmentGroup.getByRole("menuitemradio", {
+    const centerOption = alignmentGroup.getByRole("menuitemcheckbox", {
       name: "居中对齐",
     });
     await centerOption.hover();
@@ -812,7 +812,7 @@ for (const alignment of ["center", "right"] as const) {
     await expectBlockAlignment(editorParagraph(editor, "Next"), "left");
     await expectBlockAlignment(editorParagraph(editor, text), alignment);
     // 单独对齐新行，首段保持原对齐。
-    await clickAlignmentCycle(editorParagraph(editor, "Next"), toolbar, 1);
+    await selectAlignment(editorParagraph(editor, "Next"), toolbar, "center");
     await expectBlockAlignment(editorParagraph(editor, "Next"), "center");
     await expectBlockAlignment(editorParagraph(editor, text), alignment);
     await page.getByRole("button", { name: "保存草稿", exact: true }).click();
