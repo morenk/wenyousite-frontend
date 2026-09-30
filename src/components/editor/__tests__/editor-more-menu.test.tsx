@@ -66,7 +66,7 @@ describe("EditorMoreMenu", () => {
     await waitFor(() => expect(menu).toHaveFocus());
     expect(screen.getByRole("menuitem", { name: "行内代码" })).not.toHaveFocus();
     for (const item of menu.querySelectorAll(
-      '[role="menuitem"], [role="menuitemradio"]',
+      '[role="menuitem"], [role="menuitemcheckbox"]',
     )) {
       expect(item).toHaveAttribute("tabindex", "-1");
     }
@@ -82,7 +82,7 @@ describe("EditorMoreMenu", () => {
     expect(onSelect).toHaveBeenCalledWith("quote", expect.any(Object));
   });
 
-  test("用三枚纯图标显式选择对齐并标记当前项", async () => {
+  test("用两枚纯图标选择对齐并标记当前项", async () => {
     const onSelectAlignment = vi.fn();
     const { anchor } = createAnchor();
     render(
@@ -98,16 +98,15 @@ describe("EditorMoreMenu", () => {
 
     const menu = screen.getByRole("menu", { name: "更多正文格式" });
     const alignment = within(menu).getByRole("group", { name: "段落对齐" });
-    expect(within(alignment).getByRole("menuitemradio", { name: "左对齐" }))
-      .toHaveAttribute("aria-checked", "false");
-    expect(within(alignment).getByRole("menuitemradio", { name: "居中对齐" }))
+    expect(within(alignment).queryByRole("menuitemcheckbox", { name: "左对齐" })).toBeNull();
+    expect(within(alignment).getByRole("menuitemcheckbox", { name: "居中对齐" }))
       .toHaveAttribute("aria-checked", "true");
-    expect(within(alignment).getByRole("menuitemradio", { name: "右对齐" }))
+    expect(within(alignment).getByRole("menuitemcheckbox", { name: "右对齐" }))
       .toHaveAttribute("aria-checked", "false");
     expect(within(alignment).queryByText(/对齐/u)).toBeNull();
 
     await userEvent.setup().click(
-      within(alignment).getByRole("menuitemradio", { name: "右对齐" }),
+      within(alignment).getByRole("menuitemcheckbox", { name: "右对齐" }),
     );
     expect(onSelectAlignment).toHaveBeenCalledWith("right");
   });

@@ -221,7 +221,7 @@ describe("Milkdown 段落对齐兼容性", () => {
     const toolbar = await screen.findByRole("toolbar", { name: "正文格式工具栏" });
 
     await waitFor(() => {
-      expect(within(toolbar).queryByRole("button", { name: /对齐，点击切换/u })).toBeNull();
+      expect(within(toolbar).queryByRole("button", { name: /对齐/u })).toBeNull();
     });
 
     await makeToolbarCompact(toolbar);
@@ -230,44 +230,35 @@ describe("Milkdown 段落对齐兼容性", () => {
     expect(within(menu).queryByRole("group", { name: "段落对齐" })).toBeNull();
   });
 
-  test("v4 工具栏提供水平语义，并可用左中右循环及动态可访问名称", async () => {
+  test.each(["居中对齐", "右对齐"])("v4 %s 可反选回默认居左且名称稳定", async (label) => {
     enableMarkdownVersion(4);
     const user = userEvent.setup();
     const onChange = vi.fn();
     const { container } = renderEditor({ defaultValue: "正文", onChange });
     const editor = await getEditor(container);
-    const paragraph = editor.querySelector("p")!;
     const toolbar = await screen.findByRole("toolbar", { name: "正文格式工具栏" });
-    const alignment = await within(toolbar).findByRole("button", {
-      name: "左对齐，点击切换",
-    });
-
+    const button = await within(toolbar).findByRole("button", { name: label });
+    const alignment = label === "居中对齐" ? "center" : "right";
     expect(toolbar).toHaveAttribute("aria-orientation", "horizontal");
-    await user.click(paragraph);
-    await user.click(alignment);
+    expect(within(toolbar).queryByRole("button", { name: "左对齐" })).toBeNull();
+    expect(button).toHaveAttribute("aria-pressed", "false");
+    await user.click(editor.querySelector("p")!);
+    await user.click(button);
     await waitFor(() => {
-      expect(editor.querySelector("p")).toHaveAttribute("data-wenyou-align", "center");
-      expect(alignment).toHaveAccessibleName("居中对齐，点击切换");
-      expect(onChange).toHaveBeenLastCalledWith(
-        "[wenyousite-align-v1-center]: #\n正文",
-      );
+      expect(editor.querySelector("p")).toHaveAttribute("data-wenyou-align", alignment);
+      expect(button).toHaveAttribute("aria-pressed", "true");
+      expect(button).toHaveAccessibleName(label);
+      expect(onChange).toHaveBeenLastCalledWith(`[wenyousite-align-v1-${alignment}]: #\n正文`);
     });
-
-    await user.click(alignment);
-    await waitFor(() => {
-      expect(editor.querySelector("p")).toHaveAttribute("data-wenyou-align", "right");
-      expect(alignment).toHaveAccessibleName("右对齐，点击切换");
-    });
-
-    await user.click(alignment);
+    await user.click(button);
     await waitFor(() => {
       expect(editor.querySelector("p")).not.toHaveAttribute("data-wenyou-align");
-      expect(alignment).toHaveAccessibleName("左对齐，点击切换");
+      expect(button).toHaveAttribute("aria-pressed", "false");
       expect(onChange).toHaveBeenLastCalledWith("正文");
     });
   });
 
-  test("光标跟随各块状态，混合多块选择按一次循环统一为居中", async () => {
+  test("光标跟随各块状态，混合多块选择不选中按钮且点击统一", async () => {
     enableMarkdownVersion(4);
     const user = userEvent.setup();
     const onChange = vi.fn();
@@ -276,39 +267,36 @@ describe("Milkdown 段落对齐兼容性", () => {
       onChange,
     });
     const editor = await getEditor(container);
-    const alignment = await screen.findByRole("button", {
-      name: "左对齐，点击切换",
-    });
-
+    const center = await screen.findByRole("button", { name: "居中对齐" });
+    const right = await screen.findByRole("button", { name: "右对齐" });
     setCursor(blockWithText(editor, "中块"));
-    await waitFor(() => expect(alignment).toHaveAccessibleName("左对齐，点击切换"));
-    await user.click(alignment);
-    await waitFor(() => expect(alignment).toHaveAccessibleName("居中对齐，点击切换"));
-
+    await user.click(center);
     setCursor(blockWithText(editor, "右块"));
-    await waitFor(() => expect(alignment).toHaveAccessibleName("左对齐，点击切换"));
-    await user.click(alignment);
-    await user.click(alignment);
-    await waitFor(() => expect(alignment).toHaveAccessibleName("右对齐，点击切换"));
-
-    setCursor(blockWithText(editor, "左块"));
-    await waitFor(() => expect(alignment).toHaveAccessibleName("左对齐，点击切换"));
-    setCursor(blockWithText(editor, "中块"));
-    await waitFor(() => expect(alignment).toHaveAccessibleName("居中对齐，点击切换"));
-    setCursor(blockWithText(editor, "右块"));
-    await waitFor(() => expect(alignment).toHaveAccessibleName("右对齐，点击切换"));
-
+    await user.click(right);
+    for (const [text, centered, rightAligned] of [
+      ["左块", false, false], ["中块", true, false], ["右块", false, true],
+    ] as const) {
+      setCursor(blockWithText(editor, text));
+      await waitFor(() => {
+        expect(center).toHaveAttribute("aria-pressed", String(centered));
+        expect(right).toHaveAttribute("aria-pressed", String(rightAligned));
+      });
+    }
     selectAll(editor);
-    await waitFor(() => expect(alignment).toHaveAccessibleName("左对齐，点击切换"));
-    await user.click(alignment);
-
     await waitFor(() => {
-      for (const paragraph of ["左块", "中块", "右块"].map((text) => blockWithText(editor, text))) {
-        expect(paragraph).toHaveAttribute("data-wenyou-align", "center");
-      }
-      const saved = onChange.mock.calls.at(-1)?.[0] as string;
-      expect(alignmentMarkerCount(saved, "center")).toBe(3);
-      expect(saved).not.toContain("wenyousite-align-v1-right");
+      expect(center).toHaveAttribute("aria-pressed", "false");
+      expect(right).toHaveAttribute("aria-pressed", "false");
+    });
+    await user.click(center);
+    await waitFor(() => {
+      expect(alignmentMarkerCount(onChange.mock.calls.at(-1)?.[0] as string, "center")).toBe(3);
+      expect(right).toHaveAttribute("aria-pressed", "false");
+    });
+    await user.click(right);
+    await waitFor(() => {
+      expect(alignmentMarkerCount(onChange.mock.calls.at(-1)?.[0] as string, "right")).toBe(3);
+      expect(center).toHaveAttribute("aria-pressed", "false");
+      expect(right).toHaveAttribute("aria-pressed", "true");
     });
   });
 
@@ -331,14 +319,14 @@ describe("Milkdown 段落对齐兼容性", () => {
 
     selectAll(editor);
     const alignment = await screen.findByRole("button", {
-      name: "左对齐，点击切换",
+      name: "居中对齐",
     });
     await user.click(alignment);
     await waitFor(() => {
       expect(alignmentMarkerCount(onChange.mock.calls.at(-1)?.[0] as string, "center"))
         .toBe(styleMatrix.length);
     });
-    await user.click(alignment);
+    await user.click(screen.getByRole("button", { name: "右对齐" }));
 
     const saved = await waitFor(() => {
       const markdown = onChange.mock.calls.at(-1)?.[0] as string | undefined;
@@ -385,7 +373,7 @@ describe("Milkdown 段落对齐兼容性", () => {
       const paragraph = editor.querySelector("p")!;
       const bold = await screen.findByRole("button", { name: "粗体" });
       const alignment = await screen.findByRole("button", {
-        name: "左对齐，点击切换",
+        name: "居中对齐",
       });
 
       const applyBold = () => {
@@ -429,7 +417,7 @@ describe("Milkdown 段落对齐兼容性", () => {
     });
     const editor = await getEditor(container);
     const paragraph = editor.querySelector("p")!;
-    const alignment = await screen.findByRole("button", { name: "左对齐，点击切换" });
+    const alignment = await screen.findByRole("button", { name: "居中对齐" });
 
     expect(paragraph).not.toHaveAttribute("data-wenyou-align");
     await waitFor(() => {
@@ -446,7 +434,7 @@ describe("Milkdown 段落对齐兼容性", () => {
 
     await user.click(paragraph);
     await user.click(alignment);
-    await user.click(alignment);
+    await user.click(screen.getByRole("button", { name: "右对齐" }));
     await waitFor(() => {
       expect(editor.querySelector("p")).toHaveAttribute("data-wenyou-align", "right");
       const saved = onChange.mock.calls.at(-1)?.[0] as string;
@@ -476,7 +464,7 @@ describe("Milkdown 段落对齐兼容性", () => {
     const editor = await getEditor(container);
     selectAll(editor);
     await user.click(await screen.findByRole("button", {
-      name: "左对齐，点击切换",
+      name: "居中对齐",
     }));
 
     await waitFor(() => {
@@ -506,7 +494,7 @@ describe("Milkdown 段落对齐兼容性", () => {
     });
     const editor = await getEditor(container);
     const alignment = await screen.findByRole("button", {
-      name: "左对齐，点击切换",
+      name: "居中对齐",
     });
     const paragraphs = Array.from(editor.querySelectorAll(":scope > p"));
 
@@ -528,7 +516,7 @@ describe("Milkdown 段落对齐兼容性", () => {
     });
     const editor = await getEditor(container);
     await user.click(editor.querySelector("p")!);
-    await user.click(await screen.findByRole("button", { name: "左对齐，点击切换" }));
+    await user.click(await screen.findByRole("button", { name: "居中对齐" }));
     await waitFor(() => {
       expect(editor.querySelector(":scope > p")).toHaveAttribute("data-wenyou-align", "center");
     });
@@ -558,7 +546,7 @@ describe("Milkdown 段落对齐兼容性", () => {
     const { container } = renderEditor({ defaultValue: "引用转换正文", onChange });
     const editor = await getEditor(container);
     await user.click(editor.querySelector("p")!);
-    await user.click(await screen.findByRole("button", { name: "左对齐，点击切换" }));
+    await user.click(await screen.findByRole("button", { name: "居中对齐" }));
     fireEvent.pointerDown(screen.getByRole("button", { name: "引用" }));
 
     await waitFor(() => {
@@ -576,7 +564,7 @@ describe("Milkdown 段落对齐兼容性", () => {
     const paragraph = editor.querySelector("p")!;
     await user.click(paragraph);
     await user.click(await screen.findByRole("button", {
-      name: "左对齐，点击切换",
+      name: "居中对齐",
     }));
     await waitFor(() => {
       expect(editor.querySelector("p")).toHaveAttribute("data-wenyou-align", "center");
@@ -611,7 +599,7 @@ describe("Milkdown 段落对齐兼容性", () => {
     });
     const editor = await getEditor(container);
     setCursor(editor.querySelector("p")!);
-    fireEvent.pointerDown(await screen.findByRole("button", { name: "左对齐，点击切换" }));
+    fireEvent.pointerDown(await screen.findByRole("button", { name: "居中对齐" }));
     await waitFor(() => {
       expect(editor.querySelector("p")).toHaveAttribute("data-wenyou-align", "center");
     });
@@ -710,7 +698,7 @@ describe("Milkdown 段落对齐兼容性", () => {
 
     expect(imageBlock).toHaveAttribute("data-wenyou-align", "center");
     const alignment = await screen.findByRole("button", {
-      name: "居中对齐，点击切换",
+      name: "右对齐",
     });
     fireEvent.click(imageBlock);
     await userEvent.setup().click(alignment);
@@ -745,7 +733,7 @@ describe("Milkdown 段落对齐兼容性", () => {
     expect(onChange.mock.calls.at(-1)?.[0]).not.toContain("wenyousite-align");
   });
 
-  test("工具栏仅接受指针操作，窄栏三枚 radio 仍保留完整 ARIA 状态", async () => {
+  test("工具栏仅接受指针操作，窄栏两枚 toggle 仍保留完整 ARIA 状态", async () => {
     enableMarkdownVersion(4);
     const user = userEvent.setup();
     const { container } = renderEditor({ defaultValue: "指针正文" });
@@ -760,13 +748,11 @@ describe("Milkdown 段落对齐兼容性", () => {
 
     const menu = await screen.findByRole("menu", { name: "更多正文格式" });
     const group = within(menu).getByRole("group", { name: "段落对齐" });
-    const left = within(group).getByRole("menuitemradio", { name: "左对齐" });
-    const center = within(group).getByRole("menuitemradio", { name: "居中对齐" });
-    const right = within(group).getByRole("menuitemradio", { name: "右对齐" });
-    expect(left).toHaveAttribute("aria-checked", "true");
+    expect(within(group).queryByRole("menuitemcheckbox", { name: "左对齐" })).toBeNull();
+    const center = within(group).getByRole("menuitemcheckbox", { name: "居中对齐" });
+    const right = within(group).getByRole("menuitemcheckbox", { name: "右对齐" });
     expect(center).toHaveAttribute("aria-checked", "false");
     expect(right).toHaveAttribute("aria-checked", "false");
-    expect(left).toHaveAttribute("tabindex", "-1");
     expect(center).toHaveAttribute("tabindex", "-1");
     expect(right).toHaveAttribute("tabindex", "-1");
 

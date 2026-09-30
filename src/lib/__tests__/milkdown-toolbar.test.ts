@@ -283,6 +283,18 @@ describe("syncMilkdownToolbarVisibility", () => {
     expect(root.querySelectorAll(".top-bar-divider[hidden]")).toHaveLength(1);
   });
 
+  test("双对齐按钮共用 Foundation 对齐能力收纳与版本门控", () => {
+    const toolbar = document.createElement("div");
+    toolbar.innerHTML = '<button data-editor-tool="align-center"></button><button data-editor-tool="align-right"></button>';
+    const buttons = Array.from(toolbar.querySelectorAll("button"));
+    applyMilkdownToolbarDensity(toolbar, "expanded");
+    buttons.forEach((button) => expect(button).not.toHaveAttribute("hidden"));
+    applyMilkdownToolbarDensity(toolbar, "with-more");
+    buttons.forEach((button) => expect(button).toHaveAttribute("hidden"));
+    applyMilkdownToolbarDensity(toolbar, "expanded", false);
+    buttons.forEach((button) => expect(button).toHaveAttribute("hidden"));
+  });
+
   test("更多菜单按工具栏密度只返回当前隐藏能力", () => {
     expect(getMilkdownMoreCapabilities("with-more", true)).toEqual([
       "link",

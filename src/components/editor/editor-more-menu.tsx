@@ -28,11 +28,11 @@ interface EditorMoreMenuProps {
   items: EditorMoreMenuItem[];
   alignment: WenyouTextAlignment;
   onSelect: (id: EditorCapabilityId, anchor: DOMRect) => void;
-  onSelectAlignment: (alignment: WenyouTextAlignment) => void;
+  onSelectAlignment: (alignment: Exclude<WenyouTextAlignment, "left">) => void;
   onClose: () => void;
 }
 
-const ALIGNMENTS: readonly WenyouTextAlignment[] = ["left", "center", "right"];
+const ALIGNMENTS = ["center", "right"] as const;
 
 const iconButtonClassName = cn(
   "inline-flex size-10 shrink-0 items-center justify-center rounded-[var(--radius-control)] text-muted-foreground outline-none",
@@ -101,7 +101,7 @@ export function EditorMoreMenu({
                       role="group"
                       aria-label="段落对齐"
                       data-editor-alignment-picker
-                      className="inline-grid h-10 shrink-0 grid-cols-3 gap-0.5 rounded-[var(--radius-control)] bg-muted p-0.5"
+                      className="inline-grid h-10 shrink-0 grid-cols-2 gap-0.5 rounded-[var(--radius-control)] bg-muted p-0.5"
                     >
                       {ALIGNMENTS.map((option) => {
                         const label = alignmentLabel(option);
@@ -110,7 +110,7 @@ export function EditorMoreMenu({
                             <button
                               type="button"
                               tabIndex={-1}
-                              role="menuitemradio"
+                              role="menuitemcheckbox"
                               aria-label={label}
                               aria-checked={alignment === option}
                               data-editor-alignment-option={option}

@@ -398,19 +398,6 @@ export function getSelectedTextAlignment(
   return blocks.every((item) => item.node.attrs.textAlign === first) ? first : "left";
 }
 
-export function cycleSelectedTextAlignment(
-  view: EditorView,
-  imageAlignmentEnabled = false,
-): boolean {
-  const current = getSelectedTextAlignment(view.state, imageAlignmentEnabled);
-  const next: WenyouTextAlignment = current === "left"
-    ? "center"
-    : current === "center"
-      ? "right"
-      : "left";
-  return setSelectedTextAlignment(view, next, imageAlignmentEnabled);
-}
-
 export function setSelectedTextAlignment(
   view: EditorView,
   alignment: WenyouTextAlignment,
@@ -517,11 +504,15 @@ export function createEditorAlignmentPlugin(
   }));
 }
 
-export function cycleEditorAlignment(ctx: Ctx, imageAlignmentEnabled = false): boolean {
+/** 用户再次选择当前对齐时恢复默认居左；直接设置命令仍保持幂等。 */
+export function toggleEditorAlignment(
+  ctx: Ctx,
+  alignment: Exclude<WenyouTextAlignment, "left">,
+  imageAlignmentEnabled = false,
+): boolean {
   const view = ctx.get(editorViewCtx);
-  const changed = cycleSelectedTextAlignment(view, imageAlignmentEnabled);
-  view.focus();
-  return changed;
+  const current = getSelectedTextAlignment(view.state, imageAlignmentEnabled);
+  return setEditorAlignment(ctx, current === alignment ? "left" : alignment, imageAlignmentEnabled);
 }
 
 export function setEditorAlignment(

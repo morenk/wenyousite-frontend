@@ -241,19 +241,19 @@ describe("MilkdownEditor 能力分层", () => {
       expect(within(toolbar).queryByRole("button", { name: label })).toBeNull();
     }
     expect(
-      within(toolbar).queryByRole("button", { name: "左对齐，点击切换" }),
+      within(toolbar).queryByRole("button", { name: "居中对齐" }),
     ).toBeNull();
 
   });
 
-  test("服务端启用 v4 后对齐按钮循环左中右并规范写出标记", async () => {
+  test("服务端启用 v4 后对齐按钮可直接切换并反选且规范写出标记", async () => {
     enableMarkdownV4();
     const user = userEvent.setup();
     const onChange = vi.fn();
     const { container } = renderEditor("正文", "对齐正文", onChange);
     const editor = await getEditor(container);
     const button = await screen.findByRole("button", {
-      name: "左对齐，点击切换",
+      name: "居中对齐",
     });
 
     await user.click(editor.querySelector("p")!);
@@ -266,10 +266,10 @@ describe("MilkdownEditor 能力分层", () => {
       expect(onChange).toHaveBeenLastCalledWith(
         "[wenyousite-align-v1-center]: #\n正文",
       );
-      expect(button).toHaveAccessibleName("居中对齐，点击切换");
+      expect(button).toHaveAccessibleName("居中对齐");
     });
 
-    await user.click(button);
+    await user.click(screen.getByRole("button", { name: "右对齐" }));
     await waitFor(() => {
       expect(editor.querySelector("p")).toHaveAttribute(
         "data-wenyou-align",
@@ -280,7 +280,7 @@ describe("MilkdownEditor 能力分层", () => {
       );
     });
 
-    await user.click(button);
+    await user.click(screen.getByRole("button", { name: "右对齐" }));
     await waitFor(() => {
       expect(editor.querySelector("p")).not.toHaveAttribute(
         "data-wenyou-align",
@@ -297,7 +297,7 @@ describe("MilkdownEditor 能力分层", () => {
     const editor = await getEditor(container);
     const paragraph = editor.querySelector("p")!;
     const button = await screen.findByRole("button", {
-      name: "左对齐，点击切换",
+      name: "居中对齐",
     });
 
     await user.click(paragraph);
@@ -321,7 +321,7 @@ describe("MilkdownEditor 能力分层", () => {
     const { container } = renderEditor("正文", undefined, onChange);
     const editor = await getEditor(container);
     await user.click(editor.querySelector("p")!);
-    await user.click(await screen.findByRole("button", { name: "左对齐，点击切换" }));
+    await user.click(await screen.findByRole("button", { name: "居中对齐" }));
 
     await user.click(screen.getByRole("button", { name: "切换正文样式" }));
     await user.click(await screen.findByRole("button", { name: "标题 2" }));
@@ -411,7 +411,7 @@ describe("MilkdownEditor 能力分层", () => {
     expect(more).toHaveAttribute("aria-expanded", "true");
   });
 
-  test("v4 窄栏托盘用段落内三图标显式设置对齐", async () => {
+  test("v4 窄栏托盘用段落内双图标设置及取消对齐", async () => {
     enableMarkdownV4();
     const user = userEvent.setup();
     const onChange = vi.fn();
@@ -424,11 +424,13 @@ describe("MilkdownEditor 能力分层", () => {
     fireEvent.pointerDown(within(toolbar).getByRole("button", { name: "更多" }));
     let menu = await screen.findByRole("menu", { name: "更多正文格式" });
     const alignment = within(menu).getByRole("group", { name: "段落对齐" });
-    expect(within(alignment).getByRole("menuitemradio", { name: "左对齐" }))
-      .toHaveAttribute("aria-checked", "true");
+    expect(within(alignment).queryByRole("menuitemcheckbox", { name: "左对齐" })).toBeNull();
+    for (const button of within(alignment).getAllByRole("menuitemcheckbox")) {
+      expect(button).toHaveAttribute("aria-checked", "false");
+    }
     expect(within(menu).queryByText(/对齐/u)).toBeNull();
 
-    await user.click(within(alignment).getByRole("menuitemradio", { name: "居中对齐" }));
+    await user.click(within(alignment).getByRole("menuitemcheckbox", { name: "居中对齐" }));
     await waitFor(() => {
       expect(editor.querySelector("p")).toHaveAttribute("data-wenyou-align", "center");
       expect(onChange).toHaveBeenLastCalledWith(
@@ -440,8 +442,13 @@ describe("MilkdownEditor 能力分层", () => {
     fireEvent.pointerDown(within(toolbar).getByRole("button", { name: "更多" }));
     menu = await screen.findByRole("menu", { name: "更多正文格式" });
     expect(
-      within(menu).getByRole("menuitemradio", { name: "居中对齐" }),
+      within(menu).getByRole("menuitemcheckbox", { name: "居中对齐" }),
     ).toHaveAttribute("aria-checked", "true");
+    await user.click(within(menu).getByRole("menuitemcheckbox", { name: "居中对齐" }));
+    await waitFor(() => {
+      expect(editor.querySelector("p")).not.toHaveAttribute("data-wenyou-align");
+      expect(onChange).toHaveBeenLastCalledWith("正文");
+    });
   });
 
   test("标准内容栏保留行内代码、引用、分隔线和骰子直达", async () => {
