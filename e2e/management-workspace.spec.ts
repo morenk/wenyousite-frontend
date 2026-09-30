@@ -256,9 +256,34 @@ test.describe("帖子共同创作管理台", () => {
     await expect(page.getByRole("button", { name: "删除主题帖" })).toBeVisible();
     await expectFunctionalTitles(page.getByRole("heading"));
     await expect(page.getByRole("toolbar", { name: "正文格式工具栏" })).toBeVisible();
+    // 隔离 runner 中保留不含邀请凭据的候选图，供人工检查后显式更新同名视觉基线。
     await expect(page).toHaveScreenshot("management-settings-1440.png", {
       animations: "disabled",
+    }).finally(async () => {
+      await page.screenshot({ path: ".e2e-results/management-settings-1440.candidate.png", animations: "disabled" });
     });
+  });
+
+  test("邀请操作的亮色确认及1024px黑夜失败状态", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await openManagementWorkspace(page);
+    await page.getByRole("button", { name: "重置邀请链接", exact: true }).click();
+    const confirmation = page.getByRole("alertdialog");
+    await expect(confirmation).toContainText("旧邀请链接将立即失效，已加入成员的权限不受影响。");
+    await confirmation.screenshot({ path: ".e2e-results/invite-reset-confirmation-light.png", animations: "disabled" });
+    await confirmation.getByRole("button", { name: "取消", exact: true }).click();
+    await page.setViewportSize({ width: 1024, height: 900 });
+    await page.emulateMedia({ colorScheme: "dark" });
+    await page.route("**/api/v1/threads/*/invite-link", (route) => route.fulfill({
+      status: 500, contentType: "application/json", body: JSON.stringify({ code: 50000, message: "服务暂时不可用，请稍后重试" }),
+    }));
+    await page.getByRole("button", { name: "复制邀请链接", exact: true }).click();
+    const panel = page.getByRole("region", { name: "私密访问" });
+    await expect(panel.getByRole("status")).toContainText("获取邀请链接失败");
+    await expect(panel.getByRole("button", { name: "复制邀请链接", exact: true })).toBeEnabled();
+    await expect(panel.getByRole("textbox")).toHaveCount(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1024);
+    await panel.screenshot({ path: ".e2e-results/invite-failure-dark-1024.png", animations: "disabled" });
   });
 
   test("1024px 子贴深链接无横向溢出", async ({ page }) => {

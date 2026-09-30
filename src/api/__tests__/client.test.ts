@@ -150,6 +150,23 @@ describe("createAuthenticatedFetch", () => {
     expect(localStorage.getItem("accessToken")).toBeNull();
   });
 
+  test.each(["POST", "PUT"])("邀请 %s 遇到 401 后仅幂等获取允许重放", async (method) => {
+    setAuthSession(user("u1"), "old-token");
+    const fetchImpl = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ code: 40101 }), { status: 401 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        data: { accessToken: "new-token", user: user("u1") },
+      }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(null, { status: 200 }));
+    const response = await createAuthenticatedFetch(fetchImpl)(new Request(
+      "https://wenyou.site/api/v1/threads/t1/invite-link",
+      { method, headers: { Authorization: "Bearer old-token" } },
+    ));
+    expect(getAuthAccessToken()).toBe("new-token");
+    expect(fetchImpl).toHaveBeenCalledTimes(method === "POST" ? 2 : 3);
+    expect(response.status).toBe(method === "POST" ? 401 : 200);
+  });
+
   test("刷新服务临时 5xx 时保留当前会话并等待后续请求重试", async () => {
     setAuthSession(user("u1"), "expired-token");
     const initialHref = window.location.href;

@@ -4,15 +4,17 @@ import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup, fireEvent, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { setAuthSession, clearAuthSession } from "@/lib/auth-store";
 import { ThreadEditForm } from "@/components/forms/thread-edit-form";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
 
 vi.mock("sonner", () => ({
-  toast: { success: vi.fn(), error: vi.fn() },
+  toast: { success: vi.fn(), error: vi.fn(), message: vi.fn() },
 }));
 
 const { mockRouterReplace } = vi.hoisted(() => ({ mockRouterReplace: vi.fn() }));
 vi.mock("next/navigation", () => ({
+  usePathname: () => "/threads/t1/edit",
   useRouter: () => ({ replace: mockRouterReplace }),
 }));
 
@@ -46,11 +48,13 @@ const {
   mockSaveThreadMutate,
   mockUploadImageMutate,
   mockCreateInviteMutate,
+  mockEnsureInviteMutate,
   mockDeleteThreadMutate,
 } = vi.hoisted(() => ({
   mockSaveThreadMutate: vi.fn(),
   mockUploadImageMutate: vi.fn(),
   mockCreateInviteMutate: vi.fn(),
+  mockEnsureInviteMutate: vi.fn(),
   mockDeleteThreadMutate: vi.fn(),
 }));
 
@@ -61,7 +65,8 @@ vi.mock("@/api/hooks/use-upload-image", () => ({
   useUploadImage: () => ({ mutateAsync: mockUploadImageMutate, isPending: false }),
 }));
 vi.mock("@/api/hooks/use-thread-access-actions", () => ({
-  useCreateInviteLink: () => ({ mutateAsync: mockCreateInviteMutate, isPending: false }),
+  useEnsureInviteLink: () => ({ mutateAsync: mockEnsureInviteMutate, isPending: false, reset: vi.fn() }),
+  useCreateInviteLink: () => ({ mutateAsync: mockCreateInviteMutate, isPending: false, reset: vi.fn() }),
 }));
 vi.mock("@/api/hooks/use-delete-thread", () => ({
   useDeleteThread: () => ({ mutateAsync: mockDeleteThreadMutate, isPending: false }),
@@ -71,6 +76,7 @@ import { toast } from "sonner";
 
 afterEach(() => {
   cleanup();
+  clearAuthSession();
   vi.clearAllMocks();
   vi.unstubAllGlobals();
 });
@@ -197,8 +203,10 @@ function renderForm({
 describe("ThreadEditForm", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    setAuthSession({ id: "u1", username: "owner", email: "owner@example.test", avatar: null, role: "USER" }, "test-token");
     mockSaveThreadMutate.mockReset();
     vi.stubGlobal("confirm", vi.fn(() => true));
+    mockEnsureInviteMutate.mockResolvedValue({ token: "invite-token" });
     mockCreateInviteMutate.mockResolvedValue({ token: "invite-token" });
     mockDeleteThreadMutate.mockResolvedValue({});
     mockSaveThreadMutate.mockImplementation(
@@ -345,11 +353,26 @@ describe("ThreadEditForm", () => {
   test("公开帖不占用邀请区，选择私密但未保存时解释禁用原因", async () => {
     const user = userEvent.setup();
     renderForm();
-    expect(screen.queryByRole("button", { name: "生成并复制邀请链接" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "复制邀请链接" })).not.toBeInTheDocument();
     await user.click(screen.getByRole("combobox", { name: "可见性" }));
     await user.click(screen.getByRole("option", { name: "私密" }));
-    expect(screen.getByRole("button", { name: "生成并复制邀请链接" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "复制邀请链接" })).toBeDisabled();
     expect(screen.getByText("请先保存可见性设置。")).toBeInTheDocument();
+  });
+
+  test("未发布私帖解释邀请不可用，已删除私帖不展示邀请", () => {
+    const draft = { ...makeThread("PRIVATE"), published: false };
+    const { rerenderThread } = renderForm({ thread: draft });
+    expect(screen.getByRole("button", { name: "复制邀请链接" })).toBeDisabled();
+    expect(screen.getByText("请先发布帖子。")).toBeVisible();
+    rerenderThread({ ...draft, deletedAt: "2026-10-01T00:00:00Z" });
+    expect(screen.queryByRole("button", { name: "复制邀请链接" })).not.toBeInTheDocument();
+  });
+
+  test("私帖协作者不显示复制或重置入口", () => {
+    renderForm({ isOwner: false, thread: makeThread("PRIVATE") });
+    expect(screen.queryByRole("button", { name: "复制邀请链接" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "重置邀请链接" })).not.toBeInTheDocument();
   });
 
   test("保存标题、标签和正文并上报已保存状态", async () => {
@@ -425,17 +448,45 @@ describe("ThreadEditForm", () => {
     expect(onReloadLatest).toHaveBeenCalledTimes(1);
   });
 
-  test("私密帖生成新邀请链接前确认并复制", async () => {
+  test("私密帖连续复制复用当前链接且不重置", async () => {
     const user = userEvent.setup();
     const writeText = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
     renderForm({ thread: makeThread("PRIVATE") });
+    await user.click(screen.getByRole("button", { name: "复制邀请链接" }));
+    await user.click(screen.getByRole("button", { name: "复制邀请链接" }));
+    expect(window.confirm).not.toHaveBeenCalled();
+    expect(mockEnsureInviteMutate).toHaveBeenCalledTimes(2);
+    expect(mockCreateInviteMutate).not.toHaveBeenCalled();
+    expect(writeText).toHaveBeenNthCalledWith(1, expect.stringContaining("/join/invite-token"));
+    expect(writeText).toHaveBeenNthCalledWith(2, expect.stringContaining("/join/invite-token"));
+  });
 
-    await user.click(screen.getByRole("button", { name: "生成并复制邀请链接" }));
+  test("服务端刷新为公开帖后清理已显示邀请，保留本地可见性编辑", async () => {
+    const user = userEvent.setup();
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: vi.fn().mockResolvedValue(undefined) } });
+    const { rerenderThread } = renderForm({ thread: makeThread("PRIVATE") });
+    await user.click(screen.getByRole("button", { name: "复制邀请链接" }));
+    expect(screen.getByRole("textbox", { name: "当前邀请链接" })).toBeInTheDocument();
+    rerenderThread(makeThread("PUBLIC"));
+    expect(screen.getByRole("combobox", { name: "可见性" })).toHaveTextContent("私密");
+    expect(screen.queryByRole("textbox", { name: "当前邀请链接" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "复制邀请链接" })).toBeDisabled();
+  });
 
-    expect(window.confirm).toHaveBeenCalledWith("生成后旧邀请链接会立即失效。确定继续吗？");
-    expect(mockCreateInviteMutate).toHaveBeenCalledWith("t1");
-    expect(writeText).toHaveBeenCalledWith(expect.stringContaining("/join/invite-token"));
+  test("服务端刷新为公开帖后忽略旧邀请请求的迟到响应", async () => {
+    const user = userEvent.setup();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+    let resolve!: (invite: { token: string }) => void;
+    mockEnsureInviteMutate.mockReturnValueOnce(new Promise((done) => { resolve = done; }));
+    const { rerenderThread } = renderForm({ thread: makeThread("PRIVATE") });
+    await user.click(screen.getByRole("button", { name: "复制邀请链接" }));
+    rerenderThread(makeThread("PUBLIC"));
+    await act(async () => { resolve({ token: "obsolete-token" }); });
+    expect(writeText).not.toHaveBeenCalled();
+    expect(toast.success).not.toHaveBeenCalled();
+    expect(screen.queryByRole("textbox", { name: "当前邀请链接" })).not.toBeInTheDocument();
   });
 
   test("楼主可在危险区域删除主题帖并替换到首页", async () => {

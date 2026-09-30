@@ -268,6 +268,11 @@ export function createAuthenticatedFetch(fetchImpl: typeof fetch): typeof fetch 
     }
     if (refreshOutcome.status === "unavailable") return response;
 
+    // 重置邀请是非幂等轮换；即使刷新认证成功也交还原响应，由界面取回当前链接。
+    if (request.method === "POST" && /^\/api\/v1\/threads\/[^/]+\/invite-link$/.test(schemaPath)) {
+      return response;
+    }
+
     const headers = new Headers(retryRequest.headers);
     headers.set("Authorization", `Bearer ${refreshOutcome.accessToken}`);
     return fetchImpl(new Request(retryRequest, { headers }));

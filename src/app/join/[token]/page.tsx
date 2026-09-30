@@ -24,7 +24,7 @@ export default function JoinByInvitePage() {
   const preview = useInvitePreview(isInitialized && user ? token : undefined);
   const join = useJoinThreadByInvite();
   const joinUnavailable = joinFailureToken === token;
-  const awaitingValidation = preview.isFetching && !preview.isFetchedAfterMount;
+  const awaitingValidation = !preview.isFetchedAfterMount;
 
   useEffect(() => {
     if (isInitialized && !user) {
@@ -58,7 +58,7 @@ export default function JoinByInvitePage() {
     !user ||
     preview.isLoading ||
     awaitingValidation ||
-    preview.data?.alreadyJoined
+    (!preview.error && preview.data?.alreadyJoined)
   ) {
     return <LoadingState label="" className="min-h-0 pt-24" />;
   }

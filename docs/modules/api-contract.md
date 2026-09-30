@@ -110,3 +110,7 @@ Web 通过独立管理 Cookie/CSRF 会话消费 `/admin/mobile-releases` 列表�
 固定契约同步自 Backend 已提交 `dc62a36dcf016f58fadcf53672215bb5fa66e618`（`5.28.0-dev.20260929.1`）。使用 `WENYOUSITE_BACKEND_ROOT` 指向包含该提交的 Backend 仓库，并设置 `BACKEND_CONTRACT_REF` 为该完整 SHA，执行 `pnpm contract:sync`、`pnpm generate:api`，检查使用相同来源。完整快照同时包含已合并的关注/粉丝计数口径说明，不改变 Web 关系界面行为。
 
 `PostResponseDto`、`FloorResponseDto`、`ReplyResponseDto` 与 `PostDetailResponseDto` 新增可选、可空 `editedAt`，覆盖保存结果、主楼层、内嵌回复、回复分页及深链定位。它表示规范化正文实际改变且事务成功的最后服务端时间；历史与未编辑记录为 `null`，旧响应可省略。客户端直接透传生成类型，不从 `updatedAt`、版本号或置顶状态推断编辑。展示范围及缓存刷新见[主题帖详情](thread-detail.md)。兼容 Backend 先行，消费者随后；本次不移除旧字段、不更改 Foundation 格式化 API 或依赖版本。
+
+## 私密邀请重复分享
+
+固定 OpenAPI 与生成类型通过 `pnpm contract:sync`、`pnpm generate:api` 同步自 Backend 已提交 `cfe9621c39f9d9c8c7f764bf45293be43bab1af7`（`5.29.0-dev.20261001.1`）；同步、契约和文档检查均指定同一 `WENYOUSITE_BACKEND_ROOT` 与 `BACKEND_CONTRACT_REF`。新增 `PUT /threads/{id}/invite-link`（`threadsEnsureInviteLink`），无请求体，200 返回现有 `InviteLinkResponseDto`。楼主日常复制使用原子获取或创建，POST 与原 operationId 保留显式重置语义。消费响应校验 threadId 与 16 位 URL-safe token，错误响应绝不作为邀请复制；凭据仅在当前身份/路由控件内存驻留，mutation 不重试、不保留离开后的缓存，POST 在认证刷新后也不自动重放。行为和回滚边界见[帖子模块](thread-detail.md)与[弃用登记](../deprecation-register.md#私密邀请重复分享)，兼容后端须先发布。

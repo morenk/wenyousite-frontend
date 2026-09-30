@@ -867,7 +867,8 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put?: never;
+        /** 取得或首次创建私密帖邀请链接（仅 OWNER，已发布 + 私密帖） */
+        put: operations["threadsEnsureInviteLink"];
         /** 生成或刷新私密帖邀请链接（仅 OWNER，需已发布 + 私密帖） */
         post: operations["threadsCreateInviteLink"];
         delete?: never;
@@ -6870,6 +6871,9 @@ export interface components {
         ThreadsUnlike200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["ThreadLikeResponseDto"];
         };
+        ThreadsEnsureInviteLink200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["InviteLinkResponseDto"];
+        };
         ThreadsCreateInviteLink200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["InviteLinkResponseDto"];
         };
@@ -10638,6 +10642,74 @@ export interface operations {
                 };
             };
             /** @description 主题帖不存在、已删除，或当前用户无权访问未发布/PRIVATE 主题 */
+            404: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    threadsEnsureInviteLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 当前邀请链接；重复或并发请求不更换 token */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThreadsEnsureInviteLink200Response"];
+                };
+            };
+            /** @description 未登录 */
+            401: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 仅 OWNER / 未发布 / 非私密帖 */
+            403: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 主题帖不存在或不可访问 */
             404: {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];

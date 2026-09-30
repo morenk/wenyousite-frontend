@@ -7,15 +7,39 @@ import type { components } from "@/api/types";
 
 export type InvitePreview = components["schemas"]["InvitePreviewResponseDto"];
 
+function verifiedInvite(invite: components["schemas"]["InviteLinkResponseDto"] | undefined, threadId: string) {
+  if (!invite || invite.threadId !== threadId || typeof invite.token !== "string" || !/^[A-Za-z0-9_-]{16}$/.test(invite.token)) {
+    throw new Error("邀请链接响应无效，请重新获取");
+  }
+  return invite;
+}
+
+/** 获取当前邀请，无则原子创建；不缓存凭据，不回退到轮换入口。 */
+export function useEnsureInviteLink() {
+  return useMutation({
+    retry: false,
+    gcTime: 0,
+    mutationFn: async (threadId: string) => {
+      const { data, error } = await apiClient.PUT("/api/v1/threads/{id}/invite-link", {
+        params: { path: { id: threadId } },
+      });
+      if (error) throw error;
+      return verifiedInvite(data?.data, threadId);
+    },
+  });
+}
+
+/** 保留旧 POST 的显式轮换语义；结果不明只能通过 PUT 重新获取。 */
 export function useCreateInviteLink() {
   return useMutation({
+    retry: false,
+    gcTime: 0,
     mutationFn: async (threadId: string) => {
       const { data, error } = await apiClient.POST("/api/v1/threads/{id}/invite-link", {
         params: { path: { id: threadId } },
       });
       if (error) throw error;
-      if (!data) throw new Error("邀请链接响应为空");
-      return data.data;
+      return verifiedInvite(data?.data, threadId);
     },
   });
 }
