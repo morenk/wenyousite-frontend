@@ -264,26 +264,25 @@ test.describe("帖子共同创作管理台", () => {
     });
   });
 
-  test("邀请操作的亮色确认及1024px黑夜失败状态", async ({ page }) => {
+  test("单按钮邀请及1024px黑夜剪贴板失败状态", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 1000 });
     await openManagementWorkspace(page);
-    await page.getByRole("button", { name: "重置邀请链接", exact: true }).click();
-    const confirmation = page.getByRole("alertdialog");
-    await expect(confirmation).toContainText("旧邀请链接将立即失效，已加入成员的权限不受影响。");
-    await confirmation.screenshot({ path: ".e2e-results/invite-reset-confirmation-light.png", animations: "disabled" });
-    await confirmation.getByRole("button", { name: "取消", exact: true }).click();
+    const copy = page.getByRole("button", { name: "复制邀请链接", exact: true });
+    await expect(page.getByRole("button", { name: "重置邀请链接", exact: true })).toHaveCount(0);
+    await expect(page.getByText("私密访问", { exact: true })).toHaveCount(0);
     await page.setViewportSize({ width: 1024, height: 900 });
     await page.emulateMedia({ colorScheme: "dark" });
     await page.route("**/api/v1/threads/*/invite-link", (route) => route.fulfill({
-      status: 500, contentType: "application/json", body: JSON.stringify({ code: 50000, message: "服务暂时不可用，请稍后重试" }),
+      json: { code: 0, data: { threadId: thread.id, token: "PreviewLink00001" } },
     }));
-    await page.getByRole("button", { name: "复制邀请链接", exact: true }).click();
-    const panel = page.getByRole("region", { name: "私密访问" });
-    await expect(panel.getByRole("status")).toContainText("获取邀请链接失败");
-    await expect(panel.getByRole("button", { name: "复制邀请链接", exact: true })).toBeEnabled();
-    await expect(panel.getByRole("textbox")).toHaveCount(0);
+    await page.evaluate(() => Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async () => { throw new Error("clipboard denied"); } } }));
+    await copy.click();
+    await expect(page.getByRole("status")).toContainText("自动复制失败，请手动复制下方链接");
+    await expect(copy).toBeEnabled();
+    await expect(page.getByRole("textbox", { name: "当前邀请链接" })).toBeVisible();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1024);
-    await panel.screenshot({ path: ".e2e-results/invite-failure-dark-1024.png", animations: "disabled" });
+    await copy.locator("..").screenshot({ path: ".e2e-results/invite-simple-manual-dark-1024.png", animations: "disabled" });
   });
 
   test("1024px 子贴深链接无横向溢出", async ({ page }) => {

@@ -3,7 +3,8 @@ import { test } from "./fixtures/isolation";
 import { loginAsE2eUser, openFreshThreadDraft } from "./fixtures/auth";
 
 // 真实隔离 API 验收；只比较凭据相等与否，不把 token 写入断言、截图或报告。
-test("私密帖重复分享、重开和主动重置使用独立操作", async ({ page }) => {
+test("私密帖单按钮重复分享、重开与剪贴板失败仍复用邀请", async ({ page }) => {
+  await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
   await loginAsE2eUser(page);
   await openFreshThreadDraft(page);
   await page.getByLabel("主题帖标题").fill(`邀请重复分享 ${Date.now()}`);
@@ -22,37 +23,33 @@ test("私密帖重复分享、重开和主动重置使用独立操作", async ({
     if (request.method() === "POST") resets += 1;
   });
   const copy = page.getByRole("button", { name: "复制邀请链接", exact: true });
-  await copy.click();
   const link = page.getByRole("textbox", { name: "当前邀请链接" });
-  await expect(link).toBeVisible();
-  const first = await link.inputValue();
+  await expect(page.getByRole("button", { name: "重置邀请链接", exact: true })).toHaveCount(0);
+  await copy.click();
   await expect(copy).toBeEnabled();
+  await expect(link).toHaveCount(0);
+  const first = await page.evaluate(() => navigator.clipboard.readText());
+  expect(first.startsWith(`${new URL(page.url()).origin}/join/`)).toBe(true);
   await copy.click();
   await expect.poll(() => reads).toBe(2);
   await expect(copy).toBeEnabled();
-  expect((await link.inputValue()) === first).toBe(true);
+  expect((await page.evaluate(() => navigator.clipboard.readText())) === first).toBe(true);
   expect(resets).toBe(0);
   await page.reload();
   await expect(link).toHaveCount(0);
   await copy.click();
+  await expect.poll(() => reads).toBe(3);
+  await expect(copy).toBeEnabled();
+  expect((await page.evaluate(() => navigator.clipboard.readText())) === first).toBe(true);
+  await expect(link).toHaveCount(0);
+  await page.evaluate(() => Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async () => { throw new Error("clipboard denied"); } } }));
+  await copy.click();
   await expect(link).toBeVisible();
+  await expect(page.getByRole("status")).toContainText("自动复制失败，请手动复制下方链接");
   expect((await link.inputValue()) === first).toBe(true);
   expect(resets).toBe(0);
-  await expect(copy).toBeEnabled();
-  await page.getByRole("button", { name: "重置邀请链接", exact: true }).click();
-  const dialog = page.getByRole("alertdialog");
-  await expect(dialog).toContainText("旧邀请链接将立即失效，已加入成员的权限不受影响。");
-  await dialog.getByRole("button", { name: "重置并复制", exact: true }).click();
-  await expect.poll(() => resets).toBe(1);
-  await expect(copy).toBeEnabled();
-  const second = await link.inputValue();
-  expect(second !== first).toBe(true);
-  // 不将真实 token 放入 Playwright 导航日志；会话沿用当前浏览器内存/HttpOnly Cookie。
+  // 不将真实 token 放入导航日志；邀请仍可用，已加入的楼主从邀请进入帖子。
   await page.evaluate((url) => window.location.assign(url), first);
-  await expect(page.getByText("邀请链接无效或已失效", { exact: true })).toBeVisible();
-  await page.goto(threadPath);
-  await expect(page.getByRole("button", { name: "更多帖子信息与操作" })).toBeVisible();
-  await page.evaluate((url) => window.location.assign(url), second);
   await page.waitForURL((url) => url.pathname === threadPath);
   await expect(page.getByRole("button", { name: "更多帖子信息与操作" })).toBeVisible();
 });

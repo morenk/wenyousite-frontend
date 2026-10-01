@@ -361,7 +361,7 @@ export function ThreadEditForm({
             </div>
           </section>
 
-          {isOwner && visibility === "PRIVATE" && !thread.deletedAt ? (
+          {isOwner && visibility === "PRIVATE" && thread.visibility === "PRIVATE" && !thread.deletedAt ? (
             <PrivateInviteLink
               threadId={thread.id}
               ownerId={thread.ownerId}

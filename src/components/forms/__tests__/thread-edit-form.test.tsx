@@ -350,21 +350,20 @@ describe("ThreadEditForm", () => {
     expect(screen.getByDisplayValue("默认正文")).toBeInTheDocument();
   });
 
-  test("公开帖不占用邀请区，选择私密但未保存时解释禁用原因", async () => {
+  test("公开帖和选为私密但尚未保存的帖子不显示邀请入口", async () => {
     const user = userEvent.setup();
     renderForm();
     expect(screen.queryByRole("button", { name: "复制邀请链接" })).not.toBeInTheDocument();
     await user.click(screen.getByRole("combobox", { name: "可见性" }));
     await user.click(screen.getByRole("option", { name: "私密" }));
-    expect(screen.getByRole("button", { name: "复制邀请链接" })).toBeDisabled();
-    expect(screen.getByText("请先保存可见性设置。")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "复制邀请链接" })).not.toBeInTheDocument();
   });
 
-  test("未发布私帖解释邀请不可用，已删除私帖不展示邀请", () => {
+  test("未发布私帖禁用邀请，已删除私帖不展示邀请", () => {
     const draft = { ...makeThread("PRIVATE"), published: false };
     const { rerenderThread } = renderForm({ thread: draft });
     expect(screen.getByRole("button", { name: "复制邀请链接" })).toBeDisabled();
-    expect(screen.getByText("请先发布帖子。")).toBeVisible();
+    expect(screen.queryByText("请先发布帖子。")).not.toBeInTheDocument();
     rerenderThread({ ...draft, deletedAt: "2026-10-01T00:00:00Z" });
     expect(screen.queryByRole("button", { name: "复制邀请链接" })).not.toBeInTheDocument();
   });
@@ -464,14 +463,14 @@ describe("ThreadEditForm", () => {
 
   test("服务端刷新为公开帖后清理已显示邀请，保留本地可见性编辑", async () => {
     const user = userEvent.setup();
-    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: vi.fn().mockResolvedValue(undefined) } });
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: vi.fn().mockRejectedValue(new Error("denied")) } });
     const { rerenderThread } = renderForm({ thread: makeThread("PRIVATE") });
     await user.click(screen.getByRole("button", { name: "复制邀请链接" }));
     expect(screen.getByRole("textbox", { name: "当前邀请链接" })).toBeInTheDocument();
     rerenderThread(makeThread("PUBLIC"));
     expect(screen.getByRole("combobox", { name: "可见性" })).toHaveTextContent("私密");
     expect(screen.queryByRole("textbox", { name: "当前邀请链接" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "复制邀请链接" })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "复制邀请链接" })).not.toBeInTheDocument();
   });
 
   test("服务端刷新为公开帖后忽略旧邀请请求的迟到响应", async () => {

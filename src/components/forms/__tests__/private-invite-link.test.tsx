@@ -32,13 +32,21 @@ beforeEach(() => {
   mocks.path = "/threads/t1/edit";
   login();
   mocks.ensure.mockResolvedValue({ token: "current-link" });
-  mocks.reset.mockResolvedValue({ token: "new-link" });
-  mocks.confirm.mockResolvedValue(true);
 });
 afterEach(() => { cleanup(); clearAuthSession(); });
 
-describe("私密邀请分享", () => {
-  test("每次复制向服务端取得当前链接，重开也不要求本地保存", async () => {
+describe("私密邀请单按钮分享", () => {
+  test("仅显示复制按钮，无邀请卡片标题、说明或重置入口", () => {
+    const { container } = setup();
+    expect(screen.getAllByRole("button")).toHaveLength(1);
+    expect(screen.getByRole("button", { name: "复制邀请链接" })).toBeEnabled();
+    expect(screen.queryByText("私密访问")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "重置邀请链接" })).not.toBeInTheDocument();
+    expect(container.querySelector("section")).toBeNull();
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+  });
+
+  test("每次复制向服务端取得当前链接，成功只用短toast，重开也不要求本地保存", async () => {
     const { user, writeText, unmount } = setup();
     await user.click(screen.getByRole("button", { name: "复制邀请链接" }));
     await user.click(screen.getByRole("button", { name: "复制邀请链接" }));
@@ -46,109 +54,71 @@ describe("私密邀请分享", () => {
     expect(mocks.reset).not.toHaveBeenCalled();
     expect(mocks.confirm).not.toHaveBeenCalled();
     expect(writeText.mock.calls[0]).toEqual(writeText.mock.calls[1]);
-    unmount();
-    render(element());
+    expect(toast.success).toHaveBeenLastCalledWith("邀请链接已复制");
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(screen.queryByText("邀请链接已复制")).not.toBeInTheDocument();
+    unmount(); render(element());
     await user.click(screen.getByRole("button", { name: "复制邀请链接" }));
     expect(writeText.mock.calls[2]).toEqual(writeText.mock.calls[0]);
     expect(localStorage.getItem("invite-link")).toBeNull();
   });
 
-  test("主动重置先说明旧链接失效但成员权限保留，成功后展示并复制", async () => {
-    const { user, writeText } = setup();
-    await user.click(screen.getByRole("button", { name: "重置邀请链接" }));
-    expect(mocks.confirm).toHaveBeenCalledWith(expect.objectContaining({ description: "旧邀请链接将立即失效，已加入成员的权限不受影响。" }));
-    expect(mocks.reset).toHaveBeenCalledExactlyOnceWith("t1");
-    expect(mocks.ensure).not.toHaveBeenCalled();
-    expect(screen.getByRole("textbox", { name: "当前邀请链接" })).toHaveValue(`${window.location.origin}/join/new-link`);
-    expect(writeText).toHaveBeenCalledWith(expect.stringContaining("/join/new-link"));
-  });
-
-  test("取消重置保留当前可手动复制的链接", async () => {
-    const { user } = setup();
-    await user.click(screen.getByRole("button", { name: "复制邀请链接" }));
-    mocks.confirm.mockResolvedValue(false);
-    await user.click(screen.getByRole("button", { name: "重置邀请链接" }));
-    expect(mocks.reset).not.toHaveBeenCalled();
-    expect(screen.getByRole("textbox")).toHaveValue(`${window.location.origin}/join/current-link`);
-  });
-
-  test.each([false, true])("%s 重置场景的剪贴板失败与接口失败分开，保留手动复制", async (reset) => {
+  test("只有剪贴板失败才就地展示完整可选择URL与手动复制提示", async () => {
     const { user, writeText } = setup();
     writeText.mockRejectedValue(new Error("denied"));
-    await user.click(screen.getByRole("button", { name: reset ? "重置邀请链接" : "复制邀请链接" }));
+    await user.click(screen.getByRole("button", { name: "复制邀请链接" }));
     expect(screen.getByRole("status")).toHaveTextContent("自动复制失败，请手动复制下方链接");
-    expect(screen.getByRole("textbox")).toHaveValue(`${window.location.origin}/join/${reset ? "new-link" : "current-link"}`);
-    expect(mocks.reset).toHaveBeenCalledTimes(reset ? 1 : 0);
+    const input = screen.getByRole("textbox", { name: "当前邀请链接" }) as HTMLTextAreaElement;
+    expect(input).toHaveValue(`${window.location.origin}/join/current-link`);
+    expect(input).toHaveAttribute("readonly");
+    await user.click(input);
+    expect(input.selectionStart).toBe(0); expect(input.selectionEnd).toBe(input.value.length);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(mocks.reset).not.toHaveBeenCalled();
     expect(toast.success).not.toHaveBeenCalled();
   });
 
-  test.each([{ code: 40400, message: "接口不可用" }, new TypeError("offline")])("获取失败不自动调用重置，不保留旧凭据", async (error) => {
+  test("再次复制先收起旧手动URL，成功后不常驻结果", async () => {
     const { user, writeText } = setup();
+    writeText.mockRejectedValueOnce(new Error("denied"));
     await user.click(screen.getByRole("button", { name: "复制邀请链接" }));
-    mocks.ensure.mockRejectedValue(error);
+    const pending = deferred<{ token: string }>(); mocks.ensure.mockReturnValueOnce(pending.promise);
+    await user.click(screen.getByRole("button", { name: "复制邀请链接" }));
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    await act(async () => { pending.resolve({ token: "current-link" }); });
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(toast.success).toHaveBeenCalledWith("邀请链接已复制");
+  });
+
+  test.each([{ code: 40400, message: "接口不可用" }, new TypeError("offline"), { code: 40302, message: "仅楼主可用" }])("获取失败提示重试、不回退POST、不保留旧凭据", async (error) => {
+    const { user, writeText } = setup();
+    writeText.mockRejectedValueOnce(new Error("denied"));
+    await user.click(screen.getByRole("button", { name: "复制邀请链接" }));
+    mocks.ensure.mockRejectedValueOnce(error);
     await user.click(screen.getByRole("button", { name: "复制邀请链接" }));
     expect(mocks.reset).not.toHaveBeenCalled();
     expect(writeText).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
-    expect(screen.getByRole("status")).toHaveTextContent("获取邀请链接失败");
+    expect(toast.error).toHaveBeenLastCalledWith(expect.stringContaining("重试"));
   });
 
-  test.each([new TypeError("lost"), { code: 50000 }, { code: 40101 }])("重置结果不明时只取回当前链接，不声称重置成功", async (error) => {
-    mocks.reset.mockRejectedValue(error);
-    const { user, writeText } = setup();
-    await user.click(screen.getByRole("button", { name: "重置邀请链接" }));
-    expect(mocks.reset).toHaveBeenCalledTimes(1);
-    expect(mocks.ensure).toHaveBeenCalledExactlyOnceWith("t1");
-    expect(writeText).toHaveBeenCalledWith(expect.stringContaining("current-link"));
-    expect(screen.getByRole("status")).toHaveTextContent("重置结果未确认，已取回当前邀请链接");
-    expect(toast.success).not.toHaveBeenCalled();
-  });
-
-  test("结果核实失败后引导复制重试，不保留旧链接", async () => {
-    mocks.reset.mockRejectedValue(new TypeError("lost"));
-    mocks.ensure.mockRejectedValue(new TypeError("offline"));
-    const { user, writeText } = setup();
-    await user.click(screen.getByRole("button", { name: "重置邀请链接" }));
-    expect(mocks.reset).toHaveBeenCalledTimes(1);
-    expect(writeText).not.toHaveBeenCalled();
-    expect(screen.getByRole("status")).toHaveTextContent("请稍后点击“复制邀请链接”重试");
-  });
-
-  test("明确权限失败不发出额外获取请求", async () => {
-    mocks.reset.mockRejectedValue({ code: 40302, message: "仅楼主可用" });
-    const { user } = setup();
-    await user.click(screen.getByRole("button", { name: "重置邀请链接" }));
-    expect(mocks.ensure).not.toHaveBeenCalled();
-    expect(screen.getByRole("status")).toHaveTextContent("重置邀请链接失败：仅楼主可用");
-  });
-
-  test("确认、请求和剪贴板全阶段防重复和复制重置冲突", async () => {
-    const confirmation = deferred<boolean>();
-    const request = deferred<{ token: string }>();
-    const clipboard = deferred<void>();
-    mocks.confirm.mockReturnValue(confirmation.promise);
-    mocks.reset.mockReturnValue(request.promise);
-    const { user, writeText } = setup();
-    writeText.mockReturnValue(clipboard.promise);
-    const reset = screen.getByRole("button", { name: "重置邀请链接" });
+  test("请求锁覆盖PUT和剪贴板等待，阻止重复提交", async () => {
+    const request = deferred<{ token: string }>(); const clipboard = deferred<void>();
+    mocks.ensure.mockReturnValue(request.promise);
+    const { user, writeText } = setup(); writeText.mockReturnValue(clipboard.promise);
     const copy = screen.getByRole("button", { name: "复制邀请链接" });
-    await user.click(reset);
-    expect(reset).toBeDisabled(); expect(copy).toBeDisabled();
-    fireEvent.click(reset); fireEvent.click(copy);
-    await act(async () => { confirmation.resolve(true); });
-    expect(reset).toBeDisabled(); expect(copy).toBeDisabled();
-    await act(async () => { request.resolve({ token: "new-link" }); });
-    expect(reset).toBeDisabled(); expect(copy).toBeDisabled();
+    await user.click(copy); expect(copy).toBeDisabled(); fireEvent.click(copy);
+    await act(async () => { request.resolve({ token: "current-link" }); });
+    expect(copy).toBeDisabled(); fireEvent.click(copy);
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
     await act(async () => { clipboard.resolve(); });
-    expect(reset).toBeEnabled(); expect(copy).toBeEnabled();
-    expect(mocks.reset).toHaveBeenCalledTimes(1);
-    expect(mocks.ensure).not.toHaveBeenCalled();
+    expect(copy).toBeEnabled(); expect(mocks.ensure).toHaveBeenCalledTimes(1);
   });
 
   test.each(["unmount", "account", "route", "thread", "unavailable"])("等待响应时%s会使旧响应失效，不写剪贴板、不提示", async (change) => {
-    const request = deferred<{ token: string }>();
-    mocks.ensure.mockReturnValue(request.promise);
+    const request = deferred<{ token: string }>(); mocks.ensure.mockReturnValue(request.promise);
     const { user, writeText, unmount, rerender } = setup();
     await user.click(screen.getByRole("button", { name: "复制邀请链接" }));
     if (change === "unmount") unmount();
@@ -157,46 +127,46 @@ describe("私密邀请分享", () => {
     if (change === "thread") rerender(element({ threadId: "other" }));
     if (change === "unavailable") rerender(element({ unavailableReason: "请先保存可见性设置。" }));
     await act(async () => { request.resolve({ token: "late-secret" }); });
-    expect(writeText).not.toHaveBeenCalled();
-    expect(toast.success).not.toHaveBeenCalled();
+    expect(writeText).not.toHaveBeenCalled(); expect(toast.success).not.toHaveBeenCalled();
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
   });
 
-  test("切号后清理已显示的链接，重新登录不恢复凭据", async () => {
-    const { user } = setup();
+  test.each(["account", "route", "thread"])("%s变化清理手动复制URL", async (change) => {
+    const { user, writeText, rerender } = setup(); writeText.mockRejectedValue(new Error("denied"));
     await user.click(screen.getByRole("button", { name: "复制邀请链接" }));
     expect(screen.getByRole("textbox")).toBeInTheDocument();
-    act(() => login("other"));
-    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
-    act(() => login());
+    if (change === "account") { act(() => login("other")); act(() => login()); }
+    if (change === "route") { mocks.path = "/threads/other/edit"; rerender(element()); }
+    if (change === "thread") rerender(element({ threadId: "other" }));
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
   });
 
-  test("确认期间切号即使再切回也不发出旧重置", async () => {
-    const confirmation = deferred<boolean>();
-    mocks.confirm.mockReturnValue(confirmation.promise);
-    const { user } = setup();
-    await user.click(screen.getByRole("button", { name: "重置邀请链接" }));
-    act(() => { login("other"); login(); });
-    await act(async () => { confirmation.resolve(true); });
-    expect(mocks.reset).not.toHaveBeenCalled();
-  });
-
-  test("剪贴板等待期间退出后不发出迟到提示", async () => {
-    const clipboard = deferred<void>();
+  test("请求期间切号再切回也不处理旧响应", async () => {
+    const request = deferred<{ token: string }>(); mocks.ensure.mockReturnValue(request.promise);
     const { user, writeText } = setup();
-    writeText.mockReturnValue(clipboard.promise);
+    await user.click(screen.getByRole("button", { name: "复制邀请链接" }));
+    act(() => { login("other"); login(); });
+    await act(async () => { request.resolve({ token: "late-secret" }); });
+    expect(writeText).not.toHaveBeenCalled();
+  });
+
+  test.each(["resolve", "reject"])("剪贴板等待期间退出后忽略%s结果", async (outcome) => {
+    const clipboard = deferred<void>(); const { user, writeText } = setup(); writeText.mockReturnValue(clipboard.promise);
     await user.click(screen.getByRole("button", { name: "复制邀请链接" }));
     act(() => clearAuthSession());
-    await act(async () => { clipboard.resolve(); });
-    expect(toast.success).not.toHaveBeenCalled();
+    await act(async () => { if (outcome === "resolve") clipboard.resolve(); else clipboard.reject(new Error("denied")); });
+    expect(toast.success).not.toHaveBeenCalled(); expect(toast.error).not.toHaveBeenCalled();
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
   });
 
-  test.each(["请先发布帖子。", "请先保存可见性设置。"])("不可用时说明原因：%s", (unavailableReason) => {
+  test.each(["请先发布帖子。", "请先保存可见性设置。"])("不可用时禁用且不增加常驻说明：%s", (unavailableReason) => {
     setup({ unavailableReason });
     expect(screen.getByRole("button", { name: "复制邀请链接" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "重置邀请链接" })).toBeDisabled();
-    expect(screen.getByText(unavailableReason)).toBeVisible();
+    expect(screen.queryByText(unavailableReason)).not.toBeInTheDocument();
+  });
+
+  test.each(["anonymous", "other"])("%s无复制入口", (identity) => {
+    if (identity === "anonymous") clearAuthSession(); else login(identity);
+    setup(); expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 });

@@ -28,4 +28,4 @@ Web 将后台会话与公共 Bearer 身份隔离，只在管理接口明确返�
 
 ## 私密邀请重复分享
 
-新增 `PUT /threads/{id}/invite-link` 作为获取或原子创建入口，日常复制复用当前 token；旧 `POST` 及 operationId 保留主动轮换语义，旧客户端兼容。Web 仅在楼主确认重置后调用 POST；不删除旧协议、无客户端数据迁移。发布顺序为兼容 Backend → Web/Mobile，回滚 Web 可恢复旧分享入口，成员权限不受邀请重置影响；旧邀请失效仍统一拒绝，包括已加入成员通过旧邀请访问。
+新增 `PUT /threads/{id}/invite-link` 作为获取或原子创建入口，日常复制复用当前 token；旧 `POST` 及 operationId 保留主动轮换语义，旧客户端兼容。Web 当前仅保留复制按钮并调用 PUT，不再提供重置按钮、确认与 UI 编排；旧 POST、operationId 与生成方法继续保留，本次不删除旧协议、无客户端数据迁移。发布顺序为兼容 Backend → Web/Mobile，回滚 Web 可恢复旧分享入口，成员权限不受邀请重置影响；旧邀请失效仍统一拒绝，包括已加入成员通过旧邀请访问。
