@@ -59,6 +59,7 @@ describe("私密帖邀请页", () => {
     mockUseInvitePreview.mockReturnValue({
       data: { thread, alreadyJoined: true },
       isLoading: false,
+      isFetchedAfterMount: true,
       error: null,
     });
 
@@ -72,6 +73,7 @@ describe("私密帖邀请页", () => {
     mockUseInvitePreview.mockReturnValue({
       data: { thread, alreadyJoined: false },
       isLoading: false,
+      isFetchedAfterMount: true,
       error: null,
     });
 
@@ -98,10 +100,40 @@ describe("私密帖邀请页", () => {
     expect(mockReplace).not.toHaveBeenCalledWith("/threads/t1");
   });
 
+  test.each(["u1", "u2"])("%s 已加入缓存复核为404后展示失效，不能永久加载或自动进入", (id) => {
+    mockUseAuth.mockReturnValue({ user: { id }, isInitialized: true });
+    mockUseInvitePreview.mockReturnValue({
+      data: { thread, alreadyJoined: true }, isLoading: false,
+      isFetching: false, isFetchedAfterMount: true, error: { code: 40408 },
+    });
+    render(<JoinByInvitePage />);
+    expect(screen.getByText("邀请链接无效或已失效")).toBeVisible();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(screen.queryByText("私密帖")).not.toBeInTheDocument();
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
+
+  test("本次复核尚未开始也不能用已加入缓存提前跳转", () => {
+    mockUseInvitePreview.mockReturnValue({
+      data: { thread, alreadyJoined: true }, isLoading: false,
+      isFetching: false, isFetchedAfterMount: false, error: null,
+    });
+    const { rerender } = render(<JoinByInvitePage />);
+    expect(screen.getByRole("status")).toBeVisible();
+    expect(mockReplace).not.toHaveBeenCalled();
+    mockUseInvitePreview.mockReturnValue({
+      data: { thread, alreadyJoined: true }, isLoading: false,
+      isFetching: false, isFetchedAfterMount: true, error: null,
+    });
+    rerender(<JoinByInvitePage />);
+    expect(mockReplace).toHaveBeenCalledWith("/threads/t1");
+  });
+
   test("加入时 token 已失效会切换为无效页且不进入主题", async () => {
     mockUseInvitePreview.mockReturnValue({
       data: { thread, alreadyJoined: false },
       isLoading: false,
+      isFetchedAfterMount: true,
       error: null,
     });
     mockJoin.mockRejectedValue({ code: 40408, message: "邀请链接无效" });

@@ -256,9 +256,33 @@ test.describe("帖子共同创作管理台", () => {
     await expect(page.getByRole("button", { name: "删除主题帖" })).toBeVisible();
     await expectFunctionalTitles(page.getByRole("heading"));
     await expect(page.getByRole("toolbar", { name: "正文格式工具栏" })).toBeVisible();
+    // 隔离 runner 中保留不含邀请凭据的候选图，供人工检查后显式更新同名视觉基线。
     await expect(page).toHaveScreenshot("management-settings-1440.png", {
       animations: "disabled",
+    }).finally(async () => {
+      await page.screenshot({ path: ".e2e-results/management-settings-1440.candidate.png", animations: "disabled" });
     });
+  });
+
+  test("单按钮邀请及1024px黑夜剪贴板失败状态", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await openManagementWorkspace(page);
+    const copy = page.getByRole("button", { name: "复制邀请链接", exact: true });
+    await expect(page.getByRole("button", { name: "重置邀请链接", exact: true })).toHaveCount(0);
+    await expect(page.getByText("私密访问", { exact: true })).toHaveCount(0);
+    await page.setViewportSize({ width: 1024, height: 900 });
+    await page.emulateMedia({ colorScheme: "dark" });
+    await page.route("**/api/v1/threads/*/invite-link", (route) => route.fulfill({
+      json: { code: 0, data: { threadId: thread.id, token: "PreviewLink00001" } },
+    }));
+    await page.evaluate(() => Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async () => { throw new Error("clipboard denied"); } } }));
+    await copy.click();
+    await expect(page.getByRole("status")).toContainText("自动复制失败，请手动复制下方链接");
+    await expect(copy).toBeEnabled();
+    await expect(page.getByRole("textbox", { name: "当前邀请链接" })).toBeVisible();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1024);
+    await copy.locator("..").screenshot({ path: ".e2e-results/invite-simple-manual-dark-1024.png", animations: "disabled" });
   });
 
   test("1024px 子贴深链接无横向溢出", async ({ page }) => {

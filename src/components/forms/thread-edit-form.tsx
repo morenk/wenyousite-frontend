@@ -10,7 +10,6 @@ import { toast } from "sonner";
 import {
   AlertTriangle,
   ClipboardCopy,
-  KeyRound,
   Loader2,
   RotateCcw,
   Trash2,
@@ -27,7 +26,7 @@ import {
 } from "@/lib/validations/thread-create";
 import { useSaveThreadAggregate } from "@/api/hooks/use-save-thread-aggregate";
 import { useUploadImage } from "@/api/hooks/use-upload-image";
-import { useCreateInviteLink } from "@/api/hooks/use-thread-access-actions";
+import { PrivateInviteLink } from "@/components/forms/private-invite-link";
 import { useDeleteThread } from "@/api/hooks/use-delete-thread";
 import { API_ERROR_CODE, getApiError, getApiErrorMessage } from "@/api/errors";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
@@ -93,7 +92,6 @@ export function ThreadEditForm({
   const [saveMessage, setSaveMessage] = useState<string>();
   const saveThread = useSaveThreadAggregate();
   const uploadImage = useUploadImage();
-  const createInviteLink = useCreateInviteLink();
   const deleteThread = useDeleteThread();
   const [editorContent, setEditorContent] = useState(
     thread.defaultSubthread.bodyPost?.content ?? "",
@@ -234,23 +232,6 @@ export function ThreadEditForm({
     toast.success("已载入最新版本");
   };
 
-  const handleCreateInvite = async () => {
-    if (!(await confirmAction({
-      title: "生成新的邀请链接",
-      description: "生成后旧邀请链接会立即失效。确定继续吗？",
-      confirmLabel: "生成并复制",
-    }))) return;
-    try {
-      const invite = await createInviteLink.mutateAsync(thread.id);
-      await navigator.clipboard.writeText(
-        `${window.location.origin}/join/${invite.token}`,
-      );
-      toast.success("新邀请链接已复制，旧链接已失效");
-    } catch (error: unknown) {
-      toast.error(getApiErrorMessage(error, "邀请链接生成失败"));
-    }
-  };
-
   const handleDeleteThread = async () => {
     const childCount = Math.max(0, thread.subthreads.length - 1);
     if (!(await confirmAction({
@@ -269,7 +250,7 @@ export function ThreadEditForm({
   };
 
   const inviteNeedsVisibilitySave =
-    visibility === "PRIVATE" && thread.visibility !== "PRIVATE";
+    visibility === "PRIVATE" && (baseline.visibility !== "PRIVATE" || thread.visibility !== "PRIVATE");
 
   return (
     <form
@@ -380,27 +361,13 @@ export function ThreadEditForm({
             </div>
           </section>
 
-          {isOwner && visibility === "PRIVATE" ? (
-            <section className="rounded-[var(--radius-panel)] border border-border bg-card p-4">
-              <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                <KeyRound className="size-4 text-brand-strong" />
-                私密访问
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="compact"
-                className="mt-3 w-full"
-                disabled={inviteNeedsVisibilitySave || createInviteLink.isPending || isBusy}
-                onClick={() => void handleCreateInvite()}
-              >
-                {createInviteLink.isPending ? <Loader2 className="animate-spin" /> : <KeyRound />}
-                生成并复制邀请链接
-              </Button>
-              {inviteNeedsVisibilitySave ? (
-                <p className="mt-2 text-xs text-warning">请先保存可见性设置。</p>
-              ) : null}
-            </section>
+          {isOwner && visibility === "PRIVATE" && thread.visibility === "PRIVATE" && !thread.deletedAt ? (
+            <PrivateInviteLink
+              threadId={thread.id}
+              ownerId={thread.ownerId}
+              disabled={isBusy || deleteThread.isPending}
+              unavailableReason={!thread.published ? "请先发布帖子。" : inviteNeedsVisibilitySave ? "请先保存可见性设置。" : undefined}
+            />
           ) : null}
         </aside>
       </div>
