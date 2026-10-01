@@ -11,11 +11,12 @@ test.each(fixture.editCases)("$id saves the manual boundary and reopens without 
   const root = document.createElement("div");
   document.body.append(root);
   const emitted: string[] = [];
+  let flush!: () => string | null;
   const crepe = new CrepeBuilder({ root, defaultValue: prepareEditorMarkdown(item.markdown) });
   crepe.editor.config(configureEditorAlignmentParser).config(configureEditorAlignmentSchemas)
     .config(configureEditorMarkdownSerializer).use(editorSoftBreakParser)
     .use(createEditorAlignmentPlugin(() => {}))
-    .use(createEditorMarkdownBridge({ onChange: (value) => emitted.push(value), onError: (error) => { throw error; } }));
+    .use(createEditorMarkdownBridge({ onReady: (next) => { if (next) flush = next; }, onChange: (value) => emitted.push(value), onError: (error) => { throw error; } }));
   try {
     await crepe.create();
     crepe.editor.action((ctx) => {
@@ -29,6 +30,7 @@ test.each(fixture.editCases)("$id saves the manual boundary and reopens without 
         expect(view.someProp("handleKeyDown", (handle) => handle(view, new KeyboardEvent("keydown", { key: "Enter" })))).toBe(true);
       }
       expect(serializeEditorMarkdown(ctx, view.state.doc)).toBe(item.serialized);
+      flush();
       expect(emitted.at(-1)).toBe(item.serialized);
       const reopened = ctx.get(parserCtx)(prepareEditorMarkdown(item.serialized));
       expect(serializeEditorMarkdown(ctx, reopened)).toBe(item.serialized);

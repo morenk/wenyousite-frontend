@@ -182,7 +182,7 @@ describe("MilkdownEditor 能力分层", () => {
       expect(paragraph).toBeInTheDocument();
       return paragraph!;
     });
-    expect(onChange.mock.calls.at(-1)?.[0]).toBe("分隔线前\n\n---");
+    await waitFor(() => expect(onChange.mock.calls.at(-1)?.[0]).toBe("分隔线前\n\n---"));
     await user.type(following, "分隔线后");
     const stored = "分隔线前\n\n---\n\n分隔线后";
     await waitFor(() => expect(onChange.mock.calls.at(-1)?.[0]).toBe(stored));
@@ -330,9 +330,9 @@ describe("MilkdownEditor 能力分层", () => {
       expect(node).toHaveAttribute("data-wenyou-align", "center");
       return node!;
     });
-    expect(onChange.mock.calls.at(-1)?.[0]).toBe(
+    await waitFor(() => expect(onChange.mock.calls.at(-1)?.[0]).toBe(
       "[wenyousite-align-v1-center]: #\n## 正文",
-    );
+    ));
 
     await user.click(heading);
     await user.click(screen.getByRole("button", { name: "切换正文样式" }));
@@ -515,7 +515,7 @@ describe("MilkdownEditor 能力分层", () => {
 
     await waitFor(() => expect(editor.querySelector("blockquote")).toBeInTheDocument());
     expect(toast.error).not.toHaveBeenCalled();
-    expect(onChange).toHaveBeenLastCalledWith(">\n\n<br />");
+    await waitFor(() => expect(onChange).toHaveBeenLastCalledWith(">\n\n<br />"));
 
     await user.type(editor.querySelector("blockquote p")!, "引用正文");
     await waitFor(() => {
@@ -736,9 +736,9 @@ describe("MilkdownEditor 能力分层", () => {
     });
     expect(portal).toHaveAttribute("href", fixture.expectedHref);
     expect(portal).toHaveTextContent(fixture.expectedLabel!);
-    expect(onChange).toHaveBeenCalledWith(
+    await waitFor(() => expect(onChange).toHaveBeenCalledWith(
       `[${fixture.expectedLabel}](${fixture.expectedHref})`,
-    );
+    ));
   });
 
   test("单独粘贴邀请链接时立即显示并序列化为传送门", async () => {
@@ -759,7 +759,7 @@ describe("MilkdownEditor 能力分层", () => {
     });
     expect(portal).toHaveAttribute("href", "/join/AbCdEfGh_123-XYZ");
     expect(portal).toHaveTextContent("传送门");
-    expect(onChange).toHaveBeenCalledWith("[传送门](/join/AbCdEfGh_123-XYZ)");
+    await waitFor(() => expect(onChange).toHaveBeenCalledWith("[传送门](/join/AbCdEfGh_123-XYZ)"));
   });
 
   test("编辑器重开时命名邀请链接仍以传送门显示", async () => {

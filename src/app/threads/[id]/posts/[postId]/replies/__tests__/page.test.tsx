@@ -26,7 +26,7 @@ vi.mock("@/api/hooks/use-post", () => ({
 vi.mock("@/lib/auth", () => ({ useAuth: () => ({ isInitialized: true }) }));
 vi.mock("@/components/thread/thread-composer-context", () => ({
   ThreadComposerProvider: ({ children }: { children: React.ReactNode }) => children,
-  useThreadComposer: () => ({ close: mocks.closeComposer }),
+  useThreadComposerSession: () => ({ close: mocks.closeComposer }),
 }));
 vi.mock("@/components/thread/thread-permissions-context", () => ({
   ThreadPermissionsProvider: ({ children }: { children: React.ReactNode }) => children,

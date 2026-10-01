@@ -11,9 +11,10 @@ async function runEditor(source: string, quote: boolean, breaks: number, offset:
   const root = document.createElement("div");
   document.body.append(root);
   const emitted: string[] = [];
+  let flush!: () => string | null;
   const crepe = new CrepeBuilder({ root, defaultValue: prepareEditorMarkdown(source) });
   crepe.editor.config(configureEditorMarkdownSerializer).use(editorSoftBreakParser)
-    .use(createEditorMarkdownBridge({ onChange: (value) => emitted.push(value),
+    .use(createEditorMarkdownBridge({ onReady: (next) => { if (next) flush = next; }, onChange: (value) => emitted.push(value),
       onError: (error) => { throw error; } }));
   try {
     await crepe.create();
@@ -35,6 +36,7 @@ async function runEditor(source: string, quote: boolean, breaks: number, offset:
       expect(serializeEditorMarkdown(ctx, view.state.doc)).toBe(expected);
       const reopened = ctx.get(parserCtx)(prepareEditorMarkdown(expected));
       expect(serializeEditorMarkdown(ctx, reopened)).toBe(expected);
+      flush();
       expect(emitted.at(-1)).toBe(expected);
     });
   } finally {

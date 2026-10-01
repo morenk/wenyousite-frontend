@@ -213,3 +213,96 @@ test("同步失败取消待发送自动草稿，恢复后保存最新正文", as
   await act(async () => { await vi.advanceTimersByTimeAsync(1_000); });
   expect(mockSaveDraft).toHaveBeenCalledWith(expect.objectContaining({ content: "恢复后的最新正文" }));
 });
+
+
+test("即时变更使旧快照失效，800ms从实际编辑而非延后快照计时", async () => {
+  const flush = vi.fn(() => "最终正文");
+  const { result } = renderHook(() => useEditorDraftController({ defaultValue: "旧正文", flush }), { wrapper: createQueryWrapper().Wrapper });
+  act(() => result.current.handleAutoSaveChange(true));
+  await act(async () => vi.advanceTimersByTimeAsync(700));
+  act(() => result.current.handleDocumentChange());
+  await act(async () => vi.advanceTimersByTimeAsync(120));
+  act(() => result.current.handleChange("最终正文"));
+  await act(async () => vi.advanceTimersByTimeAsync(679));
+  expect(mockSaveDraft).not.toHaveBeenCalled();
+  await act(async () => vi.advanceTimersByTimeAsync(1));
+  expect(mockSaveDraft).toHaveBeenCalledExactlyOnceWith({ content: "最终正文", slot: 1 });
+});
+
+test("组词期间取消队列，结束后保存最终快照且恢复草稿被保护", async () => {
+  const { result } = renderHook(() => useEditorDraftController({ defaultValue: "正文" }), { wrapper: createQueryWrapper().Wrapper });
+  act(() => { result.current.handleAutoSaveChange(true); result.current.handleCompositionChange(true); result.current.handleDocumentChange(); });
+  await flushAutoSave();
+  act(() => result.current.handleRestore({ content: "覆盖" }));
+  expect(result.current.currentContent).toBe("正文");
+  expect(mockSaveDraft).not.toHaveBeenCalled();
+  expect(result.current.syncError).toBe(false);
+  act(() => { result.current.handleDocumentChange(); result.current.handleChange("最终词语"); result.current.handleCompositionChange(false); });
+  await flushAutoSave();
+  expect(mockSaveDraft).toHaveBeenCalledExactlyOnceWith({ content: "最终词语", slot: 1 });
+});
+
+test("同目标恢复使旧正文队列失效，已发响应只推进版本", async () => {
+  let resolveSave!: (value: { id: string; version: number }) => void;
+  mockSaveDraft.mockImplementationOnce(() => new Promise((resolve) => { resolveSave = resolve; }));
+  const { result } = renderHook(() => useEditorDraftController({ defaultValue: "A" }), { wrapper: createQueryWrapper().Wrapper });
+  act(() => result.current.handleAutoSaveChange(true, { id: "d1", version: 1 }));
+  await flushAutoSave();
+  act(() => result.current.handleChange("旧队列"));
+  await flushAutoSave();
+  act(() => result.current.handleRestore({ content: "恢复后的正文" }));
+  await act(async () => resolveSave({ id: "d1", version: 2 }));
+  expect(mockSaveDraft).toHaveBeenCalledTimes(1);
+  expect(result.current.currentContent).toBe("恢复后的正文");
+  expect(result.current.autoSaveStatus).not.toBe("saved");
+  await flushAutoSave();
+  expect(mockSaveDraft).toHaveBeenLastCalledWith({ draftId: "d1", content: "恢复后的正文", version: 2 });
+});
+
+test.each(["toggle", "account"])("%s建立新保存会话，旧成功响应不能改变新目标", async (kind) => {
+  let resolveSave!: (value: { id: string; version: number }) => void;
+  mockSaveDraft.mockImplementationOnce(() => new Promise((resolve) => { resolveSave = resolve; }));
+  const { result, rerender } = renderHook(() => useEditorDraftController({ defaultValue: "A" }), { wrapper: createQueryWrapper().Wrapper });
+  act(() => result.current.handleAutoSaveChange(true, { id: "old", version: 1 }));
+  await flushAutoSave();
+  if (kind === "account") {
+    mockUseAuth.mockReturnValue({ user: { id: "u2" } });
+    rerender();
+    expect(result.current.autoSaveEnabled).toBe(false);
+  } else act(() => result.current.handleAutoSaveChange(false));
+  act(() => result.current.handleAutoSaveChange(true, { id: "new", version: 8 }));
+  await act(async () => resolveSave({ id: "old", version: 2 }));
+  await flushAutoSave();
+  expect(mockSaveDraft).toHaveBeenLastCalledWith({ draftId: "new", content: "A", version: 8 });
+});
+
+test("自动保存已启用时手动更新槽位版本仍重新排程", async () => {
+  const { result } = renderHook(() => useEditorDraftController({ defaultValue: "A" }), { wrapper: createQueryWrapper().Wrapper });
+  act(() => result.current.handleAutoSaveChange(true, { id: "d1", version: 1 }));
+  await act(async () => vi.advanceTimersByTimeAsync(400));
+  act(() => result.current.handleAutoSaveChange(true, { id: "d1", version: 3 }));
+  await flushAutoSave();
+  expect(mockSaveDraft).toHaveBeenCalledExactlyOnceWith({ draftId: "d1", content: "A", version: 3 });
+});
+
+test("卸载后取消尚未发送的保存", async () => {
+  const { result, unmount } = renderHook(() => useEditorDraftController({ defaultValue: "A" }), { wrapper: createQueryWrapper().Wrapper });
+  act(() => result.current.handleAutoSaveChange(true));
+  unmount();
+  await flushAutoSave();
+  expect(mockSaveDraft).not.toHaveBeenCalled();
+});
+
+
+test("组词中切账号取消旧队列并清除组合状态，新账号编辑可重新开启保存", async () => {
+  const { result, rerender } = renderHook(() => useEditorDraftController({ defaultValue: "旧正文" }), { wrapper: createQueryWrapper().Wrapper });
+  act(() => { result.current.handleAutoSaveChange(true); result.current.handleCompositionChange(true); result.current.handleDocumentChange(); });
+  mockUseAuth.mockReturnValue({ user: { id: "u2" } });
+  rerender();
+  await flushAutoSave();
+  expect(mockSaveDraft).not.toHaveBeenCalled();
+  expect(result.current.autoSaveEnabled).toBe(false);
+  act(() => { result.current.handleDocumentChange(); result.current.handleChange("新账号正文"); result.current.handleAutoSaveChange(true, { id: "new", version: 1 }); });
+  await flushAutoSave();
+  expect(mockSaveDraft).toHaveBeenCalledExactlyOnceWith({ draftId: "new", content: "新账号正文", version: 1 });
+});

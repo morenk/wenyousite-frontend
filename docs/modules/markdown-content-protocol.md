@@ -66,7 +66,7 @@ Web 与 Flutter 共用数据库中的 Markdown 字符串，不修改既有字段
 
 ## Web 编解码边界
 
-- `milkdown-markdown-codec.ts` 是 ProseMirror 文档与持久化 Markdown 之间的唯一写出边界。普通 `docChanged` 事务完成后同步序列化一次；长按 Backspace/Delete 的重复按键期间，文档与选区即时更新，完整编码和字数/父表单同步合并到松键或停止输入 120ms 后。失焦、切换按键及保存/关闭前的 `flush()` 立即编码最新文档，编码失败仍阻止写入；卸载取消待同步任务。不依赖 Milkdown 的防抖 `markdownUpdated` 事件，也不允许骰子、表情、提及、图片等入口各自手动补发正文。正文节点变化不触发工具栏密度重测，工具栏结构和容器尺寸变化仍重新布局。
+- `milkdown-markdown-codec.ts` 是 ProseMirror 文档与持久化 Markdown 之间的唯一写出边界。文档与选区即时更新，普通 `docChanged` 的完整编码在停止输入 120ms 后合并执行，持续输入最长每 500ms 同步一次；长按 Backspace/Delete 仍合并到松键或停止删除 120ms 后。中文组词期间暂停编码和自动保存，完成最终组合事务后恢复；保存、恢复或关闭会提示先完成选词，不把组合输入当成编码失败。`onDocumentChange` 即时通知内容版本变化并使旧草稿队列失效，`onChange` 提供已验证的合并 Markdown 快照（撤销回相同文字也确认版本完成）。成功编码按不可变文档和当前契约版本缓存，纯选区与同一版本的重复 `flush()` 不重新编码。失焦及保存/关闭前的 `flush()` 读取最新文档；React Hook Form 先同步正文再运行表单校验，编码失败不写入旧值。异步确认后复核正文版本，卸载取消待同步任务。不依赖 Milkdown 的防抖 `markdownUpdated` 事件，也不允许骰子、表情、提及、图片等入口各自手动补发正文。正文节点变化不触发工具栏密度重测，工具栏结构和容器尺寸变化仍重新布局。
 - Shift+Enter 仍保留为编辑器内 break 节点，但 stringifier 直接写成普通 LF；因此粗体末尾换行稳定输出 `**阿罗**\n下一行`，不会先生成反斜杠硬换行再被整行转义。正文重开时普通 LF 也恢复为可见 break 节点，与完整阅读态一致，不折叠成空格。
 - 分隔线只写为与前后正文各隔一个空行的 `正文\n\n---\n\n正文`，并以 `horizontal-rule` 块语义验收；历史 `正文\n---` 按 CommonMark Setext H2 重开，任何编辑后统一写为 `## 正文`，不能按行级正则误判为分隔线。
 - 阅读态和编辑器解析态共享同一条 attention 边界兼容：严格 CommonMark 已留在普通 text 节点中的 `* / _ / ~~` 成对定界符，只有内容首尾无空白且至少一侧为 Unicode 标点或符号时才恢复为格式；另兼容历史上恰好一个普通空格误写在定界符内、且后面紧接完整行内代码的粗体、斜体、粗斜体和删除线。恢复前用源码位置确认开闭定界符真实存在且未转义；代码、链接、图片、定义、未闭合/更长定界符和普通词内下划线不变。
@@ -159,3 +159,5 @@ revision 2 精确示例：`[wenyousite-align-v1-center]: #\n甲\n\n乙` 显示�
 ### 行内组合跨端候选结果
 
 候选提交通过检查后，可运行 `WENYOU_INLINE_EXPORT=/tmp/web-inline-candidate.json pnpm test src/components/editor/__tests__/milkdown-editor-roundtrip.test.ts -t '共享邻接矩阵|共享特殊文本矩阵'`。测试仍执行完整矩阵，额外导出全部 11,520 个邻接结果（包括所有间隔、外围文字和异链接）及 384 个特殊文本结果，包含实际 Markdown、独立预期 segments、Web 提交 SHA、fixture 来源 SHA 与内容 SHA-256。产物仅供跨端候选互读，不提交生成的大型结果。消费另一端同结构的已提交候选产物时，运行 `WENYOU_INLINE_IMPORT=/tmp/mobile-inline-candidate.json pnpm test src/components/editor/__tests__/milkdown-editor-roundtrip.test.ts -t 跨端候选互读`，会核对 fixture SHA-256 并再次验证真实解析、发布 DOM 和保存幂等。
+
+编辑器主体不订阅字数和自动草稿状态；主题页楼层/回复入口只订阅会话目标与操作，正文快照不广播给全部楼层。媒体 decorations 按事务映射并局部更新，纯选区复用；属性修改与授权展示描述更新仍刷新来源。提及原子属性只检查新增链接子树及链接内文字变化，候选菜单按帧合并。

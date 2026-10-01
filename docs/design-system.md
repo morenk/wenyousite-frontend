@@ -21,7 +21,7 @@
 本地只保留实现映射，不复制规范：
 
 - `src/app/layout.tsx` 引入中央 Token CSS，通过 `src/lib/typography.ts` 将 `TYPOGRAPHY_FAMILIES` 注入根节点，`--font-sans/display/rounded/utility` 映射各角色且均解析为未加引号的 `system-ui, sans-serif`，`globals.css` 只做 Tailwind 映射和 Web 组件样式。
-- Tailwind Preflight 的编译时默认家族固定为契约校验过的通用系统字体；Sonner 2.0.7 通过受锁文件约束的 pnpm 补丁将 ESM、CJS 和独立 CSS 的内置家族映射到同一 body 变量。Sonner 补丁仅调整字体栈；Next.js 16.3.3 的补丁只移除框架度量表中的 212 个禁用字体家族，避免旧字体标识进入 standalone 依赖。升级对应依赖时须复核补丁并重新运行产物门禁。字体扫描按字体标识识别，Zod 乌兹别克语的 `Noto‘g‘ri` 普通文案不属于字体。
+- Tailwind Preflight 的编译时默认家族固定为契约校验过的通用系统字体；Sonner 2.0.7 通过受锁文件约束的 pnpm 补丁将 ESM、CJS 和独立 CSS 的内置家族映射到同一 body 变量。Sonner 补丁仅调整字体栈；Next.js 16.3.6 的补丁只移除框架度量表中的 212 个禁用字体家族，避免旧字体标识进入 standalone 依赖。升级对应依赖时须复核补丁并重新运行产物门禁。字体扫描按字体标识识别，Zod 乌兹别克语的 `Noto‘g‘ri` 普通文案不属于字体。
 - 根布局在 hydration 前运行由中央偏好与调色板生成的静态脚本；默认跟随系统，`ThemeProvider` 负责运行时解析、跨标签页同步、`color-scheme`、浏览器主题色与 Sonner 主题。显式偏好只以 `wenyousite-theme` 保存在当前浏览器，不进入账号资料。
 - `ThemeMenu` 在社区/工作区全局导航和认证/站务壳右上角提供“跟随系统、亮色、黑夜”原生单选组；键盘选择即时生效，不发送请求或成功 Toast。
 - 根布局直接消费 Foundation 的正式品牌名称与文案；侧栏首页入口使用相邻可见名称与装饰性标题标识。favicon、Apple touch icon、PWA 图标、标题标识和 Web Manifest 由 `pnpm brand:sync` 从锁定包同步，并由 `pnpm design:check` 逐项校验哈希。

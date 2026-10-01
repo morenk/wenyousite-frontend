@@ -116,7 +116,7 @@ export function ThreadEditForm({
   const tagNames = useWatch({ control: form.control, name: "tagNames" });
   const title = useWatch({ control: form.control, name: "title" });
   const isBusy = isSaving || uploadImage.isPending;
-  const isDirty = editor.invalid ||
+  const isDirty = editor.invalid || editor.hasPendingChanges ||
     title !== baseline.title ||
     category !== baseline.category ||
     status !== baseline.status ||
@@ -136,14 +136,25 @@ export function ThreadEditForm({
   }, [editor.invalid, isBusy, isDirty, saveMessage, saveState]);
 
   useEffect(() => {
-    onStatusChange({ ...reportedStatus, canClose: editor.canClose });
-  }, [editor.canClose, onStatusChange, reportedStatus]);
+    onStatusChange({ ...reportedStatus, canClose: editor.canClose,
+      hasChanges: () => {
+        const values = form.getValues();
+        return values.title !== baseline.title || values.category !== baseline.category
+          || status !== baseline.status || postingPolicy !== baseline.postingPolicy
+          || (isOwner && values.visibility !== baseline.visibility)
+          || JSON.stringify(values.tagNames ?? []) !== JSON.stringify(baseline.tagNames)
+          || editor.editorRef.current?.flush() !== baseline.content;
+      },
+      getDocumentVersion: editor.getDocumentVersion,
+    });
+  }, [editor.canClose, editor.editorRef, editor.getDocumentVersion, onStatusChange, reportedStatus, form, status, postingPolicy, isOwner, baseline]);
 
   function resetFromThread(nextThread: ThreadDetail) {
     const nextBaseline = getThreadEditBaseline(nextThread);
     form.reset(nextBaseline);
     setStatus(nextBaseline.status);
     setPostingPolicy(nextBaseline.postingPolicy);
+    editor.onSynchronized();
     setEditorContent(nextBaseline.content);
     setBaseline(nextBaseline);
     setSaveState("saved");
@@ -217,6 +228,8 @@ export function ThreadEditForm({
   };
 
   const handleReloadLatest = async () => {
+    if (!editor.canClose()) return;
+    const revision = editor.getDocumentVersion();
     if (!(await confirmAction({
       title: "载入最新版本",
       description: "载入后会放弃当前表单的本地修改。建议先复制本地主帖正文。",
@@ -228,6 +241,7 @@ export function ThreadEditForm({
       toast.error("无法载入最新版本，请稍后重试");
       return;
     }
+    if (!editor.canClose() || revision !== editor.getDocumentVersion()) { toast.error("正文已变化，请再次确认载入"); return; }
     resetFromThread(latest);
     toast.success("已载入最新版本");
   };
@@ -260,6 +274,9 @@ export function ThreadEditForm({
           event.preventDefault();
           return;
         }
+        const content = editor.flush();
+        if (content === null) { event.preventDefault(); return; }
+        form.setValue("content", content, { shouldDirty: true });
         void form.handleSubmit(handleSave)(event);
       }}
       className="space-y-6"
@@ -313,10 +330,12 @@ export function ThreadEditForm({
                   <MilkdownEditor mediaDisplays={thread.defaultSubthread.bodyPost?.mediaDisplays}
                     editorRef={editor.editorRef}
                     onValidityChange={editor.onValidityChange}
+                    onDocumentChange={editor.onDocumentChange}
                     onSyncErrorChange={(hasError) => { setSyncError(hasError); onSyncErrorChange?.(hasError); }}
                     threadId={thread.id}
                     defaultValue={field.value ?? ""}
                     onChange={(value) => {
+                      editor.onSynchronized();
                       setEditorContent(value);
                       field.onChange(value);
                     }}

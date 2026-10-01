@@ -133,7 +133,7 @@ test.each(["继续输入", "撤销"])("真实 bridge 编码失败保留新输入
   failSerialization = true;
   await user.keyboard("B");
   expect(editor.textContent).toBe("AB");
-  expect(failures).toBeGreaterThan(0);
+  await waitFor(() => expect(failures).toBeGreaterThan(0));
   expect(toast.error).toHaveBeenCalled();
   await user.click(screen.getByRole("button", { name: "保存草稿" }));
   await user.click(screen.getByRole("button", { name: "发布" }));
@@ -149,6 +149,7 @@ test.each(["继续输入", "撤销"])("真实 bridge 编码失败保留新输入
   } else await user.keyboard("C");
   const expectedContent = recovery === "撤销" ? "A" : "ABC";
   expect(editor.textContent).toBe(expectedContent);
+  await waitFor(() => expect(screen.getByRole("button", { name: "保存草稿" })).toBeEnabled());
   await user.click(screen.getByRole("button", { name: "保存草稿" }));
   await waitFor(() => expect(save).toHaveBeenCalledWith(expect.objectContaining({
     body: expect.objectContaining({ content: expectedContent }),
@@ -241,6 +242,7 @@ test("编码失败期间能力刷新不重建旧快照，恢复后按新能力�
   const { container, rerender } = render(form());
   await waitFor(() => expect(container.querySelector(".ProseMirror p")).toHaveTextContent("A"));
   let failed = true;
+  const originalEditor = instance.editor;
   instance.editor!.action((ctx) => {
     const serialize = ctx.get(serializerCtx);
     ctx.set(serializerCtx, (doc) => { if (failed) throw new EditorMarkdownCodecError("synthetic"); return serialize(doc); });
@@ -248,14 +250,21 @@ test("编码失败期间能力刷新不重建旧快照，恢复后按新能力�
   vi.spyOn(console, "error").mockImplementation(() => {});
   const user = userEvent.setup();
   await user.type(container.querySelector<HTMLElement>(".ProseMirror p")!, "B");
+  await waitFor(() => expect(screen.getByRole("button", { name: "保存草稿" })).toBeDisabled());
+  expect(toast.error).toHaveBeenCalled();
   meta.version = 3;
   rerender(form());
   expect(container.querySelector(".ProseMirror")?.textContent).toBe("AB");
+  expect(instance.editor).toBe(originalEditor);
   await user.click(screen.getByRole("button", { name: "保存草稿" }));
   expect(save).not.toHaveBeenCalled();
   failed = false;
   await user.type(container.querySelector<HTMLElement>(".ProseMirror p")!, "C");
-  await waitFor(() => expect(container.querySelector(".ProseMirror")?.textContent).toBe("ABC"));
+  await waitFor(() => {
+    expect(instance.editor).not.toBe(originalEditor);
+    expect(container.querySelector(".ProseMirror")?.textContent).toBe("ABC");
+    expect(screen.getByRole("button", { name: "保存草稿" })).toBeEnabled();
+  });
   save.mockResolvedValue(thread);
   await user.click(screen.getByRole("button", { name: "保存草稿" }));
   await waitFor(() => expect(save).toHaveBeenCalledWith(expect.objectContaining({ body: expect.objectContaining({ content: "ABC" }) })));

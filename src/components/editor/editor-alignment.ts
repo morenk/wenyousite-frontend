@@ -469,9 +469,9 @@ function syncImageBlockDomAlignment(view: EditorView, imageAlignmentEnabled: boo
     const dom = view.nodeDOM(position);
     if (!(dom instanceof HTMLElement)) return;
     if (imageAlignmentEnabled && isStoredWenyouTextAlignment(node.attrs.textAlign)) {
-      dom.setAttribute(WENYOU_ALIGNMENT_ATTRIBUTE, node.attrs.textAlign);
+      if (dom.getAttribute(WENYOU_ALIGNMENT_ATTRIBUTE) !== node.attrs.textAlign) dom.setAttribute(WENYOU_ALIGNMENT_ATTRIBUTE, node.attrs.textAlign);
     } else {
-      dom.removeAttribute(WENYOU_ALIGNMENT_ATTRIBUTE);
+      if (dom.hasAttribute(WENYOU_ALIGNMENT_ATTRIBUTE)) dom.removeAttribute(WENYOU_ALIGNMENT_ATTRIBUTE);
     }
   });
 }
@@ -483,14 +483,14 @@ export function createEditorAlignmentPlugin(
 ) {
   return $prose(() => new Plugin({
     key: new PluginKey("wenyousite-editor-alignment-invariant"),
-    appendTransaction: (_transactions, _oldState, state) =>
-      clearInvalidAlignment(state, imageAlignmentEnabled()),
+    appendTransaction: (transactions, _oldState, state) =>
+      transactions.some((transaction) => transaction.docChanged) ? clearInvalidAlignment(state, imageAlignmentEnabled()) : null,
     view: (view) => {
       syncImageBlockDomAlignment(view, imageAlignmentEnabled());
       onAlignmentChange(getSelectedTextAlignment(view.state, imageAlignmentEnabled()));
       return {
         update: (nextView, previousState) => {
-          syncImageBlockDomAlignment(nextView, imageAlignmentEnabled());
+          if (nextView.state.doc !== previousState.doc) syncImageBlockDomAlignment(nextView, imageAlignmentEnabled());
           if (
             nextView.state.selection.eq(previousState.selection)
             && nextView.state.doc.eq(previousState.doc)

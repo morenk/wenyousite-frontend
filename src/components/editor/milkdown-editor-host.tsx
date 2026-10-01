@@ -7,6 +7,7 @@ import { useEditorMediaDisplay } from "@/components/editor/use-editor-media-disp
 import { editorInlineCodeCommand } from "./editor-inline-code";
 import type { MarkdownMediaDisplay, MediaDisplay } from "@/lib/media-display";
 import {
+  memo,
   useCallback,
   useImperativeHandle,
   type Ref,
@@ -14,7 +15,7 @@ import {
   useMemo,
   useRef,
   useState,
-  type ReactNode,
+
 } from "react";
 import { Milkdown, useEditor, useInstance } from "@milkdown/react";
 import { CrepeBuilder } from "@milkdown/crepe/builder";
@@ -234,6 +235,8 @@ export interface MilkdownEditorHostProps {
   editorRef?: Ref<EditorSubmissionHandle>;
   onValidityChange?: (valid: boolean) => void;
   onChange?: (value: string) => void;
+  onDocumentChange?: () => void;
+  onCompositionChange?: (composing: boolean) => void;
   onSyncErrorChange?: (hasError: boolean) => void;
   onUploadImage?: (file: File, options?: UploadImageOptions) => Promise<string>;
   placeholder?: string;
@@ -245,17 +248,18 @@ export interface MilkdownEditorHostProps {
   diceRolls?: InlineDiceRoll[];
   autoFocus?: boolean;
   ariaLabel: string;
-  footerStatus: ReactNode;
 }
 
 /** Crepe 编辑器宿主：以 initialValue 初始化；被外层按 key 重挂载以回填恢复的正文草稿 */
-export function MilkdownEditorHost({
+export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   initialValue,
   mediaDisplays,
   markdownContractVersion,
   editorRef,
   onValidityChange,
   onChange,
+  onDocumentChange,
+  onCompositionChange,
   onSyncErrorChange,
   onUploadImage,
   placeholder,
@@ -265,7 +269,6 @@ export function MilkdownEditorHost({
   diceRolls = [],
   autoFocus = false,
   ariaLabel,
-  footerStatus,
 }: MilkdownEditorHostProps) {
   const [loading] = useInstance();
   const capabilityReady = true;
@@ -277,7 +280,13 @@ export function MilkdownEditorHost({
   const onChangeRef = useRef(onChange);
   const onValidityRef = useRef(onValidityChange);
   const flushRef = useRef<(() => string | null) | null>(null);
-  useImperativeHandle(editorRef, () => ({ flush: () => flushRef.current?.() ?? null }), []);
+  const composingRef = useRef(false);
+  const documentCallbacksRef = useRef({ onDocumentChange, onCompositionChange });
+  useEffect(() => { documentCallbacksRef.current = { onDocumentChange, onCompositionChange }; }, [onDocumentChange, onCompositionChange]);
+  useImperativeHandle(editorRef, () => ({
+    flush: () => flushRef.current?.() ?? null,
+    isComposing: () => composingRef.current,
+  }), []);
   useEffect(() => { onValidityRef.current = onValidityChange; }, [onValidityChange]);
   const onSyncErrorChangeRef = useRef(onSyncErrorChange);
   useEffect(() => { onSyncErrorChangeRef.current = onSyncErrorChange; }, [onSyncErrorChange]);
@@ -763,6 +772,11 @@ export function MilkdownEditorHost({
       );
       let codecErrorShown = false;
       const markdownBridge = createEditorMarkdownBridge({
+        onDocumentChange: () => documentCallbacksRef.current.onDocumentChange?.(),
+        onCompositionChange: (composing) => {
+          composingRef.current = composing;
+          documentCallbacksRef.current.onCompositionChange?.(composing);
+        },
         onSyncErrorChange: (hasError) => {
           if (!hasError) codecErrorShown = false;
           onSyncErrorChangeRef.current?.(hasError);
@@ -1000,8 +1014,8 @@ export function MilkdownEditorHost({
             />
           ) : null}
         </div>
-        {footerStatus}
+        <div data-slot="milkdown-editor-footer-status" />
       </div>
     </>
   );
-}
+});

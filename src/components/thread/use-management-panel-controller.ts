@@ -119,7 +119,7 @@ export function useManagementPanelController({
   const selectedSub = subthreadMap.get(state.selectedId);
   const effectiveSubthreadStatus: ManagementEditorStatus = editor.invalid
     ? { state: "error", dirty: true, busy: false, message: EDITOR_SYNC_ERROR }
-    : getSubthreadStatus(state);
+    : editor.hasPendingChanges ? { state: "dirty", dirty: true, busy: false } : getSubthreadStatus(state);
   const currentStatus = view === "settings"
     ? state.threadStatus
     : view === "subthreads"
@@ -171,14 +171,26 @@ export function useManagementPanelController({
   const confirmDiscardChanges = useCallback(async () => {
     if (view === "subthreads" && selectedSub && !editor.canClose()) return false;
     if (view === "settings" && state.threadStatus.canClose?.() === false) return false;
-    if (!hasUnsavedChanges) return true;
-    return confirmAction({
+    const dirtyNow = view === "settings"
+      ? state.threadStatus.hasChanges?.() ?? hasUnsavedChanges
+      : view === "subthreads" && selectedSub
+        ? state.title !== state.savedTitle || state.postingPolicy !== state.savedPostingPolicy || editor.editorRef.current?.flush() !== state.savedContent
+        : false;
+    const getVersion = view === "settings" ? state.threadStatus.getDocumentVersion : editor.getDocumentVersion;
+    const revision = getVersion?.();
+    if (!dirtyNow) return true;
+    const confirmed = await confirmAction({
       title: "放弃未保存修改",
       description: "当前修改尚未保存，确定要放弃吗？",
       confirmLabel: "放弃修改",
       destructive: true,
     });
-  }, [confirmAction, editor, hasUnsavedChanges, selectedSub, state.threadStatus, view]);
+    if (!confirmed) return false;
+    if (view === "subthreads" && selectedSub && !editor.canClose()) return false;
+    if (view === "settings" && state.threadStatus.canClose?.() === false) return false;
+    if (getVersion?.() !== revision) { toast.error("正文已变化，请再次确认"); return false; }
+    return true;
+  }, [confirmAction, editor, hasUnsavedChanges, selectedSub, state.threadStatus, state.savedContent, state.title, state.savedTitle, state.postingPolicy, state.savedPostingPolicy, view]);
 
   useManagementNavigationGuard({ hasUnsavedChanges, isNavigationLocked, confirmDiscardChanges });
 
@@ -199,20 +211,15 @@ export function useManagementPanelController({
 
   const handleSelect = async (id: string) => {
     if (id === state.selectedId || isNavigationLocked) return;
-    if (effectiveSubthreadStatus.dirty && !(await confirmAction({
-      title: "切换子贴",
-      description: "当前子贴的修改尚未保存，确定要放弃并切换吗？",
-      confirmLabel: "放弃并切换",
-      destructive: true,
-    }))) return;
-    if (selectedSub && !editor.canClose()) return;
+    if (!(await confirmDiscardChanges())) return;
     const next = subthreadMap.get(id);
+    editor.onSynchronized();
     dispatch({ type: "hydrate", subthread: next });
     await setUrlState({ view: "subthreads", subthread: id });
   };
 
   const handleSaveSubthread = async () => {
-    if (!selectedSub || !effectiveSubthreadStatus.dirty || isNavigationLocked) return;
+    if (!selectedSub || isNavigationLocked) return;
     const content = editor.flush();
     if (content === null) return;
     const title = state.title.trim();
@@ -417,6 +424,8 @@ export function useManagementPanelController({
   };
 
   const handleReloadSubthread = async () => {
+    if (!editor.canClose()) return;
+    const revision = editor.getDocumentVersion();
     if (!(await confirmAction({
       title: "载入最新版本",
       description: "载入后会放弃当前子贴的本地修改。建议先复制本地正文。",
@@ -425,6 +434,8 @@ export function useManagementPanelController({
     }))) return;
     const refreshed = await onRefetch();
     const next = refreshed?.subthreads.find((item) => item.id === state.selectedId);
+    if (!editor.canClose() || editor.getDocumentVersion() !== revision) { toast.error("正文已变化，请再次确认载入"); return; }
+    editor.onSynchronized();
     dispatch({ type: "hydrate", subthread: next });
     toast.success("已载入最新版本");
   };
@@ -453,10 +464,10 @@ export function useManagementPanelController({
     setTitle: (title: string) => dispatch({ type: "title", title }),
     setPostingPolicy: (postingPolicy: PostingPolicy) =>
       dispatch({ type: "posting-policy", postingPolicy }),
-    setContent: (content: string) => dispatch({ type: "content", content }),
+    setContent: (content: string) => { editor.onSynchronized(); dispatch({ type: "content", content }); },
     setSubFormMode: (mode: SubFormMode) => dispatch({ type: "form", mode }),
     setThreadStatus,
-    resetSubthreadEditor: () => dispatch({ type: "reset-subthread" }),
+    resetSubthreadEditor: () => { if (editor.canClose()) { editor.onSynchronized(); dispatch({ type: "reset-subthread" }); } },
     uploadImage: (file: File, options?: UploadImageOptions) =>
       uploadImage.mutateAsync(file, options),
     handleViewChange,

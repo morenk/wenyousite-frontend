@@ -1,11 +1,13 @@
 /** ThreadComposerProvider 测试：保证详情页仅有一个受保护的编辑会话 */
 
-import { cleanup, render, screen } from "@testing-library/react";
+import { useEffect } from "react";
+import { act, cleanup, render, renderHook, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
   ThreadComposerProvider,
   useThreadComposer,
+  useThreadComposerSession,
   type ThreadComposerSession,
 } from "@/components/thread/thread-composer-context";
 
@@ -95,4 +97,50 @@ describe("ThreadComposerProvider", () => {
     await user.click(screen.getByRole("button", { name: "强制关闭" }));
     expect(screen.getByTestId("session")).toHaveTextContent("closed");
   });
+});
+
+
+test("关闭guard同步最新正文后才判断dirty，不依赖上一轮render", async () => {
+  vi.stubGlobal("confirm", vi.fn(() => false));
+  const { result } = renderHook(useThreadComposer, { wrapper: ThreadComposerProvider });
+  await act(async () => { await result.current.open(createFloorSession); });
+  act(() => result.current.registerCloseGuard(() => { result.current.setContent("最后一字"); return true; }));
+  await act(async () => { expect(await result.current.close()).toBe(false); });
+  expect(confirm).toHaveBeenCalledTimes(1);
+  expect(result.current.session?.key).toBe(createFloorSession.key);
+});
+
+test("确认期间的新输入保留现场，撤销原文同步后不再误报dirty", async () => {
+  let accept!: (value: boolean) => void;
+  vi.stubGlobal("confirm", vi.fn(() => new Promise<boolean>((resolve) => { accept = resolve; })));
+  const { result } = renderHook(useThreadComposer, { wrapper: ThreadComposerProvider });
+  await act(async () => { await result.current.open(createFloorSession); });
+  act(() => { result.current.onDocumentChange(); result.current.setContent("A"); });
+  let closing!: Promise<boolean>;
+  act(() => { closing = result.current.close(); });
+  act(() => { result.current.onDocumentChange(); result.current.setContent("AB"); });
+  await act(async () => { accept(true); expect(await closing).toBe(false); });
+  expect(result.current.content).toBe("AB");
+  act(() => { result.current.onDocumentChange(); result.current.setContent(""); });
+  expect(result.current.dirty).toBe(false);
+  vi.mocked(confirm).mockClear();
+  await act(async () => { expect(await result.current.close()).toBe(true); });
+  expect(confirm).not.toHaveBeenCalled();
+});
+
+test("仅订阅会话的楼层入口不随正文快照重渲染", async () => {
+  let composer!: ReturnType<typeof useThreadComposer>;
+  const renderSession = vi.fn();
+  function Writer() {
+    const value = useThreadComposer();
+    useEffect(() => { composer = value; }, [value]);
+    return null;
+  }
+  function Entry() { renderSession(useThreadComposerSession().session); return null; }
+  render(<ThreadComposerProvider><Writer /><Entry /></ThreadComposerProvider>);
+  await act(async () => { await composer.open(createFloorSession); });
+  renderSession.mockClear();
+  act(() => { composer.onDocumentChange(); composer.setContent("A"); });
+  act(() => { composer.onDocumentChange(); composer.setContent("AB"); });
+  expect(renderSession).not.toHaveBeenCalled();
 });

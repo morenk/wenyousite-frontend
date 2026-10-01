@@ -1,0 +1,6586 @@
+{
+  "baselineCommit": "37785f9443b617731e6d14c109d2f065f1fa6a8d",
+  "backendCommit": "21acf512285f2a21aaa831f960211780de73aafc",
+  "foundationVersion": "7.2.1",
+  "baselineReport": {
+    "runId": "e2e_8fa5c804a0d99d34019ddf05",
+    "candidateId": "fb24f65a-b6d1-4915-8a08-7ed9995e7f66",
+    "buildId": "e2e-fb24f65a-b6d1-4915-8a08-7ed9995e7f66",
+    "status": "passed",
+    "errors": [],
+    "tests": [
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 200字 纯文 自动保存关 CPU1",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 200字 纯文 自动保存关 CPU4",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 200字 纯文 自动保存开 CPU1",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 200字 纯文 自动保存开 CPU4",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 2000字 纯文 自动保存关 CPU1",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 2000字 纯文 自动保存关 CPU4",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 2000字 纯文 自动保存开 CPU1",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 2000字 纯文 自动保存开 CPU4",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 9000字 纯文 自动保存关 CPU1",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 9000字 纯文 自动保存关 CPU4",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 9000字 纯文 自动保存开 CPU1",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 9000字 纯文 自动保存开 CPU4",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 8000字 混排 自动保存关 CPU1",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 8000字 混排 自动保存关 CPU4",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 8000字 混排 自动保存开 CPU1",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 8000字 混排 自动保存开 CPU4",
+        "status": "passed",
+        "errors": []
+      }
+    ],
+    "backendSha": "21acf512285f2a21aaa831f960211780de73aafc",
+    "residualCleanup": false,
+    "resourcesRemoved": true,
+    "cleanupVerified": true
+  },
+  "candidateReport": {
+    "runId": "e2e_941f3919ab475acb6f7ac892",
+    "candidateId": "66428cb9-2751-4f37-a33e-55f25be03112",
+    "buildId": "e2e-66428cb9-2751-4f37-a33e-55f25be03112",
+    "status": "passed",
+    "errors": [],
+    "tests": [
+      {
+        "title": " / chromium / accessibility.spec.ts / 公共关键页面无障碍 / 首页无 WCAG A/AA 自动检测违规",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / accessibility.spec.ts / 公共关键页面无障碍 / 登录无 WCAG A/AA 自动检测违规",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / accessibility.spec.ts / 公共关键页面无障碍 / 注册无 WCAG A/AA 自动检测违规",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / accessibility.spec.ts / 公共关键页面无障碍 / 搜索无 WCAG A/AA 自动检测违规",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / admin-console.spec.ts / 综合管理后台 / 1024px light 紧凑内容列表",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / admin-console.spec.ts / 综合管理后台 / 1024px dark 紧凑内容列表",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / admin-console.spec.ts / 综合管理后台 / 1366px light 紧凑内容列表",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / admin-console.spec.ts / 综合管理后台 / 1366px dark 紧凑内容列表",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / admin-console.spec.ts / 综合管理后台 / 1920px light 紧凑内容列表",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / admin-console.spec.ts / 综合管理后台 / 1920px dark 紧凑内容列表",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / admin-console.spec.ts / 综合管理后台 / 详情返回恢复筛选、分页和滚动，重新筛选回首页",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / admin-console.spec.ts / 综合管理后台 / 用户资料关联正常内容，动态正文不解释Markdown",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / admin-console.spec.ts / 综合管理后台 / 分类标签弹窗支持真实点击选择与保存",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / admin-console.spec.ts / 综合管理后台 / 内容状态失败留在表单，双击不重复提交",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / admin-console.spec.ts / 综合管理后台 / 键盘与200%缩放仍能访问内容操作",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / admin-session.spec.ts / light 记住设备与安全回跳，后台请求不带社区Bearer",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / admin-session.spec.ts / dark 记住设备与安全回跳，后台请求不带社区Bearer",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / admin-session.spec.ts / 其他标签退出后本标签清空旧内容并回登录，不形成重定向循环",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / admin-session.spec.ts / 带旧列表缓存的业务请求确认到期后立即隐藏后台",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / admin-session.spec.ts / 业务403不退出后台，也不清除社区身份",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / auth-redirect.spec.ts / 匿名登录回跳 / 受保护页面保留完整 pathname、query 和 hash",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / auth-redirect.spec.ts / 匿名登录回跳 / 公开页登录入口复用同一返回地址规则",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / bookmark-folder-management.spec.ts / threads 自定义夹重命名和删除保留收藏，失败保留位置，成功替换历史",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / bookmark-folder-management.spec.ts / moments 自定义夹重命名和删除保留收藏，失败保留位置，成功替换历史",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / bookmark-workspace.spec.ts / light 下大量目录可定位，桌面布局与键盘菜单可用",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / bookmark-workspace.spec.ts / dark 下大量目录可定位，桌面布局与键盘菜单可用",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / bookmark-workspace.spec.ts / 目录 URL、分页、移动、撤销和新建构成完整旅程",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / bookmark-workspace.spec.ts / 本人资料页 threads 可进入目录，新建空夹后刷新与返回仍可定位",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / bookmark-workspace.spec.ts / 本人资料页 moments 可进入目录，新建空夹后刷新与返回仍可定位",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / comment-attachment-replacement.spec.ts / 评论单图已满提示、移除后重选、选择器取消与发送失败重试",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / discussion-target-geometry.spec.ts / 开头、自然末尾与吸顶：高度 80，后续 0，阅读栏 false",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / discussion-target-geometry.spec.ts / 开头、自然末尾与吸顶：高度 80，后续 0，阅读栏 true",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / discussion-target-geometry.spec.ts / 开头、自然末尾与吸顶：高度 80，后续 1500，阅读栏 false",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / discussion-target-geometry.spec.ts / 开头、自然末尾与吸顶：高度 80，后续 1500，阅读栏 true",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / discussion-target-geometry.spec.ts / 开头、自然末尾与吸顶：高度 900，后续 0，阅读栏 false",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / discussion-target-geometry.spec.ts / 开头、自然末尾与吸顶：高度 900，后续 0，阅读栏 true",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / discussion-target-geometry.spec.ts / 开头、自然末尾与吸顶：高度 900，后续 1500，阅读栏 false",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / discussion-target-geometry.spec.ts / 开头、自然末尾与吸顶：高度 900，后续 1500，阅读栏 true",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / discussion-target-geometry.spec.ts / 开头、自然末尾与吸顶：高度 3600，后续 0，阅读栏 false",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / discussion-target-geometry.spec.ts / 开头、自然末尾与吸顶：高度 3600，后续 0，阅读栏 true",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / discussion-target-geometry.spec.ts / 开头、自然末尾与吸顶：高度 3600，后续 1500，阅读栏 false",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / discussion-target-geometry.spec.ts / 开头、自然末尾与吸顶：高度 3600，后续 1500，阅读栏 true",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / discussion-target-geometry.spec.ts / 整页不足一屏维持自然排版",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / discussion-target-geometry.spec.ts / 图片撑高、分页前插、阅读栏迟到和缩放后仍对齐，拖动后释放",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / discussion-target-pages.spec.ts / 负责人原地址的实际正文 / 主楼原坐标的长正文位于阅读栏下方",
+        "status": "skipped",
+        "errors": []
+      },
+      {
+        "title": " / chromium / discussion-target-pages.spec.ts / 负责人原地址的实际正文 / 最新发言入口定位同一长正文",
+        "status": "skipped",
+        "errors": []
+      },
+      {
+        "title": " / chromium / discussion-target-pages.spec.ts / 负责人原地址的实际正文 / AT 长短回复混排保留指定短回复 1024",
+        "status": "skipped",
+        "errors": []
+      },
+      {
+        "title": " / chromium / discussion-target-pages.spec.ts / 负责人原地址的实际正文 / AT 长短回复混排保留指定短回复 1440",
+        "status": "skipped",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-alignment-compatibility.spec.ts / 编辑器对齐真实浏览器兼容性 / 左中右与其他样式按两种顺序组合，保存及阅读重载保持一致",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-alignment-compatibility.spec.ts / 编辑器对齐真实浏览器兼容性 / 宽窄 PC 容器中的工具栏密度、更多菜单和指针路径保持可用",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-alignment-compatibility.spec.ts / 正文 连续回车的行高、保存、编辑重开和阅读保持一致",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-alignment-compatibility.spec.ts / 引用 连续回车的行高、保存、编辑重开和阅读保持一致",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-alignment-compatibility.spec.ts / center 手动 Enter 左对齐、自动折行、单行设置和保存重开",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-alignment-compatibility.spec.ts / right 手动 Enter 左对齐、自动折行、单行设置和保存重开",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-alignment-compatibility.spec.ts / 手打空格的三列在编辑、保存和阅读中保留实际列距",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-alignment-compatibility.spec.ts / 正文标题引用列表保留空格且软 LF 只换一行",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-alignment-compatibility.spec.ts / center 紧邻前文的 P/H2/H3/图片在保存重开与阅读保持四个边界",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-alignment-compatibility.spec.ts / right 紧邻前文的 P/H2/H3/图片在保存重开与阅读保持四个边界",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-alignment-compatibility.spec.ts / 正文草稿恢复紧邻 marker，真实编辑后保存与阅读保持对齐",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-alignment-compatibility.spec.ts / 末尾图片可经真实键盘继续输入，保存重开不丢结构",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-alignment-compatibility.spec.ts / 末尾分隔线可经真实键盘继续输入，保存重开不丢结构",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-alignment-compatibility.spec.ts / 末尾列表可经真实键盘继续输入，保存重开不丢结构",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-alignment-compatibility.spec.ts / 行内代码与其他样式叠加，发布无裸星号且保存重开稳定",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-alignment-compatibility.spec.ts / 粗体代码叠加斜体链接删除线时保留实际字重，普通代码与代码块不变",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-dice.spec.ts / 编辑器格式、分隔线、窄栏、骰子与正文草稿工具在真实浏览器中正常工作",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 200字 纯文 自动保存关 CPU1",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 200字 纯文 自动保存关 CPU4",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 200字 纯文 自动保存开 CPU1",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 200字 纯文 自动保存开 CPU4",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 2000字 纯文 自动保存关 CPU1",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 2000字 纯文 自动保存关 CPU4",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 2000字 纯文 自动保存开 CPU1",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 2000字 纯文 自动保存开 CPU4",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 9000字 纯文 自动保存关 CPU1",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 9000字 纯文 自动保存关 CPU4",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 9000字 纯文 自动保存开 CPU1",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 9000字 纯文 自动保存开 CPU4",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 8000字 混排 自动保存关 CPU1",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 8000字 混排 自动保存关 CPU4",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 8000字 混排 自动保存开 CPU1",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 8000字 混排 自动保存开 CPU4",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 延后同步时最后一字立即保存，正文来自当前编辑器",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 中文组词中的显式保存被阻止，选词结束后保存最终文字",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / follow-management.spec.ts / 本人关系管理：light、页签防重、确认与方向",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / follow-management.spec.ts / 关系菜单：light、跨方向移除、拉黑与能力",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / follow-management.spec.ts / 本人关系管理：dark、页签防重、确认与方向",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / follow-management.spec.ts / 关系菜单：dark、跨方向移除、拉黑与能力",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / management-workspace.spec.ts / 帖子共同创作管理台 / 主贴权限沿用发布设置控件、键盘和统一保存",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / management-workspace.spec.ts / 帖子共同创作管理台 / 1440px 设置页视觉基线",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / management-workspace.spec.ts / 帖子共同创作管理台 / 单按钮邀请及1024px黑夜剪贴板失败状态",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / management-workspace.spec.ts / 帖子共同创作管理台 / 1024px 子贴深链接无横向溢出",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / management-workspace.spec.ts / 帖子共同创作管理台 / 1920px 黑夜成员权限标题使用系统字体 body 600",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / management-workspace.spec.ts / 帖子共同创作管理台 / 阅读标题保留 display 角色，从详情打开的导出设置使用 body 600",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / management-workspace.spec.ts / 帖子共同创作管理台 / 管理台无 WCAG A/AA 自动检测违规",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / markdown-divider-visual.spec.ts / 正文分隔线与楼层边界保持区分（light）",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / markdown-divider-visual.spec.ts / 正文分隔线与楼层边界保持区分（dark）",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / media-display.spec.ts / 正文、楼层和灯箱使用完整WebP并实际解码帧，不请求GIF",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / media-display.spec.ts / 私聊图片与大图采用display，查看大图不重新下载GIF",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / media-display.spec.ts / 动态列表仍静止，详情和全屏使用完整display",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / media-display.spec.ts / 编辑已有正文展示WebP，保存与复制保留来源引用",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / media-display.spec.ts / 新GIF完成上传后编辑器立即使用display且不改写保存身份",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / media-display.spec.ts / 完整display灯箱失败重试保持打开且只重试WebP",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / media-display.spec.ts / 真实编码器重复帧样本字节与固定契约manifest一致",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / media-display.spec.ts / 正文规范表情与编辑器表情用display，保存仍是原资产引用",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / media-display.spec.ts / 全局正文草稿恢复携带display，复制与再保存不丢来源",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / mobile-releases.spec.ts / 真实管理员深链接登录回跳、创建、冲突恢复、公开快照保护与明暗窄屏候选",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / moment-animation.spec.ts / 评论媒体不挤出回复和删除按钮：1024px",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / moment-animation.spec.ts / 评论媒体不挤出回复和删除按钮：1440px",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / moment-animation.spec.ts / 真实 GIF：轮播/评论/楼中楼可见播放，灯箱仅当前且恢复详情",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / moment-animation.spec.ts / 全部列表入口不请求原动画，缺失/失败预览只占位",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / moment-animation.spec.ts / 真实网络失败后切图和前后台不重试，点击重试才恢复",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / moment-create.spec.ts / 从全站发布入口创建纯文字动态并进入详情",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / moment-detail-layout.spec.ts / 390px light 动态卡片保持 10px 圆角与 8px 单列间距",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / moment-detail-layout.spec.ts / 390px dark 动态卡片保持 10px 圆角与 8px 单列间距",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / moment-detail-layout.spec.ts / 动态详情以封面比例固定图片舞台，切图不推动正文",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / moment-detail-layout.spec.ts / 详情替换固定中栏，返回时恢复关注流和滚动位置",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / moment-detail-layout.spec.ts / 动态通知目标直达具体楼中楼，长讨论可从悬浮按钮收起",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / moment-detail-layout.spec.ts / 系统字体：动态文字封面长中文混排 100% 等效缩放",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / moment-detail-layout.spec.ts / 系统字体：动态文字封面长中文混排 200% 等效缩放",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / post-edited-time.spec.ts / 真实 API 编辑后只展示编辑时间，原位刷新、无改动与跨页阅读一致",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / private-invite-reuse.spec.ts / 私密帖单按钮重复分享、重开与剪贴板失败仍复用邀请",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / profile-card-foundation.spec.ts / 390px light 个人页卡片、控件与浮层圆角",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / profile-card-foundation.spec.ts / 390px dark 个人页卡片、控件与浮层圆角",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / profile-card-foundation.spec.ts / 1440px light 个人页卡片、控件与浮层圆角",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / profile-card-foundation.spec.ts / 1440px dark 个人页卡片、控件与浮层圆角",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / rich-text-stability.spec.ts / 稳定性候选：真实浏览器按字素删除 Emoji，保存当前正文后重开",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / rich-text-stability.spec.ts / 稳定性候选：字面引用标记与代码在保存重开后保留结构",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / rich-text-stability.spec.ts / 稳定性候选：版本 5 原文保护阻止修改旁边字段后覆盖正文",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / rich-text-stability.spec.ts / 稳定性候选：版本 3 原文保护阻止修改旁边字段后覆盖正文",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / rich-text-stability.spec.ts / 稳定性候选：版本 6 原文保护阻止修改旁边字段后覆盖正文",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / rich-text-stability.spec.ts / 长按退格即时删除，松键前保存也使用最新正文并可撤销重开",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / settings-typography.spec.ts / light 下账号设置和品牌使用系统字体并保留角色字重",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / settings-typography.spec.ts / dark 下账号设置和品牌使用系统字体并保留角色字重",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / settings-workspace.spec.ts / light 下双页设置排版、预览与无障碍检查",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / settings-workspace.spec.ts / dark 下双页设置排版、预览与无障碍检查",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / settings-workspace.spec.ts / 简介草稿跨用户名保存保留，失败可重试，导航与历史返回先确认",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / settings-workspace.spec.ts / light 下有图片和草稿时操作不贴边，资料行与分区互不重叠",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / settings-workspace.spec.ts / dark 下有图片和草稿时操作不贴边，资料行与分区互不重叠",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / spa-navigation.spec.ts / 公开浏览的单页式导航体验 / 加载多页后进入帖子，后退恢复筛选、内容和滚动位置",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / spa-navigation.spec.ts / 公开浏览的单页式导航体验 / 详情响应较慢时保留应用壳，并显示骨架和延迟进度线",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / spa-navigation.spec.ts / 公开浏览的单页式导航体验 / 子贴使用浅层 URL 切换，并复用预取的楼层缓存",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / spa-navigation.spec.ts / 公开浏览的单页式导航体验 / 主楼层直接切换时间顺序，并从当前子贴候选只看某人",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / spa-navigation.spec.ts / 公开浏览的单页式导航体验 / 主题头部按需定位最新发言并保留当前楼层顺序",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / spa-navigation.spec.ts / 公开浏览的单页式导航体验 / 最新发言为楼中楼时直达并高亮具体回复",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / station-layout.spec.ts / 站务台流体工作区布局 / 1600px 下用户台账占满工作区，管理动作按需弹出",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / station-layout.spec.ts / 站务台流体工作区布局 / 1920px 下通知台账全宽展示，新建表单按需弹出",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / station-layout.spec.ts / 站务台流体工作区布局 / 1366px 下页面不横向滚动，案件台账占满导航右侧",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / station-layout.spec.ts / 站务台流体工作区布局 / light 下运行设置与站务入口均使用系统字体 body 角色",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / station-layout.spec.ts / 站务台流体工作区布局 / dark 下运行设置与站务入口均使用系统字体 body 角色",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / station-layout.spec.ts / 站务台流体工作区布局 / 窄桌面下只有表格容器横向滚动，操作列固定在表格右缘",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / station-layout.spec.ts / 1024px 温油站管理后台以单列表单完成邮箱确认阶段",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / station-layout.spec.ts / 1440px 温油站管理后台以单列表单完成邮箱确认阶段",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / station-layout.spec.ts / 1920px 温油站管理后台以单列表单完成邮箱确认阶段",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / theme.spec.ts / 外观偏好在首屏解析、键盘切换、系统变化与刷新后保持一致",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / theme.spec.ts / 黑夜认证页无 WCAG A/AA 自动检测违规",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-cover-cache.spec.ts / 所有可见预览复用HTTP缓存，冷热重挂与重入不重复传输",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-cover-cache.spec.ts / GIF原图回退并播也复用缓存，不预加载尚未达到可见阈值的项",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-cover-long-list.spec.ts / 累计1000卡片连续快滑的几何读取与帧间隔记录",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-cover-performance.spec.ts / 同条件性能 4 张 WebP预览",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-cover-performance.spec.ts / 同条件性能 4 张 GIF原图",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-cover-performance.spec.ts / 同条件性能 8 张 WebP预览",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-cover-performance.spec.ts / 同条件性能 8 张 GIF原图",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-cover-performance.spec.ts / 同条件性能 12 张 WebP预览",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-cover-performance.spec.ts / 同条件性能 12 张 GIF原图",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-cover-pixels.spec.ts / 不同URL重入从红首帧播放且其他实例不停，保留有限循环 WebP",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-cover-pixels.spec.ts / 相同URL原生时钟可能联动，HTTP仅一次且不做URL隔离 WebP",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-cover-pixels.spec.ts / 不同URL重入从红首帧播放且其他实例不停，保留有限循环 GIF",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-cover-pixels.spec.ts / 相同URL原生时钟可能联动，HTTP仅一次且不做URL隔离 GIF",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-cover-playback.spec.ts / 各列表可见封面同时播放 /",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-cover-playback.spec.ts / 各列表可见封面同时播放 /users/cover-owner/threads",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-cover-playback.spec.ts / 各列表可见封面同时播放 /users/cover-owner/bookmarks",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-cover-playback.spec.ts / 各列表可见封面同时播放 /bookmarks",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-cover-playback.spec.ts / 50%进入、持续可见1%保持、完全离屏释放且重入新建",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-cover-playback.spec.ts / 减少动态效果与遮挡立即停止全部，取消导航点击不重启",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-cover-playback.spec.ts / 未知媒体/旧服务/失败poster不回退原动画，预览失败也不级联原GIF",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-cover-playback.spec.ts / 慢RSC期间可见旧页保持原实例，真正提交后旧页释放",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-cover-playback.spec.ts / 实际尺寸只重置对应封面，不重建其他持续可见项",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-cover-playback.spec.ts / pagehide/pageshow 生命周期停止全部，迟到图片响应不恢复隐藏页面",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-cover-playback.spec.ts / 完整display在无poster、poster等待/失败时仍按50%门禁起播",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-cover-playback.spec.ts / 无poster完整display的49%进入不下载，51%进入起播，省流拦截",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-create.spec.ts / 主题帖创建流程 / 从登录到创建主题帖完整流程",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-create.spec.ts / 主题帖创建流程 / 编辑器顶栏工具栏可见",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-create.spec.ts / 主题帖创建流程 / 编辑器顶栏在窄容器保持单行且不横向滚动",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-create.spec.ts / 主题帖创建流程 / 上传并插入图片后编辑器工具栏仍可见",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-create.spec.ts / 主题帖创建流程 / 提交前校验：空标题发布被阻止",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-create.spec.ts / 主题帖创建流程 / 放弃创建：点击放弃按钮",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-detail.spec.ts / 主题帖管理面板 / 帖主管理子贴全流程",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-detail.spec.ts / 主题帖管理面板 / 拖拽排序子贴",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-detail.spec.ts / 主题帖管理面板 / 子贴目录不提供主帖落点并支持键盘排序",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-detail.spec.ts / 已发布帖统一管理 / 帖主在管理界面编辑标题，保存后留在管理界面",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-detail.spec.ts / 已发布帖统一管理 / 旧编辑链接复用统一管理界面，匿名访问仍跳登录",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-detail.spec.ts / 楼层编辑与删除 / 作者编辑楼层正文",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-detail.spec.ts / 楼层编辑与删除 / 作者删除楼层",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-detail.spec.ts / 楼中楼回复 / 独立楼中楼编辑器上传图片后工具栏仍可见",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / thread-detail.spec.ts / 楼中楼回复 / 进入独立楼中楼页面并回复原楼层",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / upload-animation.spec.ts / 正文拒绝真实动态 png，不请求签名或静态化",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / upload-animation.spec.ts / 正文拒绝真实动态 webp，不请求签名或静态化",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / upload-animation.spec.ts / 正文 GIF 对象存储请求保留原字节",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / upload-animation.spec.ts / JPEG 尾随数据由浏览器解码后继续规范化上传",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / visual-home.spec.ts / 首页亮色阅读视觉基线 1024px",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / visual-home.spec.ts / 首页亮色阅读视觉基线 1440px",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / visual-home.spec.ts / 宽屏保持三栏社区壳且减少动态效果",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / visual-home.spec.ts / 首页温暖墨紫黑夜视觉基线",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / visual-home.spec.ts / 系统字体：首页长中文混排标题 100% 等效缩放",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / visual-home.spec.ts / 系统字体：首页长中文混排标题 200% 等效缩放",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / workspace-layout.spec.ts / 工作区导航 / 创建主题帖在宽屏仍使用图标栏",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / workspace-layout.spec.ts / 工作区导航 / 私聊在宽屏仍使用图标栏",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / workspace-layout.spec.ts / 系统字体：私聊正文中文混排 100% 等效缩放",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / workspace-layout.spec.ts / 系统字体：私聊正文中文混排 200% 等效缩放",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / s5/rich-text-real-api.spec.ts / 候选 Web 经真实 API 保存并重开新建私密富文本草稿",
+        "status": "passed",
+        "errors": []
+      }
+    ],
+    "backendSha": "6eb742502feed44df822b964b451349919b65073",
+    "residualCleanup": false,
+    "resourcesRemoved": true,
+    "cleanupVerified": true
+  },
+  "baseline": {
+    "8000-true-false-4": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 8000,
+          "mixed": true,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 283,
+            "p95Ms": 83.39999999999964,
+            "maxMs": 133.29999999999927
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 128,
+            "maxMs": 144
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 106.69999998807907,
+            "maxMs": 131.40000000596046
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 96.40000000596046,
+            "maxMs": 124
+          },
+          "longTasks": {
+            "count": 71,
+            "p95Ms": 113,
+            "maxMs": 130
+          }
+        },
+        {
+          "round": 1,
+          "size": 8000,
+          "mixed": true,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 276,
+            "p95Ms": 83.40000000000146,
+            "maxMs": 133.39999999999964
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 136,
+            "maxMs": 152
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 106.2999999821186,
+            "maxMs": 136.10000002384186
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 97.2999999821186,
+            "maxMs": 122.5
+          },
+          "longTasks": {
+            "count": 77,
+            "p95Ms": 102,
+            "maxMs": 132
+          }
+        },
+        {
+          "round": 2,
+          "size": 8000,
+          "mixed": true,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 291,
+            "p95Ms": 66.70000000000073,
+            "maxMs": 150
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 112,
+            "maxMs": 144
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 102.09999999403954,
+            "maxMs": 135.7999999821186
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 98.5,
+            "maxMs": 128.40000000596046
+          },
+          "longTasks": {
+            "count": 70,
+            "p95Ms": 101,
+            "maxMs": 133
+          }
+        }
+      ]
+    },
+    "8000-true-false-1": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 8000,
+          "mixed": true,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 230,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 22.52399998807914
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 24,
+            "maxMs": 32
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 18.30000001192093,
+            "maxMs": 31.599999994039536
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 17.100000023841858,
+            "maxMs": 30
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 1,
+          "size": 8000,
+          "mixed": true,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 228,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 20,
+            "maxMs": 20.80000001192093
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 18.80000001192093,
+            "maxMs": 19.80000001192093
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 2,
+          "size": 8000,
+          "mixed": true,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 243,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 24,
+            "maxMs": 32
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 22.700000017881393,
+            "maxMs": 26.80000001192093
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 21.30000001192093,
+            "maxMs": 23.400000005960464
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        }
+      ]
+    },
+    "9000-false-true-4": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 9000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 280,
+            "p95Ms": 66.60000000000036,
+            "maxMs": 121.22799998211849
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 88,
+            "maxMs": 136
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 82.7999999821186,
+            "maxMs": 126.30000001192093
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 76.69999998807907,
+            "maxMs": 117.60000002384186
+          },
+          "longTasks": {
+            "count": 52,
+            "p95Ms": 82,
+            "maxMs": 123
+          }
+        },
+        {
+          "round": 1,
+          "size": 9000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 282,
+            "p95Ms": 50.099999999999454,
+            "maxMs": 116.69999999999982
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 96,
+            "maxMs": 144
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 80.80000001192093,
+            "maxMs": 126.19999998807907
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 71.2000000178814,
+            "maxMs": 124.80000001192093
+          },
+          "longTasks": {
+            "count": 40,
+            "p95Ms": 85,
+            "maxMs": 126
+          }
+        },
+        {
+          "round": 2,
+          "size": 9000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 281,
+            "p95Ms": 50.100000000000364,
+            "maxMs": 116.69999999999982
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 88,
+            "maxMs": 136
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 80.30000001192093,
+            "maxMs": 122.40000000596046
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 74.30000001192093,
+            "maxMs": 113.40000000596046
+          },
+          "longTasks": {
+            "count": 54,
+            "p95Ms": 80,
+            "maxMs": 119
+          }
+        }
+      ]
+    },
+    "200-false-false-4": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 200,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 288,
+            "p95Ms": 33.400000000000546,
+            "maxMs": 150
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 80,
+            "maxMs": 160
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 59.19999998807907,
+            "maxMs": 134.09999999403954
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 48.599999994039536,
+            "maxMs": 125.89999997615814
+          },
+          "longTasks": {
+            "count": 10,
+            "p95Ms": 128,
+            "maxMs": 128
+          }
+        },
+        {
+          "round": 1,
+          "size": 200,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 292,
+            "p95Ms": 33.30000000000018,
+            "maxMs": 61.35599998211865
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 56,
+            "maxMs": 80
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 42.30000001192093,
+            "maxMs": 69.39999997615814
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 35.5,
+            "maxMs": 62.599999994039536
+          },
+          "longTasks": {
+            "count": 3,
+            "p95Ms": 67,
+            "maxMs": 67
+          }
+        },
+        {
+          "round": 2,
+          "size": 200,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 289,
+            "p95Ms": 33.30000000000018,
+            "maxMs": 66.60000000000036
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 64,
+            "maxMs": 80
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 47,
+            "maxMs": 70.60000002384186
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 39.099999994039536,
+            "maxMs": 62.5
+          },
+          "longTasks": {
+            "count": 2,
+            "p95Ms": 67,
+            "maxMs": 67
+          }
+        }
+      ]
+    },
+    "9000-false-true-1": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 9000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 241,
+            "p95Ms": 16.799999999999727,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 24,
+            "maxMs": 40
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 21.30000001192093,
+            "maxMs": 38.099999994039536
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 19.69999998807907,
+            "maxMs": 36.099999994039536
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 1,
+          "size": 9000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 260,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 33.40000000000009
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 40
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 32.69999998807907,
+            "maxMs": 37.20000001788139
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 30.19999998807907,
+            "maxMs": 33.70000001788139
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 2,
+          "size": 9000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 235,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 24,
+            "maxMs": 32
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 21,
+            "maxMs": 22.400000005960464
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 19.900000005960464,
+            "maxMs": 20.900000005960464
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        }
+      ]
+    },
+    "2000-false-false-1": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 2000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 217,
+            "p95Ms": 16.799999999999727,
+            "maxMs": 50
+          },
+          "eventTiming": {
+            "count": 59,
+            "p95Ms": 24,
+            "maxMs": 72
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.599999994039536,
+            "maxMs": 44.80000001192093
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 15,
+            "maxMs": 36.20000001788139
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 1,
+          "size": 2000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 218,
+            "p95Ms": 16.799999999999727,
+            "maxMs": 33.20000000000027
+          },
+          "eventTiming": {
+            "count": 66,
+            "p95Ms": 32,
+            "maxMs": 48
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 18.5,
+            "maxMs": 31.599999994039536
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 17.099999994039536,
+            "maxMs": 28.5
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 2,
+          "size": 2000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 208,
+            "p95Ms": 16.799999999999727,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 61,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16,
+            "maxMs": 16.80000001192093
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 10.400000005960464,
+            "maxMs": 13.900000005960464
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        }
+      ]
+    },
+    "200-false-true-1": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 200,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 214,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 33.1880000000001
+          },
+          "eventTiming": {
+            "count": 60,
+            "p95Ms": 32,
+            "maxMs": 40
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 18.099999994039536,
+            "maxMs": 31.69999998807907
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 14.699999988079071,
+            "maxMs": 26.799999982118607
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 1,
+          "size": 200,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 196,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 49,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.799999982118607,
+            "maxMs": 17
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 7.800000011920929,
+            "maxMs": 14.599999994039536
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 2,
+          "size": 200,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 195,
+            "p95Ms": 16.799999999999272,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 45,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.80000001192093,
+            "maxMs": 17.19999998807907
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 6.5,
+            "maxMs": 10
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        }
+      ]
+    },
+    "9000-false-false-1": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 9000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 257,
+            "p95Ms": 16.799999999999727,
+            "maxMs": 50.100000000000364
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 56
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 29.299999982118607,
+            "maxMs": 49.5
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 25.69999998807907,
+            "maxMs": 44.69999998807907
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 52,
+            "maxMs": 52
+          }
+        },
+        {
+          "round": 1,
+          "size": 9000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 250,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 32,
+            "maxMs": 32
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 23.30000001192093,
+            "maxMs": 27.5
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 20.299999982118607,
+            "maxMs": 26.30000001192093
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 2,
+          "size": 9000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 228,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 18.900000005960464,
+            "maxMs": 21
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 17.5,
+            "maxMs": 19.700000017881393
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        }
+      ]
+    },
+    "2000-false-true-4": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 2000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 291,
+            "p95Ms": 33.399999999999636,
+            "maxMs": 100.7180000119206
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 56,
+            "maxMs": 112
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 46.89999997615814,
+            "maxMs": 103.7999999821186
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 40.69999998807907,
+            "maxMs": 97.19999998807907
+          },
+          "longTasks": {
+            "count": 3,
+            "p95Ms": 102,
+            "maxMs": 102
+          }
+        },
+        {
+          "round": 1,
+          "size": 2000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 290,
+            "p95Ms": 33.399999999999636,
+            "maxMs": 66.69999999999982
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 72,
+            "maxMs": 80
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 56.900000005960464,
+            "maxMs": 70.90000000596046
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 48.400000005960464,
+            "maxMs": 63.900000005960464
+          },
+          "longTasks": {
+            "count": 4,
+            "p95Ms": 69,
+            "maxMs": 69
+          }
+        },
+        {
+          "round": 2,
+          "size": 2000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 300,
+            "p95Ms": 50,
+            "maxMs": 66.70000000000073
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 88,
+            "maxMs": 88
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 68.90000000596046,
+            "maxMs": 78.69999998807907
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 56.400000005960464,
+            "maxMs": 69.09999999403954
+          },
+          "longTasks": {
+            "count": 14,
+            "p95Ms": 77,
+            "maxMs": 77
+          }
+        }
+      ]
+    },
+    "2000-false-false-4": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 2000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 296,
+            "p95Ms": 33.399999999999636,
+            "maxMs": 100
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 64,
+            "maxMs": 112
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 50,
+            "maxMs": 100.30000001192093
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 43.5,
+            "maxMs": 94.69999998807907
+          },
+          "longTasks": {
+            "count": 6,
+            "p95Ms": 96,
+            "maxMs": 96
+          }
+        },
+        {
+          "round": 1,
+          "size": 2000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 299,
+            "p95Ms": 33.30000000000109,
+            "maxMs": 50.099999999999454
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 56,
+            "maxMs": 64
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 47.10000002384186,
+            "maxMs": 52.400000005960464
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 39.599999994039536,
+            "maxMs": 46.30000001192093
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 50,
+            "maxMs": 50
+          }
+        },
+        {
+          "round": 2,
+          "size": 2000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 290,
+            "p95Ms": 33.30000000000018,
+            "maxMs": 66.69999999999982
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 64,
+            "maxMs": 80
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 48.20000001788139,
+            "maxMs": 72.39999997615814
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 41.80000001192093,
+            "maxMs": 65.89999997615814
+          },
+          "longTasks": {
+            "count": 3,
+            "p95Ms": 70,
+            "maxMs": 70
+          }
+        }
+      ]
+    },
+    "200-false-true-4": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 200,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 286,
+            "p95Ms": 33.29999999999927,
+            "maxMs": 66.60000000000036
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 48,
+            "maxMs": 88
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 39.69999998807907,
+            "maxMs": 71.90000000596046
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 32.900000005960464,
+            "maxMs": 63.099999994039536
+          },
+          "longTasks": {
+            "count": 2,
+            "p95Ms": 71,
+            "maxMs": 71
+          }
+        },
+        {
+          "round": 1,
+          "size": 200,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 290,
+            "p95Ms": 50,
+            "maxMs": 100
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 80,
+            "maxMs": 120
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 67.2999999821186,
+            "maxMs": 102.2999999821186
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 57.79999998211861,
+            "maxMs": 92.40000000596046
+          },
+          "longTasks": {
+            "count": 26,
+            "p95Ms": 99,
+            "maxMs": 102
+          }
+        },
+        {
+          "round": 2,
+          "size": 200,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 286,
+            "p95Ms": 33.399999999999636,
+            "maxMs": 57.6540000119212
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 56,
+            "maxMs": 72
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 43.80000001192093,
+            "maxMs": 63.5
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 36.5,
+            "maxMs": 60.099999994039536
+          },
+          "longTasks": {
+            "count": 3,
+            "p95Ms": 64,
+            "maxMs": 64
+          }
+        }
+      ]
+    },
+    "8000-true-true-1": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 8000,
+          "mixed": true,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 246,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 32,
+            "maxMs": 40
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 21.599999994039536,
+            "maxMs": 29.69999998807907
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 19.19999998807907,
+            "maxMs": 27.69999998807907
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 1,
+          "size": 8000,
+          "mixed": true,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 238,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 24,
+            "maxMs": 32
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 20.200000017881393,
+            "maxMs": 23.799999982118607
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 18.80000001192093,
+            "maxMs": 22.19999998807907
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 2,
+          "size": 8000,
+          "mixed": true,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 239,
+            "p95Ms": 16.799999999999727,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 24,
+            "maxMs": 32
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 21.099999994039536,
+            "maxMs": 22.30000001192093
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 19.5,
+            "maxMs": 20.600000023841858
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        }
+      ]
+    },
+    "2000-false-true-1": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 2000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 207,
+            "p95Ms": 16.799999999999727,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 59,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 15.800000011920929,
+            "maxMs": 17
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 9.5,
+            "maxMs": 15.299999982118607
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 1,
+          "size": 2000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 212,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 63,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 17.30000001192093,
+            "maxMs": 19.099999994039536
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 14.5,
+            "maxMs": 17.400000005960464
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 2,
+          "size": 2000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 205,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 56,
+            "p95Ms": 24,
+            "maxMs": 32
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 15.699999988079071,
+            "maxMs": 19.30000001192093
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 10.799999982118607,
+            "maxMs": 12.900000005960464
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        }
+      ]
+    },
+    "8000-true-true-4": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 8000,
+          "mixed": true,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 288,
+            "p95Ms": 66.70000000000073,
+            "maxMs": 166.69999999999982
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 120,
+            "maxMs": 184
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 110.69999998807907,
+            "maxMs": 161.2000000178814
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 97,
+            "maxMs": 156.69999998807907
+          },
+          "longTasks": {
+            "count": 63,
+            "p95Ms": 103,
+            "maxMs": 161
+          }
+        },
+        {
+          "round": 1,
+          "size": 8000,
+          "mixed": true,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 283,
+            "p95Ms": 83.30000000000109,
+            "maxMs": 233.30000000000018
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 128,
+            "maxMs": 264
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 114.09999999403954,
+            "maxMs": 226.10000002384186
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 102.7999999821186,
+            "maxMs": 223.7000000178814
+          },
+          "longTasks": {
+            "count": 67,
+            "p95Ms": 124,
+            "maxMs": 230
+          }
+        },
+        {
+          "round": 2,
+          "size": 8000,
+          "mixed": true,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 286,
+            "p95Ms": 66.69999999999982,
+            "maxMs": 133.30000000000018
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 104,
+            "maxMs": 168
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 89.69999998807907,
+            "maxMs": 152.59999999403954
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 82,
+            "maxMs": 140.90000000596046
+          },
+          "longTasks": {
+            "count": 63,
+            "p95Ms": 85,
+            "maxMs": 146
+          }
+        }
+      ]
+    },
+    "200-false-false-1": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 200,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 208,
+            "p95Ms": 16.799999999999272,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 54,
+            "p95Ms": 24,
+            "maxMs": 32
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 18.30000001192093,
+            "maxMs": 22.700000017881393
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 11.900000005960464,
+            "maxMs": 21.30000001192093
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 1,
+          "size": 200,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 197,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 46,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.900000005960464,
+            "maxMs": 17.100000023841858
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 7.700000017881393,
+            "maxMs": 14.599999994039536
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 2,
+          "size": 200,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 203,
+            "p95Ms": 16.799999999999727,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 50,
+            "p95Ms": 24,
+            "maxMs": 32
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.299999982118607,
+            "maxMs": 19.400000005960464
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 10.199999988079071,
+            "maxMs": 15.099999994039536
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        }
+      ]
+    },
+    "9000-false-false-4": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 9000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 285,
+            "p95Ms": 50.100000000000364,
+            "maxMs": 133.8159999761583
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 96,
+            "maxMs": 144
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 85.7999999821186,
+            "maxMs": 132.80000001192093
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 80.40000000596046,
+            "maxMs": 126.2000000178814
+          },
+          "longTasks": {
+            "count": 60,
+            "p95Ms": 82,
+            "maxMs": 130
+          }
+        },
+        {
+          "round": 1,
+          "size": 9000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 286,
+            "p95Ms": 50,
+            "maxMs": 100
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 88,
+            "maxMs": 120
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 76.90000000596046,
+            "maxMs": 113.69999998807907
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 70.59999999403954,
+            "maxMs": 109.39999997615814
+          },
+          "longTasks": {
+            "count": 48,
+            "p95Ms": 76,
+            "maxMs": 112
+          }
+        },
+        {
+          "round": 2,
+          "size": 9000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 281,
+            "p95Ms": 66.69999999999891,
+            "maxMs": 133.20000000000073
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 96,
+            "maxMs": 144
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 85.40000000596046,
+            "maxMs": 135
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 77,
+            "maxMs": 126.59999999403954
+          },
+          "longTasks": {
+            "count": 64,
+            "p95Ms": 82,
+            "maxMs": 131
+          }
+        }
+      ]
+    }
+  },
+  "candidate": {
+    "8000-true-false-4": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 8000,
+          "mixed": true,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 257,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 66.60000000000036
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 48,
+            "maxMs": 80
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 34.700000000186265,
+            "maxMs": 70.90000000037253
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 26.300000000745058,
+            "maxMs": 67
+          },
+          "longTasks": {
+            "count": 3,
+            "p95Ms": 68,
+            "maxMs": 68
+          }
+        },
+        {
+          "round": 1,
+          "size": 8000,
+          "mixed": true,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 257,
+            "p95Ms": 16.80000000000109,
+            "maxMs": 66.69999999999982
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 88
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 29.800000000745058,
+            "maxMs": 78.69999999925494
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 24.100000000558794,
+            "maxMs": 73.3999999994412
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 75,
+            "maxMs": 75
+          }
+        },
+        {
+          "round": 2,
+          "size": 8000,
+          "mixed": true,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 261,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 50.100000000000364
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 64
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 30.300000000745058,
+            "maxMs": 55.39999999944121
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 24.200000000186265,
+            "maxMs": 50.69999999925494
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 53,
+            "maxMs": 53
+          }
+        }
+      ]
+    },
+    "8000-true-false-1": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 8000,
+          "mixed": true,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 186,
+            "p95Ms": 16.703999999999724,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 38,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.299999999813735,
+            "maxMs": 17.399999999441206
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 5.2999999998137355,
+            "maxMs": 13.100000000558794
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 1,
+          "size": 8000,
+          "mixed": true,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 183,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 42,
+            "p95Ms": 16,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16,
+            "maxMs": 16.899999999441206
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 5.7000000001862645,
+            "maxMs": 10.700000000186265
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 2,
+          "size": 8000,
+          "mixed": true,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 186,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 40,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.600000000558794,
+            "maxMs": 17.100000000558794
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 6.7000000001862645,
+            "maxMs": 15.599999999627471
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        }
+      ]
+    },
+    "9000-false-true-4": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 9000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 258,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 100
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 120
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 30.100000000558794,
+            "maxMs": 107
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 24.100000000558794,
+            "maxMs": 101.59999999962747
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 103,
+            "maxMs": 103
+          }
+        },
+        {
+          "round": 1,
+          "size": 9000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 253,
+            "p95Ms": 33.29999999999927,
+            "maxMs": 50.099999999998545
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 64
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 29,
+            "maxMs": 53.90000000037253
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 22.09999999962747,
+            "maxMs": 50.10000000055879
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 51,
+            "maxMs": 51
+          }
+        },
+        {
+          "round": 2,
+          "size": 9000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 256,
+            "p95Ms": 16.80000000000109,
+            "maxMs": 50
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 64
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 29.5,
+            "maxMs": 57.10000000055879
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 23.59999999962747,
+            "maxMs": 53.700000000186265
+          },
+          "longTasks": {
+            "count": 2,
+            "p95Ms": 63,
+            "maxMs": 63
+          }
+        }
+      ]
+    },
+    "200-false-false-4": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 200,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 243,
+            "p95Ms": 16.799999999999272,
+            "maxMs": 75.00999999925534
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 32,
+            "maxMs": 88
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 24.699999999254942,
+            "maxMs": 82.09999999962747
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 21,
+            "maxMs": 78.3999999994412
+          },
+          "longTasks": {
+            "count": 2,
+            "p95Ms": 80,
+            "maxMs": 80
+          }
+        },
+        {
+          "round": 1,
+          "size": 200,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 249,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 49.899999999999636
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 48,
+            "maxMs": 64
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 32.5,
+            "maxMs": 57.5
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 28.59999999962747,
+            "maxMs": 53.30000000074506
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 55,
+            "maxMs": 55
+          }
+        },
+        {
+          "round": 2,
+          "size": 200,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 249,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 50
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 72
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 31.899999999441206,
+            "maxMs": 60.39999999944121
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 24.300000000745058,
+            "maxMs": 56.09999999962747
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 57,
+            "maxMs": 57
+          }
+        }
+      ]
+    },
+    "9000-false-true-1": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 9000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 186,
+            "p95Ms": 16.799999999999727,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 41,
+            "p95Ms": 24,
+            "maxMs": 32
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.90000000037253,
+            "maxMs": 23.300000000745058
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 6.5,
+            "maxMs": 22.300000000745058
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 1,
+          "size": 9000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 182,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 41,
+            "p95Ms": 16,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 15.799999999813735,
+            "maxMs": 16.799999999813735
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 4.1000000005587935,
+            "maxMs": 12.600000000558794
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 2,
+          "size": 9000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 181,
+            "p95Ms": 16.799999999999272,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 42,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.09999999962747,
+            "maxMs": 17.59999999962747
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 4.6000000005587935,
+            "maxMs": 11.399999999441206
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        }
+      ]
+    },
+    "2000-false-false-1": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 2000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 184,
+            "p95Ms": 16.799999999999727,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 44,
+            "p95Ms": 16,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 15.799999999813735,
+            "maxMs": 16.5
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 5.400000000372529,
+            "maxMs": 13.799999999813735
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 1,
+          "size": 2000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 183,
+            "p95Ms": 16.700000000000273,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 40,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.59999999962747,
+            "maxMs": 17.200000000186265
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 5.099999999627471,
+            "maxMs": 9.600000000558794
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 2,
+          "size": 2000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 180,
+            "p95Ms": 16.799999999999272,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 42,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.59999999962747,
+            "maxMs": 17.100000000558794
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 3.8999999994412065,
+            "maxMs": 13.299999999813735
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        }
+      ]
+    },
+    "200-false-true-1": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 200,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 182,
+            "p95Ms": 16.799999999999272,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 41,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 17,
+            "maxMs": 17.200000000186265
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 6.400000000372529,
+            "maxMs": 13.700000000186265
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 1,
+          "size": 200,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 179,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 38,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.600000000558794,
+            "maxMs": 17.09999999962747
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 4.599999999627471,
+            "maxMs": 8.099999999627471
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 2,
+          "size": 200,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 178,
+            "p95Ms": 16.799999999999727,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 42,
+            "p95Ms": 16,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.59999999962747,
+            "maxMs": 17.200000000186265
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 3.400000000372529,
+            "maxMs": 12.200000000186265
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        }
+      ]
+    },
+    "9000-false-false-1": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 9000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 183,
+            "p95Ms": 16.700000000000273,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 44,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.90000000037253,
+            "maxMs": 18
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 5,
+            "maxMs": 17.09999999962747
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 1,
+          "size": 9000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 185,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 40,
+            "p95Ms": 16,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.199999999254942,
+            "maxMs": 16.800000000745058
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 6.3999999994412065,
+            "maxMs": 11.399999999441206
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 2,
+          "size": 9000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 183,
+            "p95Ms": 16.799999999999272,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 43,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.90000000037253,
+            "maxMs": 17
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 5.2000000001862645,
+            "maxMs": 11.100000000558794
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        }
+      ]
+    },
+    "2000-false-true-4": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 2000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 248,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 83.30000000000018
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 104
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 28.100000000558794,
+            "maxMs": 92.6000000005588
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 24.90000000037253,
+            "maxMs": 88.70000000018626
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 90,
+            "maxMs": 90
+          }
+        },
+        {
+          "round": 1,
+          "size": 2000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 247,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 50
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 72
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 29.399999999441206,
+            "maxMs": 59.700000000186265
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 22.899999999441206,
+            "maxMs": 55.299999999813735
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 57,
+            "maxMs": 57
+          }
+        },
+        {
+          "round": 2,
+          "size": 2000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 248,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 83.30000000000018
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 48,
+            "maxMs": 96
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 33.09999999962747,
+            "maxMs": 68.70000000018626
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 27.799999999813735,
+            "maxMs": 64.09999999962747
+          },
+          "longTasks": {
+            "count": 2,
+            "p95Ms": 71,
+            "maxMs": 71
+          }
+        }
+      ]
+    },
+    "2000-false-false-4": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 2000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 270,
+            "p95Ms": 16.80000000000109,
+            "maxMs": 87.65599999962706
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 48,
+            "maxMs": 96
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 35.30000000074506,
+            "maxMs": 87
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 25.800000000745058,
+            "maxMs": 82.8999999994412
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 85,
+            "maxMs": 85
+          }
+        },
+        {
+          "round": 1,
+          "size": 2000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 245,
+            "p95Ms": 16.799999999999272,
+            "maxMs": 50.100000000000364
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 32,
+            "maxMs": 72
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 23.90000000037253,
+            "maxMs": 62.299999999813735
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 18.40000000037253,
+            "maxMs": 58.90000000037253
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 61,
+            "maxMs": 61
+          }
+        },
+        {
+          "round": 2,
+          "size": 2000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 243,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 33.40000000000009
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 56
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 26.200000000186265,
+            "maxMs": 48.69999999925494
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 21.5,
+            "maxMs": 46
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        }
+      ]
+    },
+    "200-false-true-4": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 200,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 247,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 116.69999999999982
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 136
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 31.59999999962747,
+            "maxMs": 123.1000000005588
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 28.299999999813735,
+            "maxMs": 116.70000000018626
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 121,
+            "maxMs": 121
+          }
+        },
+        {
+          "round": 1,
+          "size": 200,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 243,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 50.100000000000364
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 72
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 27.799999999813735,
+            "maxMs": 61.799999999813735
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 24.5,
+            "maxMs": 57.799999999813735
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 59,
+            "maxMs": 59
+          }
+        },
+        {
+          "round": 2,
+          "size": 200,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 244,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 50
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 48,
+            "maxMs": 56
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 32,
+            "maxMs": 48.59999999962747
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 27.5,
+            "maxMs": 44.799999999813735
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        }
+      ]
+    },
+    "8000-true-true-1": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 8000,
+          "mixed": true,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 184,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 41,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.799999999813735,
+            "maxMs": 17.600000000558794
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 5.7000000001862645,
+            "maxMs": 15.5
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 1,
+          "size": 8000,
+          "mixed": true,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 184,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 41,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.700000000186265,
+            "maxMs": 17.40000000037253
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 4.599999999627471,
+            "maxMs": 12.300000000745058
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 2,
+          "size": 8000,
+          "mixed": true,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 184,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 42,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.299999999813735,
+            "maxMs": 16.899999999441206
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 4.2999999998137355,
+            "maxMs": 14.299999999813735
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        }
+      ]
+    },
+    "2000-false-true-1": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 2000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 184,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 39,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.799999999813735,
+            "maxMs": 17.40000000037253
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 5.1000000005587935,
+            "maxMs": 13.399999999441206
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 1,
+          "size": 2000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 181,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 41,
+            "p95Ms": 16,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.09999999962747,
+            "maxMs": 17.199999999254942
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 4.7999999998137355,
+            "maxMs": 9.799999999813735
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 2,
+          "size": 2000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 180,
+            "p95Ms": 16.799999999999727,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 44,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.299999999813735,
+            "maxMs": 17.200000000186265
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 5,
+            "maxMs": 9.099999999627471
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        }
+      ]
+    },
+    "8000-true-true-4": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 8000,
+          "mixed": true,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 251,
+            "p95Ms": 33.30000000000018,
+            "maxMs": 133.40000000000055
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 56,
+            "maxMs": 144
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 38.700000000186265,
+            "maxMs": 129.5
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 33,
+            "maxMs": 121.40000000037253
+          },
+          "longTasks": {
+            "count": 2,
+            "p95Ms": 125,
+            "maxMs": 125
+          }
+        },
+        {
+          "round": 1,
+          "size": 8000,
+          "mixed": true,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 257,
+            "p95Ms": 33.30000000000109,
+            "maxMs": 75.92599999962749
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 88
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 29.59999999962747,
+            "maxMs": 74.79999999981374
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 23.200000000186265,
+            "maxMs": 68.79999999981374
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 71,
+            "maxMs": 71
+          }
+        },
+        {
+          "round": 2,
+          "size": 8000,
+          "mixed": true,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 253,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 55.811999999627915
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 72
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 27.700000000186265,
+            "maxMs": 60.59999999962747
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 20.90000000037253,
+            "maxMs": 56.299999999813735
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 59,
+            "maxMs": 59
+          }
+        }
+      ]
+    },
+    "200-false-false-1": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 200,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 181,
+            "p95Ms": 16.700000000000273,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 42,
+            "p95Ms": 16,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.699999999254942,
+            "maxMs": 17.90000000037253
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 5.7999999998137355,
+            "maxMs": 17
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 1,
+          "size": 200,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 182,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 43,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.299999999813735,
+            "maxMs": 16.90000000037253
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 5,
+            "maxMs": 9.5
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 2,
+          "size": 200,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 179,
+            "p95Ms": 16.799999999999727,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 39,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.40000000037253,
+            "maxMs": 17.09999999962747
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 4,
+            "maxMs": 8.399999999441206
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        }
+      ]
+    },
+    "9000-false-false-4": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 9000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 251,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 66.69999999999982
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 32,
+            "maxMs": 88
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 25.700000000186265,
+            "maxMs": 81.6000000005588
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 20.59999999962747,
+            "maxMs": 77.80000000074506
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 80,
+            "maxMs": 80
+          }
+        },
+        {
+          "round": 1,
+          "size": 9000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 256,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 60.1519999998136
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 80
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 28.59999999962747,
+            "maxMs": 73.20000000018626
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 22.100000000558794,
+            "maxMs": 67.8999999994412
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 70,
+            "maxMs": 70
+          }
+        },
+        {
+          "round": 2,
+          "size": 9000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 252,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 66.60000000000036
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 64
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 30.199999999254942,
+            "maxMs": 57.89999999944121
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 24.199999999254942,
+            "maxMs": 53.89999999944121
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 55,
+            "maxMs": 55
+          }
+        }
+      ]
+    }
+  },
+  "encodingBaseline": {
+    "note": "Node/happy-dom 微基准；定时器受控、performance.now 为真实时钟。完整编码耗时含协议验证；输入批次额外统计 serializerCtx 调用次数和累计耗时。不可当成浏览器输入延迟。",
+    "samples": [
+      {
+        "size": 200,
+        "round": 0,
+        "edits": 78,
+        "elapsedInputMs": 1560,
+        "encodingP95Ms": 0.4480069999999614,
+        "serializerCalls": 79,
+        "serializerP95Ms": 0.29600600000003396,
+        "serializerTotalMs": 23.247845999999527,
+        "snapshots": 78
+      },
+      {
+        "size": 200,
+        "round": 1,
+        "edits": 78,
+        "elapsedInputMs": 1560,
+        "encodingP95Ms": 0.6742489999999179,
+        "serializerCalls": 79,
+        "serializerP95Ms": 0.3575430000000779,
+        "serializerTotalMs": 20.603390000000672,
+        "snapshots": 78
+      },
+      {
+        "size": 200,
+        "round": 2,
+        "edits": 78,
+        "elapsedInputMs": 1560,
+        "encodingP95Ms": 0.3473089999997683,
+        "serializerCalls": 79,
+        "serializerP95Ms": 0.20315600000003542,
+        "serializerTotalMs": 10.920453000001089,
+        "snapshots": 78
+      },
+      {
+        "size": 2000,
+        "round": 0,
+        "edits": 78,
+        "elapsedInputMs": 1560,
+        "encodingP95Ms": 0.7170200000000477,
+        "serializerCalls": 79,
+        "serializerP95Ms": 0.2482310000000325,
+        "serializerTotalMs": 13.655035999999654,
+        "snapshots": 78
+      },
+      {
+        "size": 2000,
+        "round": 1,
+        "edits": 78,
+        "elapsedInputMs": 1560,
+        "encodingP95Ms": 0.46885000000020227,
+        "serializerCalls": 79,
+        "serializerP95Ms": 0.19035299999995914,
+        "serializerTotalMs": 11.736692000000858,
+        "snapshots": 78
+      },
+      {
+        "size": 2000,
+        "round": 2,
+        "edits": 78,
+        "elapsedInputMs": 1560,
+        "encodingP95Ms": 0.44215600000006816,
+        "serializerCalls": 79,
+        "serializerP95Ms": 0.19313099999999395,
+        "serializerTotalMs": 11.178229999999985,
+        "snapshots": 78
+      },
+      {
+        "size": 9000,
+        "round": 0,
+        "edits": 78,
+        "elapsedInputMs": 1560,
+        "encodingP95Ms": 1.5604470000002948,
+        "serializerCalls": 79,
+        "serializerP95Ms": 0.4018550000000687,
+        "serializerTotalMs": 25.190488000001096,
+        "snapshots": 78
+      },
+      {
+        "size": 9000,
+        "round": 1,
+        "edits": 78,
+        "elapsedInputMs": 1560,
+        "encodingP95Ms": 1.522591999999804,
+        "serializerCalls": 79,
+        "serializerP95Ms": 0.5284019999999146,
+        "serializerTotalMs": 95.78514799999948,
+        "snapshots": 78
+      },
+      {
+        "size": 9000,
+        "round": 2,
+        "edits": 78,
+        "elapsedInputMs": 1560,
+        "encodingP95Ms": 47.75137100000029,
+        "serializerCalls": 79,
+        "serializerP95Ms": 0.42124999999987267,
+        "serializerTotalMs": 25.79163400000016,
+        "snapshots": 78
+      }
+    ]
+  },
+  "encodingCandidate": {
+    "note": "Node/happy-dom 微基准；定时器受控、performance.now 为真实时钟。完整编码耗时含协议验证；输入批次额外统计 serializerCtx 调用次数和累计耗时。不可当成浏览器输入延迟。",
+    "samples": [
+      {
+        "size": 200,
+        "round": 0,
+        "edits": 78,
+        "elapsedInputMs": 1560,
+        "encodingP95Ms": 0.591506999999865,
+        "serializerCalls": 4,
+        "serializerP95Ms": 0.3368230000000949,
+        "serializerTotalMs": 0.9579690000000483,
+        "snapshots": 4
+      },
+      {
+        "size": 200,
+        "round": 1,
+        "edits": 78,
+        "elapsedInputMs": 1560,
+        "encodingP95Ms": 0.4511080000002039,
+        "serializerCalls": 4,
+        "serializerP95Ms": 0.2872549999999592,
+        "serializerTotalMs": 1.071709999999939,
+        "snapshots": 4
+      },
+      {
+        "size": 200,
+        "round": 2,
+        "edits": 78,
+        "elapsedInputMs": 1560,
+        "encodingP95Ms": 0.30029100000001563,
+        "serializerCalls": 4,
+        "serializerP95Ms": 0.31447800000000825,
+        "serializerTotalMs": 1.0331289999996898,
+        "snapshots": 4
+      },
+      {
+        "size": 2000,
+        "round": 0,
+        "edits": 78,
+        "elapsedInputMs": 1560,
+        "encodingP95Ms": 0.7448870000000625,
+        "serializerCalls": 4,
+        "serializerP95Ms": 0.30518199999983153,
+        "serializerTotalMs": 1.108388999999761,
+        "snapshots": 4
+      },
+      {
+        "size": 2000,
+        "round": 1,
+        "edits": 78,
+        "elapsedInputMs": 1560,
+        "encodingP95Ms": 0.5867009999999482,
+        "serializerCalls": 4,
+        "serializerP95Ms": 0.25430600000004233,
+        "serializerTotalMs": 0.9993819999999687,
+        "snapshots": 4
+      },
+      {
+        "size": 2000,
+        "round": 2,
+        "edits": 78,
+        "elapsedInputMs": 1560,
+        "encodingP95Ms": 0.6519279999999981,
+        "serializerCalls": 4,
+        "serializerP95Ms": 0.31386600000018916,
+        "serializerTotalMs": 1.0002500000005057,
+        "snapshots": 4
+      },
+      {
+        "size": 9000,
+        "round": 0,
+        "edits": 78,
+        "elapsedInputMs": 1560,
+        "encodingP95Ms": 1.7385059999999157,
+        "serializerCalls": 4,
+        "serializerP95Ms": 0.576167999999825,
+        "serializerTotalMs": 1.7230929999998352,
+        "snapshots": 4
+      },
+      {
+        "size": 9000,
+        "round": 1,
+        "edits": 78,
+        "elapsedInputMs": 1560,
+        "encodingP95Ms": 2.243547999999919,
+        "serializerCalls": 4,
+        "serializerP95Ms": 0.4594350000002123,
+        "serializerTotalMs": 1.6294790000006287,
+        "snapshots": 4
+      },
+      {
+        "size": 9000,
+        "round": 2,
+        "edits": 78,
+        "elapsedInputMs": 1560,
+        "encodingP95Ms": 1.7629849999998441,
+        "serializerCalls": 4,
+        "serializerP95Ms": 0.4119410000002972,
+        "serializerTotalMs": 1.5277740000005906,
+        "snapshots": 4
+      }
+    ]
+  },
+  "preSecurityPatchCandidate": {
+    "8000-true-false-4": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 8000,
+          "mixed": true,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 257,
+            "p95Ms": 33.29999999999927,
+            "maxMs": 75.38800000009269
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 48,
+            "maxMs": 96
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 37.10000000009313,
+            "maxMs": 82.79999999981374
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 30.300000000279397,
+            "maxMs": 78.59999999962747
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 79,
+            "maxMs": 79
+          }
+        },
+        {
+          "round": 1,
+          "size": 8000,
+          "mixed": true,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 248,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 55.644000000093
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 32,
+            "maxMs": 72
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 26.800000000279397,
+            "maxMs": 61.700000000186265
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 20.90000000037253,
+            "maxMs": 57.200000000186265
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 59,
+            "maxMs": 59
+          }
+        },
+        {
+          "round": 2,
+          "size": 8000,
+          "mixed": true,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 263,
+            "p95Ms": 33.30000000000018,
+            "maxMs": 66.69999999999982
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 56,
+            "maxMs": 80
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 41,
+            "maxMs": 56.89999999990687
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 33,
+            "maxMs": 51.6999999997206
+          },
+          "longTasks": {
+            "count": 3,
+            "p95Ms": 73,
+            "maxMs": 73
+          }
+        }
+      ]
+    },
+    "8000-true-false-1": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 8000,
+          "mixed": true,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 189,
+            "p95Ms": 16.700000000000273,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 42,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.800000000279397,
+            "maxMs": 17.299999999813735
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 6.100000000093132,
+            "maxMs": 16.09999999962747
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 1,
+          "size": 8000,
+          "mixed": true,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 184,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 44,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.600000000093132,
+            "maxMs": 17.200000000186265
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 5.600000000093132,
+            "maxMs": 12.700000000186265
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 2,
+          "size": 8000,
+          "mixed": true,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 185,
+            "p95Ms": 16.799999999999272,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 43,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 15.799999999813735,
+            "maxMs": 17.299999999813735
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 4.7999999998137355,
+            "maxMs": 11.199999999720603
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        }
+      ]
+    },
+    "9000-false-true-4": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 9000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 256,
+            "p95Ms": 16.80000000000109,
+            "maxMs": 100
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 48,
+            "maxMs": 112
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 31.90000000037253,
+            "maxMs": 95.20000000018626
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 24.700000000186265,
+            "maxMs": 93.5
+          },
+          "longTasks": {
+            "count": 2,
+            "p95Ms": 95,
+            "maxMs": 95
+          }
+        },
+        {
+          "round": 1,
+          "size": 9000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 245,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 66.69999999999982
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 64
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 28.300000000279397,
+            "maxMs": 60
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 22.200000000186265,
+            "maxMs": 56
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 57,
+            "maxMs": 57
+          }
+        },
+        {
+          "round": 2,
+          "size": 9000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 247,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 83.39999999999964
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 96
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 25.299999999813735,
+            "maxMs": 87.5
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 21.200000000186265,
+            "maxMs": 79.89999999990687
+          },
+          "longTasks": {
+            "count": 2,
+            "p95Ms": 83,
+            "maxMs": 83
+          }
+        }
+      ]
+    },
+    "200-false-false-4": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 200,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 252,
+            "p95Ms": 16.80000000000109,
+            "maxMs": 66.69999999999982
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 48,
+            "maxMs": 80
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 31.100000000093132,
+            "maxMs": 71.80000000004657
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 27.300000000046566,
+            "maxMs": 68.39999999990687
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 70,
+            "maxMs": 70
+          }
+        },
+        {
+          "round": 1,
+          "size": 200,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 251,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 66.80000000000018
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 72
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 28.700000000186265,
+            "maxMs": 65.0999999998603
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 26.100000000093132,
+            "maxMs": 61
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 62,
+            "maxMs": 62
+          }
+        },
+        {
+          "round": 2,
+          "size": 200,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 262,
+            "p95Ms": 16.80000000000109,
+            "maxMs": 125.83999999986008
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 48,
+            "maxMs": 144
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 39.39999999990687,
+            "maxMs": 127
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 32.300000000046566,
+            "maxMs": 121.4000000001397
+          },
+          "longTasks": {
+            "count": 2,
+            "p95Ms": 126,
+            "maxMs": 126
+          }
+        }
+      ]
+    },
+    "9000-false-true-1": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 9000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 185,
+            "p95Ms": 16.700000000000273,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 45,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 17,
+            "maxMs": 20.899999999906868
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 6.199999999720603,
+            "maxMs": 15.700000000186265
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 1,
+          "size": 9000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 181,
+            "p95Ms": 16.799999999999727,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 41,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.59999999962747,
+            "maxMs": 17.300000000279397
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 3.7999999998137355,
+            "maxMs": 10.200000000186265
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 2,
+          "size": 9000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 183,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 41,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.899999999906868,
+            "maxMs": 17.200000000186265
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 4.800000000279397,
+            "maxMs": 9.800000000279397
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        }
+      ]
+    },
+    "2000-false-false-1": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 2000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 184,
+            "p95Ms": 16.700000000000273,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 43,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.699999999953434,
+            "maxMs": 17
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 4.800000000046566,
+            "maxMs": 15
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 1,
+          "size": 2000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 183,
+            "p95Ms": 16.700000000000273,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 42,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.300000000046566,
+            "maxMs": 16.9000000001397
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 6.099999999860302,
+            "maxMs": 11.300000000046566
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 2,
+          "size": 2000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 184,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 41,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.100000000093132,
+            "maxMs": 17
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 5.300000000046566,
+            "maxMs": 10.600000000093132
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        }
+      ]
+    },
+    "200-false-true-1": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 200,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 183,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 41,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.199999999953434,
+            "maxMs": 20
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 5.5,
+            "maxMs": 19
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 1,
+          "size": 200,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 181,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 43,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.899999999906868,
+            "maxMs": 17.0999999998603
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 6,
+            "maxMs": 8.600000000093132
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 2,
+          "size": 200,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 182,
+            "p95Ms": 16.799999999999727,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 43,
+            "p95Ms": 16,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.100000000093132,
+            "maxMs": 16.600000000093132
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 5.5,
+            "maxMs": 12.399999999906868
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        }
+      ]
+    },
+    "9000-false-false-1": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 9000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 199,
+            "p95Ms": 16.799999999999727,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 51,
+            "p95Ms": 24,
+            "maxMs": 32
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.300000000046566,
+            "maxMs": 26.199999999953434
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 7.600000000093132,
+            "maxMs": 24.899999999906868
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 1,
+          "size": 9000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 188,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 40,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.200000000186265,
+            "maxMs": 16.9000000001397
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 6.199999999953434,
+            "maxMs": 13.100000000093132
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 2,
+          "size": 9000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 185,
+            "p95Ms": 16.799999999999727,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 43,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.5999999998603,
+            "maxMs": 17.199999999953434
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 5.2000000001862645,
+            "maxMs": 10.300000000046566
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        }
+      ]
+    },
+    "2000-false-true-4": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 2000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 259,
+            "p95Ms": 16.799999999999272,
+            "maxMs": 66.69999999999982
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 96
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 30.699999999953434,
+            "maxMs": 85.10000000009313
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 23.700000000186265,
+            "maxMs": 81.30000000004657
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 83,
+            "maxMs": 83
+          }
+        },
+        {
+          "round": 1,
+          "size": 2000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 246,
+            "p95Ms": 16.799999999999272,
+            "maxMs": 50.100000000000364
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 72
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 30.0999999998603,
+            "maxMs": 61.699999999953434
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 24,
+            "maxMs": 57
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 59,
+            "maxMs": 59
+          }
+        },
+        {
+          "round": 2,
+          "size": 2000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 253,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 66.69999999999982
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 72
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 30.0999999998603,
+            "maxMs": 53.699999999953434
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 23.899999999906868,
+            "maxMs": 50.300000000046566
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 52,
+            "maxMs": 52
+          }
+        }
+      ]
+    },
+    "2000-false-false-4": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 2000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 258,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 83.30000000000018
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 48,
+            "maxMs": 104
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 34.700000000186265,
+            "maxMs": 92.19999999995343
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 30.200000000186265,
+            "maxMs": 87.30000000004657
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 91,
+            "maxMs": 91
+          }
+        },
+        {
+          "round": 1,
+          "size": 2000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 254,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 83.40000000000055
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 96
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 28,
+            "maxMs": 87.4000000001397
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 21.399999999906868,
+            "maxMs": 81.4000000001397
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 83,
+            "maxMs": 83
+          }
+        },
+        {
+          "round": 2,
+          "size": 2000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 251,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 66.69999999999982
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 72
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 27.9000000001397,
+            "maxMs": 62.60000000009313
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 21.800000000046566,
+            "maxMs": 58.699999999953434
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 61,
+            "maxMs": 61
+          }
+        }
+      ]
+    },
+    "200-false-true-4": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 200,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 249,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 83.40000000000055
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 104
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 30.4000000001397,
+            "maxMs": 97.19999999995343
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 26.600000000093132,
+            "maxMs": 93.30000000004657
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 96,
+            "maxMs": 96
+          }
+        },
+        {
+          "round": 1,
+          "size": 200,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 251,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 50
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 64
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 30.600000000093132,
+            "maxMs": 58.0999999998603
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 26.699999999953434,
+            "maxMs": 55
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 56,
+            "maxMs": 56
+          }
+        },
+        {
+          "round": 2,
+          "size": 200,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 245,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 50.099999999999454
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 64
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 29.100000000093132,
+            "maxMs": 52.0999999998603
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 24.299999999813735,
+            "maxMs": 48.89999999990687
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 50,
+            "maxMs": 50
+          }
+        }
+      ]
+    },
+    "8000-true-true-1": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 8000,
+          "mixed": true,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 189,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 41,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.700000000186265,
+            "maxMs": 17
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 6.699999999720603,
+            "maxMs": 15.700000000186265
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 1,
+          "size": 8000,
+          "mixed": true,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 198,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 50,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 17.300000000279397,
+            "maxMs": 18.100000000093132
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 7.699999999720603,
+            "maxMs": 16.600000000093132
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 2,
+          "size": 8000,
+          "mixed": true,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 184,
+            "p95Ms": 16.799999999999272,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 41,
+            "p95Ms": 16,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.299999999813735,
+            "maxMs": 17.100000000093132
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 5.300000000279397,
+            "maxMs": 11.5
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        }
+      ]
+    },
+    "2000-false-true-1": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 2000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 188,
+            "p95Ms": 16.799999999999727,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 44,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.100000000093132,
+            "maxMs": 17.199999999953434
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 5.400000000139698,
+            "maxMs": 16.299999999813735
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 1,
+          "size": 2000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 183,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 42,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.9000000001397,
+            "maxMs": 17.299999999813735
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 5.600000000093132,
+            "maxMs": 12
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 2,
+          "size": 2000,
+          "mixed": false,
+          "autosave": true,
+          "cpu": 1,
+          "frames": {
+            "count": 181,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 44,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.799999999813735,
+            "maxMs": 17.200000000186265
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 5.300000000046566,
+            "maxMs": 13.600000000093132
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        }
+      ]
+    },
+    "8000-true-true-4": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 8000,
+          "mixed": true,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 257,
+            "p95Ms": 33.30000000000018,
+            "maxMs": 77.18999999990683
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 104
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 32.10000000009313,
+            "maxMs": 91.20000000018626
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 25.700000000186265,
+            "maxMs": 85.20000000018626
+          },
+          "longTasks": {
+            "count": 2,
+            "p95Ms": 87,
+            "maxMs": 87
+          }
+        },
+        {
+          "round": 1,
+          "size": 8000,
+          "mixed": true,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 253,
+            "p95Ms": 33.19999999999982,
+            "maxMs": 116.60000000000036
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 120
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 29.59999999962747,
+            "maxMs": 64.5
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 24,
+            "maxMs": 60.1999999997206
+          },
+          "longTasks": {
+            "count": 2,
+            "p95Ms": 62,
+            "maxMs": 62
+          }
+        },
+        {
+          "round": 2,
+          "size": 8000,
+          "mixed": true,
+          "autosave": true,
+          "cpu": 4,
+          "frames": {
+            "count": 251,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 66.60000000000036
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 96
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 26.899999999906868,
+            "maxMs": 87.10000000009313
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 20.799999999813735,
+            "maxMs": 80.8000000002794
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 82,
+            "maxMs": 82
+          }
+        }
+      ]
+    },
+    "200-false-false-1": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 200,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 186,
+            "p95Ms": 16.700000000000728,
+            "maxMs": 22.557999999999993
+          },
+          "eventTiming": {
+            "count": 43,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.5,
+            "maxMs": 21.5999999998603
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 5.399999999906868,
+            "maxMs": 20.799999999813735
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 1,
+          "size": 200,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 182,
+            "p95Ms": 16.799999999999727,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 42,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 16.899999999906868,
+            "maxMs": 17.100000000093132
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 4.600000000093132,
+            "maxMs": 13.399999999906868
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        },
+        {
+          "round": 2,
+          "size": 200,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 1,
+          "frames": {
+            "count": 181,
+            "p95Ms": 16.799999999999727,
+            "maxMs": 16.800000000000182
+          },
+          "eventTiming": {
+            "count": 38,
+            "p95Ms": 24,
+            "maxMs": 24
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 15.399999999906868,
+            "maxMs": 16.800000000046566
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 4.5,
+            "maxMs": 8.600000000093132
+          },
+          "longTasks": {
+            "count": 0,
+            "p95Ms": 0,
+            "maxMs": 0
+          }
+        }
+      ]
+    },
+    "9000-false-false-4": {
+      "browser": "151.0.7922.34",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "note": "keydown到rAF是绘制前代理指标；EventTiming仅含≥16ms样本，不能把缺失事件当0ms。",
+      "samples": [
+        {
+          "round": 0,
+          "size": 9000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 259,
+            "p95Ms": 33.30000000000018,
+            "maxMs": 83.20000000000073
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 48,
+            "maxMs": 104
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 33.5999999998603,
+            "maxMs": 91.60000000009313
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 27.399999999906868,
+            "maxMs": 86.10000000009313
+          },
+          "longTasks": {
+            "count": 2,
+            "p95Ms": 88,
+            "maxMs": 88
+          }
+        },
+        {
+          "round": 1,
+          "size": 9000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 250,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 83.30000000000018
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 64
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 29.5,
+            "maxMs": 58.0999999998603
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 22.100000000093132,
+            "maxMs": 53.5999999998603
+          },
+          "longTasks": {
+            "count": 2,
+            "p95Ms": 56,
+            "maxMs": 56
+          }
+        },
+        {
+          "round": 2,
+          "size": 9000,
+          "mixed": false,
+          "autosave": false,
+          "cpu": 4,
+          "frames": {
+            "count": 251,
+            "p95Ms": 16.800000000000182,
+            "maxMs": 50
+          },
+          "eventTiming": {
+            "count": 78,
+            "p95Ms": 40,
+            "maxMs": 56
+          },
+          "keyToNextRaf": {
+            "count": 78,
+            "p95Ms": 29.100000000093132,
+            "maxMs": 47.10000000009313
+          },
+          "keyToInput": {
+            "count": 78,
+            "p95Ms": 22.100000000093132,
+            "maxMs": 43.60000000009313
+          },
+          "longTasks": {
+            "count": 1,
+            "p95Ms": 56,
+            "maxMs": 56
+          }
+        }
+      ]
+    }
+  },
+  "preSecurityPatchCandidateReport": {
+    "runId": "e2e_2302931060a8c1db42885dad",
+    "candidateId": "4d4a4426-ac52-4c3e-8e32-fbac1aad5bf5",
+    "buildId": "e2e-4d4a4426-ac52-4c3e-8e32-fbac1aad5bf5",
+    "status": "passed",
+    "errors": [],
+    "tests": [
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 200字 纯文 自动保存关 CPU1",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 200字 纯文 自动保存关 CPU4",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 200字 纯文 自动保存开 CPU1",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 200字 纯文 自动保存开 CPU4",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 2000字 纯文 自动保存关 CPU1",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 2000字 纯文 自动保存关 CPU4",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 2000字 纯文 自动保存开 CPU1",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 2000字 纯文 自动保存开 CPU4",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 9000字 纯文 自动保存关 CPU1",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 9000字 纯文 自动保存关 CPU4",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 9000字 纯文 自动保存开 CPU1",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 9000字 纯文 自动保存开 CPU4",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 8000字 混排 自动保存关 CPU1",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 8000字 混排 自动保存关 CPU4",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 8000字 混排 自动保存开 CPU1",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 编辑器输入性能 8000字 混排 自动保存开 CPU4",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 延后同步时最后一字立即保存，正文来自当前编辑器",
+        "status": "passed",
+        "errors": []
+      },
+      {
+        "title": " / chromium / editor-input-performance.spec.ts / 中文组词中的显式保存被阻止，选词结束后保存最终文字",
+        "status": "passed",
+        "errors": []
+      }
+    ],
+    "backendSha": "21acf512285f2a21aaa831f960211780de73aafc",
+    "residualCleanup": false,
+    "resourcesRemoved": true,
+    "cleanupVerified": true
+  },
+  "finalChecks": {
+    "command": "VITEST_MAX_WORKERS=2 pnpm check:full",
+    "unitFiles": 337,
+    "unitTests": 3675,
+    "coverage": {
+      "lines": 90.13,
+      "statements": 86.41,
+      "functions": 84.27,
+      "branches": 78.72
+    },
+    "productionAuditVulnerabilities": 0,
+    "nextVersion": "16.3.6",
+    "dompurifyVersion": "3.4.16",
+    "backendSha": "6eb742502feed44df822b964b451349919b65073",
+    "backendContractRef": "4db0cdf2c079fc8b66545c67849053cd74945f8a",
+    "regularBuildId": "vXsbES3bhGufDz14JkRz7",
+    "isolatedReportFile": ".e2e-results/b2e6836c-7714-481e-8ed4-31c17b28e817.json",
+    "cpuAffinity": "normal (not restricted)",
+    "eventTimingSamplePolicy": "Only observed >=16ms keydown events; missing events are not zero-duration samples."
+  }
+}

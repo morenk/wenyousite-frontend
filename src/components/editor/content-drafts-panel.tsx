@@ -94,11 +94,11 @@ export function ContentDraftsPanel({
   const hasCurrentSnapshot = currentContent.trim().length > 0;
 
   const handleRestore = async (draft: DraftItem) => {
-    if (onRestore && flush && flush() === null) return;
-    const currentText = initialContent ?? "";
+    const currentText = onRestore && flush ? flush() : initialContent ?? "";
+    if (currentText === null) return;
     if (
       onRestore &&
-      (saveDisabled || (hasCurrentSnapshot && currentText !== draft.content)) &&
+      (saveDisabled || (currentText.trim().length > 0 && currentText !== draft.content)) &&
       !(await confirmAction({
         title: "恢复正文草稿",
         description: "恢复草稿将覆盖当前编辑器内容，是否继续？",
@@ -109,6 +109,7 @@ export function ContentDraftsPanel({
       return;
     }
     if (onRestore) {
+      if (flush && flush() !== currentText) { toast.error("正文已变化，请再次确认恢复"); return; }
       onRestore({ content: draft.content, mediaDisplays: draft.mediaDisplays });
       onClose();
       return;

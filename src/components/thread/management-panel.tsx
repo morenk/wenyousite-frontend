@@ -218,6 +218,7 @@ export function ManagementPanel({
                   <MilkdownEditor mediaDisplays={controller.selectedSub.bodyPost?.mediaDisplays}
                     editorRef={controller.editor.editorRef}
                     onValidityChange={controller.editor.onValidityChange}
+                    onDocumentChange={controller.editor.onDocumentChange}
                     onSyncErrorChange={setSyncError}
                     key={`${controller.selectedSub.id}-${controller.resetKey}`}
                     threadId={thread.id}

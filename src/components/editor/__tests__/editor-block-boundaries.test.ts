@@ -20,6 +20,7 @@ test.each(cases)("$alignment $target $boundary 真实事务保存并多轮重开
   const root = document.createElement("div");
   document.body.append(root);
   const emitted: string[] = [];
+  let flush!: () => string | null;
   const crepe = new CrepeBuilder({ root, defaultValue: prepareEditorMarkdown(item.markdown) });
   crepe.addFeature(imageBlock);
   crepe.editor
@@ -29,7 +30,7 @@ test.each(cases)("$alignment $target $boundary 真实事务保存并多轮重开
     .use(editorSoftBreakParser)
     .use(createEditorMarkdownBridge({
       markdownContractVersion: 5,
-      onChange: (value) => emitted.push(value),
+      onReady: (next) => { if (next) flush = next; }, onChange: (value) => emitted.push(value),
       onError: (error) => { throw error; },
     }));
   try {
@@ -44,6 +45,7 @@ test.each(cases)("$alignment $target $boundary 真实事务保存并多轮重开
       view.dispatch(view.state.tr.insertText("续", 2));
       expect(view.state.doc.child(0).textContent).toBe("经续历：");
       const stored = serializeEditorMarkdown(ctx, view.state.doc);
+      flush();
       expect(emitted.at(-1)).toBe(stored);
       const savedDocument = view.state.doc;
       for (let round = 0; round < 3; round++) {

@@ -59,10 +59,11 @@ function anchorIn(doc: ProseNode, anchor: string) {
   return matches[0]!;
 }
 
-async function withEditor(markdown: string, run: (crepe: CrepeBuilder, emitted: string[]) => void) {
+async function withEditor(markdown: string, run: (crepe: CrepeBuilder, emitted: string[], flush: () => string | null) => void) {
   const root = document.createElement("div");
   document.body.append(root);
   const emitted: string[] = [];
+  let flush!: () => string | null;
   const crepe = new CrepeBuilder({
     root,
     defaultValue: prepareEditorMarkdown(markdown, { markdownContractVersion: 5 }),
@@ -78,12 +79,13 @@ async function withEditor(markdown: string, run: (crepe: CrepeBuilder, emitted: 
     .use(editorBoundaryTextSchema)
     .use(createEditorMarkdownBridge({
       markdownContractVersion: 5,
+      onReady: (next) => { if (next) flush = next; },
       onChange: (value) => emitted.push(value),
       onError: (error) => { throw error; },
     }));
   try {
     await crepe.create();
-    run(crepe, emitted);
+    run(crepe, emitted, flush);
   } finally {
     await crepe.destroy();
     root.remove();
@@ -96,13 +98,14 @@ afterAll(async () => {
 });
 
 test("相邻粗体和斜体代码发布与重开保留所有 marks", async () => {
-  await withEditor("土地culti", (crepe, emitted) => crepe.editor.action((ctx) => {
+  await withEditor("土地culti", (crepe, emitted, flush) => crepe.editor.action((ctx) => {
     const view = ctx.get(editorViewCtx);
     const { marks } = view.state.schema;
     view.dispatch(view.state.tr
       .addMark(1, 3, marks.strong!.create())
       .addMark(3, 8, marks.emphasis!.create())
       .addMark(3, 8, marks.inlineCode!.create()));
+    flush();
     const markdown = emitted.at(-1)!;
     expect(markdown).toBe("**土地**_`culti`_");
     const reader = render(createElement(MarkdownContent, { content: markdown }));
@@ -120,7 +123,7 @@ test("相邻粗体和斜体代码发布与重开保留所有 marks", async () =>
 
 describe("共享 v7 编辑操作契约", () => {
   test.each(fixture.editCases)("$id 实际事务后文字、样式和重开均稳定", async (item) => {
-    await withEditor(item.markdown, (crepe, emitted) => crepe.editor.action((ctx) => {
+    await withEditor(item.markdown, (crepe, emitted, flush) => crepe.editor.action((ctx) => {
       const view = ctx.get(editorViewCtx);
       const anchor = anchorIn(view.state.doc, item.operation.anchor);
       const position = anchor.position + item.operation.offset;
@@ -129,6 +132,7 @@ describe("共享 v7 编辑操作契约", () => {
         .setStoredMarks(anchor.node.marks)
         .insertText(item.operation.text));
 
+      flush();
       expect(emitted.at(-1)).toBe(item.serialized);
       expect(view.state.doc.textContent).toBe(item.visibleText);
       const reopened = ctx.get(parserCtx)(item.serialized);
@@ -138,6 +142,7 @@ describe("共享 v7 编辑操作契约", () => {
 
       // 删除刚输入的文字后必须恢复原语义，不能因 operation 分片改变输出。
       view.dispatch(view.state.tr.delete(position, position + item.operation.text.length));
+      flush();
       expect(emitted.at(-1)).toBe(item.markdown);
     }));
   });
@@ -169,13 +174,14 @@ describe("共享 v7 编辑操作契约", () => {
   );
 
   test("引用内编辑粗体只写出一个连续粗体区间", async () => {
-    await withEditor("> **甲乙**\n\n尾段", (crepe, emitted) => crepe.editor.action((ctx) => {
+    await withEditor("> **甲乙**\n\n尾段", (crepe, emitted, flush) => crepe.editor.action((ctx) => {
       const view = ctx.get(editorViewCtx);
       const anchor = anchorIn(view.state.doc, "甲乙");
       view.dispatch(view.state.tr
         .setSelection(TextSelection.create(view.state.doc, anchor.position + 1))
         .setStoredMarks(anchor.node.marks)
         .insertText("新"));
+      flush();
       expect(emitted.at(-1)).toBe("> **甲新乙**\n\n尾段");
       expect(ctx.get(parserCtx)(emitted.at(-1)!).eq(view.state.doc)).toBe(true);
     }));

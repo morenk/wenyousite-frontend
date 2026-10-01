@@ -1,6 +1,6 @@
 /** ManagementPanel 桌面工作台、URL 状态与保存保护测试。 */
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, within, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -57,7 +57,10 @@ vi.mock("@/components/forms/thread-edit-form", () => ({
     onStatusChange: (status: ManagementEditorStatus) => void;
   }) => {
     useEffect(() => {
-      onStatusChange({ state: "saved", dirty: false, busy: false });
+      let mounted = true;
+      // 真实设置表单卸载后 editorRef 清空；旧闭包不能被其它页签读取。
+      onStatusChange({ state: "saved", dirty: false, busy: false, hasChanges: () => !mounted });
+      return () => { mounted = false; };
     }, [onStatusChange]);
 
     return (
@@ -81,6 +84,8 @@ vi.mock("@/components/forms/thread-edit-form", () => ({
     );
   },
 }));
+
+const deferredEditor = vi.hoisted(() => ({ value: false }));
 
 vi.mock("@/components/editor/milkdown-editor", async () => {
   const { withEditorSubmission } = await import("@/test/editor-submission-double");
@@ -114,7 +119,7 @@ vi.mock("@/components/editor/milkdown-editor", async () => {
       <button onClick={() => onSyncErrorChange?.(true)}>模拟同步失败</button>
       <button onClick={() => onSyncErrorChange?.(false)}>模拟同步恢复</button>
     </div>
-  )),
+  ), { deferChange: () => deferredEditor.value }),
 });
 });
 
@@ -285,6 +290,7 @@ function renderPanel({
 }
 
 beforeEach(() => {
+  deferredEditor.value = false;
   vi.clearAllMocks();
   vi.stubGlobal("confirm", vi.fn(() => true));
   mocks.auth.mockReturnValue({ user: { id: "u1", username: "test" } });
@@ -617,6 +623,40 @@ describe("ManagementPanel", () => {
     expect(await screen.findByDisplayValue("设定区")).toBeInTheDocument();
   });
 
+  test("删除最后一个子贴后直接返回，不读取已卸载帖子设置的脏状态", async () => {
+    const user = userEvent.setup();
+    const onExit = vi.fn();
+    function Harness() {
+      const [thread, setThread] = useState({ ...mockThread, subthreads: [defaultSubthread, secondSubthread] });
+      return <ManagementPanel thread={thread} onExit={onExit} onRefetch={async () => {
+        const next = { ...thread, subthreads: [defaultSubthread] };
+        setThread(next);
+        return next;
+      }} />;
+    }
+    render(<QueryClientProvider client={new QueryClient()}>
+      <NuqsTestingAdapter hasMemory><Harness /></NuqsTestingAdapter>
+    </QueryClientProvider>);
+    await user.click(screen.getByRole("tab", { name: /子贴内容/ }));
+    await user.click(await screen.findByText("delete-s2"));
+    await waitFor(() => expect(screen.queryByTestId("milkdown-editor")).not.toBeInTheDocument());
+    expect(mocks.deleteSubthread).toHaveBeenCalledWith("s2");
+    vi.mocked(window.confirm).mockClear().mockReturnValue(false);
+    await user.click(screen.getByRole("button", { name: "返回帖子" }));
+    expect(onExit).toHaveBeenCalledOnce();
+    expect(window.confirm).not.toHaveBeenCalled();
+  });
+
+  test("成员权限页退出不读取已卸载帖子设置的脏状态", async () => {
+    const user = userEvent.setup();
+    const { onExit } = renderPanel();
+    await user.click(screen.getByRole("tab", { name: /成员权限/ }));
+    vi.mocked(window.confirm).mockClear().mockReturnValue(false);
+    await user.click(screen.getByRole("button", { name: "返回帖子" }));
+    expect(onExit).toHaveBeenCalledOnce();
+    expect(window.confirm).not.toHaveBeenCalled();
+  });
+
   test("排序失败回滚目录并显示明确反馈", async () => {
     const user = userEvent.setup();
     mocks.reorderSubthreads.mockRejectedValueOnce({ message: "网络错误" });
@@ -686,4 +726,36 @@ describe("ManagementPanel", () => {
     await user.click(screen.getByRole("button", { name: "添加子贴" }));
     expect(screen.getByText("添加子贴", { selector: "h2" })).toBeInTheDocument();
   });
+});
+
+
+test("子贴撤销回原文后立即退出不误报未保存，元数据修改仍确认", async () => {
+  const { onExit } = renderPanel({ searchParams: "?view=subthreads&subthread=s3" });
+  const input = screen.getByTestId("milkdown-editor");
+  fireEvent.change(input, { target: { value: "已编码修改" } });
+  deferredEditor.value = true;
+  fireEvent.change(input, { target: { value: "剧情正文" } });
+  await userEvent.setup().click(screen.getByRole("button", { name: "返回帖子" }));
+  expect(onExit).toHaveBeenCalledTimes(1);
+  expect(confirm).not.toHaveBeenCalled();
+  fireEvent.change(screen.getByLabelText("子贴标题"), { target: { value: "改标题" } });
+  vi.mocked(confirm).mockReturnValue(false);
+  await userEvent.setup().click(screen.getByRole("button", { name: "返回帖子" }));
+  expect(confirm).toHaveBeenCalledTimes(1);
+  expect(onExit).toHaveBeenCalledTimes(1);
+});
+
+test("子贴尚未生成新快照时切换也确认，确认中新输入不丢失", async () => {
+  renderPanel({ searchParams: "?view=subthreads&subthread=s3" });
+  const input = screen.getByTestId("milkdown-editor");
+  deferredEditor.value = true;
+  fireEvent.change(input, { target: { value: "最后一字" } });
+  vi.mocked(confirm).mockImplementation(() => {
+    fireEvent.change(input, { target: { value: "确认期间继续输入" } });
+    return true;
+  });
+  await userEvent.setup().click(screen.getByText("select-s2"));
+  expect(confirm).toHaveBeenCalledTimes(1);
+  expect(screen.getByLabelText("子贴标题")).toHaveValue("剧情区");
+  expect(input).toHaveValue("确认期间继续输入");
 });

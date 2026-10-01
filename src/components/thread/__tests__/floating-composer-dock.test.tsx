@@ -7,7 +7,7 @@ const { mockUseThreadComposer } = vi.hoisted(() => ({
 }));
 
 vi.mock("@/components/thread/thread-composer-context", () => ({
-  useThreadComposer: () => mockUseThreadComposer(),
+  useThreadComposerSession: () => mockUseThreadComposer(),
 }));
 
 const rect = (overrides: Partial<DOMRect> = {}) => ({

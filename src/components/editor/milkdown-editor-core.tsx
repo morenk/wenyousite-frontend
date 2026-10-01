@@ -3,8 +3,10 @@
 "use client";
 
 import type { MarkdownMediaDisplay } from "@/lib/media-display";
-import { useCallback, useEffect, useImperativeHandle, useRef, useState, type Ref } from "react";
-import { EDITOR_SYNC_ERROR, type EditorSubmissionHandle } from "@/components/editor/use-editor-submission";
+import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState, type Ref } from "react";
+import { createPortal } from "react-dom";
+import { toast } from "sonner";
+import { EDITOR_COMPOSITION_MESSAGE, EDITOR_SYNC_ERROR, type EditorSubmissionHandle } from "@/components/editor/use-editor-submission";
 import { assessEditorInput } from "@/lib/editor-content-compatibility";
 import { MilkdownProvider } from "@milkdown/react";
 import { ContentDraftsPanel } from "@/components/editor/content-drafts-panel";
@@ -16,6 +18,7 @@ import { cn } from "@/lib/utils";
 import "@/components/editor/milkdown-editor.css";
 
 const MAX_CHARS = 10000;
+const EMPTY_DICE_ROLLS: InlineDiceRoll[] = [];
 
 export interface MilkdownEditorProps {
   defaultValue?: string;
@@ -23,6 +26,8 @@ export interface MilkdownEditorProps {
   editorRef?: Ref<EditorSubmissionHandle>;
   onValidityChange?: (valid: boolean) => void;
   onChange?: (value: string) => void;
+  /** 每次文档变更即时通知；onChange 为延后的已验证 Markdown 快照。 */
+  onDocumentChange?: () => void;
   onSyncErrorChange?: (hasError: boolean) => void;
   onUploadImage?: (file: File, options?: UploadImageOptions) => Promise<string>;
   placeholder?: string;
@@ -47,6 +52,7 @@ function EditorCore({
   editorRef,
   onValidityChange,
   onChange,
+  onDocumentChange,
   onSyncErrorChange,
   onUploadImage,
   placeholder,
@@ -54,13 +60,19 @@ function EditorCore({
   maxHeight = 400,
   minHeight = 280,
   threadId,
-  diceRolls = [],
+  diceRolls = EMPTY_DICE_ROLLS,
   autoFocus = false,
   ariaLabel,
 }: MilkdownEditorProps) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [footerTarget, setFooterTarget] = useState<Element | null>(null);
   const hostRef = useRef<EditorSubmissionHandle | null>(null);
+  const uploadRef = useRef(onUploadImage);
+  useEffect(() => { uploadRef.current = onUploadImage; }, [onUploadImage]);
+  const upload = useCallback((file: File, options?: UploadImageOptions) => uploadRef.current!(file, options), []);
   const [invalid, setInvalid] = useState(false);
   const hasEditor = useCallback(() => hostRef.current !== null, []);
+  const isComposing = useCallback(() => hostRef.current?.isComposing?.() ?? false, []);
   const flush = useCallback(() => hostRef.current?.flush() ?? null, []);
   const {
     syncError,
@@ -79,6 +91,8 @@ function EditorCore({
     autoSaveEnabled,
     autoSaveStatus,
     handleChange,
+    handleDocumentChange,
+    handleCompositionChange,
     handleRestore,
     handleOpenDrafts,
     handleAutoSaveChange,
@@ -87,13 +101,22 @@ function EditorCore({
     onChange,
     flush,
     hasEditor,
+    isComposing,
+    onDocumentChange,
     onSyncErrorChange,
   });
 
+  const writeAssessmentRef = useRef<{ content: string; version: number; allowed: boolean } | null>(null);
   const flushForWrite = useCallback(() => {
+    if (isComposing()) { toast.error(EDITOR_COMPOSITION_MESSAGE); return null; }
     const content = flush();
-    return content !== null && assessEditorInput(content, advertisedMarkdownContractVersion).edit ? content : null;
-  }, [advertisedMarkdownContractVersion, flush]);
+    if (content === null) return null;
+    const cached = writeAssessmentRef.current;
+    if (!cached || cached.content !== content || cached.version !== advertisedMarkdownContractVersion) {
+      writeAssessmentRef.current = { content, version: advertisedMarkdownContractVersion, allowed: assessEditorInput(content, advertisedMarkdownContractVersion).edit };
+    }
+    return writeAssessmentRef.current!.allowed ? content : null;
+  }, [advertisedMarkdownContractVersion, flush, isComposing]);
 
   const handleValidity = useCallback((valid: boolean) => {
     setInvalid(!valid);
@@ -107,8 +130,8 @@ function EditorCore({
     return () => window.removeEventListener("beforeunload", preventLoss);
   }, [invalid]);
 
-  const protectedContent = contractVersionReady && !assessEditorInput(currentContent, markdownContractVersion).edit;
-  useImperativeHandle(editorRef, () => ({ flush: flushForWrite, canClose: () => protectedContent || flush() !== null }), [flush, flushForWrite, protectedContent]);
+  const protectedContent = useMemo(() => contractVersionReady && !assessEditorInput(restoredValue, markdownContractVersion).edit, [contractVersionReady, restoredValue, markdownContractVersion]);
+  useImperativeHandle(editorRef, () => ({ flush: flushForWrite, isComposing, canClose: () => !isComposing() && (protectedContent || flush() !== null) }), [flush, flushForWrite, protectedContent, isComposing]);
   useEffect(() => {
     if (protectedContent) {
       handleValidityChange(false);
@@ -116,7 +139,16 @@ function EditorCore({
     }
   }, [handleValidityChange, onValidityChange, protectedContent]);
 
-  const charCount = Array.from(currentContent).length;
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
+    const findFooter = () => setFooterTarget(wrapper.querySelector('[data-slot="milkdown-editor-footer-status"]'));
+    findFooter();
+    const observer = new MutationObserver(findFooter);
+    observer.observe(wrapper, { childList: true });
+    return () => observer.disconnect();
+  }, [version, contractVersionReady, protectedContent]);
+  const charCount = useMemo(() => Array.from(currentContent).length, [currentContent]);
   const editorAriaLabel = ariaLabel ?? placeholder ?? "正文编辑器";
   const charWarning = charCount > MAX_CHARS * 0.9
     ? "text-destructive"
@@ -126,6 +158,7 @@ function EditorCore({
 
   return (
     <div
+      ref={wrapperRef}
       className={cn(
         "rounded-[var(--radius-control)] border border-border bg-background overflow-hidden",
         disabled && "opacity-60 pointer-events-none",
@@ -144,8 +177,10 @@ function EditorCore({
           editorRef={hostRef}
           onValidityChange={handleValidity}
           onChange={handleChange}
+          onDocumentChange={handleDocumentChange}
+          onCompositionChange={handleCompositionChange}
           onSyncErrorChange={handleSyncError}
-          onUploadImage={onUploadImage}
+          onUploadImage={onUploadImage ? upload : undefined}
           placeholder={placeholder}
           disabled={disabled}
           onOpenDrafts={user ? handleOpenDrafts : undefined}
@@ -155,7 +190,9 @@ function EditorCore({
           diceRolls={diceRolls}
           autoFocus={autoFocus}
           ariaLabel={editorAriaLabel}
-          footerStatus={(
+        />
+      )}
+      {footerTarget && createPortal(
           <div className="flex items-center gap-3">
             {(autoSaveEnabled || autoSaveStatus === "error") && (
               <span className={cn(
@@ -175,10 +212,7 @@ function EditorCore({
             <span className={cn("text-xs tabular-nums", charWarning)}>
               {charCount}/{MAX_CHARS}
             </span>
-          </div>
-          )}
-        />
-      )}
+          </div>, footerTarget)}
       {protectedContent && (
         <div className="space-y-2 p-3">
           <p role="alert" className="text-sm text-destructive">此正文包含当前版本无法安全编辑的内容，原文已保留。请使用兼容版本继续编辑。</p>
