@@ -3,7 +3,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useThreadComposer } from "@/components/thread/thread-composer-context";
+import { useThreadComposerSession } from "@/components/thread/thread-composer-context";
 import { FloatingInputDock } from "@/components/shared/floating-input-dock";
 
 interface FloatingComposerDockProps {
@@ -15,7 +15,7 @@ export function FloatingComposerDock({
   sessionAnchorId,
   children,
 }: FloatingComposerDockProps) {
-  const { session } = useThreadComposer();
+  const { session } = useThreadComposerSession();
   const visible = session === null || session.anchorId === sessionAnchorId;
   return <FloatingInputDock visible={visible}>{children}</FloatingInputDock>;
 }

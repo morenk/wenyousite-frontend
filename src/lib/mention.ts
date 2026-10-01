@@ -50,7 +50,8 @@ export function getMentionUserId(
 /** 标记编辑器内已有及新插入的提及链接，使光标不能进入并修改稳定实体。 */
 export function markEditorMentionAnchors(root: ParentNode): number {
   let marked = 0;
-  root.querySelectorAll<HTMLAnchorElement>("a[href]").forEach((anchor) => {
+  const anchors = root instanceof HTMLAnchorElement ? [root] : root.querySelectorAll<HTMLAnchorElement>("a[href]");
+  anchors.forEach((anchor) => {
     const userId = getMentionUserId(
       anchor.getAttribute("href"),
       anchor.textContent,
@@ -64,10 +65,10 @@ export function markEditorMentionAnchors(root: ParentNode): number {
       }
       return;
     }
-    anchor.setAttribute("contenteditable", "false");
-    anchor.setAttribute("spellcheck", "false");
-    anchor.dataset.mentionId = userId;
-    anchor.dataset.slot = "mention-link";
+    if (anchor.getAttribute("contenteditable") !== "false") anchor.setAttribute("contenteditable", "false");
+    if (anchor.getAttribute("spellcheck") !== "false") anchor.setAttribute("spellcheck", "false");
+    if (anchor.dataset.mentionId !== userId) anchor.dataset.mentionId = userId;
+    if (anchor.dataset.slot !== "mention-link") anchor.dataset.slot = "mention-link";
     marked += 1;
   });
   return marked;

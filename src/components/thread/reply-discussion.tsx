@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { MarkdownContent } from "@/components/thread/markdown-content";
 import { ReplyList } from "@/components/thread/reply-list";
 import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
-import { useThreadComposer } from "@/components/thread/thread-composer-context";
+import { useThreadComposerSession } from "@/components/thread/thread-composer-context";
 import {
   getReplyComposerAnchorId,
   ReplyForm,
@@ -49,7 +49,7 @@ export function ReplyDiscussion({
   const { user } = useAuth();
   const { isManager } = useThreadPermissions();
   const pinPost = usePinPost();
-  const { session, open } = useThreadComposer();
+  const { session, open } = useThreadComposerSession();
   const originalFloorHref = getPostHref({
     threadId: rootPost.thread.id,
     postId: rootPost.id,

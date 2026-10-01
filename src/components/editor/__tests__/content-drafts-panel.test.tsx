@@ -118,6 +118,18 @@ describe("ContentDraftsPanel", () => {
     });
   });
 
+  it("恢复使用flush的最新内容确认，并拒绝确认期间新增输入", async () => {
+    const onRestore = vi.fn();
+    const onClose = vi.fn();
+    let current = "新输入";
+    vi.stubGlobal("confirm", vi.fn(() => { current = "确认期间继续输入"; return true; }));
+    renderPanel({ initialContent: "", flush: () => current, onRestore, onClose });
+    await userEvent.setup().click(screen.getByText("恢复"));
+    expect(confirm).toHaveBeenCalledTimes(1);
+    expect(onRestore).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
   it("覆盖非空正文时可取消恢复", async () => {
     const user = userEvent.setup();
     const onRestore = vi.fn();

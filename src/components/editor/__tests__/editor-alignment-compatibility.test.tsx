@@ -204,6 +204,7 @@ describe("Milkdown 段落对齐兼容性", () => {
       clearData: () => copied.clear(), setData: (type: string, value: string) => copied.set(type, value),
     } });
     expect(copied.get("text/plain")).toBe(expectedText);
+    await waitFor(() => expect(onChange).toHaveBeenCalled());
     const stored = onChange.mock.calls.at(-1)![0] as string;
     expect(findUnsupportedMarkdownFormats(stored)).toEqual([]);
     expect(stored).toBe(item.serialized);
@@ -678,7 +679,7 @@ describe("Milkdown 段落对齐兼容性", () => {
 
     await waitFor(() => expect(editor).toHaveTextContent("[图片]"));
     expect(editor.querySelector("[data-wenyou-align]")).toBeNull();
-    expect(onChange.mock.calls.at(-1)?.[0]).not.toContain("wenyousite-align");
+    await waitFor(() => expect(onChange.mock.calls.at(-1)?.[0]).not.toContain("wenyousite-align"));
   });
 
   test("v5 独立图片块默认居左且可切换到右对齐", async () => {
@@ -730,7 +731,7 @@ describe("Milkdown 段落对齐兼容性", () => {
 
     await waitFor(() => expect(editor).toHaveTextContent(text));
     expect(editor.querySelector("[data-wenyou-align]")).toBeNull();
-    expect(onChange.mock.calls.at(-1)?.[0]).not.toContain("wenyousite-align");
+    await waitFor(() => expect(onChange.mock.calls.at(-1)?.[0]).not.toContain("wenyousite-align"));
   });
 
   test("工具栏仅接受指针操作，窄栏两枚 toggle 仍保留完整 ARIA 状态", async () => {

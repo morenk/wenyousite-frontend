@@ -11,6 +11,8 @@ export interface ManagementEditorStatus {
   busy: boolean;
   message?: string;
   canClose?: () => boolean;
+  hasChanges?: () => boolean;
+  getDocumentVersion?: () => number;
 }
 
 export const SAVED_MANAGEMENT_STATUS: ManagementEditorStatus = {

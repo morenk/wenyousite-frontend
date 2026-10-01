@@ -17,7 +17,7 @@ import { useContentAccessCache } from "@/api/hooks/use-content-access-cache";
 import { useEditorSubmission } from "@/components/editor/use-editor-submission";
 import { MilkdownEditor } from "@/components/editor/milkdown-editor";
 import { Button } from "@/components/ui/button";
-import { useThreadComposer } from "@/components/thread/thread-composer-context";
+import { useThreadComposer, useThreadComposerSession } from "@/components/thread/thread-composer-context";
 import { hasVisibleMarkdownContent } from "@/lib/markdown";
 import type { UploadImageOptions } from "@/lib/upload-image";
 import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
@@ -47,6 +47,7 @@ function ThreadComposer() {
     close,
     setEditorValid,
     registerCloseGuard,
+    onDocumentChange,
   } = useThreadComposer();
   const createPost = useCreatePost();
   const updatePost = useUpdatePost();
@@ -158,7 +159,8 @@ function ThreadComposer() {
         key={session.key}
         defaultValue={session.initialContent}
         mediaDisplays={session.mediaDisplays}
-        onChange={setContent}
+        onChange={(value) => { editor.onSynchronized(); setContent(value); }}
+        onDocumentChange={() => { editor.onDocumentChange(); onDocumentChange(); }}
         onUploadImage={handleUploadImage}
         placeholder={isReply ? "输入回复内容…" : isEdit ? "编辑正文内容…" : "输入正文内容…"}
         disabled={pending}
@@ -173,7 +175,7 @@ function ThreadComposer() {
           type="button"
           size="sm"
           onClick={handleSubmit}
-          disabled={syncError || !hasVisibleMarkdownContent(content) || busy}
+          disabled={syncError || (!editor.hasPendingChanges && !hasVisibleMarkdownContent(content)) || busy}
         >
           {busy ? (
             <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
@@ -190,7 +192,7 @@ function ThreadComposer() {
 }
 
 export function ThreadComposerOutlet({ anchorId }: { anchorId: string }) {
-  const { session } = useThreadComposer();
+  const { session } = useThreadComposerSession();
   if (session?.anchorId !== anchorId) return null;
   return <ThreadComposer />;
 }

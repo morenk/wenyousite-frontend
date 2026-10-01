@@ -66,6 +66,9 @@ type EncodeSides = {
 
 export interface EditorMarkdownBridgeOptions {
   onChange: (markdown: string) => void;
+  /** 即时轻量通知；不在按键路径编码正文。 */
+  onDocumentChange?: () => void;
+  onCompositionChange?: (composing: boolean) => void;
   onError?: (error: unknown) => void;
   onSyncErrorChange?: (hasError: boolean) => void;
   onValid?: () => void;
@@ -384,11 +387,13 @@ export function serializeEditorMarkdown(
 }
 
 /**
- * 唯一的文档变更出口：普通事务立即同步；长按删除期间合并完整编码。
+ * 唯一的文档变更出口：120ms 静默合并，连续输入最长 500ms；组合输入暂停。
  * 松键、失焦和显式 flush 均同步当前文档，保存入口不会读到父表单旧值。
  */
 export function createEditorMarkdownBridge({
   onChange,
+  onDocumentChange,
+  onCompositionChange,
   onError,
   onReady,
   onValid,
@@ -398,13 +403,22 @@ export function createEditorMarkdownBridge({
   return $prose((ctx) => {
     let previousMarkdown: string | undefined;
     let repeatingDelete = false;
+    let deletionPending = false;
+    let composing = false;
+    let maximumSync: ReturnType<typeof setTimeout> | undefined;
+    let compositionEnd: ReturnType<typeof setTimeout> | undefined;
+    let schedulePending: (() => void) | undefined;
     let pendingSync: ReturnType<typeof setTimeout> | undefined;
     let flushPending: (() => void) | undefined;
     const cancelPending = () => {
       clearTimeout(pendingSync);
       pendingSync = undefined;
+      clearTimeout(maximumSync);
+      maximumSync = undefined;
     };
     const finishDeletion = () => {
+      if (!deletionPending) return;
+      deletionPending = false;
       repeatingDelete = false;
       if (pendingSync !== undefined) flushPending?.();
     };
@@ -417,6 +431,7 @@ export function createEditorMarkdownBridge({
           keydown: (view, event) => {
             if (event.isComposing || view.composing) return false;
             if (event.key === "Backspace" || event.key === "Delete") {
+              deletionPending = true;
               repeatingDelete = event.repeat;
             } else {
               finishDeletion();
@@ -428,8 +443,26 @@ export function createEditorMarkdownBridge({
             if (event.key === "Backspace" || event.key === "Delete") finishDeletion();
             return false;
           },
-          blur: () => { finishDeletion(); return false; },
-          compositionstart: () => { finishDeletion(); return false; },
+          blur: () => { if (!composing) flushPending?.(); return false; },
+          compositionstart: () => {
+            cancelPending();
+            clearTimeout(compositionEnd);
+            repeatingDelete = false;
+            deletionPending = false;
+            composing = true;
+            onCompositionChange?.(true);
+            return false;
+          },
+          compositionend: () => {
+            // 让 ProseMirror 先接收最后一次组合事务，再恢复辅助同步。
+            clearTimeout(compositionEnd);
+            compositionEnd = setTimeout(() => {
+              composing = false;
+              onCompositionChange?.(false);
+              schedulePending?.();
+            }, 0);
+            return false;
+          },
         },
         handleKeyDown: (nextView, event) => {
           if (handlePlainNewline(nextView, event)) return true;
@@ -465,15 +498,28 @@ export function createEditorMarkdownBridge({
       },
       view: (view) => {
         let failed = false;
+        let documentRevision = 0;
+        let synchronizedRevision = -1;
+        let encodedDoc: ProseNode | undefined;
+        let encodedMarkdown: string | undefined;
         const flush = (notify = true) => {
           cancelPending();
+          if (composing || view.composing) return null;
           try {
-            const markdown = serializeEditorMarkdown(ctx, view.state.doc, { markdownContractVersion });
-            const changed = failed || markdown !== previousMarkdown;
+            // 文档为不可变对象；契约版本绑定本插件生命周期，选区/重复 flush 复用已验证结果。
+            const markdown = view.state.doc === encodedDoc && encodedMarkdown !== undefined
+              ? encodedMarkdown
+              : serializeEditorMarkdown(ctx, view.state.doc, { markdownContractVersion });
+            encodedDoc = view.state.doc;
+            encodedMarkdown = markdown;
+            const changed = failed || documentRevision !== synchronizedRevision;
+            synchronizedRevision = documentRevision;
+            const initialized = previousMarkdown !== undefined;
             previousMarkdown = markdown;
+            const recovered = failed;
             failed = false;
-            onSyncErrorChange?.(false);
-            onValid?.();
+            if (recovered || !initialized) onSyncErrorChange?.(false);
+            if (changed || !notify) onValid?.();
             if (changed && notify) onChange(markdown);
             return markdown;
           } catch (error) {
@@ -484,22 +530,31 @@ export function createEditorMarkdownBridge({
           }
         };
         flushPending = () => { flush(); };
+        schedulePending = () => {
+          if (composing || view.composing) return;
+          clearTimeout(pendingSync);
+          pendingSync = setTimeout(() => { flush(); }, 120);
+          if (repeatingDelete) {
+            clearTimeout(maximumSync);
+            maximumSync = undefined;
+          } else if (maximumSync === undefined) {
+            maximumSync = setTimeout(() => { flush(); }, 500);
+          }
+        };
         flush(false);
         onReady?.(() => flush());
         return {
           update: (nextView, previousState) => {
-            if (nextView.state.doc.eq(previousState.doc)) return;
-            if (!repeatingDelete) {
-              flush();
-              return;
-            }
-            cancelPending();
-            // 停止输入但未收到 keyup 时也能同步；连续删除期间不做整篇编码。
-            pendingSync = setTimeout(() => { flush(); }, 120);
+            if (nextView.state.doc === previousState.doc) return;
+            documentRevision++;
+            onDocumentChange?.();
+            schedulePending?.();
           },
           destroy: () => {
             cancelPending();
             repeatingDelete = false;
+            clearTimeout(compositionEnd);
+            schedulePending = undefined;
             flushPending = undefined;
             onReady?.(null);
           },

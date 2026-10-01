@@ -6,7 +6,7 @@ import { LogIn } from "lucide-react";
 
 import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
 import {
-  useThreadComposer,
+  useThreadComposerSession,
   type ThreadComposerSession,
 } from "@/components/thread/thread-composer-context";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,7 @@ export function ThreadComposerEntry({
 }: ThreadComposerEntryProps) {
   const { user } = useAuth();
   const redirectToLogin = useLoginRedirect();
-  const { session, open } = useThreadComposer();
+  const { session, open } = useThreadComposerSession();
   const isActive = session?.anchorId === anchorId;
 
   if (!user) {

@@ -1,11 +1,13 @@
 /** ThreadCreateForm 组件测试 — 简洁模式 */
 
 import { describe, test, expect, vi, afterEach } from "vitest";
-import { render, screen, cleanup, waitFor } from "@testing-library/react";
+import { render, screen, cleanup, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThreadCreateForm } from "@/components/forms/thread-create-form";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
+
+const deferredEditor = vi.hoisted(() => ({ value: false }));
 
 vi.mock("@/components/editor/milkdown-editor", async () => {
   const { withEditorSubmission } = await import("@/test/editor-submission-double");
@@ -20,7 +22,7 @@ vi.mock("@/components/editor/milkdown-editor", async () => {
     <button onClick={() => onSyncErrorChange?.(true)}>模拟同步失败</button>
     <button onClick={() => onSyncErrorChange?.(false)}>模拟同步恢复</button>
     </>
-  )),
+  ), { deferChange: () => deferredEditor.value }),
 });
 });
 
@@ -58,6 +60,7 @@ vi.mock("@/api/hooks/use-upload-image", () => ({
 }));
 
 afterEach(() => {
+  deferredEditor.value = false;
   cleanup();
   vi.clearAllMocks();
 });
@@ -365,4 +368,15 @@ test("正文同步失败时禁止保存旧内容，撤销恢复后才允许保�
   expect(save).toBeEnabled();
   await user.click(save);
   await waitFor(() => expect(mockSaveThreadMutate).toHaveBeenCalledWith(expect.objectContaining({ body: expect.objectContaining({ content: "已同步正文" }) })));
+});
+
+
+test("旧快照超长后删回合法并立即保存，表单先同步再校验", async () => {
+  render(<ThreadCreateForm thread={mockThread} onCancel={vi.fn()} onPublished={vi.fn()} />, { wrapper: createWrapper() });
+  const input = screen.getByTestId("milkdown-editor");
+  fireEvent.change(input, { target: { value: "字".repeat(10001) } });
+  deferredEditor.value = true;
+  fireEvent.change(input, { target: { value: "最终正文最后一字" } });
+  fireEvent.click(screen.getByRole("button", { name: "保存草稿" }));
+  await waitFor(() => expect(mockSaveThreadMutate).toHaveBeenCalledWith(expect.objectContaining({ body: expect.objectContaining({ content: "最终正文最后一字" }) })));
 });

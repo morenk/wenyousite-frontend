@@ -184,26 +184,32 @@ export function useEditorMentionController({
       });
     };
 
+    let menuFrame: number | null = null;
+    const scheduleMenu = () => {
+      if (menuFrame !== null) return;
+      menuFrame = window.requestAnimationFrame(() => { menuFrame = null; updateMentionMenu(); });
+    };
+    const markChangedNode = (node: Node) => {
+      const element = node instanceof Element ? node : node.parentElement;
+      if (!element || !editorDomRef.current?.contains(element)) return;
+      const anchor = element.closest("a[href]");
+      if (anchor) markEditorMentionAnchors(anchor);
+      else if (node instanceof Element) markEditorMentionAnchors(node);
+    };
     const attach = () => {
       const editor = host.querySelector<HTMLElement>(".ProseMirror");
       if (!editor) return;
-      markEditorMentionAnchors(editor);
       if (editorDomRef.current === editor) return;
+      markEditorMentionAnchors(editor);
       editorDomRef.current = editor;
       const handleCompositionStart = () => {
         isComposingRef.current = true;
       };
       const handleCompositionEnd = () => {
         isComposingRef.current = false;
-        window.requestAnimationFrame(() => {
-          markEditorMentionAnchors(editor);
-          updateMentionMenu();
-        });
+        scheduleMenu();
       };
-      const handleInput = () => {
-        markEditorMentionAnchors(editor);
-        updateMentionMenu();
-      };
+      const handleInput = scheduleMenu;
       const handleKeyDown = (event: KeyboardEvent) => {
         if (isComposingRef.current || event.isComposing) return;
         const view = viewForInsert();
@@ -225,7 +231,7 @@ export function useEditorMentionController({
           if (range) {
             event.preventDefault();
             view.dispatch(view.state.tr.delete(range.from, range.to).scrollIntoView());
-            window.requestAnimationFrame(updateMentionMenu);
+            scheduleMenu();
             return;
           }
         }
@@ -256,28 +262,40 @@ export function useEditorMentionController({
       editor.addEventListener("compositionstart", handleCompositionStart);
       editor.addEventListener("compositionend", handleCompositionEnd);
       editor.addEventListener("input", handleInput);
-      editor.addEventListener("keyup", updateMentionMenu);
+      editor.addEventListener("keyup", scheduleMenu);
       editor.addEventListener("keydown", handleKeyDown);
       editorCleanupRef.current = () => {
         editor.removeEventListener("compositionstart", handleCompositionStart);
         editor.removeEventListener("compositionend", handleCompositionEnd);
         editor.removeEventListener("input", handleInput);
-        editor.removeEventListener("keyup", updateMentionMenu);
+        editor.removeEventListener("keyup", scheduleMenu);
         editor.removeEventListener("keydown", handleKeyDown);
         editorDomRef.current = null;
       };
       updateMentionMenu();
     };
 
-    const observer = new MutationObserver(attach);
-    observer.observe(host, { childList: true, subtree: true });
-    window.addEventListener("resize", updateMentionMenu);
-    window.addEventListener("scroll", updateMentionMenu, true);
+    const observer = new MutationObserver((records) => {
+      attach();
+      for (const record of records) {
+        // 普通文字输入只检查其所属链接；新增子树只扫描自身。
+        if (record.type === "childList") {
+          const anchor = (record.target instanceof Element ? record.target : record.target.parentElement)?.closest("a[href]");
+          if (anchor) markChangedNode(anchor);
+          record.addedNodes.forEach(markChangedNode);
+        } else markChangedNode(record.target);
+      }
+      scheduleMenu();
+    });
+    observer.observe(host, { childList: true, characterData: true, attributes: true, attributeFilter: ["href"], subtree: true });
+    window.addEventListener("resize", scheduleMenu);
+    window.addEventListener("scroll", scheduleMenu, true);
     attach();
     return () => {
       observer.disconnect();
-      window.removeEventListener("resize", updateMentionMenu);
-      window.removeEventListener("scroll", updateMentionMenu, true);
+      if (menuFrame !== null) window.cancelAnimationFrame(menuFrame);
+      window.removeEventListener("resize", scheduleMenu);
+      window.removeEventListener("scroll", scheduleMenu, true);
       editorCleanupRef.current?.();
       editorCleanupRef.current = null;
       menuRef.current = null;

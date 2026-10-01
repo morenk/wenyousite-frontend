@@ -13,7 +13,7 @@ import { usePinPost } from "@/api/hooks/use-pin-post";
 import { getApiErrorMessage } from "@/api/errors";
 import { MarkdownContent } from "@/components/thread/markdown-content";
 import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
-import { useThreadComposer } from "@/components/thread/thread-composer-context";
+import { useThreadComposerSession } from "@/components/thread/thread-composer-context";
 import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
 import { UserAvatarLink } from "@/components/shared/user-avatar";
 import { WenyouTime } from "@/components/shared/wenyou-time";
@@ -49,7 +49,7 @@ export function FloorCard({
   const deletePost = useDeletePost();
   const pinPost = usePinPost();
   const confirmAction = useConfirm();
-  const { session, open } = useThreadComposer();
+  const { session, open } = useThreadComposerSession();
   const { isManager } = useThreadPermissions();
 
   const isAuthor = !!user && user.id === floor.authorId;

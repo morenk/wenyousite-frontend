@@ -11,7 +11,7 @@ import { useContentAccessCache } from "@/api/hooks/use-content-access-cache";
 import { ReplyDiscussion } from "@/components/thread/reply-discussion";
 import {
   ThreadComposerProvider,
-  useThreadComposer,
+  useThreadComposerSession,
 } from "@/components/thread/thread-composer-context";
 import { ThreadPermissionsProvider } from "@/components/thread/thread-permissions-context";
 import { Card, CardContent } from "@/components/ui/card";
@@ -38,7 +38,7 @@ function ReplyDiscussionPageContent() {
   const searchParams = useSearchParams();
   const { clearPost, clearThread } = useContentAccessCache();
   const { isInitialized } = useAuth();
-  const { close: closeComposer } = useThreadComposer();
+  const { close: closeComposer } = useThreadComposerSession();
   const focusedReplyId = searchParams.get("post") ?? undefined;
   const rootPostQuery = usePost(params.postId);
   const focusedReplyQuery = usePost(focusedReplyId);

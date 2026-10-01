@@ -37,7 +37,7 @@ import {
 import { FloatingComposerDock } from "@/components/thread/floating-composer-dock";
 import {
   ThreadComposerProvider,
-  useThreadComposer,
+  useThreadComposerSession,
 } from "@/components/thread/thread-composer-context";
 import {
   ThreadPermissionsProvider,
@@ -89,7 +89,7 @@ function ThreadDetailPageContent() {
     }),
   );
   const { user, isInitialized } = useAuth();
-  const { close: closeComposer } = useThreadComposer();
+  const { close: closeComposer } = useThreadComposerSession();
   const latestPost = useLatestThreadPost();
   const [floorAuthorSelection, setFloorAuthorSelection] = useState<{
     subthreadId: string;

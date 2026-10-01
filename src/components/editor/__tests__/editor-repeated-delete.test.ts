@@ -11,9 +11,11 @@ async function createEditor() {
   const onError = vi.fn();
   const onSyncErrorChange = vi.fn();
   const onReady = vi.fn();
+  const onDocumentChange = vi.fn();
+  const onCompositionChange = vi.fn();
   const crepe = new CrepeBuilder({ root, defaultValue: "**正文**".repeat(100) });
   crepe.editor.config(configureEditorMarkdownSerializer).use(createEditorMarkdownBridge({
-    onChange, onError, onSyncErrorChange, onReady,
+    onChange, onError, onSyncErrorChange, onReady, onDocumentChange, onCompositionChange,
   }));
   await crepe.create();
   const view = crepe.editor.action((ctx) => ctx.get(editorViewCtx));
@@ -28,7 +30,7 @@ async function createEditor() {
     view.dispatch(view.state.tr.delete(end - 1, end));
   };
   return {
-    crepe, view, onChange, onError, onSyncErrorChange, onReady, serializer, flush, keydown, removeLast,
+    crepe, view, onChange, onError, onSyncErrorChange, onReady, onDocumentChange, onCompositionChange, serializer, flush, keydown, removeLast,
     destroy: async () => { await crepe.destroy(); root.remove(); },
   };
 }
@@ -44,7 +46,8 @@ for (const key of ["Backspace", "Delete"]) {
       const original = editor.view.state.doc.textContent;
       editor.keydown(key, false);
       editor.removeLast();
-      expect(editor.onChange).toHaveBeenCalledTimes(1);
+      expect(editor.onChange).not.toHaveBeenCalled();
+      editor.flush();
       editor.serializer.mockClear();
       editor.onChange.mockClear();
       for (let i = 0; i < 20; i++) {
@@ -68,7 +71,7 @@ for (const key of ["Backspace", "Delete"]) {
   });
 }
 
-test.each(["timeout", "blur", "other-key", "composition", "save"])(
+test.each(["timeout", "blur", "other-key", "save"])(
   "重复删除后 %s 同步最新正文，不遗留旧定时器",
   async (trigger) => {
     const editor = await createEditor();
@@ -80,7 +83,6 @@ test.each(["timeout", "blur", "other-key", "composition", "save"])(
       if (trigger === "timeout") await vi.advanceTimersByTimeAsync(120);
       if (trigger === "blur") editor.view.dom.dispatchEvent(new FocusEvent("blur"));
       if (trigger === "other-key") editor.keydown("ArrowLeft", false);
-      if (trigger === "composition") editor.view.dom.dispatchEvent(new CompositionEvent("compositionstart"));
       if (trigger === "save") expect(editor.flush()).toBeTruthy();
       expect(editor.serializer).toHaveBeenCalledTimes(1);
       expect(editor.onChange).toHaveBeenCalledTimes(1);
@@ -106,8 +108,8 @@ test("延后编码失败时保存返回 null，撤销恢复后清除错误", asy
     expect(editor.onChange).not.toHaveBeenCalled();
     editor.keydown("z", false);
     expect(undo(editor.view.state, editor.view.dispatch)).toBe(true);
-    expect(editor.onSyncErrorChange).toHaveBeenLastCalledWith(false);
     expect(editor.flush()).not.toBeNull();
+    expect(editor.onSyncErrorChange).toHaveBeenLastCalledWith(false);
   } finally { await editor.destroy(); }
 });
 
@@ -121,4 +123,65 @@ test("卸载取消重复删除的待同步任务，不通知旧表单", async ()
   expect(editor.serializer).not.toHaveBeenCalled();
   expect(editor.onChange).not.toHaveBeenCalled();
   expect(editor.onReady).toHaveBeenLastCalledWith(null);
+});
+
+
+test("真实普通按键合并到120ms静默，持续输入每500ms至多编码一次", async () => {
+  const editor = await createEditor();
+  try {
+    vi.useFakeTimers();
+    for (let index = 0; index < 10; index++) {
+      editor.keydown("a", false);
+      editor.view.dispatch(editor.view.state.tr.insertText("a", 1));
+      await vi.advanceTimersByTimeAsync(40);
+    }
+    expect(editor.serializer).not.toHaveBeenCalled();
+    expect(editor.onDocumentChange).toHaveBeenCalledTimes(10);
+    for (let index = 0; index < 3; index++) {
+      editor.keydown("a", false);
+      editor.view.dispatch(editor.view.state.tr.insertText("a", 1));
+      await vi.advanceTimersByTimeAsync(40);
+    }
+    expect(editor.serializer).toHaveBeenCalledTimes(1);
+    editor.keydown("b", false);
+    editor.view.dispatch(editor.view.state.tr.insertText("b", 1));
+    await vi.advanceTimersByTimeAsync(119);
+    expect(editor.serializer).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(editor.serializer).toHaveBeenCalledTimes(2);
+    editor.flush(); editor.flush();
+    expect(editor.serializer).toHaveBeenCalledTimes(2);
+  } finally { await editor.destroy(); }
+});
+
+test("中文组词暂停编码，结束后同步最终文字且组合不是编码错误", async () => {
+  const editor = await createEditor();
+  try {
+    vi.useFakeTimers();
+    editor.view.dom.dispatchEvent(new CompositionEvent("compositionstart", { bubbles: true }));
+    editor.view.dispatch(editor.view.state.tr.insertText("拼", 1));
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(editor.flush()).toBeNull();
+    expect(editor.onError).not.toHaveBeenCalled();
+    expect(editor.serializer).not.toHaveBeenCalled();
+    editor.view.dom.dispatchEvent(new CompositionEvent("compositionend", { bubbles: true }));
+    editor.view.dispatch(editor.view.state.tr.insertText("音", 2));
+    await vi.advanceTimersByTimeAsync(120);
+    expect(editor.flush()).toContain("拼音");
+    expect(editor.onCompositionChange.mock.calls.map(([value]) => value)).toEqual([true, false]);
+    expect(editor.onChange).toHaveBeenCalledTimes(1);
+  } finally { await editor.destroy(); }
+});
+
+test("120ms内撤销回原文也确认新文档已同步，重复flush不重复通知", async () => {
+  const editor = await createEditor();
+  try {
+    vi.useFakeTimers();
+    editor.view.dispatch(editor.view.state.tr.insertText("续", 1));
+    expect(undo(editor.view.state, editor.view.dispatch)).toBe(true);
+    await vi.advanceTimersByTimeAsync(120);
+    expect(editor.onChange).toHaveBeenCalledTimes(1);
+    editor.flush();
+    expect(editor.onChange).toHaveBeenCalledTimes(1);
+  } finally { await editor.destroy(); }
 });

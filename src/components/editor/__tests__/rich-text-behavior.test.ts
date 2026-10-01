@@ -126,6 +126,10 @@ test.each(fixtures.cases)("$id 真实编辑事务逐步对照共享独立预期"
           }
           case "save": case "recover": {
             encodeFailure = operation.outcome === "encode-error";
+            if (encodeFailure) {
+              // 成功文档可复用编码缓存；故障注入在语义不变的新文档版本上实际执行编码。
+              view.dispatch(view.state.tr.setNodeMarkup(0, undefined, view.state.doc.firstChild!.attrs).setMeta("addToHistory", false));
+            }
             if (operation.outcome === "conflict") remoteVersion++;
             if (operation.type === "recover" && operation.resolution === "explicit-retry-after-reload") {
               // 传输适配器先返回当前远端版本；正文仍是用户保留的本地编辑。

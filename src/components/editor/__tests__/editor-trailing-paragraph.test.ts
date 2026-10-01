@@ -11,7 +11,8 @@ import { editorMarkdownPastePlugin } from "../markdown-literal-paste";
 import { configureEditorMarkdownSerializer, createEditorMarkdownBridge, editorSoftBreakParser,
   prepareEditorMarkdown, serializeEditorMarkdown } from "../milkdown-markdown-codec";
 
-async function withEditor(source: string, run: (ctx: Ctx) => void, callbacks: { onError?: (error: unknown) => void; onSyncErrorChange?: (hasError: boolean) => void } = {}) {
+async function withEditor(source: string, run: (ctx: Ctx, flush: () => string | null) => void, callbacks: { onError?: (error: unknown) => void; onSyncErrorChange?: (hasError: boolean) => void } = {}) {
+  let flush!: () => string | null;
   const root = document.createElement("div");
   document.body.append(root);
   const crepe = new CrepeBuilder({ root, defaultValue: prepareEditorMarkdown(source) });
@@ -19,13 +20,13 @@ async function withEditor(source: string, run: (ctx: Ctx) => void, callbacks: { 
   crepe.editor.config((ctx) => configureEditorAlignmentParser(ctx, { markdownContractVersion: 5 }))
     .config((ctx) => configureEditorAlignmentSchemas(ctx, { markdownContractVersion: 5 }))
     .config(configureEditorMarkdownSerializer).use(editorSoftBreakParser).use(editorMarkdownPastePlugin)
-    .use(createEditorMarkdownBridge({ onChange: () => {}, onError: (error) => { throw error; }, ...callbacks }));
+    .use(createEditorMarkdownBridge({ onReady: (next) => { if (next) flush = next; }, onChange: () => {}, onError: (error) => { throw error; }, ...callbacks }));
   try {
     await crepe.create();
     crepe.editor.action((ctx) => {
       const view = ctx.get(editorViewCtx);
       view.dispatch(view.state.tr);
-      run(ctx);
+      run(ctx, flush);
     });
   } finally { await crepe.destroy(); root.remove(); }
 }
@@ -140,14 +141,16 @@ test("伪造来源属性的站内 HTML 不会将作者空段当成自动占位",
 test("序列化失败报告不可保存，撤销回相同旧正文也清除错误", async () => {
   const onError = vi.fn();
   const onSyncErrorChange = vi.fn();
-  await withEditor("正文", (ctx) => {
+  await withEditor("正文", (ctx, flush) => {
     const view = ctx.get(editorViewCtx);
     const invalid = ctx.get(parserCtx)("# 协议外一级标题");
     view.dispatch(view.state.tr.replaceWith(0, view.state.doc.content.size, invalid.content));
+    expect(flush()).toBeNull();
     expect(onError).toHaveBeenCalled();
     expect(onSyncErrorChange).toHaveBeenLastCalledWith(true);
     expect(undo(view.state, view.dispatch)).toBe(true);
     expect(serializeEditorMarkdown(ctx, view.state.doc)).toBe("正文");
+    expect(flush()).toBe("正文");
     expect(onSyncErrorChange).toHaveBeenLastCalledWith(false);
   }, { onError, onSyncErrorChange });
 });

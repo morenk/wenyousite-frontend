@@ -418,19 +418,19 @@ describe("MilkdownEditor 自定义内联节点", () => {
     expect(written.get("text/plain")).not.toContain("cdn.example.com");
   });
 
-  test("插入收藏表情后立即同步版本化 Markdown", async () => {
+  test("插入收藏表情后合并同步版本化 Markdown", async () => {
     const onChange = vi.fn();
     renderEditor({ defaultValue: "正文", onChange });
 
     await userEvent.setup().click(await screen.findByRole("button", { name: "插入测试表情" }));
 
-    expect(onChange).toHaveBeenCalled();
+    await waitFor(() => expect(onChange).toHaveBeenCalled());
     expect(onChange.mock.calls.at(-1)?.[0]).toContain(
       '![表情](https://cdn.example.com/stickers/test.webp "wenyousite-sticker:v1:c12345678901234567890")',
     );
   });
 
-  test("选择单人提及后立即同步稳定用户链接", async () => {
+  test("选择单人提及后合并同步稳定用户链接", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     const { container } = renderEditor({ defaultValue: "", onChange, threadId: "thread-1" });
@@ -446,7 +446,7 @@ describe("MilkdownEditor 自定义内联节点", () => {
     onChange.mockClear();
     await user.click(candidate);
 
-    expect(onChange).toHaveBeenCalled();
+    await waitFor(() => expect(onChange).toHaveBeenCalled());
     expect(onChange.mock.calls.at(-1)?.[0]).toContain("[@小明](/users/user-2)");
   });
 
@@ -549,7 +549,7 @@ describe("MilkdownEditor 自定义内联节点", () => {
     expect(markdown).toBeTruthy();
   });
 
-  test("工具栏图片上传完成后立即同步 Markdown", async () => {
+  test("工具栏图片上传完成后合并同步 Markdown", async () => {
     const onChange = vi.fn();
     let finishUpload: ((url: string) => void) | undefined;
     const onUploadImage = vi.fn((_file: File, options?: UploadImageOptions) => new Promise<string>((resolve) => {
@@ -583,7 +583,7 @@ describe("MilkdownEditor 自定义内联节点", () => {
       await Promise.resolve();
     });
 
-    expect(onChange).toHaveBeenCalled();
+    await waitFor(() => expect(onChange).toHaveBeenCalled());
     expect(onChange.mock.calls.at(-1)?.[0]).toContain(
       "![1.00](https://cdn.example.com/uploads/test.png)",
     );

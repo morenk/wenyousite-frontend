@@ -59,6 +59,13 @@ export function ThreadCreateForm({
     },
   });
 
+  function submitLatest(handler: (values: ThreadCreateFormData) => Promise<void>) {
+    const content = editor.flush();
+    if (content === null) return;
+    form.setValue("content", content, { shouldDirty: true });
+    void form.handleSubmit(handler)();
+  }
+
   async function handleSaveDraft(values: ThreadCreateFormData) {
     const content = editor.flush();
     if (syncError || content === null) return;
@@ -167,9 +174,10 @@ export function ThreadCreateForm({
               <MilkdownEditor mediaDisplays={thread.defaultSubthread.bodyPost?.mediaDisplays}
                 editorRef={editor.editorRef}
                 onValidityChange={editor.onValidityChange}
+                onDocumentChange={editor.onDocumentChange}
                 threadId={thread.id}
                 defaultValue={field.value ?? ""}
-                onChange={field.onChange}
+                onChange={(value) => { editor.onSynchronized(); field.onChange(value); }}
                 onSyncErrorChange={setSyncError}
                 onUploadImage={handleUploadImage}
                 disabled={isSaving || isPublishing}
@@ -201,7 +209,7 @@ export function ThreadCreateForm({
           <Button
             type="button"
             variant="outline"
-            onClick={form.handleSubmit(handleSaveDraft)}
+            onClick={() => submitLatest(handleSaveDraft)}
             disabled={syncError || isSaving || isPublishing}
           >
             {isSaving ? (
@@ -213,7 +221,7 @@ export function ThreadCreateForm({
           </Button>
           <Button
             type="button"
-            onClick={form.handleSubmit(handlePublish)}
+            onClick={() => submitLatest(handlePublish)}
             disabled={syncError || isSaving || isPublishing}
           >
             {isPublishing ? (

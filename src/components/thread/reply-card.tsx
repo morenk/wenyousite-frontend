@@ -17,7 +17,7 @@ import {
   PostActionsMenu,
 } from "@/components/thread/post-actions-menu";
 import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
-import { useThreadComposer } from "@/components/thread/thread-composer-context";
+import { useThreadComposerSession } from "@/components/thread/thread-composer-context";
 import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
 import { useConfirm } from "@/components/ui/confirm-provider";
 import { useAuth } from "@/lib/auth";
@@ -45,7 +45,7 @@ export function ReplyCard({
   const { user } = useAuth();
   const deletePost = useDeletePost();
   const confirmAction = useConfirm();
-  const { session, open } = useThreadComposer();
+  const { session, open } = useThreadComposerSession();
   const { isManager } = useThreadPermissions();
   const isDiscussion = variant === "discussion";
   const isPreview = variant === "preview";

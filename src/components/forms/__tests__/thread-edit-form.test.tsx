@@ -18,6 +18,8 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: mockRouterReplace }),
 }));
 
+const deferredEditor = vi.hoisted(() => ({ value: false }));
+
 vi.mock("@/components/editor/milkdown-editor", async () => {
   const { withEditorSubmission } = await import("@/test/editor-submission-double");
   return ({
@@ -31,7 +33,7 @@ vi.mock("@/components/editor/milkdown-editor", async () => {
     <button type="button" onClick={() => onSyncErrorChange?.(true)}>模拟同步失败</button>
     <button type="button" onClick={() => onSyncErrorChange?.(false)}>模拟同步恢复</button>
     </>
-  )),
+  ), { deferChange: () => deferredEditor.value }),
 });
 });
 
@@ -75,6 +77,7 @@ vi.mock("@/api/hooks/use-delete-thread", () => ({
 import { toast } from "sonner";
 
 afterEach(() => {
+  deferredEditor.value = false;
   cleanup();
   clearAuthSession();
   vi.clearAllMocks();
@@ -521,4 +524,28 @@ describe("ThreadEditForm", () => {
     expect(await screen.findByText("标题最多 100 个字符")).toBeInTheDocument();
     expect(mockSaveThreadMutate).not.toHaveBeenCalled();
   });
+});
+
+
+test("主帖旧快照超长后删回合法可立即保存", async () => {
+  mockSaveThreadMutate.mockResolvedValue(makeThread());
+  renderForm();
+  const input = screen.getByTestId("milkdown-editor");
+  fireEvent.change(input, { target: { value: "字".repeat(10001) } });
+  deferredEditor.value = true;
+  fireEvent.change(input, { target: { value: "最终正文" } });
+  fireEvent.click(screen.getByRole("button", { name: "保存帖子" }));
+  await vi.waitFor(() => expect(mockSaveThreadMutate).toHaveBeenCalledWith(expect.objectContaining({ body: expect.objectContaining({ content: "最终正文" }) })));
+});
+
+test("主帖待同步撤销回原文按最新正文判断关闭，其他字段修改仍保护", async () => {
+  const { onStatusChange } = renderForm();
+  const input = screen.getByTestId("milkdown-editor");
+  fireEvent.change(input, { target: { value: "已编码修改" } });
+  deferredEditor.value = true;
+  fireEvent.change(input, { target: { value: "默认正文" } });
+  const status = onStatusChange.mock.calls.at(-1)![0];
+  act(() => { expect(status.canClose()).toBe(true); expect(status.hasChanges()).toBe(false); });
+  fireEvent.change(screen.getByPlaceholderText("给你的主题帖起个名字"), { target: { value: "改标题" } });
+  expect(onStatusChange.mock.calls.at(-1)![0].hasChanges()).toBe(true);
 });

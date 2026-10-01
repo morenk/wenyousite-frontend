@@ -12,24 +12,25 @@ import { configureEditorAlignmentParser, configureEditorAlignmentSchemas, create
 import { configureEditorMarkdownSerializer, createEditorMarkdownBridge, editorSoftBreakParser,
   prepareEditorMarkdown, serializeEditorMarkdown } from "../milkdown-markdown-codec";
 
-async function withEditor(source: string, run: (ctx: Ctx, emitted: string[]) => void) {
+async function withEditor(source: string, run: (ctx: Ctx, emitted: string[], flush: () => string | null) => void) {
   const root = document.createElement("div");
   document.body.append(root);
   const emitted: string[] = [];
+  let flush!: () => string | null;
   const crepe = new CrepeBuilder({ root, defaultValue: prepareEditorMarkdown(source) });
   crepe.addFeature(imageBlock);
   crepe.editor.config((ctx) => configureEditorAlignmentParser(ctx, { markdownContractVersion: 5 }))
     .config((ctx) => configureEditorAlignmentSchemas(ctx, { markdownContractVersion: 5 }))
     .config(configureEditorMarkdownSerializer).use(editorSoftBreakParser)
     .use(createEditorAlignmentPlugin(() => {}, () => true))
-    .use(createEditorMarkdownBridge({ onChange: (value) => emitted.push(value), onError: (error) => { throw error; } }));
+    .use(createEditorMarkdownBridge({ onReady: (next) => { if (next) flush = next; }, onChange: (value) => emitted.push(value), onError: (error) => { throw error; } }));
   try {
     await crepe.create();
     crepe.editor.action((ctx) => {
       const view = ctx.get(editorViewCtx);
       // 激活 Milkdown 自带尾段插件后记录初态，保留完整编辑态结构等价断言。
       view.dispatch(view.state.tr);
-      run(ctx, emitted);
+      run(ctx, emitted, flush);
     });
   } finally { await crepe.destroy(); root.remove(); }
 }
@@ -65,7 +66,7 @@ test.each(fixture.cases.filter((item) => item.supported))("$id 真实编辑器�
 });
 
 test.each(fixture.editCases)("$id 真实输入事务符合共享语义", async (item) => {
-  await withEditor(item.markdown, (ctx, emitted) => {
+  await withEditor(item.markdown, (ctx, emitted, flush) => {
     const view = ctx.get(editorViewCtx);
     let position = -1;
     view.state.doc.descendants((node, offset) => {
@@ -76,6 +77,7 @@ test.each(fixture.editCases)("$id 真实输入事务符合共享语义", async (
     if (item.operation.kind === "insert-text") view.dispatch(view.state.tr.insertText(item.operation.text!));
     else expect(view.someProp("handleKeyDown", (handle) => handle(view, new KeyboardEvent("keydown", { key: "Enter" })))).toBe(true);
     const stored = serializeEditorMarkdown(ctx, view.state.doc);
+    flush();
     expect(emitted.at(-1)).toBe(stored);
     expect(findUnsupportedMarkdownFormats(stored)).toEqual([]);
     expect(readerDom(stored)).toBe(readerDom(item.serialized));
