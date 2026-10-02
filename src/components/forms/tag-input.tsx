@@ -1,4 +1,4 @@
-/** 主题帖标签输入组件：支持自动补全、回车添加、删除 */
+/** 主题帖标签输入组件：支持自动补全、分隔键确认、删除 */
 
 "use client";
 
@@ -11,6 +11,7 @@ import { TAG_NAME_PATTERN, TAG_NAME_MESSAGE } from "@/lib/tag-name";
 import { cn } from "@/lib/utils";
 
 interface TagInputProps {
+  id?: string;
   value: string[];
   onChange: (tags: string[]) => void;
   max?: number;
@@ -19,6 +20,7 @@ interface TagInputProps {
 }
 
 export function TagInput({
+  id,
   value,
   onChange,
   max = 5,
@@ -29,6 +31,7 @@ export function TagInput({
   const [focused, setFocused] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const composingRef = useRef(false);
   const { data: candidates, isLoading } = useTags(input);
 
   function addTag(name: string) {
@@ -48,7 +51,9 @@ export function TagInput({
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter" || e.key === ",") {
+    // 选词阶段的空格、回车和退格交给输入法；229 覆盖结束组合时的兼容事件。
+    if (disabled || composingRef.current || e.nativeEvent.isComposing || e.keyCode === 229) return;
+    if (e.key === "Enter" || e.key === " " || e.key === "　" || e.key === ",") {
       e.preventDefault();
       addTag(input);
     } else if (e.key === "Backspace" && !input && value.length > 0) {
@@ -95,11 +100,15 @@ export function TagInput({
         ))}
         <Input
           ref={inputRef}
+          id={id}
+          aria-label="标签"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
+          onCompositionStart={() => { composingRef.current = true; }}
+          onCompositionEnd={() => { composingRef.current = false; }}
           onFocus={() => setFocused(true)}
-          placeholder={value.length < max ? "输入标签，按回车添加" : "标签已满"}
+          placeholder={value.length < max ? "标签由空格或回车分隔" : "标签已满"}
           disabled={disabled || value.length >= max}
           className="h-6 min-w-[120px] flex-1 border-0 bg-transparent px-1 py-0 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
         />
@@ -135,7 +144,7 @@ export function TagInput({
                     onClick={() => addTag(input)}
                     className="w-full rounded-[var(--radius-control)] px-2 py-1.5 text-left text-sm hover:bg-muted"
                   >
-                    按回车创建 “{input.trim()}”
+                    创建“{input.trim()}”
                   </button>
                 </li>
               )}
@@ -143,10 +152,6 @@ export function TagInput({
           )}
         </div>
       )}
-
-      <p className="mt-1 text-xs text-muted-foreground">
-        最多 {max} 个标签，支持中文、字母、数字、下划线、#
-      </p>
     </div>
   );
 }
