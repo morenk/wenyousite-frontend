@@ -3,6 +3,8 @@
 "use client";
 
 import {
+  createContext,
+  useContext,
   isValidElement,
   useState,
   type ComponentProps,
@@ -65,6 +67,34 @@ type SpanProps = ComponentProps<"span"> & ExtraProps & {
   "data-dice-node-id"?: string;
   "data-dice-notation"?: string;
 };
+
+// 渲染器类型跨父级测量更新保持稳定；展示数据通过 context 更新，不重挂载图片。
+const MarkdownRenderContext = createContext<{
+  sourcePostId?: string;
+  mediaDisplays?: readonly MarkdownMediaDisplay[];
+  diceRollsByNodeId: ReadonlyMap<string, InlineDiceRoll>;
+}>({ diceRollsByNodeId: new Map() });
+
+function MarkdownImageRenderer(props: ImageProps) {
+  const { sourcePostId, mediaDisplays } = useContext(MarkdownRenderContext);
+  const originalUrl = typeof props.src === "string" ? props.src : "";
+  const display = findMediaDisplay(originalUrl, mediaDisplays);
+  // 仅实际资源/回退策略变化重置失败状态；等价的新 DTO 引用不触发自动重试。
+  const resourceKey = JSON.stringify([
+    originalUrl, display?.url, display?.animated,
+    props.title?.startsWith("wenyousite-sticker:v1:") ?? false,
+  ]);
+  return <MarkdownImage key={resourceKey} {...props} sourcePostId={sourcePostId} mediaDisplays={mediaDisplays} />;
+}
+
+function MarkdownSpan({ node: _node, ...props }: SpanProps) {
+  void _node;
+  const { diceRollsByNodeId } = useContext(MarkdownRenderContext);
+  const nodeId = props["data-dice-node-id"];
+  const roll = nodeId ? diceRollsByNodeId.get(nodeId) : undefined;
+  if (roll) return <DiceInlineResult roll={roll} />;
+  return <span {...props} />;
+}
 
 function getNodeText(node: ReactNode): string {
   if (typeof node === "string" || typeof node === "number") return String(node);
@@ -444,32 +474,28 @@ export function MarkdownContent({
         size === "compact" && "wenyou-prose-compact",
       )}
     >
-      <ReactMarkdown
-        rehypePlugins={[rehypeRemoveFormattingLineBreaks]}
-        remarkPlugins={[
-          remarkGfm,
-          [remarkWenyouAlignment, markdownOptions],
-          remarkRecoverAttentionBoundaries,
-          remarkMilkdownEmptyParagraphs,
-          remarkInlineDice(diceRolls),
-          remarkBareInternalReferences,
-          remarkPreserveSoftLineBreaks,
-        ]}
-        components={{
-          a: MarkdownLink,
-          img: (props) => <MarkdownImage {...props} sourcePostId={sourcePostId} mediaDisplays={mediaDisplays} />,
-          span: ({ node: _node, ...props }: SpanProps) => {
-            void _node;
-            const nodeId = props["data-dice-node-id"];
-            const roll = nodeId ? diceRollsByNodeId.get(nodeId) : undefined;
-            if (roll) return <DiceInlineResult roll={roll} />;
-            return <span {...props} />;
-          },
-        }}
-        skipHtml
-      >
-        {normalizedContent}
-      </ReactMarkdown>
+      <MarkdownRenderContext.Provider value={{ sourcePostId, mediaDisplays, diceRollsByNodeId }}>
+        <ReactMarkdown
+          rehypePlugins={[rehypeRemoveFormattingLineBreaks]}
+          remarkPlugins={[
+            remarkGfm,
+            [remarkWenyouAlignment, markdownOptions],
+            remarkRecoverAttentionBoundaries,
+            remarkMilkdownEmptyParagraphs,
+            remarkInlineDice(diceRolls),
+            remarkBareInternalReferences,
+            remarkPreserveSoftLineBreaks,
+          ]}
+          components={{
+            a: MarkdownLink,
+            img: MarkdownImageRenderer,
+            span: MarkdownSpan,
+          }}
+          skipHtml
+        >
+          {normalizedContent}
+        </ReactMarkdown>
+      </MarkdownRenderContext.Provider>
     </div>
   );
 }

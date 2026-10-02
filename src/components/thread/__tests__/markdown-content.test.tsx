@@ -610,3 +610,61 @@ test("正文和大图使用完整WebP；失败只显式重试，不回退GIF", a
   await waitFor(() => expect(screen.getByRole("dialog")).toBeInTheDocument());
   expect(within(screen.getByRole("dialog")).getByAltText("动画")).toHaveAttribute("src", fullDisplay.url);
 });
+
+
+test("父级重渲染保留图片回退和失败状态，只有手动重试重新加载", () => {
+  const content = `![静态](${UPLOADED_URL})`;
+  const { rerender } = render(<MarkdownContent content={content} />);
+  const image = screen.getByAltText("静态");
+  fireEvent.error(image);
+  expect(image).toHaveAttribute("src", UPLOADED_URL);
+  rerender(<MarkdownContent content={content} size="compact" diceRolls={[]} mediaDisplays={[]} />);
+  expect(screen.getByAltText("静态")).toBe(image);
+  expect(image).toHaveAttribute("src", UPLOADED_URL);
+  fireEvent.error(image);
+  const retry = screen.getByRole("button", { name: "重试图片" });
+  for (let index = 0; index < 5; index++) {
+    rerender(<MarkdownContent content={content} mediaDisplays={[]} />);
+    expect(screen.queryByAltText("静态")).toBeNull();
+    expect(screen.getByRole("button", { name: "重试图片" })).toBe(retry);
+  }
+  fireEvent.click(retry);
+  expect(screen.getByAltText("静态")).toHaveAttribute("src", UPLOADED_URL);
+  fireEvent.error(screen.getByAltText("静态"));
+  expect(screen.getByRole("button", { name: "重试图片" })).toBeInTheDocument();
+});
+
+test("真实图片地址变化重置失败，展示映射的新引用不重置失败", () => {
+  const sourceUrl = "https://cdn.example.com/media/original.gif";
+  const content = `![动画](${sourceUrl})`;
+  const { rerender } = render(<MarkdownContent content={content} mediaDisplays={[{ sourceUrl, display: fullDisplay }]} />);
+  fireEvent.error(screen.getByAltText("动画"));
+  rerender(<MarkdownContent content={content} mediaDisplays={[{ sourceUrl, display: { ...fullDisplay } }]} />);
+  expect(screen.getByRole("button", { name: "重试图片" })).toBeInTheDocument();
+  const changedDisplay = { ...fullDisplay, url: "https://cdn.example.com/replaced.webp" };
+  rerender(<MarkdownContent content={content} mediaDisplays={[{ sourceUrl, display: changedDisplay }]} />);
+  expect(screen.getByAltText("动画")).toHaveAttribute("src", changedDisplay.url);
+  fireEvent.error(screen.getByAltText("动画"));
+  rerender(<MarkdownContent content={`![新资源](${UPLOADED_URL})`} />);
+  expect(screen.getByAltText("新资源")).toHaveAttribute("src", UPLOADED_MD_URL);
+});
+
+
+test("图片灯箱在等值父重渲染后保持打开，alt 与复制媒体标记更新", async () => {
+  const { rerender } = render(<MarkdownContent content={`![原名称](${UPLOADED_URL})`} />);
+  fireEvent.click(screen.getByAltText("原名称"));
+  await screen.findByRole("dialog");
+  rerender(<MarkdownContent content={`![新名称](${UPLOADED_URL})`} mediaDisplays={[]} />);
+  expect(within(screen.getByRole("dialog")).getByAltText("新名称")).toBeInTheDocument();
+  expect(document.querySelector('[data-slot="markdown-content"] [data-wenyou-media="image"]')).toBeInTheDocument();
+});
+
+test("骰子详情跨父重渲染保留打开状态并读取最新结果", async () => {
+  const roll = { nodeId: DICE_NODE_ID, notation: "1d20", results: [14], modifier: 0, total: 14 };
+  const { rerender } = render(<MarkdownContent content={DICE_MARKER} diceRolls={[roll]} />);
+  fireEvent.click(screen.getByRole("button", { name: "骰子 1d20，总计 14" }));
+  await screen.findByRole("dialog", { name: "骰子结果" });
+  rerender(<MarkdownContent content={DICE_MARKER} diceRolls={[{ ...roll, results: [15], total: 15 }]} />);
+  expect(screen.getByRole("button", { name: "骰子 1d20，总计 15" })).toHaveAttribute("aria-expanded", "true");
+  expect(within(screen.getByRole("dialog", { name: "骰子结果" })).getByLabelText("第 1 枚，15 点")).toBeInTheDocument();
+});

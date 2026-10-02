@@ -52,5 +52,5 @@ export async function mediaDisplayFixture(page: Page, baseURL: string) {
     else if (pathname.endsWith("/moments")) data = [moment];
     await route.fulfill({ json: { code: 0, message: "ok", data, meta: { cursor: null, hasMore: false } } });
   });
-  return { images, requests, writes, getContent: () => content, setContent: (value: string) => { content = value; }, setPublished: (value: boolean) => { published = value; } };
+  return { images, requests, writes, floor: { ...post(1), thread: thread(), subthread: thread().defaultSubthread }, getContent: () => content, setContent: (value: string) => { content = value; }, setPublished: (value: boolean) => { published = value; } };
 }
