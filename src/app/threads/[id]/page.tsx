@@ -323,7 +323,7 @@ function ThreadDetailPageContent() {
   }
 
   if (!targetPostId && (isLoading || awaitingThreadValidation || (!isInitialized && error))) {
-    return <PageRouteFallback variant="detail" />;
+    return <PageRouteFallback variant="discussion" />;
   }
 
   if (error || targetPostQuery.error || targetFloorQuery.error || targetContextInvalid) {

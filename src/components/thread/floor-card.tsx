@@ -1,4 +1,4 @@
-/** 楼层卡片组件：Markdown 渲染 + 作者信息 + 时间 + 编辑/删除（作者本人，楼层均可删） */
+/** 连续楼层条目：Markdown 渲染、作者、时间及编辑/删除操作。 */
 
 "use client";
 
@@ -122,10 +122,11 @@ export function FloorCard({
   return (
     <div
       id={`post-${floor.id}`}
+      data-slot="discussion-row"
       tabIndex={focused ? -1 : undefined}
       className={cn(
-        "scroll-mt-6 rounded-[var(--radius-card)] border border-border bg-card p-4 transition-[border-color] duration-[var(--motion-slow)] ease-out",
-        highlightVisible && "border-primary",
+        "scroll-mt-6 border-b border-border/60 bg-transparent px-4 py-5 transition-[border-color,background-color] duration-[var(--motion-slow)] ease-out",
+        highlightVisible && "border-primary bg-primary/10",
       )}
     >
       {/* 楼层头部 */}
@@ -206,9 +207,9 @@ export function FloorCard({
       {!isEditing && floor._count.replies > 0 && (
         <div
           data-testid="inline-replies"
-          className="mt-2 border-l-2 border-border pl-3"
+          className="mt-2 ml-3 rounded-[var(--radius-card)] bg-muted px-3 py-1"
         >
-          <div className="space-y-2">
+          <div>
             {inlineReplies.map((reply) => (
               <ReplyCard
                 key={reply.id}
@@ -222,7 +223,7 @@ export function FloorCard({
             href={discussionHref}
             className={cn(
               buttonVariants({ variant: "ghost", size: "sm" }),
-              "mt-2 h-8 px-2 text-xs font-medium text-muted-foreground",
+              "h-8 px-2 text-xs font-medium text-muted-foreground",
             )}
           >
             展开楼中楼（{floor._count.replies} 条）

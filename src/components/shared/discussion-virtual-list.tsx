@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { defaultRangeExtractor, useWindowVirtualizer } from "@tanstack/react-virtual";
 import { getDiscussionReadingTop, startDiscussionTargetReveal } from "@/lib/discussion-target-reveal";
-import { COLLECTION_WEB_PROFILE } from "@wenyousite/foundation/collections";
 
 export interface DiscussionPosition { id: string; number: number; offset: number }
 interface Props<T extends { id: string }> {
@@ -44,7 +43,8 @@ export function DiscussionVirtualList<T extends { id: string }>({ items, numberO
     count: items.length,
     estimateSize: () => 260,
     getItemKey: (index) => items[index].id,
-    gap: COLLECTION_WEB_PROFILE.cardGap,
+    // 连续讨论条目的留白和分隔由条目自身承载，不再插入卡片间距。
+    gap: 0,
     overscan: 4,
     scrollMargin: margin,
     scrollPaddingStart: readingTop,

@@ -286,6 +286,11 @@ select {
   outline-offset: 2px;
 }
 
+/* 定位后聚焦阅读条目只用于读屏承接；容器不保留外框，内部控件仍使用键盘焦点。 */
+:where([data-slot="discussion-row"][tabindex="-1"]):focus-visible {
+  outline: none;
+}
+
 /* 慢导航的唯一强调动效：120ms 后才出现，避免快速切页闪烁。 */
 .navigation-progress {
   opacity: 0;

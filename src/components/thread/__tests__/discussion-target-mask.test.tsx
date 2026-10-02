@@ -145,7 +145,7 @@ describe("DiscussionTargetMask", () => {
     expect(mocks.startReveal).toHaveBeenCalledOnce();
   });
 
-  test("遮罩期间阻止用户滚动，五秒慢提示不因进入稳定阶段重置", () => {
+  test("遮罩期间阻止滚动，五秒后只补充返回入口而不显示加载解释", () => {
     const view = renderMask();
     act(() => vi.advanceTimersByTime(4_900));
 
@@ -161,7 +161,9 @@ describe("DiscussionTargetMask", () => {
     expect(wheel.defaultPrevented).toBe(true);
 
     act(() => vi.advanceTimersByTime(100));
-    expect(screen.getByText("仍在读取目标附近的讨论，请稍候。")).toBeInTheDocument();
+    expect(screen.getByText("正在定位目标楼层…")).toBeInTheDocument();
+    expect(screen.queryByText("仍在读取目标附近的讨论，请稍候。")).toBeNull();
+    expect(screen.queryByText("正在读取目标附近的讨论。")).toBeNull();
     const backButton = screen.getByRole("button", { name: "返回上一页" });
     const firstSkeleton = view.container.querySelector('[data-slot="skeleton"]');
     expect(backButton).toBeInTheDocument();
