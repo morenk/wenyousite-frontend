@@ -4,7 +4,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUp, Search } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import type { SubthreadDetail } from "@/api/hooks/use-thread-detail";
 import { SubthreadSwitcher } from "@/components/thread/subthread-tabs";
@@ -23,6 +23,7 @@ interface ThreadReadingBarProps {
   onJumpToLatest?: () => void;
   latestPending?: boolean;
   latestAvailable?: boolean;
+  positionControl?: ReactNode;
 }
 
 export function ThreadReadingBar({
@@ -35,6 +36,7 @@ export function ThreadReadingBar({
   onJumpToLatest,
   latestPending = false,
   latestAvailable = true,
+  positionControl,
 }: ThreadReadingBarProps) {
   const [visible, setVisible] = useState(false);
 
@@ -80,6 +82,7 @@ export function ThreadReadingBar({
                 {subthreads[0]?.title ?? "主帖"}
               </span>
             )}
+            {positionControl}
             {onJumpToLatest ? (
               <Tooltip
                 content={

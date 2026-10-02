@@ -143,8 +143,8 @@ async function mockThread(page: Page) {
     if (pathname.endsWith(`/subthreads/${subthreadId}/posts/authors`)) {
       return fulfill(route, [owner]);
     }
-    if (pathname.endsWith(`/subthreads/${subthreadId}/posts`)) {
-      return fulfill(route, floors, { cursor: null, hasMore: false });
+    if (pathname.endsWith(`/subthreads/${subthreadId}/posts/window`)) {
+      return fulfill(route, { items: floors, pinnedItems: [], total: floors.length, maxNumber: 2, target: null, beforeCursor: null, afterCursor: null, hasBefore: false, hasAfter: false });
     }
     if (pathname.endsWith("/thread-categories")) {
       return fulfill(route, []);
@@ -171,7 +171,12 @@ for (const theme of ["light", "dark"] as const) {
 
     const firstFloor = page.locator("#post-divider-floor-1");
     await expect(firstFloor).toHaveCSS("border-radius", "10px");
-    await expect(firstFloor.locator("..")).toHaveCSS("gap", "8px");
+    // 虚拟行以 translateY 排列；断言真实卡片间距，不依赖父层的布局实现。
+    await expect.poll(async () => {
+      const first = await firstFloor.boundingBox();
+      const second = await page.locator("#post-divider-floor-2").boundingBox();
+      return first && second ? Math.round(second.y - first.y - first.height) : null;
+    }).toBe(8);
     const divider = firstFloor.locator('[data-slot="markdown-content"] hr');
     await expect(divider).toHaveCount(1);
     await expect(divider).toHaveRole("separator");

@@ -36,7 +36,7 @@ export function readIsolation(env = process.env) {
     && new Set([m.postgres.port, m.redis.port, Number(new URL(backend).port)]).size === 3, "隔离资源端口无效或重复");
   ensure(lstatSync(m.uploadPath).isDirectory() && realpathSync(m.uploadPath) === m.uploadPath, "上传目录身份漂移");
   const credentials = privateJSON(m.privateEnvPath);
-  const allowed = new Set(["E2E_RUN_ID", "E2E_MANIFEST", "E2E_PRIVATE_ENV", "E2E_BACKEND_URL", "API_BASE", "E2E_USER_ID", "E2E_USERNAME", "E2E_EMAIL", "E2E_PASSWORD", "E2E_ADMIN_FIXTURES", "E2E_MOBILE_RELEASE_FIXTURES"]);
+  const allowed = new Set(["E2E_RUN_ID", "E2E_MANIFEST", "E2E_PRIVATE_ENV", "E2E_BACKEND_URL", "API_BASE", "E2E_USER_ID", "E2E_USERNAME", "E2E_EMAIL", "E2E_PASSWORD", "E2E_ADMIN_FIXTURES", "E2E_MOBILE_RELEASE_FIXTURES", "E2E_DISCUSSION_FIXTURES"]);
   ensure(Object.keys(credentials).every((key) => allowed.has(key)), "Web 私有环境不能包含数据库或后端密钥");
   for (const key of ["E2E_RUN_ID", "E2E_MANIFEST", "E2E_PRIVATE_ENV", "E2E_BACKEND_URL", "API_BASE"]) {
     ensure(credentials[key] === env[key], "私有账号文件与运行身份不一致");
@@ -49,6 +49,8 @@ export function readIsolation(env = process.env) {
   if (credentials.E2E_ADMIN_FIXTURES) ensure(credentials.E2E_ADMIN_FIXTURES === join(root, "admin-fixtures.json"), "管理账号描述必须属于本轮资源目录");
   ensure((credentials.E2E_MOBILE_RELEASE_FIXTURES || undefined) === (env.E2E_MOBILE_RELEASE_FIXTURES || undefined), "版本样本描述未绑定本轮私有环境");
   if (credentials.E2E_MOBILE_RELEASE_FIXTURES) ensure(credentials.E2E_MOBILE_RELEASE_FIXTURES === join(root, "mobile-release-fixtures.json"), "版本样本描述必须属于本轮资源目录");
+  ensure((credentials.E2E_DISCUSSION_FIXTURES || undefined) === (env.E2E_DISCUSSION_FIXTURES || undefined), "讨论样本描述未绑定本轮私有环境");
+  if (credentials.E2E_DISCUSSION_FIXTURES) ensure(credentials.E2E_DISCUSSION_FIXTURES === join(root, "discussion-fixtures.json"), "讨论样本描述必须属于本轮资源目录");
   return { manifest: m, root, resources, credentials };
 }
 
@@ -74,6 +76,21 @@ export function readMobileReleaseFixtures(run) {
   for (const [key, status] of [["published", "PUBLISHED"], ["draft", "DRAFT"]]) {
     const record = fixture[key];
     ensure(record?.platform === "android" && typeof record.id === "string" && /^[a-zA-Z0-9_-]+$/.test(record.id) && record.status === status && Number.isSafeInteger(record.buildNumber) && record.buildNumber > 0 && Number.isSafeInteger(record.revision) && record.revision > 0, "版本样本身份或状态无效");
+  }
+  return fixture;
+}
+
+/** 长讨论样本只交付同轮公开 ID，不向 Web 暴露数据源凭据。 */
+export function readDiscussionFixtures(run) {
+  ensure(run.credentials.E2E_DISCUSSION_FIXTURES === join(run.root, "discussion-fixtures.json"), "缺少本轮讨论样本 fixture");
+  const fixture = privateJSON(run.credentials.E2E_DISCUSSION_FIXTURES);
+  ensure(fixture.version === 1 && fixture.runId === run.manifest.runId && fixture.ownerUserId === run.credentials.E2E_USER_ID, "讨论样本身份不匹配");
+  ensure(Object.keys(fixture).every((key) => ["version", "runId", "ownerUserId", "otherUserId", "scenarios"].includes(key)), "讨论样本包含越界字段");
+  const ids = ["threadId", "subthreadId", "rootPostId", "pinnedPostId", "editableFloorId", "editableReplyId", "otherAuthorFloorId", "otherAuthorReplyId"];
+  ensure(Array.isArray(fixture.scenarios) && fixture.scenarios.length === 3 && new Set(fixture.scenarios.map((item) => item.size)).size === 3, "讨论样本规模不完整");
+  for (const item of fixture.scenarios) {
+    ensure([1000, 5000, 10000].includes(item.size) && Object.keys(item).every((key) => key === "size" || ids.includes(key))
+      && ids.every((key) => typeof item[key] === "string" && /^[a-zA-Z0-9_-]+$/.test(item[key])), "讨论样本 ID 或规模无效");
   }
   return fixture;
 }
@@ -106,6 +123,9 @@ export function assertResourceProcesses(run, identity = processIdentity, current
 export async function verifyRunProfile(run, origin, candidateId) {
   let response;
   let marker = !candidateId;
+  let stage = candidateId ? "candidate-head" : "profile-fetch";
+  let idMatches;
+  let usernameMatches;
   try {
     if (candidateId) {
       // Next 外部 rewrite 的响应可能覆盖前端 headers；分别核验页面构建和真实代理数据。
@@ -114,6 +134,8 @@ export async function verifyRunProfile(run, origin, candidateId) {
       marker = true;
     }
     for (let attempt = 0; attempt < 4; attempt++) {
+      stage = "profile-fetch";
+      response = undefined; // 请求未返回时不能把前一次 HEAD 的 200 冒充资料响应。
       response = await fetch(`${origin}/api/v1/users/${encodeURIComponent(run.credentials.E2E_USER_ID)}`, {
         redirect: "manual", cache: "no-store", signal: AbortSignal.timeout(5000),
       });
@@ -122,12 +144,19 @@ export async function verifyRunProfile(run, origin, candidateId) {
       await response.arrayBuffer();
       await new Promise((ok) => setTimeout(ok, 1000));
     }
+    stage = "profile-status";
     ensure(response.ok, "profile");
+    stage = "profile-json";
     const body = await response.json();
-    ensure(body.data?.id === run.credentials.E2E_USER_ID && body.data?.username === run.credentials.E2E_USERNAME, "profile");
-  } catch {
+    stage = "profile-match";
+    idMatches = body.data?.id === run.credentials.E2E_USER_ID;
+    usernameMatches = body.data?.username === run.credentials.E2E_USERNAME;
+    ensure(idMatches && usernameMatches, "profile");
+  } catch (error) {
     const target = candidateId ? "候选代理" : "隔离后端";
-    throw new Error(`${target}未返回本轮唯一身份（HTTP ${response?.status ?? "不可达"}，候选标识 ${marker ? "匹配" : "不匹配"}），拒绝登录或写入`);
+    const cause = ["AbortError", "TimeoutError", "SyntaxError", "TypeError", "Error"].includes(error?.name) ? error.name : "unknown";
+    const contentType = response?.headers.get("content-type")?.split(";")[0].slice(0, 80) ?? "unread";
+    throw new Error(`${target}未返回本轮唯一身份（阶段 ${stage}，HTTP ${response?.status ?? "不可达"}，候选标识 ${marker ? "匹配" : "不匹配"}，类型 ${contentType}，ID匹配 ${idMatches ?? "unread"}，用户名匹配 ${usernameMatches ?? "unread"}，原因 ${cause}），拒绝登录或写入`);
   }
 }
 

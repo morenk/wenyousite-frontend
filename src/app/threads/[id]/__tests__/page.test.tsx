@@ -87,6 +87,10 @@ vi.mock("@/api/hooks/use-floors", () => ({
   usePrefetchFloors: () => vi.fn(),
 }));
 
+vi.mock("@/api/hooks/use-discussion-window", () => ({
+  useFloorWindow: (subthreadId?: string) => ({ ...mocks.useFloors(subthreadId), total: 2, maxNumber: 42, pinnedItems: [], viewerScope: "anonymous", locate: vi.fn(), fetchPreviousPage: vi.fn(), hasPreviousPage: false, isFetchingPreviousPage: false }),
+}));
+
 vi.mock("@/api/hooks/use-discussion-authors", () => ({
   useFloorAuthors: () => ({
     data: [],
@@ -231,7 +235,7 @@ describe("主题详情精确楼层阅读态", () => {
     expect(mocks.useFloors).toHaveBeenCalledWith(undefined);
   });
 
-  test("目标不在首屏时直接进入完整所属子贴并把目标交给分页定位层", () => {
+  test("目标不在首屏时直接进入所属子贴并把目标交给窗口定位层", () => {
     render(<ThreadDetailPage />);
 
     expect(screen.queryByText("不应穿透的缓存目标正文")).toBeNull();

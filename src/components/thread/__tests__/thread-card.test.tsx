@@ -258,7 +258,7 @@ describe("ThreadCard", () => {
 
     expect(detailPrefetch).not.toHaveBeenCalled();
     expect(floorPrefetch).toHaveBeenCalledWith(
-      expect.objectContaining({ queryKey: ["floors", "s1", { order: "OLDEST" }] }),
+      expect.objectContaining({ queryKey: ["floors", "s1", "window", { order: "OLDEST" }, "anonymous", null] }),
     );
   });
 
@@ -278,7 +278,7 @@ describe("ThreadCard", () => {
 
     expect(detailPrefetch).not.toHaveBeenCalled();
     expect(floorPrefetch).toHaveBeenCalledWith(
-      expect.objectContaining({ queryKey: ["floors", "s1", { order: "OLDEST" }] }),
+      expect.objectContaining({ queryKey: ["floors", "s1", "window", { order: "OLDEST" }, "anonymous", null] }),
     );
   });
 });

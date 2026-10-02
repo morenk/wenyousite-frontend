@@ -167,8 +167,8 @@ async function mockStabilityWorkspace(
     if (pathname.endsWith(`/subthreads/${SUBTHREAD_ID}/posts/authors`)) {
       return fulfill(route, []);
     }
-    if (pathname.endsWith(`/subthreads/${SUBTHREAD_ID}/posts`)) {
-      return fulfill(route, [], { cursor: null, hasMore: false });
+    if (pathname.endsWith(`/subthreads/${SUBTHREAD_ID}/posts/window`)) {
+      return fulfill(route, { items: [], pinnedItems: [], total: 0, maxNumber: null, target: null, beforeCursor: null, afterCursor: null, hasBefore: false, hasAfter: false });
     }
     if (pathname.endsWith("/users/mention-candidates")) {
       return fulfill(route, {

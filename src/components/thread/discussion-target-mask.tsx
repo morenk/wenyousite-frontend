@@ -15,6 +15,7 @@ type TargetPhase = "locating" | "revealed";
 interface DiscussionTargetMaskProps {
   targetId?: string;
   activationKey?: string | number;
+  restoreOffset?: number;
   subject: "楼层" | "回复";
   loadedIds: string[];
   hasNextPage: boolean;
@@ -32,6 +33,7 @@ interface DiscussionTargetMaskProps {
 export function DiscussionTargetMask({
   targetId,
   activationKey,
+  restoreOffset,
   subject,
   loadedIds,
   hasNextPage,
@@ -51,6 +53,7 @@ export function DiscussionTargetMask({
   const [isRetrying, setIsRetrying] = useState(false);
   const [pageLoadVersion, setPageLoadVersion] = useState(0);
   const loadMoreInFlight = useRef(false);
+  const revealedAttempt = useRef<string | undefined>(undefined);
   const targetLoaded = useMemo(
     () => Boolean(targetId && loadedIds.includes(targetId)),
     [loadedIds, targetId],
@@ -99,7 +102,9 @@ export function DiscussionTargetMask({
   ]);
 
   useEffect(() => {
+    const revealKey = `${targetId}:${activationKey ?? ""}:${attempt}`;
     if (
+      revealedAttempt.current === revealKey ||
       !targetId ||
       !targetLoaded ||
       error ||
@@ -109,11 +114,13 @@ export function DiscussionTargetMask({
       validationPending
     ) return;
     return startDiscussionTargetReveal(`post-${targetId}`, {
-      onStable: () => setPhase("revealed"),
+      onStable: () => { revealedAttempt.current = revealKey; setPhase("revealed"); },
+      offset: restoreOffset,
       holdUntilStable: true,
     }).dispose;
   }, [
     activationKey,
+    restoreOffset,
     attempt,
     error,
     isFetchingNextPage,
@@ -209,8 +216,8 @@ export function DiscussionTargetMask({
                 {failed
                   ? `目标可能已删除、暂时无法访问，或讨论列表加载失败。`
                   : isSlow
-                    ? "仍在定位，较早的讨论可能需要继续加载。"
-                    : "正在读取完整讨论，定位完成前不会显示列表。"}
+                    ? "仍在读取目标附近的讨论，请稍候。"
+                    : "正在读取目标附近的讨论。"}
               </p>
             </div>
             {isSlow && !failed ? (

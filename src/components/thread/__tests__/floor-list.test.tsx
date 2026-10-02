@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { PostData } from "@/api/hooks/use-floors";
@@ -6,6 +6,14 @@ import { FloorList } from "@/components/thread/floor-list";
 
 const { mockUseInfiniteScroll } = vi.hoisted(() => ({
   mockUseInfiniteScroll: vi.fn(),
+}));
+
+const virtual = vi.hoisted(() => ({ props: vi.fn() }));
+vi.mock("@/components/shared/discussion-virtual-list", () => ({
+  DiscussionVirtualList: (props: { items: PostData[]; numberOf: (item: PostData) => number; renderItem: (item: PostData) => React.ReactNode }) => {
+    virtual.props(props);
+    return <>{props.items.map((item) => <div key={item.id} data-number={props.numberOf(item)}>{props.renderItem(item)}</div>)}</>;
+  },
 }));
 
 vi.mock("@/hooks/use-infinite-scroll", () => ({
@@ -16,7 +24,7 @@ vi.mock("@/components/thread/floor-card", () => ({
   FloorCard: ({ floor }: {
     floor: { id: string };
   }) => (
-    <div data-testid="floor">
+    <div data-testid="floor" id={`post-${floor.id}`}>
       {floor.id}
     </div>
   ),
@@ -117,4 +125,33 @@ describe("FloorList", () => {
     expect(screen.queryByText("没有更多了")).toBeNull();
     expect(container.querySelector('[data-slot="floor-list-sentinel"]')).toBeNull();
   });
+  test("窗口置顶去重，当前阅读位置优先实际可见的置顶条目", () => {
+    const pin = { id: "p9", floorNumber: 9, pinnedAt: "2026-01-01" } as PostData;
+    const ordinary = { id: "p1", floorNumber: 1 } as PostData;
+    const onPosition = vi.fn(); const onLoadPrevious = vi.fn();
+    renderList({ windowed: true, floors: [pin, ordinary], pinnedItems: [pin], onPosition, onLoadPrevious });
+    expect(screen.getAllByTestId("floor").map((node) => node.textContent)).toEqual(["p9", "p1"]);
+    const node = document.getElementById("post-p9")!;
+    vi.spyOn(node, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 32, 400, 100));
+    act(() => virtual.props.mock.calls.at(-1)![0].onPosition({ id: "p1", number: 1, offset: 200 }));
+    expect(onPosition).toHaveBeenLastCalledWith({ id: "p9", number: 9, offset: 8 });
+    virtual.props.mock.calls.at(-1)![0].onBefore();
+    expect(onLoadPrevious).not.toHaveBeenCalled();
+    vi.spyOn(node, "getBoundingClientRect").mockReturnValue(new DOMRect(0, -200, 400, 100));
+    act(() => virtual.props.mock.calls.at(-1)![0].onPosition({ id: "p1", number: 1, offset: 0 }));
+    expect(onPosition).toHaveBeenLastCalledWith({ id: "p1", number: 1, offset: 0 });
+    virtual.props.mock.calls.at(-1)![0].onBefore();
+    expect(onLoadPrevious).toHaveBeenCalledOnce();
+  });
+  test("窗口网络失败保留正文可重试，内容失效则不保留正文", async () => {
+    const user = userEvent.setup();
+    const view = renderList({ windowed: true, error: new Error("network") });
+    expect(screen.getAllByTestId("floor")).toHaveLength(2);
+    await user.click(screen.getByRole("button", { name: "重试" }));
+    expect(view.props.onRetry).toHaveBeenCalledOnce();
+    view.unmount();
+    renderList({ windowed: true, error: { code: 40403 } });
+    expect(screen.queryByTestId("floor")).not.toBeInTheDocument();
+  });
+
 });

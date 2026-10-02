@@ -5,6 +5,12 @@ const readingPaths = [
   new RegExp(`^/api/v1/threads/${contentId}$`, "i"),
   new RegExp(`^/api/v1/subthreads/${contentId}/posts(?:/authors)?$`, "i"),
 ];
+const discussionPaths = [
+  new RegExp(`^/api/v1/subthreads/${contentId}/posts/window$`, "i"),
+  new RegExp(`^/api/v1/posts/${contentId}(?:/replies(?:/window|/authors)?)?$`, "i"),
+  new RegExp(`^/threads/${contentId}/posts/${contentId}/replies$`, "i"),
+];
+const discussionQuery = new Set(["number", "postId", "post", "authorId"]);
 const readQuery = new Set(["sort", "limit", "cursor", "category", "status", "order", "_rsc"]);
 
 export function smokeOrigin(value = "https://wenyou.site") {
@@ -19,17 +25,19 @@ export function smokeOrigin(value = "https://wenyou.site") {
   return url.origin;
 }
 
-/** 白名单故意只覆盖匿名首页、登录页和主题帖正文；未知 GET 也不得触达服务端。 */
+/** 白名单故意只覆盖匿名首页、登录页和公开讨论阅读；未知 GET 也不得触达服务端。 */
 export function isReadonlySmokeRequest(rawUrl, method, origin) {
   let url;
   try { url = new URL(rawUrl); } catch { return false; }
   if (!["GET", "HEAD"].includes(method) || url.origin !== origin
     || url.username || url.password || /%|\\/.test(url.pathname)) return false;
-  if ([...url.searchParams.keys()].some((key) => !readQuery.has(key))) return false;
   const path = url.pathname;
+  const discussionRead = discussionPaths.some((pattern) => pattern.test(path));
+  if ([...url.searchParams.keys()].some((key) => !readQuery.has(key)
+    && !(discussionRead && discussionQuery.has(key)))) return false;
   return path === "/" || path === "/login"
     || new RegExp(`^/threads/${contentId}$`, "i").test(path)
-    || readingPaths.some((pattern) => pattern.test(path))
+    || readingPaths.some((pattern) => pattern.test(path)) || discussionRead
     || /^\/_next\/static\/[\w./-]+\.(js|css|woff2?|png|svg)$/.test(path)
     || /^\/(favicon\.ico|brand\/[\w/-]+\.svg)$/.test(path);
 }

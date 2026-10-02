@@ -1,7 +1,7 @@
 /** ReplyList 组件测试：楼中楼回复列表 + 回复串内对用户回复 */
 
 import { describe, test, expect, vi, beforeAll, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { act, render, screen, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThreadComposerProvider } from "@/components/thread/thread-composer-context";
@@ -30,8 +30,23 @@ const { mockUpdateMutateAsync, mockCreateMutateAsync, mockDeleteMutateAsync, moc
 
 vi.mock("@/api/hooks/use-replies", () => ({
   useReplies: (...args: unknown[]) => {
-    mockUseRepliesCall(...args);
+    if (args[0]) mockUseRepliesCall(...args);
     return mockUseReplies();
+  },
+}));
+
+const windowMocks = vi.hoisted(() => ({ virtual: vi.fn(), protected: vi.fn() }));
+vi.mock("@/api/hooks/use-discussion-window", () => ({
+  useReplyWindow: (id: string | undefined, filters: object, _target?: string, protectedIds?: string[]) => {
+    windowMocks.protected(protectedIds);
+    if (id) mockUseRepliesCall(id, filters);
+    return { ...mockUseReplies(), locate: vi.fn(), viewerScope: "u1", total: 2, maxNumber: 8, pinnedItems: [], hasPreviousPage: false, isFetchingPreviousPage: false, fetchPreviousPage: vi.fn() };
+  },
+}));
+vi.mock("@/components/shared/discussion-virtual-list", () => ({
+  DiscussionVirtualList: (props: { items: { id: string }[]; numberOf: (item: { id: string }) => number; renderItem: (item: { id: string }) => React.ReactNode }) => {
+    windowMocks.virtual(props);
+    return <>{props.items.map((item) => <div key={item.id} data-number={props.numberOf(item)}>{props.renderItem(item)}</div>)}</>;
   },
 }));
 
@@ -144,6 +159,7 @@ function baseReply(overrides: Partial<ReplyData> = {}): ReplyData {
     authorId: "u2",
     kind: "FLOOR",
     floorNumber: null,
+  replyNumber: 1,
     parentPostId: "post-1",
     replyToPostId: null,
     clientRequestId: null,
@@ -193,6 +209,15 @@ describe("ReplyList", () => {
       "href",
       "/users/u2",
     );
+  });
+
+  test("回复编号保留删除空洞与服务端排序，不用数组位置重新编号", () => {
+    mockUseReplies.mockReturnValue(dataWithReplies([baseReply({ id: "reply-8", replyNumber: 8 }), baseReply({ id: "reply-3", replyNumber: 3 })]));
+    render(<ReplyList postId="post-1" variant="discussion" />, { wrapper: createWrapper() });
+    expect(screen.getByText("#8")).toBeInTheDocument();
+    expect(screen.getByText("#3")).toBeInTheDocument();
+    expect(screen.queryByText("#1")).not.toBeInTheDocument();
+    expect(screen.queryByText("#2")).not.toBeInTheDocument();
   });
 
   test.each(["embedded", "discussion"] as const)("%s 回复列表只展示服务端编辑时间，兼容无编辑记录", (variant) => {
@@ -471,4 +496,27 @@ describe("ReplyList", () => {
     expect(screen.queryByRole("menuitem", { name: "编辑" })).not.toBeInTheDocument();
     expect(screen.getByRole("menuitem", { name: "删除" })).toBeInTheDocument();
   });
+  test("可见回复更新面板当前位置，并参与数据裁剪保护", async () => {
+    const user = userEvent.setup();
+    mockUseReplies.mockReturnValue(dataWithReplies([baseReply({ id: "reply-8", replyNumber: 8 })]));
+    render(<ReplyList postId="post-1" variant="discussion" />, { wrapper: createWrapper() });
+    act(() => windowMocks.virtual.mock.calls.at(-1)![0].onPosition({ id: "reply-8", number: 8, offset: -20 }));
+    expect(windowMocks.protected).toHaveBeenLastCalledWith(["reply-8"]);
+    await user.click(screen.getByRole("button", { name: "跳转到回复" }));
+    expect(screen.getByText("当前 #8 · 编号至 #8")).toBeInTheDocument();
+  });
+  test("窗口网络失败在正文后提示并可重试，失去访问权限则清除正文", async () => {
+    const user = userEvent.setup(); const refetch = vi.fn();
+    mockUseReplies.mockReturnValue({ ...dataWithReplies([baseReply()]), error: new Error("network"), refetch });
+    const view = render(<ReplyList postId="post-1" variant="discussion" />, { wrapper: createWrapper() });
+    const body = screen.getByText("楼中楼回复内容");
+    const alert = screen.getByRole("alert");
+    expect(body.compareDocumentPosition(alert) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "重试" }));
+    expect(refetch).toHaveBeenCalledOnce();
+    mockUseReplies.mockReturnValue({ ...dataWithReplies([baseReply()]), error: { code: 40403 }, refetch });
+    view.rerender(<ReplyList postId="post-1" variant="discussion" />);
+    expect(screen.queryByText("楼中楼回复内容")).not.toBeInTheDocument();
+  });
+
 });

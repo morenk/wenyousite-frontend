@@ -163,7 +163,7 @@ describe("useFloors", () => {
 
   test("按目标子贴和排序预取首屏楼层", async () => {
     mockGET.mockResolvedValue({
-      data: { ...sampleResponse, data: [], meta: { cursor: null, hasMore: false } },
+      data: { ...sampleResponse, data: { items: [], pinnedItems: [], total: 0, maxNumber: null, target: null, beforeCursor: null, afterCursor: null, hasBefore: false, hasAfter: false } },
       error: undefined,
     });
     const { result } = renderHook(() => usePrefetchFloors("NEWEST"), {
@@ -174,8 +174,9 @@ describe("useFloors", () => {
 
     await waitFor(() => {
       expect(mockGET).toHaveBeenCalledWith(
-        "/api/v1/subthreads/{subthreadId}/posts",
+        "/api/v1/subthreads/{subthreadId}/posts/window",
         {
+          signal: expect.any(AbortSignal),
           params: {
             path: { subthreadId: "s2" },
             query: { limit: 20, order: "NEWEST" },

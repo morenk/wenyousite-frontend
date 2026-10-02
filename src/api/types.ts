@@ -1525,6 +1525,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/subthreads/{subthreadId}/posts/window": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 按固定楼层编号或帖子 ID 直接读取有界双向窗口 */
+        get: operations["postsFindFloorWindow"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/posts/{id}/replies/window": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 按固定回复编号或帖子 ID 直接读取有界双向窗口 */
+        get: operations["postsFindReplyWindow"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/subthreads/{subthreadId}/posts/authors": {
         parameters: {
             query?: never;
@@ -4998,6 +5032,8 @@ export interface components {
             /** @enum {string} */
             kind: "BODY" | "FLOOR";
             floorNumber: number | null;
+            /** @description 根楼内固定回复编号，排序筛选与删除不重编号；主楼与正文为 null */
+            replyNumber?: number | null;
             parentPostId: string | null;
             replyToPostId: string | null;
             /**
@@ -5040,6 +5076,8 @@ export interface components {
             /** @enum {string} */
             kind: "BODY" | "FLOOR";
             floorNumber: number | null;
+            /** @description 根楼内固定回复编号，排序筛选与删除不重编号；主楼与正文为 null */
+            replyNumber?: number | null;
             parentPostId: string | null;
             replyToPostId: string | null;
             /**
@@ -5072,6 +5110,39 @@ export interface components {
             author: components["schemas"]["PostAuthorResponseDto"];
             _count: components["schemas"]["PostCountResponseDto"];
             replies: components["schemas"]["ReplyResponseDto"][];
+        };
+        DiscussionWindowTargetDto: {
+            id: string;
+            number: number;
+        };
+        FloorWindowResponseDto: {
+            /** @description 当前查看者、作者筛选下的可见条数 */
+            total: number;
+            /** @description 当前查看者在本范围可访问的最大固定编号，不受作者筛选影响；无可访问内容为 null */
+            maxNumber: number | null;
+            target: components["schemas"]["DiscussionWindowTargetDto"] | null;
+            beforeCursor: string | null;
+            afterCursor: string | null;
+            hasBefore: boolean;
+            hasAfter: boolean;
+            /** @description 自然编号顺序窗口，最多 limit 条；置顶也仅在其自然编号位置 */
+            items: components["schemas"]["FloorResponseDto"][];
+            /** @description 仅默认首屏返回最多十条置顶；消费者保留置顶区时须按 ID 抑制 items 重复，直接定位时清空置顶区 */
+            pinnedItems: components["schemas"]["FloorResponseDto"][];
+        };
+        ReplyWindowResponseDto: {
+            /** @description 当前查看者、作者筛选下的可见条数 */
+            total: number;
+            /** @description 当前查看者在本范围可访问的最大固定编号，不受作者筛选影响；无可访问内容为 null */
+            maxNumber: number | null;
+            target: components["schemas"]["DiscussionWindowTargetDto"] | null;
+            beforeCursor: string | null;
+            afterCursor: string | null;
+            hasBefore: boolean;
+            hasAfter: boolean;
+            items: components["schemas"]["ReplyResponseDto"][];
+            /** @description 楼中楼恒为空数组 */
+            pinnedItems: components["schemas"]["FloorResponseDto"][];
         };
         DiscussionAuthorResponseDto: {
             /** @description 头像完整 WebP 展示资源；avatar 保留来源身份 */
@@ -5107,6 +5178,8 @@ export interface components {
             /** @enum {string} */
             kind: "BODY" | "FLOOR";
             floorNumber: number | null;
+            /** @description 根楼内固定回复编号，排序筛选与删除不重编号；主楼与正文为 null */
+            replyNumber?: number | null;
             parentPostId: string | null;
             replyToPostId: string | null;
             /**
@@ -5182,6 +5255,8 @@ export interface components {
             /** @enum {string} */
             kind: "BODY" | "FLOOR";
             floorNumber: number | null;
+            /** @description 根楼内固定回复编号，排序筛选与删除不重编号；主楼与正文为 null */
+            replyNumber?: number | null;
             parentPostId: string | null;
             replyToPostId: string | null;
             /**
@@ -7036,6 +7111,12 @@ export interface components {
         PostsCreate201Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["PostResponseDto"];
         };
+        PostsFindFloorWindow200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["FloorWindowResponseDto"];
+        };
+        PostsFindReplyWindow200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ReplyWindowResponseDto"];
+        };
         PostsFindFloorAuthors200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["DiscussionAuthorResponseDto"][];
         };
@@ -7376,7 +7457,7 @@ export interface components {
          * @description 稳定业务错误码；名称和值来源于 ErrorCode
          * @enum {integer}
          */
-        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40007 | 40008 | 40009 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40108 | 40109 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40117 | 40118 | 40119 | 40120 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40307 | 40308 | 40309 | 40310 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40414 | 40415 | 40416 | 40417 | 40418 | 40419 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 40912 | 40913 | 40914 | 40915 | 40916 | 40917 | 40918 | 40919 | 40920 | 40921 | 40922 | 40923 | 40926 | 40924 | 40925 | 42900 | 50000;
+        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40007 | 40008 | 40009 | 40010 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40108 | 40109 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40117 | 40118 | 40119 | 40120 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40307 | 40308 | 40309 | 40310 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40414 | 40415 | 40416 | 40417 | 40418 | 40419 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 40912 | 40913 | 40914 | 40915 | 40916 | 40917 | 40918 | 40919 | 40920 | 40921 | 40922 | 40923 | 40926 | 40924 | 40925 | 42900 | 50000;
         ApiErrorEnvelope: {
             code: components["schemas"]["BusinessErrorCode"];
             message: string;
@@ -12989,6 +13070,166 @@ export interface operations {
                 };
             };
             /** @description clientRequestId 已用于不同发帖载荷 */
+            409: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    postsFindFloorWindow: {
+        parameters: {
+            query?: {
+                /** @description 服务端返回的不透明分页游标；首次请求不传，后续必须原样回传 */
+                cursor?: string;
+                /** @description 每页条数（默认 20，最大 50） */
+                limit?: number;
+                /** @description 列表顺序；帖子回复与动态独立楼中楼默认 OLDEST，动态主评论默认 NEWEST；动态主评论内嵌回复固定 OLDEST */
+                order?: "OLDEST" | "NEWEST";
+                /** @description 只返回指定作者的回复 */
+                authorId?: string;
+                /** @description 固定楼层/回复编号；与 postId、cursor 互斥 */
+                number?: number;
+                /** @description 已有帖子深链 ID；与 number、cursor 互斥 */
+                postId?: string;
+            };
+            header?: never;
+            path: {
+                subthreadId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostsFindFloorWindow200Response"];
+                };
+            };
+            /** @description 参数互斥或游标无效（40007） */
+            400: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 目标不存在或不可访问 */
+            404: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 目标被作者筛选排除（40010），可清筛选重试 */
+            409: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    postsFindReplyWindow: {
+        parameters: {
+            query?: {
+                /** @description 服务端返回的不透明分页游标；首次请求不传，后续必须原样回传 */
+                cursor?: string;
+                /** @description 每页条数（默认 20，最大 50） */
+                limit?: number;
+                /** @description 列表顺序；帖子回复与动态独立楼中楼默认 OLDEST，动态主评论默认 NEWEST；动态主评论内嵌回复固定 OLDEST */
+                order?: "OLDEST" | "NEWEST";
+                /** @description 只返回指定作者的回复 */
+                authorId?: string;
+                /** @description 固定楼层/回复编号；与 postId、cursor 互斥 */
+                number?: number;
+                /** @description 已有帖子深链 ID；与 number、cursor 互斥 */
+                postId?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostsFindReplyWindow200Response"];
+                };
+            };
+            /** @description 参数互斥或游标无效（40007） */
+            400: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 目标不存在或不可访问 */
+            404: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 目标被作者筛选排除（40010），可清筛选重试 */
             409: {
                 headers: {
                     "X-Request-ID": components["headers"]["XRequestId"];

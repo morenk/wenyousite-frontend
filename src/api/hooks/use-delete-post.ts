@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { removeDiscussionWindowPost } from "./use-discussion-window";
 import { queryKeys } from "@/api/query-keys";
 
 export function useDeletePost() {
@@ -13,12 +14,14 @@ export function useDeletePost() {
       });
       if (error) throw error;
     },
-    onSuccess: (_data, postId) =>
-      Promise.all([
+    onSuccess: (_data, postId) => {
+      removeDiscussionWindowPost(queryClient, postId);
+      return Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.floors.all }),
         queryClient.invalidateQueries({ queryKey: queryKeys.replies.all }),
         queryClient.invalidateQueries({ queryKey: queryKeys.posts.detail(postId) }),
         queryClient.invalidateQueries({ queryKey: queryKeys.users.all }),
-      ]),
+      ]);
+    },
   });
 }

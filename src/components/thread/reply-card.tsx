@@ -33,6 +33,7 @@ interface ReplyCardProps {
   variant?: ReplyCardVariant;
   ordinal?: number;
   focused?: boolean;
+  focusActivationKey?: string | number;
 }
 
 export function ReplyCard({
@@ -41,6 +42,7 @@ export function ReplyCard({
   variant = "embedded",
   ordinal,
   focused = false,
+  focusActivationKey,
 }: ReplyCardProps) {
   const { user } = useAuth();
   const deletePost = useDeletePost();
@@ -60,7 +62,7 @@ export function ReplyCard({
   });
   const replyToUser = reply.replyToPost?.author?.username;
   const replyToId = reply.replyToPost?.id ?? reply.replyToPostId;
-  const highlightVisible = useTransientTargetHighlight(focused ? reply.id : undefined);
+  const highlightVisible = useTransientTargetHighlight(focused ? reply.id : undefined, focusActivationKey);
 
   const handleStartReply = () => {
     void open({

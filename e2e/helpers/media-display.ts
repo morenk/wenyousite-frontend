@@ -40,7 +40,7 @@ export async function mediaDisplayFixture(page: Page, baseURL: string) {
     else if (pathname.endsWith("/threads/display-thread/aggregate")) { const body = req.postDataJSON(); writes.push(body); if (typeof body.content === "string") content = body.content; data = thread(); }
     else if (pathname.endsWith("/threads/display-thread")) data = thread();
     else if (pathname.endsWith("/subthreads/display-main/posts/authors")) data = [];
-    else if (pathname.endsWith("/subthreads/display-main/posts")) data = [{ ...post(1), _count: { replies: 1 }, replies: [{ ...post(2), kind: "REPLY", floorNumber: null, parentPostId: "display-post-1" }] }];
+    else if (pathname.endsWith("/subthreads/display-main/posts/window")) data = { items: [{ ...post(1), _count: { replies: 1 }, replies: [{ ...post(2), kind: "REPLY", floorNumber: null, replyNumber: 1, parentPostId: "display-post-1" }] }], pinnedItems: [], total: 1, maxNumber: 1, target: null, beforeCursor: null, afterCursor: null, hasBefore: false, hasAfter: false };
     else if (pathname.endsWith("/posts/display-post-1/replies")) data = [post(2)];
     else if (pathname.endsWith("/drafts/state")) data = { drafts: [{ id: "display-draft", content, mediaDisplays, slot: 1, version: 1, createdAt: now, updatedAt: now }], usedSlots: 1, maxSlots: 5, slots: [1] };
     else if (pathname.endsWith("/stickers")) data = { version: 1, limit: 100, items: [{ id: "favorite", asset: { ...images[5], frameCount: 3, durationMs: 1500 }, createdAt: now }], recent: [], pendingImports: [] };

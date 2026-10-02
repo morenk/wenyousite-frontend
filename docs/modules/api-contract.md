@@ -114,3 +114,7 @@ Web 通过独立管理 Cookie/CSRF 会话消费 `/admin/mobile-releases` 列表�
 ## 私密邀请重复分享
 
 固定 OpenAPI 与生成类型通过 `pnpm contract:sync`、`pnpm generate:api` 同步自 Backend 已提交 `4db0cdf2c079fc8b66545c67849053cd74945f8a`（`5.29.0-dev.20261001.1`，相较 `cfe9621` 仅指南与说明变化，机器契约不变）；同步、契约和文档检查均指定同一 `WENYOUSITE_BACKEND_ROOT` 与 `BACKEND_CONTRACT_REF`。新增 `PUT /threads/{id}/invite-link`（`threadsEnsureInviteLink`），无请求体，200 返回现有 `InviteLinkResponseDto`。楼主日常复制使用原子获取或创建，当前界面不提供重置，POST 与原 operationId/生成方法仅保留旧客户端兼容。消费响应校验 threadId 与 16 位 URL-safe token，错误响应绝不作为邀请复制；凭据仅在当前身份/路由控件内存驻留，mutation 不重试、不保留离开后的缓存，POST 在认证刷新后也不自动重放。行为和回滚边界见[帖子模块](thread-detail.md)与[弃用登记](../deprecation-register.md#私密邀请重复分享)，兼容后端须先发布。
+
+## 讨论定位窗口
+
+固定契约来自兼容后端提交 `62083784e27f697af3799e392011bf8f6dd825d2`，由正式 `contract:sync` 和 `generate:api` 同步，附带 `contracts/discussion-navigation.v1.json`。新增 `GET /subthreads/:subthreadId/posts/window` 与 `GET /posts/:id/replies/window`，`number / postId / cursor` 互斥，响应 `data` 自带双向游标、`items / pinnedItems / total / maxNumber / target`。空范围 `maxNumber` 为 null，作者筛选为空也可能仍有可跳转上界。`40010` 仅表示作者筛选排除目标；删除及不可见继续使用 404，不降级扫描旧分页。详情见 [主题帖详情](thread-detail.md)。兼容后端先发布，消费者随后发布；旧协议不在本次移除。

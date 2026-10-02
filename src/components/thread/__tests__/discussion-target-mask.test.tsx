@@ -161,7 +161,7 @@ describe("DiscussionTargetMask", () => {
     expect(wheel.defaultPrevented).toBe(true);
 
     act(() => vi.advanceTimersByTime(100));
-    expect(screen.getByText("仍在定位，较早的讨论可能需要继续加载。")).toBeInTheDocument();
+    expect(screen.getByText("仍在读取目标附近的讨论，请稍候。")).toBeInTheDocument();
     const backButton = screen.getByRole("button", { name: "返回上一页" });
     const firstSkeleton = view.container.querySelector('[data-slot="skeleton"]');
     expect(backButton).toBeInTheDocument();
@@ -190,4 +190,14 @@ describe("DiscussionTargetMask", () => {
     expect(screen.getByText("真实完整列表")).toBeVisible();
     expect(mocks.startReveal).not.toHaveBeenCalled();
   });
+  test("用户已开始阅读后分页完成不会重新吸附起始目标", () => {
+    const view = renderMask({ loadedIds: ["target-2"], hasNextPage: false });
+    expect(mocks.startReveal).toHaveBeenCalledOnce();
+    act(() => mocks.onStable?.());
+    view.rerender(<DiscussionTargetMask {...view.props} isFetchingNextPage />);
+    view.rerender(<DiscussionTargetMask {...view.props} loadedIds={["target-2", "next"]} isFetchingNextPage={false} />);
+    expect(mocks.startReveal).toHaveBeenCalledOnce();
+    expect(screen.queryByTestId("discussion-target-mask")).toBeNull();
+  });
+
 });

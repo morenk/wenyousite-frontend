@@ -61,7 +61,10 @@ for (const name of markdownFiles) {
   const value = JSON.parse(source.read(name));
   if (!value.contract?.startsWith("wenyousite-markdown") || !Number.isInteger(value.version)) throw new Error(name + " 契约无效");
 }
-const names = ["openapi.json", "internal-reference-v1-fixtures.json", "editor-clipboard-v2-fixtures.json",
+const discussionName = "discussion-navigation.v1.json";
+const discussion = JSON.parse(source.read(discussionName));
+if (discussion.version !== 1 || discussion.contractVersion !== contract.info.version || !Array.isArray(discussion.scenarios)) throw new Error("后端讨论定位契约不是同版本 v1");
+const names = [discussionName, "openapi.json", "internal-reference-v1-fixtures.json", "editor-clipboard-v2-fixtures.json",
   "markdown-editor-newline-v1-fixtures.json", "thread-cover-media-v1-fixtures.json", "media-display-v1-fixtures.json", boundaryName, ...behaviorFiles, ...inlineCombinationFiles, ...markdownFiles];
 // 在写入前读取全部内容，来源缺失时不留下半套契约。
 const contents = names.map((name) => [name, source.read(name)]);

@@ -137,6 +137,7 @@ function makeReply(index: number) {
     authorId: author.id,
     kind: "FLOOR",
     floorNumber: null,
+    replyNumber: index,
     parentPostId: floor.id,
     replyToPostId: floor.id,
     clientRequestId: null,
@@ -300,15 +301,10 @@ async function mockPublicBrowsing(
       return fulfill(route, makeReplyPostDetail(Number(replyDetailMatch[1])));
     }
 
-    const repliesMatch = pathname.match(/\/posts\/spa-floor-(\d+)\/replies$/);
+    const repliesMatch = pathname.match(/\/posts\/spa-floor-(\d+)\/replies(?:\/window)?$/);
     if (repliesMatch && options.withLatestPost) {
-      return fulfill(
-        route,
-        options.latestPostKind === "reply"
-          ? [makeReply(Number(repliesMatch[1]))]
-          : [],
-        { cursor: null, hasMore: false },
-      );
+      const items = options.latestPostKind === "reply" ? [makeReply(Number(repliesMatch[1]))] : [];
+      return fulfill(route, pathname.endsWith("/window") ? { items, pinnedItems: [], total: items.length, maxNumber: items[0]?.replyNumber ?? null, target: items[0] ? { id: items[0].id, number: items[0].replyNumber } : null, beforeCursor: null, afterCursor: null, hasBefore: false, hasAfter: false } : items, { cursor: null, hasMore: false });
     }
 
     const floorAuthorMatch = pathname.match(/\/subthreads\/spa-subthread-(\d+)[^/]*\/posts\/authors$/);
@@ -327,14 +323,11 @@ async function mockPublicBrowsing(
     }
 
     const floorsMatch = pathname.match(
-      /\/subthreads\/spa-subthread-(\d+)[^/]*\/posts$/,
+      /\/subthreads\/spa-subthread-(\d+)[^/]*\/posts(?:\/window)?$/,
     );
     if (floorsMatch) {
-      return fulfill(
-        route,
-        options.withLatestPost ? [makeFloor(Number(floorsMatch[1]))] : [],
-        { cursor: null, hasMore: false },
-      );
+      const items = options.withLatestPost ? [makeFloor(Number(floorsMatch[1]))] : [];
+      return fulfill(route, pathname.endsWith("/window") ? { items, pinnedItems: [], total: items.length, maxNumber: items[0]?.floorNumber ?? null, target: items[0] ? { id: items[0].id, number: items[0].floorNumber } : null, beforeCursor: null, afterCursor: null, hasBefore: false, hasAfter: false } : items, { cursor: null, hasMore: false });
     }
 
     return fulfill(route, null);
@@ -403,7 +396,7 @@ test.describe("公开浏览的单页式导航体验", () => {
       ) {
         rscRequests.push(request.url());
       }
-      if (url.pathname.startsWith("/api/v1/subthreads/") && url.pathname.endsWith("/posts")) {
+      if (url.pathname.startsWith("/api/v1/subthreads/") && url.pathname.endsWith("/posts/window")) {
         floorRequests.push(url.pathname);
       }
     });
@@ -420,7 +413,7 @@ test.describe("公开浏览的单页式导航体验", () => {
     await expect.poll(() => floorRequests.length).toBeGreaterThanOrEqual(3);
 
     rscRequests.length = 0;
-    const plotFloorPath = "/api/v1/subthreads/spa-subthread-1-plot/posts";
+    const plotFloorPath = "/api/v1/subthreads/spa-subthread-1-plot/posts/window";
     const switchTo = async (label: string) => {
       await page.getByRole("combobox", { name: /切换子贴/ }).first().click();
       await page.getByRole("option", { name: new RegExp(`^${label}`) }).click();
