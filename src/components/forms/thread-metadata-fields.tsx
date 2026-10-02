@@ -238,6 +238,7 @@ export function ThreadMetadataFields({
       {showIdentity ? <div className="space-y-2 sm:col-span-2">
         <Label htmlFor="tags">标签</Label>
         <TagInput
+          id="tags"
           value={tagNames ?? []}
           onChange={(tags) =>
             form.setValue("tagNames", tags, {
