@@ -93,7 +93,7 @@ function ReplyDiscussionPageContent() {
   );
 
   if (isLoading || awaitingRootValidation || awaitingFocusedValidation || (!isInitialized && error)) {
-    return focusedReplyId ? <DiscussionTargetRouteFallback /> : <PageRouteFallback variant="detail" />;
+    return focusedReplyId ? <DiscussionTargetRouteFallback /> : <PageRouteFallback variant="discussion" />;
   }
 
   if (

@@ -2,8 +2,9 @@ import { NavigationProgress } from "@/components/layout/navigation-progress";
 import { PageShell } from "@/components/layout/page-shell";
 import { Panel } from "@/components/ui/panel";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DiscussionRowsSkeleton } from "@/components/shared/discussion-rows-skeleton";
 
-export type PageRouteFallbackVariant = "feed" | "detail" | "profile";
+export type PageRouteFallbackVariant = "feed" | "detail" | "discussion" | "profile";
 
 export function PageRouteFallback({
   variant = "feed",
@@ -13,8 +14,8 @@ export function PageRouteFallback({
   return (
     <div role="status" aria-label="页面加载中" data-slot="page-route-fallback">
       <NavigationProgress />
-      {variant === "detail" ? (
-        <DetailFallback />
+      {variant === "detail" || variant === "discussion" ? (
+        <DetailFallback continuousRows={variant === "discussion"} />
       ) : variant === "profile" ? (
         <ProfileFallback />
       ) : (
@@ -59,7 +60,7 @@ function FeedFallback() {
   );
 }
 
-function DetailFallback() {
+function DetailFallback({ continuousRows }: { continuousRows: boolean }) {
   return (
     <PageShell width="feed" className="py-5">
       <Panel className="rounded-[var(--radius-card)] border-l-4 border-l-primary">
@@ -76,20 +77,26 @@ function DetailFallback() {
         <Skeleton className="mt-3 h-4 w-full" />
         <Skeleton className="mt-3 h-4 w-3/4" />
       </Panel>
-      <div className="mt-4 space-y-4">
-        {Array.from({ length: 2 }, (_, index) => (
-          <Panel key={index} className="rounded-[var(--radius-card)]">
-            <div className="flex gap-3">
-              <Skeleton className="size-10 shrink-0 rounded-full" />
-              <div className="flex-1">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="mt-5 h-4 w-full" />
-                <Skeleton className="mt-3 h-4 w-5/6" />
+      {continuousRows ? (
+        <div className="mt-4">
+          <DiscussionRowsSkeleton />
+        </div>
+      ) : (
+        <div className="mt-4 space-y-4">
+          {Array.from({ length: 2 }, (_, index) => (
+            <Panel key={index} className="rounded-[var(--radius-card)]">
+              <div className="flex gap-3">
+                <Skeleton className="size-10 shrink-0 rounded-full" />
+                <div className="flex-1">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="mt-5 h-4 w-full" />
+                  <Skeleton className="mt-3 h-4 w-5/6" />
+                </div>
               </div>
-            </div>
-          </Panel>
-        ))}
-      </div>
+            </Panel>
+          ))}
+        </div>
+      )}
     </PageShell>
   );
 }

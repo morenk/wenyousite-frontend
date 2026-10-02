@@ -524,10 +524,10 @@ describe("FloorCard", () => {
     expect(screen.getByRole("link", { name: "展开楼中楼（1 条）" })).toBeInTheDocument();
   });
 
-  test("楼层使用弱于主题文档的紧凑圆角且不交替着色", () => {
+  test("楼层使用连续透明条目和柔和分隔，不再套独立卡片", () => {
     const { container } = renderWithQC(<FloorCard floor={baseFloor} />);
-    expect(container.firstChild as HTMLElement).toHaveClass("rounded-[var(--radius-card)]", "bg-card");
-    expect(container.firstChild as HTMLElement).not.toHaveClass("bg-muted/20", "rounded-2xl");
+    expect(container.firstChild as HTMLElement).toHaveClass("border-b", "border-border/60", "bg-transparent");
+    expect(container.firstChild as HTMLElement).not.toHaveClass("border", "bg-card", "rounded-[var(--radius-card)]");
   });
 
   test("未登录时操作菜单不显示编辑/删除", async () => {

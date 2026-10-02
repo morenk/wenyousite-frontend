@@ -10,7 +10,7 @@ import type { PostData } from "@/api/hooks/use-floors";
 import { FloorCard } from "./floor-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { DiscussionRowsSkeleton } from "@/components/shared/discussion-rows-skeleton";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { DiscussionVirtualList, type DiscussionPosition } from "@/components/shared/discussion-virtual-list";
 import { DiscussionTargetMask } from "@/components/thread/discussion-target-mask";
@@ -106,21 +106,8 @@ export function FloorList({
   let content: React.ReactNode;
   if (isLoading) {
     content = (
-      <div className="flex flex-col gap-[var(--collection-card-gap)]" role="status" aria-label="正在加载楼层">
-        {Array.from({ length: 2 }, (_, index) => (
-          <div key={index} className="rounded-[var(--radius-card)] border border-border bg-card px-5 py-5">
-            <div className="flex items-center gap-3">
-              <Skeleton className="size-10 shrink-0 rounded-full" />
-              <div className="flex-1">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="mt-2 h-3 w-20" />
-              </div>
-            </div>
-            <Skeleton className="mt-5 h-4 w-full" />
-            <Skeleton className="mt-3 h-4 w-5/6" />
-            <Skeleton className="mt-5 h-3 w-24" />
-          </div>
-        ))}
+      <div role="status" aria-label="正在加载楼层">
+        <DiscussionRowsSkeleton />
       </div>
     );
   } else if (error && (floors.length === 0 || isContentUnavailableError(error))) {
@@ -147,7 +134,7 @@ export function FloorList({
       />
     );
     content = (
-      <div className="flex flex-col gap-[var(--collection-card-gap)]">
+      <div className="flex flex-col">
         {pinnedFloors.length > 0 ? (
           <section data-testid="pinned-floors" aria-label="置顶楼层" className="contents">
             {pinnedFloors.map((floor) => <div key={floor.id} data-discussion-item={floor.id} data-discussion-number={floor.floorNumber}>{renderFloor(floor)}</div>)}

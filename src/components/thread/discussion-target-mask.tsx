@@ -7,7 +7,7 @@ import { Loader2 } from "lucide-react";
 
 import { startDiscussionTargetReveal } from "@/lib/discussion-target-reveal";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { DiscussionRowsSkeleton } from "@/components/shared/discussion-rows-skeleton";
 import { PageShell } from "@/components/layout/page-shell";
 
 type TargetPhase = "locating" | "revealed";
@@ -212,13 +212,11 @@ export function DiscussionTargetMask({
               <p className="text-sm font-medium text-foreground">
                 {failed ? `未能定位目标${subject}` : `正在定位目标${subject}…`}
               </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {failed
-                  ? `目标可能已删除、暂时无法访问，或讨论列表加载失败。`
-                  : isSlow
-                    ? "仍在读取目标附近的讨论，请稍候。"
-                    : "正在读取目标附近的讨论。"}
-              </p>
+              {failed ? (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  目标可能已删除、暂时无法访问，或讨论列表加载失败。
+                </p>
+              ) : null}
             </div>
             {isSlow && !failed ? (
               <Button variant="ghost" size="sm" onClick={onBack}>
@@ -230,9 +228,8 @@ export function DiscussionTargetMask({
                 重试
               </Button>
             ) : (
-              <div className="w-full max-w-md space-y-3" aria-hidden="true">
-                <Skeleton className="h-20 w-full rounded-[var(--radius-card)]" />
-                <Skeleton className="h-20 w-full rounded-[var(--radius-card)]" />
+              <div className="w-full max-w-md">
+                <DiscussionRowsSkeleton />
               </div>
             )}
             {failed ? (
@@ -266,9 +263,7 @@ export function DiscussionTargetRouteFallback() {
           <Loader2 className="size-5 animate-spin" />
           正在定位目标楼层…
         </div>
-        <Skeleton className="h-4 w-64" />
-        <Skeleton className="h-28 w-full rounded-[var(--radius-card)]" />
-        <Skeleton className="h-28 w-full rounded-[var(--radius-card)]" />
+        <DiscussionRowsSkeleton />
       </div>
     </PageShell>
   );

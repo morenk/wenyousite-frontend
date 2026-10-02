@@ -5,7 +5,7 @@ import { PageRouteFallback } from "@/components/layout/page-route-fallback";
 afterEach(cleanup);
 
 describe("PageRouteFallback", () => {
-  test.each(["feed", "detail", "profile"] as const)(
+  test.each(["feed", "detail", "discussion", "profile"] as const)(
     "%s 变体保留统一加载语义与延迟进度线",
     (variant) => {
       const { container } = render(<PageRouteFallback variant={variant} />);

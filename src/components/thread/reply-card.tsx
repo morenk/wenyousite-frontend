@@ -1,4 +1,4 @@
-/** 共享楼中楼回复卡片：作者信息、正文、原位回复与低频操作。 */
+/** 共享楼中楼回复条目：作者信息、正文、原位回复与低频操作。 */
 
 "use client";
 
@@ -111,13 +111,13 @@ export function ReplyCard({
   return (
     <div
       id={`post-${reply.id}`}
+      data-slot="discussion-row"
       tabIndex={focused ? -1 : undefined}
       data-testid={isPreview ? "inline-reply" : undefined}
       className={cn(
-        isDiscussion
-          ? "scroll-mt-6 rounded-[var(--radius-card)] border border-border bg-card p-4 transition-[border-color] duration-[var(--motion-slow)] ease-out"
-          : "scroll-mt-6 rounded-[var(--radius-card)] border border-border bg-background p-3 transition-[border-color] duration-[var(--motion-slow)] ease-out",
-        highlightVisible && "border-primary",
+        "scroll-mt-6 bg-transparent transition-[border-color,background-color] duration-[var(--motion-slow)] ease-out",
+        isDiscussion ? "border-b border-border/60 px-4 py-5" : "py-2",
+        highlightVisible && "border-primary bg-primary/10",
       )}
     >
       <div className="mb-1.5 flex items-start justify-between gap-2">

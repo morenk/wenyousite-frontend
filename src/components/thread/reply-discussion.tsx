@@ -103,8 +103,8 @@ export function ReplyDiscussion({
         </Link>
       </div>
 
-      <section className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-card">
-        <div className="border-b border-border bg-muted/30 px-5 py-3">
+      <section className="border-b border-border/60 px-4 py-5">
+        <div className="mb-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <UserAvatarLink
@@ -155,7 +155,7 @@ export function ReplyDiscussion({
             ) : null}
           </div>
         </div>
-        <div className="px-5 py-5">
+        <div>
           {isEditing ? (
             <ThreadComposerOutlet anchorId={editAnchorId} />
           ) : (
