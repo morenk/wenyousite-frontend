@@ -64,6 +64,7 @@ async function prepare(page: Page, content: string, autosave: boolean) {
     const path = new URL(route.request().url()).pathname.slice("/api/v1".length);
     let data: unknown = [];
     if (path === "/auth/refresh") data = { accessToken: "e2e-memory-token", user: { id: "u-dice-e2e", username: "性能样例", email: "perf@example.invalid", avatar: null, role: "USER" } };
+    else if (path.endsWith("/posts/window")) data = { items: [], pinnedItems: [], total: 0, maxNumber: null, target: null, beforeCursor: null, afterCursor: null, hasBefore: false, hasAfter: false };
     else if (path === "/meta") data = { markdownContractVersion: 5 };
     else if (path === "/threads/draft") data = [];
     else if (path === "/threads/t-dice-e2e" || path === "/threads") data = route.request().method() === "POST" ? body : path === "/threads" ? [] : body;

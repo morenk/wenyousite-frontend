@@ -3,7 +3,6 @@
 "use client";
 
 import Link from "next/link";
-import { useQueryClient } from "@tanstack/react-query";
 import { CONTENT_PRESENTATION } from "@wenyousite/foundation/collections";
 import { Fuel, LockKeyhole, MessageSquare, Users } from "lucide-react";
 import { formatMarkdownPreview } from "@/lib/markdown-preview";
@@ -12,7 +11,7 @@ import { UserAvatar } from "@/components/shared/user-avatar";
 import { WenyouTime } from "@/components/shared/wenyou-time";
 import { WenyouCount } from "@/components/shared/wenyou-count";
 import type { ThreadCardData } from "@/api/hooks/use-threads";
-import { floorsQueryOptions } from "@/api/hooks/use-floors";
+import { usePrefetchFloors } from "@/api/hooks/use-floors";
 import { TopicTagLink } from "./topic-tag-link";
 import { LevelBadge } from "@/components/shared/level-badge";
 import { formatWenyou } from "@/lib/wenyou";
@@ -28,7 +27,7 @@ interface ThreadCardProps {
 }
 
 export function ThreadCard({ thread }: ThreadCardProps) {
-  const queryClient = useQueryClient();
+  const prefetchFloors = usePrefetchFloors();
   const coverImage = thread.coverImages[0] ?? null;
   const formattedPreview = formatMarkdownPreview(thread.preview);
   const preview = coverImage
@@ -38,9 +37,7 @@ export function ThreadCard({ thread }: ThreadCardProps) {
   const prefetchThread = () => {
     // 详情接口会记录浏览量，不能在悬停/聚焦时调用；楼层列表是无副作用查询。
     if (thread.defaultSubthread?.id) {
-      void queryClient.prefetchInfiniteQuery(
-        floorsQueryOptions(thread.defaultSubthread.id),
-      );
+      prefetchFloors(thread.defaultSubthread.id);
     }
   };
 

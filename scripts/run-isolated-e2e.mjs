@@ -13,12 +13,13 @@ const stop = () => { if (interrupted) return; interrupted = true; child?.kill("S
 process.once("SIGTERM", stop); process.once("SIGINT", stop);
 const timeout = setTimeout(stop, 50 * 60 * 1000);
 try {
-  const runner = backendRunner();
+  const args = process.argv.slice(2);
+  const discussionFixtures = process.env.WENYOUSITE_E2E_DISCUSSION_FIXTURES === "true" || args.includes("e2e/discussion-navigation.spec.ts");
+  const runner = backendRunner(process.env, discussionFixtures);
   const { backend, revision, env } = runner;
   const reports = join(frontend, ".e2e-results");
   mkdirSync(reports, { recursive: true, mode: 0o700 });
   const reportPath = join(reports, `${randomUUID()}.json`);
-  const args = process.argv.slice(2);
   if (process.env.E2E_BROWSER_MATRIX === "true") args.push("--matrix");
   assertBrowserArguments(args);
   child = spawn(runner.command, [...runner.args, process.execPath, join(frontend, "scripts/e2e-candidate-command.mjs"), reportPath, ...args], {

@@ -158,4 +158,49 @@ describe("讨论目标几何", () => {
     const element = target(); element.style.scrollMarginTop = "auto"; start(); expect(y).toBe(1200);
     absoluteTop += 50; window.dispatchEvent(new Event("resize")); tick(); expect(y).toBe(1250);
   });
+  test("分页使用固定屏幕锚点，吸顶栏显隐不重新解释该位置", () => {
+    const element = target();
+    const session = startDiscussionTargetReveal("target", { viewportTop: -36 });
+    sessions.push(session); tick();
+    expect(element.getBoundingClientRect().top).toBe(-36);
+    const anchor = document.createElement("div");
+    anchor.dataset.slot = "discussion-position-anchor"; anchor.style.top = "8px";
+    const bar = document.createElement("nav"); bar.dataset.slot = "discussion-position-bar";
+    vi.spyOn(bar, "offsetHeight", "get").mockReturnValue(48);
+    anchor.append(bar); document.body.prepend(anchor);
+    absoluteTop += 400; mutate(); tick();
+    expect(element.getBoundingClientRect().top).toBe(-36);
+    anchor.remove(); mutate(); tick();
+    expect(element.getBoundingClientRect().top).toBe(-36);
+  });
+
+  test("虚拟行仅变换位置时布局刷新仍校准，用户接管后停止", () => {
+    const element = target();
+    const session = startDiscussionTargetReveal("target", { viewportTop: 80 });
+    sessions.push(session); tick();
+    absoluteTop += 303; session.refresh(); tick();
+    expect(element.getBoundingClientRect().top).toBe(80);
+    window.dispatchEvent(new Event("wheel"));
+    absoluteTop += 100; session.refresh(); tick();
+    expect(element.getBoundingClientRect().top).toBe(180);
+  });
+
+  test.each(["touchmove", "pointermove"])("请求前已开始的手势由后续 %s 接管新保持器", (type) => {
+    window.dispatchEvent(new Event(type === "touchmove" ? "touchstart" : "pointerdown"));
+    const element = target();
+    const session = startDiscussionTargetReveal("target", { viewportTop: 80 });
+    sessions.push(session); tick();
+    window.dispatchEvent(type === "pointermove" ? new MouseEvent(type, { buttons: 1 }) : new Event(type));
+    absoluteTop += 200; session.refresh(); tick();
+    expect(element.getBoundingClientRect().top).toBe(280);
+  });
+  test("鼠标悬停不解除分页保持器", () => {
+    const element = target();
+    const session = startDiscussionTargetReveal("target", { viewportTop: 80 });
+    sessions.push(session); tick();
+    window.dispatchEvent(new MouseEvent("pointermove", { buttons: 0 }));
+    absoluteTop += 200; session.refresh(); tick();
+    expect(element.getBoundingClientRect().top).toBe(80);
+  });
+
 });

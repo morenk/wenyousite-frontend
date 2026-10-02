@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { createServer } from "node:http";
 import { http, passthrough } from "msw";
 import { server as mockServer } from "../src/test/msw/server";
-import { assertResourceProcesses, privateJSON, readAdminFixtures, readMobileReleaseFixtures, readIsolation, requireIsolationRunner, verifyRunProfile } from "./e2e-isolation-gate.mjs";
+import { assertResourceProcesses, privateJSON, readDiscussionFixtures, readAdminFixtures, readMobileReleaseFixtures, readIsolation, requireIsolationRunner, verifyRunProfile } from "./e2e-isolation-gate.mjs";
 import { sanitize } from "./e2e-safe-reporter";
 
 const roots: string[] = [];
@@ -29,6 +29,23 @@ function fixture() {
 afterEach(() => roots.splice(0).forEach((root) => rmSync(root, { recursive: true, force: true })));
 
 describe("隔离 manifest 与真实资源门禁", () => {
+  test("讨论样本须同轮私有文件且只含测试ID，拒绝越界路径和凭据", () => {
+    const { env: baseEnv, root } = fixture();
+    const path = join(root, "discussion-fixtures.json");
+    const env = { ...baseEnv, E2E_DISCUSSION_FIXTURES: path };
+    json(env.E2E_PRIVATE_ENV, { ...privateJSON(env.E2E_PRIVATE_ENV), E2E_DISCUSSION_FIXTURES: path });
+    const item = { threadId: "thread", subthreadId: "sub", rootPostId: "root", pinnedPostId: "pin", editableFloorId: "floor", editableReplyId: "reply", otherAuthorFloorId: "other-floor", otherAuthorReplyId: "other-reply" };
+    const body = { version: 1, runId, ownerUserId: "fake-id", otherUserId: "other", scenarios: [1000, 5000, 10000].map((size) => ({ ...item, size })) };
+    json(path, body);
+    expect(readDiscussionFixtures(readIsolation(env)).scenarios).toHaveLength(3);
+    expect(() => readIsolation(baseEnv)).toThrow(/未绑定/);
+    json(path, { ...body, runId: "old-run" });
+    expect(() => readDiscussionFixtures(readIsolation(env))).toThrow(/身份/);
+    json(path, { ...body, DATABASE_URL: "forbidden" });
+    expect(() => readDiscussionFixtures(readIsolation(env))).toThrow(/越界/);
+    json(path, body); chmodSync(path, 0o644);
+    expect(() => readDiscussionFixtures(readIsolation(env))).toThrow(/0600/);
+  });
   test("版本样本必须绑定本轮私有文件和预期发布状态", () => {
     const { env: baseEnv, root } = fixture();
     const path = join(root, "mobile-release-fixtures.json");

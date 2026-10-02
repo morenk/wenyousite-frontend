@@ -11,7 +11,12 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { getPostHref } from "@/lib/post-navigation";
 import { useThreadDetail } from "@/api/hooks/use-thread-detail";
-import { useFloors, usePrefetchFloors } from "@/api/hooks/use-floors";
+import { usePrefetchFloors } from "@/api/hooks/use-floors";
+import { useFloorWindow } from "@/api/hooks/use-discussion-window";
+import { useDiscussionReading } from "@/hooks/use-discussion-reading";
+import type { DiscussionPosition } from "@/components/shared/discussion-virtual-list";
+import { DiscussionJump } from "@/components/shared/discussion-jump";
+import { DiscussionPositionBar, DiscussionReturnButton } from "@/components/shared/discussion-position-bar";
 import { usePost } from "@/api/hooks/use-post";
 import {
   API_ERROR_CODE,
@@ -89,7 +94,7 @@ function ThreadDetailPageContent() {
     }),
   );
   const { user, isInitialized } = useAuth();
-  const { close: closeComposer } = useThreadComposerSession();
+  const { close: closeComposer, session: composerSession } = useThreadComposerSession();
   const latestPost = useLatestThreadPost();
   const [floorAuthorSelection, setFloorAuthorSelection] = useState<{
     subthreadId: string;
@@ -200,7 +205,12 @@ function ThreadDetailPageContent() {
     ...(floorAuthorId ? { authorId: floorAuthorId } : {}),
   }), [floorAuthorId, floorOrder]);
 
+  const [selectedFloorIds, setSelectedFloorIds] = useState<string[]>([]);
+  const [visibleFloorId, setVisibleFloorId] = useState<string>();
+  const preserveFloorId = composerSession?.type === "edit" ? composerSession.postId : composerSession?.type === "reply" ? composerSession.replyToPostId : undefined;
   const {
+    total: floorTotal, maxNumber: floorMaxNumber, pinnedItems, locate, viewerScope,
+    fetchPreviousPage, hasPreviousPage, isFetchingPreviousPage,
     data: floorsData,
     fetchNextPage,
     hasNextPage,
@@ -208,7 +218,22 @@ function ThreadDetailPageContent() {
     isLoading: isFloorsLoading,
     error: floorsError,
     refetch: refetchFloors,
-  } = useFloors(floorListSubthreadId, floorFilters);
+  } = useFloorWindow(floorListSubthreadId, floorFilters, targetPostId, [...selectedFloorIds, ...(preserveFloorId ? [preserveFloorId] : []), ...(visibleFloorId ? [visibleFloorId] : [])]);
+
+  const reading = useDiscussionReading({
+    scope: `${viewerScope}:${floorListSubthreadId ?? ""}:${targetPostId ?? ""}`, subject: "楼层", filters: floorFilters, initialTarget: targetPostId, locate,
+    beforeJump: closeComposer, filteredErrorCode: API_ERROR_CODE.DISCUSSION_TARGET_FILTERED,
+    onFiltersChange: async (next) => {
+      setFloorAuthorSelection(next.authorId && effectiveSubthreadId ? { subthreadId: effectiveSubthreadId, authorId: next.authorId } : undefined);
+      if (next.order !== floorOrder) await setFloorOrder(next.order);
+    },
+  });
+
+  const onReadingPosition = reading.onPosition;
+  const handleFloorPosition = useCallback((position: DiscussionPosition) => {
+    setVisibleFloorId((old) => old === position.id ? old : position.id);
+    onReadingPosition(position);
+  }, [onReadingPosition]);
 
   const floors = floorsData?.pages.flatMap((page) => page?.data ?? []) ?? [];
 
@@ -416,6 +441,7 @@ function ThreadDetailPageContent() {
         onJumpToLatest={() => void handleJumpToLatest()}
         latestPending={latestPost.isPending}
         latestAvailable={latestAvailable}
+        positionControl={<><DiscussionJump key={`${viewerScope}:${effectiveSubthreadId}:${targetPostId ?? ""}`} subject="楼层" current={reading.current} maxNumber={floorMaxNumber} total={floorTotal} compact onJump={reading.jump} onOpen={reading.cancelPending} />{reading.returnToPrevious ? <DiscussionReturnButton onReturn={reading.returnToPrevious} compact /> : null}</>}
       />
 
       {/* 主题身份、目录与当前子贴正文共用同一个文档容器。 */}
@@ -470,6 +496,7 @@ function ThreadDetailPageContent() {
             className="scroll-mt-20"
             aria-label="帖子回复"
           >
+            <DiscussionPositionBar key={`${viewerScope}:${effectiveSubthreadId}:${targetPostId ?? ""}`} subject="楼层" current={reading.current} maxNumber={floorMaxNumber} total={floorTotal} onJump={reading.jump} onOpen={reading.cancelPending} onReturn={reading.returnToPrevious} showCompact={false}>
             <FloorListControls
               order={floorOrder}
               onOrderChange={(nextOrder) => void handleFloorOrderChange(nextOrder)}
@@ -480,7 +507,11 @@ function ThreadDetailPageContent() {
               authorsError={floorAuthorsQuery.isError}
               onRetryAuthors={() => void floorAuthorsQuery.refetch()}
             />
+            </DiscussionPositionBar>
             <FloorList
+              windowed pinnedItems={pinnedItems} hasPreviousPage={hasPreviousPage} isFetchingPreviousPage={isFetchingPreviousPage}
+              onLoadPrevious={fetchPreviousPage} onPosition={handleFloorPosition} onProtectedIdsChange={setSelectedFloorIds}
+              preserveId={preserveFloorId} restoreOffset={reading.restoreOffset}
               floors={floors}
               hasNextPage={!!hasNextPage}
               isFetchingNextPage={isFetchingNextPage}
@@ -488,8 +519,8 @@ function ThreadDetailPageContent() {
               error={floorsError}
               onLoadMore={() => fetchNextPage()}
               onRetry={() => refetchFloors()}
-              targetFloorId={targetPostId}
-              targetActivationKey={latestFloorActivationKey}
+              targetFloorId={reading.targetId}
+              targetActivationKey={`${latestFloorActivationKey}:${reading.activation}`}
               targetValidationPending={Boolean(
                 targetPostId && targetPostQuery.isFetching,
               )}

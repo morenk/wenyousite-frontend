@@ -4,6 +4,12 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { ChevronDown, Loader2 } from "lucide-react";
+import { API_ERROR_CODE, isContentUnavailableError } from "@/api/errors";
+import { useReplyWindow } from "@/api/hooks/use-discussion-window";
+import { useDiscussionReading } from "@/hooks/use-discussion-reading";
+import { DiscussionPositionBar } from "@/components/shared/discussion-position-bar";
+import { DiscussionVirtualList, type DiscussionPosition } from "@/components/shared/discussion-virtual-list";
+import { useThreadComposerSession } from "@/components/thread/thread-composer-context";
 import { useReplies } from "@/api/hooks/use-replies";
 import { useReplyAuthors } from "@/api/hooks/use-discussion-authors";
 import { Button } from "@/components/ui/button";
@@ -34,6 +40,11 @@ export function ReplyList({
   onTargetBack = () => window.history.back(),
 }: ReplyListProps) {
   const { user } = useAuth();
+  const { session, close } = useThreadComposerSession();
+  const windowed = variant === "discussion";
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [visibleId, setVisibleId] = useState<string>();
+  const preserveId = session?.type === "edit" ? session.postId : session?.type === "reply" ? session.replyToPostId : undefined;
   const [order, setOrder] = useState<ReplyOrder>("OLDEST");
   const [requestedAuthorId, setAuthorId] = useState<string>();
   const authorsQuery = useReplyAuthors(
@@ -49,6 +60,20 @@ export function ReplyList({
       ? requestedAuthorId
       : undefined;
   const filters = useMemo(() => ({ order, ...(authorId ? { authorId } : {}) }), [authorId, order]);
+  const legacy = useReplies(windowed ? undefined : postId, filters);
+  const windowQuery = useReplyWindow(windowed ? postId : undefined, filters, targetReplyId, [...selectedIds, ...(preserveId ? [preserveId] : []), ...(visibleId ? [visibleId] : [])]);
+  const reading = useDiscussionReading({
+    scope: `${windowQuery.viewerScope}:${postId}:${targetReplyId ?? ""}`, subject: "回复", filters, initialTarget: targetReplyId, locate: windowQuery.locate, beforeJump: close,
+    filteredErrorCode: API_ERROR_CODE.DISCUSSION_TARGET_FILTERED,
+    onFiltersChange: (next) => { setOrder(next.order); setAuthorId(next.authorId); },
+  });
+  const onReadingPosition = reading.onPosition;
+  const handlePosition = useCallback((position: DiscussionPosition) => {
+    setVisibleId((old) => old === position.id ? old : position.id);
+    onReadingPosition(position);
+  }, [onReadingPosition]);
+  const focusId = windowed ? reading.targetId : targetReplyId;
+  const activation = `${targetActivationKey ?? ""}:${reading.activation}`;
   const {
     data,
     fetchNextPage,
@@ -57,32 +82,37 @@ export function ReplyList({
     isLoading,
     error,
     refetch,
-  } = useReplies(postId, filters);
+  } = windowed ? windowQuery : legacy;
 
-  const targetMaskKey = `${targetReplyId ?? ""}:${targetActivationKey ?? ""}`;
+  const targetMaskKey = `${focusId ?? ""}:${activation}`;
   const [targetMaskState, setTargetMaskState] = useState({
     key: targetMaskKey,
-    masked: Boolean(targetReplyId),
+    masked: Boolean(focusId),
   });
   const targetMasked = targetMaskState.key === targetMaskKey
     ? targetMaskState.masked
-    : Boolean(targetReplyId);
+    : Boolean(focusId);
   const handleTargetMaskChange = useCallback((masked: boolean) => {
     setTargetMaskState({ key: targetMaskKey, masked });
   }, [targetMaskKey]);
 
   const sentinelRef = useInfiniteScroll({
-    hasNextPage: Boolean(hasNextPage) && !targetMasked,
+    hasNextPage: Boolean(hasNextPage) && !targetMasked && !windowed,
     isFetchingNextPage,
     onLoadMore: fetchNextPage,
   });
 
   const loadedReplies = data?.pages.flatMap((page) => page?.data ?? []) ?? [];
-  const replies = loadedReplies;
+  const replies = isContentUnavailableError(error) ? [] : loadedReplies;
+  const renderReply = (reply: (typeof replies)[number], index?: number) => (
+    <ReplyCard key={reply.id} reply={reply} parentPostId={postId} variant={variant}
+      ordinal={windowed ? reply.replyNumber ?? undefined : index} focused={reply.id === focusId} focusActivationKey={activation} />
+  );
 
   const content = (
     <div className={variant === "discussion" ? "flex flex-col gap-[var(--collection-card-gap)]" : "mt-3 space-y-2 border-l-2 border-border pl-3"}>
       {variant === "discussion" ? (
+        <DiscussionPositionBar key={`${windowQuery.viewerScope}:${postId}:${targetReplyId ?? ""}`} subject="回复" current={reading.current} maxNumber={windowQuery.maxNumber} total={windowQuery.total} onJump={reading.jump} onOpen={reading.cancelPending} onReturn={reading.returnToPrevious}>
         <DiscussionListControls
           subject="回复"
           order={order}
@@ -94,6 +124,7 @@ export function ReplyList({
           authorsError={authorsQuery.isError}
           onRetryAuthors={() => void authorsQuery.refetch()}
         />
+        </DiscussionPositionBar>
       ) : null}
 
       {isLoading && (
@@ -102,7 +133,7 @@ export function ReplyList({
         </div>
       )}
 
-      {error && (
+      {Boolean(error) && !windowed && (
         <div className="flex items-center justify-between py-2">
           <p className="text-xs text-muted-foreground">回复加载失败</p>
           <Button variant="ghost" size="sm" onClick={() => refetch()}>
@@ -117,18 +148,15 @@ export function ReplyList({
         </p>
       )}
 
-      {replies.map((reply, index) => (
-        <ReplyCard
-          key={reply.id}
-          reply={reply}
-          parentPostId={postId}
-          variant={variant}
-          ordinal={variant === "discussion" ? index + 1 : undefined}
-          focused={reply.id === targetReplyId}
-        />
-      ))}
+      {windowed ? <DiscussionVirtualList items={replies} numberOf={(reply) => reply.replyNumber ?? 0} renderItem={renderReply}
+        targetId={focusId} activationKey={activation} preserveId={preserveId} restoreOffset={reading.restoreOffset}
+        hasBefore={windowQuery.hasPreviousPage && !targetMasked && !error} hasAfter={hasNextPage && !targetMasked && !error}
+        fetching={isFetchingNextPage || windowQuery.isFetchingPreviousPage} onBefore={windowQuery.fetchPreviousPage} onAfter={fetchNextPage}
+        onPosition={handlePosition} onProtectedIdsChange={setSelectedIds} /> : replies.map((reply) => renderReply(reply))}
 
-      {hasNextPage || isFetchingNextPage ? (
+      {windowed && Boolean(error) ? <div role="alert" className="flex items-center justify-center gap-2 py-3 text-sm text-muted-foreground">回复加载失败<Button variant="ghost" size="sm" onClick={() => refetch()}>重试</Button></div> : null}
+
+      {(!windowed && hasNextPage) || isFetchingNextPage ? (
         <div ref={sentinelRef} className="flex items-center justify-center py-2">
           {isFetchingNextPage ? (
             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
@@ -151,11 +179,12 @@ export function ReplyList({
   return (
     <DiscussionTargetMask
       key={targetMaskKey}
-      targetId={targetReplyId}
-      activationKey={targetActivationKey}
+      targetId={focusId}
+      activationKey={activation}
+      restoreOffset={reading.restoreOffset}
       subject="回复"
       loadedIds={replies.map((reply) => reply.id)}
-      hasNextPage={Boolean(hasNextPage)}
+      hasNextPage={windowed ? false : Boolean(hasNextPage)}
       isLoading={isLoading}
       isFetchingNextPage={isFetchingNextPage}
       validationPending={targetValidationPending}
