@@ -180,3 +180,49 @@ test("全局正文草稿恢复携带display，复制与再保存不丢来源", a
   writeFileSync(test.info().outputPath("media-requests.json"), JSON.stringify(fixture.requests, null, 2));
   for (const media of fixture.images) expect(fixture.requests).not.toContain(media.url);
 });
+
+
+for (const subject of ["楼层", "回复"] as const) {
+  test(`${subject}虚拟窗口图片失败停止重试并释放定位遮罩`, async ({ page, baseURL }) => {
+    const fixture = await mediaDisplayFixture(page, baseURL!);
+    const attempts: string[] = [];
+    await page.route("**/media/display-fixture/missing-*", route => {
+      attempts.push(new URL(route.request().url()).pathname);
+      return route.fulfill({ status: 404, body: "图片不存在" });
+    });
+    const windowPath = subject === "楼层" ? "subthreads/display-main/posts/window" : "posts/display-post-1/replies/window";
+    await page.route(`**/api/v1/${windowPath}?**`, route => {
+      const number = Number(new URL(route.request().url()).searchParams.get("number"));
+      const items = Array.from({ length: 20 }, (_, index) => {
+        const n = (number ? 31 : 1) + index;
+        return { ...fixture.floor, id: `failed-image-${subject}-${n}`, floorNumber: subject === "楼层" ? n : null, replyNumber: subject === "回复" ? n : null,
+          kind: subject === "楼层" ? "FLOOR" : "REPLY", parentPostId: subject === "回复" ? fixture.floor.id : null,
+          content: `正文 ${n} ![失败图片](${baseURL}/media/display-fixture/missing-${n}.webp)`, mediaDisplays: [] };
+      });
+      return route.fulfill({ json: { code: 0, data: { items, pinnedItems: [], total: 50, maxNumber: 50,
+        target: number ? { id: `failed-image-${subject}-${number}`, number } : null, beforeCursor: null, afterCursor: null, hasBefore: false, hasAfter: false } } });
+    });
+    await page.route("**/api/v1/posts/display-post-1", route => route.fulfill({ json: { code: 0, data: fixture.floor } }));
+    await page.route("**/api/v1/posts/display-post-1/replies/authors", route => route.fulfill({ json: { code: 0, data: [] } }));
+    await page.goto(subject === "楼层" ? "/threads/display-thread" : "/threads/display-thread/posts/display-post-1/replies");
+    await page.getByRole("button", { name: `跳转到${subject}`, exact: true }).first().click();
+    await page.getByRole("textbox", { name: `${subject}编号` }).fill("40");
+    await page.getByRole("button", { name: "前往", exact: true }).click();
+    const target = page.locator(`[data-discussion-item="failed-image-${subject}-40"]`);
+    await expect(target).toBeVisible();
+    await expect(page.getByTestId("discussion-target-mask")).toHaveCount(0);
+    await expect(target.getByRole("button", { name: "重试图片" })).toBeVisible();
+    await page.waitForTimeout(500);
+    const settled = attempts.length;
+    await page.waitForTimeout(1500);
+    expect(attempts.length).toBe(settled);
+    const resourceAttempts = () => attempts.filter(path => /missing-40(?:_md)?\.webp$/.test(path));
+    expect(resourceAttempts()).toHaveLength(2);
+    await target.getByRole("button", { name: "重试图片" }).click();
+    await expect.poll(() => resourceAttempts().length).toBe(3);
+    await expect(target.getByRole("button", { name: "重试图片" })).toBeVisible();
+    await page.waitForTimeout(1000);
+    expect(resourceAttempts()).toHaveLength(3);
+    writeFileSync(test.info().outputPath("image-failure-attempts.json"), JSON.stringify({ subject, attempts, settled }));
+  });
+}
