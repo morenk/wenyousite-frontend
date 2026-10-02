@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { afterEach, describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { chmodSync, mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -26,9 +26,29 @@ function fixture() {
   json(env.E2E_PRIVATE_ENV, { ...env, E2E_USER_ID: "fake-id", E2E_USERNAME: "fake-user", E2E_EMAIL: "fake@e2e.invalid", E2E_PASSWORD: "fake-password" });
   return { root, env };
 }
-afterEach(() => roots.splice(0).forEach((root) => rmSync(root, { recursive: true, force: true })));
+afterEach(() => { vi.restoreAllMocks(); roots.splice(0).forEach((root) => rmSync(root, { recursive: true, force: true })); });
 
 describe("隔离 manifest 与真实资源门禁", () => {
+  test("HEAD成功后资料超时仍拒绝，诊断不复用HEAD状态或输出账号", async () => {
+    const run = readIsolation(fixture().env);
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(new Response(null, { headers: { "x-wenyou-e2e-candidate": "current-candidate" } }))
+      .mockRejectedValueOnce(new DOMException("sensitive response", "TimeoutError"));
+    const error = await verifyRunProfile(run, "http://127.0.0.1:39001", "current-candidate").catch((error: Error) => error);
+    if (!(error instanceof Error)) throw new Error("必须拒绝未核验的身份");
+    expect(error.message).toContain("阶段 profile-fetch，HTTP 不可达");
+    expect(error.message).toContain("ID匹配 unread");
+    expect(error.message).toContain("原因 TimeoutError");
+    expect(error.message).not.toMatch(/HTTP 200|sensitive|fake-user|fake-id/);
+  });
+  test("错误资料仅记录匹配布尔并拒绝写入，不输出响应正文", async () => {
+    const run = readIsolation(fixture().env);
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({ data: { id: "wrong-id", username: "secret-name" } }), { headers: { "content-type": "application/json" } }));
+    const error = await verifyRunProfile(run, "http://127.0.0.1:39001").catch((error: Error) => error);
+    if (!(error instanceof Error)) throw new Error("必须拒绝错误的身份");
+    expect(error.message).toContain("阶段 profile-match，HTTP 200");
+    expect(error.message).toContain("ID匹配 false，用户名匹配 false");
+    expect(error.message).not.toMatch(/wrong-id|secret-name|fake-user/);
+  });
   test("讨论样本须同轮私有文件且只含测试ID，拒绝越界路径和凭据", () => {
     const { env: baseEnv, root } = fixture();
     const path = join(root, "discussion-fixtures.json");

@@ -123,6 +123,9 @@ export function assertResourceProcesses(run, identity = processIdentity, current
 export async function verifyRunProfile(run, origin, candidateId) {
   let response;
   let marker = !candidateId;
+  let stage = candidateId ? "candidate-head" : "profile-fetch";
+  let idMatches;
+  let usernameMatches;
   try {
     if (candidateId) {
       // Next 外部 rewrite 的响应可能覆盖前端 headers；分别核验页面构建和真实代理数据。
@@ -131,6 +134,8 @@ export async function verifyRunProfile(run, origin, candidateId) {
       marker = true;
     }
     for (let attempt = 0; attempt < 4; attempt++) {
+      stage = "profile-fetch";
+      response = undefined; // 请求未返回时不能把前一次 HEAD 的 200 冒充资料响应。
       response = await fetch(`${origin}/api/v1/users/${encodeURIComponent(run.credentials.E2E_USER_ID)}`, {
         redirect: "manual", cache: "no-store", signal: AbortSignal.timeout(5000),
       });
@@ -139,12 +144,19 @@ export async function verifyRunProfile(run, origin, candidateId) {
       await response.arrayBuffer();
       await new Promise((ok) => setTimeout(ok, 1000));
     }
+    stage = "profile-status";
     ensure(response.ok, "profile");
+    stage = "profile-json";
     const body = await response.json();
-    ensure(body.data?.id === run.credentials.E2E_USER_ID && body.data?.username === run.credentials.E2E_USERNAME, "profile");
-  } catch {
+    stage = "profile-match";
+    idMatches = body.data?.id === run.credentials.E2E_USER_ID;
+    usernameMatches = body.data?.username === run.credentials.E2E_USERNAME;
+    ensure(idMatches && usernameMatches, "profile");
+  } catch (error) {
     const target = candidateId ? "候选代理" : "隔离后端";
-    throw new Error(`${target}未返回本轮唯一身份（HTTP ${response?.status ?? "不可达"}，候选标识 ${marker ? "匹配" : "不匹配"}），拒绝登录或写入`);
+    const cause = ["AbortError", "TimeoutError", "SyntaxError", "TypeError", "Error"].includes(error?.name) ? error.name : "unknown";
+    const contentType = response?.headers.get("content-type")?.split(";")[0].slice(0, 80) ?? "unread";
+    throw new Error(`${target}未返回本轮唯一身份（阶段 ${stage}，HTTP ${response?.status ?? "不可达"}，候选标识 ${marker ? "匹配" : "不匹配"}，类型 ${contentType}，ID匹配 ${idMatches ?? "unread"}，用户名匹配 ${usernameMatches ?? "unread"}，原因 ${cause}），拒绝登录或写入`);
   }
 }
 

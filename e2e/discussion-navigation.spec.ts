@@ -12,8 +12,47 @@ async function scenarios(): Promise<Scenario[]> {
 function href(item: Scenario, subject: Subject) {
   return subject === "楼层" ? `/threads/${item.threadId}` : `/threads/${item.threadId}/posts/${item.rootPostId}/replies`;
 }
-async function jump(page: Page, subject: Subject, number: number) {
-  await page.getByRole("button", { name: `跳转到${subject}`, exact: true }).first().click();
+async function readingPosition(page: Page) {
+  return page.evaluate(() => {
+    let readingTop = 24;
+    for (const name of ["thread-reading", "discussion-position"]) {
+      const bar = document.querySelector<HTMLElement>(`[data-slot="${name}-bar"]`);
+      const anchor = bar?.closest<HTMLElement>(`[data-slot="${name}-anchor"],[data-slot="${name}-bar-anchor"]`);
+      if (bar && anchor) readingTop = Math.max(readingTop, parseFloat(getComputedStyle(anchor).top) + bar.offsetHeight + 24);
+    }
+    const node = [...document.querySelectorAll<HTMLElement>("[data-discussion-item][data-discussion-number]")].find(node => { const rect = node.getBoundingClientRect(); return rect.bottom > readingTop && rect.top < innerHeight; });
+    return node ? { id: node.dataset.discussionItem, number: Number(node.dataset.discussionNumber), top: node.getBoundingClientRect().top, offset: node.getBoundingClientRect().top - readingTop, readingTop, scrollY } : null;
+  });
+}
+async function openJumpPanel(page: Page, subject: Subject, expectedOriginId?: string) {
+  const controls = page.getByRole("button", { name: `跳转到${subject}`, exact: true });
+  const point = () => controls.evaluateAll(nodes => {
+    for (const node of nodes) {
+      const box = node.getBoundingClientRect(); const x = box.x + box.width / 2; const y = box.y + box.height / 2;
+      if (x > 0 && x < innerWidth && y > 0 && y < innerHeight && node.contains(document.elementFromPoint(x, y))) return { x, y, text: node.textContent, compact: !!node.closest('[data-slot="thread-reading-bar"],[data-slot="discussion-position-bar"]') };
+    }
+    return null;
+  });
+  if (expectedOriginId) await expect.poll(async () => (await readingPosition(page))?.id).toBe(expectedOriginId);
+  else if (!(await point())) await controls.first().scrollIntoViewIfNeeded();
+  await expect.poll(point).not.toBeNull();
+  const before = await readingPosition(page);
+  const trigger = (await point())!;
+  // 点真实视口内命中区域，禁止 locator.first() 为点击屏外入口自动滚回头部。
+  await page.mouse.click(trigger.x, trigger.y);
+  await expect(page.getByRole("dialog")).toBeVisible();
+  const after = await readingPosition(page);
+  if (expectedOriginId) {
+    const evidence = { expectedOriginId, before, trigger, after };
+    writeFileSync(test.info().outputPath("return-origin.json"), JSON.stringify(evidence));
+    expect(before?.id, JSON.stringify(evidence)).toBe(expectedOriginId);
+    expect(before?.number, JSON.stringify(evidence)).toBe(3);
+    expect(after?.id, JSON.stringify(evidence)).toBe(expectedOriginId);
+    expect(Math.abs(after!.offset - before!.offset), JSON.stringify(evidence)).toBeLessThan(3);
+  }
+}
+async function jump(page: Page, subject: Subject, number: number, expectedOriginId?: string) {
+  await openJumpPanel(page, subject, expectedOriginId);
   await page.getByRole("textbox", { name: `${subject}编号` }).fill(String(number));
   const response = page.waitForResponse((response) => new URL(response.url()).pathname.endsWith("/window") && new URL(response.url()).searchParams.get("number") === String(number) && response.status() === 200);
   await page.getByRole("button", { name: "前往", exact: true }).click();
@@ -129,8 +168,7 @@ test.describe("真实隔离长讨论窗口", () => {
       await expect(card).toContainText(`窗口编辑回归 ${subject}`);
       await expect(editor).toHaveCount(0);
       await jump(page, subject, 3);
-      await expect(page.getByRole("button", { name: `跳转到${subject}`, exact: true }).first()).toContainText("#3");
-      await jump(page, subject, 500);
+      await jump(page, subject, 500, id);
       const beforeReturn = await page.locator("[data-discussion-item]").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-discussion-item")));
       const second = await context.newPage();
       try {
@@ -149,7 +187,7 @@ test.describe("真实隔离长讨论窗口", () => {
       await page.getByRole("button", { name: "回到刚才", exact: true }).first().click();
       await unavailableReturn.catch((error) => { throw new Error(`${error.message}; 返回请求 ${JSON.stringify(returnResponses)}`); });
       await expect.poll(() => page.locator("[data-discussion-item]").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-discussion-item")))).toEqual(beforeReturn);
-      await page.getByRole("button", { name: `跳转到${subject}`, exact: true }).first().click();
+      await openJumpPanel(page, subject);
       await page.getByRole("textbox", { name: `${subject}编号` }).fill("3");
       await page.getByRole("button", { name: "前往", exact: true }).click();
       await expect(page.getByRole("dialog").getByRole("alert")).toBeVisible();
