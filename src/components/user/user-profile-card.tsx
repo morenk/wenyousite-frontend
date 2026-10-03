@@ -141,10 +141,10 @@ function ProfileActions({
     <div className="flex flex-wrap items-center justify-end gap-2">
       {isSelf ? (
         <Link
-          href="/me#appearance"
+          href="/me"
           className={buttonVariants({ variant: "outline", size: "compact" })}
         >
-          编辑主页
+          设置
         </Link>
       ) : (
         <>

@@ -104,12 +104,12 @@ describe("UserProfileCard", () => {
     expect(screen.getByTestId("block-btn")).toHaveTextContent("u2:false");
   });
 
-  test("查看自己时显示「编辑主页」并直达外观设置", () => {
+  test("查看自己时显示「设置」并进入统一设置首页", () => {
     mockUseAuth.mockReturnValue({ user: { id: "u2" } });
     renderWithQC(<UserProfileCard user={sampleUser} />);
-    expect(screen.getByRole("link", { name: "编辑主页" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "设置" })).toHaveAttribute(
       "href",
-      "/me#appearance",
+      "/me",
     );
     expect(screen.queryByRole("button", { name: "加油" })).not.toBeInTheDocument();
     expect(screen.queryByTestId("follow-btn")).not.toBeInTheDocument();

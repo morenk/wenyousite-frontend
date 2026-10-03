@@ -17,6 +17,9 @@ const { mockSetAvatar, mockRemoveAvatar } = vi.hoisted(() => ({
   mockRemoveAvatar: { mutateAsync: vi.fn() },
 }));
 
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+vi.mock("@/components/ui/confirm-provider", () => ({ useConfirm: () => vi.fn().mockResolvedValue(true) }));
+
 vi.mock("react-easy-crop", () => ({
   default: ({ onCropComplete }: { onCropComplete: (a: unknown, b: unknown) => void }) => {
     queueMicrotask(() => onCropComplete({}, { x: 0, y: 0, width: 100, height: 100 }));
@@ -79,10 +82,10 @@ afterEach(() => {
 });
 
 describe("AvatarUploader", () => {
-  test("无头像显示首字母占位与更换按钮，无移除按钮", () => {
+  test("无头像显示首字母占位与上传按钮，无移除按钮", () => {
     renderUploader();
     expect(screen.getByTestId("user-avatar-placeholder").textContent).toBe("T");
-    expect(screen.getByRole("button", { name: /更换头像/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "上传头像" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /移除头像/ })).not.toBeInTheDocument();
   });
 
@@ -183,7 +186,7 @@ describe("AvatarUploader", () => {
 
     await waitFor(() => expect(screen.getByRole("button", { name: "保存头像" })).toBeEnabled());
     fireEvent.click(screen.getByRole("button", { name: "保存头像" }));
-    await waitFor(() => expect(toast.error).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument());
     await waitFor(() => expect(screen.getByRole("button", { name: "保存头像" })).toBeEnabled());
     fireEvent.click(screen.getByRole("button", { name: "保存头像" }));
 
@@ -255,9 +258,20 @@ test("关闭裁剪后忽略仍在读取的下一张图片", async () => {
   vi.spyOn(late, "arrayBuffer").mockReturnValue(new Promise((resolve) => { finish = resolve; }));
   fireEvent.change(screen.getByTestId("avatar-file-input"), { target: { files: [late] } });
   fireEvent.click(screen.getByRole("button", { name: "取消" }));
+  await waitFor(() => expect(screen.queryByRole("dialog", { name: "裁剪头像" })).not.toBeInTheDocument());
   finish(imageFixture("static.png").buffer);
   await Promise.resolve();
   await Promise.resolve();
   expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
   expect(screen.queryByRole("dialog", { name: "裁剪头像" })).not.toBeInTheDocument();
+});
+
+test("关闭管理弹窗卸载时释放裁剪预览 URL", async () => {
+  const view = renderUploader();
+  fireEvent.change(screen.getByTestId("avatar-file-input"), {
+    target: { files: [new File([imageFixture("static.png")], "photo.png", { type: "image/png" })] },
+  });
+  await screen.findByRole("dialog", { name: "裁剪头像" });
+  view.unmount();
+  expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:fake");
 });

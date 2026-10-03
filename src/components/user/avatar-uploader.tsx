@@ -6,8 +6,8 @@ import type { MediaDisplay } from "@/lib/media-display";
 import { useEffect, useRef, useState } from "react";
 import { assertImageCanBeProcessed } from "@/lib/image-container";
 import Cropper, { type Area } from "react-easy-crop";
-import { Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { useSetAvatar } from "@/api/hooks/use-set-avatar";
 import { getApiErrorMessage } from "@/api/errors";
 import { ImageUploadProgress } from "@/components/shared/image-upload-progress";
@@ -20,27 +20,32 @@ import {
 } from "@/lib/upload-image";
 import { getCroppedBlob } from "@/lib/avatar-crop";
 import { createImageFileFromBlob } from "@/lib/image-file";
-import { Button, buttonVariants } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogBackdrop,
-  DialogClose,
-  DialogFooter,
-  DialogPopup,
-  DialogPortal,
-  DialogTitle,
-  DialogViewport,
-} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { SettingsDialog, type SettingsDialogProps } from "./settings-controls";
+import { useConfirm } from "@/components/ui/confirm-provider";
+import { DialogFooter } from "@/components/ui/dialog";
 
-interface AvatarUploaderProps {
+interface AvatarUploaderProps extends Pick<
+  SettingsDialogProps,
+  "onClose" | "returnFocus"
+> {
   username: string;
   avatar: string | null;
   avatarDisplay?: MediaDisplay | null;
 }
 
-export function AvatarUploader({ username, avatar, avatarDisplay }: AvatarUploaderProps) {
+export function AvatarUploader({
+  username,
+  avatar,
+  avatarDisplay,
+  onClose,
+  returnFocus,
+}: AvatarUploaderProps) {
+  const confirm = useConfirm();
+  const [failure, setFailure] = useState<string | null>(null);
   const { setAvatar, removeAvatar } = useSetAvatar();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const chooseButtonRef = useRef<HTMLButtonElement>(null);
   const uploadAbortRef = useRef<AbortController | null>(null);
   const preparedAvatarRef = useRef<File | null>(null);
   const uploadedMediaIdRef = useRef<string | null>(null);
@@ -51,12 +56,24 @@ export function AvatarUploader({ username, avatar, avatarDisplay }: AvatarUpload
   const [croppedArea, setCroppedArea] = useState<Area | undefined>();
   const [cropOpen, setCropOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<UploadImageProgressValue | null>(null);
+  const [uploadProgress, setUploadProgress] =
+    useState<UploadImageProgressValue | null>(null);
 
   useEffect(() => () => uploadAbortRef.current?.abort(), []);
+  useEffect(
+    () => () => {
+      if (imageSrc) URL.revokeObjectURL(imageSrc);
+    },
+    [imageSrc],
+  );
 
   const selectionGeneration = useRef(0);
-  useEffect(() => () => { selectionGeneration.current++; }, []);
+  useEffect(
+    () => () => {
+      selectionGeneration.current++;
+    },
+    [],
+  );
 
   const pending = isUploading || setAvatar.isPending || removeAvatar.isPending;
 
@@ -79,10 +96,13 @@ export function AvatarUploader({ username, avatar, avatarDisplay }: AvatarUpload
       await assertImageCanBeProcessed(file, true);
     } catch (error) {
       if (generation !== selectionGeneration.current) return;
-      toast.error(error instanceof Error ? error.message : "无法读取图片，请重新选择");
+      toast.error(
+        error instanceof Error ? error.message : "无法读取图片，请重新选择",
+      );
       return;
     }
     if (generation !== selectionGeneration.current) return;
+    setFailure(null);
     setImageSrc(URL.createObjectURL(file));
     invalidatePreparedAvatar();
     setCrop({ x: 0, y: 0 });
@@ -98,13 +118,14 @@ export function AvatarUploader({ username, avatar, avatarDisplay }: AvatarUpload
     uploadAbortRef.current = null;
     setUploadProgress(null);
     setCropOpen(false);
-    if (imageSrc) URL.revokeObjectURL(imageSrc);
+    requestAnimationFrame(() => chooseButtonRef.current?.focus());
     setImageSrc(null);
     setCroppedArea(undefined);
   };
 
   const handleConfirm = async () => {
-    if (!imageSrc || !croppedArea) return;
+    if (!imageSrc || !croppedArea || pending) return;
+    setFailure(null);
     const controller = new AbortController();
     uploadAbortRef.current = controller;
     setIsUploading(true);
@@ -129,9 +150,10 @@ export function AvatarUploader({ username, avatar, avatarDisplay }: AvatarUpload
       await setAvatar.mutateAsync(mediaId);
       toast.success("头像已更新");
       closeCrop();
+      onClose?.();
     } catch (err) {
       if (!isUploadAbortError(err)) {
-        toast.error(getApiErrorMessage(err, "头像上传失败，请稍后重试"));
+        setFailure(getApiErrorMessage(err, "头像上传失败，请稍后重试"));
       }
     } finally {
       if (uploadAbortRef.current === controller) uploadAbortRef.current = null;
@@ -141,133 +163,159 @@ export function AvatarUploader({ username, avatar, avatarDisplay }: AvatarUpload
   };
 
   const handleRemove = async () => {
+    if (pending) return;
+    setFailure(null);
     try {
       await removeAvatar.mutateAsync();
       toast.success("头像已移除");
+      onClose?.();
     } catch {
-      toast.error("操作失败，请稍后重试");
+      setFailure("操作失败，请稍后重试");
     }
   };
 
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-4">
-      <div className="flex items-center gap-4">
-        <UserAvatar
-          name={username}
-          src={avatar} display={avatarDisplay}
-          className="size-16 border border-border bg-muted"
-          textClassName="text-2xl"
-        />
-        <p className="text-sm font-semibold">头像</p>
-      </div>
+  const discardCrop = async () => {
+    if (
+      !pending &&
+      (await confirm({
+        title: "放弃未保存修改",
+        description: "当前裁剪尚未保存，确定要放弃吗？",
+        confirmLabel: "放弃修改",
+        cancelLabel: "继续编辑",
+        destructive: true,
+      }))
+    )
+      closeCrop();
+  };
 
-      <div>
-        <div className="flex gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            size="default"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={pending}
+  return (
+    <SettingsDialog
+      title={cropOpen ? "裁剪头像" : "头像"}
+      onClose={onClose}
+      returnFocus={returnFocus}
+      dirty={cropOpen}
+      busy={pending}
+    >
+      <input
+        data-testid="avatar-file-input"
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+      {cropOpen && imageSrc ? (
+        <>
+          <div
+            className={cn(
+              "relative mt-3 h-64 overflow-hidden rounded-[var(--radius-control)] bg-foreground",
+              pending && "pointer-events-none",
+            )}
           >
-            <Camera className="size-4" aria-hidden="true" />
-            更换头像
-          </Button>
-          {avatar ? (
+            <Cropper
+              image={imageSrc}
+              crop={crop}
+              zoom={zoom}
+              aspect={1}
+              onCropChange={(nextCrop) => {
+                invalidatePreparedAvatar();
+                setCrop(nextCrop);
+              }}
+              onZoomChange={(nextZoom) => {
+                invalidatePreparedAvatar();
+                setZoom(nextZoom);
+              }}
+              onCropComplete={(_area, areaPixels) => setCroppedArea(areaPixels)}
+            />
+          </div>
+          <div className="mt-3">
+            <label
+              htmlFor="crop-zoom"
+              className="mb-1 block text-xs text-muted-foreground"
+            >
+              缩放
+            </label>
+            <input
+              id="crop-zoom"
+              type="range"
+              min={1}
+              max={3}
+              step={0.01}
+              value={zoom}
+              onChange={(event) => {
+                invalidatePreparedAvatar();
+                setZoom(Number(event.target.value));
+              }}
+              disabled={pending}
+              className="w-full accent-brand-strong"
+            />
+          </div>
+          {uploadProgress ? (
+            <ImageUploadProgress
+              progress={uploadProgress}
+              onCancel={() => uploadAbortRef.current?.abort()}
+              className="mt-3"
+              compact
+            />
+          ) : null}
+
+          <DialogFooter className="mt-6">
             <Button
               type="button"
               variant="outline"
-              size="default"
-              onClick={handleRemove}
+              disabled={pending}
+              onClick={() => void discardCrop()}
+            >
+              取消
+            </Button>
+            <Button
+              type="button"
+              onClick={handleConfirm}
+              pending={pending}
+              disabled={!croppedArea}
+              pendingLabel="保存中"
+            >
+              保存头像
+            </Button>
+          </DialogFooter>
+        </>
+      ) : (
+        <>
+          <UserAvatar
+            name={username}
+            src={avatar}
+            display={avatarDisplay}
+            className="mx-auto size-24"
+            textClassName="text-2xl"
+          />
+          <DialogFooter className="mt-6">
+            {avatar ? (
+              <Button
+                type="button"
+                variant="ghost"
+                className="mr-auto"
+                onClick={handleRemove}
+                disabled={pending}
+              >
+                移除头像
+              </Button>
+            ) : null}
+            <Button
+              ref={chooseButtonRef}
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
               disabled={pending}
             >
-              移除头像
+              {avatar ? "更换头像" : "上传头像"}
             </Button>
-          ) : null}
-        </div>
-        <input
-          data-testid="avatar-file-input"
-          ref={fileInputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          className="hidden"
-          onChange={handleFileChange}
-        />
-      </div>
-
-      <Dialog
-        open={cropOpen}
-        disablePointerDismissal={isUploading}
-        onOpenChange={(open) => {
-          if (!open && !isUploading) closeCrop();
-        }}
-      >
-        {imageSrc ? (
-          <DialogPortal>
-            <DialogBackdrop />
-            <DialogViewport>
-              <DialogPopup className="max-w-md p-4">
-                <DialogTitle>裁剪头像</DialogTitle>
-                <div className="relative mt-3 h-64 overflow-hidden rounded-[var(--radius-control)] bg-foreground">
-                  <Cropper
-                    image={imageSrc}
-                    crop={crop}
-                    zoom={zoom}
-                    aspect={1}
-                    onCropChange={(nextCrop) => {
-                      invalidatePreparedAvatar();
-                      setCrop(nextCrop);
-                    }}
-                    onZoomChange={(nextZoom) => {
-                      invalidatePreparedAvatar();
-                      setZoom(nextZoom);
-                    }}
-                    onCropComplete={(_area, areaPixels) => setCroppedArea(areaPixels)}
-                  />
-                </div>
-                <div className="mt-3">
-                  <label htmlFor="crop-zoom" className="mb-1 block text-xs text-muted-foreground">
-                    缩放
-                  </label>
-                  <input
-                    id="crop-zoom"
-                    type="range"
-                    min={1}
-                    max={3}
-                    step={0.01}
-                    value={zoom}
-                    onChange={(event) => {
-                      invalidatePreparedAvatar();
-                      setZoom(Number(event.target.value));
-                    }}
-                    className="w-full accent-brand-strong"
-                  />
-                </div>
-                {uploadProgress ? (
-                  <ImageUploadProgress
-                    progress={uploadProgress}
-                    onCancel={() => uploadAbortRef.current?.abort()}
-                    className="mt-3"
-                    compact
-                  />
-                ) : null}
-                <DialogFooter className="mt-4">
-                  <DialogClose
-                    disabled={isUploading}
-                    className={buttonVariants({ variant: "outline" })}
-                  >
-                    取消
-                  </DialogClose>
-                  <Button type="button" onClick={handleConfirm} disabled={isUploading}>
-                    {isUploading ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : null}
-                    保存头像
-                  </Button>
-                </DialogFooter>
-              </DialogPopup>
-            </DialogViewport>
-          </DialogPortal>
-        ) : null}
-      </Dialog>
-    </div>
+          </DialogFooter>
+        </>
+      )}
+      {failure ? (
+        <p role="alert" className="mt-3 text-sm text-destructive">
+          {failure}
+        </p>
+      ) : null}
+    </SettingsDialog>
   );
 }

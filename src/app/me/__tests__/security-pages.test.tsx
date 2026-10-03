@@ -1,7 +1,7 @@
 /** /me 布局统一登录守卫 + 账号安全子页面渲染 */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup, waitFor, within } from "@testing-library/react";
+import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 
 const { mockUseAuth } = vi.hoisted(() => ({ mockUseAuth: vi.fn() }));
@@ -17,6 +17,7 @@ vi.mock("@/lib/auth", () => ({
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: mockReplace, push: vi.fn(), refresh: vi.fn() }),
   usePathname: () => routeState.pathname,
+  redirect: (url: string) => { throw new Error(`REDIRECT:${url}`); },
 }));
 
 vi.mock("next/link", () => ({
@@ -56,10 +57,9 @@ beforeEach(() => {
 afterEach(() => cleanup());
 
 test.each([
-  ["/me", "个人资料", MePage],
+  ["/me", "设置", MePage],
   ["/me/password", "修改密码", ChangePasswordPage],
   ["/me/email", "更换邮箱", ChangeEmailPage],
-  ["/me/security", "账号与安全", AccountSecurityPage],
 ] as const)("%s 页面只显示一个功能型主标题", (pathname, title, Page) => {
   routeState.pathname = pathname;
   mockUseAuth.mockReturnValue({ user: authedUser, isInitialized: true });
@@ -67,7 +67,7 @@ test.each([
   const heading = screen.getByRole("heading", { name: title, level: 1 });
   expect(heading).toHaveClass("font-sans", "font-semibold");
   expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
-  expect(within(screen.getByRole("navigation", { name: "设置分区" })).getAllByRole("link")).toHaveLength(2);
+  expect(screen.queryByRole("navigation", { name: "设置分区" })).not.toBeInTheDocument();
 });
 
 describe("/me 布局", () => {
@@ -88,7 +88,7 @@ describe("/me/password", () => {
     mockUseAuth.mockReturnValue({ user: authedUser, isInitialized: true });
     render(<MeLayout><ChangePasswordPage /></MeLayout>);
     expect(screen.getByTestId("change-password-form")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /返回账号与安全/ })).toHaveAttribute("href", "/me/security");
+    expect(screen.getByRole("link", { name: /返回设置/ })).toHaveAttribute("href", "/me#security");
   });
 });
 
@@ -102,10 +102,7 @@ describe("/me/email", () => {
 });
 
 describe("/me/security", () => {
-  test("已登录渲染登录终端管理", () => {
-    routeState.pathname = "/me/security";
-    mockUseAuth.mockReturnValue({ user: authedUser, isInitialized: true });
-    render(<AccountSecurityPage />);
-    expect(screen.getByTestId("account-security-panel")).toBeInTheDocument();
+  test("旧入口跳转到设置首页账号分组", () => {
+    expect(() => AccountSecurityPage()).toThrow("REDIRECT:/me#security");
   });
 });
