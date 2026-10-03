@@ -13,6 +13,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { DailyCheckInBootstrap } from "@/components/economy/daily-check-in-bootstrap";
 import { ThemeProvider, useTheme } from "@/components/ui/theme-provider";
 
+import { AppDownloadProvider } from "@/components/download/app-download-provider";
+
 import { CoverPlaybackNavigation } from "@/components/layout/cover-playback-navigation";
 
 function createQueryClient() {
@@ -80,18 +82,20 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider>
       <NuqsAdapter>
-        <AuthProvider>
-          <IdentityScopedQueries>
-            <ConfirmProvider>
-              <TooltipProvider>
-                <MotionConfig reducedMotion="user">
-                  <Suspense fallback={null}><CoverPlaybackNavigation /></Suspense>
-                  {children}
-                </MotionConfig>
-              </TooltipProvider>
-            </ConfirmProvider>
-          </IdentityScopedQueries>
-        </AuthProvider>
+        <AppDownloadProvider>
+          <AuthProvider>
+            <IdentityScopedQueries>
+              <ConfirmProvider>
+                <TooltipProvider>
+                  <MotionConfig reducedMotion="user">
+                    <Suspense fallback={null}><CoverPlaybackNavigation /></Suspense>
+                    {children}
+                  </MotionConfig>
+                </TooltipProvider>
+              </ConfirmProvider>
+            </IdentityScopedQueries>
+          </AuthProvider>
+        </AppDownloadProvider>
       </NuqsAdapter>
     </ThemeProvider>
   );

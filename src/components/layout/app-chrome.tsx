@@ -11,7 +11,7 @@ import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { ThemeMenu } from "@/components/layout/theme-menu";
 
-export type AppChromeMode = "community" | "workspace" | "auth" | "public";
+export type AppChromeMode = "community" | "workspace" | "auth";
 
 const authRoutes = [
   "/login",
@@ -22,7 +22,6 @@ const authRoutes = [
 ];
 
 export function getAppChromeMode(pathname: string): AppChromeMode {
-  if (pathname === "/download") return "public";
   if (authRoutes.some((route) => pathname === route || pathname.startsWith(`${route}/`))) {
     return "auth";
   }
@@ -43,7 +42,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const mode = getAppChromeMode(pathname);
 
-  if (mode === "auth" || mode === "public") {
+  if (mode === "auth") {
     return (
       <div data-slot="app-chrome" data-mode={mode} className="relative min-h-screen bg-background">
         <div className="fixed right-4 top-4 z-[var(--layer-chrome)] w-10">
@@ -65,7 +64,7 @@ function AppChromeFrame({
   mode,
   children,
 }: {
-  mode: Exclude<AppChromeMode, "auth" | "public">;
+  mode: Exclude<AppChromeMode, "auth">;
   children: React.ReactNode;
 }) {
   const { user } = useAuth();

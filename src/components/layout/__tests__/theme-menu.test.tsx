@@ -2,6 +2,7 @@ import { cleanup, render, screen, waitFor, within } from "@testing-library/react
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
+import { AppDownloadProvider } from "@/components/download/app-download-provider";
 import { ThemeMenu } from "@/components/layout/theme-menu";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { setCoverDataSaver } from "@/hooks/cover-playback";
@@ -26,25 +27,21 @@ afterEach(() => {
 });
 
 describe("ThemeMenu", () => {
-  test("访客下载入口独立位于省流量下方，键盘激活后关闭弹层", async () => {
-    render(<ThemeProvider><ThemeMenu /></ThemeProvider>);
+  test("访客下载按钮独立位于省流量下方，不再导航到独立页面", async () => {
+    render(<ThemeProvider><AppDownloadProvider><ThemeMenu /></AppDownloadProvider></ThemeProvider>);
     await userEvent.click(screen.getByRole("button", { name: "外观：跟随系统" }));
     const toggle = screen.getByRole("checkbox", { name: /省流量/ });
-    const link = screen.getByRole("link", { name: "下载 APP" });
-    expect(link).toHaveAttribute("href", "/download");
-    expect(link.querySelector("svg")).toHaveAttribute("data-icon-semantic", "action.download");
-    expect(toggle.compareDocumentPosition(link) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    link.focus();
-    await userEvent.keyboard("{Enter}");
-    await waitFor(() => expect(screen.queryByRole("link", { name: "下载 APP" })).not.toBeInTheDocument());
-    expect(localStorage.getItem("wenyou:cover-data-saver")).not.toBe("true");
+    const button = screen.getByRole("button", { name: "下载 APP" });
+    expect(button.querySelector("svg")).toHaveAttribute("data-icon-semantic", "action.download");
+    expect(toggle.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "下载 APP" })).toBeNull();
   });
 
   test("localStorage配额写失败但读取仍可用时，临时省流量开关双向同步", async () => {
     const existingStorage = localStorage;
     vi.stubGlobal("localStorage", { getItem: existingStorage.getItem.bind(existingStorage),
       setItem: () => { throw new Error("quota"); } });
-    render(<ThemeProvider><ThemeMenu /></ThemeProvider>);
+    render(<ThemeProvider><AppDownloadProvider><ThemeMenu /></AppDownloadProvider></ThemeProvider>);
     await userEvent.click(screen.getByRole("button", { name: "外观：跟随系统" }));
     const toggle = screen.getByRole("checkbox", { name: /省流量/ });
     expect(toggle).not.toBeChecked();
@@ -53,20 +50,20 @@ describe("ThemeMenu", () => {
   });
 
   test("访客可发现省流量入口，切换立即持久化并在重载菜单时恢复", async () => {
-    const view = render(<ThemeProvider><ThemeMenu /></ThemeProvider>);
+    const view = render(<ThemeProvider><AppDownloadProvider><ThemeMenu /></AppDownloadProvider></ThemeProvider>);
     await userEvent.click(screen.getByRole("button", { name: "外观：跟随系统" }));
     const toggle = screen.getByRole("checkbox", { name: /省流量/ });
     expect(toggle).not.toBeChecked();
     await userEvent.click(toggle);
     expect(localStorage.getItem("wenyou:cover-data-saver")).toBe("true");
     view.unmount();
-    render(<ThemeProvider><ThemeMenu /></ThemeProvider>);
+    render(<ThemeProvider><AppDownloadProvider><ThemeMenu /></AppDownloadProvider></ThemeProvider>);
     await userEvent.click(screen.getByRole("button", { name: "外观：跟随系统" }));
     expect(screen.getByRole("checkbox", { name: /省流量/ })).toBeChecked();
   });
 
   test("展示三种中央偏好并即时切换黑夜", async () => {
-    render(<ThemeProvider><ThemeMenu /></ThemeProvider>);
+    render(<ThemeProvider><AppDownloadProvider><ThemeMenu /></AppDownloadProvider></ThemeProvider>);
     const trigger = screen.getByRole("button", { name: "外观：跟随系统" });
     await userEvent.click(trigger);
 
@@ -82,7 +79,7 @@ describe("ThemeMenu", () => {
   });
 
   test("触发器和选项使用 Foundation 外观语义图标", async () => {
-    render(<ThemeProvider><ThemeMenu compact /></ThemeProvider>);
+    render(<ThemeProvider><AppDownloadProvider><ThemeMenu compact /></AppDownloadProvider></ThemeProvider>);
     const trigger = screen.getByRole("button", { name: "外观：跟随系统" });
     expect(trigger.querySelector("svg")).toHaveAttribute("data-icon-semantic", "appearance.system");
 

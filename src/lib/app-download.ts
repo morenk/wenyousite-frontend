@@ -3,8 +3,6 @@ import type { components } from "@/api/types";
 export type AndroidDownloadInfo = components["schemas"]["AndroidDownloadInfoDto"];
 export type AndroidDownloadRelease = components["schemas"]["AndroidDownloadReleaseDto"];
 
-export const DOWNLOAD_PAGE_URL = "https://wenyou.site/download";
-
 /** 只接受已发布身份绑定的本站固定地址；浏览器实际请求始终留在当前同源代理。 */
 export function androidDownloadPath(release: AndroidDownloadRelease, allowedOrigin = "https://wenyou.site"): string {
   if (release.platform !== "android" || release.applicationId !== "site.wenyou.app"
@@ -55,12 +53,6 @@ export function retryAfterDeadline(value: string | null, now = Date.now()): numb
   if (/^\d+$/.test(value)) return retryDeadline(Number(value), now);
   const parsed = Date.parse(value);
   return Number.isFinite(parsed) ? Math.max(now, parsed) : null;
-}
-
-export function formatApkSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KiB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MiB`;
 }
 
 export class AppDownloadError extends Error {

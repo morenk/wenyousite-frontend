@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import {
-  androidDownloadPath, formatApkSize, matchesAndroidDownload,
+  androidDownloadPath, matchesAndroidDownload,
   retryAfterDeadline, retryDeadline, validateAndroidDownloadInfo,
 } from "@/lib/app-download";
 import { availableDownload, downloadHeaders, downloadRelease } from "@/test/app-download";
@@ -56,8 +56,5 @@ describe("下载制品身份与等待时间", () => {
     expect(retryAfterDeadline("99999999999999999999", now)).toBeNull();
     expect(retryDeadline(null, now)).toBeNull();
     expect(retryDeadline(-1, now)).toBeNull();
-    expect(formatApkSize(12)).toBe("12 B");
-    expect(formatApkSize(1536)).toBe("1.5 KiB");
-    expect(formatApkSize(33_554_432)).toBe("32.0 MiB");
   });
 });

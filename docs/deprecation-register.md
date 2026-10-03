@@ -2,7 +2,7 @@
 
 ## 公开 APP 下载
 
-新增公开 `/download`、下载信息 GET 与固定构建文件 HEAD/GET 的消费入口。旧 APP 的 `/meta.mobileCompatibility.android.updateUrl` 字段结构与强制更新策略保留，Web 不产生更新资格、不删除旧字段、不回退公开桶。发布顺序为兼容网关与发布工具 → 预热 → meta/Web → 旧 APP 验证 → 独立评审关闭 APK 公共读；不得提前关闭旧兼容路径或修改图片桶权限。Web 回滚只撤销页面入口，不变更历史制品、发布策略或流量账本。行为与已提交来源见 [APP 下载](modules/app-download.md) 和 [API 契约](modules/api-contract.md#公开-app-下载)。
+新增外观菜单直接下载和移动设备提示，消费下载信息 GET 与固定构建文件 HEAD/GET；候选中的独立下载页与二维码已取消，未作为已发布兼容路径。旧 APP 的 `/meta.mobileCompatibility.android.updateUrl` 字段结构与强制更新策略保留，Web 不产生更新资格、不删除旧字段、不回退公开桶。发布顺序为兼容网关与发布工具 → 预热 → meta/Web → 旧 APP 验证 → 独立评审关闭 APK 公共读；不得提前关闭旧兼容路径或修改图片桶权限。Web 回滚只撤销下载入口与提示，不变更历史制品、发布策略或流量账本。行为与已提交来源见 [APP 下载](modules/app-download.md) 和 [API 契约](modules/api-contract.md#公开-app-下载)。
 
 收藏夹管理新增能力继续使用独立的主题帖和动态目录端点，既有共享目录兼容协议不在本次清理范围。Web 不新增该协议消费者，也不修改 Foundation 或数据库迁移。
 

@@ -8,7 +8,7 @@ import {
   type ThemePreference,
 } from "@wenyousite/foundation/theme";
 import { useId, useState } from "react";
-import Link from "next/link";
+import { AppDownloadEntry } from "@/components/download/app-download-entry";
 
 import {
   WenyouIcon,
@@ -104,17 +104,7 @@ export function ThemeMenu({
               <input type="checkbox" checked={dataSaver} onChange={(event) => setDataSaver(event.target.checked)} className="mt-1 accent-primary" />
               <span>省流量<span className="mt-1 block text-xs text-muted-foreground">列表封面仅显示静态图</span></span>
             </label>
-            <div className="border-t border-border pt-1">
-              <Link
-                href="/download"
-                prefetch={false}
-                onClick={() => setOpen(false)}
-                className="flex min-h-10 items-center gap-3 rounded-[var(--radius-control)] px-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-              >
-                <WenyouIcon id="action.download" className="size-4.5" />
-                <span>下载 APP</span>
-              </Link>
-            </div>
+            <AppDownloadEntry />
           </Popover.Popup>
         </Popover.Positioner>
       </Popover.Portal>
