@@ -26,6 +26,20 @@ afterEach(() => {
 });
 
 describe("ThemeMenu", () => {
+  test("访客下载入口独立位于省流量下方，键盘激活后关闭弹层", async () => {
+    render(<ThemeProvider><ThemeMenu /></ThemeProvider>);
+    await userEvent.click(screen.getByRole("button", { name: "外观：跟随系统" }));
+    const toggle = screen.getByRole("checkbox", { name: /省流量/ });
+    const link = screen.getByRole("link", { name: "下载 APP" });
+    expect(link).toHaveAttribute("href", "/download");
+    expect(link.querySelector("svg")).toHaveAttribute("data-icon-semantic", "action.download");
+    expect(toggle.compareDocumentPosition(link) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    link.focus();
+    await userEvent.keyboard("{Enter}");
+    await waitFor(() => expect(screen.queryByRole("link", { name: "下载 APP" })).not.toBeInTheDocument());
+    expect(localStorage.getItem("wenyou:cover-data-saver")).not.toBe("true");
+  });
+
   test("localStorage配额写失败但读取仍可用时，临时省流量开关双向同步", async () => {
     const existingStorage = localStorage;
     vi.stubGlobal("localStorage", { getItem: existingStorage.getItem.bind(existingStorage),

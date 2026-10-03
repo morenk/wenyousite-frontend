@@ -3,6 +3,9 @@ import { describe, expect, test } from "vitest";
 import { getAppChromeMode } from "@/components/layout/app-chrome";
 
 describe("AppChrome 路由模式", () => {
+  test("下载页使用无社区侧栏的公开内容骨架", () => {
+    expect(getAppChromeMode("/download")).toBe("public");
+  });
   test.each(["/", "/search", "/threads/t1", "/users/u1", "/wallet", "/moments", "/moments/m1"])(
     "%s 使用社区三栏",
     (pathname) => {

@@ -4,6 +4,39 @@
  */
 
 export interface paths {
+    "/api/v1/app-downloads/android": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 匿名读取当前 Android 下载信息；仅 JSON，不预取 APK */
+        get: operations["appDownloadsInfo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/app-downloads/android/{buildNumber}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["appDownloadsFile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head: operations["appDownloadsHead"];
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -3240,6 +3273,33 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AndroidDownloadReleaseDto: {
+            /** @enum {string} */
+            platform: "android";
+            /** @example site.wenyou.app */
+            applicationId: string;
+            /** @example 0.3.0-dev.36 */
+            versionName: string;
+            buildNumber: number;
+            sizeBytes: number;
+            sha256: string;
+            /** @example wenyou-0.3.0-dev.36-42.apk */
+            fileName: string;
+            /** Format: date-time */
+            publishedAt: string;
+            /** @example https://wenyou.site/api/v1/app-downloads/android/42/file */
+            downloadUrl: string;
+            /** @example https://wenyou.site/api/v1/mobile-releases/android/42 */
+            releaseNotesUrl: string;
+        };
+        AndroidDownloadInfoDto: {
+            /** @enum {string} */
+            status: "available" | "no_release" | "withdrawn" | "paused" | "unavailable";
+            /** @description 仅 available 含已校验制品，其余状态为 null */
+            release: components["schemas"]["AndroidDownloadReleaseDto"] | null;
+            /** @description 建议等待秒数，无确定重试时间为 null */
+            retryAfterSeconds: number | null;
+        };
         RequestCodeDto: {
             /**
              * @description 注册邮箱
@@ -6715,6 +6775,9 @@ export interface components {
         ApiPaginatedSuccessEnvelope: components["schemas"]["ApiSuccessEnvelope"] & {
             meta: components["schemas"]["ApiPaginationMeta"];
         };
+        AppDownloadsInfo200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AndroidDownloadInfoDto"];
+        };
         HealthCheck200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: {
                 /** @example ok */
@@ -7480,6 +7543,323 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    appDownloadsInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppDownloadsInfo200Response"];
+                };
+            };
+            /** @description 请求频率、并发或持久化流量预算超限；Retry-After 秒 */
+            429: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 账本/目录依赖异常或网关未接通；文件缓存缺失/损坏、撤回/暂停也为 503；绝不回源 */
+            503: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    appDownloadsFile: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 仅单段 bytes=start-end、start- 或 -suffix；非法/多段为 416 */
+                Range?: string;
+                /** @description 匹配 ETag 或 Last-Modified 才应用 Range；不匹配发送完整文件 */
+                "If-Range"?: string;
+            };
+            path: {
+                buildNumber: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 已发布且已验证的完整 APK；HEAD 无正文 */
+            200: {
+                headers: {
+                    "Content-Type"?: "application/vnd.android.package-archive";
+                    /** @description 本次响应正文长度；HEAD 同 GET */
+                    "Content-Length"?: number;
+                    /** @description attachment; filename="wenyou-<version>-<build>.apk" */
+                    "Content-Disposition"?: string;
+                    /** @description private, no-store；禁止代理缓存绕过预算 */
+                    "Cache-Control"?: string;
+                    "Accept-Ranges"?: "bytes";
+                    /** @description 双引号包围的 SHA-256 */
+                    ETag?: string;
+                    /** @description 发布时间，HTTP-date */
+                    "Last-Modified"?: string;
+                    "x-amz-meta-apk-sha256"?: string;
+                    "x-amz-meta-application-id"?: "site.wenyou.app";
+                    "x-amz-meta-version-name"?: string;
+                    "x-amz-meta-version-code"?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.android.package-archive": string;
+                };
+            };
+            /** @description 单段范围；HEAD 无正文 */
+            206: {
+                headers: {
+                    "Content-Type"?: "application/vnd.android.package-archive";
+                    /** @description 本次响应正文长度；HEAD 同 GET */
+                    "Content-Length"?: number;
+                    /** @description attachment; filename="wenyou-<version>-<build>.apk" */
+                    "Content-Disposition"?: string;
+                    /** @description private, no-store；禁止代理缓存绕过预算 */
+                    "Cache-Control"?: string;
+                    "Accept-Ranges"?: "bytes";
+                    /** @description 双引号包围的 SHA-256 */
+                    ETag?: string;
+                    /** @description 发布时间，HTTP-date */
+                    "Last-Modified"?: string;
+                    "x-amz-meta-apk-sha256"?: string;
+                    "x-amz-meta-application-id"?: "site.wenyou.app";
+                    "x-amz-meta-version-name"?: string;
+                    "x-amz-meta-version-code"?: string;
+                    "Content-Range"?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.android.package-archive": string;
+                };
+            };
+            /** @description 构建不存在或未发布 */
+            404: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 非法、多段或越界 Range */
+            416: {
+                headers: {
+                    /** @description bytes *\/<总长度> */
+                    "Content-Range"?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 请求频率、并发或持久化流量预算超限；Retry-After 秒 */
+            429: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 账本/目录依赖异常或网关未接通；文件缓存缺失/损坏、撤回/暂停也为 503；绝不回源 */
+            503: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    appDownloadsHead: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 仅单段 bytes=start-end、start- 或 -suffix；非法/多段为 416 */
+                Range?: string;
+                /** @description 匹配 ETag 或 Last-Modified 才应用 Range；不匹配发送完整文件 */
+                "If-Range"?: string;
+            };
+            path: {
+                buildNumber: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 已发布且已验证的完整 APK；HEAD 无正文 */
+            200: {
+                headers: {
+                    "Content-Type"?: "application/vnd.android.package-archive";
+                    /** @description 本次响应正文长度；HEAD 同 GET */
+                    "Content-Length"?: number;
+                    /** @description attachment; filename="wenyou-<version>-<build>.apk" */
+                    "Content-Disposition"?: string;
+                    /** @description private, no-store；禁止代理缓存绕过预算 */
+                    "Cache-Control"?: string;
+                    "Accept-Ranges"?: "bytes";
+                    /** @description 双引号包围的 SHA-256 */
+                    ETag?: string;
+                    /** @description 发布时间，HTTP-date */
+                    "Last-Modified"?: string;
+                    "x-amz-meta-apk-sha256"?: string;
+                    "x-amz-meta-application-id"?: "site.wenyou.app";
+                    "x-amz-meta-version-name"?: string;
+                    "x-amz-meta-version-code"?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.android.package-archive": string;
+                };
+            };
+            /** @description 单段范围；HEAD 无正文 */
+            206: {
+                headers: {
+                    "Content-Type"?: "application/vnd.android.package-archive";
+                    /** @description 本次响应正文长度；HEAD 同 GET */
+                    "Content-Length"?: number;
+                    /** @description attachment; filename="wenyou-<version>-<build>.apk" */
+                    "Content-Disposition"?: string;
+                    /** @description private, no-store；禁止代理缓存绕过预算 */
+                    "Cache-Control"?: string;
+                    "Accept-Ranges"?: "bytes";
+                    /** @description 双引号包围的 SHA-256 */
+                    ETag?: string;
+                    /** @description 发布时间，HTTP-date */
+                    "Last-Modified"?: string;
+                    "x-amz-meta-apk-sha256"?: string;
+                    "x-amz-meta-application-id"?: "site.wenyou.app";
+                    "x-amz-meta-version-name"?: string;
+                    "x-amz-meta-version-code"?: string;
+                    "Content-Range"?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.android.package-archive": string;
+                };
+            };
+            /** @description 构建不存在或未发布 */
+            404: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 非法、多段或越界 Range */
+            416: {
+                headers: {
+                    /** @description bytes *\/<总长度> */
+                    "Content-Range"?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 请求频率、并发或持久化流量预算超限；Retry-After 秒 */
+            429: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 账本/目录依赖异常或网关未接通；文件缓存缺失/损坏、撤回/暂停也为 503；绝不回源 */
+            503: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
     healthCheck: {
         parameters: {
             query?: never;

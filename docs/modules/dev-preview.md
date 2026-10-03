@@ -4,6 +4,8 @@
 
 Web 在 VPS 任务 Worktree 启动，Backend 预览提供真实内容的隔离副本；业务 API 和 Foundation 不变。依赖私有开发协议 Backend 提交 `321182fec15dc1b2bdaeed383c17e6925bbdb151` 的 `docs/dev-preview-session.md`，不依赖未提交源码。账号密码对应快照时点，浏览器固定访问同域 `/api/v1`。
 
+下载功能也可消费 Backend `1857d60fe3af309149eb5c1846be221d3a45fb86` 的 `sample: downloads` 合成消费者；它沿用相同身份协议，页面标识为“合成样本”，不得将其时间与内容称为真实生产快照或正式 APK 安装验收。
+
 先由 Backend `dev:preview start` 创建或恢复反馈批次并登记独立 `--web-port`，再将其 `consumer.json` 绝对路径传入：
 
 ```bash

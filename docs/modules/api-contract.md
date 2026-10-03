@@ -118,3 +118,9 @@ Web 通过独立管理 Cookie/CSRF 会话消费 `/admin/mobile-releases` 列表�
 ## 讨论定位窗口
 
 固定契约来自兼容后端提交 `62083784e27f697af3799e392011bf8f6dd825d2`，由正式 `contract:sync` 和 `generate:api` 同步，附带 `contracts/discussion-navigation.v1.json`。新增 `GET /subthreads/:subthreadId/posts/window` 与 `GET /posts/:id/replies/window`，`number / postId / cursor` 互斥，响应 `data` 自带双向游标、`items / pinnedItems / total / maxNumber / target`。空范围 `maxNumber` 为 null，作者筛选为空也可能仍有可跳转上界。`40010` 仅表示作者筛选排除目标；删除及不可见继续使用 404，不降级扫描旧分页。详情见 [主题帖详情](thread-detail.md)。兼容后端先发布，消费者随后发布；旧协议不在本次移除。
+
+## 公开 APP 下载
+
+固定契约来源为 Backend `1857d60fe3af309149eb5c1846be221d3a45fb86`。新增 `GET /app-downloads/android` 及固定构建 `GET/HEAD /app-downloads/android/{buildNumber}/file`；生成的 `AndroidDownloadInfoDto` 明确返回 `status`、仅 available 非空的 `release` 和 `retryAfterSeconds`。Web 消费信息 GET 和点击时 HEAD，正文 GET 交由浏览器下载；状态与交接边界见 [APP 下载](app-download.md)。
+
+固定 OpenAPI、媒体展示夹具与生成类型通过标准 `pnpm contract:sync`、`pnpm generate:api` 完整同步。检查指定 `WENYOUSITE_BACKEND_ROOT=/srv/wenyousite/wenyousite-backend` 与上述完整 `BACKEND_CONTRACT_REF`，只读取 Git 已提交产物。媒体夹具版本与 OpenAPI 均为 `5.31.0-dev.20261003.1`，不手改生成类型或降低同步校验。
