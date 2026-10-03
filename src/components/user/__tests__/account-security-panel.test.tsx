@@ -45,6 +45,7 @@ vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 import { toast } from "sonner";
 
 beforeEach(() => {
+  vi.clearAllMocks();
   sessionQuery.data = [
     { id: "current", platform: "web", deviceInfo: "Mozilla/5.0 raw-web-ua", isCurrent: true, signedInAt: "2026-08-01T00:00:00Z", lastActiveAt: "2026-08-01T01:00:00Z", createdAt: "2026-08-01T00:00:00Z", expiresAt: "2026-08-08T00:00:00Z" },
     { id: "remote", platform: "mobile", deviceInfo: "Dart/3 raw-mobile-ua", isCurrent: false, signedInAt: "2026-08-02T00:00:00Z", lastActiveAt: "2026-08-02T01:00:00Z", createdAt: "2026-08-02T00:00:00Z", expiresAt: "2026-09-01T00:00:00Z" },
@@ -67,13 +68,6 @@ afterEach(() => {
 });
 
 describe("AccountSecurityPanel", () => {
-  test("脱敏邮箱与密码操作归入账号安全", () => {
-    render(<AccountSecurityPanel />);
-    expect(screen.getByText("a***@example.com")).toBeInTheDocument();
-    expect(screen.queryByText("alice@example.com")).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "更换邮箱" })).toHaveAttribute("href", "/me/email");
-    expect(screen.getByRole("link", { name: "修改密码" })).toHaveAttribute("href", "/me/password");
-  });
   test("以友好终端文案展示双端登录且不泄露原始 UA", async () => {
     const user = userEvent.setup();
     render(<AccountSecurityPanel />);
@@ -83,17 +77,14 @@ describe("AccountSecurityPanel", () => {
     expect(screen.getByText("当前终端")).toBeInTheDocument();
     expect(screen.queryByText(/Mozilla\/5\.0/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Dart\/3/)).not.toBeInTheDocument();
-    expect(screen.getByText("用户二")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "退出登录" }));
-    await user.click(screen.getByRole("button", { name: "取消拉黑" }));
     expect(revokeMutate).toHaveBeenCalledWith("remote");
-    expect(unblockMutate).toHaveBeenCalledWith("u2");
     expect(toast.success).not.toHaveBeenCalledWith("已取消拉黑");
   });
 
   test("必须输入确认文字才能注销账号", async () => {
     const user = userEvent.setup();
-    render(<AccountSecurityPanel />);
+    render(<AccountSecurityPanel view="delete" />);
     const button = screen.getByRole("button", { name: "永久注销" });
     expect(button).toBeDisabled();
 
@@ -103,7 +94,8 @@ describe("AccountSecurityPanel", () => {
 
     expect(deleteMutate).toHaveBeenCalledTimes(1);
     expect(logout).toHaveBeenCalledTimes(1);
-    expect(replace).toHaveBeenCalledWith("/");
+    expect(logout).toHaveBeenCalledWith({ redirectTo: "/" });
+    expect(replace).not.toHaveBeenCalled();
   });
 
   test("429 时显示限流原因并支持手动重新加载", async () => {
@@ -140,4 +132,13 @@ describe("AccountSecurityPanel", () => {
     expect(times[1]).toHaveAttribute("datetime", "2026-08-03T02:04:00Z");
     expect(screen.queryByText(/legacy raw UA/)).not.toBeInTheDocument();
   });
+  test("黑名单弹窗可解除拉黑，不重复提示成功", async () => {
+    const user = userEvent.setup();
+    render(<AccountSecurityPanel view="blocked" />);
+    expect(screen.getByText("用户二")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "取消拉黑" }));
+    expect(unblockMutate).toHaveBeenCalledWith("u2");
+    expect(toast.success).not.toHaveBeenCalled();
+  });
+
 });

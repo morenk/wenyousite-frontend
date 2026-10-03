@@ -8,6 +8,9 @@ import {
   getAuthAccessToken,
 } from "@/lib/auth-store";
 
+const route = vi.hoisted(() => ({ pathname: "/me/email" }));
+vi.mock("next/navigation", () => ({ usePathname: () => route.pathname }));
+
 const mockUser: AuthUser = {
   id: "user-1",
   email: "test@example.com",
@@ -17,6 +20,7 @@ const mockUser: AuthUser = {
 };
 
 beforeEach(() => {
+  route.pathname = "/me/email";
   localStorage.clear();
   clearAuthSession({ announce: false });
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(null, { status: 401 })));
@@ -39,7 +43,7 @@ function TestComponent() {
       >
         login
       </button>
-      <button data-testid="logout-btn" onClick={logout}>
+      <button data-testid="logout-btn" onClick={() => logout()}>
         logout
       </button>
     </div>
@@ -148,4 +152,34 @@ describe("AuthProvider", () => {
       renderHook(() => useAuth());
     }).toThrow("useAuth must be used within AuthProvider");
   });
+});
+
+
+test("成功退出落点仅保留在内存，再登录时清除", async () => {
+  const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
+  await vi.waitFor(() => expect(result.current.isInitialized).toBe(true));
+  act(() => result.current.setAuth(mockUser, "test-token"));
+  act(() => result.current.logout({ redirectTo: "/login?next=%2Fme%23security" }));
+  expect(result.current.user).toBeNull();
+  expect(result.current.logoutDestination).toBe("/login?next=%2Fme%23security");
+  expect(getAuthAccessToken()).toBeNull();
+  expect(localStorage.length).toBe(0);
+  act(() => result.current.setAuth(mockUser, "new-token"));
+  expect(result.current.logoutDestination).toBeNull();
+  act(() => result.current.logout({ redirectTo: "https://external.invalid/" }));
+  expect(result.current.logoutDestination).toBe("/");
+});
+
+
+test("成功导航完成后不再影响后续受保护页面", async () => {
+  const { result, rerender } = renderHook(() => useAuth(), { wrapper: AuthProvider });
+  await vi.waitFor(() => expect(result.current.isInitialized).toBe(true));
+  act(() => result.current.setAuth(mockUser, "test-token"));
+  act(() => result.current.logout({ redirectTo: "/login?next=%2Fme%23security" }));
+  route.pathname = "/login";
+  rerender();
+  expect(result.current.logoutDestination).toBeNull();
+  route.pathname = "/me/email";
+  rerender();
+  expect(result.current.logoutDestination).toBeNull();
 });

@@ -59,3 +59,19 @@ describe("RequireAuth", () => {
     expect(mockReplace).not.toHaveBeenCalled();
   });
 });
+
+
+test("主动退出使用业务成功落点，不覆盖为原表单的登录地址", async () => {
+  mockUseAuth.mockReturnValue({ user: loggedInUser, isInitialized: true, logoutDestination: null });
+  const view = render(<RequireAuth>换绑表单</RequireAuth>);
+  mockUseAuth.mockReturnValue({ user: null, isInitialized: true, logoutDestination: "/login?next=%2Fme%23security" });
+  view.rerender(<RequireAuth>换绑表单</RequireAuth>);
+  await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/login?next=%2Fme%23security"));
+  expect(mockReplace.mock.calls.every(([href]) => href === "/login?next=%2Fme%23security")).toBe(true);
+  expect(screen.queryByText("换绑表单")).not.toBeInTheDocument();
+  view.unmount();
+  mockReplace.mockClear();
+  mockUseAuth.mockReturnValue({ user: null, isInitialized: true, logoutDestination: null });
+  render(<RequireAuth>后续访问</RequireAuth>);
+  await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/login?next=%2Fbookmarks"));
+});

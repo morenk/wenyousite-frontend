@@ -8,15 +8,15 @@
 - `/users/[id]` 用户资料使用路由分组共享 Layout 承载资料头部与吸顶 Tab；Tab 路由主动预取，切换时只替换内容区且资料头不卸载，慢速切换只显示局部骨架；概览展示创作活动汇总和允许公开的最近回复，动态列表只留在动态 Tab，未激活内容不挂载查询
 - 关注/取消关注、拉黑/取消拉黑（仅登录，用户主页操作）
 - 草稿箱：未发布帖列表（进入 `/threads/create` 草稿列表查看，可跳转继续编辑或删除）
-- `/me` 个人资料：公开资料、主页背景、主页公开范围使用独立有边界的区块，区块间与操作栏保留留白；头像与用户名分行排列，背景画幅使用共享分段 Tabs，预览与操作栏分离；常规操作使用统一尺寸的描边按钮，保存使用主操作样式，简介与隐私分别保存且仅在有修改时显示撤销；等级、精确经验与累计收款默认折叠于底部
-- 设置页使用“个人资料 / 账号与安全”横向文字导航；`/me/appearance`、`/me/privacy` 和旧 `/me#profile-appearance` 分别兼容跳转到 `/me` 内对应锚点
+- `/me` 为统一设置首页，按个人资料、隐私与关系、账号与安全分组展示摘要；头像、用户名、简介、背景归于个人资料，公开范围与黑名单归于隐私与关系，等级与创作激励、注销账号各自保留独立入口；分组名称位于容器外，整行进入编辑，行高至少 64px，组内分隔线统一缩进。首页不展示表单、保存栏或危险确认框；简介摘要最多两行。
+- 账户入口、本人主页入口与页面标题统一为“设置”。设置首页取消横向分区导航；头像、用户名、简介、背景、公开范围、登录终端、黑名单与等级均按需打开统一 Dialog。图片查看与裁剪在同一弹窗内切换；登录终端、黑名单仅打开时挂载查询。
 - `/me/password` 修改密码页：当前密码/新密码/确认新密码（显示/隐藏切换 + 需求提示），成功后登出跳登录
-- `/me/email` 更换邮箱页：当前密码二次认证 → 新邮箱 → 6 位验证码，成功后失效 me 缓存并返回 `/me/security`
-- `/me/security` 账号与安全页：脱敏邮箱、更换邮箱与修改密码入口、双端登录终端、黑名单、独立危险操作区
+- `/me/email` 更换邮箱页：当前密码二次认证 → 新邮箱 → 6 位验证码，成功后仅标记 me 缓存失效，清空已被后端撤销的登录态；重新登录后返回 `/me#security`
+- `/me/security` 兼容跳转到 `/me#security`；`/me/appearance`、`/me/privacy` 与旧 `/me#profile-appearance` 保留并定位到相应设置行。密码、邮箱仍为独立页面，返回入口指向统一首页账号分组。
 - 登录终端的跨端安全约束见 `docs/modules/auth.md`
 - 参与列表排除自建帖：只有被授予玩家身份（`playerMarked=true`）的帖子才计入，仅回复过而生成的候选成员关系不计入；本人可按“全部 / 公开帖 / 私密帖”分类，他人仅可见公开帖
 
-资料、密码、邮箱与账号安全页面及其弹窗属于功能界面：标题使用系统字体 body 600，正文和控件使用系统字体 body，数字保留 utility 字体；字号、行高和布局保持原有设置页面层级。
+资料、密码、邮箱与账号安全页面及其弹窗属于功能界面：标题使用系统字体 body 600，正文和控件使用系统字体 body，数字保留 utility 字体；字号与行高消费共享角色，设置行名称与当前值对齐，键盘焦点不叠加 outline 和 ring。
 
 ## 2. 页面与路由
 
@@ -28,12 +28,12 @@
 | `/users/[id]/bookmarks` | 收藏 Tab：只读收藏列表 | 公开（受 showBookmarks 控制；无权限时不挂载查询） |
 | `/users/[id]/following` | 该用户关注的人列表 | 公开（OptionalAuth） |
 | `/users/[id]/followers` | 该用户的粉丝列表 | 公开（OptionalAuth） |
-| `/me` | 个人资料（头像、用户名、简介、背景、公开范围与等级） | Auth（仅本人） |
+| `/me` | 设置首页：资料、主页、安全与等级摘要及按需编辑入口 | Auth（仅本人） |
 | `/me/appearance` | 兼容入口，重定向到 `/me#appearance` | Auth（仅本人） |
 | `/me/privacy` | 兼容入口，重定向到 `/me#privacy` | Auth（仅本人） |
 | `/me/password` | 修改密码（成功后登出跳登录） | Auth（仅本人） |
 | `/me/email` | 更换邮箱（当前密码二次认证 + 验证码） | Auth（仅本人） |
-| `/me/security` | 登录凭据、Web / 移动端登录终端、黑名单和注销账号 | Auth（仅本人） |
+| `/me/security` | 兼容入口，重定向到 `/me#security` | Auth（仅本人） |
 
 > 草稿箱不占独立路由：未发布帖列表位于 `/threads/create` 的草稿选择器，入口规则见 `docs/modules/thread-create.md`。
 
@@ -47,7 +47,7 @@
 | DELETE | `/users/me/avatar` | Auth | 移除头像（置空 avatar，回到首字母占位） |
 | PATCH | `/users/me/profile-cover` | Auth | 原子设置双画幅主页背景（Web 3:1 `mediaId` + 移动端 2:1 `mobileMediaId`） |
 | DELETE | `/users/me/profile-cover` | Auth | 同时移除两端主页背景并恢复无背景的紧凑资料卡 |
-| POST | `/auth/change-password` | AuthRead | 修改密码（旧+新），成功后退出全部登录终端并强制重新登录 |
+| POST | `/auth/change-password` | Auth | 修改密码（旧+新），成功后退出全部登录终端并强制重新登录 |
 | POST | `/auth/change-email/request-code` | Auth | 更换邮箱第一步：校验当前密码后向新邮箱发送验证码 |
 | POST | `/auth/change-email/verify` | Auth | 更换邮箱第二步：验证码确认并更新邮箱 |
 | GET | `/users/:id` | OptionalAuth | 用户公开资料；登录态额外返回 isFollowing/isFollowedBy/isBlocked/isBlockedBy |
@@ -263,13 +263,13 @@
 | UserThreadsPage | `src/components/user/user-threads-page.tsx` | 帖子 Tab：创建/参与使用二级切换，只挂载当前无限列表 |
 | UserBookmarksPage | `src/components/user/user-bookmarks-page.tsx` | 收藏 Tab：尊重公开权限，无权限时不发起收藏请求 |
 | DraftList | `src/components/user/draft-list.tsx` | 草稿箱列表（标题/分类/更新时间/继续编辑/删除） |
-| SettingsShell | `src/components/user/settings-shell.tsx` | 内容宽度设置页、双项横向导航与动态主标题，邮箱/密码子页保持账号与安全分区选中 |
-| ProfileEditForm | `src/components/user/profile-edit-form.tsx` | 合并头像、用户名、简介、背景、隐私和等级；简介/隐私按分区保存与撤销，保留脏字段并保护离页 |
-| UsernameEdit | `src/components/user/username-edit.tsx` | 独立用户名修改（默认只读，点「修改用户名」才打开独立弹窗，未改动不提交） |
+| SettingsShell | `src/components/user/settings-shell.tsx` | 设置首页内容宽度与功能标题；密码、邮箱子页使用窄表单和返回设置入口 |
+| ProfileEditForm | `src/components/user/profile-edit-form.tsx` | 统一设置分组与摘要，按需挂载独立编辑器，一次打开一个编辑弹窗 |
+| UsernameEdit | `src/components/user/username-edit.tsx` | 用户名编辑弹窗，未改动不提交，保留修改冷却与服务端错误 |
 | AvatarUploader | `src/components/user/avatar-uploader.tsx` | 头像上传器：预览（512×512 WebP 母版/首字母占位）→ 文件选择校验（仅 jpg/png/webp，排除 svg）→ 共享 Dialog 内用 react-easy-crop 1:1 裁剪 → canvas 优先导出 512×512 WebP，Safari 编码回退时按真实 PNG/JPEG 上传 → 预签名直传（真实字节进度、可取消、同 ID 恢复）→ `PATCH /me/avatar` 立即生效；绑定失败重试复用已上传 mediaId；「移除头像」调 `DELETE /me/avatar` |
 | ProfileCoverUploader | `src/components/user/profile-cover-uploader.tsx` | 双画幅背景上传器：同一原图分别调整 Web 3:1 与移动端 2:1 取景框 → 并行生成 1920×640 / 1600×800 高质量图片（优先 WebP，按浏览器真实 PNG/JPEG 回退）→ 并行上传并聚合进度 → 原子绑定；支持失败续传、取消、更换和同时移除 |
 | ChangePasswordForm | `src/components/user/change-password-form.tsx` | 修改密码表单（当前/新/确认密码，PasswordInput 显隐切换），成功后登出跳登录 |
-| ChangeEmailForm | `src/components/user/change-email-form.tsx` | 更换邮箱表单（当前密码二次认证 → 新邮箱 → 验证码），成功后失效 me 缓存并返回 `/me/security` |
+| ChangeEmailForm | `src/components/user/change-email-form.tsx` | 更换邮箱表单（当前密码二次认证 → 新邮箱 → 验证码），成功后仅标记 me 缓存失效，清空已被后端撤销的登录态；重新登录后返回 `/me#security` |
 | PasswordInput | `src/components/ui/password-input.tsx` | 密码输入框（Eye/EyeOff 显示/隐藏切换） |
 | useSetAvatar | `src/api/hooks/use-set-avatar.ts` | 设置/移除头像 hook（PATCH/DELETE `/users/me/avatar`，成功后失效 me/user 缓存） |
 | useSetProfileCover | `src/api/hooks/use-set-profile-cover.ts` | 设置/移除双画幅主页背景 hook（PATCH 同时发送 `mediaId` 与 `mobileMediaId`，DELETE 清除两端；成功后失效 me/user 缓存） |
@@ -286,7 +286,7 @@
 | useUpdateProfile | `src/api/hooks/use-update-profile.ts` | 修改资料 mutation |
 | useDrafts | `src/api/hooks/use-drafts.ts` | 草稿列表 hook |
 | UserProfilePage | `src/app/users/[id]/(profile)/page.tsx` | 用户资料概览：创作汇总与最近回复；URL 仍为 `/users/[id]` |
-| MePage | `src/app/me/page.tsx` | 我的资料编辑 |
+| MePage | `src/app/me/page.tsx` | 统一设置首页 |
 | AccountSecurityPanel | `src/components/user/account-security-panel.tsx` | 双端登录终端、黑名单和账号注销三块安全操作；当前终端不可远程退出 |
 | useAccountSecurity | `src/api/hooks/use-account-security.ts` | 登录终端列表/退出、黑名单/取消拉黑、注销账号 hooks |
 
@@ -298,13 +298,13 @@
 
 - 简介仅提交 `{ bio }`，去除首尾空白，最多 255 字。当前后端不接受空字符串；清空已有简介或仅输入空白会在字段下提示，不发送无效请求，不显示成功。
 - 隐私仅提交 `showRecentReplies`、`showPlayerBadges`、`showBookmarks` 三个布尔字段，切换复选框不会立即提交。
-- 未改动时禁用保存；简介和隐私各自在内容下方显示未保存/保存中/已保存/失败状态并提供撤销，不使用常驻底栏。保存期间禁用重复提交。
+- 未改动时禁用保存；简介和隐私分别在弹窗中编辑，页脚只有取消与保存，失败在表单内提示。保存期间禁用重复提交，成功后关闭弹窗并刷新摘要。
 - 资料重新获取和用户名保存后，只更新未编辑字段，保留正在编辑的简介/隐私草稿；请求失败保留输入并支持重试。
 - 简介、隐私或用户名有草稿时，站内导航先确认放弃；刷新/关页使用浏览器原生提示。当前支持 Navigation API 的浏览器在历史返回/前进前确认，保存期间阻止站内离开。
 
 **独立用户名修改**（`UsernameEdit`，`usernameSchema`）：
-- 默认只读展示当前用户名，点「修改用户名」才打开独立弹窗
-- 输入值 trim 后与当前用户名相同 → 不发请求直接收起
+- 首页只读展示当前用户名，点用户名行打开独立弹窗
+- 输入值 trim 后与当前用户名相同 → 保存禁用，不发请求
 - 不同则校验后 `PATCH /users/me { username }`，成功后用 `setAuth` 同步导航栏用户名
 - `username`: 2-24 位，字母/数字/中文，禁标点符号与特殊字符
 
@@ -326,7 +326,7 @@
 | 场景 | 处理 |
 |------|------|
 | 未登录查看用户主页 | 显示公开资料，不显示关注/拉黑按钮 |
-| 查看自己主页 | 显示"编辑资料"入口（跳 /me），不显示关注/拉黑按钮 |
+| 查看自己主页 | 显示“设置”入口（跳 /me），不显示关注/拉黑按钮 |
 | 查看自己的参与列表 | 只返回已获授玩家身份的非自建帖子（可含私密帖），可按全部/公开帖/私密帖分类 |
 | 查看他人的参与列表 | 不显示分类控件；后端仅返回 PUBLIC 且 playerMarked=true 的帖子，绝不返回私密帖 |
 | 关注/拉黑他人 | 仅登录；isFollowing/isBlocked 为 true 时按钮切换为取消态；成功后重置用户、内容、搜索、通知与私聊缓存；双方不可见且禁止互动，历史记录保留，解除后按当前权限恢复；失败显示错误 Toast |
@@ -356,13 +356,17 @@
 - 已注销用户在全站用户摘要中统一显示“已注销用户”与灰色用户图标
 - 全站 `/users/{id}` 链接可正常跳转
 - 草稿箱（`/threads/create` 草稿列表）列出我的未发布帖，可跳转编辑、可删除
-- `/me` 在一个页面内提供头像、用户名、简介、双画幅背景和隐私；简介与隐私可同时保留草稿并分别保存，用户名成功后其他草稿仍保留
+- `/me` 首页只展示摘要；点击进入编辑，未改动不可提交，用户名、简介与公开范围统一使用“取消／保存”页脚。公开范围摘要列出具体公开项目（最近回复、参与主题帖、收藏），不以“全部公开”概括账号。简介和公开范围分别保存，成功刷新摘要并关闭，失败保留输入；后台刷新不得覆盖草稿。
 - `/me/appearance`、`/me/privacy` 与旧外观锚点正确跳转到合并页对应位置；背景默认电脑端预览，切换移动端后正确显示独立背景或旧背景兜底
-- `/me/security` 以“Web 端登录/移动端登录”展示双端登录终端，不显示原始 UA
-- `/me/security` 正确标记当前终端，并可退出另一登录终端
+- 登录终端弹窗以“Web 端登录/移动端登录”展示双端登录终端，不显示原始 UA
+- 登录终端弹窗正确标记当前终端，并可退出另一登录终端
 - 登录终端登录时间在 token 轮转后保持不变，账号切换不复用旧账号缓存
-- `/me/security` 可查看黑名单并取消拉黑
-- 输入确认文字后可注销账号并清空登录态
+- 黑名单弹窗可查看并取消拉黑，加载、失败重试与空状态均可见
+- 注销入口位于首页底部独立行；弹窗输入确认文字后仍需最终确认，失败保留状态，成功清空登录态
+
+编辑弹窗有未保存修改时，关闭、Escape、遮罩或离页均先确认；提交期间禁止关闭与重复写入。关闭后焦点返回入口；简介字段校验失败后，待控件恢复可编辑再将焦点返回输入框。分组首尾行与单行组的高亮贴合圆角，表单焦点只有一层，错误态保留错误色。明暗主题验收覆盖 1024–1920px 桌面视口、长文本与 200% 缩放。
+
+`e2e/settings-workspace.spec.ts` 使用合成 API 数据检查布局、弹窗、草稿保护、失败重试和裁剪；其中 200% 使用 CSS zoom 模拟，不能替代浏览器原生缩放验收。`e2e/settings-real-api.spec.ts` 使用正式一次性隔离 runner，通过本地邮件收件箱注册临时账号，验证简介和隐私持久化、终端撤销、取消拉黑、邮箱验证码及冷却、密码修改后退出、注销二次确认。账号与邮件随 runner 回收，不写入人用实时预览。普通 E2E runner 关闭对象存储，图片成功上传与绑定需另用具备隔离媒体服务的环境验收。
 
 简介上限255按Unicode码点计数，与后端一致；不支持清空已填写简介的约束不变。
 

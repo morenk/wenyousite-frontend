@@ -10,6 +10,9 @@ const { mockUseUpdateProfile } = vi.hoisted(() => ({
   mockUseUpdateProfile: vi.fn(),
 }));
 
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+vi.mock("@/components/ui/confirm-provider", () => ({ useConfirm: () => vi.fn().mockResolvedValue(true) }));
+
 vi.mock("@/lib/auth", () => ({
   useAuth: () => mockUseAuth(),
 }));
@@ -56,31 +59,11 @@ describe("UsernameEdit", () => {
 
   afterEach(() => cleanup());
 
-  test("默认只读展示当前用户名，不显示输入框", () => {
+  test("弹窗回填当前用户名，未修改时不能提交", () => {
     renderWithQC(<UsernameEdit currentUsername="morenk" />);
-    expect(screen.getByText("morenk")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "修改用户名" })).toBeInTheDocument();
-    expect(screen.queryByPlaceholderText("输入新用户名")).not.toBeInTheDocument();
-  });
-
-  test("点修改用户名进入编辑态", async () => {
-    const user = userEvent.setup();
-    renderWithQC(<UsernameEdit currentUsername="morenk" />);
-    await user.click(screen.getByRole("button", { name: "修改用户名" }));
-    expect(screen.getByPlaceholderText("输入新用户名")).toHaveValue("morenk");
-  });
-
-  test("未修改用户名直接保存：不发请求，仅收起", async () => {
-    const user = userEvent.setup();
-    const mutateAsync = vi.fn().mockResolvedValue(undefined);
-    mockUseUpdateProfile.mockReturnValue({ isPending: false, mutateAsync });
-
-    renderWithQC(<UsernameEdit currentUsername="morenk" />);
-    await user.click(screen.getByRole("button", { name: "修改用户名" }));
-    await user.click(screen.getByRole("button", { name: "保存用户名" }));
-
-    expect(mutateAsync).not.toHaveBeenCalled();
-    expect(screen.queryByPlaceholderText("输入新用户名")).not.toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "修改用户名" })).toBeInTheDocument();
+    expect(screen.getByLabelText("新用户名")).toHaveValue("morenk");
+    expect(screen.getByRole("button", { name: "保存" })).toBeDisabled();
   });
 
   test("非法字符显示校验错误且不调接口", async () => {
@@ -89,10 +72,9 @@ describe("UsernameEdit", () => {
     mockUseUpdateProfile.mockReturnValue({ isPending: false, mutateAsync });
 
     renderWithQC(<UsernameEdit currentUsername="morenk" />);
-    await user.click(screen.getByRole("button", { name: "修改用户名" }));
-    await user.clear(screen.getByPlaceholderText("输入新用户名"));
-    await user.type(screen.getByPlaceholderText("输入新用户名"), "bad name!");
-    await user.click(screen.getByRole("button", { name: "保存用户名" }));
+    await user.clear(screen.getByLabelText("新用户名"));
+    await user.type(screen.getByLabelText("新用户名"), "bad name!");
+    await user.click(screen.getByRole("button", { name: "保存" }));
 
     expect(screen.getByText("用户名只能包含字母、数字和中文")).toBeInTheDocument();
     expect(mutateAsync).not.toHaveBeenCalled();
@@ -104,10 +86,9 @@ describe("UsernameEdit", () => {
     mockUseUpdateProfile.mockReturnValue({ isPending: false, mutateAsync });
 
     renderWithQC(<UsernameEdit currentUsername="morenk" />);
-    await user.click(screen.getByRole("button", { name: "修改用户名" }));
-    await user.clear(screen.getByPlaceholderText("输入新用户名"));
-    await user.type(screen.getByPlaceholderText("输入新用户名"), "newuser");
-    await user.click(screen.getByRole("button", { name: "保存用户名" }));
+    await user.clear(screen.getByLabelText("新用户名"));
+    await user.type(screen.getByLabelText("新用户名"), "newuser");
+    await user.click(screen.getByRole("button", { name: "保存" }));
 
     expect(mutateAsync).toHaveBeenCalledWith({ username: "newuser" });
     expect(setAuth).toHaveBeenCalledWith(
@@ -125,10 +106,9 @@ describe("UsernameEdit", () => {
     });
 
     renderWithQC(<UsernameEdit currentUsername="morenk" />);
-    await user.click(screen.getByRole("button", { name: "修改用户名" }));
-    await user.clear(screen.getByPlaceholderText("输入新用户名"));
-    await user.type(screen.getByPlaceholderText("输入新用户名"), "taken");
-    await user.click(screen.getByRole("button", { name: "保存用户名" }));
+    await user.clear(screen.getByLabelText("新用户名"));
+    await user.type(screen.getByLabelText("新用户名"), "taken");
+    await user.click(screen.getByRole("button", { name: "保存" }));
 
     expect(screen.getByText("用户名已被占用")).toBeInTheDocument();
   });
@@ -144,10 +124,9 @@ describe("UsernameEdit", () => {
     });
 
     renderWithQC(<UsernameEdit currentUsername="morenk" />);
-    await user.click(screen.getByRole("button", { name: "修改用户名" }));
-    await user.clear(screen.getByPlaceholderText("输入新用户名"));
-    await user.type(screen.getByPlaceholderText("输入新用户名"), "taken");
-    await user.click(screen.getByRole("button", { name: "保存用户名" }));
+    await user.clear(screen.getByLabelText("新用户名"));
+    await user.type(screen.getByLabelText("新用户名"), "taken");
+    await user.click(screen.getByRole("button", { name: "保存" }));
 
     expect(screen.getByText("用户名修改后需间隔 7 天，剩余 6 天")).toBeInTheDocument();
   });

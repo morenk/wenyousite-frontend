@@ -2,7 +2,6 @@
 
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -13,22 +12,26 @@ import {
   type ChangePasswordFormData,
 } from "@/lib/validations/auth";
 import { useAuth } from "@/lib/auth";
+import { useSettingsLeaveGuard } from "./use-settings-leave-guard";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { PasswordInput } from "@/components/ui/password-input";
 
 export function ChangePasswordForm() {
-  const router = useRouter();
   const { logout } = useAuth();
   const changePassword = useChangePassword();
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    setError,
+    formState: { errors, isDirty, isSubmitting },
   } = useForm<ChangePasswordFormData>({
     resolver: zodResolver(changePasswordSchema),
     defaultValues: { oldPassword: "", newPassword: "", confirmPassword: "" },
   });
+
+  const busy = changePassword.isPending || isSubmitting;
+  useSettingsLeaveGuard(isDirty, busy);
 
   const onSubmit = async (values: ChangePasswordFormData) => {
     try {
@@ -38,10 +41,9 @@ export function ChangePasswordForm() {
       });
       toast.success("密码已修改，请重新登录");
       // 后端已吊销全部 refresh token，所有登录终端强制退出
-      logout();
-      router.replace("/login");
+      logout({ redirectTo: "/login" });
     } catch (err) {
-      toast.error(getApiErrorMessage(err, "修改失败，请稍后重试"));
+      setError("root", { message: getApiErrorMessage(err, "修改失败，请稍后重试") });
     }
   };
 
@@ -51,6 +53,7 @@ export function ChangePasswordForm() {
         {(controlProps) => (
           <PasswordInput
             {...controlProps}
+            disabled={busy}
             autoComplete="current-password"
             {...register("oldPassword")}
           />
@@ -60,6 +63,7 @@ export function ChangePasswordForm() {
         {(controlProps) => (
           <PasswordInput
             {...controlProps}
+            disabled={busy}
             autoComplete="new-password"
             placeholder="至少 8 位，需包含字母和数字"
             {...register("newPassword")}
@@ -70,15 +74,18 @@ export function ChangePasswordForm() {
         {(controlProps) => (
           <PasswordInput
             {...controlProps}
+            disabled={busy}
             autoComplete="new-password"
             {...register("confirmPassword")}
           />
         )}
       </FormField>
+      {errors.root ? <p role="alert" className="text-sm text-destructive">{errors.root.message}</p> : null}
       <div className="flex justify-end">
         <Button
           type="submit"
-          pending={changePassword.isPending}
+          pending={busy}
+          disabled={!isDirty}
           pendingLabel="保存中…"
         >
           保存新密码

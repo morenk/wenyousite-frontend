@@ -92,7 +92,8 @@ export function useChangeEmailVerify() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.me }),
+    // 后端已撤销全部会话；仅标记失效，避免重新请求 me 抢先触发登录跳转。
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.me, refetchType: "none" }),
   });
 }
 

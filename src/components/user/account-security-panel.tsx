@@ -1,11 +1,10 @@
-/** 账号安全面板：管理双端登录终端、黑名单和账号注销 */
-
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Loader2, Monitor, RefreshCw, Smartphone } from "lucide-react";
+import { useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { getLoginTerminalLabel } from "@/lib/session-display";
@@ -19,196 +18,292 @@ import {
 import { getApiError, getApiErrorMessage } from "@/api/errors";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { WenyouTime } from "@/components/shared/wenyou-time";
-import { Button } from "@/components/ui/button";
-import { useMe } from "@/api/hooks/use-me";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { FormField } from "@/components/ui/form-field";
+import { DialogClose, DialogFooter } from "@/components/ui/dialog";
 import { useConfirm } from "@/components/ui/confirm-provider";
+import { SettingsDialog, type SettingsDialogProps } from "./settings-controls";
 
-function getSessionErrorMessage(error: unknown) {
-  const code = getApiError(error).code;
-  return code === 42900 ? "操作太频繁，请稍后再试" : "登录终端加载失败";
+type DialogProps = Pick<SettingsDialogProps, "onClose" | "returnFocus">;
+export function AccountSecurityPanel({
+  view = "sessions",
+  ...props
+}: DialogProps & { view?: "sessions" | "blocked" | "delete" }) {
+  if (view === "blocked") return <BlockedUsers {...props} />;
+  if (view === "delete") return <DeleteAccount {...props} />;
+  return <LoginSessions {...props} />;
 }
 
-export function AccountSecurityPanel() {
-  const router = useRouter();
-  const { logout, user } = useAuth();
-  const me = useMe();
-  const email = me.data?.email;
-  const maskedEmail = email ? `${email.charAt(0)}***@${email.split("@")[1]}` : null;
+function LoginSessions(props: DialogProps) {
+  const { user } = useAuth();
   const sessions = useAccountSessions(user?.id);
-  const blockedUsers = useBlockedUsers(user?.id);
-  const revokeSession = useRevokeSession(user?.id);
-  const unblockUser = useUnblockUser();
-  const deleteAccount = useDeleteAccount();
-  const [confirmation, setConfirmation] = useState("");
-  const confirmAction = useConfirm();
-
-  async function handleRevoke(sessionId: string) {
+  const revoke = useRevokeSession(user?.id);
+  const [failure, setFailure] = useState<string | null>(null);
+  const [revoking, setRevoking] = useState<string | null>(null);
+  const busy = revoke.isPending || revoking !== null;
+  async function handleRevoke(id: string) {
+    if (busy) return;
+    setFailure(null);
+    setRevoking(id);
     try {
-      await revokeSession.mutateAsync(sessionId);
+      await revoke.mutateAsync(id);
       toast.success("登录终端已退出");
-    } catch (error: unknown) {
-      toast.error(getApiErrorMessage(error, "退出失败，请稍后重试"));
+    } catch (error) {
+      setFailure(getApiErrorMessage(error, "退出失败，请稍后重试"));
+    } finally {
+      setRevoking(null);
     }
   }
-
-  async function handleUnblock(userId: string) {
-    try {
-      await unblockUser.mutateAsync(userId);
-    } catch (error: unknown) {
-      toast.error(getApiErrorMessage(error, "操作失败，请稍后重试"));
-    }
-  }
-
-  async function handleDeleteAccount() {
-    if (confirmation !== "注销账号") return;
-    if (!(await confirmAction({
-      title: "注销账号",
-      description: "账号注销后无法恢复，确定继续吗？",
-      confirmLabel: "永久注销",
-      destructive: true,
-    }))) return;
-    try {
-      await deleteAccount.mutateAsync();
-      logout();
-      toast.success("账号已注销");
-      router.replace("/");
-      router.refresh();
-    } catch (error: unknown) {
-      toast.error(getApiErrorMessage(error, "注销失败，请稍后重试"));
-    }
-  }
-
   return (
-    <div className="space-y-8">
-      <section aria-labelledby="security-credentials" className="border-b border-border pb-6">
-        <h2 id="security-credentials" className="mb-4 font-sans text-base font-semibold">登录凭据</h2>
-        <div className="flex items-center justify-between gap-4 py-3">
-          <div className="text-sm"><p className="font-medium">邮箱</p>
-            {maskedEmail ? <p className="mt-1 text-muted-foreground">{maskedEmail}</p> : me.error ? <p role="alert" className="text-destructive">邮箱加载失败 <Button variant="link" size="compact" onClick={() => void me.refetch()}>重试</Button></p> : <p role="status" className="text-muted-foreground">正在加载邮箱…</p>}
-          </div>
-          <Link href="/me/email" className="inline-flex min-h-10 items-center rounded-[var(--radius-control)] text-sm text-brand-strong outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring">更换邮箱</Link>
-        </div>
-        <div className="flex items-center justify-between gap-4 border-t border-border py-3">
-          <p className="text-sm font-medium">密码</p>
-          <Link href="/me/password" className="inline-flex min-h-10 items-center rounded-[var(--radius-control)] text-sm text-brand-strong outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring">修改密码</Link>
-        </div>
-      </section>
-      <section aria-labelledby="security-sessions" className="border-b border-border pb-6">
-        <h2 id="security-sessions" className="mb-4 font-sans text-base font-semibold">登录终端</h2>
+    <SettingsDialog title="登录终端" {...props} busy={busy}>
+      {sessions.isLoading ? (
+        <p role="status" className="text-sm text-muted-foreground">
+          正在加载…
+        </p>
+      ) : sessions.error ? (
         <div>
-          {sessions.isLoading ? (
-            <Loader2 className="mx-auto h-5 w-5 animate-spin text-muted-foreground" />
-          ) : sessions.error ? (
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm text-destructive">{getSessionErrorMessage(sessions.error)}</p>
+          <p role="alert" className="text-sm text-destructive">
+            {getApiError(sessions.error).code === 42900
+              ? "操作太频繁，请稍后再试"
+              : "登录终端加载失败"}
+          </p>
+          <Button
+            className="mt-3"
+            variant="outline"
+            onClick={() => void sessions.refetch()}
+          >
+            重新加载
+          </Button>
+        </div>
+      ) : sessions.data?.length ? (
+        <ul className="space-y-6">
+          {sessions.data.map((session) => (
+            <li
+              key={session.id}
+              className="flex items-start justify-between gap-4"
+            >
+              <div className="min-w-0 space-y-1">
+                <p className="text-sm font-medium">
+                  {getLoginTerminalLabel(session.platform)}
+                  {session.isCurrent ? (
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      当前终端
+                    </span>
+                  ) : null}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  登录于{" "}
+                  <WenyouTime
+                    mode="exact"
+                    value={session.signedInAt ?? session.createdAt}
+                  />
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  最近活动{" "}
+                  <WenyouTime
+                    mode="exact"
+                    value={session.lastActiveAt ?? session.createdAt}
+                  />
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  有效期至 <WenyouTime mode="exact" value={session.expiresAt} />
+                </p>
+              </div>
+              {!session.isCurrent ? (
+                <Button
+                  variant="outline"
+                  disabled={busy}
+                  pending={revoking === session.id}
+                  pendingLabel="退出中"
+                  onClick={() => void handleRevoke(session.id)}
+                >
+                  退出登录
+                </Button>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm text-muted-foreground">暂无登录终端</p>
+      )}
+      {failure ? (
+        <p role="alert" className="mt-4 text-sm text-destructive">
+          {failure}
+        </p>
+      ) : null}
+    </SettingsDialog>
+  );
+}
+
+function BlockedUsers(props: DialogProps) {
+  const { user } = useAuth();
+  const blocked = useBlockedUsers(user?.id);
+  const unblock = useUnblockUser();
+  const [unblocking, setUnblocking] = useState<string | null>(null);
+  const [failure, setFailure] = useState<string | null>(null);
+  const busy = unblock.isPending || unblocking !== null;
+  async function handleUnblock(id: string) {
+    if (busy) return;
+    setFailure(null);
+    setUnblocking(id);
+    try {
+      await unblock.mutateAsync(id);
+    } catch (error) {
+      setFailure(getApiErrorMessage(error, "操作失败，请稍后重试"));
+    } finally {
+      setUnblocking(null);
+    }
+  }
+  return (
+    <SettingsDialog title="黑名单" {...props} busy={busy}>
+      {blocked.isLoading ? (
+        <p role="status" className="text-sm text-muted-foreground">
+          正在加载…
+        </p>
+      ) : blocked.error ? (
+        <div>
+          <p role="alert" className="text-sm text-destructive">
+            黑名单加载失败
+          </p>
+          <Button
+            className="mt-3"
+            variant="outline"
+            onClick={() => void blocked.refetch()}
+          >
+            重新加载
+          </Button>
+        </div>
+      ) : blocked.data?.length ? (
+        <ul className="space-y-5">
+          {blocked.data.map(({ id, blocked: person }) => (
+            <li key={id} className="flex items-center justify-between gap-4">
+              <Link
+                href={`/users/${person.id}`}
+                className="flex min-w-0 items-center gap-3 text-sm hover:underline"
+              >
+                <UserAvatar
+                  name={person.username}
+                  src={person.avatar}
+                  display={person.avatarDisplay}
+                  className="size-9"
+                />
+                <span className="break-words">{person.username}</span>
+              </Link>
               <Button
                 variant="outline"
-                size="sm"
-                onClick={() => void sessions.refetch()}
+                disabled={busy}
+                pending={unblocking === person.id}
+                pendingLabel="处理中"
+                onClick={() => void handleUnblock(person.id)}
               >
-                <RefreshCw className="mr-1 h-4 w-4" />
-                重新加载
+                取消拉黑
               </Button>
-            </div>
-          ) : sessions.data?.length ? (
-            <ul className="divide-y divide-border">
-              {sessions.data.map((session) => (
-                <li key={session.id} className="flex items-center justify-between gap-4 py-3">
-                  <div className="flex min-w-0 items-start gap-3">
-                    {session.platform === "mobile" ? (
-                      <Smartphone aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
-                    ) : (
-                      <Monitor aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
-                    )}
-                    <div>
-                      <p className="text-sm font-medium">
-                        {getLoginTerminalLabel(session.platform)}
-                        {session.isCurrent && <span className="ml-2 text-xs text-brand-strong">当前终端</span>}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        登录于 <WenyouTime mode="exact" value={session.signedInAt ?? session.createdAt} /> · 最近活动 <WenyouTime mode="exact" value={session.lastActiveAt ?? session.createdAt} />
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        有效期至 <WenyouTime mode="exact" value={session.expiresAt} />
-                      </p>
-                    </div>
-                  </div>
-                  {!session.isCurrent && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={revokeSession.isPending}
-                      onClick={() => handleRevoke(session.id)}
-                    >
-                      退出登录
-                    </Button>
-                  )}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-muted-foreground">暂无活跃登录终端</p>
-          )}
-        </div>
-      </section>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm text-muted-foreground">黑名单为空</p>
+      )}
+      {failure ? (
+        <p role="alert" className="mt-4 text-sm text-destructive">
+          {failure}
+        </p>
+      ) : null}
+    </SettingsDialog>
+  );
+}
 
-      <section aria-labelledby="security-blocks" className="border-b border-border pb-6">
-        <h2 id="security-blocks" className="mb-4 font-sans text-base font-semibold">黑名单</h2>
-        <div>
-          {blockedUsers.isLoading ? (
-            <Loader2 className="mx-auto h-5 w-5 animate-spin text-muted-foreground" />
-          ) : blockedUsers.error ? (
-            <p role="alert" className="text-sm text-destructive">黑名单加载失败 <Button variant="link" size="compact" onClick={() => void blockedUsers.refetch()}>重试</Button></p>
-          ) : blockedUsers.data?.length ? (
-            <ul className="divide-y divide-border">
-              {blockedUsers.data.map(({ id, blocked }) => (
-                <li key={id} className="flex items-center justify-between gap-4 py-3">
-                  <Link href={`/users/${blocked.id}`} className="flex items-center gap-3 hover:text-brand-strong">
-                    <UserAvatar name={blocked.username} src={blocked.avatar} display={blocked.avatarDisplay} className="h-8 w-8" />
-                    <span className="text-sm font-medium">{blocked.username}</span>
-                  </Link>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={unblockUser.isPending}
-                    onClick={() => handleUnblock(blocked.id)}
-                  >
-                    取消拉黑
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-muted-foreground">黑名单为空</p>
-          )}
-        </div>
-      </section>
-
-      <section aria-labelledby="security-delete" className="rounded-[var(--radius-card)] border border-destructive/40 p-5">
-        <h2 id="security-delete" className="mb-3 font-sans text-base font-semibold text-destructive">注销账号</h2>
-        <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            注销后账号、登录终端和身份信息将无法恢复。请输入“注销账号”确认。
-          </p>
-          <div className="flex max-w-md gap-2">
+const deleteSchema = z.object({
+  confirmation: z
+    .string()
+    .refine((value): boolean => value === "注销账号", "请输入“注销账号”"),
+});
+function DeleteAccount(props: DialogProps) {
+  const { logout } = useAuth();
+  const mutation = useDeleteAccount();
+  const confirm = useConfirm();
+  const form = useForm<z.infer<typeof deleteSchema>>({
+    resolver: zodResolver(deleteSchema),
+    defaultValues: { confirmation: "" },
+  });
+  const confirmation = useWatch({
+    control: form.control,
+    name: "confirmation",
+  });
+  const busy = mutation.isPending || form.formState.isSubmitting;
+  const save = form.handleSubmit(async () => {
+    if (mutation.isPending) return;
+    if (
+      !(await confirm({
+        title: "注销账号",
+        description: "账号注销后无法恢复，确定继续吗？",
+        confirmLabel: "永久注销",
+        destructive: true,
+      }))
+    )
+      return;
+    try {
+      await mutation.mutateAsync();
+      logout({ redirectTo: "/" });
+      toast.success("账号已注销");
+    } catch (error) {
+      form.setError("root", {
+        message: getApiErrorMessage(error, "注销失败，请稍后重试"),
+      });
+    }
+  });
+  return (
+    <SettingsDialog
+      title="注销账号"
+      {...props}
+      busy={busy}
+      dirty={form.formState.isDirty}
+    >
+      <p className="mb-5 text-sm text-muted-foreground">
+        注销后账号、登录终端和身份信息将无法恢复。
+      </p>
+      <form onSubmit={save}>
+        <FormField
+          id="delete-confirmation"
+          label="输入“注销账号”确认"
+          error={form.formState.errors.confirmation?.message}
+        >
+          {(field) => (
             <Input
+              {...field}
               aria-label="注销确认文字"
-              value={confirmation}
-              onChange={(event) => setConfirmation(event.target.value)}
-              placeholder="注销账号"
+              autoComplete="off"
+              disabled={busy}
+              {...form.register("confirmation", {
+                onChange: () => form.clearErrors(),
+              })}
             />
-            <Button
-              variant="destructive"
-              disabled={confirmation !== "注销账号" || deleteAccount.isPending}
-              onClick={handleDeleteAccount}
-            >
-              {deleteAccount.isPending && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
-              永久注销
-            </Button>
-          </div>
-        </div>
-      </section>
-    </div>
+          )}
+        </FormField>
+        {form.formState.errors.root ? (
+          <p role="alert" className="mt-3 text-sm text-destructive">
+            {form.formState.errors.root.message}
+          </p>
+        ) : null}
+        <DialogFooter className="mt-6">
+          <DialogClose
+            disabled={busy}
+            className={buttonVariants({ variant: "outline" })}
+          >
+            取消
+          </DialogClose>
+          <Button
+            type="submit"
+            variant="destructive"
+            disabled={confirmation !== "注销账号"}
+            pending={busy}
+            pendingLabel="处理中"
+          >
+            永久注销
+          </Button>
+        </DialogFooter>
+      </form>
+    </SettingsDialog>
   );
 }

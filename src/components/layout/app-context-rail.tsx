@@ -67,7 +67,7 @@ export function AppContextRail() {
                 count={directMessageCount}
               />
               <ContextLink href="/bookmarks" icon={NAVIGATION_ICONS.bookmarks} label={NAVIGATION_LABELS.bookmarks} />
-              <ContextLink href="/me" icon="action.settings" label="资料与设置" />
+              <ContextLink href="/me" icon="action.settings" label="设置" />
             </nav>
           </div>
         </Panel>

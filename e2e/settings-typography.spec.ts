@@ -25,8 +25,8 @@ for (const colorScheme of ["light", "dark"] as const) {
     });
 
     for (const [path, title] of [
-      ["/me", "个人资料"], ["/me/password", "修改密码"],
-      ["/me/email", "更换邮箱"], ["/me/security", "账号与安全"],
+      ["/me", "设置"], ["/me/password", "修改密码"],
+      ["/me/email", "更换邮箱"], ["/me/security", "设置"],
     ]) {
       await page.goto(path);
       await expect(page.getByRole("heading", { name: title, level: 1 })).toBeVisible();
