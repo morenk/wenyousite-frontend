@@ -813,3 +813,19 @@ img.sticker-display {
 .wenyou-prose > p + p {
   margin-block-start: 0;
 }
+
+/* 设置页只保留一层键盘焦点，避免控件 ring 与全局 outline 叠加。 */
+[data-settings-surface] :where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+[data-settings-surface] :where(input:not([type="checkbox"]):not([type="radio"]), textarea, select):focus-visible {
+  outline-offset: -1px;
+}
+[data-settings-surface] :where(input, textarea, select)[aria-invalid="true"]:focus-visible {
+  outline-color: var(--destructive);
+}
+[data-settings-surface] .settings-row:focus-visible {
+  outline-offset: -2px;
+}

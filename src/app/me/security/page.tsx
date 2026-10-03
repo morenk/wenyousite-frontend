@@ -1,5 +1,5 @@
-import { AccountSecurityPanel } from "@/components/user/account-security-panel";
+import { redirect } from "next/navigation";
 
 export default function AccountSecurityPage() {
-  return <AccountSecurityPanel />;
+  return redirect("/me#security");
 }

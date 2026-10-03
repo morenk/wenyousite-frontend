@@ -9,6 +9,8 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
+import { usePathname } from "next/navigation";
+import { safeLoginNextPath } from "@/lib/login-redirect";
 import { bootstrapAuthSession } from "@/api/client";
 import {
   AUTH_SESSION_MARKER_KEY,
@@ -29,7 +31,8 @@ interface AuthState {
 
 interface AuthContextValue extends AuthState {
   setAuth: (user: AuthUser, accessToken: string) => void;
-  logout: () => void;
+  logout: (options?: { redirectTo?: string }) => void;
+  logoutDestination: string | null;
   isInitialized: boolean;
 }
 
@@ -42,6 +45,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     getServerAuthSnapshot,
   );
   const [isInitialized, setIsInitialized] = useState(false);
+  const pathname = usePathname();
+  const [logoutNavigation, setLogoutNavigation] = useState<{ from: string | null; to: string } | null>(null);
+  // 只服务本次退出；路由完成后丢弃，后续访问受保护页面仍走正常登录回跳。
+  const logoutDestination = logoutNavigation?.from === pathname ? logoutNavigation.to : null;
+  if (logoutNavigation && logoutNavigation.from !== pathname) setLogoutNavigation(null);
 
   useEffect(() => {
     let active = true;
@@ -61,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const handleStorage = (event: StorageEvent) => {
       if (event.key !== AUTH_SESSION_MARKER_KEY) return;
+      setLogoutNavigation(null);
       if (event.newValue === null) {
         clearAuthSession({ announce: false });
         setIsInitialized(true);
@@ -79,16 +88,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const setAuth = useCallback((newUser: AuthUser, token: string) => {
+    setLogoutNavigation(null);
     setAuthSession(newUser, token);
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback((options?: { redirectTo?: string }) => {
+    setLogoutNavigation(options?.redirectTo ? { from: pathname, to: safeLoginNextPath(options.redirectTo) } : null);
     clearAuthSession();
-  }, []);
+  }, [pathname]);
 
   return (
     <AuthContext.Provider
-      value={{ user, accessToken, setAuth, logout, isInitialized }}
+      value={{ user, accessToken, setAuth, logout, logoutDestination, isInitialized }}
     >
       {children}
     </AuthContext.Provider>

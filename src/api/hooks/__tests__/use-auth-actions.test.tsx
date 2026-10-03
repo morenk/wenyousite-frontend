@@ -8,6 +8,7 @@ import {
   useLogout,
   useResetPassword,
 } from "@/api/hooks/use-auth-actions";
+import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/api/query-keys";
 import { createQueryWrapper } from "@/test/query-client";
 
@@ -83,10 +84,15 @@ describe("认证动作 hooks", () => {
     });
   });
 
-  test("邮箱修改确认成功后失效当前用户资料", async () => {
+  test("邮箱修改确认成功后失效资料，不使用已撤销会话重新读取", async () => {
     const { client, Wrapper } = createQueryWrapper();
     const invalidate = vi.spyOn(client, "invalidateQueries");
-    const { result } = renderHook(() => useChangeEmailVerify(), { wrapper: Wrapper });
+    const readMe = vi.fn().mockResolvedValue({ id: "me" });
+    const { result } = renderHook(() => {
+      useQuery({ queryKey: queryKeys.me, queryFn: readMe, staleTime: Infinity });
+      return useChangeEmailVerify();
+    }, { wrapper: Wrapper });
+    await waitFor(() => expect(client.getQueryData(queryKeys.me)).toEqual({ id: "me" }));
 
     await act(async () => {
       await result.current.mutateAsync({ newEmail: "new@example.com", code: "123456" });
@@ -96,7 +102,9 @@ describe("认证动作 hooks", () => {
       body: { newEmail: "new@example.com", code: "123456" },
     });
     await waitFor(() => {
-      expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.me });
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.me, refetchType: "none" });
+      expect(client.getQueryState(queryKeys.me)?.isInvalidated).toBe(true);
+      expect(readMe).toHaveBeenCalledTimes(1);
     });
   });
 

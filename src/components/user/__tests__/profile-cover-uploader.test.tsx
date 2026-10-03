@@ -18,6 +18,9 @@ const { mockGetCroppedProfileCoverBlob } = vi.hoisted(() => ({
   mockGetCroppedProfileCoverBlob: vi.fn(),
 }));
 
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+vi.mock("@/components/ui/confirm-provider", () => ({ useConfirm: () => vi.fn().mockResolvedValue(true) }));
+
 vi.mock("react-easy-crop", () => ({
   default: ({ onCropComplete }: { onCropComplete: (a: unknown, b: unknown) => void }) => {
     queueMicrotask(() => onCropComplete({}, { x: 0, y: 0, width: 100, height: 100 }));
@@ -186,7 +189,7 @@ describe("ProfileCoverUploader", () => {
     await openCropDialog();
 
     fireEvent.click(screen.getByRole("button", { name: "保存背景" }));
-    await waitFor(() => expect(toast.error).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument());
     fireEvent.click(screen.getByRole("button", { name: "保存背景" }));
 
     await waitFor(() => expect(mockUploadImageFile).toHaveBeenCalledTimes(3));
@@ -251,6 +254,7 @@ test("关闭裁剪后忽略仍在读取的下一张图片", async () => {
   vi.spyOn(late, "arrayBuffer").mockReturnValue(new Promise((resolve) => { finish = resolve; }));
   fireEvent.change(screen.getByTestId("profile-cover-file-input"), { target: { files: [late] } });
   fireEvent.click(screen.getByRole("button", { name: "取消" }));
+  await waitFor(() => expect(screen.queryByRole("dialog", { name: "调整主页背景" })).not.toBeInTheDocument());
   finish(imageFixture("static.png").buffer);
   await Promise.resolve();
   await Promise.resolve();

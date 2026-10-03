@@ -65,8 +65,8 @@ describe("ChangePasswordForm", () => {
         newPassword: "NewPass456",
       });
     });
-    expect(mockLogout).toHaveBeenCalled();
-    expect(mockReplace).toHaveBeenCalledWith("/login");
+    expect(mockLogout).toHaveBeenCalledWith({ redirectTo: "/login" });
+    expect(mockReplace).not.toHaveBeenCalled();
   });
 
   test("两次新密码不一致时不提交", async () => {
@@ -95,4 +95,18 @@ describe("ChangePasswordForm", () => {
     expect(mockChangePassword.mutateAsync).not.toHaveBeenCalled();
     expect(toast.error).not.toHaveBeenCalled();
   });
+});
+
+test("提交期间不能重复修改，失败保留密码并显示表单错误", async () => {
+  let reject!: (error: unknown) => void;
+  mockChangePassword.mutateAsync.mockImplementationOnce(() => new Promise((_, fail) => { reject = fail; }));
+  render(<ChangePasswordForm />, { wrapper: createWrapper() });
+  fillForm();
+  fireEvent.click(screen.getByRole("button", { name: "保存新密码" }));
+  await waitFor(() => expect(document.getElementById("old-password")).toBeDisabled());
+  expect(screen.getByRole("button", { name: "保存中…" })).toBeDisabled();
+  reject({ message: "当前密码错误", code: 40000 });
+  await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("当前密码错误"));
+  expect(document.getElementById("new-password")).toHaveValue("NewPass456");
+  expect(mockLogout).not.toHaveBeenCalled();
 });

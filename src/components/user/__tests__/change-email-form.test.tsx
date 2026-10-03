@@ -11,8 +11,9 @@ const { mockChangeEmailRequest } = vi.hoisted(() => ({
 const { mockChangeEmailVerify } = vi.hoisted(() => ({
   mockChangeEmailVerify: { mutateAsync: vi.fn() },
 }));
-const { mockReplace } = vi.hoisted(() => ({
+const { mockReplace, mockLogout } = vi.hoisted(() => ({
   mockReplace: vi.fn(),
+  mockLogout: vi.fn(),
 }));
 
 vi.mock("@/api/hooks/use-auth-actions", () => ({
@@ -23,6 +24,8 @@ vi.mock("@/api/hooks/use-auth-actions", () => ({
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: mockReplace }),
 }));
+
+vi.mock("@/lib/auth", () => ({ useAuth: () => ({ logout: mockLogout }) }));
 
 vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn() },
@@ -65,7 +68,7 @@ describe("ChangeEmailForm", () => {
     expect(toast.success).toHaveBeenCalledWith("验证码已发送至新邮箱");
   });
 
-  test("确认更换成功后跳转回资料页", async () => {
+  test("确认更换成功后清除登录态，重新登录后返回账号分组", async () => {
     render(<ChangeEmailForm />, { wrapper: createWrapper() });
     fireEvent.change(document.getElementById("change-old-password")!, { target: { value: "CurrentPass123" } });
     fireEvent.change(document.getElementById("new-email")!, { target: { value: "new@example.com" } });
@@ -81,8 +84,9 @@ describe("ChangeEmailForm", () => {
         code: "123456",
       });
     });
-    expect(toast.success).toHaveBeenCalledWith("邮箱已更换");
-    expect(mockReplace).toHaveBeenCalledWith("/me/security");
+    expect(toast.success).toHaveBeenCalledWith("邮箱已更换，请重新登录");
+    expect(mockLogout).toHaveBeenCalledWith({ redirectTo: "/login?next=%2Fme%23security" });
+    expect(mockReplace).not.toHaveBeenCalled();
     expect(screen.queryByText("邮箱已更换")).not.toBeInTheDocument();
   });
 
@@ -104,4 +108,34 @@ describe("ChangeEmailForm", () => {
     expect(document.getElementById("email-code")).toBeEnabled();
     expect(screen.getByRole("button", { name: /秒后重发/ })).toBeDisabled();
   });
+});
+
+test.each([40001, 40111, 40112, 40113, 40114])("验证码错误 %i 映射到输入框，保留邮箱和验证码", async (code) => {
+  mockChangeEmailVerify.mutateAsync.mockRejectedValueOnce({ code, message: "验证码错误或已过期" });
+  render(<ChangeEmailForm />, { wrapper: createWrapper() });
+  fireEvent.change(document.getElementById("change-old-password")!, { target: { value: "CurrentPass123" } });
+  fireEvent.change(document.getElementById("new-email")!, { target: { value: "new@example.com" } });
+  fireEvent.click(screen.getByRole("button", { name: "发送验证码" }));
+  await waitFor(() => expect(screen.getByRole("button", { name: "确认更换" })).toBeEnabled());
+  fireEvent.change(document.getElementById("email-code")!, { target: { value: "123456" } });
+  fireEvent.click(screen.getByRole("button", { name: "确认更换" }));
+  await screen.findByText("验证码错误或已过期");
+  expect(document.getElementById("email-code")).toHaveAttribute("aria-invalid", "true");
+  expect(document.getElementById("email-code")).toHaveValue("123456");
+  expect(document.getElementById("new-email")).toHaveValue("new@example.com");
+  expect(mockReplace).not.toHaveBeenCalled();
+});
+
+test.each([
+  [40116, "当前密码错误", "change-old-password"],
+  [40901, "该邮箱已被其他用户使用", "new-email"],
+] as const)("发码业务错误 %i 映射到对应字段", async (code, message, id) => {
+  mockChangeEmailRequest.mutateAsync.mockRejectedValueOnce({ code, message });
+  render(<ChangeEmailForm />, { wrapper: createWrapper() });
+  fireEvent.change(document.getElementById("change-old-password")!, { target: { value: "CurrentPass123" } });
+  fireEvent.change(document.getElementById("new-email")!, { target: { value: "new@example.com" } });
+  fireEvent.click(screen.getByRole("button", { name: "发送验证码" }));
+  await screen.findByText(message);
+  expect(document.getElementById(id)).toHaveAttribute("aria-invalid", "true");
+  expect(mockReplace).not.toHaveBeenCalled();
 });
