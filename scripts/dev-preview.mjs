@@ -94,6 +94,7 @@ async function daemon(token) {
     const env = { ...process.env, NODE_ENV: "development", BACKEND_URL: proxy.origin,
       WENYOU_PREVIEW_RUN: descriptor.runId, WENYOU_PREVIEW_SESSION: descriptor.sessionId,
       WENYOU_PREVIEW_SNAPSHOT: descriptor.snapshot.capturedAt, WENYOU_PREVIEW_MEDIA_ORIGIN: descriptor.media.origin,
+      WENYOU_PREVIEW_SAMPLE: descriptor.sample === "downloads" ? "downloads" : "",
       NEXT_TELEMETRY_DISABLED: "1", DISABLE_NEXT_DEV_INDICATORS: "true" };
     delete env.WENYOU_E2E_CANDIDATE_ID;
     const child = spawn(process.execPath, [join(worktree, "node_modules/next/dist/bin/next"), "dev", "--hostname", "127.0.0.1", "--port", String(descriptor.web.port)], { cwd: worktree, env, detached: true, stdio: "inherit" });

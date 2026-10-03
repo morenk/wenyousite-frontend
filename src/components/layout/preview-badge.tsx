@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-export function PreviewBadge({ snapshot }: { snapshot?: string }) {
+export function PreviewBadge({ snapshot, synthetic = false }: { snapshot?: string; synthetic?: boolean }) {
   const badgeRef = useRef<HTMLElement>(null);
   const [bottom, setBottom] = useState(96);
   useEffect(() => {
@@ -35,7 +35,7 @@ export function PreviewBadge({ snapshot }: { snapshot?: string }) {
   if (!snapshot) return null;
   return (
     <aside ref={badgeRef} aria-label="开发预览环境" style={{ bottom }} className="pointer-events-none fixed right-3 z-[var(--layer-chrome)] rounded-md border border-border bg-background px-3 py-2 text-xs text-muted-foreground shadow-sm">
-      开发预览 · 快照 <time dateTime={snapshot}>{new Date(snapshot).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai", hour12: false })}</time>
+      开发预览 · {synthetic ? "合成样本" : "快照"} <time dateTime={snapshot}>{new Date(snapshot).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai", hour12: false })}</time>
     </aside>
   );
 }

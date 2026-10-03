@@ -170,13 +170,20 @@ for (const theme of ["light", "dark"] as const) {
     await expect(page.getByText("我在第二层补充一条目击记录")).toBeVisible();
 
     const firstFloor = page.locator("#post-divider-floor-1");
-    await expect(firstFloor).toHaveCSS("border-radius", "10px");
-    // 虚拟行以 translateY 排列；断言真实卡片间距，不依赖父层的布局实现。
+    await expect(firstFloor).toHaveAttribute("data-slot", "discussion-row");
+    await expect(firstFloor).toHaveCSS("border-radius", "0px");
+    await expect(firstFloor).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+    await expect(firstFloor).toHaveCSS("border-bottom-width", "1px");
+    await expect(firstFloor).toHaveCSS("border-bottom-style", "solid");
+    for (const edge of ["top", "left", "right"]) {
+      await expect(firstFloor).toHaveCSS(`border-${edge}-width`, "0px");
+    }
+    // 连续楼层共用底部分隔；正文仍以居中的半宽线和标记区分段落。
     await expect.poll(async () => {
       const first = await firstFloor.boundingBox();
       const second = await page.locator("#post-divider-floor-2").boundingBox();
       return first && second ? Math.round(second.y - first.y - first.height) : null;
-    }).toBe(8);
+    }).toBeCloseTo(0, 2);
     const divider = firstFloor.locator('[data-slot="markdown-content"] hr');
     await expect(divider).toHaveCount(1);
     await expect(divider).toHaveRole("separator");
