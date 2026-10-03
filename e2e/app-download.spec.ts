@@ -111,8 +111,8 @@ test("download-rate-limited / download-service-unavailable 等待结束不自动
 });
 
 for (const failure of [
-  { status: 429, body: "" },
-  { status: 429, body: JSON.stringify({ code: 42900, message: "稍后重试", data: null }) },
+  { status: 429, body: "", reason: "device_daily_limit" },
+  { status: 429, body: JSON.stringify({ code: 42900, message: "稍后重试", data: null }), reason: "ip_daily_limit" },
   { status: 503, body: "" },
   { status: 502, body: "" },
 ]) {
@@ -124,6 +124,7 @@ for (const failure of [
         ? route.fulfill({ status: 200, headers: downloadHeaders() })
         : route.fulfill({ status: failure.status, body: failure.body, headers: {
           "Retry-After": "60", "Content-Type": "application/json",
+          ...(failure.reason ? { "X-Download-Limit-Reason": failure.reason } : {}),
           "Content-Security-Policy": "frame-ancestors 'none'", "X-Frame-Options": "DENY",
         } });
     });
@@ -139,6 +140,7 @@ for (const failure of [
     expect((await first).status()).toBe(failure.status);
     await expect(page).toHaveURL(/\/login$/);
     await expect(page.getByText(handoff)).toBeVisible();
+    await expect(page.getByText(/今日下载次数已用完/)).toHaveCount(0);
     const retry = page.getByRole("button", { name: "重试下载" });
     await expect(retry).toBeEnabled();
     expect(requests).toEqual(["information", "HEAD", "GET"]);
@@ -209,3 +211,80 @@ for (const platform of ["android", "ios"] as const) {
     }
   });
 }
+
+// 同源 HTTP 契约夹具只验证浏览器收发 Cookie；真实配额事务由 Backend 的隔离用例验证。
+for (const issuedBy of ["information", "HEAD", "GET"] as const) {
+  test(`download-device-cookie：${issuedBy} 签发的 HttpOnly 标识由信息、HEAD 与原生 GET 自动携带`, async ({ page }) => {
+    const { info, body } = await fixture(page);
+    const cookieName = `preview-${process.env.E2E_RUN_ID!.replace(/^e2e_/, "preview_")}-download-device`;
+    const setCookie = `${cookieName}=isolated-browser-transport; Path=/; HttpOnly; SameSite=Lax`;
+    const observed: { method: string; cookiePresent: boolean }[] = [];
+    const observe = async (method: string, request: import("@playwright/test").Request) => {
+      const headers = await request.allHeaders();
+      observed.push({ method, cookiePresent: (headers.cookie ?? "").split(";").some((part) => part.trim().startsWith(`${cookieName}=`)) });
+    };
+    await page.route("**/api/v1/app-downloads/android", async (route) => {
+      await observe("information", route.request());
+      return route.fulfill({ json: { code: 0, message: "ok", data: info }, headers: issuedBy === "information" ? { "Set-Cookie": setCookie } : {} });
+    });
+    await page.route("**/api/v1/app-downloads/android/*/file", async (route) => {
+      const method = route.request().method(); await observe(method, route.request());
+      return route.fulfill({ headers: { ...downloadHeaders(info.release!), ...(method === issuedBy ? { "Set-Cookie": setCookie } : {}) }, body: method === "HEAD" ? undefined : body });
+    });
+    await page.goto("/login"); const entry = await menu(page);
+    expect(observed).toEqual([]);
+    await expectSaved(page, () => entry.click(), body);
+    expect(observed).toEqual([
+      { method: "information", cookiePresent: false },
+      { method: "HEAD", cookiePresent: issuedBy === "information" },
+      { method: "GET", cookiePresent: issuedBy !== "GET" },
+    ]);
+    expect(await page.evaluate((name) => document.cookie.split(";").some((part) => part.trim().startsWith(`${name}=`)), cookieName)).toBe(false);
+    await expectSaved(page, () => page.getByRole("button", { name: "重试下载" }).click(), body);
+    expect(observed.slice(3)).toEqual([
+      { method: "information", cookiePresent: true }, { method: "HEAD", cookiePresent: true }, { method: "GET", cookiePresent: true },
+    ]);
+  });
+}
+
+for (const source of ["information", "HEAD"] as const) {
+  for (const [reason, message] of [
+    ["device_daily_limit", "此浏览器今日下载次数已用完，请明日（北京时间）重试。"],
+    ["ip_daily_limit", "当前 IP 今日下载次数已用完，请明日（北京时间）重试。"],
+  ] as const) {
+    test(`daily-download-denied：${source} 空 429 / ${reason} 尊重服务端等待且不发 GET`, async ({ page }) => {
+      const { requests } = await fixture(page);
+      const denied = () => ({ status: 429, headers: { "X-Download-Limit-Reason": reason, "Retry-After": "86400" } });
+      if (source === "information") await page.route("**/api/v1/app-downloads/android", (route) => { requests.push("information"); return route.fulfill(denied()); });
+      else await page.route("**/api/v1/app-downloads/android/*/file", (route) => { requests.push(route.request().method()); return route.fulfill(denied()); });
+      await page.goto("/login"); await (await menu(page)).click();
+      await expect(page.getByText(message)).toBeVisible();
+      await expect(page.getByRole("button", { name: "重试下载" })).toBeDisabled();
+      await page.keyboard.press("Escape"); await menu(page);
+      await expect(page.getByText(message)).toBeVisible();
+      await expect(page.getByRole("button", { name: "重试下载" })).toBeDisabled();
+      expect(requests).toEqual(source === "information" ? ["information"] : ["information", "HEAD"]);
+      await expect(page.locator(frame)).toHaveCount(0);
+    });
+  }
+}
+
+test("no-cookie-compatibility：未收到标识仍可 HEAD/GET，随后 IP 拒绝保留恢复提示", async ({ page }) => {
+  const { body, info, requests } = await fixture(page);
+  let refused = false;
+  const cookiePresent: boolean[] = [];
+  await page.route("**/api/v1/app-downloads/android/*/file", async (route) => {
+    const method = route.request().method(); requests.push(method);
+    cookiePresent.push((await route.request().allHeaders()).cookie?.includes("download-device=") ?? false);
+    if (refused) return route.fulfill({ status: 429, headers: { "X-Download-Limit-Reason": "ip_daily_limit", "Retry-After": "86400" } });
+    return route.fulfill({ headers: downloadHeaders(info.release!), body: method === "HEAD" ? undefined : body });
+  });
+  await page.goto("/login"); const entry = await menu(page);
+  await expectSaved(page, () => entry.click(), body);
+  refused = true;
+  await page.getByRole("button", { name: "重试下载" }).click();
+  await expect(page.getByText("当前 IP 今日下载次数已用完，请明日（北京时间）重试。")).toBeVisible();
+  await expect(page.getByRole("button", { name: "重试下载" })).toBeDisabled();
+  expect(cookiePresent).toEqual([false, false, false]);
+  expect(requests).toEqual(["information", "HEAD", "GET", "information", "HEAD"]);
+});

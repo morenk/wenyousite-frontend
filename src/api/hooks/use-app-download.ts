@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
 import { appDownloadOrigin } from "@/lib/preview-download";
-import { AppDownloadError, androidDownloadPath, matchesAndroidDownload, retryAfterDeadline, retryDeadline, validateAndroidDownloadInfo } from "@/lib/app-download";
+import { AppDownloadError, androidDownloadPath, matchesAndroidDownload, retryDeadline, validateAndroidDownloadInfo } from "@/lib/app-download";
 
 /** 到期只开放手动重试，不自动读取信息或下载文件。 */
 function useRetryGate(deadline: number | null) {
@@ -33,9 +33,9 @@ export function useAppDownload(queryClient?: QueryClient) {
     queryFn: async ({ signal }) => {
       const downloadOrigin = await appDownloadOrigin(signal);
       const { data, response } = await apiClient.GET("/api/v1/app-downloads/android", {
-        signal, cache: "no-store", redirect: "error",
+        signal, cache: "no-store", redirect: "error", credentials: "same-origin",
       });
-      if (!response.ok) throw new AppDownloadError(response.status, retryAfterDeadline(response.headers.get("retry-after")));
+      if (!response.ok) throw AppDownloadError.fromResponse(response);
       if (!data?.data || data.code !== 0) throw new AppDownloadError(0);
       const info = validateAndroidDownloadInfo(data.data, downloadOrigin);
       return { info, retryAt: retryDeadline(info.retryAfterSeconds), downloadOrigin };
@@ -82,9 +82,9 @@ export function useAppDownload(queryClient?: QueryClient) {
       setPhase("preflight");
       const { response } = await apiClient.HEAD("/api/v1/app-downloads/android/{buildNumber}/file", {
         params: { path: { buildNumber: release.buildNumber } },
-        signal: controller.signal, cache: "no-store", redirect: "error",
+        signal: controller.signal, cache: "no-store", redirect: "error", credentials: "same-origin",
       });
-      if (!response.ok) throw new AppDownloadError(response.status, retryAfterDeadline(response.headers.get("retry-after")));
+      if (!response.ok) throw AppDownloadError.fromResponse(response);
       if (!matchesAndroidDownload(response, release)) throw new AppDownloadError(503);
       const current = client.getQueryState(queryKeys.appDownloads.android);
       if (controller.signal.aborted) return;

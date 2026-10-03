@@ -11,7 +11,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 匿名读取当前 Android 下载信息；仅 JSON，不预取 APK */
+        /**
+         * 匿名读取当前 Android 下载信息；仅 JSON，不预取 APK
+         * @description release/status 表示全局发布及缓存可用性，不因当前访客次数耗尽改为 paused；不扣下载次数。可签发/续签随机浏览器 Cookie，需同源携带；客户端不自行生成标识。旧 APP 无需新增此调用，直接 HEAD/GET 保持兼容。
+         */
         get: operations["appDownloadsInfo"];
         put?: never;
         post?: never;
@@ -7554,6 +7557,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 可选：第一方签名随机浏览器标识；HttpOnly、SameSite=Lax，生产 Secure；不是用户认证，旧 APP 可忽略 */
+                    "Set-Cookie"?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -7562,12 +7567,16 @@ export interface operations {
                     "application/json": components["schemas"]["AppDownloadsInfo200Response"];
                 };
             };
-            /** @description 请求频率、并发或持久化流量预算超限；Retry-After 秒 */
+            /** @description 请求频率、并发、带宽或持久化字节预算超限；info 不检查也不消费个体下载次数 */
             429: {
                 headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    /** @description 脱敏机器原因；HEAD 无正文，GET 错误正文也可能为空 */
+                    "X-Download-Limit-Reason"?: "device_daily_limit" | "ip_daily_limit" | "byte_budget" | "request_rate" | "concurrency" | "bandwidth";
+                    /** @description 可选：第一方签名随机浏览器标识；HttpOnly、SameSite=Lax，生产 Secure；不是用户认证，旧 APP 可忽略 */
+                    "Set-Cookie"?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
-                    "Retry-After": components["headers"]["RetryAfter"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7614,9 +7623,11 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 已发布且已验证的完整 APK；HEAD 无正文 */
+            /** @description 已发布且已验证的完整 APK；合法 GET 最后阶段原子预占一次尝试与正文预算，中断/失败不退；HEAD 预检但不消费次数或正文预算，HEAD→GET 仍可能竞争失败 */
             200: {
                 headers: {
+                    /** @description 可选：第一方签名随机浏览器标识；HttpOnly、SameSite=Lax，生产 Secure；不是用户认证，旧 APP 可忽略 */
+                    "Set-Cookie"?: string;
                     "Content-Type"?: "application/vnd.android.package-archive";
                     /** @description 本次响应正文长度；HEAD 同 GET */
                     "Content-Length"?: number;
@@ -7641,9 +7652,11 @@ export interface operations {
                     "application/vnd.android.package-archive": string;
                 };
             };
-            /** @description 单段范围；HEAD 无正文 */
+            /** @description 单段范围；每次有效 Range GET 也计一次尝试，主动重试不豁免；HEAD 无正文且不计次 */
             206: {
                 headers: {
+                    /** @description 可选：第一方签名随机浏览器标识；HttpOnly、SameSite=Lax，生产 Secure；不是用户认证，旧 APP 可忽略 */
+                    "Set-Cookie"?: string;
                     "Content-Type"?: "application/vnd.android.package-archive";
                     /** @description 本次响应正文长度；HEAD 同 GET */
                     "Content-Length"?: number;
@@ -7693,12 +7706,16 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
-            /** @description 请求频率、并发或持久化流量预算超限；Retry-After 秒 */
+            /** @description 设备/IP 每日下载尝试次数、请求频率、并发、带宽或持久化字节预算超限；次数默认3/10，跨构建累计，次数耗尽时 Retry-After 到北京时间下一日；HEAD 预检不计次，GET 最终判定；无有效 Cookie 仍受 IP 总限额 */
             429: {
                 headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    /** @description 脱敏机器原因；HEAD 无正文，GET 错误正文也可能为空 */
+                    "X-Download-Limit-Reason"?: "device_daily_limit" | "ip_daily_limit" | "byte_budget" | "request_rate" | "concurrency" | "bandwidth";
+                    /** @description 可选：第一方签名随机浏览器标识；HttpOnly、SameSite=Lax，生产 Secure；不是用户认证，旧 APP 可忽略 */
+                    "Set-Cookie"?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
-                    "Retry-After": components["headers"]["RetryAfter"];
                     [name: string]: unknown;
                 };
                 content: {
@@ -7745,9 +7762,11 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 已发布且已验证的完整 APK；HEAD 无正文 */
+            /** @description 已发布且已验证的完整 APK；合法 GET 最后阶段原子预占一次尝试与正文预算，中断/失败不退；HEAD 预检但不消费次数或正文预算，HEAD→GET 仍可能竞争失败 */
             200: {
                 headers: {
+                    /** @description 可选：第一方签名随机浏览器标识；HttpOnly、SameSite=Lax，生产 Secure；不是用户认证，旧 APP 可忽略 */
+                    "Set-Cookie"?: string;
                     "Content-Type"?: "application/vnd.android.package-archive";
                     /** @description 本次响应正文长度；HEAD 同 GET */
                     "Content-Length"?: number;
@@ -7772,9 +7791,11 @@ export interface operations {
                     "application/vnd.android.package-archive": string;
                 };
             };
-            /** @description 单段范围；HEAD 无正文 */
+            /** @description 单段范围；每次有效 Range GET 也计一次尝试，主动重试不豁免；HEAD 无正文且不计次 */
             206: {
                 headers: {
+                    /** @description 可选：第一方签名随机浏览器标识；HttpOnly、SameSite=Lax，生产 Secure；不是用户认证，旧 APP 可忽略 */
+                    "Set-Cookie"?: string;
                     "Content-Type"?: "application/vnd.android.package-archive";
                     /** @description 本次响应正文长度；HEAD 同 GET */
                     "Content-Length"?: number;
@@ -7824,12 +7845,16 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorEnvelope"];
                 };
             };
-            /** @description 请求频率、并发或持久化流量预算超限；Retry-After 秒 */
+            /** @description 设备/IP 每日下载尝试次数、请求频率、并发、带宽或持久化字节预算超限；次数默认3/10，跨构建累计，次数耗尽时 Retry-After 到北京时间下一日；HEAD 预检不计次，GET 最终判定；无有效 Cookie 仍受 IP 总限额 */
             429: {
                 headers: {
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    /** @description 脱敏机器原因；HEAD 无正文，GET 错误正文也可能为空 */
+                    "X-Download-Limit-Reason"?: "device_daily_limit" | "ip_daily_limit" | "byte_budget" | "request_rate" | "concurrency" | "bandwidth";
+                    /** @description 可选：第一方签名随机浏览器标识；HttpOnly、SameSite=Lax，生产 Secure；不是用户认证，旧 APP 可忽略 */
+                    "Set-Cookie"?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
-                    "Retry-After": components["headers"]["RetryAfter"];
                     [name: string]: unknown;
                 };
                 content: {

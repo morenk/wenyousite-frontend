@@ -1,11 +1,29 @@
 import { describe, expect, test } from "vitest";
 import {
-  androidDownloadPath, matchesAndroidDownload,
+  AppDownloadError, androidDownloadPath, matchesAndroidDownload,
   retryAfterDeadline, retryDeadline, validateAndroidDownloadInfo,
 } from "@/lib/app-download";
 import { availableDownload, downloadHeaders, downloadRelease } from "@/test/app-download";
 
 describe("下载制品身份与等待时间", () => {
+  test.each(["device_daily_limit", "ip_daily_limit", "byte_budget", "request_rate", "concurrency", "bandwidth"])("429 的 %s 原因来自响应头，空正文仍保留等待时间", (reason) => {
+    const before = Date.now();
+    const error = AppDownloadError.fromResponse(new Response(null, { status: 429, headers: {
+      "X-Download-Limit-Reason": reason, "Retry-After": "86400",
+    } }));
+    expect(error).toMatchObject({ status: 429, limitReason: reason });
+    expect(error.retryAt).toBeGreaterThanOrEqual(before + 86_400_000);
+    expect(error.retryAt).toBeLessThanOrEqual(Date.now() + 86_400_000);
+  });
+
+  test.each([[429, "future_limit"], [429, ""], [503, "device_daily_limit"]] as const)("%s / %s 不推断每日限制，仍尊重 Retry-After", (status, reason) => {
+    const error = AppDownloadError.fromResponse(new Response(null, { status, headers: {
+      ...(reason ? { "X-Download-Limit-Reason": reason } : {}), "Retry-After": "60",
+    } }));
+    expect(error).toMatchObject({ status, limitReason: null });
+    expect(error.retryAt).not.toBeNull();
+  });
+
   test("只接受同一构建的本站地址，不回退公开桶或临时地址", () => {
     const release = downloadRelease();
     expect(androidDownloadPath(release)).toBe("/api/v1/app-downloads/android/42/file");

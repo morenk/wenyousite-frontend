@@ -1,7 +1,13 @@
-import type { components } from "@/api/types";
+import type { components, operations } from "@/api/types";
 
 export type AndroidDownloadInfo = components["schemas"]["AndroidDownloadInfoDto"];
 export type AndroidDownloadRelease = components["schemas"]["AndroidDownloadReleaseDto"];
+export type DownloadLimitReason = NonNullable<operations["appDownloadsHead"]["responses"][429]["headers"]["X-Download-Limit-Reason"]>;
+
+const downloadLimitReasons: Record<DownloadLimitReason, true> = {
+  device_daily_limit: true, ip_daily_limit: true, byte_budget: true,
+  request_rate: true, concurrency: true, bandwidth: true,
+};
 
 /** 只接受已发布身份绑定的本站固定地址；浏览器实际请求始终留在当前同源代理。 */
 export function androidDownloadPath(release: AndroidDownloadRelease, allowedOrigin = "https://wenyou.site"): string {
@@ -56,7 +62,18 @@ export function retryAfterDeadline(value: string | null, now = Date.now()): numb
 }
 
 export class AppDownloadError extends Error {
-  constructor(public readonly status: number, public readonly retryAt: number | null = null) {
+  constructor(
+    public readonly status: number,
+    public readonly retryAt: number | null = null,
+    public readonly limitReason: DownloadLimitReason | null = null,
+  ) {
     super("下载请求暂未完成");
+  }
+
+  static fromResponse(response: Response) {
+    const reason = response.headers.get("x-download-limit-reason");
+    const limitReason = response.status === 429 && reason && Object.hasOwn(downloadLimitReasons, reason)
+      ? reason as DownloadLimitReason : null;
+    return new AppDownloadError(response.status, retryAfterDeadline(response.headers.get("retry-after")), limitReason);
   }
 }

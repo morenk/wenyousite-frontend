@@ -169,3 +169,50 @@ describe("移动设备首次访问提示", () => {
     expect(info).toHaveBeenCalledTimes(3); expect(get).toHaveBeenCalledTimes(2);
   });
 });
+
+describe("服务端每日下载限制", () => {
+  for (const entry of ["menu", "dialog"] as const) {
+    for (const source of ["information", "HEAD"] as const) {
+      test.each([
+        ["device_daily_limit", "此浏览器今日下载次数已用完，请明日（北京时间）重试。"],
+        ["ip_daily_limit", "当前 IP 今日下载次数已用完，请明日（北京时间）重试。"],
+      ])(`${entry} / ${source} 空 429 的 %s 就近反馈，不发 APK GET`, async (reason, message) => {
+        if (entry === "dialog") mobile("android");
+        const { get } = handlers();
+        const denied = vi.fn(() => new HttpResponse(null, { status: 429, headers: { "X-Download-Limit-Reason": reason, "Retry-After": "86400" } }));
+        server.use(source === "information" ? http.get("*/api/v1/app-downloads/android", denied) : http.head("*/api/v1/app-downloads/android/:build/file", denied));
+        render(<Scene />);
+        if (entry === "menu") await openMenu();
+        await userEvent.click(await screen.findByRole("button", { name: "下载 APP" }));
+        expect(await screen.findByText(message)).toBeVisible();
+        const retry = screen.getByRole("button", { name: "重试下载" });
+        expect(retry).toBeDisabled();
+        await userEvent.click(retry);
+        expect(denied).toHaveBeenCalledTimes(1); expect(get).not.toHaveBeenCalled();
+      });
+    }
+  }
+
+  test.each([[429, "future_limit", "下载请求较多"], [503, "device_daily_limit", "暂时无法下载"]] as const)("未知或不适用原因 %s / %s 沿用通用反馈", async (status, reason, message) => {
+    const { get } = handlers();
+    server.use(http.head("*/api/v1/app-downloads/android/:build/file", () => new HttpResponse(null, { status, headers: { "X-Download-Limit-Reason": reason } })));
+    render(<Scene />); await openMenu(); await userEvent.click(screen.getByRole("button", { name: "下载 APP" }));
+    expect(await screen.findByText(new RegExp(message))).toBeVisible();
+    expect(screen.queryByText(/今日下载次数已用完/)).toBeNull(); expect(get).not.toHaveBeenCalled();
+  });
+
+  test("服务端等待到期只开放手动重试，重新确认信息与 HEAD 后才下载", async () => {
+    mobile("android"); const { info, get } = handlers();
+    const head = vi.fn().mockImplementationOnce(() => new HttpResponse(null, { status: 429, headers: { "X-Download-Limit-Reason": "device_daily_limit", "Retry-After": "1" } }))
+      .mockImplementation(() => new HttpResponse(null, { headers: downloadHeaders() }));
+    server.use(http.head("*/api/v1/app-downloads/android/:build/file", head));
+    render(<Scene />); await userEvent.click(await screen.findByRole("button", { name: "下载 APP" }));
+    expect(await screen.findByText(/此浏览器今日下载次数已用完/)).toBeVisible();
+    const retry = screen.getByRole("button", { name: "重试下载" }); expect(retry).toBeDisabled();
+    await waitFor(() => expect(retry).toBeEnabled(), { timeout: 2000 });
+    expect(screen.getByText("已到重试时间，请手动重试下载。")).toBeVisible();
+    expect(info).toHaveBeenCalledTimes(1); expect(head).toHaveBeenCalledTimes(1); expect(get).not.toHaveBeenCalled();
+    await userEvent.click(retry); await loadedFrame();
+    expect(info).toHaveBeenCalledTimes(2); expect(head).toHaveBeenCalledTimes(2); expect(get).toHaveBeenCalledTimes(1);
+  });
+});

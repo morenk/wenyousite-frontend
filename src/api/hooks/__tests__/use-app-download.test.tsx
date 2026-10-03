@@ -17,6 +17,18 @@ function handlers() {
 }
 
 describe("点击一次获取信息、核验并交接下载", () => {
+  test("信息及 HEAD 显式使用同源凭据模式，不自行管理浏览器标识", async () => {
+    const modes: RequestCredentials[] = [];
+    server.use(
+      http.get("*/api/v1/app-downloads/android", ({ request }) => { modes.push(request.credentials); return HttpResponse.json({ code: 0, data: availableDownload() }); }),
+      http.head("*/api/v1/app-downloads/android/:build/file", ({ request }) => { modes.push(request.credentials); return new HttpResponse(null, { headers: downloadHeaders() }); }),
+    );
+    const { result } = renderHook(useAppDownload, { wrapper: createQueryWrapper().Wrapper });
+    await act(async () => { await result.current.download(); });
+    expect(modes).toEqual(["same-origin", "same-origin"]);
+    expect(result.current.downloads).toHaveLength(1);
+  });
+
   test("挂载不请求信息/文件，一次点击串行查询与 HEAD，连续点击不会重复交接", async () => {
     const { info, head, get } = handlers();
     const { result } = renderHook(useAppDownload, { wrapper: createQueryWrapper().Wrapper });
