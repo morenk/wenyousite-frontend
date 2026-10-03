@@ -28,7 +28,7 @@
 
 [实际原生交接画面](assets/app-download/daily-real-handoff-light-1280.png)只显示已交给浏览器；文件字节和摘要来自浏览器测试工具验证，产品 UI 不宣称完成或安装。
 
-旧基线的完整 E2E `e2e_c32e808b8b1d996ffdf68e0b` 为同步新基线主动中止；中止前 87 passed / 13 skipped，下载 23 项已通过，无断言失败。登记资源目录已移除（`resourcesRemoved=true`），但中止轮的 `cleanupVerified=false`，不计作通过；最终新基线重跑及清理均已成功。
+旧基线的完整 E2E `e2e_c32e808b8b1d996ffdf68e0b` 为同步新基线主动中止；中止前 87 passed / 13 skipped，下载 23 项已通过，无断言失败。登记资源目录已移除（`resourcesRemoved=true`），但中止轮的 `cleanupVerified=false`，不计作通过；最终新基线重跑及清理均已成功。 后续于北京时间 2026-10-03 23:10:56 按该 runId 单独执行只读遗留核验：原 `/tmp/wenyousite-e2e-qwbej6`、对应 Backend checkout 登记项均不存在，未发现匹配 runId/资源根目录的进程、文件描述符或 Unix socket。4 个受保护的 systemd/sshd 进程均于前一日启动，按启动时间确认不属本轮；未提权读取或操作它们。原报告 SHA-256 `08cf6153b34437a9de80e9018fd3efa5a6c864ad16fb3057d4b681a923d24d8a` 核验前后相同，保留 `cleanupVerified=false`。此独立核验不借用新轮清理结论，也未删除共享预览。
 
 以下记录来自上一反馈批次，用于保留已观察的初始提示和主次按钮，不作为本轮每日限次验收结果。
 
@@ -81,6 +81,6 @@
 | `src/components/layout/theme-menu.tsx` | `e27ef1808d043db8fa9838d8f01f0750b13c8f7960f347aeadf1d26b51b34dce` |
 | `src/lib/mobile-device.ts` | `72d965947be4be2b5c0dfc2c3bdac43920f532297067bff1dbfec84e499cbc52` |
 
-此前完整 E2E 首轮 `e2e_1f067bd3d60ce43068f7234e` 为 216 passed / 2 failed / 13 skipped；两项失败来自已合并 PR #51 的连续楼层与旧分隔线视觉基线不符，`resourcesRemoved=true`、`cleanupVerified=false`。独立提交 `c751acf` 已按接受的设计修正基线并保留原几何和 Token 断言；后续 `e2e_5948533ae5a58d15e324278d` 及上述 21 项候选均已补验分隔线且清理成功。此段仅记录分支历史；本轮完整 E2E 结果以文首新基线记录为准。
+此前完整 E2E 首轮 `e2e_1f067bd3d60ce43068f7234e` 为 216 passed / 2 failed / 13 skipped；两项失败来自已合并 PR #51 的连续楼层与旧分隔线视觉基线不符，`resourcesRemoved=true`、`cleanupVerified=false`。独立提交 `c751acf` 已按接受的设计修正基线并保留原几何和 Token 断言；后续 `e2e_5948533ae5a58d15e324278d` 及上述 21 项候选均已补验分隔线且清理成功。历史结果不作为本轮执行证据，本轮完整 E2E 见每日下载限次候选章节。
 
 实时预览规则见 [开发预览](modules/dev-preview.md)，最终行为见 [APP 下载](modules/app-download.md)。
