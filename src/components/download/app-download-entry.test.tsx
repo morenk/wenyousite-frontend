@@ -1,4 +1,4 @@
-import { act, cleanup, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { http, HttpResponse } from "msw";
@@ -142,7 +142,30 @@ describe("移动设备首次访问提示", () => {
     render(<Scene />); const dialog = await screen.findByRole("dialog");
     await userEvent.click(within(dialog).getByRole("button", { name: "下载 APP" }));
     expect(await within(dialog).findByText("暂时无法下载，请重试。")).toBeVisible(); expect(get).not.toHaveBeenCalled();
+    expect(within(dialog).queryByRole("button", { name: "下载 APP" })).toBeNull();
+    expect(within(dialog).getAllByRole("button", { name: "重试下载" })).toHaveLength(1);
     await userEvent.click(within(dialog).getByRole("button", { name: "重试下载" }));
     await loadedFrame(); expect(get).toHaveBeenCalledTimes(1);
+  });
+
+  test("弹窗原位重试遵守等待时间；交接后的双击与长按不重复下载", async () => {
+    mobile("android"); const { info, get } = handlers();
+    const head = vi.fn().mockImplementationOnce(() => new HttpResponse(null, { status: 429, headers: { "Retry-After": "1" } }))
+      .mockImplementation(() => new HttpResponse(null, { headers: downloadHeaders() }));
+    server.use(http.head("*/api/v1/app-downloads/android/:build/file", head));
+    render(<Scene />); const dialog = await screen.findByRole("dialog");
+    await userEvent.click(within(dialog).getByRole("button", { name: "下载 APP" }));
+    const retry = await within(dialog).findByRole("button", { name: "重试下载" });
+    expect(retry).toBeDisabled();
+    await waitFor(() => expect(retry).toBeEnabled(), { timeout: 2000 });
+    expect(info).toHaveBeenCalledTimes(1); expect(get).not.toHaveBeenCalled();
+    await userEvent.click(retry); await loadedFrame();
+    expect(info).toHaveBeenCalledTimes(2); expect(get).toHaveBeenCalledTimes(1);
+    fireEvent.click(retry, { detail: 2 });
+    expect(fireEvent.keyDown(retry, { key: "Enter", repeat: true })).toBe(false);
+    expect(retry).toBeEnabled();
+    expect(info).toHaveBeenCalledTimes(2); expect(get).toHaveBeenCalledTimes(1);
+    await userEvent.click(retry); await loadedFrame(2);
+    expect(info).toHaveBeenCalledTimes(3); expect(get).toHaveBeenCalledTimes(2);
   });
 });

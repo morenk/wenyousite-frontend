@@ -5,11 +5,10 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { AppDownloadProvider } from "@/components/download/app-download-provider";
 import { ThemeMenu } from "@/components/layout/theme-menu";
 import { ThemeProvider } from "@/components/ui/theme-provider";
-import { setCoverDataSaver } from "@/hooks/cover-playback";
 import { THEME_STORAGE_KEY } from "@/lib/theme";
 
 beforeEach(() => {
-  localStorage.clear(); setCoverDataSaver(false);
+  localStorage.clear();
   document.documentElement.removeAttribute("data-theme");
   document.documentElement.removeAttribute("data-theme-preference");
   vi.stubGlobal("matchMedia", vi.fn(() => ({
@@ -27,39 +26,15 @@ afterEach(() => {
 });
 
 describe("ThemeMenu", () => {
-  test("访客下载按钮独立位于省流量下方，不再导航到独立页面", async () => {
+  test("外观菜单只保留主题切换和访客下载入口", async () => {
     render(<ThemeProvider><AppDownloadProvider><ThemeMenu /></AppDownloadProvider></ThemeProvider>);
     await userEvent.click(screen.getByRole("button", { name: "外观：跟随系统" }));
-    const toggle = screen.getByRole("checkbox", { name: /省流量/ });
     const button = screen.getByRole("button", { name: "下载 APP" });
     expect(button.querySelector("svg")).toHaveAttribute("data-icon-semantic", "action.download");
-    expect(toggle.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByRole("group", { name: "选择页面外观" }).compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByRole("checkbox")).toBeNull();
+    expect(screen.queryByText("省流量")).toBeNull();
     expect(screen.queryByRole("link", { name: "下载 APP" })).toBeNull();
-  });
-
-  test("localStorage配额写失败但读取仍可用时，临时省流量开关双向同步", async () => {
-    const existingStorage = localStorage;
-    vi.stubGlobal("localStorage", { getItem: existingStorage.getItem.bind(existingStorage),
-      setItem: () => { throw new Error("quota"); } });
-    render(<ThemeProvider><AppDownloadProvider><ThemeMenu /></AppDownloadProvider></ThemeProvider>);
-    await userEvent.click(screen.getByRole("button", { name: "外观：跟随系统" }));
-    const toggle = screen.getByRole("checkbox", { name: /省流量/ });
-    expect(toggle).not.toBeChecked();
-    await userEvent.click(toggle); expect(toggle).toBeChecked();
-    await userEvent.click(toggle); expect(toggle).not.toBeChecked();
-  });
-
-  test("访客可发现省流量入口，切换立即持久化并在重载菜单时恢复", async () => {
-    const view = render(<ThemeProvider><AppDownloadProvider><ThemeMenu /></AppDownloadProvider></ThemeProvider>);
-    await userEvent.click(screen.getByRole("button", { name: "外观：跟随系统" }));
-    const toggle = screen.getByRole("checkbox", { name: /省流量/ });
-    expect(toggle).not.toBeChecked();
-    await userEvent.click(toggle);
-    expect(localStorage.getItem("wenyou:cover-data-saver")).toBe("true");
-    view.unmount();
-    render(<ThemeProvider><AppDownloadProvider><ThemeMenu /></AppDownloadProvider></ThemeProvider>);
-    await userEvent.click(screen.getByRole("button", { name: "外观：跟随系统" }));
-    expect(screen.getByRole("checkbox", { name: /省流量/ })).toBeChecked();
   });
 
   test("展示三种中央偏好并即时切换黑夜", async () => {

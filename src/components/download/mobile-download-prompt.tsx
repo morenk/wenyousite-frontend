@@ -38,7 +38,7 @@ function ClientMobileDownloadPrompt() {
 
   return <Dialog open={open} onOpenChange={changeOpen}>
     <DialogPortal><DialogBackdrop /><DialogViewport>
-      <DialogPopup className="max-w-sm space-y-4 p-5">
+      <DialogPopup className="max-w-sm space-y-5 p-6">
         <div className="flex items-center justify-between gap-4">
           <DialogTitle>温油站 APP</DialogTitle>
           <DialogCloseButton label="关闭下载提示" />
@@ -47,8 +47,10 @@ function ClientMobileDownloadPrompt() {
           ? "目前仅支持 Android。可下载安装包，也可以继续使用网页版。"
           : device === "ios" ? "目前仅支持 Android，暂无 iOS 版本。你可以继续使用网页版。"
           : "目前仅支持 Android。你可以继续使用网页版。"}</DialogDescription>
-        {device === "android" && <AppDownloadEntry onAction={remember} />}
-        <DialogFooter><Button type="button" variant="outline" onClick={() => changeOpen(false)}>继续使用网页</Button></DialogFooter>
+        <DialogFooter className="flex-col items-stretch gap-3 pt-1 text-sm font-bold">
+          {device === "android" && <AppDownloadEntry variant="dialog" onAction={remember} />}
+          <Button type="button" variant={device === "android" ? "outline" : "default"} className="w-full" onClick={() => changeOpen(false)}>继续使用网页</Button>
+        </DialogFooter>
       </DialogPopup>
     </DialogViewport></DialogPortal>
   </Dialog>;
