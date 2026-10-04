@@ -96,10 +96,7 @@ function ThreadDetailPageContent() {
   const { user, isInitialized } = useAuth();
   const { close: closeComposer, session: composerSession } = useThreadComposerSession();
   const latestPost = useLatestThreadPost();
-  const [floorAuthorSelection, setFloorAuthorSelection] = useState<{
-    subthreadId: string;
-    authorId: string;
-  }>();
+  const { authorFilter: floorAuthorSelection, setAuthorFilter: setFloorAuthorSelection } = useThreadPermissions();
   const [latestFloorActivationKey, setLatestFloorActivationKey] = useState(0);
 
   const {
@@ -190,7 +187,7 @@ function ThreadDetailPageContent() {
     targetPostId ? undefined : effectiveSubthreadId,
     user?.id,
   );
-  const requestedFloorAuthorId = !targetPostId && floorAuthorSelection &&
+  const requestedFloorAuthorId = !targetPostId && !floorAuthorSelection?.parentPostId && floorAuthorSelection &&
     floorAuthorSelection.subthreadId === effectiveSubthreadId
     ? floorAuthorSelection.authorId
     : undefined;
@@ -469,6 +466,7 @@ function ThreadDetailPageContent() {
       >
         {selectedSubthread ? (
           <SubthreadBody
+            threadId={threadId}
             subthread={selectedSubthread}
             isDefault={selectedSubthread.id === thread.defaultSubthreadId}
             threadTitle={thread.title}

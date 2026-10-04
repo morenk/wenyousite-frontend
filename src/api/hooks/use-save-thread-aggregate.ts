@@ -1,6 +1,7 @@
 /** 原子保存主题帖编辑器聚合数据。 */
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { invalidateChangedMentionCandidates } from "./use-mention-candidates";
 import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
 import { useViewerScope } from "@/api/use-viewer-scope";
@@ -33,6 +34,7 @@ export function useSaveThreadAggregate() {
       if (!data) throw new Error("保存主题帖响应为空");
       return normalizeThreadDetail(data.data);
     },
+    onError: (error) => invalidateChangedMentionCandidates(queryClient, error),
     onSuccess: (thread, _variables, context) => {
       // 发言能力属于当前访问者，不能把管理者的响应写入其他身份缓存。
       queryClient.setQueryData(

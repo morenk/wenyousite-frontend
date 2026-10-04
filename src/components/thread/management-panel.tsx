@@ -29,6 +29,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MilkdownEditor } from "@/components/editor/milkdown-editor";
 import { SubthreadTree } from "@/components/thread/subthread-tree";
 import { MemberManager } from "@/components/thread/member-manager";
+import { ThreadPublicationIdentity } from "@/components/thread/thread-publication-identity";
 import { ThreadEditForm } from "@/components/forms/thread-edit-form";
 import { SubthreadForm } from "@/components/forms/subthread-form";
 import { POSTING_POLICY_OPTIONS } from "@/lib/post-policy";
@@ -138,7 +139,7 @@ export function ManagementPanel({
             <SubthreadTree
               subthreads={controller.subthreads}
               selectedId={controller.selectedId}
-              disabled={controller.isNavigationLocked}
+              disabled={controller.isNavigationLocked || controller.bodyWriteLocked}
               onSelect={(id) => void controller.handleSelect(id)}
               onDelete={(subthread) => void controller.handleDeleteSubthread(subthread)}
               onReorder={(ids) => void controller.handleReorder(ids)}
@@ -149,6 +150,7 @@ export function ManagementPanel({
           <section className="min-w-0 flex-1 overflow-y-auto p-5">
             {controller.selectedSub ? (
               <div className="mx-auto max-w-[52rem] space-y-4">
+                {controller.bodyWriteUncertain ? <p role="status" className="text-sm text-warning">正文发表结果尚未确认，正文与身份已冻结。请再次保存确认结果，确认前不能修改身份、正文或退出。</p> : null}
                 {controller.subthreadStatus.state === "conflict" ||
                 controller.subthreadStatus.state === "error" ? (
                   <SubthreadSaveAlert
@@ -165,7 +167,7 @@ export function ManagementPanel({
                       <Input
                         id="management-subthread-title"
                         value={controller.title}
-                        disabled={controller.currentStatus.busy}
+                        disabled={controller.currentStatus.busy || controller.bodyWriteLocked}
                         onChange={(event) => controller.setTitle(event.target.value)}
                       />
                     </div>
@@ -177,7 +179,7 @@ export function ManagementPanel({
                         onValueChange={(value) => {
                           if (value) controller.setPostingPolicy(value);
                         }}
-                        disabled={controller.currentStatus.busy}
+                        disabled={controller.currentStatus.busy || controller.bodyWriteLocked}
                       >
                         <SelectTrigger id="management-subthread-policy" className="w-full">
                           <SelectValue />
@@ -207,7 +209,7 @@ export function ManagementPanel({
                         type="button"
                         variant="ghost"
                         size="compact"
-                        disabled={controller.currentStatus.busy}
+                        disabled={controller.currentStatus.busy || controller.bodyWriteLocked}
                         onClick={controller.resetSubthreadEditor}
                       >
                         <RotateCcw />
@@ -215,7 +217,8 @@ export function ManagementPanel({
                       </Button>
                     ) : null}
                   </div>
-                  <MilkdownEditor mediaDisplays={controller.selectedSub.bodyPost?.mediaDisplays}
+                  {controller.isCreatingBody && thread.rpIdentityEnabled !== undefined ? <ThreadPublicationIdentity controller={controller.bodyIdentity} threadId={thread.id} disabled={controller.currentStatus.busy || controller.bodyWriteLocked} /> : null}
+                  <MilkdownEditor mentionIdentities={controller.selectedSub.bodyPost?.mentionIdentities} mediaDisplays={controller.selectedSub.bodyPost?.mediaDisplays}
                     editorRef={controller.editor.editorRef}
                     onValidityChange={controller.editor.onValidityChange}
                     onDocumentChange={controller.editor.onDocumentChange}
@@ -225,7 +228,7 @@ export function ManagementPanel({
                     defaultValue={controller.content}
                     onChange={controller.setContent}
                     onUploadImage={controller.uploadImage}
-                    disabled={controller.currentStatus.busy}
+                    disabled={controller.currentStatus.busy || controller.bodyWriteLocked}
                     minHeight={440}
                     maxHeight={580}
                     autoFocus={controller.focusRequestKey > 0}

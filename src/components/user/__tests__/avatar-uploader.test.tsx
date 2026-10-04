@@ -275,3 +275,31 @@ test("关闭管理弹窗卸载时释放裁剪预览 URL", async () => {
   view.unmount();
   expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:fake");
 });
+
+test("帖内头像保存与删除不会修改全站头像", async () => {
+  const save = vi.fn().mockResolvedValue(undefined);
+  const remove = vi.fn().mockResolvedValue(undefined);
+  render(<AvatarUploader username="白鸦" avatar="https://example.com/role.webp" title="帖内头像"
+    onSaveAvatar={save} onRemoveAvatar={remove} />, { wrapper: createWrapper() });
+  fireEvent.click(screen.getByRole("button", { name: "移除头像" }));
+  await waitFor(() => expect(remove).toHaveBeenCalledOnce());
+  expect(mockRemoveAvatar.mutateAsync).not.toHaveBeenCalled();
+  fireEvent.change(screen.getByTestId("avatar-file-input"), {
+    target: { files: [new File([imageFixture("static.png")], "photo.png", { type: "image/png" })] },
+  });
+  await waitFor(() => expect(screen.getByRole("button", { name: "保存头像" })).toBeEnabled());
+  fireEvent.click(screen.getByRole("button", { name: "保存头像" }));
+  await waitFor(() => expect(save).toHaveBeenCalledWith("m1"));
+  expect(mockSetAvatar.mutateAsync).not.toHaveBeenCalled();
+});
+
+test("帖内头像移除失败保留面板并允许重试", async () => {
+  const remove = vi.fn().mockRejectedValueOnce(new Error("offline")).mockResolvedValue(undefined);
+  render(<AvatarUploader username="白鸦" avatar="https://example.com/role.webp"
+    onRemoveAvatar={remove} />, { wrapper: createWrapper() });
+  fireEvent.click(screen.getByRole("button", { name: "移除头像" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("操作失败");
+  fireEvent.click(screen.getByRole("button", { name: "移除头像" }));
+  await waitFor(() => expect(remove).toHaveBeenCalledTimes(2));
+  expect(mockRemoveAvatar.mutateAsync).not.toHaveBeenCalled();
+});

@@ -123,7 +123,10 @@ vi.mock("@/components/thread/thread-composer-context", () => ({
 
 vi.mock("@/components/thread/thread-permissions-context", () => ({
   ThreadPermissionsProvider: ({ children }: { children: React.ReactNode }) => children,
-  useThreadPermissions: () => ({ isThreadManager: false }),
+  useThreadPermissions: () => {
+    const [authorFilter, setAuthorFilter] = React.useState<{ subthreadId: string; authorId: string }>();
+    return { isThreadManager: false, authorFilter, setAuthorFilter };
+  },
 }));
 
 vi.mock("@/components/thread/discussion-target-mask", () => ({

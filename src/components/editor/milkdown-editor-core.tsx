@@ -2,6 +2,8 @@
 
 "use client";
 
+import type { MentionIdentity } from "@/lib/thread-identity";
+
 import type { MarkdownMediaDisplay } from "@/lib/media-display";
 import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState, type Ref } from "react";
 import { createPortal } from "react-dom";
@@ -23,6 +25,7 @@ const EMPTY_DICE_ROLLS: InlineDiceRoll[] = [];
 export interface MilkdownEditorProps {
   defaultValue?: string;
   mediaDisplays?: readonly MarkdownMediaDisplay[];
+  mentionIdentities?: readonly MentionIdentity[];
   editorRef?: Ref<EditorSubmissionHandle>;
   onValidityChange?: (valid: boolean) => void;
   onChange?: (value: string) => void;
@@ -49,6 +52,7 @@ export interface MilkdownEditorProps {
 function EditorCore({
   defaultValue,
   mediaDisplays,
+  mentionIdentities,
   editorRef,
   onValidityChange,
   onChange,
@@ -169,7 +173,7 @@ function EditorCore({
       } as React.CSSProperties}
     >
       {contractVersionReady && !protectedContent && (
-        <MilkdownEditorHost
+        <MilkdownEditorHost mentionIdentities={mentionIdentities}
           key={`${version}-${user?.id ?? "guest"}`}
           initialValue={restoredValue ?? ""}
           mediaDisplays={restoredMediaDisplays ?? mediaDisplays}

@@ -1037,6 +1037,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/threads/{threadId}/identity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 读取自己的帖内身份与发言确认 token */
+        get: operations["threadIdentitiesMine"];
+        /** 设置自己的帖内身份；仅影响之后的新发言 */
+        put: operations["threadIdentitiesUpdate"];
+        post?: never;
+        /** 清除自己的当前帖内资料；保留历史发言身份 */
+        delete: operations["threadIdentitiesClear"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/threads/{threadId}/identities/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 读取可访问主题内的当前身份卡与真实账号 */
+        get: operations["threadIdentitiesFindUser"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/threads/{threadId}/identity-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** 楼主开启或关闭全帖身份展示；不删除历史资料 */
+        patch: operations["threadIdentitiesSetEnabled"];
+        trace?: never;
+    };
     "/api/v1/tags": {
         parameters: {
             query?: never;
@@ -3552,7 +3605,16 @@ export interface components {
             /** @example 登录终端已退出 */
             message: string;
         };
+        RpIdentityResponseDto: {
+            id: string;
+            /** @description 实际展示昵称，已应用账号缺省值 */
+            nickname: string;
+            avatar: string | null;
+            avatarDisplay?: components["schemas"]["MediaDisplayResponseDto"] | null;
+        };
         PostAuthorResponseDto: {
+            /** @description 仅帖内上下文返回；账号字段不变，展示优先使用此身份 */
+            rpIdentity?: components["schemas"]["RpIdentityResponseDto"] | null;
             /** @description 头像完整 WebP 展示资源；avatar 保留来源身份 */
             avatarDisplay?: components["schemas"]["MediaDisplayResponseDto"] | null;
             id: string;
@@ -3561,13 +3623,15 @@ export interface components {
             level: number;
         };
         MentionCandidateDto: {
+            /** @description 仅帖内上下文返回；账号字段不变，展示优先使用此身份 */
+            rpIdentity?: components["schemas"]["RpIdentityResponseDto"] | null;
             /** @description 头像完整 WebP 展示资源；avatar 保留来源身份 */
             avatarDisplay?: components["schemas"]["MediaDisplayResponseDto"] | null;
             id: string;
             username: string;
             avatar: string | null;
             /** @enum {string} */
-            relation: "FOLLOWING" | "PLAYER";
+            relation: "FOLLOWING" | "PLAYER" | "OWNER" | "COLLABORATOR";
         };
         MentionCandidatesResponseDto: {
             users: components["schemas"]["MentionCandidateDto"][];
@@ -3975,6 +4039,8 @@ export interface components {
             username: string;
         };
         NotificationPayloadResponseDto: {
+            /** @description 有权限查看的帖内历史身份；通知账号名称不变 */
+            rpIdentity?: components["schemas"]["RpIdentityResponseDto"] | null;
             /** @enum {number} */
             schemaVersion: 1;
             action?: string | null;
@@ -4304,6 +4370,14 @@ export interface components {
             /** @enum {string|null} */
             denialReason: "AUTHENTICATION_REQUIRED" | "BLOCKED_RELATION" | "COLLABORATOR_REQUIRED" | "PLAYER_REQUIRED" | null;
         };
+        MentionIdentityDisplayDto: {
+            userId: string;
+            /** @description 正文 canonical mention 的原始标签（不含 @），与 userId 共同作为映射键 */
+            label: string;
+            /** @description 此次阅读应显示的名字；关闭时为账号用户名 */
+            displayName: string;
+            identityId: string | null;
+        };
         DiceRollResponseDto: {
             id: string;
             postId: string;
@@ -4333,6 +4407,9 @@ export interface components {
             createdAt: string;
         };
         ThreadBodyPostResponseDto: {
+            author?: components["schemas"]["PostAuthorResponseDto"];
+            /** @description 渲染 canonical mention 的按 userId + 原始 label 映射，编辑继续保存原正文 */
+            mentionIdentities?: components["schemas"]["MentionIdentityDisplayDto"][];
             /** @description 仅此次已授权正文中的精确来源映射；编辑保存继续使用 sourceUrl */
             mediaDisplays?: components["schemas"]["MarkdownMediaDisplayResponseDto"][];
             id: string;
@@ -4379,6 +4456,8 @@ export interface components {
             isOwner: boolean;
         };
         ThreadDetailResponseDto: {
+            /** @description 帖内身份是否开启；旧响应缺失时按 false */
+            rpIdentityEnabled?: boolean;
             id: string;
             title: string | null;
             ownerId: string;
@@ -4493,6 +4572,13 @@ export interface components {
             version: number;
         };
         SaveThreadAggregateDto: {
+            /** @description GET 帖内身份返回的确认 token；新建正文或发言时使用。身份变化返回 409/40011，保留草稿并重新确认 */
+            identityToken?: string;
+            /**
+             * @description 本次新发言身份；ACCOUNT 明确使用站内账号且不校验 RP token，RP 要求有效帖内身份和 identityToken。省略沿用旧确认规则；编辑已有正文忽略此字段
+             * @enum {string}
+             */
+            identityMode?: "ACCOUNT" | "RP";
             title?: string;
             /**
              * @description 管理员配置的分类 slug；服务端会去除首尾空白并转为大写
@@ -4615,6 +4701,49 @@ export interface components {
              * @example 无限流
              */
             name: string;
+        };
+        ThreadIdentityProfileDto: {
+            id: string;
+            nickname: string | null;
+            avatarMediaId: string | null;
+            version: number;
+        };
+        ThreadIdentityAccountDto: {
+            id: string;
+            username: string;
+            avatar: string | null;
+        };
+        ThreadIdentityStateDto: {
+            threadId: string;
+            userId: string;
+            enabled: boolean;
+            /** @description 当前是否具有楼主、协作者或玩家资格；不代表发言权限 */
+            eligible: boolean;
+            /** @description 当前访问者能否编辑此身份 */
+            canEdit: boolean;
+            identity: components["schemas"]["ThreadIdentityProfileDto"] | null;
+            display: components["schemas"]["RpIdentityResponseDto"] | null;
+            account: components["schemas"]["ThreadIdentityAccountDto"];
+            /** @description 仅本人读取返回。新发言传 identityToken；409 后保留草稿并重新读取确认 */
+            identityToken: string | null;
+        };
+        UpdateThreadIdentityDto: {
+            /** @description 显式清除昵称，供省略 null 的客户端使用；不能与非空 nickname 同时提供 */
+            clearNickname?: boolean;
+            /** @description 显式清除头像；不能与非空 avatarMediaId 同时提供 */
+            clearAvatar?: boolean;
+            /** @description 允许重名、空格及标点；去除首尾空白，空字符串清除。不允许反斜线、方括号、HTML括号或控制字符 */
+            nickname?: string | null;
+            /** @description 本人已完成的 AVATAR 媒体；null 清除，不接受任意 URL */
+            avatarMediaId?: string | null;
+            /** @description 已有身份的乐观锁版本；省略兼容首次保存 */
+            version?: number;
+        };
+        SetThreadIdentityEnabledDto: {
+            enabled: boolean;
+        };
+        ThreadIdentitySettingsDto: {
+            enabled: boolean;
         };
         TagResponseDto: {
             id: string;
@@ -5003,6 +5132,13 @@ export interface components {
             thread?: components["schemas"]["SubthreadThreadReferenceResponseDto"];
         };
         CreateSubthreadDto: {
+            /** @description GET 帖内身份返回的确认 token；新建正文或发言时使用。身份变化返回 409/40011，保留草稿并重新确认 */
+            identityToken?: string;
+            /**
+             * @description 本次新发言身份；ACCOUNT 明确使用站内账号且不校验 RP token，RP 要求有效帖内身份和 identityToken。省略沿用旧确认规则；编辑已有正文忽略此字段
+             * @enum {string}
+             */
+            identityMode?: "ACCOUNT" | "RP";
             /**
              * Format: uuid
              * @description 客户端创建幂等键；同一次提交和网络重试必须复用
@@ -5086,6 +5222,8 @@ export interface components {
             author: components["schemas"]["PostAuthorResponseDto"];
         };
         ReplyResponseDto: {
+            /** @description 渲染 canonical mention 的按 userId + 原始 label 映射，编辑继续保存原正文 */
+            mentionIdentities?: components["schemas"]["MentionIdentityDisplayDto"][];
             /** @description 仅此次已授权正文中的精确来源映射；编辑保存继续使用 sourceUrl */
             mediaDisplays?: components["schemas"]["MarkdownMediaDisplayResponseDto"][];
             id: string;
@@ -5130,6 +5268,8 @@ export interface components {
             replyToPost: components["schemas"]["ReplyTargetResponseDto"] | null;
         };
         FloorResponseDto: {
+            /** @description 渲染 canonical mention 的按 userId + 原始 label 映射，编辑继续保存原正文 */
+            mentionIdentities?: components["schemas"]["MentionIdentityDisplayDto"][];
             /** @description 仅此次已授权正文中的精确来源映射；编辑保存继续使用 sourceUrl */
             mediaDisplays?: components["schemas"]["MarkdownMediaDisplayResponseDto"][];
             id: string;
@@ -5208,6 +5348,8 @@ export interface components {
             pinnedItems: components["schemas"]["FloorResponseDto"][];
         };
         DiscussionAuthorResponseDto: {
+            /** @description 仅帖内上下文返回；账号字段不变，展示优先使用此身份 */
+            rpIdentity?: components["schemas"]["RpIdentityResponseDto"] | null;
             /** @description 头像完整 WebP 展示资源；avatar 保留来源身份 */
             avatarDisplay?: components["schemas"]["MediaDisplayResponseDto"] | null;
             id: string;
@@ -5220,6 +5362,13 @@ export interface components {
             playerMarked: boolean;
         };
         UpsertBodyDto: {
+            /** @description GET 帖内身份返回的确认 token；新建正文或发言时使用。身份变化返回 409/40011，保留草稿并重新确认 */
+            identityToken?: string;
+            /**
+             * @description 本次新发言身份；ACCOUNT 明确使用站内账号且不校验 RP token，RP 要求有效帖内身份和 identityToken。省略沿用旧确认规则；编辑已有正文忽略此字段
+             * @enum {string}
+             */
+            identityMode?: "ACCOUNT" | "RP";
             /**
              * @description 正文（Markdown）；骰子使用内联节点，发布时仍必须包含非骰子可见文字
              * @example 这里是子贴正文…
@@ -5232,6 +5381,8 @@ export interface components {
             version?: number;
         };
         PostResponseDto: {
+            /** @description 渲染 canonical mention 的按 userId + 原始 label 映射，编辑继续保存原正文 */
+            mentionIdentities?: components["schemas"]["MentionIdentityDisplayDto"][];
             /** @description 仅此次已授权正文中的精确来源映射；编辑保存继续使用 sourceUrl */
             mediaDisplays?: components["schemas"]["MarkdownMediaDisplayResponseDto"][];
             id: string;
@@ -5275,6 +5426,13 @@ export interface components {
             author: components["schemas"]["PostAuthorResponseDto"];
         };
         CreatePostDto: {
+            /** @description GET 帖内身份返回的确认 token；新建正文或发言时使用。身份变化返回 409/40011，保留草稿并重新确认 */
+            identityToken?: string;
+            /**
+             * @description 本次新发言身份；ACCOUNT 明确使用站内账号且不校验 RP token，RP 要求有效帖内身份和 identityToken。省略沿用旧确认规则；编辑已有正文忽略此字段
+             * @enum {string}
+             */
+            identityMode?: "ACCOUNT" | "RP";
             /**
              * @description 帖子正文；骰子使用 [[dice:v1:<UUID>:<NdM±K>]] 内联节点
              * @example 这是一段正文内容，支持 Markdown 格式。
@@ -5309,6 +5467,8 @@ export interface components {
             floorNumber: number | null;
         };
         PostDetailResponseDto: {
+            /** @description 渲染 canonical mention 的按 userId + 原始 label 映射，编辑继续保存原正文 */
+            mentionIdentities?: components["schemas"]["MentionIdentityDisplayDto"][];
             /** @description 仅此次已授权正文中的精确来源映射；编辑保存继续使用 sourceUrl */
             mediaDisplays?: components["schemas"]["MarkdownMediaDisplayResponseDto"][];
             id: string;
@@ -6304,6 +6464,7 @@ export interface components {
             bio: string | null;
         };
         SearchAuthorResponseDto: {
+            rpIdentity?: components["schemas"]["RpIdentityResponseDto"] | null;
             /** @description 用户 ID */
             id: string;
             /** @description 用户名 */
@@ -6322,6 +6483,7 @@ export interface components {
             title: string;
         };
         SearchPostResponseDto: {
+            mentionIdentities?: components["schemas"]["MentionIdentityDisplayDto"][];
             /** @description 已授权正文的精确来源映射 */
             mediaDisplays?: components["schemas"]["MarkdownMediaDisplayResponseDto"][];
             /**
@@ -7045,6 +7207,21 @@ export interface components {
         ThreadTagsRemove200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["MessageResponseDto"];
         };
+        ThreadIdentitiesMine200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ThreadIdentityStateDto"];
+        };
+        ThreadIdentitiesUpdate200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ThreadIdentityStateDto"];
+        };
+        ThreadIdentitiesClear200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ThreadIdentityStateDto"];
+        };
+        ThreadIdentitiesFindUser200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ThreadIdentityStateDto"];
+        };
+        ThreadIdentitiesSetEnabled200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["ThreadIdentitySettingsDto"];
+        };
         TagsSearch200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["TagResponseDto"][];
         };
@@ -7523,7 +7700,7 @@ export interface components {
          * @description 稳定业务错误码；名称和值来源于 ErrorCode
          * @enum {integer}
          */
-        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40007 | 40008 | 40009 | 40010 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40108 | 40109 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40117 | 40118 | 40119 | 40120 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40307 | 40308 | 40309 | 40310 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40414 | 40415 | 40416 | 40417 | 40418 | 40419 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 40912 | 40913 | 40914 | 40915 | 40916 | 40917 | 40918 | 40919 | 40920 | 40921 | 40922 | 40923 | 40926 | 40924 | 40925 | 42900 | 50000;
+        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40007 | 40008 | 40009 | 40010 | 40011 | 40012 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40108 | 40109 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40117 | 40118 | 40119 | 40120 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40307 | 40308 | 40309 | 40310 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40414 | 40415 | 40416 | 40417 | 40418 | 40419 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 40912 | 40913 | 40914 | 40915 | 40916 | 40917 | 40918 | 40919 | 40920 | 40921 | 40922 | 40923 | 40926 | 40924 | 40925 | 42900 | 50000;
         ApiErrorEnvelope: {
             code: components["schemas"]["BusinessErrorCode"];
             message: string;
@@ -11629,6 +11806,185 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ThreadTagsRemove200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    threadIdentitiesMine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                threadId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThreadIdentitiesMine200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    threadIdentitiesUpdate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                threadId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateThreadIdentityDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThreadIdentitiesUpdate200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    threadIdentitiesClear: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                threadId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThreadIdentitiesClear200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    threadIdentitiesFindUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                threadId: string;
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThreadIdentitiesFindUser200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    threadIdentitiesSetEnabled: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                threadId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetThreadIdentityEnabledDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThreadIdentitiesSetEnabled200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */

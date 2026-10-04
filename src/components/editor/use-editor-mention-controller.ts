@@ -11,6 +11,7 @@ import {
 } from "react";
 import { CrepeBuilder } from "@milkdown/crepe/builder";
 import { editorViewCtx } from "@milkdown/core";
+import type { MentionIdentity } from "@/lib/thread-identity";
 import { getMentionUserId, markEditorMentionAnchors } from "@/lib/mention";
 import type { MentionMenuItem } from "@/components/editor/mention-candidate-menu";
 
@@ -27,6 +28,7 @@ interface UseEditorMentionControllerOptions {
   crepeRef: RefObject<CrepeBuilder | null>;
   disabled?: boolean;
   loading: boolean;
+  mentionIdentities?: readonly MentionIdentity[];
   threadId?: string;
   items: MentionMenuItem[];
   setMenu: Dispatch<SetStateAction<EditorMentionMenu | null>>;
@@ -39,6 +41,7 @@ export function useEditorMentionController({
   crepeRef,
   disabled,
   loading,
+  mentionIdentities,
   threadId,
   items,
   setMenu,
@@ -156,7 +159,7 @@ export function useEditorMentionController({
       }
       const resolved = view.state.doc.resolve(from);
       const textBefore = resolved.parent.textBetween(0, resolved.parentOffset, "\n", "\n");
-      const match = /(^|[\s([>])@([a-zA-Z0-9_\u4e00-\u9fff]{0,24})$/u.exec(textBefore);
+      const match = /(^|[\s([>])@([^\r\n@]{0,24})$/u.exec(textBefore);
       if (!match) {
         menuRef.current = null;
         setMenu(null);
@@ -193,14 +196,14 @@ export function useEditorMentionController({
       const element = node instanceof Element ? node : node.parentElement;
       if (!element || !editorDomRef.current?.contains(element)) return;
       const anchor = element.closest("a[href]");
-      if (anchor) markEditorMentionAnchors(anchor);
-      else if (node instanceof Element) markEditorMentionAnchors(node);
+      if (anchor) markEditorMentionAnchors(anchor, mentionIdentities);
+      else if (node instanceof Element) markEditorMentionAnchors(node, mentionIdentities);
     };
     const attach = () => {
       const editor = host.querySelector<HTMLElement>(".ProseMirror");
       if (!editor) return;
       if (editorDomRef.current === editor) return;
-      markEditorMentionAnchors(editor);
+      markEditorMentionAnchors(editor, mentionIdentities);
       editorDomRef.current = editor;
       const handleCompositionStart = () => {
         isComposingRef.current = true;
@@ -301,7 +304,7 @@ export function useEditorMentionController({
       menuRef.current = null;
       setMenu(null);
     };
-  }, [crepeRef, disabled, hostRef, insertMention, loading, setMenu, setSelectedIndex, threadId]);
+  }, [crepeRef, disabled, hostRef, insertMention, loading, mentionIdentities, setMenu, setSelectedIndex, threadId]);
 
   return { handleMentionSelect };
 }

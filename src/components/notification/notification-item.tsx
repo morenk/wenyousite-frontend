@@ -206,6 +206,8 @@ function sanitizeNotificationContent(notification: NotificationItemData): string
 function getStructuredNotificationContent(notification: NotificationItemData): React.ReactNode | null {
   const payload = notification.payload;
   const actorName = typeof payload?.actorName === "string" ? payload.actorName.trim() : "";
+  const rpValue = payload?.rpIdentity;
+  const rpName = rpValue && typeof rpValue === "object" && "nickname" in rpValue && typeof rpValue.nickname === "string" ? rpValue.nickname : "";
   const action = typeof payload?.action === "string" ? payload.action : "";
 
   // 点赞通知可能已经聚合了多人，必须保留后端生成的聚合文案。
@@ -239,6 +241,7 @@ function getStructuredNotificationContent(notification: NotificationItemData): R
   return (
     <>
       <span className="font-medium text-foreground">{actorName}</span>{" "}
+      {rpName ? <span className="text-muted-foreground">以「{rpName}」</span> : null}
       <span>{actionText}</span>
       {preview && <span className="text-muted-foreground">：{preview}</span>}
     </>

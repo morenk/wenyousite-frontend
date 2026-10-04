@@ -126,3 +126,9 @@ Web 通过独立管理 Cookie/CSRF 会话消费 `/admin/mobile-releases` 列表�
 固定 OpenAPI、媒体展示夹具与生成类型通过标准 `pnpm contract:sync`、`pnpm generate:api` 完整同步。检查指定 `WENYOUSITE_BACKEND_ROOT=/srv/wenyousite/wenyousite-backend` 与上述完整 `BACKEND_CONTRACT_REF`，只读取 Git 已提交产物。媒体夹具版本与 OpenAPI 均为 `5.32.0-dev.20261003.1`，不手改生成类型或降低同步校验。
 
 该版本显式声明下载 HEAD，共 238 个 HTTP 操作；现有 GET/POST/PUT/PATCH/DELETE 审计口径仍为 237。下载 429 的 `X-Download-Limit-Reason` 与 `Retry-After` 直接消费生成类型；Cookie 由服务端签发及浏览器同源管理，Web 不自行生成标识或维护额度。每日限制与原生 GET 边界见 [APP 下载](app-download.md#每日次数与-cookie)。
+
+## 沉浸式帖内身份
+
+固定 OpenAPI、全部共享夹具与生成类型由标准同步入口读取 Backend 已提交 `5ab9767ff8ddce917ddb2560ea655bb58a2408a3`（`5.33.0-dev.20261005.1`）。检查与同步均指定该 `BACKEND_CONTRACT_REF` 和真实 Backend 仓库的 `WENYOUSITE_BACKEND_ROOT`；新增 `contracts/thread-identity.v1.fixtures.json` 随版本逐字节核验。Foundation 维持 v7.2.1 依赖，本批语义规范由治理汇总。
+
+新增本人身份 GET/PUT/DELETE、指定账号当前身份 GET 与楼主开关 PATCH；统一经 `use-thread-identity.ts` 消费。作者可选 `rpIdentity` 是局部展示，绝不覆盖通用 User 的账号字段；结构化提及通过 `userId + label` 匹配 `mentionIdentities`。创建楼层及首次 BODY 发 `identityMode=ACCOUNT|RP`，RP 带本人 `identityToken`。旧编辑不发送新身份，旧服务省略能力字段时关闭新控件。历史/关闭投影、冲突与幂等行为见 [主题帖详情](thread-detail.md#帖内身份与逐次发表)。

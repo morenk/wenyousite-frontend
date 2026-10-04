@@ -42,3 +42,12 @@ Next.js `next dev` 只监听 `127.0.0.1`，端口来自已核验描述，使用�
 
 
 真实交互预览可使用 `pnpm test:preview:api /absolute/consumer.json /absolute/fixture-credentials.json task-id` 进行浏览器验收。账号文件须为 VPS 当前用户所有、权限 0600 的 `{ "account": "...", "password": "..." }` JSON，使用快照内预先准备的隔离样例账号；命令不打印凭据。先验证消费者与运行身份，再验证实际登录、HttpOnly 刷新、头像裁剪、双画幅主页背景、删除与正文编辑器上传。只允许当前 Web API 和隔离媒体写入，历史媒体仅 GET/HEAD。报告与图片保存在 `.dev-preview` 私有目录，批次中的样例草稿随 Backend 最终 cleanup 回收，不能把“保留反馈数据”误报为一次性 E2E 已清理。
+
+
+RP 专项使用 Backend 私有预览协议提交 bc00ae8a86ba35fe9f1b2aad942db59477496cb9：消费者 snapshot.sourceKind 为 synthetic-thread-identities 时横幅明确显示“隔离合成样本”。使用已提交的 `scripts/thread-identity-preview.ts` 创建 `rp-identity-v1` 合成批次；私有 `sample-accounts.json` / `sample-content.json` 均需声明 `isolatedSample=true` 且与消费者 `runId` 一致。它不含真实用户快照，不能替代负责人真实资料验收。Web 可运行：
+
+```bash
+node scripts/test-preview-rp.mjs /absolute/consumer.json /absolute/sample-accounts.json /absolute/sample-content.json rp-identity-web
+```
+
+此脚本先验证 Backend/media/Web 实际身份和登记，再经页面验证历史卡、混合身份筛选、ACCOUNT/RP 发表、长昵称深浅色与 1024px 视口、跨客户端关闭时的草稿保留与确认、关闭/重开历史投影及读者资格。报告、截图保存在忽略的 `.dev-preview`；浏览器自动关闭，反馈批次资源保留并由 Backend 登记的 cleanup 最终回收。

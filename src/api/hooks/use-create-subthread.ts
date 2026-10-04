@@ -4,13 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
 import type { components } from "@/api/types";
 
-interface CreateSubthreadBody {
-  clientRequestId: string;
-  title: string;
-  content?: string;
-  sortOrder?: number;
-  postingPolicy: "PARTICIPANTS" | "COLLABORATORS" | "PLAYERS";
-}
+type CreateSubthreadBody = components["schemas"]["CreateSubthreadDto"];
 
 export type CreatedSubthread = components["schemas"]["SubthreadResponseDto"];
 

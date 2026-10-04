@@ -61,3 +61,16 @@ describe("MentionCandidateMenu", () => {
     expect(onSelect).toHaveBeenCalledOnce();
   });
 });
+
+test("重名角色通过账号区分且选择仍携带账号 ID", () => {
+  const select = vi.fn();
+  render(<MentionCandidateMenu {...baseProps} onSelect={select} items={[
+    { id: "u1", username: "白鸦", label: "@白鸦", accountUsername: "小明", avatar: null, relation: "PLAYER" },
+    { id: "u2", username: "白鸦", label: "@白鸦", accountUsername: "小红", avatar: "https://example.com/rp.webp", relation: "PLAYER" },
+  ]} />);
+  const option = screen.getByRole("option", { name: /站内账号：小红/ });
+  expect(option).toHaveAttribute("data-mention-id", "u2");
+  expect(screen.getByRole("img", { name: "白鸦" })).toHaveAttribute("src", "https://example.com/rp.webp");
+  fireEvent.mouseDown(option);
+  expect(select).toHaveBeenCalledOnce();
+});

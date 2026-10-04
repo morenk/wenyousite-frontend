@@ -11,6 +11,14 @@ import { ManagementPanel } from "@/components/thread/management-panel";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
 import type { ManagementEditorStatus } from "@/components/thread/management-types";
 
+const identityMocks = vi.hoisted(() => ({ prepare: vi.fn(), changed: vi.fn() }));
+vi.mock("@/components/thread/use-thread-identity-submission", () => ({
+  useThreadIdentitySubmission: () => ({ prepare: identityMocks.prepare, requireConfirmation: identityMocks.changed }),
+}));
+vi.mock("@/components/thread/thread-publication-identity", () => ({
+  ThreadPublicationIdentity: () => <span>首次正文发表身份</span>,
+}));
+
 vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
@@ -96,7 +104,9 @@ vi.mock("@/components/editor/milkdown-editor", async () => {
     onUploadImage,
     onSyncErrorChange,
     autoFocus,
+    disabled,
   }: {
+    disabled?: boolean;
     defaultValue?: string;
     onChange?: (value: string) => void;
     onUploadImage?: (file: File) => Promise<string>;
@@ -106,6 +116,7 @@ vi.mock("@/components/editor/milkdown-editor", async () => {
     <div>
       <textarea
         data-testid="milkdown-editor"
+        disabled={disabled}
         data-auto-focus={autoFocus ? "true" : "false"}
         defaultValue={defaultValue}
         onChange={(event) => onChange?.(event.target.value)}
@@ -292,6 +303,7 @@ function renderPanel({
 beforeEach(() => {
   deferredEditor.value = false;
   vi.clearAllMocks();
+    identityMocks.prepare.mockResolvedValue(undefined);
   vi.stubGlobal("confirm", vi.fn(() => true));
   mocks.auth.mockReturnValue({ user: { id: "u1", username: "test" } });
   mocks.permissions.mockReturnValue({ isOwner: true, isCollaborator: false });
@@ -758,4 +770,38 @@ test("子贴尚未生成新快照时切换也确认，确认中新输入不丢�
   expect(confirm).toHaveBeenCalledTimes(1);
   expect(screen.getByLabelText("子贴标题")).toHaveValue("剧情区");
   expect(input).toHaveValue("确认期间继续输入");
+});
+
+test("首次子贴正文用本次身份，确认取消保留内容且不写入", async () => {
+  const first = { ...mockThread, rpIdentityEnabled: true, subthreads: mockThread.subthreads.map((sub) => sub.id === "s2" ? { ...sub, bodyPost: null } : sub) };
+  identityMocks.prepare.mockResolvedValueOnce(null).mockResolvedValue({ identityMode: "RP", identityToken: "sub-token" });
+  renderPanel({ thread: first, searchParams: "?view=subthreads&subthread=s2" });
+  expect(screen.getByText("首次正文发表身份")).toBeInTheDocument();
+  fireEvent.change(screen.getByTestId("milkdown-editor"), { target: { value: "首次子贴正文" } });
+  await userEvent.click(screen.getByRole("button", { name: "保存子贴" }));
+  expect(mocks.upsertBody).not.toHaveBeenCalled();
+  expect(screen.getByTestId("milkdown-editor")).toHaveValue("首次子贴正文");
+  await userEvent.click(screen.getByRole("button", { name: "保存子贴" }));
+  await waitFor(() => expect(mocks.upsertBody).toHaveBeenCalledWith(expect.objectContaining({ identityMode: "RP", identityToken: "sub-token", version: undefined })));
+});
+
+test("首次子贴正文未知结果禁改禁退出，精确重试原mode/token/content/version，冲突不自动覆盖", async () => {
+  const first = { ...mockThread, rpIdentityEnabled: true, subthreads: mockThread.subthreads.map((sub) => sub.id === "s2" ? { ...sub, bodyPost: null } : sub) };
+  identityMocks.prepare.mockResolvedValue({ identityMode: "RP", identityToken: "frozen-sub-token" });
+  mocks.upsertBody.mockRejectedValueOnce(new TypeError("offline")).mockRejectedValueOnce({ code: 40002, message: "版本冲突" });
+  const { onExit, onRefetch } = renderPanel({ thread: first, searchParams: "?view=subthreads&subthread=s2" });
+  fireEvent.change(screen.getByTestId("milkdown-editor"), { target: { value: "保留原子贴正文" } });
+  await userEvent.click(screen.getByRole("button", { name: "保存子贴" }));
+  expect(screen.getByTestId("milkdown-editor")).toBeDisabled();
+  expect(screen.getByLabelText("子贴标题")).toBeDisabled();
+  await userEvent.click(screen.getByRole("button", { name: "返回帖子" }));
+  expect(onExit).not.toHaveBeenCalled();
+  const original = mocks.upsertBody.mock.calls[0][0];
+  identityMocks.prepare.mockResolvedValue({ identityMode: "ACCOUNT" });
+  await userEvent.click(screen.getByRole("button", { name: "保存子贴" }));
+  expect(mocks.upsertBody.mock.calls[1][0]).toEqual(original);
+  expect(identityMocks.prepare).toHaveBeenCalledOnce();
+  expect(screen.getByTestId("milkdown-editor")).toBeEnabled();
+  expect(screen.getByTestId("milkdown-editor")).toHaveValue("保留原子贴正文");
+  expect(onRefetch).not.toHaveBeenCalled();
 });

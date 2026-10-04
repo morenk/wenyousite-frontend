@@ -62,7 +62,10 @@ describe("FloorListControls", () => {
       />,
     );
 
-    await user.click(screen.getByRole("combobox", { name: "只看某人的楼层" }));
+    const authorFilter = screen.getByRole("combobox", { name: "只看某人的楼层" });
+    expect(authorFilter).toHaveTextContent("全部发言者");
+    await user.click(authorFilter);
+    expect(screen.getByRole("option", { name: "全部发言者" })).toBeVisible();
     await user.click(screen.getByRole("option", { name: "玩家乙 玩家" }));
     expect(onAuthorChange).toHaveBeenCalledWith("player-1");
   });
@@ -105,4 +108,15 @@ describe("FloorListControls", () => {
       screen.getByRole("button", { name: "当前楼层暂无可筛选作者" }),
     ).toBeDisabled();
   });
+});
+
+test("当前角色名为主且同名候选继续按账号筛选", async () => {
+  const user = userEvent.setup();
+  const change = vi.fn();
+  render(<FloorListControls order="OLDEST" onOrderChange={vi.fn()} onAuthorChange={change}
+    authors={authors.map((author) => ({ ...author, displayName: "白鸦" }))}
+    authorsLoading={false} authorsError={false} onRetryAuthors={vi.fn()} />);
+  await user.click(screen.getByRole("combobox", { name: "只看某人的楼层" }));
+  await user.click(screen.getByRole("option", { name: "白鸦 玩家乙 玩家" }));
+  expect(change).toHaveBeenCalledWith("player-1");
 });

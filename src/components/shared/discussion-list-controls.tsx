@@ -29,13 +29,16 @@ interface DiscussionListControlsProps {
 export interface DiscussionAuthorOption {
   id: string;
   username: string;
+  displayName?: string;
+  rpIdentity?: { nickname: string } | null;
+  playerMarked?: boolean;
   role: "OWNER" | "COLLABORATOR" | "PARTICIPANT";
 }
 
 function roleDetail(author: DiscussionAuthorOption) {
   if (author.role === "OWNER") return "楼主";
   if (author.role === "COLLABORATOR") return "协作者";
-  return "玩家";
+  return author.playerMarked === false ? "参与者" : "玩家";
 }
 
 export function DiscussionListControls({
@@ -50,9 +53,10 @@ export function DiscussionListControls({
   onRetryAuthors,
   className,
 }: DiscussionListControlsProps) {
+  authors = authors.map((author) => ({ ...author, displayName: author.rpIdentity?.nickname ?? author.displayName }));
   const authorItems = [
-    { value: "ALL", label: "全部玩家与管理者" },
-    ...authors.map((author) => ({ value: author.id, label: author.username })),
+    { value: "ALL", label: "全部发言者" },
+    ...authors.map((author) => ({ value: author.id, label: author.displayName ? `${author.displayName} · ${author.username}` : author.username })),
   ];
 
   const authorControl = authors.length > 0 ? (
@@ -64,16 +68,17 @@ export function DiscussionListControls({
       <SelectTrigger
         size="compact"
         aria-label={`只看某人的${subject}`}
-        className="min-w-44"
+        className="min-w-44 max-w-full"
       >
         <WenyouIcon id="identity.member" className="size-3.5 text-muted-foreground" />
-        <SelectValue />
+        <SelectValue className="min-w-0 truncate" />
       </SelectTrigger>
       <SelectContent align="end" className="min-w-52">
-        <SelectItem value="ALL">全部玩家与管理者</SelectItem>
+        <SelectItem value="ALL">全部发言者</SelectItem>
         {authors.map((author) => (
-          <SelectItem key={author.id} value={author.id}>
-            <span>{author.username}</span>
+          <SelectItem key={author.id} value={author.id} className="[&>span]:min-w-0 [&>span]:shrink">
+            <span className="min-w-0 truncate">{author.displayName ?? author.username}</span>
+            {author.displayName ? <span className="text-xs text-muted-foreground">{author.username}</span> : null}
             <span className="font-utility text-[0.6875rem] text-muted-foreground">
               {roleDetail(author)}
             </span>

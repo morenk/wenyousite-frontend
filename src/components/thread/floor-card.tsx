@@ -15,7 +15,8 @@ import { MarkdownContent } from "@/components/thread/markdown-content";
 import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
 import { useThreadComposerSession } from "@/components/thread/thread-composer-context";
 import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
-import { UserAvatarLink } from "@/components/shared/user-avatar";
+import { ThreadPostAuthor } from "@/components/thread/thread-post-author";
+import { threadAppearance } from "@/lib/thread-identity";
 import { WenyouTime } from "@/components/shared/wenyou-time";
 import { ReplyActionButton } from "@/components/shared/reply-action-button";
 import { buttonVariants } from "@/components/ui/button";
@@ -90,7 +91,7 @@ export function FloorCard({
       subthreadId: floor.subthreadId,
       parentPostId: floor.id,
       replyToPostId: floor.id,
-      label: `回复 #${floor.floorNumber ?? ""} ${floor.author.username}`.trim(),
+      label: `回复 #${floor.floorNumber ?? ""} ${threadAppearance(floor.author).name}`.trim(),
       initialContent: "",
     });
   };
@@ -132,19 +133,7 @@ export function FloorCard({
       {/* 楼层头部 */}
       <div className="mb-3 flex items-start justify-between gap-2">
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
-          <UserAvatarLink
-            userId={floor.authorId}
-            name={floor.author.username}
-            src={floor.author.avatar} display={floor.author.avatarDisplay}
-            className="h-8 w-8"
-            textClassName="text-sm"
-          />
-          <Link
-            href={`/users/${floor.authorId}`}
-            className="text-sm font-medium text-foreground hover:text-brand-strong"
-          >
-            {floor.author.username}
-          </Link>
+          <ThreadPostAuthor author={floor.author} threadId={floor.threadId} subthreadId={floor.subthreadId} postId={floor.id} avatarClassName="h-8 w-8" />
           <LevelBadge level={floor.author.level} />
           {isPinned ? (
             <Badge tone="brand" size="compact" className="gap-1">
@@ -177,10 +166,10 @@ export function FloorCard({
 
       {/* 楼层正文 / 编辑态 */}
       {isEditing ? (
-        <ThreadComposerOutlet anchorId={editAnchorId} />
+        <ThreadComposerOutlet mentionIdentities={floor.mentionIdentities} anchorId={editAnchorId} />
       ) : (
         <div id={`floor-content-${floor.id}`}>
-          <MarkdownContent mediaDisplays={floor.mediaDisplays} content={floor.content} diceRolls={floor.diceRolls} sourcePostId={floor.id} />
+          <MarkdownContent mentionIdentities={floor.mentionIdentities} mediaDisplays={floor.mediaDisplays} content={floor.content} diceRolls={floor.diceRolls} sourcePostId={floor.id} />
         </div>
       )}
 

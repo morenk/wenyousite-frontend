@@ -5,6 +5,7 @@ import { Popover } from "@base-ui/react/popover";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
+import { threadAppearance } from "@/lib/thread-identity";
 import { cn } from "@/lib/utils";
 import { getApiErrorMessage } from "@/api/errors";
 import { useSubscriptions } from "@/api/hooks/use-subscriptions";
@@ -178,13 +179,14 @@ export function ThreadSubscriptionControls({ thread }: {
                     >
                       <div className="flex min-w-0 items-center gap-2.5">
                         <UserAvatar
-                          name={member.user.username}
-                          src={member.user.avatar} display={member.user.avatarDisplay}
+                          name={member.user.rpIdentity?.nickname ?? member.user.username}
+                          src={threadAppearance(member.user).avatar} display={threadAppearance(member.user).avatarDisplay}
                           className="h-8 w-8"
                           textClassName="text-xs"
                         />
                         <span className="truncate text-sm text-foreground">
-                          {member.user.username}
+                          {member.user.rpIdentity?.nickname ?? member.user.username}
+                          {member.user.rpIdentity ? <span className="ml-1 text-xs text-muted-foreground">· {member.user.username}</span> : null}
                         </span>
                       </div>
                       <SubscriptionSwitch
@@ -192,8 +194,8 @@ export function ThreadSubscriptionControls({ thread }: {
                         pending={isPending && pendingTarget === member.userId}
                         disabled={subscriptionsLoading || isPending}
                         label={userSubscription
-                          ? `取消订阅${member.user.username}的发言`
-                          : `订阅${member.user.username}的发言`}
+                          ? `取消订阅${member.user.rpIdentity?.nickname ?? member.user.username}的发言`
+                          : `订阅${member.user.rpIdentity?.nickname ?? member.user.username}的发言`}
                         onClick={() => void handleToggleUser(member.userId)}
                       />
                     </div>

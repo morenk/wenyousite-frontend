@@ -1,0 +1,33 @@
+import { act, cleanup, renderHook } from "@testing-library/react";
+import { afterEach, expect, test, vi } from "vitest";
+import { useInitialBodyWrite } from "../use-initial-body-write";
+vi.mock("sonner", () => ({ toast: { error: vi.fn() } }));
+afterEach(cleanup);
+const original = { content: "首次正文", identityMode: "RP", identityToken: "token-1", version: undefined };
+test("首次BODY未知结果冻结完整请求并保护离开，后续freeze不会覆盖；明确冲突才解除", () => {
+  const { result } = renderHook(() => useInitialBodyWrite<typeof original>());
+  expect(result.current.canClose()).toBe(true);
+  act(() => { result.current.freeze(original); result.current.fail(new TypeError("offline")); });
+  expect(result.current.uncertain).toBe(true);
+  expect(result.current.canClose()).toBe(false);
+  const unload = new Event("beforeunload", { cancelable: true }); window.dispatchEvent(unload);
+  expect(unload.defaultPrevented).toBe(true);
+  act(() => { result.current.freeze({ ...original, content: "后来正文", identityMode: "ACCOUNT" }); });
+  expect(result.current.pendingRequest).toEqual(original);
+  act(() => result.current.fail({ code: 40002, message: "版本冲突" }));
+  expect(result.current.pendingRequest).toBeNull();
+  expect(result.current.canClose()).toBe(true);
+  const resolved = new Event("beforeunload", { cancelable: true }); window.dispatchEvent(resolved);
+  expect(resolved.defaultPrevented).toBe(false);
+});
+test("5xx继续冻结，4xx身份确认和成功响应允许后续编辑", () => {
+  const { result } = renderHook(() => useInitialBodyWrite<typeof original>());
+  act(() => { result.current.fail(new Error("preflight")); });
+  expect(result.current.uncertain).toBe(false);
+  act(() => { result.current.freeze(original); result.current.fail({ status: 503 }); });
+  expect(result.current.uncertain).toBe(true);
+  act(() => result.current.fail({ status: 409, code: 40011 }));
+  expect(result.current.pendingRequest).toBeNull();
+  act(() => { result.current.freeze(original); result.current.finish(); });
+  expect(result.current.uncertain).toBe(false);
+});

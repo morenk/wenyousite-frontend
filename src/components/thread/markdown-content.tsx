@@ -11,6 +11,7 @@ import {
   type ClipboardEvent as ReactClipboardEvent,
   type ReactNode,
 } from "react";
+import { mentionDisplayName, type MentionIdentity } from "@/lib/thread-identity";
 import { findMediaDisplay, type MarkdownMediaDisplay } from "@/lib/media-display";
 import { Button } from "@/components/ui/button";
 import ReactMarkdown, { type ExtraProps } from "react-markdown";
@@ -72,6 +73,7 @@ type SpanProps = ComponentProps<"span"> & ExtraProps & {
 const MarkdownRenderContext = createContext<{
   sourcePostId?: string;
   mediaDisplays?: readonly MarkdownMediaDisplay[];
+  mentionIdentities?: readonly MentionIdentity[];
   diceRollsByNodeId: ReadonlyMap<string, InlineDiceRoll>;
 }>({ diceRollsByNodeId: new Map() });
 
@@ -116,6 +118,7 @@ function getInternalMarkdownHref(href: string) {
 }
 
 function MarkdownLink({ href, children, node: _node, ...props }: AnchorProps) {
+  const { mentionIdentities } = useContext(MarkdownRenderContext);
   void _node;
   const internalHref = typeof href === "string" ? getInternalMarkdownHref(href) : null;
   if (internalHref?.reference) {
@@ -138,13 +141,14 @@ function MarkdownLink({ href, children, node: _node, ...props }: AnchorProps) {
   const userMatch = typeof href === "string" ? /^\/users\/([^/]+)$/u.exec(href) : null;
   if (userMatch) {
     const label = getNodeText(children).trim();
+    const mappedLabel = label.startsWith("@") ? `@${mentionDisplayName(userMatch[1]!, label.slice(1), mentionIdentities)}` : label;
     return (
       <ContentLink
         href={`/users/${userMatch[1]}`}
         mention={label.startsWith("@")}
         {...props}
       >
-        {children}
+        {mappedLabel === label ? children : mappedLabel}
       </ContentLink>
     );
   }
@@ -423,6 +427,7 @@ function rehypeRemoveFormattingLineBreaks() {
 }
 
 interface MarkdownContentProps {
+  mentionIdentities?: readonly MentionIdentity[];
   content: string;
   mediaDisplays?: readonly MarkdownMediaDisplay[];
   diceRolls?: InlineDiceRoll[];
@@ -432,6 +437,7 @@ interface MarkdownContentProps {
 }
 
 export function MarkdownContent({
+  mentionIdentities,
   content,
   mediaDisplays,
   diceRolls = [],
@@ -474,7 +480,7 @@ export function MarkdownContent({
         size === "compact" && "wenyou-prose-compact",
       )}
     >
-      <MarkdownRenderContext.Provider value={{ sourcePostId, mediaDisplays, diceRollsByNodeId }}>
+      <MarkdownRenderContext.Provider value={{ sourcePostId, mediaDisplays, mentionIdentities, diceRollsByNodeId }}>
         <ReactMarkdown
           rehypePlugins={[rehypeRemoveFormattingLineBreaks]}
           remarkPlugins={[

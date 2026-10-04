@@ -8,6 +8,14 @@ import { setAuthSession, clearAuthSession } from "@/lib/auth-store";
 import { ThreadEditForm } from "@/components/forms/thread-edit-form";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
 
+const identityMocks = vi.hoisted(() => ({ prepare: vi.fn(), changed: vi.fn() }));
+vi.mock("@/components/thread/use-thread-identity-submission", () => ({
+  useThreadIdentitySubmission: () => ({ prepare: identityMocks.prepare, requireConfirmation: identityMocks.changed }),
+}));
+vi.mock("@/components/thread/thread-publication-identity", () => ({
+  ThreadPublicationIdentity: () => <span>首次正文发表身份</span>,
+}));
+
 vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn(), message: vi.fn() },
 }));
@@ -23,10 +31,11 @@ const deferredEditor = vi.hoisted(() => ({ value: false }));
 vi.mock("@/components/editor/milkdown-editor", async () => {
   const { withEditorSubmission } = await import("@/test/editor-submission-double");
   return ({
-  MilkdownEditor: withEditorSubmission(({ defaultValue, onChange, onSyncErrorChange }: { defaultValue?: string; onChange?: (value: string) => void; onSyncErrorChange?: (hasError: boolean) => void }) => (
+  MilkdownEditor: withEditorSubmission(({ defaultValue, onChange, onSyncErrorChange, disabled }: { disabled?: boolean; defaultValue?: string; onChange?: (value: string) => void; onSyncErrorChange?: (hasError: boolean) => void }) => (
     <>
     <textarea
       data-testid="milkdown-editor"
+      disabled={disabled}
       defaultValue={defaultValue}
       onChange={(event) => onChange?.(event.target.value)}
     />
@@ -81,6 +90,7 @@ afterEach(() => {
   cleanup();
   clearAuthSession();
   vi.clearAllMocks();
+    identityMocks.prepare.mockResolvedValue(undefined);
   vi.unstubAllGlobals();
 });
 
@@ -204,8 +214,58 @@ function renderForm({
 }
 
 describe("ThreadEditForm", () => {
+test("首次主帖未知结果冻结请求，重试仍用原身份，冲突保留草稿且不自动覆盖", async () => {
+  const first = makeThread(); first.rpIdentityEnabled = true;
+  first.defaultSubthread = { ...first.defaultSubthread, bodyPost: null }; first.subthreads = [first.defaultSubthread];
+  identityMocks.prepare.mockResolvedValue({ identityMode: "RP", identityToken: "frozen-body-token" });
+  mockSaveThreadMutate.mockRejectedValueOnce(new TypeError("offline")).mockRejectedValueOnce({ code: 40002, message: "版本冲突" });
+  const { onStatusChange, onReloadLatest } = renderForm({ thread: first });
+  fireEvent.change(screen.getByTestId("milkdown-editor"), { target: { value: "保留原主帖正文" } });
+  await userEvent.click(screen.getByRole("button", { name: "保存帖子" }));
+  expect(screen.getByTestId("milkdown-editor")).toBeDisabled();
+  expect(screen.getByText(/正文发表结果尚未确认/)).toBeInTheDocument();
+  expect(onStatusChange.mock.lastCall?.[0].canClose()).toBe(false);
+  const original = mockSaveThreadMutate.mock.calls[0][0];
+  identityMocks.prepare.mockResolvedValue({ identityMode: "ACCOUNT" });
+  await userEvent.click(screen.getByRole("button", { name: "保存帖子" }));
+  expect(mockSaveThreadMutate.mock.calls[1][0]).toEqual(original);
+  expect(identityMocks.prepare).toHaveBeenCalledOnce();
+  expect(screen.getByTestId("milkdown-editor")).toHaveValue("保留原主帖正文");
+  expect(screen.getByTestId("milkdown-editor")).toBeEnabled();
+  expect(screen.getByText("检测到内容版本冲突")).toBeInTheDocument();
+  expect(onReloadLatest).not.toHaveBeenCalled();
+});
+
+test("首次主帖正文发送已确认身份，既有正文编辑不发送", async () => {
+  const first = makeThread(); first.rpIdentityEnabled = true;
+  first.defaultSubthread = { ...first.defaultSubthread, bodyPost: null };
+  first.subthreads = [first.defaultSubthread];
+  identityMocks.prepare.mockResolvedValue({ identityMode: "RP", identityToken: "body-token" });
+  renderForm({ thread: first });
+  expect(screen.getByText("首次正文发表身份")).toBeInTheDocument();
+  fireEvent.change(screen.getByTestId("milkdown-editor"), { target: { value: "首次主帖正文" } });
+  await userEvent.click(screen.getByRole("button", { name: "保存帖子" }));
+  expect(mockSaveThreadMutate).toHaveBeenCalledWith(expect.objectContaining({ body: expect.objectContaining({ identityMode: "RP", identityToken: "body-token", bodyVersion: undefined }) }));
+  expect(screen.queryByText("首次正文发表身份")).not.toBeInTheDocument();
+});
+test("首次主帖身份确认取消不写入，40011保留表单并标记重确认", async () => {
+  const first = makeThread(); first.rpIdentityEnabled = true;
+  first.defaultSubthread = { ...first.defaultSubthread, bodyPost: null };
+  first.subthreads = [first.defaultSubthread];
+  identityMocks.prepare.mockResolvedValueOnce(null).mockResolvedValue({ identityMode: "RP", identityToken: "body-token" });
+  renderForm({ thread: first });
+  fireEvent.change(screen.getByTestId("milkdown-editor"), { target: { value: "保留主帖正文" } });
+  await userEvent.click(screen.getByRole("button", { name: "保存帖子" }));
+  expect(mockSaveThreadMutate).not.toHaveBeenCalled();
+  mockSaveThreadMutate.mockRejectedValueOnce({ code: 40011, message: "身份变化" });
+  await userEvent.click(screen.getByRole("button", { name: "保存帖子" }));
+  expect(identityMocks.changed).toHaveBeenCalledOnce();
+  expect(screen.getByTestId("milkdown-editor")).toHaveValue("保留主帖正文");
+});
+
   beforeEach(() => {
     vi.clearAllMocks();
+    identityMocks.prepare.mockResolvedValue(undefined);
     setAuthSession({ id: "u1", username: "owner", email: "owner@example.test", avatar: null, role: "USER" }, "test-token");
     mockSaveThreadMutate.mockReset();
     vi.stubGlobal("confirm", vi.fn(() => true));
@@ -548,4 +608,5 @@ test("主帖待同步撤销回原文按最新正文判断关闭，其他字段�
   act(() => { expect(status.canClose()).toBe(true); expect(status.hasChanges()).toBe(false); });
   fireEvent.change(screen.getByPlaceholderText("给你的主题帖起个名字"), { target: { value: "改标题" } });
   expect(onStatusChange.mock.calls.at(-1)![0].hasChanges()).toBe(true);
+
 });

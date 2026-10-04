@@ -3,6 +3,12 @@
 export const queryKeys = {
   meta: ["api-meta"] as const,
   appDownloads: { android: ["app-downloads", "android"] as const },
+  threadIdentities: {
+    all: ["thread-identities"] as const,
+    thread: (threadId: string) => ["thread-identities", threadId] as const,
+    mine: (threadId: string, viewer: string) => ["thread-identities", threadId, "mine", viewer] as const,
+    user: (threadId: string, userId: string, viewer: string) => ["thread-identities", threadId, "user", userId, viewer] as const,
+  },
   threads: {
     all: ["threads"] as const,
     details: ["thread"] as const,

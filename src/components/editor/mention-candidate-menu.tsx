@@ -4,12 +4,17 @@ import type { MouseEvent as ReactMouseEvent } from "react";
 import { createPortal } from "react-dom";
 import { AtSign, Loader2, UsersRound } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { UserAvatar } from "@/components/shared/user-avatar";
+import type { MediaDisplay } from "@/lib/media-display";
 
 export interface MentionMenuItem {
   id: string;
   label: string;
   username?: string;
-  relation?: "FOLLOWING" | "PLAYER";
+  accountUsername?: string;
+  avatar?: string | null;
+  avatarDisplay?: MediaDisplay | null;
+  relation?: "FOLLOWING" | "PLAYER" | "OWNER" | "COLLABORATOR";
   isGroup?: boolean;
 }
 
@@ -77,11 +82,18 @@ export function MentionCandidateMenu({
           data-mention-id={item.id}
           onMouseDown={onSelect}
         >
-          {item.isGroup ? <UsersRound className="h-4 w-4" /> : <AtSign className="h-4 w-4" />}
-          <span className="min-w-0 flex-1 truncate">{item.label}</span>
+          {item.isGroup ? <UsersRound className="h-4 w-4" /> : item.avatar !== undefined
+            ? <UserAvatar name={item.username ?? item.label} src={item.avatar} display={item.avatarDisplay} className="size-7" textClassName="text-xs" />
+            : <AtSign className="h-4 w-4" />}
+          <span className="min-w-0 flex-1">
+            <span className="block truncate">{item.label}</span>
+            {item.accountUsername ? <span className="block truncate text-xs text-muted-foreground">站内账号：{item.accountUsername}</span> : null}
+          </span>
           <span className="text-xs text-muted-foreground">
             {item.isGroup
               ? "仅楼主/协作者"
+              : item.relation === "OWNER" ? "楼主"
+              : item.relation === "COLLABORATOR" ? "协作者"
               : item.relation === "PLAYER"
                 ? "帖内玩家"
                 : "我关注的人"}

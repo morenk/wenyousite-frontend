@@ -1,5 +1,6 @@
 /** 编辑器提及协议：识别稳定用户链接并将其标记为不可编辑原子内容 */
 
+import { mentionDisplayName, type MentionIdentity } from "@/lib/thread-identity";
 import { isMarkdownEscaped, maskMarkdownCode } from "@/lib/markdown-code";
 
 const USER_MENTION_HREF_RE = /^\/users\/([a-zA-Z0-9_-]+)$/u;
@@ -48,7 +49,7 @@ export function getMentionUserId(
 }
 
 /** 标记编辑器内已有及新插入的提及链接，使光标不能进入并修改稳定实体。 */
-export function markEditorMentionAnchors(root: ParentNode): number {
+export function markEditorMentionAnchors(root: ParentNode, identities?: readonly MentionIdentity[]): number {
   let marked = 0;
   const anchors = root instanceof HTMLAnchorElement ? [root] : root.querySelectorAll<HTMLAnchorElement>("a[href]");
   anchors.forEach((anchor) => {
@@ -62,6 +63,8 @@ export function markEditorMentionAnchors(root: ParentNode): number {
         anchor.removeAttribute("spellcheck");
         delete anchor.dataset.mentionId;
         delete anchor.dataset.slot;
+        delete anchor.dataset.mentionDisplay;
+        anchor.removeAttribute("aria-label");
       }
       return;
     }
@@ -69,6 +72,15 @@ export function markEditorMentionAnchors(root: ParentNode): number {
     if (anchor.getAttribute("spellcheck") !== "false") anchor.setAttribute("spellcheck", "false");
     if (anchor.dataset.mentionId !== userId) anchor.dataset.mentionId = userId;
     if (anchor.dataset.slot !== "mention-link") anchor.dataset.slot = "mention-link";
+    const sourceLabel = anchor.textContent!.slice(1);
+    const displayName = mentionDisplayName(userId, sourceLabel, identities);
+    if (displayName !== sourceLabel && anchor.querySelector("[data-editor-mention-source]")) {
+      anchor.dataset.mentionDisplay = "@" + displayName;
+      anchor.setAttribute("aria-label", "@" + displayName);
+    } else {
+      delete anchor.dataset.mentionDisplay;
+      anchor.removeAttribute("aria-label");
+    }
     marked += 1;
   });
   return marked;

@@ -44,11 +44,15 @@ export function createEditorLinkMarkView(initialMark: Mark): MarkView {
   const reference = setLinkAttributes(dom, mark);
 
   if (!reference) {
+    const isUserLink = /^\/users\/[a-zA-Z0-9_-]+$/u.test(String(mark.attrs.href ?? ""));
+    const contentDOM = isUserLink ? document.createElement("span") : dom;
+    if (contentDOM !== dom) { contentDOM.dataset.editorMentionSource = "true"; dom.append(contentDOM); }
     return {
       dom,
-      contentDOM: dom,
+      contentDOM,
       update(nextMark) {
-        if (nextMark.type !== mark.type || parseInternalReference(String(nextMark.attrs.href ?? ""))) {
+        if (nextMark.type !== mark.type || parseInternalReference(String(nextMark.attrs.href ?? ""))
+          || isUserLink !== /^\/users\/[a-zA-Z0-9_-]+$/u.test(String(nextMark.attrs.href ?? ""))) {
           return false;
         }
         mark = nextMark;

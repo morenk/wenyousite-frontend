@@ -365,3 +365,11 @@
 .milkdown .ProseMirror > p + p {
   padding-block-start: 0;
 }
+
+/* 原子提及仅投影显示标签；隐藏的contentDOM保留原始文档供序列化和撤销使用。 */
+.milkdown-editor a[data-mention-display] > [data-editor-mention-source] {
+  display: none;
+}
+.milkdown-editor a[data-mention-display]::after {
+  content: attr(data-mention-display);
+}

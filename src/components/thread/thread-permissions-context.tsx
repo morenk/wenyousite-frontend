@@ -1,14 +1,25 @@
 "use client";
 
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, useContext, useState, type ReactNode } from "react";
+import { useRefreshThreadIdentityProjection } from "@/api/hooks/use-thread-identity";
 import { useAuth } from "@/lib/auth";
 import {
   useThreadDetail,
   type CurrentThreadMembership,
 } from "@/api/hooks/use-thread-detail";
 
+export interface ThreadAuthorFilter {
+  subthreadId: string;
+  parentPostId?: string;
+  authorId?: string;
+}
+
 interface ThreadPermissionsValue {
+  authorFilter?: ThreadAuthorFilter;
+  setAuthorFilter: (filter: ThreadAuthorFilter | undefined) => void;
   visibility?: "PUBLIC" | "PRIVATE";
+  rpIdentitySupported?: boolean;
+  rpIdentityEnabled?: boolean;
   currentMember?: CurrentThreadMembership;
   isOwner: boolean;
   isCollaborator: boolean;
@@ -22,6 +33,7 @@ interface ThreadPermissionsValue {
 }
 
 const emptyPermissions: ThreadPermissionsValue = {
+  setAuthorFilter: () => {},
   isOwner: false,
   isCollaborator: false,
   isParticipant: false,
@@ -44,7 +56,9 @@ export function ThreadPermissionsProvider({
   children: ReactNode;
 }) {
   const { user } = useAuth();
+  const [authorFilter, setAuthorFilter] = useState<ThreadAuthorFilter>();
   const threadQuery = useThreadDetail(threadId);
+  useRefreshThreadIdentityProjection(threadId, threadQuery.data?.rpIdentityEnabled);
   const currentMember = threadQuery.data?.currentMembership ?? undefined;
   const capabilities = threadQuery.data?.capabilities;
   const isAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
@@ -60,7 +74,11 @@ export function ThreadPermissionsProvider({
   return (
     <ThreadPermissionsContext.Provider
       value={{
+        authorFilter,
+        setAuthorFilter,
         visibility: threadQuery.data?.visibility,
+        rpIdentitySupported: threadQuery.data?.rpIdentityEnabled !== undefined,
+        rpIdentityEnabled: threadQuery.data?.rpIdentityEnabled ?? false,
         currentMember,
         isOwner,
         isCollaborator,

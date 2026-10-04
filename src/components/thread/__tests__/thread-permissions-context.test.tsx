@@ -10,6 +10,7 @@ const { mockUseAuth, mockUseThreadDetail } = vi.hoisted(() => ({
   mockUseThreadDetail: vi.fn(),
 }));
 
+vi.mock("@/api/hooks/use-thread-identity", () => ({ useRefreshThreadIdentityProjection: vi.fn() }));
 vi.mock("@/lib/auth", () => ({ useAuth: () => mockUseAuth() }));
 vi.mock("@/api/hooks/use-thread-detail", () => ({
   useThreadDetail: () => mockUseThreadDetail(),

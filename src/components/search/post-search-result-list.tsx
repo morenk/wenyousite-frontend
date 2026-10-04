@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import type { SearchPost } from "@/api/hooks/use-search";
 import { getPostHref, getSubthreadHref } from "@/lib/post-navigation";
+import { threadAppearance } from "@/lib/thread-identity";
 import { formatMarkdownPreview } from "@/lib/markdown-preview";
 import { Button } from "@/components/ui/button";
 
@@ -40,10 +41,10 @@ export function PostSearchResultList({
           className="block w-full rounded-[var(--radius-card)] border border-border bg-card p-4 transition-colors hover:bg-accent/20"
         >
           <p className="mb-1.5 line-clamp-2 text-sm text-foreground/90">
-            {formatMarkdownPreview(post.content)}
+            {formatMarkdownPreview(post.content, { mentionIdentities: post.mentionIdentities })}
           </p>
           <p className="text-xs text-muted-foreground">
-            {post.author.username} · {post.kind === "BODY" ? "正文" : post.floorNumber != null
+            {threadAppearance(post.author).name} · {post.kind === "BODY" ? "正文" : post.floorNumber != null
               ? `#${post.floorNumber}`
               : "楼中楼"} · {post.subthread.title}
             {context === "global" ? ` · ${post.thread.title}` : ""}

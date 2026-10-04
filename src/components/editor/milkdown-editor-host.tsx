@@ -2,7 +2,10 @@
 
 "use client";
 
+import type { MentionIdentity } from "@/lib/thread-identity";
 
+
+import { threadAppearance } from "@/lib/thread-identity";
 import { useEditorMediaDisplay } from "@/components/editor/use-editor-media-display";
 import { editorInlineCodeCommand } from "./editor-inline-code";
 import type { MarkdownMediaDisplay, MediaDisplay } from "@/lib/media-display";
@@ -231,6 +234,7 @@ function getImageBlockConfig(onUploadImage: (file: File) => Promise<string>, pro
 export interface MilkdownEditorHostProps {
   initialValue: string;
   mediaDisplays?: readonly MarkdownMediaDisplay[];
+  mentionIdentities?: readonly MentionIdentity[];
   markdownContractVersion: number;
   editorRef?: Ref<EditorSubmissionHandle>;
   onValidityChange?: (valid: boolean) => void;
@@ -254,6 +258,7 @@ export interface MilkdownEditorHostProps {
 export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   initialValue,
   mediaDisplays,
+  mentionIdentities,
   markdownContractVersion,
   editorRef,
   onValidityChange,
@@ -347,10 +352,14 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
       items.push({ id: "all-players", label: "全体玩家", isGroup: true });
     }
     for (const candidate of mentionResponse?.users ?? []) {
+      const appearance = threadAppearance(candidate);
       items.push({
         id: candidate.id,
-        label: `@${candidate.username}`,
-        username: candidate.username,
+        label: `@${appearance.name}`,
+        username: appearance.name,
+        accountUsername: candidate.rpIdentity ? candidate.username : undefined,
+        avatar: appearance.avatar,
+        avatarDisplay: appearance.avatarDisplay,
         relation: candidate.relation,
       });
     }
@@ -367,6 +376,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   );
 
   const { handleMentionSelect } = useEditorMentionController({
+    mentionIdentities,
     hostRef,
     crepeRef,
     disabled,

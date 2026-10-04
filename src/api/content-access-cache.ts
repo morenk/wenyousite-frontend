@@ -14,6 +14,7 @@ function isThreadScopedKey(queryKey: QueryKey, threadId: string): boolean {
   return (
     (queryKey[0] === "thread" && queryKey[1] === threadId) ||
     (queryKey[0] === "members" && queryKey[1] === threadId) ||
+    (queryKey[0] === "thread-identities" && queryKey[1] === threadId) ||
     (queryKey[0] === "mention-candidates" && queryKey[1] === threadId) ||
     (queryKey[0] === "search" && queryKey[1] === "thread-posts" && queryKey[2] === threadId)
   );
@@ -85,7 +86,7 @@ export async function resetBlockRelatedQueries(queryClient: QueryClient) {
     queryKeys.members.all, queryKeys.moments.all, queryKeys.search.all,
     queryKeys.directMessages.all, queryKeys.notifications.all, queryKeys.bookmarks.all,
     queryKeys.subscriptions, queryKeys.blockedUsersRoot, queryKeys.mentionCandidatesRoot,
-    queryKeys.invitePreviews,
+    queryKeys.invitePreviews, queryKeys.threadIdentities.all,
   ];
   await Promise.all(keys.map((queryKey) => queryClient.cancelQueries({ queryKey })));
   // 清除已有结果后重取，避免拉黑成功后在后台刷新期间继续显示历史内容。
