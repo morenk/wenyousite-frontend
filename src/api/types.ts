@@ -1090,6 +1090,43 @@ export interface paths {
         patch: operations["threadIdentitiesSetEnabled"];
         trace?: never;
     };
+    "/api/v1/threads/{threadId}/rp-identities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 列出自己的帖内角色及各角色发表确认 token（最多十个） */
+        get: operations["rpIdentitiesList"];
+        put?: never;
+        /** 新增一个帖内角色；首次建立兼容锚点，归档后不自动替换 */
+        post: operations["rpIdentitiesCreate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/threads/{threadId}/rp-identities/{identityId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 按稳定角色 ID 读取身份卡；删除后只返回账号及删除状态 */
+        get: operations["rpIdentitiesFind"];
+        /** 修改自己的指定角色；只影响此角色之后的新发言 */
+        put: operations["rpIdentitiesUpdate"];
+        post?: never;
+        /** 删除自己的指定角色并释放名额；历史身份和媒体保留 */
+        delete: operations["rpIdentitiesRemove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/tags": {
         parameters: {
             query?: never;
@@ -4572,6 +4609,8 @@ export interface components {
             version: number;
         };
         SaveThreadAggregateDto: {
+            /** @description 本次新发言选择的帖内身份 ID；新客户端 RP 模式必须与该身份 token 一起发送。省略仅兼容旧单身份客户端；ACCOUNT 忽略，编辑旧正文不改变原身份 */
+            identityId?: string;
             /** @description GET 帖内身份返回的确认 token；新建正文或发言时使用。身份变化返回 409/40011，保留草稿并重新确认 */
             identityToken?: string;
             /**
@@ -4744,6 +4783,70 @@ export interface components {
         };
         ThreadIdentitySettingsDto: {
             enabled: boolean;
+        };
+        RpIdentityStateDto: {
+            threadId: string;
+            userId: string;
+            enabled: boolean;
+            /** @description 当前是否具有楼主、协作者或玩家资格；不代表发言权限 */
+            eligible: boolean;
+            /** @description 当前访问者能否编辑此身份 */
+            canEdit: boolean;
+            identity: components["schemas"]["ThreadIdentityProfileDto"] | null;
+            display: components["schemas"]["RpIdentityResponseDto"] | null;
+            account: components["schemas"]["ThreadIdentityAccountDto"];
+            /** @description 仅本人读取返回。新发言传 identityToken；409 后保留草稿并重新读取确认 */
+            identityToken: string | null;
+            /** @description 本人可删除未归档角色，关闭功能或撤资格后也可删除 */
+            canDelete: boolean;
+            /** @description 稳定角色 ID，删除后不会复用 */
+            identityId: string;
+            /** @description 已删除角色仅保留历史展示与账号；当前 display 为 null */
+            deleted: boolean;
+            /** @description 是否为旧 single 接口、作者目录和 @ 候选的兼容锚点 */
+            compatibilityIdentity: boolean;
+        };
+        RpIdentityCollectionDto: {
+            threadId: string;
+            userId: string;
+            enabled: boolean;
+            eligible: boolean;
+            canEdit: boolean;
+            /** @description 未删除身份数；清空资料仍占一个名额，删除释放名额 */
+            activeCount: number;
+            /** @enum {number} */
+            limit: 10;
+            /** @description 旧 single 接口的明确锚点；首次角色绑定，删除后不自动接管 */
+            compatibilityIdentityId: string | null;
+            /** @description 仅新空白编辑器初始化用；可用兼容角色优先，否则创建顺序第一个可用角色；不可覆盖恢复草稿 */
+            defaultIdentityId: string | null;
+            identities: components["schemas"]["RpIdentityStateDto"][];
+            account: components["schemas"]["ThreadIdentityAccountDto"];
+        };
+        CreateRpIdentityDto: {
+            /** @description 显式清除昵称，供省略 null 的客户端使用；不能与非空 nickname 同时提供 */
+            clearNickname?: boolean;
+            /** @description 显式清除头像；不能与非空 avatarMediaId 同时提供 */
+            clearAvatar?: boolean;
+            /** @description 允许重名、空格及标点；去除首尾空白，空字符串清除。不允许反斜线、方括号、HTML括号或控制字符 */
+            nickname?: string | null;
+            /** @description 本人已完成的 AVATAR 媒体；null 清除，不接受任意 URL */
+            avatarMediaId?: string | null;
+        };
+        UpdateRpIdentityDto: {
+            /** @description 显式清除昵称，供省略 null 的客户端使用；不能与非空 nickname 同时提供 */
+            clearNickname?: boolean;
+            /** @description 显式清除头像；不能与非空 avatarMediaId 同时提供 */
+            clearAvatar?: boolean;
+            /** @description 允许重名、空格及标点；去除首尾空白，空字符串清除。不允许反斜线、方括号、HTML括号或控制字符 */
+            nickname?: string | null;
+            /** @description 本人已完成的 AVATAR 媒体；null 清除，不接受任意 URL */
+            avatarMediaId?: string | null;
+            /** @description 所选角色版本；409/40002 时重新读取，不能覆盖另一角色 */
+            version: number;
+        };
+        DeleteRpIdentityDto: {
+            version: number;
         };
         TagResponseDto: {
             id: string;
@@ -5132,6 +5235,8 @@ export interface components {
             thread?: components["schemas"]["SubthreadThreadReferenceResponseDto"];
         };
         CreateSubthreadDto: {
+            /** @description 本次新发言选择的帖内身份 ID；新客户端 RP 模式必须与该身份 token 一起发送。省略仅兼容旧单身份客户端；ACCOUNT 忽略，编辑旧正文不改变原身份 */
+            identityId?: string;
             /** @description GET 帖内身份返回的确认 token；新建正文或发言时使用。身份变化返回 409/40011，保留草稿并重新确认 */
             identityToken?: string;
             /**
@@ -5362,6 +5467,8 @@ export interface components {
             playerMarked: boolean;
         };
         UpsertBodyDto: {
+            /** @description 本次新发言选择的帖内身份 ID；新客户端 RP 模式必须与该身份 token 一起发送。省略仅兼容旧单身份客户端；ACCOUNT 忽略，编辑旧正文不改变原身份 */
+            identityId?: string;
             /** @description GET 帖内身份返回的确认 token；新建正文或发言时使用。身份变化返回 409/40011，保留草稿并重新确认 */
             identityToken?: string;
             /**
@@ -5426,6 +5533,8 @@ export interface components {
             author: components["schemas"]["PostAuthorResponseDto"];
         };
         CreatePostDto: {
+            /** @description 本次新发言选择的帖内身份 ID；新客户端 RP 模式必须与该身份 token 一起发送。省略仅兼容旧单身份客户端；ACCOUNT 忽略，编辑旧正文不改变原身份 */
+            identityId?: string;
             /** @description GET 帖内身份返回的确认 token；新建正文或发言时使用。身份变化返回 409/40011，保留草稿并重新确认 */
             identityToken?: string;
             /**
@@ -7222,6 +7331,21 @@ export interface components {
         ThreadIdentitiesSetEnabled200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["ThreadIdentitySettingsDto"];
         };
+        RpIdentitiesList200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["RpIdentityCollectionDto"];
+        };
+        RpIdentitiesCreate201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["RpIdentityStateDto"];
+        };
+        RpIdentitiesFind200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["RpIdentityStateDto"];
+        };
+        RpIdentitiesUpdate200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["RpIdentityStateDto"];
+        };
+        RpIdentitiesRemove200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["RpIdentityStateDto"];
+        };
         TagsSearch200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["TagResponseDto"][];
         };
@@ -7700,7 +7824,7 @@ export interface components {
          * @description 稳定业务错误码；名称和值来源于 ErrorCode
          * @enum {integer}
          */
-        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40007 | 40008 | 40009 | 40010 | 40011 | 40012 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40108 | 40109 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40117 | 40118 | 40119 | 40120 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40307 | 40308 | 40309 | 40310 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40414 | 40415 | 40416 | 40417 | 40418 | 40419 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 40912 | 40913 | 40914 | 40915 | 40916 | 40917 | 40918 | 40919 | 40920 | 40921 | 40922 | 40923 | 40926 | 40924 | 40925 | 42900 | 50000;
+        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40007 | 40008 | 40009 | 40010 | 40011 | 40012 | 40013 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40108 | 40109 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40117 | 40118 | 40119 | 40120 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40307 | 40308 | 40309 | 40310 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40414 | 40415 | 40416 | 40417 | 40418 | 40419 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 40912 | 40913 | 40914 | 40915 | 40916 | 40917 | 40918 | 40919 | 40920 | 40921 | 40922 | 40923 | 40926 | 40924 | 40925 | 42900 | 50000;
         ApiErrorEnvelope: {
             code: components["schemas"]["BusinessErrorCode"];
             message: string;
@@ -11985,6 +12109,191 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ThreadIdentitiesSetEnabled200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    rpIdentitiesList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                threadId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RpIdentitiesList200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    rpIdentitiesCreate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                threadId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateRpIdentityDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RpIdentitiesCreate201Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    rpIdentitiesFind: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                threadId: string;
+                identityId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RpIdentitiesFind200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    rpIdentitiesUpdate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                threadId: string;
+                identityId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateRpIdentityDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RpIdentitiesUpdate200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    rpIdentitiesRemove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                threadId: string;
+                identityId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeleteRpIdentityDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RpIdentitiesRemove200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */

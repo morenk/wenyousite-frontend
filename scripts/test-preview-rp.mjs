@@ -66,9 +66,10 @@ const screenshot = async (page, name) => {
   await page.screenshot({ path: join(root, path) }); report.screenshots.push(path);
 };
 const openSettings = async (page) => {
-  await page.getByRole("button", { name: "更多帖子信息与操作", exact: true }).click();
-  await page.getByRole("button", { name: "设置帖内身份", exact: true }).click();
-  return page.getByRole("dialog", { name: "设置帖内身份", exact: true });
+  await page.getByRole("button", { name: "发表回复…", exact: true }).click();
+  await page.getByRole("button", { name: "发表身份" }).click();
+  await page.getByRole("menuitem", { name: /^(设置帖内身份|编辑.+的帖内资料)$/ }).click();
+  return page.getByRole("dialog", { name: /^(设置帖内身份|编辑帖内资料)$/ });
 };
 const startFloor = async (page, text) => {
   await page.getByRole("button", { name: "发表回复…", exact: true }).click();
@@ -78,10 +79,10 @@ const startFloor = async (page, text) => {
 };
 const publish = async (page, mode, text) => {
   await startFloor(page, text);
-  await expect(page.getByRole("combobox", { name: "发表身份" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "发表身份" })).toBeVisible();
   if (mode === "ACCOUNT") {
-    await page.getByRole("combobox", { name: "发表身份" }).click();
-    await page.getByRole("option", { name: /^站内身份：/ }).click();
+    await page.getByRole("button", { name: "发表身份" }).click();
+    await page.getByRole("menuitemradio", { name: /^站内身份：/ }).click();
   }
   const pending = responseFor(page, "POST", "/subthreads/" + content.subthreadId + "/posts");
   await page.getByRole("button", { name: "发布", exact: true }).click();
@@ -96,10 +97,15 @@ try {
   const historical = owner.locator("#post-" + content.historicalFloorId);
   await historical.getByRole("button", { name: "夜渡", exact: true }).click();
   const card = owner.getByRole("dialog", { name: "帖内身份", exact: true });
-  await expect(card.getByText("当前帖内昵称：白鸦", { exact: true })).toBeVisible();
-  await expect(card.getByRole("link", { name: "查看站内主页" })).toBeVisible();
+  await expect(card.getByText("现为", { exact: true })).toBeVisible();
+  await expect(card.getByText("白鸦", { exact: true })).toBeVisible();
+  const accountLink = card.getByRole("link", { name: /^查看.+的用户主页$/ });
+  await expect(accountLink).toBeVisible();
+  const accountName = (await accountLink.innerText()).trim();
   await screenshot(owner, "rp-historical-card-light");
-  await card.getByRole("button", { name: "只看此人", exact: true }).click();
+  await card.getByRole("button", { name: "关闭", exact: true }).click();
+  await owner.getByRole("combobox", { name: "只看某人的楼层", exact: true }).click();
+  await owner.getByRole("option").filter({ hasText: accountName }).click();
   await expect(owner.locator("#post-" + content.historicalFloorId)).toBeVisible();
   await expect(owner.locator("#post-" + content.accountFloorId)).toBeVisible();
   report.steps.push("historical-card-current-name-stable-account-filter");
@@ -109,10 +115,12 @@ try {
   const settings = await openSettings(owner);
   const longName = "🌙".repeat(24);
   await settings.getByLabel("帖内昵称", { exact: true }).fill(longName);
-  const saved = responseFor(owner, "PUT", "/threads/" + content.threadId + "/identity");
-  await settings.getByRole("button", { name: "保存帖内身份", exact: true }).click(); await saved;
+  const saved = owner.waitForResponse((response) => response.request().method() === "PUT" && new URL(response.url()).pathname.startsWith("/api/v1/threads/" + content.threadId + "/rp-identities/") && response.ok());
+  await settings.getByRole("button", { name: "保存昵称", exact: true }).click(); await saved;
+  await expect(settings).not.toBeVisible();
+  await owner.getByRole("button", { name: "取消", exact: true }).click();
   await startFloor(owner, "保留草稿内容");
-  await expect(owner.getByRole("combobox", { name: "发表身份" })).toContainText(longName);
+  await expect(owner.getByRole("button", { name: "发表身份" })).toContainText(longName);
   await screenshot(owner, "rp-composer-long-light");
   await owner.emulateMedia({ colorScheme: "dark" }); await owner.setViewportSize({ width: 1024, height: 850 });
   await expect(owner.locator("html")).toHaveAttribute("data-theme", "dark");
@@ -124,11 +132,12 @@ try {
   await owner.emulateMedia({ colorScheme: "light" }); await owner.setViewportSize({ width: 1440, height: 1000 });
   const restored = await openSettings(owner);
   await restored.getByLabel("帖内昵称", { exact: true }).fill("主持人");
-  await restored.getByRole("button", { name: "保存帖内身份", exact: true }).click();
+  await restored.getByRole("button", { name: "保存昵称", exact: true }).click();
   await expect(restored).not.toBeVisible();
+  await owner.getByRole("button", { name: "取消", exact: true }).click();
   const player = await login("PLAYER");
   const draft = await startFloor(player, "开关变化后保留的正文");
-  await expect(player.getByRole("combobox", { name: "发表身份" })).toContainText("白鸦");
+  await expect(player.getByRole("button", { name: "发表身份" })).toContainText("白鸦");
   await owner.getByRole("button", { name: "更多帖子信息与操作", exact: true }).click();
   await owner.getByRole("button", { name: "管理主题帖", exact: true }).click();
   await owner.getByRole("button", { name: "关闭帖内身份", exact: true }).click();
@@ -152,8 +161,9 @@ try {
   await expect(player.locator("#post-" + content.historicalFloorId).getByRole("button", { name: "夜渡", exact: true })).toBeVisible();
   report.steps.push("off-reopen-restores-historical-projection");
   const reader = await login("READER");
-  await reader.getByRole("button", { name: "更多帖子信息与操作", exact: true }).click();
-  await expect(reader.getByRole("button", { name: "设置帖内身份", exact: true })).toHaveCount(0);
+  await startFloor(reader, "");
+  await expect(reader.getByRole("button", { name: "发表身份" })).toHaveCount(0);
+  await expect(reader.getByRole("button", { name: /^(设置帖内身份|编辑帖内资料)$/ })).toHaveCount(0);
   report.steps.push("reader-not-eligible");
   assert.equal(report.forbiddenRequests, 0);
   await Promise.all([verifyRuntime(d, "backend"), verifyRuntime(d, "media")]);

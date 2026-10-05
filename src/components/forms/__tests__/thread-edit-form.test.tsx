@@ -217,7 +217,7 @@ describe("ThreadEditForm", () => {
 test("首次主帖未知结果冻结请求，重试仍用原身份，冲突保留草稿且不自动覆盖", async () => {
   const first = makeThread(); first.rpIdentityEnabled = true;
   first.defaultSubthread = { ...first.defaultSubthread, bodyPost: null }; first.subthreads = [first.defaultSubthread];
-  identityMocks.prepare.mockResolvedValue({ identityMode: "RP", identityToken: "frozen-body-token" });
+  identityMocks.prepare.mockResolvedValue({ identityMode: "RP", identityId: "rp-selected", identityToken: "frozen-body-token" });
   mockSaveThreadMutate.mockRejectedValueOnce(new TypeError("offline")).mockRejectedValueOnce({ code: 40002, message: "版本冲突" });
   const { onStatusChange, onReloadLatest } = renderForm({ thread: first });
   fireEvent.change(screen.getByTestId("milkdown-editor"), { target: { value: "保留原主帖正文" } });
@@ -240,19 +240,19 @@ test("首次主帖正文发送已确认身份，既有正文编辑不发送", as
   const first = makeThread(); first.rpIdentityEnabled = true;
   first.defaultSubthread = { ...first.defaultSubthread, bodyPost: null };
   first.subthreads = [first.defaultSubthread];
-  identityMocks.prepare.mockResolvedValue({ identityMode: "RP", identityToken: "body-token" });
+  identityMocks.prepare.mockResolvedValue({ identityMode: "RP", identityId: "rp-selected", identityToken: "body-token" });
   renderForm({ thread: first });
   expect(screen.getByText("首次正文发表身份")).toBeInTheDocument();
   fireEvent.change(screen.getByTestId("milkdown-editor"), { target: { value: "首次主帖正文" } });
   await userEvent.click(screen.getByRole("button", { name: "保存帖子" }));
-  expect(mockSaveThreadMutate).toHaveBeenCalledWith(expect.objectContaining({ body: expect.objectContaining({ identityMode: "RP", identityToken: "body-token", bodyVersion: undefined }) }));
+  expect(mockSaveThreadMutate).toHaveBeenCalledWith(expect.objectContaining({ body: expect.objectContaining({ identityMode: "RP", identityId: "rp-selected", identityToken: "body-token", bodyVersion: undefined }) }));
   expect(screen.queryByText("首次正文发表身份")).not.toBeInTheDocument();
 });
 test("首次主帖身份确认取消不写入，40011保留表单并标记重确认", async () => {
   const first = makeThread(); first.rpIdentityEnabled = true;
   first.defaultSubthread = { ...first.defaultSubthread, bodyPost: null };
   first.subthreads = [first.defaultSubthread];
-  identityMocks.prepare.mockResolvedValueOnce(null).mockResolvedValue({ identityMode: "RP", identityToken: "body-token" });
+  identityMocks.prepare.mockResolvedValueOnce(null).mockResolvedValue({ identityMode: "RP", identityId: "rp-selected", identityToken: "body-token" });
   renderForm({ thread: first });
   fireEvent.change(screen.getByTestId("milkdown-editor"), { target: { value: "保留主帖正文" } });
   await userEvent.click(screen.getByRole("button", { name: "保存帖子" }));

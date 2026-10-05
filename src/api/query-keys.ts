@@ -6,6 +6,8 @@ export const queryKeys = {
   threadIdentities: {
     all: ["thread-identities"] as const,
     thread: (threadId: string) => ["thread-identities", threadId] as const,
+    collection: (threadId: string, viewer: string) => ["thread-identities", threadId, "collection", viewer] as const,
+    role: (threadId: string, identityId: string, viewer: string) => ["thread-identities", threadId, "role", identityId, viewer] as const,
     mine: (threadId: string, viewer: string) => ["thread-identities", threadId, "mine", viewer] as const,
     user: (threadId: string, userId: string, viewer: string) => ["thread-identities", threadId, "user", userId, viewer] as const,
   },

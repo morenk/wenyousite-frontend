@@ -1,110 +1,105 @@
-
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { useThreadIdentitySubmission, type PublicationIdentitySelection } from "../use-thread-identity-submission";
-import type { ThreadIdentityState } from "@/api/hooks/use-thread-identity";
-
+import { collection, role } from "./rp-identity-fixtures";
 const mocks = vi.hoisted(() => ({ query: vi.fn(), read: vi.fn(), confirm: vi.fn(), refetch: vi.fn() }));
-vi.mock("@/api/hooks/use-thread-identity", () => ({
-  useThreadIdentity: (...args: unknown[]) => mocks.query(...args), readThreadIdentity: mocks.read,
+vi.mock("@/api/hooks/use-rp-identities", async (original) => ({
+  ...await original<typeof import("@/api/hooks/use-rp-identities")>(),
+  useRpIdentities: (...args: unknown[]) => mocks.query(...args), readRpIdentities: mocks.read,
 }));
 vi.mock("@/components/ui/confirm-provider", () => ({ useConfirm: () => mocks.confirm }));
-const state = (): ThreadIdentityState => ({
-  threadId: "t1", userId: "u1", enabled: true, eligible: true, canEdit: true,
-  identity: { id: "rp1", nickname: "白鸦", avatarMediaId: null, version: 1 },
-  display: { id: "rp1", nickname: "白鸦", avatar: null },
-  account: { id: "u1", username: "小明", avatar: null }, identityToken: "token-1",
-});
 beforeEach(() => {
-  vi.clearAllMocks(); mocks.query.mockReturnValue({ data: state(), refetch: mocks.refetch });
-  mocks.read.mockResolvedValue(state()); mocks.confirm.mockResolvedValue(true);
+  vi.clearAllMocks(); mocks.query.mockReturnValue({ data: collection(), refetch: mocks.refetch });
+  mocks.read.mockResolvedValue(collection()); mocks.confirm.mockResolvedValue(true);
 });
 afterEach(cleanup);
-test("每次新会话默认有效RP，草稿中选择ACCOUNT不受后续角色变化影响", async () => {
+test("新空稿采用服务端默认；ACCOUNT草稿不受角色变化影响", async () => {
   const { result, rerender } = renderHook(({ scope }) => useThreadIdentitySubmission("t1", true, true, scope), { initialProps: { scope: "one" } });
-  expect(result.current.mode).toBe("RP");
-  expect(result.current.displayName).toBe("白鸦");
+  expect(result.current.identityId).toBe("rp1");
   act(() => result.current.choose("ACCOUNT"));
-  mocks.query.mockReturnValue({ data: { ...state(), enabled: false }, refetch: mocks.refetch });
+  mocks.query.mockReturnValue({ data: collection([], { enabled: false }), refetch: mocks.refetch });
   rerender({ scope: "one" });
   expect(await result.current.prepare()).toEqual({ identityMode: "ACCOUNT" });
-  expect(mocks.read).not.toHaveBeenCalled();
-  expect(mocks.confirm).not.toHaveBeenCalled();
-  mocks.query.mockReturnValue({ data: state(), refetch: mocks.refetch });
-  rerender({ scope: "two" });
-  expect(result.current.mode).toBe("RP");
+  expect(mocks.read).not.toHaveBeenCalled(); expect(mocks.confirm).not.toHaveBeenCalled();
+  mocks.query.mockReturnValue({ data: collection([role("rp2")], { defaultIdentityId: "rp2" }), refetch: mocks.refetch });
+  rerender({ scope: "two" }); expect(result.current.identityId).toBe("rp2");
 });
-test("有效RP提交精确token，显式切换不会改变资料", async () => {
+test("同名角色按ID选择，发表携带对应ID和token", async () => {
+  const data = collection([role(), role("rp2")]);
+  mocks.query.mockReturnValue({ data }); mocks.read.mockResolvedValue(data);
   const { result } = renderHook(() => useThreadIdentitySubmission("t1", true, true));
-  act(() => result.current.choose("ACCOUNT"));
-  act(() => result.current.choose("RP"));
-  let prepared: unknown;
-  await act(async () => { prepared = await result.current.prepare(); });
-  expect(prepared).toEqual({ identityMode: "RP", identityToken: "token-1" });
+  act(() => result.current.choose("RP", "rp2"));
+  let prepared: unknown; await act(async () => { prepared = await result.current.prepare(); });
+  expect(prepared).toEqual({ identityMode: "RP", identityId: "rp2", identityToken: "token-rp2" });
   expect(mocks.confirm).not.toHaveBeenCalled();
 });
-test("更名后取消确认保留旧选择，确认后使用最新token和昵称", async () => {
+test("修改所选角色后取消保留旧选择，确认后使用同一ID新token", async () => {
   const { result } = renderHook(() => useThreadIdentitySubmission("t1", true, true));
-  mocks.read.mockResolvedValue({ ...state(), display: { id: "rp1", nickname: "夜渡", avatar: null }, identityToken: "token-2" });
+  mocks.read.mockResolvedValue(collection([role("rp1", "夜渡", { identityToken: "new-token" })]));
   mocks.confirm.mockResolvedValueOnce(false);
-  let prepared: unknown;
+  let prepared: unknown; await act(async () => { prepared = await result.current.prepare(); });
+  expect(prepared).toBeNull(); expect(result.current.displayName).toBe("白鸦");
   await act(async () => { prepared = await result.current.prepare(); });
-  expect(prepared).toBeNull();
-  expect(result.current.displayName).toBe("白鸦");
-  await act(async () => { prepared = await result.current.prepare(); });
-  expect(prepared).toEqual({ identityMode: "RP", identityToken: "token-2" });
+  expect(prepared).toEqual({ identityMode: "RP", identityId: "rp1", identityToken: "new-token" });
   expect(result.current.displayName).toBe("夜渡");
 });
-test.each(["关闭", "撤销资格", "清除资料"])("%s必须确认恢复账号，不静默发布", async (reason) => {
+test.each(["关闭", "撤销资格", "清空", "删除"])("%s后确认账号回落，绝不选择另一个可用RP", async (reason) => {
   const { result } = renderHook(() => useThreadIdentitySubmission("t1", true, true));
-  const latest = { ...state(), ...(reason === "关闭" ? { enabled: false } : reason === "撤销资格" ? { eligible: false } : { display: null }) };
-  mocks.read.mockResolvedValue(latest);
-  let prepared: unknown;
-  await act(async () => { prepared = await result.current.prepare(); });
+  mocks.read.mockResolvedValue(collection([
+    ...(reason === "删除" ? [] : [role("rp1", "白鸦", reason === "清空" ? { display: null } : {})]), role("rp2", "另一角色"),
+  ], { enabled: reason !== "关闭", eligible: reason !== "撤销资格", defaultIdentityId: "rp2" }));
+  let prepared: unknown; await act(async () => { prepared = await result.current.prepare(); });
   expect(mocks.confirm).toHaveBeenCalledWith(expect.objectContaining({ description: expect.stringContaining("小明") }));
-  expect(prepared).toEqual({ identityMode: "ACCOUNT" });
-  expect(result.current.mode).toBe("ACCOUNT");
+  expect(prepared).toEqual({ identityMode: "ACCOUNT" }); expect(result.current.mode).toBe("ACCOUNT");
 });
-test("服务器冲突强制重新确认，即使重新读取token一样", async () => {
-  const { result } = renderHook(() => useThreadIdentitySubmission("t1", true, true));
-  act(() => result.current.requireConfirmation());
-  expect(mocks.refetch).toHaveBeenCalledOnce();
-  await act(async () => { await result.current.prepare(); });
+test("恢复的旧RP草稿无ID时只查兼容角色，兼容已删除则确认账号", async () => {
+  const saved: PublicationIdentitySelection = { scope: "draft", mode: "RP", token: "token-rp1", name: "白鸦" };
+  const data = collection([role("rp2")], { compatibilityIdentityId: null, defaultIdentityId: "rp2" });
+  mocks.query.mockReturnValue({ data }); mocks.read.mockResolvedValue(data);
+  const onChange = vi.fn();
+  const { result } = renderHook(() => useThreadIdentitySubmission("t1", true, true, "draft", { value: saved, onChange }));
+  expect(result.current.identityId).toBeUndefined(); expect(onChange).not.toHaveBeenCalled();
+  await act(async () => { expect(await result.current.prepare()).toEqual({ identityMode: "ACCOUNT" }); });
   expect(mocks.confirm).toHaveBeenCalledOnce();
 });
+test("恢复旧RP草稿可以解析兼容锚点，不采用不同的default", async () => {
+  const data = collection([role(), role("rp2")], { defaultIdentityId: "rp2" });
+  mocks.query.mockReturnValue({ data }); mocks.read.mockResolvedValue(data);
+  const { result } = renderHook(() => useThreadIdentitySubmission("t1", true, true, "draft", {
+    value: { scope: "draft", mode: "RP", token: "token-rp1", name: "白鸦" }, onChange: vi.fn(),
+  }));
+  expect(result.current.identityId).toBe("rp1");
+  await act(async () => { expect(await result.current.prepare()).toEqual({ identityMode: "RP", identityId: "rp1", identityToken: "token-rp1" }); });
+  expect(mocks.confirm).not.toHaveBeenCalled();
+});
+test("空角色不可发表；新增成功明确选择新ID", () => {
+  mocks.query.mockReturnValue({ data: collection([role("rp1", "", { display: null })]) });
+  const { result } = renderHook(() => useThreadIdentitySubmission("t1", true, true));
+  expect(result.current.mode).toBe("ACCOUNT");
+  act(() => result.current.choose("RP", "rp1")); expect(result.current.mode).toBe("ACCOUNT");
+  act(() => result.current.chooseCreated(role("rp2", "新角色")));
+  expect(result.current.identityId).toBe("rp2");
+});
+test("服务器冲突必须重新确认，即使token没变", async () => {
+  const { result } = renderHook(() => useThreadIdentitySubmission("t1", true, true));
+  act(() => result.current.requireConfirmation()); expect(mocks.refetch).toHaveBeenCalledOnce();
+  await act(async () => { await result.current.prepare(); }); expect(mocks.confirm).toHaveBeenCalledOnce();
+});
 test("未加载资料不发表，旧后端不发送新字段", async () => {
-  mocks.query.mockReturnValue({ data: undefined, refetch: mocks.refetch });
+  mocks.query.mockReturnValue({ data: undefined });
   const { result, rerender } = renderHook(({ supported }) => useThreadIdentitySubmission("t1", supported, true), { initialProps: { supported: true } });
   await expect(result.current.prepare()).rejects.toThrow("加载完成");
-  rerender({ supported: false });
-  expect(await result.current.prepare()).toBeUndefined();
-});
-test("不可用RP不能选中，无资料时选择无副作用", () => {
-  mocks.query.mockReturnValue({ data: { ...state(), display: null }, refetch: mocks.refetch });
-  const { result, rerender } = renderHook(() => useThreadIdentitySubmission("t1", true, true));
-  expect(result.current.mode).toBe("ACCOUNT");
-  act(() => result.current.choose("RP"));
-  expect(result.current.mode).toBe("ACCOUNT");
-  mocks.query.mockReturnValue({ data: undefined }); rerender();
   act(() => result.current.choose("ACCOUNT"));
+  rerender({ supported: false }); expect(await result.current.prepare()).toBeUndefined();
 });
-
-test("草稿外部存储跨编辑器重挂载保留ACCOUNT选择及服务器冲突确认标记", async () => {
+test("外部草稿跨重挂载保留角色ID和服务器冲突确认标记", async () => {
   let value: PublicationIdentitySelection | undefined;
   const onChange = (next: PublicationIdentitySelection | undefined) => { value = next; };
   const first = renderHook(() => useThreadIdentitySubmission("t1", true, true, "draft", { value, onChange }));
-  first.rerender();
-  act(() => first.result.current.choose("ACCOUNT"));
-  first.rerender();
-  first.unmount();
+  first.rerender(); act(() => first.result.current.chooseCreated(role("rp2")));
+  first.rerender(); act(() => first.result.current.requireConfirmation()); first.unmount();
+  const data = collection([role(), role("rp2")]); mocks.query.mockReturnValue({ data }); mocks.read.mockResolvedValue(data);
   const second = renderHook(() => useThreadIdentitySubmission("t1", true, true, "draft", { value, onChange }));
-  expect(second.result.current.mode).toBe("ACCOUNT");
-  expect(await second.result.current.prepare()).toEqual({ identityMode: "ACCOUNT" });
-  act(() => second.result.current.choose("RP"));
-  second.rerender();
-  act(() => second.result.current.requireConfirmation());
-  second.unmount();
-  const third = renderHook(() => useThreadIdentitySubmission("t1", true, true, "draft", { value, onChange }));
-  await act(async () => { await third.result.current.prepare(); });
-  expect(mocks.confirm).toHaveBeenCalledOnce();
+  expect(second.result.current.identityId).toBe("rp2");
+  await act(async () => { await second.result.current.prepare(); }); expect(mocks.confirm).toHaveBeenCalledOnce();
 });

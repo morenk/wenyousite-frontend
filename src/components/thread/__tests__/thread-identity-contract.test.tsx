@@ -41,3 +41,16 @@ test("作者RP为空走账号，存在历史快照时不改站内字段", () => 
   expect(threadAppearance({ ...account, rpIdentity: { id: "rp1", nickname: "白鸦", avatar: null } })).toMatchObject({ name: "白鸦", avatar: null });
   expect(account.username).toBe("小明");
 });
+
+test("共享多身份夹具保留两个角色快照，但提及和筛选仍按同一账号", () => {
+  const value = fixtures.multipleIdentityCases.find((item) => item.id === "two-roles-one-account")!;
+  expect(value.filterUserId).toBe(value.userId);
+  for (const post of value.posts!) {
+    const account = { id: value.userId!, username: "真实账号", avatar: null };
+    expect(threadAppearance({ ...account, rpIdentity: post.rpIdentity })).toMatchObject({
+      name: post.rpIdentity?.nickname ?? account.username,
+    });
+  }
+  expect(value.posts![0]!.rpIdentity!.id).not.toBe(value.posts![1]!.rpIdentity!.id);
+  expect(getMentionUserId(value.mentionTarget!, "@小明")).toBe(value.userId);
+});

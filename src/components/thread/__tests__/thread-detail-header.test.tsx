@@ -1022,3 +1022,11 @@ describe("ThreadDetailHeader", () => {
     expect(screen.queryByRole("button", { name: "管理更新订阅" })).toBeNull();
   });
 });
+
+test("主题更多菜单不重复提供编辑器已有的帖内身份设置", async () => {
+  mockUseAuth.mockReturnValue({ user: { id: "owner-1", username: "帖主" } });
+  renderWithQC(<ThreadDetailHeader thread={{ ...baseThread, rpIdentityEnabled: true }} onManage={vi.fn()} />);
+  await openThreadDetails();
+  expect(screen.getByRole("button", { name: "管理主题帖" })).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: /设置帖内身份|编辑帖内资料/ })).not.toBeInTheDocument();
+});

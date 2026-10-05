@@ -144,7 +144,7 @@ function renderHarness() {
 
 describe("ThreadComposer", () => {
 test("RP结果不明时连mode/token/正文/UUID冻结，重试不重新准备身份", async () => {
-  mocks.rp = true; mocks.prepare.mockResolvedValue({ identityMode: "RP", identityToken: "original-token" });
+  mocks.rp = true; mocks.prepare.mockResolvedValue({ identityMode: "RP", identityId: "rp-selected", identityToken: "original-token" });
   mocks.create.mockRejectedValueOnce(new TypeError("offline")).mockResolvedValueOnce({ id: "created" });
   renderHarness();
   await userEvent.click(screen.getByRole("button", { name: "发表入口" }));
@@ -154,7 +154,7 @@ test("RP结果不明时连mode/token/正文/UUID冻结，重试不重新准备�
   expect(screen.getByRole("button", { name: "身份选择" })).toBeDisabled();
   expect(screen.getByTestId("milkdown-editor")).toBeDisabled();
   await userEvent.click(screen.getByRole("button", { name: "回复入口" }));
-  expect(screen.getByText("发表回复")).toBeInTheDocument();
+  expect(screen.queryByText("回复 @小明")).not.toBeInTheDocument();
   const unload = new Event("beforeunload", { cancelable: true });
     window.dispatchEvent(unload);
     expect(unload.defaultPrevented).toBe(true);
@@ -166,10 +166,10 @@ test("RP结果不明时连mode/token/正文/UUID冻结，重试不重新准备�
   await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(2));
   expect(mocks.prepare).toHaveBeenCalledOnce();
   expect(mocks.create.mock.calls[1]?.[0]).toEqual(mocks.create.mock.calls[0]?.[0]);
-  expect(mocks.create.mock.calls[1]?.[0]).toMatchObject({ identityMode: "RP", identityToken: "original-token", content: "原正文" });
+  expect(mocks.create.mock.calls[1]?.[0]).toMatchObject({ identityMode: "RP", identityId: "rp-selected", identityToken: "original-token", content: "原正文" });
 });
 test("40011保留正文并要求确认，明确失败后使用新UUID；编辑旧帖不送新身份", async () => {
-  mocks.rp = true; mocks.prepare.mockResolvedValue({ identityMode: "RP", identityToken: "token" });
+  mocks.rp = true; mocks.prepare.mockResolvedValue({ identityMode: "RP", identityId: "rp-selected", identityToken: "token" });
   vi.stubGlobal("crypto", { randomUUID: vi.fn().mockReturnValueOnce("uuid-one").mockReturnValueOnce("uuid-two") });
   mocks.create.mockRejectedValueOnce({ code: 40011, status: 409 }).mockResolvedValueOnce({ id: "created" });
   renderHarness();
@@ -188,6 +188,20 @@ test("40011保留正文并要求确认，明确失败后使用新UUID；编辑�
   await userEvent.click(screen.getByRole("button", { name: "保存修改" }));
   expect(mocks.update).toHaveBeenCalledWith({ postId: "reply-2", content: "原回复", version: 3 });
 });
+
+  test("身份入口替换普通发表标题，回复对象和编辑语义仍保留", async () => {
+    mocks.rp = true;
+    renderHarness();
+    await userEvent.click(screen.getByRole("button", { name: "发表入口" }));
+    expect(screen.getByRole("button", { name: "身份选择" })).toBeInTheDocument();
+    expect(screen.queryByText("发表回复")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "回复入口" }));
+    expect(screen.getByText("回复 @小明")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "身份选择" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "编辑入口" }));
+    expect(screen.getByText("编辑回复")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "身份选择" })).not.toBeInTheDocument();
+  });
 
   afterEach(() => cleanup());
 

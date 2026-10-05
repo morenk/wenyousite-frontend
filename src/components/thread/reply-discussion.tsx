@@ -108,8 +108,7 @@ export function ReplyDiscussion({
         <div className="mb-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
-              <ThreadPostAuthor author={rootPost.author} threadId={rootPost.thread.id} subthreadId={rootPost.subthreadId}
-                postId={rootPost.id} parentPostId={rootPost.id} filterReplies avatarClassName="h-9 w-9" />
+              <ThreadPostAuthor author={rootPost.author} threadId={rootPost.thread.id} avatarClassName="h-9 w-9" />
               <div>
                 <div className="flex items-center gap-1.5">
                   <LevelBadge level={rootPost.author.level} />

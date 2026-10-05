@@ -3,7 +3,7 @@ import { afterEach, expect, test, vi } from "vitest";
 import { useInitialBodyWrite } from "../use-initial-body-write";
 vi.mock("sonner", () => ({ toast: { error: vi.fn() } }));
 afterEach(cleanup);
-const original = { content: "首次正文", identityMode: "RP", identityToken: "token-1", version: undefined };
+const original = { content: "首次正文", identityMode: "RP", identityId: "rp-selected", identityToken: "token-1", version: undefined };
 test("首次BODY未知结果冻结完整请求并保护离开，后续freeze不会覆盖；明确冲突才解除", () => {
   const { result } = renderHook(() => useInitialBodyWrite<typeof original>());
   expect(result.current.canClose()).toBe(true);

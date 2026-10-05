@@ -123,7 +123,7 @@ export function ReplyCard({
     >
       <div className="mb-1.5 flex items-start justify-between gap-2">
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
-          <ThreadPostAuthor author={reply.author} threadId={reply.threadId} subthreadId={reply.subthreadId} postId={reply.id} parentPostId={parentPostId} filterReplies={isDiscussion} avatarClassName={isDiscussion ? "h-8 w-8" : isPreview ? "h-5 w-5" : "h-6 w-6"} avatarTextClassName={isDiscussion ? "text-xs" : isPreview ? "text-[9px]" : "text-[10px]"} textClassName="text-xs" />
+          <ThreadPostAuthor author={reply.author} threadId={reply.threadId} avatarClassName={isDiscussion ? "h-8 w-8" : isPreview ? "h-5 w-5" : "h-6 w-6"} avatarTextClassName={isDiscussion ? "text-xs" : isPreview ? "text-[9px]" : "text-[10px]"} textClassName="text-xs" />
           <LevelBadge level={reply.author.level} />
           {isDiscussion && ordinal != null ? (
             <span className="font-utility text-xs tabular-nums text-muted-foreground">

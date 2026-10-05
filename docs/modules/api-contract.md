@@ -129,6 +129,6 @@ Web 通过独立管理 Cookie/CSRF 会话消费 `/admin/mobile-releases` 列表�
 
 ## 沉浸式帖内身份
 
-固定 OpenAPI、全部共享夹具与生成类型由标准同步入口读取 Backend 已提交 `5ab9767ff8ddce917ddb2560ea655bb58a2408a3`（`5.33.0-dev.20261005.1`）。检查与同步均指定该 `BACKEND_CONTRACT_REF` 和真实 Backend 仓库的 `WENYOUSITE_BACKEND_ROOT`；新增 `contracts/thread-identity.v1.fixtures.json` 随版本逐字节核验。Foundation 维持 v7.2.1 依赖，本批语义规范由治理汇总。
+固定 OpenAPI、全部共享夹具与生成类型由标准同步入口读取 Backend 已提交 `fc44ed929edb909ebecec81f3159628509fd20e8`（`5.34.0-dev.20261005.1`）。检查与同步均指定该 `BACKEND_CONTRACT_REF` 和真实 Backend 仓库的 `WENYOUSITE_BACKEND_ROOT`；新增 `contracts/thread-identity.v1.fixtures.json` 随版本逐字节核验。Foundation 维持 v7.2.1 依赖，本批语义规范由治理汇总。
 
-新增本人身份 GET/PUT/DELETE、指定账号当前身份 GET 与楼主开关 PATCH；统一经 `use-thread-identity.ts` 消费。作者可选 `rpIdentity` 是局部展示，绝不覆盖通用 User 的账号字段；结构化提及通过 `userId + label` 匹配 `mentionIdentities`。创建楼层及首次 BODY 发 `identityMode=ACCOUNT|RP`，RP 带本人 `identityToken`。旧编辑不发送新身份，旧服务省略能力字段时关闭新控件。历史/关闭投影、冲突与幂等行为见 [主题帖详情](thread-detail.md#帖内身份与逐次发表)。
+多身份集合与单角色 GET/POST/PUT/DELETE 经 `use-rp-identities.ts` 消费，PUT/DELETE 携带打开表单时的版本。本人单身份 GET/PUT/DELETE、指定账号兼容主身份 GET 与楼主开关 PATCH 保留；开关和共同失效策略仍使用 `use-thread-identity.ts`。作者可选 `rpIdentity` 是局部展示，绝不覆盖通用 User 的账号字段；结构化提及通过 `userId + label` 匹配 `mentionIdentities`。创建楼层及首次 BODY 发 `identityMode=ACCOUNT|RP`，RP 带所选角色的 `identityId` 和 `identityToken`。旧编辑不发送新身份，旧服务省略能力字段时关闭新控件。历史/关闭投影、冲突与幂等行为见 [主题帖详情](thread-detail.md#帖内身份与逐次发表)。

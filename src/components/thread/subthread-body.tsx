@@ -37,7 +37,7 @@ export function SubthreadBody({
       </h2>
 
       {threadId && subthread.bodyPost?.author ? <div className="mt-3 flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
-        <ThreadPostAuthor author={subthread.bodyPost.author} threadId={threadId} subthreadId={subthread.id} postId={subthread.bodyPost.id} body avatarClassName="size-6" avatarTextClassName="text-xs" textClassName="text-xs" />
+        <ThreadPostAuthor author={subthread.bodyPost.author} threadId={threadId} avatarClassName="size-6" avatarTextClassName="text-xs" textClassName="text-xs" />
         <span>正文作者</span>
       </div> : null}
       {hasVisibleMarkdownContent(content) ? (

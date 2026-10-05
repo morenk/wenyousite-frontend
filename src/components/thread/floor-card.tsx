@@ -133,7 +133,7 @@ export function FloorCard({
       {/* 楼层头部 */}
       <div className="mb-3 flex items-start justify-between gap-2">
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
-          <ThreadPostAuthor author={floor.author} threadId={floor.threadId} subthreadId={floor.subthreadId} postId={floor.id} avatarClassName="h-8 w-8" />
+          <ThreadPostAuthor author={floor.author} threadId={floor.threadId} avatarClassName="h-8 w-8" />
           <LevelBadge level={floor.author.level} />
           {isPinned ? (
             <Badge tone="brand" size="compact" className="gap-1">

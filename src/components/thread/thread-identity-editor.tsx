@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useId, useState, type ReactNode } from "react";
+import { Pencil } from "lucide-react";
+import { UserAvatar } from "@/components/shared/user-avatar";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { getApiErrorMessage } from "@/api/errors";
-import { UserAvatar } from "@/components/shared/user-avatar";
+import { ThreadIdentitySummary } from "./thread-identity-summary";
 import { SettingsDialog } from "@/components/user/settings-controls";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,67 +24,83 @@ interface ThreadIdentityEditorProps {
   nickname: string | null;
   avatar: string | null;
   avatarDisplay?: MediaDisplay | null;
-  hasCustomIdentity: boolean;
+  existingIdentity: boolean;
   disabled?: boolean;
+  canDelete?: boolean;
   onSave: (nickname: string | null) => Promise<unknown>;
-  onClear: () => Promise<unknown>;
+  onDelete: () => Promise<unknown>;
   onAvatar: () => void;
   onClose: () => void;
+  onNicknameChange?: (value: string) => void;
+  feedback?: ReactNode;
 }
 
 export function ThreadIdentityEditor({
-  accountUsername, nickname, avatar, avatarDisplay, hasCustomIdentity,
-  disabled, onSave, onClear, onAvatar, onClose,
+  accountUsername, nickname, avatar, avatarDisplay, existingIdentity,
+  disabled, canDelete = existingIdentity, onSave, onDelete, onAvatar, onClose, onNicknameChange, feedback,
 }: ThreadIdentityEditorProps) {
   const form = useForm<IdentityFormValues>({
     resolver: zodResolver(identityFormSchema),
     defaultValues: { nickname: nickname ?? "" },
   });
+  const nicknameId = useId();
+  const errorId = useId();
   const previewNickname = useWatch({ control: form.control, name: "nickname" });
+  useEffect(() => { onNicknameChange?.(previewNickname ?? ""); }, [previewNickname, onNicknameChange]);
+  const appearance = { name: previewNickname?.trim() || accountUsername, avatar, avatarDisplay };
   const [clearing, setClearing] = useState(false);
   const confirm = useConfirm();
   const pending = form.formState.isSubmitting || clearing;
   const clear = async () => {
-    if (pending || disabled) return;
-    if (!await confirm({
-      title: "清除帖内资料",
-      description: "之后的发言将使用站内资料，旧发言的角色身份会保留。",
-      confirmLabel: "清除资料", destructive: true,
-    })) return;
+    if (pending || !canDelete) return;
     setClearing(true);
+    let accepted: boolean;
+    try { accepted = await confirm({
+      title: "删除帖内身份",
+      description: "删除后不能再用这个身份发表，旧发言仍保留当时的头像和昵称。",
+      confirmLabel: "删除身份", destructive: true,
+    }); } catch { setClearing(false); return; }
+    if (!accepted) { setClearing(false); return; }
     form.clearErrors();
-    try { await onClear(); onClose(); }
-    catch (error) { form.setError("root", { message: getApiErrorMessage(error, "清除失败，请重试") }); }
+    try { await onDelete(); onClose(); }
+    catch (error) { form.setError("root", { message: getApiErrorMessage(error, "删除失败，请重试") }); }
     finally { setClearing(false); }
   };
   return (
-    <SettingsDialog title="设置帖内身份" onClose={onClose} dirty={form.formState.isDirty} busy={pending}>
-      <p className="mb-4 text-sm leading-6 text-muted-foreground">
-        仅本主题及其全部子贴可见。修改只影响之后发表的内容，站内账号仍可在身份卡中查看。
-      </p>
+    <SettingsDialog title={existingIdentity ? "编辑帖内资料" : "设置帖内身份"} onClose={onClose} dirty={form.formState.isDirty} busy={pending}>
       <form onSubmit={form.handleSubmit(async (values) => {
         if (disabled) return;
         form.clearErrors();
-        try { await onSave(values.nickname || null); onClose(); }
+        try { if (await onSave(values.nickname || null) !== false) onClose(); }
         catch (error) { form.setError("root", { message: getApiErrorMessage(error, "保存失败，请重试") }); }
       })} className="space-y-4">
-        <div className="flex items-center gap-3">
-          <UserAvatar name={previewNickname?.trim() || accountUsername} src={avatar} display={avatarDisplay} className="size-14" textClassName="text-xl" />
-          <Button type="button" variant="outline" size="sm" disabled={pending || disabled} onClick={onAvatar}>设置帖内头像</Button>
+        <div className="py-1">
+          <ThreadIdentitySummary appearance={appearance}
+            avatarSlot={<Button type="button" variant="ghost" aria-label="修改帖内头像" title="修改帖内头像"
+              className="relative size-12 shrink-0 rounded-full p-0" disabled={pending || disabled} onClick={onAvatar}>
+              <UserAvatar name={appearance.name} src={avatar} display={avatarDisplay} className="size-12" textClassName="text-lg" />
+              <span aria-hidden="true" className="absolute bottom-0 right-0 flex size-5 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-sm">
+                <Pencil className="size-3" />
+              </span>
+            </Button>} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="rp-nickname">帖内昵称</Label>
-          <Input id="rp-nickname" autoComplete="off" placeholder={accountUsername}
-            {...form.register("nickname")} disabled={pending || disabled} aria-describedby="rp-nickname-help" />
-          {form.formState.errors.nickname ? <p role="alert" className="text-sm text-destructive">{form.formState.errors.nickname.message}</p> : null}
-          <p id="rp-nickname-help" className="text-xs text-muted-foreground">留空则使用站内昵称；昵称和头像分别设置。</p>
-          <p className="text-xs text-muted-foreground">站内账号：{accountUsername}</p>
+          <div className="flex items-center justify-between gap-3">
+            <Label htmlFor={nicknameId}>帖内昵称</Label>
+            <span className="text-xs tabular-nums text-muted-foreground" aria-hidden="true">{Array.from(previewNickname?.trim() ?? "").length}/24</span>
+          </div>
+          <Input id={nicknameId} autoComplete="off" placeholder={accountUsername}
+            {...form.register("nickname")} disabled={pending || disabled}
+            aria-invalid={Boolean(form.formState.errors.nickname)}
+            aria-describedby={form.formState.errors.nickname ? errorId : undefined} />
+          {form.formState.errors.nickname ? <p id={errorId} role="alert" className="text-sm text-destructive">{form.formState.errors.nickname.message}</p> : null}
         </div>
         {disabled ? <p role="alert" className="text-sm text-muted-foreground">帖内身份当前不可修改，本地输入已保留。</p> : null}
         {form.formState.errors.root ? <p role="alert" className="text-sm text-destructive">{form.formState.errors.root.message}</p> : null}
-        <DialogFooter>
-          {hasCustomIdentity ? <Button type="button" variant="ghost" className="mr-auto" disabled={pending || disabled} onClick={() => void clear()}>清除帖内资料</Button> : null}
-          <Button type="submit" pending={pending} disabled={disabled} pendingLabel="保存中">保存帖内身份</Button>
+        {feedback}
+        <DialogFooter className="flex-wrap">
+          {existingIdentity ? <Button type="button" variant="ghost" className="mr-auto" disabled={pending || !canDelete} onClick={() => void clear()}>删除帖内身份</Button> : null}
+          <Button type="submit" pending={pending} disabled={disabled} pendingLabel="保存中">{existingIdentity ? "保存昵称" : "创建身份"}</Button>
         </DialogFooter>
       </form>
     </SettingsDialog>

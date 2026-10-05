@@ -74,10 +74,14 @@ test("主题不可访问删除本人token与身份卡缓存，保留其他主题
   const mine = queryKeys.threadIdentities.mine("t1", "u1");
   const card = queryKeys.threadIdentities.user("t1", "u2", "u1");
   const other = queryKeys.threadIdentities.mine("t2", "u1");
-  for (const key of [mine, card, other]) client.setQueryData(key, { private: true });
+  const roles = queryKeys.threadIdentities.collection("t1", "u1");
+  const role = queryKeys.threadIdentities.role("t1", "role-b", "u1");
+  for (const key of [mine, card, roles, role, other]) client.setQueryData(key, { private: true });
   clearThreadContentCaches(client, "t1");
   expect(client.getQueryData(mine)).toBeUndefined();
   expect(client.getQueryData(card)).toBeUndefined();
+  expect(client.getQueryData(roles)).toBeUndefined();
+  expect(client.getQueryData(role)).toBeUndefined();
   expect(client.getQueryData(other)).toEqual({ private: true });
   const cancel = vi.spyOn(client, "cancelQueries");
   const reset = vi.spyOn(client, "resetQueries");

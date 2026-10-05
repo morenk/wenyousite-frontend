@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { getApiErrorMessage } from "@/api/errors";
 import { useSetThreadIdentityEnabled } from "@/api/hooks/use-thread-identity";
 import { Button } from "@/components/ui/button";
+import { SettingsGroup } from "@/components/user/settings-controls";
+import { StackListRow } from "@/components/ui/stack-list";
 import { useConfirm } from "@/components/ui/confirm-provider";
 
 export function ThreadIdentitySettings({ threadId, enabled, disabled }: { threadId: string; enabled: boolean; disabled?: boolean }) {
@@ -19,12 +21,14 @@ export function ThreadIdentitySettings({ threadId, enabled, disabled }: { thread
     try { await update.mutateAsync(!enabled); toast.success(enabled ? "已关闭帖内身份" : "已启用帖内身份"); }
     catch (error) { toast.error(getApiErrorMessage(error, "设置失败，请重试")); }
   };
-  return <section className="space-y-3 rounded-[var(--radius-panel)] border border-border bg-muted/25 p-4">
-    <h2 className="font-sans text-lg font-semibold text-foreground">帖内身份</h2>
-    <p className="text-xs leading-5 text-muted-foreground">楼主、协作者和玩家可设置仅用于本主题及其全部子贴的头像与昵称。</p>
-    <Button type="button" variant={enabled ? "secondary" : "outline"} size="sm" aria-pressed={enabled}
-      onClick={() => void toggle()} disabled={disabled} pending={update.isPending}>
-      {enabled ? "关闭帖内身份" : "启用帖内身份"}
-    </Button>
-  </section>;
+  return <SettingsGroup>
+    <StackListRow className="flex min-w-0 items-center justify-between gap-3 py-4">
+      <span className="text-sm font-medium text-foreground">帖内身份</span>
+      <Button type="button" variant={enabled ? "secondary" : "outline"} size="sm" aria-pressed={enabled}
+        aria-label={enabled ? "关闭帖内身份" : "启用帖内身份"}
+        onClick={() => void toggle()} disabled={disabled} pending={update.isPending}>
+        {enabled ? "已开启" : "未开启"}
+      </Button>
+    </StackListRow>
+  </SettingsGroup>;
 }

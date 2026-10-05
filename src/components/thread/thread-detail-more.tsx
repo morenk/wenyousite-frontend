@@ -24,7 +24,6 @@ import { cn } from "@/lib/utils";
 
 interface ThreadDetailMoreProps {
   thread: ThreadDetail;
-  onIdentity?: () => void;
   onCopyLink?: () => void | Promise<void>;
   onExitPlayer?: () => void | Promise<void>;
   exitPlayerPending?: boolean;
@@ -60,7 +59,6 @@ function ThreadStat({
 
 export function ThreadDetailMore({
   thread,
-  onIdentity,
   onCopyLink,
   onExitPlayer,
   exitPlayerPending = false,
@@ -130,7 +128,6 @@ export function ThreadDetailMore({
               />
             </dl>
 
-            {onIdentity ? <button type="button" className={actionClassName} onClick={() => runAction(onIdentity)}><Users className="size-4" aria-hidden="true" />设置帖内身份</button> : null}
             {hasActions ? (
               <div className="mt-2 border-t border-border pt-1.5">
                 {onCopyLink ? (

@@ -86,6 +86,7 @@ function ThreadComposer({ mentionIdentities }: { mentionIdentities?: readonly Me
   const isReply = session.type === "reply";
   const submitLabel = uncertain ? "重试确认发表" : isEdit ? "保存修改" : isReply ? "回复" : "发布";
   const busy = pending || uploadImage.isPending;
+  const showIdentity = !isEdit && rpIdentitySupported && Boolean(threadId);
 
   const submitOnce = async () => {
     if (busy || syncError) return;
@@ -160,8 +161,11 @@ function ThreadComposer({ mentionIdentities }: { mentionIdentities?: readonly Me
 
   return (
     <div ref={containerRef} className="space-y-3 rounded-[var(--radius-control)] border border-brand-strong/40 bg-background p-3">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm font-medium text-foreground">{session.label}</p>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1 space-y-2">
+          {showIdentity && threadId ? <ThreadPublicationIdentity controller={identity} threadId={threadId} disabled={busy || uncertain} /> : null}
+          {!showIdentity || session.label !== "发表回复" ? <p className="text-sm font-medium text-foreground">{session.label}</p> : null}
+        </div>
         <Button
           type="button"
           variant="ghost"
@@ -174,7 +178,6 @@ function ThreadComposer({ mentionIdentities }: { mentionIdentities?: readonly Me
           取消
         </Button>
       </div>
-      {!isEdit && rpIdentitySupported && threadId ? <ThreadPublicationIdentity controller={identity} threadId={threadId} disabled={busy || uncertain} /> : null}
       {uncertain ? <p role="alert" className="text-sm text-warning">发表结果尚未确认，正文与身份已保留。请重试确认发表，确认前不能切换身份或退出编辑。</p> : null}
       <MilkdownEditor mentionIdentities={mentionIdentities}
         onSyncErrorChange={setSyncError}

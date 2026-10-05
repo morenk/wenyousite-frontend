@@ -23,7 +23,6 @@ import type { SubthreadDetail, ThreadDetail } from "@/api/hooks/use-thread-detai
 import { ThreadSubscriptionControls } from "@/components/thread/thread-subscription-controls";
 import { WenyouTipButton } from "@/components/economy/wenyou-tip-button";
 import { SubthreadSwitcher } from "@/components/thread/subthread-tabs";
-import { ThreadIdentityControls } from "@/components/thread/thread-identity-controls";
 import { ThreadDetailMore } from "@/components/thread/thread-detail-more";
 import { ThreadExportDialog } from "@/components/thread/thread-export-dialog";
 import { TopicTagLink } from "@/components/thread/topic-tag-link";
@@ -103,7 +102,6 @@ export function ThreadDetailHeader({
   const confirmAction = useConfirm();
   const [moderationOpen, setModerationOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
-  const [identityOpen, setIdentityOpen] = useState(false);
   const canModerateThread =
     thread.visibility === "PUBLIC" &&
     (user?.role === "ADMIN" || user?.role === "SUPER_ADMIN");
@@ -166,7 +164,6 @@ export function ThreadDetailHeader({
 
   return (
     <>
-      {identityOpen ? <ThreadIdentityControls threadId={thread.id} opened onClose={() => setIdentityOpen(false)} /> : null}
       <article
         data-slot="thread-document"
         data-content-purpose={CONTENT_PRESENTATION.detail.purpose}
@@ -186,7 +183,6 @@ export function ThreadDetailHeader({
               <div className="absolute right-0 top-0">
                 <ThreadDetailMore
                   thread={thread}
-                  onIdentity={thread.rpIdentityEnabled && user && (canManageThread || currentMember?.playerMarked) ? () => setIdentityOpen(true) : undefined}
                   onCopyLink={
                     thread.visibility === "PUBLIC"
                       ? handleCopyThreadLink

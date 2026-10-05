@@ -15,6 +15,7 @@ export interface ThreadAuthorFilter {
 }
 
 interface ThreadPermissionsValue {
+  ownerId?: string;
   authorFilter?: ThreadAuthorFilter;
   setAuthorFilter: (filter: ThreadAuthorFilter | undefined) => void;
   visibility?: "PUBLIC" | "PRIVATE";
@@ -74,6 +75,7 @@ export function ThreadPermissionsProvider({
   return (
     <ThreadPermissionsContext.Provider
       value={{
+        ownerId: threadQuery.data?.ownerId ?? ownerId,
         authorFilter,
         setAuthorFilter,
         visibility: threadQuery.data?.visibility,

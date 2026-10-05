@@ -774,7 +774,7 @@ test("子贴尚未生成新快照时切换也确认，确认中新输入不丢�
 
 test("首次子贴正文用本次身份，确认取消保留内容且不写入", async () => {
   const first = { ...mockThread, rpIdentityEnabled: true, subthreads: mockThread.subthreads.map((sub) => sub.id === "s2" ? { ...sub, bodyPost: null } : sub) };
-  identityMocks.prepare.mockResolvedValueOnce(null).mockResolvedValue({ identityMode: "RP", identityToken: "sub-token" });
+  identityMocks.prepare.mockResolvedValueOnce(null).mockResolvedValue({ identityMode: "RP", identityId: "rp-selected", identityToken: "sub-token" });
   renderPanel({ thread: first, searchParams: "?view=subthreads&subthread=s2" });
   expect(screen.getByText("首次正文发表身份")).toBeInTheDocument();
   fireEvent.change(screen.getByTestId("milkdown-editor"), { target: { value: "首次子贴正文" } });
@@ -782,12 +782,12 @@ test("首次子贴正文用本次身份，确认取消保留内容且不写入",
   expect(mocks.upsertBody).not.toHaveBeenCalled();
   expect(screen.getByTestId("milkdown-editor")).toHaveValue("首次子贴正文");
   await userEvent.click(screen.getByRole("button", { name: "保存子贴" }));
-  await waitFor(() => expect(mocks.upsertBody).toHaveBeenCalledWith(expect.objectContaining({ identityMode: "RP", identityToken: "sub-token", version: undefined })));
+  await waitFor(() => expect(mocks.upsertBody).toHaveBeenCalledWith(expect.objectContaining({ identityMode: "RP", identityId: "rp-selected", identityToken: "sub-token", version: undefined })));
 });
 
 test("首次子贴正文未知结果禁改禁退出，精确重试原mode/token/content/version，冲突不自动覆盖", async () => {
   const first = { ...mockThread, rpIdentityEnabled: true, subthreads: mockThread.subthreads.map((sub) => sub.id === "s2" ? { ...sub, bodyPost: null } : sub) };
-  identityMocks.prepare.mockResolvedValue({ identityMode: "RP", identityToken: "frozen-sub-token" });
+  identityMocks.prepare.mockResolvedValue({ identityMode: "RP", identityId: "rp-selected", identityToken: "frozen-sub-token" });
   mocks.upsertBody.mockRejectedValueOnce(new TypeError("offline")).mockRejectedValueOnce({ code: 40002, message: "版本冲突" });
   const { onExit, onRefetch } = renderPanel({ thread: first, searchParams: "?view=subthreads&subthread=s2" });
   fireEvent.change(screen.getByTestId("milkdown-editor"), { target: { value: "保留原子贴正文" } });

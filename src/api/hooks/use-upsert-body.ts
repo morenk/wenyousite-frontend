@@ -12,13 +12,13 @@ export function useUpsertBody() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
-      subthreadId, content, version, identityMode, identityToken
+      subthreadId, content, version, identityMode, identityId, identityToken
     }: components["schemas"]["UpsertBodyDto"] & { subthreadId: string; threadId: string }) => {
       const { data, error } = await apiClient.PUT(
         "/api/v1/subthreads/{subthreadId}/body",
         {
           params: { path: { subthreadId } },
-          body: { content, version, identityMode, identityToken },
+          body: { content, version, identityMode, identityId, identityToken },
         },
       );
       if (error) throw error;

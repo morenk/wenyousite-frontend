@@ -289,7 +289,7 @@ test("帖内头像保存与删除不会修改全站头像", async () => {
   });
   await waitFor(() => expect(screen.getByRole("button", { name: "保存头像" })).toBeEnabled());
   fireEvent.click(screen.getByRole("button", { name: "保存头像" }));
-  await waitFor(() => expect(save).toHaveBeenCalledWith("m1"));
+  await waitFor(() => expect(save).toHaveBeenCalledWith("m1", { url: "https://example.com/avatar.webp", mediaId: "m1" }));
   expect(mockSetAvatar.mutateAsync).not.toHaveBeenCalled();
 });
 
