@@ -1,5 +1,6 @@
 "use client";
 
+import { useMarkdownWriteCapability } from "@/api/hooks/use-markdown-write-capability";
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { useQueryStates } from "nuqs";
 import { toast } from "sonner";
@@ -97,6 +98,7 @@ export function useManagementPanelController({
   const deleteSubthread = useDeleteSubthread();
   const reorderSubthreads = useReorderSubthreads();
   const upsertBody = useUpsertBody();
+  const snapshotMarkdownCapability = useMarkdownWriteCapability();
   const initialBody = useInitialBodyWrite<Parameters<typeof upsertBody.mutateAsync>[0]>();
   const { canClose: canCloseInitialBody } = initialBody;
   const uploadImage = useUploadImage();
@@ -293,6 +295,7 @@ export function useManagementPanelController({
           content,
           version: state.bodyVersion,
           ...publicationIdentity,
+          ...snapshotMarkdownCapability(),
         };
         if (state.bodyVersion === undefined) initialBody.freeze(request);
         const updatedBody = await upsertBody.mutateAsync(request);

@@ -6,6 +6,7 @@ import { UserAvatar } from "@/components/shared/user-avatar";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { RpProfilePostLinkError } from "@/api/hooks/use-rp-profile-post";
 import { getApiErrorMessage } from "@/api/errors";
 import { ThreadIdentitySummary } from "./thread-identity-summary";
 import { SettingsDialog } from "@/components/user/settings-controls";
@@ -16,7 +17,7 @@ import { DialogFooter } from "@/components/ui/dialog";
 import { useConfirm } from "@/components/ui/confirm-provider";
 import type { MediaDisplay } from "@/lib/media-display";
 
-const identityFormSchema = z.object({ nickname: z.string().trim().refine((name) => Array.from(name).length <= 24, "帖内昵称最多24个字符").regex(/^[^\\[\]<>\p{Cc}\p{Cf}]*$/u, "昵称不能包含方括号、反斜线、尖括号或控制字符") });
+const identityFormSchema = z.object({ profileLink: z.string().trim(), nickname: z.string().trim().refine((name) => Array.from(name).length <= 24, "帖内昵称最多24个字符").regex(/^[^\\[\]<>\p{Cc}\p{Cf}]*$/u, "昵称不能包含方括号、反斜线、尖括号或控制字符") });
 type IdentityFormValues = z.infer<typeof identityFormSchema>;
 
 interface ThreadIdentityEditorProps {
@@ -25,9 +26,12 @@ interface ThreadIdentityEditorProps {
   avatar: string | null;
   avatarDisplay?: MediaDisplay | null;
   existingIdentity: boolean;
+  profileSupported?: boolean;
+  profileLink?: string;
+  onProfileLinkChange?: (value: string) => void;
   disabled?: boolean;
   canDelete?: boolean;
-  onSave: (nickname: string | null) => Promise<unknown>;
+  onSave: (nickname: string | null, profileLink?: string) => Promise<unknown>;
   onDelete: () => Promise<unknown>;
   onAvatar: () => void;
   onClose: () => void;
@@ -36,15 +40,19 @@ interface ThreadIdentityEditorProps {
 }
 
 export function ThreadIdentityEditor({
-  accountUsername, nickname, avatar, avatarDisplay, existingIdentity,
+  accountUsername, nickname, avatar, avatarDisplay, existingIdentity, profileSupported = false, profileLink = "", onProfileLinkChange,
   disabled, canDelete = existingIdentity, onSave, onDelete, onAvatar, onClose, onNicknameChange, feedback,
 }: ThreadIdentityEditorProps) {
   const form = useForm<IdentityFormValues>({
     resolver: zodResolver(identityFormSchema),
-    defaultValues: { nickname: nickname ?? "" },
+    defaultValues: { nickname: nickname ?? "", profileLink },
   });
   const nicknameId = useId();
   const errorId = useId();
+  const profileId = useId();
+  const profileErrorId = useId();
+  const watchedProfileLink = useWatch({ control: form.control, name: "profileLink" });
+  useEffect(() => { if (profileSupported) onProfileLinkChange?.(watchedProfileLink ?? ""); }, [profileSupported, watchedProfileLink, onProfileLinkChange]);
   const previewNickname = useWatch({ control: form.control, name: "nickname" });
   useEffect(() => { onNicknameChange?.(previewNickname ?? ""); }, [previewNickname, onNicknameChange]);
   const appearance = { name: previewNickname?.trim() || accountUsername, avatar, avatarDisplay };
@@ -71,8 +79,8 @@ export function ThreadIdentityEditor({
       <form onSubmit={form.handleSubmit(async (values) => {
         if (disabled) return;
         form.clearErrors();
-        try { if (await onSave(values.nickname || null) !== false) onClose(); }
-        catch (error) { form.setError("root", { message: getApiErrorMessage(error, "保存失败，请重试") }); }
+        try { if (await (profileSupported ? onSave(values.nickname || null, values.profileLink) : onSave(values.nickname || null)) !== false) onClose(); }
+        catch (error) { form.setError(error instanceof RpProfilePostLinkError ? "profileLink" : "root", { message: getApiErrorMessage(error, "保存失败，请重试") }); }
       })} className="space-y-4">
         <div className="py-1">
           <ThreadIdentitySummary appearance={appearance}
@@ -95,12 +103,20 @@ export function ThreadIdentityEditor({
             aria-describedby={form.formState.errors.nickname ? errorId : undefined} />
           {form.formState.errors.nickname ? <p id={errorId} role="alert" className="text-sm text-destructive">{form.formState.errors.nickname.message}</p> : null}
         </div>
+        {profileSupported ? <div className="space-y-2">
+          <Label htmlFor={profileId}>资料楼层链接</Label>
+          <Input id={profileId} autoComplete="off" type="text" placeholder="粘贴当前主题的楼层链接"
+            {...form.register("profileLink")} disabled={pending || disabled}
+            aria-invalid={Boolean(form.formState.errors.profileLink)}
+            aria-describedby={form.formState.errors.profileLink ? profileErrorId : undefined} />
+          {form.formState.errors.profileLink ? <p id={profileErrorId} role="alert" className="text-sm text-destructive">{form.formState.errors.profileLink.message}</p> : null}
+        </div> : null}
         {disabled ? <p role="alert" className="text-sm text-muted-foreground">帖内身份当前不可修改，本地输入已保留。</p> : null}
         {form.formState.errors.root ? <p role="alert" className="text-sm text-destructive">{form.formState.errors.root.message}</p> : null}
         {feedback}
         <DialogFooter className="flex-wrap">
           {existingIdentity ? <Button type="button" variant="ghost" className="mr-auto" disabled={pending || !canDelete} onClick={() => void clear()}>删除帖内身份</Button> : null}
-          <Button type="submit" pending={pending} disabled={disabled} pendingLabel="保存中">{existingIdentity ? "保存昵称" : "创建身份"}</Button>
+          <Button type="submit" pending={pending} disabled={disabled} pendingLabel="保存中">{existingIdentity ? profileSupported ? "保存资料" : "保存昵称" : "创建身份"}</Button>
         </DialogFooter>
       </form>
     </SettingsDialog>

@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { invalidateChangedMentionCandidates } from "./use-mention-candidates";
+import { markdownWriteCapability } from "@/api/markdown-capability";
 import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
 import type { components } from "@/api/types";
@@ -11,14 +12,14 @@ export type UpsertedBody = components["schemas"]["PostResponseDto"];
 export function useUpsertBody() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({
-      subthreadId, content, version, identityMode, identityId, identityToken
-    }: components["schemas"]["UpsertBodyDto"] & { subthreadId: string; threadId: string }) => {
+    mutationFn: async (input: components["schemas"]["UpsertBodyDto"] & { subthreadId: string; threadId: string }) => {
+      const { subthreadId, content, version, identityMode, identityId, identityToken, markdownContractVersion } = input;
+      const capability = Object.hasOwn(input, "markdownContractVersion") ? { markdownContractVersion } : markdownWriteCapability(queryClient);
       const { data, error } = await apiClient.PUT(
         "/api/v1/subthreads/{subthreadId}/body",
         {
           params: { path: { subthreadId } },
-          body: { content, version, identityMode, identityId, identityToken },
+          body: { ...capability, content, version, identityMode, identityId, identityToken },
         },
       );
       if (error) throw error;

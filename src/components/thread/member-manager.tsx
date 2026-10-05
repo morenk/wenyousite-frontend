@@ -76,7 +76,7 @@ export function MemberManager({ threadId, isOwner, isCollaborator }: MemberManag
     const keyword = query.trim().toLocaleLowerCase("zh-CN");
     return orderedMembers.filter((member) =>
       matchesFilter(member, filter) &&
-      (!keyword || [member.user.username, member.user.rpIdentity?.nickname ?? ""].some((name) => name.toLocaleLowerCase("zh-CN").includes(keyword))),
+      (!keyword || member.user.username.toLocaleLowerCase("zh-CN").includes(keyword)),
     );
   }, [filter, orderedMembers, query]);
 
@@ -261,7 +261,7 @@ function MemberTableRow({
               {member.user.username}
             </span>
             <span className="mt-0.5 block font-utility text-[0.6875rem] text-muted-foreground">
-              {member.user.rpIdentity ? `帖内昵称：${member.user.rpIdentity.nickname} · ` : ""}{member.role === "OWNER" ? "帖子创建者" : "参与人"}
+              {member.role === "OWNER" ? "帖子创建者" : "参与人"}
             </span>
           </span>
         </Link>

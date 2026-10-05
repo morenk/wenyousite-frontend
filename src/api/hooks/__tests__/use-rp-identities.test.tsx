@@ -33,7 +33,7 @@ test("历史卡延迟查询同一identityId，不查询当前默认或账号主�
   const { result, rerender } = renderHook(({ enabled }) => useRpIdentity("t1", "historical-b", enabled), { wrapper, initialProps: { enabled: false } });
   expect(mocks.GET).not.toHaveBeenCalled(); rerender({ enabled: true });
   await waitFor(() => expect(result.current.data?.identityId).toBe("historical-b"));
-  expect(mocks.GET).toHaveBeenCalledWith("/api/v1/threads/{threadId}/rp-identities/{identityId}", { params: { path: { threadId: "t1", identityId: "historical-b" } } });
+  expect(mocks.GET).toHaveBeenCalledWith("/api/v1/threads/{threadId}/rp-identities/{identityId}", { params: { path: { threadId: "t1", identityId: "historical-b" } }, signal: expect.any(AbortSignal), cache: "no-store" });
 });
 test.each(["create", "update", "remove"] as const)("%s成功刷新全部投影，版本与角色ID只按请求原值传送", async (operation) => {
   const { wrapper, client } = setup(); const invalidate = vi.spyOn(client, "invalidateQueries");

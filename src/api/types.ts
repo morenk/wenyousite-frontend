@@ -3660,6 +3660,14 @@ export interface components {
             level: number;
         };
         MentionCandidateDto: {
+            /** @description includeIdentities=true 时的稳定候选键；ACCOUNT:userId 或 RP:identityId，禁止按 userId 去重 */
+            candidateKey?: string;
+            /** @description 选中的稳定角色 ID；账号候选为 null */
+            targetIdentityId?: string | null;
+            /** @description 插入时称呼；原样保存在源码，不用后续当前昵称替换 */
+            mentionLabel?: string;
+            /** @description 规范 Markdown 链接目标；ACCOUNT 带 identityMode=ACCOUNT，角色带 rpIdentityId */
+            mentionHref?: string;
             /** @description 仅帖内上下文返回；账号字段不变，展示优先使用此身份 */
             rpIdentity?: components["schemas"]["RpIdentityResponseDto"] | null;
             /** @description 头像完整 WebP 展示资源；avatar 保留来源身份 */
@@ -4363,6 +4371,11 @@ export interface components {
         };
         CreateThreadDto: {
             /**
+             * @description 声明编辑器支持 Markdown 6 角色提及源的无损读取/编辑。服务端 capabilities.roleMentionsV6Supported 为 true 时新端始终发送，包括删光旧节点；未声明而新/原正文含 v6 返回 409/40014。新节点还须 roleMentionsV6WriteEnabled。
+             * @enum {integer}
+             */
+            markdownContractVersion?: 6;
+            /**
              * Format: uuid
              * @description 客户端创建幂等键；同一次提交和网络重试必须复用
              */
@@ -4408,8 +4421,14 @@ export interface components {
             denialReason: "AUTHENTICATION_REQUIRED" | "BLOCKED_RELATION" | "COLLABORATOR_REQUIRED" | "PLAYER_REQUIRED" | null;
         };
         MentionIdentityDisplayDto: {
+            /** @description 原始目标 href；与原 label 配对匹配节点，不以 occurrence 或 userId 单独匹配 */
+            sourceHref?: string;
+            /** @description 稳定目标角色 ID；ACCOUNT/legacy 为 null，不随关闭/归档丢失。仅声明 Markdown 6 的读取返回角色目标 */
+            targetIdentityId?: string | null;
+            /** @description 角色所属主题；跨页面身份卡读取使用，不能猜当前页面主题 */
+            threadId?: string;
             userId: string;
-            /** @description 正文 canonical mention 的原始标签（不含 @），与 userId 共同作为映射键 */
+            /** @description 正文 canonical mention 的原始标签（不含 @），与 sourceHref 共同作为映射键；旧 bare 兼容 userId+label */
             label: string;
             /** @description 此次阅读应显示的名字；关闭时为账号用户名 */
             displayName: string;
@@ -4609,6 +4628,11 @@ export interface components {
             version: number;
         };
         SaveThreadAggregateDto: {
+            /**
+             * @description 声明编辑器支持 Markdown 6 角色提及源的无损读取/编辑。服务端 capabilities.roleMentionsV6Supported 为 true 时新端始终发送，包括删光旧节点；未声明而新/原正文含 v6 返回 409/40014。新节点还须 roleMentionsV6WriteEnabled。
+             * @enum {integer}
+             */
+            markdownContractVersion?: 6;
             /** @description 本次新发言选择的帖内身份 ID；新客户端 RP 模式必须与该身份 token 一起发送。省略仅兼容旧单身份客户端；ACCOUNT 忽略，编辑旧正文不改变原身份 */
             identityId?: string;
             /** @description GET 帖内身份返回的确认 token；新建正文或发言时使用。身份变化返回 409/40011，保留草稿并重新确认 */
@@ -4742,6 +4766,8 @@ export interface components {
             name: string;
         };
         ThreadIdentityProfileDto: {
+            /** @description 本人保存的资料楼层绑定；不代表当前可读取。资料正文必须另经 postsFindById 授权读取 */
+            profilePostId?: string | null;
             id: string;
             nickname: string | null;
             avatarMediaId: string | null;
@@ -4753,6 +4779,13 @@ export interface components {
             avatar: string | null;
         };
         ThreadIdentityStateDto: {
+            /**
+             * @description NONE：无可展示绑定（含身份关闭/归档/资格失效/空身份）；AVAILABLE：可读取当前资料；UNAVAILABLE：有效角色的绑定当前不可读。不可用不提供原因或目标 ID
+             * @enum {string}
+             */
+            profilePostStatus?: "NONE" | "AVAILABLE" | "UNAVAILABLE";
+            /** @description 同一角色当前可读的资料楼层 ID；关闭、失去资格、空身份、归档、目标不可读时为 null。每次打开卡片重新读取，再调用 postsFindById，禁止缓存正文绕过授权 */
+            profilePostId?: string | null;
             threadId: string;
             userId: string;
             enabled: boolean;
@@ -4767,6 +4800,10 @@ export interface components {
             identityToken: string | null;
         };
         UpdateThreadIdentityDto: {
+            /** @description 本主题内当前可读且可用的楼层、楼中楼或子贴正文 ID，可引用他人发言；省略保留，null 清除；不接受 URL */
+            profilePostId?: string | null;
+            /** @description 显式解除资料绑定，供省略 null 的客户端使用；不能与非空 profilePostId 同时提供 */
+            clearProfilePost?: boolean;
             /** @description 显式清除昵称，供省略 null 的客户端使用；不能与非空 nickname 同时提供 */
             clearNickname?: boolean;
             /** @description 显式清除头像；不能与非空 avatarMediaId 同时提供 */
@@ -4785,6 +4822,13 @@ export interface components {
             enabled: boolean;
         };
         RpIdentityStateDto: {
+            /**
+             * @description NONE：无可展示绑定（含身份关闭/归档/资格失效/空身份）；AVAILABLE：可读取当前资料；UNAVAILABLE：有效角色的绑定当前不可读。不可用不提供原因或目标 ID
+             * @enum {string}
+             */
+            profilePostStatus?: "NONE" | "AVAILABLE" | "UNAVAILABLE";
+            /** @description 同一角色当前可读的资料楼层 ID；关闭、失去资格、空身份、归档、目标不可读时为 null。每次打开卡片重新读取，再调用 postsFindById，禁止缓存正文绕过授权 */
+            profilePostId?: string | null;
             threadId: string;
             userId: string;
             enabled: boolean;
@@ -4803,7 +4847,7 @@ export interface components {
             identityId: string;
             /** @description 已删除角色仅保留历史展示与账号；当前 display 为 null */
             deleted: boolean;
-            /** @description 是否为旧 single 接口、作者目录和 @ 候选的兼容锚点 */
+            /** @description 仅旧 single 协议内部锚点；不是新端的默认或候选优先级 */
             compatibilityIdentity: boolean;
         };
         RpIdentityCollectionDto: {
@@ -4818,12 +4862,16 @@ export interface components {
             limit: 10;
             /** @description 旧 single 接口的明确锚点；首次角色绑定，删除后不自动接管 */
             compatibilityIdentityId: string | null;
-            /** @description 仅新空白编辑器初始化用；可用兼容角色优先，否则创建顺序第一个可用角色；不可覆盖恢复草稿 */
+            /** @description 固定 null；新空白编辑器默认 ACCOUNT，不覆盖恢复的显式草稿 */
             defaultIdentityId: string | null;
             identities: components["schemas"]["RpIdentityStateDto"][];
             account: components["schemas"]["ThreadIdentityAccountDto"];
         };
         CreateRpIdentityDto: {
+            /** @description 本主题内当前可读且可用的楼层、楼中楼或子贴正文 ID，可引用他人发言；省略保留，null 清除；不接受 URL */
+            profilePostId?: string | null;
+            /** @description 显式解除资料绑定，供省略 null 的客户端使用；不能与非空 profilePostId 同时提供 */
+            clearProfilePost?: boolean;
             /** @description 显式清除昵称，供省略 null 的客户端使用；不能与非空 nickname 同时提供 */
             clearNickname?: boolean;
             /** @description 显式清除头像；不能与非空 avatarMediaId 同时提供 */
@@ -4834,6 +4882,10 @@ export interface components {
             avatarMediaId?: string | null;
         };
         UpdateRpIdentityDto: {
+            /** @description 本主题内当前可读且可用的楼层、楼中楼或子贴正文 ID，可引用他人发言；省略保留，null 清除；不接受 URL */
+            profilePostId?: string | null;
+            /** @description 显式解除资料绑定，供省略 null 的客户端使用；不能与非空 profilePostId 同时提供 */
+            clearProfilePost?: boolean;
             /** @description 显式清除昵称，供省略 null 的客户端使用；不能与非空 nickname 同时提供 */
             clearNickname?: boolean;
             /** @description 显式清除头像；不能与非空 avatarMediaId 同时提供 */
@@ -5235,6 +5287,11 @@ export interface components {
             thread?: components["schemas"]["SubthreadThreadReferenceResponseDto"];
         };
         CreateSubthreadDto: {
+            /**
+             * @description 声明编辑器支持 Markdown 6 角色提及源的无损读取/编辑。服务端 capabilities.roleMentionsV6Supported 为 true 时新端始终发送，包括删光旧节点；未声明而新/原正文含 v6 返回 409/40014。新节点还须 roleMentionsV6WriteEnabled。
+             * @enum {integer}
+             */
+            markdownContractVersion?: 6;
             /** @description 本次新发言选择的帖内身份 ID；新客户端 RP 模式必须与该身份 token 一起发送。省略仅兼容旧单身份客户端；ACCOUNT 忽略，编辑旧正文不改变原身份 */
             identityId?: string;
             /** @description GET 帖内身份返回的确认 token；新建正文或发言时使用。身份变化返回 409/40011，保留草稿并重新确认 */
@@ -5467,6 +5524,11 @@ export interface components {
             playerMarked: boolean;
         };
         UpsertBodyDto: {
+            /**
+             * @description 声明编辑器支持 Markdown 6 角色提及源的无损读取/编辑。服务端 capabilities.roleMentionsV6Supported 为 true 时新端始终发送，包括删光旧节点；未声明而新/原正文含 v6 返回 409/40014。新节点还须 roleMentionsV6WriteEnabled。
+             * @enum {integer}
+             */
+            markdownContractVersion?: 6;
             /** @description 本次新发言选择的帖内身份 ID；新客户端 RP 模式必须与该身份 token 一起发送。省略仅兼容旧单身份客户端；ACCOUNT 忽略，编辑旧正文不改变原身份 */
             identityId?: string;
             /** @description GET 帖内身份返回的确认 token；新建正文或发言时使用。身份变化返回 409/40011，保留草稿并重新确认 */
@@ -5533,6 +5595,11 @@ export interface components {
             author: components["schemas"]["PostAuthorResponseDto"];
         };
         CreatePostDto: {
+            /**
+             * @description 声明编辑器支持 Markdown 6 角色提及源的无损读取/编辑。服务端 capabilities.roleMentionsV6Supported 为 true 时新端始终发送，包括删光旧节点；未声明而新/原正文含 v6 返回 409/40014。新节点还须 roleMentionsV6WriteEnabled。
+             * @enum {integer}
+             */
+            markdownContractVersion?: 6;
             /** @description 本次新发言选择的帖内身份 ID；新客户端 RP 模式必须与该身份 token 一起发送。省略仅兼容旧单身份客户端；ACCOUNT 忽略，编辑旧正文不改变原身份 */
             identityId?: string;
             /** @description GET 帖内身份返回的确认 token；新建正文或发言时使用。身份变化返回 409/40011，保留草稿并重新确认 */
@@ -5626,6 +5693,11 @@ export interface components {
         };
         UpdatePostDto: {
             /**
+             * @description 声明编辑器支持 Markdown 6 角色提及源的无损读取/编辑。服务端 capabilities.roleMentionsV6Supported 为 true 时新端始终发送，包括删光旧节点；未声明而新/原正文含 v6 返回 409/40014。新节点还须 roleMentionsV6WriteEnabled。
+             * @enum {integer}
+             */
+            markdownContractVersion?: 6;
+            /**
              * @description 新正文；骰子节点随正文移动或删除，新增节点由服务端结算
              * @example 编辑后的内容...
              */
@@ -5668,6 +5740,11 @@ export interface components {
         };
         CreateDraftDto: {
             /**
+             * @description 声明编辑器支持 Markdown 6 角色提及源的无损读取/编辑。服务端 capabilities.roleMentionsV6Supported 为 true 时新端始终发送，包括删光旧节点；未声明而新/原正文含 v6 返回 409/40014。新节点还须 roleMentionsV6WriteEnabled。
+             * @enum {integer}
+             */
+            markdownContractVersion?: 6;
+            /**
              * Format: uuid
              * @description 客户端创建幂等键；同一次提交和网络重试必须复用
              */
@@ -5689,6 +5766,11 @@ export interface components {
             version?: number;
         };
         UpdateDraftDto: {
+            /**
+             * @description 声明编辑器支持 Markdown 6 角色提及源的无损读取/编辑。服务端 capabilities.roleMentionsV6Supported 为 true 时新端始终发送，包括删光旧节点；未声明而新/原正文含 v6 返回 409/40014。新节点还须 roleMentionsV6WriteEnabled。
+             * @enum {integer}
+             */
+            markdownContractVersion?: 6;
             /**
              * @description 更新后的草稿正文
              * @example 更新后的草稿内容...
@@ -6842,6 +6924,12 @@ export interface components {
             conversationCanceled: boolean;
         };
         ApiCapabilitiesResponseDto: {
+            /** @description 支持 RP 身份绑定本主题资料楼层及按查看者授权读取；缺失按 false，客户端不得发送 profilePostId/clearProfilePost */
+            rpIdentityProfileSupported?: boolean;
+            /** @description 支持 header/DTO Markdown 6 能力协商、保源和旧读安全降级；缺失按 false */
+            roleMentionsV6Supported?: boolean;
+            /** @description 允许创建新的显式 ACCOUNT / RP 提及节点；与全局 Markdown 激活版本独立，缺失按 false */
+            roleMentionsV6WriteEnabled?: boolean;
             stickers: boolean;
             directMessages: boolean;
             pushNotifications: boolean;
@@ -7824,7 +7912,7 @@ export interface components {
          * @description 稳定业务错误码；名称和值来源于 ErrorCode
          * @enum {integer}
          */
-        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40007 | 40008 | 40009 | 40010 | 40011 | 40012 | 40013 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40108 | 40109 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40117 | 40118 | 40119 | 40120 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40307 | 40308 | 40309 | 40310 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40414 | 40415 | 40416 | 40417 | 40418 | 40419 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 40912 | 40913 | 40914 | 40915 | 40916 | 40917 | 40918 | 40919 | 40920 | 40921 | 40922 | 40923 | 40926 | 40924 | 40925 | 42900 | 50000;
+        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40007 | 40008 | 40009 | 40010 | 40011 | 40012 | 40013 | 40014 | 40015 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40108 | 40109 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40117 | 40118 | 40119 | 40120 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40307 | 40308 | 40309 | 40310 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40414 | 40415 | 40416 | 40417 | 40418 | 40419 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 40912 | 40913 | 40914 | 40915 | 40916 | 40917 | 40918 | 40919 | 40920 | 40921 | 40922 | 40923 | 40926 | 40924 | 40925 | 42900 | 50000;
         ApiErrorEnvelope: {
             code: components["schemas"]["BusinessErrorCode"];
             message: string;
@@ -7850,7 +7938,10 @@ export interface operations {
     appDownloadsInfo: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -7860,6 +7951,8 @@ export interface operations {
                 headers: {
                     /** @description 可选：第一方签名随机浏览器标识；HttpOnly、SameSite=Lax，生产 Secure；不是用户认证，旧 APP 可忽略 */
                     "Set-Cookie"?: string;
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -7876,6 +7969,8 @@ export interface operations {
                     "X-Download-Limit-Reason"?: "device_daily_limit" | "ip_daily_limit" | "byte_budget" | "request_rate" | "concurrency" | "bandwidth";
                     /** @description 可选：第一方签名随机浏览器标识；HttpOnly、SameSite=Lax，生产 Secure；不是用户认证，旧 APP 可忽略 */
                     "Set-Cookie"?: string;
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -7887,6 +7982,8 @@ export interface operations {
             /** @description 账本/目录依赖异常或网关未接通；文件缓存缺失/损坏、撤回/暂停也为 503；绝不回源 */
             503: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -7898,6 +7995,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -7916,6 +8015,8 @@ export interface operations {
                 Range?: string;
                 /** @description 匹配 ETag 或 Last-Modified 才应用 Range；不匹配发送完整文件 */
                 "If-Range"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path: {
                 buildNumber: number;
@@ -7945,6 +8046,8 @@ export interface operations {
                     "x-amz-meta-application-id"?: "site.wenyou.app";
                     "x-amz-meta-version-name"?: string;
                     "x-amz-meta-version-code"?: string;
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -7975,6 +8078,8 @@ export interface operations {
                     "x-amz-meta-version-name"?: string;
                     "x-amz-meta-version-code"?: string;
                     "Content-Range"?: string;
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -7986,6 +8091,8 @@ export interface operations {
             /** @description 构建不存在或未发布 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -7999,6 +8106,8 @@ export interface operations {
                 headers: {
                     /** @description bytes *\/<总长度> */
                     "Content-Range"?: string;
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8015,6 +8124,8 @@ export interface operations {
                     "X-Download-Limit-Reason"?: "device_daily_limit" | "ip_daily_limit" | "byte_budget" | "request_rate" | "concurrency" | "bandwidth";
                     /** @description 可选：第一方签名随机浏览器标识；HttpOnly、SameSite=Lax，生产 Secure；不是用户认证，旧 APP 可忽略 */
                     "Set-Cookie"?: string;
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8026,6 +8137,8 @@ export interface operations {
             /** @description 账本/目录依赖异常或网关未接通；文件缓存缺失/损坏、撤回/暂停也为 503；绝不回源 */
             503: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8037,6 +8150,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8055,6 +8170,8 @@ export interface operations {
                 Range?: string;
                 /** @description 匹配 ETag 或 Last-Modified 才应用 Range；不匹配发送完整文件 */
                 "If-Range"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path: {
                 buildNumber: number;
@@ -8084,6 +8201,8 @@ export interface operations {
                     "x-amz-meta-application-id"?: "site.wenyou.app";
                     "x-amz-meta-version-name"?: string;
                     "x-amz-meta-version-code"?: string;
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8114,6 +8233,8 @@ export interface operations {
                     "x-amz-meta-version-name"?: string;
                     "x-amz-meta-version-code"?: string;
                     "Content-Range"?: string;
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8125,6 +8246,8 @@ export interface operations {
             /** @description 构建不存在或未发布 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8138,6 +8261,8 @@ export interface operations {
                 headers: {
                     /** @description bytes *\/<总长度> */
                     "Content-Range"?: string;
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8154,6 +8279,8 @@ export interface operations {
                     "X-Download-Limit-Reason"?: "device_daily_limit" | "ip_daily_limit" | "byte_budget" | "request_rate" | "concurrency" | "bandwidth";
                     /** @description 可选：第一方签名随机浏览器标识；HttpOnly、SameSite=Lax，生产 Secure；不是用户认证，旧 APP 可忽略 */
                     "Set-Cookie"?: string;
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8165,6 +8292,8 @@ export interface operations {
             /** @description 账本/目录依赖异常或网关未接通；文件缓存缺失/损坏、撤回/暂停也为 503；绝不回源 */
             503: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8176,6 +8305,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8189,7 +8320,10 @@ export interface operations {
     healthCheck: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -8202,6 +8336,8 @@ export interface operations {
              */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8213,6 +8349,8 @@ export interface operations {
             /** @description The Health Check is not successful */
             503: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8224,6 +8362,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8237,7 +8377,10 @@ export interface operations {
     authRequestCode: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -8250,6 +8393,8 @@ export interface operations {
             /** @description 验证码已发送 { emailSent, codeExpiresIn: 900 } */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8261,6 +8406,8 @@ export interface operations {
             /** @description 请求频繁，请稍后重试（1 分钟 1 次） */
             429: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     "Retry-After": components["headers"]["RetryAfter"];
@@ -8273,6 +8420,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8289,6 +8438,8 @@ export interface operations {
             header?: {
                 /** @description 客户端类型：web（PC/手机浏览器）或 mobile（原生移动端） */
                 "X-Client-Platform"?: "web" | "mobile";
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -8302,6 +8453,8 @@ export interface operations {
             /** @description 注册成功；Web 通过 httpOnly Cookie 接收 refresh token，移动客户端从响应体接收 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8313,6 +8466,8 @@ export interface operations {
             /** @description 验证码错误或过期 */
             400: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8324,6 +8479,8 @@ export interface operations {
             /** @description 用户名已被占用 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8335,6 +8492,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8351,6 +8510,8 @@ export interface operations {
             header?: {
                 /** @description 客户端类型：web（PC/手机浏览器）或 mobile（原生移动端） */
                 "X-Client-Platform"?: "web" | "mobile";
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -8364,6 +8525,8 @@ export interface operations {
             /** @description 登录成功；Web 通过 httpOnly Cookie 接收 refresh token，移动客户端从响应体接收 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8375,6 +8538,8 @@ export interface operations {
             /** @description 账号或密码错误 或 账号被锁定 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8386,6 +8551,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8399,7 +8566,10 @@ export interface operations {
     authRefresh: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -8412,6 +8582,8 @@ export interface operations {
             /** @description 刷新成功；平台沿用服务端会话记录，不信任请求头 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8423,6 +8595,8 @@ export interface operations {
             /** @description refreshToken 无效/过期/已被盗用（确认重放时对应登录终端退出） */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8434,6 +8608,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8447,7 +8623,10 @@ export interface operations {
     authChangePassword: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -8460,6 +8639,8 @@ export interface operations {
             /** @description 密码修改成功 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8471,6 +8652,8 @@ export interface operations {
             /** @description 未登录或旧密码错误 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8482,6 +8665,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8495,7 +8680,10 @@ export interface operations {
     authForgotPassword: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -8508,6 +8696,8 @@ export interface operations {
             /** @description 密码重置邮件已发送 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8519,6 +8709,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8532,7 +8724,10 @@ export interface operations {
     authResetPassword: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -8545,6 +8740,8 @@ export interface operations {
             /** @description 密码重置成功 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8556,6 +8753,8 @@ export interface operations {
             /** @description 验证码错误 或 密码格式不符合要求 */
             400: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8567,6 +8766,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8580,7 +8781,10 @@ export interface operations {
     authRequestChangeEmailCode: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -8593,6 +8797,8 @@ export interface operations {
             /** @description 验证码已发送 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8604,6 +8810,8 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8615,6 +8823,8 @@ export interface operations {
             /** @description 新邮箱已被占用 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8626,6 +8836,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8639,7 +8851,10 @@ export interface operations {
     authVerifyChangeEmail: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -8652,6 +8867,8 @@ export interface operations {
             /** @description 邮箱更换成功 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8663,6 +8880,8 @@ export interface operations {
             /** @description 验证码错误或过期 */
             400: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8674,6 +8893,8 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8685,6 +8906,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8698,7 +8921,10 @@ export interface operations {
     authLogout: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -8711,6 +8937,8 @@ export interface operations {
             /** @description 当前登录终端已撤销，客户端 Cookie 被清除 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8722,6 +8950,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8735,7 +8965,10 @@ export interface operations {
     authListSessions: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -8744,6 +8977,8 @@ export interface operations {
             /** @description 最多返回 Web 与移动客户端各一个活跃登录终端 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8755,6 +8990,8 @@ export interface operations {
             /** @description 请求频繁，请稍后重试（登录终端列表独立限流 60 次/分钟） */
             429: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     "Retry-After": components["headers"]["RetryAfter"];
@@ -8767,6 +9004,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8780,7 +9019,10 @@ export interface operations {
     authRevokeSession: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -8791,6 +9033,8 @@ export interface operations {
             /** @description 指定登录终端已退出 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8802,6 +9046,8 @@ export interface operations {
             /** @description 登录终端不存在或已失效 */
             400: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8813,6 +9059,8 @@ export interface operations {
             /** @description 请求频繁，请稍后重试（退出登录终端独立限流 60 次/分钟） */
             429: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     "Retry-After": components["headers"]["RetryAfter"];
@@ -8825,6 +9073,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8841,7 +9091,10 @@ export interface operations {
                 /** @description 用户名搜索关键词 */
                 q: string;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -8850,6 +9103,8 @@ export interface operations {
             /** @description 匹配的用户列表（最多 10 条），含 id/username/avatar */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8861,6 +9116,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8872,6 +9129,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8887,10 +9146,15 @@ export interface operations {
             query: {
                 /** @description 主题帖 ID */
                 threadId: string;
+                /** @description 新端平级目标候选；开关关闭时返回空候选，避免把旧 bare 语义误称显式账号。省略保持旧协议 */
+                includeIdentities?: boolean;
                 /** @description 用户名搜索关键词 */
                 q?: string;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -8899,6 +9163,8 @@ export interface operations {
             /** @description 最多返回 20 个可艾特用户，并返回是否允许 @全体玩家 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8910,6 +9176,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8921,6 +9189,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8934,7 +9204,10 @@ export interface operations {
     usersGetMe: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -8943,6 +9216,8 @@ export interface operations {
             /** @description 含 email / 隐私设置 / _count.following / _count.followers */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8954,6 +9229,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8965,6 +9242,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8978,7 +9257,10 @@ export interface operations {
     usersDeleteMe: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -8987,6 +9269,8 @@ export interface operations {
             /** @description 账号已注销 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -8998,6 +9282,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9009,6 +9295,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9022,7 +9310,10 @@ export interface operations {
     usersUpdateMe: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -9035,6 +9326,8 @@ export interface operations {
             /** @description 更新后的用户资料 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9046,6 +9339,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9057,6 +9352,8 @@ export interface operations {
             /** @description 用户名已被占用 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9068,6 +9365,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9086,7 +9385,10 @@ export interface operations {
                 /** @description 每页条数（默认 20，最大 50） */
                 limit?: number;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -9095,6 +9397,8 @@ export interface operations {
             /** @description 协作主题列表，按 updatedAt DESC、id DESC 稳定游标分页 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9106,6 +9410,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9117,6 +9423,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9130,7 +9438,10 @@ export interface operations {
     usersRemoveAvatar: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -9139,6 +9450,8 @@ export interface operations {
             /** @description 更新后的用户资料（avatar 为 null） */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9150,6 +9463,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9161,6 +9476,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9174,7 +9491,10 @@ export interface operations {
     usersSetAvatar: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -9187,6 +9507,8 @@ export interface operations {
             /** @description 更新后的用户资料（含新头像） */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9198,6 +9520,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9209,6 +9533,8 @@ export interface operations {
             /** @description mediaId 不存在或未完成处理 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9220,6 +9546,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9233,7 +9561,10 @@ export interface operations {
     usersRemoveProfileCover: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -9242,6 +9573,8 @@ export interface operations {
             /** @description 更新后的用户资料（profileCover 为 null） */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9253,6 +9586,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9264,6 +9599,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9277,7 +9614,10 @@ export interface operations {
     usersSetProfileCover: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -9290,6 +9630,8 @@ export interface operations {
             /** @description 更新后的用户资料（含新背景图） */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9301,6 +9643,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9312,6 +9656,8 @@ export interface operations {
             /** @description mediaId 不存在或未完成处理 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9323,6 +9669,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9341,7 +9689,10 @@ export interface operations {
                 /** @description 每页条数（默认 20，最大 50） */
                 limit?: number;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -9352,6 +9703,8 @@ export interface operations {
             /** @description 用户的收藏列表（cursor 分页，含帖子摘要） */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9363,6 +9716,8 @@ export interface operations {
             /** @description 用户不存在或未公开收藏 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9374,6 +9729,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9392,7 +9749,10 @@ export interface operations {
                 /** @description 每页条数（默认 20，最大 50） */
                 limit?: number;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -9403,6 +9763,8 @@ export interface operations {
             /** @description 用户公开的动态收藏（cursor 分页） */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9414,6 +9776,8 @@ export interface operations {
             /** @description 用户不存在或未公开收藏 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9425,6 +9789,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9445,7 +9811,10 @@ export interface operations {
                 /** @description 按公开帖或私密帖筛选已获得玩家身份的帖子。他人请求 PRIVATE 返回空列表 */
                 visibility?: "PUBLIC" | "PRIVATE";
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -9456,6 +9825,8 @@ export interface operations {
             /** @description 用户参与的帖子列表（cursor 分页） */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9467,6 +9838,8 @@ export interface operations {
             /** @description 用户不存在或未公开参与的帖子 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9478,6 +9851,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9496,7 +9871,10 @@ export interface operations {
                 /** @description 每页条数（默认 20，最大 50） */
                 limit?: number;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -9507,6 +9885,8 @@ export interface operations {
             /** @description 用户创建的主题帖列表（cursor 分页） */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9518,6 +9898,8 @@ export interface operations {
             /** @description 用户不存在 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9529,6 +9911,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9542,7 +9926,10 @@ export interface operations {
     usersGetUserActivitySummary: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -9553,6 +9940,8 @@ export interface operations {
             /** @description 按当前查看者权限统计动态、创建主题、参与主题和回复总数 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9564,6 +9953,8 @@ export interface operations {
             /** @description 用户不存在 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9575,6 +9966,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9588,7 +9981,10 @@ export interface operations {
     usersGetUserRecentReplies: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -9599,6 +9995,8 @@ export interface operations {
             /** @description 用户最近 10 条回复（含预览截断、所属帖子/子贴信息） */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9610,6 +10008,8 @@ export interface operations {
             /** @description 用户不存在或未公开最近动态 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9621,6 +10021,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9634,7 +10036,10 @@ export interface operations {
     usersGetUser: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -9645,6 +10050,8 @@ export interface operations {
             /** @description 公开资料。登录后附加 isFollowing/isFollowedBy/isBlocked/isBlockedBy */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9656,6 +10063,8 @@ export interface operations {
             /** @description 用户不存在 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9667,6 +10076,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9680,7 +10091,10 @@ export interface operations {
     usersFollowFollow: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -9691,6 +10105,8 @@ export interface operations {
             /** @description 关注结果（成功 / 已关注 / 不能关注自己） */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9702,6 +10118,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9713,6 +10131,8 @@ export interface operations {
             /** @description 目标用户不存在 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9724,6 +10144,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9737,7 +10159,10 @@ export interface operations {
     usersFollowUnfollow: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -9748,6 +10173,8 @@ export interface operations {
             /** @description 已取消关注 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9759,6 +10186,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9772,7 +10201,10 @@ export interface operations {
     usersFollowRemoveFollower: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -9783,6 +10215,8 @@ export interface operations {
             /** @description 已移除粉丝（含关系已不存在） */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9794,6 +10228,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9805,6 +10241,8 @@ export interface operations {
             /** @description 当前账号无写入权限 */
             403: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9816,6 +10254,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9829,7 +10269,10 @@ export interface operations {
     usersFollowFollowing: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -9838,6 +10281,8 @@ export interface operations {
             /** @description 我的关注用户列表 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9849,6 +10294,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9862,7 +10309,10 @@ export interface operations {
     usersFollowFollowers: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -9871,6 +10321,8 @@ export interface operations {
             /** @description 我的粉丝列表 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9882,6 +10334,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9895,7 +10349,10 @@ export interface operations {
     usersFollowUserFollowing: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -9906,6 +10363,8 @@ export interface operations {
             /** @description 指定用户的关注列表 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9917,6 +10376,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9930,7 +10391,10 @@ export interface operations {
     usersFollowUserFollowers: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -9941,6 +10405,8 @@ export interface operations {
             /** @description 指定用户的粉丝列表 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9952,6 +10418,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9965,7 +10433,10 @@ export interface operations {
     usersFollowBlock: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -9976,6 +10447,8 @@ export interface operations {
             /** @description 拉黑结果 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -9987,6 +10460,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10000,7 +10475,10 @@ export interface operations {
     usersFollowUnblock: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -10011,6 +10489,8 @@ export interface operations {
             /** @description 已取消拉黑 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10022,6 +10502,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10035,7 +10517,10 @@ export interface operations {
     usersFollowBlocks: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10044,6 +10529,8 @@ export interface operations {
             /** @description 我的黑名单列表 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10055,6 +10542,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10073,7 +10562,10 @@ export interface operations {
                 /** @description 按类型过滤，逗号分隔，如 type=mention,reply */
                 type?: string;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10082,6 +10574,8 @@ export interface operations {
             /** @description 通知列表（cursor 分页，按时间倒序） */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10093,6 +10587,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10104,6 +10600,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10117,7 +10615,10 @@ export interface operations {
     notificationsUnreadCount: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10126,6 +10627,8 @@ export interface operations {
             /** @description { unreadCount: number } */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10137,6 +10640,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10148,6 +10653,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10161,7 +10668,10 @@ export interface operations {
     notificationsRemove: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -10172,6 +10682,8 @@ export interface operations {
             /** @description 已删除 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10183,6 +10695,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10194,6 +10708,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10207,7 +10723,10 @@ export interface operations {
     notificationsSetReadStatus: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -10222,6 +10741,8 @@ export interface operations {
             /** @description 标记结果（已标记为已读 / 已标记为未读） */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10233,6 +10754,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10244,6 +10767,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10257,7 +10782,10 @@ export interface operations {
     notificationsMarkAllAsRead: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10266,6 +10794,8 @@ export interface operations {
             /** @description 全部已标记为已读 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10277,6 +10807,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10288,6 +10820,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10301,7 +10835,10 @@ export interface operations {
     mobileDeviceRegister: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10313,6 +10850,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10324,6 +10863,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10337,7 +10878,10 @@ export interface operations {
     mobileDeviceUnregister: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10345,6 +10889,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10356,6 +10902,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10376,7 +10924,10 @@ export interface operations {
                 /** @description 只返回指定收藏夹中的主题帖；不传时返回全部 */
                 folderId?: string;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10385,6 +10936,8 @@ export interface operations {
             /** @description 我的收藏列表（cursor 分页，含帖子摘要） */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10396,6 +10949,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10407,6 +10962,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10420,7 +10977,10 @@ export interface operations {
     bookmarksCreate: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10433,6 +10993,8 @@ export interface operations {
             /** @description 创建的收藏记录 */
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10444,6 +11006,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10455,6 +11019,8 @@ export interface operations {
             /** @description 帖子不存在 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10466,6 +11032,8 @@ export interface operations {
             /** @description 重复收藏 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10477,6 +11045,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10490,7 +11060,10 @@ export interface operations {
     bookmarksFindFolders: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10498,6 +11071,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10509,6 +11084,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10522,7 +11099,10 @@ export interface operations {
     bookmarksCreateFolder: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10534,6 +11114,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10545,6 +11127,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10558,7 +11142,10 @@ export interface operations {
     bookmarksDeleteFolder: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -10568,6 +11155,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10579,6 +11168,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10590,6 +11181,8 @@ export interface operations {
             /** @description 账号无写入权限 */
             403: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10601,6 +11194,8 @@ export interface operations {
             /** @description 收藏夹不存在或不属于当前用户 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10612,6 +11207,8 @@ export interface operations {
             /** @description 默认夹不可删除或并发冲突；事务回滚，刷新后重试 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10623,6 +11220,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10636,7 +11235,10 @@ export interface operations {
     bookmarksRenameFolder: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -10650,6 +11252,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10661,6 +11265,8 @@ export interface operations {
             /** @description 名称 trim 后须为 1–24 个字符 */
             400: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10672,6 +11278,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10683,6 +11291,8 @@ export interface operations {
             /** @description 账号无写入权限 */
             403: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10694,6 +11304,8 @@ export interface operations {
             /** @description 收藏夹不存在或不属于当前用户 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10705,6 +11317,8 @@ export interface operations {
             /** @description 默认夹不可修改、名称重复或并发冲突；刷新后重试 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10716,6 +11330,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10729,7 +11345,10 @@ export interface operations {
     bookmarksRemove: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -10740,6 +11359,8 @@ export interface operations {
             /** @description 已取消收藏 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10751,6 +11372,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10762,6 +11385,8 @@ export interface operations {
             /** @description 收藏不存在 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10773,6 +11398,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10786,7 +11413,10 @@ export interface operations {
     bookmarksMove: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -10800,6 +11430,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10811,6 +11443,8 @@ export interface operations {
             /** @description 收藏或收藏夹不存在 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10822,6 +11456,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10835,7 +11471,10 @@ export interface operations {
     threadsFindDrafts: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10844,6 +11483,8 @@ export interface operations {
             /** @description 草稿列表，每个含子贴标题和标签 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10855,6 +11496,8 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10866,6 +11509,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10896,7 +11541,10 @@ export interface operations {
                 /** @description 按主题帖标签 ID 精确筛选；与 tag 同时传入时优先使用 tagId */
                 tagId?: string;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10905,6 +11553,8 @@ export interface operations {
             /** @description 分页列表，meta 含 cursor/hasMore。每个帖含 owner/subthreads/bodyPost.content(正文预览)/topicTags/_count */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10916,6 +11566,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10929,7 +11581,10 @@ export interface operations {
     threadsCreate: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10942,6 +11597,8 @@ export interface operations {
             /** @description 草稿创建成功，返回完整 Thread 对象（含正文待掷骰子） */
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10953,6 +11610,8 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10964,6 +11623,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10977,7 +11638,10 @@ export interface operations {
     threadsFindById: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -10988,6 +11652,8 @@ export interface operations {
             /** @description Thread 完整对象（含 bodyPost 的待掷与正式骰子结果）。viewCount 异步 +1 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -10999,6 +11665,8 @@ export interface operations {
             /** @description 主题帖不存在或已删除（PRIVATE 帖非成员也返回 404） */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11010,6 +11678,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11023,7 +11693,10 @@ export interface operations {
     threadsRemove: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -11034,6 +11707,8 @@ export interface operations {
             /** @description 主题帖已删除 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11045,6 +11720,8 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11056,6 +11733,8 @@ export interface operations {
             /** @description 非 OWNER 不可删除 */
             403: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11067,6 +11746,8 @@ export interface operations {
             /** @description 主题帖不存在、已删除，或当前用户无权访问未发布/PRIVATE 主题 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11078,6 +11759,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11091,7 +11774,10 @@ export interface operations {
     threadsUpdate: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -11106,6 +11792,8 @@ export interface operations {
             /** @description 更新成功返回 Thread 完整对象。发布时原子结算全部待掷骰子 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11117,6 +11805,8 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11128,6 +11818,8 @@ export interface operations {
             /** @description 无管理权限（非 OWNER/COLLABORATOR） */
             403: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11139,6 +11831,8 @@ export interface operations {
             /** @description 主题帖不存在 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11150,6 +11844,8 @@ export interface operations {
             /** @description 乐观锁冲突（version 过期）或已发布帖重复发布 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11161,6 +11857,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11174,7 +11872,10 @@ export interface operations {
     threadsExport: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -11189,6 +11890,8 @@ export interface operations {
             /** @description ZIP 包含以帖子标题命名的 .md/.txt 正文文件、可选 media/ 和必要时的 export-notes.txt */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11200,6 +11903,8 @@ export interface operations {
             /** @description 导出选项格式不正确 */
             400: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11211,6 +11916,8 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11222,6 +11929,8 @@ export interface operations {
             /** @description 无主题帖管理权限 */
             403: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11233,6 +11942,8 @@ export interface operations {
             /** @description 主题帖不存在、已删除或尚未发布 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11244,6 +11955,8 @@ export interface operations {
             /** @description 超过 10000 条内容、16 MiB 正文或 64 MiB 图片上限 */
             413: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11255,6 +11968,8 @@ export interface operations {
             /** @description 已有导出进行中或请求过于频繁 */
             429: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     "Retry-After": components["headers"]["RetryAfter"];
@@ -11267,6 +11982,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11280,7 +11997,10 @@ export interface operations {
     threadsSaveAggregate: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -11295,6 +12015,8 @@ export interface operations {
             /** @description 全部字段在同一事务内保存，返回最新完整主题帖 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11306,6 +12028,8 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11317,6 +12041,8 @@ export interface operations {
             /** @description 无管理权限或协作者尝试修改楼主专属字段 */
             403: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11328,6 +12054,8 @@ export interface operations {
             /** @description 主题帖或默认子贴不存在 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11339,6 +12067,8 @@ export interface operations {
             /** @description 主题帖、默认子贴或正文乐观锁冲突 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11350,6 +12080,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11363,7 +12095,10 @@ export interface operations {
     threadsLike: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -11374,6 +12109,8 @@ export interface operations {
             /** @description 主题帖 ID 与最新点赞数 */
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11385,6 +12122,8 @@ export interface operations {
             /** @description 主题帖不存在、已删除，或当前用户无权访问未发布/PRIVATE 主题 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11396,6 +12135,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11409,7 +12150,10 @@ export interface operations {
     threadsUnlike: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -11420,6 +12164,8 @@ export interface operations {
             /** @description 主题帖 ID 与最新点赞数 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11431,6 +12177,8 @@ export interface operations {
             /** @description 主题帖不存在、已删除，或当前用户无权访问未发布/PRIVATE 主题 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11442,6 +12190,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11455,7 +12205,10 @@ export interface operations {
     threadsEnsureInviteLink: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -11466,6 +12219,8 @@ export interface operations {
             /** @description 当前邀请链接；重复或并发请求不更换 token */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11477,6 +12232,8 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11488,6 +12245,8 @@ export interface operations {
             /** @description 仅 OWNER / 未发布 / 非私密帖 */
             403: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11499,6 +12258,8 @@ export interface operations {
             /** @description 主题帖不存在或不可访问 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11510,6 +12271,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11523,7 +12286,10 @@ export interface operations {
     threadsCreateInviteLink: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -11534,6 +12300,8 @@ export interface operations {
             /** @description 邀请链接对象（threadId / token）。已存在则刷新 token */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11545,6 +12313,8 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11556,6 +12326,8 @@ export interface operations {
             /** @description 仅 OWNER / 未发布 / 非私密帖 */
             403: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11567,6 +12339,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11580,7 +12354,10 @@ export interface operations {
     threadsPreviewInviteLink: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 token: string;
             };
@@ -11591,6 +12368,8 @@ export interface operations {
             /** @description 帖子概要和 alreadyJoined 状态 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11602,6 +12381,8 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11613,6 +12394,8 @@ export interface operations {
             /** @description 邀请链接无效或已失效 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11624,6 +12407,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11637,7 +12422,10 @@ export interface operations {
     threadsJoinByInviteLink: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 token: string;
             };
@@ -11648,6 +12436,8 @@ export interface operations {
             /** @description 加入成功或已加入时返回成员记录（thread.title / user 基本信息） */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11659,6 +12449,8 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11670,6 +12462,8 @@ export interface operations {
             /** @description 邀请链接无效或已失效 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11681,6 +12475,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11694,7 +12490,10 @@ export interface operations {
     threadMembersFindAll: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 threadId: string;
             };
@@ -11704,6 +12503,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11715,6 +12516,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11728,7 +12531,10 @@ export interface operations {
     threadMembersJoin: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 threadId: string;
             };
@@ -11738,6 +12544,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11749,6 +12557,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11762,7 +12572,10 @@ export interface operations {
     threadMembersUpdateMember: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 threadId: string;
                 userId: string;
@@ -11781,6 +12594,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11792,6 +12607,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11805,7 +12622,10 @@ export interface operations {
     threadMembersExitMember: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 threadId: string;
             };
@@ -11816,6 +12636,8 @@ export interface operations {
             /** @description 已退出主题帖 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11827,6 +12649,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11840,7 +12664,10 @@ export interface operations {
     threadTagsFindAll: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 threadId: string;
             };
@@ -11850,6 +12677,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11861,6 +12690,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11874,7 +12705,10 @@ export interface operations {
     threadTagsAdd: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 threadId: string;
             };
@@ -11888,6 +12722,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11899,6 +12735,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11912,7 +12750,10 @@ export interface operations {
     threadTagsRemove: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 threadId: string;
                 tagId: string;
@@ -11924,6 +12765,8 @@ export interface operations {
             /** @description 标签已移除 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11935,6 +12778,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11948,7 +12793,10 @@ export interface operations {
     threadIdentitiesMine: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 threadId: string;
             };
@@ -11958,6 +12806,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11969,6 +12819,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -11982,7 +12834,10 @@ export interface operations {
     threadIdentitiesUpdate: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 threadId: string;
             };
@@ -11996,6 +12851,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12007,6 +12864,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12020,7 +12879,10 @@ export interface operations {
     threadIdentitiesClear: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 threadId: string;
             };
@@ -12030,6 +12892,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12041,6 +12905,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12054,7 +12920,10 @@ export interface operations {
     threadIdentitiesFindUser: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 threadId: string;
                 userId: string;
@@ -12065,6 +12934,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12076,6 +12947,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12089,7 +12962,10 @@ export interface operations {
     threadIdentitiesSetEnabled: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 threadId: string;
             };
@@ -12103,6 +12979,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12114,6 +12992,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12127,7 +13007,10 @@ export interface operations {
     rpIdentitiesList: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 threadId: string;
             };
@@ -12137,6 +13020,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12148,6 +13033,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12161,7 +13048,10 @@ export interface operations {
     rpIdentitiesCreate: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 threadId: string;
             };
@@ -12175,6 +13065,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12186,6 +13078,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12199,7 +13093,10 @@ export interface operations {
     rpIdentitiesFind: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 threadId: string;
                 identityId: string;
@@ -12210,6 +13107,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12221,6 +13120,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12234,7 +13135,10 @@ export interface operations {
     rpIdentitiesUpdate: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 threadId: string;
                 identityId: string;
@@ -12249,6 +13153,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12260,6 +13166,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12273,7 +13181,10 @@ export interface operations {
     rpIdentitiesRemove: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 threadId: string;
                 identityId: string;
@@ -12288,6 +13199,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12299,6 +13212,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12315,7 +13230,10 @@ export interface operations {
                 /** @description 标签名称模糊搜索关键词 */
                 q?: string;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -12324,6 +13242,8 @@ export interface operations {
             /** @description 标签列表（按名称排序），数量少时不缓存直接查库 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12335,6 +13255,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12348,7 +13270,10 @@ export interface operations {
     tagsCreate: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -12361,6 +13286,8 @@ export interface operations {
             /** @description 创建成功返回标签对象（含 id / name / color / createdAt） */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12372,6 +13299,8 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12383,6 +13312,8 @@ export interface operations {
             /** @description 标签名已存在 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12394,6 +13325,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12407,7 +13340,10 @@ export interface operations {
     tagsGetById: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -12418,6 +13354,8 @@ export interface operations {
             /** @description 标签详情对象（id / name / color / createdAt） */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12429,6 +13367,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12442,7 +13382,10 @@ export interface operations {
     stickersGetCollection: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -12450,6 +13393,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12461,6 +13406,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12474,7 +13421,10 @@ export interface operations {
     stickersImportMedia: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -12486,6 +13436,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12497,6 +13449,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12510,7 +13464,10 @@ export interface operations {
     stickersImportDirectMessage: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -12522,6 +13479,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12533,6 +13492,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12546,7 +13507,10 @@ export interface operations {
     stickersImportPostImage: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -12558,6 +13522,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12569,6 +13535,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12582,7 +13550,10 @@ export interface operations {
     stickersImportMomentImage: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -12594,6 +13565,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12605,6 +13578,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12618,7 +13593,10 @@ export interface operations {
     stickersImportMomentCommentImage: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -12630,6 +13608,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12641,6 +13621,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12654,7 +13636,10 @@ export interface operations {
     stickersGetImport: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -12664,6 +13649,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12675,6 +13662,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12688,7 +13677,10 @@ export interface operations {
     stickersReorder: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -12700,6 +13692,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12711,6 +13705,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12724,7 +13720,10 @@ export interface operations {
     stickersRemove: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 favoriteId: string;
             };
@@ -12734,6 +13733,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12745,6 +13746,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12758,7 +13761,10 @@ export interface operations {
     threadCategoriesList: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -12766,6 +13772,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12777,6 +13785,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12796,7 +13806,10 @@ export interface operations {
                 limit?: number;
                 feed?: "DISCOVER" | "FOLLOWING";
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -12805,6 +13818,8 @@ export interface operations {
             /** @description 动态卡片游标分页 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12816,6 +13831,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12829,7 +13846,10 @@ export interface operations {
     momentsCreate: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -12841,6 +13861,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12852,6 +13874,8 @@ export interface operations {
             /** @description 标题、正文、封面或图片状态不合法 */
             400: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12863,6 +13887,8 @@ export interface operations {
             /** @description 幂等键复用或图片已被使用 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12874,6 +13900,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12894,7 +13922,10 @@ export interface operations {
                 /** @description 只返回指定收藏夹中的动态；不传时返回全部 */
                 folderId?: string;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -12903,6 +13934,8 @@ export interface operations {
             /** @description 动态收藏游标分页，含私有收藏夹 ID */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12914,6 +13947,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12927,7 +13962,10 @@ export interface operations {
     momentsBookmarkFolders: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -12935,6 +13973,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12946,6 +13986,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12959,7 +14001,10 @@ export interface operations {
     momentsCreateBookmarkFolder: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -12971,6 +14016,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12982,6 +14029,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -12995,7 +14044,10 @@ export interface operations {
     momentsDeleteBookmarkFolder: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -13005,6 +14057,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13016,6 +14070,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13027,6 +14083,8 @@ export interface operations {
             /** @description 账号无写入权限 */
             403: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13038,6 +14096,8 @@ export interface operations {
             /** @description 收藏夹不存在或不属于当前用户 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13049,6 +14109,8 @@ export interface operations {
             /** @description 默认夹不可删除或并发冲突；事务回滚，刷新后重试 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13060,6 +14122,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13073,7 +14137,10 @@ export interface operations {
     momentsRenameBookmarkFolder: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -13087,6 +14154,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13098,6 +14167,8 @@ export interface operations {
             /** @description 名称 trim 后须为 1–24 个字符 */
             400: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13109,6 +14180,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13120,6 +14193,8 @@ export interface operations {
             /** @description 账号无写入权限 */
             403: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13131,6 +14206,8 @@ export interface operations {
             /** @description 收藏夹不存在或不属于当前用户 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13142,6 +14219,8 @@ export interface operations {
             /** @description 默认夹不可修改、名称重复或并发冲突；刷新后重试 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13153,6 +14232,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13166,7 +14247,10 @@ export interface operations {
     momentsDetail: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -13176,6 +14260,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13187,6 +14273,8 @@ export interface operations {
             /** @description 动态不存在、已删除或因拉黑不可见 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13198,6 +14286,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13211,7 +14301,10 @@ export interface operations {
     momentsRemove: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -13221,6 +14314,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13232,6 +14327,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13245,7 +14342,10 @@ export interface operations {
     momentsUpdate: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -13259,6 +14359,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13270,6 +14372,8 @@ export interface operations {
             /** @description 版本冲突或图片已被其他动态使用 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13281,6 +14385,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13294,7 +14400,10 @@ export interface operations {
     momentsLike: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -13304,6 +14413,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13315,6 +14426,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13328,7 +14441,10 @@ export interface operations {
     momentsUnlike: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -13338,6 +14454,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13349,6 +14467,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13362,7 +14482,10 @@ export interface operations {
     momentsBookmark: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -13376,6 +14499,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13387,6 +14512,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13400,7 +14527,10 @@ export interface operations {
     momentsUnbookmark: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -13410,6 +14540,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13421,6 +14553,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13434,7 +14568,10 @@ export interface operations {
     momentsMoveBookmark: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -13448,6 +14585,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13459,6 +14598,8 @@ export interface operations {
             /** @description 动态、收藏或收藏夹不存在 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13470,6 +14611,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13492,7 +14635,10 @@ export interface operations {
                 /** @description 只返回指定作者的回复 */
                 authorId?: string;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -13503,6 +14649,8 @@ export interface operations {
             /** @description 主评论游标分页 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13514,6 +14662,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13527,7 +14677,10 @@ export interface operations {
     momentsCreateComment: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -13541,6 +14694,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13552,6 +14707,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13565,7 +14722,10 @@ export interface operations {
     momentsCommentAuthors: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -13575,6 +14735,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13586,6 +14748,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13599,7 +14763,10 @@ export interface operations {
     momentsCommentContext: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
                 commentId: string;
@@ -13610,6 +14777,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13621,6 +14790,8 @@ export interface operations {
             /** @description 动态或目标评论不存在、已删除或因拉黑不可见 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13632,6 +14803,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13654,7 +14827,10 @@ export interface operations {
                 /** @description 只返回指定作者的回复 */
                 authorId?: string;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
                 commentId: string;
@@ -13666,6 +14842,8 @@ export interface operations {
             /** @description 楼中楼游标分页 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13677,6 +14855,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13690,7 +14870,10 @@ export interface operations {
     momentsRemoveComment: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
                 commentId: string;
@@ -13701,6 +14884,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13712,6 +14897,8 @@ export interface operations {
             /** @description 无删除权限 */
             403: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13723,6 +14910,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13741,7 +14930,10 @@ export interface operations {
                 /** @description 每页条数（默认 20，最大 50） */
                 limit?: number;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -13752,6 +14944,8 @@ export interface operations {
             /** @description 用户动态游标分页 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13763,6 +14957,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13776,7 +14972,10 @@ export interface operations {
     subthreadsFindAll: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 threadId: string;
             };
@@ -13786,6 +14985,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13797,6 +14998,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13810,7 +15013,10 @@ export interface operations {
     subthreadsCreate: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 threadId: string;
             };
@@ -13824,6 +15030,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13835,6 +15043,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13848,7 +15058,10 @@ export interface operations {
     subthreadsFindById: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -13858,6 +15071,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13869,6 +15084,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13882,7 +15099,10 @@ export interface operations {
     subthreadsRemove: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -13893,6 +15113,8 @@ export interface operations {
             /** @description 子贴已删除 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13904,6 +15126,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13917,7 +15141,10 @@ export interface operations {
     subthreadsUpdate: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -13931,6 +15158,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13942,6 +15171,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13955,7 +15186,10 @@ export interface operations {
     subthreadsReorder: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 threadId: string;
             };
@@ -13969,6 +15203,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13980,6 +15216,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -13993,7 +15231,10 @@ export interface operations {
     postsFindLatestInThread: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 threadId: string;
             };
@@ -14004,6 +15245,8 @@ export interface operations {
             /** @description 跨全部存活子贴、按创建时间定位的最新有效发言 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14015,6 +15258,8 @@ export interface operations {
             /** @description 主题帖不可访问，或主题帖内暂无有效楼层/回复 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14026,6 +15271,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14048,7 +15295,10 @@ export interface operations {
                 /** @description 只返回指定楼主、协作者或玩家创建的主楼层；接受现有 CUID 与 UUID 用户 ID */
                 authorId?: string;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 subthreadId: string;
             };
@@ -14059,6 +15309,8 @@ export interface operations {
             /** @description 楼层列表（含楼中楼内联回复），cursor 分页 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14070,6 +15322,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14083,7 +15337,10 @@ export interface operations {
     postsCreate: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 subthreadId: string;
             };
@@ -14098,6 +15355,8 @@ export interface operations {
             /** @description 创建的帖子（含楼层号或 parentPostId） */
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14109,6 +15368,8 @@ export interface operations {
             /** @description 回复目标缺少父楼层，或回复目标与父楼层不属于同一主楼层 */
             400: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14120,6 +15381,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14131,6 +15394,8 @@ export interface operations {
             /** @description 无发帖权限（未加入子贴或权限不足） */
             403: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14142,6 +15407,8 @@ export interface operations {
             /** @description clientRequestId 已用于不同发帖载荷 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14153,6 +15420,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14179,7 +15448,10 @@ export interface operations {
                 /** @description 已有帖子深链 ID；与 number、cursor 互斥 */
                 postId?: string;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 subthreadId: string;
             };
@@ -14189,6 +15461,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14200,6 +15474,8 @@ export interface operations {
             /** @description 参数互斥或游标无效（40007） */
             400: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14211,6 +15487,8 @@ export interface operations {
             /** @description 目标不存在或不可访问 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14222,6 +15500,8 @@ export interface operations {
             /** @description 目标被作者筛选排除（40010），可清筛选重试 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14233,6 +15513,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14259,7 +15541,10 @@ export interface operations {
                 /** @description 已有帖子深链 ID；与 number、cursor 互斥 */
                 postId?: string;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -14269,6 +15554,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14280,6 +15567,8 @@ export interface operations {
             /** @description 参数互斥或游标无效（40007） */
             400: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14291,6 +15580,8 @@ export interface operations {
             /** @description 目标不存在或不可访问 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14302,6 +15593,8 @@ export interface operations {
             /** @description 目标被作者筛选排除（40010），可清筛选重试 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14313,6 +15606,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14326,7 +15621,10 @@ export interface operations {
     postsFindFloorAuthors: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 subthreadId: string;
             };
@@ -14336,6 +15634,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14347,6 +15647,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14369,7 +15671,10 @@ export interface operations {
                 /** @description 只返回指定作者的回复 */
                 authorId?: string;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -14380,6 +15685,8 @@ export interface operations {
             /** @description 楼中楼回复列表（平级挂载，含 replyToPostId 追踪回复目标），cursor 分页 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14391,6 +15698,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14404,7 +15713,10 @@ export interface operations {
     postsFindReplyAuthors: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -14414,6 +15726,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14425,6 +15739,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14438,7 +15754,10 @@ export interface operations {
     postsUpsertBody: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 subthreadId: string;
             };
@@ -14453,6 +15772,8 @@ export interface operations {
             /** @description 正文帖子（kind=BODY，不占楼层号） */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14464,6 +15785,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14475,6 +15798,8 @@ export interface operations {
             /** @description 无管理权限 */
             403: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14486,6 +15811,8 @@ export interface operations {
             /** @description 子贴不存在 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14497,6 +15824,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14510,7 +15839,10 @@ export interface operations {
     postsFindById: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -14521,6 +15853,8 @@ export interface operations {
             /** @description 帖子详情（含作者和导航上下文） */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14532,6 +15866,8 @@ export interface operations {
             /** @description 帖子不存在 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14543,6 +15879,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14556,7 +15894,10 @@ export interface operations {
     postsRemove: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -14567,6 +15908,8 @@ export interface operations {
             /** @description 帖子已删除 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14578,6 +15921,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14589,6 +15934,8 @@ export interface operations {
             /** @description 非本人帖子，无权删除 */
             403: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14600,6 +15947,8 @@ export interface operations {
             /** @description 帖子不存在 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14611,6 +15960,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14624,7 +15975,10 @@ export interface operations {
     postsUpdate: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -14639,6 +15993,8 @@ export interface operations {
             /** @description 更新后的帖子 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14650,6 +16006,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14661,6 +16019,8 @@ export interface operations {
             /** @description 非本人帖子，无权编辑 */
             403: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14672,6 +16032,8 @@ export interface operations {
             /** @description 帖子不存在 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14683,6 +16045,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14696,7 +16060,10 @@ export interface operations {
     postsPin: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -14707,6 +16074,8 @@ export interface operations {
             /** @description 楼层已置顶 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14718,6 +16087,8 @@ export interface operations {
             /** @description 仅支持置顶主楼层，或当前子贴置顶数量已达上限 */
             400: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14729,6 +16100,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14740,6 +16113,8 @@ export interface operations {
             /** @description 仅楼主或协作者可置顶 */
             403: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14751,6 +16126,8 @@ export interface operations {
             /** @description 楼层不存在或当前不可访问 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14762,6 +16139,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14775,7 +16154,10 @@ export interface operations {
     postsUnpin: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -14786,6 +16168,8 @@ export interface operations {
             /** @description 楼层已取消置顶 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14797,6 +16181,8 @@ export interface operations {
             /** @description 仅支持取消主楼层置顶 */
             400: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14808,6 +16194,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14819,6 +16207,8 @@ export interface operations {
             /** @description 仅楼主或协作者可取消置顶 */
             403: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14830,6 +16220,8 @@ export interface operations {
             /** @description 楼层不存在或当前不可访问 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14841,6 +16233,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14854,7 +16248,10 @@ export interface operations {
     draftsFindAll: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -14863,6 +16260,8 @@ export interface operations {
             /** @description 当前用户全部草稿 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14874,6 +16273,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14885,6 +16286,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14898,7 +16301,10 @@ export interface operations {
     draftsCreate: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -14911,6 +16317,8 @@ export interface operations {
             /** @description 创建的草稿 */
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14922,6 +16330,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14933,6 +16343,8 @@ export interface operations {
             /** @description 覆盖已有槽位时 version 缺失或已过期，或幂等键被复用 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14944,6 +16356,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14957,7 +16371,10 @@ export interface operations {
     draftsSlotUsage: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -14966,6 +16383,8 @@ export interface operations {
             /** @description 草稿位使用情况（5 槽已用数） */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14977,6 +16396,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -14988,6 +16409,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15001,7 +16424,10 @@ export interface operations {
     draftsState: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -15010,6 +16436,8 @@ export interface operations {
             /** @description 同一数据库快照中的草稿与槽位状态 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15021,6 +16449,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15032,6 +16462,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15045,7 +16477,10 @@ export interface operations {
     draftsFindById: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -15056,6 +16491,8 @@ export interface operations {
             /** @description 草稿详情 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15067,6 +16504,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15078,6 +16517,8 @@ export interface operations {
             /** @description 草稿不存在 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15089,6 +16530,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15105,7 +16548,10 @@ export interface operations {
                 /** @description 要删除的当前乐观锁版本；提供后不会删除其他设备更新出的新版本 */
                 version?: number;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -15116,6 +16562,8 @@ export interface operations {
             /** @description 草稿已删除 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15127,6 +16575,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15138,6 +16588,8 @@ export interface operations {
             /** @description version 已过期 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15149,6 +16601,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15162,7 +16616,10 @@ export interface operations {
     draftsUpdate: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -15177,6 +16634,8 @@ export interface operations {
             /** @description 更新后的草稿 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15188,6 +16647,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15199,6 +16660,8 @@ export interface operations {
             /** @description 草稿不存在 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15210,6 +16673,8 @@ export interface operations {
             /** @description version 已过期 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15221,6 +16686,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15234,7 +16701,10 @@ export interface operations {
     subscriptionsFindAll: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -15243,6 +16713,8 @@ export interface operations {
             /** @description 我的订阅列表（含订阅类型和关联信息） */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15254,6 +16726,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15265,6 +16739,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15278,7 +16754,10 @@ export interface operations {
     subscriptionsCreate: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -15291,6 +16770,8 @@ export interface operations {
             /** @description 创建的订阅记录 */
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15302,6 +16783,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15313,6 +16796,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15326,7 +16811,10 @@ export interface operations {
     subscriptionsRemove: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -15337,6 +16825,8 @@ export interface operations {
             /** @description 已取消订阅 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15348,6 +16838,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15359,6 +16851,8 @@ export interface operations {
             /** @description 订阅不存在 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15370,6 +16864,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15383,7 +16879,10 @@ export interface operations {
     reportsCreate: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -15395,6 +16894,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15406,6 +16907,8 @@ export interface operations {
             /** @description 已存在相同待处理举报 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15417,6 +16920,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15441,6 +16946,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -15450,6 +16957,8 @@ export interface operations {
             /** @description 管理员举报队列 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15461,6 +16970,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15477,6 +16988,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path: {
                 id: string;
@@ -15487,6 +17000,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15498,6 +17013,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15514,6 +17031,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path: {
                 id: string;
@@ -15528,6 +17047,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15539,6 +17060,8 @@ export interface operations {
             /** @description 举报已结案或目标状态冲突 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15550,6 +17073,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15563,7 +17088,10 @@ export interface operations {
     adminAuthChallenge: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -15575,6 +17103,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15586,6 +17116,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15599,7 +17131,10 @@ export interface operations {
     adminAuthVerify: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -15611,6 +17146,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15622,6 +17159,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15638,6 +17177,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -15646,6 +17187,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15657,6 +17200,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15673,6 +17218,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -15681,6 +17228,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15692,6 +17241,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15708,6 +17259,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -15716,6 +17269,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15727,6 +17282,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15743,6 +17300,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -15755,6 +17314,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15766,6 +17327,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15782,6 +17345,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -15790,6 +17355,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15801,6 +17368,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15817,6 +17386,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -15829,6 +17400,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15840,6 +17413,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15856,6 +17431,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path: {
                 id: string;
@@ -15870,6 +17447,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15881,6 +17460,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15897,6 +17478,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path: {
                 id: string;
@@ -15911,6 +17494,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15922,6 +17507,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15938,6 +17525,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -15950,6 +17539,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15961,6 +17552,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15974,7 +17567,10 @@ export interface operations {
     adminInviteAcceptanceAccept: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 token: string;
             };
@@ -15984,6 +17580,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -15995,6 +17593,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16019,6 +17619,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -16028,6 +17630,8 @@ export interface operations {
             /** @description 治理案件队列 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16039,6 +17643,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16055,6 +17661,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path: {
                 id: string;
@@ -16065,6 +17673,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16076,6 +17686,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16092,6 +17704,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path: {
                 id: string;
@@ -16106,6 +17720,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16117,6 +17733,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16141,6 +17759,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -16150,6 +17770,8 @@ export interface operations {
             /** @description 申诉处理队列 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16161,6 +17783,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16177,6 +17801,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path: {
                 id: string;
@@ -16191,6 +17817,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16202,6 +17830,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16215,7 +17845,10 @@ export interface operations {
     userModerationAppealsIssueToken: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -16227,6 +17860,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16238,6 +17873,8 @@ export interface operations {
             /** @description 账号密码错误或账号锁定 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16249,6 +17886,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16262,7 +17901,10 @@ export interface operations {
     userModerationAppealsMine: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -16270,6 +17912,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16281,6 +17925,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16294,7 +17940,10 @@ export interface operations {
     userModerationAppealsAppeal: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -16306,6 +17955,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16317,6 +17968,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16333,6 +17986,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -16341,6 +17996,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16352,6 +18009,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16368,6 +18027,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -16380,6 +18041,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16391,6 +18054,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16417,6 +18082,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -16426,6 +18093,8 @@ export interface operations {
             /** @description 通知计划历史 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16437,6 +18106,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16453,6 +18124,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -16465,6 +18138,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16476,6 +18151,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16492,6 +18169,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -16504,6 +18183,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16515,6 +18196,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16531,6 +18214,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path: {
                 id: string;
@@ -16541,6 +18226,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16552,6 +18239,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16568,6 +18257,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -16576,6 +18267,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16587,6 +18280,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16603,6 +18298,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -16615,6 +18312,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16626,6 +18325,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16642,6 +18343,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -16654,6 +18357,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16665,6 +18370,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16684,6 +18391,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -16692,6 +18401,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16703,6 +18414,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16722,6 +18435,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -16730,6 +18445,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16741,6 +18458,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16771,6 +18490,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -16780,6 +18501,8 @@ export interface operations {
             /** @description 公开内容和管理员隐藏项 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16791,6 +18514,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16807,6 +18532,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path: {
                 type: "thread" | "post" | "moment" | "moment_comment";
@@ -16818,6 +18545,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16829,6 +18558,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16845,6 +18576,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path: {
                 id: string;
@@ -16859,6 +18592,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16870,6 +18605,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16897,6 +18634,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -16906,6 +18645,8 @@ export interface operations {
             /** @description 管理员用户列表 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16917,6 +18658,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16933,6 +18676,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path: {
                 id: string;
@@ -16943,6 +18688,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16954,6 +18701,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16970,6 +18719,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path: {
                 id: string;
@@ -16984,6 +18735,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -16995,6 +18748,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17011,6 +18766,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path: {
                 id: string;
@@ -17025,6 +18782,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17036,6 +18795,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17052,6 +18813,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path: {
                 id: string;
@@ -17066,6 +18829,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17077,6 +18842,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17093,6 +18860,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path: {
                 type: "thread" | "post" | "moment" | "moment_comment";
@@ -17108,6 +18877,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17119,6 +18890,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17141,6 +18914,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -17150,6 +18925,8 @@ export interface operations {
             /** @description 当前隐藏内容列表 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17161,6 +18938,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17177,6 +18956,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path: {
                 type: "thread" | "post" | "moment" | "moment_comment";
@@ -17192,6 +18973,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17203,6 +18986,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17230,6 +19015,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -17239,6 +19026,8 @@ export interface operations {
             /** @description 不可变管理员审计日志 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17250,6 +19039,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17277,6 +19068,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -17286,6 +19079,8 @@ export interface operations {
             /** @description UTF-8 CSV，包含 BOM 并防止表格公式注入 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17297,6 +19092,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17310,7 +19107,10 @@ export interface operations {
     clientContentModerationHide: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 type: "thread" | "post" | "moment" | "moment_comment";
                 id: string;
@@ -17325,6 +19125,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17336,6 +19138,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17357,6 +19161,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -17365,6 +19171,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17376,6 +19184,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17397,6 +19207,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -17405,6 +19217,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17416,6 +19230,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17432,6 +19248,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -17440,6 +19258,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17451,6 +19271,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17467,6 +19289,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -17475,6 +19299,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17486,6 +19312,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17502,6 +19330,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -17514,6 +19344,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17525,6 +19357,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17541,6 +19375,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path: {
                 id: string;
@@ -17555,6 +19391,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17566,6 +19404,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17582,6 +19422,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -17590,6 +19432,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17601,6 +19445,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17617,6 +19463,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -17629,6 +19477,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17640,6 +19490,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17656,6 +19508,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path: {
                 id: string;
@@ -17670,6 +19524,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17681,6 +19537,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17701,7 +19559,10 @@ export interface operations {
                 /** @description 每页条数，默认及最大均为 20 */
                 limit?: number;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -17710,6 +19571,8 @@ export interface operations {
             /** @description 相关度优先的动态游标分页 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17721,6 +19584,8 @@ export interface operations {
             /** @description 关键词不足 2 个字符或游标无效 */
             400: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17732,6 +19597,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17752,7 +19619,10 @@ export interface operations {
                 /** @description 每页条数；旧客户端省略时保持最多 50 条，新客户端建议显式传 20 */
                 limit?: number;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -17761,6 +19631,8 @@ export interface operations {
             /** @description 完整主题帖列表卡片，按标题相关度游标分页；meta 含 cursor/hasMore */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17772,6 +19644,8 @@ export interface operations {
             /** @description 搜索游标无效 */
             400: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17783,6 +19657,8 @@ export interface operations {
             /** @description 搜索超时，请缩小关键词范围后重试 */
             503: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17794,6 +19670,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17810,7 +19688,10 @@ export interface operations {
                 /** @description 搜索关键词，首尾空白会被移除 */
                 q: string;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -17819,6 +19700,8 @@ export interface operations {
             /** @description 用户结果，最多 20 条 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17830,6 +19713,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17852,7 +19737,10 @@ export interface operations {
                 /** @description 同时搜索主贴与子贴正文；省略时兼容旧客户端，仅返回楼层 */
                 includeBody?: boolean;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -17861,6 +19749,8 @@ export interface operations {
             /** @description 相关度游标分页；meta 含 cursor/hasMore */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17872,6 +19762,8 @@ export interface operations {
             /** @description 关键词不足 2 个字符或游标无效 */
             400: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17883,6 +19775,8 @@ export interface operations {
             /** @description 搜索超时，请缩小关键词范围后重试 */
             503: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17894,6 +19788,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17910,7 +19806,10 @@ export interface operations {
                 /** @description 搜索关键词，首尾空白会被移除 */
                 q: string;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -17919,6 +19818,8 @@ export interface operations {
             /** @description 兼容旧客户端的聚合搜索结果 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17930,6 +19831,8 @@ export interface operations {
             /** @description 搜索超时，请缩小关键词范围后重试 */
             503: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17941,6 +19844,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17963,7 +19868,10 @@ export interface operations {
                 /** @description 同时搜索主贴与子贴正文；省略时兼容旧客户端，仅返回楼层 */
                 includeBody?: boolean;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 threadId: string;
             };
@@ -17974,6 +19882,8 @@ export interface operations {
             /** @description 相关度游标分页；搜索全部子贴，不限制单帖结果数量 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17985,6 +19895,8 @@ export interface operations {
             /** @description 关键词不足 2 个字符或游标无效 */
             400: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -17996,6 +19908,8 @@ export interface operations {
             /** @description 主题帖不存在，或当前用户无权访问私密帖 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18007,6 +19921,8 @@ export interface operations {
             /** @description 搜索超时，请缩小关键词范围后重试 */
             503: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18018,6 +19934,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18031,7 +19949,10 @@ export interface operations {
     mediaGetUploadUrl: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -18044,6 +19965,8 @@ export interface operations {
             /** @description 预签名 URL 和 mediaId（UPLOADING 状态） */
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18055,6 +19978,8 @@ export interface operations {
             /** @description 文件类型不支持或超过大小限制 */
             400: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18066,6 +19991,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18077,6 +20004,8 @@ export interface operations {
             /** @description 每用户小时上传配额超限（默认 60 次） */
             429: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     "Retry-After": components["headers"]["RetryAfter"];
@@ -18089,6 +20018,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18102,7 +20033,10 @@ export interface operations {
     mediaConfirmUpload: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -18115,6 +20049,8 @@ export interface operations {
             /** @description 确认结果（转 PROCESSING 状态） */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18126,6 +20062,8 @@ export interface operations {
             /** @description 媒体状态或对象元数据无效 */
             400: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18137,6 +20075,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18148,6 +20088,8 @@ export interface operations {
             /** @description 对象尚不存在或上传未完成（MEDIA_OBJECT_MISSING） */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18159,6 +20101,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18172,7 +20116,10 @@ export interface operations {
     mediaReissueUploadUrl: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -18183,6 +20130,8 @@ export interface operations {
             /** @description 同一 mediaId 的新预签名 PUT 地址 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18194,6 +20143,8 @@ export interface operations {
             /** @description 媒体状态不允许重新上传 */
             400: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18205,6 +20156,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18216,6 +20169,8 @@ export interface operations {
             /** @description 媒体记录不存在 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18227,6 +20182,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18240,7 +20197,10 @@ export interface operations {
     mediaGetMedia: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -18251,6 +20211,8 @@ export interface operations {
             /** @description 图片处理状态（UPLOADING / PROCESSING / COMPLETED / FAILED） */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18262,6 +20224,8 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18273,6 +20237,8 @@ export interface operations {
             /** @description 图片记录不存在或不属于当前用户 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18284,6 +20250,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18302,7 +20270,10 @@ export interface operations {
                 cursor?: string;
                 limit?: number;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -18311,6 +20282,8 @@ export interface operations {
             /** @description 游标分页会话列表 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18322,6 +20295,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18335,7 +20310,10 @@ export interface operations {
     directConversationsCreate: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -18347,6 +20325,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18358,6 +20338,8 @@ export interface operations {
             /** @description 存在拉黑关系或无权再次申请 */
             403: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18369,6 +20351,8 @@ export interface operations {
             /** @description 消息请求仍待处理或已被拒绝 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18380,6 +20364,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18393,7 +20379,10 @@ export interface operations {
     directConversationsUnread: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -18401,6 +20390,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18412,6 +20403,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18425,7 +20418,10 @@ export interface operations {
     directConversationsFindByUser: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 userId: string;
             };
@@ -18435,6 +20431,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18446,6 +20444,8 @@ export interface operations {
             /** @description 目标用户不存在或已注销 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18457,6 +20457,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18470,7 +20472,10 @@ export interface operations {
     directConversationsFindById: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -18480,6 +20485,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18491,6 +20498,8 @@ export interface operations {
             /** @description 会话不存在或当前用户不是参与者 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18502,6 +20511,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18521,7 +20532,10 @@ export interface operations {
                 after?: string;
                 limit?: number;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -18532,6 +20546,8 @@ export interface operations {
             /** @description 游标分页消息列表 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18543,6 +20559,8 @@ export interface operations {
             /** @description 会话或消息游标不存在 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18554,6 +20572,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18567,7 +20587,10 @@ export interface operations {
     directConversationsSend: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -18581,6 +20604,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18592,6 +20617,8 @@ export interface operations {
             /** @description 拉黑或会话不可发送 */
             403: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18603,6 +20630,8 @@ export interface operations {
             /** @description 请求待处理/已拒绝或图片已被使用 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18614,6 +20643,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18627,7 +20658,10 @@ export interface operations {
     directConversationsHandleRequest: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -18641,6 +20675,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18652,6 +20688,8 @@ export interface operations {
             /** @description 不是请求接收方或请求状态不允许此操作 */
             403: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18663,6 +20701,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18676,7 +20716,10 @@ export interface operations {
     directConversationsArchive: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -18690,6 +20733,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18701,6 +20746,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18714,7 +20761,10 @@ export interface operations {
     directConversationsMarkRead: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -18728,6 +20778,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18739,6 +20791,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18752,7 +20806,10 @@ export interface operations {
     directMessagesRecall: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -18762,6 +20819,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18773,6 +20832,8 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18784,6 +20845,8 @@ export interface operations {
             /** @description 不是发送者或消息当前不可撤回 */
             403: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18795,6 +20858,8 @@ export interface operations {
             /** @description 已超过 10 分钟撤回时限 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18806,6 +20871,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18819,7 +20886,10 @@ export interface operations {
     metaGetMeta: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -18827,6 +20897,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18838,6 +20910,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18857,7 +20931,10 @@ export interface operations {
                 limit?: number;
                 platform: "android";
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -18866,6 +20943,8 @@ export interface operations {
             /** @description 已发布版本说明 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18877,6 +20956,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18890,7 +20971,10 @@ export interface operations {
     mobileReleasesDetail: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 platform: "android";
                 buildNumber: number;
@@ -18901,6 +20985,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18912,6 +20998,8 @@ export interface operations {
             /** @description 无已发布说明 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18923,6 +21011,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18945,6 +21035,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -18954,6 +21046,8 @@ export interface operations {
             /** @description 版本说明编辑稿及快照，按构建号倒序 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18965,6 +21059,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -18981,6 +21077,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path?: never;
             cookie?: never;
@@ -18993,6 +21091,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19004,6 +21104,8 @@ export interface operations {
             /** @description 平台与构建号已存在，禁止重新绑定版本名 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19015,6 +21117,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19031,6 +21135,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path: {
                 id: string;
@@ -19041,6 +21147,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19052,6 +21160,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19068,6 +21178,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path: {
                 id: string;
@@ -19082,6 +21194,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19093,6 +21207,8 @@ export interface operations {
             /** @description revision 已变化或发布锁定 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19104,6 +21220,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19120,6 +21238,8 @@ export interface operations {
             header?: {
                 /** @description 管理后台写操作必填 */
                 "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
             };
             path: {
                 id: string;
@@ -19134,6 +21254,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19145,6 +21267,8 @@ export interface operations {
             /** @description revision 已变化或发布锁定 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19156,6 +21280,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19169,7 +21295,10 @@ export interface operations {
     economyGetWallet: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -19177,6 +21306,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19188,6 +21319,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19201,7 +21334,10 @@ export interface operations {
     economyCheckIn: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -19209,6 +21345,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19220,6 +21358,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19238,7 +21378,10 @@ export interface operations {
                 /** @description 每页条数（默认 20，最大 50） */
                 limit?: number;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -19247,6 +21390,8 @@ export interface operations {
             /** @description 温油收支流水，cursor 分页 */
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19258,6 +21403,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19271,7 +21418,10 @@ export interface operations {
     economyTipThread: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -19285,6 +21435,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19296,6 +21448,8 @@ export interface operations {
             /** @description 金额不是不小于 2 的整数升 */
             400: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19307,6 +21461,8 @@ export interface operations {
             /** @description 自我打赏、拉黑关系或无主题访问权限 */
             403: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19318,6 +21474,8 @@ export interface operations {
             /** @description 主题帖或收款用户不存在 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19329,6 +21487,8 @@ export interface operations {
             /** @description 余额不足或幂等键复用于不同请求 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19340,6 +21500,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19353,7 +21515,10 @@ export interface operations {
     economyTipUser: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -19367,6 +21532,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19378,6 +21545,8 @@ export interface operations {
             /** @description 金额不是不小于 2 的整数升 */
             400: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19389,6 +21558,8 @@ export interface operations {
             /** @description 自我打赏或存在拉黑关系 */
             403: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19400,6 +21571,8 @@ export interface operations {
             /** @description 收款用户不存在 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19411,6 +21584,8 @@ export interface operations {
             /** @description 余额不足或幂等键复用于不同请求 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19422,6 +21597,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19435,7 +21612,10 @@ export interface operations {
     economyTipMoment: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path: {
                 id: string;
             };
@@ -19449,6 +21629,8 @@ export interface operations {
         responses: {
             201: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19460,6 +21642,8 @@ export interface operations {
             /** @description 金额不是不小于 2 的整数升 */
             400: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19471,6 +21655,8 @@ export interface operations {
             /** @description 给自己加油或存在拉黑关系 */
             403: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19482,6 +21668,8 @@ export interface operations {
             /** @description 动态不存在 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19493,6 +21681,8 @@ export interface operations {
             /** @description 余额不足或幂等键复用于不同请求 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19504,6 +21694,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19527,7 +21719,10 @@ export interface operations {
                 cursor?: string;
                 limit?: number;
             };
-            header?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
             path?: never;
             cookie?: never;
         };
@@ -19535,6 +21730,8 @@ export interface operations {
         responses: {
             200: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19546,6 +21743,8 @@ export interface operations {
             /** @description 查询参数或游标无效 */
             400: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19557,6 +21756,8 @@ export interface operations {
             /** @description 阅读范围或图片不存在/不可见 */
             404: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19568,6 +21769,8 @@ export interface operations {
             /** @description 图片锚点已变化，或历史索引尚未就绪，请重新加载 */
             409: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;
@@ -19579,6 +21782,8 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
                     [name: string]: unknown;

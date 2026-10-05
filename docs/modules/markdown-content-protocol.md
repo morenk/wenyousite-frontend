@@ -161,3 +161,13 @@ revision 2 精确示例：`[wenyousite-align-v1-center]: #\n甲\n\n乙` 显示�
 候选提交通过检查后，可运行 `WENYOU_INLINE_EXPORT=/tmp/web-inline-candidate.json pnpm test src/components/editor/__tests__/milkdown-editor-roundtrip.test.ts -t '共享邻接矩阵|共享特殊文本矩阵'`。测试仍执行完整矩阵，额外导出全部 11,520 个邻接结果（包括所有间隔、外围文字和异链接）及 384 个特殊文本结果，包含实际 Markdown、独立预期 segments、Web 提交 SHA、fixture 来源 SHA 与内容 SHA-256。产物仅供跨端候选互读，不提交生成的大型结果。消费另一端同结构的已提交候选产物时，运行 `WENYOU_INLINE_IMPORT=/tmp/mobile-inline-candidate.json pnpm test src/components/editor/__tests__/milkdown-editor-roundtrip.test.ts -t 跨端候选互读`，会核对 fixture SHA-256 并再次验证真实解析、发布 DOM 和保存幂等。
 
 编辑器主体不订阅字数和自动草稿状态；主题页楼层/回复入口只订阅会话目标与操作，正文快照不广播给全部楼层。媒体 decorations 按事务映射并局部更新，纯选区复用；属性修改与授权展示描述更新仍刷新来源。提及原子属性只检查新增链接子树及链接内文字变化，候选菜单按帧合并。
+
+## 平级角色提及 v6 扩展
+
+所有 RP 角色平级。显式角色源为 `[@称呼](/users/{userId}?rpIdentityId={identityId})`，显式账号源为 `[@账号名](/users/{userId}?identityMode=ACCOUNT)`；旧 bare 用户链接保持旧含义。参数必须唯一且规范，角色 ID 为合法 CUID，标签长度按 Unicode 码点校验。代码和转义节点不产生提及。显示匹配键是完整 `sourceHref + 原 label`，同账号同昵称的两角色不互换；编辑始终保存原源。
+
+阅读态角色提及按投影中的主题及源角色 ID 打开同角色卡，当前头像取该角色当次授权展示，标签保留插入称呼；账号提及直接进入站内主页。身份卡重新读取发现关闭立即遮蔽，403/404 清理缓存。缺少目标上下文时不猜另一主题或默认角色。搜索与引用摘要复用同源投影，通知摘要由后端生成安全显示文本。
+
+HTML 复制用 `data-wenyou-mention-source-href` 与 `data-wenyou-mention-source-label`（含 `@`）成对保源，粘贴时严格验证；纯文本仅复制当前显示投影。编辑器 DOM 装饰不修改 ProseMirror 节点，粗斜体、引用、剪切/复制/粘贴保留完整目标。跨主题发布仍由后端验证，不静默转成账号。
+
+能力支持与新写开关分开：支持 v6 的客户端即使新增关闭仍可编辑、重排或删除原有源；无能力或服务端拒绝时保留正文。导出 `.md/.txt` 是安全展示副本，header6 额外的 `identity-sources.json` 才是原源清单，关闭期间也可能含历史称呼，不能混为当前显示。全局 Markdown5及旧写保护保留，本批不激活线上新写。

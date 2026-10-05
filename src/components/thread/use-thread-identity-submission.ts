@@ -15,7 +15,7 @@ export interface PublicationIdentitySelection {
   token: string | null; name: string; requiresConfirmation?: boolean;
 }
 
-/** 新空稿用默认角色；恢复稿和未知结果始终保留所选 ID，绝不回落到另一个角色。 */
+/** 新空稿始终使用站内身份；恢复稿和未知结果保留所选 ID，绝不回落到另一个角色。 */
 export function useThreadIdentitySubmission(threadId: string | undefined, supported: boolean, active: boolean, scope = "", storage?: { value?: PublicationIdentitySelection; onChange: (value: PublicationIdentitySelection | undefined) => void }) {
   const query = useRpIdentities(threadId, supported && active);
   const confirm = useConfirm();
@@ -25,9 +25,8 @@ export function useThreadIdentitySubmission(threadId: string | undefined, suppor
   const onChange = storage?.onChange;
   const setSelection = useCallback((next: PublicationIdentitySelection) => { if (onChange) onChange(next); else setLocalSelection(next); }, [onChange]);
   const state = query.data;
-  const defaultRole = state?.identities.find((role) => role.identityId === state.defaultIdentityId && canPublishAsIdentity(role));
-  const initial = useMemo<PublicationIdentitySelection>(() => ({ scope, mode: defaultRole ? "RP" : "ACCOUNT", identityId: defaultRole?.identityId,
-    token: defaultRole?.identityToken ?? null, name: defaultRole?.display?.nickname ?? state?.account.username ?? "站内账号" }), [scope, defaultRole, state?.account.username]);
+  const initial = useMemo<PublicationIdentitySelection>(() => ({ scope, mode: "ACCOUNT",
+    token: null, name: state?.account.username ?? "站内账号" }), [scope, state?.account.username]);
   if (!storage && supported && active && state && selection?.scope !== scope) setLocalSelection(initial);
   useEffect(() => {
     if (!onChange || !supported || !active || !state || selection?.scope === scope) return;

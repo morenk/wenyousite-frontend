@@ -8,7 +8,11 @@ import { collection, role } from "./rp-identity-fixtures";
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 const mocks = vi.hoisted(() => ({
   query: vi.fn(), detail: vi.fn(), create: vi.fn(), update: vi.fn(), remove: vi.fn(),
-  toggle: vi.fn(), confirm: vi.fn(), refetch: vi.fn(), error: vi.fn(),
+  meta: vi.fn(), resolve: vi.fn(), toggle: vi.fn(), confirm: vi.fn(), refetch: vi.fn(), error: vi.fn(),
+}));
+vi.mock("@/api/hooks/use-api-meta", () => ({ useApiMeta: () => mocks.meta() }));
+vi.mock("@/api/hooks/use-rp-profile-post", async (original) => ({ ...await original<typeof import("@/api/hooks/use-rp-profile-post")>(),
+  useResolveRpProfilePostLink: () => ({ mutateAsync: mocks.resolve }),
 }));
 vi.mock("@/api/hooks/use-rp-identities", () => ({
   useRpIdentities: () => mocks.query(), useRpIdentity: () => mocks.detail(),
@@ -33,7 +37,7 @@ function Harness({ id = "rp1", onClose = vi.fn(), onCreated = vi.fn(), initialDr
   return <ThreadIdentityControls threadId="t1" identityId={id} draft={draft} onDraftChange={setDraft} onClose={onClose} onCreated={onCreated} />;
 }
 beforeEach(() => {
-  vi.clearAllMocks(); mocks.query.mockReturnValue({ data: collection(), refetch: mocks.refetch });
+  vi.clearAllMocks(); mocks.meta.mockReturnValue({ data: { capabilities: {} } }); mocks.resolve.mockResolvedValue("post-new"); mocks.query.mockReturnValue({ data: collection(), refetch: mocks.refetch });
   mocks.detail.mockReturnValue({ data: role(), refetch: mocks.refetch });
   mocks.refetch.mockResolvedValue({ data: collection(), isError: false });
   mocks.create.mockResolvedValue(role("rp2")); mocks.update.mockResolvedValue(role()); mocks.remove.mockResolvedValue(role("rp1", "", { deleted: true }));
@@ -153,4 +157,47 @@ test("启用立即写入，关闭须确认，取消和失败保留原状态", as
   expect(screen.getByRole("button", { name: "关闭帖内身份" })).toHaveAttribute("aria-pressed", "true");
   view.rerender(<ThreadIdentitySettings threadId="t1" enabled disabled />);
   expect(screen.getByRole("button", { name: "关闭帖内身份" })).toBeDisabled();
+});
+
+
+test("旧能力隐藏资料字段并且不发送新增字段", async () => {
+  render(<Harness />);
+  expect(screen.queryByLabelText("资料楼层链接")).not.toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: "保存昵称" }));
+  await waitFor(() => expect(mocks.update).toHaveBeenCalledWith({ identityId: "rp1", body: { nickname: "白鸦", version: 3 } }));
+  expect(mocks.resolve).not.toHaveBeenCalled();
+});
+
+test("本人不可读的原绑定仍回显，未改链接保存不会意外解绑", async () => {
+  mocks.meta.mockReturnValue({ data: { capabilities: { rpIdentityProfileSupported: true } } });
+  mocks.detail.mockReturnValue({ data: role("rp1", "白鸦", { profilePostStatus: "UNAVAILABLE", profilePostId: null,
+    identity: { id: "rp1", nickname: "白鸦", avatarMediaId: null, version: 3, profilePostId: "original" } }) });
+  render(<Harness />);
+  expect(screen.getByLabelText("资料楼层链接")).toHaveValue("/threads/t1?post=original");
+  await userEvent.click(screen.getByRole("button", { name: "保存资料" }));
+  await waitFor(() => expect(mocks.update).toHaveBeenCalledWith({ identityId: "rp1", body: { nickname: "白鸦", version: 3 } }));
+  expect(mocks.resolve).not.toHaveBeenCalled();
+});
+
+test("输入链接先校验授权详情，清空显式解绑，校验失败保留输入", async () => {
+  mocks.meta.mockReturnValue({ data: { capabilities: { rpIdentityProfileSupported: true } } });
+  const close = vi.fn(); render(<Harness onClose={close} />);
+  fireEvent.change(screen.getByLabelText("资料楼层链接"), { target: { value: "/threads/t1?post=new" } });
+  mocks.resolve.mockRejectedValueOnce(new Error("资料暂不可用"));
+  await userEvent.click(screen.getByRole("button", { name: "保存资料" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("资料暂不可用");
+  expect(screen.getByLabelText("资料楼层链接")).toHaveValue("/threads/t1?post=new");
+  expect(mocks.update).not.toHaveBeenCalled(); expect(close).not.toHaveBeenCalled();
+  await userEvent.click(screen.getByRole("button", { name: "保存资料" }));
+  await waitFor(() => expect(mocks.update).toHaveBeenCalledWith({ identityId: "rp1", body: { nickname: "白鸦", version: 3, profilePostId: "post-new" } }));
+});
+
+test("清空已绑定链接用 clearProfilePost=true，并不影响角色 ID", async () => {
+  mocks.meta.mockReturnValue({ data: { capabilities: { rpIdentityProfileSupported: true } } });
+  mocks.detail.mockReturnValue({ data: role("rp1", "白鸦", { identity: { id: "rp1", nickname: "白鸦", avatarMediaId: null, version: 3, profilePostId: "original" } }) });
+  render(<Harness />);
+  fireEvent.change(screen.getByLabelText("资料楼层链接"), { target: { value: "" } });
+  await userEvent.click(screen.getByRole("button", { name: "保存资料" }));
+  await waitFor(() => expect(mocks.update).toHaveBeenCalledWith({ identityId: "rp1", body: { nickname: "白鸦", version: 3, clearProfilePost: true } }));
+  expect(mocks.resolve).not.toHaveBeenCalled();
 });

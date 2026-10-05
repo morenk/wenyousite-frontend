@@ -434,3 +434,25 @@ describe("站内剪贴板 v2", () => {
     }));
   });
 });
+
+test("角色提及HTML保留原href和称呼，纯文本只复制当前显示投影", () => {
+  const root = document.createElement("div");
+  const href = "/users/u1?rpIdentityId=c00000000000000000000000a";
+  root.innerHTML = '<p><a data-slot="mention-link" href="/users/u1" data-wenyou-mention-source-href="' + href + '" data-wenyou-mention-source-label="@旧角色">@账号</a></p>';
+  const copied = createReaderClipboardPayload(root);
+  expect(copied.text).toBe("@账号");
+  expect(copied.html).toContain('href="' + href + '"');
+  expect(copied.html).toContain(">@旧角色</a>");
+  const restored = parseSiteClipboardHtml(copied.html);
+  expect(restored?.html).toContain('href="' + href + '"');
+  expect(restored?.html).toContain(">@旧角色</a>");
+});
+
+test("不信任单个或非法提及来源属性", () => {
+  const root = document.createElement("div");
+  root.innerHTML = '<a href="/users/u1" data-wenyou-mention-source-href="javascript:alert(1)" data-wenyou-mention-source-label="@旧角色">@账号</a><a href="/users/u1" data-wenyou-mention-source-label="@伪造">@原名</a>';
+  const copied = createReaderClipboardPayload(root);
+  expect(copied.text).toBe("@账号@原名");
+  expect(copied.html).not.toContain("data-wenyou-mention-source");
+  expect(copied.html).not.toContain("javascript");
+});

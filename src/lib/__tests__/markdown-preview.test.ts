@@ -67,3 +67,10 @@ test.each([
 ])("组合格式预览只去除语法且保留字面内容：%s", (source, expected) => {
   expect(formatMarkdownPreview(source)).toBe(expected);
 });
+
+test.each(["*白鸦*", "反`号`", "&amp;"])("角色昵称%s在摘要中按字面和完整源目标投影", (nickname) => {
+  const href = "/users/u1?rpIdentityId=c00000000000000000000000a";
+  const source = "😀***[@" + nickname + "](" + href + ")***";
+  expect(formatMarkdownPreview(source)).toBe("😀[@" + nickname + "]");
+  expect(formatMarkdownPreview(source, { mentionIdentities: [{ userId: "u1", label: nickname, sourceHref: href, displayName: "账号", identityId: null }] })).toBe("😀[@账号]");
+});

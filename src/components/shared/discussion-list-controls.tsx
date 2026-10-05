@@ -2,6 +2,8 @@
 
 import type { ReplyOrder } from "@/api/reply-query";
 import { ChronologicalOrderToggle } from "@/components/shared/chronological-order-toggle";
+import { UserIdentitySummary } from "@/components/shared/user-identity-summary";
+import type { MediaDisplay } from "@/lib/media-display";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -29,6 +31,8 @@ interface DiscussionListControlsProps {
 export interface DiscussionAuthorOption {
   id: string;
   username: string;
+  avatar?: string | null;
+  avatarDisplay?: MediaDisplay | null;
   displayName?: string;
   rpIdentity?: { nickname: string } | null;
   playerMarked?: boolean;
@@ -53,10 +57,9 @@ export function DiscussionListControls({
   onRetryAuthors,
   className,
 }: DiscussionListControlsProps) {
-  authors = authors.map((author) => ({ ...author, displayName: author.rpIdentity?.nickname ?? author.displayName }));
   const authorItems = [
     { value: "ALL", label: "全部发言者" },
-    ...authors.map((author) => ({ value: author.id, label: author.displayName ? `${author.displayName} · ${author.username}` : author.username })),
+    ...authors.map((author) => ({ value: author.id, label: author.username })),
   ];
 
   const authorControl = authors.length > 0 ? (
@@ -76,12 +79,9 @@ export function DiscussionListControls({
       <SelectContent align="end" className="min-w-52">
         <SelectItem value="ALL">全部发言者</SelectItem>
         {authors.map((author) => (
-          <SelectItem key={author.id} value={author.id} className="[&>span]:min-w-0 [&>span]:shrink">
-            <span className="min-w-0 truncate">{author.displayName ?? author.username}</span>
-            {author.displayName ? <span className="text-xs text-muted-foreground">{author.username}</span> : null}
-            <span className="font-utility text-[0.6875rem] text-muted-foreground">
-              {roleDetail(author)}
-            </span>
+          <SelectItem key={author.id} value={author.id} aria-label={author.username + " " + roleDetail(author)} className="[&>span]:min-w-0 [&>span]:shrink">
+            <UserIdentitySummary appearance={{ name: author.username, avatar: author.avatar ?? null, avatarDisplay: author.avatarDisplay }}
+              label={roleDetail(author)} compact truncate />
           </SelectItem>
         ))}
       </SelectContent>

@@ -1,6 +1,8 @@
 /** 保存正文草稿 API hook（POST 只创建；已有草稿始终按稳定 ID PATCH） */
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { invalidateChangedMentionCandidates } from "./use-mention-candidates";
+import { markdownWriteCapability } from "@/api/markdown-capability";
 import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
 import {
@@ -38,7 +40,7 @@ export function useSaveDraft() {
       if ("draftId" in args && args.draftId) {
         const { data, error } = await apiClient.PATCH("/api/v1/drafts/{id}", {
           params: { path: { id: args.draftId } },
-          body: { content: args.content, version: args.version },
+          body: { ...markdownWriteCapability(queryClient), content: args.content, version: args.version },
         });
         if (error) throw error;
         if (!data) throw new Error("保存草稿响应为空");
@@ -47,6 +49,7 @@ export function useSaveDraft() {
 
       const { data, error } = await apiClient.POST("/api/v1/drafts", {
         body: {
+          ...markdownWriteCapability(queryClient),
           content: args.content,
           clientRequestId: args.clientRequestId ?? crypto.randomUUID(),
           ...(args.slot !== undefined ? { slot: args.slot } : {}),
@@ -67,6 +70,6 @@ export function useSaveDraft() {
       });
       void invalidate();
     },
-    onError: () => void invalidate(),
+    onError: (error) => Promise.all([invalidate(), invalidateChangedMentionCandidates(queryClient, error)]),
   });
 }

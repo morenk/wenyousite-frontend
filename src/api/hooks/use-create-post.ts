@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { invalidateChangedMentionCandidates } from "./use-mention-candidates";
+import { markdownWriteCapability } from "@/api/markdown-capability";
 import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
 import type { components } from "@/api/types";
@@ -18,7 +19,7 @@ export function useCreatePost() {
         "/api/v1/subthreads/{subthreadId}/posts",
         {
           params: { path: { subthreadId } },
-          body,
+          body: { ...markdownWriteCapability(queryClient), ...body },
         },
       );
       if (error) throw error;

@@ -2,6 +2,7 @@
 
 "use client";
 
+import { useMarkdownWriteCapability } from "@/api/hooks/use-markdown-write-capability";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Controller, useForm, useWatch } from "react-hook-form";
@@ -95,6 +96,7 @@ export function ThreadEditForm({
   const [saveState, setSaveState] = useState<ManagementEditorStatus["state"]>("saved");
   const [saveMessage, setSaveMessage] = useState<string>();
   const saveThread = useSaveThreadAggregate();
+  const snapshotMarkdownCapability = useMarkdownWriteCapability();
   const initialBody = useInitialBodyWrite<Parameters<typeof saveThread.mutateAsync>[0]>();
   const { canClose: canCloseInitialBody } = initialBody;
   const uploadImage = useUploadImage();
@@ -203,6 +205,7 @@ export function ThreadEditForm({
             : {}),
           content,
           tagNames: values.tagNames ?? [],
+          ...snapshotMarkdownCapability(),
         },
       };
       if (baseline.bodyVersion === undefined) initialBody.freeze(request);

@@ -1,8 +1,9 @@
 import {
   remarkStringifyOptionsCtx,
+  remarkPluginsCtx,
   serializerCtx,
 } from "@milkdown/core";
-import { paragraphAttr, textSchema } from "@milkdown/kit/preset/commonmark";
+import { linkSchema, paragraphAttr, textSchema } from "@milkdown/kit/preset/commonmark";
 import type { Ctx } from "@milkdown/kit/ctx";
 import { Fragment, type Node as ProseNode } from "@milkdown/kit/prose/model";
 import { Plugin, PluginKey } from "@milkdown/kit/prose/state";
@@ -13,6 +14,8 @@ import {
   sanitizeEmptyImages,
   type MarkdownValidationOptions,
 } from "@/lib/markdown";
+import { parseInlineMentionNodes, parseMentionTarget } from "@/lib/mention";
+import { remarkCanonicalMentions } from "@/lib/markdown-mention";
 import { serializeInlineDiceNode } from "@/lib/dice-inline";
 import { remarkRecoverAttentionBoundaries } from "@/lib/markdown-attention";
 import { normalizeSerializedAlignmentMarkers } from "@/lib/markdown-alignment";
@@ -28,6 +31,7 @@ type DiceMarkdownNode = {
 type EditorMarkdownNode = {
   type?: string;
   value?: string;
+  url?: string;
   data?: Record<string, unknown>;
   children?: EditorMarkdownNode[];
 };
@@ -271,6 +275,19 @@ function serializeDiceMarkdownNode(node: DiceMarkdownNode): string {
  */
 export function configureEditorMarkdownSerializer(ctx: Ctx) {
   configureEditorTrailingParagraph(ctx);
+  ctx.update(remarkPluginsCtx, (plugins) => [...plugins, { plugin: remarkCanonicalMentions, options: {} }]);
+  ctx.update(linkSchema.key, (previous) => (schemaCtx) => {
+    const base = previous(schemaCtx);
+    return { ...base, toMarkdown: { ...base.toMarkdown, runner: (state, mark, node) => {
+      const target = parseMentionTarget(mark.attrs.href as string, node.text);
+      if (target && target.mode !== "LEGACY") {
+        state.withMark(mark, "wenyouMention", undefined, { url: target.sourceHref });
+        return;
+      }
+      return base.toMarkdown.runner(state, mark, node);
+    } } };
+  });
+
   ctx.update(paragraphAttr.key, (previous) => (node) => ({
     ...previous(node),
     ...(node.content.size === 0 ? { "data-wenyou-empty-row": "true" } : {}),
@@ -306,6 +323,21 @@ export function configureEditorMarkdownSerializer(ctx: Ctx) {
         return value;
       },
       delete: safeDeleteMarkdownHandler,
+      wenyouMention: (nodeValue: unknown, _parent: unknown, stateValue: unknown, infoValue: unknown) => {
+        const node = nodeValue as EditorMarkdownNode;
+        const textOf = (child: EditorMarkdownNode): string => child.value ?? child.children?.map(textOf).join("") ?? "";
+        const atom: EditorMarkdownNode = { type: "wenyouMentionAtom", value: "[" + textOf(node) + "](" + node.url + ")" };
+        // 原子范围的共同格式外置；昵称原字符不交给 Markdown 的文字转义器。
+        const wrap = (child: EditorMarkdownNode): EditorMarkdownNode => {
+          if (child.children?.length === 1 && ["strong", "emphasis", "delete"].includes(child.type ?? "")) {
+            return { ...child, children: [wrap(child.children[0]!)] };
+          }
+          return atom;
+        };
+        const child = node.children?.length === 1 ? wrap(node.children[0]!) : atom;
+        return (stateValue as SerializerState).containerPhrasing({ children: [child] }, infoValue as SerializerInfo);
+      },
+      wenyouMentionAtom: (node: { value: string }) => node.value,
       diceInline: (node: DiceMarkdownNode) => serializeDiceMarkdownNode(node),
       emphasis: safeEmphasisMarkdownHandler,
       strong: safeStrongMarkdownHandler,
@@ -376,6 +408,9 @@ export function serializeEditorMarkdown(
     markdown = markdown.replace(/\n$/u, "");
   }
 
+  if (options.markdownContractVersion !== 6 && parseInlineMentionNodes(markdown).some((node) => node.type === "mention" && node.sourceHref)) {
+    throw new EditorMarkdownCodecError("当前服务尚不支持此提及格式，正文已保留");
+  }
   const unsupported = findUnsupportedMarkdownFormats(markdown, options);
   if (unsupported.length > 0) {
     const first = unsupported[0]!;

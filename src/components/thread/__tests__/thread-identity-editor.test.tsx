@@ -1,3 +1,4 @@
+import { RpProfilePostLinkError } from "@/api/hooks/use-rp-profile-post";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
@@ -89,4 +90,22 @@ test("24个Unicode码点合法，超过上限与协议字符拒绝", async () =>
   await user.clear(input); await user.type(input, "🌙".repeat(24));
   await user.click(screen.getByRole("button", { name: "保存昵称" }));
   await waitFor(() => expect(handlers.onSave).toHaveBeenCalledWith("🌙".repeat(24)));
+});
+
+
+test("资料能力缺失隐藏字段，字段校验失败保留输入并关联可访问错误", async () => {
+  const handlers = props();
+  const view = render(<ThreadIdentityEditor {...handlers} />);
+  expect(screen.queryByLabelText("资料楼层链接")).not.toBeInTheDocument();
+  view.unmount();
+  handlers.onSave.mockRejectedValueOnce(new RpProfilePostLinkError("资料暂不可用"));
+  render(<ThreadIdentityEditor {...handlers} profileSupported profileLink="/threads/t?post=p" />);
+  const input = screen.getByLabelText("资料楼层链接");
+  await userEvent.clear(input);
+  await userEvent.type(input, "/threads/t?post=unavailable");
+  await userEvent.click(screen.getByRole("button", { name: "保存资料" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("资料暂不可用");
+  expect(input).toHaveValue("/threads/t?post=unavailable");
+  expect(input).toHaveAccessibleDescription("资料暂不可用");
+  expect(handlers.onClose).not.toHaveBeenCalled();
 });

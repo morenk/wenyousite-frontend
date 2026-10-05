@@ -110,13 +110,14 @@ describe("FloorListControls", () => {
   });
 });
 
-test("当前角色名为主且同名候选继续按账号筛选", async () => {
+test("作者目录不以某个RP代表账号，旧RP投影也只显示真实账号", async () => {
   const user = userEvent.setup();
   const change = vi.fn();
   render(<FloorListControls order="OLDEST" onOrderChange={vi.fn()} onAuthorChange={change}
-    authors={authors.map((author) => ({ ...author, displayName: "白鸦" }))}
+    authors={authors.map((author) => ({ ...author, displayName: "白鸦", rpIdentity: { nickname: "白鸦" } }))}
     authorsLoading={false} authorsError={false} onRetryAuthors={vi.fn()} />);
   await user.click(screen.getByRole("combobox", { name: "只看某人的楼层" }));
-  await user.click(screen.getByRole("option", { name: "白鸦 玩家乙 玩家" }));
+  await user.click(screen.getByRole("option", { name: "玩家乙 玩家" }));
   expect(change).toHaveBeenCalledWith("player-1");
+  expect(screen.queryByText("白鸦")).not.toBeInTheDocument();
 });

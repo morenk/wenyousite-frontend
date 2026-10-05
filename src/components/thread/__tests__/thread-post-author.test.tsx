@@ -17,11 +17,11 @@ beforeEach(() => {
   mocks.identity.mockReturnValue({ data: { display: { nickname: "夜渡" }, account: { username: "小明" } }, refetch: mocks.refetch });
 });
 afterEach(cleanup);
-test("旧楼层先打开身份卡，区分当时身份与当前昵称，账号链接稳定", async () => {
+test("旧楼层身份卡只展示当时头像昵称，账号链接稳定", async () => {
   render(<ThreadPostAuthor {...props} />);
   await userEvent.click(screen.getByRole("button", { name: "白鸦" }));
-  expect(screen.getByText("现为")).toBeInTheDocument();
-  expect(screen.getByText("夜渡")).toBeInTheDocument();
+  expect(screen.queryByText("现为")).not.toBeInTheDocument();
+  expect(screen.queryByText("夜渡")).not.toBeInTheDocument();
   expect(screen.getByText("楼主")).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "查看小明的用户主页" })).toHaveAttribute("href", "/users/u1");
   expect(mocks.identity).toHaveBeenLastCalledWith("t1", "rp1", true);

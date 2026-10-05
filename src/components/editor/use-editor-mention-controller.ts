@@ -14,6 +14,7 @@ import { editorViewCtx } from "@milkdown/core";
 import type { MentionIdentity } from "@/lib/thread-identity";
 import { getMentionUserId, markEditorMentionAnchors } from "@/lib/mention";
 import type { MentionMenuItem } from "@/components/editor/mention-candidate-menu";
+import { activeMentionQuery, userMentionTransaction } from "./editor-mention-transactions";
 
 export interface EditorMentionMenu {
   from: number;
@@ -70,16 +71,9 @@ export function useEditorMentionController({
     if (item.isGroup) {
       view.dispatch(view.state.tr.insertText("@全体玩家 ", range.from, range.to));
     } else {
-      const linkMarkType = view.state.schema.marks.link;
-      if (!linkMarkType || !item.username) return;
-      const linkMark = linkMarkType.create({
-        href: `/users/${item.id}`,
-        title: null,
-      });
-      const mentionNode = view.state.schema.text(`@${item.username}`, [linkMark]);
-      const transaction = view.state.tr.replaceWith(range.from, range.to, mentionNode);
-      transaction.insertText(" ", range.from + mentionNode.nodeSize);
-      view.dispatch(transaction);
+      if (!item.username) return;
+      const transaction = userMentionTransaction(view.state, range, item.username, item.mentionHref ?? "/users/" + item.id);
+      if (transaction) view.dispatch(transaction);
     }
 
     view.focus();
@@ -151,25 +145,13 @@ export function useEditorMentionController({
       const view = crepeRef.current?.editor.action((ctx) => ctx.get(editorViewCtx));
       const editor = editorDomRef.current;
       if (!view || !editor || disabled || isComposingRef.current) return;
-      const { from, empty } = view.state.selection;
-      if (!empty) {
+      const range = activeMentionQuery(view.state);
+      if (!range) {
         menuRef.current = null;
         setMenu(null);
         return;
       }
-      const resolved = view.state.doc.resolve(from);
-      const textBefore = resolved.parent.textBetween(0, resolved.parentOffset, "\n", "\n");
-      const match = /(^|[\s([>])@([^\r\n@]{0,24})$/u.exec(textBefore);
-      if (!match) {
-        menuRef.current = null;
-        setMenu(null);
-        return;
-      }
-      const range = {
-        from: from - match[0].length + match[1].length,
-        to: from,
-        query: match[2] ?? "",
-      };
+      const from = view.state.selection.from;
       const coords = view.coordsAtPos(from);
       const menuWidth = Math.min(288, Math.max(224, window.innerWidth - 16));
       const menuHeight = 240;

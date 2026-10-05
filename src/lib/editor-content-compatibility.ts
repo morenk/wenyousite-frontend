@@ -1,3 +1,4 @@
+import { parseInlineMentionNodes } from "@/lib/mention";
 import { findUnsupportedMarkdownFormats } from "@/lib/markdown";
 
 interface ContentProfile { markdownVersions: number[]; features: string[] }
@@ -9,6 +10,8 @@ const profiles: Record<string, ContentProfile> = {
   "legacy-v3": { markdownVersions: [3], features: base },
   "legacy-v4": { markdownVersions: [3, 4], features: aligned },
   "legacy-v5": { markdownVersions: [3, 4, 5], features: images },
+  "legacy-v6": { markdownVersions: [3, 4, 5, 6], features: [...images, "role-mentions"] },
+  "candidate-v6": { markdownVersions: [3, 4, 5, 6], features: [...images, ...protection, "role-mentions"] },
   "candidate-v5": { markdownVersions: [3, 4, 5], features: [...images, ...protection] },
 };
 
@@ -20,6 +23,7 @@ function assess(markdown: string, profile: ContentProfile | undefined, lossless:
   if (findUnsupportedMarkdownFormats(markdown, { markdownContractVersion: 5 }).length > 0)
     return deny("unsupported-markdown");
   const required = new Set(["base"]);
+  if (parseInlineMentionNodes(markdown).some((node) => node.type === "mention" && node.sourceHref)) required.add("role-mentions");
   if (/^\[wenyousite-align-v1-(?:center|right)\]: #$/mu.test(markdown)) required.add("block-alignment");
   if (/^\[wenyousite-align-v1-(?:center|right)\]: #\n!\[/mu.test(markdown)) required.add("image-alignment");
   if (/^> <br \/>$/mu.test(markdown)) required.add("quote-empty-row");

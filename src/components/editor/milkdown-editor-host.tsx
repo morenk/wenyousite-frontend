@@ -7,6 +7,7 @@ import type { MentionIdentity } from "@/lib/thread-identity";
 
 import { threadAppearance } from "@/lib/thread-identity";
 import { useEditorMediaDisplay } from "@/components/editor/use-editor-media-display";
+import { editorMentionCaretPlugin } from "./editor-mention-caret";
 import { editorInlineCodeCommand } from "./editor-inline-code";
 import type { MarkdownMediaDisplay, MediaDisplay } from "@/lib/media-display";
 import {
@@ -334,6 +335,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   const [debouncedMentionQuery] = useDebounce(mentionQuery, 180);
   const {
     data: mentionResponse,
+    userMentionsUnavailable,
     isFetching: isMentionFetching,
     isError: isMentionError,
     refetch: refetchMentionCandidates,
@@ -354,9 +356,10 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
     for (const candidate of mentionResponse?.users ?? []) {
       const appearance = threadAppearance(candidate);
       items.push({
-        id: candidate.id,
-        label: `@${appearance.name}`,
-        username: appearance.name,
+        id: candidate.candidateKey ?? candidate.id,
+        label: `@${candidate.mentionLabel ?? appearance.name}`,
+        username: candidate.mentionLabel ?? appearance.name,
+        mentionHref: candidate.mentionHref ?? "/users/" + candidate.id,
         accountUsername: candidate.rpIdentity ? candidate.username : undefined,
         avatar: appearance.avatar,
         avatarDisplay: appearance.avatarDisplay,
@@ -813,6 +816,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
         .config(configureEditorMarkdownSerializer)
 
         .use(internalReferenceLinkView)
+        .use(editorMentionCaretPlugin)
         .use(editorMarkdownPastePlugin)
         .use(alignmentPlugin)
         .use(editorAttentionBoundaryParser)
@@ -1007,6 +1011,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
           activeIndex={activeMentionIndex}
           pending={mentionQueryPending || isMentionFetching}
           error={isMentionError}
+          userMentionsUnavailable={userMentionsUnavailable}
           onRetry={() => void refetchMentionCandidates()}
           onSelect={handleMentionSelect}
         />

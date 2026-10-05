@@ -39,7 +39,9 @@ export function useEditorDraftController({
   const { user } = useAuth();
   const { data: apiMeta, isError: apiMetaError } = useApiMeta();
   const capabilityReady = apiMeta !== undefined || apiMetaError;
-  const markdownContractVersion = apiMeta?.markdownContractVersion ?? 0;
+  const advertisedVersion = apiMeta?.markdownContractVersion ?? 0;
+  // v6是独立能力，不以全局版本号推断角色协议支持。
+  const markdownContractVersion = apiMeta?.capabilities?.roleMentionsV6Supported ? 6 : advertisedVersion === 6 ? 0 : advertisedVersion;
   const queryClient = useQueryClient();
   const { mutateAsync: saveDraftAutomatically } = useSaveDraft();
   const initialValue = defaultValue;

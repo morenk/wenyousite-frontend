@@ -74,11 +74,6 @@ vi.mock("@/components/thread/reply-list", () => ({
   ReplyList: () => <div data-testid="reply-list">回复列表</div>,
 }));
 
-vi.mock("@tanstack/react-query", async () => {
-  const actual = await vi.importActual("@tanstack/react-query");
-  return { ...actual, useQueryClient: () => ({ invalidateQueries: vi.fn().mockResolvedValue(undefined) }) };
-});
-
 import { toast } from "sonner";
 vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },

@@ -2,6 +2,9 @@
 
 import { useCallback, useState } from "react";
 import { useRpIdentities, useRpIdentity, useMutateRpIdentity, type RpIdentityState, type CreateRpIdentity } from "@/api/hooks/use-rp-identities";
+import { useApiMeta } from "@/api/hooks/use-api-meta";
+import { useResolveRpProfilePostLink } from "@/api/hooks/use-rp-profile-post";
+import { getPostHref } from "@/lib/post-navigation";
 import { getApiError, isContentUnavailableError } from "@/api/errors";
 import { ThreadIdentityEditor } from "@/components/thread/thread-identity-editor";
 import { AvatarUploader } from "@/components/user/avatar-uploader";
@@ -9,13 +12,16 @@ import { SettingsDialog } from "@/components/user/settings-controls";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-provider";
 
-export interface NewThreadIdentityDraft { nickname: string; avatarMediaId?: string; avatar?: string; uncertain?: boolean; reviewed?: boolean }
+export interface NewThreadIdentityDraft { nickname: string; profileLink?: string; avatarMediaId?: string; avatar?: string; uncertain?: boolean; reviewed?: boolean }
 
 export function ThreadIdentityControls({ threadId, identityId, onCreated, onClose, draft, onDraftChange }: {
   threadId: string; identityId: string | null; onCreated?: (role: RpIdentityState) => void; onClose: () => void;
   draft: NewThreadIdentityDraft; onDraftChange: (draft: NewThreadIdentityDraft) => void;
 }) {
   const collection = useRpIdentities(threadId);
+  const meta = useApiMeta();
+  const profileSupported = meta.data?.capabilities?.rpIdentityProfileSupported === true;
+  const resolveProfile = useResolveRpProfilePostLink(threadId);
   const confirm = useConfirm();
   const [reviewFailure, setReviewFailure] = useState<string>();
   const [baseline, setBaseline] = useState<RpIdentityState>();
@@ -28,11 +34,25 @@ export function ThreadIdentityControls({ threadId, identityId, onCreated, onClos
   const account = collection.data?.account ?? state?.account;
   const canEdit = Boolean(collection.data?.canEdit && (!roleId || state?.canEdit));
   const nicknameChanged = useCallback((nickname: string) => { if (!roleId && nickname !== draft.nickname) onDraftChange({ ...draft, nickname }); }, [roleId, draft, onDraftChange]);
+  const profileChanged = useCallback((profileLink: string) => {
+    if (!roleId && profileLink !== (draft.profileLink ?? "")) onDraftChange({ ...draft, profileLink });
+  }, [roleId, draft, onDraftChange]);
+  // 本人原绑定不能从展示层的 UNAVAILABLE/null 推断为已解绑。
+  const storedProfileId = baseline?.identity?.profilePostId;
+  const initialProfileLink = storedProfileId ? getPostHref({ threadId, postId: storedProfileId }) : "";
+  const profilePayload = async (link: string, initial: string): Promise<Pick<CreateRpIdentity, "profilePostId" | "clearProfilePost">> => {
+    if (!profileSupported || link.trim() === initial) return {};
+    if (!link.trim()) return { clearProfilePost: true };
+    return { profilePostId: await resolveProfile.mutateAsync(link) };
+  };
   const close = () => { setAvatarOpen(false); onClose(); };
   const save = async (body: CreateRpIdentity, nextDraft = draft) => {
     if (!canEdit) throw new Error("帖内身份当前不可修改");
     if (roleId && !baseline?.identity) throw new Error("该身份已不可修改，请重新查看列表");
-    const payload = roleId ? body : { nickname: nextDraft.nickname || null, avatarMediaId: nextDraft.avatarMediaId, ...body };
+    const payload = roleId ? body : {
+      nickname: nextDraft.nickname || null, avatarMediaId: nextDraft.avatarMediaId,
+      ...("profilePostId" in body || "clearProfilePost" in body ? {} : await profilePayload(nextDraft.profileLink ?? "", "")), ...body,
+    };
     if (!roleId && !payload.nickname && !payload.avatarMediaId) throw new Error("请至少设置昵称或头像");
     if (!roleId && draft.uncertain) {
       if (!draft.reviewed) throw new Error("上次创建结果未确认，请先查看身份列表。");
@@ -69,8 +89,12 @@ export function ThreadIdentityControls({ threadId, identityId, onCreated, onClos
     <ThreadIdentityEditor key={threadId + ":" + account.id + ":" + (identityId ?? "new")}
       accountUsername={account.username} nickname={baseline?.identity?.nickname ?? (roleId ? null : draft.nickname)}
       avatar={display?.avatar ?? (roleId ? account.avatar : draft.avatar ?? account.avatar)} avatarDisplay={display?.avatarDisplay}
+      profileSupported={profileSupported} profileLink={roleId ? initialProfileLink : draft.profileLink ?? ""}
+      onProfileLinkChange={profileChanged}
       existingIdentity={Boolean(roleId)} disabled={!canEdit} canDelete={Boolean(state?.canDelete && baseline?.identity)}
-      onSave={(nickname) => save({ nickname })}
+      onSave={async (nickname, profileLink) => save({
+        nickname, ...await profilePayload(profileLink ?? initialProfileLink, roleId ? initialProfileLink : ""),
+      })}
       onDelete={async () => {
         if (!roleId || !baseline?.identity || !state?.canDelete) throw new Error("该身份当前不可删除");
         return remove.mutateAsync({ identityId: roleId, version: baseline.identity.version });

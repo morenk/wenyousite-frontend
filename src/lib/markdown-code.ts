@@ -1,5 +1,5 @@
 /** 用等长空白遮蔽 Markdown 围栏代码和成对行内代码，保留源位置供节点解析器使用。 */
-export function maskMarkdownCode(content: string): string {
+export function maskMarkdownCode(content: string, atomicLength?: (line: string, index: number) => number): string {
   const lines = content.split("\n");
   let fence: { marker: "`" | "~"; length: number } | null = null;
 
@@ -15,9 +15,11 @@ export function maskMarkdownCode(content: string): string {
       return " ".repeat(line.length);
     }
 
-    const chars = [...line];
+    const chars = line.split("");
     let index = 0;
     while (index < line.length) {
+      const atomLength = atomicLength?.(line, index) ?? 0;
+      if (atomLength > 0 && !isMarkdownEscaped(line, index)) { index += atomLength; continue; }
       if (line[index] !== "`") {
         index++;
         continue;

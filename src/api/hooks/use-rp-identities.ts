@@ -1,4 +1,4 @@
-/** 多角色只通过稳定身份 ID 读写；兼容主身份仍由旧接口服务目录与提及。 */
+/** 多角色只通过稳定身份 ID 读写；兼容锚点仅留给旧 single 协议。 */
 import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { shouldRetryContentQuery } from "@/api/errors";
@@ -20,8 +20,8 @@ export async function readRpIdentities(threadId: string): Promise<RpIdentityColl
   return data.data;
 }
 
-export async function readRpIdentity(threadId: string, identityId: string): Promise<RpIdentityState> {
-  const { data, error } = await apiClient.GET("/api/v1/threads/{threadId}/rp-identities/{identityId}", { params: { path: { threadId, identityId } } });
+export async function readRpIdentity(threadId: string, identityId: string, signal?: AbortSignal): Promise<RpIdentityState> {
+  const { data, error } = await apiClient.GET("/api/v1/threads/{threadId}/rp-identities/{identityId}", { params: { path: { threadId, identityId } }, signal, cache: "no-store" });
   if (error) throw error;
   if (!data) throw new Error("角色身份响应为空");
   return data.data;
@@ -55,7 +55,7 @@ export function useRpIdentity(threadId: string, identityId: string | undefined, 
   const client = useQueryClient();
   const query = useQuery({
     queryKey: queryKeys.threadIdentities.role(threadId, identityId ?? "", viewer),
-    queryFn: () => readRpIdentity(threadId, identityId!),
+    queryFn: ({ signal }) => readRpIdentity(threadId, identityId!, signal),
     enabled: Boolean(identityId && enabled), staleTime: 0, retry: shouldRetryContentQuery,
   });
   useEffect(() => { observeEnabled(client, threadId, viewer, query.data?.enabled); }, [client, threadId, viewer, query.data?.enabled]);

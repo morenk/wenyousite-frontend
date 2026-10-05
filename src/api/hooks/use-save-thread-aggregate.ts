@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { invalidateChangedMentionCandidates } from "./use-mention-candidates";
+import { markdownWriteCapability } from "@/api/markdown-capability";
 import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
 import { useViewerScope } from "@/api/use-viewer-scope";
@@ -27,7 +28,7 @@ export function useSaveThreadAggregate() {
         "/api/v1/threads/{id}/aggregate",
         {
           params: { path: { id: threadId } },
-          body,
+          body: { ...markdownWriteCapability(queryClient), ...body },
         },
       );
       if (error) throw error;

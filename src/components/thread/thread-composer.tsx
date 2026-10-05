@@ -2,6 +2,7 @@
 
 "use client";
 
+import { useMarkdownWriteCapability } from "@/api/hooks/use-markdown-write-capability";
 import type { MentionIdentity } from "@/lib/thread-identity";
 import { useEffect, useRef, useState } from "react";
 import { Check, Loader2, Send, X } from "lucide-react";
@@ -56,6 +57,7 @@ function ThreadComposer({ mentionIdentities }: { mentionIdentities?: readonly Me
     registerCloseGuard,
     onDocumentChange,
   } = useThreadComposer();
+  const snapshotMarkdownCapability = useMarkdownWriteCapability();
   const createPost = useCreatePost();
   const updatePost = useUpdatePost();
   const uploadImage = useUploadImage();
@@ -114,7 +116,7 @@ function ThreadComposer({ mentionIdentities }: { mentionIdentities?: readonly Me
           if (!editor.isCurrent(nextContent)) { setPending(false); return; }
           storeCreateRequest({
             subthreadId: session.subthreadId, content: nextContent,
-            clientRequestId: crypto.randomUUID(), ...publicationIdentity,
+            clientRequestId: crypto.randomUUID(), ...publicationIdentity, ...snapshotMarkdownCapability(),
             ...(session.type === "reply" ? { parentPostId: session.parentPostId, replyToPostId: session.replyToPostId } : {}),
           });
         }

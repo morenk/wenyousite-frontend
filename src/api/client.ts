@@ -290,6 +290,7 @@ export const apiClient = createClient<paths>({
 
 apiClient.use({
   onRequest({ request }) {
+    request.headers.set("X-Markdown-Contract-Version", "6");
     if (typeof window === "undefined") return;
 
     const url = new URL(request.url);

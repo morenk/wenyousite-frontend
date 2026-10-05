@@ -5,7 +5,7 @@ import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
 
 /** 服务端能力事实源；请求失败时调用方按旧协议关闭新增写入能力。 */
-export function useApiMeta() {
+export function useApiMeta(enabled = true) {
   return useQuery({
     queryKey: queryKeys.meta,
     queryFn: async () => {
@@ -14,6 +14,7 @@ export function useApiMeta() {
       if (!data) throw new Error("服务能力响应为空");
       return data.data;
     },
+    enabled,
     staleTime: 5 * 60_000,
     retry: 1,
   });

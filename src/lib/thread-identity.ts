@@ -17,6 +17,11 @@ export function threadAppearance(account: ThreadAccountAppearance) {
     : { name: account.username, avatar: account.avatar ?? null, avatarDisplay: account.avatarDisplay };
 }
 
-export function mentionDisplayName(userId: string, sourceLabel: string, identities?: readonly MentionIdentity[]) {
-  return identities?.find((identity) => identity.userId === userId && identity.label === sourceLabel)?.displayName ?? sourceLabel;
+export function findMentionIdentity(userId: string, sourceLabel: string, identities?: readonly MentionIdentity[], sourceHref = "/users/" + userId) {
+  return identities?.find((identity) => identity.userId === userId && identity.label === sourceLabel
+    && (identity.sourceHref ?? "/users/" + identity.userId) === sourceHref);
+}
+
+export function mentionDisplayName(userId: string, sourceLabel: string, identities?: readonly MentionIdentity[], sourceHref = "/users/" + userId) {
+  return findMentionIdentity(userId, sourceLabel, identities, sourceHref)?.displayName ?? sourceLabel;
 }

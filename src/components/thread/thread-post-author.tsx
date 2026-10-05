@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils";
 import { threadAppearance, type ThreadAccountAppearance } from "@/lib/thread-identity";
 import { useRpIdentity } from "@/api/hooks/use-rp-identities";
 import { UserAvatarLink } from "@/components/shared/user-avatar";
+import { RpIdentityProfile } from "./rp-identity-profile";
+import { renderPostBody } from "./markdown-content";
 import { ThreadIdentityCard } from "@/components/thread/thread-identity-card";
 import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
 import { Badge } from "@/components/ui/badge";
@@ -39,10 +41,10 @@ function RoleplayAuthor(props: ThreadPostAuthorProps) {
   return <ThreadIdentityCard
     account={{ ...(current.data?.account ?? author), id: author.id }} appearance={appearance}
     badges={<>{author.id === ownerId ? <Badge tone="brand" size="compact">楼主</Badge> : null}<LevelBadge level={author.level} /></>}
-    currentAppearance={current.data?.display ? {
-      name: current.data.display.nickname, avatar: current.data.display.avatar,
-      avatarDisplay: current.data.display.avatarDisplay,
-    } : undefined}
+
+    open={opened} onOpenChange={setOpened}
+    profile={current.data?.profilePostStatus ? <RpIdentityProfile threadId={threadId} identityId={author.rpIdentity!.id} state={current.data}
+      identityPending={current.isFetching} identityError={current.isError} renderBody={renderPostBody} onNavigate={() => setOpened(false)} /> : undefined}
     loading={opened && current.isFetching} error={current.isError}
     onRetry={() => void current.refetch()} onOpen={() => { if (opened) void current.refetch(); setOpened(true); }}
     avatarClassName={props.avatarClassName} avatarTextClassName={props.avatarTextClassName} textClassName={props.textClassName}

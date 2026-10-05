@@ -885,7 +885,7 @@ describe("ThreadDetailHeader", () => {
     } as never);
     mockUseMembers.mockReturnValue({
       data: [
-        buildMember("player-a", "玩家甲"),
+        { ...buildMember("player-a", "玩家甲"), user: { id: "player-a", username: "玩家甲", avatar: null, rpIdentity: { id: "role-a", nickname: "白鸦", avatar: "/role-a.png" } } },
         buildMember("player-b", "玩家乙"),
         buildMember("owner-1", "帖主", { role: "OWNER" }),
         buildMember("unmarked-user", "未标记参与人", { playerMarked: false }),
@@ -901,6 +901,7 @@ describe("ThreadDetailHeader", () => {
       .toHaveAttribute("aria-checked", "false");
     expect(screen.getByRole("switch", { name: "取消订阅玩家乙的发言" }))
       .toHaveAttribute("aria-checked", "true");
+    expect(screen.queryByText("白鸦")).not.toBeInTheDocument();
     expect(screen.queryByRole("switch", { name: /帖主/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("switch", { name: /未标记参与人/ })).not.toBeInTheDocument();
 
