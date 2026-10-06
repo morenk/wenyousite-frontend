@@ -373,4 +373,33 @@ Backend agent 独立只读审查未发现阻断，覆盖 owner 原绑定、versi
 
 Backend PR45 已合并为 `eb9ff12c770b14501eb1d9daa19f4d823728eba6`，源码树与已验 `6d1228cd8c128f24860ef99747aa923c461a595a` 完全相同。Web 在原工作树重新以已合并完整 SHA 执行标准 `contract:sync`、`generate:api`、`contract:check`，全部通过，机器契约和 SDK 零差异。本次只更新精确来源及发布记录，复用上节 364 文件／4020 项和 2+1 隔离旅程证据，不将旧候选报告改写为重新执行。
 
-Web 须等兼容 Backend 实際上线确认后，再由干净且等于 `origin/dev` 的管理源构建及使用 `deploy-standalone.sh` 切换不可变 release。公网只运行匿名只读烟雾和静态资源检查，不登录、不发帖、不回复。Web 上线后仍由 Backend 发布任务最后启用门禁并确认；单独部署 Web 不代表门禁已开启。精确 Web 合并 SHA、release 元数据及只读结果记录在 PR 和治理交付记录中。
+Web 须等兼容 Backend 实际上线确认后，再由干净且等于 `origin/dev` 的管理源构建及使用 `deploy-standalone.sh` 切换不可变 release。公网只运行匿名只读烟雾和静态资源检查，不登录、不发帖、不回复。Web 上线后仍由 Backend 发布任务最后启用门禁并确认；单独部署 Web 不代表门禁已开启。精确 Web 合并 SHA、release 元数据及只读结果记录在 PR 和治理交付记录中。
+
+
+### 发布前依赖安全审计补丁
+
+本轮发布前重新执行生产依赖审计发现 3 high／1 low，已保留 `.dev-preview/release-security/audit-before.json`；这只表示本轮新发现，不推断公告的首次生效日期。原代理访问官方 npm Registry 发生 TLS reset，检查进程对 `registry.npmjs.org` 加入 `NO_PROXY/no_proxy` 后正常；固定 Foundation 的官方 GitHub 下载同理，不修改全局代理或审计源。
+
+| 实际锁定依赖 | 修复版本与范围 | 官方依据 |
+| --- | --- | --- |
+| source-map-js 1.2.1 | 1.2.2；在 PostCSS／Vue compiler 的 `^1.2.1` 范围 | [GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q) |
+| prosemirror-view 1.42.2 | 1.42.3；在 Milkdown prose 的 `^1.41.3` 范围 | [上游安全公告](https://github.com/ProseMirror/prosemirror-view/security/advisories/GHSA-c8x8-7fp4-3x9w) |
+| Vue／server-renderer 3.5.40 | Vue 及锁步子包统一 3.5.42；在 Milkdown 的 `^3.5.20` 范围 | [GHSA-g2v6-rqmx-r4w6](https://github.com/advisories/GHSA-g2v6-rqmx-r4w6) |
+| KaTeX 0.16.47／0.17.0 | 统一 0.18.2；跨现有 0.x 次版本范围，使用精确受影响版本 override | [上游安全公告](https://github.com/KaTeX/KaTeX/security/advisories/GHSA-238p-pmpm-9mq7) |
+
+只在原 PR54 增加锁定版本 override，没有批量升级 Milkdown、Next、React 或 Foundation。Vue compiler 更新带来的 Babel parser/types 新子依赖是该锁步升级的一部分。KaTeX 0.18 的[内部类名前缀变更](https://github.com/KaTeX/KaTeX/releases/tag/v0.18.0)已核对：本仓没有针对旧内部类名的选择器或白名单；Milkdown 导入该依赖自己的 CSS，实际 `renderToString` 公式和配套 CSS 通过包级定向检查。全仓 `src` 审查确认真实编辑器采用 `CrepeBuilder` 并未启用 LaTeX feature，阅读器也没有数学插件；本次不新增公式功能，不将包级检查冒称为真实公式编辑／阅读 UI 或视觉验收。实际使用的编辑、阅读和提及路径由后续完整门禁及隔离旅程覆盖。
+
+官方 Registry 的修复后生产审计为零漏洞，`pnpm install --frozen-lockfile` 成功。新增真实依赖行为回归覆盖 Vue SSR 丢弃回车属性名、KaTeX 不继承原型 trust 及常用公式/CSS、source-map 解析时拒绝巨大 section 偏移；旧 main 依赖只读探针分别复现保留恶意属性、生成不可信链接、未拒绝巨大偏移，新依赖三项通过。首轮新增测试中两项正常输入预期写错（并非所有内部类名都加前缀，indexed map 原有零列行为也不能按 flat map 预期断言），修正正例后 3/3 通过，原失败日志保留。`pnpm peers check` 的既有 `@emnapi` 四项范围警告与未修改的 main 相同，不属于本补丁新增。
+
+因为真实依赖已变化，原 4020 项及隔离证据只保留为补丁前历史，最终完整检查和新隔离结果在后续记录，不冒称沿用为新依赖已验。后端安全发布修复仍先行，尚未合并或部署 Web，也未启用角色提及门禁。
+
+
+### 安全补丁最终完整检查与隔离结果
+
+本轮 `pnpm check` 原入口一次 exit0：生产依赖审计零漏洞、预览协议4项、lint、类型、精确契约、架构、设计／字体、完整覆盖率、部署源预检、文档和 Next 生产构建均通过。覆盖率 **365文件／4023项全过**，statements 87.31%（14336/16419）、branches 80.19%（11568/14425）、functions 85.15%（3523/4137）、lines 90.87%（12685/13958）；原阈值未改。文档45文件／247操作／216直接调用、产物字体3182文件通过。证据：`.dev-preview/release-security/check.log`、`check.exit=0`，新增安全测试首轮自身正例失败及修复保留在前文，不混写为 check 首轮失败。
+
+随后执行 `check:full` 的标准后半段 `pnpm test:e2e:candidate`，因 ProseMirror 依赖变化完整重跑 Chromium 候选集合，包含长文CPU1／CPU4输入性能、真实Markdown往返、剪贴板、阅读、@角色、资料引用和既有核心旅程。**256项：243通过／13既有条件跳过／0失败**，exit0。runId `e2e_265e5c4add58ba06f76e4ccd`，候选 `8d719b7b-f98a-4fb7-9d18-04a81839f1e4`，固定干净 Backend 安全补丁提交 `c7718ad980e9166643071e26e55fecfa68606d88`；报告 `.e2e-results/acfc1474-3c80-424a-97d1-08c28abb3793.json`。`resourcesRemoved`、`cleanupVerified`、runner `resourcesCleaned` 全为 true，`residualCleanup=false`，已核实本轮 `/tmp/wenyousite-e2e-8zQTCM` 被移除。未使用线上资源或已停止的共享预览。
+
+负责人后续明确批准 Backend 新增安全 PR46，该 PR 合并后的最终提交为 `a624bed0eb2b118701bd593fbce2aabf3dea7321`，树与本轮隔离来源 `c7718ad980e9166643071e26e55fecfa68606d88` 完全一致。Web 再次从最终已合并 SHA 标准同步契约、生成 SDK 并核验，机器契约和生成文件仍零差异；只更新来源元数据和文档，不机械重跑未变化的应用全量。旧格式读取和写入保护继续保留，角色提及门禁只在两端实际发布健康后由 Backend 发布任务最后开启。
+
+以上是自动化验收：Firefox／WebKit、13项有专项前提的条件场景及负责人真机观感未覆盖。KaTeX仍是未启用公式功能的传递依赖，仅核验包级安全和配套样式；不将其称为真实公式UI验收。Web 工作树和视觉候选保留，最终合并／部署 SHA、只读烟雾、不可变 release 元数据在本 PR 与治理交付记录续记。
