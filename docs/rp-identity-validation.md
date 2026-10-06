@@ -365,3 +365,12 @@ Backend agent 独立只读审查未发现阻断，覆盖 owner 原绑定、versi
 
 
 最终文档复验 exit0：45个文件，247个 GET/POST/PUT/PATCH/DELETE 操作、216个直接调用；完整 OpenAPI248另含HEAD。Next生产构建与3182个产物字体扫描 exit0。合并原静态检查及恢复覆盖率，规定 check 各阶段全部完成；检查过程中的旧断言和文档示例失败如上保留。最终源码不再改动，之后只整理交付记录。Web保持Draft、未合并未部署；没有真实账号快照或负责人完整业务验收，Firefox/WebKit及既有13个专项条件场景仍未覆盖。
+
+
+### 2026-10-06 授权发布前核验
+
+负责人明确批准合并、部署 Backend PR45 与 Web PR54，并在兼容后端及 Web 上线后开启角色提及写门禁；本次不发布正式 Mobile APK、不强制用户升级，不清理旧 Markdown 协议。该授权替代此前仅交付 Draft 的发布边界，不代替真机观感验收。
+
+Backend PR45 已合并为 `eb9ff12c770b14501eb1d9daa19f4d823728eba6`，源码树与已验 `6d1228cd8c128f24860ef99747aa923c461a595a` 完全相同。Web 在原工作树重新以已合并完整 SHA 执行标准 `contract:sync`、`generate:api`、`contract:check`，全部通过，机器契约和 SDK 零差异。本次只更新精确来源及发布记录，复用上节 364 文件／4020 项和 2+1 隔离旅程证据，不将旧候选报告改写为重新执行。
+
+Web 须等兼容 Backend 实際上线确认后，再由干净且等于 `origin/dev` 的管理源构建及使用 `deploy-standalone.sh` 切换不可变 release。公网只运行匿名只读烟雾和静态资源检查，不登录、不发帖、不回复。Web 上线后仍由 Backend 发布任务最后启用门禁并确认；单独部署 Web 不代表门禁已开启。精确 Web 合并 SHA、release 元数据及只读结果记录在 PR 和治理交付记录中。
