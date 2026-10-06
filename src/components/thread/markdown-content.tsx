@@ -11,6 +11,11 @@ import {
   type ClipboardEvent as ReactClipboardEvent,
   type ReactNode,
 } from "react";
+import { remarkCanonicalMentions } from "@/lib/markdown-mention";
+import { parseMentionTarget } from "@/lib/mention";
+import type { PostDetail } from "@/api/hooks/use-post";
+import { RoleMentionLink } from "./role-mention-link";
+import { findMentionIdentity, mentionDisplayName, type MentionIdentity } from "@/lib/thread-identity";
 import { findMediaDisplay, type MarkdownMediaDisplay } from "@/lib/media-display";
 import { Button } from "@/components/ui/button";
 import ReactMarkdown, { type ExtraProps } from "react-markdown";
@@ -72,6 +77,7 @@ type SpanProps = ComponentProps<"span"> & ExtraProps & {
 const MarkdownRenderContext = createContext<{
   sourcePostId?: string;
   mediaDisplays?: readonly MarkdownMediaDisplay[];
+  mentionIdentities?: readonly MentionIdentity[];
   diceRollsByNodeId: ReadonlyMap<string, InlineDiceRoll>;
 }>({ diceRollsByNodeId: new Map() });
 
@@ -116,6 +122,7 @@ function getInternalMarkdownHref(href: string) {
 }
 
 function MarkdownLink({ href, children, node: _node, ...props }: AnchorProps) {
+  const { mentionIdentities } = useContext(MarkdownRenderContext);
   void _node;
   const internalHref = typeof href === "string" ? getInternalMarkdownHref(href) : null;
   if (internalHref?.reference) {
@@ -135,18 +142,16 @@ function MarkdownLink({ href, children, node: _node, ...props }: AnchorProps) {
       </>
     );
   }
-  const userMatch = typeof href === "string" ? /^\/users\/([^/]+)$/u.exec(href) : null;
-  if (userMatch) {
-    const label = getNodeText(children).trim();
-    return (
-      <ContentLink
-        href={`/users/${userMatch[1]}`}
-        mention={label.startsWith("@")}
-        {...props}
-      >
-        {children}
-      </ContentLink>
-    );
+  const label = getNodeText(children).trim();
+  const target = parseMentionTarget(href, label);
+  if (target) {
+    const projection = findMentionIdentity(target.userId, label.slice(1), mentionIdentities, target.sourceHref);
+    if (target.mode === "RP" && projection?.threadId) return <RoleMentionLink key={target.sourceHref + label} target={target} label={label} projection={projection} renderProfileBody={renderPostBody}>{children}</RoleMentionLink>;
+    const mappedLabel = "@" + mentionDisplayName(target.userId, label.slice(1), mentionIdentities, target.sourceHref);
+    return <ContentLink href={"/users/" + target.userId} mention {...props}
+      data-wenyou-mention-source-href={target.sourceHref} data-wenyou-mention-source-label={label}>
+      {mappedLabel === label ? children : mappedLabel}
+    </ContentLink>;
   }
   return (
     <ContentLink
@@ -423,6 +428,7 @@ function rehypeRemoveFormattingLineBreaks() {
 }
 
 interface MarkdownContentProps {
+  mentionIdentities?: readonly MentionIdentity[];
   content: string;
   mediaDisplays?: readonly MarkdownMediaDisplay[];
   diceRolls?: InlineDiceRoll[];
@@ -432,6 +438,7 @@ interface MarkdownContentProps {
 }
 
 export function MarkdownContent({
+  mentionIdentities,
   content,
   mediaDisplays,
   diceRolls = [],
@@ -474,11 +481,12 @@ export function MarkdownContent({
         size === "compact" && "wenyou-prose-compact",
       )}
     >
-      <MarkdownRenderContext.Provider value={{ sourcePostId, mediaDisplays, diceRollsByNodeId }}>
+      <MarkdownRenderContext.Provider value={{ sourcePostId, mediaDisplays, mentionIdentities, diceRollsByNodeId }}>
         <ReactMarkdown
           rehypePlugins={[rehypeRemoveFormattingLineBreaks]}
           remarkPlugins={[
             remarkGfm,
+            remarkCanonicalMentions,
             [remarkWenyouAlignment, markdownOptions],
             remarkRecoverAttentionBoundaries,
             remarkMilkdownEmptyParagraphs,
@@ -498,4 +506,12 @@ export function MarkdownContent({
       </MarkdownRenderContext.Provider>
     </div>
   );
+}
+
+
+/** 身份资料只复用原正文渲染，不带作者、时间或楼层操作。 */
+export function renderPostBody(post: PostDetail) {
+  return <MarkdownContent content={post.content} mediaDisplays={post.mediaDisplays}
+    mentionIdentities={post.mentionIdentities} diceRolls={post.diceRolls} sourcePostId={post.id}
+    markdownContractVersion={6} />;
 }

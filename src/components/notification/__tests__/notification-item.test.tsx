@@ -101,6 +101,18 @@ describe("NotificationItem", () => {
     expect(screen.queryByText("旧版完整文案")).not.toBeInTheDocument();
   });
 
+  test("RP 通知继续以账号为主，角色名仅作辅助且定位仍按发言 ID", () => {
+    renderWithQC(<NotificationItem notification={baseNotification({
+      payload: {
+        schemaVersion: 1, action: "reply", actorName: "小明", preview: "回复内容",
+        rpIdentity: { id: "rp1", nickname: "白鸦", avatar: null },
+      },
+    })} />);
+    expect(screen.getByText("小明")).toHaveClass("font-medium");
+    expect(screen.getByText("以「白鸦」")).toHaveClass("text-muted-foreground");
+    expect(screen.getByRole("link")).toHaveAttribute("href", "/threads/t1?post=p1");
+  });
+
   test("结构化 new_reply 显示楼中楼订阅更新文案", () => {
     renderWithQC(
       <NotificationItem

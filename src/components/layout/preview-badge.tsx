@@ -35,7 +35,7 @@ export function PreviewBadge({ snapshot, synthetic = false }: { snapshot?: strin
   if (!snapshot) return null;
   return (
     <aside ref={badgeRef} aria-label="开发预览环境" style={{ bottom }} className="pointer-events-none fixed right-3 z-[var(--layer-chrome)] rounded-md border border-border bg-background px-3 py-2 text-xs text-muted-foreground shadow-sm">
-      开发预览 · {synthetic ? "合成样本" : "快照"} <time dateTime={snapshot}>{new Date(snapshot).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai", hour12: false })}</time>
+      开发预览 · {synthetic ? "隔离合成样本" : "快照"} <time dateTime={snapshot}>{new Date(snapshot).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai", hour12: false })}</time>
     </aside>
   );
 }

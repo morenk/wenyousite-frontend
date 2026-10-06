@@ -1,0 +1,160 @@
+{
+  "version": 1,
+  "httpContractVersion": "5.36.0-dev.20261005.1",
+  "markdownVersion": 5,
+  "cases": [
+    {
+      "id": "same-user-different-labels",
+      "content": "[@白鸦](/users/u1) 和 [@夜渡](/users/u1)",
+      "enabled": true,
+      "mentionIdentities": [
+        {
+          "userId": "u1",
+          "label": "白鸦",
+          "displayName": "白鸦",
+          "identityId": "rp1"
+        },
+        {
+          "userId": "u1",
+          "label": "夜渡",
+          "displayName": "夜渡",
+          "identityId": "rp1"
+        }
+      ]
+    },
+    {
+      "id": "disabled-account-display",
+      "content": "[@白鸦](/users/u1)",
+      "enabled": false,
+      "mentionIdentities": [
+        {
+          "userId": "u1",
+          "label": "白鸦",
+          "displayName": "小明",
+          "identityId": null
+        }
+      ]
+    },
+    {
+      "id": "space-and-punctuation",
+      "content": "[@白 鸦！](/users/u1)",
+      "enabled": true,
+      "mentionIdentities": [
+        {
+          "userId": "u1",
+          "label": "白 鸦！",
+          "displayName": "白 鸦！",
+          "identityId": "rp1"
+        }
+      ]
+    }
+  ],
+  "authorModeCases": [
+    {
+      "id": "explicit-account-ignores-rp-change",
+      "identityMode": "ACCOUNT",
+      "effectiveRp": true,
+      "identityToken": "stale",
+      "accepted": true,
+      "snapshot": false
+    },
+    {
+      "id": "explicit-rp-missing-token",
+      "identityMode": "RP",
+      "effectiveRp": true,
+      "accepted": false,
+      "httpStatus": 409,
+      "errorCode": 40011
+    },
+    {
+      "id": "explicit-rp-unavailable",
+      "identityMode": "RP",
+      "effectiveRp": false,
+      "accepted": false,
+      "httpStatus": 409,
+      "errorCode": 40011
+    },
+    {
+      "id": "legacy-rp-requires-token",
+      "effectiveRp": true,
+      "accepted": false,
+      "httpStatus": 409,
+      "errorCode": 40011
+    },
+    {
+      "id": "mixed-account-rp-history",
+      "userId": "u1",
+      "posts": [
+        {
+          "identityMode": "ACCOUNT",
+          "rpIdentity": null
+        },
+        {
+          "identityMode": "RP",
+          "rpIdentity": {
+            "id": "rp1",
+            "nickname": "白鸦",
+            "avatar": null
+          }
+        }
+      ]
+    }
+  ],
+  "multipleIdentityCases": [
+    {
+      "id": "two-roles-one-account",
+      "userId": "u1",
+      "posts": [
+        {
+          "identityMode": "RP",
+          "rpIdentity": {
+            "id": "role-a",
+            "nickname": "同名",
+            "avatar": null
+          }
+        },
+        {
+          "identityMode": "RP",
+          "rpIdentity": {
+            "id": "role-b",
+            "nickname": "同名",
+            "avatar": null
+          }
+        },
+        {
+          "identityMode": "ACCOUNT",
+          "rpIdentity": null
+        }
+      ],
+      "filterUserId": "u1",
+      "mentionTarget": "/users/u1"
+    },
+    {
+      "id": "archived-primary-does-not-switch",
+      "compatibilityIdentityId": null,
+      "remainingRoleId": "role-b",
+      "legacyDisplay": null,
+      "defaultIdentityId": null
+    },
+    {
+      "id": "empty-profile-retains-slot",
+      "activeCount": 1,
+      "display": null,
+      "defaultIdentityId": null,
+      "canPublishRp": false
+    },
+    {
+      "id": "max-ten-race",
+      "activeCount": 9,
+      "parallelCreates": 2,
+      "successCount": 1,
+      "rejectedCode": 40013
+    },
+    {
+      "id": "role-b-edit-keeps-a-token",
+      "selectedIdentityId": "role-a",
+      "editedIdentityId": "role-b",
+      "selectedTokenChanged": false
+    }
+  ]
+}

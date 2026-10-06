@@ -2,6 +2,7 @@
 
 import { afterEach, beforeEach, describe, test, expect, vi } from "vitest";
 import {
+  apiClient,
   bootstrapAuthSession,
   createAuthenticatedFetch,
   isSessionExpired401,
@@ -134,7 +135,7 @@ describe("createAuthenticatedFetch", () => {
     const authenticatedFetch = createAuthenticatedFetch(fetchImpl);
     const response = await authenticatedFetch(
       new Request("https://wenyou.site/api/v1/notifications", {
-        headers: { Authorization: "Bearer old-token" },
+        headers: { Authorization: "Bearer old-token", "X-Markdown-Contract-Version": "6" },
       }),
     );
 
@@ -145,6 +146,7 @@ describe("createAuthenticatedFetch", () => {
     );
     const retriedRequest = new Request(fetchImpl.mock.calls[2][0]);
     expect(retriedRequest.headers.get("Authorization")).toBe("Bearer new-token");
+    expect(retriedRequest.headers.get("X-Markdown-Contract-Version")).toBe("6");
     expect(getAuthAccessToken()).toBe("new-token");
     expect(getAuthSnapshot().user?.username).toBe("新用户");
     expect(localStorage.getItem("accessToken")).toBeNull();
@@ -334,4 +336,14 @@ describe("createAuthenticatedFetch", () => {
     expect(getAuthSnapshot().user).toBeNull();
     expect(window.location.href).toBe("http://localhost:3000/login");
   });
+});
+
+test.each([false, true])("所有API读取包含Markdown6能力，SSR=%s也不被earlyreturn跳过", async (ssr) => {
+  if (ssr) vi.stubGlobal("window", undefined);
+  const sent: Request[] = [];
+  vi.stubGlobal("fetch", vi.fn(async (input: Request) => { sent.push(input); return Response.json({ data: {} }); }));
+  await apiClient.GET("/api/v1/meta", { baseUrl: "http://localhost" });
+  await apiClient.POST("/api/v1/threads/{id}/export", { baseUrl: "http://localhost", params: { path: { id: "t1" } }, body: { format: "BOTH", includeAuthors: true, includeTimestamps: true, includeFloorNumbers: true, includeReplyTargets: true, includeSourceLinks: true, includeMedia: false } });
+  expect(sent).toHaveLength(2);
+  for (const request of sent) expect(request.headers.get("X-Markdown-Contract-Version")).toBe("6");
 });

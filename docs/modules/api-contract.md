@@ -126,3 +126,17 @@ Web 通过独立管理 Cookie/CSRF 会话消费 `/admin/mobile-releases` 列表�
 固定 OpenAPI、媒体展示夹具与生成类型通过标准 `pnpm contract:sync`、`pnpm generate:api` 完整同步。检查指定 `WENYOUSITE_BACKEND_ROOT=/srv/wenyousite/wenyousite-backend` 与上述完整 `BACKEND_CONTRACT_REF`，只读取 Git 已提交产物。媒体夹具版本与 OpenAPI 均为 `5.32.0-dev.20261003.1`，不手改生成类型或降低同步校验。
 
 该版本显式声明下载 HEAD，共 238 个 HTTP 操作；现有 GET/POST/PUT/PATCH/DELETE 审计口径仍为 237。下载 429 的 `X-Download-Limit-Reason` 与 `Retry-After` 直接消费生成类型；Cookie 由服务端签发及浏览器同源管理，Web 不自行生成标识或维护额度。每日限制与原生 GET 边界见 [APP 下载](app-download.md#每日次数与-cookie)。
+
+## 沉浸式帖内身份
+
+固定 OpenAPI、全部共享夹具与生成类型由标准同步入口读取 Backend 已合并提交 `a624bed0eb2b118701bd593fbce2aabf3dea7321`（`5.36.0-dev.20261005.1`；机器契约与已验候选 `6d1228cd8c128f24860ef99747aa923c461a595a` 一致）。检查与同步均指定该 `BACKEND_CONTRACT_REF` 和真实 Backend 仓库的 `WENYOUSITE_BACKEND_ROOT`；新增 `contracts/thread-identity.v1.fixtures.json` 随版本逐字节核验。Foundation 维持 v7.2.1 依赖，本批语义规范由治理汇总。
+
+多身份集合与单角色 GET/POST/PUT/DELETE 经 `use-rp-identities.ts` 消费，PUT/DELETE 携带打开表单时的版本。本人单身份 GET/PUT/DELETE、指定账号兼容主身份 GET 与楼主开关 PATCH 保留；开关和共同失效策略仍使用 `use-thread-identity.ts`。作者可选 `rpIdentity` 是局部展示，绝不覆盖通用 User 的账号字段；结构化提及通过 `sourceHref + label` 匹配 `mentionIdentities`。创建楼层及首次 BODY 发 `identityMode=ACCOUNT|RP`，RP 带所选角色的 `identityId` 和 `identityToken`。旧编辑不发送新身份，旧服务省略能力字段时关闭新控件。历史/关闭投影、冲突与幂等行为见 [主题帖详情](thread-detail.md#帖内身份与逐次发表)。
+
+### 平级角色提及的能力协商
+
+全局 Markdown 仍为5；独立 `capabilities.roleMentionsV6Supported` 确认可保源读写，`roleMentionsV6WriteEnabled` 控制新增源。所有 `apiClient` 读取（SSR、认证重放与导出 POST）声明 `X-Markdown-Contract-Version: 6`，代理保留后端 Vary。八个正文写入 DTO 在 supported 时始终携带整数6，包括新主题正文、删除全部旧提及的编辑和云草稿。旧后端不发送未知字段；能力未读取完成时不抢先查询旧候选。
+
+新后端候选始终传 `includeIdentities=true`，即使新写关闭；空列表不得回退兼容主身份，`@全体玩家` 独立。显式 ACCOUNT 和各 RP 使用 `candidateKey`，插入 `mentionHref`/`mentionLabel`，不按账号合并同名角色。旧 bare 历史节点保留。`40014`/`40015` 保留草稿并刷新能力/候选。
+
+固定语料 `contracts/markdown-v6-role-mentions-fixtures.json` 随 OpenAPI 同步校验。源语法、复制与显示边界见[正文协议](markdown-content-protocol.md#平级角色提及-v6-扩展)。

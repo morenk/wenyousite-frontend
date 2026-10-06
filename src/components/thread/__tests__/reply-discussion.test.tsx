@@ -1,7 +1,8 @@
 /** ReplyDiscussion 测试：原楼层上下文与沉浸式回复列表 */
 
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render as renderWithProviders, screen } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import userEvent from "@testing-library/user-event";
 import { ReplyDiscussion } from "@/components/thread/reply-discussion";
 import { ThreadComposerProvider } from "@/components/thread/thread-composer-context";
@@ -98,6 +99,11 @@ afterEach(() => {
   cleanup();
   vi.clearAllMocks();
 });
+
+function render(ui: React.ReactElement) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return renderWithProviders(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
+}
 
 const rootPost: PostDetail = {
   id: "p1",

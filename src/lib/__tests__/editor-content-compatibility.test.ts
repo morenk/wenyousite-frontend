@@ -7,7 +7,7 @@ const fixtures = JSON.parse(readFileSync("contracts/rich-text-behavior-v1-fixtur
 test.each(fixtures.compatibilityCases)("$id 按共享能力矩阵分别判断读建改", (item) => {
   expect(assessEditorCompatibility(item.markdown, item.profile, item.lossless)).toEqual(item.expected);
 });
-test.each([0, 1, 2, 6, 99])("未知服务端版本 %s 保留阅读但不开放正文写入", (version) => {
+test.each([0, 1, 2, 7, 99])("未知服务端版本 %s 保留阅读但不开放正文写入", (version) => {
   expect(assessEditorInput("甲", version)).toEqual({ read: "safe-fallback", create: false, edit: false, reason: "unknown-profile" });
 });
 test.each([3, 4, 5])("当前 Web 对服务端 %s 保留已有引用空行读取能力", (version) => {
@@ -18,4 +18,10 @@ test.each([3, 4, 5])("当前 Web 对服务端 %s 保留已有引用空行读取�
 test("CRLF 对齐标记同样受旧服务端写能力保护", () => {
   expect(assessEditorInput("[wenyousite-align-v1-center]: #\r\n甲", 3).edit).toBe(false);
   expect(assessEditorCompatibility("甲", "toString").edit).toBe(false);
+});
+
+test("已知v6编辑器保留角色源，v5写入保护不会静默降级", () => {
+  const source = "[@同名](/users/u1?rpIdentityId=c00000000000000000000000a)";
+  expect(assessEditorInput(source, 6)).toMatchObject({ edit: true });
+  expect(assessEditorInput(source, 5)).toMatchObject({ edit: false, reason: "missing-feature" });
 });

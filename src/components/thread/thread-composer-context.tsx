@@ -2,10 +2,13 @@
 
 "use client";
 
+import type { PublicationIdentitySelection } from "@/components/thread/use-thread-identity-submission";
+import type { CreatePostArgs } from "@/api/hooks/use-create-post";
 import type { MarkdownMediaDisplay } from "@/lib/media-display";
 import {
   createContext,
   useCallback,
+  useEffect,
   useContext,
   useMemo,
   useState,
@@ -58,6 +61,10 @@ interface ThreadComposerContextValue {
   content: string;
   dirty: boolean;
   pending: boolean;
+  identitySelection?: PublicationIdentitySelection;
+  setIdentitySelection: (value: PublicationIdentitySelection | undefined) => void;
+  pendingCreate: CreatePostArgs | null;
+  setPendingCreate: (request: CreatePostArgs | null) => void;
   open: (session: ThreadComposerSession) => Promise<boolean>;
   close: (options?: CloseOptions) => Promise<boolean>;
   setContent: (content: string) => void;
@@ -74,10 +81,19 @@ const ThreadComposerContext = createContext<ThreadComposerContextValue | null>(n
 export function ThreadComposerProvider({ children, threadId }: { children: ReactNode; threadId?: string }) {
   const [session, setSession] = useState<ThreadComposerSession | null>(null);
   const [content, updateContent] = useState("");
+  const [identitySelection, setIdentitySelection] = useState<PublicationIdentitySelection>();
+  const [pendingCreate, updatePendingCreate] = useState<CreatePostArgs | null>(null);
   const [pending, updatePending] = useState(false);
   const [editorValid, updateEditorValid] = useState(true);
   const closeGuardRef = useRef<(() => boolean) | null>(null);
-  const live = useRef({ session: null as ThreadComposerSession | null, content: "", pending: false, valid: true, revision: 0, unsynchronized: false });
+  const live = useRef({ session: null as ThreadComposerSession | null, content: "", pending: false, pendingCreate: null as CreatePostArgs | null, valid: true, revision: 0, unsynchronized: false });
+  const setPendingCreate = useCallback((request: CreatePostArgs | null) => { live.current.pendingCreate = request; updatePendingCreate(request); }, []);
+  useEffect(() => {
+    if (!pendingCreate) return;
+    const protectPending = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; };
+    window.addEventListener("beforeunload", protectPending);
+    return () => window.removeEventListener("beforeunload", protectPending);
+  }, [pendingCreate]);
   const setContent = useCallback((next: string) => {
     live.current.content = next;
     live.current.unsynchronized = false;
@@ -94,6 +110,7 @@ export function ThreadComposerProvider({ children, threadId }: { children: React
   const dirty = session !== null && (!editorValid || content !== session.initialContent);
   const confirmDiscard = useCallback(async () => {
     // guard 可同步刷新正文，必须在其执行后读取 ref，不能依赖上一轮 render 的 dirty。
+    if (live.current.pendingCreate) { toast.error("发表结果尚未确认，请先重试确认发表"); return false; }
     if (closeGuardRef.current?.() === false) return false;
     const current = live.current;
     if (!current.session || (current.valid && !current.unsynchronized && current.content === current.session.initialContent)) return true;
@@ -117,6 +134,7 @@ export function ThreadComposerProvider({ children, threadId }: { children: React
     if (live.current.session?.key === nextSession.key) return true;
     if (!(await confirmDiscard())) return false;
     setEditorValid(true);
+    setIdentitySelection(undefined);
     live.current.session = nextSession;
     setSession(nextSession);
     setContent(nextSession.initialContent);
@@ -130,8 +148,10 @@ export function ThreadComposerProvider({ children, threadId }: { children: React
     setSession(null);
     setContent("");
     setPending(false);
+    setPendingCreate(null);
+    setIdentitySelection(undefined);
     return true;
-  }, [confirmDiscard, setContent, setEditorValid, setPending]);
+  }, [confirmDiscard, setContent, setEditorValid, setPending, setPendingCreate]);
 
   const value = useMemo<ThreadComposerContextValue>(
     () => ({
@@ -140,6 +160,10 @@ export function ThreadComposerProvider({ children, threadId }: { children: React
       content,
       dirty,
       pending,
+      pendingCreate,
+      setPendingCreate,
+      identitySelection,
+      setIdentitySelection,
       open,
       close,
       setContent,
@@ -148,11 +172,11 @@ export function ThreadComposerProvider({ children, threadId }: { children: React
       registerCloseGuard,
       onDocumentChange,
     }),
-    [threadId, session, content, dirty, pending, open, close, registerCloseGuard, onDocumentChange, setContent, setPending, setEditorValid],
+    [threadId, session, content, dirty, pending, pendingCreate, setPendingCreate, identitySelection, setIdentitySelection, open, close, registerCloseGuard, onDocumentChange, setContent, setPending, setEditorValid],
   );
 
-  const sessionValue = useMemo<SessionContextValue>(() => ({ threadId, session, pending, open, close, setContent, setPending, setEditorValid, registerCloseGuard, onDocumentChange }),
-    [threadId, session, pending, open, close, setContent, setPending, setEditorValid, registerCloseGuard, onDocumentChange]);
+  const sessionValue = useMemo<SessionContextValue>(() => ({ threadId, session, pending, pendingCreate, setPendingCreate, identitySelection, setIdentitySelection, open, close, setContent, setPending, setEditorValid, registerCloseGuard, onDocumentChange }),
+    [threadId, session, pending, pendingCreate, setPendingCreate, identitySelection, setIdentitySelection, open, close, setContent, setPending, setEditorValid, registerCloseGuard, onDocumentChange]);
   return (
     <ThreadComposerSessionContext.Provider value={sessionValue}>
       <ThreadComposerContext.Provider value={value}>{children}</ThreadComposerContext.Provider>

@@ -1,3 +1,4 @@
+import { MENTION_SOURCE_HREF_ATTRIBUTE, MENTION_SOURCE_LABEL_ATTRIBUTE, parseMentionTarget } from "@/lib/mention";
 import type { Mark } from "@milkdown/kit/prose/model";
 import type { Transaction } from "@milkdown/kit/prose/state";
 import type { EditorView, MarkView } from "@milkdown/kit/prose/view";
@@ -11,10 +12,11 @@ import {
 function setLinkAttributes(dom: HTMLAnchorElement, mark: Mark) {
   const href = String(mark.attrs.href ?? "");
   const reference = parseInternalReference(href);
-  dom.setAttribute("href", reference?.href ?? href);
+  const displayHref = reference?.href ?? href;
+  if (dom.getAttribute("href") !== displayHref) dom.setAttribute("href", displayHref);
   const title = typeof mark.attrs.title === "string" ? mark.attrs.title : null;
-  if (title) dom.setAttribute("title", title);
-  else dom.removeAttribute("title");
+  if (title && dom.getAttribute("title") !== title) dom.setAttribute("title", title);
+  else if (!title) dom.removeAttribute("title");
   return reference;
 }
 
@@ -44,11 +46,21 @@ export function createEditorLinkMarkView(initialMark: Mark): MarkView {
   const reference = setLinkAttributes(dom, mark);
 
   if (!reference) {
+    const isUserLink = Boolean(parseMentionTarget(String(mark.attrs.href ?? ""), "@_"));
+    const contentDOM = isUserLink ? document.createElement("span") : dom;
+    if (contentDOM !== dom) { contentDOM.dataset.editorMentionSource = "true"; dom.append(contentDOM); }
     return {
       dom,
-      contentDOM: dom,
+      contentDOM,
+      // 这些属性只投影显示，不是正文编辑；否则DOM回读会重建mark并再次触发投影。
+      ignoreMutation(mutation) {
+        return isUserLink && mutation.type === "attributes" && mutation.target === dom
+          && ["contenteditable", "spellcheck", "data-mention-id", "data-slot", "data-mention-display", "aria-label",
+            MENTION_SOURCE_HREF_ATTRIBUTE, MENTION_SOURCE_LABEL_ATTRIBUTE].includes(mutation.attributeName ?? "");
+      },
       update(nextMark) {
-        if (nextMark.type !== mark.type || parseInternalReference(String(nextMark.attrs.href ?? ""))) {
+        if (nextMark.type !== mark.type || parseInternalReference(String(nextMark.attrs.href ?? ""))
+          || isUserLink !== Boolean(parseMentionTarget(String(nextMark.attrs.href ?? ""), "@_"))) {
           return false;
         }
         mark = nextMark;

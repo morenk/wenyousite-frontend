@@ -18,6 +18,7 @@ import { DiscussionListControls } from "@/components/shared/discussion-list-cont
 import type { ReplyOrder } from "@/api/reply-query";
 import { ReplyCard } from "@/components/thread/reply-card";
 import { useAuth } from "@/lib/auth";
+import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
 import { DiscussionTargetMask } from "@/components/thread/discussion-target-mask";
 
 interface ReplyListProps {
@@ -46,7 +47,15 @@ export function ReplyList({
   const [visibleId, setVisibleId] = useState<string>();
   const preserveId = session?.type === "edit" ? session.postId : session?.type === "reply" ? session.replyToPostId : undefined;
   const [order, setOrder] = useState<ReplyOrder>("OLDEST");
-  const [requestedAuthorId, setAuthorId] = useState<string>();
+  const { authorFilter, setAuthorFilter, isProvided } = useThreadPermissions();
+  const [localAuthorId, setLocalAuthorId] = useState<string>();
+  const requestedAuthorId = isProvided
+    ? authorFilter?.parentPostId === postId ? authorFilter.authorId : undefined
+    : localAuthorId;
+  const setAuthorId = (authorId?: string) => {
+    if (isProvided) setAuthorFilter({ subthreadId: "", parentPostId: postId, authorId });
+    else setLocalAuthorId(authorId);
+  };
   const authorsQuery = useReplyAuthors(
     variant === "discussion" ? postId : undefined,
     user?.id,

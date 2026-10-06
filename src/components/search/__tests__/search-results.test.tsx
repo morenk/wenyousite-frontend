@@ -276,6 +276,25 @@ describe("SearchResults", () => {
     expect(mockFetchNextPage).toHaveBeenCalledTimes(1);
   });
 
+  test("楼层搜索使用历史作者与服务端提及投影，普通文字和定位保持原样", () => {
+    mockUseSearchPosts.mockReturnValue({
+      ...idleQuery,
+      data: { pages: [{ data: [{
+        ...post,
+        content: "白鸦 [@白鸦](/users/u2)",
+        author: { ...post.author, rpIdentity: { id: "rp1", nickname: "夜渡", avatar: null } },
+        mentionIdentities: [{ userId: "u2", label: "白鸦", displayName: "小明", identityId: null }],
+      }], meta: { cursor: null, hasMore: false } }] },
+      hasNextPage: false, isFetchingNextPage: false, fetchNextPage: mockFetchNextPage,
+    });
+    render(<SearchResults keyword="白鸦" />);
+    fireEvent.click(screen.getByRole("tab", { name: "楼层内容" }));
+    expect(screen.getByText("白鸦 [@小明]")).toBeInTheDocument();
+    expect(screen.getByText(/夜渡 · #1/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /夜渡/ })).toHaveAttribute("href", "/threads/t1?post=p1");
+    expect(screen.queryByText(/morenk/)).not.toBeInTheDocument();
+  });
+
   test("单字符切到楼层 Tab 时提示补充关键词且不启用请求", () => {
     render(<SearchResults keyword="字" />);
     fireEvent.click(screen.getByRole("tab", { name: "楼层内容" }));

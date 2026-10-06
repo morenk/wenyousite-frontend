@@ -54,17 +54,26 @@ const cover = JSON.parse(source.read("thread-cover-media-v1-fixtures.json"));
 if (cover.schemaVersion !== 1 || !Array.isArray(cover.cases)) throw new Error("后端列表封面契约不是 v1");
 const display = JSON.parse(source.read("media-display-v1-fixtures.json"));
 if (display.schemaVersion !== 1 || !Array.isArray(display.cases) || display.contractVersion !== contract.info.version) throw new Error("后端完整展示契约不是同版本 v1");
-const isMarkdown = (name) => /^markdown-(?:v\d+(?:-nodes|-image-alignment)?|editor-roundtrip-v\d+)-fixtures\.json$/.test(name);
+const isMarkdown = (name) => /^markdown-(?:v\d+(?:-nodes|-image-alignment|-role-mentions)?|editor-roundtrip-v\d+)-fixtures\.json$/.test(name);
 const markdownFiles = source.list().filter(isMarkdown);
 if (!markdownFiles.length) throw new Error("后端缺少 Markdown 契约");
 for (const name of markdownFiles) {
   const value = JSON.parse(source.read(name));
-  if (!value.contract?.startsWith("wenyousite-markdown") || !Number.isInteger(value.version)) throw new Error(name + " 契约无效");
+  if (name === "markdown-v6-role-mentions-fixtures.json") {
+    if (value.contractVersion !== contract.info.version || value.markdownContractVersion !== 6 || value.activeMarkdownContractVersion !== 5 || !Array.isArray(value.cases)) throw new Error(name + " 契约无效");
+  } else if (!value.contract?.startsWith("wenyousite-markdown") || !Number.isInteger(value.version)) throw new Error(name + " 契约无效");
 }
 const discussionName = "discussion-navigation.v1.json";
 const discussion = JSON.parse(source.read(discussionName));
 if (discussion.version !== 1 || discussion.contractVersion !== contract.info.version || !Array.isArray(discussion.scenarios)) throw new Error("后端讨论定位契约不是同版本 v1");
-const names = [discussionName, "openapi.json", "internal-reference-v1-fixtures.json", "editor-clipboard-v2-fixtures.json",
+const identityName = "thread-identity.v1.fixtures.json";
+const identity = JSON.parse(source.read(identityName));
+if (identity.version !== 1 || identity.httpContractVersion !== contract.info.version || !Array.isArray(identity.cases)) throw new Error("后端帖内身份契约不是同版本 v1");
+const profileName = "rp-identity-profile-post.v1.fixtures.json";
+const profile = JSON.parse(source.read(profileName));
+if (profile.version !== 1 || profile.contractVersion !== contract.info.version || profile.capability !== "rpIdentityProfileSupported"
+  || !Array.isArray(profile.cases)) throw new Error("后端角色资料契约不是同版本 v1");
+const names = [profileName, identityName, discussionName, "openapi.json", "internal-reference-v1-fixtures.json", "editor-clipboard-v2-fixtures.json",
   "markdown-editor-newline-v1-fixtures.json", "thread-cover-media-v1-fixtures.json", "media-display-v1-fixtures.json", boundaryName, ...behaviorFiles, ...inlineCombinationFiles, ...markdownFiles];
 // 在写入前读取全部内容，来源缺失时不留下半套契约。
 const contents = names.map((name) => [name, source.read(name)]);

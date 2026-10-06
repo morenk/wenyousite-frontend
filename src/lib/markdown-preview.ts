@@ -1,10 +1,12 @@
+import { mentionSourceTokens, parseMentionTarget } from "@/lib/mention";
+import { mentionDisplayName, type MentionIdentity } from "@/lib/thread-identity";
 import type Token from "markdown-it/lib/token.mjs";
 import { DICE_INLINE_MARKER_SOURCE } from "@/lib/dice-inline";
 import { formatInternalReferencePreview } from "@/lib/internal-reference";
 import { analyzeMarkdownBlockBoundaries } from "@/lib/markdown-block-boundaries";
 import { recoverCodeAttention } from "@/lib/markdown-attention";
 
-function inlinePreview(tokens: Token[], omitImages: boolean, recoverAttention = true): string {
+function inlinePreview(tokens: Token[], omitImages: boolean, recoverAttention = true, identities?: MentionIdentity[]): string {
   if (recoverAttention) {
     let linkDepth = 0;
     for (let index = 0; index < tokens.length; index++) {
@@ -45,8 +47,10 @@ function inlinePreview(tokens: Token[], omitImages: boolean, recoverAttention = 
     } else if (token.type === "link_open") {
       let end = index + 1;
       while (end < tokens.length && tokens[end]!.type !== "link_close") end++;
-      const label = inlinePreview(tokens.slice(index + 1, end), omitImages, false).trim();
+      let label = inlinePreview(tokens.slice(index + 1, end), omitImages, false).trim();
       const href = token.attrGet("href") ?? "";
+      const target = parseMentionTarget(href, label);
+      if (target) label = "@" + mentionDisplayName(target.userId, label.slice(1), identities, href);
       const raw = token.info === "auto"
         ? tokens.slice(index + 1, end).map((child) => child.content).join("")
         : `[${label}](${href})`;
@@ -60,8 +64,16 @@ function inlinePreview(tokens: Token[], omitImages: boolean, recoverAttention = 
 }
 
 /** 将 Markdown 正文转换为紧凑预览；格式语法由解析器消费，代码内容不经正则去格式。 */
-export function formatMarkdownPreview(markdown: string, options: { omitImages?: boolean; legacyHardBreaks?: boolean } = {}): string {
-  const { tokens } = analyzeMarkdownBlockBoundaries(markdown);
+export function formatMarkdownPreview(markdown: string, options: { omitImages?: boolean; legacyHardBreaks?: boolean; mentionIdentities?: MentionIdentity[] } = {}): string {
+  // 摘要只投影一份副本；源节点和草稿原文不变。实体逐字编码后不再被格式解析。
+  let previewSource = markdown;
+  for (const token of mentionSourceTokens(markdown).reverse()) {
+    if (token.mode === "LEGACY") continue;
+    const label = token.label;
+    const literal = Array.from(label).map((character) => "&#x" + character.codePointAt(0)!.toString(16) + ";").join("");
+    previewSource = previewSource.slice(0, token.start) + "[" + literal + "](" + token.sourceHref + ")" + previewSource.slice(token.end);
+  }
+  const { tokens } = analyzeMarkdownBlockBoundaries(previewSource);
   const lineCount = markdown.split("\n").length;
   return tokens.map((token) => {
     if (token.type === "inline") {
@@ -72,7 +84,7 @@ export function formatMarkdownPreview(markdown: string, options: { omitImages?: 
         && last?.type === "text" && last.content.endsWith("\\")) {
         last.content = last.content.slice(0, -1);
       }
-      return inlinePreview(token.children ?? [], options.omitImages ?? false);
+      return inlinePreview(token.children ?? [], options.omitImages ?? false, true, options.mentionIdentities);
     }
     if (token.type === "code_block" || token.type === "fence") return token.content;
     return "";

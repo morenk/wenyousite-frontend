@@ -1,10 +1,12 @@
+import { queryKeys } from "@/api/query-keys";
 import { QueryClient } from "@tanstack/react-query";
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import {
   clearMomentContentCaches,
   clearMomentCommentCaches,
   clearPostContentCaches,
   clearThreadContentCaches,
+  resetBlockRelatedQueries,
 } from "@/api/content-access-cache";
 
 describe("失效内容缓存清理", () => {
@@ -65,4 +67,26 @@ describe("失效内容缓存清理", () => {
     expect(client.getQueryData(["moments", "detail", "m1", "u1"])).toEqual({ id: "m1" });
     expect(client.getQueryData(["moments", "comments", "m1", "u1"])).toBeUndefined();
   });
+});
+
+test("主题不可访问删除本人token与身份卡缓存，保留其他主题；拉黑取消并重置全部身份", async () => {
+  const client = new QueryClient();
+  const mine = queryKeys.threadIdentities.mine("t1", "u1");
+  const card = queryKeys.threadIdentities.user("t1", "u2", "u1");
+  const other = queryKeys.threadIdentities.mine("t2", "u1");
+  const roles = queryKeys.threadIdentities.collection("t1", "u1");
+  const role = queryKeys.threadIdentities.role("t1", "role-b", "u1");
+  for (const key of [mine, card, roles, role, other]) client.setQueryData(key, { private: true });
+  clearThreadContentCaches(client, "t1");
+  expect(client.getQueryData(mine)).toBeUndefined();
+  expect(client.getQueryData(card)).toBeUndefined();
+  expect(client.getQueryData(roles)).toBeUndefined();
+  expect(client.getQueryData(role)).toBeUndefined();
+  expect(client.getQueryData(other)).toEqual({ private: true });
+  const cancel = vi.spyOn(client, "cancelQueries");
+  const reset = vi.spyOn(client, "resetQueries");
+  await resetBlockRelatedQueries(client);
+  expect(cancel).toHaveBeenCalledWith({ queryKey: queryKeys.threadIdentities.all });
+  expect(reset).toHaveBeenCalledWith({ queryKey: queryKeys.threadIdentities.all });
+  expect(client.getQueryData(other)).toBeUndefined();
 });

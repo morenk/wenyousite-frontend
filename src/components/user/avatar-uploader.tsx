@@ -17,6 +17,7 @@ import {
   uploadImageFile,
   validateAvatarFile,
   type UploadImageProgress as UploadImageProgressValue,
+  type UploadedImage,
 } from "@/lib/upload-image";
 import { getCroppedBlob } from "@/lib/avatar-crop";
 import { createImageFileFromBlob } from "@/lib/image-file";
@@ -32,12 +33,19 @@ interface AvatarUploaderProps extends Pick<
   username: string;
   avatar: string | null;
   avatarDisplay?: MediaDisplay | null;
+  /** 帖内头像复用裁剪链路，保存权属交给调用方。 */
+  onSaveAvatar?: (mediaId: string, uploaded?: UploadedImage) => Promise<unknown>;
+  onRemoveAvatar?: () => Promise<unknown>;
+  title?: string;
 }
 
 export function AvatarUploader({
   username,
   avatar,
   avatarDisplay,
+  onSaveAvatar,
+  onRemoveAvatar,
+  title = "头像",
   onClose,
   returnFocus,
 }: AvatarUploaderProps) {
@@ -49,6 +57,7 @@ export function AvatarUploader({
   const uploadAbortRef = useRef<AbortController | null>(null);
   const preparedAvatarRef = useRef<File | null>(null);
   const uploadedMediaIdRef = useRef<string | null>(null);
+  const uploadedImageRef = useRef<UploadedImage | undefined>(undefined);
 
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -56,6 +65,7 @@ export function AvatarUploader({
   const [croppedArea, setCroppedArea] = useState<Area | undefined>();
   const [cropOpen, setCropOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
   const [uploadProgress, setUploadProgress] =
     useState<UploadImageProgressValue | null>(null);
 
@@ -75,11 +85,12 @@ export function AvatarUploader({
     [],
   );
 
-  const pending = isUploading || setAvatar.isPending || removeAvatar.isPending;
+  const pending = isUploading || isRemoving || setAvatar.isPending || removeAvatar.isPending;
 
   const invalidatePreparedAvatar = () => {
     preparedAvatarRef.current = null;
     uploadedMediaIdRef.current = null;
+    uploadedImageRef.current = undefined;
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -146,8 +157,9 @@ export function AvatarUploader({
         });
         mediaId = uploaded.mediaId;
         uploadedMediaIdRef.current = mediaId;
+        uploadedImageRef.current = uploaded;
       }
-      await setAvatar.mutateAsync(mediaId);
+      await (onSaveAvatar ? onSaveAvatar(mediaId, uploadedImageRef.current) : setAvatar.mutateAsync(mediaId));
       toast.success("头像已更新");
       closeCrop();
       onClose?.();
@@ -165,12 +177,15 @@ export function AvatarUploader({
   const handleRemove = async () => {
     if (pending) return;
     setFailure(null);
+    setIsRemoving(true);
     try {
-      await removeAvatar.mutateAsync();
+      await (onRemoveAvatar ? onRemoveAvatar() : removeAvatar.mutateAsync());
       toast.success("头像已移除");
       onClose?.();
     } catch {
       setFailure("操作失败，请稍后重试");
+    } finally {
+      setIsRemoving(false);
     }
   };
 
@@ -190,7 +205,7 @@ export function AvatarUploader({
 
   return (
     <SettingsDialog
-      title={cropOpen ? "裁剪头像" : "头像"}
+      title={cropOpen ? "裁剪头像" : title}
       onClose={onClose}
       returnFocus={returnFocus}
       dirty={cropOpen}

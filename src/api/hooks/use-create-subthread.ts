@@ -1,21 +1,19 @@
 /** 创建子贴 API hook */
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { invalidateChangedMentionCandidates } from "./use-mention-candidates";
+import { markdownWriteCapability } from "@/api/markdown-capability";
 import { apiClient } from "@/api/client";
 import type { components } from "@/api/types";
 
-interface CreateSubthreadBody {
-  clientRequestId: string;
-  title: string;
-  content?: string;
-  sortOrder?: number;
-  postingPolicy: "PARTICIPANTS" | "COLLABORATORS" | "PLAYERS";
-}
+type CreateSubthreadBody = components["schemas"]["CreateSubthreadDto"];
 
 export type CreatedSubthread = components["schemas"]["SubthreadResponseDto"];
 
 export function useCreateSubthread() {
+  const queryClient = useQueryClient();
   return useMutation({
+    onError: (error) => invalidateChangedMentionCandidates(queryClient, error),
     mutationFn: async ({
       threadId,
       body,
@@ -27,7 +25,7 @@ export function useCreateSubthread() {
         "/api/v1/threads/{threadId}/subthreads",
         {
           params: { path: { threadId } },
-          body,
+          body: { ...markdownWriteCapability(queryClient), ...body },
         },
       );
       if (error) throw error;

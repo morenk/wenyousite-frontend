@@ -442,7 +442,9 @@ describe("MilkdownEditor 自定义内联节点", () => {
 
     await user.click(editor);
     await user.type(editor, "@");
-    const candidate = await screen.findByRole("option", { name: /@小明/u });
+    const candidate = await screen.findByRole("option", { name: /小明/u });
+    expect(candidate).toHaveAttribute("data-mention-id", "user-2");
+    expect(candidate).not.toHaveTextContent("@小明");
     onChange.mockClear();
     await user.click(candidate);
 

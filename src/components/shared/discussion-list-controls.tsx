@@ -2,6 +2,8 @@
 
 import type { ReplyOrder } from "@/api/reply-query";
 import { ChronologicalOrderToggle } from "@/components/shared/chronological-order-toggle";
+import { UserIdentitySummary } from "@/components/shared/user-identity-summary";
+import type { MediaDisplay } from "@/lib/media-display";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -29,13 +31,18 @@ interface DiscussionListControlsProps {
 export interface DiscussionAuthorOption {
   id: string;
   username: string;
+  avatar?: string | null;
+  avatarDisplay?: MediaDisplay | null;
+  displayName?: string;
+  rpIdentity?: { nickname: string } | null;
+  playerMarked?: boolean;
   role: "OWNER" | "COLLABORATOR" | "PARTICIPANT";
 }
 
 function roleDetail(author: DiscussionAuthorOption) {
   if (author.role === "OWNER") return "楼主";
   if (author.role === "COLLABORATOR") return "协作者";
-  return "玩家";
+  return author.playerMarked === false ? "参与者" : "玩家";
 }
 
 export function DiscussionListControls({
@@ -51,7 +58,7 @@ export function DiscussionListControls({
   className,
 }: DiscussionListControlsProps) {
   const authorItems = [
-    { value: "ALL", label: "全部玩家与管理者" },
+    { value: "ALL", label: "全部发言者" },
     ...authors.map((author) => ({ value: author.id, label: author.username })),
   ];
 
@@ -64,19 +71,17 @@ export function DiscussionListControls({
       <SelectTrigger
         size="compact"
         aria-label={`只看某人的${subject}`}
-        className="min-w-44"
+        className="min-w-44 max-w-full"
       >
         <WenyouIcon id="identity.member" className="size-3.5 text-muted-foreground" />
-        <SelectValue />
+        <SelectValue className="min-w-0 truncate" />
       </SelectTrigger>
       <SelectContent align="end" className="min-w-52">
-        <SelectItem value="ALL">全部玩家与管理者</SelectItem>
+        <SelectItem value="ALL">全部发言者</SelectItem>
         {authors.map((author) => (
-          <SelectItem key={author.id} value={author.id}>
-            <span>{author.username}</span>
-            <span className="font-utility text-[0.6875rem] text-muted-foreground">
-              {roleDetail(author)}
-            </span>
+          <SelectItem key={author.id} value={author.id} aria-label={author.username + " " + roleDetail(author)} className="[&>span]:min-w-0 [&>span]:shrink">
+            <UserIdentitySummary appearance={{ name: author.username, avatar: author.avatar ?? null, avatarDisplay: author.avatarDisplay }}
+              label={roleDetail(author)} compact truncate />
           </SelectItem>
         ))}
       </SelectContent>

@@ -15,7 +15,8 @@ const timeout = setTimeout(stop, 50 * 60 * 1000);
 try {
   const args = process.argv.slice(2);
   const discussionFixtures = process.env.WENYOUSITE_E2E_DISCUSSION_FIXTURES === "true" || args.includes("e2e/discussion-navigation.spec.ts");
-  const runner = backendRunner(process.env, discussionFixtures);
+  const roleMentionsV6 = args.length === 0 || args.includes("e2e/role-mentions.spec.ts") || process.env.WENYOUSITE_E2E_ROLE_MENTIONS_V6 === "true";
+  const runner = backendRunner(process.env, discussionFixtures, roleMentionsV6);
   const { backend, revision, env } = runner;
   const reports = join(frontend, ".e2e-results");
   mkdirSync(reports, { recursive: true, mode: 0o700 });

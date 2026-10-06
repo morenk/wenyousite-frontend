@@ -1,3 +1,4 @@
+import { MENTION_SOURCE_HREF_ATTRIBUTE, MENTION_SOURCE_LABEL_ATTRIBUTE, parseMentionTarget } from "@/lib/mention";
 import { editorViewOptionsCtx, schemaCtx } from "@milkdown/core";
 import {
   DOMParser,
@@ -276,10 +277,21 @@ export const editorMarkdownPastePlugin = $prose((ctx) => {
   ctx.update(editorViewOptionsCtx, (options) => ({
     ...options,
     clipboardSerializer: createEditorClipboardSerializer(schema),
-    clipboardTextSerializer: (slice) => {
+    clipboardTextSerializer: (slice, view) => {
       // 复制需要来源URL，但临时img不得在活动document发起原件请求。
       const clipboardDocument = document.implementation.createHTMLDocument("");
       const serialized = baseSerializer.serializeFragment(withoutAutomaticTrailingContent(slice.content), { document: clipboardDocument });
+      for (const anchor of serialized.querySelectorAll("a")) {
+        const target = parseMentionTarget(anchor.getAttribute("href"), anchor.textContent);
+        if (!target) continue;
+        const source = Array.from(view.dom.querySelectorAll<HTMLAnchorElement>("a[data-mention-display]"))
+          .find((item) => item.getAttribute("href") === target.sourceHref && item.textContent === anchor.textContent);
+        if (source) {
+          anchor.setAttribute(MENTION_SOURCE_HREF_ATTRIBUTE, target.sourceHref);
+          anchor.setAttribute(MENTION_SOURCE_LABEL_ATTRIBUTE, anchor.textContent!);
+          anchor.setAttribute("data-mention-display", source.dataset.mentionDisplay!);
+        }
+      }
       return createSiteClipboardPayloadFromNodes(
         serialized.childNodes,
         "editor",

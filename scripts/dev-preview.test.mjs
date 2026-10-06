@@ -61,3 +61,12 @@ test("逐请求核验真实资源，阻止身份切换、重定向和未登记�
     await assert.rejects(verifyRuntime(d, "backend", async () => new Response("{}", { headers: { "content-type": "application/json", "x-wenyou-preview-run": d.runId } })));
   } finally { await proxy?.close(); await Promise.all(servers.map((server) => new Promise((ok) => { server.close(ok); server.closeAllConnections(); }))); }
 });
+
+test("已提交私有描述允许两种准确合成来源，拒绝未知sourceKind", () => {
+  for (const sourceKind of ["synthetic-downloads", "synthetic-thread-identities"]) {
+    const value = descriptor(); value.snapshot.sourceKind = sourceKind;
+    assert.equal(validateDescriptor(value).snapshot.sourceKind, sourceKind);
+  }
+  const invalid = descriptor(); invalid.snapshot.sourceKind = "unverified";
+  assert.throws(() => validateDescriptor(invalid));
+});

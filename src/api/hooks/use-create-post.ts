@@ -1,35 +1,32 @@
 /** 创建楼层 API hook（发布楼层或楼中楼回复） */
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { invalidateChangedMentionCandidates } from "./use-mention-candidates";
+import { markdownWriteCapability } from "@/api/markdown-capability";
 import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
 import type { components } from "@/api/types";
 
 export type CreatedPost = components["schemas"]["PostResponseDto"];
 
-interface CreatePostArgs {
-  subthreadId: string;
-  content: string;
-  clientRequestId: string;
-  parentPostId?: string;
-  replyToPostId?: string;
-}
+export type CreatePostArgs = components["schemas"]["CreatePostDto"] & { subthreadId: string };
 
 export function useCreatePost() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ subthreadId, content, clientRequestId, parentPostId, replyToPostId }: CreatePostArgs) => {
+    mutationFn: async ({ subthreadId, ...body }: CreatePostArgs) => {
       const { data, error } = await apiClient.POST(
         "/api/v1/subthreads/{subthreadId}/posts",
         {
           params: { path: { subthreadId } },
-          body: { content, parentPostId, replyToPostId, clientRequestId },
+          body: { ...markdownWriteCapability(queryClient), ...body },
         },
       );
       if (error) throw error;
       if (!data) throw new Error("创建帖子响应为空");
       return data.data;
     },
+    onError: (error) => invalidateChangedMentionCandidates(queryClient, error),
     onSuccess: (_data, variables) =>
       Promise.all([
         queryClient.invalidateQueries({

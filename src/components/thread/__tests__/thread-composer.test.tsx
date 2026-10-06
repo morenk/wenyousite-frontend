@@ -1,5 +1,6 @@
 /** ThreadComposer 测试：按需挂载唯一编辑器并统一创建、回复与编辑提交 */
 
+import { useState } from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -12,11 +13,24 @@ import {
 import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
 
 const mocks = vi.hoisted(() => ({
+  rp: false,
+  prepare: vi.fn(),
+  requireConfirmation: vi.fn(),
   create: vi.fn().mockResolvedValue({ id: "created-post" }),
   update: vi.fn().mockResolvedValue({}),
   upload: vi.fn().mockResolvedValue("https://example.com/image.webp"),
   success: vi.fn(),
   error: vi.fn(),
+}));
+
+vi.mock("@/components/thread/thread-permissions-context", () => ({
+  useThreadPermissions: () => ({ rpIdentitySupported: mocks.rp }),
+}));
+vi.mock("@/components/thread/use-thread-identity-submission", () => ({
+  useThreadIdentitySubmission: () => ({ prepare: mocks.prepare, requireConfirmation: mocks.requireConfirmation, query: { data: {} } }),
+}));
+vi.mock("@/components/thread/thread-publication-identity", () => ({
+  ThreadPublicationIdentity: ({ disabled }: { disabled: boolean }) => <button disabled={disabled}>身份选择</button>,
 }));
 
 const REQUEST_ID = "6f9619ff-8b86-4e4b-a59b-19a25f6d6f77";
@@ -45,14 +59,17 @@ vi.mock("@/components/editor/milkdown-editor", async () => {
     onChange,
     onSyncErrorChange,
     placeholder,
+    disabled,
   }: {
     defaultValue?: string;
     onChange?: (value: string) => void;
     onSyncErrorChange?: (hasError: boolean) => void;
     placeholder?: string;
+    disabled?: boolean;
   }) => (
     <>
     <textarea
+      disabled={disabled}
       data-testid="milkdown-editor"
       aria-label={placeholder}
       defaultValue={defaultValue}
@@ -98,15 +115,17 @@ const sessions: Record<string, ThreadComposerSession> = {
 };
 
 function Harness() {
+  const [reset, setReset] = useState(0);
   const { open } = useThreadComposer();
   return (
     <>
+      <button onClick={() => setReset((value) => value + 1)}>刷新楼层视图</button>
       <button onClick={() => open(sessions.create)}>发表入口</button>
       <button onClick={() => open(sessions.reply)}>回复入口</button>
       <button onClick={() => open(sessions.edit)}>编辑入口</button>
-      <ThreadComposerOutlet anchorId="create-floor:s1" />
-      <ThreadComposerOutlet anchorId="reply:post-1" />
-      <ThreadComposerOutlet anchorId="reply:reply-2" />
+      <ThreadComposerOutlet key={"create-" + reset} anchorId="create-floor:s1" />
+      <ThreadComposerOutlet key={"reply-" + reset} anchorId="reply:post-1" />
+      <ThreadComposerOutlet key={"edit-" + reset} anchorId="reply:reply-2" />
     </>
   );
 }
@@ -124,10 +143,71 @@ function renderHarness() {
 }
 
 describe("ThreadComposer", () => {
+test("RP结果不明时连mode/token/正文/UUID冻结，重试不重新准备身份", async () => {
+  mocks.rp = true; mocks.prepare.mockResolvedValue({ identityMode: "RP", identityId: "rp-selected", identityToken: "original-token" });
+  mocks.create.mockRejectedValueOnce(new TypeError("offline")).mockResolvedValueOnce({ id: "created" });
+  renderHarness();
+  await userEvent.click(screen.getByRole("button", { name: "发表入口" }));
+  await userEvent.type(screen.getByTestId("milkdown-editor"), "原正文");
+  await userEvent.click(screen.getByRole("button", { name: "发布" }));
+  await screen.findByRole("button", { name: "重试确认发表" });
+  expect(screen.getByRole("button", { name: "身份选择" })).toBeDisabled();
+  expect(screen.getByTestId("milkdown-editor")).toBeDisabled();
+  await userEvent.click(screen.getByRole("button", { name: "回复入口" }));
+  expect(screen.queryByText("回复 @小明")).not.toBeInTheDocument();
+  const unload = new Event("beforeunload", { cancelable: true });
+    window.dispatchEvent(unload);
+    expect(unload.defaultPrevented).toBe(true);
+    await userEvent.click(screen.getByRole("button", { name: "刷新楼层视图" }));
+  expect(screen.getByTestId("milkdown-editor")).toHaveValue("原正文");
+  expect(screen.getByTestId("milkdown-editor")).toBeDisabled();
+  mocks.prepare.mockResolvedValue({ identityMode: "ACCOUNT" });
+  await userEvent.click(screen.getByRole("button", { name: "重试确认发表" }));
+  await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(2));
+  expect(mocks.prepare).toHaveBeenCalledOnce();
+  expect(mocks.create.mock.calls[1]?.[0]).toEqual(mocks.create.mock.calls[0]?.[0]);
+  expect(mocks.create.mock.calls[1]?.[0]).toMatchObject({ identityMode: "RP", identityId: "rp-selected", identityToken: "original-token", content: "原正文" });
+});
+test("40011保留正文并要求确认，明确失败后使用新UUID；编辑旧帖不送新身份", async () => {
+  mocks.rp = true; mocks.prepare.mockResolvedValue({ identityMode: "RP", identityId: "rp-selected", identityToken: "token" });
+  vi.stubGlobal("crypto", { randomUUID: vi.fn().mockReturnValueOnce("uuid-one").mockReturnValueOnce("uuid-two") });
+  mocks.create.mockRejectedValueOnce({ code: 40011, status: 409 }).mockResolvedValueOnce({ id: "created" });
+  renderHarness();
+  await userEvent.click(screen.getByRole("button", { name: "发表入口" }));
+  await userEvent.type(screen.getByTestId("milkdown-editor"), "保留正文");
+  await userEvent.click(screen.getByRole("button", { name: "发布" }));
+  await waitFor(() => expect(mocks.requireConfirmation).toHaveBeenCalledOnce());
+  expect(screen.getByTestId("milkdown-editor")).toHaveValue("保留正文");
+  expect(screen.getByTestId("milkdown-editor")).not.toBeDisabled();
+  mocks.prepare.mockResolvedValue({ identityMode: "ACCOUNT" });
+  await userEvent.click(screen.getByRole("button", { name: "发布" }));
+  await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(2));
+  expect(mocks.create.mock.calls[1]?.[0]).toMatchObject({ clientRequestId: "uuid-two", identityMode: "ACCOUNT" });
+  await userEvent.click(screen.getByRole("button", { name: "编辑入口" }));
+  expect(screen.queryByRole("button", { name: "身份选择" })).not.toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: "保存修改" }));
+  expect(mocks.update).toHaveBeenCalledWith({ postId: "reply-2", content: "原回复", version: 3 });
+});
+
+  test("身份入口替换普通发表标题，回复对象和编辑语义仍保留", async () => {
+    mocks.rp = true;
+    renderHarness();
+    await userEvent.click(screen.getByRole("button", { name: "发表入口" }));
+    expect(screen.getByRole("button", { name: "身份选择" })).toBeInTheDocument();
+    expect(screen.queryByText("发表回复")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "回复入口" }));
+    expect(screen.getByText("回复 @小明")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "身份选择" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "编辑入口" }));
+    expect(screen.getByText("编辑回复")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "身份选择" })).not.toBeInTheDocument();
+  });
+
   afterEach(() => cleanup());
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.rp = false; mocks.prepare.mockResolvedValue(undefined);
     vi.stubGlobal("confirm", vi.fn(() => true));
     vi.stubGlobal("crypto", { randomUUID: vi.fn(() => REQUEST_ID) });
   });
@@ -240,20 +320,22 @@ describe("ThreadComposer", () => {
 
     await user.click(screen.getByRole("button", { name: "发布" }));
     await waitFor(() => expect(mocks.error).toHaveBeenCalled());
-    await user.click(screen.getByRole("button", { name: "发布" }));
+    expect(screen.getByTestId("milkdown-editor")).toBeDisabled();
+    expect(screen.getByRole("button", { name: "取消" })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "重试确认发表" }));
 
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(2));
     expect(mocks.create.mock.calls[0]?.[0].clientRequestId).toBe(REQUEST_ID);
     expect(mocks.create.mock.calls[1]?.[0].clientRequestId).toBe(REQUEST_ID);
   });
 
-  test("失败后修改正文会生成新的 clientRequestId", async () => {
+  test("确认无写入的业务失败后修改正文生成新的 clientRequestId", async () => {
     const user = userEvent.setup();
     const nextRequestId = "d9428888-122b-4c71-9a16-6f91a7c31917";
     vi.stubGlobal("crypto", {
       randomUUID: vi.fn().mockReturnValueOnce(REQUEST_ID).mockReturnValueOnce(nextRequestId),
     });
-    mocks.create.mockRejectedValueOnce(new Error("网络超时")).mockResolvedValueOnce({ id: "created-post" });
+    mocks.create.mockRejectedValueOnce({ code: 40012, message: "提及已变化" }).mockResolvedValueOnce({ id: "created-post" });
     renderHarness();
     await user.click(screen.getByRole("button", { name: "发表入口" }));
     const editor = screen.getByTestId("milkdown-editor");
@@ -306,4 +388,5 @@ describe("ThreadComposer", () => {
     }));
     expect(screen.queryByTestId("milkdown-editor")).not.toBeInTheDocument();
   });
+
 });

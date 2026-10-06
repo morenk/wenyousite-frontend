@@ -1,5 +1,6 @@
 "use client";
 
+import { useMarkdownWriteCapability } from "@/api/hooks/use-markdown-write-capability";
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { useQueryStates } from "nuqs";
 import { toast } from "sonner";
@@ -22,6 +23,8 @@ import {
 import type { ThreadDetail, SubthreadDetail } from "@/api/hooks/use-thread-detail";
 import type { SubthreadFormData } from "@/components/forms/subthread-form";
 import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
+import { useInitialBodyWrite } from "@/components/thread/use-initial-body-write";
+import { useThreadIdentitySubmission } from "@/components/thread/use-thread-identity-submission";
 import { useConfirm } from "@/components/ui/confirm-provider";
 import { usePublicInviteConfirmation } from "@/components/shared/use-public-invite-confirmation";
 import {
@@ -95,6 +98,9 @@ export function useManagementPanelController({
   const deleteSubthread = useDeleteSubthread();
   const reorderSubthreads = useReorderSubthreads();
   const upsertBody = useUpsertBody();
+  const snapshotMarkdownCapability = useMarkdownWriteCapability();
+  const initialBody = useInitialBodyWrite<Parameters<typeof upsertBody.mutateAsync>[0]>();
+  const { canClose: canCloseInitialBody } = initialBody;
   const uploadImage = useUploadImage();
 
   const isOwner = permissions.isOwner || user?.id === thread.ownerId;
@@ -117,6 +123,7 @@ export function useManagementPanelController({
     return [...ordered, ...availableSubthreads.filter((item) => !known.has(item.id))];
   }, [availableSubthreads, state.orderedIds, subthreadMap]);
   const selectedSub = subthreadMap.get(state.selectedId);
+  const bodyIdentity = useThreadIdentitySubmission(thread.id, thread.rpIdentityEnabled !== undefined, view === "subthreads" && state.bodyVersion === undefined, state.selectedId);
   const effectiveSubthreadStatus: ManagementEditorStatus = editor.invalid
     ? { state: "error", dirty: true, busy: false, message: EDITOR_SYNC_ERROR }
     : editor.hasPendingChanges ? { state: "dirty", dirty: true, busy: false } : getSubthreadStatus(state);
@@ -169,6 +176,7 @@ export function useManagementPanelController({
   }, []);
 
   const confirmDiscardChanges = useCallback(async () => {
+    if (!canCloseInitialBody()) return false;
     if (view === "subthreads" && selectedSub && !editor.canClose()) return false;
     if (view === "settings" && state.threadStatus.canClose?.() === false) return false;
     const dirtyNow = view === "settings"
@@ -190,7 +198,7 @@ export function useManagementPanelController({
     if (view === "settings" && state.threadStatus.canClose?.() === false) return false;
     if (getVersion?.() !== revision) { toast.error("正文已变化，请再次确认"); return false; }
     return true;
-  }, [confirmAction, editor, hasUnsavedChanges, selectedSub, state.threadStatus, state.savedContent, state.title, state.savedTitle, state.postingPolicy, state.savedPostingPolicy, view]);
+  }, [canCloseInitialBody, confirmAction, editor, hasUnsavedChanges, selectedSub, state.threadStatus, state.savedContent, state.title, state.savedTitle, state.postingPolicy, state.savedPostingPolicy, view]);
 
   useManagementNavigationGuard({ hasUnsavedChanges, isNavigationLocked, confirmDiscardChanges });
 
@@ -220,7 +228,7 @@ export function useManagementPanelController({
 
   const handleSaveSubthread = async () => {
     if (!selectedSub || isNavigationLocked) return;
-    const content = editor.flush();
+    const content = initialBody.pendingRequest?.content ?? editor.flush();
     if (content === null) return;
     const title = state.title.trim();
     const metaDirty =
@@ -248,17 +256,21 @@ export function useManagementPanelController({
       return;
     }
     if (
-      contentDirty
+      contentDirty && !initialBody.pendingRequest
       && !(await confirmPublicInvite(content, thread.visibility === "PUBLIC"))
     ) return;
 
-    if (!editor.isCurrent(content)) return;
+    if (!initialBody.pendingRequest && !editor.isCurrent(content)) return;
     dispatch({
       type: "subthread-status",
       status: { state: "saving", dirty: true, busy: true },
     });
     let savedPart = false;
     try {
+      const publicationIdentity = !initialBody.pendingRequest && contentDirty && state.bodyVersion === undefined ? await bodyIdentity.prepare() : undefined;
+      if (publicationIdentity === null || (!initialBody.pendingRequest && !editor.isCurrent(content))) {
+        dispatch({ type: "subthread-status", status: { state: "dirty", dirty: true, busy: false } }); return;
+      }
       if (metaDirty) {
         const updated = await updateSubthread.mutateAsync({
           subthreadId: selectedSub.id,
@@ -277,12 +289,17 @@ export function useManagementPanelController({
         savedPart = true;
       }
       if (contentDirty) {
-        const updatedBody = await upsertBody.mutateAsync({
+        const request = initialBody.pendingRequest ?? {
           subthreadId: selectedSub.id,
           threadId: thread.id,
           content,
           version: state.bodyVersion,
-        });
+          ...publicationIdentity,
+          ...snapshotMarkdownCapability(),
+        };
+        if (state.bodyVersion === undefined) initialBody.freeze(request);
+        const updatedBody = await upsertBody.mutateAsync(request);
+        initialBody.finish();
         dispatch({
           type: "commit-content",
           content,
@@ -295,7 +312,9 @@ export function useManagementPanelController({
       await onRefetch();
       toast.success("子贴修改已保存");
     } catch (error) {
+      initialBody.fail(error);
       const apiError = getApiError(error);
+      if (apiError.code === API_ERROR_CODE.RP_IDENTITY_CHANGED) bodyIdentity.requireConfirmation();
       const conflict = apiError.code === API_ERROR_CODE.OPTIMISTIC_LOCK_CONFLICT;
       dispatch({
         type: "subthread-status",
@@ -424,7 +443,7 @@ export function useManagementPanelController({
   };
 
   const handleReloadSubthread = async () => {
-    if (!editor.canClose()) return;
+    if (!canCloseInitialBody() || !editor.canClose()) return;
     const revision = editor.getDocumentVersion();
     if (!(await confirmAction({
       title: "载入最新版本",
@@ -442,6 +461,10 @@ export function useManagementPanelController({
 
   return {
     editor,
+    bodyWriteLocked: Boolean(initialBody.pendingRequest),
+    bodyWriteUncertain: initialBody.uncertain,
+    bodyIdentity,
+    isCreatingBody: state.bodyVersion === undefined,
     view,
     subthreads,
     selectedSub,
@@ -467,7 +490,7 @@ export function useManagementPanelController({
     setContent: (content: string) => { editor.onSynchronized(); dispatch({ type: "content", content }); },
     setSubFormMode: (mode: SubFormMode) => dispatch({ type: "form", mode }),
     setThreadStatus,
-    resetSubthreadEditor: () => { if (editor.canClose()) { editor.onSynchronized(); dispatch({ type: "reset-subthread" }); } },
+    resetSubthreadEditor: () => { if (canCloseInitialBody() && editor.canClose()) { editor.onSynchronized(); dispatch({ type: "reset-subthread" }); } },
     uploadImage: (file: File, options?: UploadImageOptions) =>
       uploadImage.mutateAsync(file, options),
     handleViewChange,

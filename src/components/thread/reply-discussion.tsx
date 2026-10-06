@@ -14,7 +14,8 @@ import {
   ReplyForm,
 } from "@/components/thread/reply-form";
 import { FloatingComposerDock } from "@/components/thread/floating-composer-dock";
-import { UserAvatarLink } from "@/components/shared/user-avatar";
+import { ThreadPostAuthor } from "@/components/thread/thread-post-author";
+import { threadAppearance } from "@/lib/thread-identity";
 import { WenyouTime } from "@/components/shared/wenyou-time";
 import { LevelBadge } from "@/components/shared/level-badge";
 import { getPostHref } from "@/lib/post-navigation";
@@ -106,21 +107,9 @@ export function ReplyDiscussion({
       <section className="border-b border-border/60 px-4 py-5">
         <div className="mb-3">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <UserAvatarLink
-                userId={rootPost.authorId}
-                name={rootPost.author.username}
-                src={rootPost.author.avatar} display={rootPost.author.avatarDisplay}
-                className="h-9 w-9"
-                textClassName="text-sm"
-              />
+            <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+              <ThreadPostAuthor author={rootPost.author} threadId={rootPost.thread.id} avatarClassName="h-9 w-9" />
               <div>
-                <Link
-                  href={`/users/${rootPost.authorId}`}
-                  className="text-sm font-medium text-foreground hover:text-brand-strong"
-                >
-                  {rootPost.author.username}
-                </Link>
                 <div className="flex items-center gap-1.5">
                   <LevelBadge level={rootPost.author.level} />
                   {isPinned ? (
@@ -157,10 +146,10 @@ export function ReplyDiscussion({
         </div>
         <div>
           {isEditing ? (
-            <ThreadComposerOutlet anchorId={editAnchorId} />
+            <ThreadComposerOutlet mentionIdentities={rootPost.mentionIdentities} anchorId={editAnchorId} />
           ) : (
             <div id={rootContentId}>
-              <MarkdownContent mediaDisplays={rootPost.mediaDisplays}
+              <MarkdownContent mentionIdentities={rootPost.mentionIdentities} mediaDisplays={rootPost.mediaDisplays}
                 content={rootPost.content}
                 diceRolls={rootPost.diceRolls}
                 sourcePostId={rootPost.id}
@@ -187,7 +176,7 @@ export function ReplyDiscussion({
             subthreadId={rootPost.subthreadId}
             parentPostId={rootPost.id}
             replyToPostId={rootPost.id}
-            label={`回复 #${rootPost.floorNumber} ${rootPost.author.username}`}
+            label={`回复 #${rootPost.floorNumber} ${threadAppearance(rootPost.author).name}`}
           />
         </FloatingComposerDock>
       </section>

@@ -6,9 +6,9 @@ afterEach(() => { cleanup(); document.querySelectorAll('[data-slot="floating-com
 it("普通环境不显示预览标识", () => {
   render(<PreviewBadge />); expect(screen.queryByLabelText("开发预览环境")).toBeNull();
 });
-it("下载合成样本明确标记，不称为真实快照", () => {
+it("下载与RP合成样本明确标记，不称为真实快照", () => {
   render(<PreviewBadge snapshot="2026-10-02T20:14:11Z" synthetic />);
-  expect(screen.getByLabelText("开发预览环境")).toHaveTextContent("开发预览 · 合成样本");
+  expect(screen.getByLabelText("开发预览环境")).toHaveTextContent("开发预览 · 隔离合成样本");
   expect(screen.getByLabelText("开发预览环境")).not.toHaveTextContent("快照");
 });
 it("随底部输入坞高度避让，并保持点击穿透", async () => {

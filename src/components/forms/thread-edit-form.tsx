@@ -2,6 +2,7 @@
 
 "use client";
 
+import { useMarkdownWriteCapability } from "@/api/hooks/use-markdown-write-capability";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Controller, useForm, useWatch } from "react-hook-form";
@@ -32,6 +33,10 @@ import { API_ERROR_CODE, getApiError, getApiErrorMessage } from "@/api/errors";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
 import type { ManagementEditorStatus } from "@/components/thread/management-types";
 import { useConfirm } from "@/components/ui/confirm-provider";
+import { useThreadIdentitySubmission } from "@/components/thread/use-thread-identity-submission";
+import { ThreadPublicationIdentity } from "@/components/thread/thread-publication-identity";
+import { useInitialBodyWrite } from "@/components/thread/use-initial-body-write";
+import { ThreadIdentitySettings } from "@/components/thread/thread-identity-settings";
 import { usePublicInviteConfirmation } from "@/components/shared/use-public-invite-confirmation";
 
 interface ThreadEditFormProps {
@@ -91,6 +96,9 @@ export function ThreadEditForm({
   const [saveState, setSaveState] = useState<ManagementEditorStatus["state"]>("saved");
   const [saveMessage, setSaveMessage] = useState<string>();
   const saveThread = useSaveThreadAggregate();
+  const snapshotMarkdownCapability = useMarkdownWriteCapability();
+  const initialBody = useInitialBodyWrite<Parameters<typeof saveThread.mutateAsync>[0]>();
+  const { canClose: canCloseInitialBody } = initialBody;
   const uploadImage = useUploadImage();
   const deleteThread = useDeleteThread();
   const [editorContent, setEditorContent] = useState(
@@ -99,6 +107,8 @@ export function ThreadEditForm({
   const [baseline, setBaseline] = useState<ThreadEditBaseline>(() =>
     getThreadEditBaseline(thread),
   );
+
+  const bodyIdentity = useThreadIdentitySubmission(thread.id, thread.rpIdentityEnabled !== undefined, baseline.bodyVersion === undefined, thread.id);
 
   const form = useForm<ThreadCreateFormData>({
     resolver: zodResolver(threadCreateSchema),
@@ -116,6 +126,7 @@ export function ThreadEditForm({
   const tagNames = useWatch({ control: form.control, name: "tagNames" });
   const title = useWatch({ control: form.control, name: "title" });
   const isBusy = isSaving || uploadImage.isPending;
+  const editLocked = isBusy || Boolean(initialBody.pendingRequest);
   const isDirty = editor.invalid || editor.hasPendingChanges ||
     title !== baseline.title ||
     category !== baseline.category ||
@@ -135,8 +146,9 @@ export function ThreadEditForm({
     return { state: "dirty", dirty: true, busy: false };
   }, [editor.invalid, isBusy, isDirty, saveMessage, saveState]);
 
+  const canCloseEditor = editor.canClose;
   useEffect(() => {
-    onStatusChange({ ...reportedStatus, canClose: editor.canClose,
+    onStatusChange({ ...reportedStatus, canClose: () => canCloseInitialBody() && canCloseEditor(),
       hasChanges: () => {
         const values = form.getValues();
         return values.title !== baseline.title || values.category !== baseline.category
@@ -147,7 +159,7 @@ export function ThreadEditForm({
       },
       getDocumentVersion: editor.getDocumentVersion,
     });
-  }, [editor.canClose, editor.editorRef, editor.getDocumentVersion, onStatusChange, reportedStatus, form, status, postingPolicy, isOwner, baseline]);
+  }, [canCloseInitialBody, canCloseEditor, editor.editorRef, editor.getDocumentVersion, onStatusChange, reportedStatus, form, status, postingPolicy, isOwner, baseline]);
 
   function resetFromThread(nextThread: ThreadDetail) {
     const nextBaseline = getThreadEditBaseline(nextThread);
@@ -162,19 +174,20 @@ export function ThreadEditForm({
   }
 
   async function handleSave(values: ThreadCreateFormData) {
-    const content = editor.flush();
+    const content = initialBody.pendingRequest?.body.content ?? editor.flush();
     if (content === null) return;
-    if (syncError) return;
+    if (syncError && !initialBody.pendingRequest) return;
     const nextVisibility = isOwner ? values.visibility : thread.visibility;
     if (savingRef.current) return;
     savingRef.current = true;
     try {
-      if (!(await confirmPublicInvite(content, nextVisibility === "PUBLIC"))) return;
-      if (!editor.isCurrent(content)) return;
+      if (!initialBody.pendingRequest && !(await confirmPublicInvite(content, nextVisibility === "PUBLIC"))) return;
+      const publicationIdentity = !initialBody.pendingRequest && baseline.bodyVersion === undefined ? await bodyIdentity.prepare() : undefined;
+      if (publicationIdentity === null || (!initialBody.pendingRequest && !editor.isCurrent(content))) return;
       setIsSaving(true);
       setSaveState("saving");
       setSaveMessage(undefined);
-      const savedThread = await saveThread.mutateAsync({
+      const request = initialBody.pendingRequest ?? {
         threadId: thread.id,
         body: {
           title: values.title?.trim(),
@@ -186,18 +199,25 @@ export function ThreadEditForm({
           version: baseline.version,
           defaultSubthreadVersion: baseline.defaultSubthreadVersion,
           bodyVersion: baseline.bodyVersion,
+          ...publicationIdentity,
           ...(postingPolicy !== baseline.postingPolicy
             ? { defaultSubthreadPostingPolicy: postingPolicy }
             : {}),
           content,
           tagNames: values.tagNames ?? [],
+          ...snapshotMarkdownCapability(),
         },
-      });
+      };
+      if (baseline.bodyVersion === undefined) initialBody.freeze(request);
+      const savedThread = await saveThread.mutateAsync(request);
+      initialBody.finish();
       resetPublicInviteConfirmation();
       resetFromThread(savedThread);
       toast.success("帖子修改已保存");
     } catch (error: unknown) {
+      initialBody.fail(error);
       const apiError = getApiError(error);
+      if (apiError.code === API_ERROR_CODE.RP_IDENTITY_CHANGED) bodyIdentity.requireConfirmation();
       if (apiError.code === API_ERROR_CODE.OPTIMISTIC_LOCK_CONFLICT) {
         setSaveState("conflict");
         setSaveMessage("内容已被其他管理者修改，本地输入仍然保留。");
@@ -228,7 +248,7 @@ export function ThreadEditForm({
   };
 
   const handleReloadLatest = async () => {
-    if (!editor.canClose()) return;
+    if (!canCloseInitialBody() || !editor.canClose()) return;
     const revision = editor.getDocumentVersion();
     if (!(await confirmAction({
       title: "载入最新版本",
@@ -274,6 +294,7 @@ export function ThreadEditForm({
           event.preventDefault();
           return;
         }
+        if (initialBody.pendingRequest) { event.preventDefault(); void handleSave(form.getValues()); return; }
         const content = editor.flush();
         if (content === null) { event.preventDefault(); return; }
         form.setValue("content", content, { shouldDirty: true });
@@ -281,6 +302,7 @@ export function ThreadEditForm({
       }}
       className="space-y-6"
     >
+      {initialBody.uncertain ? <p role="status" className="text-sm text-warning">正文发表结果尚未确认，正文与身份已冻结。请再次保存确认结果，确认前不能修改身份、正文或退出。</p> : null}
       {reportedStatus.state === "conflict" || reportedStatus.state === "error" ? (
         <div
           role="alert"
@@ -317,17 +339,18 @@ export function ThreadEditForm({
           <div className="space-y-5 rounded-[var(--radius-panel)] border border-border bg-card p-5">
             <ThreadMetadataFields
               form={form}
-              disabled={isBusy}
+              disabled={editLocked}
               sections="identity"
             />
 
             <div className="space-y-2">
               <Label htmlFor="content">主帖正文</Label>
+              {baseline.bodyVersion === undefined && thread.rpIdentityEnabled !== undefined ? <ThreadPublicationIdentity controller={bodyIdentity} threadId={thread.id} disabled={editLocked} /> : null}
               <Controller
                 control={form.control}
                 name="content"
                 render={({ field }) => (
-                  <MilkdownEditor mediaDisplays={thread.defaultSubthread.bodyPost?.mediaDisplays}
+                  <MilkdownEditor mentionIdentities={thread.defaultSubthread.bodyPost?.mentionIdentities} mediaDisplays={thread.defaultSubthread.bodyPost?.mediaDisplays}
                     editorRef={editor.editorRef}
                     onValidityChange={editor.onValidityChange}
                     onDocumentChange={editor.onDocumentChange}
@@ -340,7 +363,7 @@ export function ThreadEditForm({
                       field.onChange(value);
                     }}
                     onUploadImage={(file, options) => uploadImage.mutateAsync(file, options)}
-                    disabled={isSaving}
+                    disabled={editLocked}
                     minHeight={420}
                     maxHeight={560}
                     diceRolls={thread.defaultSubthread.bodyPost?.diceRolls}
@@ -358,6 +381,7 @@ export function ThreadEditForm({
         </section>
 
         <aside className="sticky top-4 space-y-4">
+          {isOwner && thread.rpIdentityEnabled !== undefined ? <ThreadIdentitySettings threadId={thread.id} enabled={thread.rpIdentityEnabled} disabled={editLocked} /> : null}
           <section className="rounded-[var(--radius-panel)] border border-border bg-muted/25 p-4">
             <div className="mb-4 flex items-center justify-between gap-3">
               <h2 className="font-sans text-lg font-semibold text-foreground">发布设置</h2>
@@ -365,7 +389,7 @@ export function ThreadEditForm({
             <div className="space-y-4">
               <ThreadMetadataFields
                 form={form}
-                disabled={isBusy}
+                disabled={editLocked}
                 sections="publication"
                 showVisibility
                 visibilityReadOnly={!isOwner}
@@ -384,7 +408,7 @@ export function ThreadEditForm({
             <PrivateInviteLink
               threadId={thread.id}
               ownerId={thread.ownerId}
-              disabled={isBusy || deleteThread.isPending}
+              disabled={editLocked || deleteThread.isPending}
               unavailableReason={!thread.published ? "请先发布帖子。" : inviteNeedsVisibilitySave ? "请先保存可见性设置。" : undefined}
             />
           ) : null}
@@ -396,7 +420,7 @@ export function ThreadEditForm({
           <Button
             type="button"
             variant="destructive"
-            disabled={isBusy || deleteThread.isPending}
+            disabled={editLocked || deleteThread.isPending}
             onClick={() => void handleDeleteThread()}
           >
             {deleteThread.isPending ? <Loader2 className="animate-spin" /> : <Trash2 />}

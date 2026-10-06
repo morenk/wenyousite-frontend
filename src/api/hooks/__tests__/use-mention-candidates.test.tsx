@@ -3,10 +3,11 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { useMentionCandidates } from "@/api/hooks/use-mention-candidates";
 import { createQueryWrapper } from "@/test/query-client";
 
-const { mockGET } = vi.hoisted(() => ({ mockGET: vi.fn() }));
+const { mockGET, mockMeta } = vi.hoisted(() => ({ mockGET: vi.fn(), mockMeta: vi.fn() }));
+vi.mock("@/api/hooks/use-api-meta", () => ({ useApiMeta: mockMeta }));
 vi.mock("@/api/client", () => ({ apiClient: { GET: mockGET } }));
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => { vi.clearAllMocks(); mockMeta.mockReturnValue({ data: { markdownContractVersion: 5 } }); });
 
 describe("useMentionCandidates", () => {
   test("带关键词查询主题帖可提及用户", async () => {
@@ -79,4 +80,37 @@ describe("useMentionCandidates", () => {
     );
     await waitFor(() => expect(result.current.error).toEqual(error));
   });
+});
+
+test.each([true, false])("新后端supported=true gate=%s始终optin，空列表不回退主身份", async (enabled) => {
+  mockMeta.mockReturnValue({ data: { capabilities: { roleMentionsV6Supported: true, roleMentionsV6WriteEnabled: enabled } } });
+  mockGET.mockResolvedValue({ data: { data: { users: [], canMentionAllPlayers: true } } });
+  const { Wrapper } = createQueryWrapper();
+  const { result } = renderHook(() => useMentionCandidates("t1", "同名", true), { wrapper: Wrapper });
+  await waitFor(() => expect(result.current.isSuccess).toBe(true));
+  expect(mockGET).toHaveBeenCalledTimes(1);
+  expect(mockGET).toHaveBeenCalledWith("/api/v1/users/mention-candidates", { params: { query: { threadId: "t1", q: "同名", includeIdentities: true } } });
+  expect(result.current.userMentionsUnavailable).toBe(!enabled);
+  expect(result.current.data?.canMentionAllPlayers).toBe(true);
+});
+test("能力尚未确定时不抢先发旧候选请求", () => {
+  mockMeta.mockReturnValue({ data: undefined, isFetching: true });
+  const { Wrapper } = createQueryWrapper();
+  const { result } = renderHook(() => useMentionCandidates("t1", "", true), { wrapper: Wrapper });
+  expect(mockGET).not.toHaveBeenCalled();
+  expect(result.current.isFetching).toBe(true);
+});
+
+test("新写能力变为关闭时不继续展示缓存中的平级用户候选", async () => {
+  mockMeta.mockReturnValue({ data: { capabilities: { roleMentionsV6Supported: true, roleMentionsV6WriteEnabled: true } } });
+  mockGET.mockResolvedValue({ data: { data: { users: [{ id: "u1", candidateKey: "RP:a", username: "账号" }], canMentionAllPlayers: true } } });
+  const { Wrapper } = createQueryWrapper();
+  const { result, rerender } = renderHook(() => useMentionCandidates("t1", "", true), { wrapper: Wrapper });
+  await waitFor(() => expect(result.current.data?.users).toHaveLength(1));
+  mockMeta.mockReturnValue({ data: { capabilities: { roleMentionsV6Supported: true, roleMentionsV6WriteEnabled: false } } });
+  rerender();
+  expect(result.current.data?.users).toEqual([]);
+  expect(result.current.data?.canMentionAllPlayers).toBe(true);
+  expect(result.current.userMentionsUnavailable).toBe(true);
+  expect(mockGET).toHaveBeenCalledTimes(1);
 });

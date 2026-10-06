@@ -1,3 +1,4 @@
+import { parseMentionTarget, MENTION_SOURCE_HREF_ATTRIBUTE, MENTION_SOURCE_LABEL_ATTRIBUTE } from "@/lib/mention";
 import { parseDiceNotation } from "@/lib/dice";
 import {
   DICE_INLINE_NODE_NAME,
@@ -200,8 +201,17 @@ function appendNormalizedNode(
       return;
     }
     const anchor = document.createElement("a");
-    anchor.setAttribute("href", href);
-    appendChildren(element, anchor, clipboardSource, preserveAlignment);
+    const sourceHref = element.getAttribute(MENTION_SOURCE_HREF_ATTRIBUTE);
+    const sourceLabel = element.getAttribute(MENTION_SOURCE_LABEL_ATTRIBUTE);
+    const mentionTarget = parseMentionTarget(sourceHref, sourceLabel);
+    anchor.setAttribute("href", mentionTarget?.sourceHref ?? href);
+    if (mentionTarget) {
+      anchor.setAttribute(MENTION_SOURCE_HREF_ATTRIBUTE, mentionTarget.sourceHref);
+      anchor.setAttribute(MENTION_SOURCE_LABEL_ATTRIBUTE, sourceLabel!);
+    }
+    const display = element.getAttribute("data-mention-display");
+    if (display && mentionTarget) anchor.textContent = display;
+    else appendChildren(element, anchor, clipboardSource, preserveAlignment);
     target.appendChild(anchor);
     return;
   }
@@ -379,11 +389,20 @@ export function createSiteClipboardPayloadFromNodes(
     document,
     preserveAlignment,
   );
-  return {
-    source,
-    html: envelope.outerHTML,
-    text: projectSiteClipboardText(envelope),
-  };
+  const text = projectSiteClipboardText(envelope);
+  for (const anchor of envelope.querySelectorAll("a")) {
+    const sourceHref = anchor.getAttribute(MENTION_SOURCE_HREF_ATTRIBUTE);
+    const sourceLabel = anchor.getAttribute(MENTION_SOURCE_LABEL_ATTRIBUTE);
+    if (parseMentionTarget(sourceHref, sourceLabel)) {
+      anchor.setAttribute("href", sourceHref!);
+      const walker = document.createTreeWalker(anchor, NodeFilter.SHOW_TEXT);
+      const textNodes: Node[] = [];
+      while (walker.nextNode()) textNodes.push(walker.currentNode);
+      if (textNodes.length) textNodes.forEach((node, index) => { node.textContent = index === 0 ? sourceLabel : ""; });
+      else anchor.textContent = sourceLabel;
+    }
+  }
+  return { source, html: envelope.outerHTML, text };
 }
 
 export function createReaderClipboardPayload(root: HTMLElement): SiteClipboardPayload {

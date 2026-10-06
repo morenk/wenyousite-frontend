@@ -2,8 +2,12 @@
 
 "use client";
 
+import type { MentionIdentity } from "@/lib/thread-identity";
 
+
+import { threadAppearance } from "@/lib/thread-identity";
 import { useEditorMediaDisplay } from "@/components/editor/use-editor-media-display";
+import { editorMentionCaretPlugin } from "./editor-mention-caret";
 import { editorInlineCodeCommand } from "./editor-inline-code";
 import type { MarkdownMediaDisplay, MediaDisplay } from "@/lib/media-display";
 import {
@@ -231,6 +235,7 @@ function getImageBlockConfig(onUploadImage: (file: File) => Promise<string>, pro
 export interface MilkdownEditorHostProps {
   initialValue: string;
   mediaDisplays?: readonly MarkdownMediaDisplay[];
+  mentionIdentities?: readonly MentionIdentity[];
   markdownContractVersion: number;
   editorRef?: Ref<EditorSubmissionHandle>;
   onValidityChange?: (valid: boolean) => void;
@@ -254,6 +259,7 @@ export interface MilkdownEditorHostProps {
 export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   initialValue,
   mediaDisplays,
+  mentionIdentities,
   markdownContractVersion,
   editorRef,
   onValidityChange,
@@ -329,6 +335,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   const [debouncedMentionQuery] = useDebounce(mentionQuery, 180);
   const {
     data: mentionResponse,
+    userMentionsUnavailable,
     isFetching: isMentionFetching,
     isError: isMentionError,
     refetch: refetchMentionCandidates,
@@ -347,10 +354,15 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
       items.push({ id: "all-players", label: "全体玩家", isGroup: true });
     }
     for (const candidate of mentionResponse?.users ?? []) {
+      const appearance = threadAppearance(candidate);
       items.push({
-        id: candidate.id,
-        label: `@${candidate.username}`,
-        username: candidate.username,
+        id: candidate.candidateKey ?? candidate.id,
+        label: `@${candidate.mentionLabel ?? appearance.name}`,
+        username: candidate.mentionLabel ?? appearance.name,
+        mentionHref: candidate.mentionHref ?? "/users/" + candidate.id,
+        accountUsername: candidate.rpIdentity ? candidate.username : undefined,
+        avatar: appearance.avatar,
+        avatarDisplay: appearance.avatarDisplay,
         relation: candidate.relation,
       });
     }
@@ -367,6 +379,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   );
 
   const { handleMentionSelect } = useEditorMentionController({
+    mentionIdentities,
     hostRef,
     crepeRef,
     disabled,
@@ -803,6 +816,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
         .config(configureEditorMarkdownSerializer)
 
         .use(internalReferenceLinkView)
+        .use(editorMentionCaretPlugin)
         .use(editorMarkdownPastePlugin)
         .use(alignmentPlugin)
         .use(editorAttentionBoundaryParser)
@@ -997,6 +1011,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
           activeIndex={activeMentionIndex}
           pending={mentionQueryPending || isMentionFetching}
           error={isMentionError}
+          userMentionsUnavailable={userMentionsUnavailable}
           onRetry={() => void refetchMentionCandidates()}
           onSelect={handleMentionSelect}
         />

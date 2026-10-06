@@ -8,7 +8,8 @@ import { useDeletePost } from "@/api/hooks/use-delete-post";
 import type { ReplyData, ReplyDisplayData } from "@/api/hooks/use-floors";
 import { getApiErrorMessage } from "@/api/errors";
 import { ReplyActionButton } from "@/components/shared/reply-action-button";
-import { UserAvatarLink } from "@/components/shared/user-avatar";
+import { ThreadPostAuthor } from "@/components/thread/thread-post-author";
+import { threadAppearance } from "@/lib/thread-identity";
 import { WenyouTime } from "@/components/shared/wenyou-time";
 import { LevelBadge } from "@/components/shared/level-badge";
 import { MarkdownContent } from "@/components/thread/markdown-content";
@@ -60,7 +61,7 @@ export function ReplyCard({
     postId: reply.id,
     parentPostId,
   });
-  const replyToUser = reply.replyToPost?.author?.username;
+  const replyToUser = reply.replyToPost?.author ? threadAppearance(reply.replyToPost.author).name : undefined;
   const replyToId = reply.replyToPost?.id ?? reply.replyToPostId;
   const highlightVisible = useTransientTargetHighlight(focused ? reply.id : undefined, focusActivationKey);
 
@@ -72,7 +73,7 @@ export function ReplyCard({
       subthreadId: reply.subthreadId,
       parentPostId,
       replyToPostId: reply.id,
-      label: `回复 @${reply.author.username}`,
+      label: `回复 @${threadAppearance(reply.author).name}`,
       initialContent: "",
     });
   };
@@ -86,7 +87,7 @@ export function ReplyCard({
       postId: reply.id,
       parentPostId,
       version: reply.version,
-      label: `编辑 @${reply.author.username} 的回复`,
+      label: `编辑 @${threadAppearance(reply.author).name} 的回复`,
       initialContent: reply.content,
       diceRolls: reply.diceRolls,
       mediaDisplays: reply.mediaDisplays,
@@ -122,19 +123,7 @@ export function ReplyCard({
     >
       <div className="mb-1.5 flex items-start justify-between gap-2">
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
-          <UserAvatarLink
-            userId={reply.authorId}
-            name={reply.author.username}
-            src={reply.author.avatar} display={reply.author.avatarDisplay}
-            className={isDiscussion ? "h-8 w-8" : isPreview ? "h-5 w-5" : "h-6 w-6"}
-            textClassName={isDiscussion ? "text-xs" : isPreview ? "text-[9px]" : "text-[10px]"}
-          />
-          <Link
-            href={`/users/${reply.authorId}`}
-            className="text-xs font-medium text-foreground hover:text-brand-strong"
-          >
-            {reply.author.username}
-          </Link>
+          <ThreadPostAuthor author={reply.author} threadId={reply.threadId} avatarClassName={isDiscussion ? "h-8 w-8" : isPreview ? "h-5 w-5" : "h-6 w-6"} avatarTextClassName={isDiscussion ? "text-xs" : isPreview ? "text-[9px]" : "text-[10px]"} textClassName="text-xs" />
           <LevelBadge level={reply.author.level} />
           {isDiscussion && ordinal != null ? (
             <span className="font-utility text-xs tabular-nums text-muted-foreground">
@@ -172,7 +161,7 @@ export function ReplyCard({
 
       {!isEditing ? (
         <div id={`reply-content-${reply.id}`}>
-          <MarkdownContent mediaDisplays={reply.mediaDisplays}
+          <MarkdownContent mentionIdentities={reply.mentionIdentities} mediaDisplays={reply.mediaDisplays}
             content={reply.content}
             diceRolls={reply.diceRolls}
             sourcePostId={reply.id}
@@ -193,7 +182,7 @@ export function ReplyCard({
           />
         ) : null}
       </div>
-      <ThreadComposerOutlet anchorId={anchorId} />
+      <ThreadComposerOutlet mentionIdentities={reply.mentionIdentities} anchorId={anchorId} />
     </div>
   );
 }

@@ -16,6 +16,9 @@ function workspace() {
   mkdirSync(backend, { recursive: true });
   mkdirSync(join(frontend, "contracts"), { recursive: true });
   const fixtures = {
+    "rp-identity-profile-post.v1.fixtures.json": { version: 1, contractVersion: "test", capability: "rpIdentityProfileSupported", cases: [] },
+    "markdown-v6-role-mentions-fixtures.json": { contractVersion: "test", markdownContractVersion: 6, activeMarkdownContractVersion: 5, cases: [] },
+    "thread-identity.v1.fixtures.json": { version: 1, httpContractVersion: "test", cases: [] },
     "discussion-navigation.v1.json": { version: 1, contractVersion: "test", scenarios: [] },
     "markdown-inline-combinations-v1-fixtures.json": { contract: "wenyousite-markdown-inline-combinations", version: 1, markSets: Array.from({ length: 32 }, (_, index) => ({ id: `m${index}`, marks: {} })) },
     "markdown-inline-combinations-v1.schema.json": { $schema: "http://json-schema.org/draft-07/schema#" },

@@ -13,6 +13,7 @@ export function validateDescriptor(value) {
     || !/^[a-z][a-z0-9-]{2,47}$/.test(value.sessionId) || !/^preview_[a-f0-9]{24}$/.test(value.runId)
     || !/^[a-f0-9]{64}$/.test(value.snapshot?.sha256) || !/^[a-f0-9]{40}$/.test(value.snapshot?.sourceSha)
     || !/^\d{4}-\d{2}-\d{2}$/.test(value.snapshot?.businessDate) || !Number.isFinite(Date.parse(value.snapshot?.capturedAt))
+    || (value.snapshot.sourceKind !== undefined && !["synthetic-downloads", "synthetic-thread-identities"].includes(value.snapshot.sourceKind))
     || typeof value.snapshot.migrationVersion !== "string" || !/^[a-f0-9]{40}$/.test(value.source?.backendSha)
     || typeof value.source.worktree !== "string" || !value.source.worktree.startsWith("/")
     || value.identity?.header !== "X-Wenyou-Preview-Run" || value.identity.value !== value.runId

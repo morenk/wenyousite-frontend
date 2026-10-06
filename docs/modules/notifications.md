@@ -166,3 +166,7 @@
 ## 列表卡片
 
 通知条目外框消费 Foundation `--radius-card`（10px），独立通知卡间距消费 `--collection-card-gap`（8px）；筛选控件保持 `--radius-control`（8px），菜单浮层外框使用 `--radius-panel`（12px）。
+
+## 帖内身份辅助展示
+
+通知的操作者主名称与头像继续使用站内资料；仅当服务端返回 `payload.rpIdentity.nickname` 时在账号名后辅助显示「以…」。服务端关闭或撤回展示授权后省略该投影，Web 不从旧正文、作者缓存或用户目录自行恢复。通知跳转、去重、已读与订阅仍按原账号 ID。

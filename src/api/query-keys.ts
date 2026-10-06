@@ -3,6 +3,14 @@
 export const queryKeys = {
   meta: ["api-meta"] as const,
   appDownloads: { android: ["app-downloads", "android"] as const },
+  threadIdentities: {
+    all: ["thread-identities"] as const,
+    thread: (threadId: string) => ["thread-identities", threadId] as const,
+    collection: (threadId: string, viewer: string) => ["thread-identities", threadId, "collection", viewer] as const,
+    role: (threadId: string, identityId: string, viewer: string) => ["thread-identities", threadId, "role", identityId, viewer] as const,
+    mine: (threadId: string, viewer: string) => ["thread-identities", threadId, "mine", viewer] as const,
+    user: (threadId: string, userId: string, viewer: string) => ["thread-identities", threadId, "user", userId, viewer] as const,
+  },
   threads: {
     all: ["threads"] as const,
     details: ["thread"] as const,
@@ -63,6 +71,8 @@ export const queryKeys = {
   posts: {
     all: ["post"] as const,
     detail: (postId: string | undefined) => ["post", postId] as const,
+    profile: (threadId: string, identityId: string, postId: string | undefined, viewer: string, capability: boolean) =>
+      ["post", postId, "rp-profile", threadId, identityId, viewer, capability, 6] as const,
     detailForViewer: (postId: string | undefined, viewerScope: string) =>
       ["post", postId, "viewer", viewerScope] as const,
   },
@@ -181,8 +191,8 @@ export const queryKeys = {
   invitePreviews: ["invite-preview"] as const,
   moderationDecisions: (userId?: string) => ["moderation-decisions", userId] as const,
   mentionCandidatesRoot: ["mention-candidates"] as const,
-  mentionCandidates: (threadId: string, query: string) =>
-    ["mention-candidates", threadId, query] as const,
+  mentionCandidates: (threadId: string, query: string, includeIdentities = false) =>
+    ["mention-candidates", threadId, query, includeIdentities] as const,
   search: {
     all: ["search"] as const,
     threads: (keyword: string, viewerScope = "anonymous") => ["search", "threads", keyword, viewerScope] as const,

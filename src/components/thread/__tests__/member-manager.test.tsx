@@ -218,3 +218,14 @@ describe("MemberManager", () => {
     expect(screen.getByText("暂无参与人")).toBeInTheDocument();
   });
 });
+
+test("成员权限表不使用旧兼容RP代表账号", async () => {
+  mocks.useMembers.mockReturnValue({ data: [{ ...playerMember, user: {
+    ...playerMember.user, rpIdentity: { id: "role-a", nickname: "白鸦", avatar: "/role-a.png" },
+  } }], isLoading: false, error: undefined, refetch: vi.fn() });
+  renderManager();
+  expect(screen.getByRole("row", { name: /玩家丙/ })).toBeInTheDocument();
+  expect(screen.queryByText(/白鸦/)).not.toBeInTheDocument();
+  await userEvent.setup().type(screen.getByRole("textbox", { name: "搜索成员" }), "玩家丙");
+  expect(screen.getByRole("row", { name: /玩家丙/ })).toBeInTheDocument();
+});

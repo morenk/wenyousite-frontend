@@ -47,7 +47,7 @@ export default async function RootLayout({
         />
       </head>
       <body className="min-h-screen">
-        {process.env.WENYOU_PREVIEW_RUN ? <PreviewBadge snapshot={process.env.WENYOU_PREVIEW_SNAPSHOT} synthetic={process.env.WENYOU_PREVIEW_SAMPLE === "downloads"} /> : null}
+        {process.env.WENYOU_PREVIEW_RUN ? <PreviewBadge snapshot={process.env.WENYOU_PREVIEW_SNAPSHOT} synthetic={process.env.WENYOU_PREVIEW_SAMPLE === "downloads" || ["synthetic-downloads", "synthetic-thread-identities"].includes(process.env.WENYOU_PREVIEW_SOURCE_KIND ?? "")} /> : null}
         <Providers>
           <AppChrome>{children}</AppChrome>
         </Providers>
