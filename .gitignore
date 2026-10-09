@@ -51,5 +51,6 @@ playwright-report/
 /.e2e-results/
 
 # 交互预览私有会话与独立 Fast Refresh 缓存
+# 退役预览工具的历史私有产物继续忽略，避免误提交。
 /.next-preview/
 /.dev-preview/

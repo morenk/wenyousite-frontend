@@ -79,4 +79,4 @@
 
 > Git 提交与代码切换是两个独立门禁：完成切片默认提交并推送，代码任务随后从该精确提交切换；纯文档变更只提交推送，不构建、不重启。完整规则见 `AGENTS.md` 第 3–4 节。
 
-- [Web 交互式隔离开发预览](./modules/dev-preview.md)
+- [Web 日常开发与 SSH 转发](./modules/development.md)

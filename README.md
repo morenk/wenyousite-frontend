@@ -2,18 +2,23 @@
 
 温油站 PC Web 客户端，基于 Next.js 16、React 19、TypeScript、TanStack Query 和 Tailwind CSS。
 
-## 实时开发预览
+## 日常开发
 
-默认使用 VPS 上的任务 Worktree 和 Backend 交互式隔离会话；无需合并、部署或 production build 才能看修改。agent 负责启动并持续复用 Fast Refresh，Windows 浏览器通过治理仓库的 SSH 预览入口访问同端口服务。
+Web 在 VPS 任务 Worktree 运行普通 Next.js dev，保留 Fast Refresh；Windows 浏览器通过 SSH 转发查看。开发启动不依赖快照、consumer 描述或专用控制器，也无需合并、部署或 production build。
 
 ```bash
 pnpm install --frozen-lockfile
-pnpm dev:preview start --task <任务ID> --descriptor /absolute/path/consumer.json
-pnpm dev:preview status --task <任务ID>
-pnpm dev:preview stop --task <任务ID>
+# 先确认实际后端与数据环境；端口选择本任务独占的空闲值。
+BACKEND_URL=http://127.0.0.1:3000 pnpm dev --port 3101
 ```
 
-`pnpm dev` 是同一安全入口的别名，也必须提供任务和显式描述。`consumer.json` 由已启动的 Backend 预览会话导出，Web 使用其中的 `web.port`；不要手写配置、指向线上 3000/3001 或变更本机转发端口。完整生命周期、媒体和核验说明见 [开发预览模块](./docs/modules/dev-preview.md)。
+在 Windows 单独保持 SSH 转发：
+
+```powershell
+ssh -N -o ExitOnForwardFailure=yes -L 3101:127.0.0.1:3101 wenyou-dev-vps
+```
+
+随后打开 `http://127.0.0.1:3101`。上面的 `3000` 是现有真实数据后端示例，不是隔离环境；使用其他后端时显式替换地址。缺少 `BACKEND_URL` 时开发入口会报错，不能默默连接现网。日常手动开发与自动化验收的边界见 [日常开发模块](./docs/modules/development.md)。
 
 样式反馈阶段只运行直接相关组件和定向检查，连续反馈复用同一会话。画面确认、反馈收敛后，再对最终源码执行下方交付门禁。
 
