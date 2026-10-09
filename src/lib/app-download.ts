@@ -10,7 +10,7 @@ const downloadLimitReasons: Record<DownloadLimitReason, true> = {
 };
 
 /** 只接受已发布身份绑定的本站固定地址；浏览器实际请求始终留在当前同源代理。 */
-export function androidDownloadPath(release: AndroidDownloadRelease, allowedOrigin = "https://wenyou.site"): string {
+export function androidDownloadPath(release: AndroidDownloadRelease): string {
   if (release.platform !== "android" || release.applicationId !== "site.wenyou.app"
     || !Number.isInteger(release.buildNumber) || release.buildNumber < 1 || release.buildNumber > 2_100_000_000
     || !Number.isInteger(release.sizeBytes) || release.sizeBytes < 1 || release.sizeBytes > 536_870_912
@@ -18,18 +18,18 @@ export function androidDownloadPath(release: AndroidDownloadRelease, allowedOrig
     throw new Error("安装包信息无效");
   }
   const path = `/api/v1/app-downloads/android/${release.buildNumber}/file`;
-  if (release.downloadUrl !== `${allowedOrigin}${path}`) throw new Error("安装包地址无效");
+  if (release.downloadUrl !== `https://wenyou.site${path}`) throw new Error("安装包地址无效");
   return path;
 }
 
-export function validateAndroidDownloadInfo(info: AndroidDownloadInfo, allowedOrigin?: string): AndroidDownloadInfo {
+export function validateAndroidDownloadInfo(info: AndroidDownloadInfo): AndroidDownloadInfo {
   if (!info || !["available", "no_release", "withdrawn", "paused", "unavailable"].includes(info.status)
     || (info.retryAfterSeconds !== null && (!Number.isSafeInteger(info.retryAfterSeconds) || info.retryAfterSeconds < 1))) {
     throw new Error("下载信息无效");
   }
   if (info.status === "available") {
     if (!info.release) throw new Error("安装包信息缺失");
-    androidDownloadPath(info.release, allowedOrigin);
+    androidDownloadPath(info.release);
   } else if (info.release !== null) {
     throw new Error("下载状态与安装包信息不一致");
   }

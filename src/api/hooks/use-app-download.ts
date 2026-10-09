@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from "react";
 
 import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
-import { appDownloadOrigin } from "@/lib/preview-download";
 import { AppDownloadError, androidDownloadPath, matchesAndroidDownload, retryDeadline, validateAndroidDownloadInfo } from "@/lib/app-download";
 
 /** 到期只开放手动重试，不自动读取信息或下载文件。 */
@@ -31,14 +30,13 @@ export function useAppDownload(queryClient?: QueryClient) {
   const query = useQuery({
     queryKey: queryKeys.appDownloads.android,
     queryFn: async ({ signal }) => {
-      const downloadOrigin = await appDownloadOrigin(signal);
       const { data, response } = await apiClient.GET("/api/v1/app-downloads/android", {
         signal, cache: "no-store", redirect: "error", credentials: "same-origin",
       });
       if (!response.ok) throw AppDownloadError.fromResponse(response);
       if (!data?.data || data.code !== 0) throw new AppDownloadError(0);
-      const info = validateAndroidDownloadInfo(data.data, downloadOrigin);
-      return { info, retryAt: retryDeadline(info.retryAfterSeconds), downloadOrigin };
+      const info = validateAndroidDownloadInfo(data.data);
+      return { info, retryAt: retryDeadline(info.retryAfterSeconds) };
     },
     enabled: false,
     retry: false,
@@ -78,7 +76,7 @@ export function useAppDownload(queryClient?: QueryClient) {
       const data = result.data;
       if (data.info.status !== "available" || !data.info.release || (data.retryAt !== null && data.retryAt > Date.now())) return;
       const release = data.info.release;
-      const path = androidDownloadPath(release, data.downloadOrigin);
+      const path = androidDownloadPath(release);
       setPhase("preflight");
       const { response } = await apiClient.HEAD("/api/v1/app-downloads/android/{buildNumber}/file", {
         params: { path: { buildNumber: release.buildNumber } },

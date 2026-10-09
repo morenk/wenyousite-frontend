@@ -10,6 +10,7 @@ const eslintConfig = defineConfig([
     // Default ignores of eslint-config-next:
     ".next/**",
     ".next-e2e/**",
+    // 退役预览工具的历史本地产物，不纳入源码检查。
     ".next-preview/**",
     ".dev-preview/**",
     "out/**",

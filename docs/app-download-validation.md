@@ -1,5 +1,7 @@
 # APP 下载视觉候选记录
 
+> 本文件保留历史验收证据。交互式隔离开发预览工具已退役，下文的旧预览命令、会话与产物路径仅用于追溯；现行开发入口见 [日常开发](./modules/development.md)。独立写入 E2E 仍按原隔离门禁执行。
+
 本记录对应直接下载入口、移动设备提示、弹窗操作整理及每日限次反馈，尚待负责人视觉验收。外观菜单仅提供主题与下载；Android 弹窗使用主次按钮，iOS 只保留继续使用网页。使用 Backend build 4242 合成样本，不是真实生产快照、正式发布包或 Android 安装验证。
 
 ## 每日下载限次候选
@@ -83,4 +85,4 @@
 
 此前完整 E2E 首轮 `e2e_1f067bd3d60ce43068f7234e` 为 216 passed / 2 failed / 13 skipped；两项失败来自已合并 PR #51 的连续楼层与旧分隔线视觉基线不符，`resourcesRemoved=true`、`cleanupVerified=false`。独立提交 `c751acf` 已按接受的设计修正基线并保留原几何和 Token 断言；后续 `e2e_5948533ae5a58d15e324278d` 及上述 21 项候选均已补验分隔线且清理成功。历史结果不作为本轮执行证据，本轮完整 E2E 见每日下载限次候选章节。
 
-实时预览规则见 [开发预览](modules/dev-preview.md)，最终行为见 [APP 下载](modules/app-download.md)。
+该历史批次的实时预览规则见 [退役前开发预览](https://github.com/morenk/wenyousite-frontend/blob/b60ea8172ef230d595debddb69e2075fc7d81ec0/docs/modules/dev-preview.md)，最终行为见 [APP 下载](modules/app-download.md)。
