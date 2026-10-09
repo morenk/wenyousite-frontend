@@ -2,14 +2,53 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { resolve, relative, basename } from "node:path";
 import { pathToFileURL } from "node:url";
+import ts from "typescript";
 
 export const retiredFontPattern = /\bnoto(?=[\s"'_,.-]|$)|lxgw|wenkai|nunito|fonts\.css/i;
 export const fontExtensionPattern = /\.(?:woff2?|ttf|otf|eot)(?:[?#]|$)/i;
 // 数学/图标字体是功能资源；不将它们误判为界面字体。哈希文件名仍保留家族前缀。
 export const functionalFontPattern = /^(?:KaTeX_[\w-]+|Material(?:Icons|Symbols)[\w-]*)(?:\.[\w-]+)?\.(?:woff2?|ttf|otf|eot)$/i;
 
+/** 只识别固定来源的完整姓名数据，不豁免目录、文件或任意字符串。 */
+function maskNameHomonym(name, content) {
+  if (!content.includes("Noto") || !content.includes("@faker-js/faker@10.6.0/it")) return content;
+  const canonical = readFileSync(resolve("src/lib/tools/name-data/it.json"), "utf8").trimEnd();
+  const data = JSON.parse(canonical);
+  if (Object.keys(data).sort().join(",") !== "family,given,source" || data.source !== "@faker-js/faker@10.6.0/it") return content;
+  for (const group of [data.given, data.family]) {
+    if (!group || typeof group !== "object" || Array.isArray(group) || !Object.keys(group).length) return content;
+    for (const [key, names] of Object.entries(group)) {
+      if (!["female", "male", "generic"].includes(key) || !Array.isArray(names) || !names.length || names.some((value) => typeof value !== "string")) return content;
+    }
+  }
+  for (const group of [data.given, data.family]) {
+    for (const key of Object.keys(group)) group[key] = group[key].map((value) => value === "Noto" ? "[姓名]" : value);
+  }
+  const masked = JSON.stringify(data);
+  if (/[\\/]src[\\/]lib[\\/]tools[\\/]name-data[\\/]it\.json$/.test(name)) {
+    return content.trimEnd() === canonical ? masked : content;
+  }
+  if (!/\.[cm]?[jt]sx?$/.test(name)) return content;
+  // Next 会将 JSON 编译为 JSON.parse 字面量；parser 只解析，不执行构建内容。
+  const source = ts.createSourceFile(name, content, ts.ScriptTarget.Latest, true);
+  const spans = [];
+  function visit(node) {
+    if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) &&
+      node.expression.expression.getText(source) === "JSON" && node.expression.name.text === "parse" &&
+      node.arguments.length === 1 && ts.isStringLiteral(node.arguments[0]) && node.arguments[0].text === canonical) {
+      spans.push([node.arguments[0].getStart(source), node.arguments[0].end]);
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(source);
+  let result = content;
+  for (const [start, end] of spans.reverse()) result = result.slice(0, start) + JSON.stringify(masked) + result.slice(end);
+  return result;
+}
+
 export function fontViolations(name, content = "") {
   const failures = [];
+  content = maskNameHomonym(name, content);
   if (retiredFontPattern.test(name) || retiredFontPattern.test(content)) failures.push("旧字体名称或 fonts.css 入口");
   if (fontExtensionPattern.test(name) && !functionalFontPattern.test(basename(name))) failures.push("自有字体文件");
   for (const match of content.matchAll(/(?:url\(\s*["']?|["'])([^\s"'()<>]+\.(?:woff2?|ttf|otf|eot)(?:[?#][^\s"'()<>]*)?)/gi)) {

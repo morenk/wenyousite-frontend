@@ -8,10 +8,11 @@ import { useDirectUnreadCount } from "@/api/hooks/use-direct-conversations";
 import { useUnreadCount } from "@/api/hooks/use-unread-count";
 import { UnreadCountsProvider } from "@/components/layout/unread-counts-context";
 import { useAuth } from "@/lib/auth";
+import { isToolEmbedPath } from "@/lib/tools/catalog";
 import { cn } from "@/lib/utils";
 import { ThemeMenu } from "@/components/layout/theme-menu";
 
-export type AppChromeMode = "community" | "workspace" | "auth";
+export type AppChromeMode = "community" | "workspace" | "auth" | "embed";
 
 const authRoutes = [
   "/login",
@@ -22,10 +23,12 @@ const authRoutes = [
 ];
 
 export function getAppChromeMode(pathname: string): AppChromeMode {
+  if (isToolEmbedPath(pathname)) return "embed";
   if (authRoutes.some((route) => pathname === route || pathname.startsWith(`${route}/`))) {
     return "auth";
   }
   if (
+    pathname === "/tools" || pathname.startsWith("/tools/") ||
     pathname === "/bookmarks" ||
     /^\/me(?:\/(?:appearance|privacy|security|password|email))?$/.test(pathname) ||
     pathname === "/threads/create" ||
@@ -41,6 +44,8 @@ export function getAppChromeMode(pathname: string): AppChromeMode {
 export function AppChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const mode = getAppChromeMode(pathname);
+
+  if (mode === "embed") return <main className="min-h-screen min-w-0 bg-background">{children}</main>;
 
   if (mode === "auth") {
     return (
@@ -64,7 +69,7 @@ function AppChromeFrame({
   mode,
   children,
 }: {
-  mode: Exclude<AppChromeMode, "auth">;
+  mode: Exclude<AppChromeMode, "auth" | "embed">;
   children: React.ReactNode;
 }) {
   const { user } = useAuth();

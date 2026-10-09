@@ -21,8 +21,12 @@ export const THEME_BOOTSTRAP_SCRIPT = `(() => {
   const fallback = ${JSON.stringify(DEFAULT_THEME_PREFERENCE)};
   const backgrounds = ${JSON.stringify(themeBackgrounds)};
   let stored = null;
-  try { stored = window.localStorage.getItem(key); } catch {}
-  const preference = preferences.includes(stored) ? stored : fallback;
+  const embedded = window.location.pathname === "/tools/embed" || window.location.pathname.startsWith("/tools/embed/");
+  if (!embedded) { try { stored = window.localStorage.getItem(key); } catch {} }
+  const requested = new URLSearchParams(window.location.search).get("theme");
+  const preference = embedded
+    ? (requested === "light" || requested === "dark" ? requested : "system")
+    : (preferences.includes(stored) ? stored : fallback);
   const systemDark = typeof window.matchMedia === "function"
     && window.matchMedia(${JSON.stringify(THEME_MEDIA_QUERY)}).matches;
   const mode = preference === "system" ? (systemDark ? "dark" : "light") : preference;

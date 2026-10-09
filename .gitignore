@@ -54,3 +54,6 @@ playwright-report/
 # 退役预览工具的历史私有产物继续忽略，避免误提交。
 /.next-preview/
 /.dev-preview/
+
+# 本任务浏览器截图与脱敏验证记录
+/.artifacts/
