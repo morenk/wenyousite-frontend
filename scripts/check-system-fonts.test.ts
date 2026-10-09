@@ -27,6 +27,22 @@ describe("系统字体回归门禁", () => {
     expect(fontViolations("chunk.js", "Noto‘g‘ri kirish")).toEqual([]);
     expect(fontViolations("chunk.css", "font-family: Noto Sans, Noto Color Emoji")).not.toEqual([]);
   });
+  test("仅固定生成姓名数据中的 Noto 获得识别，片段外字体声明仍拒绝", () => {
+    const canonical = readFileSync("src/lib/tools/name-data/it.json", "utf8").trimEnd();
+    const sourceName = "/src/lib/tools/name-data/it.json";
+    expect(fontViolations(sourceName, canonical)).toEqual([]);
+    const emitted = `i.exports=JSON.parse(${JSON.stringify(canonical)})`;
+    expect(fontViolations("chunk.js", emitted)).toEqual([]);
+    expect(fontViolations("chunk.js", `i.exports=JSON.parse('${canonical.replaceAll("'", "\\'")}')`)).toEqual([]);
+    expect(fontViolations("random.json", canonical)).not.toEqual([]);
+    expect(fontViolations(sourceName, canonical.replace('"source":', '"extra":"Noto","source":'))).not.toEqual([]);
+    expect(fontViolations("chunk.js", 'const names = ["Noto", "Rossi"]')).not.toEqual([]);
+    for (const content of ["font-family: 'Noto'", 'fontFamily: "Noto"', 'font-family: ui-sans-serif, "Noto"', 'font-family: Noto Sans', 'font-family: Noto Serif', 'font-family: Noto Color Emoji', 'src:url(/fonts/Noto.woff2)', 'const style = { "fontFamily": "Noto" };', '{"font-family":"Noto"}', 'body { font: 16px "Noto"; }', 'body { font-family:\n"Noto"; }', '--app-font:"Noto";font-family:var(--app-font)', 'const family="Noto";const style={fontFamily:family}']) {
+      expect(fontViolations("chunk.css", content)).not.toEqual([]);
+      expect(fontViolations("chunk.js", emitted + ";" + content)).not.toEqual([]);
+    }
+    expect(fontViolations("Noto.woff2")).not.toEqual([]);
+  });
   test("保留数学、图标字体与系统等宽栈", () => {
     for (const name of ["KaTeX_Main-Regular.abc123.woff2", "MaterialIcons-Regular.abc123.woff2"]) {
       expect(fontViolations(name)).toEqual([]);

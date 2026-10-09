@@ -43,6 +43,7 @@ export function NavBar({
     { href: "/", label: NAVIGATION_LABELS.discover, icon: NAVIGATION_ICONS.discover, match: (path) => path === "/" || path.startsWith("/tags/") },
     { href: "/moments", label: NAVIGATION_LABELS.moments, icon: NAVIGATION_ICONS.moments, match: (path) => path.startsWith("/moments") },
     { href: "/search", label: NAVIGATION_LABELS.search, icon: NAVIGATION_ICONS.search, match: (path) => path.startsWith("/search") },
+    { href: "/tools", label: "温油工具箱", icon: "content.layers", match: (path) => path === "/tools" || path.startsWith("/tools/") },
     ...(user ? [
       { href: "/notifications", label: NAVIGATION_LABELS.notifications, icon: NAVIGATION_ICONS.notifications, match: (path: string) => path.startsWith("/notifications"), count: notificationCount, accountShortcut: true },
       { href: "/messages", label: NAVIGATION_LABELS.directMessages, icon: NAVIGATION_ICONS.directMessages, match: (path: string) => path.startsWith("/messages"), count: directMessageCount, accountShortcut: true },

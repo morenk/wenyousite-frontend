@@ -15,6 +15,9 @@ import { ThemeProvider, useTheme } from "@/components/ui/theme-provider";
 
 import { AppDownloadProvider } from "@/components/download/app-download-provider";
 
+import { isToolEmbedPath } from "@/lib/tools/catalog";
+import { EmbedEnvironment } from "@/components/tools/embed-environment";
+
 import { CoverPlaybackNavigation } from "@/components/layout/cover-playback-navigation";
 
 function createQueryClient() {
@@ -79,6 +82,14 @@ function AdminSessionLifecycle() {
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname() ?? "";
+  if (isToolEmbedPath(pathname)) {
+    return <Suspense fallback={null}><EmbedEnvironment>{children}</EmbedEnvironment></Suspense>;
+  }
+  return <CommunityProviders>{children}</CommunityProviders>;
+}
+
+function CommunityProviders({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider>
       <NuqsAdapter>

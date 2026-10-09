@@ -39,6 +39,7 @@
 | [direct-messages](./modules/direct-messages.md) | 私聊与统一消息中心 | active |
 | [stickers](./modules/stickers.md) | 用户私有表情收藏、管理与发送 | active |
 | [search](./modules/search.md) | 搜索 | active |
+| [text-toolbox](./modules/text-toolbox.md) | 文字工具、姓名词库与匿名移动端嵌入入口 | active |
 | [drafts](./modules/drafts.md) | 草稿箱 | active |
 | [bookmarks](./modules/bookmarks.md) | 收藏 | active |
 | [mentions](./modules/mentions.md) | 帖内提及 | active |
