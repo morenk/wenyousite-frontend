@@ -1,9 +1,10 @@
 "use client";
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { WenyouIcon } from "@/components/ui/wenyou-icon";
+import { cn } from "@/lib/utils";
 import { copyToolText } from "@/lib/tools/clipboard";
 
 export function ToolSelect({ label, value, onChange, options, disabled }: {
@@ -18,15 +19,20 @@ export function ToolSelect({ label, value, onChange, options, disabled }: {
     </Select>
   </div>;
 }
-export function ToolResult({ text }: { text: string }) {
+export function ToolResult({ text, onDownload, scrollStart, resultClassName }: { text: string; onDownload?: () => void; scrollStart?: "left" | "right"; resultClassName?: string }) {
   const [message, setMessage] = useState("");
+  const result = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if (result.current && scrollStart) result.current.scrollLeft = scrollStart === "right" ? result.current.scrollWidth : 0;
+  }, [text, scrollStart]);
   return <section className="grid gap-3 border-t border-border pt-5" aria-label="转换结果">
-    <div className="flex items-center justify-between gap-3"><h2 className="text-base font-semibold">生成结果</h2>
-      <Button type="button" variant="outline" disabled={!text} onClick={async () => setMessage(await copyToolText(text) ? "已复制" : "复制未成功，请长按或选中结果手动复制")}>
+    <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-base font-semibold">生成结果</h2>
+      <div className="flex flex-wrap gap-2"><Button type="button" variant="outline" disabled={!text} onClick={async () => setMessage(await copyToolText(text) ? "已复制" : "复制未成功，请长按或选中结果手动复制")}>
         <WenyouIcon id="action.copy" />复制全部
       </Button>
+      {onDownload && <Button type="button" variant="outline" disabled={!text} onClick={onDownload}>下载结果</Button>}</div>
     </div>
-    <Textarea aria-label="生成结果" value={text} readOnly rows={7} wrap="off" className="min-h-40 resize-y font-mono leading-relaxed" placeholder="结果会显示在这里" />
+    <Textarea ref={result} aria-label="生成结果" value={text} readOnly rows={7} wrap="off" className={cn("min-h-40 resize-y font-mono leading-relaxed", resultClassName)} placeholder="结果会显示在这里" />
     <p role="status" className="min-h-5 text-sm text-muted-foreground">{message || "可直接选中并复制；离开页面后不保留。"}</p>
   </section>;
 }
