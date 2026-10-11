@@ -35,7 +35,7 @@ export function NameToolPanel() {
     finally { if (alive.current) setPending(false); }
   };
   const feedback = error || Object.values(form.formState.errors).map((item) => item.message).join("；");
-  return <div className="grid gap-5"><form className="grid gap-5" onSubmit={(event) => { void form.handleSubmit(submit)(event); }}>
+  return <div className="grid gap-5"><form className="grid gap-5 rounded-[var(--radius-card)] bg-card p-5 sm:p-6" onSubmit={(event) => { void form.handleSubmit(submit)(event); }}>
     <fieldset disabled={pending} className="grid min-w-0 gap-4">
       <div className="grid grid-cols-2 gap-4">
         <Controller name="country" control={form.control} render={({ field }) => <ToolSelect label="国家" value={field.value} disabled={pending} onChange={(value) => { field.onChange(value); if (value !== "cn") form.setValue("style", "common"); }} options={COUNTRIES} />} />

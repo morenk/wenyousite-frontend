@@ -829,3 +829,19 @@ img.sticker-display {
 [data-settings-surface] .settings-row:focus-visible {
   outline-offset: -2px;
 }
+
+/* 工具箱沿用设置页的单层焦点轮廓，仅作用于工具页面。 */
+[data-toolbox-surface] :where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+[data-toolbox-surface] :where(input:not([type="checkbox"]):not([type="radio"]), textarea, select):focus-visible {
+  outline-offset: -1px;
+}
+[data-toolbox-surface] :where(input, textarea, select)[aria-invalid="true"]:focus-visible {
+  outline-color: var(--destructive);
+}
+[data-toolbox-surface] [data-toolbox-row]:focus-visible {
+  outline-offset: -2px;
+}

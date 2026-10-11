@@ -60,7 +60,7 @@ export function VerticalToolPanel({ embedded = false }: { embedded?: boolean }) 
   const feedback = error || Object.values(form.formState.errors).map(item => item.message).join("；");
   const status = !ready ? "正在准备工具…" : pending ? "正在读取本地文件…" : note;
   return <div className="grid gap-5">
-    <form onSubmit={form.handleSubmit(submit)} className="grid gap-4">
+    <form onSubmit={form.handleSubmit(submit)} className="grid gap-4 rounded-[var(--radius-card)] bg-card p-5 sm:p-6">
       <fieldset disabled={!ready || pending} className="grid min-w-0 gap-4">
         <div className="grid gap-2">
           <div className="flex flex-wrap items-center justify-between gap-2"><label htmlFor="vertical-input" className="text-sm font-medium">输入文字</label>
