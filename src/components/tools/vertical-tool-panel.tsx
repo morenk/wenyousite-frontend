@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -56,6 +57,8 @@ export function VerticalToolPanel({ embedded = false }: { embedded?: boolean }) 
     try { downloadToolText(output); setNote("已请求下载 UTF-8 文本"); }
     catch { setError("下载未成功，请复制结果后保存为文本"); }
   };
+  const feedback = error || Object.values(form.formState.errors).map(item => item.message).join("；");
+  const status = !ready ? "正在准备工具…" : pending ? "正在读取本地文件…" : note;
   return <div className="grid gap-5">
     <form onSubmit={form.handleSubmit(submit)} className="grid gap-4">
       <fieldset disabled={!ready || pending} className="grid min-w-0 gap-4">
@@ -66,7 +69,7 @@ export function VerticalToolPanel({ embedded = false }: { embedded?: boolean }) 
             </div>
           </div>
           {!embedded && <input ref={fileInput} type="file" accept=".txt,text/plain" hidden aria-label="打开 UTF-8 文本文件" onChange={event => { const file = event.currentTarget.files?.[0]; event.currentTarget.value = ""; void openFile(file); }} />}
-          <Textarea id="vertical-input" {...form.register("input")} rows={5} maxLength={TEXT_LIMIT} className="min-h-32 resize-y" placeholder="每行另起一列，长行按页高续列" />
+          <Textarea id="vertical-input" {...form.register("input")} rows={5} maxLength={TEXT_LIMIT} className="min-h-32 resize-y" />
           <p className="text-xs text-muted-foreground">最多 10,000 个字符{!embedded ? "；可打开 64 KiB 以内的 UTF-8 .txt 文件" : ""}</p>
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -78,11 +81,11 @@ export function VerticalToolPanel({ embedded = false }: { embedded?: boolean }) 
           {separatorMode === "spaces" ? <div className="grid gap-2"><label htmlFor="column-gap" className="text-sm font-medium">列间空格数</label><Input id="column-gap" type="number" min={0} max={10} {...form.register("gap", { valueAsNumber: true })} /></div> : <div className="grid gap-2"><label htmlFor="column-separator" className="text-sm font-medium">自定义分隔符</label><Input id="column-separator" maxLength={20} {...form.register("separator")} /></div>}
         </div>
         <Controller name="direction" control={form.control} render={({ field }) => <ToolSelect label="阅读顺序" value={field.value} disabled={!ready || pending} onChange={field.onChange} options={[{ id: "right", label: "从右向左（默认）" }, { id: "left", label: "从左向右" }]} />} />
-        <p className="text-sm leading-relaxed text-muted-foreground">每列从上向下读，换行另起一列，空行留空列；超出页宽后另起一页。使用等宽字体查看效果更好。</p>
+        <p className="text-sm leading-relaxed text-muted-foreground">换行另起一列，空行留空列；超出页宽后分页。</p>
         <div className="flex flex-wrap gap-3"><Button type="submit">生成文字</Button><Button type="button" variant="ghost" onClick={() => replaceInput("")}>清空</Button></div>
       </fieldset>
-      <div role="alert" className="text-sm text-destructive">{error || Object.values(form.formState.errors).map(item => item.message).join("；")}</div>
-      <p role="status" className="text-xs text-muted-foreground">{!ready ? "正在准备工具…" : pending ? "正在读取本地文件…" : note}</p>
+      <div role="alert" className={cn("text-sm text-destructive", !feedback && "sr-only")}>{feedback}</div>
+      <p role="status" className={cn("text-xs text-muted-foreground", !status && "sr-only")}>{status}</p>
     </form>
     <ToolResult key={output} text={output} onDownload={embedded ? undefined : download} scrollStart={resultDirection} resultClassName="field-sizing-fixed h-64 max-h-80" />
   </div>;
