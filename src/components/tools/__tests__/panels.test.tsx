@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { VerticalToolPanel } from "../vertical-tool-panel";
 import { TextToolPanel } from "../text-tool-panel";
 import { NameToolPanel } from "../name-tool-panel";
 import * as names from "@/lib/tools/names";
@@ -8,9 +9,10 @@ import * as clipboard from "@/lib/tools/clipboard";
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 describe("文字工具交互", () => {
   test("竖排配置、生成、复制失败与清空", async () => {
-    render(<TextToolPanel tool="vertical" />);
+    render(<VerticalToolPanel />);
     fireEvent.change(screen.getByLabelText("输入文字"), { target: { value: "甲乙丙丁" } });
-    fireEvent.change(screen.getByLabelText("每列字数"), { target: { value: "2" } });
+    fireEvent.change(screen.getByLabelText("页高（每列字数）"), { target: { value: "2" } });
+    fireEvent.change(screen.getByLabelText("页宽（每页列数）"), { target: { value: "2" } });
     fireEvent.change(screen.getByLabelText("列间空格数"), { target: { value: "1" } });
     await userEvent.click(screen.getByRole("button", { name: "生成文字" }));
     await waitFor(() => expect(screen.getByLabelText("生成结果")).toHaveValue("丙 甲\n丁 乙"));

@@ -3,28 +3,44 @@ import { cellWidth, verticalText } from "../vertical";
 import { MORSE, decodeMorse, encodeMorse } from "../morse";
 import { FANCY_STYLES, fancyText } from "../fancy";
 import { isToolEmbedPath, isToolId, toolHref } from "../catalog";
-const options = { height: 2, gap: 1, direction: "right" as const };
-describe("竖排纯文本", () => {
-  test("右起从上到下，空列双宽填充，左起不倒转列内字", () => {
+const options = { width: 2, height: 2, gap: 1, direction: "right" as const };
+describe("竖排固定页格", () => {
+  test("按列分页，左右顺序与末页空格稳定", () => {
     expect(verticalText("甲乙丙丁", options)).toBe("丙 甲\n丁 乙");
-    expect(verticalText("甲乙丙丁戊", options)).toBe("戊 丙 甲\n   丁 乙");
-    expect(verticalText("甲乙丙丁戊", { ...options, direction: "left" })).toBe("甲 丙 戊\n乙 丁");
+    expect(verticalText("甲乙丙丁戊己庚辛", { ...options, width: 3 })).toBe("戊 丙 甲\n己 丁 乙\n\n      庚\n      辛");
+    expect(verticalText("甲乙丙丁戊", { ...options, width: 3, direction: "left" })).toBe("甲 丙 戊\n乙 丁   ");
     expect(verticalText("甲乙丙丁", { ...options, gap: 0 })).toBe("丙甲\n丁乙");
     expect(verticalText("甲乙丙丁", { ...options, gap: 3 })).toBe("丙   甲\n丁   乙");
+    expect(verticalText("甲", { width: 1, height: 3, gap: 0, direction: "right" })).toBe("甲\n  \n  ");
   });
-  test("完整grapheme、半角补齐和换行分段", () => {
-    expect(verticalText("甲👨‍👩‍👧‍👦乙🇨🇳", options)).toBe("乙 甲\n🇨🇳 👨‍👩‍👧‍👦");
-    expect(verticalText("é👍🏽", { ...options, height: 1 })).toBe("👍🏽 é");
-    expect(verticalText("A中B文", options)).toBe("B  A\n文 中");
-    expect(verticalText("甲乙\r\n丙丁", options)).toBe("甲\n乙\n\n丙\n丁");
-    expect(verticalText("甲\n\n乙", options)).toBe("甲\n\n\n\n乙");
+  test("换行新列、空行空列，保留首尾空行并规范化CRLF", () => {
+    expect(verticalText("甲乙\r\n丙丁", options)).toBe("丙 甲\n丁 乙");
+    expect(verticalText("甲乙\n丙丁\n\n戊", { ...options, width: 3 })).toBe("   丙 甲\n   丁 乙\n\n      戊\n        ");
+    expect(verticalText("\n甲\n", { ...options, width: 3 })).toBe("   甲   \n        ");
+    expect(verticalText("甲\r乙", options)).toBe("乙 甲\n     ");
     expect(verticalText("", options)).toBe("");
-    expect(verticalText("\t甲", { ...options, height: 100 })).toBe("\n\n\n\n甲");
+    expect(verticalText("\n", { ...options, height: 1 })).toBe("     ");
   });
-  test("限制工作量，不静默拆分旧浏览器中的emoji", () => {
+  test("完整grapheme、单双宽补齐和自定义分隔符", () => {
+    expect(verticalText("甲👨‍👩‍👧‍👦乙🇨🇳", options)).toBe("乙 甲\n🇨🇳 👨‍👩‍👧‍👦");
+    expect(verticalText("é👍🏽", { ...options, height: 1 })).toBe("👍🏽 é ");
+    expect(verticalText("A中\nB文", { ...options, separator: " | " })).toBe("B  | A \n文 | 中");
+    expect(verticalText("甲乙丙丁", { ...options, separator: "🙂  " })).toBe("丙🙂  甲\n丁🙂  乙");
+    expect(verticalText("甲乙丙丁", { ...options, separator: "" })).toBe("丙甲\n丁乙");
+    expect(verticalText("\t甲", { ...options, width: 1, height: 5 })).toBe("  \n  \n  \n  \n甲");
+  });
+  test("校验范围并限制空行和分隔符导致的输出膨胀", () => {
     for (const height of [0, 101, 1.5, NaN]) expect(() => verticalText("字", { ...options, height })).toThrow();
+    for (const width of [0, 101, 1.5, NaN]) expect(() => verticalText("字", { ...options, width })).toThrow();
     for (const gap of [-1, 11, 1.5, NaN]) expect(() => verticalText("字", { ...options, gap })).toThrow();
+    for (const separator of ["x".repeat(21), "\n", "\t", "\u0000", "\u2028"]) expect(() => verticalText("字", { ...options, separator })).toThrow("分隔符");
+    expect(() => verticalText("字", { ...options, direction: "invalid" as "right" })).toThrow("阅读顺序");
     expect(() => verticalText("字".repeat(10001), options)).toThrow("10,000");
+    expect(() => verticalText("\n".repeat(10000), { ...options, width: 1, height: 100 })).toThrow("结果过大");
+    expect(() => verticalText("\n".repeat(4000), { ...options, width: 100, height: 20, separator: "x".repeat(20) })).toThrow("结果过大");
+    expect(verticalText("字", { ...options, width: 100, height: 100 }).split("\n")).toHaveLength(100);
+  });
+  test("旧浏览器明确反馈，不拆emoji", () => {
     const original = Intl.Segmenter;
     Object.defineProperty(Intl, "Segmenter", { configurable: true, value: undefined });
     try { expect(() => verticalText("字", options)).toThrow("升级"); }
