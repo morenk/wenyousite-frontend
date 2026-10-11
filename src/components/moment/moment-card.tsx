@@ -58,7 +58,7 @@ export function MomentCard({ moment, priority = false }: { moment: MomentCardDat
         </div>
       </Link>
 
-      <div className="mt-1 flex min-w-0 items-center gap-0 px-0.5">
+      <div className="mt-2 flex min-w-0 items-center gap-2 px-0.5">
         <Link
           href={`/users/${moment.author.id}`}
           className="flex min-w-0 flex-1 items-center gap-1.5 rounded-[var(--radius-control)] py-1 text-muted-foreground hover:text-foreground"

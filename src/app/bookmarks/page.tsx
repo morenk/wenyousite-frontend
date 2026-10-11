@@ -38,7 +38,7 @@ export default function BookmarksPage() {
 
   return (
     <PageShell width="workspace">
-      <PageHeader title="我的收藏" />
+      <PageHeader purpose="functional" title="我的收藏" />
       <div className="grid grid-cols-[15rem_minmax(0,1fr)] items-start gap-6">
         <aside className="sticky top-5 flex h-[calc(100dvh-7rem)] min-h-64 flex-col gap-4 border-r border-border pr-5" aria-label="收藏目录">
           <Tabs value={type} onValueChange={(value) => {

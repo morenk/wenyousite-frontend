@@ -36,11 +36,12 @@ export default function HomePage() {
   const threads = data?.pages.flatMap((page) => page?.data ?? []) ?? [];
 
   return (
-    <PageShell width="feed" className="py-5">
+    <PageShell width="feed" className="py-8">
       <main data-slot="home-feed" className="min-w-0">
         <PageHeader
           title="发现主题帖"
           variant="compact"
+          purpose="functional"
           toolbar={
             <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
               <CategoryTabs

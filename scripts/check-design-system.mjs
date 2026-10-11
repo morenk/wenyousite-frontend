@@ -237,7 +237,7 @@ const semanticContractClaims = new Map([
   ["src/components/thread/topic-tag-link.tsx", ["@wenyousite/foundation/elements", "--element-topic-tag-min-height", "--element-topic-tag-foreground", "--element-topic-tag-focus-ring", "--element-topic-tag-font-weight", "hover:underline", "data-slot=\"topic-tag\""]],
   ["src/components/thread/thread-category.tsx", ["data-slot=\"category-badge\""]],
   ["src/lib/thread-presentation.ts", ["METADATA_ELEMENT_STYLES", "categoryMarker.badgeTone"]],
-  ["src/components/layout/page-header.tsx", ["--type-page-title-size", "--type-section-title-size"]],
+  ["src/components/layout/page-header.tsx", ["--type-page-title-size", "--type-page-title-line-height", "--type-page-title-weight"]],
   ["src/components/ui/dialog.tsx", ["--type-subsection-title-size", "--layer-modal-backdrop", "--overlay-scrim"]],
   ["src/components/ui/tooltip.tsx", ["--layer-tooltip"]],
   ["src/components/ui/select.tsx", ["--layer-popup"]],

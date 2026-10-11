@@ -75,10 +75,11 @@ export default function MomentsPage() {
   }, [feed, moments.length, query.isLoading]);
 
   return (
-    <PageShell width="feed" className="py-5">
+    <PageShell width="feed" className="py-8">
       <PageHeader
         title="动态"
         variant="compact"
+        purpose="functional"
         toolbar={
           <Tabs
             value={feed}

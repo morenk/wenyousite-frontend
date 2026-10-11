@@ -9,7 +9,7 @@ export default function WalletPage() {
   return (
     <RequireAuth>
       <PageShell width="feed">
-        <PageHeader title="我的温油" />
+        <PageHeader purpose="functional" title="我的温油" />
         <WalletHistory />
       </PageShell>
     </RequireAuth>

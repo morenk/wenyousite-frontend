@@ -55,7 +55,7 @@ export function ThreadList({
 
   if (error) {
     return (
-      <Panel padding="none" className="rounded-[var(--radius-card)]">
+      <Panel padding="none" className="rounded-[var(--radius-card)] border-0">
         <LoadError
           title={errorTitle}
           onRetry={onRetry}
@@ -67,7 +67,7 @@ export function ThreadList({
 
   if (threads.length === 0) {
     return (
-      <Panel padding="none" className="rounded-[var(--radius-card)]">
+      <Panel padding="none" className="rounded-[var(--radius-card)] border-0">
         <EmptyState title={emptyTitle} />
       </Panel>
     );
@@ -81,7 +81,7 @@ export function ThreadList({
   return (
     <div className="relative w-full" aria-busy={isRefreshing || undefined}>
       {isRefreshing && <ListRefreshIndicator />}
-      <StackList role="list" aria-label="主题帖列表">
+      <StackList role="list" aria-label="主题帖列表" className="border-0 divide-y-0 [&>article]:after:absolute [&>article]:after:inset-x-5 [&>article]:after:bottom-0 [&>article]:after:border-b [&>article]:after:border-border/60">
         {uniqueThreads.map((thread) => (
           <ThreadCard key={thread.id} thread={thread} />
         ))}
@@ -105,7 +105,7 @@ export function ThreadList({
 
 function ThreadListSkeleton() {
   return (
-    <StackList role="status" aria-label="正在加载主题帖">
+    <StackList role="status" aria-label="正在加载主题帖" className="border-0 divide-y-0 [&>div:not(:last-child)]:after:absolute [&>div:not(:last-child)]:after:inset-x-5 [&>div:not(:last-child)]:after:bottom-0 [&>div:not(:last-child)]:after:border-b [&>div:not(:last-child)]:after:border-border/60">
       {Array.from({ length: 3 }, (_, index) => (
         <StackListRow key={index}>
           <div className="flex gap-3.5">

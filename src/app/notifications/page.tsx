@@ -26,7 +26,7 @@ function NotificationsPageInner() {
 
   return (
     <PageShell width="feed">
-      <PageHeader title="通知" />
+      <PageHeader purpose="functional" title="通知" />
       <MessageCenterTabs />
       <div className="mt-5">
         <NotificationList type={type ?? undefined} onTypeChange={handleTypeChange} />

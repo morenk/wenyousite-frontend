@@ -176,7 +176,7 @@ export default function CreateThreadPage() {
 
   return (
     <PageShell width="workspace">
-      <PageHeader title="创建主题帖" />
+      <PageHeader purpose="functional" title="创建主题帖" />
       <Card>
         <CardContent className="pt-6">
           <ThreadCreateForm

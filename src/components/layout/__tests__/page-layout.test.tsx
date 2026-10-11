@@ -41,7 +41,7 @@ describe("页面布局组件", () => {
     expect(screen.getByRole("button", { name: "创建" })).toBeInTheDocument();
   });
 
-  test("PageHeader 紧凑模式把标题和页面工具收进同一排头", () => {
+  test("PageHeader 工具栏与页标题保持独立层次", () => {
     render(
       <PageHeader
         title="发现主题帖"
@@ -52,11 +52,11 @@ describe("页面布局组件", () => {
 
     const header = screen.getByRole("banner");
     expect(header).toHaveAttribute("data-variant", "compact");
-    expect(header).toHaveClass("rounded-[var(--radius-card)]", "overflow-hidden");
+    expect(header).not.toHaveClass("border", "overflow-hidden");
     expect(screen.getByRole("heading", { name: "发现主题帖" })).toHaveClass(
-      "font-display", "[font-weight:var(--type-section-title-weight)]",
-      "[font-size:var(--type-section-title-size)]",
-      "[line-height:var(--type-section-title-line-height)]",
+      "font-display", "[font-weight:var(--type-page-title-weight)]",
+      "[font-size:var(--type-page-title-size)]",
+      "[line-height:var(--type-page-title-line-height)]",
     );
     expect(screen.getByRole("button", { name: "筛选" }).parentElement).toHaveAttribute(
       "data-slot",
@@ -67,7 +67,7 @@ describe("页面布局组件", () => {
   test.each(["default", "compact"] as const)("功能标题在 %s 模式使用body 半粗并保留标题尺寸", (variant) => {
     render(<PageHeader title="账号安全" purpose="functional" variant={variant} />);
     const heading = screen.getByRole("heading", { name: "账号安全" });
-    const role = variant === "compact" ? "section" : "page";
+    const role = "page";
     expect(heading).toHaveClass(
       "font-sans", "font-semibold",
       `[font-size:var(--type-${role}-title-size)]`,

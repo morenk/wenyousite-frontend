@@ -31,6 +31,7 @@ function SearchPageInner() {
       <PageHeader
         title="搜索"
         variant="compact"
+        purpose="functional"
         toolbar={
           <form onSubmit={handleSubmit} className="flex items-center gap-2" role="search">
             <div className="relative flex-1">

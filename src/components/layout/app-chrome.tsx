@@ -81,19 +81,19 @@ function AppChromeFrame({
       notificationCount={unreadCount ?? 0}
       directMessageCount={directUnread?.total ?? 0}
     >
+      <div data-slot="site-surface" className="min-h-screen bg-muted/40">
       <div
       data-slot="app-chrome"
       data-mode={mode}
       className={cn(
-        "mx-auto grid min-h-screen w-full items-start gap-4 px-3 sm:px-4",
-        mode === "community"
-          ? "max-w-[49.5rem] grid-cols-[4.5rem_minmax(0,42rem)] xl:max-w-wide xl:grid-cols-[17rem_minmax(0,42rem)_17rem]"
-          : "max-w-chrome-workspace grid-cols-[4.5rem_minmax(0,1fr)]",
+        "mx-auto grid min-h-screen w-full max-w-chrome-workspace grid-cols-[4.5rem_minmax(0,1fr)] items-start gap-4 px-3 sm:px-4",
+        mode === "community" && "xl:grid-cols-[4.5rem_minmax(0,1fr)_17rem]",
       )}
     >
-      <NavBar compact={mode === "workspace"} />
+      <NavBar compact />
       <main className="min-w-0">{children}</main>
       {mode === "community" ? <AppContextRail /> : null}
+      </div>
       </div>
     </UnreadCountsProvider>
   );

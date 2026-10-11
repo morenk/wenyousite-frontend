@@ -263,7 +263,7 @@ test("宽屏保持三栏社区壳且减少动态效果", async ({ page }) => {
   expect(contextBox).not.toBeNull();
   expect(shellBox!.width).toBeLessThanOrEqual(672);
   expect(feedBox!.width).toBeLessThanOrEqual(672);
-  expect(navBox!.width).toBe(272);
+  expect(navBox!.width).toBe(72);
   expect(contextBox!.width).toBe(272);
 
   const transitionDuration = await page

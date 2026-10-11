@@ -44,10 +44,10 @@ async function expectCompactWorkspaceNav(page: Page) {
   await expect(nav).toHaveAttribute("data-compact", "true");
   await expect(nav.getByText("温油站", { exact: true })).toBeHidden();
   await expect(nav.getByText("发现", { exact: true })).toBeHidden();
-  await expect(nav.getByRole("link", { name: "通知" })).toBeHidden();
-  await expect(nav.getByRole("link", { name: "私聊" })).toBeHidden();
-  await expect(nav.getByRole("link", { name: "收藏" })).toBeHidden();
-  await expect(nav.getByRole("link", { name: layoutUser.username })).toBeHidden();
+  await expect(nav.getByRole("link", { name: "通知" })).toBeVisible();
+  await expect(nav.getByRole("link", { name: "私聊" })).toBeVisible();
+  await expect(nav.getByRole("link", { name: "收藏" })).toBeVisible();
+  await expect(nav.getByRole("link", { name: layoutUser.username })).toBeVisible();
   await expect(nav.getByRole("button", { name: "打开发布菜单" })).toBeVisible();
   await expect(nav.getByRole("button", { name: "退出" })).toBeVisible();
 
@@ -72,13 +72,17 @@ async function expectCompactWorkspaceNav(page: Page) {
     "动态",
     "搜索",
     "温油工具箱",
+    "通知",
+    "私聊",
+    "收藏",
     "外观：跟随系统",
+    layoutUser.username,
     "退出",
   ]);
 
   const box = await nav.boundingBox();
   expect(box).not.toBeNull();
-  expect(box!.width).toBeLessThanOrEqual(72);
+  expect(box!.width).toBe(72);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1440);
 }
 
