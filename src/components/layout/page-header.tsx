@@ -27,18 +27,11 @@ export function PageHeader({
   className,
   ...props
 }: PageHeaderProps) {
-  const compact = variant === "compact";
-
   return (
     <header
       data-variant={variant}
       data-purpose={purpose}
-      className={cn(
-        compact
-          ? "mb-4 overflow-hidden rounded-[var(--radius-card)] border border-border bg-card"
-          : "mb-5",
-        className,
-      )}
+      className={cn("mb-5", className)}
       {...props}
     >
       {backHref ? (
@@ -46,7 +39,7 @@ export function PageHeader({
           href={backHref}
           className={cn(
             "inline-flex min-h-8 items-center gap-2 rounded-[var(--radius-control)] px-1 text-sm font-semibold text-muted-foreground transition-colors duration-[var(--motion-fast)] hover:text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
-            compact ? "mx-4 mt-2.5" : "mb-3",
+            "mb-3",
           )}
         >
           <WenyouIcon id="navigation.back" className="size-4" />
@@ -54,29 +47,22 @@ export function PageHeader({
         </Link>
       ) : null}
       <div
-        className={cn(
-          "flex justify-between gap-6",
-          compact ? "min-h-13 items-center px-4 py-2.5" : "items-start",
-        )}
+        className="flex items-start justify-between gap-6"
       >
         <div className="min-w-0">
           <h1
             className={cn(
               "tracking-[0.01em] text-foreground",
-              compact
-                ? "[font-size:var(--type-section-title-size)] [line-height:var(--type-section-title-line-height)]"
-                : "[font-size:var(--type-page-title-size)] [line-height:var(--type-page-title-line-height)]",
+              "[font-size:var(--type-page-title-size)] [line-height:var(--type-page-title-line-height)]",
               purpose === "functional"
                 ? "font-sans font-semibold"
-                : cn("font-display", compact
-                  ? "[font-weight:var(--type-section-title-weight)]"
-                  : "[font-weight:var(--type-page-title-weight)]"),
+                : "font-display [font-weight:var(--type-page-title-weight)]",
             )}
           >
             {title}
           </h1>
           {description ? (
-            <div className={cn("text-muted-foreground [font-size:var(--type-compact-body-size)] [line-height:var(--type-compact-body-line-height)]", compact ? "mt-0.5" : "mt-2")}>
+            <div className="mt-2 text-muted-foreground [font-size:var(--type-compact-body-size)] [line-height:var(--type-compact-body-line-height)]">
               {description}
             </div>
           ) : null}
@@ -84,7 +70,7 @@ export function PageHeader({
         {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
       </div>
       {toolbar ? (
-        <div data-slot="page-header-toolbar" className="border-t border-border bg-muted/35 p-2.5">
+        <div data-slot="page-header-toolbar" className="mt-5 rounded-[var(--radius-card)] bg-card p-3">
           {toolbar}
         </div>
       ) : null}

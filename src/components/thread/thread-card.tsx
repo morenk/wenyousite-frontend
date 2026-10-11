@@ -53,7 +53,7 @@ export function ThreadCard({ thread }: ThreadCardProps) {
         <UserAvatar
           name={thread.owner.username}
           src={thread.owner.avatar} display={thread.owner.avatarDisplay}
-          className="mt-0.5 h-11 w-11 ring-2 ring-card outline outline-1 outline-border"
+          className="mt-0.5 h-11 w-11"
           textClassName="text-sm"
         />
 
@@ -116,14 +116,14 @@ export function ThreadCard({ thread }: ThreadCardProps) {
           )}
 
           {topicTags.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-1.5">
+            <div className="mt-2 flex flex-wrap gap-x-2 gap-y-0.5">
               {topicTags.map(({ tag }) => (
                 <TopicTagLink key={tag.id} tag={tag} className="relative z-10" />
               ))}
             </div>
           )}
 
-          <div className="mt-3 flex flex-wrap items-center gap-3 font-utility text-xs font-semibold text-muted-foreground">
+          <div className="mt-2 flex flex-wrap items-center gap-3 font-utility text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
               <Users className="h-3.5 w-3.5" />
                 <WenyouCount value={thread._count.players} label="玩家" />

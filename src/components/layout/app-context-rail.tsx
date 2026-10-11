@@ -23,32 +23,31 @@ export function AppContextRail() {
   return (
     <aside
       aria-label="快捷信息"
-      className="sticky top-0 hidden h-screen overflow-y-auto py-5 xl:block"
+      className="sticky top-0 hidden h-screen overflow-y-auto py-8 xl:block"
     >
       {user ? (
-        <Panel className="overflow-hidden" padding="none">
-          <div className="h-1 bg-brand-strong" aria-hidden="true" />
-          <div className="p-4">
+        <Panel className="overflow-hidden rounded-[var(--radius-card)] border-0" padding="none">
+          <div className="p-5">
             <Link
               href={`/users/${user.id}`}
               className="group flex items-center gap-3 rounded-[var(--radius-control)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
             >
               <UserAvatar name={user.username} src={user.avatar} display={user.avatarDisplay} className="size-11" />
               <div className="min-w-0 flex-1">
-                <p className="truncate font-bold text-foreground">{user.username}</p>
+                <p className="truncate font-semibold text-foreground">{user.username}</p>
               </div>
               <ChevronRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
             </Link>
 
             <Link
               href="/wallet"
-              className="mt-4 flex items-center justify-between rounded-[var(--radius-control)] bg-primary px-3 py-2.5 text-sm text-primary-foreground transition-colors hover:bg-accent"
+              className="mt-4 flex items-center justify-between rounded-[var(--radius-control)] bg-muted/60 px-3 py-2.5 text-sm text-foreground transition-colors hover:bg-accent"
             >
               <span className="flex items-center gap-2 font-semibold">
                 <Wallet className="size-4" />
                 我的温油
               </span>
-              <span className="font-utility font-bold tabular-nums">
+              <span className="font-utility font-medium tabular-nums">
                 {wallet ? `${formatWenyou(wallet.balance)} 升` : "—"}
               </span>
             </Link>
@@ -72,13 +71,12 @@ export function AppContextRail() {
           </div>
         </Panel>
       ) : (
-        <Panel className="overflow-hidden" padding="none">
-          <div className="h-1 bg-brand-strong" aria-hidden="true" />
+        <Panel className="overflow-hidden rounded-[var(--radius-card)] border-0" padding="none">
           <div className="p-5">
-            <p className="text-xl font-semibold text-foreground">登录温油站</p>
+            <p className="text-base font-semibold text-foreground">登录温油站</p>
             <div className="mt-4 grid gap-2">
               <Link href="/register" className={cn(buttonVariants(), "w-full")}>注册</Link>
-              <Link href="/login" className={cn(buttonVariants({ variant: "secondary" }), "w-full")}>登录</Link>
+              <Link href="/login" className={cn(buttonVariants({ variant: "ghost" }), "w-full")}>登录</Link>
             </div>
           </div>
         </Panel>

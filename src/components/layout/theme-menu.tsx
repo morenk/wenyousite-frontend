@@ -15,6 +15,7 @@ import {
   type WenyouIconId,
 } from "@/components/ui/wenyou-icon";
 import { useTheme } from "@/components/ui/theme-provider";
+import { Tooltip } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 const themeIcons = THEME_ICONS as Record<ThemePreference, WenyouIconId>;
@@ -37,6 +38,7 @@ export function ThemeMenu({
 
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
+      <Tooltip content={`外观：${currentLabel}`} side="right">
       <Popover.Trigger
         render={
           <button
@@ -53,6 +55,7 @@ export function ThemeMenu({
         <WenyouIcon id={themeIcons[preference]} className="size-5" />
         <span className={cn("hidden text-sm font-medium", !compact && "xl:inline")}>外观</span>
       </Popover.Trigger>
+      </Tooltip>
 
       <Popover.Portal>
         <Popover.Positioner

@@ -108,7 +108,7 @@ function EditThreadPageContent() {
   if (!thread.published && isOwner) {
     return (
       <PageShell width="workspace">
-        <PageHeader title="继续编辑草稿" />
+        <PageHeader purpose="functional" title="继续编辑草稿" />
         <Card>
           <CardContent className="pt-6">
             <ThreadCreateForm

@@ -1,4 +1,4 @@
-/** 全局桌面导航：宽屏显示完整侧栏，1024px 显示图标轨道。 */
+/** 全局桌面导航：社区与工作区共用图标轨道，账户入口在宽屏保留。 */
 
 "use client";
 
@@ -17,6 +17,7 @@ import { UnreadCountBadge } from "@/components/ui/unread-count-badge";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { BrandTitleMark } from "@/components/ui/brand-title-mark";
+import { Tooltip } from "@/components/ui/tooltip";
 import { ThemeMenu } from "@/components/layout/theme-menu";
 
 type NavItem = {
@@ -66,15 +67,16 @@ export function NavBar({
 
   return (
     <aside
-      className="sticky top-0 z-[var(--layer-chrome)] flex h-screen min-h-[36rem] flex-col py-4"
+      className="sticky top-0 z-[var(--layer-chrome)] flex h-screen min-h-0 flex-col overflow-y-auto py-4 [&>*]:shrink-0"
       aria-label="全局导航"
       data-compact={compact ? "true" : "false"}
     >
+      <Tooltip content={`${BRAND_NAME}首页`} side="right">
       <Link
         href="/"
         aria-label={`${BRAND_NAME}首页`}
         className={cn(
-          "group flex h-14 items-center justify-center rounded-[var(--radius-control)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+          "group flex h-14 items-center justify-center rounded-[var(--radius-control)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/40",
           !compact && "xl:justify-start xl:px-3",
         )}
       >
@@ -86,34 +88,35 @@ export function NavBar({
           !compact && "xl:block",
         )}>{BRAND_NAME}</span>
       </Link>
+      </Tooltip>
 
       {user ? <PublishMenu userId={user.id} compact={compact} /> : null}
 
-      <nav className="mt-5 grid gap-1.5" aria-label="主要页面">
+      <nav className="mb-5 mt-5 grid gap-1.5" aria-label="主要页面">
         {items.map((item) => (
           <RailLink
             key={item.href}
             item={item}
             active={item.match(pathname)}
             compact={compact}
-            hideOnWide={!!item.accountShortcut}
+            hideOnWide={!compact && !!item.accountShortcut}
           />
         ))}
       </nav>
 
       <div className="mt-auto grid gap-2 border-t border-border pt-4">
         <ThemeMenu compact={compact} />
-        <div className={cn("grid gap-2", !user && "xl:hidden")}>
+        <div className={cn("grid gap-2", !user && !compact && "xl:hidden")}>
           {user ? (
             <>
+              <Tooltip content="个人主页" side="right">
               <Link
                 href={`/users/${user.id}`}
                 aria-label={user.username}
-                title={user.username}
                 className={cn(
-                  "flex min-h-11 items-center justify-center rounded-[var(--radius-control)] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+                  "flex min-h-11 items-center justify-center rounded-[var(--radius-control)] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/40",
                   !compact && "xl:justify-start xl:gap-3 xl:px-2.5",
-                  "xl:hidden",
+                  !compact && "xl:hidden",
                   pathname.startsWith(`/users/${user.id}`) && "bg-accent/55 text-foreground",
                 )}
               >
@@ -123,32 +126,37 @@ export function NavBar({
                   !compact && "xl:block",
                 )}>{user.username}</span>
               </Link>
+              </Tooltip>
+              <Tooltip content="退出" side="right">
               <button
                 type="button"
                 onClick={handleLogout}
                 className={cn(
-                  "flex min-h-10 items-center justify-center rounded-[var(--radius-control)] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+                  "flex min-h-10 items-center justify-center rounded-[var(--radius-control)] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/40",
                   !compact && "xl:justify-start xl:gap-3 xl:px-3",
                 )}
-                title="退出"
+                aria-label="退出"
               >
                 <WenyouIcon id="action.logout" className="size-4" />
                 <span className={cn("hidden text-sm font-medium", !compact && "xl:inline")}>退出</span>
               </button>
+              </Tooltip>
             </>
           ) : (
             <>
+              <Tooltip content="登录" side="right">
               <Link href="/login" className={cn(
-                "flex min-h-11 items-center justify-center rounded-[var(--radius-control)] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+                "flex min-h-11 items-center justify-center rounded-[var(--radius-control)] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/40",
                 !compact && "xl:gap-3",
-              )} title="登录">
+              )} aria-label="登录">
                 <WenyouIcon id="action.login" className="size-5" />
                 <span className={cn("hidden text-sm font-semibold", !compact && "xl:inline")}>登录</span>
               </Link>
+              </Tooltip>
+              <Tooltip content="注册" side="right">
               <Link
                 href="/register"
                 aria-label="注册"
-                title="注册"
                 className={cn(
                   "flex min-h-11 items-center justify-center rounded-[var(--radius-control)] bg-action-primary text-action-primary-foreground transition-colors hover:bg-[color-mix(in_srgb,var(--action-primary)_86%,var(--brand-strong))]",
                   !compact && "xl:px-3",
@@ -157,6 +165,7 @@ export function NavBar({
                 <WenyouIcon id="action.follow" className={cn("size-5", !compact && "xl:hidden")} />
                 <span className={cn("hidden text-sm font-bold", !compact && "xl:inline")}>注册</span>
               </Link>
+              </Tooltip>
             </>
           )}
         </div>
@@ -179,13 +188,13 @@ function RailLink({
   const count = item.count ?? 0;
 
   return (
+    <Tooltip content={item.label} side="right">
     <Link
       href={item.href}
       aria-current={active ? "page" : undefined}
       aria-label={count > 0 ? `${item.label}，${count} 条未读` : item.label}
-      title={item.label}
       className={cn(
-        "group relative flex min-h-11 items-center justify-center rounded-[var(--radius-control)] text-muted-foreground transition-[background-color,color] duration-[var(--motion-fast)] hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+        "group relative flex min-h-11 items-center justify-center rounded-[var(--radius-control)] text-muted-foreground transition-[background-color,color] duration-[var(--motion-fast)] hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/40",
         !compact && "xl:justify-start xl:gap-3 xl:px-3",
         hideOnWide && "xl:hidden",
         active && "bg-accent/60 font-bold text-foreground",
@@ -204,5 +213,6 @@ function RailLink({
       </span>
       <span className={cn("hidden text-sm", !compact && "xl:inline")}>{item.label}</span>
     </Link>
+    </Tooltip>
   );
 }

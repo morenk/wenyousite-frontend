@@ -8,6 +8,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useState } from "react";
 import { WenyouIcon } from "@/components/ui/wenyou-icon";
+import { Tooltip } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 const MomentComposer = dynamic(
@@ -22,14 +23,15 @@ export function PublishMenu({ userId, compact = false }: { userId: string; compa
   return (
     <>
       <Popover.Root open={menuOpen} onOpenChange={setMenuOpen}>
-        <Popover.Trigger
+        <Tooltip content={NAVIGATION_LABELS.publish} side="right">
+      <Popover.Trigger
           render={
             <button
               type="button"
               aria-label="打开发布菜单"
               title={NAVIGATION_LABELS.publish}
               className={cn(
-                "group relative isolate mt-5 flex h-12 w-full items-center justify-center overflow-hidden rounded-[var(--radius-control)] bg-action-primary text-action-primary-foreground transition-[background-color,transform] duration-[var(--motion-fast)] ease-[var(--ease-standard)] hover:bg-[color-mix(in_srgb,var(--action-primary)_86%,var(--brand-strong))] active:translate-y-px",
+                "group relative isolate mt-5 flex h-12 w-full items-center justify-center overflow-hidden rounded-[var(--radius-control)] bg-action-primary text-action-primary-foreground transition-[background-color,transform] duration-[var(--motion-fast)] ease-[var(--ease-standard)] hover:bg-[color-mix(in_srgb,var(--action-primary)_86%,var(--brand-strong))] active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/40",
                 !compact && "xl:justify-start xl:gap-2.5 xl:px-4",
               )}
             />
@@ -49,6 +51,7 @@ export function PublishMenu({ userId, compact = false }: { userId: string; compa
             !compact && "xl:ml-auto xl:block",
           )} />
         </Popover.Trigger>
+      </Tooltip>
 
         <Popover.Portal>
           <Popover.Positioner side="right" align="start" sideOffset={12} className="z-[var(--layer-popup)]">

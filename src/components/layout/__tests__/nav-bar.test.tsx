@@ -97,7 +97,7 @@ describe("NavBar", () => {
     expect(container).toHaveTextContent("温油站");
   });
 
-  test("工作区紧凑模式只收窄布局，不改变宽屏按钮集合", () => {
+  test("紧凑轨道保留宽屏通知、私聊、收藏和个人主页入口", () => {
     mockUseAuth.mockReturnValue({ user: { id: "u1", username: "用户" }, logout: vi.fn() });
     render(<NavBar compact />);
 
@@ -108,17 +108,17 @@ describe("NavBar", () => {
     expect(screen.getByText("温油站")).not.toHaveClass("xl:block");
     expect(screen.getByText("发现")).not.toHaveClass("xl:inline");
     expect(screen.getByText("发布")).not.toHaveClass("xl:inline");
-    expect(screen.getByRole("link", { name: "通知" })).toHaveClass("xl:hidden");
-    expect(screen.getByRole("link", { name: "私聊" })).toHaveClass("xl:hidden");
-    expect(screen.getByRole("link", { name: "收藏" })).toHaveClass("xl:hidden");
-    expect(screen.getByRole("link", { name: "用户" })).toHaveClass("xl:hidden");
+    expect(screen.getByRole("link", { name: "通知" })).not.toHaveClass("xl:hidden");
+    expect(screen.getByRole("link", { name: "私聊" })).not.toHaveClass("xl:hidden");
+    expect(screen.getByRole("link", { name: "收藏" })).not.toHaveClass("xl:hidden");
+    expect(screen.getByRole("link", { name: "用户" })).not.toHaveClass("xl:hidden");
   });
 
-  test("访客紧凑模式不会在宽屏额外显示登录注册按钮", () => {
+  test("访客紧凑轨道始终保留登录注册入口", () => {
     mockUseAuth.mockReturnValue({ user: null, logout: vi.fn() });
     render(<NavBar compact />);
 
-    expect(screen.getByRole("link", { name: "登录" }).parentElement).toHaveClass(
+    expect(screen.getByRole("link", { name: "登录" }).parentElement).not.toHaveClass(
       "xl:hidden",
     );
   });

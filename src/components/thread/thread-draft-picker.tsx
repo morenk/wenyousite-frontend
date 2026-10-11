@@ -16,7 +16,7 @@ interface ThreadDraftPickerProps {
 export function ThreadDraftPicker({ onCreateNew }: ThreadDraftPickerProps) {
   return (
     <PageShell width="content">
-      <PageHeader
+      <PageHeader purpose="functional"
         title="创建主题帖"
         actions={<Button size="compact" onClick={onCreateNew}>
           <Plus className="mr-1.5 h-4 w-4" />

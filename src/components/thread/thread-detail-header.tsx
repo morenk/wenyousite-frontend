@@ -168,12 +168,12 @@ export function ThreadDetailHeader({
         data-slot="thread-document"
         data-content-purpose={CONTENT_PRESENTATION.detail.purpose}
         data-content-surface={CONTENT_PRESENTATION.detail.surface}
-        className="relative overflow-hidden rounded-[var(--radius-card)] border border-border bg-card"
+        className="relative overflow-hidden rounded-[var(--radius-card)] bg-card"
       >
         <header data-slot="thread-detail-header">
           <div
             data-slot="thread-detail-identity"
-            className="px-4 py-2.5 sm:px-5 sm:py-3"
+            className="px-4 py-4 sm:px-5 sm:py-5"
           >
             <div className="relative">
               <h1 className="px-10 text-center font-display text-[1.375rem] font-medium leading-8 tracking-[0.01em] text-foreground sm:text-2xl sm:leading-9">
@@ -219,7 +219,7 @@ export function ThreadDetailHeader({
           </div>
           <div
             data-slot="thread-detail-toolbar"
-            className="border-t border-border bg-muted/25 px-2.5 py-1.5"
+            className="mx-3 rounded-[var(--radius-control)] bg-muted/40 px-2 py-1.5 sm:mx-5"
           >
             <div className="flex min-w-0 items-center gap-1.5">
               {onSubthreadChange ? (
@@ -345,7 +345,7 @@ export function ThreadDetailHeader({
         {children ? (
           <div
             data-slot="thread-document-body"
-            className="border-t border-border px-5 py-5 sm:px-6 sm:py-6"
+            className="px-5 py-5 sm:px-6 sm:py-6"
           >
             {children}
           </div>

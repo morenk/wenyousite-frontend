@@ -17,7 +17,7 @@ export function SettingsShell({ children }: { children: ReactNode }) {
   if (!isSettings) return children;
   const isForm = pathname === "/me/password" || pathname === "/me/email";
   return (
-    <div data-settings-surface className="min-h-screen bg-muted/40">
+    <div data-settings-surface className="min-h-screen">
       <PageShell width={isForm ? "narrow" : "content"} className="py-8">
         <PageHeader
           purpose="functional"

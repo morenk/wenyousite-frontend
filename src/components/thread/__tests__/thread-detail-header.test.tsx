@@ -230,7 +230,7 @@ describe("ThreadDetailHeader", () => {
     );
     expect(
       container.querySelector('[data-slot="thread-detail-identity"]'),
-    ).toHaveClass("py-2.5");
+    ).toHaveClass("py-4", "sm:py-5");
     expect(
       container.querySelector('[data-slot="thread-detail-context"]'),
     ).toHaveClass("flex-wrap", "justify-center", "text-[11px]");
