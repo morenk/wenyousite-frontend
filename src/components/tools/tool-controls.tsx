@@ -32,7 +32,7 @@ export function ToolResult({ text, onDownload, scrollStart, resultClassName }: {
       </Button>
       {onDownload && <Button type="button" variant="outline" disabled={!text} onClick={onDownload}>下载结果</Button>}</div>
     </div>
-    <Textarea ref={result} aria-label="生成结果" value={text} readOnly rows={7} wrap="off" className={cn("min-h-40 resize-y font-mono leading-relaxed", resultClassName)} placeholder="结果会显示在这里" />
-    <p role="status" className="min-h-5 text-sm text-muted-foreground">{message || "可直接选中并复制；离开页面后不保留。"}</p>
+    <Textarea ref={result} aria-label="生成结果" value={text} readOnly rows={7} wrap="off" className={cn("min-h-40 resize-y font-mono leading-relaxed", resultClassName)} />
+    <p role="status" className={cn("text-sm text-muted-foreground", !message && "sr-only")}>{message}</p>
   </section>;
 }

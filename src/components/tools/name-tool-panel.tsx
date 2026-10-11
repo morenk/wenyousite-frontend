@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { COUNTRIES, generateNames, loadNameData, type NameOptions } from "@/lib/tools/names";
@@ -16,7 +17,6 @@ const schema = z.object({
 export function NameToolPanel() {
   const form = useForm<NameOptions>({ resolver: zodResolver(schema), defaultValues: { country: "cn", sex: "any", style: "common", surname: "", count: 10 } });
   const country = useWatch({ control: form.control, name: "country" });
-  const style = useWatch({ control: form.control, name: "style" });
   const [output, setOutput] = useState("");
   const [error, setError] = useState("");
   const [note, setNote] = useState("");
@@ -34,6 +34,7 @@ export function NameToolPanel() {
     } catch { if (alive.current) setError("词库加载或生成失败，请检查连接后重试"); }
     finally { if (alive.current) setPending(false); }
   };
+  const feedback = error || Object.values(form.formState.errors).map((item) => item.message).join("；");
   return <div className="grid gap-5"><form className="grid gap-5" onSubmit={(event) => { void form.handleSubmit(submit)(event); }}>
     <fieldset disabled={pending} className="grid min-w-0 gap-4">
       <div className="grid grid-cols-2 gap-4">
@@ -46,9 +47,9 @@ export function NameToolPanel() {
         <div className="grid gap-2"><label htmlFor="name-count" className="text-sm font-medium">生成数量</label><Input id="name-count" type="number" min={1} max={50} {...form.register("count", { valueAsNumber: true })} /></div>
       </div>
     </fieldset>
-    <p className="text-sm leading-relaxed text-muted-foreground">{style !== "common" ? "自编中文组合，为古风和幻想角色提供名字灵感。" : "中文可选古风、幻想风；其他国家保留原文拼写。"} {country === "ru" ? "随机姓氏随性别选取；手填姓氏将按原样保留。" : ""}</p>
-    <div role="alert" className="text-sm text-destructive">{error || Object.values(form.formState.errors).map((item) => item.message).join("；")}</div>
+    {country === "ru" && <p className="text-sm text-muted-foreground">随机姓氏随性别变化，固定姓氏原样保留。</p>}
+    <div role="alert" className={cn("text-sm text-destructive", !feedback && "sr-only")}>{feedback}</div>
     <Button type="submit" className="justify-self-start" pending={pending} pendingLabel="正在加载词库…">{error ? "重试生成" : "生成名字"}</Button>
-    {note && <p role="status" className="text-sm text-muted-foreground">{note}</p>}
+    <p role="status" className={cn("text-sm text-muted-foreground", !note && "sr-only")}>{note}</p>
   </form><ToolResult key={output} text={output} /></div>;
 }
