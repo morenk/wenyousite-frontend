@@ -27,6 +27,7 @@ export function useEditorMediaDisplay(mappings: readonly MarkdownMediaDisplay[] 
 
 function createDisplayProjection(initial?: readonly MarkdownMediaDisplay[]) {
   let mappings = initial;
+  let snapshot: readonly MarkdownMediaDisplay[] | undefined;
   const uploaded = new Map<string, MediaDisplay | null>();
   const resolve = (sourceUrl: string) => (uploaded.get(sourceUrl) ?? findMediaDisplay(sourceUrl, mappings))?.url ?? sourceUrl;
   const key = new PluginKey<DecorationSet>("wenyou-media-display");
@@ -92,7 +93,15 @@ function createDisplayProjection(initial?: readonly MarkdownMediaDisplay[]) {
     } },
     decorations: (state) => key.getState(state) ?? DecorationSet.empty, } }));
   return { resolve, plugin,
-    update(next: readonly MarkdownMediaDisplay[] | undefined) { mappings = next; },
-    completed(image: Pick<UploadedImage, "url" | "display">) { uploaded.set(image.url, image.display ?? null); },
+    snapshot() {
+      if (!snapshot) {
+        const merged = new Map((mappings ?? []).map((mapping) => [mapping.sourceUrl, mapping]));
+        for (const [sourceUrl, display] of uploaded) merged.set(sourceUrl, { sourceUrl, display: display ?? merged.get(sourceUrl)?.display ?? null });
+        snapshot = [...merged.values()];
+      }
+      return snapshot;
+    },
+    update(next: readonly MarkdownMediaDisplay[] | undefined) { if (mappings !== next) snapshot = undefined; mappings = next; },
+    completed(image: Pick<UploadedImage, "url" | "display">) { uploaded.set(image.url, image.display ?? null); snapshot = undefined; },
   };
 }

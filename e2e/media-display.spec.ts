@@ -226,3 +226,25 @@ for (const subject of ["楼层", "回复"] as const) {
     writeFileSync(test.info().outputPath("image-failure-attempts.json"), JSON.stringify({ subject, attempts, settled }));
   });
 }
+
+
+test("临时回复新上传GIF切换目标和收起重开仍保留display", async ({ page, baseURL }) => {
+  const fixture = await mediaDisplayFixture(page, baseURL!);
+  await page.route("**/api/v1/subthreads/display-main/posts/window?**", route => route.fulfill({ json: { code: 0, data: {
+    items: [fixture.floor, { ...fixture.floor, id: "display-post-2", floorNumber: 2 }], pinnedItems: [], total: 2, maxNumber: 2,
+    target: null, beforeCursor: null, afterCursor: null, hasBefore: false, hasAfter: false,
+  } } }));
+  await page.goto("/threads/display-thread");
+  await page.locator("#post-display-post-1").getByRole("button", { name: "回复", exact: true }).first().click();
+  const media = fixture.images[2];
+  await insertTestEditorImage(page, { name: "reply.gif", mimeType: "image/gif", buffer: readFileSync("e2e/fixtures/media-display/duplicate-frames.gif") }, { ...media, display: { ...media.display, contentType: "image/webp" } });
+  const displayed = page.locator('.ProseMirror img[src="' + media.display.url + '"]');
+  await expect(displayed).toBeVisible();
+  await page.locator("#post-display-post-2").getByRole("button", { name: "回复", exact: true }).first().click();
+  await expect(page.getByRole("textbox", { name: "回复正文", exact: true })).toBeVisible();
+  await expect(displayed).toBeVisible();
+  await page.getByRole("button", { name: "收起", exact: true }).click();
+  await page.locator("#post-display-post-1").getByRole("button", { name: "回复", exact: true }).first().click();
+  await expect(displayed).toBeVisible();
+  expect(fixture.requests).not.toContain(media.url);
+});

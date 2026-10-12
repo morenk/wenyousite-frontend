@@ -4,7 +4,7 @@
 
 import { useMarkdownWriteCapability } from "@/api/hooks/use-markdown-write-capability";
 import type { MentionIdentity } from "@/lib/thread-identity";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Check, Loader2, Send, X } from "lucide-react";
 import { toast } from "sonner";
 import { useCreatePost, type CreatePostArgs } from "@/api/hooks/use-create-post";
@@ -50,7 +50,8 @@ function ThreadComposer({ mentionIdentities }: { mentionIdentities?: readonly Me
     setPendingCreate,
     identitySelection,
     setIdentitySelection,
-    setContent,
+    setSessionContent,
+    setSessionMediaDisplays,
     setPending,
     close,
     setEditorValid,
@@ -75,11 +76,26 @@ function ThreadComposer({ mentionIdentities }: { mentionIdentities?: readonly Me
     containerRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [session?.key]);
 
+  const sessionKey = session?.key;
+  const editorHandle = editor.editorRef;
+  useLayoutEffect(() => () => {
+    // 路由卸载前同步最后一个快照；旧目标的迟到回调不能覆盖已切换的编辑会话。
+    if (!sessionKey || editorHandle.current?.isComposing?.()) return;
+    const snapshot = editorHandle.current?.flush();
+    if (snapshot !== null && snapshot !== undefined) {
+      setSessionContent(sessionKey, snapshot);
+      setSessionMediaDisplays(sessionKey, editorHandle.current?.getMediaDisplays?.());
+    }
+  }, [editorHandle, sessionKey, setSessionContent, setSessionMediaDisplays]);
+
   const canClose = editor.canClose;
   useEffect(() => registerCloseGuard(() => {
     if (createRequestRef.current) { toast.error("发表结果尚未确认，请先重试确认发表"); return false; }
-    return canClose();
-  }), [canClose, registerCloseGuard]);
+    if (uploadImage.isPending) { toast.error("图片正在上传，请完成或取消上传后重试"); return false; }
+    const allowed = canClose();
+    if (allowed && sessionKey) setSessionMediaDisplays(sessionKey, editorHandle.current?.getMediaDisplays?.());
+    return allowed;
+  }), [canClose, editorHandle, registerCloseGuard, sessionKey, setSessionMediaDisplays, uploadImage.isPending]);
   useEffect(() => { setEditorValid(!editor.invalid); }, [editor.invalid, setEditorValid]);
 
   if (!session) return null;
@@ -125,7 +141,7 @@ function ThreadComposer({ mentionIdentities }: { mentionIdentities?: readonly Me
 
       resetPublicInviteConfirmation();
       storeCreateRequest(null);
-      await close({ force: true });
+      await close({ force: true, preserveReplyDraft: isEdit });
       toast.success(isEdit ? "已保存" : isReply ? "回复成功" : "发布成功");
     } catch (error: unknown) {
       setPending(false);
@@ -177,7 +193,7 @@ function ThreadComposer({ mentionIdentities }: { mentionIdentities?: readonly Me
           disabled={busy || uncertain}
         >
           <X className="mr-1 h-3.5 w-3.5" />
-          取消
+          {isEdit ? "取消" : "收起"}
         </Button>
       </div>
       {uncertain ? <p role="alert" className="text-sm text-warning">发表结果尚未确认，正文与身份已保留。请重试确认发表，确认前不能切换身份或退出编辑。</p> : null}
@@ -188,7 +204,7 @@ function ThreadComposer({ mentionIdentities }: { mentionIdentities?: readonly Me
         key={session.key}
         defaultValue={initialContent}
         mediaDisplays={session.mediaDisplays}
-        onChange={(value) => { editor.onSynchronized(); setContent(value); }}
+        onChange={(value) => { editor.onSynchronized(); setSessionContent(session.key, value); setSessionMediaDisplays(session.key, editorHandle.current?.getMediaDisplays?.()); }}
         onDocumentChange={() => { editor.onDocumentChange(); onDocumentChange(); }}
         onUploadImage={handleUploadImage}
         placeholder={isReply ? "输入回复内容…" : isEdit ? "编辑正文内容…" : "输入正文内容…"}

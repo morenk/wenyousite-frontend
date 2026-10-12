@@ -135,7 +135,7 @@ function EditorCore({
   }, [invalid]);
 
   const protectedContent = useMemo(() => contractVersionReady && !assessEditorInput(restoredValue, markdownContractVersion).edit, [contractVersionReady, restoredValue, markdownContractVersion]);
-  useImperativeHandle(editorRef, () => ({ flush: flushForWrite, isComposing, canClose: () => !isComposing() && (protectedContent || flush() !== null) }), [flush, flushForWrite, protectedContent, isComposing]);
+  useImperativeHandle(editorRef, () => ({ flush: flushForWrite, isComposing, getMediaDisplays: () => hostRef.current?.getMediaDisplays?.() ?? restoredMediaDisplays ?? mediaDisplays ?? [], canClose: () => !isComposing() && (protectedContent || flush() !== null) }), [flush, flushForWrite, protectedContent, isComposing, restoredMediaDisplays, mediaDisplays]);
   useEffect(() => {
     if (protectedContent) {
       handleValidityChange(false);

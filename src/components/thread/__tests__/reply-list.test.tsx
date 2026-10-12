@@ -402,7 +402,7 @@ describe("ReplyList", () => {
     expect(screen.queryByRole("menuitem", { name: "回复" })).not.toBeInTheDocument();
   });
 
-  test("点击取消收起回复编辑器", async () => {
+  test("点击收起关闭回复编辑器", async () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({ user: { id: "u1" } });
     mockUseReplies.mockReturnValue(dataWithReplies([baseReply()]));
@@ -411,7 +411,7 @@ describe("ReplyList", () => {
     await user.click(screen.getByRole("button", { name: "回复" }));
     expect(screen.getByTestId("milkdown-editor")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "取消" }));
+    await user.click(screen.getByRole("button", { name: "收起" }));
     expect(screen.queryByTestId("milkdown-editor")).not.toBeInTheDocument();
   });
 

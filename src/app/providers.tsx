@@ -13,6 +13,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { DailyCheckInBootstrap } from "@/components/economy/daily-check-in-bootstrap";
 import { ThemeProvider, useTheme } from "@/components/ui/theme-provider";
 
+import { ThreadReplyDraftsProvider } from "@/components/thread/thread-composer-context";
+
 import { AppDownloadProvider } from "@/components/download/app-download-provider";
 
 import { isToolEmbedPath } from "@/lib/tools/catalog";
@@ -62,7 +64,7 @@ function IdentityScopedQueries({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider key={isStation ? "station" : queryScope.version} client={isStation ? adminClient : queryScope.client}>
       {isStation ? <AdminSessionLifecycle /> : <DailyCheckInBootstrap />}
-      {children}
+      <ThreadReplyDraftsProvider accountId={isStation ? "station" : user?.id ?? "anonymous"}>{children}</ThreadReplyDraftsProvider>
       <Toaster
         theme={resolvedTheme}
         position="top-center"

@@ -2,10 +2,13 @@
 
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
+import type { MarkdownMediaDisplay } from "@/lib/media-display";
 
 export interface EditorSubmissionHandle {
   /** 直接编码当前文档；加载中、保护状态或编码失败返回 null，空正文返回空字符串。 */
   flush: () => string | null;
+  /** 当前编辑器已授权的媒体展示描述，供临时会话恢复。 */
+  getMediaDisplays?: () => readonly MarkdownMediaDisplay[];
   canClose?: () => boolean;
   isComposing?: () => boolean;
 }
