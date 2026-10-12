@@ -46,7 +46,7 @@ export function SettingsGroup({
       {title ? (
         <h2
           id={titleId}
-          className="mb-2.5 px-5 text-sm font-semibold text-muted-foreground"
+          className="mb-2 px-3 text-sm font-semibold text-muted-foreground"
         >
           {title}
         </h2>
@@ -74,7 +74,7 @@ export function SettingsRow({
   const valueId = useId();
   const className = cn(
     buttonVariants({ variant: "ghost" }),
-    "settings-row grid h-auto min-h-16 w-full grid-cols-[minmax(7rem,1fr)_minmax(0,2fr)_auto] gap-5 rounded-[inherit] border-0 px-5 py-4 text-left text-base font-normal whitespace-normal hover:bg-muted/50 active:not-aria-[haspopup]:translate-y-0",
+    "settings-row grid h-auto min-h-14 w-full grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto] gap-3 rounded-[inherit] border-0 px-3 py-3 text-left text-sm font-normal whitespace-normal hover:bg-muted/50 active:not-aria-[haspopup]:translate-y-0",
     destructive && "text-destructive",
   );
   const content = (
@@ -96,7 +96,7 @@ export function SettingsRow({
     <div
       id={id}
       data-slot="settings-row"
-      className="relative scroll-mt-6 first:rounded-t-[var(--radius-card)] last:rounded-b-[var(--radius-card)] after:pointer-events-none after:absolute after:inset-x-5 after:bottom-0 after:border-b after:border-border after:content-[''] last:after:hidden"
+      className="relative scroll-mt-6 first:rounded-t-[var(--radius-card)] last:rounded-b-[var(--radius-card)] after:pointer-events-none after:absolute after:inset-x-3 after:bottom-0 after:border-b after:border-border after:content-[''] last:after:hidden"
     >
       {href ? (
         <Link

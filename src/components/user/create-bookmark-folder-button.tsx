@@ -34,10 +34,12 @@ export function CreateBookmarkFolderButton({
         type="button"
         variant="ghost"
         size="compact"
+        aria-label={`新建${folderLabel}`}
+        className="h-auto min-h-8 max-w-full whitespace-normal px-1.5 text-left"
         onClick={() => setDialogOpen(true)}
       >
         <Plus />
-        新建{folderLabel}
+        新建
       </Button>
 
       <Dialog

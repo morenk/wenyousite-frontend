@@ -178,7 +178,7 @@ export default function CreateThreadPage() {
     <PageShell width="workspace">
       <PageHeader purpose="functional" title="创建主题帖" />
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="p-4">
           <ThreadCreateForm
             thread={thread}
             onCancel={handleCancel}

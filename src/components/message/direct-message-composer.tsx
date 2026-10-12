@@ -266,7 +266,7 @@ export function DirectMessageComposer({
   };
 
   return (
-    <div className="border-t border-border bg-muted/35 p-4">
+    <div className="min-w-0 border-t border-border bg-muted/35 p-2.5">
       {requestHint && (
         <p className="mb-2 text-xs text-muted-foreground">
           {typeof requestHint === "string"
@@ -341,8 +341,8 @@ export function DirectMessageComposer({
           compact
         />
       ) : null}
-      <div className="mt-2 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-1.5">
           <input
             ref={imageInputRef}
             type="file"

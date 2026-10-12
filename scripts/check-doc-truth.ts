@@ -234,7 +234,7 @@ function operation(method: string, apiPath: string) {
     ],
     [
       "docs/modules/direct-messages.md",
-      ["固定为 72px 图标轨道", "16px / 28px", "分别提供通知和私聊入口"],
+      ["左轨通常为 72px，低于 640px 时为 48px", "16px / 28px", "分别提供通知和私聊入口"],
     ],
     ["docs/modules/bookmarks.md", ["全局导航栏显示收藏入口"]],
     [

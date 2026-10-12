@@ -20,6 +20,9 @@ async function mockWorkspaceSession(page: Page) {
     if (pathname.endsWith("/auth/refresh")) {
       return response({ accessToken: "workspace-layout-token", user: layoutUser });
     }
+    if (pathname.endsWith("/wallet")) {
+      return response({ balance: "0" });
+    }
     if (pathname.endsWith("/wallet/check-in")) {
       return response({ claimedNow: false, rewardAmount: "0", balance: "0" });
     }
@@ -44,9 +47,15 @@ async function expectCompactWorkspaceNav(page: Page) {
   await expect(nav).toHaveAttribute("data-compact", "true");
   await expect(nav.getByText("温油站", { exact: true })).toBeHidden();
   await expect(nav.getByText("发现", { exact: true })).toBeHidden();
-  await expect(nav.getByRole("link", { name: "通知" })).toBeVisible();
-  await expect(nav.getByRole("link", { name: "私聊" })).toBeVisible();
-  await expect(nav.getByRole("link", { name: "收藏" })).toBeVisible();
+  const contextRail = page.getByRole("complementary", { name: "快捷信息" });
+  await expect(contextRail).toBeVisible();
+  for (const name of ["通知", "私聊", "收藏", "设置"]) {
+    await expect(contextRail.getByRole("link", { name, exact: true })).toBeVisible();
+  }
+  for (const name of ["通知", "私聊", "收藏"]) {
+    await expect(nav.getByRole("link", { name, exact: true })).toHaveCount(0);
+  }
+  expect((await contextRail.boundingBox())!.width).toBe(272);
   await expect(nav.getByRole("link", { name: layoutUser.username })).toBeVisible();
   await expect(nav.getByRole("button", { name: "打开发布菜单" })).toBeVisible();
   await expect(nav.getByRole("button", { name: "退出" })).toBeVisible();
@@ -72,9 +81,6 @@ async function expectCompactWorkspaceNav(page: Page) {
     "动态",
     "搜索",
     "温油工具箱",
-    "通知",
-    "私聊",
-    "收藏",
     "外观：跟随系统",
     layoutUser.username,
     "退出",

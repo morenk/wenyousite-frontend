@@ -3,9 +3,12 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { AppContextRail } from "@/components/layout/app-context-rail";
 import { UnreadCountsProvider } from "@/components/layout/unread-counts-context";
 
-const { mockUseAuth } = vi.hoisted(() => ({
+const { mockUseAuth, mockUsePathname } = vi.hoisted(() => ({
   mockUseAuth: vi.fn(),
+  mockUsePathname: vi.fn(),
 }));
+
+vi.mock("next/navigation", () => ({ usePathname: () => mockUsePathname() }));
 
 vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: {
@@ -23,7 +26,7 @@ vi.mock("@/api/hooks/use-economy", () => ({
 }));
 
 describe("AppContextRail", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => { vi.clearAllMocks(); mockUsePathname.mockReturnValue("/"); });
   afterEach(() => cleanup());
 
   test("登录后集中展示个人高频入口及未读数", () => {
@@ -51,6 +54,24 @@ describe("AppContextRail", () => {
     expect(screen.getByText("18 升")).toBeInTheDocument();
     expect(screen.queryByText("按玩法发现")).not.toBeInTheDocument();
     expect(screen.queryByRole("navigation", { name: "玩法分类" })).not.toBeInTheDocument();
+  });
+
+
+  test.each([
+    ["/notifications", "通知"], ["/messages/c1", "私聊"], ["/bookmarks", "收藏"], ["/me/password", "设置"],
+  ])("%s 在右栏保留唯一当前入口", (path, label) => {
+    mockUseAuth.mockReturnValue({ user: { id: "u1", username: "用户", avatar: null } });
+    mockUsePathname.mockReturnValue(path);
+    render(<AppContextRail />);
+    expect(screen.getByRole("link", { name: label })).toHaveAttribute("aria-current", "page");
+    expect(screen.getAllByRole("link").filter((link) => link.getAttribute("aria-current") === "page")).toHaveLength(1);
+  });
+
+  test("路径前缀相似时不错误选中账户入口", () => {
+    mockUseAuth.mockReturnValue({ user: { id: "u1", username: "用户", avatar: null } });
+    mockUsePathname.mockReturnValue("/messages-other");
+    render(<AppContextRail />);
+    expect(screen.getByRole("link", { name: "私聊" })).not.toHaveAttribute("aria-current");
   });
 
   test("访客只显示注册与登录入口", () => {

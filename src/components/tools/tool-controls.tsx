@@ -14,7 +14,7 @@ export function ToolSelect({ label, value, onChange, options, disabled }: {
   const id = useId();
   return <div className="grid gap-2"><label htmlFor={id} className="text-sm font-medium">{label}</label>
     <Select value={value} onValueChange={(next) => { if (next) onChange(next); }} disabled={disabled}>
-      <SelectTrigger id={id} className="w-full"><SelectValue>{options.find((item) => item.id === value)?.label}</SelectValue></SelectTrigger>
+      <SelectTrigger id={id} className="w-full min-w-0"><SelectValue className="min-w-0 truncate">{options.find((item) => item.id === value)?.label}</SelectValue></SelectTrigger>
       <SelectContent>{options.map((item) => <SelectItem key={item.id} value={item.id}>{item.label}</SelectItem>)}</SelectContent>
     </Select>
   </div>;

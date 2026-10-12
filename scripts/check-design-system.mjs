@@ -352,7 +352,7 @@ const fullWidthCollectionClaims = new Map([
   ["src/components/user/draft-list.tsx", ["flex w-full flex-col gap-[var(--collection-card-gap)]", "flex w-full"]],
   ["src/components/user/user-follow-list.tsx", ["after:left-12", "flex w-full"]],
   ["src/components/notification/notification-list.tsx", ["flex w-full flex-col gap-3", "flex flex-col gap-[var(--collection-card-gap)]"]],
-  ["src/components/message/direct-conversation-list.tsx", ["flex w-full gap-3", "min-h-0 w-full flex-col"]],
+  ["src/components/message/direct-conversation-list.tsx", ["flex w-full flex-wrap gap-2", "min-h-0 w-full flex-col"]],
 ]);
 for (const [fileName, claims] of fullWidthCollectionClaims) {
   const source = readFileSync(resolve(root, fileName), "utf8");

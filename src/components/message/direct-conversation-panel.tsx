@@ -231,8 +231,8 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
             : null;
 
   return (
-    <section className="flex min-h-0 flex-col bg-card">
-      <header className="flex h-16 shrink-0 items-center justify-between border-b border-border px-4">
+    <section className="flex min-h-0 min-w-0 flex-col bg-card">
+      <header className="flex min-h-14 shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-2">
         <Link href={`/users/${conversation.otherUser.id}`} className="flex min-w-0 items-center gap-3">
           <UserAvatar
             name={conversation.otherUser.username}
@@ -277,9 +277,9 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
       </header>
 
       {requestIncoming && (
-        <div className="flex items-center justify-between gap-4 border-b border-border bg-warning-soft/55 px-4 py-3 text-sm text-warning">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-warning-soft/55 px-3 py-2.5 text-sm text-warning">
           <p>接受后双方可以继续聊天；拒绝会删除这条请求消息。</p>
-          <div className="flex shrink-0 gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -304,7 +304,7 @@ export function DirectConversationPanel({ conversationId }: { conversationId: st
           ref={scrollContainerRef}
           role="log"
           aria-label="消息记录"
-          className="h-full overflow-y-auto px-5 py-4"
+          className="h-full overflow-y-auto px-3 py-3"
           onScroll={(event) => {
             const container = event.currentTarget;
             const distanceToEnd = container.scrollHeight - container.clientHeight - container.scrollTop;

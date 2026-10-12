@@ -158,14 +158,14 @@ export function ThreadCreateForm({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2">
+    <div className="space-y-4">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,16rem),1fr))] gap-3">
         <ThreadMetadataFields
           form={form}
           disabled={isSaving || isPublishing}
         />
 
-        <div className="space-y-2 sm:col-span-2">
+        <div className="col-span-full space-y-2">
           <Label htmlFor="content">正文</Label>
           <Controller
             control={form.control}
@@ -194,7 +194,7 @@ export function ThreadCreateForm({
         </div>
       </div>
 
-      <div className="flex items-center justify-between border-t border-border pt-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
         <Button
           type="button"
           variant="ghost"
@@ -205,7 +205,7 @@ export function ThreadCreateForm({
           <CancelIcon className="mr-1.5 h-4 w-4" />
           {cancelMode === "back" ? "返回草稿列表" : "放弃"}
         </Button>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             type="button"
             variant="outline"

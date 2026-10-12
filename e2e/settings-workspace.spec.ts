@@ -92,11 +92,11 @@ for (const colorScheme of ["light", "dark"] as const) {
       });
       expect(geometry.x).toBe(geometry.groupX);
       expect(geometry.width).toBe(geometry.groupWidth);
-      expect(geometry.height).toBeGreaterThanOrEqual(64);
-      expect(geometry.labelInset).toBe(20);
+      expect(geometry.height).toBeGreaterThanOrEqual(56);
+      expect(geometry.labelInset).toBe(12);
       expect(geometry.topRadius).toBe(position === "last" ? "0px" : geometry.groupRadius);
       expect(geometry.bottomRadius).toBe(position === "first" ? "0px" : geometry.groupRadius);
-      if (position === "first") expect(geometry.separator).toMatchObject({ left: "20px", right: "20px", width: "1px" });
+      if (position === "first") expect(geometry.separator).toMatchObject({ left: "12px", right: "12px", width: "1px" });
       else expect(geometry.separator.display).toBe("none");
       await captureSettings(page, testInfo, `boundary-${colorScheme}-${position}-hover.png`, '[data-slot="page-shell"]');
       await page.mouse.down();
@@ -129,9 +129,23 @@ for (const colorScheme of ["light", "dark"] as const) {
       await page.setViewportSize({ width, height: 1100 });
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
       const rows = page.locator('[data-slot="settings-row"]');
-      const boxes = await rows.evaluateAll((nodes) => nodes.map((node) => { const r = node.getBoundingClientRect(); return { x: r.x, width: r.width, height: r.height }; }));
+      const boxes = await rows.evaluateAll((nodes) => nodes.map((node) => {
+        const row = node.getBoundingClientRect();
+        const group = node.closest('[data-slot="stack-list"]')!.getBoundingClientRect();
+        return { x: row.x, width: row.width, height: row.height, groupX: group.x, groupWidth: group.width };
+      }));
       expect(boxes).toHaveLength(11);
-      for (const box of boxes) { expect(box.height).toBeGreaterThanOrEqual(64); expect(box.x).toBe(boxes[0].x); expect(box.width).toBe(boxes[0].width); }
+      const columnStarts = [...new Set(boxes.map((box) => box.groupX))].sort((a, b) => a - b);
+      expect(columnStarts).toHaveLength(2);
+      for (const box of boxes) {
+        expect(box.height).toBeGreaterThanOrEqual(56);
+        expect(box.x).toBe(box.groupX);
+        expect(box.width).toBe(box.groupWidth);
+        expect(box.width).toBe(boxes[0].width);
+        expect(box.x).toBeGreaterThanOrEqual(0);
+        expect(box.x + box.width).toBeLessThanOrEqual(width);
+      }
+      expect(columnStarts[1] - columnStarts[0] - boxes[0].width).toBe(16);
       const groups = page.locator("main section");
       for (const group of await groups.all()) {
         const container = group.locator('[data-slot="stack-list"]');

@@ -231,12 +231,9 @@ for (const viewport of [
     expect(feedBox!.width).toBeLessThanOrEqual(672);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width);
     const contextRail = page.getByRole("complementary", { name: "快捷信息" });
-    if (viewport.width >= 1280) {
-      await expect(contextRail).toBeVisible();
-      await expect(contextRail.getByText("按玩法发现")).toHaveCount(0);
-    } else {
-      await expect(contextRail).toBeHidden();
-    }
+    await expect(contextRail).toBeVisible();
+    await expect(contextRail.getByText("按玩法发现")).toHaveCount(0);
+    expect((await contextRail.boundingBox())!.width).toBe(viewport.width >= 1280 ? 272 : 224);
 
     await expect(page).toHaveScreenshot(`home-${viewport.width}.png`, {
       fullPage: true,

@@ -59,7 +59,7 @@ export function VerticalToolPanel({ embedded = false }: { embedded?: boolean }) 
   };
   const feedback = error || Object.values(form.formState.errors).map(item => item.message).join("；");
   const status = !ready ? "正在准备工具…" : pending ? "正在读取本地文件…" : note;
-  return <div className="grid gap-5">
+  return <div data-tool-panels className="grid gap-5">
     <form onSubmit={form.handleSubmit(submit)} className="grid gap-4 rounded-[var(--radius-card)] bg-card p-5 sm:p-6">
       <fieldset disabled={!ready || pending} className="grid min-w-0 gap-4">
         <div className="grid gap-2">
@@ -72,11 +72,11 @@ export function VerticalToolPanel({ embedded = false }: { embedded?: boolean }) 
           <Textarea id="vertical-input" {...form.register("input")} rows={5} maxLength={TEXT_LIMIT} className="min-h-32 resize-y" />
           <p className="text-xs text-muted-foreground">最多 10,000 个字符{!embedded ? "；可打开 64 KiB 以内的 UTF-8 .txt 文件" : ""}</p>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,8rem),1fr))] gap-3">
           <div className="grid gap-2"><label htmlFor="page-width" className="text-sm font-medium">页宽（每页列数）</label><Input id="page-width" type="number" min={1} max={100} {...form.register("width", { valueAsNumber: true })} /></div>
           <div className="grid gap-2"><label htmlFor="page-height" className="text-sm font-medium">页高（每列字数）</label><Input id="page-height" type="number" min={1} max={100} {...form.register("height", { valueAsNumber: true })} /></div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,8rem),1fr))] gap-3">
           <Controller name="separatorMode" control={form.control} render={({ field }) => <ToolSelect label="列间分隔" value={field.value} disabled={!ready || pending} onChange={field.onChange} options={[{ id: "spaces", label: "空格数" }, { id: "custom", label: "自定义" }]} />} />
           {separatorMode === "spaces" ? <div className="grid gap-2"><label htmlFor="column-gap" className="text-sm font-medium">列间空格数</label><Input id="column-gap" type="number" min={0} max={10} {...form.register("gap", { valueAsNumber: true })} /></div> : <div className="grid gap-2"><label htmlFor="column-separator" className="text-sm font-medium">自定义分隔符</label><Input id="column-separator" maxLength={20} {...form.register("separator")} /></div>}
         </div>
