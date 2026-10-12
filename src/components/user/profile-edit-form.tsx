@@ -89,7 +89,7 @@ export function ProfileEditForm() {
   const editorProps = { me, onClose: close, returnFocus };
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-4">
       {error ? (
         <p role="alert" className="text-sm text-destructive">
           设置刷新失败
@@ -98,6 +98,8 @@ export function ProfileEditForm() {
           </Button>
         </p>
       ) : null}
+      <div className="flex flex-wrap items-start gap-4">
+      <div className="min-w-0 flex-[1_1_19rem] space-y-4">
       <SettingsGroup id="public-profile" title="个人资料">
         <SettingsRow
           label="头像"
@@ -140,6 +142,15 @@ export function ProfileEditForm() {
           }
         />
       </SettingsGroup>
+      <SettingsGroup>
+        <SettingsRow
+          label="等级与创作激励"
+          value={`Lv.${me.level}`}
+          onClick={(event) => open("level", event)}
+        />
+      </SettingsGroup>
+      </div>
+      <div className="min-w-0 flex-[1_1_19rem] space-y-4">
       <SettingsGroup title="隐私与关系">
         <SettingsRow
           id="privacy"
@@ -166,18 +177,13 @@ export function ProfileEditForm() {
       </SettingsGroup>
       <SettingsGroup>
         <SettingsRow
-          label="等级与创作激励"
-          value={`Lv.${me.level}`}
-          onClick={(event) => open("level", event)}
-        />
-      </SettingsGroup>
-      <SettingsGroup>
-        <SettingsRow
           label="注销账号"
           destructive
           onClick={(event) => open("delete", event)}
         />
       </SettingsGroup>
+      </div>
+      </div>
       {editor === "avatar" ? (
         <AvatarUploader
           username={me.username}

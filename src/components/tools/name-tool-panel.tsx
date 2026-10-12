@@ -35,14 +35,14 @@ export function NameToolPanel() {
     finally { if (alive.current) setPending(false); }
   };
   const feedback = error || Object.values(form.formState.errors).map((item) => item.message).join("；");
-  return <div className="grid gap-5"><form className="grid gap-5 rounded-[var(--radius-card)] bg-card p-5 sm:p-6" onSubmit={(event) => { void form.handleSubmit(submit)(event); }}>
+  return <div data-tool-panels className="grid gap-5"><form className="grid gap-5 rounded-[var(--radius-card)] bg-card p-5 sm:p-6" onSubmit={(event) => { void form.handleSubmit(submit)(event); }}>
     <fieldset disabled={pending} className="grid min-w-0 gap-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,8rem),1fr))] gap-3">
         <Controller name="country" control={form.control} render={({ field }) => <ToolSelect label="国家" value={field.value} disabled={pending} onChange={(value) => { field.onChange(value); if (value !== "cn") form.setValue("style", "common"); }} options={COUNTRIES} />} />
         <Controller name="sex" control={form.control} render={({ field }) => <ToolSelect label="名字性别倾向" value={field.value} disabled={pending} onChange={field.onChange} options={[{ id: "any", label: "不限" }, { id: "female", label: "女性" }, { id: "male", label: "男性" }]} />} />
       </div>
       <Controller name="style" control={form.control} render={({ field }) => <ToolSelect label="起名风格" value={field.value} disabled={pending || country !== "cn"} onChange={field.onChange} options={[{ id: "common", label: "常见人名" }, { id: "classical", label: "古风角色名（中文）" }, { id: "fantasy", label: "幻想角色名（中文）" }]} />} />
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,8rem),1fr))] gap-3">
         <div className="grid gap-2"><label htmlFor="surname" className="text-sm font-medium">固定姓氏（可选）</label><Input id="surname" {...form.register("surname")} maxLength={40} placeholder="留空随机" autoComplete="off" /></div>
         <div className="grid gap-2"><label htmlFor="name-count" className="text-sm font-medium">生成数量</label><Input id="name-count" type="number" min={1} max={50} {...form.register("count", { valueAsNumber: true })} /></div>
       </div>

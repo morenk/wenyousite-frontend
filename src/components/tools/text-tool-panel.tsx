@@ -27,7 +27,7 @@ export function TextToolPanel({ tool }: { tool: "morse" | "fancy" }) {
     } catch (cause) { setOutput(""); setError((cause as Error).message); }
   };
   const feedback = error || Object.values(form.formState.errors).map((item) => item.message).join("；");
-  return <div className="grid gap-5">
+  return <div data-tool-panels className="grid gap-5">
     <form onSubmit={form.handleSubmit(submit)} className="grid gap-5 rounded-[var(--radius-card)] bg-card p-5 sm:p-6">
       <div className="grid gap-2"><label htmlFor="tool-input" className="text-sm font-medium">{tool === "morse" ? "文字或摩斯码" : "输入文字"}</label>
         <Textarea id="tool-input" {...form.register("input")} rows={6} className="min-h-36 resize-y" maxLength={TEXT_LIMIT} />

@@ -845,3 +845,21 @@ img.sticker-display {
 [data-toolbox-surface] [data-toolbox-row]:focus-visible {
   outline-offset: -2px;
 }
+
+/* 主站工具在同一工作面上排列输入与结果；仅在内容最小宽度不够时自然换行。 */
+[data-toolbox-surface]:not([data-embedded]) [data-tool-panels] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 12px;
+}
+[data-toolbox-surface]:not([data-embedded]) [data-tool-panels] > * {
+  flex: 1 1 19rem;
+  min-width: 0;
+  padding: 16px;
+  gap: 12px;
+}
+
+[data-toolbox-surface]:not([data-embedded]) [data-tool-panels] :where(div, fieldset, textarea, input, button) {
+  min-width: 0;
+}

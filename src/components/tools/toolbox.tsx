@@ -15,7 +15,7 @@ export function Toolbox({ selected, embedded = false }: { selected?: ToolId; emb
   const NavigationLink = embedded ? "a" : Link;
   const theme = useSearchParams().get("theme");
   const tool = TOOLS.find((item) => item.id === selected);
-  return <div data-toolbox-surface className={cn("min-h-screen", embedded && "bg-muted/40")}>
+  return <div data-toolbox-surface data-embedded={embedded || undefined} className={cn("min-h-screen", embedded && "bg-muted/40")}>
     <PageShell width="content" className="py-8">
       {tool && <NavigationLink href={toolHref(undefined, embedded, theme)} className="mb-3 inline-flex min-h-8 items-center gap-2 rounded-[var(--radius-control)] px-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-brand-strong"><WenyouIcon id="navigation.back" className="size-4" />全部工具</NavigationLink>}
       <PageHeader purpose="functional" title={tool?.title ?? "工具箱"} />

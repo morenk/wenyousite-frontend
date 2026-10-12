@@ -80,7 +80,7 @@ export function ThreadMetadataFields({
 
   return (
     <>
-      {showIdentity ? <div className="space-y-2 sm:col-span-2">
+      {showIdentity ? <div className="space-y-2 col-span-full">
         <Label htmlFor="title">主题帖标题</Label>
         <Input
           id="title"
@@ -235,7 +235,7 @@ export function ThreadMetadataFields({
         </div>
       )}
 
-      {showIdentity ? <div className="space-y-2 sm:col-span-2">
+      {showIdentity ? <div className="space-y-2 col-span-full">
         <Label htmlFor="tags">标签</Label>
         <TagInput
           id="tags"

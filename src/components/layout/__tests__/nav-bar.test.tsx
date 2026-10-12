@@ -1,4 +1,4 @@
-/** NavBar 测试：全局导航与响应式账户入口布局 */
+/** NavBar 测试：全局导航与右侧账户入口分工 */
 
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
@@ -66,9 +66,9 @@ describe("NavBar", () => {
 
     expect(screen.getByRole("button", { name: "打开发布菜单" })).toBeInTheDocument();
     expect(screen.getByText("发布")).not.toHaveClass("font-display");
-    expect(screen.getByRole("link", { name: "收藏" })).toHaveClass("xl:hidden");
-    expect(screen.getByRole("link", { name: "通知" })).toHaveClass("xl:hidden");
-    expect(screen.getByRole("link", { name: "私聊" })).toHaveClass("xl:hidden");
+    expect(screen.queryByRole("link", { name: "收藏" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "通知" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "私聊" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "用户" })).toHaveClass("xl:hidden");
   });
 
@@ -97,7 +97,7 @@ describe("NavBar", () => {
     expect(container).toHaveTextContent("温油站");
   });
 
-  test("紧凑轨道保留宽屏通知、私聊、收藏和个人主页入口", () => {
+  test("紧凑轨道去除右栏已有的通知、私聊和收藏，保留个人主页", () => {
     mockUseAuth.mockReturnValue({ user: { id: "u1", username: "用户" }, logout: vi.fn() });
     render(<NavBar compact />);
 
@@ -108,9 +108,9 @@ describe("NavBar", () => {
     expect(screen.getByText("温油站")).not.toHaveClass("xl:block");
     expect(screen.getByText("发现")).not.toHaveClass("xl:inline");
     expect(screen.getByText("发布")).not.toHaveClass("xl:inline");
-    expect(screen.getByRole("link", { name: "通知" })).not.toHaveClass("xl:hidden");
-    expect(screen.getByRole("link", { name: "私聊" })).not.toHaveClass("xl:hidden");
-    expect(screen.getByRole("link", { name: "收藏" })).not.toHaveClass("xl:hidden");
+    expect(screen.queryByRole("link", { name: "通知" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "私聊" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "收藏" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "用户" })).not.toHaveClass("xl:hidden");
   });
 

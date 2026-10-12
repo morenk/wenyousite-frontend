@@ -39,15 +39,15 @@ export default function BookmarksPage() {
   return (
     <PageShell width="workspace">
       <PageHeader purpose="functional" title="我的收藏" />
-      <div className="grid grid-cols-[15rem_minmax(0,1fr)] items-start gap-6">
-        <aside className="sticky top-5 flex h-[calc(100dvh-7rem)] min-h-64 flex-col gap-4 border-r border-border pr-5" aria-label="收藏目录">
+      <div className="grid grid-cols-[clamp(5rem,24%,11rem)_minmax(0,1fr)] items-start gap-3">
+        <aside className="sticky top-5 flex h-[calc(100dvh-7rem)] min-h-64 min-w-0 flex-col gap-3 border-r border-border pr-2" aria-label="收藏目录">
           <Tabs value={type} onValueChange={(value) => {
             remembered.current[type] = folderId ?? null;
             void setLocation({ type: value as BookmarkFolderKind, folder: remembered.current[value as BookmarkFolderKind] ?? null });
           }} className="gap-0">
-            <TabsList variant="line" aria-label="收藏分类" className="h-10 w-full p-0">
-              <TabsTrigger value="threads" className="flex-1">主题帖</TabsTrigger>
-              <TabsTrigger value="moments" className="flex-1">动态</TabsTrigger>
+            <TabsList variant="line" aria-label="收藏分类" className="h-auto min-h-10 w-full flex-wrap p-0 group-data-[orientation=horizontal]/tabs:h-auto">
+              <TabsTrigger value="threads" className="min-w-0 flex-[1_1_4rem] whitespace-normal px-1 text-xs">主题帖</TabsTrigger>
+              <TabsTrigger value="moments" className="min-w-0 flex-[1_1_4rem] whitespace-normal px-1 text-xs">动态</TabsTrigger>
             </TabsList>
           </Tabs>
           {foldersQuery.isLoading ? <Skeleton className="h-64 w-full rounded-[var(--radius-card)]" /> : foldersQuery.isError ? (

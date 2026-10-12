@@ -1,4 +1,4 @@
-/** 全局桌面导航：社区与工作区共用图标轨道，账户入口在宽屏保留。 */
+/** 全局桌面导航：社区与工作区共用图标轨道，账户快捷入口由右栏承载。 */
 
 "use client";
 
@@ -12,8 +12,6 @@ import { useLogout } from "@/api/hooks/use-auth-actions";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { WenyouIcon, type WenyouIconId } from "@/components/ui/wenyou-icon";
 import { PublishMenu } from "@/components/layout/publish-menu";
-import { useUnreadCounts } from "@/components/layout/unread-counts-context";
-import { UnreadCountBadge } from "@/components/ui/unread-count-badge";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { BrandTitleMark } from "@/components/ui/brand-title-mark";
@@ -25,8 +23,6 @@ type NavItem = {
   label: string;
   icon: WenyouIconId;
   match: (pathname: string) => boolean;
-  count?: number;
-  accountShortcut?: boolean;
 };
 
 export function NavBar({
@@ -37,7 +33,6 @@ export function NavBar({
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
-  const { notificationCount, directMessageCount } = useUnreadCounts();
   const logoutRequest = useLogout();
 
   const items: NavItem[] = [
@@ -45,11 +40,6 @@ export function NavBar({
     { href: "/moments", label: NAVIGATION_LABELS.moments, icon: NAVIGATION_ICONS.moments, match: (path) => path.startsWith("/moments") },
     { href: "/search", label: NAVIGATION_LABELS.search, icon: NAVIGATION_ICONS.search, match: (path) => path.startsWith("/search") },
     { href: "/tools", label: "温油工具箱", icon: "content.layers", match: (path) => path === "/tools" || path.startsWith("/tools/") },
-    ...(user ? [
-      { href: "/notifications", label: NAVIGATION_LABELS.notifications, icon: NAVIGATION_ICONS.notifications, match: (path: string) => path.startsWith("/notifications"), count: notificationCount, accountShortcut: true },
-      { href: "/messages", label: NAVIGATION_LABELS.directMessages, icon: NAVIGATION_ICONS.directMessages, match: (path: string) => path.startsWith("/messages"), count: directMessageCount, accountShortcut: true },
-      { href: "/bookmarks", label: NAVIGATION_LABELS.bookmarks, icon: NAVIGATION_ICONS.bookmarks, match: (path: string) => path.startsWith("/bookmarks"), accountShortcut: true },
-    ] : []),
   ];
 
   const handleLogout = async () => {
@@ -99,7 +89,6 @@ export function NavBar({
             item={item}
             active={item.match(pathname)}
             compact={compact}
-            hideOnWide={!compact && !!item.accountShortcut}
           />
         ))}
       </nav>
@@ -178,25 +167,20 @@ function RailLink({
   item,
   active,
   compact,
-  hideOnWide,
 }: {
   item: NavItem;
   active: boolean;
   compact: boolean;
-  hideOnWide: boolean;
 }) {
-  const count = item.count ?? 0;
-
   return (
     <Tooltip content={item.label} side="right">
     <Link
       href={item.href}
       aria-current={active ? "page" : undefined}
-      aria-label={count > 0 ? `${item.label}，${count} 条未读` : item.label}
+      aria-label={item.label}
       className={cn(
         "group relative flex min-h-11 items-center justify-center rounded-[var(--radius-control)] text-muted-foreground transition-[background-color,color] duration-[var(--motion-fast)] hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/40",
         !compact && "xl:justify-start xl:gap-3 xl:px-3",
-        hideOnWide && "xl:hidden",
         active && "bg-accent/60 font-bold text-foreground",
       )}
     >
@@ -209,7 +193,6 @@ function RailLink({
       />
       <span className="relative">
         <WenyouIcon id={item.icon} className="size-5" />
-        <UnreadCountBadge count={count} className="absolute -right-2.5 -top-2" />
       </span>
       <span className={cn("hidden text-sm", !compact && "xl:inline")}>{item.label}</span>
     </Link>

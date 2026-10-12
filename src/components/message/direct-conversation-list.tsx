@@ -12,6 +12,7 @@ import { UserAvatar } from "@/components/shared/user-avatar";
 import { WenyouTime } from "@/components/shared/wenyou-time";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Tooltip } from "@/components/ui/tooltip";
 import { UnreadCountBadge } from "@/components/ui/unread-count-badge";
 import { formatDirectMessagePreview } from "@/lib/internal-reference";
 
@@ -46,20 +47,22 @@ function ConversationLink({
   selected: boolean;
 }) {
   return (
+    <Tooltip content={conversation.otherUser.username} side="right">
     <Link
+      aria-current={selected ? "page" : undefined}
       href={`/messages/${conversation.id}`}
       className={cn(
-        "flex w-full gap-3 px-4 py-3 transition-colors hover:bg-accent/25",
+        "flex w-full flex-wrap gap-2 px-2 py-2.5 transition-colors hover:bg-accent/25",
         selected && "bg-accent/45",
       )}
     >
       <UserAvatar
         name={conversation.otherUser.username}
         src={conversation.otherUser.avatar} display={conversation.otherUser.avatarDisplay}
-        className="h-10 w-10 shrink-0"
+        className="h-7 w-7 shrink-0"
       />
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center justify-between gap-2">
+      <div className="min-w-0 flex-[1_1_5rem]">
+        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5">
           <span className="truncate text-sm font-bold">
             {conversation.otherUser.username}
           </span>
@@ -80,6 +83,7 @@ function ConversationLink({
         </div>
       </div>
     </Link>
+    </Tooltip>
   );
 }
 

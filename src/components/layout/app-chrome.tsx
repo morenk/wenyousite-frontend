@@ -9,7 +9,6 @@ import { useUnreadCount } from "@/api/hooks/use-unread-count";
 import { UnreadCountsProvider } from "@/components/layout/unread-counts-context";
 import { useAuth } from "@/lib/auth";
 import { isToolEmbedPath } from "@/lib/tools/catalog";
-import { cn } from "@/lib/utils";
 import { ThemeMenu } from "@/components/layout/theme-menu";
 
 export type AppChromeMode = "community" | "workspace" | "auth" | "embed";
@@ -85,14 +84,11 @@ function AppChromeFrame({
       <div
       data-slot="app-chrome"
       data-mode={mode}
-      className={cn(
-        "mx-auto grid min-h-screen w-full max-w-chrome-workspace grid-cols-[4.5rem_minmax(0,1fr)] items-start gap-4 px-3 sm:px-4",
-        mode === "community" && "xl:grid-cols-[4.5rem_minmax(0,1fr)_17rem]",
-      )}
+      className="mx-auto grid min-h-screen w-full max-w-chrome-workspace grid-cols-[3rem_minmax(0,1fr)_3rem] items-start gap-1 px-2 sm:grid-cols-[4.5rem_minmax(0,1fr)_4rem] sm:gap-2 sm:px-3 lg:grid-cols-[4.5rem_minmax(0,1fr)_14rem] xl:grid-cols-[4.5rem_minmax(0,1fr)_17rem]"
     >
       <NavBar compact />
       <main className="min-w-0">{children}</main>
-      {mode === "community" ? <AppContextRail /> : null}
+      <AppContextRail />
       </div>
       </div>
     </UnreadCountsProvider>
