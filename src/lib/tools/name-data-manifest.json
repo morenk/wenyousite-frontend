@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "dataVersion": "2026-10-14.1",
+  "files": {
+    "src/lib/tools/bilingual-name-data.json": "abc1ddbb38dd435763592b15f10c764f4343e1a7e78fff98c27a1b48674c01be",
+    "src/lib/tools/name-inspiration.json": "01fc3f364cece517135c08c7dc5c49b855911a8bd0f893b158b461a9592b742d",
+    "src/lib/tools/name-fixtures.json": "bbbb8fc9f35837bd6b4e1698eedd2cf5f3bd6bac07852723d8450e70fd94ff82",
+    "src/lib/tools/name-data/cn.json": "7f0d6d19c3128de1c67e8c9c77420024a967f1e74a447da330c6ebbdae4a2d16",
+    "src/lib/tools/name-data/LICENSE.faker.txt": "8c0814c525426e67c04ca562f28364be477003697903d257160c081d14b271bf",
+    "src/lib/tools/name-data/LICENSE.wenyou.txt": "96c99f399007acf0f25ce53dec1862f5c192713c2c5e56a4f5c522a52f9525d8",
+    "docs/modules/name-data-contract.md": "9de87efcf80d15fc32e0129be30676a1fabd78cfddee3606feb585ba87f97c91"
+  }
+}
