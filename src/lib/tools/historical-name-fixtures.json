@@ -1,0 +1,2632 @@
+{
+  "schemaVersion": 1,
+  "dataVersion": "2026-10-14.1",
+  "randomPolicy": "randomValues循环；依次any性别、随机family、given、启用patronymic",
+  "cases": [
+    {
+      "id": "cn-ming-literati-female-period",
+      "options": {
+        "country": "cn",
+        "profileId": "cn-ming-literati",
+        "role": "period",
+        "familyId": "",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "文俶",
+          "zh": "文俶",
+          "profileId": "cn-ming-literati",
+          "sex": "female",
+          "familyId": "f0",
+          "givenId": "w0"
+        }
+      ]
+    },
+    {
+      "id": "cn-ming-literati-male-period",
+      "options": {
+        "country": "cn",
+        "profileId": "cn-ming-literati",
+        "role": "period",
+        "familyId": "",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "徐珍",
+          "zh": "徐珍",
+          "profileId": "cn-ming-literati",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "cn-qing-literati-female-period",
+      "options": {
+        "country": "cn",
+        "profileId": "cn-qing-literati",
+        "role": "period",
+        "familyId": "",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "王书",
+          "zh": "王书",
+          "profileId": "cn-qing-literati",
+          "sex": "female",
+          "familyId": "f0",
+          "givenId": "w0"
+        }
+      ]
+    },
+    {
+      "id": "cn-qing-literati-male-period",
+      "options": {
+        "country": "cn",
+        "profileId": "cn-qing-literati",
+        "role": "period",
+        "familyId": "",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "徐寿平",
+          "zh": "徐寿平",
+          "profileId": "cn-qing-literati",
+          "sex": "male",
+          "familyId": "f7",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "jp-meiji-female-period",
+      "options": {
+        "country": "jp",
+        "profileId": "jp-meiji",
+        "role": "period",
+        "familyId": "",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "伊藤梅子",
+          "zh": "伊藤梅子",
+          "profileId": "jp-meiji",
+          "sex": "female",
+          "familyId": "f0",
+          "givenId": "w0"
+        }
+      ]
+    },
+    {
+      "id": "jp-meiji-male-period",
+      "options": {
+        "country": "jp",
+        "profileId": "jp-meiji",
+        "role": "period",
+        "familyId": "",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "徳大寺慶喜",
+          "zh": "德大寺庆喜",
+          "profileId": "jp-meiji",
+          "sex": "male",
+          "familyId": "f13",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "jp-meiji-female-lineage-fixed",
+      "options": {
+        "country": "jp",
+        "profileId": "jp-meiji",
+        "role": "lineage",
+        "familyId": "f13",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "徳大寺梅子",
+          "zh": "德大寺梅子",
+          "profileId": "jp-meiji",
+          "sex": "female",
+          "familyId": "f13",
+          "givenId": "w0"
+        }
+      ]
+    },
+    {
+      "id": "jp-taisho-female-period",
+      "options": {
+        "country": "jp",
+        "profileId": "jp-taisho",
+        "role": "period",
+        "familyId": "",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "芥川梅子",
+          "zh": "芥川梅子",
+          "profileId": "jp-taisho",
+          "sex": "female",
+          "familyId": "f0",
+          "givenId": "w0"
+        }
+      ]
+    },
+    {
+      "id": "jp-taisho-male-period",
+      "options": {
+        "country": "jp",
+        "profileId": "jp-taisho",
+        "role": "period",
+        "familyId": "",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "徳大寺直哉",
+          "zh": "德大寺直哉",
+          "profileId": "jp-taisho",
+          "sex": "male",
+          "familyId": "f14",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "jp-taisho-female-lineage-fixed",
+      "options": {
+        "country": "jp",
+        "profileId": "jp-taisho",
+        "role": "lineage",
+        "familyId": "f14",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "徳大寺梅子",
+          "zh": "德大寺梅子",
+          "profileId": "jp-taisho",
+          "sex": "female",
+          "familyId": "f14",
+          "givenId": "w0"
+        }
+      ]
+    },
+    {
+      "id": "gb-tudor-england-female-period",
+      "options": {
+        "country": "gb",
+        "profileId": "gb-tudor-england",
+        "role": "period",
+        "familyId": "",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Anne More",
+          "zh": "安妮·莫尔",
+          "profileId": "gb-tudor-england",
+          "sex": "female",
+          "familyId": "f0",
+          "givenId": "w0"
+        }
+      ]
+    },
+    {
+      "id": "gb-tudor-england-male-period",
+      "options": {
+        "country": "gb",
+        "profileId": "gb-tudor-england",
+        "role": "period",
+        "familyId": "",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Philip Wentworth",
+          "zh": "菲利普·温特沃思",
+          "profileId": "gb-tudor-england",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "gb-tudor-england-female-lineage-fixed",
+      "options": {
+        "country": "gb",
+        "profileId": "gb-tudor-england",
+        "role": "lineage",
+        "familyId": "f8",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Anne Wentworth",
+          "zh": "安妮·温特沃思",
+          "profileId": "gb-tudor-england",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w0"
+        }
+      ]
+    },
+    {
+      "id": "gb-georgian-england-female-period",
+      "options": {
+        "country": "gb",
+        "profileId": "gb-georgian-england",
+        "role": "period",
+        "familyId": "",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Georgiana Pitt",
+          "zh": "乔治亚娜·皮特",
+          "profileId": "gb-georgian-england",
+          "sex": "female",
+          "familyId": "f0",
+          "givenId": "w0"
+        }
+      ]
+    },
+    {
+      "id": "gb-georgian-england-male-period",
+      "options": {
+        "country": "gb",
+        "profileId": "gb-georgian-england",
+        "role": "period",
+        "familyId": "",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "John Harley",
+          "zh": "约翰·哈利",
+          "profileId": "gb-georgian-england",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "gb-georgian-england-female-lineage-fixed",
+      "options": {
+        "country": "gb",
+        "profileId": "gb-georgian-england",
+        "role": "lineage",
+        "familyId": "f8",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Georgiana Harley",
+          "zh": "乔治亚娜·哈利",
+          "profileId": "gb-georgian-england",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w0"
+        }
+      ]
+    },
+    {
+      "id": "fr-louis-xiv-female-period",
+      "options": {
+        "country": "fr",
+        "profileId": "fr-louis-xiv",
+        "role": "period",
+        "familyId": "",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Anne Le Nôtre",
+          "zh": "安妮·勒诺特",
+          "profileId": "fr-louis-xiv",
+          "sex": "female",
+          "familyId": "f0",
+          "givenId": "w0"
+        }
+      ]
+    },
+    {
+      "id": "fr-louis-xiv-male-period",
+      "options": {
+        "country": "fr",
+        "profileId": "fr-louis-xiv",
+        "role": "period",
+        "familyId": "",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Philippe de Noailles",
+          "zh": "菲利普·德·诺阿耶",
+          "profileId": "fr-louis-xiv",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "fr-louis-xiv-female-lineage-fixed",
+      "options": {
+        "country": "fr",
+        "profileId": "fr-louis-xiv",
+        "role": "lineage",
+        "familyId": "f8",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Anne de Noailles",
+          "zh": "安妮·德·诺阿耶",
+          "profileId": "fr-louis-xiv",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w0"
+        }
+      ]
+    },
+    {
+      "id": "fr-eighteenth-century-female-period",
+      "options": {
+        "country": "fr",
+        "profileId": "fr-eighteenth-century",
+        "role": "period",
+        "familyId": "",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Jeanne Campan",
+          "zh": "让娜·康庞",
+          "profileId": "fr-eighteenth-century",
+          "sex": "female",
+          "familyId": "f0",
+          "givenId": "w0"
+        }
+      ]
+    },
+    {
+      "id": "fr-eighteenth-century-male-period",
+      "options": {
+        "country": "fr",
+        "profileId": "fr-eighteenth-century",
+        "role": "period",
+        "familyId": "",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Jules de Rohan-Guéméné",
+          "zh": "朱尔·德·罗昂-盖梅内",
+          "profileId": "fr-eighteenth-century",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "fr-eighteenth-century-female-lineage-fixed",
+      "options": {
+        "country": "fr",
+        "profileId": "fr-eighteenth-century",
+        "role": "lineage",
+        "familyId": "f8",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Jeanne de Rohan-Guéméné",
+          "zh": "让娜·德·罗昂-盖梅内",
+          "profileId": "fr-eighteenth-century",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w0"
+        }
+      ]
+    },
+    {
+      "id": "de-weimar-classic-female-period",
+      "options": {
+        "country": "de",
+        "profileId": "de-weimar-classic",
+        "role": "period",
+        "familyId": "",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Charlotte Bertuch",
+          "zh": "夏洛特·贝尔图赫",
+          "profileId": "de-weimar-classic",
+          "sex": "female",
+          "familyId": "f0",
+          "givenId": "w0"
+        }
+      ]
+    },
+    {
+      "id": "de-weimar-classic-male-period",
+      "options": {
+        "country": "de",
+        "profileId": "de-weimar-classic",
+        "role": "period",
+        "familyId": "",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Josias von Lengefeld",
+          "zh": "约西亚斯·冯·伦格费尔德",
+          "profileId": "de-weimar-classic",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "de-weimar-classic-female-lineage-fixed",
+      "options": {
+        "country": "de",
+        "profileId": "de-weimar-classic",
+        "role": "lineage",
+        "familyId": "f8",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Charlotte von Lengefeld",
+          "zh": "夏洛特·冯·伦格费尔德",
+          "profileId": "de-weimar-classic",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w0"
+        }
+      ]
+    },
+    {
+      "id": "de-prussia-nineteenth-female-period",
+      "options": {
+        "country": "de",
+        "profileId": "de-prussia-nineteenth",
+        "role": "period",
+        "familyId": "",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Johanna Schadow",
+          "zh": "约翰娜·沙多",
+          "profileId": "de-prussia-nineteenth",
+          "sex": "female",
+          "familyId": "f0",
+          "givenId": "w0"
+        }
+      ]
+    },
+    {
+      "id": "de-prussia-nineteenth-male-period",
+      "options": {
+        "country": "de",
+        "profileId": "de-prussia-nineteenth",
+        "role": "period",
+        "familyId": "",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Friedrich von Humboldt",
+          "zh": "弗里德里希·冯·洪堡",
+          "profileId": "de-prussia-nineteenth",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "de-prussia-nineteenth-female-lineage-fixed",
+      "options": {
+        "country": "de",
+        "profileId": "de-prussia-nineteenth",
+        "role": "lineage",
+        "familyId": "f8",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Johanna von Humboldt",
+          "zh": "约翰娜·冯·洪堡",
+          "profileId": "de-prussia-nineteenth",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w0"
+        }
+      ]
+    },
+    {
+      "id": "ru-imperial-18-female-period",
+      "options": {
+        "country": "ru",
+        "profileId": "ru-imperial-18",
+        "role": "period",
+        "familyId": "",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Екатерина Юсупова",
+          "zh": "叶卡捷琳娜·尤苏波娃",
+          "profileId": "ru-imperial-18",
+          "sex": "female",
+          "familyId": "f0",
+          "givenId": "w0"
+        }
+      ]
+    },
+    {
+      "id": "ru-imperial-18-male-period-father",
+      "options": {
+        "country": "ru",
+        "profileId": "ru-imperial-18",
+        "role": "period",
+        "familyId": "",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": true
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Иван Сергеевич Лопухин",
+          "zh": "伊万·谢尔盖耶维奇·洛普欣",
+          "profileId": "ru-imperial-18",
+          "sex": "male",
+          "familyId": "f5",
+          "givenId": "m5",
+          "patronymicId": "p4"
+        }
+      ]
+    },
+    {
+      "id": "ru-imperial-18-female-lineage-fixed",
+      "options": {
+        "country": "ru",
+        "profileId": "ru-imperial-18",
+        "role": "lineage",
+        "familyId": "f2",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Екатерина Шереметева",
+          "zh": "叶卡捷琳娜·舍列梅捷娃",
+          "profileId": "ru-imperial-18",
+          "sex": "female",
+          "familyId": "f2",
+          "givenId": "w0"
+        }
+      ]
+    },
+    {
+      "id": "ru-imperial-19-female-period",
+      "options": {
+        "country": "ru",
+        "profileId": "ru-imperial-19",
+        "role": "period",
+        "familyId": "",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Анна Лермонтова",
+          "zh": "安娜·莱蒙托娃",
+          "profileId": "ru-imperial-19",
+          "sex": "female",
+          "familyId": "f0",
+          "givenId": "w0"
+        }
+      ]
+    },
+    {
+      "id": "ru-imperial-19-male-period-father",
+      "options": {
+        "country": "ru",
+        "profileId": "ru-imperial-19",
+        "role": "period",
+        "familyId": "",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": true
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Александр Сергеевич Шереметев",
+          "zh": "亚历山大·谢尔盖耶维奇·舍列梅捷夫",
+          "profileId": "ru-imperial-19",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5",
+          "patronymicId": "p4"
+        }
+      ]
+    },
+    {
+      "id": "ru-imperial-19-female-lineage-fixed",
+      "options": {
+        "country": "ru",
+        "profileId": "ru-imperial-19",
+        "role": "lineage",
+        "familyId": "f8",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Анна Шереметева",
+          "zh": "安娜·舍列梅捷娃",
+          "profileId": "ru-imperial-19",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w0"
+        }
+      ]
+    },
+    {
+      "id": "ru-imperial-18-female-period-father",
+      "options": {
+        "country": "ru",
+        "profileId": "ru-imperial-18",
+        "role": "period",
+        "familyId": "",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": true
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Екатерина Ивановна Юсупова",
+          "zh": "叶卡捷琳娜·伊万诺芙娜·尤苏波娃",
+          "profileId": "ru-imperial-18",
+          "sex": "female",
+          "familyId": "f0",
+          "givenId": "w0",
+          "patronymicId": "p0"
+        }
+      ]
+    },
+    {
+      "id": "ru-imperial-19-female-period-father",
+      "options": {
+        "country": "ru",
+        "profileId": "ru-imperial-19",
+        "role": "period",
+        "familyId": "",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": true
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Анна Ивановна Лермонтова",
+          "zh": "安娜·伊万诺芙娜·莱蒙托娃",
+          "profileId": "ru-imperial-19",
+          "sex": "female",
+          "familyId": "f0",
+          "givenId": "w0",
+          "patronymicId": "p0"
+        }
+      ]
+    },
+    {
+      "id": "any-female-below-half",
+      "options": {
+        "country": "cn",
+        "profileId": "cn-ming-literati",
+        "role": "period",
+        "familyId": "",
+        "sex": "any",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "文俶",
+          "zh": "文俶",
+          "profileId": "cn-ming-literati",
+          "sex": "female",
+          "familyId": "f0",
+          "givenId": "w0"
+        }
+      ]
+    },
+    {
+      "id": "any-male-at-half",
+      "options": {
+        "country": "cn",
+        "profileId": "cn-ming-literati",
+        "role": "period",
+        "familyId": "",
+        "sex": "any",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.5,
+        0,
+        0
+      ],
+      "expected": [
+        {
+          "original": "文徵明",
+          "zh": "文徵明",
+          "profileId": "cn-ming-literati",
+          "sex": "male",
+          "familyId": "f0",
+          "givenId": "m0"
+        }
+      ]
+    },
+    {
+      "id": "limited-retry-preserves-first",
+      "options": {
+        "country": "cn",
+        "profileId": "cn-ming-literati",
+        "role": "period",
+        "familyId": "",
+        "sex": "female",
+        "count": 50,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "文俶",
+          "zh": "文俶",
+          "profileId": "cn-ming-literati",
+          "sex": "female",
+          "familyId": "f0",
+          "givenId": "w0"
+        }
+      ]
+    },
+    {
+      "id": "count-0",
+      "options": {
+        "country": "cn",
+        "profileId": "cn-ming-literati",
+        "role": "period",
+        "familyId": "",
+        "sex": "female",
+        "count": 0,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "error": "生成数量须为 1–50 的整数"
+    },
+    {
+      "id": "count-fraction",
+      "options": {
+        "country": "cn",
+        "profileId": "cn-ming-literati",
+        "role": "period",
+        "familyId": "",
+        "sex": "female",
+        "count": 1.5,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "error": "生成数量须为 1–50 的整数"
+    },
+    {
+      "id": "count-51",
+      "options": {
+        "country": "cn",
+        "profileId": "cn-ming-literati",
+        "role": "period",
+        "familyId": "",
+        "sex": "female",
+        "count": 51,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "error": "生成数量须为 1–50 的整数"
+    },
+    {
+      "id": "invalid-sex",
+      "options": {
+        "country": "cn",
+        "profileId": "cn-ming-literati",
+        "role": "period",
+        "familyId": "",
+        "sex": "other",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "error": "请选择有效的名字性别倾向"
+    },
+    {
+      "id": "foreign-profile",
+      "options": {
+        "country": "us",
+        "profileId": "cn-ming-literati",
+        "role": "period",
+        "familyId": "",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "error": "请选择有效的时代与地区"
+    },
+    {
+      "id": "unknown-profile",
+      "options": {
+        "country": "cn",
+        "profileId": "cn-tang",
+        "role": "period",
+        "familyId": "",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "error": "请选择有效的时代与地区"
+    },
+    {
+      "id": "unsupported-lineage",
+      "options": {
+        "country": "cn",
+        "profileId": "cn-ming-literati",
+        "role": "lineage",
+        "familyId": "",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "error": "该时代没有此类姓名"
+    },
+    {
+      "id": "unknown-family",
+      "options": {
+        "country": "cn",
+        "profileId": "cn-ming-literati",
+        "role": "period",
+        "familyId": "unlisted",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0
+      ],
+      "error": "请选择当前时代收录的姓氏"
+    },
+    {
+      "id": "unsupported-patronymic",
+      "options": {
+        "country": "cn",
+        "profileId": "cn-ming-literati",
+        "role": "period",
+        "familyId": "",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": true
+      },
+      "randomValues": [
+        0
+      ],
+      "error": "该时代不支持父称"
+    },
+    {
+      "id": "jp-meiji-lineage-f11-male",
+      "options": {
+        "country": "jp",
+        "profileId": "jp-meiji",
+        "role": "lineage",
+        "familyId": "f11",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "徳川慶喜",
+          "zh": "德川庆喜",
+          "profileId": "jp-meiji",
+          "sex": "male",
+          "familyId": "f11",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "jp-meiji-lineage-f11-female",
+      "options": {
+        "country": "jp",
+        "profileId": "jp-meiji",
+        "role": "lineage",
+        "familyId": "f11",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "徳川英子",
+          "zh": "德川英子",
+          "profileId": "jp-meiji",
+          "sex": "female",
+          "familyId": "f11",
+          "givenId": "w5"
+        }
+      ]
+    },
+    {
+      "id": "jp-meiji-lineage-f12-male",
+      "options": {
+        "country": "jp",
+        "profileId": "jp-meiji",
+        "role": "lineage",
+        "familyId": "f12",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "西園寺慶喜",
+          "zh": "西园寺庆喜",
+          "profileId": "jp-meiji",
+          "sex": "male",
+          "familyId": "f12",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "jp-meiji-lineage-f12-female",
+      "options": {
+        "country": "jp",
+        "profileId": "jp-meiji",
+        "role": "lineage",
+        "familyId": "f12",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "西園寺英子",
+          "zh": "西园寺英子",
+          "profileId": "jp-meiji",
+          "sex": "female",
+          "familyId": "f12",
+          "givenId": "w5"
+        }
+      ]
+    },
+    {
+      "id": "jp-meiji-lineage-f13-male",
+      "options": {
+        "country": "jp",
+        "profileId": "jp-meiji",
+        "role": "lineage",
+        "familyId": "f13",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "徳大寺慶喜",
+          "zh": "德大寺庆喜",
+          "profileId": "jp-meiji",
+          "sex": "male",
+          "familyId": "f13",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "jp-meiji-lineage-f13-female",
+      "options": {
+        "country": "jp",
+        "profileId": "jp-meiji",
+        "role": "lineage",
+        "familyId": "f13",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "徳大寺英子",
+          "zh": "德大寺英子",
+          "profileId": "jp-meiji",
+          "sex": "female",
+          "familyId": "f13",
+          "givenId": "w5"
+        }
+      ]
+    },
+    {
+      "id": "jp-taisho-lineage-f12-male",
+      "options": {
+        "country": "jp",
+        "profileId": "jp-taisho",
+        "role": "lineage",
+        "familyId": "f12",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "徳川直哉",
+          "zh": "德川直哉",
+          "profileId": "jp-taisho",
+          "sex": "male",
+          "familyId": "f12",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "jp-taisho-lineage-f12-female",
+      "options": {
+        "country": "jp",
+        "profileId": "jp-taisho",
+        "role": "lineage",
+        "familyId": "f12",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "徳川信子",
+          "zh": "德川信子",
+          "profileId": "jp-taisho",
+          "sex": "female",
+          "familyId": "f12",
+          "givenId": "w5"
+        }
+      ]
+    },
+    {
+      "id": "jp-taisho-lineage-f13-male",
+      "options": {
+        "country": "jp",
+        "profileId": "jp-taisho",
+        "role": "lineage",
+        "familyId": "f13",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "西園寺直哉",
+          "zh": "西园寺直哉",
+          "profileId": "jp-taisho",
+          "sex": "male",
+          "familyId": "f13",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "jp-taisho-lineage-f13-female",
+      "options": {
+        "country": "jp",
+        "profileId": "jp-taisho",
+        "role": "lineage",
+        "familyId": "f13",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "西園寺信子",
+          "zh": "西园寺信子",
+          "profileId": "jp-taisho",
+          "sex": "female",
+          "familyId": "f13",
+          "givenId": "w5"
+        }
+      ]
+    },
+    {
+      "id": "jp-taisho-lineage-f14-male",
+      "options": {
+        "country": "jp",
+        "profileId": "jp-taisho",
+        "role": "lineage",
+        "familyId": "f14",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "徳大寺直哉",
+          "zh": "德大寺直哉",
+          "profileId": "jp-taisho",
+          "sex": "male",
+          "familyId": "f14",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "jp-taisho-lineage-f14-female",
+      "options": {
+        "country": "jp",
+        "profileId": "jp-taisho",
+        "role": "lineage",
+        "familyId": "f14",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "徳大寺信子",
+          "zh": "德大寺信子",
+          "profileId": "jp-taisho",
+          "sex": "female",
+          "familyId": "f14",
+          "givenId": "w5"
+        }
+      ]
+    },
+    {
+      "id": "gb-tudor-england-lineage-f6-male",
+      "options": {
+        "country": "gb",
+        "profileId": "gb-tudor-england",
+        "role": "lineage",
+        "familyId": "f6",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Philip Howard",
+          "zh": "菲利普·霍华德",
+          "profileId": "gb-tudor-england",
+          "sex": "male",
+          "familyId": "f6",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "gb-tudor-england-lineage-f6-female",
+      "options": {
+        "country": "gb",
+        "profileId": "gb-tudor-england",
+        "role": "lineage",
+        "familyId": "f6",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Margaret Howard",
+          "zh": "玛格丽特·霍华德",
+          "profileId": "gb-tudor-england",
+          "sex": "female",
+          "familyId": "f6",
+          "givenId": "w5"
+        }
+      ]
+    },
+    {
+      "id": "gb-tudor-england-lineage-f7-male",
+      "options": {
+        "country": "gb",
+        "profileId": "gb-tudor-england",
+        "role": "lineage",
+        "familyId": "f7",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Philip Cromwell",
+          "zh": "菲利普·克伦威尔",
+          "profileId": "gb-tudor-england",
+          "sex": "male",
+          "familyId": "f7",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "gb-tudor-england-lineage-f7-female",
+      "options": {
+        "country": "gb",
+        "profileId": "gb-tudor-england",
+        "role": "lineage",
+        "familyId": "f7",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Margaret Cromwell",
+          "zh": "玛格丽特·克伦威尔",
+          "profileId": "gb-tudor-england",
+          "sex": "female",
+          "familyId": "f7",
+          "givenId": "w5"
+        }
+      ]
+    },
+    {
+      "id": "gb-tudor-england-lineage-f8-male",
+      "options": {
+        "country": "gb",
+        "profileId": "gb-tudor-england",
+        "role": "lineage",
+        "familyId": "f8",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Philip Wentworth",
+          "zh": "菲利普·温特沃思",
+          "profileId": "gb-tudor-england",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "gb-tudor-england-lineage-f8-female",
+      "options": {
+        "country": "gb",
+        "profileId": "gb-tudor-england",
+        "role": "lineage",
+        "familyId": "f8",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Margaret Wentworth",
+          "zh": "玛格丽特·温特沃思",
+          "profileId": "gb-tudor-england",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w5"
+        }
+      ]
+    },
+    {
+      "id": "gb-georgian-england-lineage-f6-male",
+      "options": {
+        "country": "gb",
+        "profileId": "gb-georgian-england",
+        "role": "lineage",
+        "familyId": "f6",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "John Cavendish",
+          "zh": "约翰·卡文迪什",
+          "profileId": "gb-georgian-england",
+          "sex": "male",
+          "familyId": "f6",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "gb-georgian-england-lineage-f6-female",
+      "options": {
+        "country": "gb",
+        "profileId": "gb-georgian-england",
+        "role": "lineage",
+        "familyId": "f6",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Charlotte Cavendish",
+          "zh": "夏洛特·卡文迪什",
+          "profileId": "gb-georgian-england",
+          "sex": "female",
+          "familyId": "f6",
+          "givenId": "w5"
+        }
+      ]
+    },
+    {
+      "id": "gb-georgian-england-lineage-f7-male",
+      "options": {
+        "country": "gb",
+        "profileId": "gb-georgian-england",
+        "role": "lineage",
+        "familyId": "f7",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "John Churchill",
+          "zh": "约翰·丘吉尔",
+          "profileId": "gb-georgian-england",
+          "sex": "male",
+          "familyId": "f7",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "gb-georgian-england-lineage-f7-female",
+      "options": {
+        "country": "gb",
+        "profileId": "gb-georgian-england",
+        "role": "lineage",
+        "familyId": "f7",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Charlotte Churchill",
+          "zh": "夏洛特·丘吉尔",
+          "profileId": "gb-georgian-england",
+          "sex": "female",
+          "familyId": "f7",
+          "givenId": "w5"
+        }
+      ]
+    },
+    {
+      "id": "gb-georgian-england-lineage-f8-male",
+      "options": {
+        "country": "gb",
+        "profileId": "gb-georgian-england",
+        "role": "lineage",
+        "familyId": "f8",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "John Harley",
+          "zh": "约翰·哈利",
+          "profileId": "gb-georgian-england",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "gb-georgian-england-lineage-f8-female",
+      "options": {
+        "country": "gb",
+        "profileId": "gb-georgian-england",
+        "role": "lineage",
+        "familyId": "f8",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Charlotte Harley",
+          "zh": "夏洛特·哈利",
+          "profileId": "gb-georgian-england",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w5"
+        }
+      ]
+    },
+    {
+      "id": "fr-louis-xiv-lineage-f6-male",
+      "options": {
+        "country": "fr",
+        "profileId": "fr-louis-xiv",
+        "role": "lineage",
+        "familyId": "f6",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Philippe de Rochechouart de Mortemart",
+          "zh": "菲利普·德·罗什舒阿尔·德·莫特马尔",
+          "profileId": "fr-louis-xiv",
+          "sex": "male",
+          "familyId": "f6",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "fr-louis-xiv-lineage-f6-female",
+      "options": {
+        "country": "fr",
+        "profileId": "fr-louis-xiv",
+        "role": "lineage",
+        "familyId": "f6",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Henriette de Rochechouart de Mortemart",
+          "zh": "昂丽埃特·德·罗什舒阿尔·德·莫特马尔",
+          "profileId": "fr-louis-xiv",
+          "sex": "female",
+          "familyId": "f6",
+          "givenId": "w5"
+        }
+      ]
+    },
+    {
+      "id": "fr-louis-xiv-lineage-f7-male",
+      "options": {
+        "country": "fr",
+        "profileId": "fr-louis-xiv",
+        "role": "lineage",
+        "familyId": "f7",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Philippe de La Baume Le Blanc",
+          "zh": "菲利普·德·拉博姆·勒布朗",
+          "profileId": "fr-louis-xiv",
+          "sex": "male",
+          "familyId": "f7",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "fr-louis-xiv-lineage-f7-female",
+      "options": {
+        "country": "fr",
+        "profileId": "fr-louis-xiv",
+        "role": "lineage",
+        "familyId": "f7",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Henriette de La Baume Le Blanc",
+          "zh": "昂丽埃特·德·拉博姆·勒布朗",
+          "profileId": "fr-louis-xiv",
+          "sex": "female",
+          "familyId": "f7",
+          "givenId": "w5"
+        }
+      ]
+    },
+    {
+      "id": "fr-louis-xiv-lineage-f8-male",
+      "options": {
+        "country": "fr",
+        "profileId": "fr-louis-xiv",
+        "role": "lineage",
+        "familyId": "f8",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Philippe de Noailles",
+          "zh": "菲利普·德·诺阿耶",
+          "profileId": "fr-louis-xiv",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "fr-louis-xiv-lineage-f8-female",
+      "options": {
+        "country": "fr",
+        "profileId": "fr-louis-xiv",
+        "role": "lineage",
+        "familyId": "f8",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Henriette de Noailles",
+          "zh": "昂丽埃特·德·诺阿耶",
+          "profileId": "fr-louis-xiv",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w5"
+        }
+      ]
+    },
+    {
+      "id": "fr-eighteenth-century-lineage-f6-male",
+      "options": {
+        "country": "fr",
+        "profileId": "fr-eighteenth-century",
+        "role": "lineage",
+        "familyId": "f6",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Jules de Polignac",
+          "zh": "朱尔·德·波利尼亚克",
+          "profileId": "fr-eighteenth-century",
+          "sex": "male",
+          "familyId": "f6",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "fr-eighteenth-century-lineage-f6-female",
+      "options": {
+        "country": "fr",
+        "profileId": "fr-eighteenth-century",
+        "role": "lineage",
+        "familyId": "f6",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Louise de Polignac",
+          "zh": "路易丝·德·波利尼亚克",
+          "profileId": "fr-eighteenth-century",
+          "sex": "female",
+          "familyId": "f6",
+          "givenId": "w7"
+        }
+      ]
+    },
+    {
+      "id": "fr-eighteenth-century-lineage-f7-male",
+      "options": {
+        "country": "fr",
+        "profileId": "fr-eighteenth-century",
+        "role": "lineage",
+        "familyId": "f7",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Jules de Noailles",
+          "zh": "朱尔·德·诺阿耶",
+          "profileId": "fr-eighteenth-century",
+          "sex": "male",
+          "familyId": "f7",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "fr-eighteenth-century-lineage-f7-female",
+      "options": {
+        "country": "fr",
+        "profileId": "fr-eighteenth-century",
+        "role": "lineage",
+        "familyId": "f7",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Louise de Noailles",
+          "zh": "路易丝·德·诺阿耶",
+          "profileId": "fr-eighteenth-century",
+          "sex": "female",
+          "familyId": "f7",
+          "givenId": "w7"
+        }
+      ]
+    },
+    {
+      "id": "fr-eighteenth-century-lineage-f8-male",
+      "options": {
+        "country": "fr",
+        "profileId": "fr-eighteenth-century",
+        "role": "lineage",
+        "familyId": "f8",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Jules de Rohan-Guéméné",
+          "zh": "朱尔·德·罗昂-盖梅内",
+          "profileId": "fr-eighteenth-century",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "fr-eighteenth-century-lineage-f8-female",
+      "options": {
+        "country": "fr",
+        "profileId": "fr-eighteenth-century",
+        "role": "lineage",
+        "familyId": "f8",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Louise de Rohan-Guéméné",
+          "zh": "路易丝·德·罗昂-盖梅内",
+          "profileId": "fr-eighteenth-century",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w7"
+        }
+      ]
+    },
+    {
+      "id": "de-weimar-classic-lineage-f6-male",
+      "options": {
+        "country": "de",
+        "profileId": "de-weimar-classic",
+        "role": "lineage",
+        "familyId": "f6",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Josias von Stein",
+          "zh": "约西亚斯·冯·施泰因",
+          "profileId": "de-weimar-classic",
+          "sex": "male",
+          "familyId": "f6",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "de-weimar-classic-lineage-f6-female",
+      "options": {
+        "country": "de",
+        "profileId": "de-weimar-classic",
+        "role": "lineage",
+        "familyId": "f6",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Ottilie von Stein",
+          "zh": "奥蒂莉·冯·施泰因",
+          "profileId": "de-weimar-classic",
+          "sex": "female",
+          "familyId": "f6",
+          "givenId": "w6"
+        }
+      ]
+    },
+    {
+      "id": "de-weimar-classic-lineage-f7-male",
+      "options": {
+        "country": "de",
+        "profileId": "de-weimar-classic",
+        "role": "lineage",
+        "familyId": "f7",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Josias von Schardt",
+          "zh": "约西亚斯·冯·沙尔特",
+          "profileId": "de-weimar-classic",
+          "sex": "male",
+          "familyId": "f7",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "de-weimar-classic-lineage-f7-female",
+      "options": {
+        "country": "de",
+        "profileId": "de-weimar-classic",
+        "role": "lineage",
+        "familyId": "f7",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Ottilie von Schardt",
+          "zh": "奥蒂莉·冯·沙尔特",
+          "profileId": "de-weimar-classic",
+          "sex": "female",
+          "familyId": "f7",
+          "givenId": "w6"
+        }
+      ]
+    },
+    {
+      "id": "de-weimar-classic-lineage-f8-male",
+      "options": {
+        "country": "de",
+        "profileId": "de-weimar-classic",
+        "role": "lineage",
+        "familyId": "f8",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Josias von Lengefeld",
+          "zh": "约西亚斯·冯·伦格费尔德",
+          "profileId": "de-weimar-classic",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "de-weimar-classic-lineage-f8-female",
+      "options": {
+        "country": "de",
+        "profileId": "de-weimar-classic",
+        "role": "lineage",
+        "familyId": "f8",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Ottilie von Lengefeld",
+          "zh": "奥蒂莉·冯·伦格费尔德",
+          "profileId": "de-weimar-classic",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w6"
+        }
+      ]
+    },
+    {
+      "id": "de-prussia-nineteenth-lineage-f6-male",
+      "options": {
+        "country": "de",
+        "profileId": "de-prussia-nineteenth",
+        "role": "lineage",
+        "familyId": "f6",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Friedrich von Bismarck",
+          "zh": "弗里德里希·冯·俾斯麦",
+          "profileId": "de-prussia-nineteenth",
+          "sex": "male",
+          "familyId": "f6",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "de-prussia-nineteenth-lineage-f6-female",
+      "options": {
+        "country": "de",
+        "profileId": "de-prussia-nineteenth",
+        "role": "lineage",
+        "familyId": "f6",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Henriette von Bismarck",
+          "zh": "亨丽埃特·冯·俾斯麦",
+          "profileId": "de-prussia-nineteenth",
+          "sex": "female",
+          "familyId": "f6",
+          "givenId": "w6"
+        }
+      ]
+    },
+    {
+      "id": "de-prussia-nineteenth-lineage-f7-male",
+      "options": {
+        "country": "de",
+        "profileId": "de-prussia-nineteenth",
+        "role": "lineage",
+        "familyId": "f7",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Friedrich von Puttkamer",
+          "zh": "弗里德里希·冯·普特卡默",
+          "profileId": "de-prussia-nineteenth",
+          "sex": "male",
+          "familyId": "f7",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "de-prussia-nineteenth-lineage-f7-female",
+      "options": {
+        "country": "de",
+        "profileId": "de-prussia-nineteenth",
+        "role": "lineage",
+        "familyId": "f7",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Henriette von Puttkamer",
+          "zh": "亨丽埃特·冯·普特卡默",
+          "profileId": "de-prussia-nineteenth",
+          "sex": "female",
+          "familyId": "f7",
+          "givenId": "w6"
+        }
+      ]
+    },
+    {
+      "id": "de-prussia-nineteenth-lineage-f8-male",
+      "options": {
+        "country": "de",
+        "profileId": "de-prussia-nineteenth",
+        "role": "lineage",
+        "familyId": "f8",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Friedrich von Humboldt",
+          "zh": "弗里德里希·冯·洪堡",
+          "profileId": "de-prussia-nineteenth",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "de-prussia-nineteenth-lineage-f8-female",
+      "options": {
+        "country": "de",
+        "profileId": "de-prussia-nineteenth",
+        "role": "lineage",
+        "familyId": "f8",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Henriette von Humboldt",
+          "zh": "亨丽埃特·冯·洪堡",
+          "profileId": "de-prussia-nineteenth",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w6"
+        }
+      ]
+    },
+    {
+      "id": "ru-imperial-18-lineage-f0-male",
+      "options": {
+        "country": "ru",
+        "profileId": "ru-imperial-18",
+        "role": "lineage",
+        "familyId": "f0",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Иван Юсупов",
+          "zh": "伊万·尤苏波夫",
+          "profileId": "ru-imperial-18",
+          "sex": "male",
+          "familyId": "f0",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "ru-imperial-18-lineage-f0-female",
+      "options": {
+        "country": "ru",
+        "profileId": "ru-imperial-18",
+        "role": "lineage",
+        "familyId": "f0",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Елизавета Юсупова",
+          "zh": "叶丽扎维塔·尤苏波娃",
+          "profileId": "ru-imperial-18",
+          "sex": "female",
+          "familyId": "f0",
+          "givenId": "w5"
+        }
+      ]
+    },
+    {
+      "id": "ru-imperial-18-lineage-f1-male",
+      "options": {
+        "country": "ru",
+        "profileId": "ru-imperial-18",
+        "role": "lineage",
+        "familyId": "f1",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Иван Голицын",
+          "zh": "伊万·戈利岑",
+          "profileId": "ru-imperial-18",
+          "sex": "male",
+          "familyId": "f1",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "ru-imperial-18-lineage-f1-female",
+      "options": {
+        "country": "ru",
+        "profileId": "ru-imperial-18",
+        "role": "lineage",
+        "familyId": "f1",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Елизавета Голицына",
+          "zh": "叶丽扎维塔·戈利岑娜",
+          "profileId": "ru-imperial-18",
+          "sex": "female",
+          "familyId": "f1",
+          "givenId": "w5"
+        }
+      ]
+    },
+    {
+      "id": "ru-imperial-18-lineage-f2-male",
+      "options": {
+        "country": "ru",
+        "profileId": "ru-imperial-18",
+        "role": "lineage",
+        "familyId": "f2",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Иван Шереметев",
+          "zh": "伊万·舍列梅捷夫",
+          "profileId": "ru-imperial-18",
+          "sex": "male",
+          "familyId": "f2",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "ru-imperial-18-lineage-f2-female",
+      "options": {
+        "country": "ru",
+        "profileId": "ru-imperial-18",
+        "role": "lineage",
+        "familyId": "f2",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Елизавета Шереметева",
+          "zh": "叶丽扎维塔·舍列梅捷娃",
+          "profileId": "ru-imperial-18",
+          "sex": "female",
+          "familyId": "f2",
+          "givenId": "w5"
+        }
+      ]
+    },
+    {
+      "id": "ru-imperial-19-lineage-f6-male",
+      "options": {
+        "country": "ru",
+        "profileId": "ru-imperial-19",
+        "role": "lineage",
+        "familyId": "f6",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Александр Юсупов",
+          "zh": "亚历山大·尤苏波夫",
+          "profileId": "ru-imperial-19",
+          "sex": "male",
+          "familyId": "f6",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "ru-imperial-19-lineage-f6-female",
+      "options": {
+        "country": "ru",
+        "profileId": "ru-imperial-19",
+        "role": "lineage",
+        "familyId": "f6",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Александра Юсупова",
+          "zh": "亚历山德拉·尤苏波娃",
+          "profileId": "ru-imperial-19",
+          "sex": "female",
+          "familyId": "f6",
+          "givenId": "w5"
+        }
+      ]
+    },
+    {
+      "id": "ru-imperial-19-lineage-f7-male",
+      "options": {
+        "country": "ru",
+        "profileId": "ru-imperial-19",
+        "role": "lineage",
+        "familyId": "f7",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Александр Голицын",
+          "zh": "亚历山大·戈利岑",
+          "profileId": "ru-imperial-19",
+          "sex": "male",
+          "familyId": "f7",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "ru-imperial-19-lineage-f7-female",
+      "options": {
+        "country": "ru",
+        "profileId": "ru-imperial-19",
+        "role": "lineage",
+        "familyId": "f7",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Александра Голицына",
+          "zh": "亚历山德拉·戈利岑娜",
+          "profileId": "ru-imperial-19",
+          "sex": "female",
+          "familyId": "f7",
+          "givenId": "w5"
+        }
+      ]
+    },
+    {
+      "id": "ru-imperial-19-lineage-f8-male",
+      "options": {
+        "country": "ru",
+        "profileId": "ru-imperial-19",
+        "role": "lineage",
+        "familyId": "f8",
+        "sex": "male",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Александр Шереметев",
+          "zh": "亚历山大·舍列梅捷夫",
+          "profileId": "ru-imperial-19",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ]
+    },
+    {
+      "id": "ru-imperial-19-lineage-f8-female",
+      "options": {
+        "country": "ru",
+        "profileId": "ru-imperial-19",
+        "role": "lineage",
+        "familyId": "f8",
+        "sex": "female",
+        "count": 1,
+        "includePatronymic": false
+      },
+      "randomValues": [
+        0.999999
+      ],
+      "expected": [
+        {
+          "original": "Александра Шереметева",
+          "zh": "亚历山德拉·舍列梅捷娃",
+          "profileId": "ru-imperial-19",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w5"
+        }
+      ]
+    }
+  ]
+}

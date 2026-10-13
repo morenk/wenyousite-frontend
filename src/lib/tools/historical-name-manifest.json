@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "dataVersion": "2026-10-14.1",
+  "ordinaryDataRevision": "0d82873888f551c688df4f4d1a92c5e284d35b32",
+  "license": "src/lib/tools/name-data/LICENSE.historical-names.txt",
+  "files": {
+    "src/lib/tools/historical-name-data.json": "4c0f4359a8eb2298a5295ec3ad5320d850e2c9a7cf399803395825cde96d9133",
+    "src/lib/tools/historical-name-fixtures.json": "6963efe9ec51d73d0c0399b9f685e722d6be040776106baa7464923793807986",
+    "src/lib/tools/name-data/LICENSE.historical-names.txt": "1b5ff2555daa4b9085ee15eed2fe0e07a8bf2f704de9fd917393cc0671dda3ad",
+    "docs/modules/historical-name-data-contract.md": "94e61a0a0cbb38d58c258ac62cbef8d92e6f9e210fac0df7c39aa4324c38d32f"
+  }
+}
