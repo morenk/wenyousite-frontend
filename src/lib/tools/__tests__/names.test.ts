@@ -5,7 +5,7 @@ const sample: NameData = { source: "test", given: { male: ["男"], female: ["女
 describe("多国姓名", () => {
   test.each(COUNTRIES)("$label 使用原文词库且男女来源有效", async ({ id }) => {
     const data = await loadNameData(id);
-    expect(data.source).toMatch(/@faker-js\/faker@10\.6\.0/);
+    expect(data.source).toMatch(id === "cn" ? /@faker-js\/faker@10\.6\.0/ : /wenyou-bilingual-names@2026-10-14\.1/);
     for (const sex of ["male", "female"] as const) {
       const names = generateNames(data, { ...defaults, country: id, sex, count: 3 });
       expect(names).toHaveLength(3);
@@ -14,8 +14,8 @@ describe("多国姓名", () => {
     }
   });
   test("共用英语来源明确；姓氏与名字使用同一性别", async () => {
-    expect((await loadNameData("gb")).source).toBe("@faker-js/faker@10.6.0/en");
-    expect((await loadNameData("us")).source).toBe("@faker-js/faker@10.6.0/en");
+    expect((await loadNameData("gb")).given).toEqual((await loadNameData("us")).given);
+    expect((await loadNameData("gb")).family).toEqual((await loadNameData("us")).family);
     expect(generateNames(sample, defaults, () => 0)).toEqual(["女姓女"]);
     expect(generateNames(sample, defaults, () => 0.9)).toEqual(["男姓男"]);
     expect(generateNames(sample, { ...defaults, sex: "female", surname: "  王  " }, () => 0)).toEqual(["王女"]);

@@ -16,11 +16,16 @@ export function Toolbox({ selected, embedded = false }: { selected?: ToolId; emb
   const theme = useSearchParams().get("theme");
   const tool = TOOLS.find((item) => item.id === selected);
   return <div data-toolbox-surface data-embedded={embedded || undefined} className={cn("min-h-screen", embedded && "bg-muted/40")}>
-    <PageShell width="content" className="py-8">
-      {tool && <NavigationLink href={toolHref(undefined, embedded, theme)} className="mb-3 inline-flex min-h-8 items-center gap-2 rounded-[var(--radius-control)] px-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-brand-strong"><WenyouIcon id="navigation.back" className="size-4" />全部工具</NavigationLink>}
-      <PageHeader purpose="functional" title={tool?.title ?? "工具箱"} />
+    <PageShell width="content" className={embedded ? "px-3 py-4" : "py-8"}>
+      {embedded && tool ? <div className="mb-4 flex min-w-0 items-center gap-3">
+        <a href={toolHref(undefined, true, theme)} className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-[var(--radius-control)] px-1 text-sm font-semibold text-muted-foreground hover:text-brand-strong"><WenyouIcon id="navigation.back" className="size-4" />全部工具</a>
+        <PageHeader purpose="functional" title={tool.title} className="mb-0 min-w-0 [&_h1]:text-xl [&_h1]:leading-7" />
+      </div> : <>
+        {tool && <NavigationLink href={toolHref(undefined, embedded, theme)} className="mb-3 inline-flex min-h-8 items-center gap-2 rounded-[var(--radius-control)] px-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-brand-strong"><WenyouIcon id="navigation.back" className="size-4" />全部工具</NavigationLink>}
+        <PageHeader purpose="functional" title={tool?.title ?? "工具箱"} />
+      </>}
       {tool ? (
-        tool.id === "names" ? <NameToolPanel /> : tool.id === "vertical" ? <VerticalToolPanel embedded={embedded} /> : <TextToolPanel key={tool.id} tool={tool.id} />
+        tool.id === "names" ? <NameToolPanel embedded={embedded} /> : tool.id === "vertical" ? <VerticalToolPanel embedded={embedded} /> : <TextToolPanel key={tool.id} tool={tool.id} embedded={embedded} />
       ) : <StackList className="grid divide-y-0 border-0 sm:grid-cols-2">
         {TOOLS.map((item, index) => <NavigationLink key={item.id} href={toolHref(item.id, embedded, theme)} data-toolbox-row className={cn(
           "relative flex min-h-15 items-center gap-3 px-5 py-3 transition-colors after:absolute after:inset-x-5 after:bottom-0 after:border-b after:border-border last:after:hidden hover:bg-muted/50",

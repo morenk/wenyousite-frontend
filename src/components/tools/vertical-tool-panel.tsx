@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { WenyouIcon } from "@/components/ui/wenyou-icon";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { TEXT_LIMIT } from "@/lib/tools/catalog";
@@ -40,6 +41,8 @@ export function VerticalToolPanel({ embedded = false }: { embedded?: boolean }) 
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { input: "", width: 10, height: 20, gap: 2, direction: "right", separatorMode: "spaces", separator: " | " } });
   const separatorMode = useWatch({ control: form.control, name: "separatorMode" });
+  const gap = useWatch({ control: form.control, name: "gap" });
+  const separator = useWatch({ control: form.control, name: "separator" });
   const replaceInput = (text: string, message = "") => { form.setValue("input", text, { shouldValidate: true }); setOutput(""); setError(""); setNote(message); };
   const openFile = async (file?: File) => {
     if (!file) return;
@@ -59,6 +62,10 @@ export function VerticalToolPanel({ embedded = false }: { embedded?: boolean }) 
   };
   const feedback = error || Object.values(form.formState.errors).map(item => item.message).join("；");
   const status = !ready ? "正在准备工具…" : pending ? "正在读取本地文件…" : note;
+  const separation = <div className={cn("grid gap-3", embedded ? "grid-cols-2" : "grid-cols-[repeat(auto-fit,minmax(min(100%,8rem),1fr))]")}>
+    <Controller name="separatorMode" control={form.control} render={({ field }) => <ToolSelect embedded={embedded} label="列间分隔" value={field.value} disabled={!ready || pending} onChange={field.onChange} options={[{ id: "spaces", label: "空格数" }, { id: "custom", label: "自定义" }]} />} />
+    {separatorMode === "spaces" ? <div className="grid gap-2"><label htmlFor="column-gap" className="text-sm font-medium">列间空格数</label><Input id="column-gap" type="number" min={0} max={10} {...form.register("gap", { valueAsNumber: true })} /></div> : <div className="grid gap-2"><label htmlFor="column-separator" className="text-sm font-medium">自定义分隔符</label><Input id="column-separator" maxLength={20} {...form.register("separator")} /></div>}
+  </div>;
   return <div data-tool-panels className="grid gap-5">
     <form onSubmit={form.handleSubmit(submit)} className="grid gap-4 rounded-[var(--radius-card)] bg-card p-5 sm:p-6">
       <fieldset disabled={!ready || pending} className="grid min-w-0 gap-4">
@@ -69,24 +76,24 @@ export function VerticalToolPanel({ embedded = false }: { embedded?: boolean }) 
             </div>
           </div>
           {!embedded && <input ref={fileInput} type="file" accept=".txt,text/plain" hidden aria-label="打开 UTF-8 文本文件" onChange={event => { const file = event.currentTarget.files?.[0]; event.currentTarget.value = ""; void openFile(file); }} />}
-          <Textarea id="vertical-input" {...form.register("input")} rows={5} maxLength={TEXT_LIMIT} className="min-h-32 resize-y" />
+          <Textarea id="vertical-input" {...form.register("input")} rows={embedded ? 4 : 5} maxLength={TEXT_LIMIT} className={cn("resize-y", embedded ? "field-sizing-fixed h-32 min-h-28" : "min-h-32")} />
           <p className="text-xs text-muted-foreground">最多 10,000 个字符{!embedded ? "；可打开 64 KiB 以内的 UTF-8 .txt 文件" : ""}</p>
         </div>
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,8rem),1fr))] gap-3">
+        <div className={cn("grid gap-3", embedded ? "grid-cols-2" : "grid-cols-[repeat(auto-fit,minmax(min(100%,8rem),1fr))]")}>
           <div className="grid gap-2"><label htmlFor="page-width" className="text-sm font-medium">页宽（每页列数）</label><Input id="page-width" type="number" min={1} max={100} {...form.register("width", { valueAsNumber: true })} /></div>
           <div className="grid gap-2"><label htmlFor="page-height" className="text-sm font-medium">页高（每列字数）</label><Input id="page-height" type="number" min={1} max={100} {...form.register("height", { valueAsNumber: true })} /></div>
         </div>
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,8rem),1fr))] gap-3">
-          <Controller name="separatorMode" control={form.control} render={({ field }) => <ToolSelect label="列间分隔" value={field.value} disabled={!ready || pending} onChange={field.onChange} options={[{ id: "spaces", label: "空格数" }, { id: "custom", label: "自定义" }]} />} />
-          {separatorMode === "spaces" ? <div className="grid gap-2"><label htmlFor="column-gap" className="text-sm font-medium">列间空格数</label><Input id="column-gap" type="number" min={0} max={10} {...form.register("gap", { valueAsNumber: true })} /></div> : <div className="grid gap-2"><label htmlFor="column-separator" className="text-sm font-medium">自定义分隔符</label><Input id="column-separator" maxLength={20} {...form.register("separator")} /></div>}
-        </div>
-        <Controller name="direction" control={form.control} render={({ field }) => <ToolSelect label="阅读顺序" value={field.value} disabled={!ready || pending} onChange={field.onChange} options={[{ id: "right", label: "从右向左（默认）" }, { id: "left", label: "从左向右" }]} />} />
+        {embedded ? <details className="group min-w-0 rounded-[var(--radius-control)] border border-border px-3">
+          <summary className="flex min-h-11 cursor-pointer flex-wrap items-center justify-between gap-x-2 py-2 text-sm font-medium"><span className="inline-flex items-center gap-2"><WenyouIcon id="navigation.next" className="size-4 transition-transform group-open:rotate-90" />列间设置</span><span className="min-w-0 break-all text-muted-foreground">{separatorMode === "spaces" ? `${typeof gap === "number" && Number.isFinite(gap) ? gap : "—"} 个空格` : separator ? `「${separator}」` : "无分隔符"}</span></summary>
+          <div className="pb-3">{separation}</div>
+        </details> : separation}
+        <Controller name="direction" control={form.control} render={({ field }) => <ToolSelect embedded={embedded} label="阅读顺序" value={field.value} disabled={!ready || pending} onChange={field.onChange} options={[{ id: "right", label: "从右向左（默认）" }, { id: "left", label: "从左向右" }]} />} />
         <p className="text-sm leading-relaxed text-muted-foreground">换行另起一列，空行留空列；超出页宽后分页。</p>
         <div className="flex flex-wrap gap-3"><Button type="submit">生成文字</Button><Button type="button" variant="ghost" onClick={() => replaceInput("")}>清空</Button></div>
       </fieldset>
       <div role="alert" className={cn("text-sm text-destructive", !feedback && "sr-only")}>{feedback}</div>
       <p role="status" className={cn("text-xs text-muted-foreground", !status && "sr-only")}>{status}</p>
     </form>
-    <ToolResult key={output} text={output} onDownload={embedded ? undefined : download} scrollStart={resultDirection} resultClassName="field-sizing-fixed h-64 max-h-80" />
+    <ToolResult key={output} text={output} embedded={embedded} onDownload={embedded ? undefined : download} scrollStart={resultDirection} resultClassName={embedded ? "field-sizing-fixed h-48 max-h-64" : "field-sizing-fixed h-64 max-h-80"} />
   </div>;
 }
