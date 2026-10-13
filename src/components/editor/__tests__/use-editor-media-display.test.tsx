@@ -62,3 +62,23 @@ test("多step删除和插入后装饰位置正确，展示更新不改变模型�
     expect(editor.media().map((item) => item.display)).toEqual([display.url + "?v=2", second]);
   } finally { await editor.destroy(); }
 });
+
+
+test("临时会话快照合并既有、上传和表情展示描述，重建后不回退到来源图", () => {
+  const { result, unmount } = renderHook(() => useEditorMediaDisplay([{ sourceUrl: source, display }], { current: null }, true));
+  const uploadedDisplay = { ...display, url: "https://cdn.example.com/uploaded.webp" };
+  const stickerDisplay = { ...display, url: "https://cdn.example.com/sticker.webp" };
+  result.current.completed({ url: source });
+  expect(result.current.resolve(source)).toBe(display.url);
+  result.current.completed({ url: second, display: uploadedDisplay });
+  result.current.completed({ url: "https://cdn.example.com/sticker-source.webp", display: stickerDisplay });
+  const snapshot = result.current.snapshot();
+  expect(snapshot).toEqual([{ sourceUrl: source, display }, { sourceUrl: second, display: uploadedDisplay }, { sourceUrl: "https://cdn.example.com/sticker-source.webp", display: stickerDisplay }]);
+  expect(result.current.snapshot()).toBe(snapshot);
+  unmount();
+  const restored = renderHook(() => useEditorMediaDisplay(snapshot, { current: null }, true));
+  expect(restored.result.current.resolve(source)).toBe(display.url);
+  expect(restored.result.current.resolve(second)).toBe(uploadedDisplay.url);
+  expect(restored.result.current.resolve("https://cdn.example.com/sticker-source.webp")).toBe(stickerDisplay.url);
+  restored.unmount();
+});

@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
   ThreadComposerProvider,
+  ThreadReplyDraftsProvider,
   useThreadComposer,
   type ThreadComposerSession,
 } from "@/components/thread/thread-composer-context";
@@ -14,6 +15,8 @@ import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
 
 const mocks = vi.hoisted(() => ({
   rp: false,
+  deferChange: false,
+  uploadPending: false,
   prepare: vi.fn(),
   requireConfirmation: vi.fn(),
   create: vi.fn().mockResolvedValue({ id: "created-post" }),
@@ -44,7 +47,7 @@ vi.mock("@/api/hooks/use-update-post", () => ({
 }));
 
 vi.mock("@/api/hooks/use-upload-image", () => ({
-  useUploadImage: () => ({ mutateAsync: mocks.upload }),
+  useUploadImage: () => ({ mutateAsync: mocks.upload, isPending: mocks.uploadPending }),
 }));
 
 vi.mock("sonner", () => ({
@@ -78,7 +81,7 @@ vi.mock("@/components/editor/milkdown-editor", async () => {
     <button onClick={() => onSyncErrorChange?.(true)}>模拟同步失败</button>
     <button onClick={() => onSyncErrorChange?.(false)}>模拟同步恢复</button>
     </>
-  )),
+  ), { deferChange: () => mocks.deferChange }),
 });
 });
 
@@ -207,7 +210,7 @@ test("40011保留正文并要求确认，明确失败后使用新UUID；编辑�
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.rp = false; mocks.prepare.mockResolvedValue(undefined);
+    mocks.rp = false; mocks.deferChange = false; mocks.uploadPending = false; mocks.prepare.mockResolvedValue(undefined);
     vi.stubGlobal("confirm", vi.fn(() => true));
     vi.stubGlobal("crypto", { randomUUID: vi.fn(() => REQUEST_ID) });
   });
@@ -321,7 +324,7 @@ test("40011保留正文并要求确认，明确失败后使用新UUID；编辑�
     await user.click(screen.getByRole("button", { name: "发布" }));
     await waitFor(() => expect(mocks.error).toHaveBeenCalled());
     expect(screen.getByTestId("milkdown-editor")).toBeDisabled();
-    expect(screen.getByRole("button", { name: "取消" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "收起" })).toBeDisabled();
     await user.click(screen.getByRole("button", { name: "重试确认发表" }));
 
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(2));
@@ -388,5 +391,76 @@ test("40011保留正文并要求确认，明确失败后使用新UUID；编辑�
     }));
     expect(screen.queryByTestId("milkdown-editor")).not.toBeInTheDocument();
   });
+
+
+test("切换回复对象续写最后输入并向新目标提交，成功后新开为空", async () => {
+  mocks.deferChange = true;
+  renderHarness();
+  await userEvent.click(screen.getByRole("button", { name: "发表入口" }));
+  await userEvent.type(screen.getByTestId("milkdown-editor"), "还没同步的正文");
+  await userEvent.click(screen.getByRole("button", { name: "回复入口" }));
+  expect(screen.getByTestId("milkdown-editor")).toHaveValue("还没同步的正文");
+  expect(confirm).not.toHaveBeenCalled();
+  await userEvent.click(screen.getByRole("button", { name: /^回复$/ }));
+  await waitFor(() => expect(mocks.create).toHaveBeenCalledWith(expect.objectContaining({
+    content: "还没同步的正文", parentPostId: "post-1", replyToPostId: "reply-2",
+  })));
+  await userEvent.click(screen.getByRole("button", { name: "发表入口" }));
+  expect(screen.getByTestId("milkdown-editor")).toHaveValue("");
+});
+
+test("明确失败后收起保留正文，再开普通楼层提交不携带旧回复对象", async () => {
+  mocks.create.mockRejectedValueOnce({ status: 400, code: 40012 });
+  renderHarness();
+  await userEvent.click(screen.getByRole("button", { name: "回复入口" }));
+  await userEvent.type(screen.getByTestId("milkdown-editor"), "失败后续写");
+  await userEvent.click(screen.getByRole("button", { name: /^回复$/ }));
+  await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1));
+  await userEvent.click(screen.getByRole("button", { name: "收起" }));
+  await userEvent.click(screen.getByRole("button", { name: "发表入口" }));
+  expect(screen.getByTestId("milkdown-editor")).toHaveValue("失败后续写");
+  await userEvent.click(screen.getByRole("button", { name: "发布" }));
+  await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(2));
+  expect(mocks.create.mock.calls[1]?.[0]).not.toHaveProperty("parentPostId");
+  expect(mocks.create.mock.calls[1]?.[0]).not.toHaveProperty("replyToPostId");
+});
+
+test("临时回复与编辑原帖往返不串正文，保存原帖后仍可续写回复", async () => {
+  renderHarness();
+  await userEvent.click(screen.getByRole("button", { name: "发表入口" }));
+  await userEvent.type(screen.getByTestId("milkdown-editor"), "我的临时回复");
+  await userEvent.click(screen.getByRole("button", { name: "编辑入口" }));
+  expect(screen.getByTestId("milkdown-editor")).toHaveValue("原回复");
+  await userEvent.click(screen.getByRole("button", { name: "保存修改" }));
+  await waitFor(() => expect(screen.queryByTestId("milkdown-editor")).not.toBeInTheDocument());
+  await userEvent.click(screen.getByRole("button", { name: "回复入口" }));
+  expect(screen.getByTestId("milkdown-editor")).toHaveValue("我的临时回复");
+});
+
+test("上传中的编辑器禁止切换到另一回复入口", async () => {
+  mocks.uploadPending = true;
+  renderHarness();
+  await userEvent.click(screen.getByRole("button", { name: "发表入口" }));
+  await userEvent.click(screen.getByRole("button", { name: "回复入口" }));
+  expect(screen.getByText("发表回复")).toBeInTheDocument();
+  expect(screen.queryByText("回复 @小明")).not.toBeInTheDocument();
+});
+
+
+test("路由卸载前同步未 debounce 的最后一段，重挂后可在另一入口续写", async () => {
+  mocks.deferChange = true;
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const view = (route: string) => <QueryClientProvider client={queryClient}>
+    <ThreadReplyDraftsProvider accountId="u1">
+      <ThreadComposerProvider key={route} threadId="t1"><Harness /></ThreadComposerProvider>
+    </ThreadReplyDraftsProvider>
+  </QueryClientProvider>;
+  const { rerender } = render(view("a"));
+  await userEvent.click(screen.getByRole("button", { name: "发表入口" }));
+  fireEvent.change(screen.getByTestId("milkdown-editor"), { target: { value: "最后一段未同步" } });
+  rerender(view("b"));
+  await userEvent.click(screen.getByRole("button", { name: "回复入口" }));
+  expect(screen.getByTestId("milkdown-editor")).toHaveValue("最后一段未同步");
+});
 
 });

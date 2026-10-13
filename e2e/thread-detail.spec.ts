@@ -344,3 +344,42 @@ test.describe("楼中楼回复", () => {
     await expect(page.getByRole("region", { name: "楼层回复，共 1 条" })).toBeVisible({ timeout: 10000 });
   });
 });
+
+
+test("主题帖临时回复跨目标、收起与独立楼中楼导航续写", async ({ page }) => {
+  test.setTimeout(120000);
+  await loginAndCreatePublishedThread(page);
+  await postFloor(page, "临时稿目标甲");
+  await postFloor(page, "临时稿目标乙");
+  const floorA = page.locator('[id^="post-"]').filter({ hasText: "临时稿目标甲" }).first();
+  const floorB = page.locator('[id^="post-"]').filter({ hasText: "临时稿目标乙" }).first();
+  const targetB = (await floorB.getAttribute("id"))!.slice("post-".length);
+  await floorA.getByRole("button", { name: "回复", exact: true }).click();
+  await page.getByRole("textbox", { name: "回复正文", exact: true }).fill("在甲楼写到一半");
+  await floorB.getByRole("button", { name: "回复", exact: true }).click();
+  await expect(page.getByRole("textbox", { name: "回复正文", exact: true })).toHaveText("在甲楼写到一半");
+  await page.getByRole("button", { name: "收起", exact: true }).click();
+  await floorB.getByRole("button", { name: "回复", exact: true }).click();
+  await expect(page.getByRole("textbox", { name: "回复正文", exact: true })).toHaveText("在甲楼写到一半");
+  const sent = page.waitForRequest((request) => request.method() === "POST" && /\/subthreads\/[^/]+\/posts$/.test(new URL(request.url()).pathname));
+  await floorB.getByRole("button", { name: "回复", exact: true }).last().click();
+  expect((await sent).postDataJSON()).toMatchObject({ content: "在甲楼写到一半", parentPostId: targetB, replyToPostId: targetB });
+  await expect(page.getByText("回复成功").first()).toBeVisible();
+  const discussionLink = floorB.getByRole("link", { name: /展开楼中楼/ });
+  await expect(discussionLink).toBeVisible();
+  await floorA.getByRole("button", { name: "回复", exact: true }).click();
+  const editor = page.getByRole("textbox", { name: "回复正文", exact: true });
+  await expect(editor).toBeEmpty();
+  // 不等待字数/120ms 快照，在同一浏览器任务中输入并点击真实 Next Link。
+  const href = await discussionLink.getAttribute("href");
+  await editor.evaluate((element, target) => {
+    element.focus();
+    document.execCommand("insertText", false, "最后一段立即切页");
+    const link = Array.from(document.querySelectorAll<HTMLAnchorElement>("a")).find((item) => item.getAttribute("href") === target);
+    if (!link) throw new Error("缺少独立楼中楼链接");
+    link.click();
+  }, href);
+  await page.waitForURL((url) => url.pathname.endsWith(`/posts/${targetB}/replies`));
+  await page.getByRole("button", { name: "发表回复…", exact: true }).click();
+  await expect(page.getByRole("textbox", { name: "回复正文", exact: true })).toHaveText("最后一段立即切页");
+});

@@ -292,7 +292,8 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   useImperativeHandle(editorRef, () => ({
     flush: () => flushRef.current?.() ?? null,
     isComposing: () => composingRef.current,
-  }), []);
+    getMediaDisplays: mediaDisplay.snapshot,
+  }), [mediaDisplay]);
   useEffect(() => { onValidityRef.current = onValidityChange; }, [onValidityChange]);
   const onSyncErrorChangeRef = useRef(onSyncErrorChange);
   useEffect(() => { onSyncErrorChangeRef.current = onSyncErrorChange; }, [onSyncErrorChange]);

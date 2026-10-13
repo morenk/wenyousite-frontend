@@ -108,7 +108,7 @@ test("资料楼层绑定、当前授权正文、历史身份及局部重试", as
   await dialog.getByLabel("资料楼层链接").fill(replyLink);
   await dialog.getByRole("button", { name: "保存资料", exact: true }).click();
   await expect(dialog).toBeHidden();
-  await page.getByRole("button", { name: "取消", exact: true }).click();
+  await page.getByRole("button", { name: "收起", exact: true }).click();
   card = await openCard();
   await expect(card.getByText("资料楼中楼")).toBeVisible();
   await expect(card.getByRole("link", { name: "报名资料 · 1楼 · 1回复" })).toHaveAttribute("href", replyLink);
@@ -127,7 +127,7 @@ test("资料楼层绑定、当前授权正文、历史身份及局部重试", as
   await dialog.getByRole("button", { name: "保存资料", exact: true }).click();
   await expect(dialog).toBeHidden();
   expect((await latestRpWrite(page, "PUT")).clearProfilePost).toBe(true);
-  await page.getByRole("button", { name: "取消", exact: true }).click();
+  await page.getByRole("button", { name: "收起", exact: true }).click();
   card = await openCard();
   await expect(card.getByRole("region", { name: "角色资料" })).toHaveCount(0);
   await expect(card.getByText("资料暂不可用")).toHaveCount(0);

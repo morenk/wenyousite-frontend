@@ -514,7 +514,7 @@ describe("FloorCard", () => {
     expect(preview).not.toHaveClass("overflow-hidden");
     expect(screen.getByRole("link", { name: "展开楼中楼（1 条）" })).toBeInTheDocument();
 
-    await user.click(within(inline).getByRole("button", { name: "取消" }));
+    await user.click(within(inline).getByRole("button", { name: "收起" }));
     expect(preview).not.toHaveClass("overflow-hidden");
     expect(screen.getByRole("link", { name: "展开楼中楼（1 条）" })).toBeInTheDocument();
   });
