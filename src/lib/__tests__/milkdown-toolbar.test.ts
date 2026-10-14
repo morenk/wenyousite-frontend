@@ -295,23 +295,39 @@ describe("syncMilkdownToolbarVisibility", () => {
     buttons.forEach((button) => expect(button).toHaveAttribute("hidden"));
   });
 
+  test("所有密度都隐藏列表入口，同时保留共享列表能力", () => {
+    const toolbar = document.createElement("div");
+    toolbar.innerHTML = '<button data-editor-tool="bullet-list"></button><button data-editor-tool="ordered-list"></button>';
+    for (const density of EDITOR_DENSITY_ORDER) {
+      applyMilkdownToolbarDensity(toolbar, density);
+      for (const button of toolbar.querySelectorAll("button")) {
+        expect(button).toHaveAttribute("hidden");
+      }
+      expect(getMilkdownMoreCapabilities(density, true)).not.toContain("bullet-list");
+      expect(getMilkdownMoreCapabilities(density, true)).not.toContain("ordered-list");
+    }
+    expect(EDITOR_WEB_CAPABILITIES).toHaveProperty("bullet-list");
+    expect(EDITOR_WEB_CAPABILITIES).toHaveProperty("ordered-list");
+  });
+
   test("更多菜单按工具栏密度只返回当前隐藏能力", () => {
     expect(getMilkdownMoreCapabilities("with-more", true)).toEqual([
       "link",
-      "bullet-list",
-      "ordered-list",
       "alignment",
     ]);
     expect(getMilkdownMoreCapabilities("without-draft", true)).toEqual([
       "link",
-      "bullet-list",
-      "ordered-list",
       "alignment",
       "draft",
     ]);
     expect(getMilkdownMoreCapabilities("compact", true)).toEqual([
       "strikethrough",
-      ...EDITOR_MORE_FALLBACK,
+      "link",
+      "inline-code",
+      "quote",
+      "alignment",
+      "hr",
+      "dice",
       "draft",
     ]);
   });

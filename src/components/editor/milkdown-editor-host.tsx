@@ -657,16 +657,12 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
         imageIcon: editorIconSvg("image"),
         quoteIcon: editorIconSvg("quote"),
         hrIcon: editorIconSvg("hr"),
-        bulletListIcon: editorIconSvg("bullet-list"),
-        orderedListIcon: editorIconSvg("ordered-list"),
         chevronDownIcon: editorChevronDownSvg(),
         buildTopBar: (builder) => {
           const formatting = builder.getGroup("formatting").group;
           formatting.items = formatting.items.filter((item) =>
             ["bold", "italic", "strikethrough", "code"].includes(item.key),
           );
-          const list = builder.getGroup("list").group;
-          list.items = list.items.filter((item) => item.key !== "task-list");
           const insert = builder.getGroup("insert").group;
           const imageItem = insert.items.find((item) => item.key === "image");
           const block = builder.getGroup("block").group;
@@ -710,7 +706,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
               alignmentGroup,
             );
           }
-          for (const groupKey of ["block"]) {
+          for (const groupKey of ["block", "list"]) {
             const index = groups.findIndex((group) => group.key === groupKey);
             if (index !== -1) groups.splice(index, 1);
           }

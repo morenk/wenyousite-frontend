@@ -29,3 +29,8 @@ export type {
   EditorCapabilityId,
   EditorToolbarDensity,
 } from "@wenyousite/foundation/editor";
+
+/** 仅控制可见入口；列表能力和历史正文协议继续由 Foundation 提供。 */
+export function isEditorToolbarCapabilityVisible(capability: string): boolean {
+  return capability !== "bullet-list" && capability !== "ordered-list";
+}
