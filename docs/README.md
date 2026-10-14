@@ -41,6 +41,7 @@
 | [search](./modules/search.md) | 搜索 | active |
 | [name-data-contract](./modules/name-data-contract.md) | 双语姓名词库、中文组合、跨端确定性样例与许可 | active |
 | [historical-name-data-contract](./modules/historical-name-data-contract.md) | 历史姓名包、家族与父称矩阵、跨端样例与许可 | active |
+| [advanced-name-data-contract](./modules/advanced-name-data-contract.md) | 史实与文学风格、结构模板、跨端确定性样例 | active |
 | [text-toolbox](./modules/text-toolbox.md) | 文字工具、姓名词库与匿名移动端嵌入入口 | active |
 | [drafts](./modules/drafts.md) | 草稿箱 | active |
 | [bookmarks](./modules/bookmarks.md) | 收藏 | active |

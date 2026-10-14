@@ -1,0 +1,7050 @@
+{
+  "schemaVersion": 2,
+  "dataVersion": "2026-10-14.2",
+  "randomPolicy": "randomValues循环；按 any性别、family、given、模板所需secondGiven、patronymic、byname 抽取。secondGiven先按原文排除已选given。",
+  "cases": [
+    {
+      "id": "cn-ming-literati-period-simple-male",
+      "options": {
+        "country": "cn",
+        "mode": "historical",
+        "styleId": "cn-ming-literati-period",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "徐珍",
+          "zh": "徐珍",
+          "styleId": "cn-ming-literati-period",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "cn-ming-literati-period-simple-female",
+      "options": {
+        "country": "cn",
+        "mode": "historical",
+        "styleId": "cn-ming-literati-period",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "徐安生",
+          "zh": "徐安生",
+          "styleId": "cn-ming-literati-period",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "cn-ming-literati-period-simple-any",
+      "options": {
+        "country": "cn",
+        "mode": "historical",
+        "styleId": "cn-ming-literati-period",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "唐慈静",
+          "zh": "唐慈静",
+          "styleId": "cn-ming-literati-period",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f1",
+          "givenId": "w3"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "cn-qing-literati-period-simple-male",
+      "options": {
+        "country": "cn",
+        "mode": "historical",
+        "styleId": "cn-qing-literati-period",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "徐寿平",
+          "zh": "徐寿平",
+          "styleId": "cn-qing-literati-period",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f7",
+          "givenId": "m5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "cn-qing-literati-period-simple-female",
+      "options": {
+        "country": "cn",
+        "mode": "historical",
+        "styleId": "cn-qing-literati-period",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "徐端淑",
+          "zh": "徐端淑",
+          "styleId": "cn-qing-literati-period",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f7",
+          "givenId": "w5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "cn-qing-literati-period-simple-any",
+      "options": {
+        "country": "cn",
+        "mode": "historical",
+        "styleId": "cn-qing-literati-period",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "吴婉仪",
+          "zh": "吴婉仪",
+          "styleId": "cn-qing-literati-period",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f1",
+          "givenId": "w3"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "jp-meiji-period-simple-male",
+      "options": {
+        "country": "jp",
+        "mode": "historical",
+        "styleId": "jp-meiji-period",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "徳大寺慶喜",
+          "zh": "德大寺庆喜",
+          "styleId": "jp-meiji-period",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f13",
+          "givenId": "m5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "jp-meiji-period-simple-female",
+      "options": {
+        "country": "jp",
+        "mode": "historical",
+        "styleId": "jp-meiji-period",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "徳大寺英子",
+          "zh": "德大寺英子",
+          "styleId": "jp-meiji-period",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f13",
+          "givenId": "w5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "jp-meiji-period-simple-any",
+      "options": {
+        "country": "jp",
+        "mode": "historical",
+        "styleId": "jp-meiji-period",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "大久保吟子",
+          "zh": "大久保吟子",
+          "styleId": "jp-meiji-period",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f2",
+          "givenId": "w3"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "jp-meiji-lineage-simple-male",
+      "options": {
+        "country": "jp",
+        "mode": "historical",
+        "styleId": "jp-meiji-lineage",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "徳大寺慶喜",
+          "zh": "德大寺庆喜",
+          "styleId": "jp-meiji-lineage",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f13",
+          "givenId": "m5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "jp-meiji-lineage-simple-female",
+      "options": {
+        "country": "jp",
+        "mode": "historical",
+        "styleId": "jp-meiji-lineage",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "徳大寺英子",
+          "zh": "德大寺英子",
+          "styleId": "jp-meiji-lineage",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f13",
+          "givenId": "w5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "jp-meiji-lineage-simple-any",
+      "options": {
+        "country": "jp",
+        "mode": "historical",
+        "styleId": "jp-meiji-lineage",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "徳川吟子",
+          "zh": "德川吟子",
+          "styleId": "jp-meiji-lineage",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f11",
+          "givenId": "w3"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "jp-taisho-period-simple-male",
+      "options": {
+        "country": "jp",
+        "mode": "historical",
+        "styleId": "jp-taisho-period",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "徳大寺直哉",
+          "zh": "德大寺直哉",
+          "styleId": "jp-taisho-period",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f14",
+          "givenId": "m5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "jp-taisho-period-simple-female",
+      "options": {
+        "country": "jp",
+        "mode": "historical",
+        "styleId": "jp-taisho-period",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "徳大寺信子",
+          "zh": "德大寺信子",
+          "styleId": "jp-taisho-period",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f14",
+          "givenId": "w5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "jp-taisho-period-simple-any",
+      "options": {
+        "country": "jp",
+        "mode": "historical",
+        "styleId": "jp-taisho-period",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "鈴木英子",
+          "zh": "铃木英子",
+          "styleId": "jp-taisho-period",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f3",
+          "givenId": "w3"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "jp-taisho-lineage-simple-male",
+      "options": {
+        "country": "jp",
+        "mode": "historical",
+        "styleId": "jp-taisho-lineage",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "徳大寺直哉",
+          "zh": "德大寺直哉",
+          "styleId": "jp-taisho-lineage",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f14",
+          "givenId": "m5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "jp-taisho-lineage-simple-female",
+      "options": {
+        "country": "jp",
+        "mode": "historical",
+        "styleId": "jp-taisho-lineage",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "徳大寺信子",
+          "zh": "德大寺信子",
+          "styleId": "jp-taisho-lineage",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f14",
+          "givenId": "w5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "jp-taisho-lineage-simple-any",
+      "options": {
+        "country": "jp",
+        "mode": "historical",
+        "styleId": "jp-taisho-lineage",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "徳川英子",
+          "zh": "德川英子",
+          "styleId": "jp-taisho-lineage",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f12",
+          "givenId": "w3"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "gb-tudor-england-period-simple-male",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-tudor-england-period",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Philip Wentworth",
+          "zh": "菲利普·温特沃思",
+          "styleId": "gb-tudor-england-period",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "gb-tudor-england-period-simple-female",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-tudor-england-period",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Margaret Wentworth",
+          "zh": "玛格丽特·温特沃思",
+          "styleId": "gb-tudor-england-period",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "gb-tudor-england-period-simple-any",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-tudor-england-period",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Elizabeth Warham",
+          "zh": "伊丽莎白·沃勒姆",
+          "styleId": "gb-tudor-england-period",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f1",
+          "givenId": "w3"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "gb-tudor-england-lineage-simple-male",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-tudor-england-lineage",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Philip Wentworth",
+          "zh": "菲利普·温特沃思",
+          "styleId": "gb-tudor-england-lineage",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "gb-tudor-england-lineage-simple-female",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-tudor-england-lineage",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Margaret Wentworth",
+          "zh": "玛格丽特·温特沃思",
+          "styleId": "gb-tudor-england-lineage",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "gb-tudor-england-lineage-simple-any",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-tudor-england-lineage",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Elizabeth Howard",
+          "zh": "伊丽莎白·霍华德",
+          "styleId": "gb-tudor-england-lineage",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f6",
+          "givenId": "w3"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "gb-georgian-england-period-simple-male",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-georgian-england-period",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "John Harley",
+          "zh": "约翰·哈利",
+          "styleId": "gb-georgian-england-period",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "gb-georgian-england-period-simple-female",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-georgian-england-period",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Charlotte Harley",
+          "zh": "夏洛特·哈利",
+          "styleId": "gb-georgian-england-period",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "gb-georgian-england-period-simple-any",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-georgian-england-period",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Frances Fox",
+          "zh": "弗朗西丝·福克斯",
+          "styleId": "gb-georgian-england-period",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f1",
+          "givenId": "w3"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "gb-georgian-england-lineage-simple-male",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-georgian-england-lineage",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "John Harley",
+          "zh": "约翰·哈利",
+          "styleId": "gb-georgian-england-lineage",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "gb-georgian-england-lineage-simple-female",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-georgian-england-lineage",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Charlotte Harley",
+          "zh": "夏洛特·哈利",
+          "styleId": "gb-georgian-england-lineage",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "gb-georgian-england-lineage-simple-any",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-georgian-england-lineage",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Frances Cavendish",
+          "zh": "弗朗西丝·卡文迪什",
+          "styleId": "gb-georgian-england-lineage",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f6",
+          "givenId": "w3"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "fr-louis-xiv-period-simple-male",
+      "options": {
+        "country": "fr",
+        "mode": "historical",
+        "styleId": "fr-louis-xiv-period",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Philippe de Noailles",
+          "zh": "菲利普·德·诺阿耶",
+          "styleId": "fr-louis-xiv-period",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "fr-louis-xiv-period-simple-female",
+      "options": {
+        "country": "fr",
+        "mode": "historical",
+        "styleId": "fr-louis-xiv-period",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Henriette de Noailles",
+          "zh": "昂丽埃特·德·诺阿耶",
+          "styleId": "fr-louis-xiv-period",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "fr-louis-xiv-period-simple-any",
+      "options": {
+        "country": "fr",
+        "mode": "historical",
+        "styleId": "fr-louis-xiv-period",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Louise Le Vau",
+          "zh": "路易丝·勒沃",
+          "styleId": "fr-louis-xiv-period",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f1",
+          "givenId": "w3"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "fr-louis-xiv-lineage-simple-male",
+      "options": {
+        "country": "fr",
+        "mode": "historical",
+        "styleId": "fr-louis-xiv-lineage",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Philippe de Noailles",
+          "zh": "菲利普·德·诺阿耶",
+          "styleId": "fr-louis-xiv-lineage",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "fr-louis-xiv-lineage-simple-female",
+      "options": {
+        "country": "fr",
+        "mode": "historical",
+        "styleId": "fr-louis-xiv-lineage",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Henriette de Noailles",
+          "zh": "昂丽埃特·德·诺阿耶",
+          "styleId": "fr-louis-xiv-lineage",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "fr-louis-xiv-lineage-simple-any",
+      "options": {
+        "country": "fr",
+        "mode": "historical",
+        "styleId": "fr-louis-xiv-lineage",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Louise de Rochechouart de Mortemart",
+          "zh": "路易丝·德·罗什舒阿尔·德·莫特马尔",
+          "styleId": "fr-louis-xiv-lineage",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f6",
+          "givenId": "w3"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "fr-eighteenth-century-period-simple-male",
+      "options": {
+        "country": "fr",
+        "mode": "historical",
+        "styleId": "fr-eighteenth-century-period",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Jules de Rohan-Guéméné",
+          "zh": "朱尔·德·罗昂-盖梅内",
+          "styleId": "fr-eighteenth-century-period",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "fr-eighteenth-century-period-simple-female",
+      "options": {
+        "country": "fr",
+        "mode": "historical",
+        "styleId": "fr-eighteenth-century-period",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Louise de Rohan-Guéméné",
+          "zh": "路易丝·德·罗昂-盖梅内",
+          "styleId": "fr-eighteenth-century-period",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w7"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "fr-eighteenth-century-period-simple-any",
+      "options": {
+        "country": "fr",
+        "mode": "historical",
+        "styleId": "fr-eighteenth-century-period",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Victoire Genet",
+          "zh": "维克图瓦·热内",
+          "styleId": "fr-eighteenth-century-period",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f1",
+          "givenId": "w4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "fr-eighteenth-century-lineage-simple-male",
+      "options": {
+        "country": "fr",
+        "mode": "historical",
+        "styleId": "fr-eighteenth-century-lineage",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Jules de Rohan-Guéméné",
+          "zh": "朱尔·德·罗昂-盖梅内",
+          "styleId": "fr-eighteenth-century-lineage",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "fr-eighteenth-century-lineage-simple-female",
+      "options": {
+        "country": "fr",
+        "mode": "historical",
+        "styleId": "fr-eighteenth-century-lineage",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Louise de Rohan-Guéméné",
+          "zh": "路易丝·德·罗昂-盖梅内",
+          "styleId": "fr-eighteenth-century-lineage",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w7"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "fr-eighteenth-century-lineage-simple-any",
+      "options": {
+        "country": "fr",
+        "mode": "historical",
+        "styleId": "fr-eighteenth-century-lineage",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Victoire de Polignac",
+          "zh": "维克图瓦·德·波利尼亚克",
+          "styleId": "fr-eighteenth-century-lineage",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f6",
+          "givenId": "w4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "de-weimar-classic-period-simple-male",
+      "options": {
+        "country": "de",
+        "mode": "historical",
+        "styleId": "de-weimar-classic-period",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Josias von Lengefeld",
+          "zh": "约西亚斯·冯·伦格费尔德",
+          "styleId": "de-weimar-classic-period",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "de-weimar-classic-period-simple-female",
+      "options": {
+        "country": "de",
+        "mode": "historical",
+        "styleId": "de-weimar-classic-period",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Ottilie von Lengefeld",
+          "zh": "奥蒂莉·冯·伦格费尔德",
+          "styleId": "de-weimar-classic-period",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "de-weimar-classic-period-simple-any",
+      "options": {
+        "country": "de",
+        "mode": "historical",
+        "styleId": "de-weimar-classic-period",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Adele Wieland",
+          "zh": "阿黛勒·维兰德",
+          "styleId": "de-weimar-classic-period",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f1",
+          "givenId": "w4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "de-weimar-classic-lineage-simple-male",
+      "options": {
+        "country": "de",
+        "mode": "historical",
+        "styleId": "de-weimar-classic-lineage",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Josias von Lengefeld",
+          "zh": "约西亚斯·冯·伦格费尔德",
+          "styleId": "de-weimar-classic-lineage",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "de-weimar-classic-lineage-simple-female",
+      "options": {
+        "country": "de",
+        "mode": "historical",
+        "styleId": "de-weimar-classic-lineage",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Ottilie von Lengefeld",
+          "zh": "奥蒂莉·冯·伦格费尔德",
+          "styleId": "de-weimar-classic-lineage",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "de-weimar-classic-lineage-simple-any",
+      "options": {
+        "country": "de",
+        "mode": "historical",
+        "styleId": "de-weimar-classic-lineage",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Adele von Stein",
+          "zh": "阿黛勒·冯·施泰因",
+          "styleId": "de-weimar-classic-lineage",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f6",
+          "givenId": "w4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "de-prussia-nineteenth-period-simple-male",
+      "options": {
+        "country": "de",
+        "mode": "historical",
+        "styleId": "de-prussia-nineteenth-period",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Friedrich von Humboldt",
+          "zh": "弗里德里希·冯·洪堡",
+          "styleId": "de-prussia-nineteenth-period",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "de-prussia-nineteenth-period-simple-female",
+      "options": {
+        "country": "de",
+        "mode": "historical",
+        "styleId": "de-prussia-nineteenth-period",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Henriette von Humboldt",
+          "zh": "亨丽埃特·冯·洪堡",
+          "styleId": "de-prussia-nineteenth-period",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "de-prussia-nineteenth-period-simple-any",
+      "options": {
+        "country": "de",
+        "mode": "historical",
+        "styleId": "de-prussia-nineteenth-period",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Marie Rauch",
+          "zh": "玛丽·劳赫",
+          "styleId": "de-prussia-nineteenth-period",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f1",
+          "givenId": "w4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "de-prussia-nineteenth-lineage-simple-male",
+      "options": {
+        "country": "de",
+        "mode": "historical",
+        "styleId": "de-prussia-nineteenth-lineage",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Friedrich von Humboldt",
+          "zh": "弗里德里希·冯·洪堡",
+          "styleId": "de-prussia-nineteenth-lineage",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "de-prussia-nineteenth-lineage-simple-female",
+      "options": {
+        "country": "de",
+        "mode": "historical",
+        "styleId": "de-prussia-nineteenth-lineage",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Henriette von Humboldt",
+          "zh": "亨丽埃特·冯·洪堡",
+          "styleId": "de-prussia-nineteenth-lineage",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "de-prussia-nineteenth-lineage-simple-any",
+      "options": {
+        "country": "de",
+        "mode": "historical",
+        "styleId": "de-prussia-nineteenth-lineage",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Marie von Bismarck",
+          "zh": "玛丽·冯·俾斯麦",
+          "styleId": "de-prussia-nineteenth-lineage",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f6",
+          "givenId": "w4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-imperial-18-period-simple-male",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-imperial-18-period",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Иван Лопухин",
+          "zh": "伊万·洛普欣",
+          "styleId": "ru-imperial-18-period",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f5",
+          "givenId": "m5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "ru-imperial-18-period-simple-female",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-imperial-18-period",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Елизавета Лопухина",
+          "zh": "叶丽扎维塔·洛普希娜",
+          "styleId": "ru-imperial-18-period",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f5",
+          "givenId": "w5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "ru-imperial-18-period-simple-any",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-imperial-18-period",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Александра Голицына",
+          "zh": "亚历山德拉·戈利岑娜",
+          "styleId": "ru-imperial-18-period",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f1",
+          "givenId": "w3"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-imperial-18-period-patronymic-male",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-imperial-18-period",
+        "structureId": "patronymic",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Иван Сергеевич Лопухин",
+          "zh": "伊万·谢尔盖耶维奇·洛普欣",
+          "styleId": "ru-imperial-18-period",
+          "structureId": "patronymic",
+          "sex": "male",
+          "familyId": "f5",
+          "givenId": "m5",
+          "patronymicId": "p4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-imperial-18-period-patronymic-female",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-imperial-18-period",
+        "structureId": "patronymic",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Елизавета Сергеевна Лопухина",
+          "zh": "叶丽扎维塔·谢尔盖耶芙娜·洛普希娜",
+          "styleId": "ru-imperial-18-period",
+          "structureId": "patronymic",
+          "sex": "female",
+          "familyId": "f5",
+          "givenId": "w5",
+          "patronymicId": "p4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-imperial-18-period-patronymic-any",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-imperial-18-period",
+        "structureId": "patronymic",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Александра Борисовна Голицына",
+          "zh": "亚历山德拉·鲍里索芙娜·戈利岑娜",
+          "styleId": "ru-imperial-18-period",
+          "structureId": "patronymic",
+          "sex": "female",
+          "familyId": "f1",
+          "givenId": "w3",
+          "patronymicId": "p2"
+        }
+      ],
+      "expectedRandomCalls": 4
+    },
+    {
+      "id": "ru-imperial-18-lineage-simple-male",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-imperial-18-lineage",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Иван Шереметев",
+          "zh": "伊万·舍列梅捷夫",
+          "styleId": "ru-imperial-18-lineage",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f2",
+          "givenId": "m5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "ru-imperial-18-lineage-simple-female",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-imperial-18-lineage",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Елизавета Шереметева",
+          "zh": "叶丽扎维塔·舍列梅捷娃",
+          "styleId": "ru-imperial-18-lineage",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f2",
+          "givenId": "w5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "ru-imperial-18-lineage-simple-any",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-imperial-18-lineage",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Александра Юсупова",
+          "zh": "亚历山德拉·尤苏波娃",
+          "styleId": "ru-imperial-18-lineage",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f0",
+          "givenId": "w3"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-imperial-18-lineage-patronymic-male",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-imperial-18-lineage",
+        "structureId": "patronymic",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Иван Сергеевич Шереметев",
+          "zh": "伊万·谢尔盖耶维奇·舍列梅捷夫",
+          "styleId": "ru-imperial-18-lineage",
+          "structureId": "patronymic",
+          "sex": "male",
+          "familyId": "f2",
+          "givenId": "m5",
+          "patronymicId": "p4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-imperial-18-lineage-patronymic-female",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-imperial-18-lineage",
+        "structureId": "patronymic",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Елизавета Сергеевна Шереметева",
+          "zh": "叶丽扎维塔·谢尔盖耶芙娜·舍列梅捷娃",
+          "styleId": "ru-imperial-18-lineage",
+          "structureId": "patronymic",
+          "sex": "female",
+          "familyId": "f2",
+          "givenId": "w5",
+          "patronymicId": "p4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-imperial-18-lineage-patronymic-any",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-imperial-18-lineage",
+        "structureId": "patronymic",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Александра Борисовна Юсупова",
+          "zh": "亚历山德拉·鲍里索芙娜·尤苏波娃",
+          "styleId": "ru-imperial-18-lineage",
+          "structureId": "patronymic",
+          "sex": "female",
+          "familyId": "f0",
+          "givenId": "w3",
+          "patronymicId": "p2"
+        }
+      ],
+      "expectedRandomCalls": 4
+    },
+    {
+      "id": "ru-imperial-19-period-simple-male",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-imperial-19-period",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Александр Шереметев",
+          "zh": "亚历山大·舍列梅捷夫",
+          "styleId": "ru-imperial-19-period",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "ru-imperial-19-period-simple-female",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-imperial-19-period",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Александра Шереметева",
+          "zh": "亚历山德拉·舍列梅捷娃",
+          "styleId": "ru-imperial-19-period",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "ru-imperial-19-period-simple-any",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-imperial-19-period",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Софья Толстая",
+          "zh": "索菲娅·托尔斯塔娅",
+          "styleId": "ru-imperial-19-period",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f1",
+          "givenId": "w3"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-imperial-19-period-patronymic-male",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-imperial-19-period",
+        "structureId": "patronymic",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Александр Сергеевич Шереметев",
+          "zh": "亚历山大·谢尔盖耶维奇·舍列梅捷夫",
+          "styleId": "ru-imperial-19-period",
+          "structureId": "patronymic",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5",
+          "patronymicId": "p4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-imperial-19-period-patronymic-female",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-imperial-19-period",
+        "structureId": "patronymic",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Александра Сергеевна Шереметева",
+          "zh": "亚历山德拉·谢尔盖耶芙娜·舍列梅捷娃",
+          "styleId": "ru-imperial-19-period",
+          "structureId": "patronymic",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w5",
+          "patronymicId": "p4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-imperial-19-period-patronymic-any",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-imperial-19-period",
+        "structureId": "patronymic",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Софья Борисовна Толстая",
+          "zh": "索菲娅·鲍里索芙娜·托尔斯塔娅",
+          "styleId": "ru-imperial-19-period",
+          "structureId": "patronymic",
+          "sex": "female",
+          "familyId": "f1",
+          "givenId": "w3",
+          "patronymicId": "p2"
+        }
+      ],
+      "expectedRandomCalls": 4
+    },
+    {
+      "id": "ru-imperial-19-lineage-simple-male",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-imperial-19-lineage",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Александр Шереметев",
+          "zh": "亚历山大·舍列梅捷夫",
+          "styleId": "ru-imperial-19-lineage",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "ru-imperial-19-lineage-simple-female",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-imperial-19-lineage",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Александра Шереметева",
+          "zh": "亚历山德拉·舍列梅捷娃",
+          "styleId": "ru-imperial-19-lineage",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w5"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "ru-imperial-19-lineage-simple-any",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-imperial-19-lineage",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Софья Юсупова",
+          "zh": "索菲娅·尤苏波娃",
+          "styleId": "ru-imperial-19-lineage",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f6",
+          "givenId": "w3"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-imperial-19-lineage-patronymic-male",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-imperial-19-lineage",
+        "structureId": "patronymic",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Александр Сергеевич Шереметев",
+          "zh": "亚历山大·谢尔盖耶维奇·舍列梅捷夫",
+          "styleId": "ru-imperial-19-lineage",
+          "structureId": "patronymic",
+          "sex": "male",
+          "familyId": "f8",
+          "givenId": "m5",
+          "patronymicId": "p4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-imperial-19-lineage-patronymic-female",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-imperial-19-lineage",
+        "structureId": "patronymic",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Александра Сергеевна Шереметева",
+          "zh": "亚历山德拉·谢尔盖耶芙娜·舍列梅捷娃",
+          "styleId": "ru-imperial-19-lineage",
+          "structureId": "patronymic",
+          "sex": "female",
+          "familyId": "f8",
+          "givenId": "w5",
+          "patronymicId": "p4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-imperial-19-lineage-patronymic-any",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-imperial-19-lineage",
+        "structureId": "patronymic",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Софья Борисовна Юсупова",
+          "zh": "索菲娅·鲍里索芙娜·尤苏波娃",
+          "styleId": "ru-imperial-19-lineage",
+          "structureId": "patronymic",
+          "sex": "female",
+          "familyId": "f6",
+          "givenId": "w3",
+          "patronymicId": "p2"
+        }
+      ],
+      "expectedRandomCalls": 4
+    },
+    {
+      "id": "gb-anglo-norman-simple-male",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-anglo-norman",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Hugh de Gournay",
+          "zh": "休·德·古尔奈",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "gb-anglo-norman-simple-female",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-anglo-norman",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Adeliza de Gournay",
+          "zh": "阿德莉扎·德·古尔奈",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f-6",
+          "givenId": "w-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "gb-anglo-norman-simple-any",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-anglo-norman",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Herleva de Clare",
+          "zh": "赫尔莱娃·德·克莱尔",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f-2",
+          "givenId": "w-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "gb-victorian-aristocracy-simple-male",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-victorian-aristocracy",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Hugh Spencer",
+          "zh": "休·斯宾塞",
+          "styleId": "gb-victorian-aristocracy",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "gb-victorian-aristocracy-simple-female",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-victorian-aristocracy",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Harriet Spencer",
+          "zh": "哈丽雅特·斯宾塞",
+          "styleId": "gb-victorian-aristocracy",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f-6",
+          "givenId": "w-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "gb-victorian-aristocracy-simple-any",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-victorian-aristocracy",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Louise Howard",
+          "zh": "路易丝·霍华德",
+          "styleId": "gb-victorian-aristocracy",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f-2",
+          "givenId": "w-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "gb-victorian-aristocracy-double-male",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-victorian-aristocracy",
+        "structureId": "double",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Hugh Leopold Spencer",
+          "zh": "休·利奥波德·斯宾塞",
+          "styleId": "gb-victorian-aristocracy",
+          "structureId": "double",
+          "sex": "male",
+          "familyId": "f-6",
+          "givenId": "m-6",
+          "secondGivenId": "m-5"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "gb-victorian-aristocracy-double-female",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-victorian-aristocracy",
+        "structureId": "double",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Harriet Beatrice Spencer",
+          "zh": "哈丽雅特·比阿特丽斯·斯宾塞",
+          "styleId": "gb-victorian-aristocracy",
+          "structureId": "double",
+          "sex": "female",
+          "familyId": "f-6",
+          "givenId": "w-6",
+          "secondGivenId": "w-5"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "gb-victorian-aristocracy-double-any",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-victorian-aristocracy",
+        "structureId": "double",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Louise Helena Howard",
+          "zh": "路易丝·海伦娜·霍华德",
+          "styleId": "gb-victorian-aristocracy",
+          "structureId": "double",
+          "sex": "female",
+          "familyId": "f-2",
+          "givenId": "w-4",
+          "secondGivenId": "w-3"
+        }
+      ],
+      "expectedRandomCalls": 4
+    },
+    {
+      "id": "fr-renaissance-court-simple-male",
+      "options": {
+        "country": "fr",
+        "mode": "historical",
+        "styleId": "fr-renaissance-court",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Louis Forget",
+          "zh": "路易·福尔热",
+          "styleId": "fr-renaissance-court",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "fr-renaissance-court-simple-female",
+      "options": {
+        "country": "fr",
+        "mode": "historical",
+        "styleId": "fr-renaissance-court",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Claude Forget",
+          "zh": "克洛德·福尔热",
+          "styleId": "fr-renaissance-court",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f-6",
+          "givenId": "w-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "fr-renaissance-court-simple-any",
+      "options": {
+        "country": "fr",
+        "mode": "historical",
+        "styleId": "fr-renaissance-court",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Catherine d'Orléans",
+          "zh": "卡特琳·德·奥尔良",
+          "styleId": "fr-renaissance-court",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f-2",
+          "givenId": "w-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "fr-enlightenment-letters-simple-male",
+      "options": {
+        "country": "fr",
+        "mode": "historical",
+        "styleId": "fr-enlightenment-letters",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "André Morellet",
+          "zh": "安德烈·莫雷莱",
+          "styleId": "fr-enlightenment-letters",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "fr-enlightenment-letters-simple-female",
+      "options": {
+        "country": "fr",
+        "mode": "historical",
+        "styleId": "fr-enlightenment-letters",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Louise Morellet",
+          "zh": "路易丝·莫雷莱",
+          "styleId": "fr-enlightenment-letters",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f-6",
+          "givenId": "w-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "fr-enlightenment-letters-simple-any",
+      "options": {
+        "country": "fr",
+        "mode": "historical",
+        "styleId": "fr-enlightenment-letters",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Sophie Marmontel",
+          "zh": "索菲·马蒙泰尔",
+          "styleId": "fr-enlightenment-letters",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f-2",
+          "givenId": "w-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "de-reformation-simple-male",
+      "options": {
+        "country": "de",
+        "mode": "historical",
+        "styleId": "de-reformation",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Leonhard Koppe",
+          "zh": "莱昂哈德·科佩",
+          "styleId": "de-reformation",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "de-reformation-simple-female",
+      "options": {
+        "country": "de",
+        "mode": "historical",
+        "styleId": "de-reformation",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Wibrandis Koppe",
+          "zh": "维布兰迪斯·科佩",
+          "styleId": "de-reformation",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f-6",
+          "givenId": "w-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "de-reformation-simple-any",
+      "options": {
+        "country": "de",
+        "mode": "historical",
+        "styleId": "de-reformation",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Ursula Melanchthon",
+          "zh": "乌尔苏拉·梅兰希通",
+          "styleId": "de-reformation",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f-2",
+          "givenId": "w-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "de-romantic-circle-simple-male",
+      "options": {
+        "country": "de",
+        "mode": "historical",
+        "styleId": "de-romantic-circle",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Joseph Mereau",
+          "zh": "约瑟夫·梅罗",
+          "styleId": "de-romantic-circle",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "de-romantic-circle-simple-female",
+      "options": {
+        "country": "de",
+        "mode": "historical",
+        "styleId": "de-romantic-circle",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Rahel Mereau",
+          "zh": "拉赫尔·梅罗",
+          "styleId": "de-romantic-circle",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f-6",
+          "givenId": "w-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "de-romantic-circle-simple-any",
+      "options": {
+        "country": "de",
+        "mode": "historical",
+        "styleId": "de-romantic-circle",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Karoline von Arnim",
+          "zh": "卡罗琳·冯·阿尔尼姆",
+          "styleId": "de-romantic-circle",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f-2",
+          "givenId": "w-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "cn-wei-jin-simple-male",
+      "options": {
+        "country": "cn",
+        "mode": "historical",
+        "styleId": "cn-wei-jin",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "杨籍",
+          "zh": "杨籍",
+          "styleId": "cn-wei-jin",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "cn-wei-jin-simple-female",
+      "options": {
+        "country": "cn",
+        "mode": "historical",
+        "styleId": "cn-wei-jin",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "杨芷",
+          "zh": "杨芷",
+          "styleId": "cn-wei-jin",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f-6",
+          "givenId": "w-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "cn-wei-jin-simple-any",
+      "options": {
+        "country": "cn",
+        "mode": "historical",
+        "styleId": "cn-wei-jin",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "谢元姬",
+          "zh": "谢元姬",
+          "styleId": "cn-wei-jin",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f-2",
+          "givenId": "w-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "cn-tang-literati-simple-male",
+      "options": {
+        "country": "cn",
+        "mode": "historical",
+        "styleId": "cn-tang-literati",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "鱼居易",
+          "zh": "鱼居易",
+          "styleId": "cn-tang-literati",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-9",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "cn-tang-literati-simple-female",
+      "options": {
+        "country": "cn",
+        "mode": "historical",
+        "styleId": "cn-tang-literati",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "鱼冶",
+          "zh": "鱼冶",
+          "styleId": "cn-tang-literati",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f-9",
+          "givenId": "w-10"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "cn-tang-literati-simple-any",
+      "options": {
+        "country": "cn",
+        "mode": "historical",
+        "styleId": "cn-tang-literati",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "杜采春",
+          "zh": "杜采春",
+          "styleId": "cn-tang-literati",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f-2",
+          "givenId": "w-7"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "jp-heian-court-simple-male",
+      "options": {
+        "country": "jp",
+        "mode": "historical",
+        "styleId": "jp-heian-court",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "源宗于",
+          "zh": "源宗于",
+          "styleId": "jp-heian-court",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "jp-heian-court-simple-female",
+      "options": {
+        "country": "jp",
+        "mode": "historical",
+        "styleId": "jp-heian-court",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "源娍子",
+          "zh": "源娍子",
+          "styleId": "jp-heian-court",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f-6",
+          "givenId": "w-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "jp-heian-court-simple-any",
+      "options": {
+        "country": "jp",
+        "mode": "historical",
+        "styleId": "jp-heian-court",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "紀威子",
+          "zh": "纪威子",
+          "styleId": "jp-heian-court",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f-2",
+          "givenId": "w-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "jp-sengoku-warrior-simple-male",
+      "options": {
+        "country": "jp",
+        "mode": "historical",
+        "styleId": "jp-sengoku-warrior",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "柴田勝家",
+          "zh": "柴田胜家",
+          "styleId": "jp-sengoku-warrior",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "jp-sengoku-warrior-simple-female",
+      "options": {
+        "country": "jp",
+        "mode": "historical",
+        "styleId": "jp-sengoku-warrior",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "柴田まつ",
+          "zh": "柴田松",
+          "styleId": "jp-sengoku-warrior",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f-6",
+          "givenId": "w-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "jp-sengoku-warrior-simple-any",
+      "options": {
+        "country": "jp",
+        "mode": "historical",
+        "styleId": "jp-sengoku-warrior",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "豊臣江",
+          "zh": "丰臣江",
+          "styleId": "jp-sengoku-warrior",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f-2",
+          "givenId": "w-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-muscovite-court-simple-male",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-muscovite-court",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Пётр Голицын",
+          "zh": "彼得·戈利岑",
+          "styleId": "ru-muscovite-court",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "ru-muscovite-court-simple-female",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-muscovite-court",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Софья Голицына",
+          "zh": "索菲娅·戈利岑娜",
+          "styleId": "ru-muscovite-court",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f-6",
+          "givenId": "w-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "ru-muscovite-court-simple-any",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-muscovite-court",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Евдокия Шереметева",
+          "zh": "叶夫多基娅·舍列梅捷娃",
+          "styleId": "ru-muscovite-court",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f-2",
+          "givenId": "w-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-muscovite-court-patronymic-male",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-muscovite-court",
+        "structureId": "patronymic",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Пётр Петрович Голицын",
+          "zh": "彼得·彼得罗维奇·戈利岑",
+          "styleId": "ru-muscovite-court",
+          "structureId": "patronymic",
+          "sex": "male",
+          "familyId": "f-6",
+          "givenId": "m-6",
+          "patronymicId": "p4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-muscovite-court-patronymic-female",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-muscovite-court",
+        "structureId": "patronymic",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Софья Петровна Голицына",
+          "zh": "索菲娅·彼得罗芙娜·戈利岑娜",
+          "styleId": "ru-muscovite-court",
+          "structureId": "patronymic",
+          "sex": "female",
+          "familyId": "f-6",
+          "givenId": "w-6",
+          "patronymicId": "p4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-muscovite-court-patronymic-any",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-muscovite-court",
+        "structureId": "patronymic",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Евдокия Алексеевна Шереметева",
+          "zh": "叶夫多基娅·阿列克谢耶芙娜·舍列梅捷娃",
+          "styleId": "ru-muscovite-court",
+          "structureId": "patronymic",
+          "sex": "female",
+          "familyId": "f-2",
+          "givenId": "w-4",
+          "patronymicId": "p2"
+        }
+      ],
+      "expectedRandomCalls": 4
+    },
+    {
+      "id": "ru-silver-age-simple-male",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-silver-age",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Валерий Гиппиус",
+          "zh": "瓦列里·吉皮乌斯",
+          "styleId": "ru-silver-age",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "ru-silver-age-simple-female",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-silver-age",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Надежда Гиппиус",
+          "zh": "娜杰日达·吉皮乌斯",
+          "styleId": "ru-silver-age",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f-6",
+          "givenId": "w-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "ru-silver-age-simple-any",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-silver-age",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "София Гумилёва",
+          "zh": "索菲娅·古米廖娃",
+          "styleId": "ru-silver-age",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f-2",
+          "givenId": "w-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-silver-age-patronymic-male",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-silver-age",
+        "structureId": "patronymic",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Валерий Петрович Гиппиус",
+          "zh": "瓦列里·彼得罗维奇·吉皮乌斯",
+          "styleId": "ru-silver-age",
+          "structureId": "patronymic",
+          "sex": "male",
+          "familyId": "f-6",
+          "givenId": "m-6",
+          "patronymicId": "p4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-silver-age-patronymic-female",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-silver-age",
+        "structureId": "patronymic",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Надежда Петровна Гиппиус",
+          "zh": "娜杰日达·彼得罗芙娜·吉皮乌斯",
+          "styleId": "ru-silver-age",
+          "structureId": "patronymic",
+          "sex": "female",
+          "familyId": "f-6",
+          "givenId": "w-6",
+          "patronymicId": "p4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-silver-age-patronymic-any",
+      "options": {
+        "country": "ru",
+        "mode": "historical",
+        "styleId": "ru-silver-age",
+        "structureId": "patronymic",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "София Алексеевна Гумилёва",
+          "zh": "索菲娅·阿列克谢耶芙娜·古米廖娃",
+          "styleId": "ru-silver-age",
+          "structureId": "patronymic",
+          "sex": "female",
+          "familyId": "f-2",
+          "givenId": "w-4",
+          "patronymicId": "p2"
+        }
+      ],
+      "expectedRandomCalls": 4
+    },
+    {
+      "id": "gb-literary-chivalric-simple-male",
+      "options": {
+        "country": "gb",
+        "mode": "literary",
+        "styleId": "gb-literary-chivalric",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Rowan Wrenfell",
+          "zh": "罗温·雷恩费尔",
+          "styleId": "gb-literary-chivalric",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "gb-literary-chivalric-simple-female",
+      "options": {
+        "country": "gb",
+        "mode": "literary",
+        "styleId": "gb-literary-chivalric",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Maerwen Wrenfell",
+          "zh": "梅尔温·雷恩费尔",
+          "styleId": "gb-literary-chivalric",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "gb-literary-chivalric-simple-any",
+      "options": {
+        "country": "gb",
+        "mode": "literary",
+        "styleId": "gb-literary-chivalric",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Rosamund Emberford",
+          "zh": "罗莎蒙德·恩伯福德",
+          "styleId": "gb-literary-chivalric",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "gb-literary-chivalric-byname-male",
+      "options": {
+        "country": "gb",
+        "mode": "literary",
+        "styleId": "gb-literary-chivalric",
+        "structureId": "byname",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Rowan Wrenfell, the Rowan Blade",
+          "zh": "罗温·雷恩费尔，花楸之刃",
+          "styleId": "gb-literary-chivalric",
+          "structureId": "byname",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6",
+          "bynameId": "byname-m-6"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "gb-literary-chivalric-byname-female",
+      "options": {
+        "country": "gb",
+        "mode": "literary",
+        "styleId": "gb-literary-chivalric",
+        "structureId": "byname",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Maerwen Wrenfell, the Rowan Blade",
+          "zh": "梅尔温·雷恩费尔，花楸之刃",
+          "styleId": "gb-literary-chivalric",
+          "structureId": "byname",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6",
+          "bynameId": "byname-f-6"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "gb-literary-chivalric-byname-any",
+      "options": {
+        "country": "gb",
+        "mode": "literary",
+        "styleId": "gb-literary-chivalric",
+        "structureId": "byname",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Rosamund Emberford, the White Hart",
+          "zh": "罗莎蒙德·恩伯福德，白鹿",
+          "styleId": "gb-literary-chivalric",
+          "structureId": "byname",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4",
+          "bynameId": "byname-f-3"
+        }
+      ],
+      "expectedRandomCalls": 4
+    },
+    {
+      "id": "gb-literary-manor-simple-male",
+      "options": {
+        "country": "gb",
+        "mode": "literary",
+        "styleId": "gb-literary-manor",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Benedict Ellingford",
+          "zh": "本尼迪克特·埃灵福德",
+          "styleId": "gb-literary-manor",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "gb-literary-manor-simple-female",
+      "options": {
+        "country": "gb",
+        "mode": "literary",
+        "styleId": "gb-literary-manor",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Constance Ellingford",
+          "zh": "康斯坦丝·埃灵福德",
+          "styleId": "gb-literary-manor",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "gb-literary-manor-simple-any",
+      "options": {
+        "country": "gb",
+        "mode": "literary",
+        "styleId": "gb-literary-manor",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Georgiana Wetherby",
+          "zh": "乔治亚娜·韦瑟比",
+          "styleId": "gb-literary-manor",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "gb-literary-manor-double-male",
+      "options": {
+        "country": "gb",
+        "mode": "literary",
+        "styleId": "gb-literary-manor",
+        "structureId": "double",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Benedict Julian Ellingford",
+          "zh": "本尼迪克特·朱利安·埃灵福德",
+          "styleId": "gb-literary-manor",
+          "structureId": "double",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6",
+          "secondGivenId": "m-5"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "gb-literary-manor-double-female",
+      "options": {
+        "country": "gb",
+        "mode": "literary",
+        "styleId": "gb-literary-manor",
+        "structureId": "double",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Constance Arabella Ellingford",
+          "zh": "康斯坦丝·阿拉贝拉·埃灵福德",
+          "styleId": "gb-literary-manor",
+          "structureId": "double",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6",
+          "secondGivenId": "f-5"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "gb-literary-manor-double-any",
+      "options": {
+        "country": "gb",
+        "mode": "literary",
+        "styleId": "gb-literary-manor",
+        "structureId": "double",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Georgiana Charlotte Wetherby",
+          "zh": "乔治亚娜·夏洛特·韦瑟比",
+          "styleId": "gb-literary-manor",
+          "structureId": "double",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4",
+          "secondGivenId": "f-3"
+        }
+      ],
+      "expectedRandomCalls": 4
+    },
+    {
+      "id": "gb-literary-gothic-simple-male",
+      "options": {
+        "country": "gb",
+        "mode": "literary",
+        "styleId": "gb-literary-gothic",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Caspian Valehaven",
+          "zh": "卡斯皮安·韦尔黑文",
+          "styleId": "gb-literary-gothic",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "gb-literary-gothic-simple-female",
+      "options": {
+        "country": "gb",
+        "mode": "literary",
+        "styleId": "gb-literary-gothic",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Verena Valehaven",
+          "zh": "维蕾娜·韦尔黑文",
+          "styleId": "gb-literary-gothic",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "gb-literary-gothic-simple-any",
+      "options": {
+        "country": "gb",
+        "mode": "literary",
+        "styleId": "gb-literary-gothic",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Seraphina Ravenhurst",
+          "zh": "塞拉菲娜·雷文赫斯特",
+          "styleId": "gb-literary-gothic",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "gb-literary-gothic-byname-male",
+      "options": {
+        "country": "gb",
+        "mode": "literary",
+        "styleId": "gb-literary-gothic",
+        "structureId": "byname",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Caspian Valehaven, the Nightborne",
+          "zh": "卡斯皮安·韦尔黑文，夜生者",
+          "styleId": "gb-literary-gothic",
+          "structureId": "byname",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6",
+          "bynameId": "byname-m-6"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "gb-literary-gothic-byname-female",
+      "options": {
+        "country": "gb",
+        "mode": "literary",
+        "styleId": "gb-literary-gothic",
+        "structureId": "byname",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Verena Valehaven, the Nightborne",
+          "zh": "维蕾娜·韦尔黑文，夜生者",
+          "styleId": "gb-literary-gothic",
+          "structureId": "byname",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6",
+          "bynameId": "byname-f-6"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "gb-literary-gothic-byname-any",
+      "options": {
+        "country": "gb",
+        "mode": "literary",
+        "styleId": "gb-literary-gothic",
+        "structureId": "byname",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Seraphina Ravenhurst, the Last Lantern",
+          "zh": "塞拉菲娜·雷文赫斯特，最后的提灯",
+          "styleId": "gb-literary-gothic",
+          "structureId": "byname",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4",
+          "bynameId": "byname-f-3"
+        }
+      ],
+      "expectedRandomCalls": 4
+    },
+    {
+      "id": "fr-literary-court-simple-male",
+      "options": {
+        "country": "fr",
+        "mode": "literary",
+        "styleId": "fr-literary-court",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Séverin de Vauclerc",
+          "zh": "塞韦兰·德·沃克莱尔",
+          "styleId": "fr-literary-court",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "fr-literary-court-simple-female",
+      "options": {
+        "country": "fr",
+        "mode": "literary",
+        "styleId": "fr-literary-court",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Isabeau de Vauclerc",
+          "zh": "伊萨博·德·沃克莱尔",
+          "styleId": "fr-literary-court",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "fr-literary-court-simple-any",
+      "options": {
+        "country": "fr",
+        "mode": "literary",
+        "styleId": "fr-literary-court",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Héloïse de Clairmont",
+          "zh": "埃洛伊丝·德·克莱尔蒙",
+          "styleId": "fr-literary-court",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "fr-literary-court-double-male",
+      "options": {
+        "country": "fr",
+        "mode": "literary",
+        "styleId": "fr-literary-court",
+        "structureId": "double",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Séverin Armand de Vauclerc",
+          "zh": "塞韦兰·阿尔芒·德·沃克莱尔",
+          "styleId": "fr-literary-court",
+          "structureId": "double",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6",
+          "secondGivenId": "m-5"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "fr-literary-court-double-female",
+      "options": {
+        "country": "fr",
+        "mode": "literary",
+        "styleId": "fr-literary-court",
+        "structureId": "double",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Isabeau Clémence de Vauclerc",
+          "zh": "伊萨博·克莱芒丝·德·沃克莱尔",
+          "styleId": "fr-literary-court",
+          "structureId": "double",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6",
+          "secondGivenId": "f-5"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "fr-literary-court-double-any",
+      "options": {
+        "country": "fr",
+        "mode": "literary",
+        "styleId": "fr-literary-court",
+        "structureId": "double",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Héloïse Adélaïde de Clairmont",
+          "zh": "埃洛伊丝·阿德莱德·德·克莱尔蒙",
+          "styleId": "fr-literary-court",
+          "structureId": "double",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4",
+          "secondGivenId": "f-3"
+        }
+      ],
+      "expectedRandomCalls": 4
+    },
+    {
+      "id": "fr-literary-chivalric-simple-male",
+      "options": {
+        "country": "fr",
+        "mode": "literary",
+        "styleId": "fr-literary-chivalric",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Aymon de Luneval",
+          "zh": "艾蒙·德·吕讷瓦尔",
+          "styleId": "fr-literary-chivalric",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "fr-literary-chivalric-simple-female",
+      "options": {
+        "country": "fr",
+        "mode": "literary",
+        "styleId": "fr-literary-chivalric",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Aude de Luneval",
+          "zh": "奥德·德·吕讷瓦尔",
+          "styleId": "fr-literary-chivalric",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "fr-literary-chivalric-simple-any",
+      "options": {
+        "country": "fr",
+        "mode": "literary",
+        "styleId": "fr-literary-chivalric",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Ysabeau de Brumefort",
+          "zh": "伊萨博·德·布吕姆福尔",
+          "styleId": "fr-literary-chivalric",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "fr-literary-chivalric-byname-male",
+      "options": {
+        "country": "fr",
+        "mode": "literary",
+        "styleId": "fr-literary-chivalric",
+        "structureId": "byname",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Aymon de Luneval, le Cœur de chêne",
+          "zh": "艾蒙·德·吕讷瓦尔，橡木之心",
+          "styleId": "fr-literary-chivalric",
+          "structureId": "byname",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6",
+          "bynameId": "byname-m-6"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "fr-literary-chivalric-byname-female",
+      "options": {
+        "country": "fr",
+        "mode": "literary",
+        "styleId": "fr-literary-chivalric",
+        "structureId": "byname",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Aude de Luneval, le Cœur de chêne",
+          "zh": "奥德·德·吕讷瓦尔，橡木之心",
+          "styleId": "fr-literary-chivalric",
+          "structureId": "byname",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6",
+          "bynameId": "byname-f-6"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "fr-literary-chivalric-byname-any",
+      "options": {
+        "country": "fr",
+        "mode": "literary",
+        "styleId": "fr-literary-chivalric",
+        "structureId": "byname",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Ysabeau de Brumefort, l’Étoile du matin",
+          "zh": "伊萨博·德·布吕姆福尔，晨星",
+          "styleId": "fr-literary-chivalric",
+          "structureId": "byname",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4",
+          "bynameId": "byname-f-3"
+        }
+      ],
+      "expectedRandomCalls": 4
+    },
+    {
+      "id": "fr-literary-paris-simple-male",
+      "options": {
+        "country": "fr",
+        "mode": "literary",
+        "styleId": "fr-literary-paris",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Octave Valgris",
+          "zh": "奥克塔夫·瓦尔格里",
+          "styleId": "fr-literary-paris",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "fr-literary-paris-simple-female",
+      "options": {
+        "country": "fr",
+        "mode": "literary",
+        "styleId": "fr-literary-paris",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Camille Valgris",
+          "zh": "卡米耶·瓦尔格里",
+          "styleId": "fr-literary-paris",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "fr-literary-paris-simple-any",
+      "options": {
+        "country": "fr",
+        "mode": "literary",
+        "styleId": "fr-literary-paris",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Solène Bellombre",
+          "zh": "索莱娜·贝隆布尔",
+          "styleId": "fr-literary-paris",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "fr-literary-paris-byname-male",
+      "options": {
+        "country": "fr",
+        "mode": "literary",
+        "styleId": "fr-literary-paris",
+        "structureId": "byname",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Octave Valgris, Songe",
+          "zh": "奥克塔夫·瓦尔格里，梦境",
+          "styleId": "fr-literary-paris",
+          "structureId": "byname",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6",
+          "bynameId": "byname-m-6"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "fr-literary-paris-byname-female",
+      "options": {
+        "country": "fr",
+        "mode": "literary",
+        "styleId": "fr-literary-paris",
+        "structureId": "byname",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Camille Valgris, Songe",
+          "zh": "卡米耶·瓦尔格里，梦境",
+          "styleId": "fr-literary-paris",
+          "structureId": "byname",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6",
+          "bynameId": "byname-f-6"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "fr-literary-paris-byname-any",
+      "options": {
+        "country": "fr",
+        "mode": "literary",
+        "styleId": "fr-literary-paris",
+        "structureId": "byname",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Solène Bellombre, Lanterne",
+          "zh": "索莱娜·贝隆布尔，提灯",
+          "styleId": "fr-literary-paris",
+          "structureId": "byname",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4",
+          "bynameId": "byname-f-3"
+        }
+      ],
+      "expectedRandomCalls": 4
+    },
+    {
+      "id": "de-literary-principalities-simple-male",
+      "options": {
+        "country": "de",
+        "mode": "literary",
+        "styleId": "de-literary-principalities",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Konstantin von Abendroth",
+          "zh": "康斯坦丁·冯·阿本德罗特",
+          "styleId": "de-literary-principalities",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "de-literary-principalities-simple-female",
+      "options": {
+        "country": "de",
+        "mode": "literary",
+        "styleId": "de-literary-principalities",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Amalie von Abendroth",
+          "zh": "阿玛莉·冯·阿本德罗特",
+          "styleId": "de-literary-principalities",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "de-literary-principalities-simple-any",
+      "options": {
+        "country": "de",
+        "mode": "literary",
+        "styleId": "de-literary-principalities",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Friederike von Rosenfels",
+          "zh": "弗里德里克·冯·罗森费尔斯",
+          "styleId": "de-literary-principalities",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "de-literary-principalities-double-male",
+      "options": {
+        "country": "de",
+        "mode": "literary",
+        "styleId": "de-literary-principalities",
+        "structureId": "double",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Konstantin Maximilian von Abendroth",
+          "zh": "康斯坦丁·马克西米利安·冯·阿本德罗特",
+          "styleId": "de-literary-principalities",
+          "structureId": "double",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6",
+          "secondGivenId": "m-5"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "de-literary-principalities-double-female",
+      "options": {
+        "country": "de",
+        "mode": "literary",
+        "styleId": "de-literary-principalities",
+        "structureId": "double",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Amalie Henriette von Abendroth",
+          "zh": "阿玛莉·亨丽埃特·冯·阿本德罗特",
+          "styleId": "de-literary-principalities",
+          "structureId": "double",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6",
+          "secondGivenId": "f-5"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "de-literary-principalities-double-any",
+      "options": {
+        "country": "de",
+        "mode": "literary",
+        "styleId": "de-literary-principalities",
+        "structureId": "double",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Friederike Eleonore von Rosenfels",
+          "zh": "弗里德里克·埃莱奥诺雷·冯·罗森费尔斯",
+          "styleId": "de-literary-principalities",
+          "structureId": "double",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4",
+          "secondGivenId": "f-3"
+        }
+      ],
+      "expectedRandomCalls": 4
+    },
+    {
+      "id": "de-literary-forest-simple-male",
+      "options": {
+        "country": "de",
+        "mode": "literary",
+        "styleId": "de-literary-forest",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Emmerich Eberhain",
+          "zh": "埃默里希·埃伯海因",
+          "styleId": "de-literary-forest",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "de-literary-forest-simple-female",
+      "options": {
+        "country": "de",
+        "mode": "literary",
+        "styleId": "de-literary-forest",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Alwine Eberhain",
+          "zh": "阿尔维娜·埃伯海因",
+          "styleId": "de-literary-forest",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "de-literary-forest-simple-any",
+      "options": {
+        "country": "de",
+        "mode": "literary",
+        "styleId": "de-literary-forest",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Greta Lindenbach",
+          "zh": "格蕾塔·林登巴赫",
+          "styleId": "de-literary-forest",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "de-literary-forest-byname-male",
+      "options": {
+        "country": "de",
+        "mode": "literary",
+        "styleId": "de-literary-forest",
+        "structureId": "byname",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Emmerich Eberhain, Farnschatten",
+          "zh": "埃默里希·埃伯海因，蕨影",
+          "styleId": "de-literary-forest",
+          "structureId": "byname",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6",
+          "bynameId": "byname-m-6"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "de-literary-forest-byname-female",
+      "options": {
+        "country": "de",
+        "mode": "literary",
+        "styleId": "de-literary-forest",
+        "structureId": "byname",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Alwine Eberhain, Farnschatten",
+          "zh": "阿尔维娜·埃伯海因，蕨影",
+          "styleId": "de-literary-forest",
+          "structureId": "byname",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6",
+          "bynameId": "byname-f-6"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "de-literary-forest-byname-any",
+      "options": {
+        "country": "de",
+        "mode": "literary",
+        "styleId": "de-literary-forest",
+        "structureId": "byname",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Greta Lindenbach, Nebelpfad",
+          "zh": "格蕾塔·林登巴赫，雾径",
+          "styleId": "de-literary-forest",
+          "structureId": "byname",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4",
+          "bynameId": "byname-f-3"
+        }
+      ],
+      "expectedRandomCalls": 4
+    },
+    {
+      "id": "de-literary-romantic-simple-male",
+      "options": {
+        "country": "de",
+        "mode": "literary",
+        "styleId": "de-literary-romantic",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Lucian Wolkenried",
+          "zh": "卢齐安·沃尔肯里德",
+          "styleId": "de-literary-romantic",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "de-literary-romantic-simple-female",
+      "options": {
+        "country": "de",
+        "mode": "literary",
+        "styleId": "de-literary-romantic",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Viola Wolkenried",
+          "zh": "维奥拉·沃尔肯里德",
+          "styleId": "de-literary-romantic",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "de-literary-romantic-simple-any",
+      "options": {
+        "country": "de",
+        "mode": "literary",
+        "styleId": "de-literary-romantic",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Seraphine Nachtquell",
+          "zh": "塞拉菲娜·纳赫特克韦尔",
+          "styleId": "de-literary-romantic",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "de-literary-romantic-double-male",
+      "options": {
+        "country": "de",
+        "mode": "literary",
+        "styleId": "de-literary-romantic",
+        "structureId": "double",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Lucian Valentin Wolkenried",
+          "zh": "卢齐安·瓦伦丁·沃尔肯里德",
+          "styleId": "de-literary-romantic",
+          "structureId": "double",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6",
+          "secondGivenId": "m-5"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "de-literary-romantic-double-female",
+      "options": {
+        "country": "de",
+        "mode": "literary",
+        "styleId": "de-literary-romantic",
+        "structureId": "double",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Viola Isolde Wolkenried",
+          "zh": "维奥拉·伊索尔德·沃尔肯里德",
+          "styleId": "de-literary-romantic",
+          "structureId": "double",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6",
+          "secondGivenId": "f-5"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "de-literary-romantic-double-any",
+      "options": {
+        "country": "de",
+        "mode": "literary",
+        "styleId": "de-literary-romantic",
+        "structureId": "double",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Seraphine Melisande Nachtquell",
+          "zh": "塞拉菲娜·梅莉珊德·纳赫特克韦尔",
+          "styleId": "de-literary-romantic",
+          "structureId": "double",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4",
+          "secondGivenId": "f-3"
+        }
+      ],
+      "expectedRandomCalls": 4
+    },
+    {
+      "id": "de-literary-romantic-byname-male",
+      "options": {
+        "country": "de",
+        "mode": "literary",
+        "styleId": "de-literary-romantic",
+        "structureId": "byname",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Lucian Wolkenried, Morgenrot",
+          "zh": "卢齐安·沃尔肯里德，晨霞",
+          "styleId": "de-literary-romantic",
+          "structureId": "byname",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6",
+          "bynameId": "byname-m-6"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "de-literary-romantic-byname-female",
+      "options": {
+        "country": "de",
+        "mode": "literary",
+        "styleId": "de-literary-romantic",
+        "structureId": "byname",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Viola Wolkenried, Morgenrot",
+          "zh": "维奥拉·沃尔肯里德，晨霞",
+          "styleId": "de-literary-romantic",
+          "structureId": "byname",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6",
+          "bynameId": "byname-f-6"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "de-literary-romantic-byname-any",
+      "options": {
+        "country": "de",
+        "mode": "literary",
+        "styleId": "de-literary-romantic",
+        "structureId": "byname",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Seraphine Nachtquell, Traumflügel",
+          "zh": "塞拉菲娜·纳赫特克韦尔，梦翼",
+          "styleId": "de-literary-romantic",
+          "structureId": "byname",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4",
+          "bynameId": "byname-f-3"
+        }
+      ],
+      "expectedRandomCalls": 4
+    },
+    {
+      "id": "cn-literary-aristocratic-simple-male",
+      "options": {
+        "country": "cn",
+        "mode": "literary",
+        "styleId": "cn-literary-aristocratic",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "郑允章",
+          "zh": "郑允章",
+          "styleId": "cn-literary-aristocratic",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "cn-literary-aristocratic-simple-female",
+      "options": {
+        "country": "cn",
+        "mode": "literary",
+        "styleId": "cn-literary-aristocratic",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "郑昭华",
+          "zh": "郑昭华",
+          "styleId": "cn-literary-aristocratic",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "cn-literary-aristocratic-simple-any",
+      "options": {
+        "country": "cn",
+        "mode": "literary",
+        "styleId": "cn-literary-aristocratic",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "谢婉清",
+          "zh": "谢婉清",
+          "styleId": "cn-literary-aristocratic",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "cn-literary-aristocratic-byname-male",
+      "options": {
+        "country": "cn",
+        "mode": "literary",
+        "styleId": "cn-literary-aristocratic",
+        "structureId": "byname",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "郑允章，字怀素",
+          "zh": "郑允章，字怀素",
+          "styleId": "cn-literary-aristocratic",
+          "structureId": "byname",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6",
+          "bynameId": "byname-m-6"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "cn-literary-aristocratic-byname-female",
+      "options": {
+        "country": "cn",
+        "mode": "literary",
+        "styleId": "cn-literary-aristocratic",
+        "structureId": "byname",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "郑昭华，字怀素",
+          "zh": "郑昭华，字怀素",
+          "styleId": "cn-literary-aristocratic",
+          "structureId": "byname",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6",
+          "bynameId": "byname-f-6"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "cn-literary-aristocratic-byname-any",
+      "options": {
+        "country": "cn",
+        "mode": "literary",
+        "styleId": "cn-literary-aristocratic",
+        "structureId": "byname",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "谢婉清，字守真",
+          "zh": "谢婉清，字守真",
+          "styleId": "cn-literary-aristocratic",
+          "structureId": "byname",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4",
+          "bynameId": "byname-f-3"
+        }
+      ],
+      "expectedRandomCalls": 4
+    },
+    {
+      "id": "cn-literary-wandering-hero-simple-male",
+      "options": {
+        "country": "cn",
+        "mode": "literary",
+        "styleId": "cn-literary-wandering-hero",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "楚孤鸿",
+          "zh": "楚孤鸿",
+          "styleId": "cn-literary-wandering-hero",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "cn-literary-wandering-hero-simple-female",
+      "options": {
+        "country": "cn",
+        "mode": "literary",
+        "styleId": "cn-literary-wandering-hero",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "楚归月",
+          "zh": "楚归月",
+          "styleId": "cn-literary-wandering-hero",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "cn-literary-wandering-hero-simple-any",
+      "options": {
+        "country": "cn",
+        "mode": "literary",
+        "styleId": "cn-literary-wandering-hero",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "陆晚晴",
+          "zh": "陆晚晴",
+          "styleId": "cn-literary-wandering-hero",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "cn-literary-wandering-hero-byname-male",
+      "options": {
+        "country": "cn",
+        "mode": "literary",
+        "styleId": "cn-literary-wandering-hero",
+        "structureId": "byname",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "楚孤鸿，号踏雪客",
+          "zh": "楚孤鸿，号踏雪客",
+          "styleId": "cn-literary-wandering-hero",
+          "structureId": "byname",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6",
+          "bynameId": "byname-m-6"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "cn-literary-wandering-hero-byname-female",
+      "options": {
+        "country": "cn",
+        "mode": "literary",
+        "styleId": "cn-literary-wandering-hero",
+        "structureId": "byname",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "楚归月，号踏雪客",
+          "zh": "楚归月，号踏雪客",
+          "styleId": "cn-literary-wandering-hero",
+          "structureId": "byname",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6",
+          "bynameId": "byname-f-6"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "cn-literary-wandering-hero-byname-any",
+      "options": {
+        "country": "cn",
+        "mode": "literary",
+        "styleId": "cn-literary-wandering-hero",
+        "structureId": "byname",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "陆晚晴，号折梅客",
+          "zh": "陆晚晴，号折梅客",
+          "styleId": "cn-literary-wandering-hero",
+          "structureId": "byname",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4",
+          "bynameId": "byname-f-3"
+        }
+      ],
+      "expectedRandomCalls": 4
+    },
+    {
+      "id": "cn-literary-immortal-simple-male",
+      "options": {
+        "country": "cn",
+        "mode": "literary",
+        "styleId": "cn-literary-immortal",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "叶星衍",
+          "zh": "叶星衍",
+          "styleId": "cn-literary-immortal",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "cn-literary-immortal-simple-female",
+      "options": {
+        "country": "cn",
+        "mode": "literary",
+        "styleId": "cn-literary-immortal",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "叶疏桐",
+          "zh": "叶疏桐",
+          "styleId": "cn-literary-immortal",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "cn-literary-immortal-simple-any",
+      "options": {
+        "country": "cn",
+        "mode": "literary",
+        "styleId": "cn-literary-immortal",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "云凝霜",
+          "zh": "云凝霜",
+          "styleId": "cn-literary-immortal",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "cn-literary-immortal-byname-male",
+      "options": {
+        "country": "cn",
+        "mode": "literary",
+        "styleId": "cn-literary-immortal",
+        "structureId": "byname",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "叶星衍，号松风山人",
+          "zh": "叶星衍，号松风山人",
+          "styleId": "cn-literary-immortal",
+          "structureId": "byname",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6",
+          "bynameId": "byname-m-6"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "cn-literary-immortal-byname-female",
+      "options": {
+        "country": "cn",
+        "mode": "literary",
+        "styleId": "cn-literary-immortal",
+        "structureId": "byname",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "叶疏桐，号松风山人",
+          "zh": "叶疏桐，号松风山人",
+          "styleId": "cn-literary-immortal",
+          "structureId": "byname",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6",
+          "bynameId": "byname-f-6"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "cn-literary-immortal-byname-any",
+      "options": {
+        "country": "cn",
+        "mode": "literary",
+        "styleId": "cn-literary-immortal",
+        "structureId": "byname",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "云凝霜，号归真散人",
+          "zh": "云凝霜，号归真散人",
+          "styleId": "cn-literary-immortal",
+          "structureId": "byname",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4",
+          "bynameId": "byname-f-3"
+        }
+      ],
+      "expectedRandomCalls": 4
+    },
+    {
+      "id": "jp-literary-courtly-simple-male",
+      "options": {
+        "country": "jp",
+        "mode": "literary",
+        "styleId": "jp-literary-courtly",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "霞小路実尚",
+          "zh": "霞小路实尚",
+          "styleId": "jp-literary-courtly",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "jp-literary-courtly-simple-female",
+      "options": {
+        "country": "jp",
+        "mode": "literary",
+        "styleId": "jp-literary-courtly",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "霞小路芳子",
+          "zh": "霞小路芳子",
+          "styleId": "jp-literary-courtly",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "jp-literary-courtly-simple-any",
+      "options": {
+        "country": "jp",
+        "mode": "literary",
+        "styleId": "jp-literary-courtly",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "月宮琴子",
+          "zh": "月宫琴子",
+          "styleId": "jp-literary-courtly",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "jp-literary-courtly-byname-male",
+      "options": {
+        "country": "jp",
+        "mode": "literary",
+        "styleId": "jp-literary-courtly",
+        "structureId": "byname",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "霞小路実尚（白露）",
+          "zh": "霞小路实尚（白露）",
+          "styleId": "jp-literary-courtly",
+          "structureId": "byname",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6",
+          "bynameId": "byname-m-6"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "jp-literary-courtly-byname-female",
+      "options": {
+        "country": "jp",
+        "mode": "literary",
+        "styleId": "jp-literary-courtly",
+        "structureId": "byname",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "霞小路芳子（白露）",
+          "zh": "霞小路芳子（白露）",
+          "styleId": "jp-literary-courtly",
+          "structureId": "byname",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6",
+          "bynameId": "byname-f-6"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "jp-literary-courtly-byname-any",
+      "options": {
+        "country": "jp",
+        "mode": "literary",
+        "styleId": "jp-literary-courtly",
+        "structureId": "byname",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "月宮琴子（春宵）",
+          "zh": "月宫琴子（春宵）",
+          "styleId": "jp-literary-courtly",
+          "structureId": "byname",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4",
+          "bynameId": "byname-f-3"
+        }
+      ],
+      "expectedRandomCalls": 4
+    },
+    {
+      "id": "jp-literary-warrior-simple-male",
+      "options": {
+        "country": "jp",
+        "mode": "literary",
+        "styleId": "jp-literary-warrior",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "風見隆房",
+          "zh": "风见隆房",
+          "styleId": "jp-literary-warrior",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "jp-literary-warrior-simple-female",
+      "options": {
+        "country": "jp",
+        "mode": "literary",
+        "styleId": "jp-literary-warrior",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "風見綾乃",
+          "zh": "风见绫乃",
+          "styleId": "jp-literary-warrior",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "jp-literary-warrior-simple-any",
+      "options": {
+        "country": "jp",
+        "mode": "literary",
+        "styleId": "jp-literary-warrior",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "黒瀬巴",
+          "zh": "黑濑巴",
+          "styleId": "jp-literary-warrior",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "jp-literary-fantasy-simple-male",
+      "options": {
+        "country": "jp",
+        "mode": "literary",
+        "styleId": "jp-literary-fantasy",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "雨宮蓮司",
+          "zh": "雨宫莲司",
+          "styleId": "jp-literary-fantasy",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "jp-literary-fantasy-simple-female",
+      "options": {
+        "country": "jp",
+        "mode": "literary",
+        "styleId": "jp-literary-fantasy",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "雨宮燈花",
+          "zh": "雨宫灯花",
+          "styleId": "jp-literary-fantasy",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "jp-literary-fantasy-simple-any",
+      "options": {
+        "country": "jp",
+        "mode": "literary",
+        "styleId": "jp-literary-fantasy",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "花守雪音",
+          "zh": "花守雪音",
+          "styleId": "jp-literary-fantasy",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "jp-literary-fantasy-byname-male",
+      "options": {
+        "country": "jp",
+        "mode": "literary",
+        "styleId": "jp-literary-fantasy",
+        "structureId": "byname",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "雨宮蓮司（夜凪）",
+          "zh": "雨宫莲司（夜凪）",
+          "styleId": "jp-literary-fantasy",
+          "structureId": "byname",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6",
+          "bynameId": "byname-m-6"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "jp-literary-fantasy-byname-female",
+      "options": {
+        "country": "jp",
+        "mode": "literary",
+        "styleId": "jp-literary-fantasy",
+        "structureId": "byname",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "雨宮燈花（夜凪）",
+          "zh": "雨宫灯花（夜凪）",
+          "styleId": "jp-literary-fantasy",
+          "structureId": "byname",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6",
+          "bynameId": "byname-f-6"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "jp-literary-fantasy-byname-any",
+      "options": {
+        "country": "jp",
+        "mode": "literary",
+        "styleId": "jp-literary-fantasy",
+        "structureId": "byname",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "花守雪音（雪灯）",
+          "zh": "花守雪音（雪灯）",
+          "styleId": "jp-literary-fantasy",
+          "structureId": "byname",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4",
+          "bynameId": "byname-f-3"
+        }
+      ],
+      "expectedRandomCalls": 4
+    },
+    {
+      "id": "ru-literary-noble-novel-simple-male",
+      "options": {
+        "country": "ru",
+        "mode": "literary",
+        "styleId": "ru-literary-noble-novel",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Константин Вяземский",
+          "zh": "康斯坦丁·维亚泽姆斯基",
+          "styleId": "ru-literary-noble-novel",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "ru-literary-noble-novel-simple-female",
+      "options": {
+        "country": "ru",
+        "mode": "literary",
+        "styleId": "ru-literary-noble-novel",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Анна Вяземская",
+          "zh": "安娜·维亚泽姆斯卡娅",
+          "styleId": "ru-literary-noble-novel",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "ru-literary-noble-novel-simple-any",
+      "options": {
+        "country": "ru",
+        "mode": "literary",
+        "styleId": "ru-literary-noble-novel",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Вера Оболенская",
+          "zh": "薇拉·奥博连斯卡娅",
+          "styleId": "ru-literary-noble-novel",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-literary-noble-novel-patronymic-male",
+      "options": {
+        "country": "ru",
+        "mode": "literary",
+        "styleId": "ru-literary-noble-novel",
+        "structureId": "patronymic",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Константин Сергеевич Вяземский",
+          "zh": "康斯坦丁·谢尔盖耶维奇·维亚泽姆斯基",
+          "styleId": "ru-literary-noble-novel",
+          "structureId": "patronymic",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6",
+          "patronymicId": "p4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-literary-noble-novel-patronymic-female",
+      "options": {
+        "country": "ru",
+        "mode": "literary",
+        "styleId": "ru-literary-noble-novel",
+        "structureId": "patronymic",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Анна Сергеевна Вяземская",
+          "zh": "安娜·谢尔盖耶芙娜·维亚泽姆斯卡娅",
+          "styleId": "ru-literary-noble-novel",
+          "structureId": "patronymic",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6",
+          "patronymicId": "p4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-literary-noble-novel-patronymic-any",
+      "options": {
+        "country": "ru",
+        "mode": "literary",
+        "styleId": "ru-literary-noble-novel",
+        "structureId": "patronymic",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Вера Борисовна Оболенская",
+          "zh": "薇拉·鲍里索芙娜·奥博连斯卡娅",
+          "styleId": "ru-literary-noble-novel",
+          "structureId": "patronymic",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4",
+          "patronymicId": "p2"
+        }
+      ],
+      "expectedRandomCalls": 4
+    },
+    {
+      "id": "ru-literary-city-novel-simple-male",
+      "options": {
+        "country": "ru",
+        "mode": "literary",
+        "styleId": "ru-literary-city-novel",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Борис Крылов",
+          "zh": "鲍里斯·克雷洛夫",
+          "styleId": "ru-literary-city-novel",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "ru-literary-city-novel-simple-female",
+      "options": {
+        "country": "ru",
+        "mode": "literary",
+        "styleId": "ru-literary-city-novel",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Ирина Крылова",
+          "zh": "伊琳娜·克雷洛娃",
+          "styleId": "ru-literary-city-novel",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "ru-literary-city-novel-simple-any",
+      "options": {
+        "country": "ru",
+        "mode": "literary",
+        "styleId": "ru-literary-city-novel",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Нина Морозова",
+          "zh": "妮娜·莫罗佐娃",
+          "styleId": "ru-literary-city-novel",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-literary-city-novel-patronymic-male",
+      "options": {
+        "country": "ru",
+        "mode": "literary",
+        "styleId": "ru-literary-city-novel",
+        "structureId": "patronymic",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Борис Сергеевич Крылов",
+          "zh": "鲍里斯·谢尔盖耶维奇·克雷洛夫",
+          "styleId": "ru-literary-city-novel",
+          "structureId": "patronymic",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6",
+          "patronymicId": "p4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-literary-city-novel-patronymic-female",
+      "options": {
+        "country": "ru",
+        "mode": "literary",
+        "styleId": "ru-literary-city-novel",
+        "structureId": "patronymic",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Ирина Сергеевна Крылова",
+          "zh": "伊琳娜·谢尔盖耶芙娜·克雷洛娃",
+          "styleId": "ru-literary-city-novel",
+          "structureId": "patronymic",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6",
+          "patronymicId": "p4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-literary-city-novel-patronymic-any",
+      "options": {
+        "country": "ru",
+        "mode": "literary",
+        "styleId": "ru-literary-city-novel",
+        "structureId": "patronymic",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Нина Борисовна Морозова",
+          "zh": "妮娜·鲍里索芙娜·莫罗佐娃",
+          "styleId": "ru-literary-city-novel",
+          "structureId": "patronymic",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4",
+          "patronymicId": "p2"
+        }
+      ],
+      "expectedRandomCalls": 4
+    },
+    {
+      "id": "ru-literary-folk-epic-simple-male",
+      "options": {
+        "country": "ru",
+        "mode": "literary",
+        "styleId": "ru-literary-folk-epic",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Мстислав Рябинин",
+          "zh": "姆斯季斯拉夫·里亚比宁",
+          "styleId": "ru-literary-folk-epic",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "ru-literary-folk-epic-simple-female",
+      "options": {
+        "country": "ru",
+        "mode": "literary",
+        "styleId": "ru-literary-folk-epic",
+        "structureId": "simple",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Владислава Рябинина",
+          "zh": "弗拉季斯拉娃·里亚比宁娜",
+          "styleId": "ru-literary-folk-epic",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6"
+        }
+      ],
+      "expectedRandomCalls": 2
+    },
+    {
+      "id": "ru-literary-folk-epic-simple-any",
+      "options": {
+        "country": "ru",
+        "mode": "literary",
+        "styleId": "ru-literary-folk-epic",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Ярослава Зорина",
+          "zh": "雅罗斯拉娃·佐林娜",
+          "styleId": "ru-literary-folk-epic",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-literary-folk-epic-patronymic-male",
+      "options": {
+        "country": "ru",
+        "mode": "literary",
+        "styleId": "ru-literary-folk-epic",
+        "structureId": "patronymic",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Мстислав Сергеевич Рябинин",
+          "zh": "姆斯季斯拉夫·谢尔盖耶维奇·里亚比宁",
+          "styleId": "ru-literary-folk-epic",
+          "structureId": "patronymic",
+          "sex": "male",
+          "familyId": "family-6",
+          "givenId": "m-6",
+          "patronymicId": "p4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-literary-folk-epic-patronymic-female",
+      "options": {
+        "country": "ru",
+        "mode": "literary",
+        "styleId": "ru-literary-folk-epic",
+        "structureId": "patronymic",
+        "sex": "female",
+        "count": 1
+      },
+      "randomValues": [
+        0.9999
+      ],
+      "expected": [
+        {
+          "original": "Владислава Сергеевна Рябинина",
+          "zh": "弗拉季斯拉娃·谢尔盖耶芙娜·里亚比宁娜",
+          "styleId": "ru-literary-folk-epic",
+          "structureId": "patronymic",
+          "sex": "female",
+          "familyId": "family-6",
+          "givenId": "f-6",
+          "patronymicId": "p4"
+        }
+      ],
+      "expectedRandomCalls": 3
+    },
+    {
+      "id": "ru-literary-folk-epic-patronymic-any",
+      "options": {
+        "country": "ru",
+        "mode": "literary",
+        "styleId": "ru-literary-folk-epic",
+        "structureId": "patronymic",
+        "sex": "any",
+        "count": 1
+      },
+      "randomValues": [
+        0,
+        0.2,
+        0.6,
+        0.4,
+        0.8
+      ],
+      "expected": [
+        {
+          "original": "Ярослава Борисовна Зорина",
+          "zh": "雅罗斯拉娃·鲍里索芙娜·佐林娜",
+          "styleId": "ru-literary-folk-epic",
+          "structureId": "patronymic",
+          "sex": "female",
+          "familyId": "family-2",
+          "givenId": "f-4",
+          "patronymicId": "p2"
+        }
+      ],
+      "expectedRandomCalls": 4
+    },
+    {
+      "id": "finite-pool-36-of-50",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-anglo-norman",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 50
+      },
+      "randomValues": [
+        0.016666666666666666,
+        0.016666666666666666,
+        0.016666666666666666,
+        0.18333333333333335,
+        0.016666666666666666,
+        0.35000000000000003,
+        0.016666666666666666,
+        0.5166666666666667,
+        0.016666666666666666,
+        0.6833333333333332,
+        0.016666666666666666,
+        0.85,
+        0.18333333333333335,
+        0.016666666666666666,
+        0.18333333333333335,
+        0.18333333333333335,
+        0.18333333333333335,
+        0.35000000000000003,
+        0.18333333333333335,
+        0.5166666666666667,
+        0.18333333333333335,
+        0.6833333333333332,
+        0.18333333333333335,
+        0.85,
+        0.35000000000000003,
+        0.016666666666666666,
+        0.35000000000000003,
+        0.18333333333333335,
+        0.35000000000000003,
+        0.35000000000000003,
+        0.35000000000000003,
+        0.5166666666666667,
+        0.35000000000000003,
+        0.6833333333333332,
+        0.35000000000000003,
+        0.85,
+        0.5166666666666667,
+        0.016666666666666666,
+        0.5166666666666667,
+        0.18333333333333335,
+        0.5166666666666667,
+        0.35000000000000003,
+        0.5166666666666667,
+        0.5166666666666667,
+        0.5166666666666667,
+        0.6833333333333332,
+        0.5166666666666667,
+        0.85,
+        0.6833333333333332,
+        0.016666666666666666,
+        0.6833333333333332,
+        0.18333333333333335,
+        0.6833333333333332,
+        0.35000000000000003,
+        0.6833333333333332,
+        0.5166666666666667,
+        0.6833333333333332,
+        0.6833333333333332,
+        0.6833333333333332,
+        0.85,
+        0.85,
+        0.016666666666666666,
+        0.85,
+        0.18333333333333335,
+        0.85,
+        0.35000000000000003,
+        0.85,
+        0.5166666666666667,
+        0.85,
+        0.6833333333333332,
+        0.85,
+        0.85
+      ],
+      "expected": [
+        {
+          "original": "William de Warenne",
+          "zh": "威廉·德·瓦伦",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-1",
+          "givenId": "m-1"
+        },
+        {
+          "original": "Robert de Warenne",
+          "zh": "罗伯特·德·瓦伦",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-1",
+          "givenId": "m-2"
+        },
+        {
+          "original": "Richard de Warenne",
+          "zh": "理查德·德·瓦伦",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-1",
+          "givenId": "m-3"
+        },
+        {
+          "original": "Roger de Warenne",
+          "zh": "罗杰·德·瓦伦",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-1",
+          "givenId": "m-4"
+        },
+        {
+          "original": "Henry de Warenne",
+          "zh": "亨利·德·瓦伦",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-1",
+          "givenId": "m-5"
+        },
+        {
+          "original": "Hugh de Warenne",
+          "zh": "休·德·瓦伦",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-1",
+          "givenId": "m-6"
+        },
+        {
+          "original": "William de Clare",
+          "zh": "威廉·德·克莱尔",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-2",
+          "givenId": "m-1"
+        },
+        {
+          "original": "Robert de Clare",
+          "zh": "罗伯特·德·克莱尔",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-2",
+          "givenId": "m-2"
+        },
+        {
+          "original": "Richard de Clare",
+          "zh": "理查德·德·克莱尔",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-2",
+          "givenId": "m-3"
+        },
+        {
+          "original": "Roger de Clare",
+          "zh": "罗杰·德·克莱尔",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-2",
+          "givenId": "m-4"
+        },
+        {
+          "original": "Henry de Clare",
+          "zh": "亨利·德·克莱尔",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-2",
+          "givenId": "m-5"
+        },
+        {
+          "original": "Hugh de Clare",
+          "zh": "休·德·克莱尔",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-2",
+          "givenId": "m-6"
+        },
+        {
+          "original": "William de Montgomery",
+          "zh": "威廉·德·蒙哥马利",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-3",
+          "givenId": "m-1"
+        },
+        {
+          "original": "Robert de Montgomery",
+          "zh": "罗伯特·德·蒙哥马利",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-3",
+          "givenId": "m-2"
+        },
+        {
+          "original": "Richard de Montgomery",
+          "zh": "理查德·德·蒙哥马利",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-3",
+          "givenId": "m-3"
+        },
+        {
+          "original": "Roger de Montgomery",
+          "zh": "罗杰·德·蒙哥马利",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-3",
+          "givenId": "m-4"
+        },
+        {
+          "original": "Henry de Montgomery",
+          "zh": "亨利·德·蒙哥马利",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-3",
+          "givenId": "m-5"
+        },
+        {
+          "original": "Hugh de Montgomery",
+          "zh": "休·德·蒙哥马利",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-3",
+          "givenId": "m-6"
+        },
+        {
+          "original": "William Bigod",
+          "zh": "威廉·比戈德",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-4",
+          "givenId": "m-1"
+        },
+        {
+          "original": "Robert Bigod",
+          "zh": "罗伯特·比戈德",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-4",
+          "givenId": "m-2"
+        },
+        {
+          "original": "Richard Bigod",
+          "zh": "理查德·比戈德",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-4",
+          "givenId": "m-3"
+        },
+        {
+          "original": "Roger Bigod",
+          "zh": "罗杰·比戈德",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-4",
+          "givenId": "m-4"
+        },
+        {
+          "original": "Henry Bigod",
+          "zh": "亨利·比戈德",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-4",
+          "givenId": "m-5"
+        },
+        {
+          "original": "Hugh Bigod",
+          "zh": "休·比戈德",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-4",
+          "givenId": "m-6"
+        },
+        {
+          "original": "William de Mowbray",
+          "zh": "威廉·德·莫布雷",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-5",
+          "givenId": "m-1"
+        },
+        {
+          "original": "Robert de Mowbray",
+          "zh": "罗伯特·德·莫布雷",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-5",
+          "givenId": "m-2"
+        },
+        {
+          "original": "Richard de Mowbray",
+          "zh": "理查德·德·莫布雷",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-5",
+          "givenId": "m-3"
+        },
+        {
+          "original": "Roger de Mowbray",
+          "zh": "罗杰·德·莫布雷",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-5",
+          "givenId": "m-4"
+        },
+        {
+          "original": "Henry de Mowbray",
+          "zh": "亨利·德·莫布雷",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-5",
+          "givenId": "m-5"
+        },
+        {
+          "original": "Hugh de Mowbray",
+          "zh": "休·德·莫布雷",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-5",
+          "givenId": "m-6"
+        },
+        {
+          "original": "William de Gournay",
+          "zh": "威廉·德·古尔奈",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-6",
+          "givenId": "m-1"
+        },
+        {
+          "original": "Robert de Gournay",
+          "zh": "罗伯特·德·古尔奈",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-6",
+          "givenId": "m-2"
+        },
+        {
+          "original": "Richard de Gournay",
+          "zh": "理查德·德·古尔奈",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-6",
+          "givenId": "m-3"
+        },
+        {
+          "original": "Roger de Gournay",
+          "zh": "罗杰·德·古尔奈",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-6",
+          "givenId": "m-4"
+        },
+        {
+          "original": "Henry de Gournay",
+          "zh": "亨利·德·古尔奈",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-6",
+          "givenId": "m-5"
+        },
+        {
+          "original": "Hugh de Gournay",
+          "zh": "休·德·古尔奈",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 4000
+    },
+    {
+      "id": "deduplicate-first-result",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-anglo-norman",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 2
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "William de Warenne",
+          "zh": "威廉·德·瓦伦",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-1",
+          "givenId": "m-1"
+        }
+      ],
+      "expectedRandomCalls": 160
+    },
+    {
+      "id": "any-sex-draw-order",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-anglo-norman",
+        "structureId": "simple",
+        "sex": "any",
+        "count": 2
+      },
+      "randomValues": [
+        0,
+        0,
+        0,
+        0.9,
+        0.9,
+        0.9
+      ],
+      "expected": [
+        {
+          "original": "Emma de Warenne",
+          "zh": "埃玛·德·瓦伦",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "female",
+          "familyId": "f-1",
+          "givenId": "w-1"
+        },
+        {
+          "original": "Hugh de Gournay",
+          "zh": "休·德·古尔奈",
+          "styleId": "gb-anglo-norman",
+          "structureId": "simple",
+          "sex": "male",
+          "familyId": "f-6",
+          "givenId": "m-6"
+        }
+      ],
+      "expectedRandomCalls": 6
+    },
+    {
+      "id": "count-zero",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-anglo-norman",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 0
+      },
+      "randomValues": [
+        0
+      ],
+      "error": "生成数量须为 1–50 的整数",
+      "expectedRandomCalls": 0
+    },
+    {
+      "id": "count-high",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-anglo-norman",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 51
+      },
+      "randomValues": [
+        0
+      ],
+      "error": "生成数量须为 1–50 的整数",
+      "expectedRandomCalls": 0
+    },
+    {
+      "id": "count-fraction",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-anglo-norman",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1.5
+      },
+      "randomValues": [
+        0
+      ],
+      "error": "生成数量须为 1–50 的整数",
+      "expectedRandomCalls": 0
+    },
+    {
+      "id": "sex-invalid",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-anglo-norman",
+        "structureId": "simple",
+        "sex": "other",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "error": "请选择有效的名字性别倾向",
+      "expectedRandomCalls": 0
+    },
+    {
+      "id": "mode-invalid",
+      "options": {
+        "country": "gb",
+        "mode": "other",
+        "styleId": "gb-anglo-norman",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "error": "请选择有效的起名类型",
+      "expectedRandomCalls": 0
+    },
+    {
+      "id": "country-mismatch",
+      "options": {
+        "country": "cn",
+        "mode": "historical",
+        "styleId": "gb-anglo-norman",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "error": "请选择有效的起名风格",
+      "expectedRandomCalls": 0
+    },
+    {
+      "id": "style-invalid",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "missing",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "error": "请选择有效的起名风格",
+      "expectedRandomCalls": 0
+    },
+    {
+      "id": "structure-invalid",
+      "options": {
+        "country": "gb",
+        "mode": "historical",
+        "styleId": "gb-anglo-norman",
+        "structureId": "byname",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "error": "请选择当前风格支持的姓名结构",
+      "expectedRandomCalls": 0
+    },
+    {
+      "id": "count-first",
+      "options": {
+        "country": "gb",
+        "mode": "other",
+        "styleId": "missing",
+        "structureId": "simple",
+        "sex": "other",
+        "count": 0
+      },
+      "randomValues": [
+        0
+      ],
+      "error": "生成数量须为 1–50 的整数",
+      "expectedRandomCalls": 0
+    },
+    {
+      "id": "sex-first",
+      "options": {
+        "country": "gb",
+        "mode": "other",
+        "styleId": "missing",
+        "structureId": "simple",
+        "sex": "other",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "error": "请选择有效的名字性别倾向",
+      "expectedRandomCalls": 0
+    },
+    {
+      "id": "mode-first",
+      "options": {
+        "country": "gb",
+        "mode": "other",
+        "styleId": "missing",
+        "structureId": "simple",
+        "sex": "male",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "error": "请选择有效的起名类型",
+      "expectedRandomCalls": 0
+    }
+  ]
+}
