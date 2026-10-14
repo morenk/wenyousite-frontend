@@ -57,6 +57,17 @@ export interface AdvancedNameEntry extends NameEntry {
 }
 export const advancedNameCountries: readonly Country[] = ["cn", "jp", "gb", "fr", "de", "ru"];
 
+/** 只排序展示副本，保留源数据、默认选择和抽样顺序。 */
+export function chronologicalAdvancedStyles(data: AdvancedNameData, country: Country, mode: AdvancedNameMode): AdvancedNameStyle[] {
+  return data.styles.filter((style) => style.country === country && style.mode === mode)
+    .map((style, index) => ({ style, index }))
+    .sort((a, b) => {
+      if (!a.style.period) return b.style.period ? 1 : a.index - b.index;
+      if (!b.style.period) return -1;
+      return a.style.period.from - b.style.period.from || a.style.period.to - b.style.period.to || a.index - b.index;
+    }).map(({ style }) => style);
+}
+
 export async function loadAdvancedNameData(): Promise<AdvancedNameData> {
   return (await import("./advanced-name-data.json")).default as AdvancedNameData;
 }

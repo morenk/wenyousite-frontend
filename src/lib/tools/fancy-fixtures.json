@@ -1,0 +1,1446 @@
+{
+  "schemaVersion": 1,
+  "dataVersion": "fancy-v1",
+  "cases": [
+    {
+      "id": "bold-ascii",
+      "styleId": "bold",
+      "input": "AbcXYZh019",
+      "expected": "𝐀𝐛𝐜𝐗𝐘𝐙𝐡𝟎𝟏𝟗"
+    },
+    {
+      "id": "bold-alphabet",
+      "styleId": "bold",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "𝐀𝐁𝐂𝐃𝐄𝐅𝐆𝐇𝐈𝐉𝐊𝐋𝐌𝐍𝐎𝐏𝐐𝐑𝐒𝐓𝐔𝐕𝐖𝐗𝐘𝐙𝐚𝐛𝐜𝐝𝐞𝐟𝐠𝐡𝐢𝐣𝐤𝐥𝐦𝐧𝐨𝐩𝐪𝐫𝐬𝐭𝐮𝐯𝐰𝐱𝐲𝐳𝟎𝟏𝟐𝟑𝟒𝟓𝟔𝟕𝟖𝟗"
+    },
+    {
+      "id": "bold-mixed",
+      "styleId": "bold",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 𝐀𝐞́𝐀̈é 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "bold-blank",
+      "styleId": "bold",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "bold-empty",
+      "styleId": "bold",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "italic-ascii",
+      "styleId": "italic",
+      "input": "AbcXYZh019",
+      "expected": "𝐴𝑏𝑐𝑋𝑌𝑍ℎ019"
+    },
+    {
+      "id": "italic-alphabet",
+      "styleId": "italic",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "𝐴𝐵𝐶𝐷𝐸𝐹𝐺𝐻𝐼𝐽𝐾𝐿𝑀𝑁𝑂𝑃𝑄𝑅𝑆𝑇𝑈𝑉𝑊𝑋𝑌𝑍𝑎𝑏𝑐𝑑𝑒𝑓𝑔ℎ𝑖𝑗𝑘𝑙𝑚𝑛𝑜𝑝𝑞𝑟𝑠𝑡𝑢𝑣𝑤𝑥𝑦𝑧0123456789"
+    },
+    {
+      "id": "italic-mixed",
+      "styleId": "italic",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 𝐴𝑒́𝐴̈é 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "italic-blank",
+      "styleId": "italic",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "italic-empty",
+      "styleId": "italic",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "script-ascii",
+      "styleId": "script",
+      "input": "AbcXYZh019",
+      "expected": "𝒜𝒷𝒸𝒳𝒴𝒵𝒽019"
+    },
+    {
+      "id": "script-alphabet",
+      "styleId": "script",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "𝒜ℬ𝒞𝒟ℰℱ𝒢ℋℐ𝒥𝒦ℒℳ𝒩𝒪𝒫𝒬ℛ𝒮𝒯𝒰𝒱𝒲𝒳𝒴𝒵𝒶𝒷𝒸𝒹ℯ𝒻ℊ𝒽𝒾𝒿𝓀𝓁𝓂𝓃ℴ𝓅𝓆𝓇𝓈𝓉𝓊𝓋𝓌𝓍𝓎𝓏0123456789"
+    },
+    {
+      "id": "script-mixed",
+      "styleId": "script",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 𝒜ℯ́𝒜̈é 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "script-blank",
+      "styleId": "script",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "script-empty",
+      "styleId": "script",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "fraktur-ascii",
+      "styleId": "fraktur",
+      "input": "AbcXYZh019",
+      "expected": "𝔄𝔟𝔠𝔛𝔜ℨ𝔥019"
+    },
+    {
+      "id": "fraktur-alphabet",
+      "styleId": "fraktur",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "𝔄𝔅ℭ𝔇𝔈𝔉𝔊ℌℑ𝔍𝔎𝔏𝔐𝔑𝔒𝔓𝔔ℜ𝔖𝔗𝔘𝔙𝔚𝔛𝔜ℨ𝔞𝔟𝔠𝔡𝔢𝔣𝔤𝔥𝔦𝔧𝔨𝔩𝔪𝔫𝔬𝔭𝔮𝔯𝔰𝔱𝔲𝔳𝔴𝔵𝔶𝔷0123456789"
+    },
+    {
+      "id": "fraktur-mixed",
+      "styleId": "fraktur",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 𝔄𝔢́𝔄̈é 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "fraktur-blank",
+      "styleId": "fraktur",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "fraktur-empty",
+      "styleId": "fraktur",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "double-ascii",
+      "styleId": "double",
+      "input": "AbcXYZh019",
+      "expected": "𝔸𝕓𝕔𝕏𝕐ℤ𝕙𝟘𝟙𝟡"
+    },
+    {
+      "id": "double-alphabet",
+      "styleId": "double",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "𝔸𝔹ℂ𝔻𝔼𝔽𝔾ℍ𝕀𝕁𝕂𝕃𝕄ℕ𝕆ℙℚℝ𝕊𝕋𝕌𝕍𝕎𝕏𝕐ℤ𝕒𝕓𝕔𝕕𝕖𝕗𝕘𝕙𝕚𝕛𝕜𝕝𝕞𝕟𝕠𝕡𝕢𝕣𝕤𝕥𝕦𝕧𝕨𝕩𝕪𝕫𝟘𝟙𝟚𝟛𝟜𝟝𝟞𝟟𝟠𝟡"
+    },
+    {
+      "id": "double-mixed",
+      "styleId": "double",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 𝔸𝕖́𝔸̈é 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "double-blank",
+      "styleId": "double",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "double-empty",
+      "styleId": "double",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "mono-ascii",
+      "styleId": "mono",
+      "input": "AbcXYZh019",
+      "expected": "𝙰𝚋𝚌𝚇𝚈𝚉𝚑𝟶𝟷𝟿"
+    },
+    {
+      "id": "mono-alphabet",
+      "styleId": "mono",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "𝙰𝙱𝙲𝙳𝙴𝙵𝙶𝙷𝙸𝙹𝙺𝙻𝙼𝙽𝙾𝙿𝚀𝚁𝚂𝚃𝚄𝚅𝚆𝚇𝚈𝚉𝚊𝚋𝚌𝚍𝚎𝚏𝚐𝚑𝚒𝚓𝚔𝚕𝚖𝚗𝚘𝚙𝚚𝚛𝚜𝚝𝚞𝚟𝚠𝚡𝚢𝚣𝟶𝟷𝟸𝟹𝟺𝟻𝟼𝟽𝟾𝟿"
+    },
+    {
+      "id": "mono-mixed",
+      "styleId": "mono",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 𝙰𝚎́𝙰̈é 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "mono-blank",
+      "styleId": "mono",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "mono-empty",
+      "styleId": "mono",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "full-ascii",
+      "styleId": "full",
+      "input": "AbcXYZh019",
+      "expected": "ＡｂｃＸＹＺｈ０１９"
+    },
+    {
+      "id": "full-alphabet",
+      "styleId": "full",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ０１２３４５６７８９"
+    },
+    {
+      "id": "full-mixed",
+      "styleId": "full",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 Ａｅ́Ａ̈é 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "full-blank",
+      "styleId": "full",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "full-empty",
+      "styleId": "full",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "bold-italic-ascii",
+      "styleId": "bold-italic",
+      "input": "AbcXYZh019",
+      "expected": "𝑨𝒃𝒄𝑿𝒀𝒁𝒉019"
+    },
+    {
+      "id": "bold-italic-alphabet",
+      "styleId": "bold-italic",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "𝑨𝑩𝑪𝑫𝑬𝑭𝑮𝑯𝑰𝑱𝑲𝑳𝑴𝑵𝑶𝑷𝑸𝑹𝑺𝑻𝑼𝑽𝑾𝑿𝒀𝒁𝒂𝒃𝒄𝒅𝒆𝒇𝒈𝒉𝒊𝒋𝒌𝒍𝒎𝒏𝒐𝒑𝒒𝒓𝒔𝒕𝒖𝒗𝒘𝒙𝒚𝒛0123456789"
+    },
+    {
+      "id": "bold-italic-mixed",
+      "styleId": "bold-italic",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 𝑨𝒆́𝑨̈é 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "bold-italic-blank",
+      "styleId": "bold-italic",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "bold-italic-empty",
+      "styleId": "bold-italic",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "bold-script-ascii",
+      "styleId": "bold-script",
+      "input": "AbcXYZh019",
+      "expected": "𝓐𝓫𝓬𝓧𝓨𝓩𝓱019"
+    },
+    {
+      "id": "bold-script-alphabet",
+      "styleId": "bold-script",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "𝓐𝓑𝓒𝓓𝓔𝓕𝓖𝓗𝓘𝓙𝓚𝓛𝓜𝓝𝓞𝓟𝓠𝓡𝓢𝓣𝓤𝓥𝓦𝓧𝓨𝓩𝓪𝓫𝓬𝓭𝓮𝓯𝓰𝓱𝓲𝓳𝓴𝓵𝓶𝓷𝓸𝓹𝓺𝓻𝓼𝓽𝓾𝓿𝔀𝔁𝔂𝔃0123456789"
+    },
+    {
+      "id": "bold-script-mixed",
+      "styleId": "bold-script",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 𝓐𝓮́𝓐̈é 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "bold-script-blank",
+      "styleId": "bold-script",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "bold-script-empty",
+      "styleId": "bold-script",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "bold-fraktur-ascii",
+      "styleId": "bold-fraktur",
+      "input": "AbcXYZh019",
+      "expected": "𝕬𝖇𝖈𝖃𝖄𝖅𝖍019"
+    },
+    {
+      "id": "bold-fraktur-alphabet",
+      "styleId": "bold-fraktur",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "𝕬𝕭𝕮𝕯𝕰𝕱𝕲𝕳𝕴𝕵𝕶𝕷𝕸𝕹𝕺𝕻𝕼𝕽𝕾𝕿𝖀𝖁𝖂𝖃𝖄𝖅𝖆𝖇𝖈𝖉𝖊𝖋𝖌𝖍𝖎𝖏𝖐𝖑𝖒𝖓𝖔𝖕𝖖𝖗𝖘𝖙𝖚𝖛𝖜𝖝𝖞𝖟0123456789"
+    },
+    {
+      "id": "bold-fraktur-mixed",
+      "styleId": "bold-fraktur",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 𝕬𝖊́𝕬̈é 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "bold-fraktur-blank",
+      "styleId": "bold-fraktur",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "bold-fraktur-empty",
+      "styleId": "bold-fraktur",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "sans-ascii",
+      "styleId": "sans",
+      "input": "AbcXYZh019",
+      "expected": "𝖠𝖻𝖼𝖷𝖸𝖹𝗁𝟢𝟣𝟫"
+    },
+    {
+      "id": "sans-alphabet",
+      "styleId": "sans",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "𝖠𝖡𝖢𝖣𝖤𝖥𝖦𝖧𝖨𝖩𝖪𝖫𝖬𝖭𝖮𝖯𝖰𝖱𝖲𝖳𝖴𝖵𝖶𝖷𝖸𝖹𝖺𝖻𝖼𝖽𝖾𝖿𝗀𝗁𝗂𝗃𝗄𝗅𝗆𝗇𝗈𝗉𝗊𝗋𝗌𝗍𝗎𝗏𝗐𝗑𝗒𝗓𝟢𝟣𝟤𝟥𝟦𝟧𝟨𝟩𝟪𝟫"
+    },
+    {
+      "id": "sans-mixed",
+      "styleId": "sans",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 𝖠𝖾́𝖠̈é 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "sans-blank",
+      "styleId": "sans",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "sans-empty",
+      "styleId": "sans",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "sans-bold-ascii",
+      "styleId": "sans-bold",
+      "input": "AbcXYZh019",
+      "expected": "𝗔𝗯𝗰𝗫𝗬𝗭𝗵𝟬𝟭𝟵"
+    },
+    {
+      "id": "sans-bold-alphabet",
+      "styleId": "sans-bold",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "𝗔𝗕𝗖𝗗𝗘𝗙𝗚𝗛𝗜𝗝𝗞𝗟𝗠𝗡𝗢𝗣𝗤𝗥𝗦𝗧𝗨𝗩𝗪𝗫𝗬𝗭𝗮𝗯𝗰𝗱𝗲𝗳𝗴𝗵𝗶𝗷𝗸𝗹𝗺𝗻𝗼𝗽𝗾𝗿𝘀𝘁𝘂𝘃𝘄𝘅𝘆𝘇𝟬𝟭𝟮𝟯𝟰𝟱𝟲𝟳𝟴𝟵"
+    },
+    {
+      "id": "sans-bold-mixed",
+      "styleId": "sans-bold",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 𝗔𝗲́𝗔̈é 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "sans-bold-blank",
+      "styleId": "sans-bold",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "sans-bold-empty",
+      "styleId": "sans-bold",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "sans-italic-ascii",
+      "styleId": "sans-italic",
+      "input": "AbcXYZh019",
+      "expected": "𝘈𝘣𝘤𝘟𝘠𝘡𝘩019"
+    },
+    {
+      "id": "sans-italic-alphabet",
+      "styleId": "sans-italic",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "𝘈𝘉𝘊𝘋𝘌𝘍𝘎𝘏𝘐𝘑𝘒𝘓𝘔𝘕𝘖𝘗𝘘𝘙𝘚𝘛𝘜𝘝𝘞𝘟𝘠𝘡𝘢𝘣𝘤𝘥𝘦𝘧𝘨𝘩𝘪𝘫𝘬𝘭𝘮𝘯𝘰𝘱𝘲𝘳𝘴𝘵𝘶𝘷𝘸𝘹𝘺𝘻0123456789"
+    },
+    {
+      "id": "sans-italic-mixed",
+      "styleId": "sans-italic",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 𝘈𝘦́𝘈̈é 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "sans-italic-blank",
+      "styleId": "sans-italic",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "sans-italic-empty",
+      "styleId": "sans-italic",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "sans-bold-italic-ascii",
+      "styleId": "sans-bold-italic",
+      "input": "AbcXYZh019",
+      "expected": "𝘼𝙗𝙘𝙓𝙔𝙕𝙝019"
+    },
+    {
+      "id": "sans-bold-italic-alphabet",
+      "styleId": "sans-bold-italic",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "𝘼𝘽𝘾𝘿𝙀𝙁𝙂𝙃𝙄𝙅𝙆𝙇𝙈𝙉𝙊𝙋𝙌𝙍𝙎𝙏𝙐𝙑𝙒𝙓𝙔𝙕𝙖𝙗𝙘𝙙𝙚𝙛𝙜𝙝𝙞𝙟𝙠𝙡𝙢𝙣𝙤𝙥𝙦𝙧𝙨𝙩𝙪𝙫𝙬𝙭𝙮𝙯0123456789"
+    },
+    {
+      "id": "sans-bold-italic-mixed",
+      "styleId": "sans-bold-italic",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 𝘼𝙚́𝘼̈é 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "sans-bold-italic-blank",
+      "styleId": "sans-bold-italic",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "sans-bold-italic-empty",
+      "styleId": "sans-bold-italic",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "circled-ascii",
+      "styleId": "circled",
+      "input": "AbcXYZh019",
+      "expected": "ⒶⓑⓒⓍⓎⓏⓗ⓪①⑨"
+    },
+    {
+      "id": "circled-alphabet",
+      "styleId": "circled",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "ⒶⒷⒸⒹⒺⒻⒼⒽⒾⒿⓀⓁⓂⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏⓐⓑⓒⓓⓔⓕⓖⓗⓘⓙⓚⓛⓜⓝⓞⓟⓠⓡⓢⓣⓤⓥⓦⓧⓨⓩ⓪①②③④⑤⑥⑦⑧⑨"
+    },
+    {
+      "id": "circled-mixed",
+      "styleId": "circled",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 Ⓐⓔ́Ⓐ̈é 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "circled-blank",
+      "styleId": "circled",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "circled-empty",
+      "styleId": "circled",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "squared-ascii",
+      "styleId": "squared",
+      "input": "AbcXYZh019",
+      "expected": "🄰🄱🄲🅇🅈🅉🄷019"
+    },
+    {
+      "id": "squared-alphabet",
+      "styleId": "squared",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "🄰🄱🄲🄳🄴🄵🄶🄷🄸🄹🄺🄻🄼🄽🄾🄿🅀🅁🅂🅃🅄🅅🅆🅇🅈🅉🄰🄱🄲🄳🄴🄵🄶🄷🄸🄹🄺🄻🄼🄽🄾🄿🅀🅁🅂🅃🅄🅅🅆🅇🅈🅉0123456789"
+    },
+    {
+      "id": "squared-mixed",
+      "styleId": "squared",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 🄰🄴́🄰̈é 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "squared-blank",
+      "styleId": "squared",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "squared-empty",
+      "styleId": "squared",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "small-caps-ascii",
+      "styleId": "small-caps",
+      "input": "AbcXYZh019",
+      "expected": "ᴀʙᴄXʏᴢʜ019"
+    },
+    {
+      "id": "small-caps-alphabet",
+      "styleId": "small-caps",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘQʀꜱᴛᴜᴠᴡXʏᴢᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘqʀꜱᴛᴜᴠᴡxʏᴢ0123456789"
+    },
+    {
+      "id": "small-caps-mixed",
+      "styleId": "small-caps",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 ᴀᴇ́ᴀ̈é 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "small-caps-blank",
+      "styleId": "small-caps",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "small-caps-empty",
+      "styleId": "small-caps",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "superscript-ascii",
+      "styleId": "superscript",
+      "input": "AbcXYZh019",
+      "expected": "ᵃᵇᶜˣʸᶻʰ⁰¹⁹"
+    },
+    {
+      "id": "superscript-alphabet",
+      "styleId": "superscript",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "ᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖQʳˢᵗᵘᵛʷˣʸᶻᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖqʳˢᵗᵘᵛʷˣʸᶻ⁰¹²³⁴⁵⁶⁷⁸⁹"
+    },
+    {
+      "id": "superscript-mixed",
+      "styleId": "superscript",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 ᵃᵉ́ᵃ̈é 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "superscript-blank",
+      "styleId": "superscript",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "superscript-empty",
+      "styleId": "superscript",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "subscript-ascii",
+      "styleId": "subscript",
+      "input": "AbcXYZh019",
+      "expected": "ₐbcₓYZₕ₀₁₉"
+    },
+    {
+      "id": "subscript-alphabet",
+      "styleId": "subscript",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "ₐBCDₑFGₕᵢⱼₖₗₘₙₒₚQᵣₛₜᵤᵥWₓYZₐbcdₑfgₕᵢⱼₖₗₘₙₒₚqᵣₛₜᵤᵥwₓyz₀₁₂₃₄₅₆₇₈₉"
+    },
+    {
+      "id": "subscript-mixed",
+      "styleId": "subscript",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 ₐₑ́ₐ̈é 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "subscript-blank",
+      "styleId": "subscript",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "subscript-empty",
+      "styleId": "subscript",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "upside-down-ascii",
+      "styleId": "upside-down",
+      "input": "AbcXYZh019",
+      "expected": "910ɥzʎxɔqɐ"
+    },
+    {
+      "id": "upside-down-alphabet",
+      "styleId": "upside-down",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "9876543210zʎxʍʌnʇsɹbdouɯʅʞɾᴉɥƃɟǝpɔqɐzʎxʍʌnʇsɹbdouɯʅʞɾᴉɥƃɟǝpɔqɐ"
+    },
+    {
+      "id": "upside-down-mixed",
+      "styleId": "upside-down",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "1️⃣ 🇨🇳 👩🏽‍💻 éɐ̈ǝ́ɐ 油温\r\n中\r\n文\n"
+    },
+    {
+      "id": "upside-down-blank",
+      "styleId": "upside-down",
+      "input": " \t\r\n\n",
+      "expected": "\t \r\n\n"
+    },
+    {
+      "id": "upside-down-empty",
+      "styleId": "upside-down",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "strike-ascii",
+      "styleId": "strike",
+      "input": "AbcXYZh019",
+      "expected": "A̶b̶c̶X̶Y̶Z̶h̶0̶1̶9̶"
+    },
+    {
+      "id": "strike-alphabet",
+      "styleId": "strike",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "A̶B̶C̶D̶E̶F̶G̶H̶I̶J̶K̶L̶M̶N̶O̶P̶Q̶R̶S̶T̶U̶V̶W̶X̶Y̶Z̶a̶b̶c̶d̶e̶f̶g̶h̶i̶j̶k̶l̶m̶n̶o̶p̶q̶r̶s̶t̶u̶v̶w̶x̶y̶z̶0̶1̶2̶3̶4̶5̶6̶7̶8̶9̶"
+    },
+    {
+      "id": "strike-mixed",
+      "styleId": "strike",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 A̶éÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "strike-blank",
+      "styleId": "strike",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "strike-empty",
+      "styleId": "strike",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "underline-ascii",
+      "styleId": "underline",
+      "input": "AbcXYZh019",
+      "expected": "A̲b̲c̲X̲Y̲Z̲h̲0̲1̲9̲"
+    },
+    {
+      "id": "underline-alphabet",
+      "styleId": "underline",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "A̲B̲C̲D̲E̲F̲G̲H̲I̲J̲K̲L̲M̲N̲O̲P̲Q̲R̲S̲T̲U̲V̲W̲X̲Y̲Z̲a̲b̲c̲d̲e̲f̲g̲h̲i̲j̲k̲l̲m̲n̲o̲p̲q̲r̲s̲t̲u̲v̲w̲x̲y̲z̲0̲1̲2̲3̲4̲5̲6̲7̲8̲9̲"
+    },
+    {
+      "id": "underline-mixed",
+      "styleId": "underline",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 A̲éÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "underline-blank",
+      "styleId": "underline",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "underline-empty",
+      "styleId": "underline",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "overline-ascii",
+      "styleId": "overline",
+      "input": "AbcXYZh019",
+      "expected": "A̅b̅c̅X̅Y̅Z̅h̅0̅1̅9̅"
+    },
+    {
+      "id": "overline-alphabet",
+      "styleId": "overline",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "A̅B̅C̅D̅E̅F̅G̅H̅I̅J̅K̅L̅M̅N̅O̅P̅Q̅R̅S̅T̅U̅V̅W̅X̅Y̅Z̅a̅b̅c̅d̅e̅f̅g̅h̅i̅j̅k̅l̅m̅n̅o̅p̅q̅r̅s̅t̅u̅v̅w̅x̅y̅z̅0̅1̅2̅3̅4̅5̅6̅7̅8̅9̅"
+    },
+    {
+      "id": "overline-mixed",
+      "styleId": "overline",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 A̅éÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "overline-blank",
+      "styleId": "overline",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "overline-empty",
+      "styleId": "overline",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "dotted-ascii",
+      "styleId": "dotted",
+      "input": "AbcXYZh019",
+      "expected": "Äb̈c̈ẌŸZ̈ḧ0̈1̈9̈"
+    },
+    {
+      "id": "dotted-alphabet",
+      "styleId": "dotted",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "ÄB̈C̈D̈ËF̈G̈ḦÏJ̈K̈L̈M̈N̈ÖP̈Q̈R̈S̈T̈ÜV̈ẄẌŸZ̈äb̈c̈d̈ëf̈g̈ḧïj̈k̈l̈m̈n̈öp̈q̈r̈s̈ẗüv̈ẅẍÿz̈0̈1̈2̈3̈4̈5̈6̈7̈8̈9̈"
+    },
+    {
+      "id": "dotted-mixed",
+      "styleId": "dotted",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 ÄéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "dotted-blank",
+      "styleId": "dotted",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "dotted-empty",
+      "styleId": "dotted",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "corner-ascii",
+      "styleId": "corner",
+      "input": "AbcXYZh019",
+      "expected": "【AbcXYZh019】"
+    },
+    {
+      "id": "corner-alphabet",
+      "styleId": "corner",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "【ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789】"
+    },
+    {
+      "id": "corner-mixed",
+      "styleId": "corner",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "【温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣】\r\n【中】\r\n【文】\n"
+    },
+    {
+      "id": "corner-blank",
+      "styleId": "corner",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "corner-empty",
+      "styleId": "corner",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "lenticular-ascii",
+      "styleId": "lenticular",
+      "input": "AbcXYZh019",
+      "expected": "〖AbcXYZh019〗"
+    },
+    {
+      "id": "lenticular-alphabet",
+      "styleId": "lenticular",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "〖ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789〗"
+    },
+    {
+      "id": "lenticular-mixed",
+      "styleId": "lenticular",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "〖温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣〗\r\n〖中〗\r\n〖文〗\n"
+    },
+    {
+      "id": "lenticular-blank",
+      "styleId": "lenticular",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "lenticular-empty",
+      "styleId": "lenticular",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "book-ascii",
+      "styleId": "book",
+      "input": "AbcXYZh019",
+      "expected": "《AbcXYZh019》"
+    },
+    {
+      "id": "book-alphabet",
+      "styleId": "book",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "《ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789》"
+    },
+    {
+      "id": "book-mixed",
+      "styleId": "book",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "《温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣》\r\n《中》\r\n《文》\n"
+    },
+    {
+      "id": "book-blank",
+      "styleId": "book",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "book-empty",
+      "styleId": "book",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "quotes-ascii",
+      "styleId": "quotes",
+      "input": "AbcXYZh019",
+      "expected": "『AbcXYZh019』"
+    },
+    {
+      "id": "quotes-alphabet",
+      "styleId": "quotes",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "『ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789』"
+    },
+    {
+      "id": "quotes-mixed",
+      "styleId": "quotes",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "『温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣』\r\n『中』\r\n『文』\n"
+    },
+    {
+      "id": "quotes-blank",
+      "styleId": "quotes",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "quotes-empty",
+      "styleId": "quotes",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "stars-ascii",
+      "styleId": "stars",
+      "input": "AbcXYZh019",
+      "expected": "✦ AbcXYZh019 ✦"
+    },
+    {
+      "id": "stars-alphabet",
+      "styleId": "stars",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "✦ ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ✦"
+    },
+    {
+      "id": "stars-mixed",
+      "styleId": "stars",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "✦ 温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣ ✦\r\n✦ 中 ✦\r\n✦ 文 ✦\n"
+    },
+    {
+      "id": "stars-blank",
+      "styleId": "stars",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "stars-empty",
+      "styleId": "stars",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "sparkles-ascii",
+      "styleId": "sparkles",
+      "input": "AbcXYZh019",
+      "expected": "✧･ﾟ: AbcXYZh019 :･ﾟ✧"
+    },
+    {
+      "id": "sparkles-alphabet",
+      "styleId": "sparkles",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "✧･ﾟ: ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 :･ﾟ✧"
+    },
+    {
+      "id": "sparkles-mixed",
+      "styleId": "sparkles",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "✧･ﾟ: 温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣ :･ﾟ✧\r\n✧･ﾟ: 中 :･ﾟ✧\r\n✧･ﾟ: 文 :･ﾟ✧\n"
+    },
+    {
+      "id": "sparkles-blank",
+      "styleId": "sparkles",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "sparkles-empty",
+      "styleId": "sparkles",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "hearts-ascii",
+      "styleId": "hearts",
+      "input": "AbcXYZh019",
+      "expected": "♡ AbcXYZh019 ♡"
+    },
+    {
+      "id": "hearts-alphabet",
+      "styleId": "hearts",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "♡ ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ♡"
+    },
+    {
+      "id": "hearts-mixed",
+      "styleId": "hearts",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "♡ 温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣ ♡\r\n♡ 中 ♡\r\n♡ 文 ♡\n"
+    },
+    {
+      "id": "hearts-blank",
+      "styleId": "hearts",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "hearts-empty",
+      "styleId": "hearts",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "wings-ascii",
+      "styleId": "wings",
+      "input": "AbcXYZh019",
+      "expected": "꧁ AbcXYZh019 ꧂"
+    },
+    {
+      "id": "wings-alphabet",
+      "styleId": "wings",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "꧁ ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ꧂"
+    },
+    {
+      "id": "wings-mixed",
+      "styleId": "wings",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "꧁ 温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣ ꧂\r\n꧁ 中 ꧂\r\n꧁ 文 ꧂\n"
+    },
+    {
+      "id": "wings-blank",
+      "styleId": "wings",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "wings-empty",
+      "styleId": "wings",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "flowers-ascii",
+      "styleId": "flowers",
+      "input": "AbcXYZh019",
+      "expected": "✿ AbcXYZh019 ✿"
+    },
+    {
+      "id": "flowers-alphabet",
+      "styleId": "flowers",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "✿ ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ✿"
+    },
+    {
+      "id": "flowers-mixed",
+      "styleId": "flowers",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "✿ 温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣ ✿\r\n✿ 中 ✿\r\n✿ 文 ✿\n"
+    },
+    {
+      "id": "flowers-blank",
+      "styleId": "flowers",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "flowers-empty",
+      "styleId": "flowers",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "moon-ascii",
+      "styleId": "moon",
+      "input": "AbcXYZh019",
+      "expected": "☾ AbcXYZh019 ☽"
+    },
+    {
+      "id": "moon-alphabet",
+      "styleId": "moon",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "☾ ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ☽"
+    },
+    {
+      "id": "moon-mixed",
+      "styleId": "moon",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "☾ 温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣ ☽\r\n☾ 中 ☽\r\n☾ 文 ☽\n"
+    },
+    {
+      "id": "moon-blank",
+      "styleId": "moon",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "moon-empty",
+      "styleId": "moon",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "clouds-ascii",
+      "styleId": "clouds",
+      "input": "AbcXYZh019",
+      "expected": "☁︎ AbcXYZh019 ☁︎"
+    },
+    {
+      "id": "clouds-alphabet",
+      "styleId": "clouds",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "☁︎ ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ☁︎"
+    },
+    {
+      "id": "clouds-mixed",
+      "styleId": "clouds",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "☁︎ 温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣ ☁︎\r\n☁︎ 中 ☁︎\r\n☁︎ 文 ☁︎\n"
+    },
+    {
+      "id": "clouds-blank",
+      "styleId": "clouds",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "clouds-empty",
+      "styleId": "clouds",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "music-ascii",
+      "styleId": "music",
+      "input": "AbcXYZh019",
+      "expected": "♪ AbcXYZh019 ♫"
+    },
+    {
+      "id": "music-alphabet",
+      "styleId": "music",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "♪ ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ♫"
+    },
+    {
+      "id": "music-mixed",
+      "styleId": "music",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "♪ 温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣ ♫\r\n♪ 中 ♫\r\n♪ 文 ♫\n"
+    },
+    {
+      "id": "music-blank",
+      "styleId": "music",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "music-empty",
+      "styleId": "music",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "diamonds-ascii",
+      "styleId": "diamonds",
+      "input": "AbcXYZh019",
+      "expected": "◇◆ AbcXYZh019 ◆◇"
+    },
+    {
+      "id": "diamonds-alphabet",
+      "styleId": "diamonds",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "◇◆ ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ◆◇"
+    },
+    {
+      "id": "diamonds-mixed",
+      "styleId": "diamonds",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "◇◆ 温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣ ◆◇\r\n◇◆ 中 ◆◇\r\n◇◆ 文 ◆◇\n"
+    },
+    {
+      "id": "diamonds-blank",
+      "styleId": "diamonds",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "diamonds-empty",
+      "styleId": "diamonds",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "arrows-ascii",
+      "styleId": "arrows",
+      "input": "AbcXYZh019",
+      "expected": "➳ AbcXYZh019 ➳"
+    },
+    {
+      "id": "arrows-alphabet",
+      "styleId": "arrows",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "➳ ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ➳"
+    },
+    {
+      "id": "arrows-mixed",
+      "styleId": "arrows",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "➳ 温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣ ➳\r\n➳ 中 ➳\r\n➳ 文 ➳\n"
+    },
+    {
+      "id": "arrows-blank",
+      "styleId": "arrows",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "arrows-empty",
+      "styleId": "arrows",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "ribbon-ascii",
+      "styleId": "ribbon",
+      "input": "AbcXYZh019",
+      "expected": "୨୧ AbcXYZh019 ୨୧"
+    },
+    {
+      "id": "ribbon-alphabet",
+      "styleId": "ribbon",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "୨୧ ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ୨୧"
+    },
+    {
+      "id": "ribbon-mixed",
+      "styleId": "ribbon",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "୨୧ 温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣ ୨୧\r\n୨୧ 中 ୨୧\r\n୨୧ 文 ୨୧\n"
+    },
+    {
+      "id": "ribbon-blank",
+      "styleId": "ribbon",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "ribbon-empty",
+      "styleId": "ribbon",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "wave-ascii",
+      "styleId": "wave",
+      "input": "AbcXYZh019",
+      "expected": "﹏ AbcXYZh019 ﹏"
+    },
+    {
+      "id": "wave-alphabet",
+      "styleId": "wave",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "﹏ ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ﹏"
+    },
+    {
+      "id": "wave-mixed",
+      "styleId": "wave",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "﹏ 温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣ ﹏\r\n﹏ 中 ﹏\r\n﹏ 文 ﹏\n"
+    },
+    {
+      "id": "wave-blank",
+      "styleId": "wave",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "wave-empty",
+      "styleId": "wave",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "bold-unicode-whitespace",
+      "styleId": "bold",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "italic-unicode-whitespace",
+      "styleId": "italic",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "script-unicode-whitespace",
+      "styleId": "script",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "fraktur-unicode-whitespace",
+      "styleId": "fraktur",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "double-unicode-whitespace",
+      "styleId": "double",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "mono-unicode-whitespace",
+      "styleId": "mono",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "full-unicode-whitespace",
+      "styleId": "full",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "bold-italic-unicode-whitespace",
+      "styleId": "bold-italic",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "bold-script-unicode-whitespace",
+      "styleId": "bold-script",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "bold-fraktur-unicode-whitespace",
+      "styleId": "bold-fraktur",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "sans-unicode-whitespace",
+      "styleId": "sans",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "sans-bold-unicode-whitespace",
+      "styleId": "sans-bold",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "sans-italic-unicode-whitespace",
+      "styleId": "sans-italic",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "sans-bold-italic-unicode-whitespace",
+      "styleId": "sans-bold-italic",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "circled-unicode-whitespace",
+      "styleId": "circled",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "squared-unicode-whitespace",
+      "styleId": "squared",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "small-caps-unicode-whitespace",
+      "styleId": "small-caps",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "superscript-unicode-whitespace",
+      "styleId": "superscript",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "subscript-unicode-whitespace",
+      "styleId": "subscript",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "upside-down-unicode-whitespace",
+      "styleId": "upside-down",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n\t "
+    },
+    {
+      "id": "strike-unicode-whitespace",
+      "styleId": "strike",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "underline-unicode-whitespace",
+      "styleId": "underline",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "overline-unicode-whitespace",
+      "styleId": "overline",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "dotted-unicode-whitespace",
+      "styleId": "dotted",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "corner-unicode-whitespace",
+      "styleId": "corner",
+      "input": "\n﻿\n \t",
+      "expected": "【】\n﻿\n \t"
+    },
+    {
+      "id": "lenticular-unicode-whitespace",
+      "styleId": "lenticular",
+      "input": "\n﻿\n \t",
+      "expected": "〖〗\n﻿\n \t"
+    },
+    {
+      "id": "book-unicode-whitespace",
+      "styleId": "book",
+      "input": "\n﻿\n \t",
+      "expected": "《》\n﻿\n \t"
+    },
+    {
+      "id": "quotes-unicode-whitespace",
+      "styleId": "quotes",
+      "input": "\n﻿\n \t",
+      "expected": "『』\n﻿\n \t"
+    },
+    {
+      "id": "stars-unicode-whitespace",
+      "styleId": "stars",
+      "input": "\n﻿\n \t",
+      "expected": "✦  ✦\n﻿\n \t"
+    },
+    {
+      "id": "sparkles-unicode-whitespace",
+      "styleId": "sparkles",
+      "input": "\n﻿\n \t",
+      "expected": "✧･ﾟ:  :･ﾟ✧\n﻿\n \t"
+    },
+    {
+      "id": "hearts-unicode-whitespace",
+      "styleId": "hearts",
+      "input": "\n﻿\n \t",
+      "expected": "♡  ♡\n﻿\n \t"
+    },
+    {
+      "id": "wings-unicode-whitespace",
+      "styleId": "wings",
+      "input": "\n﻿\n \t",
+      "expected": "꧁  ꧂\n﻿\n \t"
+    },
+    {
+      "id": "flowers-unicode-whitespace",
+      "styleId": "flowers",
+      "input": "\n﻿\n \t",
+      "expected": "✿  ✿\n﻿\n \t"
+    },
+    {
+      "id": "moon-unicode-whitespace",
+      "styleId": "moon",
+      "input": "\n﻿\n \t",
+      "expected": "☾  ☽\n﻿\n \t"
+    },
+    {
+      "id": "clouds-unicode-whitespace",
+      "styleId": "clouds",
+      "input": "\n﻿\n \t",
+      "expected": "☁︎  ☁︎\n﻿\n \t"
+    },
+    {
+      "id": "music-unicode-whitespace",
+      "styleId": "music",
+      "input": "\n﻿\n \t",
+      "expected": "♪  ♫\n﻿\n \t"
+    },
+    {
+      "id": "diamonds-unicode-whitespace",
+      "styleId": "diamonds",
+      "input": "\n﻿\n \t",
+      "expected": "◇◆  ◆◇\n﻿\n \t"
+    },
+    {
+      "id": "arrows-unicode-whitespace",
+      "styleId": "arrows",
+      "input": "\n﻿\n \t",
+      "expected": "➳  ➳\n﻿\n \t"
+    },
+    {
+      "id": "ribbon-unicode-whitespace",
+      "styleId": "ribbon",
+      "input": "\n﻿\n \t",
+      "expected": "୨୧  ୨୧\n﻿\n \t"
+    },
+    {
+      "id": "wave-unicode-whitespace",
+      "styleId": "wave",
+      "input": "\n﻿\n \t",
+      "expected": "﹏  ﹏\n﻿\n \t"
+    }
+  ]
+}

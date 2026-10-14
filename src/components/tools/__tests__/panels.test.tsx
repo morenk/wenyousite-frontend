@@ -56,3 +56,37 @@ describe("文字工具交互", () => {
     expect(screen.getByRole("combobox", { name: "国家" })).not.toBeDisabled();
   });
 });
+
+
+test("花体分类预览、中文装饰、切换清除旧结果和复制失败", async () => {
+  render(<TextToolPanel tool="fancy" />);
+  expect(screen.getByRole("combobox", { name: "分类" })).toHaveTextContent("字体");
+  expect(screen.getByRole("combobox", { name: "文字样式" })).toHaveTextContent("𝒜𝒷𝒸123");
+  fireEvent.change(screen.getByLabelText("输入文字"), { target: { value: "温油👩🏽‍💻" } });
+  await userEvent.click(screen.getByRole("combobox", { name: "分类" }));
+  await userEvent.click(screen.getByRole("option", { name: "装饰" }));
+  await userEvent.click(screen.getByRole("combobox", { name: "文字样式" }));
+  expect(screen.getAllByRole("option")).toHaveLength(20);
+  await userEvent.click(screen.getByRole("option", { name: "星光" }));
+  await userEvent.click(screen.getByRole("button", { name: "生成文字" }));
+  await waitFor(() => expect(screen.getByLabelText("生成结果")).toHaveValue("✦ 温油👩🏽‍💻 ✦"));
+  vi.spyOn(clipboard, "copyToolText").mockResolvedValue(false);
+  await userEvent.click(screen.getByRole("button", { name: "复制全部" }));
+  expect(clipboard.copyToolText).toHaveBeenCalledWith("✦ 温油👩🏽‍💻 ✦");
+  expect(await screen.findByText("复制未成功，请长按或选中结果手动复制")).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("combobox", { name: "分类" }));
+  await userEvent.click(screen.getByRole("option", { name: "字体" }));
+  expect(screen.getByLabelText("生成结果")).toHaveValue("");
+  expect(screen.getByRole("button", { name: "复制全部" })).toBeDisabled();
+  await userEvent.click(screen.getByRole("button", { name: "清空" }));
+  expect(screen.getByLabelText("输入文字")).toHaveValue("");
+});
+
+test("花体输入超限错误在清空后移除", async () => {
+  render(<TextToolPanel tool="fancy" />);
+  fireEvent.change(screen.getByLabelText("输入文字"), { target: { value: "a".repeat(10001) } });
+  fireEvent.submit(screen.getByLabelText("输入文字").closest("form")!);
+  expect(await screen.findByText("请将输入控制在 10,000 个字符以内")).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: "清空" }));
+  expect(screen.queryByText("请将输入控制在 10,000 个字符以内")).not.toBeInTheDocument();
+});
