@@ -2,6 +2,7 @@ import { describe, expect, test, vi } from "vitest";
 import {
   applyMilkdownToolbarDensity,
   fitMilkdownToolbar,
+  fitCustomMilkdownToolbar,
   getMilkdownMoreCapabilities,
   positionMilkdownHeadingDropdowns,
   syncMilkdownHeadingOptions,
@@ -398,4 +399,29 @@ describe("syncMilkdownToolbarVisibility", () => {
     expect(dropdown.style.left).toBe("192px");
     expect(dropdown.style.top).toBe("64px");
   });
+});
+
+test("自定义顺序从末尾收纳并随宽度恢复，更多固定且可键盘访问", () => {
+  const toolbar = document.createElement("div");
+  toolbar.innerHTML = '<div class="top-bar-inner"><button data-editor-tool="bold"></button><button data-editor-tool="image"></button><button data-editor-tool="dice"></button><button data-editor-tool="sticker"></button><button data-editor-tool="more"></button></div>';
+  Object.defineProperty(toolbar, "clientWidth", { configurable: true, value: 100 });
+  Object.defineProperty(toolbar, "scrollWidth", { configurable: true, get: () => toolbar.querySelectorAll("button:not([hidden])").length * 40 });
+  const preference = { version: 1 as const, primary: ["dice", "image", "bold"] as const, more: ["sticker"] as const };
+  const available = new Set(["dice", "image", "bold", "sticker"] as const);
+  const fit = () => fitCustomMilkdownToolbar(toolbar, { ...preference, primary: [...preference.primary], more: [...preference.more] }, available);
+  expect(fit()).toEqual(["image", "bold", "sticker"]);
+  const observer = new MutationObserver(() => {});
+  observer.observe(toolbar, { childList: true, subtree: true });
+  expect(fit()).toEqual(["image", "bold", "sticker"]);
+  expect(observer.takeRecords()).toEqual([]);
+  observer.disconnect();
+  expect(toolbar.querySelector('[data-editor-tool="dice"]')).not.toHaveAttribute("hidden");
+  expect(toolbar.querySelector('[data-editor-tool="more"]')).toHaveAttribute("tabindex", "0");
+  Object.defineProperty(toolbar, "clientWidth", { configurable: true, value: 300 });
+  expect(fit()).toEqual(["sticker"]);
+  expect((toolbar.querySelector('[data-editor-tool="dice"]') as HTMLElement).style.order).toBe("0");
+  expect((toolbar.querySelector('[data-editor-tool="bold"]') as HTMLElement).style.order).toBe("4");
+  fitMilkdownToolbar(toolbar);
+  expect((toolbar.querySelector('[data-editor-tool="dice"]') as HTMLElement).style.order).toBe("");
+  expect(toolbar.querySelector('[data-editor-tool="sticker"]')).toHaveAttribute("hidden");
 });

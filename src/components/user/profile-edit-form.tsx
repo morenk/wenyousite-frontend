@@ -5,6 +5,7 @@ import { useMe } from "@/api/hooks/use-me";
 import { AvatarUploader } from "@/components/user/avatar-uploader";
 import { ProfileCoverUploader } from "@/components/user/profile-cover-uploader";
 import { UsernameEdit } from "@/components/user/username-edit";
+import { EditorToolbarSettings } from "@/components/user/editor-toolbar-settings";
 import { AccountSecurityPanel } from "@/components/user/account-security-panel";
 import {
   BioEditor,
@@ -23,6 +24,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { LoadError } from "@/components/shared/load-error";
 
 type Editor =
+  | "toolbar"
   | "avatar"
   | "username"
   | "bio"
@@ -56,7 +58,7 @@ export function ProfileEditForm() {
         anchor = "appearance";
         window.history.replaceState(window.history.state, "", "/me#appearance");
       }
-      if (["appearance", "privacy", "security"].includes(anchor)) {
+      if (["appearance", "privacy", "security", "preferences"].includes(anchor)) {
         requestAnimationFrame(() =>
           document.getElementById(anchor)?.scrollIntoView(),
         );
@@ -151,6 +153,9 @@ export function ProfileEditForm() {
       </SettingsGroup>
       </div>
       <div className="min-w-0 flex-[1_1_19rem] space-y-4">
+      <SettingsGroup id="preferences" title="偏好设置">
+        <SettingsRow label="编辑器工具栏" value="本机" onClick={(event) => open("toolbar", event)} />
+      </SettingsGroup>
       <SettingsGroup title="隐私与关系">
         <SettingsRow
           id="privacy"
@@ -200,6 +205,7 @@ export function ProfileEditForm() {
           returnFocus={returnFocus}
         />
       ) : null}
+      {editor === "toolbar" ? <EditorToolbarSettings onClose={close} returnFocus={returnFocus} /> : null}
       {editor === "bio" ? <BioEditor {...editorProps} /> : null}
       {editor === "cover" ? (
         <ProfileCoverUploader
