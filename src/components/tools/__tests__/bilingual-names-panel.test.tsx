@@ -1,0 +1,58 @@
+import { afterEach, expect, test, vi } from "vitest";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { NameToolPanel } from "../name-tool-panel";
+import { NameResults } from "../name-results";
+import * as clipboard from "@/lib/tools/clipboard";
+afterEach(() => { cleanup(); vi.restoreAllMocks(); });
+const set = (label: string, value: string) => fireEvent.change(screen.getByLabelText(label), { target: { value } });
+test("外国姓名同时呈现原文与中文，三种复制输出明确", async () => {
+  const copy = vi.spyOn(clipboard, "copyToolText").mockResolvedValue(true);
+  vi.spyOn(Math, "random").mockReturnValue(0);
+  render(<NameToolPanel embedded />);
+  await userEvent.click(screen.getByRole("combobox", { name: "国家" }));
+  await userEvent.click(screen.getByRole("option", { name: "英国" }));
+  set("生成数量", "1"); set("固定姓氏（可选）", "Smith");
+  await userEvent.click(screen.getByRole("button", { name: "生成名字" }));
+  expect(await screen.findByText("Mary Smith")).toBeInTheDocument();
+  expect(screen.getByText("玛丽·史密斯")).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: "复制中文" }));
+  expect(copy).toHaveBeenLastCalledWith("玛丽·史密斯");
+  await userEvent.click(screen.getByRole("button", { name: "复制原文" }));
+  expect(copy).toHaveBeenLastCalledWith("Mary Smith");
+  await userEvent.click(screen.getByRole("button", { name: "复制全部" }));
+  expect(copy).toHaveBeenLastCalledWith("Mary Smith（玛丽·史密斯）");
+  copy.mockResolvedValue(false);
+  await userEvent.click(screen.getByRole("button", { name: "复制Mary Smith" }));
+  expect(await screen.findByText("复制未成功，请长按或选中结果手动复制")).toBeInTheDocument();
+});
+test("未知外国姓氏才出现中文输入，缺失阻止生成，填写后恢复", async () => {
+  vi.spyOn(Math, "random").mockReturnValue(0);
+  render(<NameToolPanel />);
+  await userEvent.click(screen.getByRole("combobox", { name: "国家" }));
+  await userEvent.click(screen.getByRole("option", { name: "英国" }));
+  set("生成数量", "1"); set("固定姓氏（可选）", "Example");
+  expect(await screen.findByLabelText("姓氏中文写法")).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: "生成名字" }));
+  expect(await screen.findByText("请填写姓氏中文写法")).toBeInTheDocument();
+  expect(screen.queryByText("Mary Example")).not.toBeInTheDocument();
+  set("姓氏中文写法", "艾格桑普尔");
+  await userEvent.click(screen.getByRole("button", { name: "生成名字" }));
+  expect(await screen.findByText("玛丽·艾格桑普尔")).toBeInTheDocument();
+  set("固定姓氏（可选）", "Another");
+  expect(screen.getByLabelText("姓氏中文写法")).toHaveValue("");
+  await userEvent.click(screen.getByRole("button", { name: "生成名字" }));
+  expect(await screen.findByText("请填写姓氏中文写法")).toBeInTheDocument();
+  set("固定姓氏（可选）", "Smith");
+  await waitFor(() => expect(screen.queryByLabelText("姓氏中文写法")).not.toBeInTheDocument());
+});
+
+
+test("原文与中文相同的姓名复制不重复", async () => {
+  const copy = vi.spyOn(clipboard, "copyToolText").mockResolvedValue(true);
+  render(<NameResults embedded entries={[{ original: "伊藤梅子", zh: "伊藤梅子" }]} />);
+  await userEvent.click(screen.getByRole("button", { name: "复制全部" }));
+  expect(copy).toHaveBeenLastCalledWith("伊藤梅子");
+  await userEvent.click(screen.getByRole("button", { name: "复制伊藤梅子" }));
+  expect(copy).toHaveBeenLastCalledWith("伊藤梅子");
+});

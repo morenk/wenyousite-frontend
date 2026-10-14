@@ -35,3 +35,5 @@ for (const licenseTarget of [new URL("LICENSE.faker.txt", target), new URL("fake
   } else await writeFile(licenseTarget, license);
 }
 console.log(`11 国姓名数据${check ? "与固定依赖一致" : "已生成"}，MIT 许可证已保留`);
+
+await import("./check-bilingual-name-data.mjs");

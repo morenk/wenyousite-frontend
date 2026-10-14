@@ -1,0 +1,5027 @@
+{
+  "schemaVersion": 1,
+  "dataVersion": "2026-10-14.1",
+  "translationPolicy": "editorial-reference-modern-standard-spelling",
+  "sources": [
+    {
+      "id": "npg-tudor",
+      "title": "Tudor and Elizabethan portraits",
+      "url": "https://www.npg.org.uk/collections/explore/by-period/tudor",
+      "publisher": "National Portrait Gallery",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "National Portrait Gallery — Tudor and Elizabethan portraits — https://www.npg.org.uk/collections/explore/by-period/tudor",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "npg-boleyn",
+      "title": "Anne Boleyn",
+      "url": "https://www.npg.org.uk/collections/search/portrait/mw00142/Anne-Boleyn",
+      "publisher": "National Portrait Gallery",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "National Portrait Gallery — Anne Boleyn — https://www.npg.org.uk/collections/search/portrait/mw00142/Anne-Boleyn",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "npg-commons",
+      "title": "The House of Commons 1793–94",
+      "url": "https://www.npg.org.uk/collections/search/portraitExtended/mw00119/The-House-of-Commons-1793-94",
+      "publisher": "National Portrait Gallery",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "National Portrait Gallery — The House of Commons 1793–94 — https://www.npg.org.uk/collections/search/portraitExtended/mw00119/The-House-of-Commons-1793-94",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "npg-cavendish",
+      "title": "Georgiana Cavendish (née Spencer), Duchess of Devonshire",
+      "url": "https://www.npg.org.uk/collections/search/personExtended/mp01280/georgiana-cavendish-nee-spencer-duchess-of-devonshire?tab=iconography",
+      "publisher": "National Portrait Gallery",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "National Portrait Gallery — Georgiana Cavendish (née Spencer), Duchess of Devonshire — https://www.npg.org.uk/collections/search/personExtended/mp01280/georgiana-cavendish-nee-spencer-duchess-of-devonshire?tab=iconography",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "npg-burney",
+      "title": "Frances Burney Diary, 1768–78",
+      "url": "https://www.npg.org.uk/collections/search/portrait-list.php?displayStyle=thumb&set=148",
+      "publisher": "National Portrait Gallery",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "National Portrait Gallery — Frances Burney Diary, 1768–78 — https://www.npg.org.uk/collections/search/portrait-list.php?displayStyle=thumb&set=148",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "npg-wollstonecraft",
+      "title": "Mary Wollstonecraft",
+      "url": "https://www.npg.org.uk/collections/search/person/mp01807/mary-wollstonecraft",
+      "publisher": "National Portrait Gallery",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "National Portrait Gallery — Mary Wollstonecraft — https://www.npg.org.uk/collections/search/person/mp01807/mary-wollstonecraft",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "npg-siddons",
+      "title": "Sarah Siddons (née Kemble)",
+      "url": "https://www.npg.org.uk/collections/search/person/mp04109/sarah-siddons-nee-kemble",
+      "publisher": "National Portrait Gallery",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "National Portrait Gallery — Sarah Siddons (née Kemble) — https://www.npg.org.uk/collections/search/person/mp04109/sarah-siddons-nee-kemble",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "npg-charlotte",
+      "title": "Charlotte of Mecklenburg-Strelitz",
+      "url": "https://www.npg.org.uk/collections/search/portrait/mw01248/Charlotte-of-Mecklenburg-Strelitz",
+      "publisher": "National Portrait Gallery",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "National Portrait Gallery — Charlotte of Mecklenburg-Strelitz — https://www.npg.org.uk/collections/search/portrait/mw01248/Charlotte-of-Mecklenburg-Strelitz",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "versailles-louisxiv",
+      "title": "Louis XIV et les personnes de sa cour",
+      "url": "https://www.chateauversailles.fr/decouvrir/histoire/grands-personnages/louis-xiv",
+      "publisher": "Château de Versailles",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Château de Versailles — Louis XIV et les personnes de sa cour — https://www.chateauversailles.fr/decouvrir/histoire/grands-personnages/louis-xiv",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "versailles-montespan",
+      "title": "Madame de Montespan",
+      "url": "https://www.chateauversailles.fr/decouvrir/histoire/grands-personnages/madame-montespan",
+      "publisher": "Château de Versailles",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Château de Versailles — Madame de Montespan — https://www.chateauversailles.fr/decouvrir/histoire/grands-personnages/madame-montespan",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "versailles-valliere",
+      "title": "Louise de La Vallière",
+      "url": "https://www.chateauversailles.fr/decouvrir/histoire/grands-personnages/louise-valliere",
+      "publisher": "Château de Versailles",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Château de Versailles — Louise de La Vallière — https://www.chateauversailles.fr/decouvrir/histoire/grands-personnages/louise-valliere",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "versailles-sevigne",
+      "title": "Correspondance de madame de Sévigné",
+      "url": "https://www.chateauversailles-recherche.fr/corpus/article531.html",
+      "publisher": "Centre de recherche du château de Versailles",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Centre de recherche du château de Versailles — Correspondance de madame de Sévigné — https://www.chateauversailles-recherche.fr/corpus/article531.html",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "versailles-pal",
+      "title": "Madame Palatine",
+      "url": "https://www.chateauversailles.fr/decouvrir/histoire/grands-personnages/madame-palatine",
+      "publisher": "Château de Versailles",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Château de Versailles — Madame Palatine — https://www.chateauversailles.fr/decouvrir/histoire/grands-personnages/madame-palatine",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "versailles-noailles",
+      "title": "Adrien-Maurice, duc de Noailles",
+      "url": "https://pop.culture.gouv.fr/notice/joconde/000PE007312",
+      "publisher": "Ministère de la Culture / Château de Versailles",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Ministère de la Culture / Château de Versailles — Adrien-Maurice, duc de Noailles — https://pop.culture.gouv.fr/notice/joconde/000PE007312",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "versailles-mesdames",
+      "title": "Mesdames",
+      "url": "https://www.chateauversailles.fr/decouvrir/histoire/grands-personnages/mesdames",
+      "publisher": "Château de Versailles",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Château de Versailles — Mesdames — https://www.chateauversailles.fr/decouvrir/histoire/grands-personnages/mesdames",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "versailles-campan",
+      "title": "Madame Campan",
+      "url": "https://www.chateauversailles.fr/decouvrir/histoire/grands-personnages/madame-campan",
+      "publisher": "Château de Versailles",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Château de Versailles — Madame Campan — https://www.chateauversailles.fr/decouvrir/histoire/grands-personnages/madame-campan",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "versailles-polignac",
+      "title": "Madame de Polignac",
+      "url": "https://www.chateauversailles.fr/decouvrir/histoire/grands-personnages/madame-polignac",
+      "publisher": "Château de Versailles",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Château de Versailles — Madame de Polignac — https://www.chateauversailles.fr/decouvrir/histoire/grands-personnages/madame-polignac",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "versailles-rohan",
+      "title": "Portrait du cardinal de Rohan",
+      "url": "https://www.chateauversailles.fr/sites/default/files/presse/documents/dp_portrait_5_les_details_de_lhistoire.pdf",
+      "publisher": "Château de Versailles",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Château de Versailles — Portrait du cardinal de Rohan — https://www.chateauversailles.fr/sites/default/files/presse/documents/dp_portrait_5_les_details_de_lhistoire.pdf",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "versailles-rooms",
+      "title": "Les appartements des filles de Louis XV",
+      "url": "https://www.chateauversailles.fr/decouvrir/domaine/chateau/les-appartements-filles-louis-xv",
+      "publisher": "Château de Versailles",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Château de Versailles — Les appartements des filles de Louis XV — https://www.chateauversailles.fr/decouvrir/domaine/chateau/les-appartements-filles-louis-xv",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "nga-fragonard",
+      "title": "Jean Honoré Fragonard",
+      "url": "https://www.nga.gov/artists/1316-jean-honore-fragonard",
+      "publisher": "National Gallery of Art",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "National Gallery of Art — Jean Honoré Fragonard — https://www.nga.gov/artists/1316-jean-honore-fragonard",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "cognacq-artists",
+      "title": "L’Empire des sens : de François Boucher à Jean-Baptiste Greuze",
+      "url": "https://www.museecognacqjay.paris.fr/sites/default/files/2021-08/DP_LEmpire_des_Sens.pdf",
+      "publisher": "Musée Cognacq-Jay / Paris Musées",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Musée Cognacq-Jay / Paris Musées — L’Empire des sens : de François Boucher à Jean-Baptiste Greuze — https://www.museecognacqjay.paris.fr/sites/default/files/2021-08/DP_LEmpire_des_Sens.pdf",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "weimar-stein",
+      "title": "Charlotte von Stein",
+      "url": "https://goethe.klassik-stiftung.de/de/personen/charlotte-von-stein/",
+      "publisher": "Klassik Stiftung Weimar",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Klassik Stiftung Weimar — Charlotte von Stein — https://goethe.klassik-stiftung.de/de/personen/charlotte-von-stein/",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "weimar-schardt",
+      "title": "Charlotte von Stein – ein Porträt",
+      "url": "https://blog-archiv.klassik-stiftung.de/charlotte-von-stein-ein-portraet/",
+      "publisher": "Klassik Stiftung Weimar",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Klassik Stiftung Weimar — Charlotte von Stein – ein Porträt — https://blog-archiv.klassik-stiftung.de/charlotte-von-stein-ein-portraet/",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "weimar-wieland",
+      "title": "Dies ist die Handschrift Wielands",
+      "url": "https://blog.klassik-stiftung.de/dies-ist-die-handschrift-wielands/",
+      "publisher": "Klassik Stiftung Weimar",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Klassik Stiftung Weimar — Dies ist die Handschrift Wielands — https://blog.klassik-stiftung.de/dies-ist-die-handschrift-wielands/",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "weimar-women",
+      "title": "Begegnungen mit dem weiblichen Weimar",
+      "url": "https://blog.klassik-stiftung.de/begegnungen-mit-dem-weiblichen-weimar/",
+      "publisher": "Klassik Stiftung Weimar",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Klassik Stiftung Weimar — Begegnungen mit dem weiblichen Weimar — https://blog.klassik-stiftung.de/begegnungen-mit-dem-weiblichen-weimar/",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "rudolstadt-lengefeld",
+      "title": "Schillerhaus Rudolstadt — Räume",
+      "url": "https://schillerhaus.rudolstadt.de/museum/raeume/",
+      "publisher": "Stadt Rudolstadt / Schillerhaus",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Stadt Rudolstadt / Schillerhaus — Schillerhaus Rudolstadt — Räume — https://schillerhaus.rudolstadt.de/museum/raeume/",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "dhm-bismarck",
+      "title": "Otto von Bismarck 1815–1898",
+      "url": "https://www.dhm.de/lemo/biografie/otto-bismarck",
+      "publisher": "Deutsches Historisches Museum",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Deutsches Historisches Museum — Otto von Bismarck 1815–1898 — https://www.dhm.de/lemo/biografie/otto-bismarck",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "db-humboldt",
+      "title": "Alexander von Humboldt",
+      "url": "https://www.deutsche-biographie.de/sfz35959.html",
+      "publisher": "Historische Kommission bei der Bayerischen Akademie der Wissenschaften / Bayerische Staatsbibliothek",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Historische Kommission bei der Bayerischen Akademie der Wissenschaften / Bayerische Staatsbibliothek — Alexander von Humboldt — https://www.deutsche-biographie.de/sfz35959.html",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "dhm-fontane",
+      "title": "Theodor Fontane",
+      "url": "https://www.dhm.de/lemo/biografie/theodor-fontane",
+      "publisher": "Deutsches Historisches Museum",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Deutsches Historisches Museum — Theodor Fontane — https://www.dhm.de/lemo/biografie/theodor-fontane",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "smb-sculpture",
+      "title": "Im weißen Licht",
+      "url": "https://www.smb.museum/ausstellungen/detail/im-weissen-licht/",
+      "publisher": "Staatliche Museen zu Berlin",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Staatliche Museen zu Berlin — Im weißen Licht — https://www.smb.museum/ausstellungen/detail/im-weissen-licht/",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "smb-menzel",
+      "title": "Menzel. Maler auf Papier",
+      "url": "https://www.smb.museum/museen-einrichtungen/kulturforum/ausstellungen/detail/menzel-maler-auf-papier/",
+      "publisher": "Staatliche Museen zu Berlin",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Staatliche Museen zu Berlin — Menzel. Maler auf Papier — https://www.smb.museum/museen-einrichtungen/kulturforum/ausstellungen/detail/menzel-maler-auf-papier/",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "mendelssohn-hensel",
+      "title": "Mit Fanny Hensel durch das Jahr",
+      "url": "https://www.mendelssohn-stiftung.de/en/fannyjahr",
+      "publisher": "Felix-Mendelssohn-Bartholdy-Stiftung",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Felix-Mendelssohn-Bartholdy-Stiftung — Mit Fanny Hensel durch das Jahr — https://www.mendelssohn-stiftung.de/en/fannyjahr",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "abbey-beaufort",
+      "title": "Margaret Beaufort, Countess of Richmond",
+      "url": "https://www.westminster-abbey.org/abbey-commemorations/commemorations/margaret-beaufort-countess-of-richmond",
+      "publisher": "Westminster Abbey",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Westminster Abbey — Margaret Beaufort, Countess of Richmond — https://www.westminster-abbey.org/abbey-commemorations/commemorations/margaret-beaufort-countess-of-richmond",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "weimar-kochberg",
+      "title": "Schloss Kochberg – Landsitz der Familie von Stein",
+      "url": "https://www.klassik-stiftung.de/service/presse/pressemitteilung/schloss-kochberg-ab-mai-2008-mit-neuem-gastronomie-paechter/",
+      "publisher": "Klassik Stiftung Weimar",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Klassik Stiftung Weimar — Schloss Kochberg – Landsitz der Familie von Stein — https://www.klassik-stiftung.de/service/presse/pressemitteilung/schloss-kochberg-ab-mai-2008-mit-neuem-gastronomie-paechter/",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "weimar-luise",
+      "title": "Luise von Imhoff, geborene von Schardt",
+      "url": "https://goethe.klassik-stiftung.de/de/objekt/gnd/1022851012/",
+      "publisher": "Klassik Stiftung Weimar",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Klassik Stiftung Weimar — Luise von Imhoff, geborene von Schardt — https://goethe.klassik-stiftung.de/de/objekt/gnd/1022851012/",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "db-puttkamer",
+      "title": "Puttkamer, Freiherren von",
+      "url": "https://www.deutsche-biographie.de/gnd189411813.html",
+      "publisher": "Historische Kommission bei der Bayerischen Akademie der Wissenschaften / Bayerische Staatsbibliothek",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Historische Kommission bei der Bayerischen Akademie der Wissenschaften / Bayerische Staatsbibliothek — Puttkamer, Freiherren von — https://www.deutsche-biographie.de/gnd189411813.html",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "dpm-wen",
+      "title": "文徵明惠山茶会图",
+      "url": "https://www.dpm.org.cn/collection/paint/228278.html",
+      "publisher": "故宫博物院",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "故宫博物院 — 文徵明惠山茶会图 — https://www.dpm.org.cn/collection/paint/228278.html",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "dpm-wenchu",
+      "title": "文俶",
+      "url": "https://www.dpm.org.cn/Uploads/wenhua/E9/07-01.htm",
+      "publisher": "故宫博物院",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "故宫博物院 — 文俶 — https://www.dpm.org.cn/Uploads/wenhua/E9/07-01.htm",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "dpm-qiuzhu",
+      "title": "仇珠",
+      "url": "https://www.dpm.org.cn/Uploads/wenhua/E9/01-01.htm",
+      "publisher": "故宫博物院",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "故宫博物院 — 仇珠 — https://www.dpm.org.cn/Uploads/wenhua/E9/01-01.htm",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "npm-mashouzhen",
+      "title": "明马守真画兰",
+      "url": "https://digitalarchive.npm.gov.tw/opendata/Pub/Detail/4371?dep=P&mode=full",
+      "publisher": "国立故宫博物院",
+      "license": "CC BY 4.0",
+      "usePolicy": "licensed-reuse",
+      "attribution": "国立故宫博物院 — 明马守真画兰 — https://digitalarchive.npm.gov.tw/opendata/Pub/Detail/4371?dep=P&mode=full",
+      "provenance": "OpenData条目事实短摘；姓名转简体。许可 https://digitalarchive.npm.gov.tw/opendata/；未复制图像。"
+    },
+    {
+      "id": "npm-xing",
+      "title": "翰墨空间展览：邢慈静",
+      "url": "https://south.npm.gov.tw/ckfinder/userfiles/files/%E3%80%90%E7%BF%B0%E5%A2%A8%E7%A9%BA%E9%96%93%E3%80%91%E5%B1%95%E6%9C%9F110_02_03-08_29%281%29.pdf",
+      "publisher": "国立故宫博物院",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "国立故宫博物院 — 翰墨空间展览：邢慈静 — https://south.npm.gov.tw/ckfinder/userfiles/files/%E3%80%90%E7%BF%B0%E5%A2%A8%E7%A9%BA%E9%96%93%E3%80%91%E5%B1%95%E6%9C%9F110_02_03-08_29%281%29.pdf",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "dpm-women",
+      "title": "明代吴门女画家研究",
+      "url": "https://www.dpm.org.cn/Uploads/pdf/1578/T00094_00.pdf",
+      "publisher": "故宫博物院",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "故宫博物院 — 明代吴门女画家研究 — https://www.dpm.org.cn/Uploads/pdf/1578/T00094_00.pdf",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "macao-qing",
+      "title": "清初四王吴恽绘画展",
+      "url": "https://www.gov.mo/zh-hant/news/253633/",
+      "publisher": "澳门特别行政区政府",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "澳门特别行政区政府 — 清初四王吴恽绘画展 — https://www.gov.mo/zh-hant/news/253633/",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "dpm-luopin",
+      "title": "罗聘与方婉仪馆藏",
+      "url": "https://minghuaji.dpm.org.cn/paint/detail?id=f3035b7ffc2347899b0ccdfde2dbc12b&topicType=12",
+      "publisher": "故宫博物院",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "故宫博物院 — 罗聘与方婉仪馆藏 — https://minghuaji.dpm.org.cn/paint/detail?id=f3035b7ffc2347899b0ccdfde2dbc12b&topicType=12",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "dpm-chenshu",
+      "title": "陈书",
+      "url": "https://www.dpm.org.cn/Uploads/wenhua/E9/14-03.htm",
+      "publisher": "故宫博物院",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "故宫博物院 — 陈书 — https://www.dpm.org.cn/Uploads/wenhua/E9/14-03.htm",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "dpm-yunbing",
+      "title": "恽冰",
+      "url": "https://www.dpm.org.cn/Uploads/wenhua/E9/17-01.htm",
+      "publisher": "故宫博物院",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "故宫博物院 — 恽冰 — https://www.dpm.org.cn/Uploads/wenhua/E9/17-01.htm",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "sichuan-maquan",
+      "title": "马荃花鸟图",
+      "url": "https://wwj.sc.gov.cn/scwwj/qingdai/2021/3/19/1eff9945b02d48619c078f58b40409a2.shtml",
+      "publisher": "四川省文物局",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "四川省文物局 — 马荃花鸟图 — https://wwj.sc.gov.cn/scwwj/qingdai/2021/3/19/1eff9945b02d48619c078f58b40409a2.shtml",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "mct-xucan",
+      "title": "清初女词人徐灿",
+      "url": "https://www.mct.gov.cn/whzx/tpxw/200802/t20080215_828545.htm",
+      "publisher": "中华人民共和国文化和旅游部",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "中华人民共和国文化和旅游部 — 清初女词人徐灿 — https://www.mct.gov.cn/whzx/tpxw/200802/t20080215_828545.htm",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "sinica-wang",
+      "title": "名媛詩緯初編（清王端淑輯）原刻本目录",
+      "url": "https://mhdb.mh.sinica.edu.tw/mingqing/mqww/search/details-poem.php?language=ch&poemID=40016",
+      "publisher": "中央研究院近代史研究所",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "中央研究院近代史研究所 — 名媛詩緯初編（清王端淑輯）原刻本目录 — https://mhdb.mh.sinica.edu.tw/mingqing/mqww/search/details-poem.php?language=ch&poemID=40016",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "ndl-12",
+      "title": "伊藤博文",
+      "url": "https://www.ndl.go.jp/portrait/datas/12",
+      "publisher": "国立国会图书馆",
+      "license": "NDL『近代日本人の肖像』利用条款（商业利用可，须署名）",
+      "usePolicy": "licensed-reuse",
+      "attribution": "国立国会图书馆 — 伊藤博文 — https://www.ndl.go.jp/portrait/datas/12",
+      "provenance": "姓名事实与明确汉字转简体；不复制图像或人物解说。使用条件 https://www.ndl.go.jp/portrait/about"
+    },
+    {
+      "id": "ndl-185",
+      "title": "福沢諭吉",
+      "url": "https://www.ndl.go.jp/portrait/datas/185",
+      "publisher": "国立国会图书馆",
+      "license": "NDL『近代日本人の肖像』利用条款（商业利用可，须署名）",
+      "usePolicy": "licensed-reuse",
+      "attribution": "国立国会图书馆 — 福沢諭吉 — https://www.ndl.go.jp/portrait/datas/185",
+      "provenance": "姓名事实与明确汉字转简体；不复制图像或人物解说。使用条件 https://www.ndl.go.jp/portrait/about"
+    },
+    {
+      "id": "ndl-32",
+      "title": "大久保利通",
+      "url": "https://www.ndl.go.jp/portrait/datas/32",
+      "publisher": "国立国会图书馆",
+      "license": "NDL『近代日本人の肖像』利用条款（商业利用可，须署名）",
+      "usePolicy": "licensed-reuse",
+      "attribution": "国立国会图书馆 — 大久保利通 — https://www.ndl.go.jp/portrait/datas/32",
+      "provenance": "姓名事实与明确汉字转简体；不复制图像或人物解说。使用条件 https://www.ndl.go.jp/portrait/about"
+    },
+    {
+      "id": "ndl-85",
+      "title": "西郷隆盛",
+      "url": "https://www.ndl.go.jp/portrait/datas/85",
+      "publisher": "国立国会图书馆",
+      "license": "NDL『近代日本人の肖像』利用条款（商业利用可，须署名）",
+      "usePolicy": "licensed-reuse",
+      "attribution": "国立国会图书馆 — 西郷隆盛 — https://www.ndl.go.jp/portrait/datas/85",
+      "provenance": "姓名事实与明确汉字转简体；不复制图像或人物解说。使用条件 https://www.ndl.go.jp/portrait/about"
+    },
+    {
+      "id": "ndl-33",
+      "title": "大隈重信",
+      "url": "https://www.ndl.go.jp/portrait/datas/33",
+      "publisher": "国立国会图书馆",
+      "license": "NDL『近代日本人の肖像』利用条款（商业利用可，须署名）",
+      "usePolicy": "licensed-reuse",
+      "attribution": "国立国会图书馆 — 大隈重信 — https://www.ndl.go.jp/portrait/datas/33",
+      "provenance": "姓名事实与明确汉字转简体；不复制图像或人物解说。使用条件 https://www.ndl.go.jp/portrait/about"
+    },
+    {
+      "id": "ndl-147",
+      "title": "徳川慶喜",
+      "url": "https://www.ndl.go.jp/portrait/datas/147",
+      "publisher": "国立国会图书馆",
+      "license": "NDL『近代日本人の肖像』利用条款（商业利用可，须署名）",
+      "usePolicy": "licensed-reuse",
+      "attribution": "国立国会图书馆 — 徳川慶喜 — https://www.ndl.go.jp/portrait/datas/147",
+      "provenance": "姓名事实与明确汉字转简体；不复制图像或人物解说。使用条件 https://www.ndl.go.jp/portrait/about"
+    },
+    {
+      "id": "ndl-292",
+      "title": "津田梅子",
+      "url": "https://www.ndl.go.jp/portrait/datas/292",
+      "publisher": "国立国会图书馆",
+      "license": "NDL『近代日本人の肖像』利用条款（商业利用可，须署名）",
+      "usePolicy": "licensed-reuse",
+      "attribution": "国立国会图书馆 — 津田梅子 — https://www.ndl.go.jp/portrait/datas/292",
+      "provenance": "姓名事实与明确汉字转简体；不复制图像或人物解说。使用条件 https://www.ndl.go.jp/portrait/about"
+    },
+    {
+      "id": "ndl-4146",
+      "title": "下田歌子",
+      "url": "https://www.ndl.go.jp/portrait/datas/4146",
+      "publisher": "国立国会图书馆",
+      "license": "NDL『近代日本人の肖像』利用条款（商业利用可，须署名）",
+      "usePolicy": "licensed-reuse",
+      "attribution": "国立国会图书馆 — 下田歌子 — https://www.ndl.go.jp/portrait/datas/4146",
+      "provenance": "姓名事实与明确汉字转简体；不复制图像或人物解说。使用条件 https://www.ndl.go.jp/portrait/about"
+    },
+    {
+      "id": "ndl-246",
+      "title": "大山捨松",
+      "url": "https://www.ndl.go.jp/portrait/datas/246",
+      "publisher": "国立国会图书馆",
+      "license": "NDL『近代日本人の肖像』利用条款（商业利用可，须署名）",
+      "usePolicy": "licensed-reuse",
+      "attribution": "国立国会图书馆 — 大山捨松 — https://www.ndl.go.jp/portrait/datas/246",
+      "provenance": "姓名事实与明确汉字转简体；不复制图像或人物解说。使用条件 https://www.ndl.go.jp/portrait/about"
+    },
+    {
+      "id": "ndl-43",
+      "title": "荻野吟子",
+      "url": "https://www.ndl.go.jp/portrait/datas/43",
+      "publisher": "国立国会图书馆",
+      "license": "NDL『近代日本人の肖像』利用条款（商业利用可，须署名）",
+      "usePolicy": "licensed-reuse",
+      "attribution": "国立国会图书馆 — 荻野吟子 — https://www.ndl.go.jp/portrait/datas/43",
+      "provenance": "姓名事实与明确汉字转简体；不复制图像或人物解说。使用条件 https://www.ndl.go.jp/portrait/about"
+    },
+    {
+      "id": "ndl-6045",
+      "title": "吉岡弥生",
+      "url": "https://www.ndl.go.jp/portrait/datas/6045",
+      "publisher": "国立国会图书馆",
+      "license": "NDL『近代日本人の肖像』利用条款（商业利用可，须署名）",
+      "usePolicy": "licensed-reuse",
+      "attribution": "国立国会图书馆 — 吉岡弥生 — https://www.ndl.go.jp/portrait/datas/6045",
+      "provenance": "姓名事实与明确汉字转简体；不复制图像或人物解说。使用条件 https://www.ndl.go.jp/portrait/about"
+    },
+    {
+      "id": "ndl-318",
+      "title": "福田英子",
+      "url": "https://www.ndl.go.jp/portrait/datas/318",
+      "publisher": "国立国会图书馆",
+      "license": "NDL『近代日本人の肖像』利用条款（商业利用可，须署名）",
+      "usePolicy": "licensed-reuse",
+      "attribution": "国立国会图书馆 — 福田英子 — https://www.ndl.go.jp/portrait/datas/318",
+      "provenance": "姓名事实与明确汉字转简体；不复制图像或人物解说。使用条件 https://www.ndl.go.jp/portrait/about"
+    },
+    {
+      "id": "ndl-224",
+      "title": "芥川龍之介",
+      "url": "https://www.ndl.go.jp/portrait/datas/224",
+      "publisher": "国立国会图书馆",
+      "license": "NDL『近代日本人の肖像』利用条款（商业利用可，须署名）",
+      "usePolicy": "licensed-reuse",
+      "attribution": "国立国会图书馆 — 芥川龍之介 — https://www.ndl.go.jp/portrait/datas/224",
+      "provenance": "姓名事实与明确汉字转简体；不复制图像或人物解说。使用条件 https://www.ndl.go.jp/portrait/about"
+    },
+    {
+      "id": "ndl-6058",
+      "title": "谷崎潤一郎",
+      "url": "https://www.ndl.go.jp/portrait/datas/6058",
+      "publisher": "国立国会图书馆",
+      "license": "NDL『近代日本人の肖像』利用条款（商业利用可，须署名）",
+      "usePolicy": "licensed-reuse",
+      "attribution": "国立国会图书馆 — 谷崎潤一郎 — https://www.ndl.go.jp/portrait/datas/6058",
+      "provenance": "姓名事实与明确汉字转简体；不复制图像或人物解说。使用条件 https://www.ndl.go.jp/portrait/about"
+    },
+    {
+      "id": "ndl-348",
+      "title": "吉野作造",
+      "url": "https://www.ndl.go.jp/portrait/datas/348",
+      "publisher": "国立国会图书馆",
+      "license": "NDL『近代日本人の肖像』利用条款（商业利用可，须署名）",
+      "usePolicy": "licensed-reuse",
+      "attribution": "国立国会图书馆 — 吉野作造 — https://www.ndl.go.jp/portrait/datas/348",
+      "provenance": "姓名事实与明确汉字转简体；不复制图像或人物解说。使用条件 https://www.ndl.go.jp/portrait/about"
+    },
+    {
+      "id": "ndl-6260",
+      "title": "鈴木三重吉",
+      "url": "https://www.ndl.go.jp/portrait/datas/6260",
+      "publisher": "国立国会图书馆",
+      "license": "NDL『近代日本人の肖像』利用条款（商业利用可，须署名）",
+      "usePolicy": "licensed-reuse",
+      "attribution": "国立国会图书馆 — 鈴木三重吉 — https://www.ndl.go.jp/portrait/datas/6260",
+      "provenance": "姓名事实与明确汉字转简体；不复制图像或人物解说。使用条件 https://www.ndl.go.jp/portrait/about"
+    },
+    {
+      "id": "ndl-4281",
+      "title": "菊池寛",
+      "url": "https://www.ndl.go.jp/portrait/datas/4281",
+      "publisher": "国立国会图书馆",
+      "license": "NDL『近代日本人の肖像』利用条款（商业利用可，须署名）",
+      "usePolicy": "licensed-reuse",
+      "attribution": "国立国会图书馆 — 菊池寛 — https://www.ndl.go.jp/portrait/datas/4281",
+      "provenance": "姓名事实与明确汉字转简体；不复制图像或人物解说。使用条件 https://www.ndl.go.jp/portrait/about"
+    },
+    {
+      "id": "ndl-273",
+      "title": "志賀直哉",
+      "url": "https://www.ndl.go.jp/portrait/datas/273",
+      "publisher": "国立国会图书馆",
+      "license": "NDL『近代日本人の肖像』利用条款（商业利用可，须署名）",
+      "usePolicy": "licensed-reuse",
+      "attribution": "国立国会图书馆 — 志賀直哉 — https://www.ndl.go.jp/portrait/datas/273",
+      "provenance": "姓名事实与明确汉字转简体；不复制图像或人物解说。使用条件 https://www.ndl.go.jp/portrait/about"
+    },
+    {
+      "id": "ndl-347",
+      "title": "与謝野晶子",
+      "url": "https://www.ndl.go.jp/portrait/datas/347",
+      "publisher": "国立国会图书馆",
+      "license": "NDL『近代日本人の肖像』利用条款（商业利用可，须署名）",
+      "usePolicy": "licensed-reuse",
+      "attribution": "国立国会图书馆 — 与謝野晶子 — https://www.ndl.go.jp/portrait/datas/347",
+      "provenance": "姓名事实与明确汉字转简体；不复制图像或人物解说。使用条件 https://www.ndl.go.jp/portrait/about"
+    },
+    {
+      "id": "ndl-6236",
+      "title": "吉屋信子",
+      "url": "https://www.ndl.go.jp/portrait/datas/6236",
+      "publisher": "国立国会图书馆",
+      "license": "NDL『近代日本人の肖像』利用条款（商业利用可，须署名）",
+      "usePolicy": "licensed-reuse",
+      "attribution": "国立国会图书馆 — 吉屋信子 — https://www.ndl.go.jp/portrait/datas/6236",
+      "provenance": "姓名事实与明确汉字转简体；不复制图像或人物解说。使用条件 https://www.ndl.go.jp/portrait/about"
+    },
+    {
+      "id": "ndl-tokugawa",
+      "title": "徳川家達",
+      "url": "https://www.ndl.go.jp/portrait/datas/296",
+      "publisher": "国立国会图书馆",
+      "license": "NDL『近代日本人の肖像』利用条款（商业利用可，须署名）",
+      "usePolicy": "licensed-reuse",
+      "attribution": "国立国会图书馆 — 徳川家達 — https://www.ndl.go.jp/portrait/datas/296",
+      "provenance": "家达宗家继承与1884公爵事实；不把所有德川姓视为公爵。使用条件 https://www.ndl.go.jp/portrait/about"
+    },
+    {
+      "id": "ndl-saionji",
+      "title": "西園寺公望関係文書",
+      "url": "https://ndlsearch.ndl.go.jp/rnavi/kensei/saionnjikinnmochi",
+      "publisher": "国立国会图书馆",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "国立国会图书馆 — 西園寺公望関係文書 — https://ndlsearch.ndl.go.jp/rnavi/kensei/saionnjikinnmochi",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "nijl-tokudaiji",
+      "title": "徳大寺家文書",
+      "url": "https://archives.nijl.ac.jp/G000000232300/data/00951",
+      "publisher": "国文学研究资料馆",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "国文学研究资料馆 — 徳大寺家文書 — https://archives.nijl.ac.jp/G000000232300/data/00951",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "ru-lanskoy",
+      "title": "Александр Дмитриевич Ланской",
+      "url": "https://my.tretyakov.ru/app/masterpiece/21574",
+      "publisher": "Государственная Третьяковская галерея",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Государственная Третьяковская галерея — Александр Дмитриевич Ланской — https://my.tretyakov.ru/app/masterpiece/21574",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "ru-levitsky",
+      "title": "Дмитрий Левицкий",
+      "url": "https://app.rusmuseum.ru/rest-levitsky-smol-history1.htm",
+      "publisher": "Государственный Русский музей",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Государственный Русский музей — Дмитрий Левицкий — https://app.rusmuseum.ru/rest-levitsky-smol-history1.htm",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "ru-yusupov18",
+      "title": "Николай Борисович Юсупов",
+      "url": "https://kreml.ru/ru/museums-history/museum-managers/iusupov-nikolai-borisovic",
+      "publisher": "Музеи Московского Кремля",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Музеи Московского Кремля — Николай Борисович Юсупов — https://kreml.ru/ru/museums-history/museum-managers/iusupov-nikolai-borisovic",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "ru-golitsyn18",
+      "title": "Фёдор Николаевич Голицын",
+      "url": "https://my.tretyakov.ru/app/masterpiece/20900",
+      "publisher": "Государственная Третьяковская галерея",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Государственная Третьяковская галерея — Фёдор Николаевич Голицын — https://my.tretyakov.ru/app/masterpiece/20900",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "ru-shuvalov",
+      "title": "Иван Иванович Шувалов",
+      "url": "https://rusmuseumvrm.ru/online_resources/art_gallery/vo_slavu_otechestva/index.php?lang=ru&p=802&page=1&ps=20&show=asc&t=829",
+      "publisher": "Государственный Русский музей",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Государственный Русский музей — Иван Иванович Шувалов — https://rusmuseumvrm.ru/online_resources/art_gallery/vo_slavu_otechestva/index.php?lang=ru&p=802&page=1&ps=20&show=asc&t=829",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "ru-smolny",
+      "title": "Смолянки Дмитрия Левицкого",
+      "url": "https://rusmuseumvrm.ru/data/events/2022/12/ocharovanie_epohi_prosvescheniya_smolyanki_dmitriya_levickogo/index.php",
+      "publisher": "Государственный Русский музей",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Государственный Русский музей — Смолянки Дмитрия Левицкого — https://rusmuseumvrm.ru/data/events/2022/12/ocharovanie_epohi_prosvescheniya_smolyanki_dmitriya_levickogo/index.php",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "ru-lopukhina",
+      "title": "Мария Ивановна Лопухина",
+      "url": "https://my.tretyakov.ru/app/masterpiece/8633",
+      "publisher": "Государственная Третьяковская галерея",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Государственная Третьяковская галерея — Мария Ивановна Лопухина — https://my.tretyakov.ru/app/masterpiece/8633",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "ru-elizaveta",
+      "title": "Елизавета Петровна",
+      "url": "https://rusmuseumvrm.ru/data/collections/painting/17_19/prenner_g._k._konniy_portret_elizaveti_petrovni_so_svitoy._1744-1755._zh-5374/index.php?lang=ru",
+      "publisher": "Государственный Русский музей",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Государственный Русский музей — Елизавета Петровна — https://rusmuseumvrm.ru/data/collections/painting/17_19/prenner_g._k._konniy_portret_elizaveti_petrovni_so_svitoy._1744-1755._zh-5374/index.php?lang=ru",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "ru-sheremetev18",
+      "title": "Николай Петрович Шереметев",
+      "url": "https://nav.shm.ru/exhibits/4284/",
+      "publisher": "Государственный исторический музей",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Государственный исторический музей — Николай Петрович Шереметев — https://nav.shm.ru/exhibits/4284/",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "ru-lermontov",
+      "title": "Михаил Юрьевич Лермонтов",
+      "url": "https://my.tretyakov.ru/app/masterpiece/130543",
+      "publisher": "Государственная Третьяковская галерея",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Государственная Третьяковская галерея — Михаил Юрьевич Лермонтов — https://my.tretyakov.ru/app/masterpiece/130543",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "ru-tolstoy",
+      "title": "Лев Николаевич Толстой",
+      "url": "https://my.tretyakov.ru/app/masterpiece/8916",
+      "publisher": "Государственная Третьяковская галерея",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Государственная Третьяковская галерея — Лев Николаевич Толстой — https://my.tretyakov.ru/app/masterpiece/8916",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "ru-karamzin",
+      "title": "Николай Михайлович Карамзин",
+      "url": "https://my.tretyakov.ru/app/masterpiece/8697",
+      "publisher": "Государственная Третьяковская галерея",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Государственная Третьяковская галерея — Николай Михайлович Карамзин — https://my.tretyakov.ru/app/masterpiece/8697",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "ru-dostoevsky",
+      "title": "Фёдор Михайлович Достоевский",
+      "url": "https://my.tretyakov.ru/app/masterpiece/9888",
+      "publisher": "Государственная Третьяковская галерея",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Государственная Третьяковская галерея — Фёдор Михайлович Достоевский — https://my.tretyakov.ru/app/masterpiece/9888",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "ru-alexey",
+      "title": "Алексей Николаевич Толстой",
+      "url": "https://my.tretyakov.ru/app/masterpiece/47623",
+      "publisher": "Государственная Третьяковская галерея",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Государственная Третьяковская галерея — Алексей Николаевич Толстой — https://my.tretyakov.ru/app/masterpiece/47623",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "ru-bryullov",
+      "title": "Александр Павлович Брюллов",
+      "url": "https://my.tretyakov.ru/app/masterpiece/9029",
+      "publisher": "Государственная Третьяковская галерея",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Государственная Третьяковская галерея — Александр Павлович Брюллов — https://my.tretyakov.ru/app/masterpiece/9029",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "ru-family-photos",
+      "title": "Родственное окружение: фотографии XIX века",
+      "url": "https://journals.rcsi.science/2409-5788/article/view/283220",
+      "publisher": "Исследователь Государственного музея истории российской литературы имени В. И. Даля",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Исследователь Государственного музея истории российской литературы имени В. И. Даля — Родственное окружение: фотографии XIX века — https://journals.rcsi.science/2409-5788/article/view/283220",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "ru-yusupov19",
+      "title": "Николай Борисович Юсупов-младший",
+      "url": "https://www.hermitagemuseum.org/digital-collection/128756",
+      "publisher": "Государственный Эрмитаж",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Государственный Эрмитаж — Николай Борисович Юсупов-младший — https://www.hermitagemuseum.org/digital-collection/128756",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "ru-golitsyn19",
+      "title": "Борис Дмитриевич Голицын",
+      "url": "https://my.tretyakov.ru/app/masterpiece/124857",
+      "publisher": "Государственная Третьяковская галерея",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Государственная Третьяковская галерея — Борис Дмитриевич Голицын — https://my.tretyakov.ru/app/masterpiece/124857",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "ru-sheremetev19",
+      "title": "Дмитрий Николаевич Шереметев",
+      "url": "https://nav.shm.ru/exhibits/416/",
+      "publisher": "Государственный исторический музей",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Государственный исторический музей — Дмитрий Николаевич Шереметев — https://nav.shm.ru/exhibits/416/",
+      "provenance": "仅人工核对姓名、时代和亲属/家族事实；不转载正文、图像或数据库选编。"
+    },
+    {
+      "id": "ru-grammar",
+      "title": "Отчества — русская грамматика B1",
+      "url": "https://is.muni.cz/do/rect/el/estud/pedf/js24/ruska_gramatikaB1/web/pages/topic_09.html",
+      "publisher": "Masaryk University",
+      "license": "未声明词表再分发许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Masaryk University — Отчества — русская грамматика B1 — https://is.muni.cz/do/rect/el/estud/pedf/js24/ruska_gramatikaB1/web/pages/topic_09.html",
+      "provenance": "只核对有限父称对应与姓名词形规则；译名独立编辑，不复制教材说明。"
+    },
+    {
+      "id": "ru-ivan",
+      "title": "Русские имена и отчества",
+      "url": "https://gramdict.ru/names",
+      "publisher": "Грамматический словарь русского языка",
+      "license": "未声明词表再分发许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "Грамматический словарь русского языка — Русские имена и отчества — https://gramdict.ru/names",
+      "provenance": "只核对Иван的父称一对；中文译写独立编辑，不复制词典列表。"
+    },
+    {
+      "id": "nijl-tokudaiji-taisho",
+      "title": "徳大寺家文書・大正四年の招待状",
+      "url": "https://archives.nijl.ac.jp/G000000232300/kind?l1=01.%E5%BE%B3%E5%A4%A7%E5%AF%BA%E5%AE%B6",
+      "publisher": "国文学研究资料馆",
+      "license": "未声明开放正文许可",
+      "usePolicy": "fact-reference-only",
+      "attribution": "国文学研究资料馆 — 徳大寺家文書・大正四年の招待状",
+      "provenance": "仅人工核对1915年邀请函的家系与爵位事实；不转载文书图片。"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "cn-ming-literati",
+      "country": "cn",
+      "label": "明代文人（1500–1644）",
+      "period": {
+        "to": 1644,
+        "from": 1500
+      },
+      "region": "中国文艺圈",
+      "namePattern": [
+        "family",
+        "given"
+      ],
+      "originalSeparator": "",
+      "zhSeparator": "",
+      "given": {
+        "male": [
+          {
+            "id": "m0",
+            "original": "徵明",
+            "zh": "徵明",
+            "sourceRefs": [
+              "dpm-wen"
+            ],
+            "attestedAs": "文徵明、唐寅、仇英及1518年惠山茶会蔡羽、王守、汤珍"
+          },
+          {
+            "id": "m1",
+            "original": "寅",
+            "zh": "寅",
+            "sourceRefs": [
+              "dpm-wen"
+            ],
+            "attestedAs": "文徵明、唐寅、仇英及1518年惠山茶会蔡羽、王守、汤珍"
+          },
+          {
+            "id": "m2",
+            "original": "英",
+            "zh": "英",
+            "sourceRefs": [
+              "dpm-wen"
+            ],
+            "attestedAs": "文徵明、唐寅、仇英及1518年惠山茶会蔡羽、王守、汤珍"
+          },
+          {
+            "id": "m3",
+            "original": "羽",
+            "zh": "羽",
+            "sourceRefs": [
+              "dpm-wen"
+            ],
+            "attestedAs": "文徵明、唐寅、仇英及1518年惠山茶会蔡羽、王守、汤珍"
+          },
+          {
+            "id": "m4",
+            "original": "守",
+            "zh": "守",
+            "sourceRefs": [
+              "dpm-wen"
+            ],
+            "attestedAs": "文徵明、唐寅、仇英及1518年惠山茶会蔡羽、王守、汤珍"
+          },
+          {
+            "id": "m5",
+            "original": "珍",
+            "zh": "珍",
+            "sourceRefs": [
+              "dpm-wen"
+            ],
+            "attestedAs": "文徵明、唐寅、仇英及1518年惠山茶会蔡羽、王守、汤珍"
+          }
+        ],
+        "female": [
+          {
+            "id": "w0",
+            "original": "俶",
+            "zh": "俶",
+            "sourceRefs": [
+              "dpm-wenchu"
+            ],
+            "attestedAs": "文俶；1595–1634"
+          },
+          {
+            "id": "w1",
+            "original": "珠",
+            "zh": "珠",
+            "sourceRefs": [
+              "dpm-qiuzhu"
+            ],
+            "attestedAs": "仇珠；明代画家"
+          },
+          {
+            "id": "w2",
+            "original": "守真",
+            "zh": "守真",
+            "sourceRefs": [
+              "npm-mashouzhen"
+            ],
+            "attestedAs": "马守真；1548–1604"
+          },
+          {
+            "id": "w3",
+            "original": "慈静",
+            "zh": "慈静",
+            "sourceRefs": [
+              "npm-xing"
+            ],
+            "attestedAs": "邢慈静；1568–1634"
+          },
+          {
+            "id": "w4",
+            "original": "环",
+            "zh": "环",
+            "sourceRefs": [
+              "dpm-women"
+            ],
+            "attestedAs": "王环；明代吴门女画家"
+          },
+          {
+            "id": "w5",
+            "original": "安生",
+            "zh": "安生",
+            "sourceRefs": [
+              "dpm-women"
+            ],
+            "attestedAs": "徐安生；明代吴门女画家"
+          }
+        ]
+      },
+      "families": [
+        {
+          "id": "f0",
+          "forms": {
+            "generic": {
+              "original": "文",
+              "zh": "文"
+            }
+          },
+          "sourceRefs": [
+            "dpm-wen"
+          ],
+          "attestedAs": "明代文艺人物姓名"
+        },
+        {
+          "id": "f1",
+          "forms": {
+            "generic": {
+              "original": "唐",
+              "zh": "唐"
+            }
+          },
+          "sourceRefs": [
+            "dpm-wen"
+          ],
+          "attestedAs": "明代文艺人物姓名"
+        },
+        {
+          "id": "f2",
+          "forms": {
+            "generic": {
+              "original": "仇",
+              "zh": "仇"
+            }
+          },
+          "sourceRefs": [
+            "dpm-wen"
+          ],
+          "attestedAs": "明代文艺人物姓名"
+        },
+        {
+          "id": "f3",
+          "forms": {
+            "generic": {
+              "original": "蔡",
+              "zh": "蔡"
+            }
+          },
+          "sourceRefs": [
+            "dpm-wen"
+          ],
+          "attestedAs": "明代文艺人物姓名"
+        },
+        {
+          "id": "f4",
+          "forms": {
+            "generic": {
+              "original": "王",
+              "zh": "王"
+            }
+          },
+          "sourceRefs": [
+            "dpm-wen"
+          ],
+          "attestedAs": "明代文艺人物姓名"
+        },
+        {
+          "id": "f5",
+          "forms": {
+            "generic": {
+              "original": "汤",
+              "zh": "汤"
+            }
+          },
+          "sourceRefs": [
+            "dpm-wen"
+          ],
+          "attestedAs": "明代文艺人物姓名"
+        },
+        {
+          "id": "f6",
+          "forms": {
+            "generic": {
+              "original": "马",
+              "zh": "马"
+            }
+          },
+          "sourceRefs": [
+            "npm-mashouzhen"
+          ],
+          "attestedAs": "马守真"
+        },
+        {
+          "id": "f7",
+          "forms": {
+            "generic": {
+              "original": "邢",
+              "zh": "邢"
+            }
+          },
+          "sourceRefs": [
+            "npm-xing"
+          ],
+          "attestedAs": "邢慈静"
+        },
+        {
+          "id": "f8",
+          "forms": {
+            "generic": {
+              "original": "徐",
+              "zh": "徐"
+            }
+          },
+          "sourceRefs": [
+            "dpm-women"
+          ],
+          "attestedAs": "徐安生"
+        }
+      ],
+      "roles": [
+        {
+          "id": "period",
+          "label": "时代姓名",
+          "familyIds": [
+            "f0",
+            "f1",
+            "f2",
+            "f3",
+            "f4",
+            "f5",
+            "f6",
+            "f7",
+            "f8"
+          ]
+        }
+      ],
+      "sourceRefs": [
+        "dpm-qiuzhu",
+        "dpm-wen",
+        "dpm-wenchu",
+        "dpm-women",
+        "npm-mashouzhen",
+        "npm-xing"
+      ]
+    },
+    {
+      "id": "cn-qing-literati",
+      "country": "cn",
+      "label": "清前中期文人（1644–1796）",
+      "period": {
+        "to": 1796,
+        "from": 1644
+      },
+      "region": "中国文艺圈",
+      "namePattern": [
+        "family",
+        "given"
+      ],
+      "originalSeparator": "",
+      "zhSeparator": "",
+      "given": {
+        "male": [
+          {
+            "id": "m0",
+            "original": "时敏",
+            "zh": "时敏",
+            "sourceRefs": [
+              "macao-qing"
+            ],
+            "attestedAs": "清初王时敏、王鉴、王翚、王原祁、吴历、恽寿平"
+          },
+          {
+            "id": "m1",
+            "original": "鉴",
+            "zh": "鉴",
+            "sourceRefs": [
+              "macao-qing"
+            ],
+            "attestedAs": "清初王时敏、王鉴、王翚、王原祁、吴历、恽寿平"
+          },
+          {
+            "id": "m2",
+            "original": "翚",
+            "zh": "翚",
+            "sourceRefs": [
+              "macao-qing"
+            ],
+            "attestedAs": "清初王时敏、王鉴、王翚、王原祁、吴历、恽寿平"
+          },
+          {
+            "id": "m3",
+            "original": "原祁",
+            "zh": "原祁",
+            "sourceRefs": [
+              "macao-qing"
+            ],
+            "attestedAs": "清初王时敏、王鉴、王翚、王原祁、吴历、恽寿平"
+          },
+          {
+            "id": "m4",
+            "original": "历",
+            "zh": "历",
+            "sourceRefs": [
+              "macao-qing"
+            ],
+            "attestedAs": "清初王时敏、王鉴、王翚、王原祁、吴历、恽寿平"
+          },
+          {
+            "id": "m5",
+            "original": "寿平",
+            "zh": "寿平",
+            "sourceRefs": [
+              "macao-qing"
+            ],
+            "attestedAs": "清初王时敏、王鉴、王翚、王原祁、吴历、恽寿平"
+          }
+        ],
+        "female": [
+          {
+            "id": "w0",
+            "original": "书",
+            "zh": "书",
+            "sourceRefs": [
+              "dpm-chenshu"
+            ],
+            "attestedAs": "陈书；1704年题款"
+          },
+          {
+            "id": "w1",
+            "original": "冰",
+            "zh": "冰",
+            "sourceRefs": [
+              "dpm-yunbing"
+            ],
+            "attestedAs": "恽冰；1692–1742年活动"
+          },
+          {
+            "id": "w2",
+            "original": "荃",
+            "zh": "荃",
+            "sourceRefs": [
+              "sichuan-maquan"
+            ],
+            "attestedAs": "马荃；1751年题款"
+          },
+          {
+            "id": "w3",
+            "original": "婉仪",
+            "zh": "婉仪",
+            "sourceRefs": [
+              "dpm-luopin"
+            ],
+            "attestedAs": "方婉仪；1732–1779"
+          },
+          {
+            "id": "w4",
+            "original": "灿",
+            "zh": "灿",
+            "sourceRefs": [
+              "mct-xucan"
+            ],
+            "attestedAs": "徐灿；清初女词人"
+          },
+          {
+            "id": "w5",
+            "original": "端淑",
+            "zh": "端淑",
+            "sourceRefs": [
+              "sinica-wang"
+            ],
+            "attestedAs": "王端淑；1667年《名媛诗纬初编》编者"
+          }
+        ]
+      },
+      "families": [
+        {
+          "id": "f0",
+          "forms": {
+            "generic": {
+              "original": "王",
+              "zh": "王"
+            }
+          },
+          "sourceRefs": [
+            "macao-qing"
+          ],
+          "attestedAs": "清初四王吴恽"
+        },
+        {
+          "id": "f1",
+          "forms": {
+            "generic": {
+              "original": "吴",
+              "zh": "吴"
+            }
+          },
+          "sourceRefs": [
+            "macao-qing"
+          ],
+          "attestedAs": "清初四王吴恽"
+        },
+        {
+          "id": "f2",
+          "forms": {
+            "generic": {
+              "original": "恽",
+              "zh": "恽"
+            }
+          },
+          "sourceRefs": [
+            "macao-qing"
+          ],
+          "attestedAs": "清初四王吴恽"
+        },
+        {
+          "id": "f3",
+          "forms": {
+            "generic": {
+              "original": "罗",
+              "zh": "罗"
+            }
+          },
+          "sourceRefs": [
+            "dpm-luopin"
+          ],
+          "attestedAs": "罗聘；1733–1799"
+        },
+        {
+          "id": "f4",
+          "forms": {
+            "generic": {
+              "original": "陈",
+              "zh": "陈"
+            }
+          },
+          "sourceRefs": [
+            "dpm-chenshu"
+          ],
+          "attestedAs": "陈书"
+        },
+        {
+          "id": "f5",
+          "forms": {
+            "generic": {
+              "original": "马",
+              "zh": "马"
+            }
+          },
+          "sourceRefs": [
+            "sichuan-maquan"
+          ],
+          "attestedAs": "马荃"
+        },
+        {
+          "id": "f6",
+          "forms": {
+            "generic": {
+              "original": "方",
+              "zh": "方"
+            }
+          },
+          "sourceRefs": [
+            "dpm-luopin"
+          ],
+          "attestedAs": "方婉仪"
+        },
+        {
+          "id": "f7",
+          "forms": {
+            "generic": {
+              "original": "徐",
+              "zh": "徐"
+            }
+          },
+          "sourceRefs": [
+            "mct-xucan"
+          ],
+          "attestedAs": "徐灿"
+        }
+      ],
+      "roles": [
+        {
+          "id": "period",
+          "label": "时代姓名",
+          "familyIds": [
+            "f0",
+            "f1",
+            "f2",
+            "f3",
+            "f4",
+            "f5",
+            "f6",
+            "f7"
+          ]
+        }
+      ],
+      "sourceRefs": [
+        "dpm-chenshu",
+        "dpm-luopin",
+        "dpm-yunbing",
+        "macao-qing",
+        "mct-xucan",
+        "sichuan-maquan",
+        "sinica-wang"
+      ]
+    },
+    {
+      "id": "jp-meiji",
+      "country": "jp",
+      "label": "明治·日本（1868–1912）",
+      "period": {
+        "to": 1912,
+        "from": 1868
+      },
+      "region": "日本",
+      "namePattern": [
+        "family",
+        "given"
+      ],
+      "originalSeparator": "",
+      "zhSeparator": "",
+      "given": {
+        "male": [
+          {
+            "id": "m0",
+            "original": "博文",
+            "zh": "博文",
+            "sourceRefs": [
+              "ndl-12"
+            ],
+            "attestedAs": "伊藤博文；明治·日本（1868–1912）"
+          },
+          {
+            "id": "m1",
+            "original": "諭吉",
+            "zh": "谕吉",
+            "sourceRefs": [
+              "ndl-185"
+            ],
+            "attestedAs": "福沢諭吉；明治·日本（1868–1912）"
+          },
+          {
+            "id": "m2",
+            "original": "利通",
+            "zh": "利通",
+            "sourceRefs": [
+              "ndl-32"
+            ],
+            "attestedAs": "大久保利通；明治·日本（1868–1912）"
+          },
+          {
+            "id": "m3",
+            "original": "隆盛",
+            "zh": "隆盛",
+            "sourceRefs": [
+              "ndl-85"
+            ],
+            "attestedAs": "西郷隆盛；明治·日本（1868–1912）"
+          },
+          {
+            "id": "m4",
+            "original": "重信",
+            "zh": "重信",
+            "sourceRefs": [
+              "ndl-33"
+            ],
+            "attestedAs": "大隈重信；明治·日本（1868–1912）"
+          },
+          {
+            "id": "m5",
+            "original": "慶喜",
+            "zh": "庆喜",
+            "sourceRefs": [
+              "ndl-147"
+            ],
+            "attestedAs": "徳川慶喜；明治·日本（1868–1912）"
+          }
+        ],
+        "female": [
+          {
+            "id": "w0",
+            "original": "梅子",
+            "zh": "梅子",
+            "sourceRefs": [
+              "ndl-292"
+            ],
+            "attestedAs": "津田梅子；明治·日本（1868–1912）"
+          },
+          {
+            "id": "w1",
+            "original": "歌子",
+            "zh": "歌子",
+            "sourceRefs": [
+              "ndl-4146"
+            ],
+            "attestedAs": "下田歌子；明治·日本（1868–1912）"
+          },
+          {
+            "id": "w2",
+            "original": "捨松",
+            "zh": "舍松",
+            "sourceRefs": [
+              "ndl-246"
+            ],
+            "attestedAs": "大山捨松；明治·日本（1868–1912）"
+          },
+          {
+            "id": "w3",
+            "original": "吟子",
+            "zh": "吟子",
+            "sourceRefs": [
+              "ndl-43"
+            ],
+            "attestedAs": "荻野吟子；明治·日本（1868–1912）"
+          },
+          {
+            "id": "w4",
+            "original": "弥生",
+            "zh": "弥生",
+            "sourceRefs": [
+              "ndl-6045"
+            ],
+            "attestedAs": "吉岡弥生；明治·日本（1868–1912）"
+          },
+          {
+            "id": "w5",
+            "original": "英子",
+            "zh": "英子",
+            "sourceRefs": [
+              "ndl-318"
+            ],
+            "attestedAs": "福田英子；明治·日本（1868–1912）"
+          }
+        ]
+      },
+      "families": [
+        {
+          "id": "f0",
+          "forms": {
+            "generic": {
+              "original": "伊藤",
+              "zh": "伊藤"
+            }
+          },
+          "sourceRefs": [
+            "ndl-12"
+          ],
+          "attestedAs": "伊藤博文；明治·日本（1868–1912）"
+        },
+        {
+          "id": "f1",
+          "forms": {
+            "generic": {
+              "original": "福沢",
+              "zh": "福泽"
+            }
+          },
+          "sourceRefs": [
+            "ndl-185"
+          ],
+          "attestedAs": "福沢諭吉；明治·日本（1868–1912）"
+        },
+        {
+          "id": "f2",
+          "forms": {
+            "generic": {
+              "original": "大久保",
+              "zh": "大久保"
+            }
+          },
+          "sourceRefs": [
+            "ndl-32"
+          ],
+          "attestedAs": "大久保利通；明治·日本（1868–1912）"
+        },
+        {
+          "id": "f3",
+          "forms": {
+            "generic": {
+              "original": "西郷",
+              "zh": "西乡"
+            }
+          },
+          "sourceRefs": [
+            "ndl-85"
+          ],
+          "attestedAs": "西郷隆盛；明治·日本（1868–1912）"
+        },
+        {
+          "id": "f4",
+          "forms": {
+            "generic": {
+              "original": "大隈",
+              "zh": "大隈"
+            }
+          },
+          "sourceRefs": [
+            "ndl-33"
+          ],
+          "attestedAs": "大隈重信；明治·日本（1868–1912）"
+        },
+        {
+          "id": "f5",
+          "forms": {
+            "generic": {
+              "original": "津田",
+              "zh": "津田"
+            }
+          },
+          "sourceRefs": [
+            "ndl-292"
+          ],
+          "attestedAs": "津田梅子；明治·日本（1868–1912）"
+        },
+        {
+          "id": "f6",
+          "forms": {
+            "generic": {
+              "original": "下田",
+              "zh": "下田"
+            }
+          },
+          "sourceRefs": [
+            "ndl-4146"
+          ],
+          "attestedAs": "下田歌子；明治·日本（1868–1912）"
+        },
+        {
+          "id": "f7",
+          "forms": {
+            "generic": {
+              "original": "大山",
+              "zh": "大山"
+            }
+          },
+          "sourceRefs": [
+            "ndl-246"
+          ],
+          "attestedAs": "大山捨松；明治·日本（1868–1912）"
+        },
+        {
+          "id": "f8",
+          "forms": {
+            "generic": {
+              "original": "荻野",
+              "zh": "荻野"
+            }
+          },
+          "sourceRefs": [
+            "ndl-43"
+          ],
+          "attestedAs": "荻野吟子；明治·日本（1868–1912）"
+        },
+        {
+          "id": "f9",
+          "forms": {
+            "generic": {
+              "original": "吉岡",
+              "zh": "吉冈"
+            }
+          },
+          "sourceRefs": [
+            "ndl-6045"
+          ],
+          "attestedAs": "吉岡弥生；明治·日本（1868–1912）"
+        },
+        {
+          "id": "f10",
+          "forms": {
+            "generic": {
+              "original": "福田",
+              "zh": "福田"
+            }
+          },
+          "sourceRefs": [
+            "ndl-318"
+          ],
+          "attestedAs": "福田英子；明治·日本（1868–1912）"
+        },
+        {
+          "id": "f11",
+          "forms": {
+            "generic": {
+              "original": "徳川",
+              "zh": "德川"
+            }
+          },
+          "sourceRefs": [
+            "ndl-tokugawa"
+          ],
+          "attestedAs": "德川家达宗家；1868年继承、1884年公爵",
+          "lineage": {
+            "label": "德川家族",
+            "sourceRefs": [
+              "ndl-tokugawa"
+            ],
+            "evidence": "德川家达宗家；1868年继承、1884年公爵"
+          }
+        },
+        {
+          "id": "f12",
+          "forms": {
+            "generic": {
+              "original": "西園寺",
+              "zh": "西园寺"
+            }
+          },
+          "sourceRefs": [
+            "ndl-saionji"
+          ],
+          "attestedAs": "西园寺公望家；1884年侯爵、1920年公爵",
+          "lineage": {
+            "label": "西园寺家族",
+            "sourceRefs": [
+              "ndl-saionji"
+            ],
+            "evidence": "西园寺公望家；1884年侯爵、1920年公爵"
+          }
+        },
+        {
+          "id": "f13",
+          "forms": {
+            "generic": {
+              "original": "徳大寺",
+              "zh": "德大寺"
+            }
+          },
+          "sourceRefs": [
+            "nijl-tokudaiji",
+            "nijl-tokudaiji-taisho"
+          ],
+          "attestedAs": "德大寺家；1910年侯爵家政文书、1915年公爵邀请函",
+          "lineage": {
+            "label": "德大寺家族",
+            "sourceRefs": [
+              "nijl-tokudaiji",
+              "nijl-tokudaiji-taisho"
+            ],
+            "evidence": "德大寺家；1910年侯爵家政文书、1915年公爵邀请函"
+          }
+        }
+      ],
+      "roles": [
+        {
+          "id": "period",
+          "label": "时代姓名",
+          "familyIds": [
+            "f0",
+            "f1",
+            "f2",
+            "f3",
+            "f4",
+            "f5",
+            "f6",
+            "f7",
+            "f8",
+            "f9",
+            "f10",
+            "f11",
+            "f12",
+            "f13"
+          ]
+        },
+        {
+          "id": "lineage",
+          "label": "华族家系（1884年后）",
+          "familyIds": [
+            "f11",
+            "f12",
+            "f13"
+          ],
+          "period": {
+            "from": 1884,
+            "to": 1912
+          }
+        }
+      ],
+      "sourceRefs": [
+        "ndl-12",
+        "ndl-147",
+        "ndl-185",
+        "ndl-246",
+        "ndl-292",
+        "ndl-318",
+        "ndl-32",
+        "ndl-33",
+        "ndl-4146",
+        "ndl-43",
+        "ndl-6045",
+        "ndl-85",
+        "ndl-saionji",
+        "ndl-tokugawa",
+        "nijl-tokudaiji",
+        "nijl-tokudaiji-taisho"
+      ]
+    },
+    {
+      "id": "jp-taisho",
+      "country": "jp",
+      "label": "大正·日本（1912–1926）",
+      "period": {
+        "to": 1926,
+        "from": 1912
+      },
+      "region": "日本",
+      "namePattern": [
+        "family",
+        "given"
+      ],
+      "originalSeparator": "",
+      "zhSeparator": "",
+      "given": {
+        "male": [
+          {
+            "id": "m0",
+            "original": "龍之介",
+            "zh": "龙之介",
+            "sourceRefs": [
+              "ndl-224"
+            ],
+            "attestedAs": "芥川龍之介；大正·日本（1912–1926）"
+          },
+          {
+            "id": "m1",
+            "original": "潤一郎",
+            "zh": "润一郎",
+            "sourceRefs": [
+              "ndl-6058"
+            ],
+            "attestedAs": "谷崎潤一郎；大正·日本（1912–1926）"
+          },
+          {
+            "id": "m2",
+            "original": "作造",
+            "zh": "作造",
+            "sourceRefs": [
+              "ndl-348"
+            ],
+            "attestedAs": "吉野作造；大正·日本（1912–1926）"
+          },
+          {
+            "id": "m3",
+            "original": "三重吉",
+            "zh": "三重吉",
+            "sourceRefs": [
+              "ndl-6260"
+            ],
+            "attestedAs": "鈴木三重吉；大正·日本（1912–1926）"
+          },
+          {
+            "id": "m4",
+            "original": "寛",
+            "zh": "宽",
+            "sourceRefs": [
+              "ndl-4281"
+            ],
+            "attestedAs": "菊池寛；大正·日本（1912–1926）"
+          },
+          {
+            "id": "m5",
+            "original": "直哉",
+            "zh": "直哉",
+            "sourceRefs": [
+              "ndl-273"
+            ],
+            "attestedAs": "志賀直哉；大正·日本（1912–1926）"
+          }
+        ],
+        "female": [
+          {
+            "id": "w0",
+            "original": "梅子",
+            "zh": "梅子",
+            "sourceRefs": [
+              "ndl-292"
+            ],
+            "attestedAs": "津田梅子；大正·日本（1912–1926）"
+          },
+          {
+            "id": "w1",
+            "original": "歌子",
+            "zh": "歌子",
+            "sourceRefs": [
+              "ndl-4146"
+            ],
+            "attestedAs": "下田歌子；大正·日本（1912–1926）"
+          },
+          {
+            "id": "w2",
+            "original": "弥生",
+            "zh": "弥生",
+            "sourceRefs": [
+              "ndl-6045"
+            ],
+            "attestedAs": "吉岡弥生；大正·日本（1912–1926）"
+          },
+          {
+            "id": "w3",
+            "original": "英子",
+            "zh": "英子",
+            "sourceRefs": [
+              "ndl-318"
+            ],
+            "attestedAs": "福田英子；大正·日本（1912–1926）"
+          },
+          {
+            "id": "w4",
+            "original": "晶子",
+            "zh": "晶子",
+            "sourceRefs": [
+              "ndl-347"
+            ],
+            "attestedAs": "与謝野晶子；大正·日本（1912–1926）"
+          },
+          {
+            "id": "w5",
+            "original": "信子",
+            "zh": "信子",
+            "sourceRefs": [
+              "ndl-6236"
+            ],
+            "attestedAs": "吉屋信子；大正·日本（1912–1926）"
+          }
+        ]
+      },
+      "families": [
+        {
+          "id": "f0",
+          "forms": {
+            "generic": {
+              "original": "芥川",
+              "zh": "芥川"
+            }
+          },
+          "sourceRefs": [
+            "ndl-224"
+          ],
+          "attestedAs": "芥川龍之介；大正·日本（1912–1926）"
+        },
+        {
+          "id": "f1",
+          "forms": {
+            "generic": {
+              "original": "谷崎",
+              "zh": "谷崎"
+            }
+          },
+          "sourceRefs": [
+            "ndl-6058"
+          ],
+          "attestedAs": "谷崎潤一郎；大正·日本（1912–1926）"
+        },
+        {
+          "id": "f2",
+          "forms": {
+            "generic": {
+              "original": "吉野",
+              "zh": "吉野"
+            }
+          },
+          "sourceRefs": [
+            "ndl-348"
+          ],
+          "attestedAs": "吉野作造；大正·日本（1912–1926）"
+        },
+        {
+          "id": "f3",
+          "forms": {
+            "generic": {
+              "original": "鈴木",
+              "zh": "铃木"
+            }
+          },
+          "sourceRefs": [
+            "ndl-6260"
+          ],
+          "attestedAs": "鈴木三重吉；大正·日本（1912–1926）"
+        },
+        {
+          "id": "f4",
+          "forms": {
+            "generic": {
+              "original": "菊池",
+              "zh": "菊池"
+            }
+          },
+          "sourceRefs": [
+            "ndl-4281"
+          ],
+          "attestedAs": "菊池寛；大正·日本（1912–1926）"
+        },
+        {
+          "id": "f5",
+          "forms": {
+            "generic": {
+              "original": "志賀",
+              "zh": "志贺"
+            }
+          },
+          "sourceRefs": [
+            "ndl-273"
+          ],
+          "attestedAs": "志賀直哉；大正·日本（1912–1926）"
+        },
+        {
+          "id": "f6",
+          "forms": {
+            "generic": {
+              "original": "津田",
+              "zh": "津田"
+            }
+          },
+          "sourceRefs": [
+            "ndl-292"
+          ],
+          "attestedAs": "津田梅子；大正·日本（1912–1926）"
+        },
+        {
+          "id": "f7",
+          "forms": {
+            "generic": {
+              "original": "下田",
+              "zh": "下田"
+            }
+          },
+          "sourceRefs": [
+            "ndl-4146"
+          ],
+          "attestedAs": "下田歌子；大正·日本（1912–1926）"
+        },
+        {
+          "id": "f8",
+          "forms": {
+            "generic": {
+              "original": "吉岡",
+              "zh": "吉冈"
+            }
+          },
+          "sourceRefs": [
+            "ndl-6045"
+          ],
+          "attestedAs": "吉岡弥生；大正·日本（1912–1926）"
+        },
+        {
+          "id": "f9",
+          "forms": {
+            "generic": {
+              "original": "福田",
+              "zh": "福田"
+            }
+          },
+          "sourceRefs": [
+            "ndl-318"
+          ],
+          "attestedAs": "福田英子；大正·日本（1912–1926）"
+        },
+        {
+          "id": "f10",
+          "forms": {
+            "generic": {
+              "original": "与謝野",
+              "zh": "与谢野"
+            }
+          },
+          "sourceRefs": [
+            "ndl-347"
+          ],
+          "attestedAs": "与謝野晶子；大正·日本（1912–1926）"
+        },
+        {
+          "id": "f11",
+          "forms": {
+            "generic": {
+              "original": "吉屋",
+              "zh": "吉屋"
+            }
+          },
+          "sourceRefs": [
+            "ndl-6236"
+          ],
+          "attestedAs": "吉屋信子；大正·日本（1912–1926）"
+        },
+        {
+          "id": "f12",
+          "forms": {
+            "generic": {
+              "original": "徳川",
+              "zh": "德川"
+            }
+          },
+          "sourceRefs": [
+            "ndl-tokugawa"
+          ],
+          "attestedAs": "德川家达宗家；1868年继承、1884年公爵",
+          "lineage": {
+            "label": "德川家族",
+            "sourceRefs": [
+              "ndl-tokugawa"
+            ],
+            "evidence": "德川家达宗家；1868年继承、1884年公爵"
+          }
+        },
+        {
+          "id": "f13",
+          "forms": {
+            "generic": {
+              "original": "西園寺",
+              "zh": "西园寺"
+            }
+          },
+          "sourceRefs": [
+            "ndl-saionji"
+          ],
+          "attestedAs": "西园寺公望家；1884年侯爵、1920年公爵",
+          "lineage": {
+            "label": "西园寺家族",
+            "sourceRefs": [
+              "ndl-saionji"
+            ],
+            "evidence": "西园寺公望家；1884年侯爵、1920年公爵"
+          }
+        },
+        {
+          "id": "f14",
+          "forms": {
+            "generic": {
+              "original": "徳大寺",
+              "zh": "德大寺"
+            }
+          },
+          "sourceRefs": [
+            "nijl-tokudaiji",
+            "nijl-tokudaiji-taisho"
+          ],
+          "attestedAs": "德大寺家；1910年侯爵家政文书、1915年公爵邀请函",
+          "lineage": {
+            "label": "德大寺家族",
+            "sourceRefs": [
+              "nijl-tokudaiji",
+              "nijl-tokudaiji-taisho"
+            ],
+            "evidence": "德大寺家；1910年侯爵家政文书、1915年公爵邀请函"
+          }
+        }
+      ],
+      "roles": [
+        {
+          "id": "period",
+          "label": "时代姓名",
+          "familyIds": [
+            "f0",
+            "f1",
+            "f2",
+            "f3",
+            "f4",
+            "f5",
+            "f6",
+            "f7",
+            "f8",
+            "f9",
+            "f10",
+            "f11",
+            "f12",
+            "f13",
+            "f14"
+          ]
+        },
+        {
+          "id": "lineage",
+          "label": "华族家系",
+          "familyIds": [
+            "f12",
+            "f13",
+            "f14"
+          ],
+          "period": {
+            "from": 1912,
+            "to": 1926
+          }
+        }
+      ],
+      "sourceRefs": [
+        "ndl-224",
+        "ndl-273",
+        "ndl-292",
+        "ndl-318",
+        "ndl-347",
+        "ndl-348",
+        "ndl-4146",
+        "ndl-4281",
+        "ndl-6045",
+        "ndl-6058",
+        "ndl-6236",
+        "ndl-6260",
+        "ndl-saionji",
+        "ndl-tokugawa",
+        "nijl-tokudaiji",
+        "nijl-tokudaiji-taisho"
+      ]
+    },
+    {
+      "id": "gb-tudor-england",
+      "country": "gb",
+      "label": "都铎时代·英格兰（1485–1603）",
+      "period": {
+        "to": 1603,
+        "from": 1485
+      },
+      "region": "英格兰",
+      "namePattern": [
+        "given",
+        "family"
+      ],
+      "originalSeparator": " ",
+      "zhSeparator": "·",
+      "given": {
+        "male": [
+          {
+            "id": "m0",
+            "original": "Thomas",
+            "zh": "托马斯",
+            "sourceRefs": [
+              "npg-tudor"
+            ],
+            "attestedAs": "Thomas More；1527年原作"
+          },
+          {
+            "id": "m1",
+            "original": "William",
+            "zh": "威廉",
+            "sourceRefs": [
+              "npg-tudor"
+            ],
+            "attestedAs": "William Warham；1527年原作"
+          },
+          {
+            "id": "m2",
+            "original": "Richard",
+            "zh": "理查德",
+            "sourceRefs": [
+              "npg-tudor"
+            ],
+            "attestedAs": "Richard Southwell；1536年原作"
+          },
+          {
+            "id": "m3",
+            "original": "Henry",
+            "zh": "亨利",
+            "sourceRefs": [
+              "npg-tudor"
+            ],
+            "attestedAs": "Henry VIII；约1520年"
+          },
+          {
+            "id": "m4",
+            "original": "Edward",
+            "zh": "爱德华",
+            "sourceRefs": [
+              "npg-tudor"
+            ],
+            "attestedAs": "Edward VI；1546年"
+          },
+          {
+            "id": "m5",
+            "original": "Philip",
+            "zh": "菲利普",
+            "sourceRefs": [
+              "npg-tudor"
+            ],
+            "attestedAs": "Philip Sidney；约1576年原作"
+          }
+        ],
+        "female": [
+          {
+            "id": "w0",
+            "original": "Anne",
+            "zh": "安妮",
+            "sourceRefs": [
+              "npg-boleyn"
+            ],
+            "attestedAs": "Anne Boleyn；1533年成为王后"
+          },
+          {
+            "id": "w1",
+            "original": "Jane",
+            "zh": "简",
+            "sourceRefs": [
+              "npg-tudor"
+            ],
+            "attestedAs": "Jane Seymour；约1537年"
+          },
+          {
+            "id": "w2",
+            "original": "Katherine",
+            "zh": "凯瑟琳",
+            "sourceRefs": [
+              "npg-tudor"
+            ],
+            "attestedAs": "Katherine Parr；16世纪末肖像"
+          },
+          {
+            "id": "w3",
+            "original": "Elizabeth",
+            "zh": "伊丽莎白",
+            "sourceRefs": [
+              "npg-tudor"
+            ],
+            "attestedAs": "Elizabeth of York；都铎王室组合肖像"
+          },
+          {
+            "id": "w4",
+            "original": "Mary",
+            "zh": "玛丽",
+            "sourceRefs": [
+              "npg-tudor"
+            ],
+            "attestedAs": "Mary I；1544年"
+          },
+          {
+            "id": "w5",
+            "original": "Margaret",
+            "zh": "玛格丽特",
+            "sourceRefs": [
+              "abbey-beaufort"
+            ],
+            "attestedAs": "Margaret Beaufort；都铎时期人物"
+          }
+        ]
+      },
+      "families": [
+        {
+          "id": "f0",
+          "forms": {
+            "generic": {
+              "original": "More",
+              "zh": "莫尔"
+            }
+          },
+          "sourceRefs": [
+            "npg-tudor"
+          ],
+          "attestedAs": "Thomas More；1527年原作"
+        },
+        {
+          "id": "f1",
+          "forms": {
+            "generic": {
+              "original": "Warham",
+              "zh": "沃勒姆"
+            }
+          },
+          "sourceRefs": [
+            "npg-tudor"
+          ],
+          "attestedAs": "William Warham；1527年原作"
+        },
+        {
+          "id": "f2",
+          "forms": {
+            "generic": {
+              "original": "Cranmer",
+              "zh": "克兰默"
+            }
+          },
+          "sourceRefs": [
+            "npg-tudor"
+          ],
+          "attestedAs": "Thomas Cranmer；1545–1546年"
+        },
+        {
+          "id": "f3",
+          "forms": {
+            "generic": {
+              "original": "Gresham",
+              "zh": "格雷沙姆"
+            }
+          },
+          "sourceRefs": [
+            "npg-tudor"
+          ],
+          "attestedAs": "Thomas Gresham；约1565年"
+        },
+        {
+          "id": "f4",
+          "forms": {
+            "generic": {
+              "original": "Sidney",
+              "zh": "锡德尼"
+            }
+          },
+          "sourceRefs": [
+            "npg-tudor"
+          ],
+          "attestedAs": "Philip Sidney；约1576年原作"
+        },
+        {
+          "id": "f5",
+          "forms": {
+            "generic": {
+              "original": "Seymour",
+              "zh": "西摩"
+            }
+          },
+          "sourceRefs": [
+            "npg-tudor"
+          ],
+          "attestedAs": "Jane Seymour；约1537年"
+        },
+        {
+          "id": "f6",
+          "forms": {
+            "generic": {
+              "original": "Howard",
+              "zh": "霍华德"
+            }
+          },
+          "sourceRefs": [
+            "npg-boleyn"
+          ],
+          "attestedAs": "Thomas Howard，第三代诺福克公爵；Anne Boleyn之舅，16世纪",
+          "lineage": {
+            "label": "霍华德家族",
+            "sourceRefs": [
+              "npg-boleyn"
+            ],
+            "evidence": "Thomas Howard，第三代诺福克公爵；Anne Boleyn之舅，16世纪"
+          }
+        },
+        {
+          "id": "f7",
+          "forms": {
+            "generic": {
+              "original": "Cromwell",
+              "zh": "克伦威尔"
+            }
+          },
+          "sourceRefs": [
+            "npg-tudor"
+          ],
+          "attestedAs": "Thomas Cromwell，埃塞克斯伯爵；以1532–1533年原作为本",
+          "lineage": {
+            "label": "克伦威尔家族",
+            "sourceRefs": [
+              "npg-tudor"
+            ],
+            "evidence": "Thomas Cromwell，埃塞克斯伯爵；以1532–1533年原作为本"
+          }
+        },
+        {
+          "id": "f8",
+          "forms": {
+            "generic": {
+              "original": "Wentworth",
+              "zh": "温特沃思"
+            }
+          },
+          "sourceRefs": [
+            "npg-tudor"
+          ],
+          "attestedAs": "Thomas Wentworth，第一代温特沃思男爵；约1547–1550年",
+          "lineage": {
+            "label": "温特沃思家族",
+            "sourceRefs": [
+              "npg-tudor"
+            ],
+            "evidence": "Thomas Wentworth，第一代温特沃思男爵；约1547–1550年"
+          }
+        }
+      ],
+      "roles": [
+        {
+          "id": "period",
+          "label": "时代姓名",
+          "familyIds": [
+            "f0",
+            "f1",
+            "f2",
+            "f3",
+            "f4",
+            "f5",
+            "f6",
+            "f7",
+            "f8"
+          ]
+        },
+        {
+          "id": "lineage",
+          "label": "家族姓氏",
+          "familyIds": [
+            "f6",
+            "f7",
+            "f8"
+          ]
+        }
+      ],
+      "sourceRefs": [
+        "abbey-beaufort",
+        "npg-boleyn",
+        "npg-tudor"
+      ]
+    },
+    {
+      "id": "gb-georgian-england",
+      "country": "gb",
+      "label": "乔治时代·英格兰（1714–1830）",
+      "period": {
+        "to": 1830,
+        "from": 1714
+      },
+      "region": "英格兰",
+      "namePattern": [
+        "given",
+        "family"
+      ],
+      "originalSeparator": " ",
+      "zhSeparator": "·",
+      "given": {
+        "male": [
+          {
+            "id": "m0",
+            "original": "William",
+            "zh": "威廉",
+            "sourceRefs": [
+              "npg-commons"
+            ],
+            "attestedAs": "1793–1794年下议院群像：William Pitt、Charles James Fox、George Canning、Thomas Erskine、Richard Brinsley Sheridan、John Russell"
+          },
+          {
+            "id": "m1",
+            "original": "Charles",
+            "zh": "查尔斯",
+            "sourceRefs": [
+              "npg-commons"
+            ],
+            "attestedAs": "1793–1794年下议院群像：William Pitt、Charles James Fox、George Canning、Thomas Erskine、Richard Brinsley Sheridan、John Russell"
+          },
+          {
+            "id": "m2",
+            "original": "George",
+            "zh": "乔治",
+            "sourceRefs": [
+              "npg-commons"
+            ],
+            "attestedAs": "1793–1794年下议院群像：William Pitt、Charles James Fox、George Canning、Thomas Erskine、Richard Brinsley Sheridan、John Russell"
+          },
+          {
+            "id": "m3",
+            "original": "Thomas",
+            "zh": "托马斯",
+            "sourceRefs": [
+              "npg-commons"
+            ],
+            "attestedAs": "1793–1794年下议院群像：William Pitt、Charles James Fox、George Canning、Thomas Erskine、Richard Brinsley Sheridan、John Russell"
+          },
+          {
+            "id": "m4",
+            "original": "Richard",
+            "zh": "理查德",
+            "sourceRefs": [
+              "npg-commons"
+            ],
+            "attestedAs": "1793–1794年下议院群像：William Pitt、Charles James Fox、George Canning、Thomas Erskine、Richard Brinsley Sheridan、John Russell"
+          },
+          {
+            "id": "m5",
+            "original": "John",
+            "zh": "约翰",
+            "sourceRefs": [
+              "npg-commons"
+            ],
+            "attestedAs": "1793–1794年下议院群像：William Pitt、Charles James Fox、George Canning、Thomas Erskine、Richard Brinsley Sheridan、John Russell"
+          }
+        ],
+        "female": [
+          {
+            "id": "w0",
+            "original": "Georgiana",
+            "zh": "乔治亚娜",
+            "sourceRefs": [
+              "npg-cavendish"
+            ],
+            "attestedAs": "Georgiana Cavendish；1757–1806"
+          },
+          {
+            "id": "w1",
+            "original": "Elizabeth",
+            "zh": "伊丽莎白",
+            "sourceRefs": [
+              "npg-cavendish"
+            ],
+            "attestedAs": "Elizabeth Foster；1759–1824，同馆藏目录所列"
+          },
+          {
+            "id": "w2",
+            "original": "Mary",
+            "zh": "玛丽",
+            "sourceRefs": [
+              "npg-wollstonecraft"
+            ],
+            "attestedAs": "Mary Wollstonecraft；1759–1797"
+          },
+          {
+            "id": "w3",
+            "original": "Frances",
+            "zh": "弗朗西丝",
+            "sourceRefs": [
+              "npg-burney"
+            ],
+            "attestedAs": "Frances Burney；1768–1778年日记"
+          },
+          {
+            "id": "w4",
+            "original": "Sarah",
+            "zh": "莎拉",
+            "sourceRefs": [
+              "npg-siddons"
+            ],
+            "attestedAs": "Sarah Siddons；1755–1831"
+          },
+          {
+            "id": "w5",
+            "original": "Charlotte",
+            "zh": "夏洛特",
+            "sourceRefs": [
+              "npg-charlotte"
+            ],
+            "attestedAs": "Charlotte；1761–1762年肖像"
+          }
+        ]
+      },
+      "families": [
+        {
+          "id": "f0",
+          "forms": {
+            "generic": {
+              "original": "Pitt",
+              "zh": "皮特"
+            }
+          },
+          "sourceRefs": [
+            "npg-commons"
+          ],
+          "attestedAs": "1793–1794年下议院群像人物姓氏"
+        },
+        {
+          "id": "f1",
+          "forms": {
+            "generic": {
+              "original": "Fox",
+              "zh": "福克斯"
+            }
+          },
+          "sourceRefs": [
+            "npg-commons"
+          ],
+          "attestedAs": "1793–1794年下议院群像人物姓氏"
+        },
+        {
+          "id": "f2",
+          "forms": {
+            "generic": {
+              "original": "Canning",
+              "zh": "坎宁"
+            }
+          },
+          "sourceRefs": [
+            "npg-commons"
+          ],
+          "attestedAs": "1793–1794年下议院群像人物姓氏"
+        },
+        {
+          "id": "f3",
+          "forms": {
+            "generic": {
+              "original": "Sheridan",
+              "zh": "谢里丹"
+            }
+          },
+          "sourceRefs": [
+            "npg-commons"
+          ],
+          "attestedAs": "1793–1794年下议院群像人物姓氏"
+        },
+        {
+          "id": "f4",
+          "forms": {
+            "generic": {
+              "original": "Burke",
+              "zh": "伯克"
+            }
+          },
+          "sourceRefs": [
+            "npg-commons"
+          ],
+          "attestedAs": "1793–1794年下议院群像人物姓氏"
+        },
+        {
+          "id": "f5",
+          "forms": {
+            "generic": {
+              "original": "Grey",
+              "zh": "格雷"
+            }
+          },
+          "sourceRefs": [
+            "npg-commons"
+          ],
+          "attestedAs": "1793–1794年下议院群像人物姓氏"
+        },
+        {
+          "id": "f6",
+          "forms": {
+            "generic": {
+              "original": "Cavendish",
+              "zh": "卡文迪什"
+            }
+          },
+          "sourceRefs": [
+            "npg-cavendish"
+          ],
+          "attestedAs": "Georgiana Cavendish，德文郡公爵夫人；1757–1806",
+          "lineage": {
+            "label": "卡文迪什家族",
+            "sourceRefs": [
+              "npg-cavendish"
+            ],
+            "evidence": "Georgiana Cavendish，德文郡公爵夫人；1757–1806"
+          }
+        },
+        {
+          "id": "f7",
+          "forms": {
+            "generic": {
+              "original": "Churchill",
+              "zh": "丘吉尔"
+            }
+          },
+          "sourceRefs": [
+            "npg-burney"
+          ],
+          "attestedAs": "John Churchill，第一代马尔伯勒公爵；1650–1722",
+          "lineage": {
+            "label": "丘吉尔家族",
+            "sourceRefs": [
+              "npg-burney"
+            ],
+            "evidence": "John Churchill，第一代马尔伯勒公爵；1650–1722"
+          }
+        },
+        {
+          "id": "f8",
+          "forms": {
+            "generic": {
+              "original": "Harley",
+              "zh": "哈利"
+            }
+          },
+          "sourceRefs": [
+            "npg-burney"
+          ],
+          "attestedAs": "Robert Harley，第一代牛津伯爵；1661–1724",
+          "lineage": {
+            "label": "哈利家族",
+            "sourceRefs": [
+              "npg-burney"
+            ],
+            "evidence": "Robert Harley，第一代牛津伯爵；1661–1724"
+          }
+        }
+      ],
+      "roles": [
+        {
+          "id": "period",
+          "label": "时代姓名",
+          "familyIds": [
+            "f0",
+            "f1",
+            "f2",
+            "f3",
+            "f4",
+            "f5",
+            "f6",
+            "f7",
+            "f8"
+          ]
+        },
+        {
+          "id": "lineage",
+          "label": "家族姓氏",
+          "familyIds": [
+            "f6",
+            "f7",
+            "f8"
+          ]
+        }
+      ],
+      "sourceRefs": [
+        "npg-burney",
+        "npg-cavendish",
+        "npg-charlotte",
+        "npg-commons",
+        "npg-siddons",
+        "npg-wollstonecraft"
+      ]
+    },
+    {
+      "id": "fr-louis-xiv",
+      "country": "fr",
+      "label": "路易十四时期·法国（1661–1715）",
+      "period": {
+        "to": 1715,
+        "from": 1661
+      },
+      "region": "法国宫廷与文艺圈",
+      "namePattern": [
+        "given",
+        "family"
+      ],
+      "originalSeparator": " ",
+      "zhSeparator": "·",
+      "given": {
+        "male": [
+          {
+            "id": "m0",
+            "original": "Louis",
+            "zh": "路易",
+            "sourceRefs": [
+              "versailles-louisxiv"
+            ],
+            "attestedAs": "Louis XIV与宫廷人物：Colbert、Le Nôtre、Hardouin-Mansart、Le Brun、Philippe d’Orléans"
+          },
+          {
+            "id": "m1",
+            "original": "Jean-Baptiste",
+            "zh": "让-巴蒂斯特",
+            "sourceRefs": [
+              "versailles-louisxiv"
+            ],
+            "attestedAs": "Louis XIV与宫廷人物：Colbert、Le Nôtre、Hardouin-Mansart、Le Brun、Philippe d’Orléans"
+          },
+          {
+            "id": "m2",
+            "original": "André",
+            "zh": "安德烈",
+            "sourceRefs": [
+              "versailles-louisxiv"
+            ],
+            "attestedAs": "Louis XIV与宫廷人物：Colbert、Le Nôtre、Hardouin-Mansart、Le Brun、Philippe d’Orléans"
+          },
+          {
+            "id": "m3",
+            "original": "Jules",
+            "zh": "朱尔",
+            "sourceRefs": [
+              "versailles-louisxiv"
+            ],
+            "attestedAs": "Louis XIV与宫廷人物：Colbert、Le Nôtre、Hardouin-Mansart、Le Brun、Philippe d’Orléans"
+          },
+          {
+            "id": "m4",
+            "original": "Charles",
+            "zh": "夏尔",
+            "sourceRefs": [
+              "versailles-louisxiv"
+            ],
+            "attestedAs": "Louis XIV与宫廷人物：Colbert、Le Nôtre、Hardouin-Mansart、Le Brun、Philippe d’Orléans"
+          },
+          {
+            "id": "m5",
+            "original": "Philippe",
+            "zh": "菲利普",
+            "sourceRefs": [
+              "versailles-louisxiv"
+            ],
+            "attestedAs": "Louis XIV与宫廷人物：Colbert、Le Nôtre、Hardouin-Mansart、Le Brun、Philippe d’Orléans"
+          }
+        ],
+        "female": [
+          {
+            "id": "w0",
+            "original": "Anne",
+            "zh": "安妮",
+            "sourceRefs": [
+              "versailles-louisxiv"
+            ],
+            "attestedAs": "Anne d’Autriche；1601–1666"
+          },
+          {
+            "id": "w1",
+            "original": "Marie",
+            "zh": "玛丽",
+            "sourceRefs": [
+              "versailles-sevigne"
+            ],
+            "attestedAs": "Marie de Rabutin-Chantal；1626–1696"
+          },
+          {
+            "id": "w2",
+            "original": "Françoise",
+            "zh": "弗朗索瓦丝",
+            "sourceRefs": [
+              "versailles-montespan"
+            ],
+            "attestedAs": "Françoise Athénaïs de Rochechouart de Mortemart；1640–1707"
+          },
+          {
+            "id": "w3",
+            "original": "Louise",
+            "zh": "路易丝",
+            "sourceRefs": [
+              "versailles-valliere"
+            ],
+            "attestedAs": "Louise de La Baume Le Blanc；1644–1710"
+          },
+          {
+            "id": "w4",
+            "original": "Élisabeth",
+            "zh": "伊丽莎白",
+            "sourceRefs": [
+              "versailles-pal"
+            ],
+            "attestedAs": "Élisabeth-Charlotte de Bavière；1652–1722"
+          },
+          {
+            "id": "w5",
+            "original": "Henriette",
+            "zh": "昂丽埃特",
+            "sourceRefs": [
+              "versailles-valliere"
+            ],
+            "attestedAs": "Henriette d’Angleterre；1644–1670"
+          }
+        ]
+      },
+      "families": [
+        {
+          "id": "f0",
+          "forms": {
+            "generic": {
+              "original": "Le Nôtre",
+              "zh": "勒诺特"
+            }
+          },
+          "sourceRefs": [
+            "versailles-louisxiv"
+          ],
+          "attestedAs": "17世纪宫廷文艺人物"
+        },
+        {
+          "id": "f1",
+          "forms": {
+            "generic": {
+              "original": "Le Vau",
+              "zh": "勒沃"
+            }
+          },
+          "sourceRefs": [
+            "versailles-louisxiv"
+          ],
+          "attestedAs": "17世纪宫廷文艺人物"
+        },
+        {
+          "id": "f2",
+          "forms": {
+            "generic": {
+              "original": "Hardouin-Mansart",
+              "zh": "阿尔杜安-芒萨尔"
+            }
+          },
+          "sourceRefs": [
+            "versailles-louisxiv"
+          ],
+          "attestedAs": "17世纪宫廷文艺人物"
+        },
+        {
+          "id": "f3",
+          "forms": {
+            "generic": {
+              "original": "Le Brun",
+              "zh": "勒布伦"
+            }
+          },
+          "sourceRefs": [
+            "versailles-louisxiv"
+          ],
+          "attestedAs": "17世纪宫廷文艺人物"
+        },
+        {
+          "id": "f4",
+          "forms": {
+            "generic": {
+              "original": "Poquelin",
+              "zh": "波克兰"
+            }
+          },
+          "sourceRefs": [
+            "versailles-montespan"
+          ],
+          "attestedAs": "Jean-Baptiste Poquelin（1622–1673）、Philippe Quinault（1635–1688）"
+        },
+        {
+          "id": "f5",
+          "forms": {
+            "generic": {
+              "original": "Quinault",
+              "zh": "基诺"
+            }
+          },
+          "sourceRefs": [
+            "versailles-montespan"
+          ],
+          "attestedAs": "Jean-Baptiste Poquelin（1622–1673）、Philippe Quinault（1635–1688）"
+        },
+        {
+          "id": "f6",
+          "forms": {
+            "generic": {
+              "original": "de Rochechouart de Mortemart",
+              "zh": "德·罗什舒阿尔·德·莫特马尔"
+            }
+          },
+          "sourceRefs": [
+            "versailles-montespan"
+          ],
+          "attestedAs": "Françoise Athénaïs的姓名成分；蒙特斯潘侯爵夫人头衔不拼入姓",
+          "lineage": {
+            "label": "德·罗什舒阿尔·德·莫特马尔家族",
+            "sourceRefs": [
+              "versailles-montespan"
+            ],
+            "evidence": "Françoise Athénaïs的姓名成分；蒙特斯潘侯爵夫人头衔不拼入姓"
+          }
+        },
+        {
+          "id": "f7",
+          "forms": {
+            "generic": {
+              "original": "de La Baume Le Blanc",
+              "zh": "德·拉博姆·勒布朗"
+            }
+          },
+          "sourceRefs": [
+            "versailles-valliere"
+          ],
+          "attestedAs": "Louise的本名姓氏；La Vallière/Vaujours头衔不拼入姓",
+          "lineage": {
+            "label": "德·拉博姆·勒布朗家族",
+            "sourceRefs": [
+              "versailles-valliere"
+            ],
+            "evidence": "Louise的本名姓氏；La Vallière/Vaujours头衔不拼入姓"
+          }
+        },
+        {
+          "id": "f8",
+          "forms": {
+            "generic": {
+              "original": "de Noailles",
+              "zh": "德·诺阿耶"
+            }
+          },
+          "sourceRefs": [
+            "versailles-noailles"
+          ],
+          "attestedAs": "Adrien-Maurice de Noailles；1678–1766，诺阿耶公爵",
+          "lineage": {
+            "label": "德·诺阿耶家族",
+            "sourceRefs": [
+              "versailles-noailles"
+            ],
+            "evidence": "Adrien-Maurice de Noailles；1678–1766，诺阿耶公爵"
+          }
+        }
+      ],
+      "roles": [
+        {
+          "id": "period",
+          "label": "时代姓名",
+          "familyIds": [
+            "f0",
+            "f1",
+            "f2",
+            "f3",
+            "f4",
+            "f5",
+            "f6",
+            "f7",
+            "f8"
+          ]
+        },
+        {
+          "id": "lineage",
+          "label": "家族姓氏",
+          "familyIds": [
+            "f6",
+            "f7",
+            "f8"
+          ]
+        }
+      ],
+      "sourceRefs": [
+        "versailles-louisxiv",
+        "versailles-montespan",
+        "versailles-noailles",
+        "versailles-pal",
+        "versailles-sevigne",
+        "versailles-valliere"
+      ]
+    },
+    {
+      "id": "fr-eighteenth-century",
+      "country": "fr",
+      "label": "18世纪·法国（1715–1789）",
+      "period": {
+        "to": 1789,
+        "from": 1715
+      },
+      "region": "法国宫廷与文艺圈",
+      "namePattern": [
+        "given",
+        "family"
+      ],
+      "originalSeparator": " ",
+      "zhSeparator": "·",
+      "given": {
+        "male": [
+          {
+            "id": "m0",
+            "original": "François",
+            "zh": "弗朗索瓦",
+            "sourceRefs": [
+              "nga-fragonard"
+            ],
+            "attestedAs": "François Boucher；1703–1770"
+          },
+          {
+            "id": "m1",
+            "original": "Jean-Honoré",
+            "zh": "让-奥诺雷",
+            "sourceRefs": [
+              "nga-fragonard"
+            ],
+            "attestedAs": "Jean Honoré Fragonard；1732–1806"
+          },
+          {
+            "id": "m2",
+            "original": "Jean-Baptiste",
+            "zh": "让-巴蒂斯特",
+            "sourceRefs": [
+              "cognacq-artists"
+            ],
+            "attestedAs": "Jean-Baptiste Greuze；1725–1805"
+          },
+          {
+            "id": "m3",
+            "original": "Jean-Marc",
+            "zh": "让-马克",
+            "sourceRefs": [
+              "versailles-rooms"
+            ],
+            "attestedAs": "Jean-Marc Nattier；1685–1766"
+          },
+          {
+            "id": "m4",
+            "original": "Louis-Michel",
+            "zh": "路易-米歇尔",
+            "sourceRefs": [
+              "versailles-rooms"
+            ],
+            "attestedAs": "Louis-Michel Van Loo；1707–1771"
+          },
+          {
+            "id": "m5",
+            "original": "Jules",
+            "zh": "朱尔",
+            "sourceRefs": [
+              "versailles-polignac"
+            ],
+            "attestedAs": "Jules de Polignac；1767年结婚"
+          }
+        ],
+        "female": [
+          {
+            "id": "w0",
+            "original": "Jeanne",
+            "zh": "让娜",
+            "sourceRefs": [
+              "versailles-campan"
+            ],
+            "attestedAs": "Jeanne Louise Henriette Genet；1752–1822"
+          },
+          {
+            "id": "w1",
+            "original": "Élisabeth",
+            "zh": "伊丽莎白",
+            "sourceRefs": [
+              "versailles-mesdames"
+            ],
+            "attestedAs": "路易十五的女儿，18世纪宫廷姓名"
+          },
+          {
+            "id": "w2",
+            "original": "Henriette",
+            "zh": "昂丽埃特",
+            "sourceRefs": [
+              "versailles-mesdames"
+            ],
+            "attestedAs": "路易十五的女儿，18世纪宫廷姓名"
+          },
+          {
+            "id": "w3",
+            "original": "Adélaïde",
+            "zh": "阿德莱德",
+            "sourceRefs": [
+              "versailles-mesdames"
+            ],
+            "attestedAs": "路易十五的女儿，18世纪宫廷姓名"
+          },
+          {
+            "id": "w4",
+            "original": "Victoire",
+            "zh": "维克图瓦",
+            "sourceRefs": [
+              "versailles-mesdames"
+            ],
+            "attestedAs": "路易十五的女儿，18世纪宫廷姓名"
+          },
+          {
+            "id": "w5",
+            "original": "Sophie",
+            "zh": "索菲",
+            "sourceRefs": [
+              "versailles-mesdames"
+            ],
+            "attestedAs": "路易十五的女儿，18世纪宫廷姓名"
+          },
+          {
+            "id": "w6",
+            "original": "Thérèse",
+            "zh": "泰蕾丝",
+            "sourceRefs": [
+              "versailles-mesdames"
+            ],
+            "attestedAs": "路易十五的女儿，18世纪宫廷姓名"
+          },
+          {
+            "id": "w7",
+            "original": "Louise",
+            "zh": "路易丝",
+            "sourceRefs": [
+              "versailles-mesdames"
+            ],
+            "attestedAs": "路易十五的女儿，18世纪宫廷姓名"
+          }
+        ]
+      },
+      "families": [
+        {
+          "id": "f0",
+          "forms": {
+            "generic": {
+              "original": "Campan",
+              "zh": "康庞"
+            }
+          },
+          "sourceRefs": [
+            "versailles-campan"
+          ],
+          "attestedAs": "Jeanne-Louise-Henriette Campan；1752–1822"
+        },
+        {
+          "id": "f1",
+          "forms": {
+            "generic": {
+              "original": "Genet",
+              "zh": "热内"
+            }
+          },
+          "sourceRefs": [
+            "versailles-campan"
+          ],
+          "attestedAs": "Jeanne Louise Henriette Genet；出生姓"
+        },
+        {
+          "id": "f2",
+          "forms": {
+            "generic": {
+              "original": "Boucher",
+              "zh": "布歇"
+            }
+          },
+          "sourceRefs": [
+            "nga-fragonard"
+          ],
+          "attestedAs": "François Boucher；1703–1770"
+        },
+        {
+          "id": "f3",
+          "forms": {
+            "generic": {
+              "original": "Fragonard",
+              "zh": "弗拉戈纳尔"
+            }
+          },
+          "sourceRefs": [
+            "nga-fragonard"
+          ],
+          "attestedAs": "Jean Honoré Fragonard；1732–1806"
+        },
+        {
+          "id": "f4",
+          "forms": {
+            "generic": {
+              "original": "Greuze",
+              "zh": "格勒兹"
+            }
+          },
+          "sourceRefs": [
+            "cognacq-artists"
+          ],
+          "attestedAs": "Jean-Baptiste Greuze；1725–1805"
+        },
+        {
+          "id": "f5",
+          "forms": {
+            "generic": {
+              "original": "Nattier",
+              "zh": "纳蒂埃"
+            }
+          },
+          "sourceRefs": [
+            "versailles-rooms"
+          ],
+          "attestedAs": "Jean-Marc Nattier；1685–1766"
+        },
+        {
+          "id": "f6",
+          "forms": {
+            "generic": {
+              "original": "de Polignac",
+              "zh": "德·波利尼亚克"
+            }
+          },
+          "sourceRefs": [
+            "versailles-polignac"
+          ],
+          "attestedAs": "Jules de Polignac；1767年以伯爵身份结婚",
+          "lineage": {
+            "label": "德·波利尼亚克家族",
+            "sourceRefs": [
+              "versailles-polignac"
+            ],
+            "evidence": "Jules de Polignac；1767年以伯爵身份结婚"
+          }
+        },
+        {
+          "id": "f7",
+          "forms": {
+            "generic": {
+              "original": "de Noailles",
+              "zh": "德·诺阿耶"
+            }
+          },
+          "sourceRefs": [
+            "versailles-noailles"
+          ],
+          "attestedAs": "Adrien-Maurice de Noailles；1678–1766，诺阿耶公爵",
+          "lineage": {
+            "label": "德·诺阿耶家族",
+            "sourceRefs": [
+              "versailles-noailles"
+            ],
+            "evidence": "Adrien-Maurice de Noailles；1678–1766，诺阿耶公爵"
+          }
+        },
+        {
+          "id": "f8",
+          "forms": {
+            "generic": {
+              "original": "de Rohan-Guéméné",
+              "zh": "德·罗昂-盖梅内"
+            }
+          },
+          "sourceRefs": [
+            "versailles-rohan"
+          ],
+          "attestedAs": "Louis René Edouard，Prince de Rohan-Guéméné；1734–1803",
+          "lineage": {
+            "label": "德·罗昂-盖梅内家族",
+            "sourceRefs": [
+              "versailles-rohan"
+            ],
+            "evidence": "Louis René Edouard，Prince de Rohan-Guéméné；1734–1803"
+          }
+        }
+      ],
+      "roles": [
+        {
+          "id": "period",
+          "label": "时代姓名",
+          "familyIds": [
+            "f0",
+            "f1",
+            "f2",
+            "f3",
+            "f4",
+            "f5",
+            "f6",
+            "f7",
+            "f8"
+          ]
+        },
+        {
+          "id": "lineage",
+          "label": "家族姓氏",
+          "familyIds": [
+            "f6",
+            "f7",
+            "f8"
+          ]
+        }
+      ],
+      "sourceRefs": [
+        "cognacq-artists",
+        "nga-fragonard",
+        "versailles-campan",
+        "versailles-mesdames",
+        "versailles-noailles",
+        "versailles-polignac",
+        "versailles-rohan",
+        "versailles-rooms"
+      ]
+    },
+    {
+      "id": "de-weimar-classic",
+      "country": "de",
+      "label": "魏玛文化圈（1775–1832）",
+      "period": {
+        "to": 1832,
+        "from": 1775
+      },
+      "region": "魏玛与鲁多尔施塔特",
+      "namePattern": [
+        "given",
+        "family"
+      ],
+      "originalSeparator": " ",
+      "zhSeparator": "·",
+      "given": {
+        "male": [
+          {
+            "id": "m0",
+            "original": "Johann",
+            "zh": "约翰",
+            "sourceRefs": [
+              "weimar-wieland"
+            ],
+            "attestedAs": "Johann Wolfgang von Goethe；1806年前后茶会"
+          },
+          {
+            "id": "m1",
+            "original": "Friedrich",
+            "zh": "弗里德里希",
+            "sourceRefs": [
+              "weimar-wieland"
+            ],
+            "attestedAs": "Friedrich Justin Bertuch；1747–1822"
+          },
+          {
+            "id": "m2",
+            "original": "Christoph",
+            "zh": "克里斯托夫",
+            "sourceRefs": [
+              "weimar-wieland"
+            ],
+            "attestedAs": "Christoph Martin Wieland；1808年肖像"
+          },
+          {
+            "id": "m3",
+            "original": "Carl",
+            "zh": "卡尔",
+            "sourceRefs": [
+              "weimar-wieland"
+            ],
+            "attestedAs": "Carl Ludwig Fernow；1763–1808"
+          },
+          {
+            "id": "m4",
+            "original": "Ernst",
+            "zh": "恩斯特",
+            "sourceRefs": [
+              "weimar-schardt"
+            ],
+            "attestedAs": "Ernst von Schardt；Charlotte之弟，18世纪"
+          },
+          {
+            "id": "m5",
+            "original": "Josias",
+            "zh": "约西亚斯",
+            "sourceRefs": [
+              "weimar-stein"
+            ],
+            "attestedAs": "Josias von Stein；1735–1793"
+          }
+        ],
+        "female": [
+          {
+            "id": "w0",
+            "original": "Charlotte",
+            "zh": "夏洛特",
+            "sourceRefs": [
+              "weimar-stein"
+            ],
+            "attestedAs": "Charlotte von Stein；1742–1827"
+          },
+          {
+            "id": "w1",
+            "original": "Caroline",
+            "zh": "卡罗琳",
+            "sourceRefs": [
+              "rudolstadt-lengefeld"
+            ],
+            "attestedAs": "Caroline von Beulwitz；1763–1847"
+          },
+          {
+            "id": "w2",
+            "original": "Christiane",
+            "zh": "克里斯蒂安妮",
+            "sourceRefs": [
+              "weimar-women"
+            ],
+            "attestedAs": "Christiane von Goethe；1765–1816"
+          },
+          {
+            "id": "w3",
+            "original": "Johanna",
+            "zh": "约翰娜",
+            "sourceRefs": [
+              "weimar-wieland"
+            ],
+            "attestedAs": "Johanna Schopenhauer；1806年肖像"
+          },
+          {
+            "id": "w4",
+            "original": "Adele",
+            "zh": "阿黛勒",
+            "sourceRefs": [
+              "weimar-wieland"
+            ],
+            "attestedAs": "Adele Schopenhauer；1806年肖像"
+          },
+          {
+            "id": "w5",
+            "original": "Amalie",
+            "zh": "阿玛莉",
+            "sourceRefs": [
+              "weimar-schardt"
+            ],
+            "attestedAs": "Amalie von Schardt；Charlotte之妹，18世纪"
+          },
+          {
+            "id": "w6",
+            "original": "Ottilie",
+            "zh": "奥蒂莉",
+            "sourceRefs": [
+              "weimar-women"
+            ],
+            "attestedAs": "Ottilie von Goethe；1796–1872"
+          }
+        ]
+      },
+      "families": [
+        {
+          "id": "f0",
+          "forms": {
+            "generic": {
+              "original": "Bertuch",
+              "zh": "贝尔图赫"
+            }
+          },
+          "sourceRefs": [
+            "weimar-wieland"
+          ],
+          "attestedAs": "Friedrich Justin Bertuch；1747–1822"
+        },
+        {
+          "id": "f1",
+          "forms": {
+            "generic": {
+              "original": "Wieland",
+              "zh": "维兰德"
+            }
+          },
+          "sourceRefs": [
+            "weimar-wieland"
+          ],
+          "attestedAs": "Christoph Martin Wieland；1733–1813"
+        },
+        {
+          "id": "f2",
+          "forms": {
+            "generic": {
+              "original": "Fernow",
+              "zh": "费尔诺"
+            }
+          },
+          "sourceRefs": [
+            "weimar-wieland"
+          ],
+          "attestedAs": "Carl Ludwig Fernow；1763–1808"
+        },
+        {
+          "id": "f3",
+          "forms": {
+            "generic": {
+              "original": "Schopenhauer",
+              "zh": "叔本华"
+            }
+          },
+          "sourceRefs": [
+            "weimar-wieland"
+          ],
+          "attestedAs": "Johanna Schopenhauer；1766–1838"
+        },
+        {
+          "id": "f4",
+          "forms": {
+            "generic": {
+              "original": "Bardua",
+              "zh": "巴尔杜阿"
+            }
+          },
+          "sourceRefs": [
+            "weimar-wieland"
+          ],
+          "attestedAs": "Caroline Bardua；1781–1864"
+        },
+        {
+          "id": "f5",
+          "forms": {
+            "generic": {
+              "original": "Falk",
+              "zh": "法尔克"
+            }
+          },
+          "sourceRefs": [
+            "weimar-wieland"
+          ],
+          "attestedAs": "Johannes Daniel Falk；1768–1826"
+        },
+        {
+          "id": "f6",
+          "forms": {
+            "generic": {
+              "original": "von Stein",
+              "zh": "冯·施泰因"
+            }
+          },
+          "sourceRefs": [
+            "weimar-stein",
+            "weimar-kochberg"
+          ],
+          "attestedAs": "Charlotte与Josias von Stein家族；18世纪魏玛宫廷",
+          "lineage": {
+            "label": "冯·施泰因家族",
+            "sourceRefs": [
+              "weimar-stein",
+              "weimar-kochberg"
+            ],
+            "evidence": "Charlotte与Josias von Stein家族；18世纪魏玛宫廷"
+          }
+        },
+        {
+          "id": "f7",
+          "forms": {
+            "generic": {
+              "original": "von Schardt",
+              "zh": "冯·沙尔特"
+            }
+          },
+          "sourceRefs": [
+            "weimar-stein",
+            "weimar-luise"
+          ],
+          "attestedAs": "Charlotte von Schardt及父Johann Wilhelm Christian von Schardt",
+          "lineage": {
+            "label": "冯·沙尔特家族",
+            "sourceRefs": [
+              "weimar-stein",
+              "weimar-luise"
+            ],
+            "evidence": "Charlotte von Schardt及父Johann Wilhelm Christian von Schardt"
+          }
+        },
+        {
+          "id": "f8",
+          "forms": {
+            "generic": {
+              "original": "von Lengefeld",
+              "zh": "冯·伦格费尔德"
+            }
+          },
+          "sourceRefs": [
+            "rudolstadt-lengefeld"
+          ],
+          "attestedAs": "馆方明确为鲁多尔施塔特长期贵族家族；Charlotte与Caroline",
+          "lineage": {
+            "label": "冯·伦格费尔德家族",
+            "sourceRefs": [
+              "rudolstadt-lengefeld"
+            ],
+            "evidence": "馆方明确为鲁多尔施塔特长期贵族家族；Charlotte与Caroline"
+          }
+        }
+      ],
+      "roles": [
+        {
+          "id": "period",
+          "label": "时代姓名",
+          "familyIds": [
+            "f0",
+            "f1",
+            "f2",
+            "f3",
+            "f4",
+            "f5",
+            "f6",
+            "f7",
+            "f8"
+          ]
+        },
+        {
+          "id": "lineage",
+          "label": "家族姓氏",
+          "familyIds": [
+            "f6",
+            "f7",
+            "f8"
+          ]
+        }
+      ],
+      "sourceRefs": [
+        "rudolstadt-lengefeld",
+        "weimar-kochberg",
+        "weimar-luise",
+        "weimar-schardt",
+        "weimar-stein",
+        "weimar-wieland",
+        "weimar-women"
+      ]
+    },
+    {
+      "id": "de-prussia-nineteenth",
+      "country": "de",
+      "label": "普鲁士（1800–1870）",
+      "period": {
+        "to": 1870,
+        "from": 1800
+      },
+      "region": "普鲁士",
+      "namePattern": [
+        "given",
+        "family"
+      ],
+      "originalSeparator": " ",
+      "zhSeparator": "·",
+      "given": {
+        "male": [
+          {
+            "id": "m0",
+            "original": "Otto",
+            "zh": "奥托",
+            "sourceRefs": [
+              "dhm-bismarck"
+            ],
+            "attestedAs": "Otto von Bismarck及家人、Friedrich Wilhelm IV；19世纪普鲁士"
+          },
+          {
+            "id": "m1",
+            "original": "Ferdinand",
+            "zh": "费迪南德",
+            "sourceRefs": [
+              "dhm-bismarck"
+            ],
+            "attestedAs": "Otto von Bismarck及家人、Friedrich Wilhelm IV；19世纪普鲁士"
+          },
+          {
+            "id": "m2",
+            "original": "Bernhard",
+            "zh": "伯恩哈德",
+            "sourceRefs": [
+              "dhm-bismarck"
+            ],
+            "attestedAs": "Otto von Bismarck及家人、Friedrich Wilhelm IV；19世纪普鲁士"
+          },
+          {
+            "id": "m3",
+            "original": "Herbert",
+            "zh": "赫伯特",
+            "sourceRefs": [
+              "dhm-bismarck"
+            ],
+            "attestedAs": "Otto von Bismarck及家人、Friedrich Wilhelm IV；19世纪普鲁士"
+          },
+          {
+            "id": "m4",
+            "original": "Wilhelm",
+            "zh": "威廉",
+            "sourceRefs": [
+              "dhm-bismarck"
+            ],
+            "attestedAs": "Otto von Bismarck及家人、Friedrich Wilhelm IV；19世纪普鲁士"
+          },
+          {
+            "id": "m5",
+            "original": "Friedrich",
+            "zh": "弗里德里希",
+            "sourceRefs": [
+              "dhm-bismarck"
+            ],
+            "attestedAs": "Otto von Bismarck及家人、Friedrich Wilhelm IV；19世纪普鲁士"
+          }
+        ],
+        "female": [
+          {
+            "id": "w0",
+            "original": "Johanna",
+            "zh": "约翰娜",
+            "sourceRefs": [
+              "dhm-bismarck"
+            ],
+            "attestedAs": "Bismarck家人：Johanna von Puttkamer、Wilhelmine Luise Mencken、Malwine与Marie"
+          },
+          {
+            "id": "w1",
+            "original": "Wilhelmine",
+            "zh": "威廉明娜",
+            "sourceRefs": [
+              "dhm-bismarck"
+            ],
+            "attestedAs": "Bismarck家人：Johanna von Puttkamer、Wilhelmine Luise Mencken、Malwine与Marie"
+          },
+          {
+            "id": "w2",
+            "original": "Luise",
+            "zh": "路易丝",
+            "sourceRefs": [
+              "dhm-bismarck"
+            ],
+            "attestedAs": "Bismarck家人：Johanna von Puttkamer、Wilhelmine Luise Mencken、Malwine与Marie"
+          },
+          {
+            "id": "w3",
+            "original": "Malwine",
+            "zh": "玛尔维娜",
+            "sourceRefs": [
+              "dhm-bismarck"
+            ],
+            "attestedAs": "Bismarck家人：Johanna von Puttkamer、Wilhelmine Luise Mencken、Malwine与Marie"
+          },
+          {
+            "id": "w4",
+            "original": "Marie",
+            "zh": "玛丽",
+            "sourceRefs": [
+              "dhm-bismarck"
+            ],
+            "attestedAs": "Bismarck家人：Johanna von Puttkamer、Wilhelmine Luise Mencken、Malwine与Marie"
+          },
+          {
+            "id": "w5",
+            "original": "Fanny",
+            "zh": "范妮",
+            "sourceRefs": [
+              "mendelssohn-hensel"
+            ],
+            "attestedAs": "Fanny Hensel；1805–1847"
+          },
+          {
+            "id": "w6",
+            "original": "Henriette",
+            "zh": "亨丽埃特",
+            "sourceRefs": [
+              "mendelssohn-hensel"
+            ],
+            "attestedAs": "Henriette Mendelssohn；1775–1831，Hensel家族材料"
+          }
+        ]
+      },
+      "families": [
+        {
+          "id": "f0",
+          "forms": {
+            "generic": {
+              "original": "Schadow",
+              "zh": "沙多"
+            }
+          },
+          "sourceRefs": [
+            "smb-sculpture"
+          ],
+          "attestedAs": "Johann Gottfried Schadow；1764–1850"
+        },
+        {
+          "id": "f1",
+          "forms": {
+            "generic": {
+              "original": "Rauch",
+              "zh": "劳赫"
+            }
+          },
+          "sourceRefs": [
+            "smb-sculpture"
+          ],
+          "attestedAs": "Christian Daniel Rauch；1777–1857"
+        },
+        {
+          "id": "f2",
+          "forms": {
+            "generic": {
+              "original": "Menzel",
+              "zh": "门采尔"
+            }
+          },
+          "sourceRefs": [
+            "smb-menzel"
+          ],
+          "attestedAs": "Adolph Menzel；1815–1905，获封贵族前原姓"
+        },
+        {
+          "id": "f3",
+          "forms": {
+            "generic": {
+              "original": "Fontane",
+              "zh": "冯塔纳"
+            }
+          },
+          "sourceRefs": [
+            "dhm-fontane"
+          ],
+          "attestedAs": "Theodor Fontane；1819–1898"
+        },
+        {
+          "id": "f4",
+          "forms": {
+            "generic": {
+              "original": "Hensel",
+              "zh": "亨泽尔"
+            }
+          },
+          "sourceRefs": [
+            "mendelssohn-hensel"
+          ],
+          "attestedAs": "Fanny Hensel；1805–1847"
+        },
+        {
+          "id": "f5",
+          "forms": {
+            "generic": {
+              "original": "Mendelssohn",
+              "zh": "门德尔松"
+            }
+          },
+          "sourceRefs": [
+            "mendelssohn-hensel"
+          ],
+          "attestedAs": "Henriette Mendelssohn；1775–1831"
+        },
+        {
+          "id": "f6",
+          "forms": {
+            "generic": {
+              "original": "von Bismarck",
+              "zh": "冯·俾斯麦"
+            }
+          },
+          "sourceRefs": [
+            "dhm-bismarck"
+          ],
+          "attestedAs": "Otto von Bismarck与Ferdinand家族；19世纪普鲁士地主贵族",
+          "lineage": {
+            "label": "冯·俾斯麦家族",
+            "sourceRefs": [
+              "dhm-bismarck"
+            ],
+            "evidence": "Otto von Bismarck与Ferdinand家族；19世纪普鲁士地主贵族"
+          }
+        },
+        {
+          "id": "f7",
+          "forms": {
+            "generic": {
+              "original": "von Puttkamer",
+              "zh": "冯·普特卡默"
+            }
+          },
+          "sourceRefs": [
+            "dhm-bismarck",
+            "db-puttkamer"
+          ],
+          "attestedAs": "Johanna von Puttkamer；1824–1894，与Bismarck1847年结婚",
+          "lineage": {
+            "label": "冯·普特卡默家族",
+            "sourceRefs": [
+              "dhm-bismarck",
+              "db-puttkamer"
+            ],
+            "evidence": "Johanna von Puttkamer；1824–1894，与Bismarck1847年结婚"
+          }
+        },
+        {
+          "id": "f8",
+          "forms": {
+            "generic": {
+              "original": "von Humboldt",
+              "zh": "冯·洪堡"
+            }
+          },
+          "sourceRefs": [
+            "db-humboldt"
+          ],
+          "attestedAs": "Humboldt家族1738年获贵族身份，Alexander与Wilhelm",
+          "lineage": {
+            "label": "冯·洪堡家族",
+            "sourceRefs": [
+              "db-humboldt"
+            ],
+            "evidence": "Humboldt家族1738年获贵族身份，Alexander与Wilhelm"
+          }
+        }
+      ],
+      "roles": [
+        {
+          "id": "period",
+          "label": "时代姓名",
+          "familyIds": [
+            "f0",
+            "f1",
+            "f2",
+            "f3",
+            "f4",
+            "f5",
+            "f6",
+            "f7",
+            "f8"
+          ]
+        },
+        {
+          "id": "lineage",
+          "label": "家族姓氏",
+          "familyIds": [
+            "f6",
+            "f7",
+            "f8"
+          ]
+        }
+      ],
+      "sourceRefs": [
+        "db-humboldt",
+        "db-puttkamer",
+        "dhm-bismarck",
+        "dhm-fontane",
+        "mendelssohn-hensel",
+        "smb-menzel",
+        "smb-sculpture"
+      ]
+    },
+    {
+      "id": "ru-imperial-18",
+      "country": "ru",
+      "label": "帝俄十八世纪（1721–1800）",
+      "period": {
+        "to": 1800,
+        "from": 1721
+      },
+      "region": "俄罗斯帝国",
+      "namePattern": [
+        "given",
+        "patronymic",
+        "family"
+      ],
+      "originalSeparator": " ",
+      "zhSeparator": "·",
+      "given": {
+        "male": [
+          {
+            "id": "m0",
+            "original": "Александр",
+            "zh": "亚历山大",
+            "sourceRefs": [
+              "ru-lanskoy"
+            ],
+            "attestedAs": "Александр Дмитриевич Ланской；1758–1784"
+          },
+          {
+            "id": "m1",
+            "original": "Дмитрий",
+            "zh": "德米特里",
+            "sourceRefs": [
+              "ru-levitsky"
+            ],
+            "attestedAs": "Дмитрий Левицкий；1735–1822"
+          },
+          {
+            "id": "m2",
+            "original": "Николай",
+            "zh": "尼古拉",
+            "sourceRefs": [
+              "ru-yusupov18"
+            ],
+            "attestedAs": "Николай Борисович Юсупов；1750–1831"
+          },
+          {
+            "id": "m3",
+            "original": "Борис",
+            "zh": "鲍里斯",
+            "sourceRefs": [
+              "ru-yusupov18"
+            ],
+            "attestedAs": "Борис Григорьевич Юсупов；1695–1759"
+          },
+          {
+            "id": "m4",
+            "original": "Фёдор",
+            "zh": "费奥多尔",
+            "sourceRefs": [
+              "ru-golitsyn18"
+            ],
+            "attestedAs": "Фёдор Николаевич Голицын；1751–1827"
+          },
+          {
+            "id": "m5",
+            "original": "Иван",
+            "zh": "伊万",
+            "sourceRefs": [
+              "ru-shuvalov"
+            ],
+            "attestedAs": "Иван Иванович Шувалов；1727–1797"
+          }
+        ],
+        "female": [
+          {
+            "id": "w0",
+            "original": "Екатерина",
+            "zh": "叶卡捷琳娜",
+            "sourceRefs": [
+              "ru-smolny"
+            ],
+            "attestedAs": "Екатерина Хрущова/Хованская、Глафира Алымова、Наталья Борщова、Александра Левшина；1772–1776年肖像"
+          },
+          {
+            "id": "w1",
+            "original": "Глафира",
+            "zh": "格拉菲拉",
+            "sourceRefs": [
+              "ru-smolny"
+            ],
+            "attestedAs": "Екатерина Хрущова/Хованская、Глафира Алымова、Наталья Борщова、Александра Левшина；1772–1776年肖像"
+          },
+          {
+            "id": "w2",
+            "original": "Наталья",
+            "zh": "纳塔莉娅",
+            "sourceRefs": [
+              "ru-smolny"
+            ],
+            "attestedAs": "Екатерина Хрущова/Хованская、Глафира Алымова、Наталья Борщова、Александра Левшина；1772–1776年肖像"
+          },
+          {
+            "id": "w3",
+            "original": "Александра",
+            "zh": "亚历山德拉",
+            "sourceRefs": [
+              "ru-smolny"
+            ],
+            "attestedAs": "Екатерина Хрущова/Хованская、Глафира Алымова、Наталья Борщова、Александра Левшина；1772–1776年肖像"
+          },
+          {
+            "id": "w4",
+            "original": "Мария",
+            "zh": "玛丽娅",
+            "sourceRefs": [
+              "ru-lopukhina"
+            ],
+            "attestedAs": "Мария Ивановна Лопухина；1797年肖像"
+          },
+          {
+            "id": "w5",
+            "original": "Елизавета",
+            "zh": "叶丽扎维塔",
+            "sourceRefs": [
+              "ru-elizaveta"
+            ],
+            "attestedAs": "Елизавета Петровна；1744–1755年肖像"
+          }
+        ]
+      },
+      "families": [
+        {
+          "id": "f0",
+          "forms": {
+            "male": {
+              "original": "Юсупов",
+              "zh": "尤苏波夫"
+            },
+            "female": {
+              "original": "Юсупова",
+              "zh": "尤苏波娃"
+            }
+          },
+          "sourceRefs": [
+            "ru-yusupov18",
+            "ru-grammar"
+          ],
+          "attestedAs": "Николай Борисович Юсупов；1750–1831，王公家族",
+          "lineage": {
+            "label": "尤苏波夫家族",
+            "sourceRefs": [
+              "ru-yusupov18"
+            ],
+            "evidence": "Николай Борисович Юсупов；1750–1831，王公家族"
+          },
+          "formPolicy": "grammar-derived"
+        },
+        {
+          "id": "f1",
+          "forms": {
+            "male": {
+              "original": "Голицын",
+              "zh": "戈利岑"
+            },
+            "female": {
+              "original": "Голицына",
+              "zh": "戈利岑娜"
+            }
+          },
+          "sourceRefs": [
+            "ru-golitsyn18",
+            "ru-grammar"
+          ],
+          "attestedAs": "Фёдор Николаевич Голицын；1751–1827，王公家族",
+          "lineage": {
+            "label": "戈利岑家族",
+            "sourceRefs": [
+              "ru-golitsyn18"
+            ],
+            "evidence": "Фёдор Николаевич Голицын；1751–1827，王公家族"
+          },
+          "formPolicy": "grammar-derived"
+        },
+        {
+          "id": "f2",
+          "forms": {
+            "male": {
+              "original": "Шереметев",
+              "zh": "舍列梅捷夫"
+            },
+            "female": {
+              "original": "Шереметева",
+              "zh": "舍列梅捷娃"
+            }
+          },
+          "sourceRefs": [
+            "ru-sheremetev18",
+            "ru-grammar"
+          ],
+          "attestedAs": "Николай Петрович Шереметев；1751–1809，伯爵家族",
+          "lineage": {
+            "label": "舍列梅捷夫家族",
+            "sourceRefs": [
+              "ru-sheremetev18"
+            ],
+            "evidence": "Николай Петрович Шереметев；1751–1809，伯爵家族"
+          },
+          "formPolicy": "grammar-derived"
+        },
+        {
+          "id": "f3",
+          "forms": {
+            "male": {
+              "original": "Шувалов",
+              "zh": "舒瓦洛夫"
+            },
+            "female": {
+              "original": "Шувалова",
+              "zh": "舒瓦洛娃"
+            }
+          },
+          "sourceRefs": [
+            "ru-shuvalov",
+            "ru-grammar"
+          ],
+          "attestedAs": "Иван Иванович Шувалов；1727–1797",
+          "formPolicy": "grammar-derived"
+        },
+        {
+          "id": "f4",
+          "forms": {
+            "male": {
+              "original": "Ланской",
+              "zh": "兰斯科伊"
+            },
+            "female": {
+              "original": "Ланская",
+              "zh": "兰斯卡娅"
+            }
+          },
+          "sourceRefs": [
+            "ru-lanskoy",
+            "ru-grammar"
+          ],
+          "attestedAs": "Александр Дмитриевич Ланской；1758–1784",
+          "formPolicy": "grammar-derived"
+        },
+        {
+          "id": "f5",
+          "forms": {
+            "male": {
+              "original": "Лопухин",
+              "zh": "洛普欣"
+            },
+            "female": {
+              "original": "Лопухина",
+              "zh": "洛普希娜"
+            }
+          },
+          "sourceRefs": [
+            "ru-lopukhina",
+            "ru-grammar"
+          ],
+          "attestedAs": "Мария Ивановна Лопухина；1779–1803",
+          "formPolicy": "grammar-derived"
+        }
+      ],
+      "roles": [
+        {
+          "id": "period",
+          "label": "时代姓名",
+          "familyIds": [
+            "f0",
+            "f1",
+            "f2",
+            "f3",
+            "f4",
+            "f5"
+          ]
+        },
+        {
+          "id": "lineage",
+          "label": "家族姓氏",
+          "familyIds": [
+            "f0",
+            "f1",
+            "f2"
+          ]
+        }
+      ],
+      "sourceRefs": [
+        "ru-elizaveta",
+        "ru-golitsyn18",
+        "ru-grammar",
+        "ru-ivan",
+        "ru-lanskoy",
+        "ru-levitsky",
+        "ru-lopukhina",
+        "ru-sheremetev18",
+        "ru-sheremetev19",
+        "ru-shuvalov",
+        "ru-smolny",
+        "ru-yusupov18"
+      ],
+      "patronymics": [
+        {
+          "id": "p0",
+          "father": {
+            "original": "Иван",
+            "zh": "伊万"
+          },
+          "male": {
+            "original": "Иванович",
+            "zh": "伊万诺维奇"
+          },
+          "female": {
+            "original": "Ивановна",
+            "zh": "伊万诺芙娜"
+          },
+          "sourceRefs": [
+            "ru-ivan",
+            "ru-shuvalov",
+            "ru-lopukhina"
+          ],
+          "attestedAs": "父名Иван的男/女性父称；词形由语法材料核对，中文独立译写。"
+        },
+        {
+          "id": "p1",
+          "father": {
+            "original": "Николай",
+            "zh": "尼古拉"
+          },
+          "male": {
+            "original": "Николаевич",
+            "zh": "尼古拉耶维奇"
+          },
+          "female": {
+            "original": "Николаевна",
+            "zh": "尼古拉耶芙娜"
+          },
+          "sourceRefs": [
+            "ru-grammar",
+            "ru-sheremetev19"
+          ],
+          "attestedAs": "父名Николай的男/女性父称；词形由语法材料核对，中文独立译写。"
+        },
+        {
+          "id": "p2",
+          "father": {
+            "original": "Борис",
+            "zh": "鲍里斯"
+          },
+          "male": {
+            "original": "Борисович",
+            "zh": "鲍里索维奇"
+          },
+          "female": {
+            "original": "Борисовна",
+            "zh": "鲍里索芙娜"
+          },
+          "sourceRefs": [
+            "ru-grammar",
+            "ru-yusupov18"
+          ],
+          "attestedAs": "父名Борис的男/女性父称；词形由语法材料核对，中文独立译写。"
+        },
+        {
+          "id": "p3",
+          "father": {
+            "original": "Пётр",
+            "zh": "彼得"
+          },
+          "male": {
+            "original": "Петрович",
+            "zh": "彼得罗维奇"
+          },
+          "female": {
+            "original": "Петровна",
+            "zh": "彼得罗芙娜"
+          },
+          "sourceRefs": [
+            "ru-grammar",
+            "ru-sheremetev18",
+            "ru-elizaveta"
+          ],
+          "attestedAs": "父名Пётр的男/女性父称；词形由语法材料核对，中文独立译写。"
+        },
+        {
+          "id": "p4",
+          "father": {
+            "original": "Сергей",
+            "zh": "谢尔盖"
+          },
+          "male": {
+            "original": "Сергеевич",
+            "zh": "谢尔盖耶维奇"
+          },
+          "female": {
+            "original": "Сергеевна",
+            "zh": "谢尔盖耶芙娜"
+          },
+          "sourceRefs": [
+            "ru-grammar"
+          ],
+          "attestedAs": "父名Сергей的男/女性父称；词形由语法材料核对，中文独立译写。"
+        }
+      ]
+    },
+    {
+      "id": "ru-imperial-19",
+      "country": "ru",
+      "label": "帝俄十九世纪（1801–1917）",
+      "period": {
+        "to": 1917,
+        "from": 1801
+      },
+      "region": "俄罗斯帝国",
+      "namePattern": [
+        "given",
+        "patronymic",
+        "family"
+      ],
+      "originalSeparator": " ",
+      "zhSeparator": "·",
+      "given": {
+        "male": [
+          {
+            "id": "m0",
+            "original": "Михаил",
+            "zh": "米哈伊尔",
+            "sourceRefs": [
+              "ru-lermontov"
+            ],
+            "attestedAs": "Михаил Лермонтов；1814–1841"
+          },
+          {
+            "id": "m1",
+            "original": "Лев",
+            "zh": "列夫",
+            "sourceRefs": [
+              "ru-tolstoy"
+            ],
+            "attestedAs": "Лев Толстой；1828–1910"
+          },
+          {
+            "id": "m2",
+            "original": "Николай",
+            "zh": "尼古拉",
+            "sourceRefs": [
+              "ru-karamzin"
+            ],
+            "attestedAs": "Николай Карамзин；1818年肖像"
+          },
+          {
+            "id": "m3",
+            "original": "Фёдор",
+            "zh": "费奥多尔",
+            "sourceRefs": [
+              "ru-dostoevsky"
+            ],
+            "attestedAs": "Фёдор Достоевский；1821–1881"
+          },
+          {
+            "id": "m4",
+            "original": "Алексей",
+            "zh": "阿列克谢",
+            "sourceRefs": [
+              "ru-alexey"
+            ],
+            "attestedAs": "Алексей Толстой；1911年肖像"
+          },
+          {
+            "id": "m5",
+            "original": "Александр",
+            "zh": "亚历山大",
+            "sourceRefs": [
+              "ru-bryullov"
+            ],
+            "attestedAs": "Александр Брюллов；1798–1877"
+          }
+        ],
+        "female": [
+          {
+            "id": "w0",
+            "original": "Анна",
+            "zh": "安娜",
+            "sourceRefs": [
+              "ru-dostoevsky"
+            ],
+            "attestedAs": "Анна Григорьевна Достоевская；1846–1918"
+          },
+          {
+            "id": "w1",
+            "original": "Вера",
+            "zh": "薇拉",
+            "sourceRefs": [
+              "ru-family-photos"
+            ],
+            "attestedAs": "19世纪家族照片研究所列女性用名；1850–1890年代"
+          },
+          {
+            "id": "w2",
+            "original": "Варвара",
+            "zh": "瓦尔瓦拉",
+            "sourceRefs": [
+              "ru-family-photos"
+            ],
+            "attestedAs": "19世纪家族照片研究所列女性用名；1850–1890年代"
+          },
+          {
+            "id": "w3",
+            "original": "Софья",
+            "zh": "索菲娅",
+            "sourceRefs": [
+              "ru-family-photos"
+            ],
+            "attestedAs": "19世纪家族照片研究所列女性用名；1850–1890年代"
+          },
+          {
+            "id": "w4",
+            "original": "Мария",
+            "zh": "玛丽娅",
+            "sourceRefs": [
+              "ru-family-photos"
+            ],
+            "attestedAs": "19世纪家族照片研究所列女性用名；1850–1890年代"
+          },
+          {
+            "id": "w5",
+            "original": "Александра",
+            "zh": "亚历山德拉",
+            "sourceRefs": [
+              "ru-family-photos"
+            ],
+            "attestedAs": "19世纪家族照片研究所列女性用名；1850–1890年代"
+          }
+        ]
+      },
+      "families": [
+        {
+          "id": "f0",
+          "forms": {
+            "male": {
+              "original": "Лермонтов",
+              "zh": "莱蒙托夫"
+            },
+            "female": {
+              "original": "Лермонтова",
+              "zh": "莱蒙托娃"
+            }
+          },
+          "sourceRefs": [
+            "ru-lermontov",
+            "ru-grammar"
+          ],
+          "attestedAs": "Михаил Лермонтов；1814–1841",
+          "formPolicy": "grammar-derived"
+        },
+        {
+          "id": "f1",
+          "forms": {
+            "male": {
+              "original": "Толстой",
+              "zh": "托尔斯泰"
+            },
+            "female": {
+              "original": "Толстая",
+              "zh": "托尔斯塔娅"
+            }
+          },
+          "sourceRefs": [
+            "ru-tolstoy",
+            "ru-grammar"
+          ],
+          "attestedAs": "Лев Толстой；1828–1910",
+          "formPolicy": "grammar-derived"
+        },
+        {
+          "id": "f2",
+          "forms": {
+            "male": {
+              "original": "Карамзин",
+              "zh": "卡拉姆津"
+            },
+            "female": {
+              "original": "Карамзина",
+              "zh": "卡拉姆津娜"
+            }
+          },
+          "sourceRefs": [
+            "ru-karamzin",
+            "ru-grammar"
+          ],
+          "attestedAs": "Николай Карамзин；1766–1826",
+          "formPolicy": "grammar-derived"
+        },
+        {
+          "id": "f3",
+          "forms": {
+            "male": {
+              "original": "Достоевский",
+              "zh": "陀思妥耶夫斯基"
+            },
+            "female": {
+              "original": "Достоевская",
+              "zh": "陀思妥耶夫斯卡娅"
+            }
+          },
+          "sourceRefs": [
+            "ru-dostoevsky",
+            "ru-grammar"
+          ],
+          "attestedAs": "Фёдор Достоевский；1821–1881",
+          "formPolicy": "grammar-derived"
+        },
+        {
+          "id": "f4",
+          "forms": {
+            "male": {
+              "original": "Брюллов",
+              "zh": "布留洛夫"
+            },
+            "female": {
+              "original": "Брюллова",
+              "zh": "布留洛娃"
+            }
+          },
+          "sourceRefs": [
+            "ru-bryullov",
+            "ru-grammar"
+          ],
+          "attestedAs": "Александр Брюллов；1798–1877",
+          "formPolicy": "grammar-derived"
+        },
+        {
+          "id": "f5",
+          "forms": {
+            "male": {
+              "original": "Левицкий",
+              "zh": "列维茨基"
+            },
+            "female": {
+              "original": "Левицкая",
+              "zh": "列维茨卡娅"
+            }
+          },
+          "sourceRefs": [
+            "ru-levitsky",
+            "ru-grammar"
+          ],
+          "attestedAs": "Дмитрий Левицкий；1735–1822",
+          "formPolicy": "grammar-derived"
+        },
+        {
+          "id": "f6",
+          "forms": {
+            "male": {
+              "original": "Юсупов",
+              "zh": "尤苏波夫"
+            },
+            "female": {
+              "original": "Юсупова",
+              "zh": "尤苏波娃"
+            }
+          },
+          "sourceRefs": [
+            "ru-yusupov19",
+            "ru-grammar"
+          ],
+          "attestedAs": "Николай Борисович Юсупов-младший；1827–1891，王公",
+          "lineage": {
+            "label": "尤苏波夫家族",
+            "sourceRefs": [
+              "ru-yusupov19"
+            ],
+            "evidence": "Николай Борисович Юсупов-младший；1827–1891，王公"
+          },
+          "formPolicy": "grammar-derived"
+        },
+        {
+          "id": "f7",
+          "forms": {
+            "male": {
+              "original": "Голицын",
+              "zh": "戈利岑"
+            },
+            "female": {
+              "original": "Голицына",
+              "zh": "戈利岑娜"
+            }
+          },
+          "sourceRefs": [
+            "ru-golitsyn19",
+            "ru-grammar"
+          ],
+          "attestedAs": "Борис Дмитриевич Голицын；1819–1878，王公",
+          "lineage": {
+            "label": "戈利岑家族",
+            "sourceRefs": [
+              "ru-golitsyn19"
+            ],
+            "evidence": "Борис Дмитриевич Голицын；1819–1878，王公"
+          },
+          "formPolicy": "grammar-derived"
+        },
+        {
+          "id": "f8",
+          "forms": {
+            "male": {
+              "original": "Шереметев",
+              "zh": "舍列梅捷夫"
+            },
+            "female": {
+              "original": "Шереметева",
+              "zh": "舍列梅捷娃"
+            }
+          },
+          "sourceRefs": [
+            "ru-sheremetev19",
+            "ru-grammar"
+          ],
+          "attestedAs": "Дмитрий Николаевич Шереметев；1803–1871，伯爵",
+          "lineage": {
+            "label": "舍列梅捷夫家族",
+            "sourceRefs": [
+              "ru-sheremetev19"
+            ],
+            "evidence": "Дмитрий Николаевич Шереметев；1803–1871，伯爵"
+          },
+          "formPolicy": "grammar-derived"
+        }
+      ],
+      "roles": [
+        {
+          "id": "period",
+          "label": "时代姓名",
+          "familyIds": [
+            "f0",
+            "f1",
+            "f2",
+            "f3",
+            "f4",
+            "f5",
+            "f6",
+            "f7",
+            "f8"
+          ]
+        },
+        {
+          "id": "lineage",
+          "label": "家族姓氏",
+          "familyIds": [
+            "f6",
+            "f7",
+            "f8"
+          ]
+        }
+      ],
+      "sourceRefs": [
+        "ru-alexey",
+        "ru-bryullov",
+        "ru-dostoevsky",
+        "ru-elizaveta",
+        "ru-family-photos",
+        "ru-golitsyn19",
+        "ru-grammar",
+        "ru-ivan",
+        "ru-karamzin",
+        "ru-lermontov",
+        "ru-levitsky",
+        "ru-lopukhina",
+        "ru-sheremetev18",
+        "ru-sheremetev19",
+        "ru-shuvalov",
+        "ru-tolstoy",
+        "ru-yusupov18",
+        "ru-yusupov19"
+      ],
+      "patronymics": [
+        {
+          "id": "p0",
+          "father": {
+            "original": "Иван",
+            "zh": "伊万"
+          },
+          "male": {
+            "original": "Иванович",
+            "zh": "伊万诺维奇"
+          },
+          "female": {
+            "original": "Ивановна",
+            "zh": "伊万诺芙娜"
+          },
+          "sourceRefs": [
+            "ru-ivan",
+            "ru-shuvalov",
+            "ru-lopukhina"
+          ],
+          "attestedAs": "父名Иван的男/女性父称；词形由语法材料核对，中文独立译写。"
+        },
+        {
+          "id": "p1",
+          "father": {
+            "original": "Николай",
+            "zh": "尼古拉"
+          },
+          "male": {
+            "original": "Николаевич",
+            "zh": "尼古拉耶维奇"
+          },
+          "female": {
+            "original": "Николаевна",
+            "zh": "尼古拉耶芙娜"
+          },
+          "sourceRefs": [
+            "ru-grammar",
+            "ru-sheremetev19"
+          ],
+          "attestedAs": "父名Николай的男/女性父称；词形由语法材料核对，中文独立译写。"
+        },
+        {
+          "id": "p2",
+          "father": {
+            "original": "Борис",
+            "zh": "鲍里斯"
+          },
+          "male": {
+            "original": "Борисович",
+            "zh": "鲍里索维奇"
+          },
+          "female": {
+            "original": "Борисовна",
+            "zh": "鲍里索芙娜"
+          },
+          "sourceRefs": [
+            "ru-grammar",
+            "ru-yusupov18"
+          ],
+          "attestedAs": "父名Борис的男/女性父称；词形由语法材料核对，中文独立译写。"
+        },
+        {
+          "id": "p3",
+          "father": {
+            "original": "Пётр",
+            "zh": "彼得"
+          },
+          "male": {
+            "original": "Петрович",
+            "zh": "彼得罗维奇"
+          },
+          "female": {
+            "original": "Петровна",
+            "zh": "彼得罗芙娜"
+          },
+          "sourceRefs": [
+            "ru-grammar",
+            "ru-sheremetev18",
+            "ru-elizaveta"
+          ],
+          "attestedAs": "父名Пётр的男/女性父称；词形由语法材料核对，中文独立译写。"
+        },
+        {
+          "id": "p4",
+          "father": {
+            "original": "Сергей",
+            "zh": "谢尔盖"
+          },
+          "male": {
+            "original": "Сергеевич",
+            "zh": "谢尔盖耶维奇"
+          },
+          "female": {
+            "original": "Сергеевна",
+            "zh": "谢尔盖耶芙娜"
+          },
+          "sourceRefs": [
+            "ru-grammar"
+          ],
+          "attestedAs": "父名Сергей的男/女性父称；词形由语法材料核对，中文独立译写。"
+        }
+      ]
+    }
+  ]
+}

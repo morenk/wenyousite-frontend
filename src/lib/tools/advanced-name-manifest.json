@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 2,
+  "dataVersion": "2026-10-14.2",
+  "ordinaryDataRevision": "0d82873888f551c688df4f4d1a92c5e284d35b32",
+  "historicalDataRevision": "bfcb6787addebb22c96cb7fa252ea460d09a07b7",
+  "license": "src/lib/tools/name-data/LICENSE.advanced-names.txt",
+  "files": [
+    {
+      "path": "src/lib/tools/advanced-name-data.json",
+      "sha256": "159f5e46b385a8528ad42bac8bada725725a8acca401c12ba1f21e0b55c14d7e"
+    },
+    {
+      "path": "src/lib/tools/advanced-name-fixtures.json",
+      "sha256": "4c6b67b832e43ea473f644111d6465c43dad03fb264e63609ea4f001171a929c"
+    },
+    {
+      "path": "src/lib/tools/name-data/LICENSE.advanced-names.txt",
+      "sha256": "c9881ee5eaf2269b53b99671bbe4cc8a9d61eb93c73d426f89963c29fb76493e"
+    },
+    {
+      "path": "docs/modules/advanced-name-data-contract.md",
+      "sha256": "c710b69d328f73f5e18cae44134cdcdd776030457b119ae8a9512aa57b360561"
+    }
+  ]
+}

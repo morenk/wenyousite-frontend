@@ -35,11 +35,11 @@ try {
         if (tool === "names") {
           await page.getByLabel("固定姓氏（可选）").fill("林");
           await page.getByRole("button", { name: "生成名字" }).click();
-          await page.waitForFunction(() => document.querySelector('textarea[aria-label="生成结果"]')?.value.length > 0);
-          assert((await page.getByLabel("生成结果").inputValue()).split("\n").every((name) => name.startsWith("林")));
+          await page.locator('section[aria-label="转换结果"] li').first().waitFor();
+          assert((await page.locator('section[aria-label="转换结果"] li > span').allTextContents()).every((name) => name.startsWith("林")));
         } else {
-          await page.getByLabel(tool === "morse" ? "文字或摩斯码" : "输入文字").fill(tool === "vertical" ? "山海有信，温油相逢。\n为故事留一盏灯。" : tool === "morse" ? "SOS 2026" : "Wenyou, write your story.");
-          await page.getByRole("button", { name: "生成文字" }).click();
+          await page.getByLabel("输入文字").fill(tool === "vertical" ? "山海有信，温油相逢。\n为故事留一盏灯。" : tool === "morse" ? "SOS 2026" : "Wenyou, write your story.");
+          await page.getByRole("button", { name: tool === "morse" ? "生成摩斯码" : "生成文字" }).click();
           await page.waitForFunction(() => document.querySelector('textarea[aria-label="生成结果"]')?.value.length > 0);
           if (tool === "morse") assert.equal(await page.getByLabel("生成结果").inputValue(), "... --- ... / ..--- ----- ..--- -....");
         }
@@ -68,21 +68,22 @@ try {
   for (const country of ["中国", "日本", "英国", "德国", "法国", "俄国", "美国", "意大利", "西班牙", "韩国", "巴西"]) {
     await choose("国家", country);
     await interaction.getByRole("button", { name: "生成名字" }).click();
-    await interaction.waitForFunction(() => document.querySelector('textarea[aria-label="生成结果"]')?.value.split("\n").length === 3);
-    assert(!(await interaction.getByLabel("生成结果").inputValue()).includes("undefined"));
+    await interaction.waitForFunction(() => document.querySelectorAll("section ul > li").length === 3);
+    assert(!(await interaction.locator("section ul").innerText()).includes("undefined"));
+    if (country !== "中国") assert.equal(await interaction.getByRole("button", { name: "复制中文", exact: true }).count(), 1);
   }
   await choose("国家", "中国");
   await choose("名字性别倾向", "女性");
   await choose("起名风格", "幻想角色名（中文）");
   await interaction.getByLabel("固定姓氏（可选）").fill("林");
   await interaction.getByRole("button", { name: "生成名字" }).click();
-  await interaction.waitForFunction(() => document.querySelector('textarea[aria-label="生成结果"]')?.value.startsWith("林"));
+  await interaction.waitForFunction(() => document.querySelector('section[aria-label="转换结果"] li > span')?.textContent.startsWith("林"));
   await choose("国家", "日本");
-  assert((await interaction.getByRole("combobox", { name: "起名风格" }).textContent()).includes("常见人名"));
+  assert.equal(await interaction.getByRole("combobox", { name: "起名风格" }).count(), 0);
   await interaction.goto(`${base.origin}/tools/embed/morse?theme=dark`, { waitUntil: "networkidle" });
-  await choose("转换方向", "摩斯码 → 文字");
-  await interaction.getByLabel("文字或摩斯码").fill("... --- ...");
-  await interaction.getByRole("button", { name: "生成文字" }).click();
+  await interaction.getByRole("button", { name: "解码", exact: true }).click();
+  await interaction.getByLabel("输入摩斯码").fill("... --- ...");
+  await interaction.getByRole("button", { name: "解码为文字" }).click();
   await interaction.waitForFunction(() => document.querySelector('textarea[aria-label="生成结果"]')?.value === "SOS");
   await interaction.evaluate(() => {
     window.__toolCopyCalls = 0;
@@ -93,10 +94,10 @@ try {
   await interaction.getByRole("button", { name: "复制全部" }).click();
   await interaction.waitForFunction(() => window.__toolCopyCalls === 1);
   assert(await interaction.getByRole("status").filter({ hasText: /已复制|复制未成功/ }).count() === 1);
-  await interaction.getByLabel("文字或摩斯码").fill("constructor");
-  await interaction.getByRole("button", { name: "生成文字" }).click();
+  await interaction.getByLabel("输入摩斯码").fill("constructor");
+  await interaction.getByRole("button", { name: "解码为文字" }).click();
   await interaction.getByText(/无法识别码组/).waitFor();
-  assert.equal(await interaction.getByLabel("生成结果").inputValue(), "");
+  assert.equal(await interaction.getByLabel("生成结果").count(), 0);
   const missing = await interaction.goto(`${base.origin}/tools/embed/unknown?theme=dark`, { waitUntil: "networkidle" });
   assert([200, 404].includes(missing.status()));
   await interaction.getByText(/404|页面不存在|This page could not be found/i).first().waitFor();

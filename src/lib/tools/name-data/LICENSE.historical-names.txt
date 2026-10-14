@@ -1,0 +1,101 @@
+温油历史姓名参考数据
+
+本项目自行编排的结构、中文参考译写及原创说明沿用 MIT License：
+MIT License
+
+Copyright (c) 2026 Wenyou contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+来源边界
+- 本数据是以公开史料中的姓名、年代和家族事实为线索，自行编辑的角色起名片段集合。不是人口频率榜，不复原具体人物身份，也不授予或推断爵位。
+- fact-reference-only 条目仅用于人工核对事实。不转载来源的正文、图片、数据库编选；不宣称来源全文取得 MIT 授权。
+- licensed-reuse 条目遵循下列来源自己的条件，MIT 不替代来源许可。
+- 原文使用现代通行标准拼写；中文为本项目参考译写，不宣称各馆官方唯一中文名。
+- 日韩只转换明确收录的汉字姓名；俄语部分姓氏另一性别形按语法预先编辑，不声称每一派生形都见于所引历史人物。
+- 国立故宫博物院 OpenData 部分依 CC BY 4.0（https://creativecommons.org/licenses/by/4.0/），姓名转简体、按片段重新编排；许可页 https://digitalarchive.npm.gov.tw/opendata/。
+- 国立国会图书馆「近代日本人の肖像」来源须注明来源，可商业利用无需申请；本项目仅使用姓名事实与汉字转简体。使用条件 https://www.ndl.go.jp/portrait/about 。
+
+须随消费者保留的来源署名
+
+国立故宫博物院 — 明马守真画兰 — https://digitalarchive.npm.gov.tw/opendata/Pub/Detail/4371?dep=P&mode=full
+CC BY 4.0
+
+国立国会图书馆 — 伊藤博文 — https://www.ndl.go.jp/portrait/datas/12
+NDL『近代日本人の肖像』利用条款（商业利用可，须署名）
+
+国立国会图书馆 — 福沢諭吉 — https://www.ndl.go.jp/portrait/datas/185
+NDL『近代日本人の肖像』利用条款（商业利用可，须署名）
+
+国立国会图书馆 — 大久保利通 — https://www.ndl.go.jp/portrait/datas/32
+NDL『近代日本人の肖像』利用条款（商业利用可，须署名）
+
+国立国会图书馆 — 西郷隆盛 — https://www.ndl.go.jp/portrait/datas/85
+NDL『近代日本人の肖像』利用条款（商业利用可，须署名）
+
+国立国会图书馆 — 大隈重信 — https://www.ndl.go.jp/portrait/datas/33
+NDL『近代日本人の肖像』利用条款（商业利用可，须署名）
+
+国立国会图书馆 — 徳川慶喜 — https://www.ndl.go.jp/portrait/datas/147
+NDL『近代日本人の肖像』利用条款（商业利用可，须署名）
+
+国立国会图书馆 — 津田梅子 — https://www.ndl.go.jp/portrait/datas/292
+NDL『近代日本人の肖像』利用条款（商业利用可，须署名）
+
+国立国会图书馆 — 下田歌子 — https://www.ndl.go.jp/portrait/datas/4146
+NDL『近代日本人の肖像』利用条款（商业利用可，须署名）
+
+国立国会图书馆 — 大山捨松 — https://www.ndl.go.jp/portrait/datas/246
+NDL『近代日本人の肖像』利用条款（商业利用可，须署名）
+
+国立国会图书馆 — 荻野吟子 — https://www.ndl.go.jp/portrait/datas/43
+NDL『近代日本人の肖像』利用条款（商业利用可，须署名）
+
+国立国会图书馆 — 吉岡弥生 — https://www.ndl.go.jp/portrait/datas/6045
+NDL『近代日本人の肖像』利用条款（商业利用可，须署名）
+
+国立国会图书馆 — 福田英子 — https://www.ndl.go.jp/portrait/datas/318
+NDL『近代日本人の肖像』利用条款（商业利用可，须署名）
+
+国立国会图书馆 — 芥川龍之介 — https://www.ndl.go.jp/portrait/datas/224
+NDL『近代日本人の肖像』利用条款（商业利用可，须署名）
+
+国立国会图书馆 — 谷崎潤一郎 — https://www.ndl.go.jp/portrait/datas/6058
+NDL『近代日本人の肖像』利用条款（商业利用可，须署名）
+
+国立国会图书馆 — 吉野作造 — https://www.ndl.go.jp/portrait/datas/348
+NDL『近代日本人の肖像』利用条款（商业利用可，须署名）
+
+国立国会图书馆 — 鈴木三重吉 — https://www.ndl.go.jp/portrait/datas/6260
+NDL『近代日本人の肖像』利用条款（商业利用可，须署名）
+
+国立国会图书馆 — 菊池寛 — https://www.ndl.go.jp/portrait/datas/4281
+NDL『近代日本人の肖像』利用条款（商业利用可，须署名）
+
+国立国会图书馆 — 志賀直哉 — https://www.ndl.go.jp/portrait/datas/273
+NDL『近代日本人の肖像』利用条款（商业利用可，须署名）
+
+国立国会图书馆 — 与謝野晶子 — https://www.ndl.go.jp/portrait/datas/347
+NDL『近代日本人の肖像』利用条款（商业利用可，须署名）
+
+国立国会图书馆 — 吉屋信子 — https://www.ndl.go.jp/portrait/datas/6236
+NDL『近代日本人の肖像』利用条款（商业利用可，须署名）
+
+国立国会图书馆 — 徳川家達 — https://www.ndl.go.jp/portrait/datas/296
+NDL『近代日本人の肖像』利用条款（商业利用可，须署名）

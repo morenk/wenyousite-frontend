@@ -22,7 +22,7 @@ describe("竖排页设置与文件边界", () => {
     expect(screen.queryByRole("button", { name: "打开文本" })).not.toBeInTheDocument(); expect(screen.queryByRole("button", { name: "下载结果" })).not.toBeInTheDocument(); expect(document.querySelector('input[type="file"]')).toBeNull();
     await userEvent.click(screen.getByRole("button", { name: "示例：静夜思" })); expect(screen.getByLabelText("输入文字")).toHaveValue("床前明月光，\n疑是地上霜。\n举头望明月，\n低头思故乡。");
     await userEvent.click(screen.getByRole("button", { name: "生成文字" })); await waitFor(() => expect(screen.getByLabelText("生成结果")).not.toHaveValue(""));
-    await userEvent.click(screen.getByRole("button", { name: "清空" })); expect(screen.getByLabelText("输入文字")).toHaveValue(""); expect(screen.getByRole("button", { name: "复制全部" })).toBeDisabled();
+    await userEvent.click(screen.getByRole("button", { name: "清空" })); expect(screen.getByLabelText("输入文字")).toHaveValue(""); expect(screen.queryByRole("button", { name: "复制全部" })).not.toBeInTheDocument();
   });
   test("分页与自定义分隔、左读切换，隐藏空格字段不阻断", async () => {
     render(<VerticalToolPanel />); set("输入文字", "甲乙丙丁戊己庚辛"); set("页宽（每页列数）", "3"); set("页高（每列字数）", "2"); set("列间空格数", "1");

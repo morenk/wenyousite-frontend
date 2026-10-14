@@ -1,0 +1,110 @@
+import { afterEach, expect, test, vi } from "vitest";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { NameToolPanel } from "../name-tool-panel";
+import * as advanced from "@/lib/tools/advanced-names";
+
+afterEach(() => { cleanup(); vi.restoreAllMocks(); });
+const choose = async (label: string, value: string) => {
+  await userEvent.click(screen.getByRole("combobox", { name: label }));
+  await userEvent.click(screen.getByRole("option", { name: value }));
+};
+const toggle = () => userEvent.click(screen.getByRole("button", { name: "进阶选项" }));
+const expand = async () => {
+  await toggle();
+  await waitFor(() => expect(screen.getByRole("combobox", { name: "类型" })).toBeEnabled());
+};
+test("普通默认简洁；展开即进阶，收起恢复普通参数并清除结果", async () => {
+  const loader = vi.spyOn(advanced, "loadAdvancedNameData");
+  vi.spyOn(Math, "random").mockReturnValue(0);
+  render(<NameToolPanel embedded />);
+  expect(loader).not.toHaveBeenCalled();
+  expect(screen.getByLabelText("生成数量")).toHaveValue(10);
+  expect(screen.queryByRole("combobox", { name: "类型" })).not.toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText("固定姓氏（可选）"), { target: { value: "自定" } });
+  fireEvent.change(screen.getByLabelText("生成数量"), { target: { value: "1" } });
+  await choose("起名风格", "幻想角色名（中文）");
+  await expand();
+  expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+  expect(screen.queryByLabelText("固定姓氏（可选）")).not.toBeInTheDocument();
+  expect(screen.queryByRole("combobox", { name: /姓氏|时代与地区/ })).not.toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: "生成名字" }));
+  expect(await screen.findByText("文俶")).toBeInTheDocument();
+  await toggle();
+  expect(screen.getByRole("button", { name: "进阶选项" })).toHaveAttribute("aria-expanded", "false");
+  expect(screen.getByLabelText("固定姓氏（可选）")).toHaveValue("自定");
+  expect(screen.getByRole("combobox", { name: "起名风格" })).toHaveTextContent("幻想角色名");
+  expect(screen.queryByText("文俶")).not.toBeInTheDocument();
+});
+test("俄语父称通过结构选择，类型和风格变化重置结构与旧结果", async () => {
+  vi.spyOn(Math, "random").mockReturnValue(0);
+  render(<NameToolPanel embedded />);
+  await choose("国家", "俄国");
+  fireEvent.change(screen.getByLabelText("生成数量"), { target: { value: "1" } });
+  await expand();
+  await choose("姓名结构", "姓名与父称");
+  await userEvent.click(screen.getByRole("button", { name: "生成名字" }));
+  expect(await screen.findByText("Екатерина Ивановна Юсупова")).toBeInTheDocument();
+  expect(screen.getByText("叶卡捷琳娜·伊万诺芙娜·尤苏波娃")).toBeInTheDocument();
+  await choose("类型", "文学创作");
+  expect(screen.getByRole("combobox", { name: "风格" })).toHaveTextContent("贵族小说");
+  expect(screen.getByRole("combobox", { name: "姓名结构" })).toHaveTextContent("标准姓名");
+  expect(screen.queryByText("Екатерина Ивановна Юсупова")).not.toBeInTheDocument();
+  await choose("姓名结构", "姓名与父称");
+  await choose("风格", "市民小说");
+  expect(screen.getByRole("combobox", { name: "姓名结构" })).toHaveTextContent("标准姓名");
+  await toggle(); await expand();
+  expect(screen.getByRole("combobox", { name: "类型" })).toHaveTextContent("史实参考");
+});
+test("明治华族显示准确年代，无单独时代或姓氏选择", async () => {
+  render(<NameToolPanel embedded />);
+  await choose("国家", "日本"); await expand();
+  await choose("风格", "明治华族（1884–1912）");
+  expect(screen.queryByRole("combobox", { name: "姓名结构" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("combobox", { name: /时代|姓氏|家族/ })).not.toBeInTheDocument();
+  expect(screen.getByRole("combobox", { name: "风格" })).toHaveTextContent("1884–1912");
+});
+test("换国关闭进阶并重置不兼容普通参数，不支持国家没有进阶入口", async () => {
+  render(<NameToolPanel embedded />);
+  fireEvent.change(screen.getByLabelText("固定姓氏（可选）"), { target: { value: "李" } });
+  await choose("起名风格", "古风角色名（中文）");
+  await expand(); await choose("国家", "美国");
+  expect(screen.queryByRole("button", { name: "进阶选项" })).not.toBeInTheDocument();
+  expect(screen.getByLabelText("固定姓氏（可选）")).toHaveValue("");
+  await choose("国家", "中国");
+  expect(screen.getByRole("combobox", { name: "起名风格" })).toHaveTextContent("常见人名");
+  expect(screen.getByRole("button", { name: "进阶选项" })).toHaveAttribute("aria-expanded", "false");
+});
+test.each(["collapse", "country"])("旧懒加载完成不能重新启用：%s", async (action) => {
+  const data = await advanced.loadAdvancedNameData();
+  let resolve!: (value: advanced.AdvancedNameData) => void;
+  vi.spyOn(advanced, "loadAdvancedNameData").mockImplementation(() => new Promise((done) => { resolve = done; }));
+  render(<NameToolPanel embedded />);
+  await toggle();
+  expect(screen.getByText("正在加载词库…")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "生成名字" })).toBeDisabled();
+  if (action === "collapse") await toggle(); else await choose("国家", "美国");
+  await act(async () => resolve(data));
+  expect(screen.queryByRole("combobox", { name: "类型" })).not.toBeInTheDocument();
+  expect(screen.getByLabelText("固定姓氏（可选）")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "生成名字" })).toBeEnabled();
+});
+test("词库失败可重试，收起后普通生成仍可用", async () => {
+  const data = await advanced.loadAdvancedNameData();
+  vi.spyOn(advanced, "loadAdvancedNameData").mockRejectedValueOnce(new Error("offline")).mockResolvedValue(data);
+  render(<NameToolPanel embedded />); await toggle();
+  expect(await screen.findByText("词库加载失败")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "生成名字" })).toBeDisabled();
+  await userEvent.click(screen.getByRole("button", { name: "重试" }));
+  await waitFor(() => expect(screen.getByRole("combobox", { name: "类型" })).toBeEnabled());
+  await toggle();
+  expect(screen.getByRole("button", { name: "生成名字" })).toBeEnabled();
+});
+test("有限重试未凑满时只提示真实结果数，不声称容量", async () => {
+  vi.spyOn(Math, "random").mockReturnValue(0);
+  render(<NameToolPanel embedded />);
+  fireEvent.change(screen.getByLabelText("生成数量"), { target: { value: "50" } });
+  await expand();
+  await userEvent.click(screen.getByRole("button", { name: "生成名字" }));
+  expect(await screen.findByText("已生成 1 个不重复姓名")).toBeInTheDocument();
+});

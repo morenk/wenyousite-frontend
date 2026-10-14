@@ -1,0 +1,520 @@
+{
+  "schemaVersion": 1,
+  "randomPolicy": "循环使用 randomValues；每次取值属于 [0,1)。不限性别先取一次，未固定姓再取一次，常见名取一次；中文组合风格依次取 starts 和对应性别尾字。",
+  "cases": [
+    {
+      "id": "jp-first-female",
+      "options": {
+        "country": "jp",
+        "sex": "female",
+        "style": "common",
+        "surname": "",
+        "surnameZh": "",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "佐藤花子",
+          "zh": "佐藤花子"
+        }
+      ]
+    },
+    {
+      "id": "gb-first-female",
+      "options": {
+        "country": "gb",
+        "sex": "female",
+        "style": "common",
+        "surname": "",
+        "surnameZh": "",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Mary Smith",
+          "zh": "玛丽·史密斯"
+        }
+      ]
+    },
+    {
+      "id": "us-first-female",
+      "options": {
+        "country": "us",
+        "sex": "female",
+        "style": "common",
+        "surname": "",
+        "surnameZh": "",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Mary Smith",
+          "zh": "玛丽·史密斯"
+        }
+      ]
+    },
+    {
+      "id": "de-first-female",
+      "options": {
+        "country": "de",
+        "sex": "female",
+        "style": "common",
+        "surname": "",
+        "surnameZh": "",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Anna Müller",
+          "zh": "安娜·穆勒"
+        }
+      ]
+    },
+    {
+      "id": "fr-first-female",
+      "options": {
+        "country": "fr",
+        "sex": "female",
+        "style": "common",
+        "surname": "",
+        "surnameZh": "",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Marie Martin",
+          "zh": "玛丽·马丁"
+        }
+      ]
+    },
+    {
+      "id": "ru-first-female",
+      "options": {
+        "country": "ru",
+        "sex": "female",
+        "style": "common",
+        "surname": "",
+        "surnameZh": "",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Анна Иванова",
+          "zh": "安娜·伊万诺娃"
+        }
+      ]
+    },
+    {
+      "id": "it-first-female",
+      "options": {
+        "country": "it",
+        "sex": "female",
+        "style": "common",
+        "surname": "",
+        "surnameZh": "",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Alessandra Rossi",
+          "zh": "亚历山德拉·罗西"
+        }
+      ]
+    },
+    {
+      "id": "es-first-female",
+      "options": {
+        "country": "es",
+        "sex": "female",
+        "style": "common",
+        "surname": "",
+        "surnameZh": "",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "María García",
+          "zh": "玛丽亚·加西亚"
+        }
+      ]
+    },
+    {
+      "id": "kr-first-female",
+      "options": {
+        "country": "kr",
+        "sex": "female",
+        "style": "common",
+        "surname": "",
+        "surnameZh": "",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "김지수",
+          "zh": "金智秀"
+        }
+      ]
+    },
+    {
+      "id": "br-first-female",
+      "options": {
+        "country": "br",
+        "sex": "female",
+        "style": "common",
+        "surname": "",
+        "surnameZh": "",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Maria Silva",
+          "zh": "玛丽亚·席尔瓦"
+        }
+      ]
+    },
+    {
+      "id": "ru-male",
+      "options": {
+        "country": "ru",
+        "sex": "male",
+        "style": "common",
+        "surname": "",
+        "surnameZh": "",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Александр Иванов",
+          "zh": "亚历山大·伊万诺夫"
+        }
+      ]
+    },
+    {
+      "id": "ru-any-shared-sex",
+      "options": {
+        "country": "ru",
+        "sex": "any",
+        "style": "common",
+        "surname": "",
+        "surnameZh": "",
+        "count": 2
+      },
+      "randomValues": [
+        0,
+        0,
+        0,
+        0.9,
+        0,
+        0
+      ],
+      "expected": [
+        {
+          "original": "Анна Иванова",
+          "zh": "安娜·伊万诺娃"
+        },
+        {
+          "original": "Александр Иванов",
+          "zh": "亚历山大·伊万诺夫"
+        }
+      ]
+    },
+    {
+      "id": "gb-known-fixed",
+      "options": {
+        "country": "gb",
+        "sex": "female",
+        "style": "common",
+        "surname": "  sMiTh  ",
+        "surnameZh": "",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Mary sMiTh",
+          "zh": "玛丽·史密斯"
+        }
+      ]
+    },
+    {
+      "id": "ru-fixed-keeps-spelling",
+      "options": {
+        "country": "ru",
+        "sex": "female",
+        "style": "common",
+        "surname": "Иванов",
+        "surnameZh": "",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Анна Иванов",
+          "zh": "安娜·伊万诺夫"
+        }
+      ]
+    },
+    {
+      "id": "gb-custom",
+      "options": {
+        "country": "gb",
+        "sex": "female",
+        "style": "common",
+        "surname": "Example",
+        "surnameZh": "艾格桑普尔",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Mary Example",
+          "zh": "玛丽·艾格桑普尔"
+        }
+      ]
+    },
+    {
+      "id": "gb-chinese-custom",
+      "options": {
+        "country": "gb",
+        "sex": "female",
+        "style": "common",
+        "surname": "林",
+        "surnameZh": "",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Mary 林",
+          "zh": "玛丽·林"
+        }
+      ]
+    },
+    {
+      "id": "gb-missing-translation",
+      "options": {
+        "country": "gb",
+        "sex": "female",
+        "style": "common",
+        "surname": "Example",
+        "surnameZh": "",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "error": "请填写姓氏中文写法"
+    },
+    {
+      "id": "gb-invalid-translation",
+      "options": {
+        "country": "gb",
+        "sex": "female",
+        "style": "common",
+        "surname": "Example",
+        "surnameZh": "Example",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "error": "姓氏中文写法须使用汉字"
+    },
+    {
+      "id": "de-decomposed-needs-translation",
+      "options": {
+        "country": "de",
+        "sex": "female",
+        "style": "common",
+        "surname": "Müller",
+        "surnameZh": "",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "error": "请填写姓氏中文写法"
+    },
+    {
+      "id": "limit-deduplicate",
+      "options": {
+        "country": "gb",
+        "sex": "female",
+        "style": "common",
+        "surname": "",
+        "surnameZh": "",
+        "count": 50
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "Mary Smith",
+          "zh": "玛丽·史密斯"
+        }
+      ]
+    },
+    {
+      "id": "cn-classical",
+      "options": {
+        "country": "cn",
+        "sex": "female",
+        "style": "classical",
+        "surname": "林",
+        "surnameZh": "",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "林知棠",
+          "zh": "林知棠"
+        }
+      ]
+    },
+    {
+      "id": "cn-fantasy",
+      "options": {
+        "country": "cn",
+        "sex": "male",
+        "style": "fantasy",
+        "surname": "林",
+        "surnameZh": "",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "林星珩",
+          "zh": "林星珩"
+        }
+      ]
+    },
+    {
+      "id": "count-invalid",
+      "options": {
+        "country": "cn",
+        "sex": "female",
+        "style": "common",
+        "surname": "",
+        "surnameZh": "",
+        "count": 51
+      },
+      "randomValues": [
+        0
+      ],
+      "error": "生成数量须为 1–50 的整数"
+    },
+    {
+      "id": "foreign-style-invalid",
+      "options": {
+        "country": "gb",
+        "sex": "female",
+        "style": "fantasy",
+        "surname": "",
+        "surnameZh": "",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "error": "古风与幻想风首版仅支持中文"
+    },
+    {
+      "id": "surname-multiline",
+      "options": {
+        "country": "cn",
+        "sex": "female",
+        "style": "common",
+        "surname": "甲\n乙",
+        "surnameZh": "",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "error": "固定姓氏须为 40 字以内的单行文字"
+    },
+    {
+      "id": "punctuation-only-translation",
+      "options": {
+        "country": "gb",
+        "sex": "female",
+        "style": "common",
+        "surname": "Example",
+        "surnameZh": "---",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "error": "姓氏中文写法须使用汉字"
+    },
+    {
+      "id": "jp-known-kanji-priority",
+      "options": {
+        "country": "jp",
+        "sex": "female",
+        "style": "common",
+        "surname": "鈴木",
+        "surnameZh": "",
+        "count": 1
+      },
+      "randomValues": [
+        0
+      ],
+      "expected": [
+        {
+          "original": "鈴木花子",
+          "zh": "铃木花子"
+        }
+      ]
+    }
+  ]
+}

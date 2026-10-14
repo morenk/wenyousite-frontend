@@ -863,3 +863,10 @@ img.sticker-display {
 [data-toolbox-surface]:not([data-embedded]) [data-tool-panels] :where(div, fieldset, textarea, input, button) {
   min-width: 0;
 }
+
+/* App 工具工作面：输入控件保持 16px 与触摸高度，不影响主站桌面布局。 */
+[data-toolbox-surface][data-embedded] [data-tool-panels] { gap: 12px; }
+[data-toolbox-surface][data-embedded] [data-tool-panels] > * { min-width: 0; padding: 16px; gap: 16px; }
+[data-toolbox-surface][data-embedded] [data-tool-panels] :where(div, fieldset, textarea, input, button) { min-width: 0; }
+[data-toolbox-surface][data-embedded] :where(input, textarea, [data-slot="select-trigger"]) { font-size: 16px; }
+[data-toolbox-surface][data-embedded] :where(input, button, [data-slot="select-trigger"]) { min-height: 44px; }
