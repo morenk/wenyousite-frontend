@@ -1,7 +1,7 @@
 "use client";
 import { useId } from "react";
 import type { Country } from "@/lib/tools/names";
-import type { AdvancedNameData, AdvancedNameOptions } from "@/lib/tools/advanced-names";
+import { chronologicalAdvancedStyles, type AdvancedNameData, type AdvancedNameOptions } from "@/lib/tools/advanced-names";
 import { Button } from "@/components/ui/button";
 import { ToolSelect } from "./tool-controls";
 
@@ -17,7 +17,7 @@ export function AdvancedNameOptionsPanel({ country, data, selection, onChange, o
   loading: boolean; error: string; disabled?: boolean; embedded?: boolean;
 }) {
   const id = useId();
-  const styles = data?.styles.filter((item) => item.country === country && item.mode === selection.mode) ?? [];
+  const styles = data ? chronologicalAdvancedStyles(data, country, selection.mode) : [];
   const style = styles.find((item) => item.id === selection.styleId);
   return <section className="min-w-0 border-t border-border pt-3">
     <button type="button" disabled={disabled} aria-expanded={selection.enabled} aria-controls={id}

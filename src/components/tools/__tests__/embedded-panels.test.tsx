@@ -40,7 +40,7 @@ describe("App 嵌入工具工作面", () => {
   });
   test("花体选择显示真实字符样例且生成仍使用所选样式", async () => {
     render(<TextToolPanel tool="fancy" embedded />);
-    expect(screen.getByRole("combobox", { name: "文字样式" })).toHaveTextContent("𝒜𝒷𝒸");
+    expect(screen.getByRole("combobox", { name: "文字样式" })).toHaveTextContent("ℋℯ𝓁𝓁ℴ 𝒲ℯ𝓃𝓎ℴ𝓊");
     await userEvent.click(screen.getByRole("combobox", { name: "文字样式" }));
     await userEvent.click(screen.getByRole("option", { name: "粗体" }));
     set("输入文字", "Ab");

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 2,
+  "dataVersion": "fancy-v2",
+  "files": [
+    {
+      "path": "src/lib/tools/fancy-data.json",
+      "sha256": "fe90ed6bf20290e258095201168b5f9c62e638830071cfcd81d6353793b4f3ef"
+    },
+    {
+      "path": "src/lib/tools/fancy-fixtures.json",
+      "sha256": "456518ed12d232bf061724b0598abfbfcd20d7172b2f7d76971ee063c63d361b"
+    },
+    {
+      "path": "src/lib/tools/fancy.ts",
+      "sha256": "c64010e621c086a13b7e84a7e69c93ff24f1d570f836218bb21986fcb3e76de7"
+    },
+    {
+      "path": "docs/modules/fancy-data-contract.md",
+      "sha256": "3af11f2a655542ff4f375f1ffe45706bfc8fc3761e60dd91dd41a84be37eae4f"
+    },
+    {
+      "path": "src/lib/tools/LICENSE.fancy.txt",
+      "sha256": "61d24fbf52a8f61422f068a884161367848a6f0e679948ccdfdd7a22445b975e"
+    },
+    {
+      "path": "public/licenses/fancy.txt",
+      "sha256": "61d24fbf52a8f61422f068a884161367848a6f0e679948ccdfdd7a22445b975e"
+    }
+  ]
+}

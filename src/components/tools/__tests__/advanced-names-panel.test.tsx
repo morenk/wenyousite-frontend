@@ -108,3 +108,14 @@ test("有限重试未凑满时只提示真实结果数，不声称容量", async
   await userEvent.click(screen.getByRole("button", { name: "生成名字" }));
   expect(await screen.findByText("已生成 1 个不重复姓名")).toBeInTheDocument();
 });
+
+
+test("历史风格从早到晚，默认仍为原数据首项", async () => {
+  const data = await advanced.loadAdvancedNameData();
+  render(<NameToolPanel embedded />);
+  await expand();
+  expect(screen.getByRole("combobox", { name: "风格" })).toHaveTextContent(data.styles.find((style) => style.country === "cn" && style.mode === "historical")!.label);
+  await userEvent.click(screen.getByRole("combobox", { name: "风格" }));
+  expect(screen.getAllByRole("option").map((option) => option.textContent))
+    .toEqual(advanced.chronologicalAdvancedStyles(data, "cn", "historical").map((style) => style.label));
+});

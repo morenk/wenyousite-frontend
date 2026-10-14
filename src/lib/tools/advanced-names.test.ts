@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import fixtures from "./advanced-name-fixtures.json";
-import { advancedNameCountries, generateAdvancedNames, loadAdvancedNameData, type AdvancedNameOptions } from "./advanced-names";
+import { advancedNameCountries, chronologicalAdvancedStyles, generateAdvancedNames, loadAdvancedNameData, type AdvancedNameOptions } from "./advanced-names";
 
 const data = await loadAdvancedNameData();
 describe("进阶起名 v2 跨端契约", () => {
@@ -59,5 +59,36 @@ describe("进阶起名 v2 跨端契约", () => {
     const random = vi.spyOn(Math, "random").mockReturnValue(0.9999);
     try { expect(generateAdvancedNames(data, fixture.options as AdvancedNameOptions)).toEqual(fixture.expected); }
     finally { random.mockRestore(); }
+  });
+});
+
+
+describe("进阶风格按时间展示", () => {
+  it("六国两种类型按起始年和结束年升序，不改源数据", () => {
+    const original = JSON.stringify(data);
+    for (const country of advancedNameCountries) for (const mode of ["historical", "literary"] as const) {
+      const styles = chronologicalAdvancedStyles(data, country, mode);
+      expect(styles).toHaveLength(data.styles.filter((item) => item.country === country && item.mode === mode).length);
+      const dated = styles.filter((item) => item.period);
+      for (let index = 1; index < dated.length; index++) {
+        const previous = dated[index - 1].period!;
+        const current = dated[index].period!;
+        expect(current.from > previous.from || current.from === previous.from && current.to >= previous.to).toBe(true);
+      }
+    }
+    expect(JSON.stringify(data)).toBe(original);
+  });
+  it("公元前年份数值比较，同期稳定，无日期置后", () => {
+    const sample = data.styles[0];
+    const styles = [
+      { ...sample, id: "undated-a", period: undefined },
+      { ...sample, id: "long", period: { from: -200, to: 100 } },
+      { ...sample, id: "early", period: { from: -500, to: -300 } },
+      { ...sample, id: "short-a", period: { from: -200, to: -100 } },
+      { ...sample, id: "short-b", period: { from: -200, to: -100 } },
+      { ...sample, id: "undated-b", period: undefined },
+    ];
+    expect(chronologicalAdvancedStyles({ ...data, styles }, sample.country, sample.mode).map((item) => item.id))
+      .toEqual(["early", "short-a", "short-b", "long", "undated-a", "undated-b"]);
   });
 });

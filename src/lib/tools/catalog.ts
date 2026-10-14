@@ -1,7 +1,7 @@
 export const TOOLS = [
   { id: "vertical", title: "文字竖排", icon: "editor.alignment" },
   { id: "morse", title: "摩斯编码", icon: "editor.inline-code" },
-  { id: "fancy", title: "花体英文", icon: "editor.italic" },
+  { id: "fancy", title: "花体字", icon: "editor.italic" },
   { id: "names", title: "起名工具", icon: "content.roleplay" },
 ] as const;
 export type ToolId = (typeof TOOLS)[number]["id"];

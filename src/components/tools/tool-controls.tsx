@@ -12,15 +12,26 @@ export function useToolReady() {
   return useSyncExternalStore(subscribeReady, () => true, () => false);
 }
 
-export function ToolSelect({ label, value, onChange, options, disabled, embedded = false }: {
+export function ToolSelect({ label, value, onChange, options, disabled, embedded = false, previewLayout = "inline" }: {
   label: string; value: string; onChange: (value: string) => void;
   options: readonly { id: string; label: string; preview?: string }[]; disabled?: boolean; embedded?: boolean;
+  previewLayout?: "inline" | "stacked";
 }) {
   const id = useId();
+  const selected = options.find((item) => item.id === value);
+  const stacked = previewLayout === "stacked";
+  const renderOption = (item: { label: string; preview?: string } | undefined) => stacked ?
+    <span className="flex min-w-0 flex-col gap-1 text-left"><span>{item?.label}</span>{item?.preview && <span aria-hidden="true" className="break-all whitespace-normal py-1 leading-loose">{item.preview}</span>}</span> :
+    <>{item?.label}{item?.preview && <span aria-hidden="true" className="ml-3">{item.preview}</span>}</>;
   return <div className="grid gap-2"><label htmlFor={id} className="text-sm font-normal">{label}</label>
     <Select value={value} onValueChange={(next) => { if (next) onChange(next); }} disabled={disabled}>
-      <SelectTrigger id={id} className="w-full min-w-0"><SelectValue className="min-w-0 truncate">{options.find((item) => item.id === value)?.label}{options.find((item) => item.id === value)?.preview && <span aria-hidden="true" className="ml-3">{options.find((item) => item.id === value)?.preview}</span>}</SelectValue></SelectTrigger>
-      <SelectContent>{options.map((item) => <SelectItem key={item.id} value={item.id} className={embedded ? "min-h-11 text-base" : undefined}>{item.label}{item.preview && <span aria-hidden="true" className="ml-3">{item.preview}</span>}</SelectItem>)}</SelectContent>
+      <SelectTrigger id={id} className={cn("w-full min-w-0", stacked && "data-[size=default]:h-auto py-3 *:data-[slot=select-value]:line-clamp-none")}>
+        <SelectValue className={cn("min-w-0", stacked ? "overflow-visible" : "truncate")}>{renderOption(selected)}</SelectValue>
+      </SelectTrigger>
+      <SelectContent>{options.map((item) => <SelectItem key={item.id} value={item.id}
+        className={cn(embedded && "min-h-11 text-base", stacked && "py-3 [&>span:first-child]:min-w-0 [&>span:first-child]:shrink")}>
+        {renderOption(item)}
+      </SelectItem>)}</SelectContent>
     </Select>
   </div>;
 }
