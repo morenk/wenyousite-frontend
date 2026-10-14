@@ -3243,6 +3243,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/mobile-releases/android/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 读取 Android 推荐版本及存储桶直连地址
+         * @description 仅返回受限发布完成的当前推荐制品。无推荐为 no_release；策略尚未切回存储桶、记录缺失或身份不匹配为 unavailable。该入口不访问对象存储、不代理 APK、不签发网关 Cookie。客户端显式点击后直连桶校验 HEAD，再原生 GET；限额及缓存遵循存储桶响应。
+         */
+        get: operations["mobileReleasesAndroidDownload"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/wallet": {
         parameters: {
             query?: never;
@@ -3380,7 +3400,10 @@ export interface components {
             fileName: string;
             /** Format: date-time */
             publishedAt: string;
-            /** @example https://wenyou.site/api/v1/app-downloads/android/42/file */
+            /**
+             * @description 新入口返回固定 HTTPS 存储桶地址；历史 app-downloads 入口仍返回本站兼容地址
+             * @example https://wenyou-apk.cn-nb1.rains3.com/mobile/android/wenyou-0.3.0-dev.36-42.apk
+             */
             downloadUrl: string;
             /** @example https://wenyou.site/api/v1/mobile-releases/android/42 */
             releaseNotesUrl: string;
@@ -7886,6 +7909,9 @@ export interface components {
         };
         AdminMobileReleasesConfirm201Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["AdminMobileReleaseDto"];
+        };
+        MobileReleasesAndroidDownload200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["AndroidDownloadInfoDto"];
         };
         EconomyGetWallet200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["WalletResponseDto"];
@@ -21266,6 +21292,58 @@ export interface operations {
             };
             /** @description revision 已变化或发布锁定 */
             409: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    mobileReleasesAndroidDownload: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MobileReleasesAndroidDownload200Response"];
+                };
+            };
+            /** @description 发布记录暂不可读，不回退旧网关或任意 URL */
+            503: {
                 headers: {
                     /** @description 追加 X-Markdown-Contract-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;

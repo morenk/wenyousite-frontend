@@ -1,35 +1,33 @@
-import type { components, operations } from "@/api/types";
+import type { components } from "@/api/types";
 
 export type AndroidDownloadInfo = components["schemas"]["AndroidDownloadInfoDto"];
 export type AndroidDownloadRelease = components["schemas"]["AndroidDownloadReleaseDto"];
-export type DownloadLimitReason = NonNullable<operations["appDownloadsHead"]["responses"][429]["headers"]["X-Download-Limit-Reason"]>;
+export const ANDROID_DOWNLOAD_BASE_URL = "https://wenyou-apk.cn-nb1.rains3.com/mobile/android/";
 
-const downloadLimitReasons: Record<DownloadLimitReason, true> = {
-  device_daily_limit: true, ip_daily_limit: true, byte_budget: true,
-  request_rate: true, concurrency: true, bandwidth: true,
-};
-
-/** 只接受已发布身份绑定的本站固定地址；浏览器实际请求始终留在当前同源代理。 */
-export function androidDownloadPath(release: AndroidDownloadRelease): string {
+/** 只接受同一制品的固定桶地址，不推测地址、不回退历史网关。 */
+export function androidDownloadUrl(release: AndroidDownloadRelease): string {
   if (release.platform !== "android" || release.applicationId !== "site.wenyou.app"
     || !Number.isInteger(release.buildNumber) || release.buildNumber < 1 || release.buildNumber > 2_100_000_000
     || !Number.isInteger(release.sizeBytes) || release.sizeBytes < 1 || release.sizeBytes > 536_870_912
-    || !/^[0-9a-f]{64}$/.test(release.sha256) || !release.versionName?.trim()) {
+    || !/^[0-9a-f]{64}$/.test(release.sha256) || typeof release.versionName !== "string" || !/^[0-9A-Za-z][0-9A-Za-z._-]{0,63}$/.test(release.versionName)) {
     throw new Error("安装包信息无效");
   }
-  const path = `/api/v1/app-downloads/android/${release.buildNumber}/file`;
-  if (release.downloadUrl !== `https://wenyou.site${path}`) throw new Error("安装包地址无效");
-  return path;
+  const fileName = `wenyou-${release.versionName}-${release.buildNumber}.apk`;
+  if (release.fileName !== fileName || release.downloadUrl !== `${ANDROID_DOWNLOAD_BASE_URL}${fileName}`
+    || release.releaseNotesUrl !== `https://wenyou.site/api/v1/mobile-releases/android/${release.buildNumber}`) {
+    throw new Error("安装包地址无效");
+  }
+  return release.downloadUrl;
 }
 
 export function validateAndroidDownloadInfo(info: AndroidDownloadInfo): AndroidDownloadInfo {
-  if (!info || !["available", "no_release", "withdrawn", "paused", "unavailable"].includes(info.status)
-    || (info.retryAfterSeconds !== null && (!Number.isSafeInteger(info.retryAfterSeconds) || info.retryAfterSeconds < 1))) {
+  if (!info || !["available", "no_release", "unavailable"].includes(info.status)
+    || info.retryAfterSeconds !== null) {
     throw new Error("下载信息无效");
   }
   if (info.status === "available") {
     if (!info.release) throw new Error("安装包信息缺失");
-    androidDownloadPath(info.release);
+    androidDownloadUrl(info.release);
   } else if (info.release !== null) {
     throw new Error("下载状态与安装包信息不一致");
   }
@@ -42,6 +40,10 @@ export function matchesAndroidDownload(response: Response, release: AndroidDownl
   return response.status === 200
     && headers.get("content-type")?.split(";")[0].trim() === "application/vnd.android.package-archive"
     && headers.get("content-length") === String(release.sizeBytes)
+    && [
+      `attachment; filename="${release.fileName}"`,
+      `attachment; filename=${release.fileName}`,
+    ].includes(headers.get("content-disposition") ?? "")
     && headers.get("x-amz-meta-apk-sha256") === release.sha256
     && headers.get("x-amz-meta-application-id") === release.applicationId
     && headers.get("x-amz-meta-version-name") === release.versionName
@@ -65,15 +67,11 @@ export class AppDownloadError extends Error {
   constructor(
     public readonly status: number,
     public readonly retryAt: number | null = null,
-    public readonly limitReason: DownloadLimitReason | null = null,
   ) {
     super("下载请求暂未完成");
   }
 
   static fromResponse(response: Response) {
-    const reason = response.headers.get("x-download-limit-reason");
-    const limitReason = response.status === 429 && reason && Object.hasOwn(downloadLimitReasons, reason)
-      ? reason as DownloadLimitReason : null;
-    return new AppDownloadError(response.status, retryAfterDeadline(response.headers.get("retry-after")), limitReason);
+    return new AppDownloadError(response.status, retryAfterDeadline(response.headers.get("retry-after")));
   }
 }

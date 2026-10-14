@@ -1,3 +1,5 @@
+import { ANDROID_DOWNLOAD_BASE_URL } from "./app-download";
+
 export const MEDIA_ORIGIN = "https://cn-nb1.rains3.com";
 
 export function createContentSecurityPolicy({
@@ -13,11 +15,12 @@ export function createContentSecurityPolicy({
     "style-src 'self' 'unsafe-inline'",
     `img-src 'self' data: blob: ${MEDIA_ORIGIN}`,
     "font-src 'self' data:",
-    `connect-src 'self' ${MEDIA_ORIGIN}${isDevelopment ? " ws: wss:" : ""}`,
+    `connect-src 'self' ${MEDIA_ORIGIN} ${ANDROID_DOWNLOAD_BASE_URL}${isDevelopment ? " ws: wss:" : ""}`,
     "media-src 'self' blob:",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
+    `frame-src 'self' ${ANDROID_DOWNLOAD_BASE_URL}`,
     "frame-ancestors 'none'",
   ].join("; ");
 }
