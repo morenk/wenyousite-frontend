@@ -1,3 +1,4 @@
+import { EDITOR_TOOLBAR_STORAGE_KEY, saveEditorToolbarPreference } from "@/lib/editor-toolbar-preference";
 import { createRef } from "react";
 import type { EditorSubmissionHandle } from "@/components/editor/use-editor-submission";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -111,6 +112,7 @@ async function makeToolbarStandard(toolbar: HTMLElement) {
 
 afterEach(() => {
   cleanup();
+  localStorage.removeItem(EDITOR_TOOLBAR_STORAGE_KEY);
   vi.restoreAllMocks();
 });
 
@@ -1005,4 +1007,29 @@ test("行内表情只改变NodeView展示，复制模型与刷新仍保留资产
   await waitFor(() => expect(view.container.querySelector(".ProseMirror img.sticker-inline")).toHaveAttribute("src", display.url));
   expect(editorRef.current?.flush()).toContain(sourceUrl);
   expect(editorRef.current?.flush()).not.toContain(display.url);
+});
+
+test("自定义工具排序与移动生效，表情只出现一次且恢复默认回到底部", async () => {
+  localStorage.setItem(EDITOR_TOOLBAR_STORAGE_KEY, JSON.stringify({ version: 1, primary: ["dice", "sticker", "bold"], more: [] }));
+  const { container } = renderEditor("正文");
+  const editor = await getEditor(container);
+  const toolbar = await screen.findByRole("toolbar", { name: "正文格式工具栏" });
+  await waitFor(() => expect(toolbar).toHaveAttribute("data-editor-density", "custom"));
+  expect((toolbar.querySelector('[data-editor-tool="dice"]') as HTMLElement).style.order).toBe("0");
+  expect((toolbar.querySelector('[data-editor-tool="sticker"]') as HTMLElement).style.order).toBe("2");
+  expect(container.querySelector('[data-slot="milkdown-editor-context-actions"] button')).toBeNull();
+  fireEvent.pointerDown(within(toolbar).getByRole("button", { name: "表情包" }));
+  expect(await screen.findByRole("dialog", { name: "表情收藏" })).toBeInTheDocument();
+  fireEvent.keyDown(document, { key: "Escape" });
+  fireEvent.pointerDown(within(toolbar).getByRole("button", { name: "更多" }));
+  const menu = await screen.findByRole("dialog", { name: "更多正文格式" });
+  expect(within(menu).getByRole("button", { name: "图片" })).toBeInTheDocument();
+  expect(within(menu).getByRole("button", { name: "正文样式" })).toBeInTheDocument();
+  expect(within(menu).queryByRole("button", { name: "无序列表" })).toBeNull();
+  fireEvent.keyDown(document, { key: "Escape" });
+  saveEditorToolbarPreference(null);
+  await waitFor(() => expect(toolbar).toHaveAttribute("data-editor-density", "expanded"));
+  expect(container.querySelector('[data-slot="milkdown-editor-context-actions"] button')).toHaveTextContent("表情");
+  expect(within(toolbar).queryByRole("button", { name: "表情包" })).toBeNull();
+  expect(await getEditor(container)).toBe(editor);
 });

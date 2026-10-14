@@ -41,6 +41,8 @@ interface StickerPickerPopoverProps {
   disabled?: boolean;
   align?: "start" | "end";
   label?: string;
+  externalAnchor?: HTMLElement | null;
+  onExternalClose?: () => void;
 }
 
 interface TileProps {
@@ -441,12 +443,33 @@ export function StickerPickerPopover({
   disabled = false,
   align = "start",
   label = "表情",
+  externalAnchor,
+  onExternalClose,
 }: StickerPickerPopoverProps) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const external = externalAnchor !== undefined;
+  const open = external ? Boolean(externalAnchor) : internalOpen;
+  const setOpen = (next: boolean) => {
+    if (external) { if (!next) onExternalClose?.(); }
+    else setInternalOpen(next);
+  };
 
   return (
-    <Popover.Root open={open} onOpenChange={setOpen}>
-      <Popover.Trigger
+    <Popover.Root open={open} onOpenChange={(next, details) => {
+      if (!next && externalAnchor) {
+        const event = details.event;
+        const related = event instanceof FocusEvent ? event.relatedTarget : null;
+        if (event.composedPath().includes(externalAnchor)
+          || (event.target instanceof Node && externalAnchor.contains(event.target))
+          || (related instanceof Node && externalAnchor.contains(related))) {
+          details.cancel();
+          return;
+        }
+        if (event instanceof KeyboardEvent && event.key === "Escape") externalAnchor.focus();
+      }
+      setOpen(next);
+    }}>
+      {!external ? <Popover.Trigger
         render={
           <Button
             type="button"
@@ -459,10 +482,11 @@ export function StickerPickerPopover({
       >
         <SmilePlus className="h-4 w-4" />
         {label}
-      </Popover.Trigger>
+      </Popover.Trigger> : null}
       <Popover.Portal>
         <Popover.Positioner
-          side="top"
+          anchor={externalAnchor ?? undefined}
+          side={external ? "bottom" : "top"}
           align={align}
           sideOffset={8}
           className="isolate z-[var(--layer-nested-popup)]"
