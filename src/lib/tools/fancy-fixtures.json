@@ -1,6 +1,6 @@
 {
-  "schemaVersion": 1,
-  "dataVersion": "fancy-v1",
+  "schemaVersion": 2,
+  "dataVersion": "fancy-v2",
   "cases": [
     {
       "id": "bold-ascii",
@@ -1441,6 +1441,678 @@
       "styleId": "wave",
       "input": "\n﻿\n \t",
       "expected": "﹏  ﹏\n﻿\n \t"
+    },
+    {
+      "id": "pseudo-script-ascii",
+      "styleId": "pseudo-script",
+      "input": "AbcXYZh019",
+      "expected": "Αв¢ΧΥΖн019"
+    },
+    {
+      "id": "pseudo-script-alphabet",
+      "styleId": "pseudo-script",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "ΑВСＤЕFGНІЈΚLМＮОРQＲЅТUＶＷΧΥΖαв¢∂єƒgнιנкℓмησρqяѕтυνωχуz0123456789"
+    },
+    {
+      "id": "pseudo-script-mixed",
+      "styleId": "pseudo-script",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 Αє́Α̈é 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "pseudo-script-blank",
+      "styleId": "pseudo-script",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "pseudo-script-empty",
+      "styleId": "pseudo-script",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "pseudo-script-unicode-whitespace",
+      "styleId": "pseudo-script",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "pseudo-script-reference",
+      "styleId": "pseudo-script",
+      "input": "Hello Symboldb",
+      "expected": "Нєℓℓσ Ѕумвσℓ∂в"
+    },
+    {
+      "id": "pseudo-fraktur-ascii",
+      "styleId": "pseudo-fraktur",
+      "input": "AbcXYZh019",
+      "expected": "ꋬᏰꉔꊼꌩꁴꑛ019"
+    },
+    {
+      "id": "pseudo-fraktur-alphabet",
+      "styleId": "pseudo-fraktur",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "ꋬᏰꉔᎴꏂᎦᎶꑛ꒐ꓩꀘ꒒ꂵꋊꄲρꆰꋪꇙ꓄ꐇꏝꅏꊼꌩꁴꋬᏰꉔᎴꏂᎦᎶꑛ꒐ꓩꀘ꒒ꂵꋊꄲρꆰꋪꇙ꓄ꐇꏝꅏꊼꌩꁴ0123456789"
+    },
+    {
+      "id": "pseudo-fraktur-mixed",
+      "styleId": "pseudo-fraktur",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 ꋬꏂ́ꋬ̈é 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "pseudo-fraktur-blank",
+      "styleId": "pseudo-fraktur",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "pseudo-fraktur-empty",
+      "styleId": "pseudo-fraktur",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "pseudo-fraktur-unicode-whitespace",
+      "styleId": "pseudo-fraktur",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "pseudo-fraktur-reference",
+      "styleId": "pseudo-fraktur",
+      "input": "Hello Symboldb",
+      "expected": "ꑛꏂ꒒꒒ꄲ ꇙꌩꂵᏰꄲ꒒ᎴᏰ"
+    },
+    {
+      "id": "glitch-ascii",
+      "styleId": "glitch",
+      "input": "AbcXYZh019",
+      "expected": "₳฿₵ӾɎⱫⱧ019"
+    },
+    {
+      "id": "glitch-alphabet",
+      "styleId": "glitch",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "₳฿₵ĐɆ₣₲ⱧłJ₭Ⱡ₥₦Ø₱QⱤ₴₮ɄV₩ӾɎⱫ₳฿₵ĐɆ₣₲ⱧłJ₭Ⱡ₥₦Ø₱QⱤ₴₮ɄV₩ӾɎⱫ0123456789"
+    },
+    {
+      "id": "glitch-mixed",
+      "styleId": "glitch",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 ₳Ɇ́₳̈é 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "glitch-blank",
+      "styleId": "glitch",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "glitch-empty",
+      "styleId": "glitch",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "glitch-unicode-whitespace",
+      "styleId": "glitch",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "glitch-reference",
+      "styleId": "glitch",
+      "input": "Hello Symboldb",
+      "expected": "ⱧɆⱠⱠØ ₴Ɏ₥฿ØⱠĐ฿"
+    },
+    {
+      "id": "bubble-pseudo-ascii",
+      "styleId": "bubble-pseudo",
+      "input": "AbcXYZh019",
+      "expected": "ᗩᗷᑕ᙭Yᘔᕼ019"
+    },
+    {
+      "id": "bubble-pseudo-alphabet",
+      "styleId": "bubble-pseudo",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "ᗩᗷᑕᗪᗴᖴᘜᕼIᒍKᒪᗰᑎOᑭᑫᖇᔕTᑌᐯᗯ᙭YᘔᗩᗷᑕᗪᗴᖴᘜᕼIᒍKᒪᗰᑎOᑭᑫᖇᔕTᑌᐯᗯ᙭Yᘔ0123456789"
+    },
+    {
+      "id": "bubble-pseudo-mixed",
+      "styleId": "bubble-pseudo",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 ᗩᗴ́ᗩ̈é 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "bubble-pseudo-blank",
+      "styleId": "bubble-pseudo",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "bubble-pseudo-empty",
+      "styleId": "bubble-pseudo",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "bubble-pseudo-unicode-whitespace",
+      "styleId": "bubble-pseudo",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "bubble-pseudo-reference",
+      "styleId": "bubble-pseudo",
+      "input": "Hello Symboldb",
+      "expected": "ᕼᗴᒪᒪO ᔕYᗰᗷOᒪᗪᗷ"
+    },
+    {
+      "id": "radicals-ascii",
+      "styleId": "radicals",
+      "input": "AbcXYZh019",
+      "expected": "卂乃匚乂丫乙卄019"
+    },
+    {
+      "id": "radicals-alphabet",
+      "styleId": "radicals",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "卂乃匚刀乇下厶卄工丁长乚从𠘨口尸㔿尺丂丅凵リ山乂丫乙卂乃匚刀乇下厶卄工丁长乚从𠘨口尸㔿尺丂丅凵リ山乂丫乙0123456789"
+    },
+    {
+      "id": "radicals-mixed",
+      "styleId": "radicals",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 卂乇́卂̈é 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "radicals-blank",
+      "styleId": "radicals",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "radicals-empty",
+      "styleId": "radicals",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "radicals-unicode-whitespace",
+      "styleId": "radicals",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "radicals-reference",
+      "styleId": "radicals",
+      "input": "Hello Symboldb",
+      "expected": "卄乇乚乚口 丂丫从乃口乚刀乃"
+    },
+    {
+      "id": "cursed-ascii",
+      "styleId": "cursed",
+      "input": "AbcXYZh019",
+      "expected": "ĄɓƈXŶŽɦ019"
+    },
+    {
+      "id": "cursed-alphabet",
+      "styleId": "cursed",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "ĄƁƇƊƐƑƓĦƗJƘĿMŊƠƤQŘŞŦƲVŴXŶŽąɓƈɗɛʄɠɦɨʝƙƖɱɲơƥʠʀʂƭʋʋωҳყʑ0123456789"
+    },
+    {
+      "id": "cursed-mixed",
+      "styleId": "cursed",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 Ąɛ́Ą̈é 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "cursed-blank",
+      "styleId": "cursed",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "cursed-empty",
+      "styleId": "cursed",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "cursed-unicode-whitespace",
+      "styleId": "cursed",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "cursed-reference",
+      "styleId": "cursed",
+      "input": "Hello Symboldb",
+      "expected": "ĦɛƖƖơ ŞყɱɓơƖɗɓ"
+    },
+    {
+      "id": "dot-above-ascii",
+      "styleId": "dot-above",
+      "input": "AbcXYZh019",
+      "expected": "ȦḃċẊẎŻḣ0̇1̇9̇"
+    },
+    {
+      "id": "dot-above-alphabet",
+      "styleId": "dot-above",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "ȦḂĊḊĖḞĠḢİJ̇K̇L̇ṀṄȮṖQ̇ṘṠṪU̇V̇ẆẊẎŻȧḃċḋėḟġḣi̇j̇k̇l̇ṁṅȯṗq̇ṙṡṫu̇v̇ẇẋẏż0̇1̇2̇3̇4̇5̇6̇7̇8̇9̇"
+    },
+    {
+      "id": "dot-above-mixed",
+      "styleId": "dot-above",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 ȦéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "dot-above-blank",
+      "styleId": "dot-above",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "dot-above-empty",
+      "styleId": "dot-above",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "dot-above-unicode-whitespace",
+      "styleId": "dot-above",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "dot-above-reference",
+      "styleId": "dot-above",
+      "input": "Hello Symboldb",
+      "expected": "Ḣėl̇l̇ȯ Ṡẏṁḃȯl̇ḋḃ"
+    },
+    {
+      "id": "dot-below-ascii",
+      "styleId": "dot-below",
+      "input": "AbcXYZh019",
+      "expected": "Ạḅc̣X̣ỴẒḥ0̣1̣9̣"
+    },
+    {
+      "id": "dot-below-alphabet",
+      "styleId": "dot-below",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "ẠḄC̣ḌẸF̣G̣ḤỊJ̣ḲḶṂṆỌP̣Q̣ṚṢṬỤṾẈX̣ỴẒạḅc̣ḍẹf̣g̣ḥịj̣ḳḷṃṇọp̣q̣ṛṣṭụṿẉx̣ỵẓ0̣1̣2̣3̣4̣5̣6̣7̣8̣9̣"
+    },
+    {
+      "id": "dot-below-mixed",
+      "styleId": "dot-below",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 ẠéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "dot-below-blank",
+      "styleId": "dot-below",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "dot-below-empty",
+      "styleId": "dot-below",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "dot-below-unicode-whitespace",
+      "styleId": "dot-below",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "dot-below-reference",
+      "styleId": "dot-below",
+      "input": "Hello Symboldb",
+      "expected": "Ḥẹḷḷọ Ṣỵṃḅọḷḍḅ"
+    },
+    {
+      "id": "zalgo-ascii",
+      "styleId": "zalgo",
+      "input": "AbcXYZh019",
+      "expected": "Ȧ̸̱b̵̤͆c̶̭̕X̴̣̍Ẏ̸̱Z̵̤͆ḥ̴̍0̴̣̍1̸̱̇9̸̱̇"
+    },
+    {
+      "id": "zalgo-alphabet",
+      "styleId": "zalgo",
+      "input": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "expected": "Ȧ̸̱B̵̤͆C̶̭̕Ḍ̴̍Ė̸̱F̵̤͆G̶̭̕Ḥ̴̍İ̸̱J̵̤͆K̶̭̕Ḷ̴̍Ṁ̸̱N̵̤͆O̶̭̕P̴̣̍Q̸̱̇R̵̤͆S̶̭̕Ṭ̴̍U̸̱̇V̵̤͆W̶̭̕X̴̣̍Ẏ̸̱Z̵̤͆ȧ̸̱b̵̤͆c̶̭̕ḍ̴̍ė̸̱f̵̤͆g̶̭̕ḥ̴̍i̸̱̇j̵̤͆k̶̭̕ḷ̴̍ṁ̸̱n̵̤͆o̶̭̕p̴̣̍q̸̱̇r̵̤͆s̶̭̕ṭ̴̍u̸̱̇v̵̤͆w̶̭̕x̴̣̍ẏ̸̱z̵̤͆0̴̣̍1̸̱̇2̵̤͆3̶̭̕4̴̣̍5̸̱̇6̵̤͆7̶̭̕8̴̣̍9̸̱̇"
+    },
+    {
+      "id": "zalgo-mixed",
+      "styleId": "zalgo",
+      "input": "温油 AéÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n",
+      "expected": "温油 Ȧ̸̱éÄé 👩🏽‍💻 🇨🇳 1️⃣\r\n中\r\n文\n"
+    },
+    {
+      "id": "zalgo-blank",
+      "styleId": "zalgo",
+      "input": " \t\r\n\n",
+      "expected": " \t\r\n\n"
+    },
+    {
+      "id": "zalgo-empty",
+      "styleId": "zalgo",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "zalgo-unicode-whitespace",
+      "styleId": "zalgo",
+      "input": "\n﻿\n \t",
+      "expected": "\n﻿\n \t"
+    },
+    {
+      "id": "zalgo-reference",
+      "styleId": "zalgo",
+      "input": "Hello Symboldb",
+      "expected": "Ḥ̴̍ė̸̱ḷ̴̍ḷ̴̍o̶̭̕ S̶̭̕ẏ̸̱ṁ̸̱b̵̤͆o̶̭̕ḷ̴̍ḍ̴̍b̵̤͆"
+    },
+    {
+      "id": "bold-wenyou-preview",
+      "styleId": "bold",
+      "input": "Hello Wenyou",
+      "expected": "𝐇𝐞𝐥𝐥𝐨 𝐖𝐞𝐧𝐲𝐨𝐮"
+    },
+    {
+      "id": "italic-wenyou-preview",
+      "styleId": "italic",
+      "input": "Hello Wenyou",
+      "expected": "𝐻𝑒𝑙𝑙𝑜 𝑊𝑒𝑛𝑦𝑜𝑢"
+    },
+    {
+      "id": "script-wenyou-preview",
+      "styleId": "script",
+      "input": "Hello Wenyou",
+      "expected": "ℋℯ𝓁𝓁ℴ 𝒲ℯ𝓃𝓎ℴ𝓊"
+    },
+    {
+      "id": "fraktur-wenyou-preview",
+      "styleId": "fraktur",
+      "input": "Hello Wenyou",
+      "expected": "ℌ𝔢𝔩𝔩𝔬 𝔚𝔢𝔫𝔶𝔬𝔲"
+    },
+    {
+      "id": "double-wenyou-preview",
+      "styleId": "double",
+      "input": "Hello Wenyou",
+      "expected": "ℍ𝕖𝕝𝕝𝕠 𝕎𝕖𝕟𝕪𝕠𝕦"
+    },
+    {
+      "id": "mono-wenyou-preview",
+      "styleId": "mono",
+      "input": "Hello Wenyou",
+      "expected": "𝙷𝚎𝚕𝚕𝚘 𝚆𝚎𝚗𝚢𝚘𝚞"
+    },
+    {
+      "id": "full-wenyou-preview",
+      "styleId": "full",
+      "input": "Hello Wenyou",
+      "expected": "Ｈｅｌｌｏ Ｗｅｎｙｏｕ"
+    },
+    {
+      "id": "bold-italic-wenyou-preview",
+      "styleId": "bold-italic",
+      "input": "Hello Wenyou",
+      "expected": "𝑯𝒆𝒍𝒍𝒐 𝑾𝒆𝒏𝒚𝒐𝒖"
+    },
+    {
+      "id": "bold-script-wenyou-preview",
+      "styleId": "bold-script",
+      "input": "Hello Wenyou",
+      "expected": "𝓗𝓮𝓵𝓵𝓸 𝓦𝓮𝓷𝔂𝓸𝓾"
+    },
+    {
+      "id": "bold-fraktur-wenyou-preview",
+      "styleId": "bold-fraktur",
+      "input": "Hello Wenyou",
+      "expected": "𝕳𝖊𝖑𝖑𝖔 𝖂𝖊𝖓𝖞𝖔𝖚"
+    },
+    {
+      "id": "sans-wenyou-preview",
+      "styleId": "sans",
+      "input": "Hello Wenyou",
+      "expected": "𝖧𝖾𝗅𝗅𝗈 𝖶𝖾𝗇𝗒𝗈𝗎"
+    },
+    {
+      "id": "sans-bold-wenyou-preview",
+      "styleId": "sans-bold",
+      "input": "Hello Wenyou",
+      "expected": "𝗛𝗲𝗹𝗹𝗼 𝗪𝗲𝗻𝘆𝗼𝘂"
+    },
+    {
+      "id": "sans-italic-wenyou-preview",
+      "styleId": "sans-italic",
+      "input": "Hello Wenyou",
+      "expected": "𝘏𝘦𝘭𝘭𝘰 𝘞𝘦𝘯𝘺𝘰𝘶"
+    },
+    {
+      "id": "sans-bold-italic-wenyou-preview",
+      "styleId": "sans-bold-italic",
+      "input": "Hello Wenyou",
+      "expected": "𝙃𝙚𝙡𝙡𝙤 𝙒𝙚𝙣𝙮𝙤𝙪"
+    },
+    {
+      "id": "circled-wenyou-preview",
+      "styleId": "circled",
+      "input": "Hello Wenyou",
+      "expected": "Ⓗⓔⓛⓛⓞ Ⓦⓔⓝⓨⓞⓤ"
+    },
+    {
+      "id": "squared-wenyou-preview",
+      "styleId": "squared",
+      "input": "Hello Wenyou",
+      "expected": "🄷🄴🄻🄻🄾 🅆🄴🄽🅈🄾🅄"
+    },
+    {
+      "id": "small-caps-wenyou-preview",
+      "styleId": "small-caps",
+      "input": "Hello Wenyou",
+      "expected": "ʜᴇʟʟᴏ ᴡᴇɴʏᴏᴜ"
+    },
+    {
+      "id": "superscript-wenyou-preview",
+      "styleId": "superscript",
+      "input": "Hello Wenyou",
+      "expected": "ʰᵉˡˡᵒ ʷᵉⁿʸᵒᵘ"
+    },
+    {
+      "id": "subscript-wenyou-preview",
+      "styleId": "subscript",
+      "input": "Hello Wenyou",
+      "expected": "ₕₑₗₗₒ Wₑₙyₒᵤ"
+    },
+    {
+      "id": "pseudo-script-wenyou-preview",
+      "styleId": "pseudo-script",
+      "input": "Hello Wenyou",
+      "expected": "Нєℓℓσ Ｗєηуσυ"
+    },
+    {
+      "id": "pseudo-fraktur-wenyou-preview",
+      "styleId": "pseudo-fraktur",
+      "input": "Hello Wenyou",
+      "expected": "ꑛꏂ꒒꒒ꄲ ꅏꏂꋊꌩꄲꐇ"
+    },
+    {
+      "id": "glitch-wenyou-preview",
+      "styleId": "glitch",
+      "input": "Hello Wenyou",
+      "expected": "ⱧɆⱠⱠØ ₩Ɇ₦ɎØɄ"
+    },
+    {
+      "id": "bubble-pseudo-wenyou-preview",
+      "styleId": "bubble-pseudo",
+      "input": "Hello Wenyou",
+      "expected": "ᕼᗴᒪᒪO ᗯᗴᑎYOᑌ"
+    },
+    {
+      "id": "radicals-wenyou-preview",
+      "styleId": "radicals",
+      "input": "Hello Wenyou",
+      "expected": "卄乇乚乚口 山乇𠘨丫口凵"
+    },
+    {
+      "id": "cursed-wenyou-preview",
+      "styleId": "cursed",
+      "input": "Hello Wenyou",
+      "expected": "ĦɛƖƖơ Ŵɛɲყơʋ"
+    },
+    {
+      "id": "dot-above-wenyou-preview",
+      "styleId": "dot-above",
+      "input": "Hello Wenyou",
+      "expected": "Ḣėl̇l̇ȯ Ẇėṅẏȯu̇"
+    },
+    {
+      "id": "dot-below-wenyou-preview",
+      "styleId": "dot-below",
+      "input": "Hello Wenyou",
+      "expected": "Ḥẹḷḷọ Ẉẹṇỵọụ"
+    },
+    {
+      "id": "dotted-wenyou-preview",
+      "styleId": "dotted",
+      "input": "Hello Wenyou",
+      "expected": "Ḧël̈l̈ö Ẅën̈ÿöü"
+    },
+    {
+      "id": "strike-wenyou-preview",
+      "styleId": "strike",
+      "input": "Hello Wenyou",
+      "expected": "H̶e̶l̶l̶o̶ W̶e̶n̶y̶o̶u̶"
+    },
+    {
+      "id": "underline-wenyou-preview",
+      "styleId": "underline",
+      "input": "Hello Wenyou",
+      "expected": "H̲e̲l̲l̲o̲ W̲e̲n̲y̲o̲u̲"
+    },
+    {
+      "id": "overline-wenyou-preview",
+      "styleId": "overline",
+      "input": "Hello Wenyou",
+      "expected": "H̅e̅l̅l̅o̅ W̅e̅n̅y̅o̅u̅"
+    },
+    {
+      "id": "upside-down-wenyou-preview",
+      "styleId": "upside-down",
+      "input": "Hello Wenyou",
+      "expected": "noʎuǝʍ oʅʅǝɥ"
+    },
+    {
+      "id": "zalgo-wenyou-preview",
+      "styleId": "zalgo",
+      "input": "Hello Wenyou",
+      "expected": "Ḥ̴̍ė̸̱ḷ̴̍ḷ̴̍o̶̭̕ W̶̭̕ė̸̱n̵̤͆ẏ̸̱o̶̭̕u̸̱̇"
+    },
+    {
+      "id": "corner-wenyou-preview",
+      "styleId": "corner",
+      "input": "Hello Wenyou",
+      "expected": "【Hello Wenyou】"
+    },
+    {
+      "id": "lenticular-wenyou-preview",
+      "styleId": "lenticular",
+      "input": "Hello Wenyou",
+      "expected": "〖Hello Wenyou〗"
+    },
+    {
+      "id": "book-wenyou-preview",
+      "styleId": "book",
+      "input": "Hello Wenyou",
+      "expected": "《Hello Wenyou》"
+    },
+    {
+      "id": "quotes-wenyou-preview",
+      "styleId": "quotes",
+      "input": "Hello Wenyou",
+      "expected": "『Hello Wenyou』"
+    },
+    {
+      "id": "stars-wenyou-preview",
+      "styleId": "stars",
+      "input": "Hello Wenyou",
+      "expected": "✦ Hello Wenyou ✦"
+    },
+    {
+      "id": "sparkles-wenyou-preview",
+      "styleId": "sparkles",
+      "input": "Hello Wenyou",
+      "expected": "✧･ﾟ: Hello Wenyou :･ﾟ✧"
+    },
+    {
+      "id": "hearts-wenyou-preview",
+      "styleId": "hearts",
+      "input": "Hello Wenyou",
+      "expected": "♡ Hello Wenyou ♡"
+    },
+    {
+      "id": "wings-wenyou-preview",
+      "styleId": "wings",
+      "input": "Hello Wenyou",
+      "expected": "꧁ Hello Wenyou ꧂"
+    },
+    {
+      "id": "flowers-wenyou-preview",
+      "styleId": "flowers",
+      "input": "Hello Wenyou",
+      "expected": "✿ Hello Wenyou ✿"
+    },
+    {
+      "id": "moon-wenyou-preview",
+      "styleId": "moon",
+      "input": "Hello Wenyou",
+      "expected": "☾ Hello Wenyou ☽"
+    },
+    {
+      "id": "clouds-wenyou-preview",
+      "styleId": "clouds",
+      "input": "Hello Wenyou",
+      "expected": "☁︎ Hello Wenyou ☁︎"
+    },
+    {
+      "id": "music-wenyou-preview",
+      "styleId": "music",
+      "input": "Hello Wenyou",
+      "expected": "♪ Hello Wenyou ♫"
+    },
+    {
+      "id": "diamonds-wenyou-preview",
+      "styleId": "diamonds",
+      "input": "Hello Wenyou",
+      "expected": "◇◆ Hello Wenyou ◆◇"
+    },
+    {
+      "id": "arrows-wenyou-preview",
+      "styleId": "arrows",
+      "input": "Hello Wenyou",
+      "expected": "➳ Hello Wenyou ➳"
+    },
+    {
+      "id": "ribbon-wenyou-preview",
+      "styleId": "ribbon",
+      "input": "Hello Wenyou",
+      "expected": "୨୧ Hello Wenyou ୨୧"
+    },
+    {
+      "id": "wave-wenyou-preview",
+      "styleId": "wave",
+      "input": "Hello Wenyou",
+      "expected": "﹏ Hello Wenyou ﹏"
     }
   ]
 }

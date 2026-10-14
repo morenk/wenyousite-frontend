@@ -1,30 +1,30 @@
 {
-  "schemaVersion": 1,
-  "dataVersion": "fancy-v1",
+  "schemaVersion": 2,
+  "dataVersion": "fancy-v2",
   "files": [
     {
       "path": "src/lib/tools/fancy-data.json",
-      "sha256": "69aba29796019e5d736e6ed6476f8bd6a5b4e094aa292ad9f5af3f3fef943051"
+      "sha256": "fe90ed6bf20290e258095201168b5f9c62e638830071cfcd81d6353793b4f3ef"
     },
     {
       "path": "src/lib/tools/fancy-fixtures.json",
-      "sha256": "07c5fcb8d0af4d6825b7b14be2f8dc26bdf97ee27c26310bcd0adb165f18caed"
+      "sha256": "456518ed12d232bf061724b0598abfbfcd20d7172b2f7d76971ee063c63d361b"
     },
     {
       "path": "src/lib/tools/fancy.ts",
-      "sha256": "7672e2961b3bd1cc74a3d3bf40937adec3342c57116d975d0d348d374e5eb4b9"
+      "sha256": "c64010e621c086a13b7e84a7e69c93ff24f1d570f836218bb21986fcb3e76de7"
     },
     {
       "path": "docs/modules/fancy-data-contract.md",
-      "sha256": "4a5085c6391f484fdfe3b3d2f2de30292ff486ea7b7a0ac73f36eec2eb1e6cd0"
+      "sha256": "3af11f2a655542ff4f375f1ffe45706bfc8fc3761e60dd91dd41a84be37eae4f"
     },
     {
       "path": "src/lib/tools/LICENSE.fancy.txt",
-      "sha256": "52b76e8aa865f63d9db63dc655fc51117f5ed993553c0eef24634813fa85015a"
+      "sha256": "61d24fbf52a8f61422f068a884161367848a6f0e679948ccdfdd7a22445b975e"
     },
     {
       "path": "public/licenses/fancy.txt",
-      "sha256": "52b76e8aa865f63d9db63dc655fc51117f5ed993553c0eef24634813fa85015a"
+      "sha256": "61d24fbf52a8f61422f068a884161367848a6f0e679948ccdfdd7a22445b975e"
     }
   ]
 }

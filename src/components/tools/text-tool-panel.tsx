@@ -50,7 +50,7 @@ export function TextToolPanel({ tool, embedded = false }: { tool: "morse" | "fan
       {tool === "fancy" && <>
         <ToolSelect label="分类" value={category} options={FANCY_CATEGORIES} disabled={!ready} embedded={embedded}
           onChange={(value) => { form.setValue("fancy", FANCY_STYLES.find((style) => style.category === value)!.id); setOutput(""); setError(""); }} />
-        <Controller name="fancy" control={form.control} render={({ field }) => <ToolSelect disabled={!ready} label="文字样式" value={field.value}
+        <Controller name="fancy" control={form.control} render={({ field }) => <ToolSelect disabled={!ready} label="文字样式" previewLayout="stacked" value={field.value}
           onChange={(value) => { field.onChange(value); setOutput(""); setError(""); }} embedded={embedded}
           options={FANCY_STYLES.filter((style) => style.category === category)} />} />
         <p className="text-sm leading-relaxed text-muted-foreground">不支持的字符保留原样；部分设备可能缺字，花体可能影响搜索与读屏。</p>
@@ -59,6 +59,6 @@ export function TextToolPanel({ tool, embedded = false }: { tool: "morse" | "fan
       <div className="flex flex-wrap gap-3"><Button type="submit">{embedded && tool === "morse" ? (mode === "encode" ? "生成摩斯码" : "解码为文字") : "生成文字"}</Button><Button type="button" variant="ghost" onClick={() => { form.setValue("input", ""); form.clearErrors(); setOutput(""); setError(""); }}>清空</Button></div>
       </fieldset>
     </form>
-    <ToolResult key={output} text={output} embedded={embedded} />
+    <ToolResult key={output} text={output} embedded={embedded} resultClassName={tool === "fancy" ? "py-5 leading-loose" : undefined} />
   </div>;
 }

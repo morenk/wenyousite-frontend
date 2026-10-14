@@ -61,12 +61,12 @@ describe("文字工具交互", () => {
 test("花体分类预览、中文装饰、切换清除旧结果和复制失败", async () => {
   render(<TextToolPanel tool="fancy" />);
   expect(screen.getByRole("combobox", { name: "分类" })).toHaveTextContent("字体");
-  expect(screen.getByRole("combobox", { name: "文字样式" })).toHaveTextContent("𝒜𝒷𝒸123");
+  expect(screen.getByRole("combobox", { name: "文字样式" })).toHaveTextContent("ℋℯ𝓁𝓁ℴ 𝒲ℯ𝓃𝓎ℴ𝓊");
   fireEvent.change(screen.getByLabelText("输入文字"), { target: { value: "温油👩🏽‍💻" } });
   await userEvent.click(screen.getByRole("combobox", { name: "分类" }));
-  await userEvent.click(screen.getByRole("option", { name: "装饰" }));
+  await userEvent.click(screen.getByRole("option", { name: "边框装饰" }));
   await userEvent.click(screen.getByRole("combobox", { name: "文字样式" }));
-  expect(screen.getAllByRole("option")).toHaveLength(20);
+  expect(screen.getAllByRole("option")).toHaveLength(16);
   await userEvent.click(screen.getByRole("option", { name: "星光" }));
   await userEvent.click(screen.getByRole("button", { name: "生成文字" }));
   await waitFor(() => expect(screen.getByLabelText("生成结果")).toHaveValue("✦ 温油👩🏽‍💻 ✦"));
@@ -89,4 +89,29 @@ test("花体输入超限错误在清空后移除", async () => {
   expect(await screen.findByText("请将输入控制在 10,000 个字符以内")).toBeInTheDocument();
   await userEvent.click(screen.getByRole("button", { name: "清空" }));
   expect(screen.queryByText("请将输入控制在 10,000 个字符以内")).not.toBeInTheDocument();
+});
+
+
+test("新增字形可通过符号分类选择、预览并生成，文字特效能生成Zalgo", async () => {
+  render(<TextToolPanel tool="fancy" embedded />);
+  fireEvent.change(screen.getByLabelText("输入文字"), { target: { value: "Hello Symboldb" } });
+  await userEvent.click(screen.getByRole("combobox", { name: "分类" }));
+  await userEvent.click(screen.getByRole("option", { name: "符号字形" }));
+  expect(screen.getByRole("combobox", { name: "文字样式" })).toHaveTextContent("Нєℓℓσ Ｗєηуσυ");
+  await userEvent.click(screen.getByRole("combobox", { name: "文字样式" }));
+  expect(screen.getAllByRole("option").map((item) => item.getAttribute("data-slot"))).toHaveLength(6);
+  await userEvent.click(screen.getByRole("option", { name: "酷炫伪体（偏旁）" }));
+  await userEvent.click(screen.getByRole("button", { name: "生成文字" }));
+  await waitFor(() => expect(screen.getByLabelText("生成结果")).toHaveValue("卄乇乚乚口 丂丫从乃口乚刀乃"));
+  await userEvent.click(screen.getByRole("combobox", { name: "分类" }));
+  await userEvent.click(screen.getByRole("option", { name: "文字特效" }));
+  expect(screen.queryByLabelText("生成结果")).not.toBeInTheDocument();
+  await userEvent.click(screen.getByRole("combobox", { name: "文字样式" }));
+  await userEvent.click(screen.getByRole("option", { name: "Zalgo" }));
+  fireEvent.change(screen.getByLabelText("输入文字"), { target: { value: "A中👩🏽‍💻" } });
+  await userEvent.click(screen.getByRole("button", { name: "生成文字" }));
+  await waitFor(() => expect(screen.getByLabelText("生成结果")).toHaveValue("Ȧ̸̱中👩🏽‍💻"));
+  vi.spyOn(clipboard, "copyToolText").mockResolvedValue(true);
+  await userEvent.click(screen.getByRole("button", { name: "复制全部" }));
+  expect(clipboard.copyToolText).toHaveBeenCalledWith("Ȧ̸̱中👩🏽‍💻");
 });

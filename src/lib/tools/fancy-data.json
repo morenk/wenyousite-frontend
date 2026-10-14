@@ -1,6 +1,6 @@
 {
-  "schemaVersion": 1,
-  "dataVersion": "fancy-v1",
+  "schemaVersion": 2,
+  "dataVersion": "fancy-v2",
   "defaultStyleId": "script",
   "categories": [
     {
@@ -8,8 +8,16 @@
       "label": "字体"
     },
     {
+      "id": "symbol",
+      "label": "符号字形"
+    },
+    {
+      "id": "effect",
+      "label": "文字特效"
+    },
+    {
       "id": "decoration",
-      "label": "装饰"
+      "label": "边框装饰"
     }
   ],
   "styles": [
@@ -82,7 +90,8 @@
         "8": "𝟖",
         "9": "𝟗"
       },
-      "preview": "𝐀𝐛𝐜𝟏𝟐𝟑"
+      "preview": "𝐇𝐞𝐥𝐥𝐨 𝐖𝐞𝐧𝐲𝐨𝐮",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "italic",
@@ -143,7 +152,8 @@
         "y": "𝑦",
         "z": "𝑧"
       },
-      "preview": "𝐴𝑏𝑐123"
+      "preview": "𝐻𝑒𝑙𝑙𝑜 𝑊𝑒𝑛𝑦𝑜𝑢",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "script",
@@ -204,7 +214,8 @@
         "y": "𝓎",
         "z": "𝓏"
       },
-      "preview": "𝒜𝒷𝒸123"
+      "preview": "ℋℯ𝓁𝓁ℴ 𝒲ℯ𝓃𝓎ℴ𝓊",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "fraktur",
@@ -265,7 +276,8 @@
         "y": "𝔶",
         "z": "𝔷"
       },
-      "preview": "𝔄𝔟𝔠123"
+      "preview": "ℌ𝔢𝔩𝔩𝔬 𝔚𝔢𝔫𝔶𝔬𝔲",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "double",
@@ -336,7 +348,8 @@
         "8": "𝟠",
         "9": "𝟡"
       },
-      "preview": "𝔸𝕓𝕔𝟙𝟚𝟛"
+      "preview": "ℍ𝕖𝕝𝕝𝕠 𝕎𝕖𝕟𝕪𝕠𝕦",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "mono",
@@ -407,7 +420,8 @@
         "8": "𝟾",
         "9": "𝟿"
       },
-      "preview": "𝙰𝚋𝚌𝟷𝟸𝟹"
+      "preview": "𝙷𝚎𝚕𝚕𝚘 𝚆𝚎𝚗𝚢𝚘𝚞",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "full",
@@ -478,7 +492,8 @@
         "8": "８",
         "9": "９"
       },
-      "preview": "Ａｂｃ１２３"
+      "preview": "Ｈｅｌｌｏ Ｗｅｎｙｏｕ",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "bold-italic",
@@ -539,7 +554,8 @@
         "y": "𝒚",
         "z": "𝒛"
       },
-      "preview": "𝑨𝒃𝒄123"
+      "preview": "𝑯𝒆𝒍𝒍𝒐 𝑾𝒆𝒏𝒚𝒐𝒖",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "bold-script",
@@ -600,7 +616,8 @@
         "y": "𝔂",
         "z": "𝔃"
       },
-      "preview": "𝓐𝓫𝓬123"
+      "preview": "𝓗𝓮𝓵𝓵𝓸 𝓦𝓮𝓷𝔂𝓸𝓾",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "bold-fraktur",
@@ -661,7 +678,8 @@
         "y": "𝖞",
         "z": "𝖟"
       },
-      "preview": "𝕬𝖇𝖈123"
+      "preview": "𝕳𝖊𝖑𝖑𝖔 𝖂𝖊𝖓𝖞𝖔𝖚",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "sans",
@@ -732,7 +750,8 @@
         "8": "𝟪",
         "9": "𝟫"
       },
-      "preview": "𝖠𝖻𝖼𝟣𝟤𝟥"
+      "preview": "𝖧𝖾𝗅𝗅𝗈 𝖶𝖾𝗇𝗒𝗈𝗎",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "sans-bold",
@@ -803,7 +822,8 @@
         "8": "𝟴",
         "9": "𝟵"
       },
-      "preview": "𝗔𝗯𝗰𝟭𝟮𝟯"
+      "preview": "𝗛𝗲𝗹𝗹𝗼 𝗪𝗲𝗻𝘆𝗼𝘂",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "sans-italic",
@@ -864,7 +884,8 @@
         "y": "𝘺",
         "z": "𝘻"
       },
-      "preview": "𝘈𝘣𝘤123"
+      "preview": "𝘏𝘦𝘭𝘭𝘰 𝘞𝘦𝘯𝘺𝘰𝘶",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "sans-bold-italic",
@@ -925,7 +946,8 @@
         "y": "𝙮",
         "z": "𝙯"
       },
-      "preview": "𝘼𝙗𝙘123"
+      "preview": "𝙃𝙚𝙡𝙡𝙤 𝙒𝙚𝙣𝙮𝙤𝙪",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "circled",
@@ -996,7 +1018,8 @@
         "8": "⑧",
         "9": "⑨"
       },
-      "preview": "Ⓐⓑⓒ①②③"
+      "preview": "Ⓗⓔⓛⓛⓞ Ⓦⓔⓝⓨⓞⓤ",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "squared",
@@ -1057,7 +1080,8 @@
         "y": "🅈",
         "z": "🅉"
       },
-      "preview": "🄰🄱🄲123"
+      "preview": "🄷🄴🄻🄻🄾 🅆🄴🄽🅈🄾🅄",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "small-caps",
@@ -1114,7 +1138,8 @@
         "y": "ʏ",
         "z": "ᴢ"
       },
-      "preview": "ᴀʙᴄ123"
+      "preview": "ʜᴇʟʟᴏ ᴡᴇɴʏᴏᴜ",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "superscript",
@@ -1183,7 +1208,8 @@
         "8": "⁸",
         "9": "⁹"
       },
-      "preview": "ᵃᵇᶜ¹²³"
+      "preview": "ʰᵉˡˡᵒ ʷᵉⁿʸᵒᵘ",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "subscript",
@@ -1236,12 +1262,439 @@
         "8": "₈",
         "9": "₉"
       },
-      "preview": "ₐbc₁₂₃"
+      "preview": "ₕₑₗₗₒ Wₑₙyₒᵤ",
+      "previewInput": "Hello Wenyou"
+    },
+    {
+      "id": "pseudo-script",
+      "label": "伪草书体",
+      "category": "symbol",
+      "kind": "map",
+      "mapping": {
+        "A": "Α",
+        "B": "В",
+        "C": "С",
+        "D": "Ｄ",
+        "E": "Е",
+        "F": "F",
+        "G": "G",
+        "H": "Н",
+        "I": "І",
+        "J": "Ј",
+        "K": "Κ",
+        "L": "L",
+        "M": "М",
+        "N": "Ｎ",
+        "O": "О",
+        "P": "Р",
+        "Q": "Q",
+        "R": "Ｒ",
+        "S": "Ѕ",
+        "T": "Т",
+        "U": "U",
+        "V": "Ｖ",
+        "W": "Ｗ",
+        "X": "Χ",
+        "Y": "Υ",
+        "Z": "Ζ",
+        "a": "α",
+        "b": "в",
+        "c": "¢",
+        "d": "∂",
+        "e": "є",
+        "f": "ƒ",
+        "g": "g",
+        "h": "н",
+        "i": "ι",
+        "j": "נ",
+        "k": "к",
+        "l": "ℓ",
+        "m": "м",
+        "n": "η",
+        "o": "σ",
+        "p": "ρ",
+        "q": "q",
+        "r": "я",
+        "s": "ѕ",
+        "t": "т",
+        "u": "υ",
+        "v": "ν",
+        "w": "ω",
+        "x": "χ",
+        "y": "у",
+        "z": "z"
+      },
+      "previewInput": "Hello Wenyou",
+      "preview": "Нєℓℓσ Ｗєηуσυ"
+    },
+    {
+      "id": "pseudo-fraktur",
+      "label": "伪哥特体",
+      "category": "symbol",
+      "kind": "map",
+      "mapping": {
+        "A": "ꋬ",
+        "B": "Ᏸ",
+        "C": "ꉔ",
+        "D": "Ꮄ",
+        "E": "ꏂ",
+        "F": "Ꭶ",
+        "G": "Ꮆ",
+        "H": "ꑛ",
+        "I": "꒐",
+        "J": "ꓩ",
+        "K": "ꀘ",
+        "L": "꒒",
+        "M": "ꂵ",
+        "N": "ꋊ",
+        "O": "ꄲ",
+        "P": "ρ",
+        "Q": "ꆰ",
+        "R": "ꋪ",
+        "S": "ꇙ",
+        "T": "꓄",
+        "U": "ꐇ",
+        "V": "ꏝ",
+        "W": "ꅏ",
+        "X": "ꊼ",
+        "Y": "ꌩ",
+        "Z": "ꁴ",
+        "a": "ꋬ",
+        "b": "Ᏸ",
+        "c": "ꉔ",
+        "d": "Ꮄ",
+        "e": "ꏂ",
+        "f": "Ꭶ",
+        "g": "Ꮆ",
+        "h": "ꑛ",
+        "i": "꒐",
+        "j": "ꓩ",
+        "k": "ꀘ",
+        "l": "꒒",
+        "m": "ꂵ",
+        "n": "ꋊ",
+        "o": "ꄲ",
+        "p": "ρ",
+        "q": "ꆰ",
+        "r": "ꋪ",
+        "s": "ꇙ",
+        "t": "꓄",
+        "u": "ꐇ",
+        "v": "ꏝ",
+        "w": "ꅏ",
+        "x": "ꊼ",
+        "y": "ꌩ",
+        "z": "ꁴ"
+      },
+      "previewInput": "Hello Wenyou",
+      "preview": "ꑛꏂ꒒꒒ꄲ ꅏꏂꋊꌩꄲꐇ"
+    },
+    {
+      "id": "glitch",
+      "label": "故障伪体",
+      "category": "symbol",
+      "kind": "map",
+      "mapping": {
+        "A": "₳",
+        "B": "฿",
+        "C": "₵",
+        "D": "Đ",
+        "E": "Ɇ",
+        "F": "₣",
+        "G": "₲",
+        "H": "Ⱨ",
+        "I": "ł",
+        "J": "J",
+        "K": "₭",
+        "L": "Ⱡ",
+        "M": "₥",
+        "N": "₦",
+        "O": "Ø",
+        "P": "₱",
+        "Q": "Q",
+        "R": "Ɽ",
+        "S": "₴",
+        "T": "₮",
+        "U": "Ʉ",
+        "V": "V",
+        "W": "₩",
+        "X": "Ӿ",
+        "Y": "Ɏ",
+        "Z": "Ⱬ",
+        "a": "₳",
+        "b": "฿",
+        "c": "₵",
+        "d": "Đ",
+        "e": "Ɇ",
+        "f": "₣",
+        "g": "₲",
+        "h": "Ⱨ",
+        "i": "ł",
+        "j": "J",
+        "k": "₭",
+        "l": "Ⱡ",
+        "m": "₥",
+        "n": "₦",
+        "o": "Ø",
+        "p": "₱",
+        "q": "Q",
+        "r": "Ɽ",
+        "s": "₴",
+        "t": "₮",
+        "u": "Ʉ",
+        "v": "V",
+        "w": "₩",
+        "x": "Ӿ",
+        "y": "Ɏ",
+        "z": "Ⱬ"
+      },
+      "previewInput": "Hello Wenyou",
+      "preview": "ⱧɆⱠⱠØ ₩Ɇ₦ɎØɄ"
+    },
+    {
+      "id": "bubble-pseudo",
+      "label": "气泡伪体",
+      "category": "symbol",
+      "kind": "map",
+      "mapping": {
+        "A": "ᗩ",
+        "B": "ᗷ",
+        "C": "ᑕ",
+        "D": "ᗪ",
+        "E": "ᗴ",
+        "F": "ᖴ",
+        "G": "ᘜ",
+        "H": "ᕼ",
+        "I": "I",
+        "J": "ᒍ",
+        "K": "K",
+        "L": "ᒪ",
+        "M": "ᗰ",
+        "N": "ᑎ",
+        "O": "O",
+        "P": "ᑭ",
+        "Q": "ᑫ",
+        "R": "ᖇ",
+        "S": "ᔕ",
+        "T": "T",
+        "U": "ᑌ",
+        "V": "ᐯ",
+        "W": "ᗯ",
+        "X": "᙭",
+        "Y": "Y",
+        "Z": "ᘔ",
+        "a": "ᗩ",
+        "b": "ᗷ",
+        "c": "ᑕ",
+        "d": "ᗪ",
+        "e": "ᗴ",
+        "f": "ᖴ",
+        "g": "ᘜ",
+        "h": "ᕼ",
+        "i": "I",
+        "j": "ᒍ",
+        "k": "K",
+        "l": "ᒪ",
+        "m": "ᗰ",
+        "n": "ᑎ",
+        "o": "O",
+        "p": "ᑭ",
+        "q": "ᑫ",
+        "r": "ᖇ",
+        "s": "ᔕ",
+        "t": "T",
+        "u": "ᑌ",
+        "v": "ᐯ",
+        "w": "ᗯ",
+        "x": "᙭",
+        "y": "Y",
+        "z": "ᘔ"
+      },
+      "previewInput": "Hello Wenyou",
+      "preview": "ᕼᗴᒪᒪO ᗯᗴᑎYOᑌ"
+    },
+    {
+      "id": "radicals",
+      "label": "酷炫伪体（偏旁）",
+      "category": "symbol",
+      "kind": "map",
+      "mapping": {
+        "A": "卂",
+        "B": "乃",
+        "C": "匚",
+        "D": "刀",
+        "E": "乇",
+        "F": "下",
+        "G": "厶",
+        "H": "卄",
+        "I": "工",
+        "J": "丁",
+        "K": "长",
+        "L": "乚",
+        "M": "从",
+        "N": "𠘨",
+        "O": "口",
+        "P": "尸",
+        "Q": "㔿",
+        "R": "尺",
+        "S": "丂",
+        "T": "丅",
+        "U": "凵",
+        "V": "リ",
+        "W": "山",
+        "X": "乂",
+        "Y": "丫",
+        "Z": "乙",
+        "a": "卂",
+        "b": "乃",
+        "c": "匚",
+        "d": "刀",
+        "e": "乇",
+        "f": "下",
+        "g": "厶",
+        "h": "卄",
+        "i": "工",
+        "j": "丁",
+        "k": "长",
+        "l": "乚",
+        "m": "从",
+        "n": "𠘨",
+        "o": "口",
+        "p": "尸",
+        "q": "㔿",
+        "r": "尺",
+        "s": "丂",
+        "t": "丅",
+        "u": "凵",
+        "v": "リ",
+        "w": "山",
+        "x": "乂",
+        "y": "丫",
+        "z": "乙"
+      },
+      "previewInput": "Hello Wenyou",
+      "preview": "卄乇乚乚口 山乇𠘨丫口凵"
+    },
+    {
+      "id": "cursed",
+      "label": "诅咒体",
+      "category": "symbol",
+      "kind": "map",
+      "mapping": {
+        "A": "Ą",
+        "B": "Ɓ",
+        "C": "Ƈ",
+        "D": "Ɗ",
+        "E": "Ɛ",
+        "F": "Ƒ",
+        "G": "Ɠ",
+        "H": "Ħ",
+        "I": "Ɨ",
+        "J": "J",
+        "K": "Ƙ",
+        "L": "Ŀ",
+        "M": "M",
+        "N": "Ŋ",
+        "O": "Ơ",
+        "P": "Ƥ",
+        "Q": "Q",
+        "R": "Ř",
+        "S": "Ş",
+        "T": "Ŧ",
+        "U": "Ʋ",
+        "V": "V",
+        "W": "Ŵ",
+        "X": "X",
+        "Y": "Ŷ",
+        "Z": "Ž",
+        "a": "ą",
+        "b": "ɓ",
+        "c": "ƈ",
+        "d": "ɗ",
+        "e": "ɛ",
+        "f": "ʄ",
+        "g": "ɠ",
+        "h": "ɦ",
+        "i": "ɨ",
+        "j": "ʝ",
+        "k": "ƙ",
+        "l": "Ɩ",
+        "m": "ɱ",
+        "n": "ɲ",
+        "o": "ơ",
+        "p": "ƥ",
+        "q": "ʠ",
+        "r": "ʀ",
+        "s": "ʂ",
+        "t": "ƭ",
+        "u": "ʋ",
+        "v": "ʋ",
+        "w": "ω",
+        "x": "ҳ",
+        "y": "ყ",
+        "z": "ʑ"
+      },
+      "previewInput": "Hello Wenyou",
+      "preview": "ĦɛƖƖơ Ŵɛɲყơʋ"
+    },
+    {
+      "id": "dot-above",
+      "label": "上加点",
+      "category": "effect",
+      "kind": "mark",
+      "mark": "̇",
+      "previewInput": "Hello Wenyou",
+      "preview": "Ḣėl̇l̇ȯ Ẇėṅẏȯu̇"
+    },
+    {
+      "id": "dot-below",
+      "label": "下加点",
+      "category": "effect",
+      "kind": "mark",
+      "mark": "̣",
+      "previewInput": "Hello Wenyou",
+      "preview": "Ḥẹḷḷọ Ẉẹṇỵọụ"
+    },
+    {
+      "id": "dotted",
+      "label": "字顶双点",
+      "category": "effect",
+      "kind": "mark",
+      "mark": "̈",
+      "preview": "Ḧël̈l̈ö Ẅën̈ÿöü",
+      "previewInput": "Hello Wenyou"
+    },
+    {
+      "id": "strike",
+      "label": "删除线",
+      "category": "effect",
+      "kind": "mark",
+      "mark": "̶",
+      "preview": "H̶e̶l̶l̶o̶ W̶e̶n̶y̶o̶u̶",
+      "previewInput": "Hello Wenyou"
+    },
+    {
+      "id": "underline",
+      "label": "下划线",
+      "category": "effect",
+      "kind": "mark",
+      "mark": "̲",
+      "preview": "H̲e̲l̲l̲o̲ W̲e̲n̲y̲o̲u̲",
+      "previewInput": "Hello Wenyou"
+    },
+    {
+      "id": "overline",
+      "label": "上划线",
+      "category": "effect",
+      "kind": "mark",
+      "mark": "̅",
+      "preview": "H̅e̅l̅l̅o̅ W̅e̅n̅y̅o̅u̅",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "upside-down",
       "label": "倒置字",
-      "category": "font",
+      "category": "effect",
       "kind": "map",
       "mapping": {
         "a": "ɐ",
@@ -1298,39 +1751,22 @@
         "Z": "z"
       },
       "reverse": true,
-      "preview": "321ɔqɐ"
+      "preview": "noʎuǝʍ oʅʅǝɥ",
+      "previewInput": "Hello Wenyou"
     },
     {
-      "id": "strike",
-      "label": "删除线",
-      "category": "decoration",
+      "id": "zalgo",
+      "label": "Zalgo",
+      "category": "effect",
       "kind": "mark",
-      "mark": "̶",
-      "preview": "温油 A̶b̶c̶"
-    },
-    {
-      "id": "underline",
-      "label": "下划线",
-      "category": "decoration",
-      "kind": "mark",
-      "mark": "̲",
-      "preview": "温油 A̲b̲c̲"
-    },
-    {
-      "id": "overline",
-      "label": "上划线",
-      "category": "decoration",
-      "kind": "mark",
-      "mark": "̅",
-      "preview": "温油 A̅b̅c̅"
-    },
-    {
-      "id": "dotted",
-      "label": "字顶双点",
-      "category": "decoration",
-      "kind": "mark",
-      "mark": "̈",
-      "preview": "温油 Äb̈c̈"
+      "markPatterns": [
+        "̴̣̍",
+        "̸̱̇",
+        "̵̤͆",
+        "̶̭̕"
+      ],
+      "previewInput": "Hello Wenyou",
+      "preview": "Ḥ̴̍ė̸̱ḷ̴̍ḷ̴̍o̶̭̕ W̶̭̕ė̸̱n̵̤͆ẏ̸̱o̶̭̕u̸̱̇"
     },
     {
       "id": "corner",
@@ -1339,7 +1775,8 @@
       "kind": "wrap",
       "prefix": "【",
       "suffix": "】",
-      "preview": "【温油 Abc】"
+      "preview": "【Hello Wenyou】",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "lenticular",
@@ -1348,7 +1785,8 @@
       "kind": "wrap",
       "prefix": "〖",
       "suffix": "〗",
-      "preview": "〖温油 Abc〗"
+      "preview": "〖Hello Wenyou〗",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "book",
@@ -1357,7 +1795,8 @@
       "kind": "wrap",
       "prefix": "《",
       "suffix": "》",
-      "preview": "《温油 Abc》"
+      "preview": "《Hello Wenyou》",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "quotes",
@@ -1366,7 +1805,8 @@
       "kind": "wrap",
       "prefix": "『",
       "suffix": "』",
-      "preview": "『温油 Abc』"
+      "preview": "『Hello Wenyou』",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "stars",
@@ -1375,7 +1815,8 @@
       "kind": "wrap",
       "prefix": "✦ ",
       "suffix": " ✦",
-      "preview": "✦ 温油 Abc ✦"
+      "preview": "✦ Hello Wenyou ✦",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "sparkles",
@@ -1384,7 +1825,8 @@
       "kind": "wrap",
       "prefix": "✧･ﾟ: ",
       "suffix": " :･ﾟ✧",
-      "preview": "✧･ﾟ: 温油 Abc :･ﾟ✧"
+      "preview": "✧･ﾟ: Hello Wenyou :･ﾟ✧",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "hearts",
@@ -1393,7 +1835,8 @@
       "kind": "wrap",
       "prefix": "♡ ",
       "suffix": " ♡",
-      "preview": "♡ 温油 Abc ♡"
+      "preview": "♡ Hello Wenyou ♡",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "wings",
@@ -1402,7 +1845,8 @@
       "kind": "wrap",
       "prefix": "꧁ ",
       "suffix": " ꧂",
-      "preview": "꧁ 温油 Abc ꧂"
+      "preview": "꧁ Hello Wenyou ꧂",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "flowers",
@@ -1411,7 +1855,8 @@
       "kind": "wrap",
       "prefix": "✿ ",
       "suffix": " ✿",
-      "preview": "✿ 温油 Abc ✿"
+      "preview": "✿ Hello Wenyou ✿",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "moon",
@@ -1420,7 +1865,8 @@
       "kind": "wrap",
       "prefix": "☾ ",
       "suffix": " ☽",
-      "preview": "☾ 温油 Abc ☽"
+      "preview": "☾ Hello Wenyou ☽",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "clouds",
@@ -1429,7 +1875,8 @@
       "kind": "wrap",
       "prefix": "☁︎ ",
       "suffix": " ☁︎",
-      "preview": "☁︎ 温油 Abc ☁︎"
+      "preview": "☁︎ Hello Wenyou ☁︎",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "music",
@@ -1438,7 +1885,8 @@
       "kind": "wrap",
       "prefix": "♪ ",
       "suffix": " ♫",
-      "preview": "♪ 温油 Abc ♫"
+      "preview": "♪ Hello Wenyou ♫",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "diamonds",
@@ -1447,7 +1895,8 @@
       "kind": "wrap",
       "prefix": "◇◆ ",
       "suffix": " ◆◇",
-      "preview": "◇◆ 温油 Abc ◆◇"
+      "preview": "◇◆ Hello Wenyou ◆◇",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "arrows",
@@ -1456,7 +1905,8 @@
       "kind": "wrap",
       "prefix": "➳ ",
       "suffix": " ➳",
-      "preview": "➳ 温油 Abc ➳"
+      "preview": "➳ Hello Wenyou ➳",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "ribbon",
@@ -1465,7 +1915,8 @@
       "kind": "wrap",
       "prefix": "୨୧ ",
       "suffix": " ୨୧",
-      "preview": "୨୧ 温油 Abc ୨୧"
+      "preview": "୨୧ Hello Wenyou ୨୧",
+      "previewInput": "Hello Wenyou"
     },
     {
       "id": "wave",
@@ -1474,7 +1925,8 @@
       "kind": "wrap",
       "prefix": "﹏ ",
       "suffix": " ﹏",
-      "preview": "﹏ 温油 Abc ﹏"
+      "preview": "﹏ Hello Wenyou ﹏",
+      "previewInput": "Hello Wenyou"
     }
   ],
   "blankLineCodePoints": [
@@ -1503,5 +1955,7 @@
     8287,
     12288,
     65279
-  ]
+  ],
+  "maxMarksPerCharacter": 3,
+  "outputLimit": 100000
 }
