@@ -19,12 +19,14 @@ test("普通默认简洁；展开即进阶，收起恢复普通参数并清除�
   vi.spyOn(Math, "random").mockReturnValue(0);
   render(<NameToolPanel embedded />);
   expect(loader).not.toHaveBeenCalled();
+  expect(screen.getByRole("button", { name: "进阶选项" }).querySelector("svg")).toHaveAttribute("data-icon-semantic", "navigation.expand");
   expect(screen.getByLabelText("生成数量")).toHaveValue(10);
   expect(screen.queryByRole("combobox", { name: "类型" })).not.toBeInTheDocument();
   fireEvent.change(screen.getByLabelText("固定姓氏（可选）"), { target: { value: "自定" } });
   fireEvent.change(screen.getByLabelText("生成数量"), { target: { value: "1" } });
   await choose("起名风格", "幻想角色名（中文）");
   await expand();
+  expect(screen.getByRole("button", { name: "进阶选项" }).querySelector("svg")).toHaveAttribute("data-icon-semantic", "navigation.collapse");
   expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
   expect(screen.queryByLabelText("固定姓氏（可选）")).not.toBeInTheDocument();
   expect(screen.queryByRole("combobox", { name: /姓氏|时代与地区/ })).not.toBeInTheDocument();
