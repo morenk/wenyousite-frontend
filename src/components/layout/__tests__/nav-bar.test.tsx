@@ -76,6 +76,8 @@ describe("NavBar", () => {
     mockUseAuth.mockReturnValue({ user: null, logout: vi.fn() });
     render(<NavBar />);
 
+    expect(screen.getByRole("link", { name: "温油工具箱" }).querySelector("svg")).toHaveAttribute("data-icon-semantic", "content.category");
+    expect(screen.getByRole("link", { name: "温油工具箱" }).querySelector("svg")).toHaveAttribute("data-icon-glyph", "shapes");
     const login = screen.getByRole("link", { name: "登录" });
     expect(login).toHaveAttribute("href", "/login");
     expect(screen.getByRole("link", { name: "注册" })).toHaveAttribute("href", "/register");
