@@ -59,8 +59,6 @@ test.describe("主题帖创建流程", () => {
     for (const label of [
       "删除线",
       "行内代码",
-      "无序列表",
-      "有序列表",
       "链接",
       "图片",
       "引用",
@@ -71,6 +69,9 @@ test.describe("主题帖创建流程", () => {
       await expect(toolbar.getByRole("button", { name: label })).toBeVisible();
     }
     await expect(toolbar.getByRole("button", { name: "更多" })).toHaveCount(0);
+    for (const label of ["无序列表", "有序列表"]) {
+      await expect(toolbar.getByRole("button", { name: label })).toHaveCount(0);
+    }
   });
 
   test("编辑器顶栏在窄容器保持单行且不横向滚动", async ({ page }) => {

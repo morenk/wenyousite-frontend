@@ -2,6 +2,7 @@ import {
   EDITOR_DENSITY_ORDER,
   EDITOR_MORE_BY_DENSITY,
   EDITOR_PRIMARY_BY_DENSITY,
+  isEditorToolbarCapabilityVisible,
   type EditorCapabilityId,
   type EditorToolbarDensity,
 } from "@/lib/editor-capabilities";
@@ -97,7 +98,9 @@ export function applyMilkdownToolbarDensity(
   topBar.querySelectorAll<HTMLElement>("[data-editor-tool]").forEach((item) => {
     const tool = item.dataset.editorTool ?? "";
     const capability = tool === "align-center" || tool === "align-right" ? "alignment" : tool;
-    item.hidden = !primary.has(capability) || (capability === "alignment" && !alignmentEnabled);
+    item.hidden = !primary.has(capability)
+      || !isEditorToolbarCapabilityVisible(capability)
+      || (capability === "alignment" && !alignmentEnabled);
   });
 
   const inner = topBar.querySelector<HTMLElement>(".top-bar-inner");
@@ -127,7 +130,8 @@ export function getMilkdownMoreCapabilities(
 
   return EDITOR_MORE_BY_DENSITY[density].filter(
     (capability): capability is EditorCapabilityId =>
-      (capability !== "draft" || hasDraft)
+      isEditorToolbarCapabilityVisible(capability)
+      && (capability !== "draft" || hasDraft)
       && (capability !== "alignment" || alignmentEnabled),
   );
 }

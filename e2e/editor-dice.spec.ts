@@ -231,7 +231,7 @@ test("编辑器格式、分隔线、窄栏、骰子与正文草稿工具在真�
 
   const toolbar = page.getByRole("toolbar", { name: "正文格式工具栏" });
   await expect(toolbar.getByRole("button", { name: "删除线" })).toBeVisible();
-  await expect(toolbar.getByRole("button", { name: "无序列表" })).toBeVisible();
+  await expect(toolbar.getByRole("button", { name: "无序列表" })).toHaveCount(0);
   await expect(toolbar.getByRole("button", { name: "居中对齐" })).toBeVisible();
   await expect(toolbar.getByRole("button", { name: "骰子" })).toBeVisible();
   await expect(toolbar.getByRole("button", { name: "更多" })).toHaveCount(0);
@@ -278,8 +278,9 @@ test("编辑器格式、分隔线、窄栏、骰子与正文草稿工具在真�
   const moreMenu = page.getByRole("menu", { name: "更多正文格式" });
   await expect(moreMenu).toBeVisible();
   await expectMenuTethered(moreButton, moreMenu);
-  for (const label of ["链接", "无序列表", "有序列表"]) {
-    await expect(moreMenu.getByRole("menuitem", { name: label })).toBeVisible();
+  await expect(moreMenu.getByRole("menuitem", { name: "链接" })).toBeVisible();
+  for (const label of ["无序列表", "有序列表"]) {
+    await expect(moreMenu.getByRole("menuitem", { name: label })).toHaveCount(0);
   }
   await expect(moreMenu.getByRole("menuitem", { name: "链接" }))
     .toHaveAttribute("tabindex", "-1");
