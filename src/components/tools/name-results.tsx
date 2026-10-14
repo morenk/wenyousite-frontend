@@ -7,7 +7,7 @@ import type { NameEntry } from "@/lib/tools/names";
 export function NameResults({ entries, embedded }: { entries: NameEntry[]; embedded: boolean }) {
   const { message, copy } = useToolCopy();
   const panel = useRef<HTMLElement>(null);
-  const both = (item: NameEntry) => item.original + "（" + item.zh + "）";
+  const both = (item: NameEntry) => item.original === item.zh ? item.original : item.original + "（" + item.zh + "）";
   useEffect(() => {
     if (!embedded || !panel.current) return;
     const bounds = panel.current.getBoundingClientRect();
@@ -17,7 +17,6 @@ export function NameResults({ entries, embedded }: { entries: NameEntry[]; embed
   }, [embedded, entries]);
   return <section ref={panel} aria-label="姓名结果" className="scroll-mt-3 grid gap-3 rounded-[var(--radius-card)] bg-card p-5 sm:p-6">
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <h2 className="text-base font-semibold">生成结果</h2>
       <div className="flex flex-wrap gap-2">
         <Button type="button" variant="outline" onClick={() => { void copy(entries.map((item) => item.zh).join("\n")); }}>复制中文</Button>
         <Button type="button" variant="outline" onClick={() => { void copy(entries.map((item) => item.original).join("\n")); }}>复制原文</Button>

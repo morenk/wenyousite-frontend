@@ -17,14 +17,14 @@ export function ToolSelect({ label, value, onChange, options, disabled, embedded
   options: readonly { id: string; label: string; preview?: string }[]; disabled?: boolean; embedded?: boolean;
 }) {
   const id = useId();
-  return <div className="grid gap-2"><label htmlFor={id} className="text-sm font-medium">{label}</label>
+  return <div className="grid gap-2"><label htmlFor={id} className="text-sm font-normal">{label}</label>
     <Select value={value} onValueChange={(next) => { if (next) onChange(next); }} disabled={disabled}>
       <SelectTrigger id={id} className="w-full min-w-0"><SelectValue className="min-w-0 truncate">{options.find((item) => item.id === value)?.label}{options.find((item) => item.id === value)?.preview && <span aria-hidden="true" className="ml-3">{options.find((item) => item.id === value)?.preview}</span>}</SelectValue></SelectTrigger>
       <SelectContent>{options.map((item) => <SelectItem key={item.id} value={item.id} className={embedded ? "min-h-11 text-base" : undefined}>{item.label}{item.preview && <span aria-hidden="true" className="ml-3">{item.preview}</span>}</SelectItem>)}</SelectContent>
     </Select>
   </div>;
 }
-export function ToolResult({ text, onDownload, scrollStart, resultClassName, embedded = false, entries }: { text: string; onDownload?: () => void; scrollStart?: "left" | "right"; resultClassName?: string; embedded?: boolean; entries?: readonly string[] }) {
+export function ToolResult({ text, onDownload, scrollStart, resultClassName, embedded = false, entries, hideHeading = false }: { text: string; hideHeading?: boolean; onDownload?: () => void; scrollStart?: "left" | "right"; resultClassName?: string; embedded?: boolean; entries?: readonly string[] }) {
   const { message, copy } = useToolCopy();
   const result = useRef<HTMLTextAreaElement>(null);
   const panel = useRef<HTMLElement>(null);
@@ -40,7 +40,7 @@ export function ToolResult({ text, onDownload, scrollStart, resultClassName, emb
   }, [embedded, text]);
   if (embedded && !text) return null;
   return <section ref={panel} className="scroll-mt-3 grid gap-3 rounded-[var(--radius-card)] bg-card p-5 sm:p-6" aria-label="转换结果">
-    <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-base font-semibold">生成结果</h2>
+    <div className="flex flex-wrap items-center justify-between gap-3">{!hideHeading && <h2 className="text-base font-normal">生成结果</h2>}
       <div className="flex flex-wrap gap-2"><Button type="button" variant="outline" disabled={!text} onClick={() => { void copy(text); }}>
         <WenyouIcon id="action.copy" />复制全部
       </Button>

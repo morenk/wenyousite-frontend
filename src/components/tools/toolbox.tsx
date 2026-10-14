@@ -19,10 +19,10 @@ export function Toolbox({ selected, embedded = false }: { selected?: ToolId; emb
     <PageShell width="content" className={embedded ? "px-3 py-4" : "py-8"}>
       {embedded && tool ? <div className="mb-4 flex min-w-0 items-center gap-3">
         <a href={toolHref(undefined, true, theme)} className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-[var(--radius-control)] px-1 text-sm font-semibold text-muted-foreground hover:text-brand-strong"><WenyouIcon id="navigation.back" className="size-4" />全部工具</a>
-        <PageHeader purpose="functional" title={tool.title} className="mb-0 min-w-0 [&_h1]:text-xl [&_h1]:leading-7" />
+        <PageHeader purpose="functional" title={tool.title} className={cn("mb-0 min-w-0 [&_h1]:text-xl [&_h1]:leading-7", selected === "names" && "[&_h1]:font-normal")} />
       </div> : <>
         {tool && <NavigationLink href={toolHref(undefined, embedded, theme)} className="mb-3 inline-flex min-h-8 items-center gap-2 rounded-[var(--radius-control)] px-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-brand-strong"><WenyouIcon id="navigation.back" className="size-4" />全部工具</NavigationLink>}
-        <PageHeader purpose="functional" title={tool?.title ?? "工具箱"} />
+        <PageHeader purpose="functional" title={tool?.title ?? "工具箱"} className={selected === "names" ? "[&_h1]:font-normal" : undefined} />
       </>}
       {tool ? (
         tool.id === "names" ? <NameToolPanel embedded={embedded} /> : tool.id === "vertical" ? <VerticalToolPanel embedded={embedded} /> : <TextToolPanel key={tool.id} tool={tool.id} embedded={embedded} />
