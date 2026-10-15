@@ -88,17 +88,15 @@ import {
   type DiceExpressionInput,
 } from "@/lib/dice";
 import {
-  fitMilkdownToolbar,
+  fitDefaultMilkdownToolbar,
   fitCustomMilkdownToolbar,
   handleCustomToolbarKeyDown,
-  getMilkdownMoreCapabilities,
   positionMilkdownHeadingDropdowns,
   syncMilkdownHeadingOptions,
   syncMilkdownMoreMenuState,
   syncMilkdownToolbarSemantics,
   syncMilkdownToolbarItems,
   syncMilkdownToolbarVisibility,
-  type MilkdownToolbarDensity,
   type MilkdownToolbarItemMetadata,
 } from "@/lib/milkdown-toolbar";
 import { getApiErrorMessage } from "@/api/errors";
@@ -314,7 +312,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   const diceSelectionRef = useRef<{ from: number; to: number } | null>(null);
   const [dicePopover, setDicePopover] = useState<{ top: number; left: number } | null>(null);
   const [moreMenuAnchor, setMoreMenuAnchor] = useState<HTMLElement | null>(null);
-  const [toolbarDensity, setToolbarDensity] = useState<MilkdownToolbarDensity>("expanded");
+  const [defaultMore, setDefaultMore] = useState<EditorCapabilityId[]>([]);
   const [currentAlignment, setCurrentAlignment] = useState<WenyouTextAlignment>("left");
   const [diceNodeCount, setDiceNodeCount] = useState(
     () => parseInlineDiceNodes(initialValue).length,
@@ -519,16 +517,12 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   }, []);
 
   const moreMenuItems = useMemo<EditorMoreMenuItem[]>(() => {
-    return (toolbarPreference ? customMore : getMilkdownMoreCapabilities(
-      toolbarDensity,
-      Boolean(onOpenDrafts),
-      alignmentEnabled,
-    ))
+    return (toolbarPreference ? customMore : defaultMore)
       .map((id) => ({
         id,
         label: id === "alignment" ? "段落对齐" : EDITOR_CAPABILITY_LABELS[id],
       }));
-  }, [alignmentEnabled, customMore, onOpenDrafts, toolbarDensity, toolbarPreference]);
+  }, [customMore, defaultMore, toolbarPreference]);
 
   const handleMoreSelect = useCallback((capability: EditorCapabilityId, anchor: DOMRect) => {
     if (capability === "sticker" || capability === "heading") {
@@ -931,7 +925,10 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
             && (id !== "image" || Boolean(onUploadImage))));
           const next = fitCustomMilkdownToolbar(topBar, toolbarPreference, available);
           setCustomMore((previous) => previous.join() === next.join() ? previous : next);
-        } else setToolbarDensity(fitMilkdownToolbar(topBar, alignmentEnabled));
+        } else {
+          const next = fitDefaultMilkdownToolbar(topBar, Boolean(onOpenDrafts), alignmentEnabled);
+          setDefaultMore((previous) => previous.join() === next.join() ? previous : next);
+        }
       });
     };
     const syncEditorSemantics = () => {

@@ -2,6 +2,7 @@ import { describe, expect, test, vi } from "vitest";
 import {
   applyMilkdownToolbarDensity,
   fitMilkdownToolbar,
+  fitDefaultMilkdownToolbar,
   fitCustomMilkdownToolbar,
   getMilkdownMoreCapabilities,
   positionMilkdownHeadingDropdowns,
@@ -424,4 +425,41 @@ test("自定义顺序从末尾收纳并随宽度恢复，更多固定且可键�
   fitMilkdownToolbar(toolbar);
   expect((toolbar.querySelector('[data-editor-tool="dice"]') as HTMLElement).style.order).toBe("");
   expect(toolbar.querySelector('[data-editor-tool="sticker"]')).toHaveAttribute("hidden");
+});
+
+
+describe("默认工具栏极窄回退", () => {
+  test("继续按测量收纳并传给 More，变宽恢复标题容器和分隔线", () => {
+    const toolbar = document.createElement("div");
+    toolbar.innerHTML = `<div class="top-bar-inner">
+      <span class="top-bar-heading-selector"><button data-editor-tool="heading"></button></span>
+      <span class="top-bar-divider"></span><button data-editor-tool="bold"></button><button data-editor-tool="italic"></button>
+      <span class="top-bar-divider"></span><button data-editor-tool="image"></button>
+      <span class="top-bar-divider"></span><button data-editor-tool="more"></button>
+    </div>`;
+    let width = 221;
+    Object.defineProperty(toolbar, "clientWidth", { get: () => width });
+    Object.defineProperty(toolbar, "scrollWidth", { get: () => {
+      const children = Array.from(toolbar.firstElementChild!.children) as HTMLElement[];
+      return 24 + children.reduce((sum, child) => sum + (child.hidden ? 0 : child.classList.contains("top-bar-heading-selector")
+        ? 82 : child.classList.contains("top-bar-divider") ? 13 : 40), 0);
+    } });
+    const more = fitDefaultMilkdownToolbar(toolbar);
+    expect(more.slice(0, 2)).toEqual(["italic", "image"]);
+    expect(toolbar.scrollWidth).toBeLessThanOrEqual(width);
+    expect(toolbar.querySelector('[data-editor-tool="more"]')).not.toHaveAttribute("hidden");
+    width = 64;
+    const tinyMore = fitDefaultMilkdownToolbar(toolbar);
+    expect(tinyMore.slice(0, 4)).toEqual(["heading", "bold", "italic", "image"]);
+    expect(toolbar.querySelector(".top-bar-heading-selector")).toHaveAttribute("hidden");
+    expect(toolbar.scrollWidth).toBeLessThanOrEqual(width);
+    const before = toolbar.innerHTML;
+    fitDefaultMilkdownToolbar(toolbar);
+    expect(toolbar.innerHTML).toBe(before);
+    width = 800;
+    expect(fitDefaultMilkdownToolbar(toolbar)).toEqual([]);
+    expect(toolbar.querySelector(".top-bar-heading-selector")).not.toHaveAttribute("hidden");
+    expect(toolbar.querySelector('[data-editor-tool="italic"]')).not.toHaveAttribute("hidden");
+    expect(toolbar.querySelector(".top-bar-divider")).not.toHaveAttribute("hidden");
+  });
 });
