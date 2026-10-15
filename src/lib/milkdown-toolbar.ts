@@ -164,6 +164,38 @@ export function fitMilkdownToolbar(
   return "compact";
 }
 
+/** 最低默认密度仍放不下时，继续按实际宽度收纳末尾工具，并把动态结果交给 More。 */
+export function fitDefaultMilkdownToolbar(
+  topBar: HTMLElement,
+  hasDraft = true,
+  alignmentEnabled = true,
+): EditorCapabilityId[] {
+  const density = fitMilkdownToolbar(topBar, alignmentEnabled);
+  const more = getMilkdownMoreCapabilities(density, hasDraft, alignmentEnabled);
+  if (topBar.scrollWidth <= topBar.clientWidth) return more;
+  const primary = EDITOR_PRIMARY_BY_DENSITY[density].filter((id) => id !== "more" && isEditorToolbarCapabilityVisible(id));
+  const overflow: EditorCapabilityId[] = [];
+  while (primary.length && topBar.scrollWidth > topBar.clientWidth) {
+    const id = primary.pop()!;
+    overflow.unshift(id);
+    topBar.querySelectorAll<HTMLElement>(`[data-editor-tool="${id}"]`).forEach((button) => {
+      const element = id === "heading" ? button.closest<HTMLElement>(".top-bar-heading-selector") ?? button : button;
+      element.hidden = true;
+      element.dataset.editorToolbarOrder = "true";
+    });
+    const children = Array.from(topBar.querySelector(".top-bar-inner")?.children ?? []) as HTMLElement[];
+    children.forEach((child, index) => {
+      if (!child.classList.contains("top-bar-divider")) return;
+      const nextDivider = children.slice(index + 1).findIndex((item) => item.classList.contains("top-bar-divider"));
+      const end = nextDivider === -1 ? children.length : index + 1 + nextDivider;
+      const groupVisible = children.slice(index + 1, end).some((item) => !item.hidden);
+      const priorVisible = children.slice(0, index).some((item) => !item.hidden && !item.classList.contains("top-bar-divider"));
+      child.hidden = !groupVisible || !priorVisible;
+    });
+  }
+  return [...overflow, ...more];
+}
+
 export function syncMilkdownMoreMenuState(
   root: ParentNode,
   open: boolean,

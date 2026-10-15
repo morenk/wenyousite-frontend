@@ -159,6 +159,7 @@ export interface SettingsDialogProps {
   dirty?: boolean;
   busy?: boolean;
   wide?: boolean;
+  className?: string;
 }
 
 export function SettingsDialog({
@@ -169,6 +170,7 @@ export function SettingsDialog({
   dirty = false,
   busy = false,
   wide = false,
+  className,
 }: SettingsDialogProps) {
   const [open, setOpen] = useState(true);
   const asking = useRef(false);
@@ -192,7 +194,9 @@ export function SettingsDialog({
   return (
     <Dialog
       open={open}
-      onOpenChange={(next) => {
+      onOpenChange={(next, details) => {
+        // 内部拖放已消费 Escape 时，结束拖动但保留设置弹窗。
+        if (!next && details.event.defaultPrevented) { details.cancel(); return; }
         if (!next) void requestClose();
       }}
       onOpenChangeComplete={(next) => {
@@ -206,7 +210,7 @@ export function SettingsDialog({
           <DialogPopup
             data-settings-surface
             finalFocus={returnFocus ?? true}
-            className={cn("p-6", wide ? "max-w-content" : "max-w-narrow")}
+            className={cn("p-6", className ?? (wide ? "max-w-content" : "max-w-narrow"))}
           >
             <div className="mb-6 flex items-center justify-between gap-4">
               <DialogTitle>{title}</DialogTitle>

@@ -22,14 +22,15 @@ test("点击图标没有常驻选中态或位置按钮，更多固定且对齐�
   expect(tool("主栏", "粗体")).not.toHaveAttribute("aria-pressed", "true");
   expect(screen.getByRole("button", { name: "保存", exact: true })).toBeDisabled();
   expect(localStorage.getItem(EDITOR_TOOLBAR_STORAGE_KEY)).toBeNull();
-  expect(screen.getByRole("img", { name: "更多，固定位置" })).not.toHaveAttribute("draggable");
+  expect(screen.queryByRole("img", { name: "更多，固定位置" })).toBeNull();
+  expect(screen.getByRole("button", { name: "表情包" })).toHaveTextContent("表情");
+  expect(screen.queryByText(/拖动图标|拖到这里/)).toBeNull();
+  expect(screen.queryByRole("heading", { name: /主栏|展开栏/ })).toBeNull();
   expect(tool("主栏", "对齐").querySelectorAll("svg")).toHaveLength(2);
-  const scroll = vi.spyOn(HTMLElement.prototype, "scrollIntoView").mockImplementation(() => {});
   tool("主栏", "粗体").focus();
   fireEvent.keyDown(tool("主栏", "粗体"), { key: "ArrowRight" });
   expect(tool("主栏", "斜体")).toHaveFocus();
   expect(screen.getByRole("button", { name: "保存", exact: true })).toBeDisabled();
-  expect(scroll).toHaveBeenCalled();
 });
 test("键盘拖放支持排序和跨栏，放下后才修改布局并保存本机", async () => {
   const onClose = show();
@@ -56,7 +57,8 @@ test("键盘可放入空栏，取消拖动保留原布局与弹窗", async () =>
   const preference = defaultCustomToolbar();
   localStorage.setItem(EDITOR_TOOLBAR_STORAGE_KEY, JSON.stringify({ ...preference, primary: [...preference.primary, ...preference.more], more: [] }));
   show();
-  expect(within(screen.getByRole("region", { name: "展开栏" })).getByText("拖到这里")).toBeVisible();
+  expect(within(screen.getByRole("toolbar", { name: "展开栏工具" })).queryAllByRole("button")).toHaveLength(0);
+  expect(screen.getByRole("img", { name: "更多，固定位置" })).not.toHaveAttribute("draggable");
   const bold = tool("主栏", "粗体");
   await userEvent.setup().click(bold);
   fireEvent.keyDown(bold, { key: " " });
@@ -90,4 +92,20 @@ test("存储失败保留配置弹窗并显示恢复提示", async () => {
   fireEvent.click(screen.getByRole("button", { name: "保存", exact: true }));
   expect(await screen.findByRole("alert")).toHaveTextContent("本机设置保存失败");
   expect(close).not.toHaveBeenCalled();
+});
+
+test("打开和关闭默认设置不转换偏好，取消拖动保留底部表情", async () => {
+  const close = show();
+  const bold = tool("主栏", "粗体");
+  await userEvent.setup().click(bold);
+  fireEvent.keyDown(bold, { key: " " });
+  fireEvent.keyDown(bold, { key: "ArrowDown" });
+  fireEvent.keyDown(window, { key: "Escape" });
+  expect(screen.getByRole("button", { name: "表情包" })).toHaveTextContent("表情");
+  expect(screen.queryByRole("img", { name: "更多，固定位置" })).toBeNull();
+  expect(screen.getByRole("button", { name: "保存", exact: true })).toBeDisabled();
+  fireEvent.click(screen.getByRole("button", { name: "取消", exact: true }));
+  await waitFor(() => expect(close).toHaveBeenCalled());
+  expect(localStorage.getItem(EDITOR_TOOLBAR_STORAGE_KEY)).toBeNull();
+  expect(screen.queryByText("放弃未保存修改")).toBeNull();
 });

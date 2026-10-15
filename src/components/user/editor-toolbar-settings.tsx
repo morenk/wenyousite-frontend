@@ -29,6 +29,7 @@ export function EditorToolbarSettings({ onClose, returnFocus }: {
     resolver: zodResolver(schema),
     defaultValues: { custom: Boolean(preference), primary: defaults.primary, more: defaults.more },
   });
+  const custom = useWatch({ control: form.control, name: "custom" });
   const primary = useWatch({ control: form.control, name: "primary" });
   const more = useWatch({ control: form.control, name: "more" });
   const { isDirty, errors, isSubmitting } = form.formState;
@@ -52,9 +53,9 @@ export function EditorToolbarSettings({ onClose, returnFocus }: {
     }
     onClose();
   });
-  return <SettingsDialog title="编辑器工具栏" onClose={onClose} returnFocus={returnFocus} dirty={isDirty} wide>
+  return <SettingsDialog title="编辑器工具栏" onClose={onClose} returnFocus={returnFocus} dirty={isDirty} wide className="max-w-[calc(var(--editor-frame-max)+3rem+4px)]">
     <form onSubmit={save}>
-      <EditorToolbarArrangement primary={primary} more={more} onChange={change} />
+      <EditorToolbarArrangement custom={custom} primary={primary} more={more} onChange={change} />
       {errors.root ? <p role="alert" className="mt-3 text-sm text-destructive">{errors.root.message}</p> : null}
       <div className="mt-4 flex items-end justify-between gap-3">
         <Button type="button" variant="ghost" onClick={restore}>恢复默认</Button>
