@@ -6,6 +6,7 @@ import { WenyouIcon } from "@/components/ui/wenyou-icon";
 import { Tooltip } from "@/components/ui/tooltip";
 import { usePathname } from "next/navigation";
 import type { MarkdownMediaAudio } from "@/lib/markdown-audio";
+import { audioDownloadName, downloadAudioBlob } from "@/lib/download-audio";
 import { cn } from "@/lib/utils";
 import styles from "./audio-player.module.css";
 import { audioTime, claimAudioPlayback, ownsAudioPlayback, releaseAudioPlayback } from "@/lib/audio-playback";
@@ -27,6 +28,38 @@ function AudioPlayerBody({ media, children }: { media: MarkdownMediaAudio; child
   const [inView, setInView] = useState(true);
   const [pageActive, setPageActive] = useState(true);
   const labelId = useId();
+  const labelRef = useRef<HTMLSpanElement>(null);
+  const mounted = useRef(true);
+  const downloadRef = useRef<AbortController | null>(null);
+  const downloadUrl = useRef<string | null>(null);
+  const downloadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
+  useEffect(() => { mounted.current = true; return () => {
+    mounted.current = false; downloadRef.current?.abort();
+    if (downloadTimer.current !== null) clearTimeout(downloadTimer.current);
+    if (downloadUrl.current) URL.revokeObjectURL(downloadUrl.current);
+  }; }, []);
+  const save = async () => {
+    if (downloadRef.current) { downloadRef.current.abort(); return; }
+    const controller = new AbortController(); downloadRef.current = controller;
+    setSaving(true); setSaveFailed(false);
+    const timeout = setTimeout(() => controller.abort(new DOMException("保存超时", "TimeoutError")), 45_000);
+    try {
+      const blob = await downloadAudioBlob(media, controller.signal); controller.signal.throwIfAborted();
+      if (downloadUrl.current) URL.revokeObjectURL(downloadUrl.current);
+      if (downloadTimer.current !== null) clearTimeout(downloadTimer.current);
+      const url = URL.createObjectURL(blob); downloadUrl.current = url;
+      const link = document.createElement("a"); link.href = url; link.download = audioDownloadName(labelRef.current?.textContent ?? "音频");
+      document.body.append(link); link.click(); link.remove();
+      downloadTimer.current = setTimeout(() => { URL.revokeObjectURL(url); downloadUrl.current = null; downloadTimer.current = null; }, 60_000);
+    } catch { if (mounted.current && (!controller.signal.aborted || controller.signal.reason?.name === "TimeoutError")) setSaveFailed(true); }
+    finally {
+      clearTimeout(timeout);
+      if (downloadRef.current === controller) downloadRef.current = null;
+      if (mounted.current) setSaving(false);
+    }
+  };
   const generation = useRef(0);
   const resumeAt = useRef(0);
   const [playing, setPlaying] = useState(false);
@@ -126,12 +159,12 @@ function AudioPlayerBody({ media, children }: { media: MarkdownMediaAudio; child
           <span className={styles.icon} data-visible={waiting}><WenyouIcon id="status.loading" className={cn("size-5", waiting && styles.loading)} /></span>
         </span>
       </button></Tooltip>
-      <div className="min-w-0 flex-1">
-        <div className="flex min-w-0 items-baseline gap-3">
-          <span id={labelId} data-slot="audio-label" className="min-w-0 flex-1 truncate text-base leading-6 text-foreground">{children}</span>
-          <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{audioTime(position)} / {audioTime(duration)}</span>
+      <div className={cn(styles.body, "min-w-0 flex-1")}>
+        <div className={cn(styles.heading, "flex min-w-0 items-baseline gap-3")}>
+          <span ref={labelRef} id={labelId} data-slot="audio-label" className={cn(styles.label, "min-w-0 flex-1 truncate text-base leading-6 text-foreground")}>{children}</span>
+          <span className={cn(styles.time, "shrink-0 text-xs tabular-nums text-muted-foreground")}>{audioTime(position)} / {audioTime(duration)}</span>
         </div>
-        <div className="-mt-2 flex items-center">
+        <div className={cn(styles.progress, "flex items-center")}>
           <input type="range" min={0} max={duration} step={0.1} value={Math.min(position, duration)} aria-label={AUDIO_ACCESSIBILITY.seekLabel} aria-valuetext={`${audioTime(position)} / ${audioTime(duration)}`}
             disabled={!seekReady || failed}
             onPointerDown={(event) => {
@@ -149,8 +182,13 @@ function AudioPlayerBody({ media, children }: { media: MarkdownMediaAudio; child
             style={{ "--audio-progress": `${Math.min(100, Math.max(0, position / duration * 100))}%` } as CSSProperties}
             className={styles.seek} />
         </div>
-        {failed ? <span role="alert" className="text-xs text-destructive">播放失败</span> : null}
+        {failed ? <span role="alert" className={cn(styles.feedback, "text-xs text-destructive")}>播放失败</span> : null}
+        {saveFailed ? <span role="alert" className={cn(styles.feedback, "text-xs text-destructive")}>保存失败，请重试</span> : null}
       </div>
+      <Tooltip content={saving ? "取消保存" : "保存到本地"}><button type="button" aria-label={saving ? "取消保存" : "保存到本地"} aria-busy={saving} onClick={() => void save()}
+        className={cn(styles.saveButton, "flex size-10 shrink-0 items-center justify-center rounded-full text-muted-foreground disabled:opacity-50")}>
+        <WenyouIcon id={saving ? "status.loading" : "action.download"} className={cn("size-5", saving && styles.loading)} />
+      </button></Tooltip>
       <audio ref={ref} preload={AUDIO_PLAYBACK.preload} onLoadedMetadata={(event) => {
         const audio = event.currentTarget;
         if (audio.readyState < 1) return;

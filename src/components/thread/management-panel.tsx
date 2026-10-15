@@ -219,6 +219,7 @@ export function ManagementPanel({
                   </div>
                   {controller.isCreatingBody && thread.rpIdentityEnabled !== undefined ? <ThreadPublicationIdentity controller={controller.bodyIdentity} threadId={thread.id} disabled={controller.currentStatus.busy || controller.bodyWriteLocked} /> : null}
                   <MilkdownEditor audioDraftKey={`body:${controller.selectedSub.id}`} mentionIdentities={controller.selectedSub.bodyPost?.mentionIdentities} mediaDisplays={controller.selectedSub.bodyPost?.mediaDisplays}
+                  mediaAudios={controller.selectedSub.bodyPost?.mediaAudios}
                     editorRef={controller.editor.editorRef}
                     onValidityChange={controller.editor.onValidityChange}
                     onDocumentChange={controller.editor.onDocumentChange}

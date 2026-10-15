@@ -4,6 +4,7 @@
 
 import type { PublicationIdentitySelection } from "@/components/thread/use-thread-identity-submission";
 import type { CreatePostArgs } from "@/api/hooks/use-create-post";
+import type { MarkdownMediaAudio } from "@/lib/markdown-audio";
 import type { MarkdownMediaDisplay } from "@/lib/media-display";
 import {
   createContext,
@@ -27,6 +28,7 @@ interface BaseComposerSession {
   label: string;
   initialContent: string;
   mediaDisplays?: readonly MarkdownMediaDisplay[];
+  mediaAudios?: readonly MarkdownMediaAudio[];
   diceRolls?: InlineDiceRoll[];
 }
 
@@ -71,6 +73,7 @@ interface ThreadComposerContextValue {
   close: (options?: CloseOptions) => Promise<boolean>;
   setContent: (content: string) => void;
   setSessionContent: (key: string, content: string) => void;
+  setSessionMediaAudios: (key: string, mediaAudios: readonly MarkdownMediaAudio[] | undefined) => void;
   setSessionMediaDisplays: (key: string, mediaDisplays: readonly MarkdownMediaDisplay[] | undefined) => void;
   setPending: (pending: boolean) => void;
   setEditorValid: (valid: boolean) => void;
@@ -166,6 +169,13 @@ function ThreadComposerScope({ children, threadId, drafts }: { children: ReactNo
     setSession(current.session);
     saveReplyDraft();
   }, [saveReplyDraft]);
+  const setSessionMediaAudios = useCallback((key: string, mediaAudios: readonly MarkdownMediaAudio[] | undefined) => {
+    const current = live.current;
+    if (!current.active || current.session?.key !== key || !mediaAudios || JSON.stringify(current.session.mediaAudios) === JSON.stringify(mediaAudios)) return;
+    current.session = { ...current.session, mediaAudios };
+    setSession(current.session);
+    saveReplyDraft();
+  }, [saveReplyDraft]);
   const onDocumentChange = useCallback(() => { live.current.revision++; live.current.unsynchronized = true; }, []);
   const setPending = useCallback((next: boolean) => { live.current.pending = next; updatePending(next); }, []);
   const setEditorValid = useCallback((next: boolean) => { live.current.valid = next; updateEditorValid(next); }, []);
@@ -221,6 +231,7 @@ function ThreadComposerScope({ children, threadId, drafts }: { children: ReactNo
     const restoredSession = draft ? {
       ...nextSession,
       mediaDisplays: draft.session.mediaDisplays,
+      mediaAudios: draft.session.mediaAudios,
       diceRolls: draft.session.diceRolls,
     } : nextSession;
     setEditorValid(true);
@@ -263,16 +274,17 @@ function ThreadComposerScope({ children, threadId, drafts }: { children: ReactNo
       setContent,
       setSessionContent,
       setSessionMediaDisplays,
+      setSessionMediaAudios,
       setPending,
       setEditorValid,
       registerCloseGuard,
       onDocumentChange,
     }),
-    [threadId, session, content, dirty, pending, pendingCreate, setPendingCreate, identitySelection, setIdentitySelection, open, close, registerCloseGuard, onDocumentChange, setContent, setSessionContent, setSessionMediaDisplays, setPending, setEditorValid],
+    [threadId, session, content, dirty, pending, pendingCreate, setPendingCreate, identitySelection, setIdentitySelection, open, close, registerCloseGuard, onDocumentChange, setContent, setSessionContent, setSessionMediaDisplays, setSessionMediaAudios, setPending, setEditorValid],
   );
 
-  const sessionValue = useMemo<SessionContextValue>(() => ({ threadId, session, pending, pendingCreate, setPendingCreate, identitySelection, setIdentitySelection, open, close, setContent, setSessionContent, setSessionMediaDisplays, setPending, setEditorValid, registerCloseGuard, onDocumentChange }),
-    [threadId, session, pending, pendingCreate, setPendingCreate, identitySelection, setIdentitySelection, open, close, setContent, setSessionContent, setSessionMediaDisplays, setPending, setEditorValid, registerCloseGuard, onDocumentChange]);
+  const sessionValue = useMemo<SessionContextValue>(() => ({ threadId, session, pending, pendingCreate, setPendingCreate, identitySelection, setIdentitySelection, open, close, setContent, setSessionContent, setSessionMediaDisplays, setSessionMediaAudios, setPending, setEditorValid, registerCloseGuard, onDocumentChange }),
+    [threadId, session, pending, pendingCreate, setPendingCreate, identitySelection, setIdentitySelection, open, close, setContent, setSessionContent, setSessionMediaDisplays, setSessionMediaAudios, setPending, setEditorValid, registerCloseGuard, onDocumentChange]);
   return (
     <ThreadComposerSessionContext.Provider value={sessionValue}>
       <ThreadComposerContext.Provider value={value}>{children}</ThreadComposerContext.Provider>

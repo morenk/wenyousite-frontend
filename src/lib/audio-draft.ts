@@ -1,4 +1,4 @@
-import type { MarkdownMediaAudio } from "./markdown-audio";
+import { isValidMediaAudio, type MarkdownMediaAudio } from "./markdown-audio";
 
 /** 沿用动态草稿的 IndexedDB 文件存储模式，独立库不升级既有草稿数据库。 */
 export interface AudioDraftRecord {
@@ -47,4 +47,26 @@ export async function loadAudioDraft(key: string, userId: string): Promise<Audio
   if (!record) return null;
   if (record.userId !== userId || Date.now() - record.updatedAt > 7 * 86400_000) { await removeAudioDraft(key); return null; }
   return record;
+}
+
+// 已完成投影单独保留，不因文件恢复记录确认入文而删除；不接受剪贴板提供的元数据。
+interface AudioProjectionRecord { key: string; userId: string; mediaAudios: MarkdownMediaAudio[]; updatedAt: number }
+export async function loadAudioProjections(key: string, userId: string): Promise<MarkdownMediaAudio[]> {
+  const record: AudioProjectionRecord | undefined = await transaction("readonly", (store) => store.get(`projection:${key}`));
+  if (!record || record.userId !== userId) return [];
+  if (Date.now() - record.updatedAt > 7 * 86400_000) { await removeAudioDraft(record.key); return []; }
+  return Array.isArray(record.mediaAudios) ? record.mediaAudios.filter(isValidMediaAudio) : [];
+}
+export async function saveAudioProjection(key: string, userId: string, media: MarkdownMediaAudio) {
+  if (!isValidMediaAudio(media)) return;
+  await transaction("readwrite", (store) => {
+    const request = store.get(`projection:${key}`);
+    request.onsuccess = () => {
+      const previous = request.result as AudioProjectionRecord | undefined;
+      const existing = previous?.userId === userId && Date.now() - previous.updatedAt <= 7 * 86400_000 && Array.isArray(previous.mediaAudios) ? previous.mediaAudios.filter(isValidMediaAudio) : [];
+      const mediaAudios = [...new Map([...existing, media].map((item) => [item.sourceUrl, item])).values()];
+      store.put({ key: `projection:${key}`, userId, mediaAudios, updatedAt: Date.now() } satisfies AudioProjectionRecord);
+    };
+    return request;
+  });
 }

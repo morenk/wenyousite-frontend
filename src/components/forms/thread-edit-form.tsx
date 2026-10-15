@@ -350,7 +350,7 @@ export function ThreadEditForm({
                 control={form.control}
                 name="content"
                 render={({ field }) => (
-                  <MilkdownEditor audioDraftKey={`body:${thread.defaultSubthread.id}`} mentionIdentities={thread.defaultSubthread.bodyPost?.mentionIdentities} mediaDisplays={thread.defaultSubthread.bodyPost?.mediaDisplays}
+                  <MilkdownEditor audioDraftKey={`body:${thread.defaultSubthread.id}`} mediaAudios={thread.defaultSubthread.bodyPost?.mediaAudios} mentionIdentities={thread.defaultSubthread.bodyPost?.mentionIdentities} mediaDisplays={thread.defaultSubthread.bodyPost?.mediaDisplays}
                     editorRef={editor.editorRef}
                     onValidityChange={editor.onValidityChange}
                     onDocumentChange={editor.onDocumentChange}

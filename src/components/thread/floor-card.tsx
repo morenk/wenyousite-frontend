@@ -80,6 +80,7 @@ export function FloorCard({
       initialContent: floor.content,
       diceRolls: floor.diceRolls,
       mediaDisplays: floor.mediaDisplays,
+      mediaAudios: floor.mediaAudios,
     });
   };
 

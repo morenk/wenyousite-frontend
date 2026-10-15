@@ -52,6 +52,7 @@ function ThreadComposer({ mentionIdentities }: { mentionIdentities?: readonly Me
     setIdentitySelection,
     setSessionContent,
     setSessionMediaDisplays,
+    setSessionMediaAudios,
     setPending,
     close,
     setEditorValid,
@@ -85,17 +86,18 @@ function ThreadComposer({ mentionIdentities }: { mentionIdentities?: readonly Me
     if (snapshot !== null && snapshot !== undefined) {
       setSessionContent(sessionKey, snapshot);
       setSessionMediaDisplays(sessionKey, editorHandle.current?.getMediaDisplays?.());
+      setSessionMediaAudios(sessionKey, editorHandle.current?.getMediaAudios?.());
     }
-  }, [editorHandle, sessionKey, setSessionContent, setSessionMediaDisplays]);
+  }, [editorHandle, sessionKey, setSessionContent, setSessionMediaDisplays, setSessionMediaAudios]);
 
   const canClose = editor.canClose;
   useEffect(() => registerCloseGuard(() => {
     if (createRequestRef.current) { toast.error("发表结果尚未确认，请先重试确认发表"); return false; }
     if (uploadImage.isPending) { toast.error("图片正在上传，请完成或取消上传后重试"); return false; }
     const allowed = canClose();
-    if (allowed && sessionKey) setSessionMediaDisplays(sessionKey, editorHandle.current?.getMediaDisplays?.());
+    if (allowed && sessionKey) { setSessionMediaDisplays(sessionKey, editorHandle.current?.getMediaDisplays?.()); setSessionMediaAudios(sessionKey, editorHandle.current?.getMediaAudios?.()); }
     return allowed;
-  }), [canClose, editorHandle, registerCloseGuard, sessionKey, setSessionMediaDisplays, uploadImage.isPending]);
+  }), [canClose, editorHandle, registerCloseGuard, sessionKey, setSessionMediaDisplays, setSessionMediaAudios, uploadImage.isPending]);
   useEffect(() => { setEditorValid(!editor.invalid); }, [editor.invalid, setEditorValid]);
 
   if (!session) return null;
@@ -204,7 +206,8 @@ function ThreadComposer({ mentionIdentities }: { mentionIdentities?: readonly Me
         key={session.key}
         defaultValue={initialContent}
         mediaDisplays={session.mediaDisplays}
-        onChange={(value) => { editor.onSynchronized(); setSessionContent(session.key, value); setSessionMediaDisplays(session.key, editorHandle.current?.getMediaDisplays?.()); }}
+        mediaAudios={session.mediaAudios}
+        onChange={(value) => { editor.onSynchronized(); setSessionContent(session.key, value); setSessionMediaDisplays(session.key, editorHandle.current?.getMediaDisplays?.()); setSessionMediaAudios(session.key, editorHandle.current?.getMediaAudios?.()); }}
         onDocumentChange={() => { editor.onDocumentChange(); onDocumentChange(); }}
         onUploadImage={handleUploadImage}
         placeholder={isReply ? "输入回复内容…" : isEdit ? "编辑正文内容…" : "输入正文内容…"}

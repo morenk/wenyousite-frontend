@@ -9,7 +9,7 @@ import { useApiMeta } from "@/api/hooks/use-api-meta";
 import { useUploadAudio } from "@/api/hooks/use-upload-audio";
 import { getApiErrorMessage } from "@/api/errors";
 import { FinalAudioUploadError, validateAudioFile, type AudioUploadProgress } from "@/lib/upload-audio";
-import { isValidMediaAudio } from "@/lib/markdown-audio";
+import { isValidMediaAudio, type MarkdownMediaAudio } from "@/lib/markdown-audio";
 import { loadAudioDraft, saveAudioDraft, removeAudioDraft, type AudioDraftRecord } from "@/lib/audio-draft";
 import { createAudioUploadAnchor } from "./editor-audio-anchor";
 import { toast } from "sonner";
@@ -47,7 +47,7 @@ type UploadUi = {
 const idleUi = (scope: UploadScope): UploadUi => ({ scope, target: null, fileName: "", status: "idle", progress: null, error: "" });
 
 /** 文件、预约和异步回调都绑定账号与编辑目标，恢复只由用户显式继续。 */
-export function useEditorAudioUpload(editor: RefObject<CrepeBuilder | null>, userId: string | undefined, draftKey: string | undefined, loading: boolean) {
+export function useEditorAudioUpload(editor: RefObject<CrepeBuilder | null>, userId: string | undefined, draftKey: string | undefined, loading: boolean, onCompleted?: (media: MarkdownMediaAudio) => Promise<void> | void) {
   const { data: meta } = useApiMeta();
   const { mutateAsync: upload } = useUploadAudio();
   const capability = meta?.audioUpload;
@@ -78,13 +78,17 @@ export function useEditorAudioUpload(editor: RefObject<CrepeBuilder | null>, use
       if (record.completed) view.state.doc.descendants((node) => {
         if (node.marks.some((mark) => mark.type.name === "link" && mark.attrs.href === record.completed?.sourceUrl)) exists = true;
       });
-      if (exists) { if (valid()) await removeAudioDraft(record.key); return; }
+      if (exists && record.completed) {
+        if (valid()) await onCompleted?.(record.completed);
+        if (valid()) await removeAudioDraft(record.key);
+        return;
+      }
       const target = document.createElement("div"); target.contentEditable = "false"; target.className = "not-prose my-2";
       scope.setPending(record.file, record, view);
       anchor.setTarget(target); anchor.start(view);
       setState({ ...idleUi(scope), target, fileName: record.file.name, status: "paused" });
     }).catch(() => { if (valid()) toast.error("本机音频恢复失败，请重试"); }).finally(() => { if (valid()) scope.restored(); });
-  }, [anchor, editor, loading, scope]);
+  }, [anchor, editor, loading, onCompleted, scope]);
   useEffect(() => {
     if (ui.status === "idle") return;
     const protect = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; };
@@ -118,8 +122,9 @@ export function useEditorAudioUpload(editor: RefObject<CrepeBuilder | null>, use
         assertCurrent(); record.completed = media;
         await saveAudioDraft(record); assertCurrent();
       }
+      await onCompleted?.(media); assertCurrent();
       const view = editor.current?.editor.action((ctx) => ctx.get(editorViewCtx));
-      if (!view || !anchor.insert(view, media.sourceUrl)) throw new Error("插入位置已失效，请重新选择音频");
+      if (!view || !anchor.insert(view, media.sourceUrl, file.name)) throw new Error("插入位置已失效，请重新选择音频");
       scope.inserted(); update({ status: "idle", fileName: "" });
     } catch (failure) {
       if (!valid()) return;

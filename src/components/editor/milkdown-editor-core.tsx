@@ -4,6 +4,7 @@
 
 import type { MentionIdentity } from "@/lib/thread-identity";
 
+import type { MarkdownMediaAudio } from "@/lib/markdown-audio";
 import type { MarkdownMediaDisplay } from "@/lib/media-display";
 import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState, type Ref } from "react";
 import { createPortal } from "react-dom";
@@ -25,6 +26,7 @@ const EMPTY_DICE_ROLLS: InlineDiceRoll[] = [];
 export interface MilkdownEditorProps {
   defaultValue?: string;
   audioDraftKey?: string;
+  mediaAudios?: readonly MarkdownMediaAudio[];
   mediaDisplays?: readonly MarkdownMediaDisplay[];
   mentionIdentities?: readonly MentionIdentity[];
   editorRef?: Ref<EditorSubmissionHandle>;
@@ -53,6 +55,7 @@ export interface MilkdownEditorProps {
 function EditorCore({
   defaultValue,
   audioDraftKey,
+  mediaAudios,
   mediaDisplays,
   mentionIdentities,
   editorRef,
@@ -89,6 +92,7 @@ function EditorCore({
     user,
     restoredValue,
     restoredMediaDisplays,
+    restoredMediaAudios,
     version,
     contractVersionReady,
     currentContent,
@@ -138,7 +142,7 @@ function EditorCore({
   }, [invalid]);
 
   const protectedContent = useMemo(() => contractVersionReady && !assessEditorInput(restoredValue, markdownContractVersion).edit, [contractVersionReady, restoredValue, markdownContractVersion]);
-  useImperativeHandle(editorRef, () => ({ flush: flushForWrite, isComposing, getMediaDisplays: () => hostRef.current?.getMediaDisplays?.() ?? restoredMediaDisplays ?? mediaDisplays ?? [], canClose: () => !isComposing() && (protectedContent || flush() !== null) }), [flush, flushForWrite, protectedContent, isComposing, restoredMediaDisplays, mediaDisplays]);
+  useImperativeHandle(editorRef, () => ({ flush: flushForWrite, isComposing, getMediaAudios: () => hostRef.current?.getMediaAudios?.() ?? restoredMediaAudios ?? mediaAudios ?? [], getMediaDisplays: () => hostRef.current?.getMediaDisplays?.() ?? restoredMediaDisplays ?? mediaDisplays ?? [], canClose: () => !isComposing() && (protectedContent || flush() !== null) }), [flush, flushForWrite, protectedContent, isComposing, restoredMediaDisplays, mediaDisplays, restoredMediaAudios, mediaAudios]);
   useEffect(() => {
     if (protectedContent) {
       handleValidityChange(false);
@@ -181,6 +185,7 @@ function EditorCore({
           key={`${version}-${user?.id ?? "guest"}`}
           initialValue={restoredValue ?? ""}
           mediaDisplays={restoredMediaDisplays ?? mediaDisplays}
+          mediaAudios={restoredMediaAudios ?? mediaAudios}
           markdownContractVersion={markdownContractVersion}
           editorRef={hostRef}
           onValidityChange={handleValidity}

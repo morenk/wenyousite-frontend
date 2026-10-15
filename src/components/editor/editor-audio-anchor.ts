@@ -1,3 +1,4 @@
+import { isHistoryTransaction } from "@milkdown/kit/prose/history";
 import { Plugin, PluginKey, TextSelection } from "@milkdown/kit/prose/state";
 import type { EditorView } from "@milkdown/kit/prose/view";
 import { Decoration, DecorationSet } from "@milkdown/kit/prose/view";
@@ -16,7 +17,9 @@ export function createAudioUploadAnchor() {
         apply(transaction, previous) {
           const meta = transaction.getMeta(key) as { position: number | null } | undefined;
           if (meta) return meta.position;
-          return previous === null ? null : transaction.mapping.map(previous, 1);
+          if (previous === null || isHistoryTransaction(transaction)) return null;
+          const mapped = transaction.mapping.mapResult(previous, 1);
+          return mapped.deletedAcross || mapped.deletedBefore ? null : mapped.pos;
         },
       },
       props: {
@@ -34,13 +37,13 @@ export function createAudioUploadAnchor() {
       view.dispatch(view.state.tr.setMeta(key, { position }).setMeta("addToHistory", false));
     },
     remove(view: EditorView) { view.dispatch(view.state.tr.setMeta(key, { position: null }).setMeta("addToHistory", false)); },
-    insert(view: EditorView, sourceUrl: string) {
+    insert(view: EditorView, sourceUrl: string, label = "音频") {
       const saved = key.getState(view.state);
       if (saved == null) return false;
       const resolved = view.state.doc.resolve(Math.min(saved, view.state.doc.content.size));
       const position = resolved.depth ? resolved.after(1) : resolved.pos;
       const schema = view.state.schema;
-      const paragraph = schema.nodes.paragraph.create(null, schema.text("音频", [schema.marks.link.create({ href: sourceUrl, title: null, sourceLinkStandalone: true })]));
+      const paragraph = schema.nodes.paragraph.create(null, schema.text(label || "音频", [schema.marks.link.create({ href: sourceUrl, title: null, sourceLinkStandalone: true })]));
       const transaction = view.state.tr.insert(position, paragraph).setMeta(key, { position: null });
       transaction.setSelection(TextSelection.near(transaction.doc.resolve(position + paragraph.nodeSize)));
       view.dispatch(transaction.scrollIntoView());

@@ -373,3 +373,11 @@
 .milkdown-editor a[data-mention-display]::after {
   content: attr(data-mention-display);
 }
+
+/* 音频仅替换可信段落的屏幕视图，选中/拖动仍使用编辑器的块级语义。 */
+.milkdown .ProseMirror .editor-audio-node { cursor: default; }
+.milkdown .ProseMirror .editor-audio-node.ProseMirror-selectednode {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-compact);
+}

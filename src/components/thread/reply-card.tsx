@@ -91,6 +91,7 @@ export function ReplyCard({
       initialContent: reply.content,
       diceRolls: reply.diceRolls,
       mediaDisplays: reply.mediaDisplays,
+      mediaAudios: reply.mediaAudios,
     });
   };
 

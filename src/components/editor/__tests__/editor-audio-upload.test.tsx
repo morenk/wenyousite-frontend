@@ -57,7 +57,7 @@ test("完成结果在上传能力关闭后仍可手动恢复，不重新上传",
   await waitFor(() => expect(hook.result.current.placeholder).not.toBeNull());
   render(hook.result.current.placeholder);
   await act(async () => { fireEvent.click(screen.getByRole("button", { name: "继续" })); });
-  expect(mocks.insert).toHaveBeenCalledWith(view, completed.sourceUrl);
+  expect(mocks.insert).toHaveBeenCalledWith(view, completed.sourceUrl, file.name);
   expect(mocks.upload).not.toHaveBeenCalled(); expect(hook.result.current.hasPending()).toBe(false);
 });
 test("加载旧草稿的迟到结果不能覆盖新目标", async () => {
@@ -76,4 +76,25 @@ test("本机草稿恢复完成前阻止提交空占位", async () => {
   expect(hook.result.current.hasPending()).toBe(true);
   await act(async () => { finish(null); });
   expect(hook.result.current.hasPending()).toBe(false);
+});
+
+test("上传完成先登记完整投影再插入；普通重渲染不重复恢复", async () => {
+ const received = vi.fn().mockResolvedValue(undefined); mocks.upload.mockResolvedValue(completed);
+ const hook = renderHook(() => useEditorAudioUpload(editor, "user1", "reply:1", false, received));
+ await waitFor(() => expect(hook.result.current.hasPending()).toBe(false));
+ await act(async () => { hook.result.current.open(); });
+ await waitFor(() => expect(mocks.insert).toHaveBeenCalledTimes(1));
+ expect(received).toHaveBeenCalledExactlyOnceWith(completed);
+ expect(received.mock.invocationCallOrder[0]).toBeLessThan(mocks.insert.mock.invocationCallOrder[0]);
+ hook.rerender(); hook.rerender(); expect(mocks.load).toHaveBeenCalledTimes(1);
+});
+test("重开已入文完成草稿先保留投影，才清理文件记录", async () => {
+ const received = vi.fn().mockResolvedValue(undefined);
+ mocks.load.mockResolvedValueOnce({ key: "saved", userId: "user1", file, completed, updatedAt: Date.now() });
+ view.state.doc.descendants.mockImplementationOnce((visit) => visit({ marks: [{ type: { name: "link" }, attrs: { href: completed.sourceUrl } }] }));
+ const hook = renderHook(() => useEditorAudioUpload(editor, "user1", "reply:1", false, received));
+ await waitFor(() => expect(mocks.remove).toHaveBeenCalledWith("saved"));
+ expect(received).toHaveBeenCalledExactlyOnceWith(completed);
+ expect(received.mock.invocationCallOrder[0]).toBeLessThan(mocks.remove.mock.invocationCallOrder[0]);
+ hook.rerender(); expect(received).toHaveBeenCalledTimes(1); expect(mocks.insert).not.toHaveBeenCalled();
 });

@@ -2,6 +2,8 @@
 
 "use client";
 
+import { useEditorAudioView } from "./editor-audio-view";
+import type { MarkdownMediaAudio } from "@/lib/markdown-audio";
 import { useEditorAudioUpload } from "./use-editor-audio-upload";
 import { useEditorToolbarPreference } from "./use-editor-toolbar-preference";
 import { EditorHeadingMenu } from "./editor-heading-menu";
@@ -238,6 +240,7 @@ function getImageBlockConfig(onUploadImage: (file: File) => Promise<string>, pro
 }
 
 export interface MilkdownEditorHostProps {
+  mediaAudios?: readonly MarkdownMediaAudio[];
   audioDraftKey?: string;
   audioUserId?: string;
   initialValue: string;
@@ -266,6 +269,7 @@ export interface MilkdownEditorHostProps {
 export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   initialValue,
   mediaDisplays,
+  mediaAudios,
   audioDraftKey,
   audioUserId,
   mentionIdentities,
@@ -295,7 +299,8 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   const alignmentEnabled = markdownContractVersion >= 4;
   const imageAlignmentEnabled = markdownContractVersion >= 5;
   const crepeRef = useRef<CrepeBuilder | null>(null);
-  const audioUpload = useEditorAudioUpload(crepeRef, audioUserId, audioDraftKey, loading);
+  const audioView = useEditorAudioView(mediaAudios, audioUserId, audioDraftKey);
+  const audioUpload = useEditorAudioUpload(crepeRef, audioUserId, audioDraftKey, loading, audioView.completed);
   const audioActionRef = useRef(audioUpload.open);
   useEffect(() => { audioActionRef.current = audioUpload.open; }, [audioUpload.open]);
   const mediaDisplay = useEditorMediaDisplay(mediaDisplays, crepeRef, loading);
@@ -310,8 +315,9 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
     flush: () => flushRef.current?.() ?? null,
     isComposing: () => composingRef.current,
     getMediaDisplays: mediaDisplay.snapshot,
+    getMediaAudios: audioView.api.snapshot,
     hasPendingUpload: audioUpload.hasPending,
-  }), [mediaDisplay, audioUpload.hasPending]);
+  }), [mediaDisplay, audioUpload.hasPending, audioView.api]);
   useEffect(() => { onValidityRef.current = onValidityChange; }, [onValidityChange]);
   const onSyncErrorChangeRef = useRef(onSyncErrorChange);
   useEffect(() => { onSyncErrorChangeRef.current = onSyncErrorChange; }, [onSyncErrorChange]);
@@ -817,6 +823,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
       });
 
       crepe.editor.use(mediaDisplay.plugin);
+      crepe.editor.use(audioView.api.plugin);
       crepe.editor.use(audioUpload.anchor.plugin);
       const dicePlugins = createDiceInlineEditorPlugins(diceRolls);
       const stickerPlugins = createStickerInlineEditorPlugins();
@@ -1032,6 +1039,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
       <div ref={hostRef} className="milkdown-editor relative">
         <Milkdown />
         {audioUpload.placeholder}
+        {audioView.portals}
         {uploadProgress ? (
           <ImageUploadProgress
             progress={uploadProgress}

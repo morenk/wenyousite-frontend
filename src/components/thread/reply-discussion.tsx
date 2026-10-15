@@ -74,6 +74,7 @@ export function ReplyDiscussion({
       initialContent: rootPost.content,
       diceRolls: rootPost.diceRolls,
       mediaDisplays: rootPost.mediaDisplays,
+      mediaAudios: rootPost.mediaAudios,
     });
   };
 

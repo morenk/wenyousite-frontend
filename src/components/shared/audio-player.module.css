@@ -1,4 +1,17 @@
+.player.player {
+  /* 独立于 Crepe 对所有后代 margin/padding 的重置，编辑与阅读共用相同尺寸。 */
+  margin-block: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  white-space: normal;
+  letter-spacing: normal;
+}
+.progress.progress { margin-top: -0.5rem; }
+.saveButton.saveButton:focus-visible, .playButton.playButton:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
 .player {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  container-type: inline-size;
+  container-name: audio-player;
   position: relative;
   isolation: isolate;
   transition: background-color 180ms ease-out, border-color 180ms ease-out;
@@ -108,4 +121,28 @@
   .playButton:active .playFace { transform: none; }
   .player .seek::-webkit-slider-thumb { transition: none; transform: none; }
   .player .seek::-moz-range-thumb { transition: none; transform: none; }
+}
+
+.saveButton:hover { background: var(--accent); color: var(--accent-foreground); }
+
+.label { position: relative; top: 2px; }
+
+/* 字体放大或极窄正文时给文件名独立一行，控件不挤掉标题和进度。 */
+@container audio-player (max-width: 22rem) {
+  .heading { flex-direction: column; align-items: stretch; gap: 0; }
+  .label { width: 100%; }
+  .time { align-self: flex-start; }
+  .playButton, .saveButton { width: 40px; height: 40px; }
+  .playButton svg, .saveButton svg { width: 20px; height: 20px; }
+  .seek { height: 40px; }
+  .progress.progress { margin-top: 0; }
+}
+
+@container audio-player (max-width: 8rem) {
+  .body { display: contents; }
+  .heading { grid-column: 1 / -1; grid-row: 1; }
+  .playButton { grid-column: 1; grid-row: 2; }
+  .saveButton { grid-column: 3; grid-row: 2; }
+  .progress { grid-column: 1 / -1; grid-row: 3; }
+  .feedback { grid-column: 1 / -1; }
 }

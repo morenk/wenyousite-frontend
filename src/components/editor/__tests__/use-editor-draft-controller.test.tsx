@@ -74,8 +74,10 @@ describe("useEditorDraftController", () => {
 
     act(() => result.current.handleRestore({
       content: "恢复正文",
+      mediaAudios: [{ sourceUrl: "https://bucket.example/a.mp3", mediaId: "a", contentType: "audio/mpeg", size: 100, durationMs: 1000 }],
     }));
     expect(result.current.restoredValue).toBe("恢复正文");
+    expect(result.current.restoredMediaAudios).toHaveLength(1);
     expect(result.current.currentContent).toBe("恢复正文");
     expect(result.current.version).toBe(2);
     expect(onChange).toHaveBeenLastCalledWith("恢复正文");
