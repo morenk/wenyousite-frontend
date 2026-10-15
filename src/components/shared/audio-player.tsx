@@ -6,6 +6,7 @@ import { WenyouIcon } from "@/components/ui/wenyou-icon";
 import { Tooltip } from "@/components/ui/tooltip";
 import { usePathname } from "next/navigation";
 import type { MarkdownMediaAudio } from "@/lib/markdown-audio";
+import { cn } from "@/lib/utils";
 import styles from "./audio-player.module.css";
 import { audioTime, claimAudioPlayback, ownsAudioPlayback, releaseAudioPlayback } from "@/lib/audio-playback";
 
@@ -17,6 +18,14 @@ export function AudioPlayer(props: { media: MarkdownMediaAudio; children: ReactN
 
 function AudioPlayerBody({ media, children }: { media: MarkdownMediaAudio; children: ReactNode }) {
   const ref = useRef<HTMLAudioElement>(null);
+  const frame = useRef<HTMLDivElement>(null);
+  const draggingRef = useRef(false);
+  const desiredPosition = useRef(0);
+  const pendingSeek = useRef<{ target: number; deadline: number } | null>(null);
+  const seekTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const [inView, setInView] = useState(true);
+  const [pageActive, setPageActive] = useState(true);
   const labelId = useId();
   const generation = useRef(0);
   const resumeAt = useRef(0);
@@ -27,23 +36,33 @@ function AudioPlayerBody({ media, children }: { media: MarkdownMediaAudio; child
   const [position, setPosition] = useState(0);
   const duration = media.durationMs / 1000;
   useEffect(() => {
+    if (!frame.current || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting));
+    observer.observe(frame.current);
+    return () => observer.disconnect();
+  }, []);
+  useEffect(() => {
     const audio = ref.current;
     if (!audio) return;
     const stop = () => {
       generation.current++;
-      if (audio.getAttribute("src")) resumeAt.current = audio.currentTime;
+      if (audio.getAttribute("src")) resumeAt.current = pendingSeek.current?.target ?? audio.currentTime;
+      draggingRef.current = false; pendingSeek.current = null; setDragging(false);
+      if (seekTimer.current !== null) clearTimeout(seekTimer.current);
       releaseAudioPlayback(audio);
       // 后台中止在途缓冲；返回前台不设置 src、不自动续播。
       audio.removeAttribute("src"); audio.load();
+      desiredPosition.current = resumeAt.current; setPosition(resumeAt.current);
       setSeekReady(false); setWaiting(false); setPlaying(false);
     };
-    const visibility = () => { if (document.visibilityState === "hidden") stop(); };
+    const pagehide = () => { setPageActive(false); stop(); };
+    const visibility = () => { if (document.visibilityState === "hidden") pagehide(); else setPageActive(true); };
     document.addEventListener("visibilitychange", visibility);
-    window.addEventListener("pagehide", stop);
+    window.addEventListener("pagehide", pagehide);
     return () => {
       stop();
       document.removeEventListener("visibilitychange", visibility);
-      window.removeEventListener("pagehide", stop);
+      window.removeEventListener("pagehide", pagehide);
     };
   }, [media.sourceUrl]);
   const toggle = async () => {
@@ -62,13 +81,50 @@ function AudioPlayerBody({ media, children }: { media: MarkdownMediaAudio; child
       if (generation.current === request) { setFailed(true); setPlaying(false); }
     } finally { if (generation.current === request) setWaiting(false); }
   };
+  // 拖动只预览目标；松手才提交。提交后等待当前 seek 的事件，避免旧 timeupdate 回弹。
+  const readPosition = (audio: HTMLAudioElement) => {
+    if (!audio.getAttribute("src") || draggingRef.current) return;
+    if (pendingSeek.current !== null) {
+      if (audio.seeking || (Date.now() < pendingSeek.current.deadline && Math.abs(audio.currentTime - pendingSeek.current.target) > 0.25)) return;
+      pendingSeek.current = null;
+      if (seekTimer.current !== null) clearTimeout(seekTimer.current);
+    }
+    desiredPosition.current = audio.currentTime; setPosition(audio.currentTime);
+  };
+  const beginSeek = (audio: HTMLAudioElement, target: number) => {
+    if (seekTimer.current !== null) clearTimeout(seekTimer.current);
+    const pending = { target, deadline: Date.now() + 750 };
+    pendingSeek.current = pending; audio.currentTime = target;
+    // 原生 seek 可能有落点偏差；一次有界确认后恢复真实进度，不插值或循环驱动 UI。
+    seekTimer.current = setTimeout(() => { if (pendingSeek.current === pending) readPosition(audio); }, 750);
+  };
+  const seekTo = (seconds: number) => {
+    const audio = ref.current;
+    if (!audio || !seekReady || failed) return;
+    const target = Math.min(duration, Math.max(0, seconds));
+    try {
+      beginSeek(audio, target);
+      resumeAt.current = target; desiredPosition.current = target; setPosition(target);
+    } catch { pendingSeek.current = null; setSeekReady(false); readPosition(audio); }
+  };
+  const finishDrag = (commit: boolean) => {
+    if (!draggingRef.current) return;
+    draggingRef.current = false; setDragging(false);
+    if (commit) seekTo(desiredPosition.current);
+    else if (ref.current) readPosition(ref.current);
+  };
   const action = failed ? `${AUDIO_ACCESSIBILITY.retryLabel}${AUDIO_ACCESSIBILITY.playLabel}` : playing || waiting ? AUDIO_ACCESSIBILITY.pauseLabel : AUDIO_ACCESSIBILITY.playLabel;
   return (
-    <div data-slot="audio-player" data-wenyou-clipboard-audio={media.sourceUrl}
-      className="not-prose my-3 flex w-full items-center gap-3 rounded-[var(--radius-compact)] border border-border/50 bg-card px-3 py-2 text-foreground">
-      <Tooltip content={action}><button type="button" className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent/65 text-accent-foreground transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+    <div ref={frame} data-slot="audio-player" data-wenyou-clipboard-audio={media.sourceUrl}
+      data-playing={playing} data-dragging={dragging} data-visual-motion={inView && pageActive ? "on" : "off"}
+      className={cn(styles.player, "not-prose my-3 flex w-full items-center gap-3 rounded-[var(--radius-compact)] border border-border/50 bg-card px-3 py-2 text-foreground")}>
+      <Tooltip content={action}><button type="button" className={cn(styles.playButton, "flex size-10 shrink-0 items-center justify-center rounded-full text-accent-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring")}
         aria-label={action} aria-describedby={labelId} aria-pressed={playing} aria-busy={waiting} onClick={() => void toggle()}>
-        <WenyouIcon id={waiting ? "status.loading" : playing ? "media.pause" : "media.play"} className={waiting ? "size-5 animate-spin motion-reduce:animate-none" : "size-5"} />
+        <span className={styles.playFace} aria-hidden="true">
+          <span className={styles.icon} data-visible={!waiting && !playing}><WenyouIcon id="media.play" className="size-5" /></span>
+          <span className={styles.icon} data-visible={!waiting && playing}><WenyouIcon id="media.pause" className="size-5" /></span>
+          <span className={styles.icon} data-visible={waiting}><WenyouIcon id="status.loading" className={cn("size-5", waiting && styles.loading)} /></span>
+        </span>
       </button></Tooltip>
       <div className="min-w-0 flex-1">
         <div className="flex min-w-0 items-baseline gap-3">
@@ -78,10 +134,17 @@ function AudioPlayerBody({ media, children }: { media: MarkdownMediaAudio; child
         <div className="-mt-2 flex items-center">
           <input type="range" min={0} max={duration} step={0.1} value={Math.min(position, duration)} aria-label={AUDIO_ACCESSIBILITY.seekLabel} aria-valuetext={`${audioTime(position)} / ${audioTime(duration)}`}
             disabled={!seekReady || failed}
+            onPointerDown={(event) => {
+              if (event.button !== 0 || !seekReady || failed) return;
+              draggingRef.current = true; setDragging(true);
+              event.currentTarget.setPointerCapture?.(event.pointerId);
+            }}
+            onPointerUp={() => finishDrag(true)} onPointerCancel={() => finishDrag(false)}
+            onLostPointerCapture={() => finishDrag(false)} onBlur={() => finishDrag(false)}
             onChange={(event) => {
               const seconds = Number(event.target.value);
-              try { if (ref.current) ref.current.currentTime = seconds; setPosition(seconds); }
-              catch { setSeekReady(false); }
+              desiredPosition.current = seconds; setPosition(seconds);
+              if (!draggingRef.current) seekTo(seconds);
             }}
             style={{ "--audio-progress": `${Math.min(100, Math.max(0, position / duration * 100))}%` } as CSSProperties}
             className={styles.seek} />
@@ -91,13 +154,29 @@ function AudioPlayerBody({ media, children }: { media: MarkdownMediaAudio; child
       <audio ref={ref} preload={AUDIO_PLAYBACK.preload} onLoadedMetadata={(event) => {
         const audio = event.currentTarget;
         if (audio.readyState < 1) return;
-        try { if (resumeAt.current > 0) audio.currentTime = Math.min(resumeAt.current, duration); setSeekReady(true); }
+        try {
+          if (resumeAt.current > 0) beginSeek(audio, Math.min(resumeAt.current, duration));
+          setSeekReady(true);
+        }
         catch { setSeekReady(false); }
       }} onPlaying={() => { setPlaying(true); setWaiting(false); }}
-        onPause={() => { setPlaying(false); setWaiting(false); }} onWaiting={() => setWaiting(true)}
-        onTimeUpdate={(event) => { if (event.currentTarget.getAttribute("src")) setPosition(event.currentTarget.currentTime); }}
-        onEnded={() => { resumeAt.current = 0; setPlaying(false); setWaiting(false); }}
-        onError={() => { if (!ref.current?.getAttribute("src")) return; generation.current++; setFailed(true); setPlaying(false); setWaiting(false); }} />
+        onPause={(event) => {
+          draggingRef.current = false; pendingSeek.current = null;
+          if (seekTimer.current !== null) clearTimeout(seekTimer.current);
+          setDragging(false); setPlaying(false); setWaiting(false); readPosition(event.currentTarget);
+        }} onWaiting={() => setWaiting(true)}
+        onTimeUpdate={(event) => readPosition(event.currentTarget)} onSeeked={(event) => readPosition(event.currentTarget)}
+        onEnded={() => {
+          setPlaying(false); setWaiting(false);
+          if (draggingRef.current || pendingSeek.current !== null) return;
+          resumeAt.current = 0; desiredPosition.current = duration; setPosition(duration);
+        }}
+        onError={() => {
+          if (!ref.current?.getAttribute("src")) return;
+          generation.current++; draggingRef.current = false; pendingSeek.current = null;
+          if (seekTimer.current !== null) clearTimeout(seekTimer.current);
+          setDragging(false); setFailed(true); setPlaying(false); setWaiting(false);
+        }} />
     </div>
   );
 }

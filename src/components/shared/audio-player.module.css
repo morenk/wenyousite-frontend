@@ -1,3 +1,45 @@
+.player {
+  position: relative;
+  isolation: isolate;
+  transition: background-color 180ms ease-out, border-color 180ms ease-out;
+}
+.player::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(100deg, color-mix(in srgb, var(--brand-strong) 12%, transparent), transparent 60%);
+  opacity: 0;
+  transition: opacity 180ms ease-out;
+}
+.player[data-playing="true"] { border-color: color-mix(in srgb, var(--brand-strong) 22%, var(--border)); }
+.player[data-playing="true"]::before { opacity: 1; }
+.playFace {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--accent) 65%, transparent);
+  transition: transform 120ms ease-out, background-color 180ms ease-out;
+}
+.playButton:hover .playFace { background: var(--accent); }
+.playButton:active .playFace { transform: scale(0.96); }
+.icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 120ms ease-out;
+}
+.icon[data-visible="true"] { opacity: 1; }
+.loading { animation: loading-turn 1s linear infinite; }
+@keyframes loading-turn { to { transform: rotate(360deg); } }
+
 /* 轨道保持轻量，原生 range 仍提供键盘语义与 40px 透明触控区域。 */
 .seek {
   --audio-track: color-mix(in srgb, var(--muted-foreground) 20%, transparent);
@@ -28,6 +70,7 @@
   border: 0;
   border-radius: 50%;
   background: var(--brand-strong);
+  transition: transform 120ms ease-out;
 }
 .seek:disabled::-webkit-slider-thumb { visibility: hidden; }
 
@@ -47,5 +90,22 @@
   border: 0;
   border-radius: 50%;
   background: var(--brand-strong);
+  transition: transform 120ms ease-out;
 }
 .seek:disabled::-moz-range-thumb { visibility: hidden; }
+
+.player[data-dragging="true"] .seek::-webkit-slider-thumb,
+.seek:focus-visible::-webkit-slider-thumb { transform: scale(1.4); }
+.player[data-dragging="true"] .seek::-moz-range-thumb,
+.seek:focus-visible::-moz-range-thumb { transform: scale(1.4); }
+
+.player[data-visual-motion="off"], .player[data-visual-motion="off"]::before,
+.player[data-visual-motion="off"] * { transition: none; animation: none; }
+.player[data-visual-motion="off"] .seek::-webkit-slider-thumb { transition: none; }
+.player[data-visual-motion="off"] .seek::-moz-range-thumb { transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  .player, .player::before, .player * { transition: none !important; animation: none !important; }
+  .playButton:active .playFace { transform: none; }
+  .player .seek::-webkit-slider-thumb { transition: none; transform: none; }
+  .player .seek::-moz-range-thumb { transition: none; transform: none; }
+}
