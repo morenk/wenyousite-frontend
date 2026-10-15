@@ -11,13 +11,15 @@ function show(onClose = vi.fn()) { render(<ConfirmProvider><EditorToolbarSetting
 function tool(zone: "主栏" | "展开栏", name: string) {
   return within(screen.getByRole("toolbar", { name: `${zone}工具` })).getByRole("button", { name, exact: true });
 }
-test("点选与键盘浏览不改布局或存储，更多固定且对齐保留双图标", async () => {
+test("点击图标没有常驻选中态或位置按钮，更多固定且对齐保留双图标", async () => {
   show();
   expect(screen.queryByRole("button", { name: "无序列表" })).toBeNull();
   expect(screen.queryByRole("button", { name: "有序列表" })).toBeNull();
   expect(screen.queryByRole("button", { name: "音频" })).toBeNull();
   fireEvent.click(tool("主栏", "粗体"));
-  expect(screen.getByRole("group", { name: "调整粗体位置" })).toBeVisible();
+  expect(screen.queryByRole("group", { name: /调整.*位置/ })).toBeNull();
+  expect(screen.queryByRole("button", { name: /前移|后移|移到.*栏/ })).toBeNull();
+  expect(tool("主栏", "粗体")).not.toHaveAttribute("aria-pressed", "true");
   expect(screen.getByRole("button", { name: "保存", exact: true })).toBeDisabled();
   expect(localStorage.getItem(EDITOR_TOOLBAR_STORAGE_KEY)).toBeNull();
   expect(screen.getByRole("img", { name: "更多，固定位置" })).not.toHaveAttribute("draggable");
@@ -29,15 +31,20 @@ test("点选与键盘浏览不改布局或存储，更多固定且对齐保留�
   expect(screen.getByRole("button", { name: "保存", exact: true })).toBeDisabled();
   expect(scroll).toHaveBeenCalled();
 });
-test("点选后的连续位置操作支持排序和跨栏，保存仅写本机", async () => {
+test("键盘拖放支持排序和跨栏，放下后才修改布局并保存本机", async () => {
   const onClose = show();
-  fireEvent.click(tool("主栏", "粗体"));
-  fireEvent.click(screen.getByRole("button", { name: "将粗体移到展开栏" }));
-  expect(tool("展开栏", "粗体")).toHaveAttribute("aria-pressed", "true");
-  fireEvent.click(screen.getByRole("button", { name: "前移粗体" }));
-  expect(screen.getByText("粗体已移到展开栏第 1 项")).toHaveAttribute("role", "status");
-  fireEvent.click(tool("主栏", "正文样式"));
-  fireEvent.click(screen.getByRole("button", { name: "后移正文样式" }));
+  const bold = tool("主栏", "粗体");
+  fireEvent.keyDown(bold, { key: " " });
+  fireEvent.keyDown(bold, { key: "ArrowDown" });
+  fireEvent.keyDown(bold, { key: "Home" });
+  expect(tool("主栏", "粗体")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "保存", exact: true })).toBeDisabled();
+  fireEvent.keyDown(bold, { key: " " });
+  expect(tool("展开栏", "粗体")).toBeInTheDocument();
+  const heading = tool("主栏", "正文样式");
+  fireEvent.keyDown(heading, { key: "Enter" });
+  fireEvent.keyDown(heading, { key: "ArrowRight" });
+  fireEvent.keyDown(heading, { key: "Enter" });
   fireEvent.click(screen.getByRole("button", { name: "保存", exact: true }));
   await waitFor(() => expect(onClose).toHaveBeenCalled());
   const stored = parseEditorToolbarPreference(localStorage.getItem(EDITOR_TOOLBAR_STORAGE_KEY))!;
@@ -45,20 +52,23 @@ test("点选后的连续位置操作支持排序和跨栏，保存仅写本机",
   expect(stored.primary.slice(0, 2)).toEqual(["italic", "heading"]);
   expect([...stored.primary, ...stored.more]).not.toContain("more");
 });
-test("空栏保留落点，键盘操作可跨栏并保留选中工具", async () => {
+test("键盘可放入空栏，取消拖动保留原布局与弹窗", async () => {
   const preference = defaultCustomToolbar();
   localStorage.setItem(EDITOR_TOOLBAR_STORAGE_KEY, JSON.stringify({ ...preference, primary: [...preference.primary, ...preference.more], more: [] }));
   show();
   expect(within(screen.getByRole("region", { name: "展开栏" })).getByText("拖到这里")).toBeVisible();
-  const user = userEvent.setup();
-  await user.click(tool("主栏", "粗体"));
-  await user.keyboard("{Enter}");
-  screen.getByRole("button", { name: "将粗体移到展开栏" }).focus();
-  await user.keyboard("{Enter}");
-  expect(tool("展开栏", "粗体")).toHaveAttribute("aria-pressed", "true");
-  expect(screen.getByRole("button", { name: "将粗体移到主栏" })).toHaveFocus();
-  await user.keyboard("{Enter}");
-  expect(tool("主栏", "粗体")).toHaveAttribute("aria-pressed", "true");
+  const bold = tool("主栏", "粗体");
+  await userEvent.setup().click(bold);
+  fireEvent.keyDown(bold, { key: " " });
+  fireEvent.keyDown(bold, { key: "ArrowDown" });
+  fireEvent.keyDown(window, { key: "Escape" });
+  expect(tool("主栏", "粗体")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "保存", exact: true })).toBeDisabled();
+  expect(screen.getByRole("dialog", { name: "编辑器工具栏" })).toBeVisible();
+  fireEvent.keyDown(bold, { key: " " });
+  fireEvent.keyDown(bold, { key: "ArrowDown" });
+  fireEvent.keyDown(bold, { key: " " });
+  await waitFor(() => expect(tool("展开栏", "粗体")).toHaveFocus());
 });
 test("恢复默认保存后删除自定义", async () => {
   const preference = defaultCustomToolbar();
@@ -73,7 +83,10 @@ test("恢复默认保存后删除自定义", async () => {
 test("存储失败保留配置弹窗并显示恢复提示", async () => {
   const close = show();
   vi.spyOn(window.localStorage, "setItem").mockImplementation(() => { throw new Error("denied"); });
-  fireEvent.click(screen.getByRole("button", { name: "后移正文样式" }));
+  const heading = tool("主栏", "正文样式");
+  fireEvent.keyDown(heading, { key: " " });
+  fireEvent.keyDown(heading, { key: "ArrowRight" });
+  fireEvent.keyDown(heading, { key: " " });
   fireEvent.click(screen.getByRole("button", { name: "保存", exact: true }));
   expect(await screen.findByRole("alert")).toHaveTextContent("本机设置保存失败");
   expect(close).not.toHaveBeenCalled();
